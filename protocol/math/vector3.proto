@@ -1,0 +1,9 @@
+syntax = "proto3";
+package narupa.math;
+option csharp_namespace = "Narupa.Protocol.Math";
+
+message Vector3 {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}

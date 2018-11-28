@@ -1,0 +1,11 @@
+syntax = "proto3";
+package narupa.frame;
+option csharp_namespace = "Narupa.Protocol.Frame";
+
+import "math/vector3.proto";
+
+message AtomPositionBatch {
+  uint32 frame = 1;
+  uint32 start_index = 2;
+  repeated narupa.math.Vector3 positions = 3;
+}

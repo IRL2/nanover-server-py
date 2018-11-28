@@ -1,0 +1,11 @@
+syntax = "proto3";
+package narupa.xr;
+option csharp_namespace = "Narupa.Protocol.XR";
+
+import "math/vector3.proto";
+import "math/quaternion.proto";
+
+message TrackedObjectPosition {
+  narupa.math.Vector3 position = 1;
+  narupa.math.Quaternion rotation = 2;
+}

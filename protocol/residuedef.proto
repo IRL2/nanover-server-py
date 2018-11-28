@@ -1,0 +1,9 @@
+syntax = "proto3";
+package narupa.topology;
+option csharp_namespace = "Narupa.Protocol.Topology";
+
+message ResidueDef {
+  uint32 residue_index = 1;
+  string residue_name = 2;
+  repeated uint32 atom_indices = 3;
+}
