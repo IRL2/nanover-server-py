@@ -1,0 +1,11 @@
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\bin\Debug\netcoreapp2.2\csharp-proto.deps.json
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\bin\Debug\netcoreapp2.2\csharp-proto.runtimeconfig.json
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\bin\Debug\netcoreapp2.2\csharp-proto.runtimeconfig.dev.json
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\bin\Debug\netcoreapp2.2\csharp-proto.dll
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\bin\Debug\netcoreapp2.2\csharp-proto.pdb
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\obj\Debug\netcoreapp2.2\csharp-proto.csprojAssemblyReference.cache
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\obj\Debug\netcoreapp2.2\csharp-proto.csproj.CoreCompileInputs.cache
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\obj\Debug\netcoreapp2.2\csharp-proto.AssemblyInfoInputs.cache
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\obj\Debug\netcoreapp2.2\csharp-proto.AssemblyInfo.cs
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\obj\Debug\netcoreapp2.2\csharp-proto.dll
+C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\csharp-proto\obj\Debug\netcoreapp2.2\csharp-proto.pdb

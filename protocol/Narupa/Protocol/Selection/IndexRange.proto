@@ -1,0 +1,16 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+/ *
+  * IndexRange.proto
+  *
+  * Describes a range of indices in an indexed list
+  *
+  * /
+
+package Narupa.Protocol.Selection;
+
+message IndexRange {
+  uint32 start_index = 1;
+  uint32 end_index = 2;
+}

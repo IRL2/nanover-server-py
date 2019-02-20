@@ -1,0 +1,15 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+/ *
+  * VmdSelector.proto
+  *
+  * Defines a standard VMD language selector for atoms
+  *
+  * /
+
+package narupa.protocol.selection;
+
+message VmdSelector {
+  string selector = 1;
+}

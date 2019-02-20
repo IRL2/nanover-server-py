@@ -1,9 +1,0 @@
-syntax = "proto3";
-package narupa.topology;
-option csharp_namespace = "Narupa.Protocol.Topology";
-
-message ChainDef {
-  uint32 chain_index = 1;
-  string chain_name = 2;
-  repeated uint32 residue_indices = 3;
-}

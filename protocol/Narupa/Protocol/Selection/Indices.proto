@@ -1,0 +1,21 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+/ *
+  * Indices.proto
+  *
+  * Describes a subset of a list
+  *
+  * /
+
+import "IndexList.proto";
+import "IndexRange.proto";
+
+package narupa.protocol.selection;
+
+message Indices {
+  oneof {
+    IndexList index_list = 1;
+    IndexRange index_range = 2;
+  }
+}

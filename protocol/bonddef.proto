@@ -1,8 +1,0 @@
-syntax = "proto3";
-package narupa.topology;
-option csharp_namespace = "Narupa.Protocol.Topology";
-
-message BondDef {
-  int32 index_a = 1;
-  int32 index_b = 2;
-}

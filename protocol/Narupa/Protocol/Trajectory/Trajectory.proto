@@ -1,0 +1,26 @@
+message AtomInfo {
+  int atom_index = 1;
+  ushort element = 2;
+  string name = 3;
+  int residue_index = 4;
+  map<string,
+}
+
+message ResidueInfo {
+  int residue_index = 1;
+  repeated atom_indices = 2;
+  string name = 3;
+}
+
+message BondPair {
+  uint32 A = 1;
+  uint32 B = 2;
+}
+
+message TopologyInfo {
+  repeated ResidueInfo residues = 1;
+  repeated AtomInfo atoms = 2;
+  repeated BondPair bonds = 3;
+}
+
+message

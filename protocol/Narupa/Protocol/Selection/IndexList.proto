@@ -1,0 +1,15 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+/ *
+  * IndexList.proto
+  *
+  * Describes a set of indices
+  *
+  * /
+
+package narupa.protocol.selection;
+
+message IndexList {
+  repeated uint32 indices = 1;
+}
