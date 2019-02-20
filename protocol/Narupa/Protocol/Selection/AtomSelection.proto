@@ -1,22 +1,16 @@
 // Copyright (c) Alex Jamieson-Binnie. All rights reserved.
 // Licensed under the GPL. See License.txt in the project root for license information.
 
-/ *
-  * AtomSelection.proto
-  *
-  * Describes an atom selection, either represented as a collection of atom
-  * indices or as a VMD selector
-  *
-  * /
+syntax = "proto3";
 
-import "Indices.proto";
-import "VmdSelector.proto";
+import "narupa/protocol/selection/Indices.proto";
+import "narupa/protocol/selection/VmdSelector.proto";
 
 package narupa.protocol.selection;
 
 message AtomSelection {
-  oneof {
-    repeated Indices indices = 1;
+  oneof atom_selection {
+    Indices indices = 1;
     VmdSelector selector = 2;
   }
 }

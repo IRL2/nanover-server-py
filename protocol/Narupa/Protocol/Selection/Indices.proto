@@ -1,20 +1,15 @@
 // Copyright (c) Alex Jamieson-Binnie. All rights reserved.
 // Licensed under the GPL. See License.txt in the project root for license information.
 
-/ *
-  * Indices.proto
-  *
-  * Describes a subset of a list
-  *
-  * /
+syntax = "proto3";
 
-import "IndexList.proto";
-import "IndexRange.proto";
+import "narupa/protocol/selection/IndexList.proto";
+import "narupa/protocol/selection/IndexRange.proto";
 
 package narupa.protocol.selection;
 
 message Indices {
-  oneof {
+  oneof indices {
     IndexList index_list = 1;
     IndexRange index_range = 2;
   }

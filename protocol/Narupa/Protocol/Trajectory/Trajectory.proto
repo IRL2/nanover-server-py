@@ -1,14 +1,20 @@
+syntax = "proto3";
+
 message AtomInfo {
   int atom_index = 1;
   ushort element = 2;
   string name = 3;
   int residue_index = 4;
-  map<string,
 }
 
 message ResidueInfo {
   int residue_index = 1;
-  repeated atom_indices = 2;
+  string res_id = 2;
+  string name = 3;
+}
+
+message ChainInfo {
+  int chain_index = 1;
   string name = 3;
 }
 
@@ -18,9 +24,20 @@ message BondPair {
 }
 
 message TopologyInfo {
-  repeated ResidueInfo residues = 1;
-  repeated AtomInfo atoms = 2;
-  repeated BondPair bonds = 3;
+  repeated ChainInfo chains = 1;
+  repeated ResidueInfo residues = 2;
+  repeated AtomInfo atoms = 3;
+  repeated BondPair bonds = 4;
 }
 
-message
+message Vector3 {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message FrameFloats {
+  int frame_index = 1;
+  Indices indices = 2;
+  repeated float values = 3;
+}
