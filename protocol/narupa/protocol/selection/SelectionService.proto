@@ -1,0 +1,16 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+syntax = "proto3";
+
+import "narupa/protocol/selection/AddSelection.proto";
+import "narupa/protocol/selection/RemoveSelection.proto";
+import "narupa/protocol/selection/SetSelection.proto";
+
+package narupa.protocol.selection;
+
+service SelectionService {
+  rpc AddSelection (AddSelectionRequest) returns (AddSelectionResponse);
+  rpc RemoveSelection (RemoveSelectionRequest) returns (RemoveSelectionResponse);
+  rpc SetSelection (SetSelectionRequest) returns (SetSelectionResponse);
+}

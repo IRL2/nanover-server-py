@@ -1,0 +1,15 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+syntax = "proto3";
+
+package narupa.protocol.trajectory;
+
+message LoadTrajectoryRequest {
+  string path = 1;
+  string instance_id = 2;
+}
+
+message LoadTrajectoryResponse {
+  string instance_id = 1;
+}

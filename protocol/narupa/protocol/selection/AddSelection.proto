@@ -7,11 +7,13 @@ import "narupa/protocol/selection/AtomSelection.proto";
 
 package narupa.protocol.selection;
 
-message SetSelectionRequest {
+message AddSelectionRequest {
   string instance_id = 1;
   string selection_id = 2;
   AtomSelection selection = 3;
 }
 
-message SetSelectionResponse {
+message AddSelectionResponse {
+  string instance_id = 1;
+  string selection_id = 2;
 }

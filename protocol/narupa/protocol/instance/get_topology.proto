@@ -1,0 +1,20 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+syntax = "proto3";
+
+import "narupa/protocol/topology/topology.proto";
+import "narupa/protocol/delimiter.proto";
+
+package narupa.protocol.instance;
+
+message GetTopologyRequest {
+}
+
+message GetTopologyResponse {
+  uint32 frame_index = 1;
+  oneof content {
+    narupa.protocol.topology.TopologyData topology = 2;
+    narupa.protocol.Delimiter delimiter = 3;
+  }
+}

@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package narupa.protocol;
+
+// Delimits a stream into discrete start and end blocks
+enum Delimiter {
+  INVALID = 0;
+  START = 1;
+  END = 2;
+}

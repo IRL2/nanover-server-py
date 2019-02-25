@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package narupa.protocol;
+
+message FloatArray {
+  repeated float values = 1;
+}
+
+message IndexArray {
+  repeated uint32 values = 1;
+}
+
+message StringArray {
+  repeated string values = 1;
+}
+
+message ValueArray {
+  oneof values {
+    FloatArray float_values = 1;
+    IndexArray index_values = 2;
+    StringArray string_values = 3;
+  }
+}

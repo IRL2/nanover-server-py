@@ -1,0 +1,15 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+syntax = "proto3";
+
+package narupa.protocol.instance;
+
+message GetInstanceAtomCountRequest {
+  string instance_id = 1;
+}
+
+message GetInstanceAtomCountResponse {
+  string instance_id = 1;
+  uint32 atom_count = 2;
+}

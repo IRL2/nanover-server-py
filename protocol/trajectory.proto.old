@@ -4,107 +4,11 @@ option csharp_namespace = "Narupa.Protocol";
 
 
 
-// LoadTrajectory
-//
-// Load a trajectory from either a url or a file
-
-message LoadTrajectoryRequest {
-  string path = 1;
-  string instance_id = 2;
-}
-
-message LoadTrajectoryResponse {
-  string instance_id = 1;
-}
-
-
-
-// SetTrajectory
-//
-// Change an existing trajectory instance. Same syntax as LoadTrajectory
-
-message SetTrajectoryRequest {
-  string path = 1;
-  string instance_id = 2;
-}
-
-message SetTrajectoryResponse {
-  string instance_id = 1;
-}
-
-
-
-// GetInstanceAtomCount
-//
-// Get the number of atoms currently being displayed by an instance
-
-message GetInstanceAtomCountRequest {
-  string instance_id = 1;
-}
-
-message GetInstanceAtomCountResponse {
-  string instance_id = 1;
-  uint32 atom_count = 2;
-}
-
-
-
-// GetInstances
-//
-// Get a list of current instances along with their current atom count
-
-class InstanceInfo {
-  string instance_id = 1;
-  int atom_count = 2;
-  string name = 3;
-}
-
-message GetInstancesRequest {
-
-}
-
-message GetInstancesResponse {
-  repeated InstanceInfo instances = 1;
-}
-
-
-
-// SetRenderer
-//
-// Set renderer for a selection. Sets for base layer if selection_id not specified
-
-message SetRendererRequest {
-  string instance_id = 1;
-  string selection_id = 2;
-  repeated renderer = 3;
-}
-
-message SetRendererResponse {
-  string instance_id = 1;
-  string selection_id = 2;
-}
-
-
-
-// CRUD Selection
-
-
 
 // AddSelection
 //
 // Create a selection
 
-message AddSelectionRequest {
-  string instance_id = 1;
-  string selection_id = 2;
-  repeated uint32 indices = 3;
-  string vmd_selector = 4;
-}
-
-message AddSelectionResponse {
-  string instance_id = 1;
-  string selection_id = 2;
-}
 
 
 
@@ -112,13 +16,7 @@ message AddSelectionResponse {
 //
 // Get atom count of selection
 
-message RemoveSelectionRequest {
-  string instance_id = 1;
-  string selection_id = 2;
-}
 
-message RemoveSelectionResponse {
-}
 
 
 

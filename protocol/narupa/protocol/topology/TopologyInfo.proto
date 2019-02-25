@@ -1,0 +1,18 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+syntax = "proto3";
+
+import "narupa/protocol/topology/AtomInfo.proto";
+import "narupa/protocol/topology/ChainInfo.proto";
+import "narupa/protocol/topology/BondPair.proto";
+import "narupa/protocol/topology/ResidueInfo.proto";
+
+package narupa.protocol.topology;
+
+message TopologyInfo {
+  repeated narupa.protocol.topology.ChainInfo chains = 1;
+  repeated narupa.protocol.topology.ResidueInfo residues = 2;
+  repeated narupa.protocol.topology.AtomInfo atoms = 3;
+  repeated narupa.protocol.topology.BondPair bonds = 4;
+}
