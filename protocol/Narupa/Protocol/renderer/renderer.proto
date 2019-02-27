@@ -1,0 +1,7 @@
+syntax "proto3"
+
+package narupa.protocol.renderer;
+
+service RendererProvider {
+  rpc SetVisualisation (SetVisualisationRequest) returns (stream SetVisualisationResponse);
+}

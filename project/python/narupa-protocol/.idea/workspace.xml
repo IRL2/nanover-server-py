@@ -2,54 +2,62 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c0a775f1-a688-45ec-a15c-535aa7819623" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/MoleculeProviderClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol.DotSettings.user" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/.idea/contentModel.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/.idea/contentModel.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/riderModule.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/riderModule.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/Test.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.deps.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.deps.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.dll" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.pdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AddSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AddSelection.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AtomInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AtomInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AtomSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AtomSelection.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/BondPair.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/BondPair.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/ChainInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/ChainInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/GetInstanceAtomCount.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/GetInstanceAtomCount.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/GetInstances.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/GetInstances.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/IndexList.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/IndexList.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/IndexRange.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/IndexRange.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Indices.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Indices.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/InstanceInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/InstanceInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/LoadTrajectory.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/LoadTrajectory.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.assets.cache" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.assets.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.CoreCompileInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.CoreCompileInputs.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.FileListAbsolute.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.FileListAbsolute.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csprojAssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csprojAssemblyReference.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.dll" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.pdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/RemoveSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/RemoveSelection.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/ResidueInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/ResidueInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SelectionService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SelectionService.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SelectionServiceGrpc.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SelectionServiceGrpc.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SetSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SetSelection.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SetTrajectory.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SetTrajectory.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/TopologyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/TopologyInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/VmdSelector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/VmdSelector.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.g.props" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.g.props" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.g.targets" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.g.targets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/project.assets.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/project.packagespec.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/narupa-protocol.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/narupa-protocol.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../compile.sh" beforeDir="false" afterPath="$PROJECT_DIR$/../../../compile.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/narupy/5TVN.pdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/narupy/6FRJ.pdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/narupy/6GLI.pdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/narupy/6GLQ.pdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/narupy/6H8M.pdb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/array_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/array_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/delimiter_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/delimiter_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/GetInstanceAtomCount_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/GetInstanceAtomCount_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/GetInstances_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/GetInstances_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/InstanceInfo_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/InstanceInfo_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/get_frame_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/get_frame_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/get_topology_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/get_topology_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/molecule_provider_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/instance/molecule_provider_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/AddSelection_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/AddSelection_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/AtomSelection_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/AtomSelection_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/IndexList_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/IndexList_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/IndexRange_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/IndexRange_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/Indices_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/Indices_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/RemoveSelection_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/RemoveSelection_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/SelectionService_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/SelectionService_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/SetSelection_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/SetSelection_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/VmdSelector_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/selection/VmdSelector_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/AtomInfo_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/AtomInfo_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/BondPair_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/BondPair_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/ChainInfo_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/ChainInfo_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/ResidueInfo_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/ResidueInfo_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/TopologyInfo_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/TopologyInfo_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/topology_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/topology/topology_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/trajectory/LoadTrajectory_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/trajectory/LoadTrajectory_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/trajectory/SetTrajectory_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/trajectory/SetTrajectory_pb2_grpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/trajectory/frame_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupa/protocol/trajectory/frame_pb2_grpc.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/narupy/OpenMMTest.py" beforeDir="false" afterPath="$PROJECT_DIR$/narupy/OpenMMTest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupy/StreamTopology.py" beforeDir="false" afterPath="$PROJECT_DIR$/narupy/StreamTopology.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -58,7 +66,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/narupa_protocol$OpenMMTest.coverage" NAME="OpenMMTest Coverage Results" MODIFIED="1551205636081" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/narupy" />
+    <SUITE FILE_PATH="coverage/narupa_protocol$OpenMMTest.coverage" NAME="OpenMMTest Coverage Results" MODIFIED="1551294329374" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/narupy" />
     <SUITE FILE_PATH="coverage/narupa_protocol$StreamTopology.coverage" NAME="StreamTopology Coverage Results" MODIFIED="1551114890286" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/narupa" />
   </component>
   <component name="FileEditorManager">
@@ -66,8 +74,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/narupy/StreamTopology.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1141">
-              <caret line="176" selection-start-line="176" selection-end-line="176" />
+            <state relative-caret-position="85">
+              <caret line="23" selection-start-line="23" selection-end-line="23" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -75,29 +83,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/narupa/protocol/delimiter_pb2.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="231">
-              <caret line="48" column="1" selection-start-line="48" selection-start-column="1" selection-end-line="48" selection-end-column="1" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/molecule_provider_pb2_grpc.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="294">
-              <caret line="48" column="42" selection-start-line="48" selection-start-column="4" selection-end-line="48" selection-end-column="42" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/narupy/OpenMMTest.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="455">
-              <caret line="80" column="34" selection-start-line="80" selection-start-column="34" selection-end-line="80" selection-end-column="34" />
+            <state relative-caret-position="222">
+              <caret line="127" lean-forward="true" selection-start-line="127" selection-end-line="127" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -106,9 +96,18 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/Anaconda3/envs/narupa-protocol/Lib/site-packages/simtk/unit/quantity.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1785">
+              <caret line="105" selection-start-line="105" selection-end-line="105" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$USER_HOME$/Anaconda3/envs/narupa-protocol/Lib/site-packages/pypdb/pypdb.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="193">
+            <state relative-caret-position="1785">
               <caret line="116" column="49" selection-start-line="116" selection-start-column="26" selection-end-line="116" selection-end-column="49" />
             </state>
           </provider>
@@ -151,6 +150,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -172,20 +172,12 @@
             <path>
               <item name="narupa-protocol" type="b2602c69:ProjectViewProjectNode" />
               <item name="narupa-protocol" type="462c0819:PsiDirectoryNode" />
-              <item name="narupa" type="462c0819:PsiDirectoryNode" />
-              <item name="protocol" type="462c0819:PsiDirectoryNode" />
-              <item name="instance" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="narupa-protocol" type="b2602c69:ProjectViewProjectNode" />
-              <item name="narupa-protocol" type="462c0819:PsiDirectoryNode" />
               <item name="narupy" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -304,22 +296,24 @@
       <updated>1550933737662</updated>
       <workItem from="1550933739502" duration="10690000" />
       <workItem from="1551102019509" duration="4956000" />
-      <workItem from="1551113771911" duration="29089000" />
+      <workItem from="1551113771911" duration="32923000" />
+      <workItem from="1551289841185" duration="2373000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="44735000" />
+    <option name="totallyTimeSpent" value="50942000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="55" y="-7" width="1488" height="878" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.20868348" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2114846" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32171583" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.25067025" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39812332" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -373,9 +367,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/narupa/__init__.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/narupa/protocol/delimiter_pb2.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="231">
@@ -390,16 +381,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/narupy/StreamTopology.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1141">
-          <caret line="176" selection-start-line="176" selection-end-line="176" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Anaconda3/envs/narupa-protocol/Lib/site-packages/urllib3/response.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="259">
@@ -407,17 +388,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/narupy/StreamTopology.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="23" selection-start-line="23" selection-end-line="23" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/envs/narupa-protocol/Lib/site-packages/simtk/unit/quantity.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1785">
+          <caret line="105" selection-start-line="105" selection-end-line="105" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$USER_HOME$/Anaconda3/envs/narupa-protocol/Lib/site-packages/pypdb/pypdb.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="193">
+        <state relative-caret-position="1785">
           <caret line="116" column="49" selection-start-line="116" selection-start-column="26" selection-end-line="116" selection-end-column="49" />
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/narupa/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/narupy/OpenMMTest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="455">
-          <caret line="80" column="34" selection-start-line="80" selection-start-column="34" selection-end-line="80" selection-end-column="34" />
+        <state relative-caret-position="222">
+          <caret line="127" lean-forward="true" selection-start-line="127" selection-end-line="127" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>

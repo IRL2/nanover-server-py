@@ -6,6 +6,7 @@ import "narupa/protocol/array.proto";
 import "google/protobuf/struct.proto";
 
 message FrameData {
+  repeated float positions = 3;
   map<string, google.protobuf.Value> values = 1;
   map<string, narupa.protocol.ValueArray> arrays = 2;
 }

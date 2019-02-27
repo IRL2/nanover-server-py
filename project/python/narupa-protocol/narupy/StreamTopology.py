@@ -4,8 +4,6 @@ from queue import Queue
 
 import grpc
 
-from narupa.protocol.instance import molecule_provider_pb2, get_topology_pb2, get_frame_pb2
-
 from narupa.protocol.instance.molecule_provider_pb2_grpc import MoleculeProviderServicer, MoleculeProviderStub, add_MoleculeProviderServicer_to_server
 
 from narupa.protocol.delimiter_pb2 import START, END

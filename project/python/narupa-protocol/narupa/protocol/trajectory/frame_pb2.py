@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='narupa.protocol.trajectory',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n&narupa/protocol/trajectory/frame.proto\x12\x1anarupa.protocol.trajectory\x1a\x1bnarupa/protocol/array.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xa4\x02\n\tFrameData\x12\x41\n\x06values\x18\x01 \x03(\x0b\x32\x31.narupa.protocol.trajectory.FrameData.ValuesEntry\x12\x41\n\x06\x61rrays\x18\x02 \x03(\x0b\x32\x31.narupa.protocol.trajectory.FrameData.ArraysEntry\x1a\x45\n\x0bValuesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12%\n\x05value\x18\x02 \x01(\x0b\x32\x16.google.protobuf.Value:\x02\x38\x01\x1aJ\n\x0b\x41rraysEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x1b.narupa.protocol.ValueArray:\x02\x38\x01\x62\x06proto3')
+  serialized_pb=_b('\n&narupa/protocol/trajectory/frame.proto\x12\x1anarupa.protocol.trajectory\x1a\x1bnarupa/protocol/array.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xb7\x02\n\tFrameData\x12\x11\n\tpositions\x18\x03 \x03(\x02\x12\x41\n\x06values\x18\x01 \x03(\x0b\x32\x31.narupa.protocol.trajectory.FrameData.ValuesEntry\x12\x41\n\x06\x61rrays\x18\x02 \x03(\x0b\x32\x31.narupa.protocol.trajectory.FrameData.ArraysEntry\x1a\x45\n\x0bValuesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12%\n\x05value\x18\x02 \x01(\x0b\x32\x16.google.protobuf.Value:\x02\x38\x01\x1aJ\n\x0b\x41rraysEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x1b.narupa.protocol.ValueArray:\x02\x38\x01\x62\x06proto3')
   ,
   dependencies=[narupa_dot_protocol_dot_array__pb2.DESCRIPTOR,google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,])
 
@@ -61,8 +61,8 @@ _FRAMEDATA_VALUESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=277,
-  serialized_end=346,
+  serialized_start=296,
+  serialized_end=365,
 )
 
 _FRAMEDATA_ARRAYSENTRY = _descriptor.Descriptor(
@@ -98,8 +98,8 @@ _FRAMEDATA_ARRAYSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=348,
-  serialized_end=422,
+  serialized_start=367,
+  serialized_end=441,
 )
 
 _FRAMEDATA = _descriptor.Descriptor(
@@ -110,14 +110,21 @@ _FRAMEDATA = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='values', full_name='narupa.protocol.trajectory.FrameData.values', index=0,
+      name='positions', full_name='narupa.protocol.trajectory.FrameData.positions', index=0,
+      number=3, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='values', full_name='narupa.protocol.trajectory.FrameData.values', index=1,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='arrays', full_name='narupa.protocol.trajectory.FrameData.arrays', index=1,
+      name='arrays', full_name='narupa.protocol.trajectory.FrameData.arrays', index=2,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -136,7 +143,7 @@ _FRAMEDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=130,
-  serialized_end=422,
+  serialized_end=441,
 )
 
 _FRAMEDATA_VALUESENTRY.fields_by_name['value'].message_type = google_dot_protobuf_dot_struct__pb2._VALUE
