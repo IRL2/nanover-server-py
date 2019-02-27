@@ -2,46 +2,54 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c0a775f1-a688-45ec-a15c-535aa7819623" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/Test.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/narupa/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/narupy/OpenMMTest.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/narupy/StreamTopology.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/narupy/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../build.bat" beforeDir="false" afterPath="$PROJECT_DIR$/../../../build.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../build/csharp/Trajectory.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../build/csharp/TrajectoryGrpc.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../build/python/narupa/protocol/selection/IndexRange_pb2.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../../build/python/narupa/protocol/selection/IndexRange_pb2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../build/python/narupa/protocol/selection/SetSelection_pb2.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../../build/python/narupa/protocol/selection/SetSelection_pb2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../compile.sh" beforeDir="false" afterPath="$PROJECT_DIR$/../../../compile.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/.idea/.idea.csharp-proto/.idea/contentModel.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/.idea/.idea.csharp-proto/.idea/indexLayout.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/.idea/.idea.csharp-proto/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/.idea/.idea.csharp-proto/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/.idea/.idea.csharp-proto/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/.idea/.idea.csharp-proto/riderModule.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/Program.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/bin/Debug/netcoreapp2.2/csharp-proto.deps.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/bin/Debug/netcoreapp2.2/csharp-proto.dll" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/bin/Debug/netcoreapp2.2/csharp-proto.pdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/bin/Debug/netcoreapp2.2/csharp-proto.runtimeconfig.dev.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/bin/Debug/netcoreapp2.2/csharp-proto.runtimeconfig.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/csharp-proto.csproj" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/Debug/netcoreapp2.2/csharp-proto.AssemblyInfo.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/Debug/netcoreapp2.2/csharp-proto.AssemblyInfoInputs.cache" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/Debug/netcoreapp2.2/csharp-proto.assets.cache" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/Debug/netcoreapp2.2/csharp-proto.csproj.CoreCompileInputs.cache" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/Debug/netcoreapp2.2/csharp-proto.csproj.FileListAbsolute.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/Debug/netcoreapp2.2/csharp-proto.csprojAssemblyReference.cache" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/Debug/netcoreapp2.2/csharp-proto.dll" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/Debug/netcoreapp2.2/csharp-proto.pdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/csharp-proto.csproj.nuget.cache" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/csharp-proto.csproj.nuget.g.props" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/csharp-proto.csproj.nuget.g.targets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../csharp-proto/obj/project.assets.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../protocol/Narupa/Protocol/Selection/SetSelection.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../../../protocol/Narupa/Protocol/Selection/SetSelection.proto" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../protocol/Narupa/Protocol/Trajectory/Trajectory.proto" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../protocol/trajectory.proto.old" beforeDir="false" afterPath="$PROJECT_DIR$/../../../protocol/trajectory.proto.old" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/MoleculeProviderClient.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol.DotSettings.user" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/.idea/contentModel.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/.idea/contentModel.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/riderModule.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/.idea/.idea.Narupa.Protocol/riderModule.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/Test.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.deps.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.deps.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.dll" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/bin/Debug/netstandard2.0/Narupa.Protocol.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AddSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AddSelection.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AtomInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AtomInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AtomSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/AtomSelection.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/BondPair.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/BondPair.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/ChainInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/ChainInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/GetInstanceAtomCount.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/GetInstanceAtomCount.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/GetInstances.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/GetInstances.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/IndexList.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/IndexList.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/IndexRange.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/IndexRange.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Indices.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Indices.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/InstanceInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/InstanceInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/LoadTrajectory.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/LoadTrajectory.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.assets.cache" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.assets.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.CoreCompileInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.CoreCompileInputs.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.FileListAbsolute.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.FileListAbsolute.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csprojAssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.csprojAssemblyReference.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.dll" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/Narupa.Protocol.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/RemoveSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/RemoveSelection.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/ResidueInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/ResidueInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SelectionService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SelectionService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SelectionServiceGrpc.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SelectionServiceGrpc.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SetSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SetSelection.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SetTrajectory.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/SetTrajectory.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/TopologyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/TopologyInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/VmdSelector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Debug/netstandard2.0/VmdSelector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.g.props" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.g.props" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.g.targets" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/Narupa.Protocol.csproj.nuget.g.targets" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/project.assets.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../csharp/Narupa.Protocol/obj/project.packagespec.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/narupa-protocol.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/narupa-protocol.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupy/5TVN.pdb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupy/6FRJ.pdb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupy/6GLI.pdb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupy/6GLQ.pdb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupy/6H8M.pdb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/narupy/OpenMMTest.py" beforeDir="false" afterPath="$PROJECT_DIR$/narupy/OpenMMTest.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -50,16 +58,16 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/narupa_protocol$StreamTopology.coverage" NAME="StreamTopology Coverage Results" MODIFIED="1551111115197" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/narupa" />
-    <SUITE FILE_PATH="coverage/narupa_protocol$OpenMMTest.coverage" NAME="OpenMMTest Coverage Results" MODIFIED="1551113096547" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/narupy" />
+    <SUITE FILE_PATH="coverage/narupa_protocol$OpenMMTest.coverage" NAME="OpenMMTest Coverage Results" MODIFIED="1551205636081" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/narupy" />
+    <SUITE FILE_PATH="coverage/narupa_protocol$StreamTopology.coverage" NAME="StreamTopology Coverage Results" MODIFIED="1551114890286" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/narupa" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/narupy/StreamTopology.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1689">
-              <caret line="34" column="35" selection-start-line="34" selection-start-column="35" selection-end-line="34" selection-end-column="35" />
+            <state relative-caret-position="1141">
+              <caret line="176" selection-start-line="176" selection-end-line="176" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -88,8 +96,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/narupy/OpenMMTest.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="381">
-              <caret line="77" lean-forward="true" selection-start-line="77" selection-end-line="77" />
+            <state relative-caret-position="455">
+              <caret line="80" column="34" selection-start-line="80" selection-start-column="34" selection-end-line="80" selection-end-column="34" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -98,10 +106,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.conda/envs/narupa-protocol/lib/python3.7/site-packages/simtk/openmm/app/pdbfile.py">
+        <entry file="file://$USER_HOME$/Anaconda3/envs/narupa-protocol/Lib/site-packages/pypdb/pypdb.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="184">
-              <caret line="160" selection-start-line="160" selection-end-line="160" />
+            <state relative-caret-position="193">
+              <caret line="116" column="49" selection-start-line="116" selection-start-column="26" selection-end-line="116" selection-end-column="49" />
             </state>
           </provider>
         </entry>
@@ -133,9 +141,9 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" fullScreen="true">
-    <option name="width" value="1440" />
-    <option name="height" value="900" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="width" value="1920" />
+    <option name="height" value="1080" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -173,10 +181,6 @@
               <item name="narupa-protocol" type="462c0819:PsiDirectoryNode" />
               <item name="narupy" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="narupa-protocol" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-            </path>
           </expand>
           <select />
         </subPane>
@@ -186,8 +190,10 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -213,6 +219,8 @@
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="PATH" value="C:\Users\IT036394-Admin\Anaconda3\envs\narupa-protocol;C:\Users\IT036394-Admin\Anaconda3\envs\narupa-protocol\Library\mingw-w64\bin;C:\Users\IT036394-Admin\Anaconda3\envs\narupa-protocol\Library\usr\bin;C:\Users\IT036394-Admin\Anaconda3\envs\narupa-protocol\Library\bin;C:\Users\IT036394-Admin\Anaconda3\envs\narupa-protocol\Scripts;C:\Users\IT036394-Admin\Anaconda3\envs\narupa-protocol\bin;C:\Users\IT036394-Admin\Anaconda3;C:\Users\IT036394-Admin\Anaconda3\Library\mingw-w64\bin;C:\Users\IT036394-Admin\Anaconda3\Library\usr\bin;C:\Users\IT036394-Admin\Anaconda3\Library\bin;C:\Users\IT036394-Admin\Anaconda3\Scripts;C:\Program Files\Oculus\Support\oculus-runtime;C:\ProgramData\DockerDesktop\version-bin;C:\Program Files\Docker\Docker\Resources\bin;C:\Program Files\ImageMagick-7.0.8-Q16;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\iCLS\;C:\Program Files\Intel\Intel(R) Management Engine Components\iCLS\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Git\cmd;C:\Program Files\doxygen\bin;C:\Program Files (x86)\Wolfram Research\WolframScript\;C:\Program Files\dotnet\;C:\Users\IT036394-Admin\AppData\Local\Microsoft\WindowsApps;C:\Users\IT036394-Admin\AppData\Local\atom\bin;C:\Users\IT036394-Admin\AppData\Roaming\itch\apps\butler;C:\Program Files\doxygen\bin;C:\Users\IT036394-Admin\.dotnet\tools" />
+        <env name="PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION" value="cpp" />
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/narupy" />
@@ -273,6 +281,10 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.OpenMMTest" />
+      <item itemvalue="Python.StreamTopology" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.OpenMMTest" />
@@ -292,23 +304,23 @@
       <updated>1550933737662</updated>
       <workItem from="1550933739502" duration="10690000" />
       <workItem from="1551102019509" duration="4956000" />
+      <workItem from="1551113771911" duration="29089000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="15646000" />
+    <option name="totallyTimeSpent" value="44735000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1440" height="900" extended-state="0" />
-    <editor active="true" />
+    <frame x="55" y="-7" width="1488" height="878" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1509299" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.20868348" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.30361447" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32171583" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.39812332" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -322,7 +334,7 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="SciView" order="3" />
-      <window_info anchor="right" x="0" y="0" width="310" height="700" id="Documentation" order="4" side_tool="true" visible="true" weight="0.18311875" />
+      <window_info anchor="right" x="0" y="0" width="310" height="700" id="Documentation" order="4" side_tool="true" visible="true" weight="0.1904762" />
       <window_info anchor="right" id="Database" order="5" />
     </layout>
   </component>
@@ -332,25 +344,12 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/narupa/protocol/narupa/protocol/instance/GetInstanceAtomCount_pb2_grpc.py" />
     <entry file="file://$PROJECT_DIR$/narupa/protocol/narupa/protocol/instance/GetInstanceAtomCount_pb2.py" />
-    <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/MoleculeService_pb2_grpc.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="211">
-          <caret line="28" column="25" selection-start-line="28" selection-start-column="25" selection-end-line="28" selection-end-column="25" />
-          <folding>
-            <element signature="e#70#81#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/MoleculeService_pb2_grpc.py" />
     <entry file="file://$PROJECT_DIR$/narupa/protocol/topology/topology_pb2.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/narupa/protocol/__init__.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/__init__.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/narupa/protocol/__init__.py" />
+    <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/__init__.py" />
     <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/InstanceInfo_pb2.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="495">
@@ -361,13 +360,26 @@
     <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/InstanceInfo_pb2_grpc.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/StreamTopology_pb2_grpc.py">
+    <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/StreamTopology_pb2_grpc.py" />
+    <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/StreamTopology_pb2.py" />
+    <entry file="file://$USER_HOME$/.conda/envs/narupa-protocol/lib/python3.7/site-packages/simtk/openmm/app/pdbfile.py" />
+    <entry file="file://$PROJECT_DIR$/narupy/6H8M.pdb">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/narupa/protocol/instance/StreamTopology_pb2.py">
+    <entry file="file://$USER_HOME$/Anaconda3/envs/narupa-protocol/Lib/site-packages/grpc/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1515">
-          <caret line="101" column="81" selection-start-line="101" selection-start-column="81" selection-end-line="101" selection-end-column="81" />
+        <state relative-caret-position="137">
+          <caret line="20" lean-forward="true" selection-start-line="20" selection-end-line="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/narupa/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/narupa/protocol/delimiter_pb2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="231">
+          <caret line="48" column="1" selection-start-line="48" selection-start-column="1" selection-end-line="48" selection-end-column="1" />
         </state>
       </provider>
     </entry>
@@ -378,37 +390,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/narupa/protocol/delimiter_pb2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="231">
-          <caret line="48" column="1" selection-start-line="48" selection-start-column="1" selection-end-line="48" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/narupa/__init__.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/narupy/StreamTopology.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1689">
-          <caret line="34" column="35" selection-start-line="34" selection-start-column="35" selection-end-line="34" selection-end-column="35" />
+        <state relative-caret-position="1141">
+          <caret line="176" selection-start-line="176" selection-end-line="176" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.conda/envs/narupa-protocol/lib/python3.7/site-packages/simtk/openmm/app/pdbfile.py">
+    <entry file="file://$USER_HOME$/Anaconda3/envs/narupa-protocol/Lib/site-packages/urllib3/response.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="184">
-          <caret line="160" selection-start-line="160" selection-end-line="160" />
+        <state relative-caret-position="259">
+          <caret line="524" selection-start-line="524" selection-end-line="524" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/envs/narupa-protocol/Lib/site-packages/pypdb/pypdb.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="193">
+          <caret line="116" column="49" selection-start-line="116" selection-start-column="26" selection-end-line="116" selection-end-column="49" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/narupy/OpenMMTest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="381">
-          <caret line="77" lean-forward="true" selection-start-line="77" selection-end-line="77" />
+        <state relative-caret-position="455">
+          <caret line="80" column="34" selection-start-line="80" selection-start-column="34" selection-end-line="80" selection-end-column="34" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>

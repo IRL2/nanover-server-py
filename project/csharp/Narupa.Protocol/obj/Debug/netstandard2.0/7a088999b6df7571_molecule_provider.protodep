@@ -1,0 +1,9 @@
+obj\Debug\netstandard2.0/MoleculeProvider.cs \
+obj\Debug\netstandard2.0/MoleculeProviderGrpc.cs: ../../../protocol/narupa/protocol/array.proto\
+ C:/Users/IT036394-Admin/.nuget/packages/grpc.tools/1.18.0/build/native/include/google/protobuf/struct.proto\
+ ../../../protocol/narupa/protocol/topology/topology.proto\
+ ../../../protocol/narupa/protocol/delimiter.proto\
+ ../../../protocol/narupa/protocol/instance/get_topology.proto\
+ ../../../protocol/narupa/protocol/trajectory/frame.proto\
+ ../../../protocol/narupa/protocol/instance/get_frame.proto\
+ ../../../protocol/Narupa/Protocol/instance/molecule_provider.proto

@@ -3,10 +3,7 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$/../.." />
-    <content url="file://$MODULE_DIR$/../../../../../protocol/narupa/protocol/instance" />
-    <content url="file://$MODULE_DIR$/../../../../../protocol/narupa/protocol/selection" />
-    <content url="file://$MODULE_DIR$/../../../../../protocol/narupa/protocol/topology" />
-    <content url="file://$MODULE_DIR$/../../../../../protocol/narupa/protocol/trajectory" />
+    <content url="file://$MODULE_DIR$/../../../../../protocol/Narupa/Protocol" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Bundled Protobuf Distribution" level="application" />
   </component>

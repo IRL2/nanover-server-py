@@ -1,13 +1,13 @@
 ﻿{
   "version": "1.0.0",
   "restore": {
-    "projectUniqueName": "/Users/alexjbinnie/Projects/Narupa/narupa-protocol/project/csharp/Narupa.Protocol/Narupa.Protocol.csproj",
+    "projectUniqueName": "C:\\Users\\IT036394-Admin\\Projects\\Narupa\\narupa-protocol\\project\\csharp\\Narupa.Protocol\\Narupa.Protocol.csproj",
     "projectName": "Narupa.Protocol",
-    "projectPath": "/Users/alexjbinnie/Projects/Narupa/narupa-protocol/project/csharp/Narupa.Protocol/Narupa.Protocol.csproj",
-    "outputPath": "/Users/alexjbinnie/Projects/Narupa/narupa-protocol/project/csharp/Narupa.Protocol/obj/",
+    "projectPath": "C:\\Users\\IT036394-Admin\\Projects\\Narupa\\narupa-protocol\\project\\csharp\\Narupa.Protocol\\Narupa.Protocol.csproj",
+    "outputPath": "C:\\Users\\IT036394-Admin\\Projects\\Narupa\\narupa-protocol\\project\\csharp\\Narupa.Protocol\\obj\\",
     "projectStyle": "PackageReference",
     "fallbackFolders": [
-      "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
+      "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
     ],
     "originalTargetFrameworks": [
       "netstandard2.0"

@@ -1,0 +1,5 @@
+obj\Debug\netstandard2.0/TopologyInfo.cs: ../../../protocol/narupa/protocol/topology/AtomInfo.proto\
+ ../../../protocol/narupa/protocol/topology/ChainInfo.proto\
+ ../../../protocol/narupa/protocol/topology/BondPair.proto\
+ ../../../protocol/narupa/protocol/topology/ResidueInfo.proto\
+ ../../../protocol/Narupa/Protocol/topology/TopologyInfo.proto

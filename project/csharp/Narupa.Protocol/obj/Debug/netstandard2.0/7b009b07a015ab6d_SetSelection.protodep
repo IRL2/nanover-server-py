@@ -1,0 +1,6 @@
+obj\Debug\netstandard2.0/SetSelection.cs: ../../../protocol/narupa/protocol/selection/IndexList.proto\
+ ../../../protocol/narupa/protocol/selection/IndexRange.proto\
+ ../../../protocol/narupa/protocol/selection/Indices.proto\
+ ../../../protocol/narupa/protocol/selection/VmdSelector.proto\
+ ../../../protocol/narupa/protocol/selection/AtomSelection.proto\
+ ../../../protocol/Narupa/Protocol/Selection/SetSelection.proto
