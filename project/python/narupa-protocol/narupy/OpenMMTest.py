@@ -34,9 +34,9 @@ def convert_topology(topology):
 # Prepare topology for sending to client
 def convert_frame(positions):
     data = FrameData()
-    #array = data.arrays['atom.position'].float_values.values
+    array = data.arrays['atom.position'].float_values.values
     floats = [value for position in positions for value in position._value]
-    data.positions.extend(floats)
+    array.extend(floats)
     return data
 
 from pdbfixer import PDBFixer
@@ -102,7 +102,7 @@ def test_timings():
          #   pass
     exit(0)
 
-#download_and_fix_pdb("5ZJZ", forcefield)
+download_and_fix_pdb("5ZJZ", forcefield)
 pdb = PDBFile("5ZJZ.pdb")
 topology, positions = pdb.topology, pdb.positions
 

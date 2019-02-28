@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
-    <e p="C:\Users\IT036394-Admin\.Rider2018.3\system\extResources" t="IncludeRecursive" />
-    <e p="C:\Users\IT036394-Admin\.Rider2018.3\system\resharper-host\local\Transient\ReSharperHost\v183\SolutionCaches\_Narupa.992670380.00" t="ExcludeRecursive" />
+    <e p="C:\Users\IT036394-Admin\.Rider2018.2\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\IT036394-Admin\.Rider2018.2\system\resharper-host\local\Transient\ReSharperHost\v182\SolutionCaches\_Narupa.992670380.00" t="ExcludeRecursive" />
     <e p="C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\project\csharp\Narupa.Protocol" t="IncludeRecursive">
-      <e p="bin" t="ExcludeRecursive" />
+      <e p="bin" t="ExcludeRecursive">
+        <e p="Debug" t="Include">
+          <e p="netstandard2.0" t="Include">
+            <e p="Narupa.Protocol.deps.json" t="Include" />
+            <e p="Narupa.Protocol.dll" t="Include" />
+            <e p="Narupa.Protocol.pdb" t="Include" />
+          </e>
+        </e>
+      </e>
       <e p="MoleculeProviderClient.cs" t="Include" />
       <e p="Narupa.Protocol.csproj" t="IncludeRecursive" />
       <e p="obj" t="ExcludeRecursive">
@@ -49,6 +57,8 @@
             <e p="Narupa.Protocol.AssemblyInfo.cs" t="Include" />
             <e p="RemoveSelection.cs" t="Include" />
             <e p="RemoveSelectionGrpc.cs" t="Include" />
+            <e p="Renderer.cs" t="Include" />
+            <e p="RendererGrpc.cs" t="Include" />
             <e p="ResidueInfo.cs" t="Include" />
             <e p="ResidueInfoGrpc.cs" t="Include" />
             <e p="SelectionService.cs" t="Include" />
@@ -67,6 +77,7 @@
         </e>
       </e>
       <e p="packages" t="ExcludeRecursive" />
+      <e p="RendererProviderService.cs" t="Include" />
     </e>
     <e p="C:\Users\IT036394-Admin\Projects\Narupa\narupa-protocol\protocol\Narupa\protocol" t="Include">
       <e p="array.proto" t="Include" />
@@ -78,6 +89,9 @@
         <e p="GetInstances.proto" t="Include" />
         <e p="InstanceInfo.proto" t="Include" />
         <e p="molecule_provider.proto" t="Include" />
+      </e>
+      <e p="renderer" t="Include">
+        <e p="renderer.proto" t="Include" />
       </e>
       <e p="selection" t="Include">
         <e p="AddSelection.proto" t="Include" />

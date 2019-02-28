@@ -40,6 +40,7 @@ class NarupaFrame(object):
         ]
 
 
+
 class NarupaInstanceService(MoleculeProviderServicer):
     topology_queues: List[Queue]
     frame_queues: List[Queue]

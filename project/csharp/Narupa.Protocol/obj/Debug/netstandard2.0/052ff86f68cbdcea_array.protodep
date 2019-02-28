@@ -1,1 +1,1 @@
-obj\Debug\netstandard2.0/Array.cs: ../../../protocol/Narupa/Protocol/array.proto
+obj\Debug\netstandard2.0/Array.cs: ../../../protocol/narupa/protocol/array.proto

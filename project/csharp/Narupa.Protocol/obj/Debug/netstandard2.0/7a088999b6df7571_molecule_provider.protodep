@@ -6,4 +6,4 @@ obj\Debug\netstandard2.0/MoleculeProviderGrpc.cs: ../../../protocol/narupa/proto
  ../../../protocol/narupa/protocol/instance/get_topology.proto\
  ../../../protocol/narupa/protocol/trajectory/frame.proto\
  ../../../protocol/narupa/protocol/instance/get_frame.proto\
- ../../../protocol/Narupa/Protocol/instance/molecule_provider.proto
+ ../../../protocol/narupa/protocol/instance/molecule_provider.proto

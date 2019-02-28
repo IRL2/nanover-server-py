@@ -7,4 +7,4 @@ obj\Debug\netstandard2.0/SelectionServiceGrpc.cs: ../../../protocol/narupa/proto
  ../../../protocol/narupa/protocol/selection/AddSelection.proto\
  ../../../protocol/narupa/protocol/selection/RemoveSelection.proto\
  ../../../protocol/narupa/protocol/selection/SetSelection.proto\
- ../../../protocol/Narupa/Protocol/Selection/SelectionService.proto
+ ../../../protocol/narupa/protocol/selection/SelectionService.proto

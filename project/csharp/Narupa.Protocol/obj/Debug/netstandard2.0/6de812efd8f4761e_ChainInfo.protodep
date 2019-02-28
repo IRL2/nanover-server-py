@@ -1,1 +1,1 @@
-obj\Debug\netstandard2.0/ChainInfo.cs: ../../../protocol/Narupa/Protocol/topology/ChainInfo.proto
+obj\Debug\netstandard2.0/ChainInfo.cs: ../../../protocol/narupa/protocol/topology/ChainInfo.proto

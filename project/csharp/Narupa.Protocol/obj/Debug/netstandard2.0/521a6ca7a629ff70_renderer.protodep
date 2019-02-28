@@ -1,0 +1,2 @@
+obj\Debug\netstandard2.0/Renderer.cs \
+obj\Debug\netstandard2.0/RendererGrpc.cs: ../../../protocol/narupa/protocol/renderer/renderer.proto

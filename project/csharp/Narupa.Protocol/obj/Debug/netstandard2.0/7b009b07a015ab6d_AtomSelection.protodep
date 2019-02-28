@@ -2,4 +2,4 @@ obj\Debug\netstandard2.0/AtomSelection.cs: ../../../protocol/narupa/protocol/sel
  ../../../protocol/narupa/protocol/selection/IndexRange.proto\
  ../../../protocol/narupa/protocol/selection/Indices.proto\
  ../../../protocol/narupa/protocol/selection/VmdSelector.proto\
- ../../../protocol/Narupa/Protocol/Selection/AtomSelection.proto
+ ../../../protocol/narupa/protocol/selection/AtomSelection.proto

@@ -1,2 +1,2 @@
 obj\Debug\netstandard2.0/GetInstances.cs: ../../../protocol/narupa/protocol/instance/InstanceInfo.proto\
- ../../../protocol/Narupa/Protocol/instance/GetInstances.proto
+ ../../../protocol/narupa/protocol/instance/GetInstances.proto

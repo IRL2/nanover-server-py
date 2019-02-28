@@ -3,4 +3,4 @@ obj\Debug\netstandard2.0/AddSelection.cs: ../../../protocol/narupa/protocol/sele
  ../../../protocol/narupa/protocol/selection/Indices.proto\
  ../../../protocol/narupa/protocol/selection/VmdSelector.proto\
  ../../../protocol/narupa/protocol/selection/AtomSelection.proto\
- ../../../protocol/Narupa/Protocol/Selection/AddSelection.proto
+ ../../../protocol/narupa/protocol/selection/AddSelection.proto

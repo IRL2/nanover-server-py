@@ -1,7 +1,15 @@
-syntax "proto3"
+syntax = "proto3";
 
 package narupa.protocol.renderer;
 
+message RunGraphicsBenchmarkRequest {
+  float duration = 1;
+}
+
+message RunGraphicsBenchmarkResponse {
+  float averageFps = 1;
+}
+
 service RendererProvider {
-  rpc SetVisualisation (SetVisualisationRequest) returns (stream SetVisualisationResponse);
+  rpc RunGraphicsBenchmark(RunGraphicsBenchmarkRequest) returns (RunGraphicsBenchmarkResponse);
 }

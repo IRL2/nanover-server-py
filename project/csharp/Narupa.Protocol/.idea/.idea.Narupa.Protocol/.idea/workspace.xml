@@ -2,31 +2,63 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="468e50bf-3d8d-4800-9bd5-262b9cbbb091" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/MoleculeProviderClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Narupa.Protocol.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/../Narupa.Protocol.DotSettings.user" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RendererProviderService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/protocol/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/protocol/publisher.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/topology/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/topology/narupa_topology.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Narupa.Protocol/.idea/contentModel.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Narupa.Protocol/.idea/contentModel.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Narupa.Protocol/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Narupa.Protocol/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Narupa.Protocol/riderModule.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Narupa.Protocol/riderModule.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Test.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Narupa.Protocol.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Narupa.Protocol.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/Debug/netstandard2.0/Narupa.Protocol.deps.json" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/netstandard2.0/Narupa.Protocol.deps.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/Debug/netstandard2.0/Narupa.Protocol.dll" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/netstandard2.0/Narupa.Protocol.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/Debug/netstandard2.0/Narupa.Protocol.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/netstandard2.0/Narupa.Protocol.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/052ff86f68cbdcea_array.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/052ff86f68cbdcea_array.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/052ff86f68cbdcea_delimiter.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/052ff86f68cbdcea_delimiter.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/12b47f4a15f46846_LoadTrajectory.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/12b47f4a15f46846_LoadTrajectory.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/12b47f4a15f46846_SetTrajectory.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/12b47f4a15f46846_SetTrajectory.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/12b47f4a15f46846_frame.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/12b47f4a15f46846_frame.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_AtomInfo.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_AtomInfo.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_BondPair.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_BondPair.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_ChainInfo.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_ChainInfo.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_ResidueInfo.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_ResidueInfo.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_TopologyInfo.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_TopologyInfo.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_topology.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/6de812efd8f4761e_topology.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_GetInstanceAtomCount.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_GetInstanceAtomCount.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_GetInstances.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_GetInstances.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_InstanceInfo.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_InstanceInfo.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_get_frame.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_get_frame.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_get_topology.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_get_topology.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_molecule_provider.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7a088999b6df7571_molecule_provider.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_AddSelection.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_AddSelection.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_AtomSelection.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_AtomSelection.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_IndexList.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_IndexList.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_IndexRange.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_IndexRange.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_Indices.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_Indices.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_RemoveSelection.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_RemoveSelection.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_SelectionService.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_SelectionService.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_SetSelection.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_SetSelection.protodep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_VmdSelector.protodep" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/7b009b07a015ab6d_VmdSelector.protodep" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/AddSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/AddSelection.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Array.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Array.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/AtomInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/AtomInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/AtomSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/AtomSelection.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/BondPair.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/BondPair.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/ChainInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/ChainInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Delimiter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Delimiter.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Frame.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Frame.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/GetFrame.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/GetFrame.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/GetInstanceAtomCount.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/GetInstanceAtomCount.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/GetInstances.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/GetInstances.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/GetTopology.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/GetTopology.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/IndexList.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/IndexList.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/IndexRange.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/IndexRange.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Indices.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Indices.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/InstanceInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/InstanceInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/LoadTrajectory.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/LoadTrajectory.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.assets.cache" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.assets.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/MoleculeProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/MoleculeProvider.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/MoleculeProviderGrpc.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/MoleculeProviderGrpc.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.CoreCompileInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.CoreCompileInputs.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.FileListAbsolute.txt" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.csproj.FileListAbsolute.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.csprojAssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.csprojAssemblyReference.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.dll" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Narupa.Protocol.pdb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/RemoveSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/RemoveSelection.cs" afterDir="false" />
@@ -35,21 +67,16 @@
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/SelectionServiceGrpc.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/SelectionServiceGrpc.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/SetSelection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/SetSelection.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/SetTrajectory.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/SetTrajectory.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Topology.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/Topology.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/TopologyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/TopologyInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/netstandard2.0/VmdSelector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/netstandard2.0/VmdSelector.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/obj/Narupa.Protocol.csproj.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Narupa.Protocol.csproj.nuget.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Narupa.Protocol.csproj.nuget.g.props" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Narupa.Protocol.csproj.nuget.g.props" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/obj/Narupa.Protocol.csproj.nuget.g.targets" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Narupa.Protocol.csproj.nuget.g.targets" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/project.assets.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/project.packagespec.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../python/narupa-protocol/.idea/narupa-protocol.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../../python/narupa-protocol/.idea/narupa-protocol.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../python/narupa-protocol/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../python/narupa-protocol/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/5TVN.pdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/6FRJ.pdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/6GLI.pdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/6GLQ.pdb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/6H8M.pdb" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/OpenMMTest.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/OpenMMTest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/StreamTopology.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../python/narupa-protocol/narupy/StreamTopology.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../protocol/Narupa/Protocol/renderer/renderer.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../../../protocol/Narupa/Protocol/renderer/renderer.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../protocol/narupa/protocol/trajectory/frame.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../../../protocol/narupa/protocol/trajectory/frame.proto" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -57,15 +84,47 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FUSProjectUsageTrigger">
+    <session id="-320880232">
+      <usages-collector id="statistics.lifecycle.project">
+        <counts>
+          <entry key="project.open.time.1" value="1" />
+          <entry key="project.opened" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.open">
+        <counts>
+          <entry key="cs" value="1" />
+          <entry key="targets" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.open">
+        <counts>
+          <entry key="C#" value="1" />
+          <entry key="MsBuild targets file" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.edit">
+        <counts>
+          <entry key="cs" value="455" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.edit">
+        <counts>
+          <entry key="C#" value="455" />
+        </counts>
+      </usages-collector>
+    </session>
+  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MoleculeProviderClient.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="370">
-              <caret line="42" column="37" selection-start-line="42" selection-start-column="37" selection-end-line="42" selection-end-column="37" />
+            <state relative-caret-position="204">
+              <caret line="12" column="62" selection-start-line="12" selection-start-column="56" selection-end-line="12" selection-end-column="62" />
               <folding>
-                <marker date="1551137384877" expanded="false" signature="6:184" ph="..." />
+                <marker date="1551137384877" expanded="true" signature="6:184" ph="..." />
                 <marker date="1551137384877" expanded="true" signature="211:1828" ph="{...}" />
                 <marker date="1551137384877" expanded="true" signature="247:1826" ph="{...}" />
                 <marker date="1551137384877" expanded="true" signature="366:551" ph="{...}" />
@@ -80,59 +139,84 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/obj/Debug/netstandard2.0/MoleculeProviderGrpc.cs">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/RendererProviderService.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="867">
-              <caret line="59" column="47" selection-start-line="59" selection-start-column="25" selection-end-line="59" selection-end-column="47" />
+            <state relative-caret-position="221">
+              <caret line="13" lean-forward="true" selection-start-line="13" selection-end-line="13" />
               <folding>
-                <marker date="1551137117887" expanded="true" signature="0:346" ph="/* &lt;auto-generated&gt; ... */" />
-                <marker date="1551137117887" expanded="true" signature="382:8391" ph="Designer generated code" />
-                <marker date="1551137117887" expanded="true" signature="483:8380" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="531:8378" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="3019:3136" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="3282:4033" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="3553:3661" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="3918:4026" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="4180:7092" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="4193:4338" ph="///Creates a new client for MoleculeProvider ... " />
-                <marker date="1551137117887" expanded="true" signature="4413:4429" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="4436:4628" ph="///Creates a new client for MoleculeProvider that uses a custom &lt;c&gt;CallInvoker&lt;/c&gt;. ... " />
-                <marker date="1551137117887" expanded="true" signature="4715:4731" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="4881:4897" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="4904:5061" ph="///Protected constructor to allow creation of configured clients. ... " />
-                <marker date="1551137117887" expanded="true" signature="5161:5177" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="5552:5672" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="5884:6005" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="6370:6487" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="6690:6808" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="7012:7086" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="7098:7281" ph="///Creates service definition that can be registered with a server ... " />
-                <marker date="1551137117887" expanded="true" signature="7375:7609" ph="{...}" />
-                <marker date="1551137117887" expanded="true" signature="7615:8079" ph="///Register service method implementations with a service binder. Useful when customizing the service binding log ... " />
-                <marker date="1551137117887" expanded="true" signature="8187:8373" ph="{...}" />
+                <marker date="1551367046359" expanded="true" signature="6:126" ph="..." />
+                <marker date="1551367046359" expanded="true" signature="153:997" ph="{...}" />
+                <marker date="1551367046359" expanded="true" signature="236:995" ph="{...}" />
+                <marker date="1551367046359" expanded="true" signature="589:825" ph="{...}" />
+                <marker date="1551367046359" expanded="true" signature="863:989" ph="{...}" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/topology/AtomInfo.proto">
+        <entry file="file://$USER_HOME$/.nuget/packages/grpc.tools/1.18.0/build/_protobuf/Google.Protobuf.Tools.targets">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="166">
+              <caret line="259" column="33" selection-start-line="259" selection-start-column="33" selection-end-line="259" selection-end-column="33" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/obj/Debug/netstandard2.0/MoleculeProviderGrpc.cs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <caret line="59" column="47" selection-start-line="59" selection-start-column="25" selection-end-line="59" selection-end-column="47" />
+              <folding>
+                <marker date="1551372664284" expanded="true" signature="0:346" ph="/* &lt;auto-generated&gt; ... */" />
+                <marker date="1551372664284" expanded="true" signature="382:8391" ph="Designer generated code" />
+                <marker date="1551372664284" expanded="true" signature="483:8380" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="531:8378" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="3019:3136" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="3282:4033" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="3553:3661" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="3918:4026" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="4180:7092" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="4193:4338" ph="///Creates a new client for MoleculeProvider ... " />
+                <marker date="1551372664284" expanded="true" signature="4413:4429" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="4436:4628" ph="///Creates a new client for MoleculeProvider that uses a custom &lt;c&gt;CallInvoker&lt;/c&gt;. ... " />
+                <marker date="1551372664284" expanded="true" signature="4715:4731" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="4881:4897" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="4904:5061" ph="///Protected constructor to allow creation of configured clients. ... " />
+                <marker date="1551372664284" expanded="true" signature="5161:5177" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="5552:5672" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="5884:6005" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="6370:6487" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="6690:6808" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="7012:7086" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="7098:7281" ph="///Creates service definition that can be registered with a server ... " />
+                <marker date="1551372664284" expanded="true" signature="7375:7609" ph="{...}" />
+                <marker date="1551372664284" expanded="true" signature="7615:8079" ph="///Register service method implementations with a service binder. Useful when customizing the service binding log ... " />
+                <marker date="1551372664284" expanded="true" signature="8187:8373" ph="{...}" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/topology/AtomInfo.proto">
           <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/topology/ChainInfo.proto">
+        <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/topology/ChainInfo.proto">
           <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/trajectory/SetTrajectory.proto">
+        <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/trajectory/SetTrajectory.proto">
           <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/instance/GetInstances.proto">
+        <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/instance/GetInstances.proto">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="272">
               <caret line="16" selection-start-line="16" selection-end-line="16" />
@@ -146,9 +230,10 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/obj/Debug/netstandard2.0/MoleculeProviderGrpc.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/obj/Debug/netstandard2.0/AddSelection.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MoleculeProviderClient.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/obj/Debug/netstandard2.0/MoleculeProviderGrpc.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/RendererProviderService.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -156,14 +241,21 @@
         <option value="$PROJECT_DIR$/Generated/Test.cs" />
         <option value="$PROJECT_DIR$/Test.cs" />
         <option value="$PROJECT_DIR$/MoleculeProviderClient.cs" />
+        <option value="$PROJECT_DIR$/RendererProviderService.cs" />
       </list>
     </option>
   </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="75" />
-    <option name="y" value="85" />
-    <option name="width" value="1750" />
-    <option name="height" value="975" />
+    <option name="x" value="60" />
+    <option name="y" value="70" />
+    <option name="width" value="1400" />
+    <option name="height" value="780" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -172,7 +264,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="AssemblyExplorer" />
       <pane id="FileSystemExplorer">
         <subPane>
           <expand>
@@ -199,13 +290,14 @@
             <path>
               <item name="Project" type="784c90a0:SolutionExplorerRootNode" />
               <item name="Narupa.Protocol" type="24d0babc:SolutionExplorerModelNode" />
-              <item name="Protocol" type="24d0babc:SolutionExplorerModelNode" />
+              <item name="protocol" type="24d0babc:SolutionExplorerModelNode" />
             </path>
           </expand>
           <select />
         </subPane>
         <option name="show-all-files" value="false" />
       </pane>
+      <pane id="AssemblyExplorer" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -214,6 +306,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.tools" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -243,11 +336,12 @@
       <workItem from="1550855155191" duration="1453000" />
       <workItem from="1550865609049" duration="394000" />
       <workItem from="1551133754539" duration="4748000" />
+      <workItem from="1551365862107" duration="3367000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="11507000" />
+    <option name="totallyTimeSpent" value="14874000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -262,13 +356,11 @@
     <frame x="55" y="-7" width="1488" height="878" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.19467787" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15196079" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Capture Tool" order="3" />
       <window_info id="Favorites" order="4" side_tool="true" />
-      <window_info anchor="bottom" id="Performance Profiler" />
-      <window_info active="true" anchor="bottom" id="Build" visible="true" weight="0.3297587" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -276,20 +368,22 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="NuGet" order="7" />
+      <window_info anchor="bottom" id="NuGet" order="7" weight="0.3297587" />
       <window_info anchor="bottom" id="Docker" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="9" />
-      <window_info anchor="bottom" id="Database Changes" order="10" />
+      <window_info anchor="bottom" id="Database Changes" order="10" show_stripe_button="false" />
       <window_info anchor="bottom" id="Unit Tests" order="11" />
       <window_info anchor="bottom" id="Terminal" order="12" />
       <window_info anchor="bottom" id="Event Log" order="13" side_tool="true" />
-      <window_info anchor="right" id="Unit Tests Coverage" />
+      <window_info anchor="bottom" id="Performance Profiler" order="14" />
+      <window_info active="true" anchor="bottom" id="Build" order="15" visible="true" weight="0.3994638" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Capture Analysis" order="3" />
       <window_info anchor="right" id="Errors In Solution" order="4" />
       <window_info anchor="right" id="Database" order="5" />
+      <window_info anchor="right" id="Unit Tests Coverage" order="6" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -297,6 +391,9 @@
   </component>
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
@@ -308,83 +405,35 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/trajectory/LoadTrajectory.proto">
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/trajectory/LoadTrajectory.proto">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/trajectory/Trajectory.proto" />
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/instance/GetInstanceAtomCount.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/instance/GetInstanceAtomCount.proto">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/Selection/AtomSelection.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/selection/AtomSelection.proto">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/Selection/IndexList.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/selection/IndexList.proto">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/Selection/RemoveSelection.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/selection/RemoveSelection.proto">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/Selection/SetSelection.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/selection/SetSelection.proto">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/Selection/VmdSelector.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/selection/VmdSelector.proto">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/ChainInfo.cs" />
     <entry file="file://$PROJECT_DIR$/Generated/Test.cs" />
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/instance/InstanceInfo.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/instance/InstanceInfo.proto">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/Selection/IndexRange.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/selection/IndexRange.proto">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/BondPair.cs" />
     <entry file="file://$PROJECT_DIR$/AtomInfo.cs" />
@@ -393,100 +442,11 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-108">
           <caret line="236" column="30" selection-start-line="236" selection-start-column="30" selection-end-line="236" selection-end-column="30" />
-          <folding>
-            <marker date="1550773681063" expanded="true" signature="0:164" ph="/* &lt;auto-generated&gt; ... */" />
-            <marker date="1550773681063" expanded="true" signature="206:14259" ph="Designer generated code" />
-            <marker date="1550773681063" expanded="false" signature="245:419" ph="..." />
-            <marker date="1550773681063" expanded="true" signature="456:14223" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="631:2353" ph="{...}" />
-            <marker date="1550773681063" expanded="false" signature="638:2348" ph="Descriptor" />
-            <marker date="1550773681063" expanded="true" signature="798:838" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="927:2333" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="1849:2324" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="2356:14220" ph="Messages" />
-            <marker date="1550773681063" expanded="true" signature="2459:8924" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="2932:3045" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="3160:3200" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="3297:3328" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="3495:3733" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="3836:3887" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="4134:4270" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="4180:4264" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="4521:4659" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="4568:4653" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="4978:5066" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="5023:5060" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="5176:5234" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="5348:5739" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="5390:5421" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="5462:5492" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="5841:6178" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="6098:6153" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="6280:6344" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="6462:6899" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="6498:6579" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="6615:6697" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="6728:6809" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="6844:6893" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="6994:7481" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="7050:7132" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="7168:7251" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="7282:7364" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="7399:7456" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="7598:8143" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="7625:7650" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="7691:7739" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="7781:7831" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="7868:8045" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="7902:7991" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="8261:8919" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="8322:8913" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="8344:8905" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="8724:8821" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="9014:14206" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="9491:9604" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="9719:9759" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="9857:9888" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="10057:10216" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="10320:10372" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="10619:10755" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="10665:10749" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="11006:11144" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="11053:11138" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="11254:11313" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="11428:11751" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="11470:11501" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="11542:11572" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="11853:12127" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="12047:12102" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="12229:12293" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="12411:12736" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="12447:12528" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="12564:12646" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="12681:12730" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="12831:13205" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="12887:12969" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="13005:13088" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="13123:13180" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="13323:13654" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="13350:13375" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="13416:13464" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="13506:13556" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="13772:14201" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="13833:14195" ph="{...}" />
-            <marker date="1550773681063" expanded="true" signature="13855:14187" ph="{...}" />
-          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/Selection/AddSelection.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/selection/AddSelection.proto">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/Narupa.Protocol.csproj">
       <provider selected="true" editor-type-id="text-editor" />
@@ -496,69 +456,70 @@
     <entry file="file://$PROJECT_DIR$/MoleculeService.cs" />
     <entry file="file://$PROJECT_DIR$/MoleculeServiceGrpc.cs" />
     <entry file="file://$PROJECT_DIR$/VmdSelector.cs" />
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/topology/AtomInfo.proto">
+    <entry file="file://$PROJECT_DIR$/Test.cs" />
+    <entry file="file://$PROJECT_DIR$/obj/Debug/netstandard2.0/MoleculeProviderGrpc.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="59" column="47" selection-start-line="59" selection-start-column="25" selection-end-line="59" selection-end-column="47" />
+          <folding>
+            <marker date="1551372664284" expanded="true" signature="0:346" ph="/* &lt;auto-generated&gt; ... */" />
+            <marker date="1551372664284" expanded="true" signature="382:8391" ph="Designer generated code" />
+            <marker date="1551372664284" expanded="true" signature="483:8380" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="531:8378" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="3019:3136" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="3282:4033" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="3553:3661" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="3918:4026" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="4180:7092" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="4193:4338" ph="///Creates a new client for MoleculeProvider ... " />
+            <marker date="1551372664284" expanded="true" signature="4413:4429" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="4436:4628" ph="///Creates a new client for MoleculeProvider that uses a custom &lt;c&gt;CallInvoker&lt;/c&gt;. ... " />
+            <marker date="1551372664284" expanded="true" signature="4715:4731" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="4881:4897" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="4904:5061" ph="///Protected constructor to allow creation of configured clients. ... " />
+            <marker date="1551372664284" expanded="true" signature="5161:5177" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="5552:5672" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="5884:6005" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="6370:6487" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="6690:6808" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="7012:7086" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="7098:7281" ph="///Creates service definition that can be registered with a server ... " />
+            <marker date="1551372664284" expanded="true" signature="7375:7609" ph="{...}" />
+            <marker date="1551372664284" expanded="true" signature="7615:8079" ph="///Register service method implementations with a service binder. Useful when customizing the service binding log ... " />
+            <marker date="1551372664284" expanded="true" signature="8187:8373" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/topology/AtomInfo.proto">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/topology/ChainInfo.proto">
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/topology/ChainInfo.proto">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/trajectory/SetTrajectory.proto">
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/trajectory/SetTrajectory.proto">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../protocol/Narupa/Protocol/instance/GetInstances.proto">
+    <entry file="file://$PROJECT_DIR$/../../../protocol/narupa/protocol/instance/GetInstances.proto">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="272">
           <caret line="16" selection-start-line="16" selection-end-line="16" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/obj/Debug/netstandard2.0/MoleculeProviderGrpc.cs">
+    <entry file="file://$USER_HOME$/.nuget/packages/grpc.tools/1.18.0/build/_protobuf/Google.Protobuf.Tools.targets">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="867">
-          <caret line="59" column="47" selection-start-line="59" selection-start-column="25" selection-end-line="59" selection-end-column="47" />
-          <folding>
-            <marker date="1551137117887" expanded="true" signature="0:346" ph="/* &lt;auto-generated&gt; ... */" />
-            <marker date="1551137117887" expanded="true" signature="382:8391" ph="Designer generated code" />
-            <marker date="1551137117887" expanded="true" signature="483:8380" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="531:8378" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="3019:3136" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="3282:4033" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="3553:3661" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="3918:4026" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="4180:7092" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="4193:4338" ph="///Creates a new client for MoleculeProvider ... " />
-            <marker date="1551137117887" expanded="true" signature="4413:4429" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="4436:4628" ph="///Creates a new client for MoleculeProvider that uses a custom &lt;c&gt;CallInvoker&lt;/c&gt;. ... " />
-            <marker date="1551137117887" expanded="true" signature="4715:4731" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="4881:4897" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="4904:5061" ph="///Protected constructor to allow creation of configured clients. ... " />
-            <marker date="1551137117887" expanded="true" signature="5161:5177" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="5552:5672" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="5884:6005" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="6370:6487" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="6690:6808" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="7012:7086" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="7098:7281" ph="///Creates service definition that can be registered with a server ... " />
-            <marker date="1551137117887" expanded="true" signature="7375:7609" ph="{...}" />
-            <marker date="1551137117887" expanded="true" signature="7615:8079" ph="///Register service method implementations with a service binder. Useful when customizing the service binding log ... " />
-            <marker date="1551137117887" expanded="true" signature="8187:8373" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Test.cs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="6" column="4" selection-start-line="6" selection-start-column="4" selection-end-line="6" selection-end-column="4" />
+        <state relative-caret-position="166">
+          <caret line="259" column="33" selection-start-line="259" selection-start-column="33" selection-end-line="259" selection-end-column="33" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/MoleculeProviderClient.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="370">
-          <caret line="42" column="37" selection-start-line="42" selection-start-column="37" selection-end-line="42" selection-end-column="37" />
+        <state relative-caret-position="204">
+          <caret line="12" column="62" selection-start-line="12" selection-start-column="56" selection-end-line="12" selection-end-column="62" />
           <folding>
-            <marker date="1551137384877" expanded="false" signature="6:184" ph="..." />
+            <marker date="1551137384877" expanded="true" signature="6:184" ph="..." />
             <marker date="1551137384877" expanded="true" signature="211:1828" ph="{...}" />
             <marker date="1551137384877" expanded="true" signature="247:1826" ph="{...}" />
             <marker date="1551137384877" expanded="true" signature="366:551" ph="{...}" />
@@ -568,6 +529,20 @@
             <marker date="1551137384877" expanded="true" signature="1356:1498" ph="{...}" />
             <marker date="1551137384877" expanded="true" signature="1560:1690" ph="{...}" />
             <marker date="1551137384877" expanded="true" signature="1711:1796" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/RendererProviderService.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="13" lean-forward="true" selection-start-line="13" selection-end-line="13" />
+          <folding>
+            <marker date="1551367046359" expanded="true" signature="6:126" ph="..." />
+            <marker date="1551367046359" expanded="true" signature="153:997" ph="{...}" />
+            <marker date="1551367046359" expanded="true" signature="236:995" ph="{...}" />
+            <marker date="1551367046359" expanded="true" signature="589:825" ph="{...}" />
+            <marker date="1551367046359" expanded="true" signature="863:989" ph="{...}" />
           </folding>
         </state>
       </provider>

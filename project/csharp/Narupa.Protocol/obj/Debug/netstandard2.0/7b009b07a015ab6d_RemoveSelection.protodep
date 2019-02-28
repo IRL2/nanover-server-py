@@ -1,1 +1,1 @@
-obj\Debug\netstandard2.0/RemoveSelection.cs: ../../../protocol/Narupa/Protocol/Selection/RemoveSelection.proto
+obj\Debug\netstandard2.0/RemoveSelection.cs: ../../../protocol/narupa/protocol/selection/RemoveSelection.proto
