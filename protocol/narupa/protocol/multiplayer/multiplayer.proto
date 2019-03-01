@@ -1,0 +1,94 @@
+// Copyright (c) Mike O'Connor, University Of Bristol. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+syntax = "proto3";
+import "google/protobuf/struct.proto";
+
+package narupa.multiplayer;
+
+// Defines a VR multiplayer service.
+service Multiplayer {
+   
+    // Represents an avatar stream.
+    rpc SubscribeToAvatars(SubscribeToAvatarsRequest) returns (stream Avatar) {}
+
+    // Client publish avatar stream.
+    rpc PublishAvatar(stream Avatar) returns (PublishAvatarReply) {}
+    
+    // Joins the stream of updates to the multiplayer scene properties.
+    rpc ScenePropertyStream(ScenePropertyRequest) returns (stream SceneProperties) {}
+
+    // Request to lock the scene.
+    rpc SetLockScene(ScenePropertyRequest) returns (LockSceneProperty) {}
+
+    // Request to unlock the scene.
+    rpc UnlockScene(LockSceneProperty) returns (LockSceneProperty) {}
+
+    // Request to set the scene properties.
+    rpc SetSceneProperty(LockSceneProperty) returns (ScenePropertyReply) {}
+    
+    // Request to join multiplayer session, and receive a PlayerID.
+    rpc JoinMultiplayer(JoinMultiplayerRequest) returns (JoinMultiplayerResponse) {}
+}
+
+
+// Represents an avatar component: e.g. an HMD, controller or glove.
+message AvatarComponent {
+    string name = 1;
+    repeated float position = 2;
+    repeated float rotation = 3;
+}
+
+// Represents an avatar, a set of components.
+message Avatar {
+    // Player ID.
+    int32 playerID = 1;
+    // List of avatar components.
+    repeated AvatarComponent component = 2;    
+}
+
+// Represents a request to join the avatars stream.
+message SubscribeToAvatarsRequest {
+    // Player ID.
+    int32 playerID = 1;
+}
+
+// Represents a reply at the termination of the avatar publish stream.
+message PublishAvatarReply {}
+
+// Represents a request to join scene properties. 
+message ScenePropertyRequest {}
+
+// Represents a request to join multiplayer.
+message JoinMultiplayerRequest {}
+
+// Represents a response to join multiplayer
+message JoinMultiplayerResponse {
+    // ID assigned to player.
+    int32 playerID = 1;
+}
+
+// Represents a lock on the scene 
+message LockSceneProperty 
+{
+    // Whether the scene has been locked. 
+    bool locked = 1; 
+    // ID representing the lock request. 
+    uint32 guid = 2;
+}
+
+
+// Represents a reply to setting a scene property. 
+message ScenePropertyReply {}
+
+// Represents a multiplayer scene, for synchronising between VR clients.
+message SceneProperties {
+    // Vector3 Position of the scene.
+    repeated float position = 1; 
+    // Quaternion Rotation of the scene.
+    repeated float rotation = 2; 
+    // Scaling of the scene.
+    float scale = 3; 
+    
+    // Key word additional arguments.
+    map<string, google.protobuf.Value> additional = 4;
+}

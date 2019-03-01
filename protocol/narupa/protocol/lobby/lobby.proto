@@ -1,0 +1,52 @@
+// Copyright (c) Mike O'Connor, University Of Bristol. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+syntax = "proto3";
+
+package narupa.lobby;
+
+service Lobby {
+    
+    // Gets the lobby info 
+    rpc GetLobbyInfo(LobbyInfoRequest) returns (LobbyInfo) {}
+
+    // Gets the services this lobby can run.
+    rpc GetServices(ServiceInfoRequest) returns (stream ServiceInfo) {}
+    
+    // Gets the currently running services. 
+    rpc GetRunningServices(ServiceRequest) returns (stream Service) {}
+    
+}
+
+
+message LobbyInfoRequest{
+    
+}
+
+message ServiceInfoRequest{
+    
+}
+
+message ServiceRequest{
+    
+}
+
+// Identifies a service
+message ServiceInfo{
+    string name = 1;
+    string version = 2;
+}
+
+// Represents a running service.
+message Service {
+    ServiceInfo info = 1;
+    string identifier = 2;
+    string url = 3;
+    string name = 4;
+}
+
+// Lobby information
+message LobbyInfo {
+    // Name of lobby
+    string name = 1;
+    string url = 2;
+}

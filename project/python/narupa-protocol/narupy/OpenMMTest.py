@@ -118,6 +118,7 @@ def on_topology(list):
 
 system = forcefield.createSystem(topology, nonbondedMethod=PME,
         nonbondedCutoff=1*nanometer, constraints=HBonds)
+system.AddInteractiveForce()
 integrator = LangevinIntegrator(300*kelvin, 1/picosecond, 0.002*picoseconds)
 simulation = Simulation(topology, system, integrator)
 simulation.context.setPositions(positions)
