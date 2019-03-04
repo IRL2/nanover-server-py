@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='narupa.multiplayer',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n-narupa/protocol/multiplayer/multiplayer.proto\x12\x12narupa.multiplayer\x1a\x1cgoogle/protobuf/struct.proto\"C\n\x0f\x41vatarComponent\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x10\n\x08position\x18\x02 \x03(\x02\x12\x10\n\x08rotation\x18\x03 \x03(\x02\"R\n\x06\x41vatar\x12\x10\n\x08playerID\x18\x01 \x01(\x05\x12\x36\n\tcomponent\x18\x02 \x03(\x0b\x32#.narupa.multiplayer.AvatarComponent\"-\n\x19SubscribeToAvatarsRequest\x12\x10\n\x08playerID\x18\x01 \x01(\x05\"\x14\n\x12PublishAvatarReply\"\x16\n\x14ScenePropertyRequest\"\x18\n\x16JoinMultiplayerRequest\"+\n\x17JoinMultiplayerResponse\x12\x10\n\x08playerID\x18\x01 \x01(\x05\"1\n\x11LockSceneProperty\x12\x0e\n\x06locked\x18\x01 \x01(\x08\x12\x0c\n\x04guid\x18\x02 \x01(\r\"\x14\n\x12ScenePropertyReply\"\xd8\x01\n\x0fSceneProperties\x12\x10\n\x08position\x18\x01 \x03(\x02\x12\x10\n\x08rotation\x18\x02 \x03(\x02\x12\r\n\x05scale\x18\x03 \x01(\x02\x12G\n\nadditional\x18\x04 \x03(\x0b\x32\x33.narupa.multiplayer.SceneProperties.AdditionalEntry\x1aI\n\x0f\x41\x64\x64itionalEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12%\n\x05value\x18\x02 \x01(\x0b\x32\x16.google.protobuf.Value:\x02\x38\x01\x32\xca\x05\n\x0bMultiplayer\x12\x63\n\x12SubscribeToAvatars\x12-.narupa.multiplayer.SubscribeToAvatarsRequest\x1a\x1a.narupa.multiplayer.Avatar\"\x00\x30\x01\x12W\n\rPublishAvatar\x12\x1a.narupa.multiplayer.Avatar\x1a&.narupa.multiplayer.PublishAvatarReply\"\x00(\x01\x12h\n\x13ScenePropertyStream\x12(.narupa.multiplayer.ScenePropertyRequest\x1a#.narupa.multiplayer.SceneProperties\"\x00\x30\x01\x12\x61\n\x0cSetLockScene\x12(.narupa.multiplayer.ScenePropertyRequest\x1a%.narupa.multiplayer.LockSceneProperty\"\x00\x12]\n\x0bUnlockScene\x12%.narupa.multiplayer.LockSceneProperty\x1a%.narupa.multiplayer.LockSceneProperty\"\x00\x12\x63\n\x10SetSceneProperty\x12%.narupa.multiplayer.LockSceneProperty\x1a&.narupa.multiplayer.ScenePropertyReply\"\x00\x12l\n\x0fJoinMultiplayer\x12*.narupa.multiplayer.JoinMultiplayerRequest\x1a+.narupa.multiplayer.JoinMultiplayerResponse\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n-narupa/protocol/multiplayer/multiplayer.proto\x12\x12narupa.multiplayer\x1a\x1cgoogle/protobuf/struct.proto\"C\n\x0f\x41vatarComponent\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x10\n\x08position\x18\x02 \x03(\x02\x12\x10\n\x08rotation\x18\x03 \x03(\x02\"R\n\x06\x41vatar\x12\x10\n\x08playerID\x18\x01 \x01(\x05\x12\x36\n\tcomponent\x18\x02 \x03(\x0b\x32#.narupa.multiplayer.AvatarComponent\"-\n\x19SubscribeToAvatarsRequest\x12\x10\n\x08playerID\x18\x01 \x01(\x05\"\x14\n\x12PublishAvatarReply\"\x16\n\x14ScenePropertyRequest\"n\n\x17SetScenePropertyRequest\x12\x1a\n\x12property_lock_guid\x18\x01 \x01(\r\x12\x37\n\nproperties\x18\x02 \x01(\x0b\x32#.narupa.multiplayer.SceneProperties\"\x18\n\x16JoinMultiplayerRequest\"+\n\x17JoinMultiplayerResponse\x12\x10\n\x08playerID\x18\x01 \x01(\x05\"1\n\x11LockSceneProperty\x12\x0e\n\x06locked\x18\x01 \x01(\x08\x12\x0c\n\x04guid\x18\x02 \x01(\r\"F\n\x12ScenePropertyReply\x12\x14\n\x0cproperty_set\x18\x01 \x01(\x08\x12\x1a\n\x12property_lock_guid\x18\x02 \x01(\r\"\xd8\x01\n\x0fSceneProperties\x12\x10\n\x08position\x18\x01 \x03(\x02\x12\x10\n\x08rotation\x18\x02 \x03(\x02\x12\r\n\x05scale\x18\x03 \x01(\x02\x12G\n\nadditional\x18\x04 \x03(\x0b\x32\x33.narupa.multiplayer.SceneProperties.AdditionalEntry\x1aI\n\x0f\x41\x64\x64itionalEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12%\n\x05value\x18\x02 \x01(\x0b\x32\x16.google.protobuf.Value:\x02\x38\x01\x32\xd4\x05\n\x0bMultiplayer\x12\x63\n\x12SubscribeToAvatars\x12-.narupa.multiplayer.SubscribeToAvatarsRequest\x1a\x1a.narupa.multiplayer.Avatar\"\x00\x30\x01\x12W\n\rPublishAvatar\x12\x1a.narupa.multiplayer.Avatar\x1a&.narupa.multiplayer.PublishAvatarReply\"\x00(\x01\x12o\n\x1aSubscribeToSceneProperties\x12(.narupa.multiplayer.ScenePropertyRequest\x1a#.narupa.multiplayer.SceneProperties\"\x00\x30\x01\x12^\n\x0cSetLockScene\x12%.narupa.multiplayer.LockSceneProperty\x1a%.narupa.multiplayer.LockSceneProperty\"\x00\x12]\n\x0bUnlockScene\x12%.narupa.multiplayer.LockSceneProperty\x1a%.narupa.multiplayer.LockSceneProperty\"\x00\x12i\n\x10SetSceneProperty\x12+.narupa.multiplayer.SetScenePropertyRequest\x1a&.narupa.multiplayer.ScenePropertyReply\"\x00\x12l\n\x0fJoinMultiplayer\x12*.narupa.multiplayer.JoinMultiplayerRequest\x1a+.narupa.multiplayer.JoinMultiplayerResponse\"\x00\x62\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,])
 
@@ -189,6 +189,44 @@ _SCENEPROPERTYREQUEST = _descriptor.Descriptor(
 )
 
 
+_SETSCENEPROPERTYREQUEST = _descriptor.Descriptor(
+  name='SetScenePropertyRequest',
+  full_name='narupa.multiplayer.SetScenePropertyRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='property_lock_guid', full_name='narupa.multiplayer.SetScenePropertyRequest.property_lock_guid', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='properties', full_name='narupa.multiplayer.SetScenePropertyRequest.properties', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=345,
+  serialized_end=455,
+)
+
+
 _JOINMULTIPLAYERREQUEST = _descriptor.Descriptor(
   name='JoinMultiplayerRequest',
   full_name='narupa.multiplayer.JoinMultiplayerRequest',
@@ -208,8 +246,8 @@ _JOINMULTIPLAYERREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=345,
-  serialized_end=369,
+  serialized_start=457,
+  serialized_end=481,
 )
 
 
@@ -239,8 +277,8 @@ _JOINMULTIPLAYERRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=371,
-  serialized_end=414,
+  serialized_start=483,
+  serialized_end=526,
 )
 
 
@@ -277,8 +315,8 @@ _LOCKSCENEPROPERTY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=416,
-  serialized_end=465,
+  serialized_start=528,
+  serialized_end=577,
 )
 
 
@@ -289,6 +327,20 @@ _SCENEPROPERTYREPLY = _descriptor.Descriptor(
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
+    _descriptor.FieldDescriptor(
+      name='property_set', full_name='narupa.multiplayer.ScenePropertyReply.property_set', index=0,
+      number=1, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='property_lock_guid', full_name='narupa.multiplayer.ScenePropertyReply.property_lock_guid', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -301,8 +353,8 @@ _SCENEPROPERTYREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=467,
-  serialized_end=487,
+  serialized_start=579,
+  serialized_end=649,
 )
 
 
@@ -339,8 +391,8 @@ _SCENEPROPERTIES_ADDITIONALENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=633,
-  serialized_end=706,
+  serialized_start=795,
+  serialized_end=868,
 )
 
 _SCENEPROPERTIES = _descriptor.Descriptor(
@@ -390,11 +442,12 @@ _SCENEPROPERTIES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=490,
-  serialized_end=706,
+  serialized_start=652,
+  serialized_end=868,
 )
 
 _AVATAR.fields_by_name['component'].message_type = _AVATARCOMPONENT
+_SETSCENEPROPERTYREQUEST.fields_by_name['properties'].message_type = _SCENEPROPERTIES
 _SCENEPROPERTIES_ADDITIONALENTRY.fields_by_name['value'].message_type = google_dot_protobuf_dot_struct__pb2._VALUE
 _SCENEPROPERTIES_ADDITIONALENTRY.containing_type = _SCENEPROPERTIES
 _SCENEPROPERTIES.fields_by_name['additional'].message_type = _SCENEPROPERTIES_ADDITIONALENTRY
@@ -403,6 +456,7 @@ DESCRIPTOR.message_types_by_name['Avatar'] = _AVATAR
 DESCRIPTOR.message_types_by_name['SubscribeToAvatarsRequest'] = _SUBSCRIBETOAVATARSREQUEST
 DESCRIPTOR.message_types_by_name['PublishAvatarReply'] = _PUBLISHAVATARREPLY
 DESCRIPTOR.message_types_by_name['ScenePropertyRequest'] = _SCENEPROPERTYREQUEST
+DESCRIPTOR.message_types_by_name['SetScenePropertyRequest'] = _SETSCENEPROPERTYREQUEST
 DESCRIPTOR.message_types_by_name['JoinMultiplayerRequest'] = _JOINMULTIPLAYERREQUEST
 DESCRIPTOR.message_types_by_name['JoinMultiplayerResponse'] = _JOINMULTIPLAYERRESPONSE
 DESCRIPTOR.message_types_by_name['LockSceneProperty'] = _LOCKSCENEPROPERTY
@@ -444,6 +498,13 @@ ScenePropertyRequest = _reflection.GeneratedProtocolMessageType('ScenePropertyRe
   # @@protoc_insertion_point(class_scope:narupa.multiplayer.ScenePropertyRequest)
   ))
 _sym_db.RegisterMessage(ScenePropertyRequest)
+
+SetScenePropertyRequest = _reflection.GeneratedProtocolMessageType('SetScenePropertyRequest', (_message.Message,), dict(
+  DESCRIPTOR = _SETSCENEPROPERTYREQUEST,
+  __module__ = 'narupa.protocol.multiplayer.multiplayer_pb2'
+  # @@protoc_insertion_point(class_scope:narupa.multiplayer.SetScenePropertyRequest)
+  ))
+_sym_db.RegisterMessage(SetScenePropertyRequest)
 
 JoinMultiplayerRequest = _reflection.GeneratedProtocolMessageType('JoinMultiplayerRequest', (_message.Message,), dict(
   DESCRIPTOR = _JOINMULTIPLAYERREQUEST,
@@ -497,8 +558,8 @@ _MULTIPLAYER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=709,
-  serialized_end=1423,
+  serialized_start=871,
+  serialized_end=1595,
   methods=[
   _descriptor.MethodDescriptor(
     name='SubscribeToAvatars',
@@ -519,8 +580,8 @@ _MULTIPLAYER = _descriptor.ServiceDescriptor(
     serialized_options=None,
   ),
   _descriptor.MethodDescriptor(
-    name='ScenePropertyStream',
-    full_name='narupa.multiplayer.Multiplayer.ScenePropertyStream',
+    name='SubscribeToSceneProperties',
+    full_name='narupa.multiplayer.Multiplayer.SubscribeToSceneProperties',
     index=2,
     containing_service=None,
     input_type=_SCENEPROPERTYREQUEST,
@@ -532,7 +593,7 @@ _MULTIPLAYER = _descriptor.ServiceDescriptor(
     full_name='narupa.multiplayer.Multiplayer.SetLockScene',
     index=3,
     containing_service=None,
-    input_type=_SCENEPROPERTYREQUEST,
+    input_type=_LOCKSCENEPROPERTY,
     output_type=_LOCKSCENEPROPERTY,
     serialized_options=None,
   ),
@@ -550,7 +611,7 @@ _MULTIPLAYER = _descriptor.ServiceDescriptor(
     full_name='narupa.multiplayer.Multiplayer.SetSceneProperty',
     index=5,
     containing_service=None,
-    input_type=_LOCKSCENEPROPERTY,
+    input_type=_SETSCENEPROPERTYREQUEST,
     output_type=_SCENEPROPERTYREPLY,
     serialized_options=None,
   ),

@@ -1,2 +1,4 @@
 grpcio>=1.0
 grpcio-tools>=1.0
+pytest
+aiogrpc

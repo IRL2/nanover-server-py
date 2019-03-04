@@ -15,16 +15,16 @@ service Multiplayer {
     rpc PublishAvatar(stream Avatar) returns (PublishAvatarReply) {}
     
     // Joins the stream of updates to the multiplayer scene properties.
-    rpc ScenePropertyStream(ScenePropertyRequest) returns (stream SceneProperties) {}
+    rpc SubscribeToSceneProperties(ScenePropertyRequest) returns (stream SceneProperties) {}
 
     // Request to lock the scene.
-    rpc SetLockScene(ScenePropertyRequest) returns (LockSceneProperty) {}
+    rpc SetLockScene(LockSceneProperty) returns (LockSceneProperty) {}
 
     // Request to unlock the scene.
     rpc UnlockScene(LockSceneProperty) returns (LockSceneProperty) {}
 
     // Request to set the scene properties.
-    rpc SetSceneProperty(LockSceneProperty) returns (ScenePropertyReply) {}
+    rpc SetSceneProperty(SetScenePropertyRequest) returns (ScenePropertyReply) {}
     
     // Request to join multiplayer session, and receive a PlayerID.
     rpc JoinMultiplayer(JoinMultiplayerRequest) returns (JoinMultiplayerResponse) {}
@@ -58,6 +58,15 @@ message PublishAvatarReply {}
 // Represents a request to join scene properties. 
 message ScenePropertyRequest {}
 
+// Represents a request to set scene properties
+message SetScenePropertyRequest {
+    // ID representing the ownership of the scene property lock.
+    uint32 property_lock_guid = 1;
+    // Scene properties to be set.
+    SceneProperties properties = 2;
+
+
+}
 // Represents a request to join multiplayer.
 message JoinMultiplayerRequest {}
 
@@ -78,7 +87,10 @@ message LockSceneProperty
 
 
 // Represents a reply to setting a scene property. 
-message ScenePropertyReply {}
+message ScenePropertyReply {
+    bool property_set = 1;
+    uint32 property_lock_guid = 2;
+}
 
 // Represents a multiplayer scene, for synchronising between VR clients.
 message SceneProperties {

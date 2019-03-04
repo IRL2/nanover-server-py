@@ -119,7 +119,6 @@ async def _stream_response_in_pool(rpc_event, state, behavior, argument_thunk,
                             rpc_event, state, response, response_serializer)
                         print(response)
                         if serialized_response is not None:
-                            print("Serialized Correctly")
                             proceed = _server._send_response(rpc_event, state,
                                                      serialized_response)
                             if not proceed:
@@ -133,7 +132,7 @@ _server._unary_response_in_pool = _unary_response_in_pool
 _server._stream_response_in_pool = _stream_response_in_pool
 
 # The servicer can now use async/await syntax
-class AsyncServer(TestServicer):
+class _AsyncServer(TestServicer):
 
     async def DoSomething(self, request, context):
         for i in range(10):
@@ -144,7 +143,7 @@ class AsyncServer(TestServicer):
 
 if __name__ == '__main__':
     server = grpc.server(AsyncioExecutor())
-    service = AsyncServer()
+    service = _AsyncServer()
 
     async_test_grpc.add_TestServicer_to_server (service, server)
     server.add_insecure_port('[::]:9876')

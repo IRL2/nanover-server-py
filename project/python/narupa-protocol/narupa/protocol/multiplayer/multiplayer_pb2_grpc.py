@@ -24,14 +24,14 @@ class MultiplayerStub(object):
         request_serializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.Avatar.SerializeToString,
         response_deserializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.PublishAvatarReply.FromString,
         )
-    self.ScenePropertyStream = channel.unary_stream(
-        '/narupa.multiplayer.Multiplayer/ScenePropertyStream',
+    self.SubscribeToSceneProperties = channel.unary_stream(
+        '/narupa.multiplayer.Multiplayer/SubscribeToSceneProperties',
         request_serializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.ScenePropertyRequest.SerializeToString,
         response_deserializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.SceneProperties.FromString,
         )
     self.SetLockScene = channel.unary_unary(
         '/narupa.multiplayer.Multiplayer/SetLockScene',
-        request_serializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.ScenePropertyRequest.SerializeToString,
+        request_serializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.LockSceneProperty.SerializeToString,
         response_deserializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.LockSceneProperty.FromString,
         )
     self.UnlockScene = channel.unary_unary(
@@ -41,7 +41,7 @@ class MultiplayerStub(object):
         )
     self.SetSceneProperty = channel.unary_unary(
         '/narupa.multiplayer.Multiplayer/SetSceneProperty',
-        request_serializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.LockSceneProperty.SerializeToString,
+        request_serializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.SetScenePropertyRequest.SerializeToString,
         response_deserializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.ScenePropertyReply.FromString,
         )
     self.JoinMultiplayer = channel.unary_unary(
@@ -69,7 +69,7 @@ class MultiplayerServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def ScenePropertyStream(self, request, context):
+  def SubscribeToSceneProperties(self, request, context):
     """Joins the stream of updates to the multiplayer scene properties.
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -117,14 +117,14 @@ def add_MultiplayerServicer_to_server(servicer, server):
           request_deserializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.Avatar.FromString,
           response_serializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.PublishAvatarReply.SerializeToString,
       ),
-      'ScenePropertyStream': grpc.unary_stream_rpc_method_handler(
-          servicer.ScenePropertyStream,
+      'SubscribeToSceneProperties': grpc.unary_stream_rpc_method_handler(
+          servicer.SubscribeToSceneProperties,
           request_deserializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.ScenePropertyRequest.FromString,
           response_serializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.SceneProperties.SerializeToString,
       ),
       'SetLockScene': grpc.unary_unary_rpc_method_handler(
           servicer.SetLockScene,
-          request_deserializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.ScenePropertyRequest.FromString,
+          request_deserializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.LockSceneProperty.FromString,
           response_serializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.LockSceneProperty.SerializeToString,
       ),
       'UnlockScene': grpc.unary_unary_rpc_method_handler(
@@ -134,7 +134,7 @@ def add_MultiplayerServicer_to_server(servicer, server):
       ),
       'SetSceneProperty': grpc.unary_unary_rpc_method_handler(
           servicer.SetSceneProperty,
-          request_deserializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.LockSceneProperty.FromString,
+          request_deserializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.SetScenePropertyRequest.FromString,
           response_serializer=narupa_dot_protocol_dot_multiplayer_dot_multiplayer__pb2.ScenePropertyReply.SerializeToString,
       ),
       'JoinMultiplayer': grpc.unary_unary_rpc_method_handler(
