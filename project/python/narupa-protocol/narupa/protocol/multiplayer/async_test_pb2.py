@@ -12,7 +12,6 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -20,9 +19,8 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='narupa.multiplayer',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n,narupa/protocol/multiplayer/async_test.proto\x12\x12narupa.multiplayer\x1a\x1cgoogle/protobuf/struct.proto\"\t\n\x07Request\"\x17\n\x08Response\x12\x0b\n\x03num\x18\x01 \x01(\x05\x32T\n\x04Test\x12L\n\x0b\x44oSomething\x12\x1b.narupa.multiplayer.Request\x1a\x1c.narupa.multiplayer.Response\"\x00\x30\x01\x62\x06proto3')
-  ,
-  dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,])
+  serialized_pb=_b('\n,narupa/protocol/multiplayer/async_test.proto\x12\x12narupa.multiplayer\"\t\n\x07Request\"\x17\n\x08Response\x12\x0b\n\x03num\x18\x01 \x01(\x05\x32T\n\x04Test\x12L\n\x0b\x44oSomething\x12\x1b.narupa.multiplayer.Request\x1a\x1c.narupa.multiplayer.Response\"\x00\x30\x01\x62\x06proto3')
+)
 
 
 
@@ -46,8 +44,8 @@ _REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=98,
-  serialized_end=107,
+  serialized_start=68,
+  serialized_end=77,
 )
 
 
@@ -77,8 +75,8 @@ _RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=109,
-  serialized_end=132,
+  serialized_start=79,
+  serialized_end=102,
 )
 
 DESCRIPTOR.message_types_by_name['Request'] = _REQUEST
@@ -107,8 +105,8 @@ _TEST = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=134,
-  serialized_end=218,
+  serialized_start=104,
+  serialized_end=188,
   methods=[
   _descriptor.MethodDescriptor(
     name='DoSomething',

@@ -78,7 +78,7 @@ class MultiplayerService(MultiplayerServicer):
 
     async def PublishStream(self, request_iterator: Iterator, context, queues):
         # loop over all requests
-        # TODO async version of looping over iterator.
+        # TODO async version of looping over iterator. this may block. https://blogs.gentoo.org/zmedico/2016/09/17/adapting-regular-iterators-to-asynchronous-iterators-in-python/
         for request in request_iterator:
             # loop over all subscribed queues
             for queue in queues:
