@@ -1,15 +1,17 @@
 import argparse
+from collections import namedtuple
 from datetime import datetime, timedelta
 import time
 from concurrent import futures
 
 import grpc
 import numpy as np
-
+import os.path
 import narupa.protocol.benchmark.benchmark_pb2_grpc as benchmark_pb2_grpc
 from narupa.protocol.benchmark.benchmark_pb2 import RawFrame
 import narupa.protocol.instance.get_frame_pb2 as get_frame_pb2
 import narupa.protocol.trajectory.frame_pb2 as frame_pb2
+
 
 
 class BenchmarkService(benchmark_pb2_grpc.StreamProviderServicer):
@@ -73,7 +75,6 @@ class BenchmarkService(benchmark_pb2_grpc.StreamProviderServicer):
             sleep_time = target_time - current_time
             sleep_seconds = sleep_time.total_seconds()
             if sleep_seconds > 0:
-                print('sleeping for ', sleep_seconds)
                 time.sleep(sleep_time.seconds)
 
             current_time = datetime.now()
@@ -81,18 +82,25 @@ class BenchmarkService(benchmark_pb2_grpc.StreamProviderServicer):
             yield frame
 
 
+ServerCredentials=namedtuple('ServerCredentials', 'private_key, certificate_chain')
 
 class BenchmarkServer():
     server: grpc.Server
 
-    def __init__(self, host: str, secure: bool=False, credentials=None):
+    def __init__(self, host: str, secure: bool=False, credentials: ServerCredentials=None):
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         benchmark_pb2_grpc.add_StreamProviderServicer_to_server(BenchmarkService(), self.server)
 
         if not secure:
             self.server.add_insecure_port(host)
         else:
-            pass
+            with open(credentials.private_key, 'rb') as f:
+                private_key = f.read()
+            with open(credentials.certificate_chain, 'rb') as f:
+                certificate_chain = f.read()
+            server_credentials = grpc.ssl_server_credentials(((private_key, certificate_chain), ))
+            self.server.add_secure_port(host, server_credentials)
+
 
     def start(self):
         self.server.start()
@@ -101,7 +109,9 @@ class BenchmarkServer():
         self.server.stop(0)
 
 def run(args):
-    server = BenchmarkServer(args.host, secure=False)
+    print(args)
+    creds = ServerCredentials(args.server_private_key, args.server_certificate_file)
+    server = BenchmarkServer(args.host, secure=args.secure, credentials=creds)
     server.start()
     try:
         while True:
@@ -110,7 +120,11 @@ def run(args):
         server.stop()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Benchmark a gRPC client and server running over localhost.')
-    parser.add_argument('host', action='store_const', help='Host address', const='[::]:8001')
+    parser = argparse.ArgumentParser(description='Benchmark a gRPC server.')
+    parser.add_argument('host', action='store_const', help='Host address', const='127.0.0.1:8007')
+    path_to_creds = '../../../../../certification'
+    parser.add_argument('secure', action='store_const', help='Whether to run securely', const=True)
+    parser.add_argument('server_private_key', action='store_const', help='Server private key file', const=os.path.join(path_to_creds, '127.0.0.1.key'))
+    parser.add_argument('server_certificate_file', action='store_const', help='Server certificate file', const=os.path.join(path_to_creds, '127.0.0.1.crt'))
     args = parser.parse_args()
     run(args)

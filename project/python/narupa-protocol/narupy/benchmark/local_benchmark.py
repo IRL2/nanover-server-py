@@ -2,10 +2,11 @@
 Benchmark program for Narupa style data.
 """
 from narupy.benchmark.benchmark_client import BenchmarkClient
-from narupy.benchmark.benchmark_server import BenchmarkServer
+from narupy.benchmark.benchmark_server import BenchmarkServer, ServerCredentials
 from datetime import datetime
 import argparse
 import numpy as np
+import os.path
 
 
 def time_frames(method, n_atoms, n_frames):
@@ -50,9 +51,10 @@ def get_all_frames_throttled(client: BenchmarkClient, n_atoms, n_frames):
 
 
 def run(args):
-    server = BenchmarkServer(args.host, secure=False)
+    creds = ServerCredentials(args.server_private_key, args.server_certificate_file)
+    server = BenchmarkServer(args.host, secure=args.secure, credentials=creds)
     server.start()
-    client = BenchmarkClient(args.host, secure=False)
+    client = BenchmarkClient(args.host, secure=args.secure, credentials=args.server_certificate_file)
 
     time_frames(client.get_frames, args.n_atoms, args.n_frames)
     time_frames(client.get_frames_throttled, args.n_atoms, args.n_frames)
@@ -60,8 +62,13 @@ def run(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Benchmark a gRPC client and server running over localhost.')
-    parser.add_argument('n_atoms', action='store_const', help='Number of atoms to simulate data', const=10000)
+    parser.add_argument('n_atoms', action='store_const', help='Number of atoms to simulate data', const=32000)
     parser.add_argument('n_frames', action='store_const', help='Number of frames to run.', const=200)
-    parser.add_argument('host', action='store_const', help='Host address', const='[::]:8006')
+    parser.add_argument('host', action='store_const', help='Host address', const='127.0.0.1:8006')
+    path_to_creds = '../../../../../certification'
+    parser.add_argument('secure', action='store_const', help='Whether to run securely', const=True)
+    parser.add_argument('server_private_key', action='store_const', help='Server private key file', const=os.path.join(path_to_creds, '127.0.0.1.key'))
+    parser.add_argument('server_certificate_file', action='store_const', help='Server certificate file', const=os.path.join(path_to_creds, '127.0.0.1.crt'))
+
     args = parser.parse_args()
     run(args)
