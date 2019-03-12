@@ -6,3 +6,5 @@ project/python/narupa-protocol/narupy/*.pdb
 \.idea/
 
 \.DS_Store
+
+project/python/narupa-protocol/narupy/benchmark/results\.csv
