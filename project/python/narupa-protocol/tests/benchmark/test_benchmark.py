@@ -1,3 +1,8 @@
+"""
+Copyright (c) Mike O'Connor, University Of Bristol. All rights reserved.
+Licensed under the GPL. See License.txt in the project root for license information.
+"""
+
 from narupy.benchmark.benchmark_client import BenchmarkClient
 from narupy.benchmark.benchmark_server import BenchmarkServer, ServerCredentials
 from datetime import datetime

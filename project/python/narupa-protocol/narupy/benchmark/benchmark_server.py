@@ -1,3 +1,10 @@
+"""
+Copyright (c) Mike O'Connor, University Of Bristol. All rights reserved.
+Licensed under the GPL. See License.txt in the project root for license information.
+
+Benchmark server for Narupa style data.
+"""
+
 import argparse
 from collections import namedtuple
 from datetime import datetime, timedelta

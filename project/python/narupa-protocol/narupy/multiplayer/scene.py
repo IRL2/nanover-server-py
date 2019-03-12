@@ -1,3 +1,8 @@
+"""
+Copyright (c) Mike O'Connor, University Of Bristol. All rights reserved.
+Licensed under the GPL. See License.txt in the project root for license information.
+"""
+
 from threading import Lock
 import threading
 import datetime

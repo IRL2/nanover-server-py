@@ -133,6 +133,9 @@ _server._stream_response_in_pool = _stream_response_in_pool
 
 # The servicer can now use async/await syntax
 class _AsyncServer(TestServicer):
+    """
+    A simple test server for asyncio.
+    """
 
     async def DoSomething(self, request, context):
         for i in range(10):

@@ -1,5 +1,8 @@
-# Copyright (c) Mike O'Connor, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
+"""
+Copyright (c) Mike O'Connor, University Of Bristol. All rights reserved.
+Licensed under the GPL. See License.txt in the project root for license information.
+"""
+
 from concurrent import futures
 from typing import List, Iterator
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
