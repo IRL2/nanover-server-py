@@ -102,12 +102,12 @@ def run(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Benchmark a gRPC client receiving atomic data from a server')
     parser.add_argument('n_atoms_min', action='store_const', help='Number of atoms to simulate data (base 2)', const=10)
-    parser.add_argument('n_atoms_max', action='store_const', help='Number of atoms to simulate data (base 2)', const=17)
-    parser.add_argument('n_samples', action='store_const', help='Number of samples in atom stride', const=7)
-    parser.add_argument('n_frames', action='store_const', help='Number of frames to run.', const=2000)
-    parser.add_argument('host', action='store_const', help='Host address', const='127.0.0.1:8007')
+    parser.add_argument('n_atoms_max', action='store_const', help='Number of atoms to simulate data (base 2)', const=15)
+    parser.add_argument('n_samples', action='store_const', help='Number of samples in atom stride', const=8)
+    parser.add_argument('n_frames', action='store_const', help='Number of frames to run.', const=5000)
+    parser.add_argument('host', action='store_const', help='Host address', const='0.0.0.0:8000')
     path_to_creds = '../../../../../certification'
-    parser.add_argument('secure', action='store_const', help='Whether to run securely', const=True)
+    parser.add_argument('secure', action='store_const', help='Whether to run securely', const=False)
     parser.add_argument('server_certificate_file', action='store_const', help='Server certificate file', const=os.path.join(path_to_creds, '127.0.0.1.crt'))
     parser.add_argument('output', action='store_const', const="results.csv")
     args = parser.parse_args()

@@ -128,9 +128,9 @@ def run(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Benchmark a gRPC server.')
-    parser.add_argument('host', action='store_const', help='Host address', const='127.0.0.1:8007')
+    parser.add_argument('host', action='store_const', help='Host address', const='0.0.0.0:8000')
     path_to_creds = '../../../../../certification'
-    parser.add_argument('secure', action='store_const', help='Whether to run securely', const=True)
+    parser.add_argument('secure', action='store_const', help='Whether to run securely', const=False)
     parser.add_argument('server_private_key', action='store_const', help='Server private key file', const=os.path.join(path_to_creds, '127.0.0.1.key'))
     parser.add_argument('server_certificate_file', action='store_const', help='Server certificate file', const=os.path.join(path_to_creds, '127.0.0.1.crt'))
     args = parser.parse_args()
