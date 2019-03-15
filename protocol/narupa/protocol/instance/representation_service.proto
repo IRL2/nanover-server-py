@@ -1,0 +1,23 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+syntax = "proto3";
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/field_mask.proto";
+
+package narupa.protocol.instance;
+
+message SetRepresentationRequest {
+  string instance_id = 1;
+  string selection_id = 2;
+  google.protobuf.Struct representation = 3;
+}
+
+message SetRepresentationResponse {
+  string instance_id = 1;
+}
+
+service RepresentationService {
+  rpc SetRepresentation (SetRepresentationRequest) returns (SetRepresentationResponse);
+}
