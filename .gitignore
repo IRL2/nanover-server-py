@@ -2,6 +2,8 @@
 *.py[cod]
 *$py.class
 project/python/narupa-protocol/narupy/*.pdb
+project/csharp/Narupa.Protocol/obj/*
+project/csharp/Narupa.Protocol/bin/*
 
 \.idea/
 
