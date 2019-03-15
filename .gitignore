@@ -14,3 +14,5 @@ notebooks/
 project/python/narupa-protocol/narupy/benchmark/results_frankfurt\.csv
 
 project/python/narupa-protocol/narupy/benchmark/results_grpc_py\.csv
+
+project/python/narupa-protocol/Narupa\.egg-info/
