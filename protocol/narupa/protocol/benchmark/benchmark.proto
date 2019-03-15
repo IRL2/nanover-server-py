@@ -32,3 +32,7 @@ message GetFrameRequest {
 message RawFrame {
     repeated float frame = 1;
 }
+
+message RawBytes {
+    bytes bytes = 1;
+}
