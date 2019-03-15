@@ -10,3 +10,11 @@ project/csharp/Narupa.Protocol/bin/*
 \.DS_Store
 
 project/python/narupa-protocol/narupy/benchmark/results\.csv
+
+notebooks/
+
+project/python/narupa-protocol/narupy/benchmark/results_frankfurt\.csv
+
+project/python/narupa-protocol/narupy/benchmark/results_grpc_py\.csv
+
+project/python/narupa-protocol/Narupa\.egg-info/
