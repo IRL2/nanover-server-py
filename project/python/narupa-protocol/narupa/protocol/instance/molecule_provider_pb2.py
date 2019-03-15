@@ -14,6 +14,9 @@ _sym_db = _symbol_database.Default()
 
 from narupa.protocol.instance import get_topology_pb2 as narupa_dot_protocol_dot_instance_dot_get__topology__pb2
 from narupa.protocol.instance import get_frame_pb2 as narupa_dot_protocol_dot_instance_dot_get__frame__pb2
+from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
+from narupa.protocol.topology import topology_pb2 as narupa_dot_protocol_dot_topology_dot_topology__pb2
+from narupa.protocol.trajectory import frame_pb2 as narupa_dot_protocol_dot_trajectory_dot_frame__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -21,13 +24,109 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='narupa.protocol.instance',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n0narupa/protocol/instance/molecule_provider.proto\x12\x18narupa.protocol.instance\x1a+narupa/protocol/instance/get_topology.proto\x1a(narupa/protocol/instance/get_frame.proto2\xf1\x01\n\x10MoleculeProvider\x12r\n\x11SubscribeTopology\x12,.narupa.protocol.instance.GetTopologyRequest\x1a-.narupa.protocol.instance.GetTopologyResponse0\x01\x12i\n\x0eSubscribeFrame\x12).narupa.protocol.instance.GetFrameRequest\x1a*.narupa.protocol.instance.GetFrameResponse0\x01\x62\x06proto3')
+  serialized_pb=_b('\n0narupa/protocol/instance/molecule_provider.proto\x12\x18narupa.protocol.instance\x1a+narupa/protocol/instance/get_topology.proto\x1a(narupa/protocol/instance/get_frame.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\'narupa/protocol/topology/topology.proto\x1a&narupa/protocol/trajectory/frame.proto\"B\n\x13GetStructureRequest\x12+\n\nproperties\x18\x01 \x01(\x0b\x32\x17.google.protobuf.Struct\"\xb0\x01\n\x11GetStructureReply\x12\x38\n\x08topology\x18\x01 \x01(\x0b\x32&.narupa.protocol.topology.TopologyData\x12\x34\n\x05\x66rame\x18\x02 \x01(\x0b\x32%.narupa.protocol.trajectory.FrameData\x12+\n\nproperties\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct2\xdd\x02\n\x10MoleculeProvider\x12r\n\x11SubscribeTopology\x12,.narupa.protocol.instance.GetTopologyRequest\x1a-.narupa.protocol.instance.GetTopologyResponse0\x01\x12i\n\x0eSubscribeFrame\x12).narupa.protocol.instance.GetFrameRequest\x1a*.narupa.protocol.instance.GetFrameResponse0\x01\x12j\n\x0cGetStructure\x12-.narupa.protocol.instance.GetStructureRequest\x1a+.narupa.protocol.instance.GetStructureReplyb\x06proto3')
   ,
-  dependencies=[narupa_dot_protocol_dot_instance_dot_get__topology__pb2.DESCRIPTOR,narupa_dot_protocol_dot_instance_dot_get__frame__pb2.DESCRIPTOR,])
+  dependencies=[narupa_dot_protocol_dot_instance_dot_get__topology__pb2.DESCRIPTOR,narupa_dot_protocol_dot_instance_dot_get__frame__pb2.DESCRIPTOR,google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,narupa_dot_protocol_dot_topology_dot_topology__pb2.DESCRIPTOR,narupa_dot_protocol_dot_trajectory_dot_frame__pb2.DESCRIPTOR,])
 
 
 
+
+_GETSTRUCTUREREQUEST = _descriptor.Descriptor(
+  name='GetStructureRequest',
+  full_name='narupa.protocol.instance.GetStructureRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='properties', full_name='narupa.protocol.instance.GetStructureRequest.properties', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=276,
+  serialized_end=342,
+)
+
+
+_GETSTRUCTUREREPLY = _descriptor.Descriptor(
+  name='GetStructureReply',
+  full_name='narupa.protocol.instance.GetStructureReply',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topology', full_name='narupa.protocol.instance.GetStructureReply.topology', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='frame', full_name='narupa.protocol.instance.GetStructureReply.frame', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='properties', full_name='narupa.protocol.instance.GetStructureReply.properties', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=345,
+  serialized_end=521,
+)
+
+_GETSTRUCTUREREQUEST.fields_by_name['properties'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
+_GETSTRUCTUREREPLY.fields_by_name['topology'].message_type = narupa_dot_protocol_dot_topology_dot_topology__pb2._TOPOLOGYDATA
+_GETSTRUCTUREREPLY.fields_by_name['frame'].message_type = narupa_dot_protocol_dot_trajectory_dot_frame__pb2._FRAMEDATA
+_GETSTRUCTUREREPLY.fields_by_name['properties'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
+DESCRIPTOR.message_types_by_name['GetStructureRequest'] = _GETSTRUCTUREREQUEST
+DESCRIPTOR.message_types_by_name['GetStructureReply'] = _GETSTRUCTUREREPLY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+GetStructureRequest = _reflection.GeneratedProtocolMessageType('GetStructureRequest', (_message.Message,), dict(
+  DESCRIPTOR = _GETSTRUCTUREREQUEST,
+  __module__ = 'narupa.protocol.instance.molecule_provider_pb2'
+  # @@protoc_insertion_point(class_scope:narupa.protocol.instance.GetStructureRequest)
+  ))
+_sym_db.RegisterMessage(GetStructureRequest)
+
+GetStructureReply = _reflection.GeneratedProtocolMessageType('GetStructureReply', (_message.Message,), dict(
+  DESCRIPTOR = _GETSTRUCTUREREPLY,
+  __module__ = 'narupa.protocol.instance.molecule_provider_pb2'
+  # @@protoc_insertion_point(class_scope:narupa.protocol.instance.GetStructureReply)
+  ))
+_sym_db.RegisterMessage(GetStructureReply)
 
 
 
@@ -37,8 +136,8 @@ _MOLECULEPROVIDER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=166,
-  serialized_end=407,
+  serialized_start=524,
+  serialized_end=873,
   methods=[
   _descriptor.MethodDescriptor(
     name='SubscribeTopology',
@@ -56,6 +155,15 @@ _MOLECULEPROVIDER = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=narupa_dot_protocol_dot_instance_dot_get__frame__pb2._GETFRAMEREQUEST,
     output_type=narupa_dot_protocol_dot_instance_dot_get__frame__pb2._GETFRAMERESPONSE,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='GetStructure',
+    full_name='narupa.protocol.instance.MoleculeProvider.GetStructure',
+    index=2,
+    containing_service=None,
+    input_type=_GETSTRUCTUREREQUEST,
+    output_type=_GETSTRUCTUREREPLY,
     serialized_options=None,
   ),
 ])

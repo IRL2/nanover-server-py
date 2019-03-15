@@ -20,6 +20,8 @@ namespace Narupa.Protocol.Instance {
     static readonly grpc::Marshaller<global::Narupa.Protocol.Instance.GetTopologyResponse> __Marshaller_narupa_protocol_instance_GetTopologyResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Narupa.Protocol.Instance.GetTopologyResponse.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::Narupa.Protocol.Instance.GetFrameRequest> __Marshaller_narupa_protocol_instance_GetFrameRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Narupa.Protocol.Instance.GetFrameRequest.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::Narupa.Protocol.Instance.GetFrameResponse> __Marshaller_narupa_protocol_instance_GetFrameResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Narupa.Protocol.Instance.GetFrameResponse.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::Narupa.Protocol.Instance.GetStructureRequest> __Marshaller_narupa_protocol_instance_GetStructureRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Narupa.Protocol.Instance.GetStructureRequest.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::Narupa.Protocol.Instance.GetStructureReply> __Marshaller_narupa_protocol_instance_GetStructureReply = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Narupa.Protocol.Instance.GetStructureReply.Parser.ParseFrom);
 
     static readonly grpc::Method<global::Narupa.Protocol.Instance.GetTopologyRequest, global::Narupa.Protocol.Instance.GetTopologyResponse> __Method_SubscribeTopology = new grpc::Method<global::Narupa.Protocol.Instance.GetTopologyRequest, global::Narupa.Protocol.Instance.GetTopologyResponse>(
         grpc::MethodType.ServerStreaming,
@@ -34,6 +36,13 @@ namespace Narupa.Protocol.Instance {
         "SubscribeFrame",
         __Marshaller_narupa_protocol_instance_GetFrameRequest,
         __Marshaller_narupa_protocol_instance_GetFrameResponse);
+
+    static readonly grpc::Method<global::Narupa.Protocol.Instance.GetStructureRequest, global::Narupa.Protocol.Instance.GetStructureReply> __Method_GetStructure = new grpc::Method<global::Narupa.Protocol.Instance.GetStructureRequest, global::Narupa.Protocol.Instance.GetStructureReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "GetStructure",
+        __Marshaller_narupa_protocol_instance_GetStructureRequest,
+        __Marshaller_narupa_protocol_instance_GetStructureReply);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -50,6 +59,11 @@ namespace Narupa.Protocol.Instance {
       }
 
       public virtual global::System.Threading.Tasks.Task SubscribeFrame(global::Narupa.Protocol.Instance.GetFrameRequest request, grpc::IServerStreamWriter<global::Narupa.Protocol.Instance.GetFrameResponse> responseStream, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      public virtual global::System.Threading.Tasks.Task<global::Narupa.Protocol.Instance.GetStructureReply> GetStructure(global::Narupa.Protocol.Instance.GetStructureRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -95,6 +109,22 @@ namespace Narupa.Protocol.Instance {
       {
         return CallInvoker.AsyncServerStreamingCall(__Method_SubscribeFrame, null, options, request);
       }
+      public virtual global::Narupa.Protocol.Instance.GetStructureReply GetStructure(global::Narupa.Protocol.Instance.GetStructureRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return GetStructure(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual global::Narupa.Protocol.Instance.GetStructureReply GetStructure(global::Narupa.Protocol.Instance.GetStructureRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_GetStructure, null, options, request);
+      }
+      public virtual grpc::AsyncUnaryCall<global::Narupa.Protocol.Instance.GetStructureReply> GetStructureAsync(global::Narupa.Protocol.Instance.GetStructureRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return GetStructureAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncUnaryCall<global::Narupa.Protocol.Instance.GetStructureReply> GetStructureAsync(global::Narupa.Protocol.Instance.GetStructureRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_GetStructure, null, options, request);
+      }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       protected override MoleculeProviderClient NewInstance(ClientBaseConfiguration configuration)
       {
@@ -108,7 +138,8 @@ namespace Narupa.Protocol.Instance {
     {
       return grpc::ServerServiceDefinition.CreateBuilder()
           .AddMethod(__Method_SubscribeTopology, serviceImpl.SubscribeTopology)
-          .AddMethod(__Method_SubscribeFrame, serviceImpl.SubscribeFrame).Build();
+          .AddMethod(__Method_SubscribeFrame, serviceImpl.SubscribeFrame)
+          .AddMethod(__Method_GetStructure, serviceImpl.GetStructure).Build();
     }
 
     /// <summary>Register service method implementations with a service binder. Useful when customizing the service binding logic.
@@ -119,6 +150,7 @@ namespace Narupa.Protocol.Instance {
     {
       serviceBinder.AddMethod(__Method_SubscribeTopology, serviceImpl.SubscribeTopology);
       serviceBinder.AddMethod(__Method_SubscribeFrame, serviceImpl.SubscribeFrame);
+      serviceBinder.AddMethod(__Method_GetStructure, serviceImpl.GetStructure);
     }
 
   }

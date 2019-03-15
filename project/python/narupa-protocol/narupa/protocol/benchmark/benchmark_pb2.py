@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='narupa.protocol.benchmark',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n)narupa/protocol/benchmark/benchmark.proto\x12\x19narupa.protocol.benchmark\x1a(narupa/protocol/instance/get_frame.proto\" \n\rSimpleMessage\x12\x0f\n\x07payload\x18\x01 \x01(\x05\"4\n\x0fGetFrameRequest\x12\x0f\n\x07n_atoms\x18\x01 \x01(\x05\x12\x10\n\x08n_frames\x18\x02 \x01(\x05\"\x19\n\x08RawFrame\x12\r\n\x05\x66rame\x18\x01 \x03(\x02\x32\xb2\x03\n\x0eStreamProvider\x12\x66\n\x10GetSimpleMessage\x12(.narupa.protocol.benchmark.SimpleMessage\x1a(.narupa.protocol.benchmark.SimpleMessage\x12\x65\n\tGetFrames\x12*.narupa.protocol.benchmark.GetFrameRequest\x1a*.narupa.protocol.instance.GetFrameResponse0\x01\x12\x61\n\x0cGetFramesRaw\x12*.narupa.protocol.benchmark.GetFrameRequest\x1a#.narupa.protocol.benchmark.RawFrame0\x01\x12n\n\x12GetFramesThrottled\x12*.narupa.protocol.benchmark.GetFrameRequest\x1a*.narupa.protocol.instance.GetFrameResponse0\x01\x62\x06proto3')
+  serialized_pb=_b('\n)narupa/protocol/benchmark/benchmark.proto\x12\x19narupa.protocol.benchmark\x1a(narupa/protocol/instance/get_frame.proto\" \n\rSimpleMessage\x12\x0f\n\x07payload\x18\x01 \x01(\x05\"4\n\x0fGetFrameRequest\x12\x0f\n\x07n_atoms\x18\x01 \x01(\x05\x12\x10\n\x08n_frames\x18\x02 \x01(\x05\"\x19\n\x08RawFrame\x12\r\n\x05\x66rame\x18\x01 \x03(\x02\"\x19\n\x08RawBytes\x12\r\n\x05\x62ytes\x18\x01 \x01(\x0c\x32\xb2\x03\n\x0eStreamProvider\x12\x66\n\x10GetSimpleMessage\x12(.narupa.protocol.benchmark.SimpleMessage\x1a(.narupa.protocol.benchmark.SimpleMessage\x12\x65\n\tGetFrames\x12*.narupa.protocol.benchmark.GetFrameRequest\x1a*.narupa.protocol.instance.GetFrameResponse0\x01\x12\x61\n\x0cGetFramesRaw\x12*.narupa.protocol.benchmark.GetFrameRequest\x1a#.narupa.protocol.benchmark.RawFrame0\x01\x12n\n\x12GetFramesThrottled\x12*.narupa.protocol.benchmark.GetFrameRequest\x1a*.narupa.protocol.instance.GetFrameResponse0\x01\x62\x06proto3')
   ,
   dependencies=[narupa_dot_protocol_dot_instance_dot_get__frame__pb2.DESCRIPTOR,])
 
@@ -126,9 +126,41 @@ _RAWFRAME = _descriptor.Descriptor(
   serialized_end=227,
 )
 
+
+_RAWBYTES = _descriptor.Descriptor(
+  name='RawBytes',
+  full_name='narupa.protocol.benchmark.RawBytes',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='bytes', full_name='narupa.protocol.benchmark.RawBytes.bytes', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=229,
+  serialized_end=254,
+)
+
 DESCRIPTOR.message_types_by_name['SimpleMessage'] = _SIMPLEMESSAGE
 DESCRIPTOR.message_types_by_name['GetFrameRequest'] = _GETFRAMEREQUEST
 DESCRIPTOR.message_types_by_name['RawFrame'] = _RAWFRAME
+DESCRIPTOR.message_types_by_name['RawBytes'] = _RAWBYTES
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 SimpleMessage = _reflection.GeneratedProtocolMessageType('SimpleMessage', (_message.Message,), dict(
@@ -152,6 +184,13 @@ RawFrame = _reflection.GeneratedProtocolMessageType('RawFrame', (_message.Messag
   ))
 _sym_db.RegisterMessage(RawFrame)
 
+RawBytes = _reflection.GeneratedProtocolMessageType('RawBytes', (_message.Message,), dict(
+  DESCRIPTOR = _RAWBYTES,
+  __module__ = 'narupa.protocol.benchmark.benchmark_pb2'
+  # @@protoc_insertion_point(class_scope:narupa.protocol.benchmark.RawBytes)
+  ))
+_sym_db.RegisterMessage(RawBytes)
+
 
 
 _STREAMPROVIDER = _descriptor.ServiceDescriptor(
@@ -160,8 +199,8 @@ _STREAMPROVIDER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=230,
-  serialized_end=664,
+  serialized_start=257,
+  serialized_end=691,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetSimpleMessage',

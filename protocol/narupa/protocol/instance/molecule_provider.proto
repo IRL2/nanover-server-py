@@ -5,6 +5,10 @@ syntax = "proto3";
 
 import "narupa/protocol/instance/get_topology.proto";
 import "narupa/protocol/instance/get_frame.proto";
+import "google/protobuf/struct.proto";
+import "narupa/protocol/topology/topology.proto";
+import "narupa/protocol/trajectory/frame.proto";
+
 
 package narupa.protocol.instance;
 
@@ -21,5 +25,5 @@ message GetStructureReply {
 service MoleculeProvider {
   rpc SubscribeTopology (GetTopologyRequest) returns (stream GetTopologyResponse);
   rpc SubscribeFrame (GetFrameRequest) returns (stream GetFrameResponse);
-  rpc GetStructure (GetStructureRequest) return (GetStructureReply);
+  rpc GetStructure (GetStructureRequest) returns (GetStructureReply);
 }

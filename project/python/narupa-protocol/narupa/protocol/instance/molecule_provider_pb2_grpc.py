@@ -3,6 +3,7 @@ import grpc
 
 from narupa.protocol.instance import get_frame_pb2 as narupa_dot_protocol_dot_instance_dot_get__frame__pb2
 from narupa.protocol.instance import get_topology_pb2 as narupa_dot_protocol_dot_instance_dot_get__topology__pb2
+from narupa.protocol.instance import molecule_provider_pb2 as narupa_dot_protocol_dot_instance_dot_molecule__provider__pb2
 
 
 class MoleculeProviderStub(object):
@@ -25,6 +26,11 @@ class MoleculeProviderStub(object):
         request_serializer=narupa_dot_protocol_dot_instance_dot_get__frame__pb2.GetFrameRequest.SerializeToString,
         response_deserializer=narupa_dot_protocol_dot_instance_dot_get__frame__pb2.GetFrameResponse.FromString,
         )
+    self.GetStructure = channel.unary_unary(
+        '/narupa.protocol.instance.MoleculeProvider/GetStructure',
+        request_serializer=narupa_dot_protocol_dot_instance_dot_molecule__provider__pb2.GetStructureRequest.SerializeToString,
+        response_deserializer=narupa_dot_protocol_dot_instance_dot_molecule__provider__pb2.GetStructureReply.FromString,
+        )
 
 
 class MoleculeProviderServicer(object):
@@ -45,6 +51,13 @@ class MoleculeProviderServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def GetStructure(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_MoleculeProviderServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -57,6 +70,11 @@ def add_MoleculeProviderServicer_to_server(servicer, server):
           servicer.SubscribeFrame,
           request_deserializer=narupa_dot_protocol_dot_instance_dot_get__frame__pb2.GetFrameRequest.FromString,
           response_serializer=narupa_dot_protocol_dot_instance_dot_get__frame__pb2.GetFrameResponse.SerializeToString,
+      ),
+      'GetStructure': grpc.unary_unary_rpc_method_handler(
+          servicer.GetStructure,
+          request_deserializer=narupa_dot_protocol_dot_instance_dot_molecule__provider__pb2.GetStructureRequest.FromString,
+          response_serializer=narupa_dot_protocol_dot_instance_dot_molecule__provider__pb2.GetStructureReply.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

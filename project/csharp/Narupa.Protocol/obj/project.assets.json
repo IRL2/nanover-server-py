@@ -252,7 +252,7 @@
       ]
     },
     "Grpc/1.18.0": {
-      "sha512": "+ohCV/aO08MUdirqXF5NX2n027tnchMpDPeH6dQdzLvgJUWtE9LWABIYklS+Eel54EQcXQSJ5m5Yr3Kmxe9MhA==",
+      "sha512": "ynYxwN39DZ5dBrXklJs29anyblrzW0YGr15KfMkgGgI5lBdk9+3Z7jcGHyakDBzqdFS/i9e0eEL/HEE38dJDdQ==",
       "type": "package",
       "path": "grpc/1.18.0",
       "files": [
@@ -263,7 +263,7 @@
       ]
     },
     "Grpc.Core/1.18.0": {
-      "sha512": "JSYYWnTLSVpm1V6/z1BT9NzEGtHtBsMazHr5OTF9nntgTQMnhYQMs2wirczJr6yGRcAg7xc4jp/+F6UuEJr1aA==",
+      "sha512": "eVybh2fD/OQoODWPKmOZC6i3LH4+PWOOTItBzcw6dawbFVeb+iXNhtti602bkkdQNYBQ4yLvDGyouuobVcP35A==",
       "type": "package",
       "path": "grpc.core/1.18.0",
       "files": [
@@ -294,9 +294,10 @@
       ]
     },
     "Grpc.Tools/1.18.0": {
-      "sha512": "oNxZP8tmE++dZokYVoUcGoya0txXJqnmhcJ+hxz7GM3KYKNidAy+qdp/v6mE9KtolcQQZyVym/m3RnxlAnA+uQ==",
+      "sha512": "J+pGx0ZnKDK7K9cMVa1aknyQDNE0efRjWjhZmgGxlsD2fbKHUSLZwNsRUgEHavyL1cTsgSsKyjbUEq04lXzwWw==",
       "type": "package",
       "path": "grpc.tools/1.18.0",
+      "hasTools": true,
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -339,12 +340,11 @@
       ]
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
-      "sha512": "a/iSwnRZb+LHFk49hQOyThh/ZNC3vsbZsF65XwQIb863qF6msmhdQtxGXFL28Ob2NsCz/drEj28BJd/YPpLRBg==",
+      "sha512": "kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A==",
       "type": "package",
       "path": "microsoft.netcore.platforms/1.1.0",
       "files": [
         ".nupkg.metadata",
-        ".signature.p7s",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
         "lib/netstandard1.0/_._",
@@ -368,11 +368,12 @@
       ]
     },
     "NETStandard.Library/2.0.3": {
-      "sha512": "st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
+      "sha512": "548M6mnBSJWxsIlkQHfbzoYxpiYFXZZSL00p4GHYv8PkiqFBnnT68mW5mGEsA/ch9fDO9GkPgkFQpWiXZN7mAQ==",
       "type": "package",
       "path": "netstandard.library/2.0.3",
       "files": [
         ".nupkg.metadata",
+        ".signature.p7s",
         "LICENSE.TXT",
         "THIRD-PARTY-NOTICES.TXT",
         "build/netstandard2.0/NETStandard.Library.targets",
@@ -496,12 +497,11 @@
       ]
     },
     "System.Interactive.Async/3.1.1": {
-      "sha512": "x9y2omkjEudKbIVuhUzeWw7ZlouEzpk4W98woCEq1lq9gJxERBKRKDTHF5JPEws9E0f4/Uei/2vLxEy1IrfmMg==",
+      "sha512": "hZccYiIE5RS1/J9Tb/BNtosAGVggdlsJm4Ojdu+gDV0p4AIi+LUfUogMKkRacljQEJd2AG6vYzvcjhQFkqoZmw==",
       "type": "package",
       "path": "system.interactive.async/3.1.1",
       "files": [
         ".nupkg.metadata",
-        ".signature.p7s",
         "lib/net45/System.Interactive.Async.dll",
         "lib/net45/System.Interactive.Async.xml",
         "lib/net46/System.Interactive.Async.dll",
@@ -1059,12 +1059,11 @@
       ]
     },
     "System.Threading.ThreadPool/4.0.10": {
-      "sha512": "dupLOpVBSXb3G/Ab9utLVbOYxZ+hnq5ExVz6Dk9CBlzXm6Znw1GAIOv5HEjlkECZJz40I8zhhxaJHWVsWO484Q==",
+      "sha512": "IMXgB5Vf/5Qw1kpoVgJMOvUO1l32aC+qC3OaIZjWJOjvcxuxNWOK2ZTWWYXfij22NHxT2j1yWX5vlAeQWld9vA==",
       "type": "package",
       "path": "system.threading.threadpool/4.0.10",
       "files": [
         ".nupkg.metadata",
-        ".signature.p7s",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
         "lib/MonoAndroid10/_._",
@@ -1108,23 +1107,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\IT036394-Admin\\.nuget\\packages\\": {},
-    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+    "/Users/Mike/.nuget/packages/": {},
+    "/usr/local/share/dotnet/sdk/NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\IT036394-Admin\\Projects\\Narupa\\narupa-protocol\\project\\csharp\\Narupa.Protocol\\Narupa.Protocol.csproj",
+      "projectUniqueName": "/Users/Mike/Documents/Simbox/Code/glowacki-group/narupa-protocol/project/csharp/Narupa.Protocol/Narupa.Protocol.csproj",
       "projectName": "Narupa.Protocol",
-      "projectPath": "C:\\Users\\IT036394-Admin\\Projects\\Narupa\\narupa-protocol\\project\\csharp\\Narupa.Protocol\\Narupa.Protocol.csproj",
-      "packagesPath": "C:\\Users\\IT036394-Admin\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\IT036394-Admin\\Projects\\Narupa\\narupa-protocol\\project\\csharp\\Narupa.Protocol\\obj\\",
+      "projectPath": "/Users/Mike/Documents/Simbox/Code/glowacki-group/narupa-protocol/project/csharp/Narupa.Protocol/Narupa.Protocol.csproj",
+      "packagesPath": "/Users/Mike/.nuget/packages/",
+      "outputPath": "/Users/Mike/Documents/Simbox/Code/glowacki-group/narupa-protocol/project/csharp/Narupa.Protocol/obj/",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\IT036394-Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/Users/Mike/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "netstandard2.0"
