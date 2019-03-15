@@ -8,7 +8,18 @@ import "narupa/protocol/instance/get_frame.proto";
 
 package narupa.protocol.instance;
 
+message GetStructureRequest {
+  google.protobuf.Struct properties = 1;
+}
+
+message GetStructureReply {
+  narupa.protocol.topology.TopologyData topology = 1;
+  narupa.protocol.trajectory.FrameData frame = 2;
+  google.protobuf.Struct properties = 3;
+}
+
 service MoleculeProvider {
   rpc SubscribeTopology (GetTopologyRequest) returns (stream GetTopologyResponse);
   rpc SubscribeFrame (GetFrameRequest) returns (stream GetFrameResponse);
+  rpc GetStructure (GetStructureRequest) return (GetStructureReply);
 }
