@@ -1,6 +1,13 @@
 #!/bin/bash
+echo "Checking that the requirements.txt is satisfied using pip"
+python -m pip install -r project/python/narupa-protocol/requirements.txt --user
+
+
+
 cd protocol
 find ./ -name *.proto -print0 | while read -d $'\0' file
+
+
 do
   echo $file
   python -m grpc_tools.protoc -I ./ --python_out=../project/python/narupa-protocol --grpc_python_out=../project/python/narupa-protocol $file
