@@ -12,7 +12,6 @@ The `project` folder contains implementations of the narupa services in the rele
 The `narupy` folder contains some demo server implementations:
 
 * OpenMMTest.py - Downloads a PDB file, runs an OpenMM simulation and streams it to clients.
-* benchmark - Contains scripts for running simple benchmark servers for testing gRPC connections.
 
 The `project/csharp/Narupa.Protocol folder contains C# implementations of clients for receiving trajectories and structures.
 
