@@ -15,8 +15,6 @@ _sym_db = _symbol_database.Default()
 from narupa.protocol.instance import get_topology_pb2 as narupa_dot_protocol_dot_instance_dot_get__topology__pb2
 from narupa.protocol.instance import get_frame_pb2 as narupa_dot_protocol_dot_instance_dot_get__frame__pb2
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
-from narupa.protocol.topology import topology_pb2 as narupa_dot_protocol_dot_topology_dot_topology__pb2
-from narupa.protocol.trajectory import frame_pb2 as narupa_dot_protocol_dot_trajectory_dot_frame__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -24,9 +22,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='narupa.protocol.imd',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x1dnarupa/protocol/imd/imd.proto\x12\x13narupa.protocol.imd\x1a+narupa/protocol/instance/get_topology.proto\x1a(narupa/protocol/instance/get_frame.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\'narupa/protocol/topology/topology.proto\x1a&narupa/protocol/trajectory/frame.proto\"\x12\n\x10InteractionReply\"[\n\x0bInteraction\x12\x10\n\x08position\x18\x01 \x03(\x02\x12\r\n\x05\x61toms\x18\x02 \x03(\x05\x12+\n\nproperties\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct2\xdf\x02\n\x1cInteractiveMolecularDynamics\x12r\n\x11SubscribeTopology\x12,.narupa.protocol.instance.GetTopologyRequest\x1a-.narupa.protocol.instance.GetTopologyResponse0\x01\x12i\n\x0eSubscribeFrame\x12).narupa.protocol.instance.GetFrameRequest\x1a*.narupa.protocol.instance.GetFrameResponse0\x01\x12`\n\x13PublishInteractions\x12 .narupa.protocol.imd.Interaction\x1a%.narupa.protocol.imd.InteractionReply(\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x1dnarupa/protocol/imd/imd.proto\x12\x13narupa.protocol.imd\x1a+narupa/protocol/instance/get_topology.proto\x1a(narupa/protocol/instance/get_frame.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x12\n\x10InteractionReply\"[\n\x0bInteraction\x12\x10\n\x08position\x18\x01 \x03(\x02\x12\r\n\x05\x61toms\x18\x02 \x03(\x05\x12+\n\nproperties\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct2\xdf\x02\n\x1cInteractiveMolecularDynamics\x12r\n\x11SubscribeTopology\x12,.narupa.protocol.instance.GetTopologyRequest\x1a-.narupa.protocol.instance.GetTopologyResponse0\x01\x12i\n\x0eSubscribeFrame\x12).narupa.protocol.instance.GetFrameRequest\x1a*.narupa.protocol.instance.GetFrameResponse0\x01\x12`\n\x13PublishInteractions\x12 .narupa.protocol.imd.Interaction\x1a%.narupa.protocol.imd.InteractionReply(\x01\x62\x06proto3')
   ,
-  dependencies=[narupa_dot_protocol_dot_instance_dot_get__topology__pb2.DESCRIPTOR,narupa_dot_protocol_dot_instance_dot_get__frame__pb2.DESCRIPTOR,google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,narupa_dot_protocol_dot_topology_dot_topology__pb2.DESCRIPTOR,narupa_dot_protocol_dot_trajectory_dot_frame__pb2.DESCRIPTOR,])
+  dependencies=[narupa_dot_protocol_dot_instance_dot_get__topology__pb2.DESCRIPTOR,narupa_dot_protocol_dot_instance_dot_get__frame__pb2.DESCRIPTOR,google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,])
 
 
 
@@ -50,8 +48,8 @@ _INTERACTIONREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=252,
-  serialized_end=270,
+  serialized_start=171,
+  serialized_end=189,
 )
 
 
@@ -95,8 +93,8 @@ _INTERACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=272,
-  serialized_end=363,
+  serialized_start=191,
+  serialized_end=282,
 )
 
 _INTERACTION.fields_by_name['properties'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
@@ -126,8 +124,8 @@ _INTERACTIVEMOLECULARDYNAMICS = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=366,
-  serialized_end=717,
+  serialized_start=285,
+  serialized_end=636,
   methods=[
   _descriptor.MethodDescriptor(
     name='SubscribeTopology',

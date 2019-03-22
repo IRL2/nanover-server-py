@@ -40,59 +40,6 @@ class NarupaFrame(object):
         ]
 
 
-
-class NarupaInstanceService(MoleculeProviderServicer):
-    topology_queues: List[Queue]
-    frame_queues: List[Queue]
-
-    last_topology: NarupaTopology
-    last_frame: NarupaFrame
-
-    def __init__(self):
-        self.topology_queues = []
-        self.frame_queues = []
-        self.last_frame = None
-        self.last_topology = None
-
-    def SubscribeTopology(self, request, context):
-
-        if self.last_topology is not None:
-            for packet in self.last_topology.packets:
-                yield packet
-
-        queue = Queue()
-        self.topology_queues.append(queue)
-
-        while True:
-            item = queue.get(True)
-            for packet in item.packets:
-                yield packet
-
-    def SubscribeFrame(self, request, context):
-
-        if self.last_frame is not None:
-            for packet in self.last_frame.packets:
-                yield packet
-
-        queue = Queue()
-        self.frame_queues.append(queue)
-
-        while True:
-            item = queue.get(True)
-            for packet in item.packets:
-                yield packet
-
-    def send_topology(self, topology: NarupaTopology):
-        for queue in self.topology_queues:
-            queue.put(topology)
-        self.last_topology = topology
-
-    def send_frame(self, frame: NarupaFrame):
-        for queue in self.frame_queues:
-            queue.put(frame)
-        self.last_frame = frame
-
-
 class NarupaClient(MoleculeProviderStub):
 
     def __init__(self):

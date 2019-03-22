@@ -13,8 +13,6 @@ message GetTopologyRequest {
 
 message GetTopologyResponse {
   uint32 frame_index = 1;
-  oneof content {
-    narupa.protocol.topology.TopologyData topology = 2;
-    narupa.protocol.Delimiter delimiter = 3;
-  }
+  narupa.protocol.topology.TopologyData topology = 2;
+  narupa.protocol.Delimiter delimiter = 3;
 }

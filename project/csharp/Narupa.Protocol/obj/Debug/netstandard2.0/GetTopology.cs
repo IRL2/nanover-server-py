@@ -27,16 +27,16 @@ namespace Narupa.Protocol.Instance {
             "CituYXJ1cGEvcHJvdG9jb2wvaW5zdGFuY2UvZ2V0X3RvcG9sb2d5LnByb3Rv",
             "EhhuYXJ1cGEucHJvdG9jb2wuaW5zdGFuY2UaJ25hcnVwYS9wcm90b2NvbC90",
             "b3BvbG9neS90b3BvbG9neS5wcm90bxofbmFydXBhL3Byb3RvY29sL2RlbGlt",
-            "aXRlci5wcm90byIUChJHZXRUb3BvbG9neVJlcXVlc3QiogEKE0dldFRvcG9s",
-            "b2d5UmVzcG9uc2USEwoLZnJhbWVfaW5kZXgYASABKA0SOgoIdG9wb2xvZ3kY",
+            "aXRlci5wcm90byIUChJHZXRUb3BvbG9neVJlcXVlc3QikwEKE0dldFRvcG9s",
+            "b2d5UmVzcG9uc2USEwoLZnJhbWVfaW5kZXgYASABKA0SOAoIdG9wb2xvZ3kY",
             "AiABKAsyJi5uYXJ1cGEucHJvdG9jb2wudG9wb2xvZ3kuVG9wb2xvZ3lEYXRh",
-            "SAASLwoJZGVsaW1pdGVyGAMgASgOMhoubmFydXBhLnByb3RvY29sLkRlbGlt",
-            "aXRlckgAQgkKB2NvbnRlbnRiBnByb3RvMw=="));
+            "Ei0KCWRlbGltaXRlchgDIAEoDjIaLm5hcnVwYS5wcm90b2NvbC5EZWxpbWl0",
+            "ZXJiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Narupa.Protocol.Topology.TopologyReflection.Descriptor, global::Narupa.Protocol.DelimiterReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Narupa.Protocol.Instance.GetTopologyRequest), global::Narupa.Protocol.Instance.GetTopologyRequest.Parser, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Narupa.Protocol.Instance.GetTopologyResponse), global::Narupa.Protocol.Instance.GetTopologyResponse.Parser, new[]{ "FrameIndex", "Topology", "Delimiter" }, new[]{ "Content" }, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Narupa.Protocol.Instance.GetTopologyResponse), global::Narupa.Protocol.Instance.GetTopologyResponse.Parser, new[]{ "FrameIndex", "Topology", "Delimiter" }, null, null, null)
           }));
     }
     #endregion
@@ -170,15 +170,8 @@ namespace Narupa.Protocol.Instance {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public GetTopologyResponse(GetTopologyResponse other) : this() {
       frameIndex_ = other.frameIndex_;
-      switch (other.ContentCase) {
-        case ContentOneofCase.Topology:
-          Topology = other.Topology.Clone();
-          break;
-        case ContentOneofCase.Delimiter:
-          Delimiter = other.Delimiter;
-          break;
-      }
-
+      topology_ = other.topology_ != null ? other.topology_.Clone() : null;
+      delimiter_ = other.delimiter_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -200,43 +193,24 @@ namespace Narupa.Protocol.Instance {
 
     /// <summary>Field number for the "topology" field.</summary>
     public const int TopologyFieldNumber = 2;
+    private global::Narupa.Protocol.Topology.TopologyData topology_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::Narupa.Protocol.Topology.TopologyData Topology {
-      get { return contentCase_ == ContentOneofCase.Topology ? (global::Narupa.Protocol.Topology.TopologyData) content_ : null; }
+      get { return topology_; }
       set {
-        content_ = value;
-        contentCase_ = value == null ? ContentOneofCase.None : ContentOneofCase.Topology;
+        topology_ = value;
       }
     }
 
     /// <summary>Field number for the "delimiter" field.</summary>
     public const int DelimiterFieldNumber = 3;
+    private global::Narupa.Protocol.Delimiter delimiter_ = 0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::Narupa.Protocol.Delimiter Delimiter {
-      get { return contentCase_ == ContentOneofCase.Delimiter ? (global::Narupa.Protocol.Delimiter) content_ : 0; }
+      get { return delimiter_; }
       set {
-        content_ = value;
-        contentCase_ = ContentOneofCase.Delimiter;
+        delimiter_ = value;
       }
-    }
-
-    private object content_;
-    /// <summary>Enum of possible cases for the "content" oneof.</summary>
-    public enum ContentOneofCase {
-      None = 0,
-      Topology = 2,
-      Delimiter = 3,
-    }
-    private ContentOneofCase contentCase_ = ContentOneofCase.None;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ContentOneofCase ContentCase {
-      get { return contentCase_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void ClearContent() {
-      contentCase_ = ContentOneofCase.None;
-      content_ = null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -255,7 +229,6 @@ namespace Narupa.Protocol.Instance {
       if (FrameIndex != other.FrameIndex) return false;
       if (!object.Equals(Topology, other.Topology)) return false;
       if (Delimiter != other.Delimiter) return false;
-      if (ContentCase != other.ContentCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -263,9 +236,8 @@ namespace Narupa.Protocol.Instance {
     public override int GetHashCode() {
       int hash = 1;
       if (FrameIndex != 0) hash ^= FrameIndex.GetHashCode();
-      if (contentCase_ == ContentOneofCase.Topology) hash ^= Topology.GetHashCode();
-      if (contentCase_ == ContentOneofCase.Delimiter) hash ^= Delimiter.GetHashCode();
-      hash ^= (int) contentCase_;
+      if (topology_ != null) hash ^= Topology.GetHashCode();
+      if (Delimiter != 0) hash ^= Delimiter.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -283,11 +255,11 @@ namespace Narupa.Protocol.Instance {
         output.WriteRawTag(8);
         output.WriteUInt32(FrameIndex);
       }
-      if (contentCase_ == ContentOneofCase.Topology) {
+      if (topology_ != null) {
         output.WriteRawTag(18);
         output.WriteMessage(Topology);
       }
-      if (contentCase_ == ContentOneofCase.Delimiter) {
+      if (Delimiter != 0) {
         output.WriteRawTag(24);
         output.WriteEnum((int) Delimiter);
       }
@@ -302,10 +274,10 @@ namespace Narupa.Protocol.Instance {
       if (FrameIndex != 0) {
         size += 1 + pb::CodedOutputStream.ComputeUInt32Size(FrameIndex);
       }
-      if (contentCase_ == ContentOneofCase.Topology) {
+      if (topology_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Topology);
       }
-      if (contentCase_ == ContentOneofCase.Delimiter) {
+      if (Delimiter != 0) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Delimiter);
       }
       if (_unknownFields != null) {
@@ -322,18 +294,15 @@ namespace Narupa.Protocol.Instance {
       if (other.FrameIndex != 0) {
         FrameIndex = other.FrameIndex;
       }
-      switch (other.ContentCase) {
-        case ContentOneofCase.Topology:
-          if (Topology == null) {
-            Topology = new global::Narupa.Protocol.Topology.TopologyData();
-          }
-          Topology.MergeFrom(other.Topology);
-          break;
-        case ContentOneofCase.Delimiter:
-          Delimiter = other.Delimiter;
-          break;
+      if (other.topology_ != null) {
+        if (topology_ == null) {
+          topology_ = new global::Narupa.Protocol.Topology.TopologyData();
+        }
+        Topology.MergeFrom(other.Topology);
       }
-
+      if (other.Delimiter != 0) {
+        Delimiter = other.Delimiter;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -350,17 +319,14 @@ namespace Narupa.Protocol.Instance {
             break;
           }
           case 18: {
-            global::Narupa.Protocol.Topology.TopologyData subBuilder = new global::Narupa.Protocol.Topology.TopologyData();
-            if (contentCase_ == ContentOneofCase.Topology) {
-              subBuilder.MergeFrom(Topology);
+            if (topology_ == null) {
+              topology_ = new global::Narupa.Protocol.Topology.TopologyData();
             }
-            input.ReadMessage(subBuilder);
-            Topology = subBuilder;
+            input.ReadMessage(topology_);
             break;
           }
           case 24: {
-            content_ = input.ReadEnum();
-            contentCase_ = ContentOneofCase.Delimiter;
+            delimiter_ = (global::Narupa.Protocol.Delimiter) input.ReadEnum();
             break;
           }
         }

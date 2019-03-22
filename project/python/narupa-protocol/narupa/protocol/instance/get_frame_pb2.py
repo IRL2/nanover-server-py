@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='narupa.protocol.instance',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n(narupa/protocol/instance/get_frame.proto\x12\x18narupa.protocol.instance\x1a&narupa/protocol/trajectory/frame.proto\x1a\x1fnarupa/protocol/delimiter.proto\"\x11\n\x0fGetFrameRequest\"\x9b\x01\n\x10GetFrameResponse\x12\x13\n\x0b\x66rame_index\x18\x01 \x01(\r\x12\x36\n\x05\x66rame\x18\x02 \x01(\x0b\x32%.narupa.protocol.trajectory.FrameDataH\x00\x12/\n\tdelimiter\x18\x03 \x01(\x0e\x32\x1a.narupa.protocol.DelimiterH\x00\x42\t\n\x07\x63ontentb\x06proto3')
+  serialized_pb=_b('\n(narupa/protocol/instance/get_frame.proto\x12\x18narupa.protocol.instance\x1a&narupa/protocol/trajectory/frame.proto\x1a\x1fnarupa/protocol/delimiter.proto\"\x11\n\x0fGetFrameRequest\"\x8c\x01\n\x10GetFrameResponse\x12\x13\n\x0b\x66rame_index\x18\x01 \x01(\r\x12\x34\n\x05\x66rame\x18\x02 \x01(\x0b\x32%.narupa.protocol.trajectory.FrameData\x12-\n\tdelimiter\x18\x03 \x01(\x0e\x32\x1a.narupa.protocol.Delimiterb\x06proto3')
   ,
   dependencies=[narupa_dot_protocol_dot_trajectory_dot_frame__pb2.DESCRIPTOR,narupa_dot_protocol_dot_delimiter__pb2.DESCRIPTOR,])
 
@@ -91,22 +91,13 @@ _GETFRAMERESPONSE = _descriptor.Descriptor(
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
-    _descriptor.OneofDescriptor(
-      name='content', full_name='narupa.protocol.instance.GetFrameResponse.content',
-      index=0, containing_type=None, fields=[]),
   ],
   serialized_start=163,
-  serialized_end=318,
+  serialized_end=303,
 )
 
 _GETFRAMERESPONSE.fields_by_name['frame'].message_type = narupa_dot_protocol_dot_trajectory_dot_frame__pb2._FRAMEDATA
 _GETFRAMERESPONSE.fields_by_name['delimiter'].enum_type = narupa_dot_protocol_dot_delimiter__pb2._DELIMITER
-_GETFRAMERESPONSE.oneofs_by_name['content'].fields.append(
-  _GETFRAMERESPONSE.fields_by_name['frame'])
-_GETFRAMERESPONSE.fields_by_name['frame'].containing_oneof = _GETFRAMERESPONSE.oneofs_by_name['content']
-_GETFRAMERESPONSE.oneofs_by_name['content'].fields.append(
-  _GETFRAMERESPONSE.fields_by_name['delimiter'])
-_GETFRAMERESPONSE.fields_by_name['delimiter'].containing_oneof = _GETFRAMERESPONSE.oneofs_by_name['content']
 DESCRIPTOR.message_types_by_name['GetFrameRequest'] = _GETFRAMEREQUEST
 DESCRIPTOR.message_types_by_name['GetFrameResponse'] = _GETFRAMERESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)

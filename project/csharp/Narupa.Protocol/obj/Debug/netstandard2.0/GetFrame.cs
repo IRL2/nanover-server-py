@@ -27,16 +27,15 @@ namespace Narupa.Protocol.Instance {
             "CihuYXJ1cGEvcHJvdG9jb2wvaW5zdGFuY2UvZ2V0X2ZyYW1lLnByb3RvEhhu",
             "YXJ1cGEucHJvdG9jb2wuaW5zdGFuY2UaJm5hcnVwYS9wcm90b2NvbC90cmFq",
             "ZWN0b3J5L2ZyYW1lLnByb3RvGh9uYXJ1cGEvcHJvdG9jb2wvZGVsaW1pdGVy",
-            "LnByb3RvIhEKD0dldEZyYW1lUmVxdWVzdCKbAQoQR2V0RnJhbWVSZXNwb25z",
-            "ZRITCgtmcmFtZV9pbmRleBgBIAEoDRI2CgVmcmFtZRgCIAEoCzIlLm5hcnVw",
-            "YS5wcm90b2NvbC50cmFqZWN0b3J5LkZyYW1lRGF0YUgAEi8KCWRlbGltaXRl",
-            "chgDIAEoDjIaLm5hcnVwYS5wcm90b2NvbC5EZWxpbWl0ZXJIAEIJCgdjb250",
-            "ZW50YgZwcm90bzM="));
+            "LnByb3RvIhEKD0dldEZyYW1lUmVxdWVzdCKMAQoQR2V0RnJhbWVSZXNwb25z",
+            "ZRITCgtmcmFtZV9pbmRleBgBIAEoDRI0CgVmcmFtZRgCIAEoCzIlLm5hcnVw",
+            "YS5wcm90b2NvbC50cmFqZWN0b3J5LkZyYW1lRGF0YRItCglkZWxpbWl0ZXIY",
+            "AyABKA4yGi5uYXJ1cGEucHJvdG9jb2wuRGVsaW1pdGVyYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Narupa.Protocol.Trajectory.FrameReflection.Descriptor, global::Narupa.Protocol.DelimiterReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Narupa.Protocol.Instance.GetFrameRequest), global::Narupa.Protocol.Instance.GetFrameRequest.Parser, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Narupa.Protocol.Instance.GetFrameResponse), global::Narupa.Protocol.Instance.GetFrameResponse.Parser, new[]{ "FrameIndex", "Frame", "Delimiter" }, new[]{ "Content" }, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Narupa.Protocol.Instance.GetFrameResponse), global::Narupa.Protocol.Instance.GetFrameResponse.Parser, new[]{ "FrameIndex", "Frame", "Delimiter" }, null, null, null)
           }));
     }
     #endregion
@@ -170,15 +169,8 @@ namespace Narupa.Protocol.Instance {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public GetFrameResponse(GetFrameResponse other) : this() {
       frameIndex_ = other.frameIndex_;
-      switch (other.ContentCase) {
-        case ContentOneofCase.Frame:
-          Frame = other.Frame.Clone();
-          break;
-        case ContentOneofCase.Delimiter:
-          Delimiter = other.Delimiter;
-          break;
-      }
-
+      frame_ = other.frame_ != null ? other.frame_.Clone() : null;
+      delimiter_ = other.delimiter_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -200,43 +192,24 @@ namespace Narupa.Protocol.Instance {
 
     /// <summary>Field number for the "frame" field.</summary>
     public const int FrameFieldNumber = 2;
+    private global::Narupa.Protocol.Trajectory.FrameData frame_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::Narupa.Protocol.Trajectory.FrameData Frame {
-      get { return contentCase_ == ContentOneofCase.Frame ? (global::Narupa.Protocol.Trajectory.FrameData) content_ : null; }
+      get { return frame_; }
       set {
-        content_ = value;
-        contentCase_ = value == null ? ContentOneofCase.None : ContentOneofCase.Frame;
+        frame_ = value;
       }
     }
 
     /// <summary>Field number for the "delimiter" field.</summary>
     public const int DelimiterFieldNumber = 3;
+    private global::Narupa.Protocol.Delimiter delimiter_ = 0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::Narupa.Protocol.Delimiter Delimiter {
-      get { return contentCase_ == ContentOneofCase.Delimiter ? (global::Narupa.Protocol.Delimiter) content_ : 0; }
+      get { return delimiter_; }
       set {
-        content_ = value;
-        contentCase_ = ContentOneofCase.Delimiter;
+        delimiter_ = value;
       }
-    }
-
-    private object content_;
-    /// <summary>Enum of possible cases for the "content" oneof.</summary>
-    public enum ContentOneofCase {
-      None = 0,
-      Frame = 2,
-      Delimiter = 3,
-    }
-    private ContentOneofCase contentCase_ = ContentOneofCase.None;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ContentOneofCase ContentCase {
-      get { return contentCase_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void ClearContent() {
-      contentCase_ = ContentOneofCase.None;
-      content_ = null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -255,7 +228,6 @@ namespace Narupa.Protocol.Instance {
       if (FrameIndex != other.FrameIndex) return false;
       if (!object.Equals(Frame, other.Frame)) return false;
       if (Delimiter != other.Delimiter) return false;
-      if (ContentCase != other.ContentCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -263,9 +235,8 @@ namespace Narupa.Protocol.Instance {
     public override int GetHashCode() {
       int hash = 1;
       if (FrameIndex != 0) hash ^= FrameIndex.GetHashCode();
-      if (contentCase_ == ContentOneofCase.Frame) hash ^= Frame.GetHashCode();
-      if (contentCase_ == ContentOneofCase.Delimiter) hash ^= Delimiter.GetHashCode();
-      hash ^= (int) contentCase_;
+      if (frame_ != null) hash ^= Frame.GetHashCode();
+      if (Delimiter != 0) hash ^= Delimiter.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -283,11 +254,11 @@ namespace Narupa.Protocol.Instance {
         output.WriteRawTag(8);
         output.WriteUInt32(FrameIndex);
       }
-      if (contentCase_ == ContentOneofCase.Frame) {
+      if (frame_ != null) {
         output.WriteRawTag(18);
         output.WriteMessage(Frame);
       }
-      if (contentCase_ == ContentOneofCase.Delimiter) {
+      if (Delimiter != 0) {
         output.WriteRawTag(24);
         output.WriteEnum((int) Delimiter);
       }
@@ -302,10 +273,10 @@ namespace Narupa.Protocol.Instance {
       if (FrameIndex != 0) {
         size += 1 + pb::CodedOutputStream.ComputeUInt32Size(FrameIndex);
       }
-      if (contentCase_ == ContentOneofCase.Frame) {
+      if (frame_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Frame);
       }
-      if (contentCase_ == ContentOneofCase.Delimiter) {
+      if (Delimiter != 0) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Delimiter);
       }
       if (_unknownFields != null) {
@@ -322,18 +293,15 @@ namespace Narupa.Protocol.Instance {
       if (other.FrameIndex != 0) {
         FrameIndex = other.FrameIndex;
       }
-      switch (other.ContentCase) {
-        case ContentOneofCase.Frame:
-          if (Frame == null) {
-            Frame = new global::Narupa.Protocol.Trajectory.FrameData();
-          }
-          Frame.MergeFrom(other.Frame);
-          break;
-        case ContentOneofCase.Delimiter:
-          Delimiter = other.Delimiter;
-          break;
+      if (other.frame_ != null) {
+        if (frame_ == null) {
+          frame_ = new global::Narupa.Protocol.Trajectory.FrameData();
+        }
+        Frame.MergeFrom(other.Frame);
       }
-
+      if (other.Delimiter != 0) {
+        Delimiter = other.Delimiter;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -350,17 +318,14 @@ namespace Narupa.Protocol.Instance {
             break;
           }
           case 18: {
-            global::Narupa.Protocol.Trajectory.FrameData subBuilder = new global::Narupa.Protocol.Trajectory.FrameData();
-            if (contentCase_ == ContentOneofCase.Frame) {
-              subBuilder.MergeFrom(Frame);
+            if (frame_ == null) {
+              frame_ = new global::Narupa.Protocol.Trajectory.FrameData();
             }
-            input.ReadMessage(subBuilder);
-            Frame = subBuilder;
+            input.ReadMessage(frame_);
             break;
           }
           case 24: {
-            content_ = input.ReadEnum();
-            contentCase_ = ContentOneofCase.Delimiter;
+            delimiter_ = (global::Narupa.Protocol.Delimiter) input.ReadEnum();
             break;
           }
         }

@@ -124,7 +124,6 @@ simulation = Simulation(topology, system, integrator)
 simulation.context.setPositions(positions)
 simulation.minimizeEnergy()
 
-
 i = 0
 
 server.send_topology(i, convert_topology(simulation.topology))

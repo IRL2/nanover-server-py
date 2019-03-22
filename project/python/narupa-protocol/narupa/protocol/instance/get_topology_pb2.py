@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='narupa.protocol.instance',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n+narupa/protocol/instance/get_topology.proto\x12\x18narupa.protocol.instance\x1a\'narupa/protocol/topology/topology.proto\x1a\x1fnarupa/protocol/delimiter.proto\"\x14\n\x12GetTopologyRequest\"\xa2\x01\n\x13GetTopologyResponse\x12\x13\n\x0b\x66rame_index\x18\x01 \x01(\r\x12:\n\x08topology\x18\x02 \x01(\x0b\x32&.narupa.protocol.topology.TopologyDataH\x00\x12/\n\tdelimiter\x18\x03 \x01(\x0e\x32\x1a.narupa.protocol.DelimiterH\x00\x42\t\n\x07\x63ontentb\x06proto3')
+  serialized_pb=_b('\n+narupa/protocol/instance/get_topology.proto\x12\x18narupa.protocol.instance\x1a\'narupa/protocol/topology/topology.proto\x1a\x1fnarupa/protocol/delimiter.proto\"\x14\n\x12GetTopologyRequest\"\x93\x01\n\x13GetTopologyResponse\x12\x13\n\x0b\x66rame_index\x18\x01 \x01(\r\x12\x38\n\x08topology\x18\x02 \x01(\x0b\x32&.narupa.protocol.topology.TopologyData\x12-\n\tdelimiter\x18\x03 \x01(\x0e\x32\x1a.narupa.protocol.Delimiterb\x06proto3')
   ,
   dependencies=[narupa_dot_protocol_dot_topology_dot_topology__pb2.DESCRIPTOR,narupa_dot_protocol_dot_delimiter__pb2.DESCRIPTOR,])
 
@@ -91,22 +91,13 @@ _GETTOPOLOGYRESPONSE = _descriptor.Descriptor(
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
-    _descriptor.OneofDescriptor(
-      name='content', full_name='narupa.protocol.instance.GetTopologyResponse.content',
-      index=0, containing_type=None, fields=[]),
   ],
   serialized_start=170,
-  serialized_end=332,
+  serialized_end=317,
 )
 
 _GETTOPOLOGYRESPONSE.fields_by_name['topology'].message_type = narupa_dot_protocol_dot_topology_dot_topology__pb2._TOPOLOGYDATA
 _GETTOPOLOGYRESPONSE.fields_by_name['delimiter'].enum_type = narupa_dot_protocol_dot_delimiter__pb2._DELIMITER
-_GETTOPOLOGYRESPONSE.oneofs_by_name['content'].fields.append(
-  _GETTOPOLOGYRESPONSE.fields_by_name['topology'])
-_GETTOPOLOGYRESPONSE.fields_by_name['topology'].containing_oneof = _GETTOPOLOGYRESPONSE.oneofs_by_name['content']
-_GETTOPOLOGYRESPONSE.oneofs_by_name['content'].fields.append(
-  _GETTOPOLOGYRESPONSE.fields_by_name['delimiter'])
-_GETTOPOLOGYRESPONSE.fields_by_name['delimiter'].containing_oneof = _GETTOPOLOGYRESPONSE.oneofs_by_name['content']
 DESCRIPTOR.message_types_by_name['GetTopologyRequest'] = _GETTOPOLOGYREQUEST
 DESCRIPTOR.message_types_by_name['GetTopologyResponse'] = _GETTOPOLOGYRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
