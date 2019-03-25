@@ -237,7 +237,7 @@
   },
   "libraries": {
     "Google.Protobuf/3.6.1": {
-      "sha512": "D/h9IZl76jjfM5VlPzG235Zdys9RKXNLYbRGm2fa6Y2UshTqAvYBPIydNOvNTEa24DER/m/zvelHlLO9n1GtNQ==",
+      "sha512": "741fGeDQjixBJaU2j+0CbrmZXsNJkTn/hWbOh4fLVXndHsCclJmWznCPWrJmPoZKvajBvAz3e8ECJOUvRtwjNQ==",
       "type": "package",
       "path": "google.protobuf/3.6.1",
       "files": [
@@ -497,11 +497,12 @@
       ]
     },
     "System.Interactive.Async/3.1.1": {
-      "sha512": "hZccYiIE5RS1/J9Tb/BNtosAGVggdlsJm4Ojdu+gDV0p4AIi+LUfUogMKkRacljQEJd2AG6vYzvcjhQFkqoZmw==",
+      "sha512": "x9y2omkjEudKbIVuhUzeWw7ZlouEzpk4W98woCEq1lq9gJxERBKRKDTHF5JPEws9E0f4/Uei/2vLxEy1IrfmMg==",
       "type": "package",
       "path": "system.interactive.async/3.1.1",
       "files": [
         ".nupkg.metadata",
+        ".signature.p7s",
         "lib/net45/System.Interactive.Async.dll",
         "lib/net45/System.Interactive.Async.xml",
         "lib/net46/System.Interactive.Async.dll",
@@ -1107,23 +1108,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\IT036394-Admin\\.nuget\\packages\\": {},
-    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+    "/home/jon/.nuget/packages/": {},
+    "/usr/share/dotnet/sdk/NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\IT036394-Admin\\projects\\narupa\\narupa-protocol\\project\\csharp\\Narupa.Protocol\\Narupa.Protocol.csproj",
+      "projectUniqueName": "/home/jon/Bristol/narupa-protocol/csharp-libraries/Narupa.Protocol/Narupa.Protocol.csproj",
       "projectName": "Narupa.Protocol",
-      "projectPath": "C:\\Users\\IT036394-Admin\\projects\\narupa\\narupa-protocol\\project\\csharp\\Narupa.Protocol\\Narupa.Protocol.csproj",
-      "packagesPath": "C:\\Users\\IT036394-Admin\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\IT036394-Admin\\projects\\narupa\\narupa-protocol\\project\\csharp\\Narupa.Protocol\\obj\\",
+      "projectPath": "/home/jon/Bristol/narupa-protocol/csharp-libraries/Narupa.Protocol/Narupa.Protocol.csproj",
+      "packagesPath": "/home/jon/.nuget/packages/",
+      "outputPath": "/home/jon/Bristol/narupa-protocol/csharp-libraries/Narupa.Protocol/obj/",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        "/usr/share/dotnet/sdk/NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\IT036394-Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/home/jon/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "netstandard2.0"

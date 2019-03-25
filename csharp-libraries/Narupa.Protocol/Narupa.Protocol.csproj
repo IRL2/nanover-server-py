@@ -15,7 +15,7 @@
   </Target>
 
   <ItemGroup>
-    <Protobuf Include="../../../protocol/**/*.proto" ProtoRoot="../../../protocol" GrpcServices="Both" />
+    <Protobuf Include="../../protocol/**/*.proto" ProtoRoot="../../protocol" GrpcServices="Both" />
   </ItemGroup>
 
   <ItemGroup>

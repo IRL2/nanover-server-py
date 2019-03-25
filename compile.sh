@@ -16,6 +16,6 @@ cd ..
 # add init files to all generated python files.
 find ./python-libraries/narupa-core/narupa/protocol -type d -exec touch {}/__init__.py \;
 
-cd project/csharp/Narupa.Protocol
+cd csharp-libraries/Narupa.Protocol
 
 dotnet build
