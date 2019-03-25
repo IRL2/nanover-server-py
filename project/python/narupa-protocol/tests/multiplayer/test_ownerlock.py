@@ -5,7 +5,7 @@ Licensed under the GPL. See License.txt in the project root for license informat
 
 from time import sleep
 
-from narupy.multiplayer.scene import OwnerLock
+from narupa.multiplayer.scene import OwnerLock
 
 def test_lock():
     owner_lock = OwnerLock()

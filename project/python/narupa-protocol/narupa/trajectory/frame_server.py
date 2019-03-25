@@ -1,8 +1,8 @@
-from narupy.core import GrpcServer
+from narupa.core import GrpcServer
 from narupa.protocol.trajectory.frame_pb2 import FrameData
 from narupa.protocol.topology.topology_pb2 import TopologyData
 from narupa.protocol.instance.molecule_provider_pb2_grpc import add_MoleculeProviderServicer_to_server
-from narupy.trajectory.frame_publisher import FramePublisher
+from .frame_publisher import FramePublisher
 
 
 class FrameServer(GrpcServer):

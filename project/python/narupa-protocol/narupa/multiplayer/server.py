@@ -10,10 +10,10 @@ from narupa.protocol.multiplayer.multiplayer_pb2 import PublishAvatarReply, Avat
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 from asyncio import Queue
-from narupy.multiplayer.scene import OwnerLock
-import narupy.async.grpc_asyncio as grpc_asyncio
+import narupa.async.grpc_asyncio as grpc_asyncio
 import grpc
 import aiogrpc
+from .multiplayer.scene import OwnerLock
 
 class SceneProperties(object):
     """

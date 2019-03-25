@@ -1,8 +1,8 @@
-from narupy.openmm.topology import openmm_topology_to_topology_data
-from narupy.openmm.frame import openmm_positions_to_frame_data
-
 from simtk.openmm.app.topology import Topology
 from narupa.protocol.topology.topology_pb2 import TopologyData
+
+from .topology import openmm_topology_to_topology_data
+from .frame import openmm_positions_to_frame_data
 
 class NarupaReporter(object):
     """NarupaReporter outputs a series of frames from a Simulation to a narupa server.

@@ -1,6 +1,6 @@
 import pytest
 
-from narupy.openmm.topology import openmm_topology_to_topology_data
+from narupa.openmm.topology import openmm_topology_to_topology_data
 from simtk.openmm.app.topology import Topology
 from simtk.openmm.app.element import Element
 
