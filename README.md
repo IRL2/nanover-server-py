@@ -4,6 +4,8 @@ This is very much a work in progress!
 
 ## Getting Started
 
+The project requires python 3.6+ 
+
 The `protocol` folder contains the definitions of the gRPC services. The `compile.sh` script can be used to generate
 the python bindings.
 
