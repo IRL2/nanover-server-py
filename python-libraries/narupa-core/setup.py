@@ -6,7 +6,7 @@ from pathlib import Path
 import distutils.cmd
 import distutils.log
 from distutils.core import setup
-from setuptools import find_packages
+from setuptools import find_namespace_packages
 
 
 class CompileProtoCommand(distutils.cmd.Command):
@@ -85,7 +85,7 @@ def compile_protocol(proto_dir, python_dir, logger):
                 str(protocol_file),
                 '--proto_path={}'.format(proto_include),
             ))
-    generated_protocol_directories = (path for path in python_dir.glob('**') if path.is_dir())
+    generated_protocol_directories = (path for path in python_dir.glob('**/*') if path.is_dir())
     for directory in generated_protocol_directories:
         (directory / '__init__.py').touch()
 
@@ -133,7 +133,7 @@ setup(name='narupa',
       author='Intangible Realities Lab',
       author_email='m.oconnor@bristol.ac.uk',
       url='https://gitlab.com/intangiblerealities/',
-      packages=find_packages() + ['narupa.protocol'],
+      packages=find_namespace_packages(include='narupa.*') + ['narupa.protocol'],
       install_requires=requirements,
       cmdclass={
           'compile_proto': CompileProtoCommand,
