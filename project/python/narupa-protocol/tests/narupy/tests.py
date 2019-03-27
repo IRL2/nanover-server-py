@@ -1,8 +1,13 @@
-import pytest
+"""
+Copyright (c) Alex Jamieson-Binnie, University Of Bristol. All rights reserved.
+Licensed under the GPL. See License.txt in the project root for license information.
+"""
 
-from narupy.openmm.topology import openmm_topology_to_topology_data
-from simtk.openmm.app.topology import Topology
+import pytest
 from simtk.openmm.app.element import Element
+from simtk.openmm.app.topology import Topology
+
+from narupy.openmm import openmm_to_frame_data
 
 
 @pytest.fixture
@@ -19,6 +24,6 @@ def simple_openmm_topology():
 
 
 def test_topology_bonds(simple_openmm_topology):
-    data = openmm_topology_to_topology_data(simple_openmm_topology)
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
 
     assert len(data.arrays['bond'].index_values.values) == 4
