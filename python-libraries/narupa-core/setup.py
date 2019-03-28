@@ -53,7 +53,7 @@ class CompileProtoCommand(distutils.cmd.Command):
         """
         self.announce('Compile protocol files.', level=distutils.log.INFO)
         setup_path = Path(__file__).parent.resolve()
-        compile_protocol(self.proto_dir, setup_path, self)
+        compile_protocol(self.proto_dir, setup_path / 'src', self)
 
 
 def compile_protocol(proto_dir, python_dir, logger):
@@ -73,7 +73,6 @@ def compile_protocol(proto_dir, python_dir, logger):
     # arguments must start at sys.argv[1] (hence "protoc" as first argument passed
     # to the function).
     proto_include = protoc.pkg_resources.resource_filename('grpc_tools', '_proto')
-    logger.announce('Hello {}.'.format(proto_dir), level=distutils.log.INFO)
     with move_in_directory(proto_dir):
         for protocol_file in Path('.').glob('**/*.proto'):
             logger.announce('Compiling {}'.format(protocol_file), level=distutils.log.INFO)
@@ -133,7 +132,8 @@ setup(name='narupa',
       author='Intangible Realities Lab',
       author_email='m.oconnor@bristol.ac.uk',
       url='https://gitlab.com/intangiblerealities/',
-      packages=find_namespace_packages(include='narupa.*') + ['narupa.protocol'],
+      packages=find_namespace_packages('src', include='narupa.*') + ['narupa.protocol'],
+      package_dir={'': 'src'},
       install_requires=requirements,
       cmdclass={
           'compile_proto': CompileProtoCommand,

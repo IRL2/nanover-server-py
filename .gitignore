@@ -6,6 +6,6 @@ __pycache__
 .DS_Store
 
 # Ignore the compiled files
-python-libraries/narupa-core/narupa/protocol
+python-libraries/narupa-core/src/narupa/protocol
 csharp-libraries/Narupa.Protocol/obj
 csharp-libraries/Narupa.Protocol/bin
