@@ -1,21 +1,11 @@
-*/__pycache__/*
+__pycache__
 *.py[cod]
 *$py.class
-project/python/narupa-protocol/narupy/*.pdb
-project/csharp/Narupa.Protocol/obj/*
-project/csharp/Narupa.Protocol/bin/*
 
-\.idea/
+.idea
+.DS_Store
 
-\.DS_Store
-
-project/python/narupa-protocol/narupy/benchmark/results\.csv
-
-notebooks/
-
-project/python/narupa-protocol/narupy/benchmark/results_frankfurt\.csv
-
-project/python/narupa-protocol/narupy/benchmark/results_grpc_py\.csv
-
-project/python/narupa-protocol/Narupa\.egg-info/
+# Ignore the compiled files
 python-libraries/narupa-core/narupa/protocol
+csharp-libraries/Narupa.Protocol/obj
+csharp-libraries/Narupa.Protocol/bin
