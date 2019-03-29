@@ -12,7 +12,7 @@ class NarupaReporter(object):
     _topology : Topology
     _topologyData : TopologyData
 
-    def __init__(self, file, reportInterval, frameServer):
+    def __init__(self, reportInterval, frameServer):
         self._reportInterval = reportInterval
         self._frameServer = frameServer
         self._topology = None

@@ -15,4 +15,7 @@ setup(name='narupa-openmm',
             'narupa',
             'openmm',
       ),
+      entry_points = {
+          'console_scripts': ['narupa-omm-server=narupa.openmm.cli:main'],
+      },
      )
