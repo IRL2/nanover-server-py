@@ -19,7 +19,7 @@ set -euo pipefail
 # libraries, so it should be an option.
 # Running "./compile.sh --user" will pip install with the --user option.
 
-# A developper most likely want to install narupa's python packages in edit
+# A developer most likely want to install narupa's python packages in edit
 # mode. We add a --edit option to the script to allow this.
 user_option=""
 edit_option=""
