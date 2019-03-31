@@ -1,3 +1,0 @@
-obj\Debug\netstandard2.0/Indices.cs: ../../../protocol/narupa/protocol/selection/IndexList.proto\
- ../../../protocol/narupa/protocol/selection/IndexRange.proto\
- ../../../protocol/narupa/protocol/selection/Indices.proto

@@ -1,0 +1,4 @@
+obj/Debug/netstandard2.0/GetFrame.cs: ../../../protocol/narupa/protocol/array.proto\
+ /Users/alexjbinnie/.nuget/packages/grpc.tools/1.18.0/build/native/include/google/protobuf/struct.proto\
+ ../../../protocol/narupa/protocol/trajectory/frame.proto\
+ ../../../protocol/narupa/protocol/trajectory/get_frame.proto
