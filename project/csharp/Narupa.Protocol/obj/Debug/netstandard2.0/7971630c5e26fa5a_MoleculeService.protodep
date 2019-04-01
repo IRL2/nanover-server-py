@@ -1,8 +1,0 @@
-obj/Debug/netstandard2.0/MoleculeService.cs \
-obj/Debug/netstandard2.0/MoleculeServiceGrpc.cs: ../../../protocol/narupa/protocol/topology/AtomInfo.proto\
- ../../../protocol/narupa/protocol/topology/ChainInfo.proto\
- ../../../protocol/narupa/protocol/topology/BondPair.proto\
- ../../../protocol/narupa/protocol/topology/ResidueInfo.proto\
- ../../../protocol/narupa/protocol/topology/TopologyInfo.proto\
- ../../../protocol/narupa/protocol/instance/StreamTopology.proto\
- ../../../protocol/narupa/protocol/instance/MoleculeService.proto
