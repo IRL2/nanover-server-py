@@ -1,19 +1,18 @@
 """Demonstrates molecular dynamics with constant energy."""
 
+from ase import units
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.md.verlet import VelocityVerlet
-from ase import units
 
-# Use Asap for a huge performance increase if it is installed
-use_asap = True
 
-if use_asap:
-    from asap import EMT
-    size = 3
-else:
-    from ase.calculators.emt import EMT
-    size = 3
+from narupa.ase import NarupaASE
+
+from narupa.trajectory import FrameServer
+
+from ase.calculators.emt import EMT
+
+size = 2
 
 # Set up a crystal
 atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
@@ -30,9 +29,6 @@ MaxwellBoltzmannDistribution(atoms, 300 * units.kB)
 # We want to run MD with constant energy using the VelocityVerlet algorithm.
 dyn = VelocityVerlet(atoms, 5 * units.fs)  # 5 fs time step.
 
-from narupy.ase.observer import NarupaASE
-
-from narupy.trajectory.frame_server import FrameServer
 
 server = FrameServer(address='localhost', port=54321)
 
