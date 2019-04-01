@@ -84,7 +84,7 @@ def compile_protocol(proto_dir, python_dir, logger):
                 str(protocol_file),
                 '--proto_path={}'.format(proto_include),
             ))
-    generated_protocol_directories = (path for path in (python_dir / 'protocol').glob('**/*') if path.is_dir())
+    generated_protocol_directories = (path for path in (python_dir / 'narupa/protocol').glob('**/*') if path.is_dir())
     for directory in generated_protocol_directories:
         (directory / '__init__.py').touch()
 
