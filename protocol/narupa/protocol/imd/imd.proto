@@ -3,17 +3,11 @@
 
 syntax = "proto3";
 
-import "narupa/protocol/instance/get_topology.proto";
-import "narupa/protocol/instance/get_frame.proto";
 import "google/protobuf/struct.proto";
 
 package narupa.protocol.imd;
 
 service InteractiveMolecularDynamics {
-    // Subscribe to topology. 
-    rpc SubscribeTopology (narupa.protocol.instance.GetTopologyRequest) returns (stream narupa.protocol.instance.GetTopologyResponse);
-    // Subscribe to MD frames. 
-    rpc SubscribeFrame (narupa.protocol.instance.GetFrameRequest) returns (stream narupa.protocol.instance.GetFrameResponse);
     // Publish interactions.
     rpc PublishInteractions(stream Interaction) returns (InteractionReply);
 }
@@ -24,8 +18,8 @@ message InteractionReply{}
 message Interaction {
     // The position of the interaction.
     repeated float position=1;
-    // TODO make this use either same message as an atom filter. 
-    repeated int32 atoms=2; 
+    // TODO make this use either same message as an atom filter.
+    repeated int32 atoms=2;
     // Interaction properties e.g. GradientScaleFactor.
     google.protobuf.Struct properties = 3;
 }

@@ -1,0 +1,3 @@
+obj/Debug/netstandard2.0/Topology.cs: ../../../protocol/narupa/protocol/array.proto\
+ /Users/alexjbinnie/.nuget/packages/grpc.tools/1.18.0/build/native/include/google/protobuf/struct.proto\
+ ../../../protocol/narupa/protocol/topology/topology.proto

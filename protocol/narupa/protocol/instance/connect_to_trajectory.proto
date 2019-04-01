@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "narupa/protocol/address.proto";
+
+message ConnectToTrajectoryRequest {
+  string instance_id = 1;
+  narupa.protocol.Address address = 2;
+}
+
+message ConnectToTrajectoryResponse {
+
+}

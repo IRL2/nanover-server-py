@@ -1,0 +1,27 @@
+// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+syntax = "proto3";
+
+import "narupa/protocol/trajectory/frame.proto";
+import "google/protobuf/struct.proto";
+
+package narupa.protocol.instance;
+
+/* A client request to get frame(s) from a trajectory service */
+message GetFrameRequest {
+
+  /* Arbitrary data that can be used by a TrajectoryService to decide what frames to return */
+  google.protobuf.Struct data = 1;
+}
+
+/* A server response representing a frame of a molecular trajectory */
+message GetFrameResponse {
+
+  /* An identifier for the frame */
+  uint32 frame_index = 1;
+
+  /* The frame of the trajectory, which may contain positions and topology information */
+  narupa.protocol.trajectory.FrameData frame = 2;
+
+}
