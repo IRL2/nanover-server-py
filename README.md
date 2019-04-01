@@ -6,8 +6,9 @@ This is very much a work in progress!
 
 The project requires python 3.6+ 
 
-The `protocol` folder contains the definitions of the gRPC services. The `compile.sh` script can be used to generate
-the python bindings.
+The `protocol` folder contains the definitions of the gRPC services. 
+The `compile.sh` script can be used to generate the python bindings. They will 
+automatically be installed into your active python environment.
 
 The `python-libraries` folder contains the library to write narupa clients and
 servers in python, as well as the services implemented in python. The

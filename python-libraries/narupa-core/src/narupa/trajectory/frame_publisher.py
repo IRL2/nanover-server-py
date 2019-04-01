@@ -17,12 +17,11 @@ class FramePublisher(TrajectoryServiceServicer):
 
     def __init__(self):
         self.frame_queues = []
-        self.last_frame = FrameData
+        self.last_frame = FrameData()
 
     def SubscribeFrames(self, request, context):
 
-        if self.last_frame is not None:
-            yield self.last_frame
+        yield self.last_frame
 
         queue = Queue()
         self.frame_queues.append(queue)
@@ -32,6 +31,9 @@ class FramePublisher(TrajectoryServiceServicer):
             yield item
 
     def send_frame(self, frame_index: int, frame: FrameData):
-        self.last_frame = frame
+        for key in frame.arrays.keys():
+            self.last_frame.arrays[key] = frame.arrays[key]
+        for key in frame.values.keys():
+            self.last_frame.values[key] = frame.values[key]
         for queue in self.frame_queues:
             queue.put(GetFrameResponse(frame_index=frame_index, frame=frame))
