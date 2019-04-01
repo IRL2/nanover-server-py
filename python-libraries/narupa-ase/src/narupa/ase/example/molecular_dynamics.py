@@ -1,16 +1,13 @@
 """Demonstrates molecular dynamics with constant energy."""
 
 from ase import units
+from ase.calculators.emt import EMT
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.md.verlet import VelocityVerlet
 
-
 from narupa.ase import NarupaASE
-
 from narupa.trajectory import FrameServer
-
-from ase.calculators.emt import EMT
 
 size = 2
 
@@ -29,9 +26,11 @@ MaxwellBoltzmannDistribution(atoms, 300 * units.kB)
 # We want to run MD with constant energy using the VelocityVerlet algorithm.
 dyn = VelocityVerlet(atoms, 5 * units.fs)  # 5 fs time step.
 
-
 server = FrameServer(address='localhost', port=54321)
 
 # Now run the dynamics
 dyn.attach(NarupaASE(atoms, server), interval=1)
-dyn.run(200)
+print("Starting dynamics")
+while True:
+    dyn.run(200)
+print("Dynamics finished")

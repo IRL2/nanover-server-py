@@ -31,9 +31,6 @@ class FramePublisher(TrajectoryServiceServicer):
             yield item
 
     def send_frame(self, frame_index: int, frame: FrameData):
-        for key in frame.arrays.keys():
-            self.last_frame.arrays[key] = frame.arrays[key]
-        for key in frame.values.keys():
-            self.last_frame.values[key] = frame.values[key]
+        self.last_frame = frame
         for queue in self.frame_queues:
             queue.put(GetFrameResponse(frame_index=frame_index, frame=frame))
