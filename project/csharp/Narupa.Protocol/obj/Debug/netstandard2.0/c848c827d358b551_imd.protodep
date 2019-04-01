@@ -1,0 +1,3 @@
+obj/Debug/netstandard2.0/Imd.cs \
+obj/Debug/netstandard2.0/ImdGrpc.cs: /Users/alexjbinnie/.nuget/packages/grpc.tools/1.18.0/build/native/include/google/protobuf/struct.proto\
+ ../../../protocol/narupa/protocol/imd/imd.proto

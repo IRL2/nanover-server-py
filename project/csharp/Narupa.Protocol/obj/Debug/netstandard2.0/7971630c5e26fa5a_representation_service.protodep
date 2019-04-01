@@ -1,0 +1,3 @@
+obj/Debug/netstandard2.0/RepresentationService.cs \
+obj/Debug/netstandard2.0/RepresentationServiceGrpc.cs: /Users/alexjbinnie/.nuget/packages/grpc.tools/1.18.0/build/native/include/google/protobuf/struct.proto\
+ ../../../protocol/narupa/protocol/instance/representation_service.proto
