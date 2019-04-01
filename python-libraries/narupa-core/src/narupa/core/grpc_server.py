@@ -1,6 +1,6 @@
-import grpc
 from concurrent import futures
-import narupa.protocol.instance.molecule_provider_pb2_grpc as foo
+
+import grpc
 
 
 class GrpcServer:

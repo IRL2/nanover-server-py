@@ -1,9 +1,8 @@
 from queue import Queue
 from typing import List
 
-from narupa.protocol.instance.get_frame_pb2 import GetFrameResponse
-from narupa.protocol.instance.trajectory_service_pb2_grpc import TrajectoryServiceServicer
-from narupa.protocol.trajectory.frame_pb2 import FrameData
+from narupa.protocol.instance import TrajectoryServiceServicer
+from narupa.protocol.trajectory import GetFrameResponse, FrameData
 
 
 class FramePublisher(TrajectoryServiceServicer):
