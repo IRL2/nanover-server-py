@@ -6,7 +6,7 @@ syntax = "proto3";
 import "narupa/protocol/trajectory/frame.proto";
 import "google/protobuf/struct.proto";
 
-package narupa.protocol.instance;
+package narupa.protocol.trajectory;
 
 /* A client request to get frame(s) from a trajectory service */
 message GetFrameRequest {
