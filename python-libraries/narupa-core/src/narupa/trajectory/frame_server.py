@@ -1,6 +1,5 @@
 from narupa.core import GrpcServer
-from narupa.protocol.instance import add_TrajectoryServiceServicer_to_server
-from narupa.protocol.trajectory import FrameData
+from narupa.protocol.trajectory import add_TrajectoryServiceServicer_to_server, FrameData
 from narupa.trajectory import FramePublisher
 
 

@@ -15,3 +15,6 @@ class GrpcServer:
 
     def setup_services(self):
         pass
+
+    def close(self):
+        self.server.stop(grace=False)
