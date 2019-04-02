@@ -33,4 +33,3 @@ dyn.attach(NarupaASE(atoms, server), interval=1)
 print("Starting dynamics")
 while True:
     dyn.run(200)
-print("Dynamics finished")
