@@ -1,8 +1,7 @@
 from queue import Queue
 from typing import List
 
-from narupa.protocol.instance import TrajectoryServiceServicer
-from narupa.protocol.trajectory import GetFrameResponse, FrameData
+from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameResponse, FrameData
 
 
 class FramePublisher(TrajectoryServiceServicer):
@@ -17,11 +16,13 @@ class FramePublisher(TrajectoryServiceServicer):
 
     def __init__(self):
         self.frame_queues = []
-        self.last_frame = FrameData()
+        self.last_frame = None
+        self.last_frame_index = 0
 
     def SubscribeFrames(self, request, context):
 
-        yield self.last_frame
+        if self.last_frame is not None:
+            yield GetFrameResponse(frame_index=self.last_frame_index, frame=self.last_frame)
 
         queue = Queue()
         self.frame_queues.append(queue)
@@ -31,9 +32,18 @@ class FramePublisher(TrajectoryServiceServicer):
             yield item
 
     def send_frame(self, frame_index: int, frame: FrameData):
+        if self.last_frame is None:
+            self.last_frame = FrameData()
+        self.last_frame_index = frame_index
+
         for key in frame.arrays.keys():
-            self.last_frame.arrays[key] = frame.arrays[key]
+            if key in self.last_frame.arrays:
+                del self.last_frame.arrays[key]
         for key in frame.values.keys():
-            self.last_frame.values[key] = frame.values[key]
+            if key in self.last_frame.values:
+                del self.last_frame.values[key]
+
+        self.last_frame.MergeFrom(frame)
+
         for queue in self.frame_queues:
             queue.put(GetFrameResponse(frame_index=frame_index, frame=frame))
