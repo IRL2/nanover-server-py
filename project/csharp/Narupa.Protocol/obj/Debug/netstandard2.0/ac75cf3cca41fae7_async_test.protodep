@@ -1,2 +1,0 @@
-obj/Debug/netstandard2.0/AsyncTest.cs \
-obj/Debug/netstandard2.0/AsyncTestGrpc.cs: ../../../protocol/narupa/protocol/multiplayer/async_test.proto

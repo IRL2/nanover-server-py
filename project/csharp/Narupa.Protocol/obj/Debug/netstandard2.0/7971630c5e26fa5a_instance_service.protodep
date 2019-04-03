@@ -1,6 +1,0 @@
-obj/Debug/netstandard2.0/InstanceService.cs \
-obj/Debug/netstandard2.0/InstanceServiceGrpc.cs: /Users/alexjbinnie/.nuget/packages/grpc.tools/1.18.0/build/native/include/google/protobuf/struct.proto\
- /Users/alexjbinnie/.nuget/packages/grpc.tools/1.18.0/build/native/include/google/protobuf/field_mask.proto\
- ../../../protocol/narupa/protocol/address.proto\
- ../../../protocol/narupa/protocol/instance/connect_to_trajectory.proto\
- ../../../protocol/narupa/protocol/instance/instance_service.proto

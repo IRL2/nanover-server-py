@@ -1,2 +1,0 @@
-obj/Debug/netstandard2.0/ConnectToTrajectory.cs: ../../../protocol/narupa/protocol/address.proto\
- ../../../protocol/narupa/protocol/instance/connect_to_trajectory.proto
