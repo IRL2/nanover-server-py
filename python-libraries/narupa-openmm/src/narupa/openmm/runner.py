@@ -59,9 +59,9 @@ class Runner:
         :param pdb_path: Path to the corresponding PDB file.
         :return: An instance of the class.
         """
-        with open(input_xml) as infile:
+        with open(str(input_xml)) as infile:
             system = mm.XmlSerializer.deserialize(infile.read())
-        pdb = app.PDBFile(pdb_path)
+        pdb = app.PDBFile(str(pdb_path))
         integrator = mm.LangevinIntegrator(
             300 * kelvin,
             1 / picosecond,
