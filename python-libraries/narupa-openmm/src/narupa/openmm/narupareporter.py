@@ -4,7 +4,7 @@ Provide a reporter for OpenMM simulation to publish frames as a Narupa server.
 from simtk.openmm.app.topology import Topology
 
 from narupa.trajectory.frame_server import FrameServer
-from narupa.openmm import openmm_to_frame_data
+from .converter import openmm_to_frame_data
 
 
 class NarupaReporter:
