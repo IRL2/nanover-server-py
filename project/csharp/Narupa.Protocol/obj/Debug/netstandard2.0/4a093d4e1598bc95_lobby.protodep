@@ -1,2 +1,0 @@
-obj/Debug/netstandard2.0/Lobby.cs \
-obj/Debug/netstandard2.0/LobbyGrpc.cs: ../../../protocol/narupa/protocol/lobby/lobby.proto
