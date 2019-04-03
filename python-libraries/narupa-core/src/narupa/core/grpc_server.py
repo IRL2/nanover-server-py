@@ -1,6 +1,6 @@
-import grpc
 from concurrent import futures
-import narupa.protocol.instance.molecule_provider_pb2_grpc as foo
+
+import grpc
 
 
 class GrpcServer:
@@ -15,3 +15,6 @@ class GrpcServer:
 
     def setup_services(self):
         pass
+
+    def close(self):
+        self.server.stop(grace=False)
