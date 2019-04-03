@@ -84,9 +84,15 @@ def compile_protocol(proto_dir, python_dir, logger):
                 str(protocol_file),
                 '--proto_path={}'.format(proto_include),
             ))
-    generated_protocol_directories = (path for path in (python_dir / 'protocol').glob('**/*') if path.is_dir())
+    generated_protocol_directories = (path for path in (python_dir / 'narupa/protocol').glob('**/*') if path.is_dir())
     for directory in generated_protocol_directories:
         (directory / '__init__.py').touch()
+        contained_files = (file for file in directory.glob('*_pb2*.py'))
+        with open(directory / '__init__.py', "w+") as init_py:
+            for contained_file in contained_files:
+                file_name = os.path.splitext(os.path.split(contained_file)[1])[0]
+                init_py.write("from .%s import *\n" % file_name)
+
 
 
 @contextmanager

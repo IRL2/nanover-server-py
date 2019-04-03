@@ -5,6 +5,7 @@ syntax = "proto3";
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/field_mask.proto";
+import "narupa/protocol/instance/connect_to_trajectory.proto";
 
 package narupa.protocol.instance;
 
@@ -37,6 +38,7 @@ message CloseInstanceResponse {
 
 service InstanceService {
   rpc LoadTrajectory (LoadTrajectoryRequest) returns (LoadTrajectoryResponse);
+  rpc ConnectToTrajectory (ConnectToTrajectoryRequest) returns (ConnectToTrajectoryResponse);
   rpc GetInstanceInfo (GetInstanceInfoRequest) returns (GetInstanceInfoResponse);
   rpc CloseInstance (CloseInstanceRequest) returns (CloseInstanceResponse);
 }
