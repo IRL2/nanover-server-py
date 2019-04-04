@@ -25,14 +25,14 @@ import numpy as np
 import MDAnalysis as mda
 
 import grpc
-from narupa.protocol.instance.molecule_provider_pb2_grpc import MoleculeProviderStub
-from narupa.protocol.instance.get_frame_pb2 import GetFrameRequest, GetFrameResponse
+from narupa.protocol.trajectory import (
+    TrajectoryServiceStub,
+    GetFrameRequest,
+    GetFrameResponse,
+)
 
 
-# At this stage, this should not be a class. A class with a single public
-# method should be a function. This is still a class because I over-think the
-# future and assumes there will be other methods latter...
-class DummyClient:
+def write_trajectory_from_server(destination, *, address: str, port: int):
     """
     Connect to a Narupa frame server and write the received frames into a file.
 
@@ -41,26 +41,22 @@ class DummyClient:
     :param address: Host name to connect to.
     :param port: Port to connect to on the host.
     """
-    def __init__(self, destination, *, address: str, port: int):
-        host = '{}:{}'.format(address, port)
-        self.channel = grpc.insecure_channel(host)
-        self.stub = MoleculeProviderStub(self.channel)
-        self.destination = destination
+    host = '{}:{}'.format(address, port)
+    channel = grpc.insecure_channel(host)
+    stub = TrajectoryServiceStub(channel)
+    frame_iter = stub.SubscribeFrames(GetFrameRequest())
 
-    def write_trajectory(self):
-        """
-        Start receiving frames from the server and writing to file.
-        """
-        frame_iter = self.stub.SubscribeFrame(GetFrameRequest())
-        first_frame = frame_to_ndarray(next(frame_iter))
-        universe = mda.Universe.empty(n_atoms=first_frame.shape[0], trajectory=True)
-        universe.atoms.positions = first_frame
-        writer_class = mda.coordinates.core.get_writer_for(self.destination, multiframe=True)
-        with writer_class(self.destination, n_atoms=first_frame.shape[0]) as writer:
-            for frame in frame_iter:
-                positions = frame_to_ndarray(frame)
-                universe.atoms.positions = positions
-                writer.write(universe.atoms)
+    first_frame = frame_to_ndarray(next(frame_iter))
+    universe = mda.Universe.empty(n_atoms=first_frame.shape[0], trajectory=True)
+    universe.atoms.positions = first_frame
+    writer_class = mda.coordinates.core.get_writer_for(destination, multiframe=True)
+    with writer_class(destination, n_atoms=first_frame.shape[0]) as writer:
+        writer.write(universe.atoms)
+        for frame in frame_iter:
+            positions = frame_to_ndarray(frame)
+            universe.atoms.positions = positions
+            writer.write(universe.atoms)
+    channel.close()
 
 
 def frame_to_ndarray(frame: GetFrameResponse) -> np.ndarray:
@@ -108,12 +104,11 @@ def main():
     Entry point for the command line.
     """
     arguments = handle_user_args()
-    dummy = DummyClient(
+    write_trajectory_from_server(
         arguments.destination,
         address=arguments.host,
         port=arguments.port,
     )
-    dummy.write_trajectory()
 
 
 if __name__ == '__main__':
