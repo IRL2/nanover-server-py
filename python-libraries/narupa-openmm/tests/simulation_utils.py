@@ -32,29 +32,71 @@ class DoNothingReporter:
 @pytest.fixture
 def basic_simulation():
     """
-    Setup a minimal OpenMM simulation with two atoms.
+    Setup a minimal OpenMM simulation with two methane molecules.
     """
     periodic_box_vector = [
-        [10,  0,  0],
-        [ 0, 10,  0],
-        [ 0,  0, 10],
+        [50,  0,  0],
+        [ 0, 50,  0],
+        [ 0,  0, 50]
     ]
-    positions = np.array([[0, 0, 0], [0, 3, 0]], dtype=float)
+    positions = np.array([
+        # First residue
+        [ 0,       0,      0],  # C
+        [ 5.288,   1.610,  9.359],  # H
+        [ 2.051,   8.240, -6.786],  # H
+        [-10.685, -0.537,  1.921],  # H
+        # Second residue, copied from the first but shifted
+        # by 5 nm along the Z axis
+        [  0,      0,      5],  # C
+        [  5.288,  1.610, 14.359],  # H
+        [  2.051,  8.240, -1.786],  # H
+        [-10.685, -0.537,  6.921],  # H
+    ], dtype=np.float32)
 
     topology = app.Topology()
+    carbon = app.Element.getBySymbol('C')
+    hydrogen = app.Element.getBySymbol('H')
     chain = topology.addChain()
-    element = app.Element.getBySymbol('C')
-    residue = topology.addResidue(name='RES', chain=chain)
-    topology.addAtom(element=element, name='A1', residue=residue)
-    topology.addAtom(element=element, name='A2', residue=residue)
+    residue = topology.addResidue(name='METH1', chain=chain)
+    c1 = topology.addAtom(element=carbon, name='C1', residue=residue)
+    h2 = topology.addAtom(element=hydrogen, name='H2', residue=residue)
+    h3 = topology.addAtom(element=hydrogen, name='H3', residue=residue)
+    h4 = topology.addAtom(element=hydrogen, name='H4', residue=residue)
+    topology.addBond(c1, h2)
+    topology.addBond(c1, h3)
+    topology.addBond(c1, h4)
+    chain = topology.addChain()
+    residue = topology.addResidue(name='METH2', chain=chain)
+    c1 = topology.addAtom(element=carbon, name='C1', residue=residue)
+    h2 = topology.addAtom(element=hydrogen, name='H2', residue=residue)
+    h3 = topology.addAtom(element=hydrogen, name='H3', residue=residue)
+    h4 = topology.addAtom(element=hydrogen, name='H4', residue=residue)
+    topology.addBond(c1, h2)
+    topology.addBond(c1, h3)
+    topology.addBond(c1, h4)
 
     system = mm.System()
     system.setDefaultPeriodicBoxVectors(*periodic_box_vector)
-    system.addParticle(mass=72)
-    system.addParticle(mass=72)
+    system.addParticle(mass=12)
+    system.addParticle(mass=1)
+    system.addParticle(mass=1)
+    system.addParticle(mass=1)
+    system.addParticle(mass=12)
+    system.addParticle(mass=1)
+    system.addParticle(mass=1)
+    system.addParticle(mass=1)
 
     force = mm.NonbondedForce()
     force.setNonbondedMethod(force.NoCutoff)
+    # These non-bonded parameters are completely wrong, but it does not matter
+    # for the tests as long as we do not start testing the dynamic and
+    # thermodynamics properties of methane.
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
     force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
     force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
     system.addForce(force)

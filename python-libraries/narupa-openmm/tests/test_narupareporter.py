@@ -4,8 +4,7 @@ Tests for the :class:`narupa.openmm.NarupaReporter`.
 
 import pytest
 
-from narupa.protocol.trajectory.frame_pb2 import FrameData
-from narupa.protocol.topology.topology_pb2 import TopologyData
+from narupa.protocol.trajectory import FrameData
 
 from narupa.openmm import NarupaReporter
 
@@ -34,14 +33,10 @@ class MockFrameServer:
     def __init__(self, *, address: str, port: int):
         self.address = address
         self.port = port
-        self.all_sent_topologies = []
         self.all_sent_frames = []
 
     def setup_services(self):
         pass
-
-    def send_topology(self, frame_index: int, topology_data: TopologyData):
-        self.all_sent_topologies.append((frame_index, topology_data))
 
     def send_frame(self, frame_index: int, frame_data: FrameData):
         self.all_sent_frames.append((frame_index, frame_data))
@@ -56,6 +51,10 @@ class MockFrameServer:
 def test_describeNextReport(  # pytest: disable=invalid-name
         basic_simulation, current_step, report_interval, expected_steps,
 ):
+    """
+    Test that the next report is well described with different report interval
+    and different positions in the simulation.
+    """
     frame_server = MockFrameServer(address='dummy', port=0)
     reporter = NarupaReporter(
         report_interval=report_interval,
@@ -74,7 +73,6 @@ def test_describeNextReport(  # pytest: disable=invalid-name
     assert answer == expected_answer
 
 
-@pytest.mark.skip(reason='Test system is not good enough, yet.')
 def test_report(basic_simulation):
     frame_server = MockFrameServer(address='dummy', port=0)
     reporter = NarupaReporter(
@@ -84,16 +82,22 @@ def test_report(basic_simulation):
     state = basic_simulation.context.getState(getPositions=True)
 
     reporter.report(basic_simulation, state)
-    assert len(frame_server.all_sent_topologies) == 1
-    assert len(frame_server.all_sent_frames) == 1
+    # The first report sends 2 messages: one with the topology and one with
+    # the positions. Subsequent reports only send the positions.
+    assert len(frame_server.all_sent_frames) == 2
 
-    topology = frame_server.all_sent_topologies[0]
-    # TODO: we need a more complex test system with bonds and more
-    #  than one residue
-    assert topology.arrays['residue.id'].string_values.values == ['RES']
-    assert topology.arrays['residue.chain'].index_values.values == [0]
-    assert topology.arrays['atom.id'].index_values.values == [0, 1]
-    assert topology.arrays['atom.element'].index_values.values == [15, 16]
-    assert topology.arrays['atom.residue'].index_values.values == [0, 0]
-    assert topology.arrays['bond'].index_values.values == []
+    frame_index, topology = frame_server.all_sent_frames[0]
+    assert frame_index == 0
+    assert topology.arrays['residue.id'].string_values.values == ['METH1', 'METH2']
+    assert topology.arrays['residue.chain'].index_values.values == [0, 1]
+    assert topology.arrays['atom.id'].string_values.values == ['C1', 'H2', 'H3', 'H4'] * 2
+    assert topology.arrays['atom.element'].index_values.values == [6, 1, 1, 1] * 2
+    assert topology.arrays['atom.residue'].index_values.values == [0] * 4 + [1] * 4
+    assert topology.arrays['bond'].index_values.values == [
+        0, 1, 0, 2, 0, 3,  # First residue
+        4, 5, 4, 6, 4, 7,  # Second residue
+    ]
+
+    reporter.report(basic_simulation, state)
+    assert len(frame_server.all_sent_frames) == 3
 

@@ -33,8 +33,12 @@ class NarupaReporter:
         return steps, True, False, False, False, False
 
     def report(self, simulation, state):
-        self._topology = simulation.topology
+        if self._frameIndex == 0:
+            self._topology = simulation.topology
+            self._frameData = openmm_to_frame_data(positions=None,
+                                                   topology=self._topology)
+            self._frameServer.send_frame(self._frameIndex, self._frameData)
         self._frameData = openmm_to_frame_data(positions=state.getPositions(),
-                                               topology=self._topology)
+                                               topology=None)
         self._frameServer.send_frame(self._frameIndex, self._frameData)
         self._frameIndex += 1

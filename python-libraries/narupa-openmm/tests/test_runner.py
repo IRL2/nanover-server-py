@@ -115,5 +115,6 @@ def test_from_xml_input(serialized_system):
     """
     xml_path, pdb_path = serialized_system
     runner = Runner.from_xml_input(xml_path, pdb_path)
-    assert runner.simulation.system.getNumParticles() == 2
+    n_atoms_in_system = 8
+    assert runner.simulation.system.getNumParticles() == n_atoms_in_system
 
