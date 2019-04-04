@@ -47,7 +47,7 @@ class Runner:
     @classmethod
     def from_xml_input(cls, input_xml, pdb_path):
         """
-        Construct an instance of the class from a serialized OpenMM system.
+        Create a runner from a serialized OpenMM system and initial coordinates.
 
         .. warning::
 
