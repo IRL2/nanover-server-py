@@ -103,6 +103,10 @@ def test_data_earlyclient(frame_server, frame_client, simple_frame_data):
         result = frame
 
     frame_client.subscribe_frames_async(callback)
+    # It takes time to actually subscribe. During that time, the server can
+    # already have yielded the frame from the next instruction. We therefore
+    # need to wait for the subscription go go through before we send a frame.
+    time.sleep(0.1)
 
     frame_server.send_frame(0, simple_frame_data)
 
