@@ -1,6 +1,8 @@
 """
 Tests for :mod:`narupa.openmm.runner`.
 """
+# Pylint does not recognize pytest fixtures which creates fake warnings.
+# pylint: disable=redefined-outer-name,unused-import
 import pytest
 
 import simtk.openmm as mm
@@ -12,7 +14,6 @@ from simulation_utils import (
     DoNothingReporter,
     basic_simulation,
 )
-
 
 
 @pytest.fixture
@@ -83,7 +84,7 @@ def test_make_verbose(runner, initial_value):
     runner.verbose = initial_value
     assert runner.verbose == initial_value
     runner.make_verbose()
-    assert runner.verbose == True
+    assert runner.verbose
     assert len(reporters) == 2
 
 
@@ -96,7 +97,7 @@ def test_make_quiet(runner, initial_value):
     runner.verbose = initial_value
     assert runner.verbose == initial_value
     runner.make_quiet()
-    assert runner.verbose == False
+    assert not runner.verbose
     assert len(reporters) == 1
 
 
@@ -106,7 +107,6 @@ def test_run(runner):
     """
     assert runner.simulation.currentStep == 0
     runner.run(n_steps=5)
-    assert runner.simulation.currentStep == 5
 
 
 def test_from_xml_input(serialized_system):
@@ -117,4 +117,3 @@ def test_from_xml_input(serialized_system):
     runner = Runner.from_xml_input(xml_path, pdb_path)
     n_atoms_in_system = 8
     assert runner.simulation.system.getNumParticles() == n_atoms_in_system
-

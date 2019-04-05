@@ -1,10 +1,17 @@
+"""
+Fixtures and utilities for tests that requires OpenMM simulations.
+"""
+# Pylint does not recognize pytest fixtures, which causes some false warnings.
+# pylint: disable=unused-argument
 import pytest
 
 import numpy as np
 
 import simtk.openmm as mm
 from simtk.openmm import app
-from simtk.unit import kelvin, picosecond, femtosecond, nanometer, amu
+# Prefixed units in `simtk.unit` are added programmatically and are not
+# recognized by pylint and PyCharm.
+from simtk.unit import kelvin, picosecond, femtosecond, nanometer  # pylint: disable=no-name-in-module
 
 
 class DoNothingReporter:
@@ -16,7 +23,7 @@ class DoNothingReporter:
     """
     # The name of the method is part of the OpenMM API. It cannot be made to
     # conform PEP8.
-    def describeNextReport(self, simulation):  # pylint: disable=invalid-name
+    def describeNextReport(self, simulation):  # pylint: disable=invalid-name,no-self-use
         """
         Activate the reporting every step, but collect no data.
         """
@@ -34,6 +41,10 @@ def basic_simulation():
     """
     Setup a minimal OpenMM simulation with two methane molecules.
     """
+    # In ths function, we define matrices and we want to align the column.
+    # We disable the pylint warning about bad spacing for the scope of the
+    # function.
+    # pylint: disable=bad-whitespace
     periodic_box_vector = [
         [50,  0,  0],
         [ 0, 50,  0],
@@ -58,22 +69,22 @@ def basic_simulation():
     hydrogen = app.Element.getBySymbol('H')
     chain = topology.addChain()
     residue = topology.addResidue(name='METH1', chain=chain)
-    c1 = topology.addAtom(element=carbon, name='C1', residue=residue)
-    h2 = topology.addAtom(element=hydrogen, name='H2', residue=residue)
-    h3 = topology.addAtom(element=hydrogen, name='H3', residue=residue)
-    h4 = topology.addAtom(element=hydrogen, name='H4', residue=residue)
-    topology.addBond(c1, h2)
-    topology.addBond(c1, h3)
-    topology.addBond(c1, h4)
+    atom_c1 = topology.addAtom(element=carbon, name='C1', residue=residue)
+    atom_h2 = topology.addAtom(element=hydrogen, name='H2', residue=residue)
+    atom_h3 = topology.addAtom(element=hydrogen, name='H3', residue=residue)
+    atom_h4 = topology.addAtom(element=hydrogen, name='H4', residue=residue)
+    topology.addBond(atom_c1, atom_h2)
+    topology.addBond(atom_c1, atom_h3)
+    topology.addBond(atom_c1, atom_h4)
     chain = topology.addChain()
     residue = topology.addResidue(name='METH2', chain=chain)
-    c1 = topology.addAtom(element=carbon, name='C1', residue=residue)
-    h2 = topology.addAtom(element=hydrogen, name='H2', residue=residue)
-    h3 = topology.addAtom(element=hydrogen, name='H3', residue=residue)
-    h4 = topology.addAtom(element=hydrogen, name='H4', residue=residue)
-    topology.addBond(c1, h2)
-    topology.addBond(c1, h3)
-    topology.addBond(c1, h4)
+    atom_c1 = topology.addAtom(element=carbon, name='C1', residue=residue)
+    atom_h2 = topology.addAtom(element=hydrogen, name='H2', residue=residue)
+    atom_h3 = topology.addAtom(element=hydrogen, name='H3', residue=residue)
+    atom_h4 = topology.addAtom(element=hydrogen, name='H4', residue=residue)
+    topology.addBond(atom_c1, atom_h2)
+    topology.addBond(atom_c1, atom_h3)
+    topology.addBond(atom_c1, atom_h4)
 
     system = mm.System()
     system.setDefaultPeriodicBoxVectors(*periodic_box_vector)

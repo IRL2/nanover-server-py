@@ -2,13 +2,17 @@
 Tests for the :class:`narupa.openmm.NarupaReporter`.
 """
 
+# The use of fixture is not recognized by pylint and leads to erroneous warnings.
+# pylint: disable=redefined-outer-name
+
 import pytest
 
 from narupa.protocol.trajectory import FrameData
 
 from narupa.openmm import NarupaReporter
 
-from simulation_utils import basic_simulation
+# Pylint does not detect the use of the fixture.
+from simulation_utils import basic_simulation  # pylint: disable=unused-import
 
 
 class MockFrameServer:
@@ -48,7 +52,9 @@ class MockFrameServer:
         (2, 3, 1),
         (3, 3, 3),
 ))
-def test_describeNextReport(  # pytest: disable=invalid-name
+# describeNextReport is a name that is part of the OpenMM API. It does not
+# conform the naming conventions, but it cannot be changed.
+def test_describeNextReport(  # pylint: disable=invalid-name
         basic_simulation, current_step, report_interval, expected_steps,
 ):
     """
@@ -74,6 +80,14 @@ def test_describeNextReport(  # pytest: disable=invalid-name
 
 
 def test_report(basic_simulation):
+    """
+    Test that two consecutive calls of :meth:`NarupaReporter.report` result in
+    the expected calls of the frame server.
+
+    Two calls are required as the first call to the reporter is the only one
+    registering the topology. The first and the second calls are then expected
+    to behave differently.
+    """
     frame_server = MockFrameServer(address='dummy', port=0)
     reporter = NarupaReporter(
         report_interval=1,
@@ -100,4 +114,3 @@ def test_report(basic_simulation):
 
     reporter.report(basic_simulation, state)
     assert len(frame_server.all_sent_frames) == 3
-
