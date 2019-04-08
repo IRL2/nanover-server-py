@@ -6,17 +6,9 @@ import sys
 
 import numpy as np
 
-import simtk.openmm as mm
 from simtk.openmm import app
 
-# The prefixed units are programmatically added to the simtk.unit module, thus
-# there are not found by pyint or PyCharm.
-from simtk.unit import kelvin, picosecond  # pylint: disable=no-name-in-module
-
-# TODO: The Runner class can be constructed from a Simulation instance
-#  (__init__) or from a serialized system and a PDB file (from_xml_input).
-#  The serialized system does not include the integrator so we need a way to
-#  construct the runner from a serialized Simulation.
+from narupa.openmm import serializer
 
 
 class Runner:
@@ -45,30 +37,21 @@ class Runner:
         )
 
     @classmethod
-    def from_xml_input(cls, input_xml, pdb_path):
+    def from_xml_input(cls, input_xml):
         """
-        Create a runner from a serialized OpenMM system and initial coordinates.
+        Create a runner from a serialized simulation.
 
-        .. warning::
-
-            The serialised OpenMM system does not describe the integrator. As
-            a temporary measure, this constructor sets a Langevin integrator at
-            300 Kelvin, with an integration step of 2 femtoseconds.
-
-        :param input_xml: Path to an XML serialised OpenMM system.
-        :param pdb_path: Path to the corresponding PDB file.
+        :param input_xml: Path to an XML serialised OpenMM simulation.
         :return: An instance of the class.
+
+        .. seealso::
+
+            The XML serialized simulation can be produced by
+            :fun:`narupa.openmm.serializer.serialize_simulation`.
+
         """
         with open(str(input_xml)) as infile:
-            system = mm.XmlSerializer.deserialize(infile.read())
-        pdb = app.PDBFile(str(pdb_path))
-        integrator = mm.LangevinIntegrator(
-            300 * kelvin,
-            1 / picosecond,
-            0.002 * picosecond
-        )
-        simulation = app.Simulation(pdb.topology, system, integrator)
-        simulation.context.setPositions(pdb.positions)
+            simulation = serializer.deserialize_simulation(infile.read())
         return cls(simulation)
 
     def make_verbose(self):

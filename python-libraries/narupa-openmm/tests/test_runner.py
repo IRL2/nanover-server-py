@@ -5,10 +5,7 @@ Tests for :mod:`narupa.openmm.runner`.
 # pylint: disable=redefined-outer-name,unused-import
 import pytest
 
-import simtk.openmm as mm
-from simtk.openmm import app
-
-from narupa.openmm import Runner
+from narupa.openmm import Runner, serializer
 
 from simulation_utils import (
     DoNothingReporter,
@@ -34,16 +31,11 @@ def serialized_system(basic_simulation, tmp_path):
     """
     Setup an XML serialized system and a PDB as a temporary files.
     """
+    serialized_simulation = serializer.serialize_simulation(basic_simulation)
     xml_path = tmp_path / "system.xml"
-    system_xml = mm.XmlSerializer.serialize(basic_simulation.system)
     with open(str(xml_path), 'w') as outfile:
-        outfile.write(system_xml)
-
-    pdb_path = tmp_path / 'system.pdb'
-    positions = basic_simulation.context.getState(getPositions=True).getPositions()
-    with open(str(pdb_path), 'w') as outfile:
-        app.PDBFile.writeFile(basic_simulation.topology, positions, outfile)
-    return xml_path, pdb_path
+        outfile.write(serialized_simulation)
+    return xml_path
 
 
 def test_default_verbosity(runner):
@@ -111,9 +103,8 @@ def test_run(runner):
 
 def test_from_xml_input(serialized_system):
     """
-    Test that a :class:`Runner` can be built from a serialized system.
+    Test that a :class:`Runner` can be built from a serialized simulation.
     """
-    xml_path, pdb_path = serialized_system
-    runner = Runner.from_xml_input(xml_path, pdb_path)
+    runner = Runner.from_xml_input(serialized_system)
     n_atoms_in_system = 8
     assert runner.simulation.system.getNumParticles() == n_atoms_in_system

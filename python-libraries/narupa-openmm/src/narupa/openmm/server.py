@@ -7,6 +7,7 @@ from simtk.openmm.app import Simulation
 from narupa.trajectory.frame_server import FrameServer
 from .runner import Runner
 from .narupareporter import NarupaReporter
+from .serializer import deserialize_simulation
 
 
 class Server(Runner):
@@ -29,8 +30,6 @@ class Server(Runner):
     # TODO: The API is not satisfying:
     #  * Should it be possible to deactivate the Narupa reporter? Is it any
     #    useful?
-    #  * The `from_xml_input` is broken at the moment. It is in itself not
-    #    satisfactory anyway as discussed in runner.py.
     #  * Host name and port should have a default; that default might even be
     #    a dynamic port where the first available range in a range is used.
     def __init__(
@@ -45,6 +44,32 @@ class Server(Runner):
             frame_server=self._frame_server,
         )
         self.make_publish_frames()
+
+    @classmethod
+    def from_xml_input(cls, input_xml, *,
+                       address, port, publish_interval: int = 1):
+        """
+        Create a runner from a serialized simulation.
+
+        :param input_xml: Path to an XML serialised OpenMM simulation.
+        :param address: The name of this host.
+        :param port: The port to listen to.
+        :param publish_interval: The frequency, in frames, of publishing.
+        :return: An instance of the class.
+
+        .. seealso::
+
+            The XML serialized simulation can be produced by
+            :fun:`narupa.openmm.serializer.serialize_simulation`.
+
+        """
+        with open(str(input_xml)) as infile:
+            simulation = deserialize_simulation(infile.read())
+        return cls(
+            simulation,
+            address=address, port=port,
+            publish_interval=publish_interval,
+        )
 
     def make_publish_frames(self):
         """
