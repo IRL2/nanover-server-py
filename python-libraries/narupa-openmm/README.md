@@ -16,6 +16,8 @@ how to produce such a file.
 
 Run `narupa-omm-server --help` in a terminal to read more about the options.
 
+The XML file for the neuraminidase demo can be found in the `examples` directory.
+
 Running a server from python
 ----------------------------
 
@@ -74,7 +76,7 @@ narupa_reporter = NarupaReporter(report_interval=1, frame_server=frame_server)
 simulation.reporters.append(narupa_reporter)
 
 # Run the simulation for 1000 steps
-simulation.steps(1000)
+simulation.step(1000)
 ```
 
 Writing a XML simulation file
