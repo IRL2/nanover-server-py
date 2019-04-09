@@ -100,4 +100,4 @@ class Server(Runner):
         if value:
             self.make_publish_frames()
         else:
-            self.make_quiet()
+            self.make_not_publish_frames()

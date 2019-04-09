@@ -13,6 +13,8 @@ from simtk.openmm import app
 # recognized by pylint and PyCharm.
 from simtk.unit import kelvin, picosecond, femtosecond, nanometer  # pylint: disable=no-name-in-module
 
+from narupa.openmm import serializer
+
 
 class DoNothingReporter:
     """
@@ -119,3 +121,16 @@ def basic_simulation():
     simulation.context.setPositions(positions * nanometer)
 
     return simulation
+
+
+@pytest.fixture
+def serialized_simulation_path(basic_simulation, tmp_path):
+    """
+    Setup an XML serialized simulation as a temporary files.
+    """
+    serialized_simulation = serializer.serialize_simulation(basic_simulation)
+    xml_path = tmp_path / "system.xml"
+    with open(str(xml_path), 'w') as outfile:
+        outfile.write(serialized_simulation)
+    return xml_path
+
