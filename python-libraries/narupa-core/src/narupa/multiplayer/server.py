@@ -3,14 +3,13 @@ Copyright (c) Mike O'Connor, University Of Bristol. All rights reserved.
 Licensed under the GPL. See License.txt in the project root for license information.
 """
 
-from concurrent import futures
 from typing import List, Iterator
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
-from narupa.protocol.multiplayer.multiplayer_pb2 import PublishAvatarReply, Avatar, SceneProperties, ScenePropertyReply, ScenePropertyRequest
+from narupa.protocol.multiplayer.multiplayer_pb2 import PublishAvatarReply, Avatar, SceneProperties, ScenePropertyReply
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 from asyncio import Queue
-import narupa.async.grpc_asyncio as grpc_asyncio
+import narupa.core.grpc_asyncio as grpc_asyncio
 import grpc
 import aiogrpc
 from .multiplayer.scene import OwnerLock
