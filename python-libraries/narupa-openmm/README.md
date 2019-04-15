@@ -4,7 +4,7 @@ OpenMM server for Narupa
 Running a server from the command line
 --------------------------------------
 
-When `narupa-opemm` is installed, it provides the `narupa-omm-server`
+When `narupa-openmm` is installed, it provides the `narupa-omm-server`
 command in the command line. When provided with the description of an
 OpenMM simulation as an XML file, `narupa-omm-server` runs the simulation
 and serves the frame for Narupa. The host address and port can be set with
@@ -35,7 +35,7 @@ simulation = app.Simulation(...)
 
 # Setup the Narupa server
 server = Server(simulation, address='localhost', port=8000)
-# Make the server verbose. The server is quiet bu default.
+# Make the server verbose. The server is quiet by default.
 # When verbose, the server prints the number of steps run,
 # the potential energy of the system in kJ/mol, and the
 # performances in ns/day on the standard output.
@@ -52,8 +52,9 @@ server = Server.from_xml_input('simulation.xml')
 ```
 
 The OpenMM simulation object is exposed by the server object through the
-`simulation` attribute so every operations usually done on OpenMM simulation
-object (such as adding a reporter, or accessing the context) can be done.
+`simulation` attribute so every operation usually done on OpenMM simulation
+object (such as adding a reporter, or accessing the context) can be performed as usual.
+Refer to the OpenMM [documentation](http://openmm.org/documentation.html) for more details.
 
 A Narupa server can also be included in an existing OpenMM workflow by adding
 a `NarupaReporter` to an existing simulation object:
