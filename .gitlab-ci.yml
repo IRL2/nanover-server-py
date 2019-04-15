@@ -20,4 +20,9 @@ debug:
   stage: test
   script:
     - ./compile.sh
-    - python -m pytest python-libraries
+    - python -m pip install -r python-libraries/requirements.test
+    - python -m pytest --cov=narupa python-libraries
+    - coverage html
+  artifacts:
+    paths:
+      - htmlcov
