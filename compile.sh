@@ -54,4 +54,4 @@ python -c "import simtk" 2>&1 > /dev/null || {
 }
 
 announce "Compiling proto files to C#"
-dotnet build csharp-libraries/Narupa.Protocol
+dotnet build --configuration Release csharp-libraries/Narupa.Protocol
