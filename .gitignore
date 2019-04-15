@@ -12,3 +12,7 @@ csharp-libraries/Narupa.Protocol/bin
 
 # Ignore egg-info files
 *.egg-info/
+
+# Ignore coverage data
+.coverage
+htmlcov
