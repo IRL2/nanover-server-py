@@ -14,7 +14,6 @@ release:
       - csharp-libraries/Narupa.Protocol/bin/Release
   script:
     - ./compile.sh
-    - dotnet build --configuration Release csharp-libraries/Narupa.Protocol
 
 debug:
   stage: test
@@ -26,3 +25,4 @@ debug:
   artifacts:
     paths:
       - htmlcov
+      - csharp-libraries/Narupa.Protocol/bin/Release
