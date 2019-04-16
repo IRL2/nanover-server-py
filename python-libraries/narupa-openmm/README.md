@@ -24,7 +24,7 @@ simulation = app.Simulation(...)
 
 # Setup the Narupa server
 server = Server(simulation, address='localhost', port=8000)
-# Make the server verbose. The server is quiet bu default.
+# Make the server verbose. The server is quiet by default.
 # When verbose, the server prints the number of steps run,
 # the potential energy of the system in kJ/mol, and the
 # performances in ns/day on the standard output.
@@ -54,6 +54,7 @@ how to produce such a file.
 In any case, the OpenMM simulation object is exposed by the server object through the
 `simulation` attribute of the server object so every operations usually done on OpenMM simulation
 object (such as adding a reporter, or accessing the context) can be done.
+Refer to the OpenMM [documentation](http://openmm.org/documentation.html) for more details.
 
 A Narupa server can also be included in an existing OpenMM workflow by adding
 a `NarupaReporter` to an existing simulation object:
