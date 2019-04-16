@@ -5,7 +5,7 @@ This server sends over the network the frames of a running OpenMM simulation. Th
 be started from two different interfaces: the python interpreter, or the command line interface.
 The python interface is the most potent; it gives direct access to OpenMM and allows to use third
 party tools around the simulation engine to setup or run simulations. The command line interface
-provides a convenient way to run and serve an already setup simulation.
+provides a convenient and portable way to run and serve a simulation that has previously been set up.
 
 Running a server from python
 ----------------------------
@@ -37,23 +37,24 @@ server.run()
 server.close()
 ```
 
-The [OpenMM doumentation](http://docs.openmm.org/latest/userguide/application.html#running-simulations)
+The [OpenMM documentation](http://docs.openmm.org/latest/userguide/application.html#running-simulations)
 describes different ways of setting up a simulation, including from Amber or Gromacs input files.
 
-The package provides a way of serializing a simulation as an XML file. This allows to decouple the preparation and the
-running of a simulation. A server can be created from the XML description of a simulation:
+The Narupa OpenMM package provides a way of serializing an entire simulation as a single XML file. 
+This allows one to decouple the preparation and the
+running of a simulation. See the "[Writing a XML simulation file](#writing-a-xml-simulation-file)"
+section to learn more about the file format to describe a simulation, and
+how to produce such a file.
+
+A server can be created from the XML description of a simulation:
 
 ```python
 server = Server.from_xml_input('simulation.xml')
 ```
 
-See the "[Writing a XML simulation file](#writing-a-xml-simulation-file)"
-section to learn more about the file format to describe a simulation, and
-how to produce such a file.
-
 In any case, the OpenMM simulation object is exposed by the server object through the
-`simulation` attribute of the server object so every operations usually done on OpenMM simulation
-object (such as adding a reporter, or accessing the context) can be done.
+`simulation` attribute of the server object so every operation usually performed on OpenMM simulation
+object (such as adding a reporter, or accessing the context) can be achieved.
 Refer to the OpenMM [documentation](http://openmm.org/documentation.html) for more details.
 
 A Narupa server can also be included in an existing OpenMM workflow by adding
