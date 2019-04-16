@@ -1,22 +1,11 @@
 OpenMM server for Narupa
 ========================
 
-Running a server from the command line
---------------------------------------
-
-When `narupa-opemm` is installed, it provides the `narupa-omm-server`
-command in the command line. When provided with the description of an
-OpenMM simulation as an XML file, `narupa-omm-server` runs the simulation
-and serves the frame for Narupa. The host address and port can be set with
-the `--address` and the `--port` option, respectively.
-
-See the "[Writing a XML simulation file](#writing-a-xml-simulation-file)"
-section to learn more about the file format to describe a simulation, and
-how to produce such a file.
-
-Run `narupa-omm-server --help` in a terminal to read more about the options.
-
-The XML file for the neuraminidase demo can be found in the `examples` directory.
+This server sends over the network the frames of a running OpenMM simulation. The server can
+be started from two different interfaces: the python interpreter, or the command line interface.
+The python interface is the most potent; it gives direct access to OpenMM and allows to use third
+party tools around the simulation engine to setup or run simulations. The command line interface
+provides a convenient way to run and serve an already setup simulation.
 
 Running a server from python
 ----------------------------
@@ -45,14 +34,22 @@ server.run()
 # Press Ctrl+C to interrupt the server.
 ```
 
-A server can be created from the XML description of a simulation:
+The [OpenMM doumentation](http://docs.openmm.org/latest/userguide/application.html#running-simulations)
+describes different ways of setting up a simulation, including from Amber or Gromacs input files.
+
+The package provides a way of serializing a simulation as an XML file. This allows to decouple the preparation and the
+running of a simulation. A server can be created from the XML description of a simulation:
 
 ```python
 server = Server.from_xml_input('simulation.xml')
 ```
 
-The OpenMM simulation object is exposed by the server object through the
-`simulation` attribute so every operations usually done on OpenMM simulation
+See the "[Writing a XML simulation file](#writing-a-xml-simulation-file)"
+section to learn more about the file format to describe a simulation, and
+how to produce such a file.
+
+In any case, the OpenMM simulation object is exposed by the server object through the
+`simulation` attribute of the server object so every operations usually done on OpenMM simulation
 object (such as adding a reporter, or accessing the context) can be done.
 
 A Narupa server can also be included in an existing OpenMM workflow by adding
@@ -79,10 +76,27 @@ simulation.reporters.append(narupa_reporter)
 simulation.step(1000)
 ```
 
+Running a server from the command line
+--------------------------------------
+
+When `narupa-opemm` is installed, it provides the `narupa-omm-server`
+command in the command line. When provided with the description of an
+OpenMM simulation as an XML file, `narupa-omm-server` runs the simulation
+and serves the frame for Narupa. The host address and port can be set with
+the `--address` and the `--port` option, respectively.
+
+See the "[Writing a XML simulation file](#writing-a-xml-simulation-file)"
+section to learn more about the file format to describe a simulation, and
+how to produce such a file.
+
+Run `narupa-omm-server --help` in a terminal to read more about the options.
+
+The XML file for the neuraminidase demo can be found in the `examples` directory.
+
 Writing a XML simulation file
 -----------------------------
 
-`narupa-openmm` uses an XML file to describe a simulation. Such an XML file is
+`narupa-openmm` can use an XML file to describe a simulation. Such an XML file is
 the concatenation of a PDB file (used to get the initial coordinates and the
 topology of the system), an XML serialized OpenMM system (used to get the forces
 to apply), and an XML serialized OpenMM integrator. The file looks like:
