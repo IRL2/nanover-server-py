@@ -1,3 +1,5 @@
+# Pylint does not recognize pytest fixtures, which causes some false warnings.
+# pylint: disable=unused-argument,redefined-outer-name
 import pytest
 from simtk.openmm.app.element import Element
 from simtk.openmm.app.topology import Topology
