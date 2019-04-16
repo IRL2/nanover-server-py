@@ -3,6 +3,10 @@ Tests for :mod:`narupa.openmm.runner`.
 """
 # Pylint does not recognize pytest fixtures which creates fake warnings.
 # pylint: disable=redefined-outer-name,unused-import
+# Inherited test methods loose the staticmethod decorator. Test method that
+# will not be overwritten therefore cannot be staticmethods, even if they do
+# not use self.
+# pylint: disable=no-self-use
 import pytest
 
 from narupa.openmm import Runner
@@ -15,6 +19,16 @@ from simulation_utils import (
 
 
 class TestRunner:
+    """
+    Tests for the :class:`Runner` class.
+
+    This class can be inherited to test subclasses of :class:`Runner`. The
+    :meth:`runner` fixture and the :meth:`test_class` test must then be
+    overwritten. If the subclass adds any reporters, then the
+    :attr:`expected_expected_number_of_reporters_verbosity`
+    class attribute must be overwritten as well to reflect the default number
+    of reporters when the verbosity is set to ``True`` or ``False``.
+    """
     expected_number_of_reporters_verbosity = {
         True: 2,
         False: 1,

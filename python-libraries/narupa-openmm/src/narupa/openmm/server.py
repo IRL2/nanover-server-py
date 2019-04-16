@@ -6,14 +6,14 @@ from typing import Optional
 
 from simtk.openmm.app import Simulation
 
-from narupa.trajectory.frame_server import FrameServer, DEFAULT_ADDRESS, DEFAULT_PORT
+from narupa.trajectory.frame_server import FrameServer
 from .runner import Runner
 from .narupareporter import NarupaReporter
 from .serializer import deserialize_simulation
 
 
 class Server(Runner):
-    f"""
+    """
     Run and serve an OpenMM simulation for Narupa.
 
     This server extends the :class:`Runner` class and adds the ability to
@@ -25,8 +25,9 @@ class Server(Runner):
     :param publish_interval: The frequency, in frames, of publishing.
 
     If the address or the port is set to ``None``, the default value for a
-    trajectory service is used: {DEFAULT_ADDRESS} for the address, and
-    {DEFAULT_PORT} for the port.
+    trajectory service is used. These defaults can be accessed as the
+    ``narupa.trajectory.frame_server.DEFAULT_ADDRESS`` and
+    ``narupa.trajectory.frame_server.DEFAULT_PORT`` constants.
 
     Publishing the frames can be activated, or deactivated, by setting the
     value of the :attr:`publishing_frames`, or by using the
@@ -65,8 +66,9 @@ class Server(Runner):
         :return: An instance of the class.
 
         If the address or the port is set to ``None``, the default value for a
-        trajectory service is used: {DEFAULT_ADDRESS} for the address, and
-        {DEFAULT_PORT} for the port.
+        trajectory service is used. These defaults can be accessed as the
+        ``narupa.trajectory.frame_server.DEFAULT_ADDRESS`` and
+        ``narupa.trajectory.frame_server.DEFAULT_PORT`` constants.
 
         .. seealso::
 

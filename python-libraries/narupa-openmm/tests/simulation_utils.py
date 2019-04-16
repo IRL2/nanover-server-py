@@ -2,7 +2,7 @@
 Fixtures and utilities for tests that requires OpenMM simulations.
 """
 # Pylint does not recognize pytest fixtures, which causes some false warnings.
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument,redefined-outer-name
 import pytest
 
 import numpy as np
@@ -133,4 +133,3 @@ def serialized_simulation_path(basic_simulation, tmp_path):
     with open(str(xml_path), 'w') as outfile:
         outfile.write(serialized_simulation)
     return xml_path
-

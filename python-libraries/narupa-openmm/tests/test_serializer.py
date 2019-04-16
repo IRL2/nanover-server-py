@@ -2,6 +2,8 @@
 Tests for :mod:`narupa.openmm.serializer`.
 """
 
+# Pylint does not recognize pytest fixtures which creates fake warnings.
+# pylint: disable=redefined-outer-name,unused-import
 from xml.dom.minidom import parseString
 import pytest
 
@@ -75,6 +77,9 @@ def test_missing_section(basic_simulation_xml, section_missing):
 
 @pytest.mark.parametrize('section_to_duplicate', ('pdb', 'System', 'Integrator'))
 def test_duplicate_section(basic_simulation_xml, section_to_duplicate):
+    """
+    Make sure de deserialization fails if a base section appears more than once.
+    """
     broken_xml = add_extra_xml_tag(basic_simulation_xml, section_to_duplicate)
     with pytest.raises(IOError):
         deserialize_simulation(broken_xml)

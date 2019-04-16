@@ -1,10 +1,17 @@
 """
 Tests for the :class:`narupa.openmm.Server` facility.
 """
+# Pylint does not recognize pytest fixtures which creates fake warnings.
+# pylint: disable=redefined-outer-name,unused-import
+# It is expected to access "private" attributes during the tests.
+# pylint: disable=protected-access
+# Inherited test methods loose the staticmethod decorator. Test method that
+# will not be overwritten therefore cannot be staticmethods, even if they do
+# not use self.
+# pylint: disable=no-self-use
 import pytest
 
 from narupa.openmm import Server, NarupaReporter
-from narupa.trajectory.frame_server import DEFAULT_PORT
 
 from simulation_utils import (
     DoNothingReporter,
@@ -15,6 +22,12 @@ from test_runner import TestRunner
 
 
 class TestServer(TestRunner):
+    """
+    Tests for the :class:`Server` class.
+
+    This runs the tests for the :class:`narupa.openmm.Runner` class applied to
+    :class:`Server`, as well as the :class:`Server` specific tests.
+    """
     __test__ = True
 
     expected_number_of_reporters_verbosity = {
@@ -48,9 +61,15 @@ class TestServer(TestRunner):
         assert isinstance(server._frame_reporter, NarupaReporter)
 
     def test_default_publishing_frames(self, runner):
+        """
+        By default, frames are published.
+        """
         assert runner.publishing_frames
 
     def test_make_publish_frames(self, runner):
+        """
+        :meth:`Server.make_publish_frames` attaches the reporter.
+        """
         reporters = runner.simulation.reporters
         runner.publishing_frames = False
         assert not runner.publishing_frames
@@ -59,6 +78,9 @@ class TestServer(TestRunner):
         assert len(reporters) == self.expected_number_of_reporters_verbosity[runner.verbose]
 
     def test_make_not_publish_frames(self, runner):
+        """
+        :meth:`Server.make_not_publish_frames` removes the reporter.
+        """
         reporters = runner.simulation.reporters
         assert runner.publishing_frames
         runner.make_not_publish_frames()
@@ -68,6 +90,10 @@ class TestServer(TestRunner):
     @pytest.mark.parametrize('initial_value', (True, False))
     @pytest.mark.parametrize('set_value_to', (True, False))
     def test_set_publishing_frames_from_property(self, runner, initial_value, set_value_to):
+        """
+        The :attr:`Server.publishing_frames` property can attach or detach the
+        reporter.
+        """
         reporters = runner.simulation.reporters
         base_number_of_reporters = self.expected_number_of_reporters_verbosity[runner.verbose] - 1
         runner.publishing_frames = initial_value
