@@ -34,11 +34,8 @@ class Server(Runner):
     The publication is activated by default.
     """
 
-    # TODO: The API is not satisfying:
-    #  * Should it be possible to deactivate the Narupa reporter? Is it any
-    #    useful?
-    #  * Host name and port should have a default; that default might even be
-    #    a dynamic port where the first available range in a range is used.
+    # TODO: Which the IMD, activation of the frame publishing should be coupled
+    #  with activation of the IMD service. API may have to change.
     def __init__(
             self, simulation: Simulation, *,
             address: Optional[str] = None, port: Optional[int] = None,
