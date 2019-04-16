@@ -32,6 +32,9 @@ server.verbose = True
 # Run the server for an infinite number of steps
 server.run()
 # Press Ctrl+C to interrupt the server.
+
+# Close the network connection.
+server.close()
 ```
 
 The [OpenMM doumentation](http://docs.openmm.org/latest/userguide/application.html#running-simulations)
@@ -74,6 +77,9 @@ simulation.reporters.append(narupa_reporter)
 
 # Run the simulation for 1000 steps
 simulation.step(1000)
+
+# Close the network connection.
+frame_server.close()
 ```
 
 Running a server from the command line

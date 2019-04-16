@@ -4,6 +4,7 @@ Tests for the :class:`narupa.openmm.Server` facility.
 import pytest
 
 from narupa.openmm import Server, NarupaReporter
+from narupa.trajectory.frame_server import DEFAULT_PORT
 
 from simulation_utils import (
     DoNothingReporter,
@@ -76,3 +77,42 @@ class TestServer(TestRunner):
         assert runner.publishing_frames == set_value_to
         assert len(reporters) == base_number_of_reporters + int(set_value_to)
 
+    def test_default_address(self, basic_simulation):
+        """
+        We can instantiate a server without providing the address.
+        """
+        # TODO: The address in used should be checked, but I do not know how
+        #  to access it.
+        try:
+            server = Server(basic_simulation, port=8000)
+        finally:
+            server.close()
+
+    def test_default_port(self, basic_simulation):
+        """
+        We can instantiate a server without providing the port.
+        """
+        # TODO: The port in used should be checked, but I do not know how
+        #  to access it.
+        try:
+            server = Server(basic_simulation, address='[::]')
+        finally:
+            server.close()
+
+    def test_default_host(self, basic_simulation):
+        """
+        We can instantiate a server without providing neither an address nor a port.
+        """
+        # TODO: The address and port in used should be checked, but I do not know how
+        #  to access them.
+        try:
+            server = Server(basic_simulation)
+        finally:
+            server.close()
+
+    def test_context_manager(self, basic_simulation):
+        """
+        We can use a server as a context manager without an error.
+        """
+        with Server(basic_simulation, address='[::]', port=8000) as server:
+            server.run(n_steps=1)
