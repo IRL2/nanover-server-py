@@ -31,10 +31,12 @@ announce "Compiling proto files to python"
 python ./python-libraries/narupa-core/setup.py compile_proto
 
 announce "Installing the python packages"
-python -m pip install ${edit_option} ${narupa_user_option} \
-    ./python-libraries/narupa-core/
-python -m pip install ${edit_option} ${narupa_user_option} \
-    ./python-libraries/narupa-openmm/
+python -m pip install ${edit_option} ${narupa_user_option} ./python-libraries/narupa-core/
+
+Get-ChildItem -Directory python-libraries/narupa-* | ForEach-Object { 
+    Write-Host "$($_.FullName)"
+    pip install ${edit_option} ${narupa_user_option} ""$($_.FullName)""
+ }
 
 try
 {
@@ -45,9 +47,6 @@ catch
     announce "OpenMM appears to not be installed."
     announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
 }
-
-
-
 
 announce "Compiling proto files to C#"
 dotnet build --configuration Release csharp-libraries/Narupa.Protocol
