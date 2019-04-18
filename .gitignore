@@ -18,3 +18,5 @@ csharp-libraries/Narupa.Protocol.Test/bin
 # Ignore coverage data
 .coverage
 htmlcov
+
+.pytest_cache
