@@ -9,6 +9,8 @@ __pycache__
 python-libraries/narupa-core/src/narupa/protocol
 csharp-libraries/Narupa.Protocol/obj
 csharp-libraries/Narupa.Protocol/bin
+csharp-libraries/Narupa.Protocol.Test/obj
+csharp-libraries/Narupa.Protocol.Test/bin
 
 # Ignore egg-info files
 *.egg-info/
