@@ -1,4 +1,4 @@
-// Copyright (c) Alex Jamieson-Binnie. All rights reserved.
+// Copyright (c) Intangible Realities Lab. All rights reserved.
 // Licensed under the GPL. See License.txt in the project root for license information.
 
 syntax = "proto3";
@@ -7,19 +7,24 @@ import "google/protobuf/struct.proto";
 
 package narupa.protocol.imd;
 
+/* Service providing interactive molecular dynamics */
 service InteractiveMolecularDynamics {
-    // Publish interactions.
+    /* Publish interactions to the server, to be integrated into the simulation */
     rpc PublishInteractions(stream Interaction) returns (InteractionReply);
 }
 
-//Empty return.
+/* Reply after all interactions received */
 message InteractionReply{}
 
+/* Represents a request to perform an interaction at a given point to a set of atoms. */
 message Interaction {
-    // The position of the interaction.
-    repeated float position=1;
-    // TODO make this use either same message as an atom filter.
-    repeated int32 atoms=2;
-    // Interaction properties e.g. GradientScaleFactor.
-    google.protobuf.Struct properties = 3;
+    /* The player ID performing the interaction. */
+    string player_id = 1;
+    /* The position of the interaction site */
+    repeated float position=2;
+    /* The atoms to apply the interaction to. */
+    // TODO make this a selection filter.
+    repeated uint32 atoms=3;
+    /* A struct of simple value types representing additional properties of the interaction. */
+    google.protobuf.Struct properties = 4;
 }
