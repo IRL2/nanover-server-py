@@ -9,12 +9,17 @@ package narupa.protocol.imd;
 
 /* Service providing interactive molecular dynamics */
 service InteractiveMolecularDynamics {
-    /* Publish interactions to the server, to be integrated into the simulation */
-    rpc PublishInteractions(stream Interaction) returns (InteractionReply);
+    /* Publish a single interaction to the server, to be integrated into the simulation.
+
+       Starting with an initial request, the client is expected to update the position and other
+       properties of the interaction over the duration of the stream, then close the stream when done.
+       Multiple RPCs can be used to facilitate multiple simultaneous interactions.
+     */
+    rpc PublishInteraction(stream Interaction) returns (InteractionEndReply);
 }
 
-/* Reply after all interactions received */
-message InteractionReply{}
+/* Reply after interaction stopped.  */
+message InteractionEndReply{}
 
 /* Represents a request to perform an interaction at a given point to a set of atoms. */
 message Interaction {
