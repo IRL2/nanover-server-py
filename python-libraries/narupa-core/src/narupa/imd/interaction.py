@@ -1,7 +1,9 @@
+from numbers import Number
 from typing import Collection
 
 import numpy as np
-from google.protobuf.struct_pb2 import Struct, Value
+from google.protobuf.struct_pb2 import Struct
+
 from narupa.protocol.imd.imd_pb2 import Interaction as InteractionGrpc
 
 
@@ -16,17 +18,24 @@ class Interaction:
     :param player_id: The player ID to be associated with the interaction.
     :param interaction_id: The interaction ID to be associated with the interaction. Typically, this identifies
     the VR controller, or other input device.
+    :param interaction_type: The type of interaction being used, default is Gaussian force.
+    :param scale: The scale factor applied to the interaction, default is 1.
 
     """
     _interaction: InteractionGrpc
 
-    def __init__(self, player_id: str = "1", interaction_id="2"):
+    def __init__(self, player_id: str = "1", interaction_id="0", interaction_type='gaussian', scale=1):
         """
+
+        :param player_id:
+        :param interaction_id:
 
         """
         self._interaction = InteractionGrpc(player_id=player_id, interaction_id=interaction_id)
         self._interaction.position[:] = [0, 0, 0]
         self._properties = self._interaction.properties
+        self.properties['scale'] = scale
+        self.properties['type'] = interaction_type
 
     @property
     def player_id(self) -> str:
@@ -43,6 +52,35 @@ class Interaction:
         :return:
         """
         return self._interaction.interaction_id
+
+    @property
+    def type(self) -> str:
+        """
+        Gets the type of interaction being applied, default 'gaussian'.
+        :return:
+        """
+        return self._get_property('type')
+
+    @type.setter
+    def type(self, value:str):
+        """
+        Sets the interaction type.
+        :param value:
+        :return:
+        """
+        self._set_property('type', value)
+
+    @property
+    def scale(self) -> Number:
+        """
+        Gets the scale factor of the interaction, which defaults to 1.
+        :return:
+        """
+        return self._get_property('scale')
+
+    @scale.setter
+    def scale(self, value: Number):
+        self._set_property('scale', value)
 
     @property
     def position(self) -> Collection:
@@ -72,14 +110,6 @@ class Interaction:
         """
         return np.array(self._interaction.particles)
 
-    @property
-    def properties(self) -> Struct:
-        """
-        Gets the properties Struct field of the interaction structure.
-        :return:
-        """
-        return self._properties
-
     @particles.setter
     def particles(self, particles: Collection):
         """
@@ -88,3 +118,17 @@ class Interaction:
         :return:
         """
         self._interaction.particles[:] = np.unique(particles)
+
+    @property
+    def properties(self) -> Struct:
+        """
+        Gets the properties Struct field of the interaction structure.
+        :return:
+        """
+        return self._properties
+
+    def _get_property(self, key):
+        return self.properties[key]
+
+    def _set_property(self, key, value):
+        self._properties[key] = value
