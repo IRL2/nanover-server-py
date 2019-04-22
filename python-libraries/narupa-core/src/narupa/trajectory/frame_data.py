@@ -19,8 +19,8 @@ class RecordView:
     singular = None  # MUST be overwritten as "array" or "value"
 
     def __init__(self, raw):
-        if self.record_name is None:
-            raise NotImplemented(
+        if self.record_name is None or self.singular is None:
+            raise NotImplementedError(
                 'FieldView must be subclassed; record_name, singular, and'
                 '_converter must be overwritten.'
             )
@@ -42,7 +42,7 @@ class RecordView:
 
     @staticmethod
     def _converter(field):
-        raise NotImplemented('Subclasses must overwrite the _converter method.')
+        raise NotImplementedError('Subclasses must overwrite the _converter method.')
 
 
 class ValuesView(RecordView):

@@ -9,7 +9,7 @@ from hypothesis import strategies as st
 from hypothesis import given
 
 from narupa.protocol.trajectory import FrameData as GrpcFrameData
-from narupa.trajectory.frame_data import FrameData
+from narupa.trajectory.frame_data import FrameData, RecordView
 
 MAX_DOUBLE = sys.float_info.max
 MIN_DOUBLE = sys.float_info.min
@@ -81,6 +81,22 @@ def raw_frame_with_single_array(draw, value_strategy, field):
     raw = GrpcFrameData()
     getattr(raw.arrays['sample.array'], field).values.extend(value)
     return raw, value
+
+
+@pytest.fixture
+def simple_frame():
+    """
+    Create a FrameData with some filled fields.
+    """
+    raw = GrpcFrameData()
+    raw.values['sample.number'].number_value = 4.6
+    raw.values['sample.string'].string_value = 'foo bar'
+    raw.values['sample.true'].bool_value = True
+    raw.values['sample.false'].bool_value = False
+    raw.arrays['array.index'].index_values.values.extend(range(18, 0, -3))
+    raw.arrays['array.float'].float_values.values.extend([2.3, 4.5, 6.7])
+    raw.arrays['array.string'].string_values.values.extend(['foo', 'bar', 'toto'])
+    return FrameData(raw)
 
 
 @given(raw_frame_with_single_value(st.floats()))
@@ -155,3 +171,98 @@ def test_missing_value_key(record_name):
     frame = FrameData()
     with pytest.raises(KeyError):
         getattr(frame, record_name)['missing.key']
+
+
+@pytest.mark.parametrize('key, record_type, expected', (
+    ('sample.number', 'values', True),
+    ('sample.string', 'values', True),
+    ('sample.true', 'values', True),
+    ('sample.false', 'values', True),
+    ('array.index', 'arrays', True),
+    ('array.float', 'arrays', True),
+    ('array.string', 'arrays', True),
+    ('missing.key', 'values', False),
+    ('missing.key', 'arrays', False),
+))
+def test_record_view_contains(simple_frame, key, record_type, expected):
+    """
+    The "in" operator returns the expected value on ValuesView and ArraysView.
+    """
+    assert (key in getattr(simple_frame, record_type)) == expected
+
+
+@pytest.mark.parametrize('key, expected', (
+    ('sample.number', True),
+    ('sample.string', True),
+    ('sample.true', True),
+    ('sample.false', True),
+    ('array.index', True),
+    ('array.float', True),
+    ('array.string', True),
+    ('missing.key', False),
+))
+def test_frame_data_contains(simple_frame, key, expected):
+    """
+    The "in" operator returns the expected value on FrameData.
+    """
+    assert (key in simple_frame) == expected
+
+
+
+@pytest.mark.parametrize('key, record_type, expected', (
+    ('sample.string', 'values', 'foo bar'),
+    ('array.string', 'arrays', ['foo', 'bar', 'toto']),
+    ('missing', 'values', 'default'),  # Not in the FrameData
+    ('missing', 'arrays', 'default'),  # Not in the FrameData
+))
+def test_RecordView_get(simple_frame, key, record_type, expected):
+    """
+    The "get" method of ValuesView and ArraysView return the expected value.
+    """
+    assert getattr(simple_frame, record_type).get(key, default='default') == expected
+
+
+def test_base_class_init_fails():
+    """
+    Instantiating a non-subclassed RecordView fails with a NotImplemented Error.
+    """
+    with pytest.raises(NotImplementedError):
+        RecordView(GrpcFrameData())
+
+
+def test_partial_view_fails_singular():
+    """
+    If a subclass of RecordView is missing the "singular" attribute, it fails.
+    """
+    class DummyView(RecordView):
+        record_name = 'values'
+
+    with pytest.raises(NotImplementedError):
+        DummyView(GrpcFrameData())
+
+
+def test_partial_view_fails_record_name():
+    """
+    If a subclass of RecordView is missing the "record_type" attribute, it fails.
+    """
+    class DummyView(RecordView):
+        singular = 'dummy'
+
+    with pytest.raises(NotImplementedError):
+        DummyView(GrpcFrameData())
+
+
+def test_partial_view_fails_converter():
+    """
+    If a subclass of RecordView is missing the '_converter' method, it fails.
+    """
+    class DummyView(RecordView):
+        singular = 'dummy'
+        record_name = 'values'
+
+    raw = GrpcFrameData()
+    raw.values['sample'].string_value = 'foobar'
+
+    dummy = DummyView(raw)
+    with pytest.raises(NotImplementedError):
+        dummy.get('sample')
