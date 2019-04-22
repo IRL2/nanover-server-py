@@ -38,6 +38,7 @@ def stub():
 def interaction():
     return Interaction()
 
+
 @pytest.fixture
 def interactions():
     return [Interaction()] * 10
@@ -65,6 +66,7 @@ def test_publish_multiple_interactions(imd_server, imd_client):
     assert result is not None
     assert mock.callback.call_count == len(first_set) + len(second_set)
 
+
 def test_multiplexing_interactions(imd_server, imd_client):
     """
     The server accepts multiplexing interactions, in which different interactions
@@ -81,6 +83,7 @@ def test_multiplexing_interactions(imd_server, imd_client):
     time.sleep(0.4)
     assert mock.callback.call_count == len(first_set) + len(second_set)
 
+
 def test_clear_interactions(imd_server, imd_client, interactions):
     """
     Tests that after interacting the set of interactions are cleared
@@ -93,6 +96,7 @@ def test_clear_interactions(imd_server, imd_client, interactions):
     assert len(imd_server.service.interactions) == 1
     time.sleep(0.3)
     assert len(imd_server.service.interactions) == 0
+
 
 def test_repeat_interactions(imd_server, imd_client, interactions):
     mock = Mock()
