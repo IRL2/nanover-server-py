@@ -21,15 +21,21 @@ service InteractiveMolecularDynamics {
 /* Reply after interaction stopped.  */
 message InteractionEndReply{}
 
-/* Represents a request to perform an interaction at a given point to a set of atoms. */
+/* Represents a request to perform an interaction at a given point to a set of particles. */
 message Interaction {
     /* The player ID performing the interaction. */
     string player_id = 1;
-    /* The position of the interaction site */
-    repeated float position=2;
-    /* The atoms to apply the interaction to. */
+    /* The interaction ID identifying this particular interaction for the given player. */
+    string interaction_id = 2;
+    /* The type of interaction to be applied, typically gaussian or spring. */
+    string type = 3;
+    /* The position of the interaction, in simulation space. */
+    repeated float position = 4;
+    /* The particles to apply the interaction to. */
     // TODO make this a selection filter.
-    repeated uint32 atoms=3;
-    /* A struct of simple value types representing additional properties of the interaction. */
-    google.protobuf.Struct properties = 4;
+    repeated uint32 particles = 5;
+    /* The scaling factor to be applied to this interaction. */
+    float scale = 6;
+    /* A map representing additional properties of the interaction. */
+    google.protobuf.Struct properties = 7;
 }

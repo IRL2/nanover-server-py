@@ -13,6 +13,9 @@ def test_player_id():
     interaction = Interaction("2")
     assert interaction.player_id == "2"
 
+def test_interaction_id():
+    interaction = Interaction(interaction_id = "2")
+    assert interaction.interaction_id == "2"
 
 def test_get_default_position(interaction):
     assert np.allclose(interaction.position, [0, 0, 0])
@@ -28,15 +31,27 @@ def test_set_invalid_position(interaction):
         interaction.position = [0, 0]
 
 
-def test_get_default_atoms(interaction):
-    assert len(interaction.atoms) == 0
+def test_get_default_particles(interaction):
+    assert len(interaction.particles) == 0
 
 
-def test_set_atoms(interaction):
-    interaction.atoms = [0, 1, 2, 3, 4]
-    assert np.allclose(interaction.atoms, [0, 1, 2, 3, 4])
+def test_set_particles(interaction):
+    interaction.particles = [0, 1, 2, 3, 4]
+    assert np.allclose(interaction.particles, [0, 1, 2, 3, 4])
 
 
-def test_set_atom_unique(interaction):
-    interaction.atoms = [0, 0, 0, 1, 2, 3, 4]
-    assert np.allclose(interaction.atoms, [0, 1, 2, 3, 4])
+def test_set_particle_unique(interaction):
+    interaction.particles = [0, 0, 0, 1, 2, 3, 4]
+    assert np.allclose(interaction.particles, [0, 1, 2, 3, 4])
+
+def test_set_property_number(interaction):
+    interaction.properties['property'] = 2.0
+    assert interaction.properties.get_value('property', float) == pytest.approx(2.0)
+
+def test_set_property_str(interaction):
+    interaction.properties['property'] = 'value'
+    assert interaction.properties.get_value('property', str) == 'value'
+
+def test_set_property_list(interaction):
+    interaction.properties['property'] = [5, 4, 3, 2, 1]
+    assert np.allclose(interaction.properties.get_value('property', list), [5,4,3,2,1])

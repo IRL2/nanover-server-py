@@ -1,7 +1,8 @@
-from typing import List, Collection
+from typing import Collection
 
 import numpy as np
 
+from narupa.core.utility.value import ValueMap
 from narupa.protocol.imd.imd_pb2 import Interaction as InteractionGrpc
 
 
@@ -14,16 +15,19 @@ class Interaction:
     rather than the low level containers used by protobuf.
 
     :param player_id: The player ID to be associated with the interaction.
+    :param interaction_id: The interaction ID to be associated with the interaction. Typically, this identifies
+    the VR controller, or other input device.
 
     """
     _interaction: InteractionGrpc
 
-    def __init__(self, player_id: str = "1"):
+    def __init__(self, player_id: str = "1", interaction_id="2"):
         """
 
         """
-        self._interaction = InteractionGrpc(player_id=player_id)
+        self._interaction = InteractionGrpc(player_id=player_id, interaction_id=interaction_id)
         self._interaction.position[:] = [0, 0, 0]
+        self._properties = self._interaction.properties
 
     @property
     def player_id(self) -> str:
@@ -32,6 +36,14 @@ class Interaction:
         :return:
         """
         return self._interaction.player_id
+
+    @property
+    def interaction_id(self) -> str:
+        """
+        Gets the interaction ID associated with this interaction.
+        :return:
+        """
+        return self._interaction.interaction_id
 
     @property
     def position(self) -> Collection:
@@ -54,18 +66,26 @@ class Interaction:
         self._interaction.position[:] = position
 
     @property
-    def atoms(self) -> Collection:
+    def particles(self) -> Collection:
         """
-        Gets the list of atoms this interaction applies to.
+        Gets the list of particles this interaction applies to.
         :return:
         """
-        return np.array(self._interaction.atoms)
+        return np.array(self._interaction.particles)
 
-    @atoms.setter
-    def atoms(self, atoms: Collection):
+    @property
+    def properties(self):
         """
-        Set the atoms of the interaction.
-        :param atoms: A set of atoms. If it contains duplicates, these will be removed.
+        Gets the properties field of the interaction structure.
         :return:
         """
-        self._interaction.atoms[:] = np.unique(atoms)
+        return self._properties
+
+    @particles.setter
+    def particles(self, particles: Collection):
+        """
+        Set the particles of the interaction.
+        :param particles: A set of particles. If it contains duplicates, these will be removed.
+        :return:
+        """
+        self._interaction.particles[:] = np.unique(particles)
