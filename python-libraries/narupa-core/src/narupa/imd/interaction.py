@@ -1,8 +1,7 @@
 from typing import Collection
 
 import numpy as np
-
-from narupa.core.utility.value import ValueMap
+from google.protobuf.struct_pb2 import Struct, Value
 from narupa.protocol.imd.imd_pb2 import Interaction as InteractionGrpc
 
 
@@ -74,9 +73,9 @@ class Interaction:
         return np.array(self._interaction.particles)
 
     @property
-    def properties(self):
+    def properties(self) -> Struct:
         """
-        Gets the properties field of the interaction structure.
+        Gets the properties Struct field of the interaction structure.
         :return:
         """
         return self._properties

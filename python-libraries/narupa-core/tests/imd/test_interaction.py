@@ -46,12 +46,12 @@ def test_set_particle_unique(interaction):
 
 def test_set_property_number(interaction):
     interaction.properties['property'] = 2.0
-    assert interaction.properties.get_value('property', float) == pytest.approx(2.0)
+    assert interaction.properties['property'] == pytest.approx(2.0)
 
 def test_set_property_str(interaction):
     interaction.properties['property'] = 'value'
-    assert interaction.properties.get_value('property', str) == 'value'
+    assert interaction.properties['property'] == 'value'
 
 def test_set_property_list(interaction):
     interaction.properties['property'] = [5, 4, 3, 2, 1]
-    assert np.allclose(interaction.properties.get_value('property', list), [5,4,3,2,1])
+    assert np.allclose(interaction.properties['property'], [5,4,3,2,1])

@@ -8,6 +8,5 @@ class ImdService(InteractiveMolecularDynamicsServicer):
 
     interaction_queues: List[Queue]
 
-
     def __init__(self):
         self.interaction_queues = []
