@@ -17,6 +17,14 @@ class ImdServer(GrpcServer):
             port = DEFAULT_PORT
         super().__init__(address=address, port=port)
 
+    @property
+    def service(self):
+        """
+        Gets the IMD service implementation attached to this server.
+        :return:
+        """
+        return self._imd_service
+
     def setup_services(self):
         super().setup_services()
         self._imd_service = ImdService()

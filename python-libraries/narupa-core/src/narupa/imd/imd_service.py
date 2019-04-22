@@ -1,7 +1,9 @@
 from queue import Queue
 from typing import List, Dict
 
-from narupa.protocol.imd import InteractiveMolecularDynamicsServicer
+import grpc
+
+from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply
 
 
 class ImdService(InteractiveMolecularDynamicsServicer):
@@ -39,10 +41,15 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         active_interactions = set()
         try:
             self._process_interactions(active_interactions, request_iterator, context)
+        except KeyError:
+            context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+            message = "Tried to create an interaction with a player ID and device ID combination that's already in use"
+            context.set_details(message)
         finally:
             # clean up all the interactions after the stream
             for key in active_interactions:
                 del self.interactions[key]
+        return InteractionEndReply()
 
     @property
     def interactions(self):
@@ -61,14 +68,22 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         return (interaction.player_id, interaction.interaction_id)
 
+    def set_callback(self, callback):
+        """
+        Sets the callback to be used whenever an interaction is received.
+        :param callback: Method to be called
+        :return:
+        """
+        self._callback = callback
+
     def _process_interactions(self, active_interactions, request_iterator, context):
         for interaction in request_iterator:
             key = ImdService.get_key(interaction)
             if key not in active_interactions and key in self.interactions:
-                raise KeyError("Tried to create an interaction with a player ID and device ID combination that's already in use")
+                raise KeyError
             active_interactions.add(key)
             self.interactions[key] = interaction
-            self._callback(interaction)
+            if self._callback is not None: self._callback()
 
 
 

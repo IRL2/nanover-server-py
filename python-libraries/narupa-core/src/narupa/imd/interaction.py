@@ -4,7 +4,7 @@ from typing import Collection
 import numpy as np
 from google.protobuf.struct_pb2 import Struct
 
-from narupa.protocol.imd.imd_pb2 import Interaction as InteractionGrpc
+import narupa.protocol.imd.imd_pb2 as imd_pb2
 
 
 class Interaction:
@@ -22,20 +22,37 @@ class Interaction:
     :param scale: The scale factor applied to the interaction, default is 1.
 
     """
-    _interaction: InteractionGrpc
+    _interaction: imd_pb2.Interaction
 
-    def __init__(self, player_id: str = "1", interaction_id="0", interaction_type='gaussian', scale=1):
+    def __init__(self, player_id: str = "1", interaction_id="0", position=(0,0,0), interaction_type='gaussian', scale=1):
         """
 
-        :param player_id:
-        :param interaction_id:
-
         """
-        self._interaction = InteractionGrpc(player_id=player_id, interaction_id=interaction_id)
-        self._interaction.position[:] = [0, 0, 0]
+        self._interaction = imd_pb2.Interaction(player_id=player_id, interaction_id=interaction_id)
+        self._interaction.position[:] = position
         self._properties = self._interaction.properties
         self.properties['scale'] = scale
         self.properties['type'] = interaction_type
+
+    @classmethod
+    def from_proto(cls, interaction_grpc):
+        """
+        Initialises an interaction from the protobuf representation.
+        :param interaction_proto:
+        :return:
+        """
+        interaction = cls()
+        interaction._interaction = interaction_grpc
+        interaction._properties = interaction_grpc.properties
+        return interaction
+
+    @property
+    def proto(self) -> imd_pb2.Interaction:
+        """
+        Gets the underlying protobuf representation.
+        :return: The underlying protobuf Interaction representation.
+        """
+        return self._interaction
 
     @property
     def player_id(self) -> str:
