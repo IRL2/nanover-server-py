@@ -5,7 +5,7 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 
-from narupa.ase.example.imd_force import calculate_imd_force
+from narupa.imd.imd_force import calculate_imd_force
 from narupa.imd.imd_service import ImdService
 import narupa.ase.converter as converter
 

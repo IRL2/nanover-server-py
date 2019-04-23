@@ -27,15 +27,17 @@ class Interaction:
     def __init__(self, player_id: str = "1",
                  interaction_id="0",
                  position=(0, 0, 0),
+                 particles=(),
                  interaction_type='gaussian',
                  scale=1,
                  mass_weighted=True):
         self._interaction = imd_pb2.Interaction(player_id=player_id, interaction_id=interaction_id)
-        self._interaction.position[:] = position
+        self.position = position
         self._properties = self._interaction.properties
         self.scale = scale
         self.type = interaction_type
         self.mass_weighted = mass_weighted
+        self.particles = particles
 
     @classmethod
     def from_proto(cls, interaction_proto):
@@ -91,7 +93,7 @@ class Interaction:
         self._set_property('type', value)
 
     @property
-    def scale(self) -> Number:
+    def scale(self) -> float:
         """
         Gets the scale factor of the interaction, which defaults to 1.
         :return:
