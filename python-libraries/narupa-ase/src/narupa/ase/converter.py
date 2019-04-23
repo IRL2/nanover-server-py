@@ -8,16 +8,7 @@ from narupa.protocol.trajectory import FrameData
 AngToNm = 0.1
 NmToAng = 1.0 / AngToNm
 
-
-def ase_atoms_to_frame_data(ase_atoms: Atoms) -> FrameData:
-    data = FrameData()
-
-    return data
-
-
 atom_radiuses_ang = {"H": 1.2, "Cu": 2.38, "Pt": 2.32}
-AngToNm = 0.1
-
 
 def ase_to_framedata(ase_atoms: Atoms, positions=True, topology=True, state=True) -> FrameData:
     data = FrameData()
@@ -57,8 +48,8 @@ def GetRadius(symbol):
     return atom_radiuses_ang[symbol]
 
 
-def Threshold(radiuses):
-    return 0.6 * sum(radiuses)
+def Threshold(radii):
+    return 0.6 * sum(radii)
 
 
 def GenerateBonds(atoms: Atoms):
@@ -66,7 +57,7 @@ def GenerateBonds(atoms: Atoms):
     for pair in itertools.combinations(atoms, 2):
         distance = np.linalg.norm(pair[0].position - pair[1].position)
         symbol = pair[0].symbol
-        radiuses = [GetRadius(atom.symbol) for atom in pair]
-        if distance < Threshold(radiuses):
+        radii = [GetRadius(atom.symbol) for atom in pair]
+        if distance < Threshold(radii):
             bonds.append([atom.index for atom in pair])
     return bonds

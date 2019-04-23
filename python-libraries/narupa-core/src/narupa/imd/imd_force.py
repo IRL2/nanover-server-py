@@ -1,7 +1,15 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+
 """
 Provides a reference implementation of the IMD forces used by Narupa.
 
+For details, and if you find these functions helpful, please cite:
+
+.. [1] M. O’Connor et al, “An open-source multi-person virtual reality framework for interactive molecular dynamics:
+       from quantum chemistry to drug binding”, arXiv:1902.01827, 2019
 """
+
 from math import exp
 from typing import Collection, Tuple
 
@@ -13,9 +21,13 @@ def calculate_imd_force(positions, masses, interactions: Collection[Interaction]
     """
     Reference implementation of the Narupa IMD force.
 
-    :param masses:
-    :param positions:
-    :param interactions:
+    Given a collection of interactions, particle positions and masses,
+    computes the force to be applied to each particle for each interaction
+    and accumulates them into an array.
+
+    :param positions: Collection of N particle positions, in nm.
+    :param masses: Collection on N particle masses, in a.m.u
+    :param interactions: Collection of interactions to be applied.
     :return: energy in kJ/mol, accumulated forces (in kJ/(mol*nm)) to be applied.
     """
 
@@ -27,11 +39,11 @@ def calculate_imd_force(positions, masses, interactions: Collection[Interaction]
     return total_energy, forces
 
 
-def calculate_single_interaction(positions, masses, interaction: Interaction, forces: np.array):
+def calculate_single_interaction(positions, masses, interaction, forces: np.array) -> Tuple[float, np.array]:
     """
     Calculates the energy and force of a single application of an interaction potential.
-    :param masses:
-    :param positions:
+    :param positions: Collection of N particle position vectors, in nm.
+    :param masses: Collection on N particle masses, in a.m.u
     :param interaction: An interaction to be applied.
     :param forces: Forces array to accumulate into (in kJ/(mol*nm))
     :return: energy in kJ/mol, accumulated forces (in kJ/(mol*nm)) to be applied.
@@ -39,6 +51,7 @@ def calculate_single_interaction(positions, masses, interaction: Interaction, fo
 
     centre = get_center_of_mass_subset(positions, masses, interaction.particles)
 
+    # fetch the correct potential to use based on the interaction type.
     try:
         potential_method = interaction_method_map[interaction.type]
     except KeyError:
@@ -47,10 +60,21 @@ def calculate_single_interaction(positions, masses, interaction: Interaction, fo
         else:
             raise KeyError(f"Unknown interactive force type {interaction.type}.")
 
+    # calculate the overall force to be applied
     energy, force = potential_method(centre, interaction.position)
+
+    # apply to appropriate force to each particle in the selection.
     force_per_particle = force / len(interaction.particles)
     energy_per_particle = energy / len(interaction.particles)
+    total_energy, forces = _apply_force_to_particles(forces, energy_per_particle,
+                                                     force_per_particle, interaction, masses)
+    return total_energy, forces
 
+
+def _apply_force_to_particles(forces, energy_per_particle, force_per_particle, interaction, masses) \
+        -> Tuple[float, np.array]:
+    # given the array of forces, energy and force to apply to each particle, applies them, using mass weighting
+    # if specified in the interaction.
     total_energy = 0
     for index in interaction.particles:
         if interaction.mass_weighted:
@@ -62,14 +86,14 @@ def calculate_single_interaction(positions, masses, interaction: Interaction, fo
     return total_energy, forces
 
 
-def get_center_of_mass_subset(positions, masses, subset=None):
+def get_center_of_mass_subset(positions, masses, subset=None) -> float:
     """
     Gets the center of mass of [a subset of] positions.
 
     :param positions: List of N vectors representing positions.
     :param masses: List of N vectors representing masses.
     :param subset: Indices [0,N) of positions to include. If None, all positions included.
-    :return:
+    :return: The center of mass of the subset of positions.
     """
     pos = np.array(positions).reshape((-1, 3))
     if not isinstance(masses, Collection):
@@ -85,13 +109,18 @@ def get_center_of_mass_subset(positions, masses, subset=None):
     return com
 
 
-def calculate_gaussian_force(particle_position: np.array, interaction_position: np.array, sigma=1):
+def calculate_gaussian_force(particle_position: np.array, interaction_position: np.array, sigma=1)\
+        -> Tuple[float, np.array]:
     """
-    \diff{V_{ext}}{\vec{r}_j} = \frac{m_jc}{\sigma^2}\left(\vec{r_j} - \vec{g_i}\right)\exp{\left(\frac{-\left\lVert \vec{r_j} - \vec{g_i} \right\rVert^2}{2\sigma^2}\right)},
-    :param particle_position:
-    :param interaction_position:
-    :param sigma:
-    :return:
+    Computes the interactive Gaussian force.
+
+    The force applied to the given particle position is determined by the position of a Gaussian centered on the
+    interaction position.
+
+    :param particle_position: The position of the particle.
+    :param interaction_position: The position of the interaction.
+    :param sigma: The width of the Gaussian. Increasing this results in a more diffuse, but longer reaching interaction.
+    :return: The energy of the interaction, and the force to be applied to the particle.
     """
     # switch to math symbols used in publications.
     r = particle_position
@@ -106,20 +135,32 @@ def calculate_gaussian_force(particle_position: np.array, interaction_position: 
     return energy, force
 
 
-def calculate_spring_force(particle_position: np.array, interaction_position: np.array, k=1):
+def calculate_spring_force(particle_position: np.array, interaction_position: np.array, k=1) -> Tuple[float, np.array]:
+    """
+    Computes the interactive harmonic potential (or spring) force.
+
+    The force applied to the given particle position is determined by placing a spring between the particle position
+    and the interaction, and pulling the particle towards the interaction site.
+
+    :param particle_position: The position of the particle.
+    :param interaction_position: The position of the interaction.
+    :param k: The spring constant. A higher value results in a stronger force.
+    :return: The energy of the interaction, and the force to be applied to the particle.
+    """
     r = particle_position
     g = interaction_position
 
     diff, dist_sqr = _calculate_distances(r, g)
-    energy = - k *dist_sqr
+    energy = - k * dist_sqr
     # force is negative derivative of energy wrt to position.
     force = 2 * k * diff
     return energy, force
+
+
+interaction_method_map = {'gaussian': calculate_gaussian_force, 'spring': calculate_spring_force}
+
 
 def _calculate_distances(r, g):
     diff = r - g
     dist_sqr = np.dot(diff, diff)
     return diff, dist_sqr
-
-
-interaction_method_map = {'gaussian': calculate_gaussian_force, 'spring': calculate_spring_force}

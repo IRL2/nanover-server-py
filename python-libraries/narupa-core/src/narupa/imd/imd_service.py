@@ -1,3 +1,8 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+"""
+Module providing an implementation of an IMD service.
+"""
 import grpc
 
 from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply
@@ -14,9 +19,6 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     """
 
     def __init__(self, callback=None):
-        """
-
-        """
         self._interactions = {}
         self._callback = callback
 
