@@ -1,6 +1,3 @@
-from queue import Queue
-from typing import List, Dict
-
 import grpc
 
 from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply
@@ -15,6 +12,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     :param callback: A callback to be used whenever an interaction is published or updated.
 
     """
+
     def __init__(self, callback=None):
         """
 
@@ -66,7 +64,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         :param interaction:
         :return: key formed of a tuple of player_id and interaction_id.
         """
-        return (interaction.player_id, interaction.interaction_id)
+        return interaction.player_id, interaction.interaction_id
 
     def set_callback(self, callback):
         """
@@ -83,13 +81,5 @@ class ImdService(InteractiveMolecularDynamicsServicer):
                 raise KeyError
             active_interactions.add(key)
             self.interactions[key] = interaction
-            if self._callback is not None: self._callback()
-
-
-
-
-
-
-
-
-
+            if self._callback is not None:
+                self._callback()

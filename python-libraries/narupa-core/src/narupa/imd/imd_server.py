@@ -1,4 +1,5 @@
 from typing import Optional
+
 from narupa.core import GrpcServer
 from narupa.imd.imd_service import ImdService
 from narupa.protocol.imd.imd_pb2_grpc import add_InteractiveMolecularDynamicsServicer_to_server
@@ -18,7 +19,7 @@ class ImdServer(GrpcServer):
         super().__init__(address=address, port=port)
 
     @property
-    def service(self):
+    def service(self) -> ImdService:
         """
         Gets the IMD service implementation attached to this server.
         :return:

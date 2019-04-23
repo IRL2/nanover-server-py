@@ -77,6 +77,7 @@ def test_multiplexing_interactions(imd_server, imd_client):
     first_set = [Interaction()] * 10
     second_set = [Interaction(interaction_id="2")] * 10
     interleaved = [val for pair in zip(first_set, second_set) for val in pair]
+    # TODO use a coroutine awaiting input as the generator to control this without needing sleeps
     imd_client.publish_interactions_async(interleaved, delay=0.01)
     time.sleep(0.04)
     assert len(imd_server.service.interactions) == 2

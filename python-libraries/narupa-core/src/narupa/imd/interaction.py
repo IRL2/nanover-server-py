@@ -24,10 +24,8 @@ class Interaction:
     """
     _interaction: imd_pb2.Interaction
 
-    def __init__(self, player_id: str = "1", interaction_id="0", position=(0,0,0), interaction_type='gaussian', scale=1):
-        """
-
-        """
+    def __init__(self, player_id: str = "1", interaction_id="0", position=(0, 0, 0), interaction_type='gaussian',
+                 scale=1):
         self._interaction = imd_pb2.Interaction(player_id=player_id, interaction_id=interaction_id)
         self._interaction.position[:] = position
         self._properties = self._interaction.properties
@@ -35,15 +33,15 @@ class Interaction:
         self.properties['type'] = interaction_type
 
     @classmethod
-    def from_proto(cls, interaction_grpc):
+    def from_proto(cls, interaction_proto):
         """
         Initialises an interaction from the protobuf representation.
-        :param interaction_proto:
+        :param interaction_proto: The protobuf representation of the interaction.
         :return:
         """
         interaction = cls()
-        interaction._interaction = interaction_grpc
-        interaction._properties = interaction_grpc.properties
+        interaction._interaction = interaction_proto
+        interaction._properties = interaction_proto.properties
         return interaction
 
     @property
@@ -79,7 +77,7 @@ class Interaction:
         return self._get_property('type')
 
     @type.setter
-    def type(self, value:str):
+    def type(self, value: str):
         """
         Sets the interaction type.
         :param value:
