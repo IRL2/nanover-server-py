@@ -76,6 +76,18 @@ def test_set_scale(interaction):
     interaction.scale = 2
     assert interaction.scale == 2
 
+def test_get_mass(interaction):
+    assert interaction.mass_weighted == True
+
+def test_get_mass_unset():
+    proto = imd_pb2.Interaction()
+    interaction = Interaction.from_proto(proto)
+    assert interaction.mass_weighted == True
+
+def test_set_mass(interaction):
+    interaction.mass_weighted = False
+    assert interaction.properties['mass_weighted'] == False
+
 def test_get_proto(interaction):
     proto = interaction.proto
     assert proto.player_id == "1"

@@ -24,13 +24,18 @@ class Interaction:
     """
     _interaction: imd_pb2.Interaction
 
-    def __init__(self, player_id: str = "1", interaction_id="0", position=(0, 0, 0), interaction_type='gaussian',
-                 scale=1):
+    def __init__(self, player_id: str = "1",
+                 interaction_id="0",
+                 position=(0, 0, 0),
+                 interaction_type='gaussian',
+                 scale=1,
+                 mass_weighted=True):
         self._interaction = imd_pb2.Interaction(player_id=player_id, interaction_id=interaction_id)
         self._interaction.position[:] = position
         self._properties = self._interaction.properties
-        self.properties['scale'] = scale
-        self.properties['type'] = interaction_type
+        self.scale = scale
+        self.type = interaction_type
+        self.mass_weighted = mass_weighted
 
     @classmethod
     def from_proto(cls, interaction_proto):
@@ -133,6 +138,29 @@ class Interaction:
         :return:
         """
         self._interaction.particles[:] = np.unique(particles)
+
+    @property
+    def mass_weighted(self) -> bool:
+        """
+        Indicates whether this interaction should be mass weighted, default True.
+        :return:
+        """
+        try:
+            result = self._properties['mass_weighted']
+        except ValueError:
+            return True
+        else:
+            return result
+
+    @mass_weighted.setter
+    def mass_weighted(self, value: bool):
+        """
+        Sets this interaction to be mass weighted or not.
+        :param value:
+        :return:
+        """
+        self._properties['mass_weighted'] = value
+
 
     @property
     def properties(self) -> Struct:

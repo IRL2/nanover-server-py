@@ -4,7 +4,9 @@ import numpy as np
 
 from narupa.protocol.trajectory import FrameData
 
+
 AngToNm = 0.1
+NmToAng = 1.0 / AngToNm
 
 
 def ase_atoms_to_frame_data(ase_atoms: Atoms) -> FrameData:
