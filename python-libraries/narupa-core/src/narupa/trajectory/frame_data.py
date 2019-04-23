@@ -1,7 +1,58 @@
+from collections import namedtuple
 from narupa.protocol import trajectory
+
+POSITIONS = 'particle.position'
+ELEMENTS = 'particle.element'
+TYPES = 'particle.type'
+BONDS = 'bond'
+
+
+_Shortcut = namedtuple('_Shortcut', ['name', 'record_type', 'key', 'converter'])
+
+
+class MissingDataError(KeyError):
+    pass
+
+
+def _as_it(value):
+    return value
+
+
+def _n_by_2(value):
+    return list(value[i:i + 2] for i in range(0, len(value), 2))
+
+
+def _n_by_3(value):
+    return list(value[i:i + 3] for i in range(0, len(value), 3))
+
+
+def _make_getter(shortcut):
+    def wrapped(self):
+        try:
+            value = getattr(self, shortcut.record_type)[shortcut.key]
+        except KeyError as error:
+            raise MissingDataError(str(error))
+        return shortcut.converter(value)
+
+    return wrapped
+
+
+def _make_shortcut(shortcut):
+    return property(fget=_make_getter(shortcut))
 
 
 class FrameData:
+    _shortcuts = (
+        _Shortcut(name='positions', key=POSITIONS,
+                  record_type='arrays', converter=_n_by_3),
+        _Shortcut(name='elements', key=ELEMENTS,
+                  record_type='arrays', converter=_as_it),
+        _Shortcut(name='types', key=TYPES,
+                  record_type='arrays', converter=_as_it),
+        _Shortcut(name='bonds', key=BONDS,
+                  record_type='arrays', converter=_n_by_2),
+    )
+
     def __init__(self, raw_frame=None):
         if raw_frame is None:
             self.raw = trajectory.FrameData()
@@ -12,6 +63,10 @@ class FrameData:
 
     def __contains__(self, key):
         return key in self.arrays or key in self.values
+
+
+for shortcut in FrameData._shortcuts:
+    setattr(FrameData, shortcut.name, _make_shortcut(shortcut))
 
 
 class RecordView:
@@ -61,3 +116,6 @@ class ArraysView(RecordView):
     @staticmethod
     def _converter(field):
         return field.ListFields()[0][1].values
+
+
+

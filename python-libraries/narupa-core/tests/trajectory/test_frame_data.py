@@ -10,6 +10,7 @@ from hypothesis import given
 
 from narupa.protocol.trajectory import FrameData as GrpcFrameData
 from narupa.trajectory.frame_data import FrameData, RecordView
+from narupa.trajectory import frame_data
 
 MAX_DOUBLE = sys.float_info.max
 MIN_DOUBLE = sys.float_info.min
@@ -96,6 +97,13 @@ def simple_frame():
     raw.arrays['array.index'].index_values.values.extend(range(18, 0, -3))
     raw.arrays['array.float'].float_values.values.extend([2.3, 4.5, 6.7])
     raw.arrays['array.string'].string_values.values.extend(['foo', 'bar', 'toto'])
+
+    raw.arrays[frame_data.POSITIONS].float_values.values.extend((
+        1.0, 2.1, 3.2,
+        4.3, 5.4, 6.5,
+        7.6, 8.7, 9.8,
+        0.9, 1.1, 2.2,
+    ))
     return FrameData(raw)
 
 
@@ -266,3 +274,9 @@ def test_partial_view_fails_converter():
     dummy = DummyView(raw)
     with pytest.raises(NotImplementedError):
         dummy.get('sample')
+
+
+def test_positions_shortcut(simple_frame):
+    positions = simple_frame.positions
+    assert len(positions) == 4
+    assert all(len(row) == 3 for row in positions)
