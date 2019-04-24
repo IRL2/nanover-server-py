@@ -41,7 +41,16 @@ def _make_shortcut(shortcut):
     return property(fget=_make_getter(shortcut))
 
 
-class FrameData:
+class _FrameDataMeta(type):
+    _shortcuts = ()
+
+    def __init__(cls, name, bases, nmspc):
+        super().__init__(name, bases, nmspc)
+        for shortcut in cls._shortcuts:
+            setattr(cls, shortcut.name, _make_shortcut(shortcut))
+
+
+class FrameData(metaclass=_FrameDataMeta):
     _shortcuts = (
         _Shortcut(name='positions', key=POSITIONS,
                   record_type='arrays', converter=_n_by_3),
@@ -63,10 +72,6 @@ class FrameData:
 
     def __contains__(self, key):
         return key in self.arrays or key in self.values
-
-
-for shortcut in FrameData._shortcuts:
-    setattr(FrameData, shortcut.name, _make_shortcut(shortcut))
 
 
 class RecordView:
