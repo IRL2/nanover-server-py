@@ -19,17 +19,18 @@ class ImdCalculator(Calculator):
 
     """
 
-    def __init__(self, imd_service: ImdService, calculator: Calculator=None, atoms=None, **kwargs):
+    def __init__(self, imd_service: ImdService, calculator: Calculator = None, atoms=None, **kwargs):
         super().__init__(**kwargs)
         self._service = imd_service
         self.atoms = atoms
         self._calculator = calculator
+        self.implemented_properties = ['energy', 'forces']
 
     @property
     def calculator(self):
         return self._calculator
 
-    def calculate(self, atoms:Atoms=None, properties=('energy', 'forces'),
+    def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
                   system_changes=None):
 
         energy = 0.0
@@ -40,14 +41,14 @@ class ImdCalculator(Calculator):
             energy = self.calculator.results['energy']
             forces = self.calculator.results['forces']
 
-        imd_energy, imd_forces = self.calculate_imd(atoms)
+        imd_energy, imd_forces = self._calculate_imd(atoms)
         self.results['energy'] = energy + imd_energy
         self.results['forces'] = forces + imd_forces
 
-    def calculate_imd(self, atoms):
-        if atoms == None:
+    def _calculate_imd(self, atoms):
+        if atoms is None:
             atoms = self.atoms
-        if atoms == None:
+        if atoms is None:
             raise ValueError('No atoms supplied to IMD calculation, and no atoms supplied with initialisation.')
 
         # convert positions to the one true unit, nanometers.
@@ -55,13 +56,9 @@ class ImdCalculator(Calculator):
         # masses are in amu, which is fine.
         masses = atoms.get_masses()
 
-        energy_kjmol, forces_kjmol = calculate_imd_force(positions, masses, self._service.interactions.values)
+        energy_kjmol, forces_kjmol = calculate_imd_force(positions, masses, self._service.interactions.values())
         ev_per_kjmol = 0.01036
         # convert back to ASE units (eV and Angstroms).
         energy = energy_kjmol * ev_per_kjmol
         forces = forces_kjmol * ev_per_kjmol / converter.NmToAng
-
-
-
-
-
+        return energy, forces
