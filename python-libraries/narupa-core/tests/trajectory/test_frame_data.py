@@ -104,6 +104,12 @@ def simple_frame():
         7.6, 8.7, 9.8,
         0.9, 1.1, 2.2,
     ))
+    raw.arrays[frame_data.BONDS].index_values.values.extend((
+        0, 1,
+        1, 2,
+        2, 3,
+    ))
+    raw.arrays[frame_data.ELEMENTS].index_values.values.extend((10, 12, 14, 16))
     return FrameData(raw)
 
 
@@ -277,6 +283,44 @@ def test_partial_view_fails_converter():
 
 
 def test_positions_shortcut(simple_frame):
+    """
+    Test that the "positions" shortcut of FrameData returns the expected value.
+
+    Because "positions" contains floats, we need to test it separately from the
+    other shortcuts that can be compared exactly.
+    """
     positions = simple_frame.positions
-    assert len(positions) == 4
-    assert all(len(row) == 3 for row in positions)
+    expected = [
+        [1.0, 2.1, 3.2],
+        [4.3, 5.4, 6.5],
+        [7.6, 8.7, 9.8],
+        [0.9, 1.1, 2.2],
+    ]
+    # pytest.approx can compare lists, but it does not support nested structures.
+    # Here we compare the 2D lists row per row.
+    assert all(
+        pytest.approx(positions_row, expected_row)
+        for positions_row, expected_row in zip(positions, expected)
+    )
+
+
+@pytest.mark.parametrize('key, expected', (
+    ('bonds', [[0, 1], [1, 2], [2, 3]]),
+    ('elements', [10, 12, 14, 16]),
+))
+def test_exact_shortcuts(simple_frame, key, expected):
+    """
+    The shortcuts that return exact values return the expected one.
+    """
+    assert getattr(simple_frame, key) == expected
+
+
+@pytest.mark.parametrize('exception', (KeyError, frame_data.MissingDataError))
+def test_missing_shortcut(exception):
+    """
+    If there is no data for a given shortcut, it can be caught by looking for
+    a KeyError or a ad-hoc MissingDataError.
+    """
+    frame = FrameData()
+    with pytest.raises(exception):
+        frame.positions
