@@ -31,7 +31,6 @@ import time
 from narupa.trajectory import FrameServer
 # from narupa.mdanalysis import mdanalysis_to_frame_data
 #
-# frameServer = FrameServer(address='localhost', port=54321)
 # ###Send topolgy once at the begining of the server
 # # Get topolgy in the right grpc format
 # # takes u because it likes things in mdalaysis format
@@ -75,6 +74,7 @@ class LammpsHook:
 
     def ManipulateLammpsArray(self, MatType, L):
         #n_local = L.extract_global('nlocal', 0)  # L.get_nlocal()
+        print("in LAMMPS array")
         n_atoms = L.get_natoms()
         v = L.gather_atoms(MatType, 1, 3)
         for idx in range(n_atoms):
@@ -155,7 +155,6 @@ class LammpsHook:
         # temp = L.extract_compute("thermo_temp",0,0)
         # print("Temperature from compute =",temp)
 
-        # print(tmp_force.__dict__)
         # n3=3*n_atoms
         MatType= "v"
         if lmp is None:
@@ -163,24 +162,21 @@ class LammpsHook:
         else:
             v = self.ManipulateLammpsArray(MatType, L)
         self.frame_data = self.lammps_to_frame_data(v, positions=True, topology=False)
-        print("FRAME STUFF \n", self.frame_index, "\n", self.frame_data)
-        #self.frame_server.send_frame(self.frame_index, frame_data)
-        #self.frame_index += 1
+        #print("FRAME STUFF \n", self.frame_index, "\n", self.frame_data)
+        if lmp is not None:
+            self.frame_server.send_frame(self.frame_index, self.frame_data)
+        self.frame_index += 1
 
 
 #Test call of the routine
+#frameServer = FrameServer(address='localhost', port=54321)
+#H = LammpsHook()
 #while True:
-H = LammpsHook()
-for x in range(0,10):
-    H.LammpsHook()
-
-# while True:
+#for x in range(0,10):
+#    H.LammpsHook()
 #
-#     for frame in u.trajectory:
-#         # Frame data is in grpc format
-#         frame_data = lammps_to_frame_data(u, topology=False, positions=True)
-#         print("FRAME STUFF", frame_index, frame_data)
-#
-#         frameServer.send_frame(frame_index, frame_data)
-#         time.sleep(1.0 / 30.0)
-#         frame_index = frame_index + 1
+#    # Frame data is in grpc format
+#    print("FRAME STUFF", H.frame_index, H.frame_data)
+#    frameServer.send_frame(H.frame_index, H.frame_data)
+#    time.sleep(1.0 / 30.0)
+#    #frame_index = frame_index + 1
