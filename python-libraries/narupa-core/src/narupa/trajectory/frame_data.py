@@ -1,4 +1,5 @@
 from collections import namedtuple
+import itertools
 import numbers
 from narupa.protocol import trajectory
 
@@ -12,7 +13,9 @@ PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE = {
     bool: 'bool_value',
 }
 
-_Shortcut = namedtuple('_Shortcut', ['name', 'record_type', 'key', 'converter'])
+_Shortcut = namedtuple(
+    '_Shortcut', ['name', 'record_type', 'key', 'to_python', 'to_raw']
+)
 
 
 class MissingDataError(KeyError):
@@ -31,19 +34,31 @@ def _n_by_3(value):
     return list(value[i:i + 3] for i in range(0, len(value), 3))
 
 
+def _flatten_2d(value):
+    return list(itertools.chain(*value))
+
+
 def _make_getter(shortcut):
     def wrapped(self):
         try:
             value = getattr(self, shortcut.record_type)[shortcut.key]
         except KeyError as error:
             raise MissingDataError(str(error))
-        return shortcut.converter(value)
+        return shortcut.to_python(value)
+
+    return wrapped
+
+
+def _make_setter(shortcut):
+    def wrapped(self, value):
+        converted_value = shortcut.to_raw(value)
+        getattr(self, shortcut.record_type)[shortcut.key] = converted_value
 
     return wrapped
 
 
 def _make_shortcut(shortcut):
-    return property(fget=_make_getter(shortcut))
+    return property(fget=_make_getter(shortcut), fset=_make_setter(shortcut))
 
 
 class _FrameDataMeta(type):
@@ -58,13 +73,13 @@ class _FrameDataMeta(type):
 class FrameData(metaclass=_FrameDataMeta):
     _shortcuts = (
         _Shortcut(name='positions', key=POSITIONS,
-                  record_type='arrays', converter=_n_by_3),
+                  record_type='arrays', to_python=_n_by_3, to_raw=_flatten_2d),
         _Shortcut(name='elements', key=ELEMENTS,
-                  record_type='arrays', converter=_as_it),
+                  record_type='arrays', to_python=_as_it, to_raw=_as_it),
         _Shortcut(name='types', key=TYPES,
-                  record_type='arrays', converter=_as_it),
+                  record_type='arrays', to_python=_as_it, to_raw=_as_it),
         _Shortcut(name='bonds', key=BONDS,
-                  record_type='arrays', converter=_n_by_2),
+                  record_type='arrays', to_python=_n_by_2, to_raw=_flatten_2d),
     )
 
     def __init__(self, raw_frame=None):

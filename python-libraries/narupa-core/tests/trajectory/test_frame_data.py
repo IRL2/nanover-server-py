@@ -295,7 +295,7 @@ def test_partial_view_fails_set():
         dummy.set('sample', 0)
 
 
-def test_positions_shortcut(simple_frame):
+def test_positions_shortcut_get(simple_frame):
     """
     Test that the "positions" shortcut of FrameData returns the expected value.
 
@@ -321,11 +321,41 @@ def test_positions_shortcut(simple_frame):
     ('bonds', [[0, 1], [1, 2], [2, 3]]),
     ('elements', [10, 12, 14, 16]),
 ))
-def test_exact_shortcuts(simple_frame, key, expected):
+def test_exact_shortcuts_get(simple_frame, key, expected):
     """
     The shortcuts that return exact values return the expected one.
     """
     assert getattr(simple_frame, key) == expected
+
+
+@pytest.mark.parametrize('value, expected', (
+    (np.array([[3.4, 2.5, 1.2], [5.6, 2.1, 6.7]]), [3.4, 2.5, 1.2, 5.6, 2.1, 6.7]),
+    ([[3.4, 2.5, 1.2], [5.6, 2.1, 6.7]], [3.4, 2.5, 1.2, 5.6, 2.1, 6.7]),
+))
+def test_positions_shortcuts_set(value, expected):
+    """
+    The "positions" shortcut can be set from a list or from a numpy array.
+    """
+    frame = FrameData()
+    frame.positions = value
+    assert pytest.approx(
+        frame.raw.arrays[frame_data.POSITIONS].float_values.values, expected
+    )
+
+
+@pytest.mark.parametrize('key, raw_key, value, expected', (
+    ('bonds', frame_data.BONDS, [[3, 4], [2, 3]], [3, 4, 2, 3]),
+    ('elements', frame_data.ELEMENTS, [2, 3, 5], [2, 3, 5]),
+))
+def test_exact_shortcuts_set(key, raw_key, value, expected):
+    """
+    The shortcuts with exact values can be set.
+
+    This test can only cover the shortcut that set "index_values".
+    """
+    frame = FrameData()
+    setattr(frame, key, value)
+    assert frame.raw.arrays[raw_key].index_values.values == expected
 
 
 @pytest.mark.parametrize('exception', (KeyError, frame_data.MissingDataError))
@@ -341,6 +371,9 @@ def test_missing_shortcut(exception):
 
 @given(EXACT_SINGLE_VALUE_STRATEGY)
 def test_set_new_exact_value(value):
+    """
+    Values can be set. Assumes exact comparison.
+    """
     frame = FrameData()
     frame.values['sample.new'] = value
     type_attribute = PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE[type(value)]
@@ -350,6 +383,9 @@ def test_set_new_exact_value(value):
 
 @given(NUMBER_SINGLE_VALUE_STRATEGY)
 def test_set_new_number_value(value):
+    """
+    Numbers can be set as values.
+    """
     frame = FrameData()
     frame.values['sample.new'] = value
     type_attribute = PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE[type(value)]
@@ -362,6 +398,9 @@ def test_set_new_number_value(value):
     new_value=EXACT_SINGLE_VALUE_STRATEGY,
 )
 def test_set_existing_value_number_to_exact(initial_value, new_value):
+    """
+    An existing value can be modified by a value of a different type.
+    """
     frame = FrameData()
     frame.values['sample.new'] = initial_value
     assert pytest.approx(frame.values['sample.new'], initial_value)
@@ -374,6 +413,13 @@ def test_set_existing_value_number_to_exact(initial_value, new_value):
     new_value=NUMBER_SINGLE_VALUE_STRATEGY,
 )
 def test_set_existing_value_exact_to_number(initial_value, new_value):
+    """
+    An existing value can be modified by a value of a different type.
+
+    This test exchanges the order of the types from the initial value ato the
+    new value compared to `test_set_existing_value_number_to_exact`. In case
+    the order of the fields in the raw FrameData have an influence.
+    """
     frame = FrameData()
     frame.values['sample.new'] = initial_value
     assert frame.values['sample.new'] == initial_value
@@ -386,6 +432,9 @@ def test_set_existing_value_exact_to_number(initial_value, new_value):
     ARRAYS_STRATEGIES['string_values'],
 ))
 def test_set_new_exact_array(value):
+    """
+    A new array of exact values can be set.
+    """
     frame = FrameData()
     frame.arrays['sample.new'] = value
     assert frame.arrays['sample.new'] == value
@@ -393,23 +442,12 @@ def test_set_new_exact_array(value):
 
 @given(ARRAYS_STRATEGIES['float_values'])
 def test_set_new_float_array(value):
+    """
+    A new array of numbers can be set.
+    """
     frame = FrameData()
     frame.arrays['sample.new'] = value
     assert pytest.approx(frame.arrays['sample.new'], value)
-
-
-@given(ARRAYS_STRATEGIES['index_values'])
-def test_set_new_index_array(value):
-    frame = FrameData()
-    frame.arrays['sample.new'] = value
-    assert frame.arrays['sample.new'] == value
-
-
-@given(ARRAYS_STRATEGIES['string_values'])
-def test_set_new_string_array(value):
-    frame = FrameData()
-    frame.arrays['sample.new'] = value
-    assert frame.arrays['sample.new'] == value
 
 
 @given(
@@ -417,6 +455,9 @@ def test_set_new_string_array(value):
     new_value=ARRAYS_STRATEGIES['string_values'],
 )
 def test_set_existing_array(init_value, new_value):
+    """
+    An array can be replaced by an array of a different type.
+    """
     frame = FrameData()
     frame.arrays['sample.new'] = init_value
     assert frame.arrays['sample.new'] == init_value
@@ -430,6 +471,9 @@ def test_set_existing_array(init_value, new_value):
     [None, None],  # Not a valid type
 ))
 def test_set_wrong_type_array_fails(value):
+    """
+    Setting an array with a broken value fails with a ValueError.
+    """
     frame = FrameData()
     with pytest.raises(ValueError):
         frame.arrays['sample.net'] = value
