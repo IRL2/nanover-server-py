@@ -53,4 +53,4 @@ fix     3 all python/invoke 1 post_force post_force_callback
 #dump_modify	3 pad 3
 
 thermo		50
-run		1000
+run		50000
