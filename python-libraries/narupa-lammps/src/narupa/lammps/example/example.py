@@ -1,20 +1,18 @@
-import MDAnalysis
-import numpy as np
-from MDAnalysis.tests.datafiles import PSF, DCD  # test trajectory
-from MDAnalysis import Universe
-from MDAnalysis.topology.guessers import guess_atom_element
-# from __future__ import print_function
-from lammps import lammps  # , PyLammps
-import mpi4py
-# from lammps import lammps #, PyLammps
-import sys
-from pprint import pprint
-from ctypes import *
 import ctypes
+import sys
+import time
+from ctypes import *
+from pprint import pprint
+
+import MDAnalysis
+import mpi4py
+import numpy as np
+from lammps import lammps  # , PyLammps
+from narupa.protocol.trajectory import FrameData
+from narupa.trajectory import FrameServer
 from numpy.core.multiarray import int_asbuffer
 
-from narupa.protocol.trajectory import FrameData
-
+# Keep for next step
 element_index = {
     'H': 1,
     'C': 6,
@@ -23,72 +21,82 @@ element_index = {
     'S': 16
 }
 
-# U contains both topology and  positions
-# u = MDAnalysis.Universe(PSF, DCD)  # always start with a Universe
-#
-import time
-#
-from narupa.trajectory import FrameServer
-# from narupa.mdanalysis import mdanalysis_to_frame_data
-#
-# ###Send topolgy once at the begining of the server
-# # Get topolgy in the right grpc format
-# # takes u because it likes things in mdalaysis format
-# topology_data = mdanalysis_to_frame_data(u, topology=True, positions=False)
-# # print(topology_data)
-#
-# frame_index = 0
-# # Now actually send the frame, only contains the topology at this stage
-# frameServer.send_frame(frame_index, topology_data)
-
-print("Starting Trajectory Server")
-
-
-# frame_data = mdanalysis_to_frame_data(u, topology=False, positions=True)
-# print(frame_data)
-
 
 class LammpsHook:
     def __init__(self):
+        """
+        Items that should be initialised on instantiation of lammpsHook class
+        The MPI routines are essential to stop thread issues that cause internal
+        LAMMPS crashes
+        """
+
         #Load MPI routines
         from mpi4py import MPI
         self.comm = MPI.COMM_WORLD
         me = self.comm.Get_rank()
         nprocs = self.comm.Get_size()
-        #Load frame server
+
+        # Load frame server
         from narupa.protocol.trajectory import FrameData
         self.frame_server = FrameServer(address='localhost', port=54321)
         self.frame_index = 0
-        print("Lammpshook initalised")
+        print("Lammpshook initialised for NarupaXR")
+        # TODO make it so that the simulation waits on connect as an option
 
-    # Test routine to check correct loading, keep for now, kill later
-    def testy(self):
+    def testdebug(self):
+        """
+        Test routine to check correct python loading in LAMMPS
+        keep for now, kill later
+
+        :return: Nothing
+        """
+
         try:
             L = lammps(ptr=lmp, comm=self.comm)
         except LammmpsError:
             print("Failed to load lammps wrapper")
+            print(e)
+            sys.exit(1)
+
         L = lammps(comm=comm)# ptr=lmp, comm=comm)
-        print("inclass.testy")
         n_atoms = L.get_natoms()
-        print("Atoms : ", n_atoms)
+        print("In class testy","Atoms : ", n_atoms)
 
     def ManipulateLammpsArray(self, MatType, L):
+        """
+        Gather Matrix data from all LAMMPS MPI threads
+
+        :param MatType: String identifying data to transmit, e.g x, v or f
+        :param L: LAMMPS class that contains all the needed routines
+        :return: 3N matrix called v with all the data requested
+        """
+
         #n_local = L.extract_global('nlocal', 0)  # L.get_nlocal()
-        print("in LAMMPS array")
+        # Hard to tell if LAMMPS python interpreter is working so for now print every step
+        print("In LAMMPS array")
         n_atoms = L.get_natoms()
         v = L.gather_atoms(MatType, 1, 3)
+
+        # This test case slowly translates the molecular system
         for idx in range(n_atoms):
-            v[3 * idx + 0] *= 0.0000001
-            v[3 * idx + 1] *= 0.0000001
-            v[3 * idx + 2] *= 0.0000001
+            v[3 * idx + 0] += 0.0001000
+            v[3 * idx + 1] *= 1.0000000
+            v[3 * idx + 2] *= 1.0000000
+        L.scatter_atoms(MatType, 1, 3, v)
         return v
 
-    # This routine mimics LAMMPS cytpes for easy debugging
     def ManipulateDummyArray(self, MatType):
-        import ctypes
+        """
+        This routine mimics LAMMPS cytpes for easy debugging
+        Generate dummy ctype double array of 3N particles
+        TODO convert this to a full dummy LAMMPS class
+
+        :param MatType: For the moment doesnt do anything
+        :return: 3N matrix v that contains all the dummy data
+        """
         n_atoms = 10
         v = (ctypes.c_double*(3*n_atoms))(*range(3*n_atoms))
-        print(v[1],v[2],v[3])
+        print(v[1], v[2], v[3])
         return v
 
     # def LammpsFrameDataArray(self):
@@ -100,13 +108,20 @@ class LammpsHook:
     #     print()
 
     def lammps_to_frame_data(self, v, topology=True, positions=True) -> FrameData:
+        """
+        Convert the flat ctype.c_double data into the framedata format.
+
+        :param v: Data to convert
+        :param topology: Check if data is topolgical
+        :param positions: Check if data is positional
+        :return: overwrite data in v matrix with new formatted framedata
+        """
         try:
             frame_data = FrameData()
         except Exception as e:
             print("Failed to load framedata")
             print(e)
-
-
+            sys.exit(1)
         # if topology:
         #     for residue in u.residues:
         #         frame_data.arrays['residue.id'].string_values.values.append(residue.resname)
@@ -137,17 +152,27 @@ class LammpsHook:
 
     # LammpsHook passes data between python and the Lammps binary
     def LammpsHook(self, lmp=None):
-        # Check if LAMMPS variable is being passed
+        """
+        LammpsHook is the main routine that is run within LAMMPS MD
+        steps. It checks that LAMMPS python wrapper is callable
+        and then attempts to extract a 3N matrix of atomic data
+
+        :param lmp: LAMMPS object data, only populated when running from within LAMMPS
+        """
+
+        # Checks if LAMMPS variable is being passed
         # If not assume we are in interactive mode
         if lmp is None:
-            print("Running without lammps, assuming interactive")
+            print("Running without lammps, assuming interactive debugging")
         else:
-            # Make sure lammps object is callable
+            # Make sure LAMMPS object is callable
             try:
                 L = lammps(ptr=lmp, comm=self.comm)
             except Exception as e:
+                # Many reasons for LAMMPS failures so for the moment catch all
                 print("Failed to load LAMMPS wrapper")
                 print(e)
+                sys.exit(1)
 
         # mass = L.extract_atom("mass",2)
         # xp = L.extract_atom("x",3)
@@ -155,28 +180,36 @@ class LammpsHook:
         # temp = L.extract_compute("thermo_temp",0,0)
         # print("Temperature from compute =",temp)
 
-        # n3=3*n_atoms
-        MatType= "v"
+        # Choose the matrix type that will be extracted
+        MatType= "x"
+        # If not in LAMMPS run dummy routine
         if lmp is None:
             v = self.ManipulateDummyArray(MatType)
         else:
             v = self.ManipulateLammpsArray(MatType, L)
+
         self.frame_data = self.lammps_to_frame_data(v, positions=True, topology=False)
+
         #print("FRAME STUFF \n", self.frame_index, "\n", self.frame_data)
-        if lmp is not None:
-            self.frame_server.send_frame(self.frame_index, self.frame_data)
+        self.frame_server.send_frame(self.frame_index, self.frame_data)
         self.frame_index += 1
 
+        # Scatter data back to lammps processors
+        #if lmp is not None:
+            #L.scatter_atoms(MatType,1,3,v)
 
-#Test call of the routine
-#frameServer = FrameServer(address='localhost', port=54321)
-#H = LammpsHook()
-#while True:
-#for x in range(0,10):
-#    H.LammpsHook()
-#
-#    # Frame data is in grpc format
-#    print("FRAME STUFF", H.frame_index, H.frame_data)
-#    frameServer.send_frame(H.frame_index, H.frame_data)
-#    time.sleep(1.0 / 30.0)
-#    #frame_index = frame_index + 1
+
+
+# Test call of the routine when running outside of lammps
+def main():
+    H = LammpsHook()
+    print("Starting Trajectory Server")
+    # frameServer = FrameServer(address='localhost', port=54321)
+    while True:
+        H.LammpsHook()
+        print("FRAME STUFF", H.frame_index, H.frame_data)
+        time.sleep(1.0 / 10.0)
+
+
+if __name__ == '__main__':
+    main()
