@@ -34,19 +34,19 @@ def calculate_imd_force(positions, masses, interactions: Collection[Interaction]
     forces = np.zeros((len(positions), 3))
     total_energy = 0
     for interaction in interactions:
-        energy, forces = calculate_single_interaction(positions, masses, interaction, forces)
+        energy = apply_single_interaction_force(positions, masses, interaction, forces)
         total_energy += energy
     return total_energy, forces
 
 
-def calculate_single_interaction(positions, masses, interaction, forces: np.array) -> Tuple[float, np.array]:
+def apply_single_interaction_force(positions, masses, interaction, forces: np.ndarray) -> float:
     """
-    Calculates the energy and force of a single application of an interaction potential.
+    Calculates the energy and adds the forces to the particles of a single application of an interaction potential.
     :param positions: Collection of N particle position vectors, in nm.
     :param masses: Collection on N particle masses, in a.m.u
     :param interaction: An interaction to be applied.
-    :param forces: Forces array to accumulate into (in kJ/(mol*nm))
-    :return: energy in kJ/mol, accumulated forces (in kJ/(mol*nm)) to be applied.
+    :param forces: Array of N force vectors to accumulate computed forces into (in kJ/(mol*nm))
+    :return: energy in kJ/mol.
     """
 
     center = get_center_of_mass_subset(positions, masses, interaction.particles)
@@ -64,16 +64,28 @@ def calculate_single_interaction(positions, masses, interaction, forces: np.arra
     # apply to appropriate force to each particle in the selection.
     force_per_particle = force / len(interaction.particles)
     energy_per_particle = energy / len(interaction.particles)
-    total_energy, forces = _apply_force_to_particles(forces, energy_per_particle,
-                                                     force_per_particle, interaction, masses)
-    return total_energy, forces
+    total_energy = _apply_force_to_particles(forces, energy_per_particle,
+                                             force_per_particle, interaction, masses)
+    return total_energy
 
 
-def _apply_force_to_particles(forces, energy_per_particle, force_per_particle, interaction, masses) \
-        -> Tuple[float, np.array]:
-    # given the array of forces, energy and force to apply to each particle, applies them, using mass weighting
-    # if specified in the interaction.
-    total_energy = 0
+def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, force_per_particle: np.ndarray,
+                              interaction, masses: np.ndarray) \
+        -> float:
+    """
+
+    Given the array of forces, energy and force to apply to each particle, applies them, using mass weighting
+    if specified in the interaction.
+
+    :param forces: array of N particle forces. Interaction force will be added to this array, mutating it.
+    :param energy_per_particle: Interaction energy per particle.
+    :param force_per_particle: Force to apply to each particle.
+    :param interaction: The interaction being computed.
+    :param masses: Array of N masses of the particles.
+    :return:
+    """
+
+    total_energy = 0.0
     for index in interaction.particles:
         if interaction.mass_weighted:
             mass = masses[index]
@@ -81,7 +93,7 @@ def _apply_force_to_particles(forces, energy_per_particle, force_per_particle, i
             mass = 1
         total_energy += interaction.scale * mass * energy_per_particle
         forces[index] += interaction.scale * mass * force_per_particle
-    return total_energy, forces
+    return total_energy
 
 
 def get_center_of_mass_subset(positions, masses, subset=None) -> float:
@@ -105,7 +117,7 @@ def get_center_of_mass_subset(positions, masses, subset=None) -> float:
     return com
 
 
-def calculate_gaussian_force(particle_position: np.array, interaction_position: np.array, sigma=1)\
+def calculate_gaussian_force(particle_position: np.array, interaction_position: np.array, sigma=1) \
         -> Tuple[float, np.array]:
     """
     Computes the interactive Gaussian force.
@@ -152,9 +164,11 @@ def calculate_spring_force(particle_position: np.array, interaction_position: np
     force = 2 * k * diff
     return energy, force
 
+
 def _calculate_distances(r, g):
     diff = r - g
     dist_sqr = np.dot(diff, diff)
     return diff, dist_sqr
+
 
 INTERACTION_METHOD_MAP = {'gaussian': calculate_gaussian_force, 'spring': calculate_spring_force}

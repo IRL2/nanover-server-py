@@ -88,7 +88,6 @@ def test_multiplexing_interactions(imd_server, imd_client):
 def test_clear_interactions(imd_server, imd_client, interactions):
     """
     Tests that after interacting the set of interactions are cleared
-    :return:
     """
     mock = Mock()
     imd_server.service.set_callback(mock.callback)
@@ -111,10 +110,6 @@ def test_repeat_interactions(imd_server, imd_client, interactions):
 def test_publish_identical_interactions(imd_server, imd_client, interactions):
     """
     Tests that publishing identical interactions at the same time throws a gRPC exception.
-
-    :param imd_server:
-    :param imd_client:
-    :return:
     """
     mock = Mock()
     imd_server.service.set_callback(mock.callback)

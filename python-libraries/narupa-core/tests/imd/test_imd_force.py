@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from narupa.imd.imd_force import _calculate_distances, get_center_of_mass_subset, calculate_spring_force, \
-    calculate_gaussian_force, calculate_single_interaction, calculate_imd_force
+    calculate_gaussian_force, apply_single_interaction_force, calculate_imd_force
 from narupa.imd.interaction import Interaction
 
 exp_1 = exp(-1 / 2)
@@ -50,7 +50,7 @@ def test_multiple_interactions(particles):
     interaction_2 = Interaction(position=[1.5,1.5,1.5], particles=[1,2])
     positions, masses = particles
     single_forces = np.zeros((len(positions),3))
-    single_energy, single_forces = calculate_single_interaction(positions, masses, interaction, single_forces)
+    single_energy = apply_single_interaction_force(positions, masses, interaction, single_forces)
     energy, forces = calculate_imd_force(positions, masses, [interaction, interaction_2])
     expected_energy = 2 * single_energy
     expected_forces = np.zeros((len(positions), 3))
@@ -70,7 +70,7 @@ def test_interaction_force_single(particles, single_interaction, scale):
     forces = np.zeros((len(positions), 3))
     expected_forces = np.zeros((len(positions), 3))
     single_interaction.scale = scale
-    energy, forces = calculate_single_interaction(positions, masses, single_interaction, forces)
+    energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
 
     expected_energy = -exp_3 * scale
     expected_forces[1, :] = np.array([exp_3 * scale] * 3)
@@ -88,7 +88,7 @@ def test_interaction_force_mass(particles, single_interaction, mass):
     forces = np.zeros((len(positions), 3))
     expected_forces = np.zeros((len(positions), 3))
     masses = np.array([mass] * len(masses))
-    energy, forces = calculate_single_interaction(positions, masses, single_interaction, forces)
+    energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
     # special cases for dividing by zero.
     if abs(mass) == np.infty:
         expected_energy = np.nan
@@ -105,7 +105,7 @@ def test_interaction_force_zero_mass(particles, single_interaction):
     expected_forces = np.zeros((len(positions), 3))
     masses = np.array([0.0] * len(masses))
     with pytest.raises(ZeroDivisionError):
-        calculate_single_interaction(positions, masses, single_interaction, forces)
+        apply_single_interaction_force(positions, masses, single_interaction, forces)
 
 
 
@@ -141,7 +141,7 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     for index in selection:
         expected_forces[index, :] = -1 * diff * masses[index] * expected_energy_per_particle
 
-    energy, forces = calculate_single_interaction(positions, masses, interaction, forces)
+    energy = apply_single_interaction_force(positions, masses, interaction, forces)
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
@@ -177,7 +177,7 @@ def test_interaction_force_no_mass_weighting(particles, position, selection, sel
     for index in selection:
         expected_forces[index, :] = -1 * diff * expected_energy_per_particle
 
-    energy, forces = calculate_single_interaction(positions, masses, interaction, forces)
+    energy = apply_single_interaction_force(positions, masses, interaction, forces)
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
@@ -188,7 +188,7 @@ def test_interaction_force_unknown_type(particles, single_interaction):
     forces = np.zeros((len(positions), 3))
 
     with pytest.raises(KeyError):
-        calculate_single_interaction(positions, masses, single_interaction, forces)
+        apply_single_interaction_force(positions, masses, single_interaction, forces)
 
 
 def test_interaction_force_default_type(particles):
@@ -201,7 +201,7 @@ def test_interaction_force_default_type(particles):
 
     expected_forces = np.zeros((len(positions), 3))
     expected_energy = -1
-    energy, forces = calculate_single_interaction(positions, masses, interaction, forces)
+    energy = apply_single_interaction_force(positions, masses, interaction, forces)
     assert np.allclose(energy, expected_energy)
     assert np.allclose(forces, expected_forces)
 
@@ -214,7 +214,7 @@ def test_interaction_force_com_zero(particles):
 
     expected_forces = np.zeros((len(positions), 3))
     expected_energy = -1
-    energy, forces = calculate_single_interaction(positions, masses, interaction, forces)
+    energy = apply_single_interaction_force(positions, masses, interaction, forces)
     assert np.allclose(energy, expected_energy)
     assert np.allclose(forces, expected_forces)
 
