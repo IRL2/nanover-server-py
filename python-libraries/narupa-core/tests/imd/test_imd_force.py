@@ -3,7 +3,7 @@ from math import exp
 import numpy as np
 import pytest
 
-from narupa.imd.imd_force import _calculate_distances, get_center_of_mass_subset, calculate_spring_force, \
+from narupa.imd.imd_force import _calculate_diff_and_magnitude, get_center_of_mass_subset, calculate_spring_force, \
     calculate_gaussian_force, apply_single_interaction_force, calculate_imd_force
 from narupa.imd.interaction import Interaction
 
@@ -220,7 +220,7 @@ def test_interaction_force_com_zero(particles):
 
 
 def test_distance(particle_position, interaction_position):
-    diff, dist_sqr = _calculate_distances(particle_position, interaction_position)
+    diff, dist_sqr = _calculate_diff_and_magnitude(particle_position, interaction_position)
     assert dist_sqr == pytest.approx(1.0)
     assert np.allclose(diff, [1, 0, 0])
 
