@@ -7,8 +7,9 @@ from narupa.imd.imd_force import _calculate_diff_and_sqr_distance, get_center_of
     calculate_gaussian_force, apply_single_interaction_force, calculate_imd_force
 from narupa.imd.interaction import Interaction
 
-exp_1 = exp(-1 / 2)
-exp_3 = exp(-3 / 2)
+# precomputed results of gaussian force.
+EXP_1 = exp(-1 / 2)
+EXP_3 = exp(-3 / 2)
 
 
 @pytest.fixture
@@ -72,8 +73,8 @@ def test_interaction_force_single(particles, single_interaction, scale):
     single_interaction.scale = scale
     energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
 
-    expected_energy = -exp_3 * scale
-    expected_forces[1, :] = np.array([exp_3 * scale] * 3)
+    expected_energy = -EXP_3 * scale
+    expected_forces[1, :] = np.array([EXP_3 * scale] * 3)
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
@@ -94,8 +95,8 @@ def test_interaction_force_mass(particles, single_interaction, mass):
         expected_energy = np.nan
         expected_forces[1, :] = np.nan
     else:
-        expected_energy = -exp_3 * mass
-        expected_forces[1, :] = np.array([exp_3 * mass] * 3)
+        expected_energy = -EXP_3 * mass
+        expected_forces[1, :] = np.array([EXP_3 * mass] * 3)
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
@@ -256,10 +257,10 @@ def test_get_com_different_lengths(particles):
 
 
 @pytest.mark.parametrize("position, interaction, expected_energy, expected_force",
-                         [([1, 0, 0], [0, 0, 0], -exp_1, [exp_1, 0, 0]),
-                          ([1, 1, 1], [0, 0, 0], -exp_3, [exp_3] * 3),
+                         [([1, 0, 0], [0, 0, 0], -EXP_1, [EXP_1, 0, 0]),
+                          ([1, 1, 1], [0, 0, 0], -EXP_3, [EXP_3] * 3),
                           ([1, 0, 0], [1, 0, 0], -1, [0, 0, 0]),
-                          ([-1, -1, -1], [0, 0, 0], -exp_3, [-exp_3] * 3)])
+                          ([-1, -1, -1], [0, 0, 0], -EXP_3, [-EXP_3] * 3)])
 def test_gaussian_force(position, interaction, expected_energy, expected_force):
     energy, force = calculate_gaussian_force(np.array(position), np.array(interaction))
     assert np.allclose(energy, expected_energy, equal_nan=True)
