@@ -23,18 +23,22 @@ def interaction_position():
 
 
 @pytest.fixture
-def particles(num_particles=50):
+def particles():
+    num_particles = 50
     positions = np.array([[i, i, i] for i in range(num_particles)])
     masses = np.array([1] * num_particles)
     return positions, masses
 
 
 @pytest.fixture
-def single_interaction(position=(0, 0, 0), index=1):
+def single_interaction():
+    position = (0, 0, 0)
+    index = 1
     return Interaction(position=position, particles=[index])
 
 @pytest.fixture
-def single_interactions(num_interactions=2):
+def single_interactions():
+    num_interactions = 2
     return [single_interaction(position=[i, i, i], index=i) for i in range(num_interactions)]
 
 
