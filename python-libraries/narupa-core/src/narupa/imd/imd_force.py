@@ -17,7 +17,7 @@ import numpy as np
 from narupa.imd.interaction import Interaction
 
 
-def calculate_imd_force(positions, masses, interactions: Collection[Interaction]) -> Tuple[float, np.array]:
+def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions: Collection[Interaction]) -> Tuple[float, np.array]:
     """
     Reference implementation of the Narupa IMD force.
 
@@ -25,8 +25,8 @@ def calculate_imd_force(positions, masses, interactions: Collection[Interaction]
     computes the force to be applied to each particle for each interaction
     and accumulates them into an array.
 
-    :param positions: Collection of N particle positions, in nm.
-    :param masses: Collection on N particle masses, in a.m.u
+    :param positions: Array of N particle positions, in nm.
+    :param masses: Array of N particle masses, in a.m.u
     :param interactions: Collection of interactions to be applied.
     :return: energy in kJ/mol, accumulated forces (in kJ/(mol*nm)) to be applied.
     """
@@ -39,7 +39,7 @@ def calculate_imd_force(positions, masses, interactions: Collection[Interaction]
     return total_energy, forces
 
 
-def apply_single_interaction_force(positions, masses, interaction, forces: np.ndarray) -> float:
+def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, interaction, forces: np.ndarray) -> float:
     """
     Calculates the energy and adds the forces to the particles of a single application of an interaction potential.
     :param positions: Collection of N particle position vectors, in nm.
@@ -96,7 +96,7 @@ def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, fo
     return total_energy
 
 
-def get_center_of_mass_subset(positions, masses, subset=None) -> float:
+def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=None) -> float:
     """
     Gets the center of mass of [a subset of] positions.
 
@@ -105,20 +105,17 @@ def get_center_of_mass_subset(positions, masses, subset=None) -> float:
     :param subset: Indices [0,N) of positions to include. If None, all positions included.
     :return: The center of mass of the subset of positions.
     """
-    pos = np.array(positions).reshape((-1, 3))
-    if not isinstance(masses, Collection):
-        masses = np.array([masses])
     if subset is None:
-        subset = range(len(pos))
+        subset = range(len(positions))
     try:
-        com = np.average(pos[subset], weights=masses[subset], axis=0)
+        com = np.average(positions[subset], weights=masses[subset], axis=0)
     except ZeroDivisionError as e:
         raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!")
     return com
 
 
-def calculate_gaussian_force(particle_position: np.array, interaction_position: np.array, sigma=1) \
-        -> Tuple[float, np.array]:
+def calculate_gaussian_force(particle_position: np.ndarray, interaction_position: np.ndarray, sigma=1) \
+        -> Tuple[float, np.ndarray]:
     """
     Computes the interactive Gaussian force.
 
@@ -165,7 +162,7 @@ def calculate_spring_force(particle_position: np.array, interaction_position: np
     return energy, force
 
 
-def _calculate_diff_and_sqr_distance(r: np.ndarray, g: np.ndarray) -> Tuple[float, np.ndarray]:
+def _calculate_diff_and_sqr_distance(r: np.ndarray, g: np.ndarray) -> Tuple[np.ndarray, float]:
     """
     Calculates the difference and square of the distance between two vectors r and g.
     A utility function for computing gradients based on this distance.

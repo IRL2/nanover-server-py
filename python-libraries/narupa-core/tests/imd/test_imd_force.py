@@ -242,15 +242,15 @@ def test_get_com_subset(particles):
 
 
 def test_get_com_single():
-    position = [1, 0, 0]
-    mass = 20
+    position = np.array([[1, 0, 0]])
+    mass = np.array([20])
     com = get_center_of_mass_subset(position, mass)
     assert np.allclose(com, position)
 
 
 def test_get_com_different_lengths(particles):
     positions, mass = particles
-    mass = 1
+    mass = np.array([1])
     with pytest.raises(IndexError):
         get_center_of_mass_subset(positions, mass)
 
