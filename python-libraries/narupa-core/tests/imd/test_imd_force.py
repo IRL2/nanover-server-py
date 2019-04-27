@@ -46,7 +46,7 @@ def test_multiple_interactions(particles):
     """
     Tests multiple concurrent interactions.
 
-    Ensures that equidistant interactions on [0,1] and [1,2] results in zero force on particle 1,
+    Ensures that equidistant interactions on particles [0,1] and particles [1,2] results in zero force on particle 1,
     and expected energy/forces elsewhere.
     """
     interaction = Interaction(position=[0.5,0.5,0.5], particles=[0,1])
