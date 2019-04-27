@@ -49,17 +49,21 @@ def test_multiple_interactions(particles):
     Ensures that equidistant interactions on particles [0,1] and particles [1,2] results in zero force on particle 1,
     and expected energy/forces elsewhere.
     """
+
+    positions, masses = particles
     interaction = Interaction(position=[0.5,0.5,0.5], particles=[0,1])
     interaction_2 = Interaction(position=[1.5,1.5,1.5], particles=[1,2])
-    positions, masses = particles
     single_forces = np.zeros((len(positions),3))
+
     single_energy = apply_single_interaction_force(positions, masses, interaction, single_forces)
     energy, forces = calculate_imd_force(positions, masses, [interaction, interaction_2])
+
     expected_energy = 2 * single_energy
     expected_forces = np.zeros((len(positions), 3))
     expected_forces[0, :] = single_forces[0, :]
     expected_forces[1, :] = 0
     expected_forces[2, :] = single_forces[0, :]
+
     assert np.allclose(energy, expected_energy)
     assert np.allclose(forces, expected_forces)
 
@@ -202,25 +206,14 @@ def test_interaction_force_default_type(particles):
     positions, masses = particles
     forces = np.zeros((len(positions), 3))
 
-    expected_forces = np.zeros((len(positions), 3))
-    expected_energy = -1
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
-    assert np.allclose(energy, expected_energy)
-    assert np.allclose(forces, expected_forces)
-
-def test_interaction_force_com_zero(particles):
-    position = [0.5, 0.5, 0.5]
-    selection = [0, 1]
-    interaction = Interaction(position=position, particles=selection)
-    positions, masses = particles
-    forces = np.zeros((len(positions), 3))
 
     expected_forces = np.zeros((len(positions), 3))
+    # the expected energy for the gaussian potential.
     expected_energy = -1
-    energy = apply_single_interaction_force(positions, masses, interaction, forces)
+
     assert np.allclose(energy, expected_energy)
     assert np.allclose(forces, expected_forces)
-
 
 def test_distance(particle_position, interaction_position):
     diff, dist_sqr = _calculate_diff_and_sqr_distance(particle_position, interaction_position)
@@ -258,13 +251,14 @@ def test_get_com_different_lengths(particles):
         get_center_of_mass_subset(positions, mass)
 
 
-@pytest.mark.parametrize("position, interaction, expected_energy, expected_force",
+@pytest.mark.parametrize("position, interaction_position, expected_energy, expected_force",
                          [([1, 0, 0], [0, 0, 0], -EXP_1, [EXP_1, 0, 0]),
+                          ([1, 2, 3], [1, 2, 3], -1, [0, 0, 0]),
                           ([1, 1, 1], [0, 0, 0], -EXP_3, [EXP_3] * 3),
                           ([1, 0, 0], [1, 0, 0], -1, [0, 0, 0]),
                           ([-1, -1, -1], [0, 0, 0], -EXP_3, [-EXP_3] * 3)])
-def test_gaussian_force(position, interaction, expected_energy, expected_force):
-    energy, force = calculate_gaussian_force(np.array(position), np.array(interaction))
+def test_gaussian_force(position, interaction_position, expected_energy, expected_force):
+    energy, force = calculate_gaussian_force(np.array(position), np.array(interaction_position))
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(force, expected_force, equal_nan=True)
 
@@ -272,7 +266,7 @@ def test_gaussian_force(position, interaction, expected_energy, expected_force):
 @pytest.mark.parametrize("position, interaction, expected_energy, expected_force",
                          [([1, 0, 0], [0, 0, 0], -1, [2, 0, 0]),
                           ([1, 1, 1], [0, 0, 0], -3, [2, 2, 2]),
-                          ([1, 0, 0], [1, 0, 0], 0, [0, 0, 0]),
+                          ([1, 2, 3], [1, 2, 3], 0, [0, 0, 0]),
                           ([-1, -1, -1], [0, 0, 0], -3, [-2, -2, -2])])
 def test_spring_force(position, interaction, expected_energy, expected_force):
     energy, force = calculate_spring_force(np.array(position), np.array(interaction))
