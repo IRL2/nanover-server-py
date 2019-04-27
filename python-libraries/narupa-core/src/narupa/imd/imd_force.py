@@ -11,7 +11,7 @@ For details, and if you find these functions helpful, please cite:
 """
 
 from math import exp
-from typing import Collection, Tuple
+from typing import Collection, Tuple, Optional
 
 import numpy as np
 from narupa.imd.interaction import Interaction
@@ -162,15 +162,29 @@ def calculate_spring_force(particle_position: np.array, interaction_position: np
     return energy, force
 
 
-def _calculate_diff_and_sqr_distance(r: np.ndarray, g: np.ndarray) -> Tuple[np.ndarray, float]:
+def _minimum_image(u, v, periodic_box_lengths:Optional):
     """
-    Calculates the difference and square of the distance between two vectors r and g.
+    Gets the difference between two vectors under minimum image convention for a cubic periodic box.
+    :param u:
+    :param v:
+    :param periodic_box_lengths: Vector of periodic box lengths.
+    :return:
+    """
+    diff = u - v
+    if periodic_box_lengths is not None:
+        pbc_recipricol = np.reciprocal(periodic_box_lengths)
+        diff -= pbc_recipricol * np.round(np.dot(diff, pbc_recipricol))
+    return diff
+
+def _calculate_diff_and_sqr_distance(u: np.ndarray, v: np.ndarray, periodic_box_vector = None) -> Tuple[np.ndarray, float]:
+    """
+    Calculates the difference and square of the distance between two vectors.
     A utility function for computing gradients based on this distance.
-    :param r: Vector of length N.
-    :param g: Vector of length N.
+    :param u: Vector of length N.
+    :param v: Vector of length N.
     :return: Tuple consisting of the difference between r and g and the square magnitude between them.
     """
-    diff = r - g
+    diff = _minimum_image(u, v, periodic_box_vector)
     dist_sqr = np.dot(diff, diff)
     return diff, dist_sqr
 
