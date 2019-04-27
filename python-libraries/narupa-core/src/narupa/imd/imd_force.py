@@ -133,7 +133,7 @@ def calculate_gaussian_force(particle_position: np.array, interaction_position: 
     # switch to math symbols used in publications.
     r = particle_position
     g = interaction_position
-    diff, dist_sqr = _calculate_diff_and_magnitude(r, g)
+    diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g)
     sigma_sqr = sigma * sigma
 
     gauss = exp(-dist_sqr / (2 * sigma_sqr))
@@ -158,20 +158,20 @@ def calculate_spring_force(particle_position: np.array, interaction_position: np
     r = particle_position
     g = interaction_position
 
-    diff, dist_sqr = _calculate_diff_and_magnitude(r, g)
+    diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g)
     energy = - k * dist_sqr
     # force is negative derivative of energy wrt to position.
     force = 2 * k * diff
     return energy, force
 
 
-def _calculate_diff_and_sqr_dist(r: np.ndarray, g: np.ndarray):
+def _calculate_diff_and_sqr_distance(r: np.ndarray, g: np.ndarray) -> Tuple[float, np.ndarray]:
     """
     Calculates the difference and square of the distance between two vectors r and g.
     A utility function for computing gradients based on this distance.
     :param r: Vector of length N.
     :param g: Vector of length N.
-    :return:
+    :return: Tuple consisting of the difference between r and g and the square magnitude between them.
     """
     diff = r - g
     dist_sqr = np.dot(diff, diff)
