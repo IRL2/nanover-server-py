@@ -48,8 +48,6 @@ def test_multiple_interactions(particles):
 
     Ensures that equidistant interactions on [0,1] and [1,2] results in zero force on particle 1,
     and expected energy/forces elsewhere.
-    :param particles:
-    :return:
     """
     interaction = Interaction(position=[0.5,0.5,0.5], particles=[0,1])
     interaction_2 = Interaction(position=[1.5,1.5,1.5], particles=[1,2])
