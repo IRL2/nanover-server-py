@@ -53,10 +53,10 @@ def calculate_single_interaction(positions, masses, interaction, forces: np.arra
 
     # fetch the correct potential to use based on the interaction type.
     try:
-        potential_method = interaction_method_map[interaction.type]
+        potential_method = INTERACTION_METHOD_MAP[interaction.type]
     except KeyError:
         if interaction.type is None:
-            potential_method = interaction_method_map['gaussian']
+            potential_method = INTERACTION_METHOD_MAP['gaussian']
         else:
             raise KeyError(f"Unknown interactive force type {interaction.type}.")
 
@@ -156,11 +156,9 @@ def calculate_spring_force(particle_position: np.array, interaction_position: np
     force = 2 * k * diff
     return energy, force
 
-
-interaction_method_map = {'gaussian': calculate_gaussian_force, 'spring': calculate_spring_force}
-
-
 def _calculate_distances(r, g):
     diff = r - g
     dist_sqr = np.dot(diff, diff)
     return diff, dist_sqr
+
+INTERACTION_METHOD_MAP = {'gaussian': calculate_gaussian_force, 'spring': calculate_spring_force}
