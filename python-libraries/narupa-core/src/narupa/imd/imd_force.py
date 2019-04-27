@@ -49,19 +49,17 @@ def calculate_single_interaction(positions, masses, interaction, forces: np.arra
     :return: energy in kJ/mol, accumulated forces (in kJ/(mol*nm)) to be applied.
     """
 
-    centre = get_center_of_mass_subset(positions, masses, interaction.particles)
+    center = get_center_of_mass_subset(positions, masses, interaction.particles)
 
     # fetch the correct potential to use based on the interaction type.
+    interaction_type = interaction.type if interaction.type is not None else 'gaussian'
     try:
-        potential_method = INTERACTION_METHOD_MAP[interaction.type]
+        potential_method = INTERACTION_METHOD_MAP[interaction_type]
     except KeyError:
-        if interaction.type is None:
-            potential_method = INTERACTION_METHOD_MAP['gaussian']
-        else:
-            raise KeyError(f"Unknown interactive force type {interaction.type}.")
+        raise KeyError(f"Unknown interactive force type {interaction.type}.")
 
     # calculate the overall force to be applied
-    energy, force = potential_method(centre, interaction.position)
+    energy, force = potential_method(center, interaction.position)
 
     # apply to appropriate force to each particle in the selection.
     force_per_particle = force / len(interaction.particles)
