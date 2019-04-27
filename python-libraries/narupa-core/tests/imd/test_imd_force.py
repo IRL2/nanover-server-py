@@ -3,8 +3,8 @@ from math import exp
 import numpy as np
 import pytest
 
-from narupa.imd.imd_force import _calculate_diff_and_sqr_distance, get_center_of_mass_subset, calculate_spring_force, \
-    calculate_gaussian_force, apply_single_interaction_force, calculate_imd_force
+from narupa.imd.imd_force import (_calculate_diff_and_sqr_distance, get_center_of_mass_subset, calculate_spring_force,
+    calculate_gaussian_force, apply_single_interaction_force, calculate_imd_force )
 from narupa.imd.interaction import Interaction
 
 # precomputed results of gaussian force.
