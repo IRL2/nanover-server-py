@@ -10,6 +10,7 @@ from narupa.imd.interaction import Interaction
 # precomputed results of gaussian force.
 EXP_1 = exp(-1 / 2)
 EXP_3 = exp(-3 / 2)
+UNIT = np.array([1,1,1]) / np.linalg.norm([1,1,1])
 
 
 @pytest.fixture
@@ -258,8 +259,9 @@ def test_get_com_single():
     assert np.allclose(com, position)
 
 
-def test_get_com_different_lengths(particles):
+def test_get_com_different_array_lengths(particles):
     positions, mass = particles
+    # make masses array not match positions in length.
     mass = np.array([1])
     with pytest.raises(IndexError):
         get_center_of_mass_subset(positions, mass)
@@ -267,11 +269,16 @@ def test_get_com_different_lengths(particles):
 
 @pytest.mark.parametrize("position, interaction_position, expected_energy, expected_force",
                          [([1, 0, 0], [0, 0, 0], -EXP_1, [EXP_1, 0, 0]),
+                          ([0, 0, 0], [1, 0, 0], -EXP_1, [-EXP_1, 0, 0]),
+                          ([1, 3, 0], [1, 2, 0], -EXP_1, [0, EXP_1, 0]),
+                          ([1, 3, 3], [1, 3, 2], -EXP_1, [0, 0, EXP_1]),
+                          (UNIT, [0,0,0], -EXP_1, np.multiply(UNIT, [EXP_1, EXP_1, EXP_1])),
                           ([1, 2, 3], [1, 2, 3], -1, [0, 0, 0]),
                           ([1, 1, 1], [0, 0, 0], -EXP_3, [EXP_3] * 3),
                           ([1, 0, 0], [1, 0, 0], -1, [0, 0, 0]),
                           ([-1, -1, -1], [0, 0, 0], -EXP_3, [-EXP_3] * 3)])
 def test_gaussian_force(position, interaction_position, expected_energy, expected_force):
+    # tests gaussian force for various hand evaluated values.
     energy, force = calculate_gaussian_force(np.array(position), np.array(interaction_position))
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(force, expected_force, equal_nan=True)
@@ -279,6 +286,10 @@ def test_gaussian_force(position, interaction_position, expected_energy, expecte
 
 @pytest.mark.parametrize("position, interaction, expected_energy, expected_force",
                          [([1, 0, 0], [0, 0, 0], -1, [2, 0, 0]),
+                          ([0, 0, 0], [1, 0, 0], -1, [-2, 0, 0]),
+                          ([1, 3, 0], [1, 2, 0], -1, [0,  2, 0]),
+                          ([1, 3, 3], [1, 3, 2], -1, [0, 0, 2]),
+                          (UNIT, [0, 0, 0], -1, np.multiply(UNIT, [2, 2, 2])),
                           ([1, 1, 1], [0, 0, 0], -3, [2, 2, 2]),
                           ([1, 2, 3], [1, 2, 3], 0, [0, 0, 0]),
                           ([-1, -1, -1], [0, 0, 0], -3, [-2, -2, -2])])
