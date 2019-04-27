@@ -4,7 +4,7 @@
 Module providing a wrapper class around the protobuf interaction message.
 """
 from numbers import Number
-from typing import Collection
+from typing import Collection, List
 
 import numpy as np
 from google.protobuf.struct_pb2 import Struct
@@ -130,7 +130,7 @@ class Interaction:
         self._interaction.position[:] = position
 
     @property
-    def particles(self) -> Collection:
+    def particles(self) -> np.ndarray:
         """
         Gets the list of particles this interaction applies to.
         :return:

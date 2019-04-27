@@ -26,7 +26,7 @@ def interaction_position():
 def particles():
     num_particles = 50
     positions = np.array([[i, i, i] for i in range(num_particles)])
-    masses = np.array([1] * num_particles)
+    masses = np.array([i+1 for i in range(num_particles)])
     return positions, masses
 
 
@@ -47,22 +47,26 @@ def test_multiple_interactions(particles):
     Tests multiple concurrent interactions.
 
     Ensures that equidistant interactions on particles [0,1] and particles [1,2] results in zero force on particle 1,
-    and expected energy/forces elsewhere.
+    and the same (but opposite) forces on atoms 0 and 2.
     """
 
     positions, masses = particles
     interaction = Interaction(position=[0.5,0.5,0.5], particles=[0,1])
     interaction_2 = Interaction(position=[1.5,1.5,1.5], particles=[1,2])
+    # set masses of atoms 0 and 2 to be the same, so things cancel out nicely.
+    masses[2] = masses[0]
     single_forces = np.zeros((len(positions),3))
+    second_forces = np.zeros((len(positions),3))
 
     single_energy = apply_single_interaction_force(positions, masses, interaction, single_forces)
-    energy, forces = calculate_imd_force(positions, masses, [interaction, interaction_2])
 
+    energy, forces = calculate_imd_force(positions, masses, [interaction, interaction_2])
     expected_energy = 2 * single_energy
     expected_forces = np.zeros((len(positions), 3))
     expected_forces[0, :] = single_forces[0, :]
     expected_forces[1, :] = 0
-    expected_forces[2, :] = single_forces[0, :]
+    # the uneven masses in this calculation mean both atoms 0 and 2 are pulled towards atom 1.
+    expected_forces[2, :] = -single_forces[0, :]
 
     assert np.allclose(energy, expected_energy)
     assert np.allclose(forces, expected_forces)
@@ -79,8 +83,8 @@ def test_interaction_force_single(particles, single_interaction, scale):
     single_interaction.scale = scale
     energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
 
-    expected_energy = -EXP_3 * scale
-    expected_forces[1, :] = np.array([EXP_3 * scale] * 3)
+    expected_energy = -EXP_3 * scale * masses[single_interaction.particles[0]]
+    expected_forces[1, :] = np.array([EXP_3 * scale * masses[single_interaction.particles[0]]] * 3)
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
@@ -109,8 +113,8 @@ def test_interaction_force_mass(particles, single_interaction, mass):
 def test_interaction_force_zero_mass(particles, single_interaction):
     positions, masses = particles
     forces = np.zeros((len(positions), 3))
-    expected_forces = np.zeros((len(positions), 3))
     masses = np.array([0.0] * len(masses))
+
     with pytest.raises(ZeroDivisionError):
         apply_single_interaction_force(positions, masses, single_interaction, forces)
 
@@ -199,18 +203,22 @@ def test_interaction_force_unknown_type(particles, single_interaction):
 
 
 def test_interaction_force_default_type(particles):
-    position = [0.5, 0.5, 0.5]
-    selection = [0, 1]
+    """
+    Tests that the gaussian force is used if no type is specified.
+    """
+    positions, masses = particles
+
+    selection = [1]
+    position = positions[selection[0]]
     interaction = Interaction(position=position, particles=selection)
     interaction.type = None
-    positions, masses = particles
     forces = np.zeros((len(positions), 3))
 
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
 
     expected_forces = np.zeros((len(positions), 3))
-    # the expected energy for the gaussian potential.
-    expected_energy = -1
+    # the expected energy for the gaussian potential exactly positioned on the particle.
+    expected_energy = -1 * masses[selection[0]]
 
     assert np.allclose(energy, expected_energy)
     assert np.allclose(forces, expected_forces)
@@ -224,17 +232,23 @@ def test_distance(particle_position, interaction_position):
 def test_get_com_all(particles):
     positions, masses = particles
     subset = [i for i in range(len(positions))]
+
     com = get_center_of_mass_subset(positions, masses, subset)
-    assert np.allclose(com, [(len(positions) - 1) / 2] * 3)
+
+    expected_com = np.sum((position * mass for (position, mass) in zip(positions, masses))) / sum(masses)
+
+    assert np.allclose(com, expected_com)
 
 
 def test_get_com_subset(particles):
     positions, masses = particles
     subset = [i for i in range(0, len(positions), 2)]
-    subset_positions = [positions[i] for i in subset]
-    center = np.mean(subset_positions)
+
     com = get_center_of_mass_subset(positions, masses, subset)
-    assert np.allclose(com, center)
+
+    expected_com = np.sum((position * mass for (position, mass) in zip(positions[subset], masses[subset]))) / sum(masses[subset])
+
+    assert np.allclose(com, expected_com)
 
 
 def test_get_com_single():
