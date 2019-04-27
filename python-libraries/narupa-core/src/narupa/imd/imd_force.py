@@ -96,7 +96,7 @@ def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, fo
     return total_energy
 
 
-def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=None) -> float:
+def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=None) -> np.ndarray:
     """
     Gets the center of mass of [a subset of] positions.
 
