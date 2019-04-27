@@ -78,7 +78,7 @@ def test_interaction_force_single(particles, single_interaction, scale):
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
-@pytest.mark.parametrize("mass", [-1.0, 0, 100, np.nan, np.infty, -np.infty])
+@pytest.mark.parametrize("mass", [-1.0, 100, np.nan, np.infty, -np.infty])
 def test_interaction_force_mass(particles, single_interaction, mass):
     """
     tests that the interaction force calculation gives the expected result on a single atom, at a particular position,
@@ -90,7 +90,7 @@ def test_interaction_force_mass(particles, single_interaction, mass):
     masses = np.array([mass] * len(masses))
     energy, forces = calculate_single_interaction(positions, masses, single_interaction, forces)
     # special cases for dividing by zero.
-    if mass == 0 or abs(mass) == np.infty:
+    if abs(mass) == np.infty:
         expected_energy = np.nan
         expected_forces[1, :] = np.nan
     else:
@@ -98,6 +98,16 @@ def test_interaction_force_mass(particles, single_interaction, mass):
         expected_forces[1, :] = np.array([exp_3 * mass] * 3)
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
+
+def test_interaction_force_zero_mass(particles, single_interaction):
+    positions, masses = particles
+    forces = np.zeros((len(positions), 3))
+    expected_forces = np.zeros((len(positions), 3))
+    masses = np.array([0.0] * len(masses))
+    with pytest.raises(ZeroDivisionError):
+        calculate_single_interaction(positions, masses, single_interaction, forces)
+
+
 
 
 @pytest.mark.parametrize("position, selection, selection_masses",

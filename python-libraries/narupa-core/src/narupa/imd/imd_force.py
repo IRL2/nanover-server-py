@@ -97,15 +97,13 @@ def get_center_of_mass_subset(positions, masses, subset=None) -> float:
     """
     pos = np.array(positions).reshape((-1, 3))
     if not isinstance(masses, Collection):
-        masses = [masses]
+        masses = np.array([masses])
     if subset is None:
         subset = range(len(pos))
-    com = np.zeros(3)
-    total_mass = 0
-    for index in subset:
-        com += pos[index] * masses[index]
-        total_mass += masses[index]
-    com = com / total_mass
+    try:
+        com = np.average(pos[subset], weights=masses[subset], axis=0)
+    except ZeroDivisionError as e:
+        raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!")
     return com
 
 
