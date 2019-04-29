@@ -139,8 +139,7 @@ def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=
 
 
 def calculate_gaussian_force(particle_position: np.ndarray, interaction_position: np.ndarray, sigma=1,
-                             periodic_box_lengths: Optional[np.ndarray] = None) \
-        -> Tuple[float, np.ndarray]:
+                             periodic_box_lengths: Optional[np.ndarray] = None) -> Tuple[float, np.ndarray]:
     """
     Computes the interactive Gaussian force.
 

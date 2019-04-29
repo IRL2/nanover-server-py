@@ -69,7 +69,8 @@ def test_difference_non_periodic(vector_distance):
 def vector_with_random_distance_periodic(draw):
     """
     Generates a random periodic box, and two random positions.
-    The two points, the periodic box, and the minimum image difference and distance are returned.
+    The two points, the periodic box, and the difference and square distance between the two points under
+    minimum image convention are returned.
     """
 
     # Generate random polar coordinates and convert them to euclidean
@@ -80,7 +81,7 @@ def vector_with_random_distance_periodic(draw):
 
     periodic_box_lengths = np.array([draw(length) for x in range(3)])
 
-    # generate random integer values to multi
+    # generate random integer values to move particles into different images.
     images = strategies.integers(min_value=-100, max_value=100)
 
     images1 = np.array([draw(images) for x in range(3)])
@@ -92,6 +93,7 @@ def vector_with_random_distance_periodic(draw):
 
     point1 = np.array([draw(coord) for coord in lengths])
     point2 = np.array([draw(coord) for coord in lengths])
+    # calculate the actual difference and magnitudes.
     diff = point1 - point2
     dist_sqr = np.dot(diff, diff)
 

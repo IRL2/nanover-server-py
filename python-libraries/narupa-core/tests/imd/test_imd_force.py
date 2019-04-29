@@ -291,6 +291,9 @@ def random_positions_pbc(draw):
 
 @given(random_positions_pbc())
 def test_get_com_subset_pbc(positions_pbc):
+    """
+    Tests that the center of mass calculation works when using periodic boundary conditions.
+    """
     positions, masses, positions_periodic, periodic_box_lengths = positions_pbc
     subset = [i for i in range(0, len(positions), 2)]
 
