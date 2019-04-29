@@ -66,43 +66,40 @@ def test_difference_non_periodic(vector_distance):
 
 
 @strategies.composite
-def vector_with_random_distance_periodic(draw):
+def points_in_periodic_box(draw):
     """
     Generates a random periodic box, and two random positions.
     The two points, the periodic box, and the difference and square distance between the two points under
     minimum image convention are returned.
     """
 
-    # Generate random polar coordinates and convert them to euclidean
-    # coordinates to get a periodic box.
-    # box length has to nonzero.
+    # Generate random lengths to get a periodic box.
+    # box length has to be nonzero.
     length = strategies.floats(min_value=1e-12, max_value=100,
                                allow_nan=False, allow_infinity=False)
 
     periodic_box_lengths = np.array([draw(length) for x in range(3)])
 
-    # generate random integer values to move particles into different images.
-    images = strategies.integers(min_value=-100, max_value=100)
-
-    images1 = np.array([draw(images) for x in range(3)])
-    images2 = np.array([draw(images) for x in range(3)])
-
     # pick two random points in lowest quadrant of the box.
     lengths = np.array([strategies.floats(min_value=0, max_value=box_length * 0.5,
                                allow_nan=False, allow_infinity=False) for box_length in periodic_box_lengths])
-
     point1 = np.array([draw(coord) for coord in lengths])
     point2 = np.array([draw(coord) for coord in lengths])
+
     # calculate the actual difference and magnitudes.
     diff = point1 - point2
     dist_sqr = np.dot(diff, diff)
 
     # move points to new random positions around the periodic box.
+    images = strategies.integers(min_value=-100, max_value=100)
+    images1 = np.array([draw(images) for x in range(3)])
+    images2 = np.array([draw(images) for x in range(3)])
     point1_periodic = point1 +  images1 * periodic_box_lengths
     point2_periodic = point2 +  images2 * periodic_box_lengths
+
     return point1_periodic, point2_periodic, periodic_box_lengths, diff, dist_sqr
 
-@given(vector_with_random_distance_periodic())
+@given(points_in_periodic_box())
 @example((np.zeros((3,)), np.zeros((3,)), np.array([1,1,1], dtype=float), np.zeros((3,)), 0))
 @example((np.zeros((3,)), np.array([1,1,1]), np.array([2,2,2], dtype=float), np.array([-1,-1,-1]), 3))
 @example((np.zeros((3,)), np.array([3,3,3]), np.array([2,2,2], dtype=float), np.array([1,1,1]), 3))
