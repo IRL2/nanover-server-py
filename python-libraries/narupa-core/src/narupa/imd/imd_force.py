@@ -89,16 +89,14 @@ def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, fo
     :return:
     """
 
-    total_energy = 0.0
-    for index in interaction.particles:
-        if interaction.mass_weighted:
-            mass = masses[index]
-        else:
-            mass = 1
-        total_energy += interaction.scale * mass * energy_per_particle
-        forces[index] += interaction.scale * mass * force_per_particle
+    if interaction.mass_weighted:
+        mass = masses[interaction.particles]
+    else:
+        mass = np.ones(len(interaction.particles))
+    total_energy = interaction.scale * energy_per_particle * sum(mass)
+    # add the force for each particle, adjusted by mass and scale factor.
+    forces[interaction.particles] += interaction.scale * mass[:, np.newaxis] * force_per_particle[np.newaxis,:]
     return total_energy
-
 
 def wrap_pbc(position: float, periodic_box_lengths: float):
     """
