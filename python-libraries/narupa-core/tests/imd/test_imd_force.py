@@ -2,15 +2,16 @@ from math import exp
 
 import numpy as np
 import pytest
+from hypothesis import strategies, given
 
 from narupa.imd.imd_force import (_calculate_diff_and_sqr_distance, get_center_of_mass_subset, calculate_spring_force,
-    calculate_gaussian_force, apply_single_interaction_force, calculate_imd_force )
+                                  calculate_gaussian_force, apply_single_interaction_force, calculate_imd_force)
 from narupa.imd.interaction import Interaction
 
 # precomputed results of gaussian force.
 EXP_1 = exp(-1 / 2)
 EXP_3 = exp(-3 / 2)
-UNIT = np.array([1,1,1]) / np.linalg.norm([1,1,1])
+UNIT = np.array([1, 1, 1]) / np.linalg.norm([1, 1, 1])
 
 
 @pytest.fixture
@@ -27,7 +28,7 @@ def interaction_position():
 def particles():
     num_particles = 50
     positions = np.array([[i, i, i] for i in range(num_particles)])
-    masses = np.array([i+1 for i in range(num_particles)])
+    masses = np.array([i + 1 for i in range(num_particles)])
     return positions, masses
 
 
@@ -36,6 +37,7 @@ def single_interaction():
     position = (0, 0, 0)
     index = 1
     return Interaction(position=position, particles=[index])
+
 
 @pytest.fixture
 def single_interactions():
@@ -52,12 +54,11 @@ def test_multiple_interactions(particles):
     """
 
     positions, masses = particles
-    interaction = Interaction(position=[0.5,0.5,0.5], particles=[0,1])
-    interaction_2 = Interaction(position=[1.5,1.5,1.5], particles=[1,2])
+    interaction = Interaction(position=[0.5, 0.5, 0.5], particles=[0, 1])
+    interaction_2 = Interaction(position=[1.5, 1.5, 1.5], particles=[1, 2])
     # set masses of atoms 0 and 2 to be the same, so things cancel out nicely.
     masses[2] = masses[0]
-    single_forces = np.zeros((len(positions),3))
-    second_forces = np.zeros((len(positions),3))
+    single_forces = np.zeros((len(positions), 3))
 
     single_energy = apply_single_interaction_force(positions, masses, interaction, single_forces)
 
@@ -71,6 +72,7 @@ def test_multiple_interactions(particles):
 
     assert np.allclose(energy, expected_energy)
     assert np.allclose(forces, expected_forces)
+
 
 @pytest.mark.parametrize("scale", [-1.0, 0, 100, np.nan, np.infty, -np.infty])
 def test_interaction_force_single(particles, single_interaction, scale):
@@ -89,6 +91,7 @@ def test_interaction_force_single(particles, single_interaction, scale):
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
+
 
 @pytest.mark.parametrize("mass", [-1.0, 100, np.nan, np.infty, -np.infty])
 def test_interaction_force_mass(particles, single_interaction, mass):
@@ -111,6 +114,7 @@ def test_interaction_force_mass(particles, single_interaction, mass):
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
+
 def test_interaction_force_zero_mass(particles, single_interaction):
     positions, masses = particles
     forces = np.zeros((len(positions), 3))
@@ -118,8 +122,6 @@ def test_interaction_force_zero_mass(particles, single_interaction):
 
     with pytest.raises(ZeroDivisionError):
         apply_single_interaction_force(positions, masses, single_interaction, forces)
-
-
 
 
 @pytest.mark.parametrize("position, selection, selection_masses",
@@ -184,7 +186,7 @@ def test_interaction_force_no_mass_weighting(particles, position, selection, sel
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
     expected_energy_per_particle = - exp(-dist_sqr / 2) / len(selection)
-    expected_energy = sum((expected_energy_per_particle for index in selection))
+    expected_energy = sum((expected_energy_per_particle for _ in selection))
     expected_forces = np.zeros((len(positions), 3))
     for index in selection:
         expected_forces[index, :] = -1 * diff * expected_energy_per_particle
@@ -224,11 +226,6 @@ def test_interaction_force_default_type(particles):
     assert np.allclose(energy, expected_energy)
     assert np.allclose(forces, expected_forces)
 
-def test_distance(particle_position, interaction_position):
-    diff, dist_sqr = _calculate_diff_and_sqr_distance(particle_position, interaction_position)
-    assert dist_sqr == pytest.approx(1.0)
-    assert np.allclose(diff, [1, 0, 0])
-
 
 def test_get_com_all(particles):
     positions, masses = particles
@@ -266,13 +263,12 @@ def test_get_com_different_array_lengths(particles):
     with pytest.raises(IndexError):
         get_center_of_mass_subset(positions, mass)
 
-
 @pytest.mark.parametrize("position, interaction_position, expected_energy, expected_force",
                          [([1, 0, 0], [0, 0, 0], -EXP_1, [EXP_1, 0, 0]),
                           ([0, 0, 0], [1, 0, 0], -EXP_1, [-EXP_1, 0, 0]),
                           ([1, 3, 0], [1, 2, 0], -EXP_1, [0, EXP_1, 0]),
                           ([1, 3, 3], [1, 3, 2], -EXP_1, [0, 0, EXP_1]),
-                          (UNIT, [0,0,0], -EXP_1, np.multiply(UNIT, [EXP_1, EXP_1, EXP_1])),
+                          (UNIT, [0, 0, 0], -EXP_1, np.multiply(UNIT, [EXP_1, EXP_1, EXP_1])),
                           ([1, 2, 3], [1, 2, 3], -1, [0, 0, 0]),
                           ([1, 1, 1], [0, 0, 0], -EXP_3, [EXP_3] * 3),
                           ([1, 0, 0], [1, 0, 0], -1, [0, 0, 0]),
@@ -287,7 +283,7 @@ def test_gaussian_force(position, interaction_position, expected_energy, expecte
 @pytest.mark.parametrize("position, interaction, expected_energy, expected_force",
                          [([1, 0, 0], [0, 0, 0], -1, [2, 0, 0]),
                           ([0, 0, 0], [1, 0, 0], -1, [-2, 0, 0]),
-                          ([1, 3, 0], [1, 2, 0], -1, [0,  2, 0]),
+                          ([1, 3, 0], [1, 2, 0], -1, [0, 2, 0]),
                           ([1, 3, 3], [1, 3, 2], -1, [0, 0, 2]),
                           (UNIT, [0, 0, 0], -1, np.multiply(UNIT, [2, 2, 2])),
                           ([1, 1, 1], [0, 0, 0], -3, [2, 2, 2]),
