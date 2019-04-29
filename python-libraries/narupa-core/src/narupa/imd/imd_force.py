@@ -17,7 +17,8 @@ import numpy as np
 from narupa.imd.interaction import Interaction
 
 
-def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions: Collection[Interaction]) -> Tuple[float, np.array]:
+def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions: Collection[Interaction],
+                        periodic_box_lengths: Optional[np.ndarray] = None) -> Tuple[float, np.array]:
     """
     Reference implementation of the Narupa IMD force.
 
@@ -28,28 +29,32 @@ def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions:
     :param positions: Array of N particle positions, in nm.
     :param masses: Array of N particle masses, in a.m.u
     :param interactions: Collection of interactions to be applied.
+    :param periodic_box_lengths: Orthorhombic periodic box lengths. If given, the minimum image convention is applied
+    to the calculation.
     :return: energy in kJ/mol, accumulated forces (in kJ/(mol*nm)) to be applied.
     """
 
     forces = np.zeros((len(positions), 3))
     total_energy = 0
     for interaction in interactions:
-        energy = apply_single_interaction_force(positions, masses, interaction, forces)
+        energy = apply_single_interaction_force(positions, masses, interaction, forces, periodic_box_lengths)
         total_energy += energy
     return total_energy, forces
 
 
-def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, interaction, forces: np.ndarray) -> float:
+def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, interaction, forces: np.ndarray,
+                                   periodic_box_lengths: Optional[np.array] = None) -> float:
     """
     Calculates the energy and adds the forces to the particles of a single application of an interaction potential.
     :param positions: Collection of N particle position vectors, in nm.
     :param masses: Collection on N particle masses, in a.m.u
     :param interaction: An interaction to be applied.
     :param forces: Array of N force vectors to accumulate computed forces into (in kJ/(mol*nm))
+    :param periodic_box_lengths: Orthorhombic periodic box lengths to use to apply minimum image convention.
     :return: energy in kJ/mol.
     """
 
-    center = get_center_of_mass_subset(positions, masses, interaction.particles)
+    center = get_center_of_mass_subset(positions, masses, interaction.particles, periodic_box_lengths)
 
     # fetch the correct potential to use based on the interaction type.
     interaction_type = interaction.type if interaction.type is not None else 'gaussian'
@@ -59,7 +64,7 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
         raise KeyError(f"Unknown interactive force type {interaction.type}.")
 
     # calculate the overall force to be applied
-    energy, force = potential_method(center, interaction.position)
+    energy, force = potential_method(center, interaction.position, periodic_box_lengths=periodic_box_lengths)
 
     # apply to appropriate force to each particle in the selection.
     force_per_particle = force / len(interaction.particles)
@@ -70,8 +75,7 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
 
 
 def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, force_per_particle: np.ndarray,
-                              interaction, masses: np.ndarray) \
-        -> float:
+                              interaction, masses: np.ndarray) -> float:
     """
 
     Given the array of forces, energy and force to apply to each particle, applies them, using mass weighting
@@ -96,25 +100,48 @@ def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, fo
     return total_energy
 
 
-def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=None) -> np.ndarray:
+def wrap_pbc(position: float, periodic_box_lengths: float):
+    """
+    Wraps a position into orthorhombic periodic box.
+    :param position: position
+    :param periodic_box_lengths: box length.
+    :return:
+    """
+    wrapped = position - np.floor(position / periodic_box_lengths) * periodic_box_lengths
+    return wrapped
+
+
+vector_wrap_pbc = np.vectorize(wrap_pbc)
+
+
+def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=None,
+                              periodic_box_lengths: Optional[np.ndarray] = None) -> np.ndarray:
     """
     Gets the center of mass of [a subset of] positions.
+    If orthorhombic periodic box lengths are given, the minimal image convention is applied, wrapping the subset
+    into the periodic boundary before calculating the center of mass.
 
     :param positions: List of N vectors representing positions.
     :param masses: List of N vectors representing masses.
     :param subset: Indices [0,N) of positions to include. If None, all positions included.
+    :param periodic_box_lengths: Orthorhombic periodic box lengths to wrap positions into
+    before calculating centre of mass.
     :return: The center of mass of the subset of positions.
     """
     if subset is None:
         subset = range(len(positions))
+    pos_subset = positions[subset]
+    if periodic_box_lengths is not None:
+        pos_subset = vector_wrap_pbc(pos_subset, periodic_box_lengths)
     try:
-        com = np.average(positions[subset], weights=masses[subset], axis=0)
+        com = np.average(pos_subset, weights=masses[subset], axis=0)
     except ZeroDivisionError as e:
-        raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!")
+        raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!", e)
     return com
 
 
-def calculate_gaussian_force(particle_position: np.ndarray, interaction_position: np.ndarray, sigma=1) \
+def calculate_gaussian_force(particle_position: np.ndarray, interaction_position: np.ndarray, sigma=1,
+                             periodic_box_lengths: Optional[np.ndarray] = None) \
         -> Tuple[float, np.ndarray]:
     """
     Computes the interactive Gaussian force.
@@ -124,13 +151,14 @@ def calculate_gaussian_force(particle_position: np.ndarray, interaction_position
 
     :param particle_position: The position of the particle.
     :param interaction_position: The position of the interaction.
+    :param periodic_box_lengths: The periodic box vectors. If passed,
     :param sigma: The width of the Gaussian. Increasing this results in a more diffuse, but longer reaching interaction.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
     # switch to math symbols used in publications.
     r = particle_position
     g = interaction_position
-    diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g)
+    diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
     sigma_sqr = sigma * sigma
 
     gauss = exp(-dist_sqr / (2 * sigma_sqr))
@@ -140,7 +168,8 @@ def calculate_gaussian_force(particle_position: np.ndarray, interaction_position
     return energy, force
 
 
-def calculate_spring_force(particle_position: np.array, interaction_position: np.array, k=1) -> Tuple[float, np.array]:
+def calculate_spring_force(particle_position: np.array, interaction_position: np.array, k=1,
+                           periodic_box_lengths: Optional[np.ndarray] = None) -> Tuple[float, np.array]:
     """
     Computes the interactive harmonic potential (or spring) force.
 
@@ -150,42 +179,47 @@ def calculate_spring_force(particle_position: np.array, interaction_position: np
     :param particle_position: The position of the particle.
     :param interaction_position: The position of the interaction.
     :param k: The spring constant. A higher value results in a stronger force.
+    :param periodic_box_lengths: Vector of periodic boundary lengths.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
     r = particle_position
     g = interaction_position
 
-    diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g)
+    diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
     energy = - k * dist_sqr
     # force is negative derivative of energy wrt to position.
     force = 2 * k * diff
     return energy, force
 
 
-def _minimum_image(u, v, periodic_box_lengths:Optional):
+def _minimum_image(diff, periodic_box_lengths: Optional[np.ndarray] = None) -> np.ndarray:
     """
     Gets the difference between two vectors under minimum image convention for a cubic periodic box.
-    :param u:
-    :param v:
-    :param periodic_box_lengths: Vector of periodic box lengths.
+    :diff The difference between two vectors.
+    :param periodic_box_lengths: Vector of length 3 of box lengths for an orthorhombic periodic boundary.
     :return:
     """
-    diff = u - v
     if periodic_box_lengths is not None:
         pbc_recipricol = np.reciprocal(periodic_box_lengths)
-        diff -= pbc_recipricol * np.round(np.dot(diff, pbc_recipricol))
+        rounded = np.round(diff * pbc_recipricol)
+        diff -= periodic_box_lengths * rounded
     return diff
 
-def _calculate_diff_and_sqr_distance(u: np.ndarray, v: np.ndarray, periodic_box_vector = None) -> Tuple[np.ndarray, float]:
+
+def _calculate_diff_and_sqr_distance(u: np.ndarray, v: np.ndarray,
+                                     periodic_box_lengths: Optional[np.ndarray] = None) -> Tuple[np.ndarray, float]:
     """
     Calculates the difference and square of the distance between two vectors.
     A utility function for computing gradients based on this distance.
     :param u: Vector of length N.
     :param v: Vector of length N.
+    :param periodic_box_lengths: Vector of length 3 of box lengths for an orthorhombic periodic boundary. If passed,
+    minimum image convention will be used.
     :return: Tuple consisting of the difference between r and g and the square magnitude between them.
     """
-    diff = _minimum_image(u, v, periodic_box_vector)
-    dist_sqr = np.dot(diff, diff)
+    diff = u - v
+    diff = _minimum_image(diff, periodic_box_lengths)
+    dist_sqr = float(np.dot(diff, diff))
     return diff, dist_sqr
 
 

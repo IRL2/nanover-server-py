@@ -244,10 +244,62 @@ def test_get_com_subset(particles):
 
     com = get_center_of_mass_subset(positions, masses, subset)
 
-    expected_com = np.sum((position * mass for (position, mass) in zip(positions[subset], masses[subset]))) / sum(masses[subset])
+    expected_com = np.sum((position * mass for (position, mass) in zip(positions[subset], masses[subset]))) / sum(
+        masses[subset])
 
     assert np.allclose(com, expected_com)
 
+
+@strategies.composite
+def random_positions_pbc(draw):
+    """
+    Generates a random periodic box, and 50 random positions.
+    """
+
+    # Generate random polar coordinates and convert them to euclidean
+    # coordinates to get a periodic box.
+    # box length has to nonzero.
+    length = strategies.floats(min_value=0.01, max_value=100,
+                               allow_nan=False, allow_infinity=False)
+
+    periodic_box_lengths = np.array([draw(length) for x in range(3)])
+    # pick two random points in lowest quadrant of the box.
+    #TODO positions at or very near zero cause problems, as the wrap can flip between 0 and box length.
+    lengths = np.array([strategies.floats(min_value=0.005, max_value=box_length * 0.5,
+                               allow_nan=False, allow_infinity=False) for box_length in periodic_box_lengths])
+
+    num_particles = 4
+
+    masses = np.array([draw(length) for _ in range(num_particles)])
+
+    positions = np.zeros((num_particles,3))
+    for i in range(num_particles):
+        positions[i] = np.array([draw(coord) for coord in lengths])
+
+    # generate random integer values to multi
+    images = strategies.integers(min_value=-100, max_value=100)
+    image_multiples = np.array([draw(images) for x in range(3*num_particles)])
+    image_multiples.reshape((num_particles,3))
+
+    # move points to new random positions around the periodic box.
+    positions_periodic = np.zeros((num_particles, 3))
+    for i in range(num_particles):
+        positions_periodic[i] = positions[i] + image_multiples[i] * periodic_box_lengths
+
+
+    return positions, masses, positions_periodic, periodic_box_lengths
+
+@given(random_positions_pbc())
+def test_get_com_subset_pbc(positions_pbc):
+    positions, masses, positions_periodic, periodic_box_lengths = positions_pbc
+    subset = [i for i in range(0, len(positions), 2)]
+
+    total_mass = sum(masses[subset])
+    expected_com = np.sum((position * mass for (position, mass) in zip(positions[subset], masses[subset]))) / total_mass
+
+    com = get_center_of_mass_subset(positions_periodic, masses, subset, periodic_box_lengths=periodic_box_lengths)
+
+    assert np.allclose(com, expected_com)
 
 def test_get_com_single():
     position = np.array([[1, 0, 0]])
