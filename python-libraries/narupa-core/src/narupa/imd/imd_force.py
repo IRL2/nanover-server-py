@@ -26,8 +26,8 @@ def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions:
     computes the force to be applied to each particle for each interaction
     and accumulates them into an array.
 
-    :param positions: Array of N particle positions, in nm.
-    :param masses: Array of N particle masses, in a.m.u
+    :param positions: Array of N particle positions, in nm, with shape (N,3).
+    :param masses: Array of N particle masses, in a.m.u, with shape (N,3).
     :param interactions: Collection of interactions to be applied.
     :param periodic_box_lengths: Orthorhombic periodic box lengths. If given, the minimum image convention is applied
     to the calculation.
