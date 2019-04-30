@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import grpc
 import pytest
-from narupa.imd.imd_client import ImdClient
+from narupa.imd.imd_client import ImdClient, delayed_generator
 from narupa.imd.imd_server import ImdServer
 from narupa.imd.interaction import Interaction
 from narupa.protocol.imd import InteractionEndReply
@@ -59,8 +59,8 @@ def test_publish_multiple_interactions(imd_server, imd_client):
     imd_server.service.set_callback(mock.callback)
     first_set = [Interaction()] * 10
     second_set = [Interaction(interaction_id="2")] * 10
-    imd_client.publish_interactions_async(first_set, delay=0.1)
-    result = imd_client.publish_interactions(second_set, delay=0.15)
+    imd_client.publish_interactions_async(delayed_generator(first_set, delay=0.1))
+    result = imd_client.publish_interactions(delayed_generator(second_set, delay=0.15))
     assert result is not None
     assert mock.callback.call_count == len(first_set) + len(second_set)
 
@@ -76,7 +76,7 @@ def test_multiplexing_interactions(imd_server, imd_client):
     second_set = [Interaction(interaction_id="2")] * 10
     interleaved = [val for pair in zip(first_set, second_set) for val in pair]
     # TODO use a coroutine awaiting input as the generator to control this without needing sleeps
-    imd_client.publish_interactions_async(interleaved, delay=0.01)
+    imd_client.publish_interactions_async(delayed_generator(interleaved, delay=0.01))
     time.sleep(0.04)
     assert len(imd_server.service.interactions) == 2
     time.sleep(0.4)
@@ -89,7 +89,7 @@ def test_clear_interactions(imd_server, imd_client, interactions):
     """
     mock = Mock()
     imd_server.service.set_callback(mock.callback)
-    imd_client.publish_interactions_async(interactions, delay=0.01)
+    imd_client.publish_interactions_async(delayed_generator(interactions, delay=0.01))
     time.sleep(0.04)
     assert len(imd_server.service.interactions) == 1
     time.sleep(0.3)
@@ -99,9 +99,9 @@ def test_clear_interactions(imd_server, imd_client, interactions):
 def test_repeat_interactions(imd_server, imd_client, interactions):
     mock = Mock()
     imd_server.service.set_callback(mock.callback)
-    imd_client.publish_interactions(interactions, delay=0.01)
+    imd_client.publish_interactions(delayed_generator(interactions, delay=0.01))
     assert mock.callback.call_count == len(interactions)
-    imd_client.publish_interactions(interactions, delay=0.01)
+    imd_client.publish_interactions(delayed_generator(interactions, delay=0.01))
     assert mock.callback.call_count == 2 * len(interactions)
 
 
@@ -111,6 +111,6 @@ def test_publish_identical_interactions(imd_server, imd_client, interactions):
     """
     mock = Mock()
     imd_server.service.set_callback(mock.callback)
-    imd_client.publish_interactions_async(interactions, delay=0.1)
+    imd_client.publish_interactions_async(delayed_generator(interactions, delay=0.1))
     with pytest.raises(grpc.RpcError):
-        imd_client.publish_interactions(interactions, delay=0.15)
+        imd_client.publish_interactions(delayed_generator(interactions, delay=0.15))

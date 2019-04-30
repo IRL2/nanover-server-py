@@ -3,12 +3,24 @@
 
 import time
 from concurrent import futures
-from typing import Collection
+from typing import Collection, Iterable, Generator
 
 import grpc
 
-from narupa.imd.interaction import Interaction
+from narupa.protocol.imd import Interaction
 from narupa.protocol.imd import InteractiveMolecularDynamicsStub
+
+
+def delayed_generator(iterable: Iterable, delay: float = 0):
+    """
+    Turns an iterable collection into a generator, where each item is yielded after the given delay (seconds).
+    :param iterable: Iterable collection of items to be yielded.
+    :param delay: delay (seconds) to wait until yielding the next item in the collection.
+    :return:
+    """
+    for item in iterable:
+        time.sleep(delay)
+        yield item.proto
 
 
 class ImdClient:
@@ -21,30 +33,23 @@ class ImdClient:
         self.stub = InteractiveMolecularDynamicsStub(self.channel)
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
 
-    def _to_generator(self, list, delay: float=0):
-        for item in list:
-            time.sleep(delay)
-            yield item.proto
-
-    def publish_interactions_async(self, interactions: Collection[Interaction], delay: float=0):
+    def publish_interactions_async(self, interactions):
         """
         Publishes the collection of interactions on a thread, with an optional delay between
         each publication.
-        :param interactions: Collection of interactions.
-        :param delay: Time to delay between publishing interactions, in seconds.
+        :param interactions: A generator of interactions.
         :return:
         """
-        self.threads.submit(self.publish_interactions, interactions, delay)
+        self.threads.submit(self.publish_interactions, interactions)
 
-    def publish_interactions(self, interactions: Collection[Interaction], delay: float=0):
+    def publish_interactions(self, interactions):
         """
         Publishes the collection of interactions on a thread, with an optional delay between
         each publication.
-        :param interactions: Collection of interactions.
-        :param delay: Time to delay between publishing interactions, in seconds.
+        :param interactions: A generator of interactions.
         :return:
         """
-        return self.stub.PublishInteraction(self._to_generator(interactions, delay))
+        return self.stub.PublishInteraction(interactions)
 
     def close(self):
         self.channel.close()
