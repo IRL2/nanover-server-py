@@ -93,6 +93,9 @@ class FrameData(metaclass=_FrameDataMeta):
     def __contains__(self, key):
         return key in self.arrays or key in self.values
 
+    def __eq__(self, other):
+        return self.raw == other.raw
+
 
 class RecordView:
     record_name = None  # MUST be overwritten as "arrays" or "values"

@@ -1,27 +1,34 @@
 from simtk.openmm.app.topology import Topology
+from simtk.unit import Quantity, nanometer
 
-from narupa.protocol.trajectory.frame_pb2 import FrameData
+from narupa.trajectory import FrameData
 
 
-def add_openmm_positions_to_frame_data(data: FrameData, positions):
-    array = data.arrays['atom.position'].float_values.values
-
-    floats = [value for position in positions for value in position._value]
-    array.extend(floats)
+def add_openmm_positions_to_frame_data(data: FrameData, positions: Quantity):
+    data.positions = positions.value_in_unit(nanometer)
 
 
 def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
-    data.arrays['residue.id'].string_values.values.extend([residue.name for residue in topology.residues()])
-    data.arrays['residue.chain'].index_values.values.extend([residue.chain.index for residue in topology.residues()])
+    data.arrays['residue.id'] = [residue.name for residue in topology.residues()]
+    data.arrays['residue.chain'] = [residue.chain.index for residue in topology.residues()]
+
+    atom_names = []
+    elements = []
+    residue_indices = []
+    bonds = []
 
     for atom in topology.atoms():
-        data.arrays['atom.id'].string_values.values.append(atom.name)
-        data.arrays['atom.element'].index_values.values.append(atom.element.atomic_number)
-        data.arrays['atom.residue'].index_values.values.append(atom.residue.index)
+        atom_names.append(atom.name)
+        elements.append(atom.element.atomic_number)
+        residue_indices.append(atom.residue.index)
 
     for bond in topology.bonds():
-        data.arrays['bond'].index_values.values.append(bond[0].index)
-        data.arrays['bond'].index_values.values.append(bond[1].index)
+        bonds.append((bond[0].index, bond[1].index))
+
+    data.arrays['atom.id'] = atom_names
+    data.elements = elements
+    data.arrays['atom.residue'] = residue_indices
+    data.bonds = bonds
 
 
 def openmm_to_frame_data(*, positions=None, topology=None) -> FrameData:

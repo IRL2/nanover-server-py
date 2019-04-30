@@ -7,7 +7,7 @@ Tests for the :class:`narupa.openmm.NarupaReporter`.
 
 import pytest
 
-from narupa.protocol.trajectory import FrameData
+from narupa.trajectory import FrameData
 
 from narupa.openmm import NarupaReporter
 
@@ -102,14 +102,14 @@ def test_report(basic_simulation):
 
     frame_index, topology = frame_server.all_sent_frames[0]
     assert frame_index == 0
-    assert topology.arrays['residue.id'].string_values.values == ['METH1', 'METH2']
-    assert topology.arrays['residue.chain'].index_values.values == [0, 1]
-    assert topology.arrays['atom.id'].string_values.values == ['C1', 'H2', 'H3', 'H4'] * 2
-    assert topology.arrays['atom.element'].index_values.values == [6, 1, 1, 1] * 2
-    assert topology.arrays['atom.residue'].index_values.values == [0] * 4 + [1] * 4
-    assert topology.arrays['bond'].index_values.values == [
-        0, 1, 0, 2, 0, 3,  # First residue
-        4, 5, 4, 6, 4, 7,  # Second residue
+    assert topology.arrays['residue.id'] == ['METH1', 'METH2']
+    assert topology.arrays['residue.chain'] == [0, 1]
+    assert topology.arrays['atom.id'] == ['C1', 'H2', 'H3', 'H4'] * 2
+    assert topology.elements == [6, 1, 1, 1] * 2
+    assert topology.arrays['atom.residue'] == [0] * 4 + [1] * 4
+    assert topology.bonds == [
+        [0, 1], [0, 2], [0, 3],  # First residue
+        [4, 5], [4, 6], [4, 7],  # Second residue
     ]
 
     reporter.report(basic_simulation, state)

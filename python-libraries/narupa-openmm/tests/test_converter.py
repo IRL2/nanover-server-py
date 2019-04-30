@@ -23,16 +23,17 @@ def simple_openmm_topology():
 def test_topology_bonds(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert len(data.arrays['bond'].index_values.values) == 4
+    assert len(data.raw.arrays['bond'].index_values.values) == 4
 
 
 def test_topology_atoms(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert len(data.arrays['atom.element'].index_values.values) == 3
+    assert len(data.elements) == 3
+    assert data.elements[0] == 1
 
 
 def test_topology_residues(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert len(data.arrays['residue.id'].string_values.values) == 1
+    assert len(data.raw.arrays['residue.id'].string_values.values) == 1
