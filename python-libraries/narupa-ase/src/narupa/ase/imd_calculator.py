@@ -72,7 +72,10 @@ class ImdCalculator(Calculator):
 
     @property
     def interactions(self) -> Dict[Tuple[str, str], Interaction]:
-        return self._service.interactions
+        """
+        Returns a shallow copy of the current interactions.
+        """
+        return dict(self._service.interactions)
 
     def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
                   system_changes=all_changes):
