@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 from hypothesis import strategies, given, example
 
-from narupa.imd.imd_force import _calculate_diff_and_sqr_distance, _minimum_image
+from narupa.imd.imd_force import _calculate_diff_and_sqr_distance
 
 
 @strategies.composite
@@ -82,7 +82,8 @@ def points_in_periodic_box(draw):
 
     # pick two random points in lowest quadrant of the box.
     lengths = np.array([strategies.floats(min_value=0, max_value=box_length * 0.5,
-                               allow_nan=False, allow_infinity=False) for box_length in periodic_box_lengths])
+                                          allow_nan=False, allow_infinity=False) for box_length in
+                        periodic_box_lengths])
     point1 = np.array([draw(coord) for coord in lengths])
     point2 = np.array([draw(coord) for coord in lengths])
 
@@ -94,16 +95,17 @@ def points_in_periodic_box(draw):
     images = strategies.integers(min_value=-100, max_value=100)
     images1 = np.array([draw(images) for x in range(3)])
     images2 = np.array([draw(images) for x in range(3)])
-    point1_periodic = point1 +  images1 * periodic_box_lengths
-    point2_periodic = point2 +  images2 * periodic_box_lengths
+    point1_periodic = point1 + images1 * periodic_box_lengths
+    point2_periodic = point2 + images2 * periodic_box_lengths
 
     return point1_periodic, point2_periodic, periodic_box_lengths, diff, dist_sqr
 
+
 @given(points_in_periodic_box())
-@example((np.zeros((3,)), np.zeros((3,)), np.array([1,1,1], dtype=float), np.zeros((3,)), 0))
-@example((np.zeros((3,)), np.array([1,1,1]), np.array([2,2,2], dtype=float), np.array([-1,-1,-1]), 3))
-@example((np.zeros((3,)), np.array([3,3,3]), np.array([2,2,2], dtype=float), np.array([1,1,1]), 3))
-@example((np.zeros((3,)), np.array([0,0.5,0]), np.array([1,1,1], dtype=float), np.array([0,0.5,0]), 0.25))
+@example((np.zeros((3,)), np.zeros((3,)), np.array([1, 1, 1], dtype=float), np.zeros((3,)), 0))
+@example((np.zeros((3,)), np.array([1, 1, 1]), np.array([2, 2, 2], dtype=float), np.array([-1, -1, -1]), 3))
+@example((np.zeros((3,)), np.array([3, 3, 3]), np.array([2, 2, 2], dtype=float), np.array([1, 1, 1]), 3))
+@example((np.zeros((3,)), np.array([0, 0.5, 0]), np.array([1, 1, 1], dtype=float), np.array([0, 0.5, 0]), 0.25))
 def test_distance(vec_pbc_diff):
     point1, point2, periodic_box_lengths, expected_diff, expected_dist_sqr = vec_pbc_diff
     diff, dist_sqr = _calculate_diff_and_sqr_distance(point1, point2, periodic_box_lengths)

@@ -40,7 +40,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         active_interactions = set()
         try:
-            self._process_interactions(active_interactions, request_iterator, context)
+            self._publish_interaction(active_interactions, request_iterator, context)
         except KeyError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
             message = "Tried to create an interaction with a player ID and device ID combination that's already in use"
@@ -76,11 +76,11 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         self._callback = callback
 
-    def _process_interactions(self, active_interactions, request_iterator, context):
+    def _publish_interaction(self, active_interactions, request_iterator, context):
         for interaction in request_iterator:
-            key = ImdService.get_key(interaction)
+            key = self.get_key(interaction)
             if key not in active_interactions and key in self.interactions:
-                raise KeyError
+                raise ValueError('The given player_id and interaction_id is already in use in another interaction.')
             active_interactions.add(key)
             self.interactions[key] = interaction
             if self._callback is not None:

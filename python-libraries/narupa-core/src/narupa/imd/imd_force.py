@@ -27,7 +27,7 @@ def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions:
     and accumulates them into an array.
 
     :param positions: Array of N particle positions, in nm, with shape (N,3).
-    :param masses: Array of N particle masses, in a.m.u, with shape (N,3).
+    :param masses: Array of N particle masses, in a.m.u, with shape (N,).
     :param interactions: Collection of interactions to be applied.
     :param periodic_box_lengths: Orthorhombic periodic box lengths. If given, the minimum image convention is applied
     to the calculation.
@@ -101,7 +101,7 @@ def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, fo
 
 def wrap_pbc(positions: np.ndarray, periodic_box_lengths: np.ndarray):
     """
-    Wraps a list of positions into orthorhombic periodic box.
+    Wraps a list of positions into the given orthorhombic periodic box.
     :param positions: List of N vectors with shape (N,3).
     :param periodic_box_lengths: Box lengths of a periodic box positioned at the origin.
     :return: Positions wrapped into the minimum image of the orthorhombic periodic box.

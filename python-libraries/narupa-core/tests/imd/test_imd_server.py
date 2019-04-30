@@ -1,10 +1,8 @@
 import time
-from concurrent import futures
 from unittest.mock import Mock
 
 import grpc
 import pytest
-
 from narupa.imd.imd_client import ImdClient
 from narupa.imd.imd_server import ImdServer
 from narupa.imd.interaction import Interaction
