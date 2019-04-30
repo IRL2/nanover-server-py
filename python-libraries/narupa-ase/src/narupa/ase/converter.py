@@ -32,9 +32,9 @@ def ase_to_framedata(ase_atoms: Atoms, positions=True, topology=True, state=True
             elements.append(atom.number)
             residue_ids.append(0)
 
-        data['atom.id'] = atom_names
+        data.arrays['atom.id'] = atom_names
         data.elements = elements
-        data['atom.residue'] = residue_ids
+        data.arrays['atom.residue'] = residue_ids
 
         bonds = GenerateBonds(ase_atoms)
         data.bonds = bonds

@@ -1,6 +1,7 @@
 from collections import namedtuple
 import itertools
 import numbers
+import numpy as np
 from narupa.protocol import trajectory
 
 POSITIONS = 'particle.position'
@@ -10,7 +11,7 @@ BONDS = 'bond'
 
 PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE = {
     int: 'number_value', float: 'number_value', str: 'string_value',
-    bool: 'bool_value',
+    bool: 'bool_value', np.float32: 'number_value', np.float64: 'number_value',
 }
 
 _Shortcut = namedtuple(
