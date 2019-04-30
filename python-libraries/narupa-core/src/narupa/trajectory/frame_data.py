@@ -20,6 +20,9 @@ _Shortcut = namedtuple(
 
 
 class MissingDataError(KeyError):
+    """
+    A shortcut does not contain data to return.
+    """
     pass
 
 
@@ -63,6 +66,12 @@ def _make_shortcut(shortcut):
 
 
 class _FrameDataMeta(type):
+    """
+    Metaclass that adds shortcuts to the :class:`FrameData` class.
+
+    The shortcuts are defined as a tuple of :class:`_Shortcut` named tuples
+    under the :attr:`_shortcuts` class attribute.
+    """
     _shortcuts = ()
 
     def __init__(cls, name, bases, nmspc):
@@ -72,6 +81,20 @@ class _FrameDataMeta(type):
 
 
 class FrameData(metaclass=_FrameDataMeta):
+    """
+    Wrapper around the GRPC FrameData.
+
+    A ``FrameData`` contains two kinds of records: single values of any type,
+    or homogeneous arrays. The former kind can be accessed through the
+    :attr:`values` attribute, while the later is accessible through the
+    :attr:`arrays` one. Both attribute behave like a dictionary. Trying to
+    access a key that does not exist raises a :exc:`KeyError`.
+
+    The most common frame properties are accessible as attribute in a
+    normalized format. Shortcuts are not guaranteed to contain data. Trying to
+    access a shortcut that does not contain data raises a
+    :exc:`MissingDataError` that can also be caught as a :exc:`KeyError`.
+    """
     _shortcuts = (
         _Shortcut(name='positions', key=POSITIONS,
                   record_type='arrays', to_python=_n_by_3, to_raw=_flatten_2d),
@@ -99,6 +122,11 @@ class FrameData(metaclass=_FrameDataMeta):
 
 
 class RecordView:
+    """
+    Base class that wraps the access to a kind of record.
+
+    This class needs to be subclassed.
+    """
     record_name = None  # MUST be overwritten as "arrays" or "values"
     singular = None  # MUST be overwritten as "array" or "value"
 
@@ -136,6 +164,9 @@ class RecordView:
 
 
 class ValuesView(RecordView):
+    """
+    Give access to singular values from a :class:`FrameData`.
+    """
     record_name = 'values'
     singular = 'value'
 
@@ -149,6 +180,9 @@ class ValuesView(RecordView):
 
 
 class ArraysView(RecordView):
+    """
+    Give access to homogeneous arrays from a :class:`FrameData`.
+    """
     record_name = 'arrays'
     singular = 'array'
 
