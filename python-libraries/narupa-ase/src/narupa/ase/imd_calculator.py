@@ -4,17 +4,15 @@
 """
 Provides an implementation of IMD force field in ASE.
 """
-import copy
 from typing import Optional, Dict, Tuple
 
+import narupa.ase.converter as converter
 import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
-
 from narupa.imd.imd_force import calculate_imd_force
 from narupa.imd.imd_service import ImdService
 from narupa.imd.interaction import Interaction
-import narupa.ase.converter as converter
 
 
 def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
