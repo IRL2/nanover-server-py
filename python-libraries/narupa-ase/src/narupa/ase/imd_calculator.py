@@ -25,7 +25,8 @@ def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
     """
     if not np.all(atoms.get_pbc()):
         if np.any(atoms.get_pbc()):
-            raise NotImplementedError(f'Atoms object has periodic unit cell on only some dimensions, which is not supported.')
+            raise NotImplementedError(f'Atoms object has periodic unit cell on only some dimensions, which is not '
+                                      f'supported.')
         return None
     lengths_angles = atoms.get_cell_lengths_and_angles()
     lengths = np.array(lengths_angles[0:3])
@@ -75,7 +76,7 @@ class ImdCalculator(Calculator):
         """
         Returns a shallow copy of the current interactions.
         """
-        return dict(self._service.interactions)
+        return self._service.interactions.copy()
 
     def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
                   system_changes=all_changes):
