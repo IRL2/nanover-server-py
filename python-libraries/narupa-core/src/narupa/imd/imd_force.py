@@ -95,21 +95,21 @@ def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, fo
         mass = np.ones(len(interaction.particles))
     total_energy = interaction.scale * energy_per_particle * sum(mass)
     # add the force for each particle, adjusted by mass and scale factor.
-    forces[interaction.particles] += interaction.scale * mass[:, np.newaxis] * force_per_particle[np.newaxis,:]
+    forces[interaction.particles] += interaction.scale * mass[:, np.newaxis] * force_per_particle[np.newaxis, :]
     return total_energy
 
-def wrap_pbc(position: float, periodic_box_lengths: float):
+
+def wrap_pbc(positions: np.ndarray, periodic_box_lengths: np.ndarray):
     """
-    Wraps a position into orthorhombic periodic box.
-    :param position: position
-    :param periodic_box_lengths: box length.
-    :return:
+    Wraps a list of positions into orthorhombic periodic box.
+    :param positions: List of N vectors with shape (N,3).
+    :param periodic_box_lengths: Box lengths of a periodic box positioned at the origin.
+    :return: Positions wrapped into the minimum image of the orthorhombic periodic box.
     """
-    wrapped = position - np.floor(position / periodic_box_lengths) * periodic_box_lengths
+    # expand the box length vector so it has shape (1,3), so it can be broadcast with the positions.
+    box_lengths = periodic_box_lengths[np.newaxis, :]
+    wrapped = positions - np.floor(positions / box_lengths) * box_lengths
     return wrapped
-
-
-vector_wrap_pbc = np.vectorize(wrap_pbc)
 
 
 def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=None,
@@ -130,7 +130,7 @@ def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=
         subset = range(len(positions))
     pos_subset = positions[subset]
     if periodic_box_lengths is not None:
-        pos_subset = vector_wrap_pbc(pos_subset, periodic_box_lengths)
+        pos_subset = wrap_pbc(pos_subset, periodic_box_lengths)
     try:
         com = np.average(pos_subset, weights=masses[subset], axis=0)
     except ZeroDivisionError as e:

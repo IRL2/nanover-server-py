@@ -264,30 +264,31 @@ def random_positions_pbc(draw):
 
     periodic_box_lengths = np.array([draw(length) for x in range(3)])
     # pick two random points in lowest quadrant of the box.
-    #TODO positions at or very near zero cause problems, as the wrap can flip between 0 and box length.
+    # TODO positions at or very near zero cause problems, as the wrap can flip between 0 and box length.
     lengths = np.array([strategies.floats(min_value=0.005, max_value=box_length * 0.5,
-                               allow_nan=False, allow_infinity=False) for box_length in periodic_box_lengths])
+                                          allow_nan=False, allow_infinity=False) for box_length in
+                        periodic_box_lengths])
 
     num_particles = 4
 
     masses = np.array([draw(length) for _ in range(num_particles)])
 
-    positions = np.zeros((num_particles,3))
+    positions = np.zeros((num_particles, 3))
     for i in range(num_particles):
         positions[i] = np.array([draw(coord) for coord in lengths])
 
-    # generate random integer values to multi
+    # generate random integer values to multiply positions by, putting them in different images.
     images = strategies.integers(min_value=-100, max_value=100)
-    image_multiples = np.array([draw(images) for x in range(3*num_particles)])
-    image_multiples.reshape((num_particles,3))
+    image_multiples = np.array([draw(images) for _ in range(3 * num_particles)])
+    image_multiples.reshape((num_particles, 3))
 
     # move points to new random positions around the periodic box.
     positions_periodic = np.zeros((num_particles, 3))
     for i in range(num_particles):
         positions_periodic[i] = positions[i] + image_multiples[i] * periodic_box_lengths
 
-
     return positions, masses, positions_periodic, periodic_box_lengths
+
 
 @given(random_positions_pbc())
 def test_get_com_subset_pbc(positions_pbc):
@@ -304,6 +305,7 @@ def test_get_com_subset_pbc(positions_pbc):
 
     assert np.allclose(com, expected_com)
 
+
 def test_get_com_single():
     position = np.array([[1, 0, 0]])
     mass = np.array([20])
@@ -317,6 +319,7 @@ def test_get_com_different_array_lengths(particles):
     mass = np.array([1])
     with pytest.raises(IndexError):
         get_center_of_mass_subset(positions, mass)
+
 
 @pytest.mark.parametrize("position, interaction_position, expected_energy, expected_force",
                          [([1, 0, 0], [0, 0, 0], -EXP_1, [EXP_1, 0, 0]),
