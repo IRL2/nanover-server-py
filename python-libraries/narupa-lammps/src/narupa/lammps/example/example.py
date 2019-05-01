@@ -95,22 +95,22 @@ class LammpsHook:
 
         :param matrix_type: String identifying data to transmit, e.g x, v or f
         :param L: LAMMPS class that contains all the needed routines
-        :return: 3N matrix called v with all the data requested
+        :return: 3N matrix called data_array with all the data requested
         """
 
         # n_local = L.extract_global('nlocal', 0)  # L.get_nlocal()
         # Hard to tell if LAMMPS python interpreter is working so for now print every step
         print("In LAMMPS array")
         n_atoms = L.get_natoms()
-        v = L.gather_atoms(matrix_type, 1, 3)
+        data_array = L.gather_atoms(matrix_type, 1, 3)
 
         # This test case slowly translates the molecular system
         for idx in range(n_atoms):
-            v[3 * idx + 0] += 0.0001000
-            v[3 * idx + 1] *= 1.0000000
-            v[3 * idx + 2] *= 1.0000000
-        L.scatter_atoms(matrix_type, 1, 3, v)
-        return v
+            data_array[3 * idx + 0] += 0.0001000
+            data_array[3 * idx + 1] *= 1.0000000
+            data_array[3 * idx + 2] *= 1.0000000
+        L.scatter_atoms(matrix_type, 1, 3, data_array)
+        return data_array
 
     def manipulate_dummy_array(self, MatType):
         """
@@ -119,12 +119,12 @@ class LammpsHook:
         TODO convert this to a full dummy LAMMPS class
 
         :param MatType: For the moment doesnt do anything
-        :return: 3N matrix v that contains all the dummy data
+        :return: 3N matrix data_array that contains all the dummy data
         """
         n_atoms = 10
-        v = (ctypes.c_double * (3 * n_atoms))(*range(3 * n_atoms))
-        print(v[1], v[2], v[3])
-        return v
+        data_array = (ctypes.c_double * (3 * n_atoms))(*range(3 * n_atoms))
+        print(data_array[1], data_array[2], data_array[3])
+        return data_array
 
     # def LammpsFrameDataArray(self):
     #     # Convert lammps array to gprc frame format.
@@ -207,11 +207,11 @@ class LammpsHook:
         matrix_type = "x"
         # If not in LAMMPS run dummy routine
         if lmp is None:
-            v = self.manipulate_dummy_array(matrix_type)
+            data_array = self.manipulate_dummy_array(matrix_type)
         else:
-            v = self.manipulate_lammps_array(matrix_type, L)
+            data_array = self.manipulate_lammps_array(matrix_type, L)
 
-        self.frame_data = self.lammps_to_frame_data(v, positions=True, topology=False)
+        self.frame_data = self.lammps_to_frame_data(data_array, positions=True, topology=False)
 
         # print("FRAME STUFF \n", self.frame_index, "\n", self.frame_data)
         self.frame_server.send_frame(self.frame_index, self.frame_data)
