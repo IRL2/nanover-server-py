@@ -1,7 +1,7 @@
 """
-LAMMPS python integration with Naruapa
-This program can be run as stand alone using dummy data or from within LAMMPS using
-the python_invoke/fix command as demoed in the example LAMMPS inputs.
+LAMMPS python integration with Narupa
+This program can be run as a standalone using dummy data or from within LAMMPS using the python_invoke/fix command as demonstrated in the example LAMMPS
+inputs.
 """
 import ctypes
 import sys
@@ -30,11 +30,11 @@ element_index = {
 class LammpsHook:
     """
     lammps_hook is a series of routines the can communicate with the LAMMPS program through
-    it's python interpreter. Upon initialisation MPI is set up along with the framesever.
+    its python interpreter. Upon initialisation, MPI is set up along with the frame sever.
     The LAMMPS data is collected across all processors using GATHER and SCATTER routines
-    that need mpi4py to respect the internal processor rank of LAMMPS.
+    that require mpi4py to respect the internal processor rank of LAMMPS.
 
-    The variable that can currently be accessed are
+    The variables that can currently be accessed are
     x : positions
     v : velocities
     f : forces
@@ -69,7 +69,7 @@ class LammpsHook:
         me = self.comm.Get_rank()
         nprocs = self.comm.Get_size()
 
-        # Load frame server
+        # Start frame server
         from narupa.protocol.trajectory import FrameData
         self.frame_server = FrameServer(address='localhost', port=54321)
         self.frame_index = 0
@@ -179,7 +179,7 @@ class LammpsHook:
     def lammps_hook(self, lmp=None):
         """
         lammps_hook is the main routine that is run within LAMMPS MD
-        steps. It checks that LAMMPS python wrapper is callable
+        steps. It checks that the LAMMPS python wrapper is callable
         and then attempts to extract a 3N matrix of atomic data
 
         :param lmp: LAMMPS object data, only populated when running from within LAMMPS
