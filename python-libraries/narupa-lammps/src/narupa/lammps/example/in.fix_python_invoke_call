@@ -22,20 +22,19 @@ neigh_modify	every 20 delay 0 check no
 python         post_force_callback here """
 from lammps import lammps #, PyLammps
 import sys
-from pprint import pprint
-from ctypes import *
+#from ctypes import *
 #from . import example
 #import numpy as np
 import os
 import inspect
 sys.path.append('.')
-from mpi4py import MPI
-from example import lammps_hook
-H = lammps_hook()
+#from mpi4py import MPI
+from example import LammpsHook
+h = LammpsHook()
 
 
 def post_force_callback(lmp, v):
-  H.lammps_hook(lmp)
+  h.lammps_hook(lmp)
 
 """
 
@@ -53,4 +52,4 @@ fix     3 all python/invoke 1 post_force post_force_callback
 #dump_modify	3 pad 3
 
 thermo		50
-run		50000
+run		50

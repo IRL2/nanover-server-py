@@ -6,12 +6,12 @@ inputs.
 import ctypes
 import sys
 import time
-from ctypes import *
+import ctypes
 from pprint import pprint
 
 import mpi4py
 import numpy as np
-from _pytest import logging
+import logging
 from lammps import lammps  # , PyLammps
 from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer
@@ -51,9 +51,6 @@ class LammpsHook:
     The main lammps_hook routine will check if it is being run from within LAMMPS or as a
     stand alone program and determine if it should use dummy variables (manipulate_dummy_arrays)
     or ones available from within LAMMPS (manipulate_lammps_arrays).
-
-
-
     """
 
     def __init__(self):
@@ -73,7 +70,7 @@ class LammpsHook:
         from narupa.protocol.trajectory import FrameData
         self.frame_server = FrameServer(address='localhost', port=54321)
         self.frame_index = 0
-        logging.info()("Lammpshook initialised for NarupaXR")
+        logging.info("Lammpshook initialised for NarupaXR")
         # TODO make it so that the simulation waits on connect as an option
 
     def test_debug(self):
@@ -134,14 +131,14 @@ class LammpsHook:
     #     # Convert lammps value to gprc frame format.
     #     print()
 
-    def lammps_to_frame_data(self, v, topology=True, positions=True) -> FrameData:
+    def lammps_to_frame_data(self, data_array, topology=True, positions=True) -> FrameData:
         """
         Convert the flat ctype.c_double data into the framedata format.
 
-        :param v: Data to convert
+        :param data_array: Data to convert
         :param topology: Check if data is topolgical
         :param positions: Check if data is positional
-        :return: overwrite data in v matrix with new formatted framedata
+        :return: overwrite data in data_array matrix with new formatted framedata
         """
         try:
             frame_data = FrameData()
@@ -168,7 +165,7 @@ class LammpsHook:
             # positions = Array.from_address(ctypes.addressof(v.contents))
             # positions = np.multiply(0.1, np.frombuffer(v))
             # Copy the ctype array to numpy for processing
-            positions = np.fromiter(v, dtype=np.float, count=len(v))
+            positions = np.fromiter(data_array, dtype=np.float, count=len(data_array))
             # Convert to nm
             positions = np.multiply(0.1, positions)
             frame_data.arrays["atom.position"].float_values.values.extend(positions)
