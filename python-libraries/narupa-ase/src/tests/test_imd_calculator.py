@@ -125,9 +125,9 @@ def test_one_interaction(position, imd_energy, imd_calculator_co, interact_c, im
     internal_energy = imd_calculator.calculator.results['energy']
 
     interact_c.position = position
-    imd_client.publish_interactions_async(delayed_generator([interact_c] * 10, delay=0.01))
+    imd_client.publish_interactions_async(delayed_generator([interact_c] * 20, delay=0.01))
 
-    time.sleep(0.02)
+    time.sleep(0.05)
 
     assert len(imd_calculator.interactions) == 1
     expected_imd_energy_kjmol = interact_c.scale * imd_energy * atoms.get_masses()[0]
