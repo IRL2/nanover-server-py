@@ -11,9 +11,6 @@ from narupa.imd.imd_server import ImdServer
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
 from narupa.imd.interaction import Interaction
 
-EV_PER_KJMOL = 0.01036
-
-
 def co_atoms():
     d = 1.1
     co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)],
@@ -137,12 +134,12 @@ def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, in
     imd_client.publish_interactions_async(delayed_generator([interact_c] * 20, delay=0.01))
     time.sleep(0.05)
     assert len(imd_calculator.interactions) == 1
-    imd_calculator.calculate()
+    imd_calculator.calculate(properties=properties)
 
     # set up the expected energy and forces.
     expected_imd_energy_kjmol = interact_c.scale * imd_energy * atoms.get_masses()[0]
-    expected_imd_energy = expected_imd_energy_kjmol * EV_PER_KJMOL
-    expected_imd_forces = interact_c.scale * atoms.get_masses()[0] * (imd_forces * EV_PER_KJMOL / converter.NM_TO_ANG)
+    expected_imd_energy = expected_imd_energy_kjmol * converter.KJMOL_TO_EV
+    expected_imd_forces = interact_c.scale * atoms.get_masses()[0] * (imd_forces * converter.KJMOL_TO_EV / converter.NM_TO_ANG)
     expected_forces = internal_forces + expected_imd_forces
     expected_energy = internal_energy + expected_imd_energy
 

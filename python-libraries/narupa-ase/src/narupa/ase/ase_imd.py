@@ -4,6 +4,8 @@
 """
 Interactive molecular dynamics server for use with an ASE molecular dynamics simulation.
 """
+from concurrent import futures
+from typing import Optional
 
 from ase import Atoms
 from ase.calculators.calculator import Calculator
@@ -31,12 +33,15 @@ class ASEImd:
         self.imd_calculator = ImdCalculator(self.imd_server.service, calculator)
         self.atoms.set_calculator(self.imd_calculator)
         self.dynamics.attach(NarupaASE(self.atoms, self.frame_server), interval=frame_interval)
+        self.threads = futures.ThreadPoolExecutor(max_workers=1)
+        self._run_task = None
+        self._cancelled = False
 
     @property
-    def calculator(self) -> Calculator:
+    def internal_calculator(self) -> Calculator:
         """
-        The calculator being used to compute internal energy and forces.
-        :return: ASE calculator.
+        The internal calculator being used to compute internal energy and forces.
+        :return: ASE internal calculator.
         """
         return self.imd_calculator.calculator
 
@@ -48,21 +53,27 @@ class ASEImd:
         """
         return self.dynamics.atoms
 
-    @atoms.setter
-    def atoms(self, value: Atoms):
-        self.dynamics.atoms = value
-
-    def run(self, steps=None):
+    def run(self, steps: Optional[int] = None):
         """
         Runs the molecular dynamics forward the given number of steps.
-        :param steps:
+        :param steps: If passed, will run the given number of steps, otherwise will run forever
+        on a background thread and immediately return.
         :return:
         """
         if steps is None:
-            while True:
-                self.dynamics.run(1000)
+            self._run_task = self.threads.submit(self._run_forever)
         else:
             self.dynamics.run(steps)
+
+    def _run_forever(self):
+        while not self._cancelled:
+            self.dynamics.run(10)
+        self._cancelled = False
+
+    def cancel_run(self, wait=False):
+        self._cancelled = True
+        if wait:
+            self._run_task.result()
 
     def close(self):
         self.imd_server.close()

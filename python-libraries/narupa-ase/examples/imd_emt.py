@@ -1,14 +1,16 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-"""Demonstrates molecular dynamics with constant energy."""
+"""Demonstrates interactive molecular dynamics for a small EMT crystal."""
 
 from ase import units
 from ase.calculators.emt import EMT
 from ase.lattice.cubic import FaceCenteredCubic
+from ase.md import Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.md.verlet import VelocityVerlet
 
 from narupa.ase import NarupaASE
+from narupa.ase.ase_imd import ASEImd
 from narupa.trajectory import FrameServer
 
 size = 2
@@ -26,12 +28,8 @@ atoms.set_calculator(EMT())
 MaxwellBoltzmannDistribution(atoms, 300 * units.kB)
 
 # We want to run MD with constant energy using the VelocityVerlet algorithm.
-dyn = VelocityVerlet(atoms, 5 * units.fs)  # 5 fs time step.
+dyn = Langevin(atoms, 1 * units.fs, 300, 0.1)  # 5 fs time step.
 
-server = FrameServer(address='localhost', port=54321)
-
-# Now run the dynamics
-dyn.attach(NarupaASE(atoms, server), interval=1)
-print("Starting dynamics")
+imd = ASEImd(dyn)
 while True:
-    dyn.run(200)
+    imd.run(100)

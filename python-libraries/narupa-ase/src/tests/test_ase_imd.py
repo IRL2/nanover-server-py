@@ -90,3 +90,19 @@ def test_ase_imd_dynamics_interaction_com(imd, interact_both, imd_client):
     for atom in dynamics.atoms:
         assert atom.momentum[1] > 200
 
+
+def test_ase_imd_run_forever(imd):
+    runner, atoms = imd
+    runner.run()
+    time.sleep(0.1)
+    runner.cancel_run(wait=True)
+    number_of_steps = runner.dynamics.get_number_of_steps()
+    assert number_of_steps > 0
+    time.sleep(0.1)
+    # check it really has stopped.
+    assert number_of_steps == runner.dynamics.get_number_of_steps()
+
+def test_get_calculator(imd):
+    runner, atoms = imd
+    assert isinstance(runner.internal_calculator, LennardJones)
+

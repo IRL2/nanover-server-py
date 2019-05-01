@@ -76,7 +76,7 @@ class ImdCalculator(Calculator):
         """
         return self._service.interactions
 
-    def calculate(self, atoms: Atoms = None, properties=('energy', 'forces', 'interactive_energy', 'interactive_forces'),
+    def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
                   system_changes=all_changes):
 
         energy = 0.0
@@ -115,7 +115,7 @@ class ImdCalculator(Calculator):
         interactions = self.interactions.values()
         energy_kjmol, forces_kjmol = calculate_imd_force(positions, masses, interactions,
                                                          periodic_box_lengths=periodic_box_lengths)
-        ev_per_kjmol = 0.01036427
+        ev_per_kjmol = converter.KJMOL_TO_EV
         # convert back to ASE units (eV and Angstroms).
         energy = energy_kjmol * ev_per_kjmol
         forces = forces_kjmol * ev_per_kjmol / converter.NM_TO_ANG

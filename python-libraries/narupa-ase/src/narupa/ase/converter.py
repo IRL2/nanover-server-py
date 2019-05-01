@@ -9,6 +9,8 @@ from narupa.protocol.trajectory import FrameData
 
 ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM
+KJMOL_TO_EV = 0.01036427
+EV_TO_KJMOL = 1.0 / KJMOL_TO_EV
 
 # from https://chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_Maps/Supplemental_Modules_(Physical_and_Theoretical_Chemistry)/Chemical_Bonding/Fundamentals_of_Chemical_Bonding/Covalent_Bond_Distance%2C_Radius_and_van_der_Waals_Radius
 # TODO make a helper class with complete coverage of this stuff.
