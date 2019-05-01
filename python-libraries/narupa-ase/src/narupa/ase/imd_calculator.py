@@ -115,7 +115,7 @@ class ImdCalculator(Calculator):
         interactions = self.interactions.values()
         energy_kjmol, forces_kjmol = calculate_imd_force(positions, masses, interactions,
                                                          periodic_box_lengths=periodic_box_lengths)
-        ev_per_kjmol = 0.01036
+        ev_per_kjmol = 0.01036427
         # convert back to ASE units (eV and Angstroms).
         energy = energy_kjmol * ev_per_kjmol
         forces = forces_kjmol * ev_per_kjmol / converter.NM_TO_ANG

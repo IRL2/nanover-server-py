@@ -159,9 +159,9 @@ def calculate_gaussian_force(particle_position: np.ndarray, interaction_position
     sigma_sqr = sigma * sigma
 
     gauss = exp(-dist_sqr / (2 * sigma_sqr))
-    energy = -1 * gauss
+    energy = gauss
     # force is negative derivative of energy wrt to position.
-    force = (diff / sigma_sqr) * gauss
+    force = - (diff / sigma_sqr) * gauss
     return energy, force
 
 
@@ -183,9 +183,9 @@ def calculate_spring_force(particle_position: np.array, interaction_position: np
     g = interaction_position
 
     diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
-    energy = - k * dist_sqr
+    energy = k * dist_sqr
     # force is negative derivative of energy wrt to position.
-    force = 2 * k * diff
+    force = - 2 * k * diff
     return energy, force
 
 
