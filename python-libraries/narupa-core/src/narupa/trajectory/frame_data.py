@@ -223,8 +223,4 @@ class ArraysView(RecordView):
         else:
             raise ValueError('Cannot decide what type to use.')
 
-        if key in self:
-            while self[key]:
-                self[key].pop()
-
-        getattr(self._raw_record[key], type_attribute).values.extend(value)
+        getattr(self._raw_record[key], type_attribute).values[:] = value
