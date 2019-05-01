@@ -18,7 +18,7 @@ PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE = {
 }
 
 _Shortcut = namedtuple(
-    '_Shortcut', ['name', 'record_type', 'key', 'to_python', 'to_raw']
+    '_Shortcut', ['name', 'record_type', 'key', 'field_type', 'to_python', 'to_raw']
 )
 
 
@@ -57,9 +57,18 @@ def _make_getter(shortcut):
 
 
 def _make_setter(shortcut):
-    def wrapped(self, value):
-        converted_value = shortcut.to_raw(value)
-        getattr(self, shortcut.record_type)[shortcut.key] = converted_value
+    if shortcut.record_type == 'arrays' and shortcut.field_type is not None:
+        method_name = f'set_{shortcut.field_type}_array'
+
+        def wrapped(self, value):
+            converted_value = shortcut.to_raw(value)
+            getattr(self, method_name)(shortcut.key, converted_value)
+
+    else:
+
+        def wrapped(self, value):
+            converted_value = shortcut.to_raw(value)
+            getattr(self, shortcut.record_type)[shortcut.key] = converted_value
 
     return wrapped
 
@@ -99,14 +108,14 @@ class FrameData(metaclass=_FrameDataMeta):
     :exc:`MissingDataError` that can also be caught as a :exc:`KeyError`.
     """
     _shortcuts = (
-        _Shortcut(name='positions', key=POSITIONS,
-                  record_type='arrays', to_python=_n_by_3, to_raw=_flatten_2d),
-        _Shortcut(name='elements', key=ELEMENTS,
-                  record_type='arrays', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='types', key=TYPES,
-                  record_type='arrays', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='bonds', key=BONDS,
-                  record_type='arrays', to_python=_n_by_2, to_raw=_flatten_2d),
+        _Shortcut(name='positions', key=POSITIONS, record_type='arrays',
+                  field_type='float', to_python=_n_by_3, to_raw=_flatten_2d),
+        _Shortcut(name='elements', key=ELEMENTS, record_type='arrays',
+                  field_type='index', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='types', key=TYPES, record_type='arrays',
+                  field_type='string', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='bonds', key=BONDS, record_type='arrays',
+                  field_type='index', to_python=_n_by_2, to_raw=_flatten_2d),
     )
 
     def __init__(self, raw_frame=None):
@@ -130,6 +139,34 @@ class FrameData(metaclass=_FrameDataMeta):
         """
         # Use a property to make self.raw read-only.
         return self._raw
+
+    # Methods to match the C# API
+    def set_float_array(self, key, value):
+        """
+        Set an homogeneous array of floats in an existing or a new key.
+
+        :param key: The key under which to store the array.
+        :param value: The array to store.
+        """
+        self.raw.arrays[key].float_values.values[:] = value
+
+    def set_index_array(self, key, value):
+        """
+        Set an homogeneous array of indices in an existing or a new key.
+
+        :param key: The key under which to store the array.
+        :param value: The array to store.
+        """
+        self.raw.arrays[key].index_values.values[:] = value
+
+    def set_string_array(self, key, value):
+        """
+        Set an homogeneous array of strings in an existing or a new key.
+
+        :param key: The key under which to store the array.
+        :param value: The array to store.
+        """
+        self.raw.arrays[key].string_values.values[:] = value
 
 
 class RecordView:

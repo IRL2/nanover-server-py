@@ -39,6 +39,23 @@ ARRAYS_STRATEGIES = {
 }
 
 
+class DummyFrameData(FrameData):
+    """
+    A dummy subclass of :class:`FrameData` with shortcut relevant for testing.
+    """
+    _shortcuts = (
+        frame_data._Shortcut(
+            name='single', record_type='values', field_type=None,
+            key='dummy.single', to_python=frame_data._as_is,
+            to_raw=frame_data._as_is
+        ),
+        frame_data._Shortcut(
+            name='untyped', record_type='arrays', field_type=None,
+            key='untyped.arrays', to_python=frame_data._as_is,
+            to_raw=frame_data._as_is
+        ),
+    )
+
 
 @st.composite
 def raw_frame_with_single_value(draw, value_strategy):
@@ -477,3 +494,51 @@ def test_set_wrong_type_array_fails(value):
     frame = FrameData()
     with pytest.raises(ValueError):
         frame.arrays['sample.net'] = value
+
+
+@given(ARRAYS_STRATEGIES['float_values'])
+def test_set_float_array_method(value):
+    """
+    Test for :meth:`FrameData.set_float_array`.
+    """
+    frame = FrameData()
+    frame.set_float_array('sample.value', value)
+    assert pytest.approx(frame.arrays['sample.value'], value)
+
+
+@given(ARRAYS_STRATEGIES['index_values'])
+def test_set_index_array_method(value):
+    """
+    Test for :meth:`FrameData.set_index_array`.
+    """
+    frame = FrameData()
+    frame.set_index_array('sample.value', value)
+    assert frame.arrays['sample.value'] == value
+
+
+@given(ARRAYS_STRATEGIES['string_values'])
+def test_set_string_array_method(value):
+    """
+    Test for :meth:`FrameData.set_string_array`.
+    """
+    frame = FrameData()
+    frame.set_string_array('sample.value', value)
+    assert frame.arrays['sample.value'] == value
+
+
+def test_set_untyped_array_shortcut():
+    """
+    Shortcuts for arrays that do not specify a type do work.
+    """
+    frame = DummyFrameData()
+    frame.untyped = [1, 2, 3]
+    assert frame.raw.arrays['untyped.arrays'].index_values.values == [1, 2, 3]
+
+
+def test_set_single_value_shortcut():
+    """
+    Shortcuts for single values do work.
+    """
+    frame = DummyFrameData()
+    frame.single = 'foobar'
+    assert frame.raw.values['dummy.single'].string_value == 'foobar'
