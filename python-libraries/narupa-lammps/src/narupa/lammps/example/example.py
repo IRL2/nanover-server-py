@@ -3,7 +3,6 @@ LAMMPS python integration with Naruapa
 This program can be run as stand alone using dummy data or from within LAMMPS using
 the python_invoke/fix command as demoed in the example LAMMPS inputs.
 """
-
 import ctypes
 import sys
 import time
