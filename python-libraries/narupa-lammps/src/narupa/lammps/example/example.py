@@ -18,7 +18,7 @@ from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer
 from numpy.core.multiarray import int_asbuffer
 
-# Keep for next step
+# Keep for converting internal LAMMPS atoms data into strings during testing
 element_index = {
     'H': 1,
     'C': 6,
@@ -36,7 +36,7 @@ class LammpsHook:
         LAMMPS crashes
         """
 
-        #Load MPI routines
+        # Load MPI routines
         from mpi4py import MPI
         self.comm = MPI.COMM_WORLD
         me = self.comm.Get_rank()
@@ -59,14 +59,14 @@ class LammpsHook:
 
         try:
             L = lammps(ptr=lmp, comm=self.comm)
-        except LammmpsError:
-            print("Failed to load lammps wrapper")
-            print(e)
-            sys.exit(1)
+        except LammpsError as e:
+            raise LammpsError("Failed to load LAMMPS wrapper", e)
 
-        L = lammps(comm=comm)# ptr=lmp, comm=comm)
+        sys.exit(1)
+
+        L = lammps(comm=comm)  # ptr=lmp, comm=comm)
         n_atoms = L.get_natoms()
-        print("In class testy","Atoms : ", n_atoms)
+        print("In class testy", "Atoms : ", n_atoms)
 
     def ManipulateLammpsArray(self, MatType, L):
         """
@@ -77,7 +77,7 @@ class LammpsHook:
         :return: 3N matrix called v with all the data requested
         """
 
-        #n_local = L.extract_global('nlocal', 0)  # L.get_nlocal()
+        # n_local = L.extract_global('nlocal', 0)  # L.get_nlocal()
         # Hard to tell if LAMMPS python interpreter is working so for now print every step
         print("In LAMMPS array")
         n_atoms = L.get_natoms()
@@ -101,7 +101,7 @@ class LammpsHook:
         :return: 3N matrix v that contains all the dummy data
         """
         n_atoms = 10
-        v = (ctypes.c_double*(3*n_atoms))(*range(3*n_atoms))
+        v = (ctypes.c_double * (3 * n_atoms))(*range(3 * n_atoms))
         print(v[1], v[2], v[3])
         return v
 
@@ -125,8 +125,7 @@ class LammpsHook:
         try:
             frame_data = FrameData()
         except Exception as e:
-            print("Failed to load framedata")
-            print(e)
+            raise Exception("Failed to load framedata", e)
             sys.exit(1)
         # if topology:
         #     for residue in u.residues:
@@ -144,10 +143,10 @@ class LammpsHook:
         #         frame_data.arrays['bond'].index_values.values.append(bond.atoms[1].ix)
 
         if positions:
-            #print("Ndarray",np.ndarray(v))
+            # print("Ndarray",np.ndarray(v))
 
-            #positions = Array.from_address(ctypes.addressof(v.contents))
-            #positions = np.multiply(0.1, np.frombuffer(v))
+            # positions = Array.from_address(ctypes.addressof(v.contents))
+            # positions = np.multiply(0.1, np.frombuffer(v))
             # Copy the ctype array to numpy for processing
             positions = np.fromiter(v, dtype=np.float, count=len(v))
             # Convert to nm
@@ -174,10 +173,9 @@ class LammpsHook:
             # Make sure LAMMPS object is callable
             try:
                 L = lammps(ptr=lmp, comm=self.comm)
-            except Exception as e:
+            except LammpsError as e:
                 # Many reasons for LAMMPS failures so for the moment catch all
-                print("Failed to load LAMMPS wrapper")
-                print(e)
+                raise LammpsError("Failed to load LAMMPS wrapper", e)
                 sys.exit(1)
 
         # mass = L.extract_atom("mass",2)
@@ -187,7 +185,7 @@ class LammpsHook:
         # print("Temperature from compute =",temp)
 
         # Choose the matrix type that will be extracted
-        MatType= "x"
+        MatType = "x"
         # If not in LAMMPS run dummy routine
         if lmp is None:
             v = self.ManipulateDummyArray(MatType)
@@ -196,14 +194,13 @@ class LammpsHook:
 
         self.frame_data = self.lammps_to_frame_data(v, positions=True, topology=False)
 
-        #print("FRAME STUFF \n", self.frame_index, "\n", self.frame_data)
+        # print("FRAME STUFF \n", self.frame_index, "\n", self.frame_data)
         self.frame_server.send_frame(self.frame_index, self.frame_data)
         self.frame_index += 1
 
         # Scatter data back to lammps processors
-        #if lmp is not None:
-            #L.scatter_atoms(MatType,1,3,v)
-
+        # if lmp is not None:
+        # L.scatter_atoms(MatType,1,3,v)
 
 
 # Test call of the routine when running outside of lammps
