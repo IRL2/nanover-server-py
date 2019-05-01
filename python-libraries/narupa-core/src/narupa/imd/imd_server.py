@@ -14,7 +14,7 @@ DEFAULT_PORT = 54322
 class ImdServer(GrpcServer):
     _imd_service: ImdService
 
-    def __init__(self, *, address: Optional[str], port: Optional[int]):
+    def __init__(self, *, address: Optional[str]=None, port: Optional[int]=None):
         if address is None:
             address = DEFAULT_ADDRESS
         if port is None:

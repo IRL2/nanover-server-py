@@ -4,6 +4,8 @@ import pytest
 import numpy as np
 from ase import Atoms
 from ase.calculators.lj import LennardJones
+from narupa.ase import converter
+
 from narupa.imd.imd_client import ImdClient, delayed_generator
 from narupa.imd.imd_server import ImdServer
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
@@ -103,37 +105,50 @@ def test_imd_calculator_no_atoms(imd_calculator_no_atoms):
         imd_calculator_no_atoms.calculate()
 
 
-@pytest.mark.parametrize("position, imd_energy",
-                         [([1, 0, 0], -1),
-                          ([3, 0, 0], -1),
-                          ([-1, 0, 0], -1),
-                          ([0, 1, 0], -1),
-                          ([0, 3, 0], -1),
-                          ([0, -1, 0], -1),
-                          ([0, 0, 1], -1),
-                          ([0, 0, 3], -1),
-                          ([0, 0, -1], -1),
-                          ([5, 0, 0], -1),
+@pytest.mark.parametrize("position, imd_energy, imd_forces",
+                         [([1, 0, 0], -1, [-2,0,0, 0, 0, 0]),
+                          ([3, 0, 0], -1, [2,0,0, 0, 0 ,0]),
+                          ([-1, 0, 0], -1, [2,0,0, 0 ,0 ,0]),
+                          ([0, 1, 0], -1, [0,-2,0,0,0,0]),
+                          ([0, 3, 0], -1, [0,2,0,0,0,0]),
+                          ([0, -1, 0], -1, [0,2,0,0,0,0]),
+                          ([0, 0, 1], -1, [0,0,-2,0,0,0]),
+                          ([0, 0, 3], -1, [0,0,2,0,0,0]),
+                          ([0, 0, -1], -1, [0,0,2,0,0,0]),
+                          ([5, 0, 0], -1, [-2,0,0,0,0,0]),
                           ])
-def test_one_interaction(position, imd_energy, imd_calculator_co, interact_c, imd_client):
+def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, interact_c, imd_client):
     """
     tests an interaction in several different positions, including periodic boundary positions.
     """
     imd_calculator, atoms = imd_calculator_co
-    properties = ('energy', 'forces')
+    # reshape the expected imd forces.
+    imd_forces = np.array(imd_forces)
+    imd_forces = imd_forces.reshape((2,3))
+
+    # perform the internal energy calculation.
+    properties = ('energy', 'forces', 'interactive_energy', 'interactive_forces')
     imd_calculator.calculator.calculate(atoms=atoms, properties=properties)
     internal_energy = imd_calculator.calculator.results['energy']
+    internal_forces = imd_calculator.calculator.results['forces']
 
+    # perform the calculation with interaction applied.
     interact_c.position = position
     imd_client.publish_interactions_async(delayed_generator([interact_c] * 20, delay=0.01))
-
     time.sleep(0.05)
-
     assert len(imd_calculator.interactions) == 1
+    imd_calculator.calculate()
+
+    # set up the expected energy and forces.
     expected_imd_energy_kjmol = interact_c.scale * imd_energy * atoms.get_masses()[0]
     expected_imd_energy = expected_imd_energy_kjmol * EV_PER_KJMOL
+    expected_imd_forces = interact_c.scale * atoms.get_masses()[0] * (imd_forces * EV_PER_KJMOL / converter.NM_TO_ANG)
+    expected_forces = internal_forces + expected_imd_forces
     expected_energy = internal_energy + expected_imd_energy
 
-    imd_calculator.calculate()
     results = imd_calculator.results
+    forces = results['forces']
+    assert np.allclose(results['interactive_energy'], expected_imd_energy)
+    assert np.allclose(results['interactive_forces'], expected_imd_forces)
     assert np.allclose(results['energy'], expected_energy)
+    assert np.allclose(forces, expected_forces)

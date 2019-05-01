@@ -59,7 +59,7 @@ class ImdCalculator(Calculator):
         self._service = imd_service
         self.atoms = atoms
         self._calculator = calculator
-        self.implemented_properties = ('energy', 'forces')
+        self.implemented_properties = ('energy', 'forces', 'interactive_energy', 'interactive_forces')
 
     @property
     def calculator(self) -> Calculator:
@@ -74,9 +74,9 @@ class ImdCalculator(Calculator):
         """
         Returns a shallow copy of the current interactions.
         """
-        return self._service.interactions.copy()
+        return self._service.interactions
 
-    def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
+    def calculate(self, atoms: Atoms = None, properties=('energy', 'forces', 'interactive_energy', 'interactive_forces'),
                   system_changes=all_changes):
 
         energy = 0.0
@@ -99,11 +99,15 @@ class ImdCalculator(Calculator):
             self.results['energy'] = energy + imd_energy
         if 'forces' in properties:
             self.results['forces'] = forces + imd_forces
+        if 'interactive_energy' in properties:
+            self.results['interactive_energy'] = imd_energy
+        if 'interactive_forces' in properties:
+            self.results['interactive_forces'] = imd_forces
 
     def _calculate_imd(self, atoms):
 
         # convert positions to the one true unit of distance, nanometers.
-        positions = atoms.positions * converter.AngToNm
+        positions = atoms.positions * converter.ANG_TO_NM
         # masses are in amu, which is fine.
         masses = atoms.get_masses()
 
@@ -114,5 +118,5 @@ class ImdCalculator(Calculator):
         ev_per_kjmol = 0.01036
         # convert back to ASE units (eV and Angstroms).
         energy = energy_kjmol * ev_per_kjmol
-        forces = forces_kjmol * ev_per_kjmol / converter.NmToAng
+        forces = forces_kjmol * ev_per_kjmol / converter.NM_TO_ANG
         return energy, forces

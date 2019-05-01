@@ -1,16 +1,13 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+
 """
 Interactive molecular dynamics server for use with an ASE molecular dynamics simulation.
 """
 
-from ase import units, Atoms
+from ase import Atoms
 from ase.calculators.calculator import Calculator
-from ase.calculators.emt import EMT
-from ase.lattice.cubic import FaceCenteredCubic
-from ase.md import Langevin
 from ase.md.md import MolecularDynamics
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 
 from narupa.ase import NarupaASE
 from narupa.ase.imd_calculator import ImdCalculator
@@ -30,7 +27,7 @@ class ASEImd:
         self.frame_server = FrameServer()
         self.imd_server = ImdServer()
         self.dynamics = dynamics
-        calculator = self.dynamics.atoms.calculator
+        calculator = self.dynamics.atoms.get_calculator()
         self.imd_calculator = ImdCalculator(self.imd_server.service, calculator)
         self.atoms.set_calculator(self.imd_calculator)
         self.dynamics.attach(NarupaASE(self.atoms, self.frame_server), interval=frame_interval)
@@ -66,3 +63,7 @@ class ASEImd:
                 self.dynamics.run(1000)
         else:
             self.dynamics.run(steps)
+
+    def close(self):
+        self.imd_server.close()
+        self.frame_server.close()

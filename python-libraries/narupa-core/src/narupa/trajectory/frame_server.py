@@ -10,7 +10,7 @@ DEFAULT_PORT = 54321
 class FrameServer(GrpcServer):
     _trajectory_service: FramePublisher
 
-    def __init__(self, *, address: Optional[str], port: Optional[int]):
+    def __init__(self, *, address: Optional[str]=None, port: Optional[int]=None):
         if address is None:
             address = DEFAULT_ADDRESS
         if port is None:
