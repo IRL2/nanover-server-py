@@ -30,6 +30,11 @@ def interact_c():
     interaction = Interaction(position=[0, 1, 0], particles=[0], scale=20000., interaction_type='spring')
     return interaction
 
+@pytest.fixture
+def interact_both():
+    interaction = Interaction(position=[0, 1, 0], particles=[0,1], scale=20000., interaction_type='spring')
+    return interaction
+
 
 @pytest.fixture
 def imd():
@@ -67,4 +72,21 @@ def test_ase_imd_dynamics_interaction(imd, interact_c, imd_client):
     dynamics.run(10)
     atom = dynamics.atoms[interact_c.particles[0]]
     assert atom.momentum[1] > 200
+
+def test_ase_imd_dynamics_interaction_com(imd, interact_both, imd_client):
+    """
+    Checks that an interactive force is integrated into the equations of motion correctly when applying a
+    force to both atoms in the CO test system.
+    """
+    dynamics, atoms = imd
+
+    imd_calculator = atoms.get_calculator()
+    assert isinstance(imd_calculator, ImdCalculator)
+    imd_client.publish_interactions_async(delayed_generator([interact_both] * 10000, delay=0.025))
+    time.sleep(0.1)
+    assert len(imd_calculator.interactions) == 1
+
+    dynamics.run(10)
+    for atom in dynamics.atoms:
+        assert atom.momentum[1] > 200
 
