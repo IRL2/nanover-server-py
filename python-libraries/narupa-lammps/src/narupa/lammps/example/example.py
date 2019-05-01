@@ -86,7 +86,6 @@ class LammpsHook:
         except Exception as e:
             raise Exception("Failed to load LAMMPS wrapper", e)
 
-        L = lammps(comm=comm)  # ptr=lmp, comm=comm)
         n_atoms = L.get_natoms()
         print("In class testy", "Atoms : ", n_atoms)
 
