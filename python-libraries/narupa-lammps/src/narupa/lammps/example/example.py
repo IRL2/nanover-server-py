@@ -11,6 +11,7 @@ from pprint import pprint
 
 import mpi4py
 import numpy as np
+from _pytest import logging
 from lammps import lammps  # , PyLammps
 from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer
@@ -72,7 +73,7 @@ class LammpsHook:
         from narupa.protocol.trajectory import FrameData
         self.frame_server = FrameServer(address='localhost', port=54321)
         self.frame_index = 0
-        print("Lammpshook initialised for NarupaXR")
+        logging.info()("Lammpshook initialised for NarupaXR")
         # TODO make it so that the simulation waits on connect as an option
 
     def test_debug(self):
