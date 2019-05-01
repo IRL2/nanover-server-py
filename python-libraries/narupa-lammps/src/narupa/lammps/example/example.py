@@ -9,7 +9,6 @@ import time
 from ctypes import *
 from pprint import pprint
 
-import MDAnalysis
 import mpi4py
 import numpy as np
 from lammps import lammps  # , PyLammps
@@ -28,6 +27,34 @@ element_index = {
 
 
 class LammpsHook:
+    """
+    lammps_hook is a series of routines the can communicate with the LAMMPS program through
+    it's python interpreter. Upon initialisation MPI is set up along with the framesever.
+    The LAMMPS data is collected across all processors using GATHER and SCATTER routines
+    that need mpi4py to respect the internal processor rank of LAMMPS.
+
+    The variable that can currently be accessed are
+    x : positions
+    v : velocities
+    f : forces
+
+    We hook into the LAMMPS MD loop just after the forces are calculated, however setting all
+    forces to zero causes the energy in LAMMPS to become large. To check the effect of this code
+    on the internal state of LAMMPS we recommend trying to set the velocities to zero, effectively
+    freezing the system. In the case below we are slowly translating all the atoms in the system
+    along the x direction.
+
+    The translation of the LAMMPS c_type pointers into framedata is done by  np.fromiter which
+    allows a quick way of allocating a numpy array.
+
+    The main lammps_hook routine will check if it is being run from within LAMMPS or as a
+    stand alone program and determine if it should use dummy variables (manipulate_dummy_arrays)
+    or ones available from within LAMMPS (manipulate_lammps_arrays).
+
+
+
+    """
+
     def __init__(self):
         """
         Items that should be initialised on instantiation of lammpsHook class
@@ -48,14 +75,11 @@ class LammpsHook:
         print("Lammpshook initialised for NarupaXR")
         # TODO make it so that the simulation waits on connect as an option
 
-    def testdebug(self):
+    def test_debug(self):
         """
         Test routine to check correct python loading in LAMMPS
         keep for now, kill later
-
-        :return: Nothing
         """
-
         try:
             L = lammps(ptr=lmp, comm=self.comm)
         except LammpsError as e:
@@ -67,7 +91,7 @@ class LammpsHook:
         n_atoms = L.get_natoms()
         print("In class testy", "Atoms : ", n_atoms)
 
-    def ManipulateLammpsArray(self, MatType, L):
+    def manipulate_lammps_array(self, MatType, L):
         """
         Gather Matrix data from all LAMMPS MPI threads
 
@@ -90,7 +114,7 @@ class LammpsHook:
         L.scatter_atoms(MatType, 1, 3, v)
         return v
 
-    def ManipulateDummyArray(self, MatType):
+    def manipulate_dummy_array(self, MatType):
         """
         This routine mimics LAMMPS cytpes for easy debugging
         Generate dummy ctype double array of 3N particles
@@ -154,10 +178,10 @@ class LammpsHook:
 
         return frame_data
 
-    # LammpsHook passes data between python and the Lammps binary
-    def LammpsHook(self, lmp=None):
+    # lammps_hook passes data between python and the Lammps binary
+    def lammps_hook(self, lmp=None):
         """
-        LammpsHook is the main routine that is run within LAMMPS MD
+        lammps_hook is the main routine that is run within LAMMPS MD
         steps. It checks that LAMMPS python wrapper is callable
         and then attempts to extract a 3N matrix of atomic data
 
@@ -184,12 +208,12 @@ class LammpsHook:
         # print("Temperature from compute =",temp)
 
         # Choose the matrix type that will be extracted
-        MatType = "x"
+        mattype = "x"
         # If not in LAMMPS run dummy routine
         if lmp is None:
-            v = self.ManipulateDummyArray(MatType)
+            v = self.manipulate_dummy_array(mattype)
         else:
-            v = self.ManipulateLammpsArray(MatType, L)
+            v = self.manipulate_lammps_array(mattype, L)
 
         self.frame_data = self.lammps_to_frame_data(v, positions=True, topology=False)
 
@@ -199,17 +223,17 @@ class LammpsHook:
 
         # Scatter data back to lammps processors
         # if lmp is not None:
-        # L.scatter_atoms(MatType,1,3,v)
+        # L.scatter_atoms(mattype,1,3,v)
 
 
 # Test call of the routine when running outside of lammps
 def main():
-    H = LammpsHook()
+    h = LammpsHook()
     print("Starting Trajectory Server")
     # frameServer = FrameServer(address='localhost', port=54321)
     while True:
-        H.LammpsHook()
-        print("FRAME STUFF", H.frame_index, H.frame_data)
+        h.lammps_hook()
+        print("FRAME STUFF", h.frame_index, h.frame_data)
         time.sleep(1.0 / 10.0)
 
 
