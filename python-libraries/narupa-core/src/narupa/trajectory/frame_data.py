@@ -111,9 +111,9 @@ class FrameData(metaclass=_FrameDataMeta):
 
     def __init__(self, raw_frame=None):
         if raw_frame is None:
-            self.raw = trajectory.FrameData()
+            self._raw = trajectory.FrameData()
         else:
-            self.raw = raw_frame
+            self._raw = raw_frame
         self.values = ValuesView(self.raw)
         self.arrays = ArraysView(self.raw)
 
@@ -122,6 +122,14 @@ class FrameData(metaclass=_FrameDataMeta):
 
     def __eq__(self, other):
         return self.raw == other.raw
+
+    @property
+    def raw(self):
+        """
+        Underlying GRPC/protobuf object.
+        """
+        # Use a property to make self.raw read-only.
+        return self._raw
 
 
 class RecordView:
