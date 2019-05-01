@@ -82,8 +82,8 @@ class LammpsHook:
         """
         try:
             L = lammps(ptr=lmp, comm=self.comm)
-        except LammpsError as e:
-            raise LammpsError("Failed to load LAMMPS wrapper", e)
+        except Exception as e:
+            raise Exception("Failed to load LAMMPS wrapper", e)
 
         sys.exit(1)
 
@@ -196,9 +196,9 @@ class LammpsHook:
             # Make sure LAMMPS object is callable
             try:
                 L = lammps(ptr=lmp, comm=self.comm)
-            except LammpsError as e:
+            except Exception as e:
                 # Many reasons for LAMMPS failures so for the moment catch all
-                raise LammpsError("Failed to load LAMMPS wrapper", e)
+                raise Exception("Failed to load LAMMPS wrapper", e)
                 sys.exit(1)
 
         # mass = L.extract_atom("mass",2)
