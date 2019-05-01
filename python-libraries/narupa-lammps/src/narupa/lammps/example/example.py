@@ -86,8 +86,6 @@ class LammpsHook:
         except Exception as e:
             raise Exception("Failed to load LAMMPS wrapper", e)
 
-        sys.exit(1)
-
         L = lammps(comm=comm)  # ptr=lmp, comm=comm)
         n_atoms = L.get_natoms()
         print("In class testy", "Atoms : ", n_atoms)
@@ -150,7 +148,6 @@ class LammpsHook:
             frame_data = FrameData()
         except Exception as e:
             raise Exception("Failed to load framedata", e)
-            sys.exit(1)
         # if topology:
         #     for residue in u.residues:
         #         frame_data.arrays['residue.id'].string_values.values.append(residue.resname)
@@ -200,7 +197,6 @@ class LammpsHook:
             except Exception as e:
                 # Many reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load LAMMPS wrapper", e)
-                sys.exit(1)
 
         # mass = L.extract_atom("mass",2)
         # xp = L.extract_atom("x",3)
