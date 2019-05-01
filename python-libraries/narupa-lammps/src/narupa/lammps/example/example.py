@@ -79,7 +79,7 @@ class LammpsHook:
     def test_debug(self):
         """
         Test routine to check correct python loading in LAMMPS
-        keep for now, kill later
+        TODO remove once more robust testing of loading in LAMMPS is developed
         """
         try:
             L = lammps(ptr=lmp, comm=self.comm)
@@ -89,11 +89,11 @@ class LammpsHook:
         n_atoms = L.get_natoms()
         print("In class testy", "Atoms : ", n_atoms)
 
-    def manipulate_lammps_array(self, MatType, L):
+    def manipulate_lammps_array(self, matrix_type, L):
         """
         Gather Matrix data from all LAMMPS MPI threads
 
-        :param MatType: String identifying data to transmit, e.g x, v or f
+        :param matrix_type: String identifying data to transmit, e.g x, v or f
         :param L: LAMMPS class that contains all the needed routines
         :return: 3N matrix called v with all the data requested
         """
@@ -102,14 +102,14 @@ class LammpsHook:
         # Hard to tell if LAMMPS python interpreter is working so for now print every step
         print("In LAMMPS array")
         n_atoms = L.get_natoms()
-        v = L.gather_atoms(MatType, 1, 3)
+        v = L.gather_atoms(matrix_type, 1, 3)
 
         # This test case slowly translates the molecular system
         for idx in range(n_atoms):
             v[3 * idx + 0] += 0.0001000
             v[3 * idx + 1] *= 1.0000000
             v[3 * idx + 2] *= 1.0000000
-        L.scatter_atoms(MatType, 1, 3, v)
+        L.scatter_atoms(matrix_type, 1, 3, v)
         return v
 
     def manipulate_dummy_array(self, MatType):
@@ -204,12 +204,12 @@ class LammpsHook:
         # print("Temperature from compute =",temp)
 
         # Choose the matrix type that will be extracted
-        mattype = "x"
+        matrix_type = "x"
         # If not in LAMMPS run dummy routine
         if lmp is None:
-            v = self.manipulate_dummy_array(mattype)
+            v = self.manipulate_dummy_array(matrix_type)
         else:
-            v = self.manipulate_lammps_array(mattype, L)
+            v = self.manipulate_lammps_array(matrix_type, L)
 
         self.frame_data = self.lammps_to_frame_data(v, positions=True, topology=False)
 
@@ -219,7 +219,7 @@ class LammpsHook:
 
         # Scatter data back to lammps processors
         # if lmp is not None:
-        # L.scatter_atoms(mattype,1,3,v)
+        # L.scatter_atoms(matrix_type,1,3,v)
 
 
 # Test call of the routine when running outside of lammps
