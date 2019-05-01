@@ -9,6 +9,9 @@ ELEMENTS = 'particle.element'
 TYPES = 'particle.type'
 BONDS = 'bond'
 
+# This dictionary matches the python types to the attributes of the GRPC
+# values. This is not to do type conversion (which is handled by protobuf),
+# but to figure out where to store the data.
 PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE = {
     int: 'number_value', float: 'number_value', str: 'string_value',
     bool: 'bool_value', np.float32: 'number_value', np.float64: 'number_value',
@@ -26,7 +29,7 @@ class MissingDataError(KeyError):
     pass
 
 
-def _as_it(value):
+def _as_is(value):
     return value
 
 
@@ -99,9 +102,9 @@ class FrameData(metaclass=_FrameDataMeta):
         _Shortcut(name='positions', key=POSITIONS,
                   record_type='arrays', to_python=_n_by_3, to_raw=_flatten_2d),
         _Shortcut(name='elements', key=ELEMENTS,
-                  record_type='arrays', to_python=_as_it, to_raw=_as_it),
+                  record_type='arrays', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='types', key=TYPES,
-                  record_type='arrays', to_python=_as_it, to_raw=_as_it),
+                  record_type='arrays', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='bonds', key=BONDS,
                   record_type='arrays', to_python=_n_by_2, to_raw=_flatten_2d),
     )
@@ -160,6 +163,11 @@ class RecordView:
 
     @staticmethod
     def _convert_to_python(field):
+        """
+        Extract the value from a protobuf field so it is usable by python.
+
+        The method needs to be adapted to the type of field that is manipulated.
+        """
         raise NotImplementedError('Subclasses must overwrite the _convert_to_python method.')
 
 
