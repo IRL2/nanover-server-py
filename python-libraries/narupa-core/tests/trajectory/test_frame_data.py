@@ -496,6 +496,15 @@ def test_set_wrong_type_array_fails(value):
         frame.arrays['sample.net'] = value
 
 
+def test_set_inhomogeneous_array_fail():
+    """
+    Setting a non homogeneous array fails with a TypeError.
+    """
+    frame = FrameData()
+    with pytest.raises(TypeError):
+        frame.arrays['erroneous'] = [1, 'b', 3.2]
+
+
 @given(ARRAYS_STRATEGIES['float_values'])
 def test_set_float_array_method(value):
     """
