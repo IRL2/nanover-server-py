@@ -47,6 +47,8 @@ python -m pip install ${edit_option} ${narupa_user_option} \
     ./python-libraries/narupa-core/
 python -m pip install ${edit_option} ${narupa_user_option} \
     ./python-libraries/narupa-openmm/
+python -m pip install ${edit_option} ${narupa_user_option} \
+    ./python-libraries/narupa-ase/
 
 python -c "import simtk" 2>&1 > /dev/null || {
     announce "OpenMM is not installed."

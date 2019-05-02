@@ -18,3 +18,5 @@ csharp-libraries/Narupa.Protocol/bin
 htmlcov
 
 .pytest_cache
+
+.hypothesis/
