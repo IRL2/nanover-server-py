@@ -225,6 +225,14 @@ class ValuesView(RecordView):
 
     @staticmethod
     def _convert_to_python(field):
+        # A GRPC Value is exposed as being able to contain multiple "fields",
+        # one per type. In practice, only one field is used at a given time.
+        # `ListFields` list the fields that are set. Because only one field is
+        # set at a time, we only care about the first (and only) element of the
+        # list. Each element of the list has 2 elements: the type of the field
+        # and the value usable by python.
+        # Going through this gymnastic is necessary to get the value without
+        # knowing beforehand under which type it is stored.
         return field.ListFields()[0][1]
 
     def set(self, key, value):
