@@ -33,14 +33,14 @@ def ase_to_framedata(ase_atoms: Atoms, positions=True, topology=True, state=True
             residue_ids.append(0)
 
         data.arrays['atom.id'] = atom_names
-        data.elements = elements
+        data.particle_elements = elements
         data.arrays['atom.residue'] = residue_ids
 
         bonds = GenerateBonds(ase_atoms)
         data.bonds = bonds
 
     if positions:
-        data.positions = ase_atoms.get_positions() * AngToNm
+        data.particle_positions = ase_atoms.get_positions() * AngToNm
 
     if state:
         data.values['energy.potential'] = ase_atoms.get_potential_energy()

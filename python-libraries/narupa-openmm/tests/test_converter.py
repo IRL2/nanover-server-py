@@ -5,6 +5,7 @@ from simtk.openmm.app.element import Element
 from simtk.openmm.app.topology import Topology
 
 from narupa.openmm import openmm_to_frame_data
+from narupa.trajectory import frame_data
 
 
 @pytest.fixture
@@ -20,20 +21,22 @@ def simple_openmm_topology():
     return topology
 
 
+# In the following tests, we refer to the raw GRPC FrameData rather than the
+# wrapped one to make sure we catch errors due to changes in the wrapper.
+# Ultimately, we want to know if we can communicate with the client.
 def test_topology_bonds(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert data.bonds == [[0, 1], [1, 2]]
+    assert data.raw.arrays[frame_data.BONDS].index_values.values == [0, 1, 1, 2]
 
 
 def test_topology_atoms(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert len(data.elements) == 3
-    assert data.elements[0] == 1
+    assert data.raw.arrays[frame_data.ELEMENTS].index_values.values == [1, 2, 3]
 
 
 def test_topology_residues(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert data.arrays['residue.id'] == ["RES"]
+    assert data.raw.arrays['residue.id'].string_values.values == ["RES"]

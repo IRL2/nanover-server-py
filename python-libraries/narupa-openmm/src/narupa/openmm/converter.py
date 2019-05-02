@@ -5,7 +5,7 @@ from narupa.trajectory import FrameData
 
 
 def add_openmm_positions_to_frame_data(data: FrameData, positions: Quantity):
-    data.positions = positions.value_in_unit(nanometer)
+    data.particle_positions = positions.value_in_unit(nanometer)
 
 
 def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
@@ -26,7 +26,7 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
         bonds.append((bond[0].index, bond[1].index))
 
     data.arrays['atom.id'] = atom_names
-    data.elements = elements
+    data.particle_elements = elements
     data.arrays['atom.residue'] = residue_indices
     data.bonds = bonds
 

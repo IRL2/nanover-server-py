@@ -319,7 +319,7 @@ def test_positions_shortcut_get(simple_frame):
     Because "positions" contains floats, we need to test it separately from the
     other shortcuts that can be compared exactly.
     """
-    positions = simple_frame.positions
+    positions = simple_frame.particle_positions
     expected = [
         [1.0, 2.1, 3.2],
         [4.3, 5.4, 6.5],
@@ -336,7 +336,7 @@ def test_positions_shortcut_get(simple_frame):
 
 @pytest.mark.parametrize('key, expected', (
     ('bonds', [[0, 1], [1, 2], [2, 3]]),
-    ('elements', [10, 12, 14, 16]),
+    ('particle_elements', [10, 12, 14, 16]),
 ))
 def test_exact_shortcuts_get(simple_frame, key, expected):
     """
@@ -362,7 +362,7 @@ def test_positions_shortcuts_set(value, expected):
 
 @pytest.mark.parametrize('key, raw_key, value, expected', (
     ('bonds', frame_data.BONDS, [[3, 4], [2, 3]], [3, 4, 2, 3]),
-    ('elements', frame_data.ELEMENTS, [2, 3, 5], [2, 3, 5]),
+    ('particle_elements', frame_data.ELEMENTS, [2, 3, 5], [2, 3, 5]),
 ))
 def test_exact_shortcuts_set(key, raw_key, value, expected):
     """
@@ -383,7 +383,7 @@ def test_missing_shortcut(exception):
     """
     frame = FrameData()
     with pytest.raises(exception):
-        frame.positions
+        frame.particle_positions
 
 
 @given(EXACT_SINGLE_VALUE_STRATEGY)

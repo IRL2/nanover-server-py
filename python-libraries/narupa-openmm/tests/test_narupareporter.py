@@ -105,7 +105,7 @@ def test_report(basic_simulation):
     assert topology.arrays['residue.id'] == ['METH1', 'METH2']
     assert topology.arrays['residue.chain'] == [0, 1]
     assert topology.arrays['atom.id'] == ['C1', 'H2', 'H3', 'H4'] * 2
-    assert topology.elements == [6, 1, 1, 1] * 2
+    assert topology.particle_elements == [6, 1, 1, 1] * 2
     assert topology.arrays['atom.residue'] == [0] * 4 + [1] * 4
     assert topology.bonds == [
         [0, 1], [0, 2], [0, 3],  # First residue
