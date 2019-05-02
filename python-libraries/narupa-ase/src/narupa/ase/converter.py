@@ -47,7 +47,7 @@ def ase_to_framedata(ase_atoms: Atoms, positions=True, topology=True, state=True
         data.particle_elements = elements
         data.arrays['atom.residue'] = residue_ids
 
-        bonds = GenerateBonds(ase_atoms)
+        bonds = generate_bonds(ase_atoms)
         data.bonds = bonds
 
     if positions:
