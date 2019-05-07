@@ -10,18 +10,18 @@ namespace Narupa.Protocol.Trajectory
 {
     public partial class FrameData : IEnumerable
     {
-        private const string BondArray = "bond";
-        private const string ParticleElementArray = "particle.element";
-        private const string ParticleTypeArray = "particle.type";
-        private const string ParticlePositionArray = "particle.position";
+        public const string BondArrayKey = "bond";
+        public const string ParticleElementArrayKey = "particle.element";
+        public const string ParticleTypeArrayKey = "particle.type";
+        public const string ParticlePositionArrayKey = "particle.position";
 
         /// <summary>
         ///     Float array of particle positions. Nominally grouped in sets of three to form 3D vectors
         /// </summary>
         public IReadOnlyList<float> ParticlePositions
         {
-            get => GetFloatArray(ParticlePositionArray);
-            set => AddFloatArray(ParticlePositionArray, value);
+            get => GetFloatArray(ParticlePositionArrayKey);
+            set => AddFloatArray(ParticlePositionArrayKey, value);
         }
 
         /// <summary>
@@ -29,8 +29,8 @@ namespace Narupa.Protocol.Trajectory
         /// </summary>
         public IReadOnlyList<uint> Bonds
         {
-            get => GetIndexArray(BondArray);
-            set => AddIndexArray(BondArray, value);
+            get => GetIndexArray(BondArrayKey);
+            set => AddIndexArray(BondArrayKey, value);
         }
 
         /// <summary>
@@ -39,8 +39,8 @@ namespace Narupa.Protocol.Trajectory
         /// </summary>
         public IReadOnlyList<uint> ParticleElements
         {
-            get => GetIndexArray(ParticleElementArray);
-            set => AddIndexArray(ParticleElementArray, value);
+            get => GetIndexArray(ParticleElementArrayKey);
+            set => AddIndexArray(ParticleElementArrayKey, value);
         }
 
         /// <summary>
@@ -48,8 +48,8 @@ namespace Narupa.Protocol.Trajectory
         /// </summary>
         public IReadOnlyList<string> ParticleTypes
         {
-            get => GetStringArray(ParticleTypeArray);
-            set => AddStringArray(ParticleTypeArray, value);
+            get => GetStringArray(ParticleTypeArrayKey);
+            set => AddStringArray(ParticleTypeArrayKey, value);
         }
 
         public IEnumerator GetEnumerator()
