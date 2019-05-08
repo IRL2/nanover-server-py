@@ -3,6 +3,7 @@ from concurrent import futures
 import grpc
 
 from narupa.protocol.trajectory import TrajectoryServiceStub, GetFrameRequest
+from narupa.trajectory import FrameData
 
 
 class FrameClient:
@@ -17,7 +18,7 @@ class FrameClient:
 
     def subscribe_frames_blocking(self, callback):
         for response in self.stub.SubscribeFrames(GetFrameRequest()):
-            callback(frame_index=response.frame_index, frame=response.frame)
+            callback(frame_index=response.frame_index, frame=FrameData(response.frame))
 
     def close(self):
         self.channel.close()

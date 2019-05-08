@@ -2,7 +2,7 @@ from ase import Atoms
 import itertools
 import numpy as np
 
-from narupa.protocol.trajectory import FrameData
+from narupa.trajectory import FrameData
 
 AngToNm = 0.1
 
@@ -21,27 +21,30 @@ def ase_to_framedata(ase_atoms: Atoms, positions=True, topology=True, state=True
     data = FrameData()
 
     if topology:
-        data.arrays['residue.id'].string_values.values.extend(["ASE"])
-        data.arrays['residue.chain'].index_values.values.extend([0])
+        data.arrays['residue.id'] = ["ASE"]
+        data.arrays['residue.chain'] = [0]
 
+        atom_names = []
+        elements = []
+        residue_ids = []
         for index, atom in enumerate(ase_atoms):
-            data.arrays['atom.id'].string_values.values.append(str(atom.index))
-            data.arrays['atom.element'].index_values.values.append(atom.number)
-            data.arrays['atom.residue'].index_values.values.append(0)
+            atom_names.append(str(atom.index))
+            elements.append(atom.number)
+            residue_ids.append(0)
+
+        data.arrays['atom.id'] = atom_names
+        data.particle_elements = elements
+        data.arrays['atom.residue'] = residue_ids
 
         bonds = GenerateBonds(ase_atoms)
-        for bond in bonds:
-            data.arrays['bond'].index_values.values.append(bond[0])
-            data.arrays['bond'].index_values.values.append(bond[1])
+        data.bonds = bonds
 
     if positions:
-        array = data.arrays['atom.position'].float_values.values
-        floats = ase_atoms.get_positions().flatten() * AngToNm
-        array[:] = floats
+        data.particle_positions = ase_atoms.get_positions() * AngToNm
 
     if state:
-        data.values['energy.potential'].number_value = ase_atoms.get_potential_energy()
-        data.values['energy.kinetic'].number_value = ase_atoms.get_kinetic_energy()
+        data.values['energy.potential'] = ase_atoms.get_potential_energy()
+        data.values['energy.kinetic'] = ase_atoms.get_kinetic_energy()
 
     return data
 
