@@ -1,19 +1,17 @@
 import pytest
+import narupa.lammps.hook as nlh
 from narupa.lammps import LammpsHook
 
 @pytest.fixture
 def simple_atom_lammps_frame():
+    n_atoms = 3
+    data_array = nlh.manipulate_dummy_array("x", n_atoms)
+    return data_array
+
+
+def test_topology_lammps_atoms(simple_atom_lammps_frame):
     h = LammpsHook()
-    n_atoms=3
-    data_array = h.manipulate_dummy_array("x", n_atoms)
-    frame_data = h.lammps_to_frame_data(data_array, positions=True, topology=False)
-
-    return frame_data
-
-
-def test_topology_lammps_atoms(simple_openmm_topology):
-    frame_data = simple_atom_frame(topology=simple_openmm_topology)
-
-    assert len(data.arrays['atom.positions'].index_values.values) == 3
+    frame_data = h.lammps_to_frame_data(simple_atom_lammps_frame, positions=True, topology=False)
+    assert len(frame_data.arrays['atom.position'].float_values.values) == 9
 
 

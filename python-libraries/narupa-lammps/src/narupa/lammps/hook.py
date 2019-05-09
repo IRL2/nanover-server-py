@@ -5,9 +5,7 @@ inputs.
 """
 import ctypes
 import sys
-import time
 import ctypes
-from pprint import pprint
 
 import mpi4py
 import numpy as np
@@ -38,7 +36,6 @@ def manipulate_dummy_array(MatType, n_atoms):
     data_array = (ctypes.c_double * (3 * n_atoms))(*range(3 * n_atoms))
     print(data_array[1], data_array[2], data_array[3])
     return data_array
-
 
 class LammpsHook:
     """
