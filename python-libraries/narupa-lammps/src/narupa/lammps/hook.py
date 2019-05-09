@@ -26,6 +26,19 @@ element_index = {
     'S': 16
 }
 
+def manipulate_dummy_array(MatType, n_atoms):
+    """
+    This routine mimics LAMMPS cytpes for easy debugging
+    Generate dummy ctype double array of 3N particles
+    TODO convert this to a full dummy LAMMPS class
+
+    :param MatType: For the moment doesnt do anything
+    :return: 3N matrix data_array that contains all the dummy data
+    """
+    data_array = (ctypes.c_double * (3 * n_atoms))(*range(3 * n_atoms))
+    print(data_array[1], data_array[2], data_array[3])
+    return data_array
+
 
 class LammpsHook:
     """
@@ -109,19 +122,6 @@ class LammpsHook:
         L.scatter_atoms(matrix_type, 1, 3, data_array)
         return data_array
 
-    def manipulate_dummy_array(self, MatType):
-        """
-        This routine mimics LAMMPS cytpes for easy debugging
-        Generate dummy ctype double array of 3N particles
-        TODO convert this to a full dummy LAMMPS class
-
-        :param MatType: For the moment doesnt do anything
-        :return: 3N matrix data_array that contains all the dummy data
-        """
-        n_atoms = 10
-        data_array = (ctypes.c_double * (3 * n_atoms))(*range(3 * n_atoms))
-        print(data_array[1], data_array[2], data_array[3])
-        return data_array
 
     def lammps_to_frame_data(self, data_array, topology=True, positions=True) -> FrameData:
         """
@@ -177,9 +177,10 @@ class LammpsHook:
 
         # Choose the matrix type that will be extracted
         matrix_type = "x"
+        n_atoms_dummy=10
         # If not in LAMMPS run dummy routine
         if lmp is None:
-            data_array = self.manipulate_dummy_array(matrix_type)
+            data_array = manipulate_dummy_array(matrix_type, n_atoms_dummy)
         else:
             data_array = self.manipulate_lammps_array(matrix_type, L)
 
