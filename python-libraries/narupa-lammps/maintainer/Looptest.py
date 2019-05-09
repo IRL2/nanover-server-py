@@ -1,9 +1,6 @@
 import time
-#import narupa.lammps
 from narupa.lammps import LammpsHook
 
-from narupa.protocol.trajectory import FrameData
-from narupa.trajectory import FrameServer
 
 # Test call of the routine when running outside of lammps
 def main():
