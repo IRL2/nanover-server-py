@@ -92,7 +92,7 @@ class LammpsHook:
 
         :param matrix_type: String identifying data to transmit, e.g x, v or f
         :param L: LAMMPS class that contains all the needed routines
-        :return: 3N matrix called data_array with all the data requested
+        :return: 3N matrix with all the data requested
         """
 
         # n_local = L.extract_global('nlocal', 0)  # L.get_nlocal()
@@ -123,20 +123,12 @@ class LammpsHook:
         print(data_array[1], data_array[2], data_array[3])
         return data_array
 
-    # def LammpsFrameDataArray(self):
-    #     # Convert lammps array to gprc frame format.
-    #     print()
-    #
-    # def LammpsFrameDataValue(self):
-    #     # Convert lammps value to gprc frame format.
-    #     print()
-
     def lammps_to_frame_data(self, data_array, topology=True, positions=True) -> FrameData:
         """
         Convert the flat ctype.c_double data into the framedata format.
 
         :param data_array: Data to convert
-        :param topology: Check if data is topolgical
+        :param topology: Check if data is topological
         :param positions: Check if data is positional
         :return: overwrite data in data_array matrix with new formatted framedata
         """
@@ -144,26 +136,9 @@ class LammpsHook:
             frame_data = FrameData()
         except Exception as e:
             raise Exception("Failed to load framedata", e)
-        # if topology:
-        #     for residue in u.residues:
-        #         frame_data.arrays['residue.id'].string_values.values.append(residue.resname)
-        #         frame_data.arrays['residue.chain'].index_values.values.append(residue.segment.ix)
-        #
-        #     for atom in u.atoms:
-        #         frame_data.arrays['atom.id'].string_values.values.append(atom.name)
-        #         element = element_index[guess_atom_element(atom.name)]
-        #         frame_data.arrays['atom.element'].index_values.values.append(element)
-        #         frame_data.arrays['atom.residue'].index_values.values.append(atom.residue.ix)
-        #
-        #     for bond in u.bonds:
-        #         frame_data.arrays['bond'].index_values.values.append(bond.atoms[0].ix)
-        #         frame_data.arrays['bond'].index_values.values.append(bond.atoms[1].ix)
 
         if positions:
             # print("Ndarray",np.ndarray(v))
-
-            # positions = Array.from_address(ctypes.addressof(v.contents))
-            # positions = np.multiply(0.1, np.frombuffer(v))
             # Copy the ctype array to numpy for processing
             positions = np.fromiter(data_array, dtype=np.float, count=len(data_array))
             # Convert to nm

@@ -1,0 +1,130 @@
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+
+atom_modify     map array
+lattice		fcc 0.8442
+region		box block 0 10 0 10 0 10
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 3.0 87287
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+
+python         end_of_step_callback here """
+#from __future__ import print_function
+from lammps import lammps #, PyLammps
+#import mpi4py 
+#from lammps import lammps #, PyLammps
+import sys
+from pprint import pprint
+from ctypes import *
+
+import numpy as np
+
+
+# uncomment if running in parallel via Pypar
+#import pypar
+#from ctypes import c_double
+
+
+def end_of_step_callback(lmp):
+  #print(lmp)
+  L = lammps(ptr=lmp)
+  H = lammps_hook()
+
+
+  n_atoms = L.get_natoms()
+  #print(n_atoms)
+
+  t = L.extract_global("ntimestep", 0)
+  tmp_force = L.extract_atom("f",3)
+  #print(tmp_force.__dict__)
+  #print(L.atoms)
+  #for idx in range(n_atoms):
+  #  for jdx in range(3):
+  #     pprint(tmp_force[idx][jdx])
+  #      pprint(tmp_force[idx][jdx])
+  #print((tmp_force[0][0]))
+  #print(type(tmp_force))
+  #print("### END OF STEP ###", t)
+
+def post_force_callback(lmp, v):
+  from mpi4py import MPI
+  comm = MPI.COMM_WORLD
+  me = comm.Get_rank()
+  nprocs = comm.Get_size()
+  #print("Hello from rank %d of %d" % (comm.rank, comm.size))
+  L = lammps(ptr=lmp, comm=comm)
+ 
+  n_atoms = L.get_natoms()
+  mass = L.extract_atom("mass",2)
+  xp = L.extract_atom("x",3)
+  #print("Natoms, mass, x[0][0] coord =",n_atoms,mass[1],xp[0][0])
+  temp = L.extract_compute("thermo_temp",0,0)
+  #print("Temperature from compute =",temp)
+
+  n_local = L.extract_global('nlocal',0) #L.get_nlocal()
+  #print(tmp_force.__dict__)
+  n3=3*n_atoms
+  v =  L.gather_atoms("v",1,3)
+  for idx in range(n_atoms):
+    #print(type(v[idx]))
+    v[3*idx+0] *= 0.0000001
+    v[3*idx+1] *= 0.0000001
+    v[3*idx+2] *= 0.0000001
+    #v[3*idx+0] = c_double(v[3*idx+0])*c_double(0.001)
+    #v[3*idx+1] = c_double(v[3*idx+1])*c_double(0.001)
+    #v[3*idx+2] = c_double(v[3*idx+2])*c_double(0.001)
+  L.scatter_atoms("v",1,3,v)
+  #v.ctypes.data #(n3*c_double)()
+  #print(type(v))
+  #v[0][0] = 0
+
+  #print('length of f', len(v))
+  #print('before', v[0])
+
+  #if me == 0:
+    #print('me', me)
+    #for idx in range(n_atoms):
+    #print(v[idx])
+    #  v[idx] = c_double(0.0)
+    #v[3*idx+1] = c_double(0.0)
+    #v[3*idx+2] = c_double(0.0)
+
+
+  #x = np.ctypeslib.as_array(L.extract_atom("f",3).contents,shape=(n_local,3))
+  #for idx in range(n_local):
+    #print(x[idx])
+  #  x[idx][0] = 0.0
+  #  x[idx][1] = 0.0
+  #  x[idx][2] = 0.0
+  #print(type(tmp_force))
+  #t = L.extract_global("ntimestep", 0)
+  #print("### POST_FORCE ###", t)
+"""
+
+fix		1 all nve
+#fix     2 all python/invoke 1 end_of_step end_of_step_callback
+fix     3 all python/invoke 1 post_force post_force_callback
+
+#dump		id all atom 50 dump.melt
+
+#dump		2 all image 25 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+thermo		50
+run		2000
