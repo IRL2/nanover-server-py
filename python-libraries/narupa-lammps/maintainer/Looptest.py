@@ -12,5 +12,7 @@ def main():
         print("FRAME STUFF", h.frame_index, h.frame_data)
         time.sleep(1.0 / 10.0)
 
+
 if __name__ == '__main__':
     main()
+

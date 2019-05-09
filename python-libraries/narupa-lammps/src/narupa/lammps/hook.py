@@ -24,6 +24,7 @@ element_index = {
     'S': 16
 }
 
+
 def manipulate_dummy_array(MatType, n_atoms):
     """
     This routine mimics LAMMPS cytpes for easy debugging
@@ -36,6 +37,7 @@ def manipulate_dummy_array(MatType, n_atoms):
     data_array = (ctypes.c_double * (3 * n_atoms))(*range(3 * n_atoms))
     print(data_array[1], data_array[2], data_array[3])
     return data_array
+
 
 class LammpsHook:
     """
@@ -119,7 +121,6 @@ class LammpsHook:
         L.scatter_atoms(matrix_type, 1, 3, data_array)
         return data_array
 
-
     def lammps_to_frame_data(self, data_array, topology=True, positions=True) -> FrameData:
         """
         Convert the flat ctype.c_double data into the framedata format.
@@ -174,7 +175,7 @@ class LammpsHook:
 
         # Choose the matrix type that will be extracted
         matrix_type = "x"
-        n_atoms_dummy=10
+        n_atoms_dummy = 10
         # If not in LAMMPS run dummy routine
         if lmp is None:
             data_array = manipulate_dummy_array(matrix_type, n_atoms_dummy)
@@ -190,6 +191,4 @@ class LammpsHook:
         # Scatter data back to lammps processors
         # if lmp is not None:
         # L.scatter_atoms(matrix_type,1,3,v)
-
-
 
