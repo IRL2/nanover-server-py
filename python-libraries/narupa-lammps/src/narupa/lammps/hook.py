@@ -1,19 +1,17 @@
 """
 LAMMPS python integration with Narupa
-This program can be run as a standalone using dummy data or from within LAMMPS using the python_invoke/fix command as demonstrated in the example LAMMPS
+This program can be run as a standalone using dummy data or from within LAMMPS using the python_invoke/fix command as
+demonstrated in the example LAMMPS
 inputs.
 """
 import ctypes
-import sys
-import ctypes
-
-import mpi4py
-import numpy as np
 import logging
+
+import numpy as np
 from lammps import lammps  # , PyLammps
+
 from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer
-from numpy.core.multiarray import int_asbuffer
 
 # Keep for converting internal LAMMPS atoms data into strings during testing
 element_index = {
@@ -42,7 +40,7 @@ def manipulate_dummy_array(MatType, n_atoms):
 class LammpsHook:
     """
     lammps_hook is a series of routines the can communicate with the LAMMPS program through
-    its python interpreter. Upon initialisation, MPI is set up along with the frame sever.
+    its python interpreter. Upon initialisation, MPI is set up along with the frame server.
     The LAMMPS data is collected across all processors using GATHER and SCATTER routines
     that require mpi4py to respect the internal processor rank of LAMMPS.
 
@@ -72,14 +70,13 @@ class LammpsHook:
         LAMMPS crashes
         """
 
-        # Load MPI routines
+        # Load MPI routines, has to be performed here.
         from mpi4py import MPI
         self.comm = MPI.COMM_WORLD
         me = self.comm.Get_rank()
         nprocs = self.comm.Get_size()
 
         # Start frame server
-        from narupa.protocol.trajectory import FrameData
         self.frame_server = FrameServer(address='localhost', port=54321)
         self.frame_index = 0
         logging.info("Lammpshook initialised for NarupaXR")
@@ -164,7 +161,7 @@ class LammpsHook:
             try:
                 L = lammps(ptr=lmp, comm=self.comm)
             except Exception as e:
-                # Many reasons for LAMMPS failures so for the moment catch all
+                # Many possible reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load LAMMPS wrapper", e)
 
         # mass = L.extract_atom("mass",2)
