@@ -14,13 +14,13 @@ attach interactive molecular dynamics functionality and frame serving to the dyn
 ```python
 from ase import units
 from ase.md import Langevin
-from narupa.ase.imd_server import IMDServer
+from narupa.ase.imd_server import ASEImdServer
 
 # Given some ASE atoms object appropriately set up, set up dynamics.
 dyn = Langevin(atoms, 1 * units.fs, 300, 0.1)
 
 # Attach the IMD calculator and server to the dynamics object. 
-imd = IMDServer(dyn)
+imd = ASEImdServer(dyn)
 while True:
     imd.run(100)
 ```

@@ -6,7 +6,7 @@ Provides an implementation of IMD force field in ASE.
 """
 from typing import Optional, Dict, Tuple
 
-import narupa.ase.converter as converter
+from . import converter
 import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
