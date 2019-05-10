@@ -5,10 +5,9 @@ from ase import Atoms
 from ase.calculators.lj import LennardJones
 from ase.md import Langevin, VelocityVerlet
 
-from narupa.ase.ase_imd import ASEImd
+from narupa.ase.imd_server import IMDServer
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.imd.imd_client import ImdClient, delayed_generator
-from narupa.imd.imd_server import ImdServer
 from narupa.imd.interaction import Interaction
 
 
@@ -42,7 +41,7 @@ def imd():
     calculator = LennardJones()
     atoms.set_calculator(calculator)
     dynamics = VelocityVerlet(atoms, timestep=0.5)
-    imd = ASEImd(dynamics)
+    imd = IMDServer(dynamics)
     yield imd, atoms
     imd.close()
 

@@ -11,13 +11,13 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.md.md import MolecularDynamics
 
-from narupa.ase import NarupaASE
+from narupa.ase import FrameServer
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.imd.imd_server import ImdServer
 from narupa.trajectory import FrameServer
 
 
-class ASEImd:
+class IMDServer:
     """
     Interactive molecular dynamics runner for use with ASE.
 
@@ -32,7 +32,7 @@ class ASEImd:
         calculator = self.dynamics.atoms.get_calculator()
         self.imd_calculator = ImdCalculator(self.imd_server.service, calculator)
         self.atoms.set_calculator(self.imd_calculator)
-        self.dynamics.attach(NarupaASE(self.atoms, self.frame_server), interval=frame_interval)
+        self.dynamics.attach(FrameServer(self.atoms, self.frame_server), interval=frame_interval)
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._run_task = None
         self._cancelled = False
