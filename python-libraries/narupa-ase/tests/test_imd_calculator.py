@@ -10,7 +10,7 @@ from narupa.imd.imd_client import delayed_generator
 from narupa.imd.imd_server import ImdServer
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
 from narupa.imd.interaction import Interaction
-from .util import imd_client
+from util import imd_client
 
 
 def co_atoms():

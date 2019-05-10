@@ -9,7 +9,7 @@ from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.imd.imd_client import ImdClient, delayed_generator
 from narupa.imd.interaction import Interaction
-from .util import co_atoms, imd_client
+from util import co_atoms, imd_client
 
 
 
