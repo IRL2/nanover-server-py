@@ -1,7 +1,7 @@
 from typing import Optional
 from narupa.core import GrpcServer
-from narupa.protocol.trajectory import add_TrajectoryServiceServicer_to_server, FrameData
-from narupa.trajectory import FramePublisher
+from narupa.protocol.trajectory import add_TrajectoryServiceServicer_to_server
+from narupa.trajectory import FramePublisher, FrameData
 
 DEFAULT_ADDRESS = '[::]'
 DEFAULT_PORT = 54321
@@ -23,4 +23,4 @@ class FrameServer(GrpcServer):
         add_TrajectoryServiceServicer_to_server(self._trajectory_service, self.server)
 
     def send_frame(self, frame_index: int, frame_data: FrameData):
-        self._trajectory_service.send_frame(frame_index, frame_data)
+        self._trajectory_service.send_frame(frame_index, frame_data.raw)
