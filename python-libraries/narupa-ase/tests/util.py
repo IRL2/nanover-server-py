@@ -1,4 +1,7 @@
+import pytest
 from ase import Atoms
+
+from narupa.imd.imd_client import ImdClient
 
 
 def co_atoms():
@@ -7,3 +10,12 @@ def co_atoms():
                cell=[20, 20, 20],
                pbc=[1, 1, 1])
     return co
+
+
+@pytest.fixture
+def imd_client():
+    client = ImdClient(address='localhost', port=54322)
+    yield client
+    client.close()
+
+

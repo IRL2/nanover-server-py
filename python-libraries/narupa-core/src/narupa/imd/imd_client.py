@@ -7,8 +7,7 @@ from typing import Collection, Iterable, Generator
 
 import grpc
 
-from narupa.protocol.imd import Interaction
-from narupa.protocol.imd import InteractiveMolecularDynamicsStub
+from narupa.protocol.imd import InteractiveMolecularDynamicsStub, InteractionEndReply
 
 
 def delayed_generator(iterable: Iterable, delay: float = 0):
@@ -38,16 +37,15 @@ class ImdClient:
         Publishes the collection of interactions on a thread, with an optional delay between
         each publication.
         :param interactions: A generator of interactions.
-        :return:
         """
         self.threads.submit(self.publish_interactions, interactions)
 
-    def publish_interactions(self, interactions):
+    def publish_interactions(self, interactions) -> InteractionEndReply:
         """
         Publishes the collection of interactions on a thread, with an optional delay between
         each publication.
         :param interactions: A generator of interactions.
-        :return:
+        :return: A reply indicating successful publishing of interaction.
         """
         return self.stub.PublishInteraction(interactions)
 

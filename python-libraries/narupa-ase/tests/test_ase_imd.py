@@ -9,7 +9,7 @@ from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.imd.imd_client import ImdClient, delayed_generator
 from narupa.imd.interaction import Interaction
-from .util import co_atoms
+from .util import co_atoms, imd_client
 
 
 
@@ -34,13 +34,6 @@ def imd():
     imd = ASEImdServer(dynamics)
     yield imd, atoms
     imd.close()
-
-
-@pytest.fixture
-def imd_client():
-    client = ImdClient(address='localhost', port=54322)
-    yield client
-    client.close()
 
 
 def test_ase_imd_dynamics(imd):
