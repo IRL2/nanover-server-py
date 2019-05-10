@@ -9,19 +9,8 @@ from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.imd.imd_client import ImdClient, delayed_generator
 from narupa.imd.interaction import Interaction
+from .util import co_atoms
 
-
-def co_atoms():
-    d = 1.1
-    co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)],
-               cell=[20, 20, 20],
-               pbc=[1, 1, 1])
-    return co
-
-
-@pytest.fixture
-def atoms():
-    return co_atoms()
 
 
 @pytest.fixture
@@ -29,9 +18,10 @@ def interact_c():
     interaction = Interaction(position=[0, 1, 0], particles=[0], scale=20000., interaction_type='spring')
     return interaction
 
+
 @pytest.fixture
 def interact_both():
-    interaction = Interaction(position=[0, 1, 0], particles=[0,1], scale=20000., interaction_type='spring')
+    interaction = Interaction(position=[0, 1, 0], particles=[0, 1], scale=20000., interaction_type='spring')
     return interaction
 
 
@@ -45,15 +35,18 @@ def imd():
     yield imd, atoms
     imd.close()
 
+
 @pytest.fixture
 def imd_client():
     client = ImdClient(address='localhost', port=54322)
     yield client
     client.close()
 
+
 def test_ase_imd_dynamics(imd):
     dynamics, atoms = imd
     dynamics.run(5)
+
 
 def test_ase_imd_dynamics_interaction(imd, interact_c, imd_client):
     """
@@ -71,6 +64,7 @@ def test_ase_imd_dynamics_interaction(imd, interact_c, imd_client):
     dynamics.run(10)
     atom = dynamics.atoms[interact_c.particles[0]]
     assert atom.momentum[1] > 200
+
 
 def test_ase_imd_dynamics_interaction_com(imd, interact_both, imd_client):
     """
@@ -101,7 +95,7 @@ def test_ase_imd_run_forever(imd):
     # check it really has stopped.
     assert number_of_steps == runner.dynamics.get_number_of_steps()
 
+
 def test_get_calculator(imd):
     runner, atoms = imd
     assert isinstance(runner.internal_calculator, LennardJones)
-
