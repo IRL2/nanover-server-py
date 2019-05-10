@@ -1,8 +1,7 @@
 """
 LAMMPS python integration with Narupa
-This program can be run as a standalone using dummy data or from within LAMMPS using the python_invoke/fix command as
-demonstrated in the example LAMMPS
-inputs.
+This program can be run as a standalone using dummy data or from within LAMMPS
+using the python_invoke/fix command as demonstrated in the example LAMMPS inputs.
 """
 import ctypes
 import logging
@@ -23,13 +22,14 @@ element_index = {
 }
 
 
-def manipulate_dummy_array(MatType, n_atoms):
+def manipulate_dummy_array(matrix_type, n_atoms):
     """
     This routine mimics LAMMPS cytpes for easy debugging
     Generate dummy ctype double array of 3N particles
     TODO convert this to a full dummy LAMMPS class
 
-    :param MatType: For the moment doesnt do anything
+    :param matrix_type: For the moment doesnt do anything
+    :param n_atoms: Number of atoms detemrines dimension of array
     :return: 3N matrix data_array that contains all the dummy data
     """
     data_array = (ctypes.c_double * (3 * n_atoms))(*range(3 * n_atoms))
@@ -69,6 +69,9 @@ class LammpsHook:
         The MPI routines are essential to stop thread issues that cause internal
         LAMMPS crashes
         """
+        # Start frame server, must come before MPI
+        self.frame_server = FrameServer(address='localhost', port=54321)
+        self.frame_index = 0
 
         # Load MPI routines, has to be performed here.
         from mpi4py import MPI
@@ -76,10 +79,10 @@ class LammpsHook:
         me = self.comm.Get_rank()
         nprocs = self.comm.Get_size()
 
-        # Start frame server
-        self.frame_server = FrameServer(address='localhost', port=54321)
-        self.frame_index = 0
+        logging.basicConfig(level=logging.INFO)
         logging.info("Lammpshook initialised for NarupaXR")
+        logging.info("MPI rank %s", me)
+        logging.info("MPI n processors %s ", nprocs)
         # TODO make it so that the simulation waits on connect as an option
 
     def test_debug(self):
@@ -164,12 +167,6 @@ class LammpsHook:
                 # Many possible reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load LAMMPS wrapper", e)
 
-        # mass = L.extract_atom("mass",2)
-        # xp = L.extract_atom("x",3)
-        # print("Natoms, mass, x[0][0] coord =",n_atoms,mass[1],xp[0][0])
-        # temp = L.extract_compute("thermo_temp",0,0)
-        # print("Temperature from compute =",temp)
-
         # Choose the matrix type that will be extracted
         matrix_type = "x"
         n_atoms_dummy = 10
@@ -184,8 +181,3 @@ class LammpsHook:
         # print("FRAME STUFF \n", self.frame_index, "\n", self.frame_data)
         self.frame_server.send_frame(self.frame_index, self.frame_data)
         self.frame_index += 1
-
-        # Scatter data back to lammps processors
-        # if lmp is not None:
-        # L.scatter_atoms(matrix_type,1,3,v)
-

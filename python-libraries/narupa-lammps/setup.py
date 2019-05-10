@@ -13,6 +13,7 @@ setup(name='narupa-lammps',
       package_dir={'': 'src'},
       requires=(
             'narupa',
-            'MDAnalysis',
+            'mpi4py',
+            'numpy',
       ),
      )
