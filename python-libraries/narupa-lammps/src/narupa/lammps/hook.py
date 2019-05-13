@@ -10,7 +10,8 @@ import numpy as np
 from lammps import lammps  # , PyLammps
 
 from narupa.protocol.trajectory import FrameData
-from narupa.trajectory import FrameServer
+from narupa.trajectory import FrameServer, FrameData
+from narupa.trajectory.frame_data import POSITIONS
 
 # Keep for converting internal LAMMPS atoms data into strings during testing
 element_index = {
@@ -70,7 +71,8 @@ class LammpsHook:
         LAMMPS crashes
         """
         # Start frame server, must come before MPI
-        self.frame_server = FrameServer(address='localhost', port=54321)
+        port_no = 54321
+        self.frame_server = FrameServer(address='localhost', port=port_no)
         self.frame_index = 0
 
         # Load MPI routines, has to be performed here.
@@ -83,6 +85,7 @@ class LammpsHook:
         logging.info("Lammpshook initialised for NarupaXR")
         logging.info("MPI rank %s", me)
         logging.info("MPI n processors %s ", nprocs)
+        logging.info("Port %s ", port_no)
         # TODO make it so that the simulation waits on connect as an option
 
     def test_debug(self):
@@ -121,6 +124,21 @@ class LammpsHook:
         L.scatter_atoms(matrix_type, 1, 3, data_array)
         return data_array
 
+
+    def gather_lammps_particle_types(self, L):
+        '''
+        Collect the paticle list from LAMMPS, this may be atomistic or coarse grained
+        particles
+
+        :param L: LAMMPS class that contains all the needed routines
+        :return: 3N matrix with all the data requested
+        '''
+        n_atoms = L.get_natoms()
+        data_array = L.gather_atoms(matrix_type, 1, 3)
+
+        return particle_list
+
+
     def lammps_to_frame_data(self, data_array, topology=True, positions=True) -> FrameData:
         """
         Convert the flat ctype.c_double data into the framedata format.
@@ -141,7 +159,7 @@ class LammpsHook:
             positions = np.fromiter(data_array, dtype=np.float, count=len(data_array))
             # Convert to nm
             positions = np.multiply(0.1, positions)
-            frame_data.arrays["atom.position"].float_values.values.extend(positions)
+            frame_data.arrays[POSITIONS] = positions
 
         return frame_data
 

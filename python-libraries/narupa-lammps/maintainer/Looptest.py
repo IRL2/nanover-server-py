@@ -8,7 +8,7 @@ def main():
     print("Starting Trajectory Server")
     while True:
         h.lammps_hook()
-        print("FRAME STUFF", h.frame_index, h.frame_data)
+        print("FRAME STUFF", h.frame_index, h.frame_data.raw)
         time.sleep(1.0 / 10.0)
 
 

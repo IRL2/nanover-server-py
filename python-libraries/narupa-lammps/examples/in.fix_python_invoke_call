@@ -29,7 +29,7 @@ import os
 import inspect
 sys.path.append('.')
 #from mpi4py import MPI
-from example import LammpsHook
+from narupa.lammps import LammpsHook
 h = LammpsHook()
 
 
@@ -52,4 +52,4 @@ fix     3 all python/invoke 1 post_force post_force_callback
 #dump_modify	3 pad 3
 
 thermo		50
-run		50
+run		5000000
