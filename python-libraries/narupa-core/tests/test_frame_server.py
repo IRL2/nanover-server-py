@@ -3,56 +3,55 @@ from unittest.mock import Mock
 import pytest
 import time
 
-from narupa.protocol.trajectory import FrameData
-from narupa.trajectory import FrameServer, FrameClient
+from narupa.trajectory import FrameServer, FrameClient, FrameData
 
 
 @pytest.fixture
 def simple_frame_data():
     basic_frame_data = FrameData()
-    basic_frame_data.arrays["indices"].index_values.values.extend([0, 1, 3])
-    basic_frame_data.values["string"].string_value = "str"
-    basic_frame_data.values["bool"].bool_value = False
+    basic_frame_data.arrays["indices"] = [0, 1, 3]
+    basic_frame_data.values["string"] = "str"
+    basic_frame_data.values["bool"] = False
     return basic_frame_data
 
 
 @pytest.fixture
 def disjoint_frame_data():
     basic_frame_data = FrameData()
-    basic_frame_data.arrays["strings"].string_values.values.extend(['a', 'b', 'd'])
-    basic_frame_data.values["number"].number_value = 16.5
+    basic_frame_data.arrays["strings"] = ['a', 'b', 'd']
+    basic_frame_data.values["number"] = 16.5
     return basic_frame_data
 
 
 @pytest.fixture
 def overlap_frame_data():
     basic_frame_data = FrameData()
-    basic_frame_data.arrays["strings"].string_values.values.extend(['a', 'b', 'd'])
-    basic_frame_data.arrays["indices"].index_values.values.extend([6, 8, 11])
-    basic_frame_data.values["number"].number_value = 16.5
-    basic_frame_data.values["bool"].bool_value = True
+    basic_frame_data.arrays["strings"] = ['a', 'b', 'd']
+    basic_frame_data.arrays["indices"] = [6, 8, 11]
+    basic_frame_data.values["number"] = 16.5
+    basic_frame_data.values["bool"] = True
     return basic_frame_data
 
 
 @pytest.fixture
 def simple_and_disjoint_frame_data():
     basic_frame_data = FrameData()
-    basic_frame_data.arrays["indices"].index_values.values.extend([0, 1, 3])
-    basic_frame_data.values["string"].string_value = "str"
-    basic_frame_data.values["bool"].bool_value = False
-    basic_frame_data.arrays["strings"].string_values.values.extend(['a', 'b', 'd'])
-    basic_frame_data.values["number"].number_value = 16.5
+    basic_frame_data.arrays["indices"] = [0, 1, 3]
+    basic_frame_data.values["string"] = "str"
+    basic_frame_data.values["bool"] = False
+    basic_frame_data.arrays["strings"] = ['a', 'b', 'd']
+    basic_frame_data.values["number"] = 16.5
     return basic_frame_data
 
 
 @pytest.fixture
 def simple_and_overlap_frame_data():
     basic_frame_data = FrameData()
-    basic_frame_data.values["string"].string_value = "str"
-    basic_frame_data.arrays["strings"].string_values.values.extend(['a', 'b', 'd'])
-    basic_frame_data.arrays["indices"].index_values.values.extend([6, 8, 11])
-    basic_frame_data.values["number"].number_value = 16.5
-    basic_frame_data.values["bool"].bool_value = True
+    basic_frame_data.values["string"] = "str"
+    basic_frame_data.arrays["strings"] = ['a', 'b', 'd']
+    basic_frame_data.arrays["indices"] = [6, 8, 11]
+    basic_frame_data.values["number"] = 16.5
+    basic_frame_data.values["bool"] = True
     return basic_frame_data
 
 
@@ -103,6 +102,10 @@ def test_data_earlyclient(frame_server, frame_client, simple_frame_data):
         result = frame
 
     frame_client.subscribe_frames_async(callback)
+    # It takes time to actually subscribe. During that time, the server can
+    # already have yielded the frame from the next instruction. We therefore
+    # need to wait for the subscription go go through before we send a frame.
+    time.sleep(0.1)
 
     frame_server.send_frame(0, simple_frame_data)
 
@@ -142,7 +145,6 @@ def test_data_disjoint(frame_server, frame_client, simple_frame_data, disjoint_f
     time.sleep(0.5)
 
     assert result == simple_and_disjoint_frame_data
-
 
 
 def test_data_overlap(frame_server, frame_client, simple_frame_data, overlap_frame_data, simple_and_overlap_frame_data):

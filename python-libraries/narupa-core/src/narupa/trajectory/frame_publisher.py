@@ -1,4 +1,4 @@
-from queue import Queue
+from queue import Queue, Empty
 from typing import List
 
 from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameResponse, FrameData
@@ -28,8 +28,14 @@ class FramePublisher(TrajectoryServiceServicer):
         self.frame_queues.append(queue)
 
         while True:
-            item = queue.get(True)
-            yield item
+            try:
+                item = queue.get(block=True, timeout=0.5)
+            except Empty:
+                pass
+            else:
+                yield item
+            finally:
+                queue.task_done()
 
     def send_frame(self, frame_index: int, frame: FrameData):
         if self.last_frame is None:

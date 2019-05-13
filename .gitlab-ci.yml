@@ -1,0 +1,28 @@
+image: intangiblerealitieslab/dotnet-conda
+stages:
+  - test
+  - deploy
+
+release:
+  stage: deploy
+  only:
+    - master
+    - develop
+  artifacts:
+    paths:
+      - python-libraries
+      - csharp-libraries/Narupa.Protocol/bin/Release
+  script:
+    - ./compile.sh
+
+debug:
+  stage: test
+  script:
+    - ./compile.sh
+    - python -m pip install -r python-libraries/requirements.test
+    - python -m pytest --cov=narupa python-libraries
+    - coverage html
+  artifacts:
+    paths:
+      - htmlcov
+      - csharp-libraries/Narupa.Protocol/bin/Release

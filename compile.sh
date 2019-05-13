@@ -19,7 +19,7 @@ set -euo pipefail
 # libraries, so it should be an option.
 # Running "./compile.sh --user" will pip install with the --user option.
 
-# A developper most likely want to install narupa's python packages in edit
+# A developer most likely want to install narupa's python packages in edit
 # mode. We add a --edit option to the script to allow this.
 user_option=""
 edit_option=""
@@ -47,6 +47,8 @@ python -m pip install ${edit_option} ${narupa_user_option} \
     ./python-libraries/narupa-core/
 python -m pip install ${edit_option} ${narupa_user_option} \
     ./python-libraries/narupa-openmm/
+python -m pip install ${edit_option} ${narupa_user_option} \
+    ./python-libraries/narupa-ase/
 
 python -c "import simtk" 2>&1 > /dev/null || {
     announce "OpenMM is not installed."
@@ -54,6 +56,4 @@ python -c "import simtk" 2>&1 > /dev/null || {
 }
 
 announce "Compiling proto files to C#"
-cd csharp-libraries/Narupa.Protocol
-dotnet build
-cd ../
+dotnet build --configuration Release csharp-libraries/Narupa.Protocol

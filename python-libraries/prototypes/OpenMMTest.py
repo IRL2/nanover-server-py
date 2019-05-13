@@ -4,7 +4,7 @@ from time import sleep
 from simtk.openmm.app import *
 
 from narupa.protocol.topology.topology_pb2 import *
-from narupy.StreamTopology import *
+from narupa.StreamTopology import *
 
 
 def download_pdb(pdb_id):

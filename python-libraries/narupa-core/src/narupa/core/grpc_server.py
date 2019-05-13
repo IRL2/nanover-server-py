@@ -10,7 +10,7 @@ class GrpcServer:
 
         self.setup_services()
 
-        self.server.add_insecure_port(address="{0}:{1}".format(address, port))
+        self._port = self.server.add_insecure_port(address="{0}:{1}".format(address, port))
         self.server.start()
 
     def setup_services(self):
