@@ -72,7 +72,7 @@ class LammpsHook:
         """
         # Start frame server, must come before MPI
         port_no = 54321
-        self.frame_server = FrameServer(address='localhost', port=port_no)
+        self.frame_server = FrameServer(address='[::]', port=port_no)
         self.frame_index = 0
 
         # Load MPI routines, has to be performed here.
