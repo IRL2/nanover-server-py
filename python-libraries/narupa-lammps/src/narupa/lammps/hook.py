@@ -7,7 +7,8 @@ import ctypes
 import logging
 
 import numpy as np
-from lammps import lammps  # , PyLammps
+import random
+from lammps import lammps
 
 from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer, FrameData
@@ -22,20 +23,43 @@ element_index_mass = {
     32:'S'
 }
 
+class DummyLammps:
+    """
+    A fake lammps object intended just for unit testing the lammps code
+    without having to have lammps installed on a server
 
-def manipulate_dummy_array(matrix_type, n_atoms):
+    Currently can make:
+         fake ctype 3N array (Positions, forces or velocities)
+         fake element list
+    """
+    def __init__(self):
+        self.n_atoms_dummy = 10
+
+
+def manipulate_dummy_array(n_atoms_dummy):
     """
     This routine mimics LAMMPS cytpes for easy debugging
     Generate dummy ctype double array of 3N particles
     TODO convert this to a full dummy LAMMPS class
 
-    :param matrix_type: For the moment doesnt do anything
     :param n_atoms: Number of atoms detemrines dimension of array
     :return: 3N matrix data_array that contains all the dummy data
     """
-    data_array = (ctypes.c_double * (3 * n_atoms))(*range(3 * n_atoms))
+    data_array = (ctypes.c_double * (3 * n_atoms_dummy))(*range(3 * n_atoms_dummy))
     print(data_array[1], data_array[2], data_array[3])
     return data_array
+
+def dummy_elements(n_atoms_dummy):
+    '''
+    Genertate dummy element list for testing
+    :param natoms: number of dummy atoms
+    :return:
+    '''
+    dummy_element_list = []
+    for i in range(1, n_atoms_dummy):
+        dummy_element_list[i] = random.choice(element_index_mass.value())
+    return dummy_element_list
+
 
 
 class LammpsHook:
@@ -162,8 +186,7 @@ class LammpsHook:
         Convert the flat ctype.c_double data into the framedata format.
 `
         :param data_array: Data to convert
-        :param topology: Check if data is topological
-        :param positions: Check if data is positional
+        :param frame_data: frame data object
         :return: overwrite data in data_array matrix with new formatted framedata
         """
 
@@ -173,21 +196,8 @@ class LammpsHook:
         positions = np.multiply(0.1, positions)
         frame_data.arrays[POSITIONS] = positions
 
-#    def lammps_elements_to_frame_data(self, data_array,  frame_data) -> FrameData:
-#        """
-#        Convert the flat ctype.c_double data into the framedata format.
-#
-#        :param data_array: Data to convert
-#        :param topology: Check if data is topological
-#        :param positions: Check if data is positional
-#        :return: overwrite data in data_array matrix with new formatted framedata
-#        """
-#
-#
         return frame_data
 
-
-    # lammps_hook passes data between python and the Lammps binary
     def lammps_hook(self, lmp=None):
         """
         lammps_hook is the main routine that is run within LAMMPS MD
@@ -214,7 +224,7 @@ class LammpsHook:
         n_atoms_dummy = 10
         # If not in LAMMPS run dummy routine
         if lmp is None:
-            data_array = manipulate_dummy_array(matrix_type, n_atoms_dummy)
+            data_array = manipulate_dummy_array(n_atoms_dummy)
         else:
             data_array = self.manipulate_lammps_array(matrix_type, L)
             atom_type = self.gather_lammps_particle_types(L)
@@ -228,21 +238,20 @@ class LammpsHook:
         # Convert positions
         self.frame_data = self.lammps_array_to_frame_data(data_array, frame_data)
 
-        # Remove once new pretend lammps object is made
-        # Convert elements
+        # TODO Remove once new pretend lammps object is made
+        # Convert elements from list to frame data
         if lmp is not None:
             self.frame_data.arrays[ELEMENTS] = atom_type
-            #self.frame_data = self.lammps_elements_to_frame_data(atom_type, frame_data)
 
         # Send frame data
-        # print("FRAME STUFF \n", self.frame_index, "\n", self.frame_data)
         self.frame_server.send_frame(self.frame_index, self.frame_data)
         self.frame_index += 1
 
-        self.frame_loop += 1
         # Print every 100 cycles if python interperater is still running
-        if self.frame_loop == 10 :
+        # This helps ensure that everything in lammps is continuing to run
+        self.frame_loop += 1
+        if self.frame_loop == 100 :
             logging.info("LAMMPS python fix is running step %s", self.frame_index)
-            logging.info("FRAME STUFF %s %s", self.frame_index, self.frame_data.raw)
+            #logging.info("FRAME STUFF %s %s", self.frame_index, self.frame_data.raw)
             self.frame_loop = 0
 
