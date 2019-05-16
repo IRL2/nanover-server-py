@@ -1,5 +1,4 @@
 import pytest
-import narupa.lammps.hook as nlh
 from narupa.lammps import LammpsHook
 from narupa.lammps import DummyLammps
 from narupa.trajectory.frame_data import POSITIONS
