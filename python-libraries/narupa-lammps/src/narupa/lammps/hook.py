@@ -35,30 +35,29 @@ class DummyLammps:
     def __init__(self):
         self.n_atoms_dummy = 10
 
+    def manipulate_dummy_array(self, n_atoms_dummy):
+        """
+        This routine mimics LAMMPS cytpes for easy debugging
+        Generate dummy ctype double array of 3N particles
+        TODO convert this to a full dummy LAMMPS class
 
-def manipulate_dummy_array(n_atoms_dummy):
-    """
-    This routine mimics LAMMPS cytpes for easy debugging
-    Generate dummy ctype double array of 3N particles
-    TODO convert this to a full dummy LAMMPS class
+        :param n_atoms: Number of atoms detemrines dimension of array
+        :return: 3N matrix data_array that contains all the dummy data
+        """
+        data_array = (ctypes.c_double * (3 * n_atoms_dummy))(*range(3 * n_atoms_dummy))
+        print(data_array[1], data_array[2], data_array[3])
+        return data_array
 
-    :param n_atoms: Number of atoms detemrines dimension of array
-    :return: 3N matrix data_array that contains all the dummy data
-    """
-    data_array = (ctypes.c_double * (3 * n_atoms_dummy))(*range(3 * n_atoms_dummy))
-    print(data_array[1], data_array[2], data_array[3])
-    return data_array
-
-def dummy_elements(n_atoms_dummy):
-    '''
-    Genertate dummy element list for testing
-    :param natoms: number of dummy atoms
-    :return:
-    '''
-    dummy_element_list = []
-    for i in range(1, n_atoms_dummy):
-        dummy_element_list[i] = random.choice(element_index_mass.value())
-    return dummy_element_list
+    def dummy_elements(self, n_atoms_dummy):
+        '''
+        Genertate dummy element list for testing
+        :param natoms: number of dummy atoms
+        :return:
+        '''
+        dummy_element_list = []
+        for i in range(1, n_atoms_dummy):
+            dummy_element_list[i] = random.choice(element_index_mass.value())
+        return dummy_element_list
 
 
 
@@ -211,6 +210,11 @@ class LammpsHook:
         # If not assume we are in interactive mode
         if lmp is None:
             print("Running without lammps, assuming interactive debugging")
+            try:
+                dummy = DummyLammps()
+            except Exception as e:
+                # Many possible reasons for LAMMPS failures so for the moment catch all
+                raise Exception("Failed to load DummyLammps", e)
         else:
             # Make sure LAMMPS object is callable
             try:
@@ -224,7 +228,7 @@ class LammpsHook:
         n_atoms_dummy = 10
         # If not in LAMMPS run dummy routine
         if lmp is None:
-            data_array = manipulate_dummy_array(n_atoms_dummy)
+            data_array = dummy.manipulate_dummy_array(n_atoms_dummy)
         else:
             data_array = self.manipulate_lammps_array(matrix_type, L)
             atom_type = self.gather_lammps_particle_types(L)

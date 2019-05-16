@@ -1,6 +1,7 @@
 import pytest
 import narupa.lammps.hook as nlh
 from narupa.lammps import LammpsHook
+from narupa.lammps import DummyLammps
 from narupa.trajectory.frame_data import POSITIONS
 from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer, FrameData
@@ -8,7 +9,7 @@ from narupa.trajectory import FrameServer, FrameData
 @pytest.fixture
 def simple_atom_lammps_frame():
     n_atoms = 3
-    data_array = nlh.manipulate_dummy_array("x", n_atoms)
+    data_array = DummyLammps.manipulate_dummy_array("x", n_atoms)
     return data_array
 
 
