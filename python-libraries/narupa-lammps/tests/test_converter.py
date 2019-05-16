@@ -9,7 +9,8 @@ from narupa.trajectory import FrameServer, FrameData
 @pytest.fixture
 def simple_atom_lammps_frame():
     n_atoms = 3
-    data_array = DummyLammps.manipulate_dummy_array("x", n_atoms)
+    dummy = DummyLammps()
+    data_array = dummy.manipulate_dummy_array(n_atoms)
     return data_array
 
 
