@@ -7,7 +7,6 @@ import ctypes
 import logging
 
 import numpy as np
-import random
 from lammps import lammps
 
 from narupa.protocol.trajectory import FrameData
@@ -39,7 +38,6 @@ class DummyLammps:
         """
         This routine mimics LAMMPS cytpes for easy debugging
         Generate dummy ctype double array of 3N particles
-        TODO convert this to a full dummy LAMMPS class
 
         :param n_atoms: Number of atoms detemrines dimension of array
         :return: 3N matrix data_array that contains all the dummy data
@@ -54,9 +52,9 @@ class DummyLammps:
         :param natoms: number of dummy atoms
         :return:
         '''
-        dummy_element_list = []
-        for i in range(1, n_atoms_dummy):
-            dummy_element_list[i] = random.choice(element_index_mass.value())
+        dummy_element_list = [None]*n_atoms_dummy
+        for i in range(0, n_atoms_dummy):
+            dummy_element_list[i] = "C"
         return dummy_element_list
 
 
@@ -165,19 +163,14 @@ class LammpsHook:
         # Gather the atom types, 1D int of n atoms length.
         atom_kind = L.gather_atoms("type", 0, 1)
 
-
         # Atom mass is indexed from 1 in lammps for some reason.
         # Create a new list rounded to the nearest mass integer
         atom_mass_type = list(atom_type_mass[1:ntypes+1])
         atom_mass_type = [round(x) for x in atom_mass_type]
-
-        atom_elements =[atom_mass_type[particle-1] for particle in atom_kind]
-
-
-        final_elements =[element_index_mass[mass] for mass in atom_elements]
-        #print(atom_mass_type)
-        #print(atom_kind[0:10])
-        #print(final_elements[0:10])
+        # Convert to masses
+        atom_elements = [atom_mass_type[particle-1] for particle in atom_kind]
+        # Convert to elements
+        final_elements = [element_index_mass[mass] for mass in atom_elements]
         return final_elements
 
     def lammps_array_to_frame_data(self, data_array, frame_data) -> FrameData:
@@ -229,6 +222,7 @@ class LammpsHook:
         # If not in LAMMPS run dummy routine
         if lmp is None:
             data_array = dummy.manipulate_dummy_array(n_atoms_dummy)
+            atom_type = dummy.dummy_elements(n_atoms_dummy)
         else:
             data_array = self.manipulate_lammps_array(matrix_type, L)
             atom_type = self.gather_lammps_particle_types(L)
@@ -242,10 +236,8 @@ class LammpsHook:
         # Convert positions
         self.frame_data = self.lammps_array_to_frame_data(data_array, frame_data)
 
-        # TODO Remove once new pretend lammps object is made
         # Convert elements from list to frame data
-        if lmp is not None:
-            self.frame_data.arrays[ELEMENTS] = atom_type
+        self.frame_data.arrays[ELEMENTS] = atom_type
 
         # Send frame data
         self.frame_server.send_frame(self.frame_index, self.frame_data)
@@ -254,8 +246,7 @@ class LammpsHook:
         # Print every 100 cycles if python interperater is still running
         # This helps ensure that everything in lammps is continuing to run
         self.frame_loop += 1
-        if self.frame_loop == 100 :
+        if self.frame_loop == 100:
             logging.info("LAMMPS python fix is running step %s", self.frame_index)
             #logging.info("FRAME STUFF %s %s", self.frame_index, self.frame_data.raw)
             self.frame_loop = 0
-
