@@ -7,7 +7,11 @@ import ctypes
 import logging
 
 import numpy as np
-from lammps import lammps
+try:
+    from lammps import lammps
+except ImportError:
+    logging.info('lammps failed to import', exc_info=True)
+    #print("La#mmps module has not been loaded", ImportError)
 
 
 from narupa.protocol.trajectory import FrameData
