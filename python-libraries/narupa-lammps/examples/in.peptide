@@ -59,5 +59,5 @@ group		peptide type <= 12
 #compute		bnd all property/local btype batom1 batom2
 #dump		2 peptide local 300 dump.bond index c_bnd[1] c_bnd[2] c_bnd[3]
 
-run		300
+run		3000000
 
