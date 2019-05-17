@@ -15,7 +15,8 @@ release:
   script:
     - ./compile.sh
 
-trigger_build:
+# triggers a build of the narupa documentation repo. 
+trigger_docs_build:
   stage: deploy
   script:
     - "curl -X POST -F token=6ebebef71969e5dd996b5df299bb22 -F ref=master https://gitlab.com/api/v4/projects/11677300/trigger/pipeline"
