@@ -16,7 +16,7 @@ def simple_atom_lammps_frame():
 def test_topology_lammps_atoms(simple_atom_lammps_frame):
     h = LammpsHook()
     frame_data_obj = FrameData()
-    frame_data = h.lammps_array_to_frame_data(simple_atom_lammps_frame, frame_data_obj)
+    frame_data = h.lammps_positions_to_frame_data(frame_data_obj, simple_atom_lammps_frame)
     assert len(frame_data.raw.arrays[POSITIONS].float_values.values) == 9
 
 
