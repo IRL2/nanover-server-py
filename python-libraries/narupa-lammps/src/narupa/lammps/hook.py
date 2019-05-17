@@ -9,6 +9,7 @@ import logging
 import numpy as np
 from lammps import lammps
 
+
 from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer, FrameData
 from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
@@ -97,6 +98,11 @@ class LammpsHook:
         self.frame_index = 0
         self.frame_loop = 0
 
+        try:
+            self.frame_data = FrameData()
+        except Exception as e:
+            raise Exception("Failed to load framedata", e)
+
         # Load MPI routines, has to be performed here.
         from mpi4py import MPI
         self.comm = MPI.COMM_WORLD
@@ -147,7 +153,7 @@ class LammpsHook:
 
     def gather_lammps_particle_types(self, L):
         '''
-        Collect the paticle list from LAMMPS, this may be atomistic or coarse grained
+        Collect the particle list from LAMMPS, this may be atomistic or coarse grained
         particles by looking up the ID of the atoms and that ID's corresponding mass
         from the atoms_elements dict.
 
@@ -173,7 +179,9 @@ class LammpsHook:
         final_elements = [element_index_mass[mass] for mass in atom_elements]
         return final_elements
 
-    def lammps_array_to_frame_data(self, data_array, frame_data) -> FrameData:
+    def lammps_positions_to_frame_data(self,
+                                       frame_data: FrameData,
+                                       data_array: np.array) -> FrameData:
         """
         Convert the flat ctype.c_double data into the framedata format.
 `
@@ -227,14 +235,8 @@ class LammpsHook:
             data_array = self.manipulate_lammps_array(matrix_type, L)
             atom_type = self.gather_lammps_particle_types(L)
 
-        # Convert collected data to frame data
-        try:
-            frame_data = FrameData()
-        except Exception as e:
-            raise Exception("Failed to load framedata", e)
-
         # Convert positions
-        self.frame_data = self.lammps_array_to_frame_data(data_array, frame_data)
+        self.lammps_positions_to_frame_data(self.frame_data, data_array)
 
         # Convert elements from list to frame data
         self.frame_data.arrays[ELEMENTS] = atom_type
