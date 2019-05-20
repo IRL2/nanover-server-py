@@ -22,3 +22,4 @@ htmlcov
 .pytest_cache
 
 .hypothesis/
+*.DotSettings.user

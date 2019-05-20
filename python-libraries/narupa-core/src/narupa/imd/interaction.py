@@ -12,6 +12,11 @@ from google.protobuf.struct_pb2 import Struct
 import narupa.protocol.imd.imd_pb2 as imd_pb2
 
 
+def set_default_property(properties: Struct, key, default):
+    if key not in properties:
+        properties[key] = default
+
+
 class Interaction:
     """
     A wrapper around the protobuf representation of an interaction.
@@ -29,6 +34,11 @@ class Interaction:
     """
     _interaction: imd_pb2.Interaction
 
+    TYPE_KEY = "type"
+    SCALE_KEY = "scale"
+    MASS_WEIGHTED_KEY = "mass_weighted"
+
+
     def __init__(self, player_id: str = "1",
                  interaction_id="0",
                  position=(0, 0, 0),
@@ -45,7 +55,7 @@ class Interaction:
         self.particles = particles
 
     @classmethod
-    def from_proto(cls, interaction_proto):
+    def from_proto(cls, interaction_proto, default_interaction_type='gaussian', default_scale=1, default_mass_weighted=True):
         """
         Initialises an interaction from the protobuf representation.
         :param interaction_proto: The protobuf representation of the interaction.
@@ -54,6 +64,10 @@ class Interaction:
         interaction = cls()
         interaction._interaction = interaction_proto
         interaction._properties = interaction_proto.properties
+        set_default_property(interaction.properties, cls.TYPE_KEY, default_interaction_type)
+        set_default_property(interaction.properties, cls.MASS_WEIGHTED_KEY, default_scale)
+        set_default_property(interaction.properties, cls.SCALE_KEY, default_mass_weighted)
+
         return interaction
 
     @property
