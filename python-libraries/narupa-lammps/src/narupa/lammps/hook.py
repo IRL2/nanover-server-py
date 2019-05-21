@@ -231,8 +231,6 @@ class LammpsHook:
         positions = np.multiply(0.1, positions)
         frame_data.arrays[POSITIONS] = positions
 
-        return frame_data
-
     def lammps_hook(self, lmp=None):
         """
         lammps_hook is the main routine that is run within LAMMPS MD
