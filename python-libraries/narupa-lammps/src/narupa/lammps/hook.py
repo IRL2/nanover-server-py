@@ -11,8 +11,6 @@ try:
     from lammps import lammps
 except ImportError:
     logging.info('lammps failed to import', exc_info=True)
-    #print("La#mmps module has not been loaded", ImportError)
-
 
 from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer, FrameData
@@ -20,43 +18,43 @@ from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
 
 # Keep for converting internal LAMMPS atoms masses in to a guess atomic charge
 element_index_mass = {
- 1:   1,
- 4:   2,
- 7:   3,
- 9:   4,
- 11:  5,
- 12:  6,
- 14:  7,
- 16:  8,
- 19:  9,
- 20:  10,
- 23:  11,
- 24:  12,
- 27:  13,
- 28:  14,
- 31:  15,
- 32:  16,
- 35:  17,
- 39:  19,
- 40:  18,
- 45:  21,
- 48:  22,
- 51:  23,
- 52:  24,
- 55:  25,
- 56:  26,
- 59:  27,
- 64:  29,
- 65:  30,
- 70:  31,
- 73:  32,
- 75:  33,
- 79:  34,
- 80:  35,
- 84:  36,
- 85:  37,
- 88:  38,
- 89:  39,
+    1:   1,
+    4:   2,
+    7:   3,
+    9:   4,
+    11:  5,
+    12:  6,
+    14:  7,
+    16:  8,
+    19:  9,
+    20:  10,
+    23:  11,
+    24:  12,
+    27:  13,
+    28:  14,
+    31:  15,
+    32:  16,
+    35:  17,
+    39:  19,
+    40:  18,
+    45:  21,
+    48:  22,
+    51:  23,
+    52:  24,
+    55:  25,
+    56:  26,
+    59:  27,
+    64:  29,
+    65:  30,
+    70:  31,
+    73:  32,
+    75:  33,
+    79:  34,
+    80:  35,
+    84:  36,
+    85:  37,
+    88:  38,
+    89:  39,
 }
 
 class DummyLammps:
@@ -85,13 +83,13 @@ class DummyLammps:
 
     def dummy_elements(self, n_atoms_dummy):
         '''
-        Genertate dummy element list for testing
-        :param natoms: number of dummy atoms
+        Generate dummy element list for testing
+        :param n_atoms_dummy: number of dummy atoms
         :return:
         '''
         dummy_element_list = [None]*n_atoms_dummy
         for i in range(0, n_atoms_dummy):
-            dummy_element_list[i] = "C"
+            dummy_element_list[i] = 6
         return dummy_element_list
 
 
@@ -114,7 +112,7 @@ class LammpsHook:
     freezing the system. In the case below we are slowly translating all the atoms in the system
     along the x direction.
 
-    The translation of the LAMMPS c_type pointers into framedata is done by  np.fromiter which
+    The translation of the LAMMPS c_type pointers into FrameData is done by  np.fromiter which
     allows a quick way of allocating a numpy array.
 
     The main lammps_hook routine will check if it is being run from within LAMMPS or as a
@@ -137,7 +135,7 @@ class LammpsHook:
         try:
             self.frame_data = FrameData()
         except Exception as e:
-            raise Exception("Failed to load framedata", e)
+            raise Exception("Failed to load FrameData", e)
 
         # Load MPI routines, has to be performed here.
         from mpi4py import MPI
@@ -218,13 +216,13 @@ class LammpsHook:
                                        frame_data: FrameData,
                                        data_array: np.array) -> FrameData:
         """
-        Convert the flat ctype.c_double data into the framedata format. for the moment
+        Convert the flat ctype.c_double data into the frame_data format. for the moment
         this assumes we are in LAMMPS real units. Its unclear at this stage if is possible
-        to automatically detect this if the case is other wise.
+        to automatically detect this if the case is otherwise.
 `
         :param data_array: Data to convert
         :param frame_data: frame data object
-        :return: overwrite data in data_array matrix with new formatted framedata
+        :return: overwrite data in data_array matrix with new formatted frame_data
         """
 
         # Copy the ctype array to numpy for processing
@@ -282,7 +280,7 @@ class LammpsHook:
         self.frame_server.send_frame(self.frame_index, self.frame_data)
         self.frame_index += 1
 
-        # Print every 100 cycles if python interperater is still running
+        # Print every 100 cycles if python interpreter is still running
         # This helps ensure that everything in lammps is continuing to run
         self.frame_loop += 1
         if self.frame_loop == 100:
