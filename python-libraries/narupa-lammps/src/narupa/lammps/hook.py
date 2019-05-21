@@ -165,15 +165,13 @@ class LammpsHook:
         n_atoms = L.get_natoms()
         print("In class testy", "Atoms : ", n_atoms)
 
-    def manipulate_lammps_array(self,
-                                matrix_type: str,
-                                L: lammps):
+    def manipulate_lammps_array(self, matrix_type: str, L):
         """
         Gather Matrix data from all LAMMPS MPI threads
 
         :param matrix_type: String identifying data to transmit, e.g x, v or f
         :param L: LAMMPS class that contains all the needed routines
- type :return: 3N matrix with all the data requested
+        type :return: 3N matrix with all the data requested
         """
 
         # n_local = L.extract_global('nlocal', 0)  # L.get_nlocal()
@@ -189,8 +187,7 @@ class LammpsHook:
         L.scatter_atoms(matrix_type, 1, 3, data_array)
         return data_array
 
-    def gather_lammps_particle_types(self,
-                                     L: lammps):
+    def gather_lammps_particle_types(self, L):
         '''
         Collect the particle list from LAMMPS, this may be atomistic or coarse grained
         particles by looking up the ID of the atoms and that ID's corresponding mass
