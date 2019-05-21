@@ -26,3 +26,11 @@ debug:
     paths:
       - htmlcov
       - csharp-libraries/Narupa.Protocol/bin/Release
+
+test_dotnet:
+  stage: test
+  variables:
+    test_path: "csharp-libraries"
+  script:
+    - "cd $test_path"
+    - "dotnet test"

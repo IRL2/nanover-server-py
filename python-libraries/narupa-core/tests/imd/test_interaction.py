@@ -33,6 +33,9 @@ def test_from_proto():
     interaction = Interaction.from_proto(interaction_grpc)
     assert interaction.player_id == "1"
     assert interaction.interaction_id == "0"
+    assert interaction.type == "gaussian"
+    assert interaction.scale == 1
+    assert interaction.mass_weighted == True
 
 
 def test_set_invalid_position(interaction):
