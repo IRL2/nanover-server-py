@@ -222,7 +222,6 @@ class LammpsHook:
 `
         :param data_array: Data to convert
         :param frame_data: frame data object
-        :return: overwrite data in data_array matrix with new formatted frame_data
         """
 
         # Copy the ctype array to numpy for processing
