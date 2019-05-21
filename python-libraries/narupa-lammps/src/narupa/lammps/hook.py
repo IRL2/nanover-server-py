@@ -174,7 +174,6 @@ class LammpsHook:
         type :return: 3N matrix with all the data requested
         """
 
-        # n_local = L.extract_global('nlocal', 0)  # L.get_nlocal()
         # Hard to tell if LAMMPS python interpreter is working so for now print every step
         n_atoms = L.get_natoms()
         data_array = L.gather_atoms(matrix_type, 1, 3)
@@ -219,7 +218,9 @@ class LammpsHook:
                                        frame_data: FrameData,
                                        data_array: np.array) -> FrameData:
         """
-        Convert the flat ctype.c_double data into the framedata format.
+        Convert the flat ctype.c_double data into the framedata format. for the moment
+        this assumes we are in LAMMPS real units. Its unclear at this stage if is possible
+        to automatically detect this if the case is other wise.
 `
         :param data_array: Data to convert
         :param frame_data: frame data object
