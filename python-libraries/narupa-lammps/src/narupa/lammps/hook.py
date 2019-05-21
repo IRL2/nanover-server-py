@@ -18,13 +18,45 @@ from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer, FrameData
 from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
 
-# Keep for converting internal LAMMPS atoms data into strings during testing
+# Keep for converting internal LAMMPS atoms masses in to a guess atomic charge
 element_index_mass = {
-    1 :'H',
-    12:'C',
-    14:'N',
-    16:'O',
-    32:'S'
+ 1:   1,
+ 4:   2,
+ 7:   3,
+ 9:   4,
+ 11:  5,
+ 12:  6,
+ 14:  7,
+ 16:  8,
+ 19:  9,
+ 20:  10,
+ 23:  11,
+ 24:  12,
+ 27:  13,
+ 28:  14,
+ 31:  15,
+ 32:  16,
+ 35:  17,
+ 39:  19,
+ 40:  18,
+ 45:  21,
+ 48:  22,
+ 51:  23,
+ 52:  24,
+ 55:  25,
+ 56:  26,
+ 59:  27,
+ 64:  29,
+ 65:  30,
+ 70:  31,
+ 73:  32,
+ 75:  33,
+ 79:  34,
+ 80:  35,
+ 84:  36,
+ 85:  37,
+ 88:  38,
+ 89:  39,
 }
 
 class DummyLammps:
@@ -97,7 +129,7 @@ class LammpsHook:
         LAMMPS crashes
         """
         # Start frame server, must come before MPI
-        port_no = 54321
+        port_no = 8080
         self.frame_server = FrameServer(address='[::]', port=port_no)
         self.frame_index = 0
         self.frame_loop = 0
@@ -133,7 +165,9 @@ class LammpsHook:
         n_atoms = L.get_natoms()
         print("In class testy", "Atoms : ", n_atoms)
 
-    def manipulate_lammps_array(self, matrix_type, L):
+    def manipulate_lammps_array(self,
+                                matrix_type: str,
+                                L: lammps):
         """
         Gather Matrix data from all LAMMPS MPI threads
 
@@ -155,7 +189,8 @@ class LammpsHook:
         L.scatter_atoms(matrix_type, 1, 3, data_array)
         return data_array
 
-    def gather_lammps_particle_types(self, L):
+    def gather_lammps_particle_types(self,
+                                     L: lammps):
         '''
         Collect the particle list from LAMMPS, this may be atomistic or coarse grained
         particles by looking up the ID of the atoms and that ID's corresponding mass
