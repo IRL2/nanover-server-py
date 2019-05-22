@@ -54,9 +54,9 @@ def test_ase_imd_dynamics_interaction(imd, interact_c, imd_client):
     time.sleep(0.1)
     assert len(imd_calculator.interactions) == 1
 
-    dynamics.run(10)
+    dynamics.run(2)
     atom = dynamics.atoms[interact_c.particles[0]]
-    assert atom.momentum[1] > 200
+    assert atom.momentum[1] > 100
 
 
 def test_ase_imd_dynamics_interaction_com(imd, interact_both, imd_client):
@@ -72,9 +72,9 @@ def test_ase_imd_dynamics_interaction_com(imd, interact_both, imd_client):
     time.sleep(0.1)
     assert len(imd_calculator.interactions) == 1
 
-    dynamics.run(10)
+    dynamics.run(1)
     for atom in dynamics.atoms:
-        assert atom.momentum[1] > 200
+        assert atom.momentum[1] > 50
 
 
 def test_ase_imd_run_forever(imd):
