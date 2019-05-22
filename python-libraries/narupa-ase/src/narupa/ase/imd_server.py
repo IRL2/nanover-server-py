@@ -4,8 +4,9 @@
 """
 Interactive molecular dynamics server for use with an ASE molecular dynamics simulation.
 """
+import logging
 from concurrent import futures
-from typing import Optional
+from typing import Optional, Callable
 
 from ase import Atoms
 from ase.calculators.calculator import Calculator
@@ -23,19 +24,32 @@ class ASEImdServer:
 
     :param dynamics: A prepared ASE molecular dynamics object to run, with IMD attached.
     :param frame_interval: Interval, in steps, at which to publish frames.
+    :param frame_method(ase_atoms, frame_server): Method to use to generate frames, given the the ASE :class: Atoms
+           and a :class: FrameServer.
     """
 
-    def __init__(self, dynamics: MolecularDynamics, frame_interval=1):
-        self.frame_server = FrameServer()
-        self.imd_server = ImdServer()
+    def __init__(self, dynamics: MolecularDynamics,
+                 frame_method:Optional[Callable]=None,
+                 frame_interval=1,
+                 address:Optional[str]=None,
+                 trajectory_port:Optional[int]=None,
+                 imd_port:Optional[int]=None):
+        if frame_method is None:
+            frame_method = ASEFrameServer
+        self.frame_server = FrameServer(address=address, port=trajectory_port)
+        self.imd_server = ImdServer(address=address, port=imd_port)
         self.dynamics = dynamics
         calculator = self.dynamics.atoms.get_calculator()
         self.imd_calculator = ImdCalculator(self.imd_server.service, calculator)
         self.atoms.set_calculator(self.imd_calculator)
-        self.dynamics.attach(ASEFrameServer(self.atoms, self.frame_server), interval=frame_interval)
+        self.dynamics.attach(frame_method(self.atoms, self.frame_server), interval=frame_interval)
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._run_task = None
         self._cancelled = False
+        self.logger = logging.getLogger(__name__)
+        self.logger.info(f"Running frame server at {address}:{trajectory_port}")
+        self.logger.info(f"Running IMD server at {address}:{imd_port}")
+
 
     @property
     def internal_calculator(self) -> Calculator:

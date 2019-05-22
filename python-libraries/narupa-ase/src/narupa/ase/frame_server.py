@@ -1,11 +1,11 @@
 from ase import Atoms
 
-from . import ase_to_framedata
+from . import ase_to_frame_data
 
 
 def ASEFrameServer(ase_atoms: Atoms, frameServer):
     def send():
-        frame = ase_to_framedata(ase_atoms)
+        frame = ase_to_frame_data(ase_atoms)
         frameServer.send_frame(send.frame_index, frame)
         send.frame_index = send.frame_index + 1
 

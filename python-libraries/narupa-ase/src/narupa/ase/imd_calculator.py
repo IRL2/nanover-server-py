@@ -80,21 +80,21 @@ class ImdCalculator(Calculator):
                   system_changes=all_changes):
 
         energy = 0.0
-        if atoms is not None:
-            self.atoms = atoms
-        if self.atoms is None:
+        if atoms is None:
+            atoms = self.atoms
+        if atoms is None:
             raise ValueError('No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation.')
 
-        forces = np.zeros((len(self.atoms), 3))
+        forces = np.zeros((len(atoms), 3))
 
         if self.calculator is not None:
-            self.calculator.calculate(self.atoms, properties, system_changes)
+            self.calculator.calculate(atoms, properties, system_changes)
             if 'energy' in properties:
                 energy = self.calculator.results['energy']
             if 'forces' in properties:
                 forces = self.calculator.results['forces']
 
-        imd_energy, imd_forces = self._calculate_imd(self.atoms)
+        imd_energy, imd_forces = self._calculate_imd(atoms)
         if 'energy' in properties:
             self.results['energy'] = energy + imd_energy
         if 'forces' in properties:
