@@ -16,7 +16,8 @@ from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer, FrameData
 from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
 
-# Keep for converting internal LAMMPS atoms masses in to a guess atomic charge
+# LAMMPS works with arbitrary masses, so we need to convert it to a nuclear number
+# This list is a best guess for atom types, but won't work for isotopes for now.
 ELEMENT_INDEX_MASS = {
     1:   1,
     3:   1,
@@ -209,7 +210,7 @@ class LammpsHook:
         # Convert to masses
         atom_elements = [atom_mass_type[particle-1] for particle in atom_kind]
         # Convert to elements
-        final_elements = [ELEMENT_INDEX_MASS[mass] for mass in atom_elements]
+        final_elements = [ELEMENT_INDEX_MASS.get(mass, 1) for mass in atom_elements]
         return final_elements
 
     def lammps_positions_to_frame_data(self,
