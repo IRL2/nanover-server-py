@@ -22,26 +22,15 @@ thermo_style	multi
 thermo		50
 
 python         post_force_callback here """
-from lammps import lammps #, PyLammps
-import sys
-#from ctypes import *
-#from . import example
-#import numpy as np
-import os
-import inspect
-sys.path.append('.')
-#from mpi4py import MPI
+from lammps import lammps
 from narupa.lammps import LammpsHook
 h = LammpsHook()
 
-
-def post_force_callback(lmp, v):
+def post_force_callback(lmp,v):
   h.lammps_hook(lmp)
-
 """
 
 fix		1 all nvt temp 275.0 275.0 100.0 tchain 1
-#fix		2 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
 fix     3 all python/invoke 1 post_force post_force_callback
 
 group		peptide type <= 12

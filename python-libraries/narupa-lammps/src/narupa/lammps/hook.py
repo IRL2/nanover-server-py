@@ -17,8 +17,9 @@ from narupa.trajectory import FrameServer, FrameData
 from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
 
 # Keep for converting internal LAMMPS atoms masses in to a guess atomic charge
-element_index_mass = {
+ELEMENT_INDEX_MASS = {
     1:   1,
+    3:   1,
     4:   2,
     7:   3,
     9:   4,
@@ -78,7 +79,7 @@ class DummyLammps:
         :return: 3N matrix data_array that contains all the dummy data
         """
         data_array = (ctypes.c_double * (3 * n_atoms_dummy))(*range(3 * n_atoms_dummy))
-        print(data_array[1], data_array[2], data_array[3])
+        #print(data_array[1], data_array[2], data_array[3])
         return data_array
 
     def dummy_elements(self, n_atoms_dummy):
@@ -128,6 +129,7 @@ class LammpsHook:
         """
         # Start frame server, must come before MPI
         port_no = 8080
+        # TODO raise exception when this fails, i.e if port is blocked
         self.frame_server = FrameServer(address='[::]', port=port_no)
         self.frame_index = 0
         self.frame_loop = 0
@@ -172,7 +174,6 @@ class LammpsHook:
         type :return: 3N matrix with all the data requested
         """
 
-        # Hard to tell if LAMMPS python interpreter is working so for now print every step
         n_atoms = L.get_natoms()
         data_array = L.gather_atoms(matrix_type, 1, 3)
 
@@ -204,12 +205,11 @@ class LammpsHook:
 
         # Atom mass is indexed from 1 in lammps for some reason.
         # Create a new list rounded to the nearest mass integer
-        atom_mass_type = list(atom_type_mass[1:ntypes+1])
-        atom_mass_type = [round(x) for x in atom_mass_type]
+        atom_mass_type = [round(x) for x in atom_type_mass[1:ntypes+1]]
         # Convert to masses
         atom_elements = [atom_mass_type[particle-1] for particle in atom_kind]
         # Convert to elements
-        final_elements = [element_index_mass[mass] for mass in atom_elements]
+        final_elements = [ELEMENT_INDEX_MASS[mass] for mass in atom_elements]
         return final_elements
 
     def lammps_positions_to_frame_data(self,
@@ -266,7 +266,6 @@ class LammpsHook:
         else:
             data_array = self.manipulate_lammps_array(matrix_type, L)
             atom_type = self.gather_lammps_particle_types(L)
-
         # Convert positions
         self.lammps_positions_to_frame_data(self.frame_data, data_array)
 
