@@ -30,6 +30,7 @@ from narupa.protocol.trajectory import (
     GetFrameRequest,
     GetFrameResponse,
 )
+from narupa.trajectory.frame_data import POSITIONS
 
 
 def write_trajectory_from_server(destination, *, address: str, port: int):
@@ -73,7 +74,7 @@ def frame_to_ndarray(frame: GetFrameResponse) -> np.ndarray:
     """
     raw_positions = (
         frame
-        .frame.arrays['atom.position']
+        .frame.arrays[POSITIONS]
         .float_values
         .values
     )
