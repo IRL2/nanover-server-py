@@ -4,6 +4,7 @@ This program can be run as a standalone using dummy data or from within LAMMPS
 using the python_invoke/fix command as demonstrated in the example LAMMPS inputs.
 """
 import ctypes
+from ctypes import c_int, c_double
 import logging
 
 import numpy as np
@@ -12,7 +13,6 @@ try:
 except ImportError:
     logging.info('lammps failed to import', exc_info=True)
 
-from narupa.protocol.trajectory import FrameData
 from narupa.trajectory import FrameServer, FrameData
 from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
 
@@ -63,36 +63,81 @@ class DummyLammps:
     """
     A fake lammps object intended just for unit testing the lammps code
     without having to have lammps installed on a server
-
-    Currently can make:
-         fake ctype 3N array (Positions, forces or velocities)
-         fake element list
     """
-    def __init__(self):
-        self.n_atoms_dummy = 10
+    def __init__(self, n_atoms=10):
+        self.n_atoms = n_atoms
 
-    def manipulate_dummy_array(self, n_atoms_dummy):
+    def gather_atoms(self, array_type: str, dummy_variable, array_shape):
         """
-        This routine mimics LAMMPS cytpes for easy debugging
-        Generate dummy ctype double array of 3N particles
+        This routine generates fake ctypes to mimic lammps internal pointers
 
-        :param n_atoms: Number of atoms detemrines dimension of array
-        :return: 3N matrix data_array that contains all the dummy data
+        :param array_type: determines the type of data that should be replicated
+        :param dummy_variable: Unused here, only relevant to lammps
+        :param array_shape: Unused here, only relevant to lammps
+        :return: matrix data_array that contains all the dummy data
         """
-        data_array = (ctypes.c_double * (3 * n_atoms_dummy))(*range(3 * n_atoms_dummy))
-        #print(data_array[1], data_array[2], data_array[3])
+        if array_type is "x":
+            data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(3 * self.n_atoms))
+        elif array_type is "type":
+            data_array = (ctypes.c_int * (self.n_atoms+1))(*range(1,1))
+            # All atoms have the same type for DummyLammps testing
+            for i in range(self.n_atoms):
+                data_array[i] = 1
+        else:
+            logging.error('Unknown array type asked for in dummyLammps.gather_atoms')
+            exit()
+
         return data_array
 
-    def dummy_elements(self, n_atoms_dummy):
+    def scatter_atoms(self, array_type, dummy_variable, array_shape, data_array):
+        """
+        This routine mimics L.scatter_atoms, in the dummy case it does nothing
+        """
+
+    def extract_global(self, types: str, number_type):
         '''
         Generate dummy element list for testing
-        :param n_atoms_dummy: number of dummy atoms
+
+        replicates L.extract_global("ntypes", 0)
+        :param types: LAMMPS global variable that is needed
+        :param number_type: unused
         :return:
         '''
-        dummy_element_list = [None]*n_atoms_dummy
-        for i in range(0, n_atoms_dummy):
-            dummy_element_list[i] = 6
+        if types is "ntypes":
+            dummy_element_list = 1
+        else:
+            logging.error('Unknown array type asked for in dummyLammps.extract_global')
+            exit()
         return dummy_element_list
+
+    def get_natoms(self):
+        '''
+        Generate dummy element list for testing
+        '''
+        return self.n_atoms
+
+    def extract_atom(self, types: str, number_type):
+        '''
+        `Generate dummy element list for testing
+        :param types: string that indicates the info that should be passed
+        :param number_type: unused parameter to indicate integer float. etc
+        :return: dummy_element_list
+        '''
+        if types is "mass":
+            # initialise dummy type
+            dummy_element_type = ctypes.c_double * 2
+            # great array of dummy type
+            dummy_element_list = dummy_element_type()
+            # For some reason masses have a blank [0] value in LAMMPS
+            dummy_element_list[0] = 0
+            dummy_element_list[1] = 1
+        else:
+            logging.error('Unknown array type asked for in dummyLammps.extract_atom')
+            exit()
+        return dummy_element_list
+
+
+
 
 
 
@@ -203,12 +248,11 @@ class LammpsHook:
         atom_type_mass = L.extract_atom("mass", 2)
         # Gather the atom types, 1D int of n atoms length.
         atom_kind = L.gather_atoms("type", 0, 1)
-
         # Atom mass is indexed from 1 in lammps for some reason.
         # Create a new list rounded to the nearest mass integer
-        atom_mass_type = [round(x) for x in atom_type_mass[1:ntypes+1]]
+        atom_mass_type = [round(x) for x in atom_type_mass[0:ntypes+1]]
         # Convert to masses
-        atom_elements = [atom_mass_type[particle-1] for particle in atom_kind]
+        atom_elements = [atom_mass_type[particle] for particle in atom_kind]
         # Convert to elements
         final_elements = [ELEMENT_INDEX_MASS.get(mass, 1) for mass in atom_elements]
         return final_elements
@@ -245,7 +289,7 @@ class LammpsHook:
         if lmp is None:
             print("Running without lammps, assuming interactive debugging")
             try:
-                dummy = DummyLammps()
+                L = DummyLammps(n_atoms_default=10)
             except Exception as e:
                 # Many possible reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load DummyLammps", e)
@@ -259,14 +303,9 @@ class LammpsHook:
 
         # Choose the matrix type that will be extracted
         matrix_type = "x"
-        n_atoms_dummy = 10
-        # If not in LAMMPS run dummy routine
-        if lmp is None:
-            data_array = dummy.manipulate_dummy_array(n_atoms_dummy)
-            atom_type = dummy.dummy_elements(n_atoms_dummy)
-        else:
-            data_array = self.manipulate_lammps_array(matrix_type, L)
-            atom_type = self.gather_lammps_particle_types(L)
+
+        data_array = self.manipulate_lammps_array(matrix_type, L)
+        atom_type = self.gather_lammps_particle_types(L)
         # Convert positions
         self.lammps_positions_to_frame_data(self.frame_data, data_array)
 

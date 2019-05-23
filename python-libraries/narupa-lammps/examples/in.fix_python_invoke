@@ -20,6 +20,7 @@ neigh_modify	every 20 delay 0 check no
 
 
 python         end_of_step_callback here """
+#TODO remove this file once phase 2 is complete
 #from __future__ import print_function
 from lammps import lammps #, PyLammps
 #import mpi4py 
