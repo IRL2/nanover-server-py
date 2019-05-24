@@ -22,7 +22,7 @@ def delayed_generator(iterable: Iterable, delay: float = 0):
     """
     for item in iterable:
         time.sleep(delay)
-        yield item.proto
+        yield item
 
 
 def queue_generator(queue: Queue, sentinel: object):
@@ -58,6 +58,10 @@ def queue_generator(queue: Queue, sentinel: object):
     for val in iter(queue.get, sentinel):
         yield val
 
+def _to_proto(interactions:Iterable[Interaction]):
+    for interaction in interactions:
+        yield interaction.proto
+
 
 class ImdClient:
     """
@@ -85,7 +89,7 @@ class ImdClient:
         self._active_interactions[interaction_id] = (queue, sentinel, future)
         return interaction_id
 
-    def update_interaction(self, interaction_id, interaction):
+    def update_interaction(self, interaction_id, interaction:Interaction):
         if interaction_id not in self._active_interactions:
             raise KeyError("Attempted to update an interaction with an unknown interaction ID.")
         queue, _, _ = self._active_interactions[interaction_id]
@@ -99,7 +103,7 @@ class ImdClient:
         del self._active_interactions[interaction_id]
         return future.result()
 
-    def publish_interactions_async(self, interactions: Iterable) -> Future:
+    def publish_interactions_async(self, interactions: Iterable[Interaction]) -> Future:
         """
         Publishes the iterable of interactions on a thread.
         :param interactions: An iterable generator or collection of interactions.
@@ -107,13 +111,13 @@ class ImdClient:
         """
         return self.threads.submit(self.publish_interactions, interactions)
 
-    def publish_interactions(self, interactions: Iterable) -> InteractionEndReply:
+    def publish_interactions(self, interactions: Iterable[Interaction]) -> InteractionEndReply:
         """
         Publishes the generator of interactions on a thread.
         :param interactions: An iterable generator or collection of interactions.
         :return: A reply indicating successful publishing of interaction.
         """
-        return self.stub.PublishInteraction(interactions)
+        return self.stub.PublishInteraction(_to_proto(interactions))
 
     def close(self):
         self.channel.close()
