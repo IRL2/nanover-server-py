@@ -1,8 +1,8 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-
 import time
 from concurrent import futures
+from concurrent.futures import Future
 from queue import Queue
 from typing import Collection, Iterable, Generator
 
@@ -56,6 +56,7 @@ def queue_generator(queue: Queue, sentinel: object):
     for val in iter(queue.get, sentinel):
         yield val
 
+
 class ImdClient:
     """
     A simple IMD client, primarily for testing the IMD server.
@@ -70,35 +71,35 @@ class ImdClient:
     def start_interaction(self) -> int:
         queue = Queue()
         sentinel = object()
-        self.publish_interactions_async(queue_generator(queue, sentinel))
+        future = self.publish_interactions_async(queue_generator(queue, sentinel))
         if len(self._active_interactions) == 0:
             interaction_id = 0
         else:
             interaction_id = max(self._active_interactions) + 1
-        self._active_interactions[interaction_id] = (queue, sentinel)
+        self._active_interactions[interaction_id] = (queue, sentinel, future)
         return interaction_id
-
 
     def update_interaction(self, interaction_id, interaction):
         if interaction_id not in self._active_interactions:
             raise KeyError("Attempted to update an interaction with an unknown interaction ID.")
-        queue, _ = self._active_interactions[interaction_id]
+        queue, _, _ = self._active_interactions[interaction_id]
         queue.put(interaction)
 
-    def stop_interaction(self, interaction_id):
+    def stop_interaction(self, interaction_id) -> InteractionEndReply:
         if interaction_id not in self._active_interactions:
             raise KeyError("Attempted to stop an interaction with an unknown interaction ID.")
-        queue, sentinel = self._active_interactions[interaction_id]
+        queue, sentinel, future = self._active_interactions[interaction_id]
         queue.put(sentinel)
         del self._active_interactions[interaction_id]
+        return future.result()
 
-
-    def publish_interactions_async(self, interactions: Iterable):
+    def publish_interactions_async(self, interactions: Iterable) -> Future:
         """
         Publishes the iterable of interactions on a thread.
         :param interactions: An iterable generator or collection of interactions.
+        :return Future representing the state of the interaction task.
         """
-        self.threads.submit(self.publish_interactions, interactions)
+        return self.threads.submit(self.publish_interactions, interactions)
 
     def publish_interactions(self, interactions: Iterable) -> InteractionEndReply:
         """
