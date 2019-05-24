@@ -3,6 +3,7 @@
 
 import time
 from concurrent import futures
+from queue import Queue
 from typing import Collection, Iterable, Generator
 
 import grpc
@@ -22,6 +23,39 @@ def delayed_generator(iterable: Iterable, delay: float = 0):
         yield item.proto
 
 
+def queue_generator(queue: Queue, sentinel: object):
+    """
+    Produces a generator that can be used to iterate over the values submitted to a queue, until the
+    given sentinel is added to the queue. The iterator will block until this sentinel is passed.
+
+    Enables one to take control of when items are passed to a streaming iterator, such as that used
+    in :method: publish_interactions_async.
+
+    :param queue: Queue that items will be submitted to.
+    :param sentinel: A sentinel that indicates the end of iteration. When added to the queue,
+                     the generator stops.
+    :return: Yields the items in put into the queue, in the order they were put in.
+
+    Example
+    -------
+
+    .. code python
+
+    queue = Queue()
+    sentinel = object()
+
+    queue.put(1)
+    queue.put(2)
+    queue.put(sentinel)
+
+    generator = queue_generator(queue, sentinel)
+    for item in generator:
+        print(item)
+
+    """
+    for val in iter(queue.get, sentinel):
+        yield val
+
 class ImdClient:
     """
     A simple IMD client, primarily for testing the IMD server.
@@ -31,20 +65,45 @@ class ImdClient:
         self.channel = grpc.insecure_channel("{0}:{1}".format(address, port))
         self.stub = InteractiveMolecularDynamicsStub(self.channel)
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
+        self._active_interactions = {}
 
-    def publish_interactions_async(self, interactions):
+    def start_interaction(self) -> int:
+        queue = Queue()
+        sentinel = object()
+        self.publish_interactions_async(queue_generator(queue, sentinel))
+        if len(self._active_interactions) == 0:
+            interaction_id = 0
+        else:
+            interaction_id = max(self._active_interactions) + 1
+        self._active_interactions[interaction_id] = (queue, sentinel)
+        return interaction_id
+
+
+    def update_interaction(self, interaction_id, interaction):
+        if interaction_id not in self._active_interactions:
+            raise KeyError("Attempted to update an interaction with an unknown interaction ID.")
+        queue, _ = self._active_interactions[interaction_id]
+        queue.put(interaction)
+
+    def stop_interaction(self, interaction_id):
+        if interaction_id not in self._active_interactions:
+            raise KeyError("Attempted to stop an interaction with an unknown interaction ID.")
+        queue, sentinel = self._active_interactions[interaction_id]
+        queue.put(sentinel)
+        del self._active_interactions[interaction_id]
+
+
+    def publish_interactions_async(self, interactions: Iterable):
         """
-        Publishes the collection of interactions on a thread, with an optional delay between
-        each publication.
-        :param interactions: A generator of interactions.
+        Publishes the iterable of interactions on a thread.
+        :param interactions: An iterable generator or collection of interactions.
         """
         self.threads.submit(self.publish_interactions, interactions)
 
-    def publish_interactions(self, interactions) -> InteractionEndReply:
+    def publish_interactions(self, interactions: Iterable) -> InteractionEndReply:
         """
-        Publishes the collection of interactions on a thread, with an optional delay between
-        each publication.
-        :param interactions: A generator of interactions.
+        Publishes the generator of interactions on a thread.
+        :param interactions: An iterable generator or collection of interactions.
         :return: A reply indicating successful publishing of interaction.
         """
         return self.stub.PublishInteraction(interactions)
