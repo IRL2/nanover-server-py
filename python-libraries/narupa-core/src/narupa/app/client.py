@@ -30,6 +30,7 @@ class NarupaClient:
             self._imd_client = None
 
         self._frames = deque(maxlen=self.max_frames)
+        self._first_frame = None
         self._join_trajectory()
 
     @property
@@ -43,6 +44,10 @@ class NarupaClient:
     @property
     def frames(self) -> Sequence[FrameData]:
         return self._frames
+
+    @property
+    def first_frame(self) -> FrameData:
+        return self._first_frame
 
     def start_interaction(self) -> int:
         if self._imd_client is None:
@@ -62,8 +67,10 @@ class NarupaClient:
     def _join_trajectory(self):
         self._frame_client.subscribe_frames_async(self._on_frame_received)
 
-    def _on_frame_received(self, frame_index:int, frame:GrpcFrameData):
-        self._frames.append(FrameData(frame))
+    def _on_frame_received(self, frame_index:int, frame:FrameData):
+        if self._first_frame is None:
+            self._first_frame = frame
+        self._frames.append(frame)
 
 
 
