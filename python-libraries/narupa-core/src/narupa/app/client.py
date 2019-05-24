@@ -32,8 +32,6 @@ class NarupaClient:
         self._frames = deque(maxlen=self.max_frames)
         self._join_trajectory()
 
-        self.start_interaction = self._imd_client.start_interaction()
-
     @property
     def running_imd(self) -> bool:
         return self._imd_client is not None
