@@ -25,14 +25,17 @@ class OpenMMCalculator(Calculator):
     simulation: Simulation
     implemented_properties = ['energy', 'forces']
 
-    def __init__(self, input_xml, atoms: Optional[Atoms] = None, **kwargs):
-
+    def __init__(self, simulation, atoms: Optional[Atoms] = None, **kwargs):
         super().__init__(**kwargs)
-        with open(input_xml) as infile:
-            self.simulation = serializer.deserialize_simulation(infile.read())
-
+        self.simulation = simulation
         self.context = self.simulation.context
         self.atoms = atoms
+
+    @classmethod
+    def from_xml(cls, input_xml, atoms: Optional[Atoms] = None, **kwargs):
+        with open(input_xml) as infile:
+            simulation = serializer.deserialize_simulation(infile.read())
+        return OpenMMCalculator(simulation, atoms, **kwargs)
 
     def calculate(self, atoms: Optional[Atoms] = None,
                   properties=('energy', 'forces'),

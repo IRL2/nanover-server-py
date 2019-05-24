@@ -71,7 +71,7 @@ def handle_user_arguments() -> argparse.Namespace:
     parser.add_argument('-i', '--imd_port', default=54322)
     parser.add_argument('-a', '--address', default='[::]')
     parser.add_argument('-f', '--frame_interval', default=5)
-    parser.add_argument('-t', '--time_step', default=2.0)
+    parser.add_argument('-s', '--time_step', default=2.0)
     arguments = parser.parse_args()
     return arguments
 
@@ -84,7 +84,7 @@ def main():
 
     input_xml = arguments.simulation_xml_path
     print(f'Generating OpenMM context from input: {input_xml}')
-    openmm_calculator = OpenMMCalculator(input_xml)
+    openmm_calculator = OpenMMCalculator.from_xml(input_xml)
 
     print(f'Generating ASE representation of the OpenMM system')
     atoms = openmm_calculator.generate_atoms()
