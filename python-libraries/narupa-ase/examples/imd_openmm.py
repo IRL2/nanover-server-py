@@ -67,22 +67,16 @@ def handle_user_arguments() -> argparse.Namespace:
         action='store_true',
         help='Display state information.',
     )
-    parser.add_argument('-t', '--trajectory_port', default=54321)
-    parser.add_argument('-i', '--imd_port', default=54322)
-    parser.add_argument('-a', '--address', default='[::]')
+    parser.add_argument('-t', '--trajectory_port', default=None)
+    parser.add_argument('-i', '--imd_port', default=None)
+    parser.add_argument('-a', '--address', default=None)
     parser.add_argument('-f', '--frame_interval', default=5)
     parser.add_argument('-s', '--time_step', default=2.0)
     arguments = parser.parse_args()
     return arguments
 
+def start_imd(input_xml, address=None, traj_port=None, imd_port=None, frame_interval=5, time_step=2.0, verbose=False):
 
-def main():
-    """
-    Entry point for the command line.
-    """
-    arguments = handle_user_arguments()
-
-    input_xml = arguments.simulation_xml_path
     print(f'Generating OpenMM context from input: {input_xml}')
     openmm_calculator = OpenMMCalculator.from_xml(input_xml)
 
@@ -94,19 +88,30 @@ def main():
     # Set the momenta corresponding to T=300K
     MaxwellBoltzmannDistribution(atoms, 300 * units.kB)
 
-    dyn = NVTBerendsen(atoms, 1 * units.fs, 300, arguments.time_step * units.fs)
+    dyn = NVTBerendsen(atoms, 1 * units.fs, 300, time_step * units.fs)
 
-    if arguments.verbose:
+    if verbose:
         dyn.attach(MDLogger(dyn, atoms, '-', header=True, stress=False,
                             peratom=False), interval=100)
     # set the server to use the OpenMM frame convert for performance purposes.
     imd = ASEImdServer(dyn,
                        frame_method=openmm_ase_frame_server,
-                       address=arguments.address,
-                       frame_interval=arguments.frame_interval,
-                       trajectory_port=arguments.trajectory_port,
-                       imd_port=arguments.imd_port,
+                       address=address,
+                       frame_interval=frame_interval,
+                       trajectory_port=traj_port,
+                       imd_port=imd_port,
                        )
+    return imd
+
+def main():
+    """
+    Entry point for the command line.
+    """
+    arguments = handle_user_arguments()
+
+    imd = start_imd(arguments.simulation_xml_path, arguments.address, arguments.trajectory_port, arguments.imd_port,
+              arguments.frame_interval, arguments.time_step, arguments.verbose)
+
     print(f'Running dynamics')
     while True:
         imd.run(100)
