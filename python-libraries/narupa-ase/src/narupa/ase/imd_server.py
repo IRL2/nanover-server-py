@@ -85,6 +85,8 @@ class ASEImdServer:
         self._cancelled = False
 
     def cancel_run(self, wait=False):
+        if self._cancelled:
+            return
         self._cancelled = True
         if wait:
             self._run_task.result()

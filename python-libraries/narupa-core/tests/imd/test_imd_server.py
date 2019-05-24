@@ -12,14 +12,14 @@ from narupa.protocol.imd.imd_pb2_grpc import InteractiveMolecularDynamicsStub
 
 @pytest.fixture
 def imd_server():
-    server = ImdServer(address='localhost')
+    server = ImdServer()
     yield server
     server.close()
 
 
 @pytest.fixture
 def imd_client():
-    client = ImdClient(address='localhost')
+    client = ImdClient()
     yield client
     client.close()
 
