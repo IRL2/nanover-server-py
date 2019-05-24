@@ -4,10 +4,12 @@ import time
 from concurrent import futures
 from concurrent.futures import Future
 from queue import Queue
-from typing import Collection, Iterable, Generator
+from typing import Collection, Iterable, Generator, Optional
 
 import grpc
 
+from narupa.imd.imd_server import DEFAULT_ADDRESS, DEFAULT_PORT
+from narupa.imd.interaction import Interaction
 from narupa.protocol.imd import InteractiveMolecularDynamicsStub, InteractionEndReply
 
 
@@ -62,7 +64,11 @@ class ImdClient:
     A simple IMD client, primarily for testing the IMD server.
     """
 
-    def __init__(self, *, address: str, port: int):
+    def __init__(self, *, address: Optional[str]=None, port: Optional[int]=None):
+        if address is None:
+            address = DEFAULT_ADDRESS
+        if port is None:
+            port = DEFAULT_PORT
         self.channel = grpc.insecure_channel("{0}:{1}".format(address, port))
         self.stub = InteractiveMolecularDynamicsStub(self.channel)
         self.threads = futures.ThreadPoolExecutor(max_workers=10)

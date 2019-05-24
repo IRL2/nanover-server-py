@@ -1,7 +1,8 @@
 from typing import Optional
 from narupa.core import GrpcServer
 from narupa.protocol.trajectory import add_TrajectoryServiceServicer_to_server
-from narupa.trajectory import FramePublisher, FrameData
+from .frame_data import FrameData
+from .frame_publisher import FramePublisher
 
 DEFAULT_ADDRESS = '[::]'
 DEFAULT_PORT = 54321
