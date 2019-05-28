@@ -159,8 +159,8 @@ def calculate_gaussian_force(particle_position: np.ndarray, interaction_position
     sigma_sqr = sigma * sigma
 
     gauss = exp(-dist_sqr / (2 * sigma_sqr))
-    energy = gauss
-    # force is negative derivative of energy wrt to position.
+    energy = - gauss
+    # force is negative derivative of energy wrt to position. the minus in the energy cancels with the derivative.
     force = - (diff / sigma_sqr) * gauss
     return energy, force
 
