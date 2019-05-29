@@ -26,6 +26,6 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
         frame_data.bonds = u.atoms.bonds.indices
 
     if positions:
-        frame_data.positions = u.atoms.positions * 0.1
+        frame_data.particle_positions = u.atoms.positions * 0.1
 
     return frame_data
