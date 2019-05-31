@@ -6,6 +6,7 @@ file, an OpenMM serialized system, an OpenMM serialized integrator, and,
 optionally, an OpenMM serialized state. The resulting XML file looks like:
 
 ::
+
     <OpenMMSimulation>
         <pdb>
             // pasted content of the PDB file
@@ -21,9 +22,9 @@ optionally, an OpenMM serialized state. The resulting XML file looks like:
 The ``System`` and ``Integrator`` tags are the roots of the serialized system
 and integrator, respectively.
 
-This module provides a function :fun:`serialize_simulation` that generates an
+This module provides a function :func:`serialize_simulation` that generates an
 XML file from an existing instance of :class:`simtk.openmm.app.Simulation`, and
-a function :fun:`deserialize_simulation` that creates an instance of simulation
+a function :func:`deserialize_simulation` that creates an instance of simulation
 from an XML file.
 """
 
