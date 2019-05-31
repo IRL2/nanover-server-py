@@ -169,10 +169,3 @@ def main(stdscr):
 
 if __name__ == '__main__':
     curses.wrapper(main)
-
-import time
-
-screen = curses.initscr()
-screen.clear()
-
-time.sleep(3)
