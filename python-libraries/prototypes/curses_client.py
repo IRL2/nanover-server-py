@@ -106,7 +106,6 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int):
         positions = frame_to_ndarray(frame)
 
         render_frame(stdscr, positions)
-        stdscr.addstr(0, 0, '{}: {}'.format(i, len(positions)))
 
         c = stdscr.getch()
 
