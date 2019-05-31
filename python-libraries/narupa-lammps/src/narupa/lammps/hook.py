@@ -224,10 +224,10 @@ class LammpsHook:
         data_array = L.gather_atoms(matrix_type, 1, 3)
 
         # This test case slowly translates the molecular system
-        for idx in range(n_atoms):
-            data_array[3 * idx + 0] += 0.0001000
-            data_array[3 * idx + 1] *= 1.0000000
-            data_array[3 * idx + 2] *= 1.0000000
+        #for idx in range(n_atoms):
+        #    data_array[3 * idx + 0] += 0.0001000
+        #    data_array[3 * idx + 1] *= 1.0000000
+        #    data_array[3 * idx + 2] *= 1.0000000
         L.scatter_atoms(matrix_type, 1, 3, data_array)
         return data_array
 
