@@ -10,6 +10,7 @@ import math
 import numpy as np
 import curses
 import colorsys
+import time
 
 import transformations
 
@@ -152,6 +153,8 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int, custom_colo
     COLOR_LOOKUP = np.array(thing)
 
     for i, frame in enumerate(frame_iter):
+        start_time = time.time()
+
         positions = frame_to_ndarray(frame)
 
         center = np.sum(positions, axis=0) / len(positions)
@@ -171,7 +174,7 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int, custom_colo
 
         render_positions_to_window(stdscr, positions)
         show_controls(stdscr)
-        stdscr.refresh()
+        #stdscr.refresh()
 
         c = stdscr.getch()
 
@@ -191,6 +194,10 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int, custom_colo
             scale /= .9
 
         curses.flushinp()
+
+        h, w = stdscr.getmaxyx()
+        stdscr.addstr(h - 1, 0, "{0:.3} fps".format(1.0 / (time.time() - start_time)))
+        stdscr.refresh()
 
     stdscr.clear()
     stdscr.addstr(0, 0, "Closing...")
