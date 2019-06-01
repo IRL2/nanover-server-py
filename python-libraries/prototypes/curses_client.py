@@ -58,7 +58,8 @@ def render_positions_to_window(window, positions: np.ndarray, *, xi = 0, yi = 1,
 
         if position[zi] > depth:
             indexes[coord] = index
-            depths[coord] = depth
+        
+        depths[coord] = max(depth, position[zi])
 
     min_depth = min(depths.values())
     max_depth = max(depths.values())
@@ -66,13 +67,16 @@ def render_positions_to_window(window, positions: np.ndarray, *, xi = 0, yi = 1,
     for coord, count in counts.items():
         x, y = coord
 
-        if x < 0 or x >= w or y < 0 or y >= h or (x == w and y == h):
+        if x < 0 or x >= w or y < 0 or y >= h:
+            continue
+        if x == w and y == h:
             continue
 
         # by depth
-        if False:
+        if True:
             depth = (depths[coord] - min_depth) / (max_depth - min_depth)
             cell_index = int(min(round(depth * len(cells)), len(cells) - 1))
+        # by density
         else:
             cell_index = min(math.ceil(count / 3), 4)
         
