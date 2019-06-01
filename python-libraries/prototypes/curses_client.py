@@ -10,6 +10,8 @@ import math
 import numpy as np
 import curses
 
+import transformations
+
 import grpc
 from narupa.protocol.trajectory import (
     TrajectoryServiceStub,
@@ -122,23 +124,18 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int):
     stdscr.clear()
     stdscr.addstr(0, 0, "Connected.")
 
-    x, y, w, h = 2, 3, 25, 18
-    border = curses.newwin(h, w, y, x)
-    border.border()
-    border.refresh()
-    viewport = curses.newwin(h - 2, w - 2, y + 1, x + 1)
-    viewport2 = curses.newwin(h - 2, w - 2, y + 1, x + 1 + w)
-    viewport3 = curses.newwin(h - 2, w - 2, y + 1, x + 1 + w + w)
-
     for i, frame in enumerate(frame_iter):
         positions = frame_to_ndarray(frame)
         
+        center = np.sum(positions, axis=0) / len(positions)
+        camera = transformations.rotation_matrix(i * 0.1, [0, 0, 1], point=center)
+
+        positions = np.append(positions, np.ones((len(positions), 1)), axis=-1)
+        pos = positions[0]
+        positions = positions @ camera
+
         stdscr.clear()
-        #stdscr.addstr(0, 0, "Frame {}: ({} positions)".format(i, len(positions)))
-
-        render_positions_to_window(stdscr, positions)
-
-        #stdscr.addstr(0, 0, "Frame {}: ({} positions)".format(i, len(positions)))
+        render_positions_to_window(stdscr, positions, xi=0, yi=2, zi=1)
 
         c = stdscr.getch()
 
