@@ -27,7 +27,7 @@ class UserQuitException(Exception):
 class Camera:
     def __init__(self):
         self.angle = 0
-        self.pitch = 0
+        self.pitch = math.pi / 2
         self.scale = 5
         self.origin = None
 
@@ -124,7 +124,7 @@ def render_positions_to_window(window, positions: np.ndarray, renderer):
             if coord not in rendered_cells:
                 continue 
 
-            window.addstr(y, x, char_buffer[x, y], color_buffer[x, y])
+            window.addch(y, x, char_buffer[x, y], color_buffer[x, y])
 
 def generate_colors(custom_colors=False):
     max_colors = 8
@@ -158,11 +158,13 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, n
     colors = generate_colors(custom_colors=custom_colors)
     characters = character_sets["boxes"] if not no_boxes else character_sets["blobs"]
     renderer = Renderer(characters, colors)
+    renderer2 = Renderer(character_sets["blobs"], colors)
 
     camera = Camera()
     fps_timer = Timer()
     render_timer = Timer()
 
+    curses.curs_set(False)
     stdscr.clear()
     stdscr.nodelay(True)
     stdscr.addstr(0, 0, "Connecting...")
@@ -231,16 +233,28 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, n
 
         return positions
 
+    h, w = stdscr.getmaxyx()
+    win1 = curses.newwin(h, w // 2, 0, 0)
+    win2 = curses.newwin(h, w // 2, 0, w // 2)
+
     def render(frame):
         positions = process_frame(frame)
+        #camera.angle += math.pi
+        #positions2 = process_frame(frame)
+        #camera.angle -= math.pi
 
         stdscr.clear()
 
+        #win1.clear()
         render_positions_to_window(stdscr, positions, renderer)
+        #win2.clear()
+        #render_positions_to_window(win2, positions2, renderer2)
         
+        #win1.refresh()
+        #win2.refresh()
+
         show_controls(stdscr)
 
-        h, w = stdscr.getmaxyx()
         stdscr.addstr(h - 1, 0, "{0:.3} fps".format(1.0 / fps_timer.reset()))
         stdscr.refresh()
 
