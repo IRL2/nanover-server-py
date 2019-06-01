@@ -22,30 +22,15 @@ from narupa.trajectory.frame_data import POSITIONS
 
 cells = [" ", ".", "o", "O", "@"]
 
-def render_positions_to_window(window, positions: np.ndarray, *, xi = 0, yi = 1, zi = 2):
+def render_positions_to_window(window, positions: np.ndarray):
+    xi = 0
+    yi = 1
+    zi = 2
+
     h, w = window.getmaxyx()
 
-    xmin = positions[:,xi].min()
-    ymin = positions[:,yi].min()
-
-    xmax = positions[:,xi].max()
-    ymax = positions[:,yi].max()
-
-    xr = xmax - xmin
-    yr = ymax - ymin
-
-    scale = min(w / xr, h / yr)
-
-    ox = (w - xr * scale) / 2
-    oy = (h - yr * scale) / 2
-
-    positions[:,xi] -= xmin
-    positions[:,xi] *= scale
-    positions[:,xi] += ox
-
-    positions[:,yi] -= ymin
-    positions[:,yi] *= scale
-    positions[:,yi] -= oy
+    positions[:,xi] += (w / 2)
+    positions[:,yi] += (h / 2)
 
     counts = {}
     depths = {}
@@ -71,7 +56,7 @@ def render_positions_to_window(window, positions: np.ndarray, *, xi = 0, yi = 1,
 
         if x < 0 or x >= w or y < 0 or y >= h:
             continue
-        if x == w and y == h:
+        if x == w - 1 and y == h - 1:
             continue
 
         # by depth
@@ -87,7 +72,9 @@ def render_positions_to_window(window, positions: np.ndarray, *, xi = 0, yi = 1,
 
         window.addstr(y, x, cells[cell_index], curses.color_pair(color_index))
 
-    window.refresh()
+def show_controls(window):
+    window.addstr(0, 0, "arrow keys -- rotate camera")
+    window.addstr(1, 0, " < >  keys -- zoom")
 
 def write_trajectory_from_server(stdscr, *, address: str, port: int):
     """
@@ -124,23 +111,52 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int):
     stdscr.clear()
     stdscr.addstr(0, 0, "Connected.")
 
+    angle = 0
+    angle2 = 0
+    scale = 5
+
     for i, frame in enumerate(frame_iter):
         positions = frame_to_ndarray(frame)
         
+        positions
+
         center = np.sum(positions, axis=0) / len(positions)
-        camera = transformations.rotation_matrix(i * 0.1, [0, 0, 1], point=center)
+        camera = transformations.scale_matrix(scale, origin=center)
+        camera = camera @ transformations.rotation_matrix(angle, [0, 0, 1], point=center)
+        camera = camera @ transformations.rotation_matrix(angle2, [1, 0, 0], point=center)
 
         positions = np.append(positions, np.ones((len(positions), 1)), axis=-1)
         pos = positions[0]
         positions = positions @ camera
 
+        #stdscr.addstr(0, 0, "Frame {}: ({} positions)".format(i, len(positions)))
+
         stdscr.clear()
-        render_positions_to_window(stdscr, positions, xi=0, yi=2, zi=1)
+
+        #show_controls(stdscr)
+
+        render_positions_to_window(stdscr, positions)
+        show_controls(stdscr)
+        stdscr.refresh()
 
         c = stdscr.getch()
 
         if c == ord("q"):
             break
+        if c == curses.KEY_LEFT:
+            angle += 0.1
+        if c == curses.KEY_RIGHT:
+            angle -= 0.1
+        if c == curses.KEY_UP:
+            angle2 += 0.1
+        if c == curses.KEY_DOWN:
+            angle2 -= 0.1
+        if c == ord(","):
+            scale *= .9
+        if c == ord("."):
+            scale /= .9
+
+        curses.flushinp()
 
     stdscr.clear()
     stdscr.addstr(0, 0, "Closing...")
