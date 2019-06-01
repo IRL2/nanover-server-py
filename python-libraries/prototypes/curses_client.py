@@ -1,29 +1,13 @@
 """
-Minimum Narupa frame client that saves a trajectory to a file.
+Narupa frame client that renders atoms to a curses display in the terminal.
 
-The client connects to a Narupa Frame server, and writes the frames it receives
-into a file using MDAnalysis.
-
-The client can be started either from python or from the command line. From the
-command line, run this script with the `--help` option to see the usage. From
-python, here is an example::
-
-    from client import DummyClient
-    trajectory_client = DummyClient('foo.xtc', address='localhost', port=9000)
-    trajectory_client.write_trajectory()
-
-This will connect to ``localhost:9000`` and writes the trajectory in 'foo.xtc'
-in Gromacs's XTC format.
-
-The client handles the trajectory formats that can be written by MDAnalysis;
-the full list is available on
-<https://www.mdanalysis.org/docs/documentation_pages/coordinates/init.html#supported-coordinate-formats>.
+The client connects to a Narupa Frame server, and renders the frames it receives
+into the terminal.
 """
 import argparse
 
 import math
 import numpy as np
-import MDAnalysis as mda
 import curses
 
 import grpc
@@ -36,18 +20,14 @@ from narupa.trajectory.frame_data import POSITIONS
 
 cells = [" ", ".", "o", "O", "@"]
 
-def render_frame(stdscr, positions):
-    stdscr.clear()
-    h, w = stdscr.getmaxyx()
+def render_positions_to_window(window, positions: np.ndarray, *, xi = 0, yi = 1, zi = 2):
+    h, w = window.getmaxyx()
 
-    h -= 1
-    w -= 1
+    xmin = positions[:,xi].min()
+    ymin = positions[:,yi].min()
 
-    xmin = positions[:,0].min()
-    ymin = positions[:,1].min()
-
-    xmax = positions[:,0].max()
-    ymax = positions[:,1].max()
+    xmax = positions[:,xi].max()
+    ymax = positions[:,yi].max()
 
     xr = xmax - xmin
     yr = ymax - ymin
@@ -57,38 +37,58 @@ def render_frame(stdscr, positions):
     ox = (w - xr * scale) / 2
     oy = (h - yr * scale) / 2
 
-    positions[:,0] -= xmin
-    positions[:,0] *= scale
-    positions[:,0] += ox
+    positions[:,xi] -= xmin
+    positions[:,xi] *= scale
+    positions[:,xi] += ox
 
-    positions[:,1] -= ymin
-    positions[:,1] *= scale
-    positions[:,1] -= oy
+    positions[:,yi] -= ymin
+    positions[:,yi] *= scale
+    positions[:,yi] -= oy
 
     counts = {}
+    depths = {}
+    indexes = {}
 
-    for position in positions:
-        coord = int(round(position[0])), int(round(position[1]))
+    for index, position in enumerate(positions):
+        coord = int(round(position[xi])), int(round(position[yi]))
         count = counts[coord] if coord in counts else 0
         counts[coord] = count + 1
+
+        depth = depths[coord] if coord in depths else -100000
+
+        if position[zi] > depth:
+            indexes[coord] = index
+            depths[coord] = depth
+
+    min_depth = min(depths.values())
+    max_depth = max(depths.values())
 
     for coord, count in counts.items():
         x, y = coord
 
-        if x < 0 or x >= w or y < 0 or y >= h:
+        if x < 0 or x >= w or y < 0 or y >= h or (x == w and y == h):
             continue
 
-        cell = cells[min(math.ceil(count / 3), 4)]
-        stdscr.addstr(y, x, cell)
+        # by depth
+        if False:
+            depth = (depths[coord] - min_depth) / (max_depth - min_depth)
+            cell_index = int(min(round(depth * len(cells)), len(cells) - 1))
+        else:
+            cell_index = min(math.ceil(count / 3), 4)
+        
+        index_uniform = indexes[coord] / len(positions)
+        color_index = int(min(round(index_uniform * 7), 7 - 1)) + 1
 
-    stdscr.refresh()
+        window.addstr(y, x, cells[cell_index], curses.color_pair(color_index))
+
+    window.refresh()
 
 def write_trajectory_from_server(stdscr, *, address: str, port: int):
     """
-    Connect to a Narupa frame server and write the received frames into a file.
+    Connect to a Narupa frame server and render the received frames to a curses 
+    window.
 
-    :param destination: Path to the file to write. The format is guessed by
-        MDAnalysis from the file extension.
+    :param stdscr: curses window to render to.
     :param address: Host name to connect to.
     :param port: Port to connect to on the host.
     """
@@ -97,15 +97,42 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int):
     stdscr.addstr(0, 0, "Connecting...")
     stdscr.refresh()
 
+    colors = [curses.COLOR_BLUE, 
+              curses.COLOR_RED,
+              curses.COLOR_MAGENTA,
+              curses.COLOR_CYAN,
+              curses.COLOR_YELLOW,
+              curses.COLOR_GREEN,
+              curses.COLOR_WHITE]
+
+    for i, color in enumerate(colors):
+        curses.init_pair(i + 1, color, curses.COLOR_BLACK)
+
     host = '{}:{}'.format(address, port)
     channel = grpc.insecure_channel(host)
     stub = TrajectoryServiceStub(channel)
     frame_iter = stub.SubscribeFrames(GetFrameRequest())
-    
+
+    stdscr.clear()
+    stdscr.addstr(0, 0, "Connected.")
+
+    x, y, w, h = 2, 3, 25, 18
+    border = curses.newwin(h, w, y, x)
+    border.border()
+    border.refresh()
+    viewport = curses.newwin(h - 2, w - 2, y + 1, x + 1)
+    viewport2 = curses.newwin(h - 2, w - 2, y + 1, x + 1 + w)
+    viewport3 = curses.newwin(h - 2, w - 2, y + 1, x + 1 + w + w)
+
     for i, frame in enumerate(frame_iter):
         positions = frame_to_ndarray(frame)
+        
+        stdscr.clear()
+        stdscr.addstr(0, 0, "Frame {}: ({} positions)".format(i, len(positions)))
 
-        render_frame(stdscr, positions)
+        render_positions_to_window(stdscr, positions)
+
+        stdscr.addstr(0, 0, "Frame {}: ({} positions)".format(i, len(positions)))
 
         c = stdscr.getch()
 
@@ -138,9 +165,7 @@ def frame_to_ndarray(frame: GetFrameResponse) -> np.ndarray:
         .values
     )
     # Here we assume that the coordinates are in 3 dimensions.
-    # The frames obtained from Narupa use distances in nm, while MDAnalysis
-    # expresses them in Å; this is where we do the unit conversion.
-    positions = np.array(raw_positions, dtype=np.float32).reshape((-1, 3)) * 10
+    positions = np.array(raw_positions, dtype=np.float32).reshape((-1, 3))
     return positions
 
 
@@ -150,7 +175,7 @@ def handle_user_args() -> argparse.Namespace:
 
     :return: The namespace of arguments read from the command line.
     """
-    description = "Connect to a Narupa trajectory server and write the trajectory."
+    description = "Connect to a Narupa trajectory server and render the atoms live in a curses display."
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--host', default='localhost')
     parser.add_argument('--port', type=int, default=8000)
