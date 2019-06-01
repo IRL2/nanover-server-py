@@ -24,6 +24,8 @@ from narupa.trajectory.frame_data import POSITIONS
 cells = [" ", ".", "o", "O", "@"]
 
 MAX_COLORS = 16
+CHAR_LOOKUP = None
+COLOR_LOOKUP = None
 
 def render_positions_to_window(window, positions: np.ndarray):
     xi = 0
@@ -34,44 +36,65 @@ def render_positions_to_window(window, positions: np.ndarray):
 
     positions[:,xi] += (w / 2)
     positions[:,yi] += (h / 2)
+    positions[:,zi] *= 1000
+    np.round(positions, out=positions)
+    positions = positions.astype(int)
 
-    counts = {}
-    depths = {}
-    indexes = {}
+    depth_buffer = np.full((w, h), 0, dtype=np.float32)
+    index_buffer = np.full((w, h), -1, dtype=np.float32)
+    rendered_cells = set()
+
+    min_depth = max_depth = positions[0][zi]
 
     for index, position in enumerate(positions):
-        coord = int(round(position[xi])), int(round(position[yi]))
-        count = counts[coord] if coord in counts else 0
-        counts[coord] = count + 1
-
-        depth = depths[coord] if coord in depths else -100000
-
-        if position[zi] > depth:
-            indexes[coord] = index
-        
-        depths[coord] = max(depth, position[zi])
-
-    min_depth = min(depths.values())
-    max_depth = max(depths.values())
-
-    for coord, count in counts.items():
-        x, y = coord
+        x, y = position[xi], position[yi]
 
         if x < 0 or x >= w or y < 0 or y >= h:
             continue
         if x == w - 1 and y == h - 1:
             continue
 
-        depth = (depths[coord] - min_depth) / (max_depth - min_depth)
-        cell_index = int(min(round(depth * len(cells)), len(cells) - 1))
-        
-        color_count = MAX_COLORS - 1
+        coord = y * w + x
 
-        #index_uniform = (depths[coord] - min_depth) / (max_depth - min_depth)
-        index_uniform = (indexes[coord] * 16 / len(positions)) % 1
-        color_index = int(min(round(index_uniform * color_count), color_count - 1)) + 1
+        prev_depth = depth_buffer[x, y] if coord in rendered_cells else min_depth
+        this_depth = position[zi]
 
-        window.addstr(y, x, cells[cell_index], curses.color_pair(color_index))
+        min_depth = min(min_depth, this_depth)
+        max_depth = max(max_depth, this_depth)
+
+        if this_depth >= prev_depth:
+            index_buffer[x, y] = index
+            depth_buffer[x, y] = this_depth
+            rendered_cells.add(coord)
+
+    char_count = len(cells)     
+    color_count = MAX_COLORS - 1
+
+    # transform depths into cell indexes
+    depth_buffer -= min_depth
+    depth_buffer /= (max_depth - min_depth)
+    depth_buffer *= len(cells)
+    depth_buffer.round(out=depth_buffer)
+    depth_buffer = depth_buffer.astype(int)
+
+    # transform particle indexes into color indexes
+    index_buffer *= (MAX_COLORS / len(positions))
+    index_buffer %= 1
+    index_buffer *= color_count
+    index_buffer.round(out=index_buffer)
+    index_buffer = index_buffer.astype(int)
+
+    char_buffer = CHAR_LOOKUP[depth_buffer]
+    color_buffer = COLOR_LOOKUP[index_buffer]
+
+    for y in range(h):
+        for x in range(w):
+            coord = y * w + x
+
+            if coord not in rendered_cells:
+                continue 
+
+            window.addstr(y, x, char_buffer[x, y], color_buffer[x, y])
 
 def show_controls(window):
     window.addstr(0, 0, "arrow keys -- rotate camera")
@@ -118,6 +141,15 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int, custom_colo
     angle = 0
     angle2 = 0
     scale = 5
+
+    global COLOR_LOOKUP, CHAR_LOOKUP
+    thing = list(cells)
+    thing.append(thing[-1])
+    CHAR_LOOKUP = np.array(thing)
+
+    thing = [curses.color_pair(i) for i in range(MAX_COLORS)]
+    thing.append(thing[-1])
+    COLOR_LOOKUP = np.array(thing)
 
     for i, frame in enumerate(frame_iter):
         positions = frame_to_ndarray(frame)
