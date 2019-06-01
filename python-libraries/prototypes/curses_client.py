@@ -71,8 +71,9 @@ def render_positions_to_window(window, positions: np.ndarray, renderer):
     positions = positions.astype(int)
 
     depth_buffer = np.full((w, h), 0, dtype=np.float32)
-    index_buffer = np.full((w, h), -1, dtype=np.float32)
-    rendered_cells = set()
+    color_buffer = {}
+
+    color_count = len(renderer.colors) - 1
 
     min_depth = max_depth = positions[0][2]
 
@@ -84,47 +85,30 @@ def render_positions_to_window(window, positions: np.ndarray, renderer):
         if x == w - 1 and y == h - 1:
             continue
 
-        coord = y * w + x
+        coord = (x, y)
 
-        prev_depth = depth_buffer[x, y] if coord in rendered_cells else min_depth
+        prev_depth = depth_buffer[x, y] if coord in color_buffer else min_depth
         this_depth = position[2]
 
         min_depth = min(min_depth, this_depth)
         max_depth = max(max_depth, this_depth)
 
         if this_depth >= prev_depth:
-            index_buffer[x, y] = index
+            color_index = int((index * .1) % color_count)
+            color_buffer[coord] = renderer.colors[color_index]
             depth_buffer[x, y] = this_depth
-            rendered_cells.add(coord)
 
-    char_count = len(renderer.characters)     
-    color_count = len(renderer.colors) - 1
+    char_count = len(renderer.characters)
 
     # transform depths into cell indexes
     depth_buffer -= min_depth
-    depth_buffer /= (max_depth - min_depth)
-    depth_buffer *= char_count
-    depth_buffer.round(out=depth_buffer)
+    depth_buffer *= char_count / (max_depth - min_depth)
     depth_buffer = depth_buffer.astype(int)
 
-    # transform particle indexes into color indexes
-    index_buffer *= (color_count / len(positions))
-    index_buffer %= 1
-    index_buffer *= color_count
-    index_buffer.round(out=index_buffer)
-    index_buffer = index_buffer.astype(int)
-
     char_buffer = renderer.character_lookup[depth_buffer]
-    color_buffer = renderer.color_lookup[index_buffer]
 
-    for y in range(h):
-        for x in range(w):
-            coord = y * w + x
-
-            if coord not in rendered_cells:
-                continue 
-
-            window.addch(y, x, char_buffer[x, y], color_buffer[x, y])
+    for (x, y), color in color_buffer.items():
+        window.addch(y, x, char_buffer[x, y], color)
 
 def generate_colors(custom_colors=False):
     max_colors = 8
@@ -271,6 +255,7 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, n
     try:
         while True:
             loop()
+            time.sleep(.01)
     except UserQuitException:
         pass
     finally:
