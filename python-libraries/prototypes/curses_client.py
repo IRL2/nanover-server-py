@@ -9,6 +9,7 @@ import argparse
 import math
 import numpy as np
 import curses
+import colorsys
 
 import transformations
 
@@ -21,6 +22,8 @@ from narupa.protocol.trajectory import (
 from narupa.trajectory.frame_data import POSITIONS
 
 cells = [" ", ".", "o", "O", "@"]
+
+MAX_COLORS = 16
 
 def render_positions_to_window(window, positions: np.ndarray):
     xi = 0
@@ -59,16 +62,14 @@ def render_positions_to_window(window, positions: np.ndarray):
         if x == w - 1 and y == h - 1:
             continue
 
-        # by depth
-        if True:
-            depth = (depths[coord] - min_depth) / (max_depth - min_depth)
-            cell_index = int(min(round(depth * len(cells)), len(cells) - 1))
-        # by density
-        else:
-            cell_index = min(math.ceil(count / 3), 4)
+        depth = (depths[coord] - min_depth) / (max_depth - min_depth)
+        cell_index = int(min(round(depth * len(cells)), len(cells) - 1))
         
-        index_uniform = (indexes[coord] * 8 / len(positions)) % 1
-        color_index = int(min(round(index_uniform * 7), 7 - 1)) + 1
+        color_count = MAX_COLORS - 1
+
+        #index_uniform = (depths[coord] - min_depth) / (max_depth - min_depth)
+        index_uniform = (indexes[coord] * 16 / len(positions)) % 1
+        color_index = int(min(round(index_uniform * color_count), color_count - 1)) + 1
 
         window.addstr(y, x, cells[cell_index], curses.color_pair(color_index))
 
@@ -76,7 +77,7 @@ def show_controls(window):
     window.addstr(0, 0, "arrow keys -- rotate camera")
     window.addstr(1, 0, " < >  keys -- zoom")
 
-def write_trajectory_from_server(stdscr, *, address: str, port: int):
+def write_trajectory_from_server(stdscr, *, address: str, port: int, custom_colors=False, boxes=False):
     """
     Connect to a Narupa frame server and render the received frames to a curses 
     window.
@@ -85,23 +86,26 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int):
     :param address: Host name to connect to.
     :param port: Port to connect to on the host.
     """
+    global MAX_COLORS
+
     stdscr.clear()
     stdscr.nodelay(True)
     stdscr.addstr(0, 0, "Connecting...")
     stdscr.refresh()
 
-    colors = [
-        curses.COLOR_BLUE, 
-        curses.COLOR_RED,
-        curses.COLOR_MAGENTA,
-        curses.COLOR_CYAN,
-        curses.COLOR_YELLOW,
-        curses.COLOR_GREEN,
-        curses.COLOR_WHITE
-    ]
+    if boxes:
+        cells[:] = [" ", "░", "▒", "▓", "█"]
 
-    for i, color in enumerate(colors):
-        curses.init_pair(i + 1, color, curses.COLOR_BLACK)
+    for i in range(1, MAX_COLORS):
+        curses.init_pair(i, i, curses.COLOR_BLACK)
+
+    if curses.can_change_color() and custom_colors:
+        curses.init_color(0, 0, 0, 0)
+        for i in range(1, MAX_COLORS):
+            r, g, b = colorsys.hsv_to_rgb(i / MAX_COLORS, .5, 1)
+            curses.init_color(i, int(r * 1000), int(g * 1000), int(b * 1000))
+    else:
+        MAX_COLORS = 8
 
     host = '{}:{}'.format(address, port)
     channel = grpc.insecure_channel(host)
@@ -117,8 +121,6 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int):
 
     for i, frame in enumerate(frame_iter):
         positions = frame_to_ndarray(frame)
-        
-        positions
 
         center = np.sum(positions, axis=0) / len(positions)
         camera = transformations.scale_matrix(scale, origin=center)
@@ -198,6 +200,8 @@ def handle_user_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--host', default='localhost')
     parser.add_argument('--port', type=int, default=8000)
+    parser.add_argument('--rainbow', action="store_true", default=False)
+    parser.add_argument('--boxes', action="store_true")
     arguments = parser.parse_args()
     return arguments
 
@@ -208,6 +212,8 @@ def main(stdscr):
         stdscr,
         address=arguments.host,
         port=arguments.port,
+        custom_colors=arguments.rainbow,
+        boxes=arguments.boxes,
     )
 
 
