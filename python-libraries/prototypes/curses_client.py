@@ -80,7 +80,7 @@ def render_positions_to_window(window, positions: np.ndarray, *, xi = 0, yi = 1,
         else:
             cell_index = min(math.ceil(count / 3), 4)
         
-        index_uniform = indexes[coord] / len(positions)
+        index_uniform = (indexes[coord] * 8 / len(positions)) % 1
         color_index = int(min(round(index_uniform * 7), 7 - 1)) + 1
 
         window.addstr(y, x, cells[cell_index], curses.color_pair(color_index))
@@ -101,13 +101,15 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int):
     stdscr.addstr(0, 0, "Connecting...")
     stdscr.refresh()
 
-    colors = [curses.COLOR_BLUE, 
-              curses.COLOR_RED,
-              curses.COLOR_MAGENTA,
-              curses.COLOR_CYAN,
-              curses.COLOR_YELLOW,
-              curses.COLOR_GREEN,
-              curses.COLOR_WHITE]
+    colors = [
+        curses.COLOR_BLUE, 
+        curses.COLOR_RED,
+        curses.COLOR_MAGENTA,
+        curses.COLOR_CYAN,
+        curses.COLOR_YELLOW,
+        curses.COLOR_GREEN,
+        curses.COLOR_WHITE
+    ]
 
     for i, color in enumerate(colors):
         curses.init_pair(i + 1, color, curses.COLOR_BLACK)
@@ -132,11 +134,11 @@ def write_trajectory_from_server(stdscr, *, address: str, port: int):
         positions = frame_to_ndarray(frame)
         
         stdscr.clear()
-        stdscr.addstr(0, 0, "Frame {}: ({} positions)".format(i, len(positions)))
+        #stdscr.addstr(0, 0, "Frame {}: ({} positions)".format(i, len(positions)))
 
         render_positions_to_window(stdscr, positions)
 
-        stdscr.addstr(0, 0, "Frame {}: ({} positions)".format(i, len(positions)))
+        #stdscr.addstr(0, 0, "Frame {}: ({} positions)".format(i, len(positions)))
 
         c = stdscr.getch()
 
