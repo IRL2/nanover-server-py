@@ -19,8 +19,10 @@ from transformations import rotation_matrix, scale_matrix
 character_sets = {
     "boxes": [" ", "░", "▒", "▓", "█"],
     "blobs": [" ", ".", "o", "O", "@"],
-    "extended-blobs": [" ", "◦", "·", "◌", "○", "●"],
+    "extended-blobs": [" ", "◦", "·", "◌", "○", "●", "■"],
 }
+
+character_sets_indexed = list(character_sets.values())
 
 class UserQuitException(Exception):
     pass
@@ -193,8 +195,10 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, s
     client.subscribe_frames_async(get_frame)
 
     def show_controls(window):
-        window.addstr(0, 0, "arrow keys -- rotate camera")
-        window.addstr(1, 0, " < >  keys -- zoom")
+        window.addstr(0, 0, "arrows -- rotate camera")
+        window.addstr(1, 0, " < >   -- zoom")
+        window.addstr(2, 0, "  x    -- toggle cpk colors")
+        window.addstr(3, 0, "  z    -- cycle skins")
 
     def rotate_plus():
         camera.angle += .1
@@ -211,6 +215,10 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, s
     def toggle_cpk():
         nonlocal cpk
         cpk = not cpk
+    def cycle_charsets():
+        index = character_sets_indexed.index(renderer.characters)
+        index = (index + 1) % len(character_sets_indexed)
+        renderer.set_characters(character_sets_indexed[index])
     def quit():
         raise UserQuitException()
 
@@ -223,6 +231,7 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, s
         ord("."):         zoom_out,
         ord("q"):         quit,
         ord("x"):         toggle_cpk,
+        ord("z"):         cycle_charsets,
     }
 
     def check_input():
