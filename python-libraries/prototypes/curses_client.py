@@ -18,8 +18,8 @@ from transformations import rotation_matrix, scale_matrix
 
 character_sets = {
     "boxes": [" ", "░", "▒", "▓", "█"],
-    "blobs": [" ", ".", "o", "O", "@"],
-    "extended-blobs": [" ", "◦", "·", "◌", "○", "●", "■"],
+    "blobs": [" ", ".", "-", "+", "o", "O", "@"],
+    "extended-blobs": [" ", "·", "-", "+", "◌", "○", "ø", "●", "■"],
 }
 
 character_sets_indexed = list(character_sets.values())
