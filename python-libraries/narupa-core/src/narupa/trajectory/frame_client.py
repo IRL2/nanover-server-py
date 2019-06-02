@@ -18,7 +18,10 @@ class FrameClient:
 
     def subscribe_frames_blocking(self, callback):
         for response in self.stub.SubscribeFrames(GetFrameRequest()):
-            callback(frame_index=response.frame_index, frame=FrameData(response.frame))
+            try:
+                callback(frame_index=response.frame_index, frame=FrameData(response.frame))
+            except Exception as e:
+                print(e)
 
     def close(self):
         self.channel.close()

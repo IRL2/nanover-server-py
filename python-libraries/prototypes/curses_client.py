@@ -19,6 +19,7 @@ from transformations import rotation_matrix, scale_matrix
 character_sets = {
     "boxes": [" ", "░", "▒", "▓", "█"],
     "blobs": [" ", ".", "o", "O", "@"],
+    "extended-blobs": [" ", "◦", "·", "◌", "○", "●"],
 }
 
 class UserQuitException(Exception):
@@ -61,7 +62,15 @@ class Renderer:
         self.colors = colors
         self.color_lookup = np.array(self.colors + [self.colors[-1]])
 
-def render_positions_to_window(window, positions: np.ndarray, renderer):
+element_colors = {
+    #1: curses.COLOR_WHITE,
+    6: curses.COLOR_CYAN,
+    7: curses.COLOR_BLUE,
+    8: curses.COLOR_RED,
+    16: curses.COLOR_YELLOW,
+}
+
+def render_positions_to_window(window, positions: np.ndarray, renderer, elements=None):
     h, w = window.getmaxyx()
 
     positions[:,0] += (w / 2)
@@ -77,26 +86,39 @@ def render_positions_to_window(window, positions: np.ndarray, renderer):
 
     min_depth = max_depth = positions[0][2]
 
+    def record_color(index, x, y, z):
+        nonlocal min_depth, max_depth
+
+        coord = (x, y)
+
+        prev_depth = depth_buffer[x, y] if coord in color_buffer else min_depth
+        this_depth = z
+
+        min_depth = min(min_depth, this_depth)
+        max_depth = max(max_depth, this_depth)
+
+        if this_depth >= prev_depth:
+            if elements:
+                element = elements[index]
+                if element not in element_colors:
+                    return
+
+                color_index = element_colors[element]
+            else:
+                color_index = int((index * .1) % color_count)
+
+            color_buffer[coord] = renderer.colors[color_index]
+            depth_buffer[x, y] = this_depth
+
     for index, position in enumerate(positions):
-        x, y = position[0], position[1]
+        x, y, z = position[0], position[1], position[2]
 
         if x < 0 or x >= w or y < 0 or y >= h:
             continue
         if x == w - 1 and y == h - 1:
             continue
 
-        coord = (x, y)
-
-        prev_depth = depth_buffer[x, y] if coord in color_buffer else min_depth
-        this_depth = position[2]
-
-        min_depth = min(min_depth, this_depth)
-        max_depth = max(max_depth, this_depth)
-
-        if this_depth >= prev_depth:
-            color_index = int((index * .1) % color_count)
-            color_buffer[coord] = renderer.colors[color_index]
-            depth_buffer[x, y] = this_depth
+        record_color(index, x, y, z)
 
     char_count = len(renderer.characters)
 
@@ -127,7 +149,7 @@ def generate_colors(custom_colors=False):
 
     return colors
 
-def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, no_boxes=False):
+def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, skin="boxes", cpk=False):
     """
     Connect to a Narupa frame server and render the received frames to a curses 
     window.
@@ -136,12 +158,11 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, n
     :param address: Host name to connect to.
     :param port: Port to connect to on the host.
     :param custom_colors: Whether to modify the terminal colors.
-    :param no_boxes: Whether to avoid box shading characters.
+    :param skin: Name of character set to use.
     """
 
     colors = generate_colors(custom_colors=custom_colors)
-    characters = character_sets["boxes"] if not no_boxes else character_sets["blobs"]
-    renderer = Renderer(characters, colors)
+    renderer = Renderer(character_sets[skin], colors)
     renderer2 = Renderer(character_sets["blobs"], colors)
 
     camera = Camera()
@@ -160,10 +181,14 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, n
     stdscr.addstr(0, 0, "Connected.")
 
     latest_frame = None
+    latest_elements = None
 
     def get_frame(frame_index, frame):
-        nonlocal latest_frame
+        nonlocal latest_frame, latest_elements
         latest_frame = frame
+
+        if 'particle.element' in frame:
+            latest_elements = frame.particle_elements
 
     client.subscribe_frames_async(get_frame)
 
@@ -183,6 +208,9 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, n
         camera.scale *= .9
     def zoom_out():
         camera.scale /= .9
+    def toggle_cpk():
+        nonlocal cpk
+        cpk = not cpk
     def quit():
         raise UserQuitException()
 
@@ -194,6 +222,7 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, n
         ord(","):         zoom_in,
         ord("."):         zoom_out,
         ord("q"):         quit,
+        ord("x"):         toggle_cpk,
     }
 
     def check_input():
@@ -230,7 +259,7 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, n
         stdscr.clear()
 
         #win1.clear()
-        render_positions_to_window(stdscr, positions, renderer)
+        render_positions_to_window(stdscr, positions, renderer, latest_elements if cpk else None)
         #win2.clear()
         #render_positions_to_window(win2, positions2, renderer2)
         
@@ -276,7 +305,8 @@ def handle_user_args() -> argparse.Namespace:
     parser.add_argument('--host', default='localhost')
     parser.add_argument('--port', type=int, default=8000)
     parser.add_argument('--rainbow', action="store_true")
-    parser.add_argument('--no-boxes', action="store_true")
+    parser.add_argument('--skin', default="boxes")
+    parser.add_argument('--cpk', action="store_true")
     arguments = parser.parse_args()
     return arguments
 
@@ -288,7 +318,8 @@ def main(stdscr):
         address=arguments.host,
         port=arguments.port,
         custom_colors=arguments.rainbow,
-        no_boxes=arguments.no_boxes,
+        skin=arguments.skin,
+        cpk=arguments.cpk,
     )
 
 
