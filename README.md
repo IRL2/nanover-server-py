@@ -56,7 +56,7 @@ Running the tests is a crucial part of keeping the code base functional. To run 
 `narupa.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
 trajectory. To serve the frames on port 54321, run
 
-    python .\python-libraries\narupa-mdanalysis\src\narupa\mdanalysis\example\example.py
+    python .\python-libraries\narupa-mdanalysis\examples\example.py
 
 `narupa.ase` provides a server that runs a demo ase simulation. To serve the frames of that simulation on port 54321,
 run

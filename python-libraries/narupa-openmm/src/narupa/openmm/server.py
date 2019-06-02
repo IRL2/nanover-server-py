@@ -73,7 +73,7 @@ class Server(Runner):
         .. seealso::
 
             The XML serialized simulation can be produced by
-            :fun:`narupa.openmm.serializer.serialize_simulation`.
+            :func:`narupa.openmm.serializer.serialize_simulation`.
 
         """
         with open(str(input_xml)) as infile:

@@ -4,7 +4,7 @@
 """
 Provides a reference implementation of the IMD forces used by Narupa.
 
-For details, and if you find these functions helpful, please cite:
+For details, and if you find these functions helpful, please cite [1]_.
 
 .. [1] M. O’Connor et al, “An open-source multi-person virtual reality framework for interactive molecular dynamics:
        from quantum chemistry to drug binding”, arXiv:1902.01827, 2019
@@ -30,7 +30,7 @@ def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions:
     :param masses: Array of N particle masses, in a.m.u, with shape (N,).
     :param interactions: Collection of interactions to be applied.
     :param periodic_box_lengths: Orthorhombic periodic box lengths. If given, the minimum image convention is applied
-    to the calculation.
+        to the calculation.
     :return: energy in kJ/mol, accumulated forces (in kJ/(mol*nm)) to be applied.
     """
 
@@ -46,6 +46,7 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
                                    periodic_box_lengths: Optional[np.array] = None) -> float:
     """
     Calculates the energy and adds the forces to the particles of a single application of an interaction potential.
+
     :param positions: Collection of N particle position vectors, in nm.
     :param masses: Collection on N particle masses, in a.m.u
     :param interaction: An interaction to be applied.
@@ -102,6 +103,7 @@ def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, fo
 def wrap_pbc(positions: np.ndarray, periodic_box_lengths: np.ndarray):
     """
     Wraps a list of positions into the given orthorhombic periodic box.
+
     :param positions: List of N vectors with shape (N,3).
     :param periodic_box_lengths: Box lengths of a periodic box positioned at the origin.
     :return: Positions wrapped into the minimum image of the orthorhombic periodic box.
@@ -123,7 +125,7 @@ def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=
     :param masses: List of N vectors representing masses.
     :param subset: Indices [0,N) of positions to include. If None, all positions included.
     :param periodic_box_lengths: Orthorhombic periodic box lengths to wrap positions into
-    before calculating centre of mass.
+        before calculating centre of mass.
     :return: The center of mass of the subset of positions.
     """
     if subset is None:
@@ -159,8 +161,8 @@ def calculate_gaussian_force(particle_position: np.ndarray, interaction_position
     sigma_sqr = sigma * sigma
 
     gauss = exp(-dist_sqr / (2 * sigma_sqr))
-    energy = gauss
-    # force is negative derivative of energy wrt to position.
+    energy = - gauss
+    # force is negative derivative of energy wrt to position. the minus in the energy cancels with the derivative.
     force = - (diff / sigma_sqr) * gauss
     return energy, force
 
