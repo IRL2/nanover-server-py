@@ -51,7 +51,7 @@ class Timer:
         self.last_time = time.time()
         return delta_time
 
-class Renderer:
+class Style:
     def __init__(self, characters, colors):
         self.set_characters(characters)
         self.set_colors(colors)
@@ -63,6 +63,39 @@ class Renderer:
     def set_colors(self, colors):
         self.colors = colors
         self.color_lookup = np.array(self.colors + [self.colors[-1]])
+
+class Renderer:
+    def __init__(self, window, style):
+        self.window = window
+        self.style = style
+        self.camera = Camera()
+
+        self.frame = None
+        self.elements = None
+
+        self.cpk = True
+
+    def render(self):
+        self.window.clear()
+        
+        if self.frame:
+            positions = self._process_frame(self.frame)
+            render_positions_to_window(self.window, positions, self.style, self.elements if self.cpk else None)
+        
+        self.window.noutrefresh()
+
+    def _process_frame(self, frame):
+        # convert positions from frame
+        positions = np.array(self.frame.particle_positions, dtype=np.float32).reshape((-1, 3))
+
+        # center the camera
+        self.camera.origin = np.sum(positions, axis=0) / len(positions)
+
+        # add w component to positions then multiply by camera matrix
+        positions = np.append(positions, np.ones((len(positions), 1)), axis=-1)
+        positions = positions @ self.camera.get_matrix()
+
+        return positions
 
 element_colors = {
     #1: curses.COLOR_WHITE,
@@ -134,10 +167,10 @@ def render_positions_to_window(window, positions: np.ndarray, renderer, elements
     for (x, y), color in color_buffer.items():
         window.addch(y, x, char_buffer[x, y], color)
 
-def generate_colors(custom_colors=False):
+def generate_colors(override_colors=False):
     max_colors = 8
 
-    if curses.can_change_color() and custom_colors:
+    if curses.can_change_color() and override_colors:
         max_colors = 16
         curses.init_color(0, 0, 0, 0)
         for i in range(1, max_colors):
@@ -151,7 +184,7 @@ def generate_colors(custom_colors=False):
 
     return colors
 
-def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, skin="boxes", cpk=False):
+def run_curses_client(stdscr, *, address: str, port: int, override_colors=False, skin="boxes", cpk=False):
     """
     Connect to a Narupa frame server and render the received frames to a curses 
     window.
@@ -159,17 +192,16 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, s
     :param stdscr: Curses window to render to.
     :param address: Host name to connect to.
     :param port: Port to connect to on the host.
-    :param custom_colors: Whether to modify the terminal colors.
+    :param override_colors: Whether to modify the terminal colors.
     :param skin: Name of character set to use.
     """
 
-    colors = generate_colors(custom_colors=custom_colors)
-    renderer = Renderer(character_sets[skin], colors)
-    renderer2 = Renderer(character_sets["blobs"], colors)
+    colors = generate_colors(override_colors=override_colors)
+    style = Style(character_sets[skin], colors)
 
-    camera = Camera()
     fps_timer = Timer()
     render_timer = Timer()
+    renderer = Renderer(stdscr, style)
 
     curses.curs_set(False)
     stdscr.clear()
@@ -182,15 +214,11 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, s
     stdscr.clear()
     stdscr.addstr(0, 0, "Connected.")
 
-    latest_frame = None
-    latest_elements = None
-
     def get_frame(frame_index, frame):
-        nonlocal latest_frame, latest_elements
-        latest_frame = frame
+        renderer.frame = frame
 
         if 'particle.element' in frame:
-            latest_elements = frame.particle_elements
+            renderer.elements = frame.particle_elements
 
     client.subscribe_frames_async(get_frame)
 
@@ -201,24 +229,23 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, s
         window.addstr(3, 0, "  z    -- cycle skins")
 
     def rotate_plus():
-        camera.angle += .1
+        renderer.camera.angle += .1
     def rotate_minus():
-        camera.angle -= .1
+        renderer.camera.angle -= .1
     def pitch_plus():
-        camera.pitch += .1
+        renderer.camera.pitch += .1
     def pitch_minus():
-        camera.pitch -= .1
+        renderer.camera.pitch -= .1
     def zoom_in():
-        camera.scale *= .9
+        renderer.camera.scale *= .9
     def zoom_out():
-        camera.scale /= .9
+        renderer.camera.scale /= .9
     def toggle_cpk():
-        nonlocal cpk
-        cpk = not cpk
+        renderer.cpk = not renderer.cpk
     def cycle_charsets():
-        index = character_sets_indexed.index(renderer.characters)
+        index = character_sets_indexed.index(renderer.style.characters)
         index = (index + 1) % len(character_sets_indexed)
-        renderer.set_characters(character_sets_indexed[index])
+        renderer.style.set_characters(character_sets_indexed[index])
     def quit():
         raise UserQuitException()
 
@@ -242,53 +269,24 @@ def run_curses_client(stdscr, *, address: str, port: int, custom_colors=False, s
 
         curses.flushinp()
 
-    def process_frame(frame):
-        # convert positions from frame
-        positions = np.array(frame.particle_positions, dtype=np.float32).reshape((-1, 3))
-
-        # center the camera
-        camera.origin = np.sum(positions, axis=0) / len(positions)
-
-        # add w component to positions then multiply by camera matrix
-        positions = np.append(positions, np.ones((len(positions), 1)), axis=-1)
-        positions = positions @ camera.get_matrix()
-
-        return positions
-
     h, w = stdscr.getmaxyx()
-    win1 = curses.newwin(h, w // 2, 0, 0)
-    win2 = curses.newwin(h, w // 2, 0, w // 2)
-
-    def render(frame):
-        positions = process_frame(frame)
-        #camera.angle += math.pi
-        #positions2 = process_frame(frame)
-        #camera.angle -= math.pi
-
-        stdscr.clear()
-
-        #win1.clear()
-        render_positions_to_window(stdscr, positions, renderer, latest_elements if cpk else None)
-        #win2.clear()
-        #render_positions_to_window(win2, positions2, renderer2)
-        
-        #win1.refresh()
-        #win2.refresh()
-
-        show_controls(stdscr)
-
-        stdscr.addstr(h - 1, 0, "{0:.3} fps".format(1.0 / fps_timer.reset()))
-        stdscr.refresh()
 
     def loop():
         check_input()
 
-        if render_timer.get_delta() < 0.05 or latest_frame is None:
+        if render_timer.get_delta() < 0.05:
             return
 
         render_timer.reset()
 
-        render(latest_frame)
+        stdscr.clear()
+
+        renderer.render()
+        show_controls(stdscr)
+        stdscr.addstr(h - 1, 0, "{0:.3} fps".format(1.0 / fps_timer.reset()))
+        
+        stdscr.noutrefresh()
+        curses.doupdate()
 
     try:
         while True:
@@ -326,7 +324,7 @@ def main(stdscr):
         stdscr,
         address=arguments.host,
         port=arguments.port,
-        custom_colors=arguments.rainbow,
+        override_colors=arguments.rainbow,
         skin=arguments.skin,
         cpk=arguments.cpk,
     )
