@@ -17,9 +17,9 @@ from narupa.trajectory import FrameClient
 from transformations import rotation_matrix, scale_matrix
 
 character_sets = {
-    "boxes": [" ", "░", "▒", "▓", "█"],
-    "blobs": [" ", ".", "-", "+", "o", "O", "@"],
-    "extended-blobs": [" ", "·", "-", "+", "◌", "○", "ø", "●", "■"],
+    "boxes": ["░", "▒", "▓", "█"],
+    "blobs": [".", "-", "+", "o", "O", "@"],
+    "extended-blobs": ["·", "-", "+", "◌", "○", "ø", "●", "■"],
 }
 
 character_sets_indexed = list(character_sets.values())
@@ -89,7 +89,7 @@ class Renderer:
         positions = np.array(self.frame.particle_positions, dtype=np.float32).reshape((-1, 3))
 
         # center the camera
-        self.camera.origin = np.sum(positions, axis=0) / len(positions)
+        self.camera.origin = np.average(positions, axis=0)
 
         # add w component to positions then multiply by camera matrix
         positions = np.append(positions, np.ones((len(positions), 1)), axis=-1)
@@ -156,10 +156,14 @@ def render_positions_to_window(window, positions: np.ndarray, renderer, elements
         record_color(index, x, y, z)
 
     char_count = len(renderer.characters)
+    depth_scale = char_count / (max_depth - min_depth)
 
     # transform depths into cell indexes
     depth_buffer -= min_depth
-    depth_buffer *= char_count / (max_depth - min_depth)
+    depth_buffer *= depth_scale
+    np.rint(depth_buffer, out=depth_buffer)
+
+    depth_buffer.clip(0, char_count-1, out=depth_buffer)
     depth_buffer = depth_buffer.astype(int)
 
     char_buffer = renderer.character_lookup[depth_buffer]
