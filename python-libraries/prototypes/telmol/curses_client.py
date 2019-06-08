@@ -13,9 +13,10 @@ import colorsys
 import time
 
 from narupa.trajectory import FrameClient
-from narupa.trajectory.frame_data import POSITIONS
+from narupa.trajectory.frame_data import POSITIONS, ELEMENTS, BONDS
 
 from transformations import rotation_matrix, scale_matrix, translation_matrix, compose_matrix
+from bresenham import get_line
 
 character_sets = {
     "boxes": ["░", "▒", "▓", "█"],
@@ -85,7 +86,8 @@ class Renderer:
         if self.frame:
             positions = self._process_frame(self.frame)
             
-            render_positions_to_window(self.window, positions, self.style, self.elements if self.cpk else None)
+            #render_positions_to_window(self.window, positions, self.style, self.elements if self.cpk else None)
+            render_bonds_to_window(self.window, positions, self.style, self.elements, bonds=self.bonds)
         
         self.window.noutrefresh()
 
@@ -122,7 +124,80 @@ element_colors = {
 
 depth_buffer = None
 
-def render_positions_to_window(window, positions: np.ndarray, renderer, elements=None):
+def render_bonds_to_window(window, positions, renderer, elements=None, bonds=None):
+    global depth_buffer
+    h, w = window.getmaxyx()
+
+    positions[:,0] += (w / 2)
+    positions[:,1] += (h / 2)
+    #positions[:,2] *= 1000
+
+    if depth_buffer is None: 
+        depth_buffer = np.full((w, h), 0, dtype=np.float32)
+    else:
+        depth_buffer.fill(0)
+
+    color_buffer = {}
+
+    color_count = len(renderer.colors) - 1
+
+    min_depth = max_depth = positions[0][2]
+
+    minus_infinity = float("-inf")
+
+    def record_color(index, x, y, z):
+        nonlocal min_depth, max_depth
+
+        coord = (x, y)
+
+        prev_depth = depth_buffer[x, y] if coord in color_buffer else minus_infinity
+        this_depth = z
+
+        if this_depth >= prev_depth:
+            color_index = int((index * .1) % color_count)
+
+            color_buffer[coord] = renderer.colors[color_index]
+            depth_buffer[x, y] = this_depth
+
+    for bond in bonds:
+        if elements[bond[0]] == 1 or elements[bond[1]] == 1:
+            continue
+
+        start = positions[bond[0]]
+        end = positions[bond[1]]
+        start = (int(start[0]), int(start[1]), start[2])
+        end = (int(end[0]), int(end[1]), end[2])
+
+        for x, y, z in get_line(start, end):
+            if x < 0 or x >= w or y < 0 or y >= h:
+                continue
+            if x == w - 1 and y == h - 1:
+                continue
+
+            record_color((bond[0]+bond[1])*.5, x, y, z)
+
+    min_depth = depth_buffer.min()
+    max_depth = depth_buffer.max()
+
+    if not color_buffer:
+        return
+
+    char_count = len(renderer.characters)
+    depth_scale = char_count / (max_depth - min_depth)
+
+    # transform depths into cell indexes
+    depth_buffer -= min_depth
+    depth_buffer *= depth_scale
+    np.rint(depth_buffer, out=depth_buffer)
+
+    depth_buffer.clip(0, char_count-1, out=depth_buffer)
+
+    char_buffer = renderer.character_lookup[depth_buffer.astype(int)]
+
+    for (x, y), color in color_buffer.items():
+        window.addch(y, x, char_buffer[x, y], color)
+
+def render_positions_to_window(window, positions, renderer, elements=None):
     global depth_buffer
     h, w = window.getmaxyx()
 
@@ -179,6 +254,10 @@ def render_positions_to_window(window, positions: np.ndarray, renderer, elements
 
     min_depth = depth_buffer.min()
     max_depth = depth_buffer.max()
+
+    if not color_buffer:
+        return
+
     char_count = len(renderer.characters)
     depth_scale = char_count / (max_depth - min_depth)
 
@@ -193,6 +272,70 @@ def render_positions_to_window(window, positions: np.ndarray, renderer, elements
 
     for (x, y), color in color_buffer.items():
         window.addch(y, x, char_buffer[x, y], color)
+
+    return
+    selection = [0, 1, 2, 4, 5]
+    selection = [positions[i] for i in selection]
+
+    x_min = min(int(pos[0]) for pos in selection)
+    x_max = max(int(pos[0]) for pos in selection)
+    y_min = min(int(pos[1]) for pos in selection)
+    y_max = max(int(pos[1]) for pos in selection)
+
+    draw_box(window, x_min - 1, y_min - 1, x_max + 1, y_max + 1)
+
+    for position in selection:
+        x, y = int(position[0]), int(position[1])
+        
+        if x < 0 or x >= w or y < 0 or y >= h:
+            continue
+        if x == w - 1 and y == h - 1:
+            continue
+        window.addch(y, x, "o")
+
+def draw_box(window, x_min, y_min, x_max, y_max):
+    h, w = window.getmaxyx()
+    
+    if x_min >= w or y_min >= h or x_max < 0 or y_max < 0:
+        return
+
+    y_start_inside = y_min >= 0
+    x_start_inside = x_min >= 0
+    y_end_inside = y_max < h
+    x_end_inside = x_max < w
+
+    if y_start_inside:
+        for x in range(max(x_min + 1, 0), min(x_max-1, w-1)+1):
+            window.addch(y_min, x, curses.ACS_HLINE)
+
+    if y_end_inside:
+        for x in range(max(x_min + 1, 0), min(x_max-1, w-1)+1):
+            window.addch(y_max, x, curses.ACS_HLINE)
+
+    if x_start_inside:
+        for y in range(max(y_min + 1, 0), min(y_max-1, h-1)+1):
+            window.addch(y, x_min, curses.ACS_VLINE)
+    
+    if x_end_inside:
+        for y in range(max(y_min + 1, 0), min(y_max-1, h-1)+1):
+            window.addch(y, x_max, curses.ACS_VLINE)
+
+    x_min = max(x_min, 0)
+    y_min = max(y_min, 0)
+    x_max = min(x_max, w-1)
+    y_max = min(y_max, h-1)
+
+    if y_start_inside and x_start_inside:
+        window.addch(y_min, x_min, curses.ACS_ULCORNER)
+    
+    if y_start_inside and x_end_inside:
+        window.addch(y_min, x_max, curses.ACS_URCORNER)
+    
+    if y_end_inside and x_start_inside:
+        window.addch(y_max, x_min, curses.ACS_LLCORNER)
+
+    if y_end_inside and x_end_inside and (x_max < w-1 or y_max < h-1):
+        window.addch(y_max, x_max, curses.ACS_LRCORNER)
 
 def generate_colors(override_colors=False):
     max_colors = 8
@@ -211,7 +354,7 @@ def generate_colors(override_colors=False):
 
     return colors
 
-def run_curses_client(stdscr, *, address: str, port: int, override_colors=False, skin="boxes", cpk=False):
+def run_curses_client(stdscr, *, address: str, port: int, override_colors=False):
     """
     Connect to a Narupa frame server and render the received frames to a curses 
     window.
@@ -224,7 +367,7 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False,
     """
 
     colors = generate_colors(override_colors=override_colors)
-    style = Style(character_sets[skin], colors)
+    style = Style(character_sets["boxes"], colors)
 
     fps_timer = Timer()
     render_timer = Timer()
@@ -246,7 +389,9 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False,
     def get_frame(frame_index, frame):
         renderer.frame = frame
 
-        if 'particle.element' in frame:
+        if BONDS in frame:
+            renderer.bonds = frame.bonds
+        if ELEMENTS in frame:
             renderer.elements = frame.particle_elements
 
     client.subscribe_frames_async(get_frame)
@@ -316,7 +461,7 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False,
         stdscr.clear()
 
         renderer.render()
-        show_controls(stdscr)
+        #show_controls(stdscr)
 
         fpses.append(fps_timer.reset())
         
@@ -325,7 +470,10 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False,
 
         average_fps = sum(fpses) / len(fpses)
 
-        stdscr.addstr(h - 1, 0, "{} fps".format(round(1.0 / average_fps)))
+        try:
+            stdscr.addstr(h - 1, 0, "{} fps".format(round(1.0 / average_fps)))
+        except ZeroDivisionError:
+            pass
         
         stdscr.noutrefresh()
         curses.doupdate()
@@ -354,24 +502,18 @@ def handle_user_args() -> argparse.Namespace:
     description = "Connect to a Narupa trajectory server and render the atoms live in a curses display."
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--host', default='localhost')
-    parser.add_argument('--port', type=int, default=8000)
+    parser.add_argument('--port', type=int, default=54321)
     parser.add_argument('--rainbow', action="store_true")
-    parser.add_argument('--skin', default="boxes")
-    parser.add_argument('--cpk', action="store_true")
     arguments = parser.parse_args()
     return arguments
 
 
 def main(stdscr):
     arguments = handle_user_args()
-    run_curses_client(
-        stdscr,
-        address=arguments.host,
-        port=arguments.port,
-        override_colors=arguments.rainbow,
-        skin=arguments.skin,
-        cpk=arguments.cpk,
-    )
+    run_curses_client(stdscr,
+                      address=arguments.host,
+                      port=arguments.port,
+                      override_colors=arguments.rainbow)
 
 if __name__ == '__main__':
     curses.wrapper(main)
