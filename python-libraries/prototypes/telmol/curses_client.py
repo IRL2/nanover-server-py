@@ -58,11 +58,11 @@ class Style:
 
     def set_characters(self, characters):
         self.characters = characters
-        self.character_lookup = np.array(self.characters + [self.characters[-1]])
+        self.character_lookup = np.array(self.characters)
 
     def set_colors(self, colors):
         self.colors = colors
-        self.color_lookup = np.array(self.colors + [self.colors[-1]])
+        self.color_lookup = np.array(self.colors)
 
 class Renderer:
     def __init__(self, window, style):
