@@ -14,7 +14,7 @@ import time
 
 from narupa.trajectory import FrameClient
 
-from transformations import rotation_matrix, scale_matrix
+from transformations import rotation_matrix, scale_matrix, translation_matrix, compose_matrix
 
 character_sets = {
     "boxes": ["░", "▒", "▓", "█"],
@@ -75,21 +75,34 @@ class Renderer:
 
         self.cpk = True
 
+        self._offset = (0, 0, 0)
+        self._recenter = False
+
     def render(self):
         self.window.clear()
         
         if self.frame:
             positions = self._process_frame(self.frame)
+            
             render_positions_to_window(self.window, positions, self.style, self.elements if self.cpk else None)
         
         self.window.noutrefresh()
+
+    def recenter_camera(self):
+        self._recenter = True
 
     def _process_frame(self, frame):
         # convert positions from frame
         positions = np.array(self.frame.particle_positions, dtype=np.float32).reshape((-1, 3))
 
         # center the camera
-        self.camera.origin = np.average(positions, axis=0)
+        #self.camera.origin = np.median(positions, axis=0)
+                
+        if self._recenter:
+            self._offset = np.median(positions, axis=0)[:3]
+            self._recenter = False
+            
+        positions -= self._offset
 
         # add w component to positions then multiply by camera matrix
         positions = np.append(positions, np.ones((len(positions), 1)), axis=-1)
@@ -228,9 +241,11 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False,
 
     def show_controls(window):
         window.addstr(0, 0, "arrows -- rotate camera")
-        window.addstr(1, 0, " < >   -- zoom")
-        window.addstr(2, 0, "  x    -- toggle cpk colors")
-        window.addstr(3, 0, "  z    -- cycle skins")
+        window.addstr(1, 0, "  c    -- recenter camera")
+        window.addstr(2, 0, " < >   -- zoom")
+
+        window.addstr(4, 0, "  x    -- toggle cpk colors")
+        window.addstr(5, 0, "  z    -- cycle skins")
 
     def rotate_plus():
         renderer.camera.angle += .1
@@ -263,6 +278,7 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False,
         ord("q"):         quit,
         ord("x"):         toggle_cpk,
         ord("z"):         cycle_charsets,
+        ord("c"):         renderer.recenter_camera,
     }
 
     def check_input():
