@@ -13,6 +13,7 @@ import colorsys
 import time
 
 from narupa.trajectory import FrameClient
+from narupa.trajectory.frame_data import POSITIONS
 
 from transformations import rotation_matrix, scale_matrix, translation_matrix, compose_matrix
 
@@ -93,7 +94,8 @@ class Renderer:
 
     def _process_frame(self, frame):
         # convert positions from frame
-        positions = np.array(self.frame.particle_positions, dtype=np.float32).reshape((-1, 3))
+        raw_positions = frame._raw.arrays[POSITIONS].float_values.values
+        positions = np.array(raw_positions, dtype=np.float32).reshape((-1, 3))
 
         # center the camera
         #self.camera.origin = np.median(positions, axis=0)
@@ -118,32 +120,39 @@ element_colors = {
     16: curses.COLOR_YELLOW,
 }
 
+depth_buffer = None
+
 def render_positions_to_window(window, positions: np.ndarray, renderer, elements=None):
+    global depth_buffer
     h, w = window.getmaxyx()
 
     positions[:,0] += (w / 2)
     positions[:,1] += (h / 2)
     positions[:,2] *= 1000
-    np.round(positions, out=positions)
-    positions = positions.astype(int)
 
-    depth_buffer = np.full((w, h), 0, dtype=np.float32)
+    if depth_buffer is None: 
+        depth_buffer = np.full((w, h), 0, dtype=np.float32)
+    else:
+        depth_buffer.fill(0)
+
     color_buffer = {}
 
     color_count = len(renderer.colors) - 1
 
     min_depth = max_depth = positions[0][2]
 
+    minus_infinity = float("-inf")
+
     def record_color(index, x, y, z):
         nonlocal min_depth, max_depth
 
         coord = (x, y)
 
-        prev_depth = depth_buffer[x, y] if coord in color_buffer else min_depth
+        prev_depth = depth_buffer[x, y] if coord in color_buffer else minus_infinity
         this_depth = z
 
-        min_depth = min(min_depth, this_depth)
-        max_depth = max(max_depth, this_depth)
+        #min_depth = min(min_depth, this_depth)
+        #max_depth = max(max_depth, this_depth)
 
         if this_depth >= prev_depth:
             if elements:
@@ -159,7 +168,7 @@ def render_positions_to_window(window, positions: np.ndarray, renderer, elements
             depth_buffer[x, y] = this_depth
 
     for index, position in enumerate(positions):
-        x, y, z = position[0], position[1], position[2]
+        x, y, z = int(position[0]), int(position[1]), position[2]
 
         if x < 0 or x >= w or y < 0 or y >= h:
             continue
@@ -168,6 +177,8 @@ def render_positions_to_window(window, positions: np.ndarray, renderer, elements
 
         record_color(index, x, y, z)
 
+    min_depth = depth_buffer.min()
+    max_depth = depth_buffer.max()
     char_count = len(renderer.characters)
     depth_scale = char_count / (max_depth - min_depth)
 
@@ -177,9 +188,8 @@ def render_positions_to_window(window, positions: np.ndarray, renderer, elements
     np.rint(depth_buffer, out=depth_buffer)
 
     depth_buffer.clip(0, char_count-1, out=depth_buffer)
-    depth_buffer = depth_buffer.astype(int)
 
-    char_buffer = renderer.character_lookup[depth_buffer]
+    char_buffer = renderer.character_lookup[depth_buffer.astype(int)]
 
     for (x, y), color in color_buffer.items():
         window.addch(y, x, char_buffer[x, y], color)
@@ -219,6 +229,8 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False,
     fps_timer = Timer()
     render_timer = Timer()
     renderer = Renderer(stdscr, style)
+
+    fpses = []
 
     curses.curs_set(False)
     stdscr.clear()
@@ -291,10 +303,12 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False,
 
     h, w = stdscr.getmaxyx()
 
+    frame_delay = 1 / 30
+
     def loop():
         check_input()
 
-        if render_timer.get_delta() < 0.05:
+        if render_timer.get_delta() < frame_delay:
             return
 
         render_timer.reset()
@@ -303,23 +317,33 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False,
 
         renderer.render()
         show_controls(stdscr)
-        stdscr.addstr(h - 1, 0, "{0:.3} fps".format(1.0 / fps_timer.reset()))
+
+        fpses.append(fps_timer.reset())
+        
+        if len(fpses) > 5:
+            del fpses[0]
+
+        average_fps = sum(fpses) / len(fpses)
+
+        stdscr.addstr(h - 1, 0, "{} fps".format(round(1.0 / average_fps)))
         
         stdscr.noutrefresh()
         curses.doupdate()
 
-    try:
-        while True:
-            loop()
-            time.sleep(.01)
-    except UserQuitException:
-        pass
-    finally:
-        stdscr.clear()
-        stdscr.addstr(0, 0, "Closing...")
-        stdscr.refresh()
-        client.close()
-
+    def main_loop():
+        try:
+            while True:
+                loop()
+                time.sleep(.0001)
+        except UserQuitException:
+            pass
+        finally:
+            stdscr.clear()
+            stdscr.addstr(0, 0, "Closing...")
+            stdscr.refresh()
+            client.close()
+    
+    main_loop()
 
 def handle_user_args() -> argparse.Namespace:
     """
@@ -348,7 +372,6 @@ def main(stdscr):
         skin=arguments.skin,
         cpk=arguments.cpk,
     )
-
 
 if __name__ == '__main__':
     curses.wrapper(main)
