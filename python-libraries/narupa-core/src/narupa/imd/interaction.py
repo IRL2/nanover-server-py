@@ -27,7 +27,7 @@ class Interaction:
 
     :param player_id: The player ID to be associated with the interaction.
     :param interaction_id: The interaction ID to be associated with the interaction. Typically, this identifies
-    the VR controller, or other input device.
+        the VR controller, or other input device.
     :param interaction_type: The type of interaction being used, default is Gaussian force.
     :param scale: The scale factor applied to the interaction, default is 1.
 
