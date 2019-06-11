@@ -3,6 +3,7 @@ from unittest.mock import Mock
 import pytest
 import time
 
+from grpc import RpcError, StatusCode
 from narupa.trajectory import FrameServer, FrameClient, FrameData
 
 
@@ -180,8 +181,14 @@ def test_slow_frame_publishing(frame_server, frame_client, simple_frame_data):
         frame_server.send_frame(i, simple_frame_data)
 
     time.sleep(0.5)
-    future.cancel()
+    # TODO there is no way to cancel the subscription stream...
+    frame_client.close()
     # this result would throw an exception if an exception was raised during subscription.
-    subscribe_result = future.result()
-    assert subscribe_result is None
+    # here, we handle the expected cancelled exception, anything else is a bug.
+    try:
+        subscribe_result = future.result()
+    except RpcError as e:
+        if not e._state.code == StatusCode.CANCELLED:
+            raise e
+
     assert result == simple_frame_data
