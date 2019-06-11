@@ -130,7 +130,8 @@ def test_data_lateclient(frame_server, frame_client, simple_frame_data):
     assert result == simple_frame_data
 
 
-def test_data_disjoint(frame_server, frame_client, simple_frame_data, disjoint_frame_data, simple_and_disjoint_frame_data):
+def test_data_disjoint(frame_server, frame_client, simple_frame_data, disjoint_frame_data,
+                       simple_and_disjoint_frame_data):
     result = None
 
     def callback(frame, **kwargs):
@@ -163,6 +164,7 @@ def test_data_overlap(frame_server, frame_client, simple_frame_data, overlap_fra
 
     assert result == simple_and_overlap_frame_data
 
+
 def test_slow_frame_publishing(frame_server, frame_client, simple_frame_data):
     result = None
 
@@ -170,7 +172,7 @@ def test_slow_frame_publishing(frame_server, frame_client, simple_frame_data):
         nonlocal result
         result = frame
 
-    frame_client.subscribe_frames_async(callback)
+    future = frame_client.subscribe_frames_async(callback)
     time.sleep(0.1)
 
     for i in range(5):
@@ -178,7 +180,8 @@ def test_slow_frame_publishing(frame_server, frame_client, simple_frame_data):
         frame_server.send_frame(i, simple_frame_data)
 
     time.sleep(0.5)
+    future.cancel()
+    # this result would throw an exception if an exception was raised during subscription.
+    subscribe_result = future.result()
+    assert subscribe_result is None
     assert result == simple_frame_data
-
-
-
