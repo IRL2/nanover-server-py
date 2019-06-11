@@ -3,6 +3,7 @@ from unittest.mock import Mock
 import pytest
 import time
 
+from grpc import RpcError, StatusCode
 from narupa.trajectory import FrameServer, FrameClient, FrameData
 
 
@@ -130,7 +131,8 @@ def test_data_lateclient(frame_server, frame_client, simple_frame_data):
     assert result == simple_frame_data
 
 
-def test_data_disjoint(frame_server, frame_client, simple_frame_data, disjoint_frame_data, simple_and_disjoint_frame_data):
+def test_data_disjoint(frame_server, frame_client, simple_frame_data, disjoint_frame_data,
+                       simple_and_disjoint_frame_data):
     result = None
 
     def callback(frame, **kwargs):
@@ -164,4 +166,29 @@ def test_data_overlap(frame_server, frame_client, simple_frame_data, overlap_fra
     assert result == simple_and_overlap_frame_data
 
 
+def test_slow_frame_publishing(frame_server, frame_client, simple_frame_data):
+    result = None
 
+    def callback(frame, **kwargs):
+        nonlocal result
+        result = frame
+
+    future = frame_client.subscribe_frames_async(callback)
+    time.sleep(0.1)
+
+    for i in range(5):
+        time.sleep(0.5)
+        frame_server.send_frame(i, simple_frame_data)
+
+    time.sleep(0.5)
+    # TODO there is no way to cancel the subscription stream...
+    frame_client.close()
+    # this result would throw an exception if an exception was raised during subscription.
+    # here, we handle the expected cancelled exception, anything else is a bug.
+    try:
+        subscribe_result = future.result()
+    except RpcError as e:
+        if not e._state.code == StatusCode.CANCELLED:
+            raise e
+
+    assert result == simple_frame_data
