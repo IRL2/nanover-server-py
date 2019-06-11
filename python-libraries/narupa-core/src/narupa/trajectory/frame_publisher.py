@@ -27,14 +27,13 @@ class FramePublisher(TrajectoryServiceServicer):
         queue = Queue()
         self.frame_queues.append(queue)
 
-        while True:
+        while context.is_active():
             try:
                 item = queue.get(block=True, timeout=0.5)
             except Empty:
                 pass
             else:
                 yield item
-            finally:
                 queue.task_done()
 
     def send_frame(self, frame_index: int, frame: FrameData):
