@@ -163,5 +163,22 @@ def test_data_overlap(frame_server, frame_client, simple_frame_data, overlap_fra
 
     assert result == simple_and_overlap_frame_data
 
+def test_slow_frame_publishing(frame_server, frame_client, simple_frame_data):
+    result = None
+
+    def callback(frame, **kwargs):
+        nonlocal result
+        result = frame
+
+    frame_client.subscribe_frames_async(callback)
+    time.sleep(0.1)
+
+    for i in range(5):
+        time.sleep(0.5)
+        frame_server.send_frame(i, simple_frame_data)
+
+    time.sleep(0.5)
+    assert result == simple_frame_data
+
 
 
