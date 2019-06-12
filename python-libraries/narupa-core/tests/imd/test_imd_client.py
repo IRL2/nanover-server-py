@@ -58,11 +58,13 @@ def test_update_deleted_interaction(imd_server, imd_client, interaction):
     with pytest.raises(KeyError):
         imd_client.update_interaction(interaction_id, interaction)
 
+
 def test_stop_all_interactions(imd_server, imd_client, interaction):
-    interaction_id = imd_client.start_interaction()
-    interaction_id_2 = imd_client.start_interaction()
+    imd_client.start_interaction()
+    imd_client.start_interaction()
     imd_client.stop_all_interactions()
     assert len(imd_client._active_interactions) == 0
+
 
 def test_bad_interaction_type(imd_server, imd_client):
     interaction_id = imd_client.start_interaction()
@@ -81,8 +83,10 @@ def test_queue_generator():
     result = [x for x in queue_generator(queue, sentinel)]
     assert result == items
 
+
 def to_list(generator):
     return [x for x in generator]
+
 
 def test_queue_generator_threaded():
     """
