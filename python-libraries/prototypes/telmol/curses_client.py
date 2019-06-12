@@ -130,7 +130,6 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
 
     positions[:,0] += (w / 2)
     positions[:,1] += (h / 2)
-    #positions[:,2] *= 1000
 
     if depth_buffer is None: 
         depth_buffer = np.full((w, h), 0, dtype=np.float32)
@@ -145,7 +144,7 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
 
     minus_infinity = float("-inf")
 
-    def record_color(index, x, y, z):
+    def record_color(color, x, y, z):
         nonlocal min_depth, max_depth
 
         coord = (x, y)
@@ -154,13 +153,11 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
         this_depth = z
 
         if this_depth >= prev_depth:
-            color_index = int((index * .1) % color_count)
-
-            color_buffer[coord] = renderer.colors[color_index]
+            color_buffer[coord] = color
             depth_buffer[x, y] = this_depth
 
     for bond in bonds:
-        if elements[bond[0]] == 1 or elements[bond[1]] == 1:
+        if elements[bond[0]] not in element_colors or elements[bond[1]] not in element_colors:
             continue
 
         start = positions[bond[0]]
@@ -168,13 +165,17 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
         start = (int(start[0]), int(start[1]), start[2])
         end = (int(end[0]), int(end[1]), end[2])
 
+        #color_index = int(((bond[0]+bond[1])*.5 * .1) % color_count)
+        color_index = element_colors[elements[bond[1]]]
+        color = renderer.colors[color_index]
+
         for x, y, z in get_line(start, end):
             if x < 0 or x >= w or y < 0 or y >= h:
                 continue
             if x == w - 1 and y == h - 1:
                 continue
 
-            record_color((bond[0]+bond[1])*.5, x, y, z)
+            record_color(color, x, y, z)
 
     min_depth = depth_buffer.min()
     max_depth = depth_buffer.max()
@@ -486,9 +487,6 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
         except UserQuitException:
             pass
         finally:
-            stdscr.clear()
-            stdscr.addstr(0, 0, "Closing...")
-            stdscr.refresh()
             client.close()
     
     main_loop()
