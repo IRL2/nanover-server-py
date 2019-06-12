@@ -20,7 +20,7 @@ class OpenMMCalculator(Calculator):
     serialised OpenMM simulation file.
 
     Parameters:
-        input_xml :  An OpenMM simulation, serialised with :module: serializer.
+        simulation :  An OpenMM simulation.
     """
     simulation: Simulation
     implemented_properties = ['energy', 'forces']
@@ -33,6 +33,13 @@ class OpenMMCalculator(Calculator):
 
     @classmethod
     def from_xml(cls, input_xml, atoms: Optional[Atoms] = None, **kwargs):
+        """
+        Initialises an OpenMMCalculator from a simulation serialised to XML with :module serializer.
+        :param input_xml:
+        :param atoms:
+        :param kwargs:
+        :return:
+        """
         with open(input_xml) as infile:
             simulation = serializer.deserialize_simulation(infile.read())
         return OpenMMCalculator(simulation, atoms, **kwargs)
