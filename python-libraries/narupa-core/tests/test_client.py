@@ -1,3 +1,5 @@
+
+
 import time
 
 import grpc
@@ -70,8 +72,7 @@ def test_start_interaction(client, frame_server, imd_server, interaction):
     assert len(imd_server.service.interactions) == 1
 
 
-def test_update_interaction(client, frame_server, imd_server, interaction):
-    client = NarupaClient()
+def test_update_interaction(frame_server, imd_server, interaction, client):
     id = client.start_interaction(interaction)
     interaction.position = [2, 2, 2]
     client.update_interaction(id, interaction)
@@ -79,20 +80,22 @@ def test_update_interaction(client, frame_server, imd_server, interaction):
     assert len(imd_server.service.interactions) == 1
     assert np.allclose(list(imd_server.service.interactions.values())[0].position, (2, 2, 2))
 
-
 def test_no_imd(frame_server, interaction):
     client = NarupaClient(run_imd=False)
     with pytest.raises(ValueError):
         client.start_interaction(interaction)
+    client.close()
 
 
 def test_no_imd_update(frame_server, interaction):
     client = NarupaClient(run_imd=False)
     with pytest.raises(ValueError):
         client.update_interaction(0, interaction)
+    client.close()
 
 
 def test_no_imd_stop(frame_server, interaction):
     client = NarupaClient(run_imd=False)
     with pytest.raises(ValueError):
         client.stop_interaction(0)
+    client.close()

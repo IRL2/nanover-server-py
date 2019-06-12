@@ -141,7 +141,8 @@ class ImdClient:
 
     def close(self):
         try:
-            self.stop_all_interactions()
+            pass
+            #self.stop_all_interactions()
         except grpc.RpcError as e:
             self._logger.exception(e)
         finally:

@@ -32,7 +32,8 @@ class NarupaClient:
             self._first_frame = None
             self._frames.clear()
         self._frame_client.close()
-        self._imd_client.close()
+        if self.running_imd:
+            self._imd_client.close()
 
     def connect(self, address=None, trajectory_port=None, imd_port=None, run_imd=True):
         self._frame_client = FrameClient(address=address, port=trajectory_port)
