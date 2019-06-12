@@ -1,4 +1,6 @@
 import time
+
+import grpc
 import pytest
 from .test_frame_server import simple_frame_data, frame_server
 from .imd.test_imd_server import imd_client, imd_server, interaction
@@ -10,13 +12,17 @@ import numpy as np
 def client():
     client = NarupaClient()
     yield client
-    client.close()
+    try:
+        client.close()
+    #TODO gracefully handle any errors here - sometimes theres a stream error when things close early.
+    except grpc.RpcError as e:
+        print(e)
 
 
 def test_receive_frames(frame_server, imd_server, simple_frame_data, client):
     time.sleep(0.1)
     frame_server.send_frame(0, simple_frame_data)
-    time.sleep(0.2)
+    time.sleep(0.5)
     assert client.first_frame is not None
     assert client.latest_frame == client.first_frame
     assert len(client.frames) == 1
