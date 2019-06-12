@@ -73,8 +73,8 @@ class OpenMMIMDRunner:
         self._verbose = params.verbose
 
         self._initialise_calculator(simulation)
-        self._initialise_dynamics(simulation)
-        self._initialise_server(self.dyn)
+        self._initialise_dynamics()
+        self._initialise_server(self.dynamics)
 
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
@@ -113,6 +113,10 @@ class OpenMMIMDRunner:
     def imd_port(self):
         return self._imd_port
 
+    @property
+    def dynamics(self):
+        return self._dynamics
+
     def run(self, steps=None):
         self.imd.run(steps)
 
@@ -131,12 +135,12 @@ class OpenMMIMDRunner:
         self.atoms = self._openmm_calculator.generate_atoms()
         self.atoms.set_calculator(self._openmm_calculator)
 
-    def _initialise_dynamics(self, simulation):
+    def _initialise_dynamics(self):
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, 300 * units.kB)
 
-        self.dyn = NVTBerendsen(self.atoms, 1 * units.fs, 300, self.time_step * units.fs)
+        self._dynamics = NVTBerendsen(self.atoms, 1 * units.fs, 300, self.time_step * units.fs)
 
         if self.verbose:
-            self.dyn.attach(MDLogger(self.dyn, self.atoms, '-', header=True, stress=False,
+            self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,
                                      peratom=False), interval=100)
