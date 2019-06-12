@@ -34,7 +34,6 @@ class FramePublisher(TrajectoryServiceServicer):
                 pass
             else:
                 yield item
-                queue.task_done()
 
     def send_frame(self, frame_index: int, frame: FrameData):
         if self.last_frame is None:

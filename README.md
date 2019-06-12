@@ -1,8 +1,7 @@
-# Narupa protocol
+# Narupa 2 Protocol
 
-Working space for the new narupa protocol and associated implementations using gRPC.
-
-This is very much a work in progress!
+Repository containing the gRPC protocol and python based implementations 
+of servers for Narupa 2. 
 
 ## Getting Started
 
@@ -40,10 +39,8 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
 
 ## Coming Soon
 
-* Interactive MD servers
 * Multiplayer
 * Lobby
-* Trajectory serving
 
 ## Running the tests
 
