@@ -1,4 +1,5 @@
 from concurrent import futures
+from concurrent.futures import Future
 
 import grpc
 
@@ -13,8 +14,8 @@ class FrameClient:
         self.stub = TrajectoryServiceStub(self.channel)
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
 
-    def subscribe_frames_async(self, callback):
-        self.threads.submit(self.subscribe_frames_blocking, callback)
+    def subscribe_frames_async(self, callback) -> Future:
+        return self.threads.submit(self.subscribe_frames_blocking, callback)
 
     def subscribe_frames_blocking(self, callback):
         for response in self.stub.SubscribeFrames(GetFrameRequest()):
