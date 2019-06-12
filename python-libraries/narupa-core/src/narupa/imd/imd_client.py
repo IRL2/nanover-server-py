@@ -119,6 +119,11 @@ class ImdClient:
         """
         return self.stub.PublishInteraction(_to_proto(interactions))
 
+    def stop_all_interactions(self):
+        for interaction_id in list(self._active_interactions.keys()):
+            self.stop_interaction(interaction_id)
+
     def close(self):
+        self.stop_all_interactions()
         self.channel.close()
         self.threads.shutdown(wait=False)

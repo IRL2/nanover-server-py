@@ -1,6 +1,7 @@
 from concurrent import futures
 from queue import Queue
 
+import grpc
 import pytest
 from narupa.imd.imd_client import queue_generator
 from .test_imd_server import imd_client, imd_server, interaction
@@ -56,6 +57,18 @@ def test_update_deleted_interaction(imd_server, imd_client, interaction):
     imd_client.stop_interaction(interaction_id)
     with pytest.raises(KeyError):
         imd_client.update_interaction(interaction_id, interaction)
+
+def test_stop_all_interactions(imd_server, imd_client, interaction):
+    interaction_id = imd_client.start_interaction()
+    interaction_id_2 = imd_client.start_interaction()
+    imd_client.stop_all_interactions()
+    assert len(imd_client._active_interactions) == 0
+
+def test_bad_interaction_type(imd_server, imd_client):
+    interaction_id = imd_client.start_interaction()
+    imd_client.update_interaction(interaction_id, "something_stupid")
+    with pytest.raises(grpc.RpcError):
+        imd_client.stop_interaction(interaction_id)
 
 
 def test_queue_generator():
