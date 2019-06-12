@@ -3,6 +3,16 @@ ASE server for Narupa
 
 This server implements interactive molecular dynamics (IMD) for an ASE molecular dynamics simulation. 
 
+Running an OpenMM server from the command line
+-----------------------------------------------
+
+When `narupa-ase` is installed, it provides the `narupa-omm-ase`
+command in the command line. When provided with the description of an
+OpenMM simulation as an XML file, `narupa-omm-ase` runs an interactive simulation. 
+The host address and port can be set with
+the `--address` and the `--port` option, respectively.
+
+
 Running a server from python
 ----------------------------
 
@@ -25,5 +35,6 @@ while True:
     imd.run(100)
 ```
 
-Full examples are given in the [examples](./examples) folder.
+Full examples are given in the [examples](./examples) folder, which contains several
+Jupyter notebooks that explore how Narupa can be used with OpenMM.
 

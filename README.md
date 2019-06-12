@@ -51,14 +51,16 @@ Running the tests is a crucial part of keeping the code base functional. To run 
 
     python -m pytest python-libraries
 
-## Running test servers
+## Running the examples
+
+`narupa.ase` provides a command line interface for running serialised OpenMM simulations. For example:
+    
+    narupa-omm-ase python-libraries/narupa-ase/examples/nanotube.xml 
+    
+The `python-libraries/narupa-ase/examples/nanotube.xml` examples folder also contains several
+Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
 
 `narupa.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
 trajectory. To serve the frames on port 54321, run
 
     python .\python-libraries\narupa-mdanalysis\examples\example.py
-
-`narupa.ase` provides a server that runs a demo ase simulation. To serve the frames of that simulation on port 54321,
-run
-
-    python .\python-libraries\narupa-ase\src\narupa\ase\example\molecular_dynamics.py
