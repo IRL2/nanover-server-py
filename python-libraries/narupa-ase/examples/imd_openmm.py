@@ -75,8 +75,8 @@ def handle_user_arguments() -> argparse.Namespace:
     arguments = parser.parse_args()
     return arguments
 
-def start_imd(input_xml, address=None, traj_port=None, imd_port=None, frame_interval=5, time_step=2.0, verbose=False):
 
+def start_imd(input_xml, address=None, traj_port=None, imd_port=None, frame_interval=5, time_step=2.0, verbose=False):
     print(f'Generating OpenMM context from input: {input_xml}')
     openmm_calculator = OpenMMCalculator.from_xml(input_xml)
 
@@ -103,6 +103,7 @@ def start_imd(input_xml, address=None, traj_port=None, imd_port=None, frame_inte
                        )
     return imd
 
+
 def main():
     """
     Entry point for the command line.
@@ -110,7 +111,7 @@ def main():
     arguments = handle_user_arguments()
 
     imd = start_imd(arguments.simulation_xml_path, arguments.address, arguments.trajectory_port, arguments.imd_port,
-              arguments.frame_interval, arguments.time_step, arguments.verbose)
+                    arguments.frame_interval, arguments.time_step, arguments.verbose)
 
     print(f'Running dynamics')
     while True:

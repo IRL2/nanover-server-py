@@ -1,5 +1,8 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+"""
+ASE calculator for use with OpenMM.
+"""
 from typing import Optional
 
 import ase
@@ -16,8 +19,8 @@ from narupa.ase.converter import KJMOL_TO_EV
 
 class OpenMMCalculator(Calculator):
     """
-    Simple implementation of a ASE calculator for OpenMM. Initialises an OpenMM context with the given
-    serialised OpenMM simulation file.
+    Simple implementation of a ASE calculator for OpenMM. Initialises an OpenMM context with
+    the given OpenMM simulation.
 
     Parameters:
         simulation :  An OpenMM simulation.

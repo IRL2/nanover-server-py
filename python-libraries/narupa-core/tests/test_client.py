@@ -1,8 +1,5 @@
 import time
-
-import grpc
 import pytest
-
 from .test_frame_server import simple_frame_data, frame_server
 from .imd.test_imd_server import imd_client, imd_server, interaction
 from narupa.app.client import NarupaClient
