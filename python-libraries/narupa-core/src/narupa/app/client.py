@@ -12,26 +12,36 @@ from narupa.protocol.trajectory import FrameData as GrpcFrameData
 
 
 class NarupaClient:
-
     _imd_client: ImdClient
     _frame_client: FrameClient
     _frames: deque
 
-    def __init__(self, address:Optional[str]=None,
-                 trajectory_port:Optional[int]=None,
-                 imd_port:Optional[int]=None,
+    def __init__(self, address: Optional[str] = None,
+                 trajectory_port: Optional[int] = None,
+                 imd_port: Optional[int] = None,
                  max_frames=50,
                  run_imd=True):
-        self._frame_client = FrameClient(address=address, port=trajectory_port)
+        self.connect(address, trajectory_port, imd_port, run_imd)
+
         self.max_frames = max_frames
+        self._frames = deque(maxlen=self.max_frames)
+        self._first_frame = None
+
+    def close(self, clear_frames=True):
+        if clear_frames:
+            self._first_frame = None
+            self._frames.clear()
+        self._frame_client.close()
+        self._imd_client.close()
+
+    def connect(self, address=None, trajectory_port=None, imd_port=None, run_imd=True):
+        self._frame_client = FrameClient(address=address, port=trajectory_port)
         if run_imd:
             self._imd_client = ImdClient(address=address, port=imd_port)
         else:
             self._imd_client = None
-
-        self._frames = deque(maxlen=self.max_frames)
-        self._first_frame = None
         self._join_trajectory()
+
 
     @property
     def running_imd(self) -> bool:
@@ -39,7 +49,10 @@ class NarupaClient:
 
     @property
     def latest_frame(self) -> FrameData:
-        return self.frames[-1]
+        if len(self.frames) is 0:
+            return None
+        else:
+            return self.frames[-1]
 
     @property
     def frames(self) -> Sequence[FrameData]:
@@ -54,7 +67,7 @@ class NarupaClient:
             raise ValueError("Client started without IMD, cannot start an interaction!")
         interaction_id = self._imd_client.start_interaction()
         if interaction is not None:
-            self.update_interaction(interaction_id)
+            self.update_interaction(interaction_id, interaction)
         return interaction_id
 
     def update_interaction(self, interaction_id, interaction):
@@ -70,13 +83,7 @@ class NarupaClient:
     def _join_trajectory(self):
         self._frame_client.subscribe_frames_async(self._on_frame_received)
 
-    def _on_frame_received(self, frame_index:int, frame:FrameData):
+    def _on_frame_received(self, frame_index: int, frame: FrameData):
         if self._first_frame is None:
             self._first_frame = frame
         self._frames.append(frame)
-
-
-
-
-
-
