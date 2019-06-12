@@ -12,11 +12,7 @@ import numpy as np
 def client():
     client = NarupaClient()
     yield client
-    try:
-        client.close()
-    #TODO gracefully handle any errors here - sometimes theres a stream error when things close early.
-    except grpc.RpcError as e:
-        print(e)
+    client.close()
 
 
 def test_receive_frames(frame_server, imd_server, simple_frame_data, client):

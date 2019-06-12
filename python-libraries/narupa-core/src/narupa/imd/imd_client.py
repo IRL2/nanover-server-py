@@ -1,5 +1,6 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+import logging
 import time
 from concurrent import futures
 from concurrent.futures import Future
@@ -77,6 +78,7 @@ class ImdClient:
         self.stub = InteractiveMolecularDynamicsStub(self.channel)
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
         self._active_interactions = {}
+        self._logger = logging.getLogger(__name__)
 
     def start_interaction(self) -> int:
         """
@@ -138,6 +140,10 @@ class ImdClient:
             self.stop_interaction(interaction_id)
 
     def close(self):
-        self.stop_all_interactions()
-        self.channel.close()
-        self.threads.shutdown(wait=False)
+        try:
+            self.stop_all_interactions()
+        except grpc.RpcError as e:
+            self._logger.exception(e)
+        finally:
+            self.channel.close()
+            self.threads.shutdown(wait=False)
