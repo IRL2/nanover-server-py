@@ -146,3 +146,9 @@ class OpenMMIMDRunner:
         if self.verbose:
             self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,
                                      peratom=False), interval=100)
+
+    def close(self):
+        """
+        Closes the connection and stops the dynamics.
+        """
+        self.imd.close()

@@ -92,5 +92,6 @@ class ASEImdServer:
             self._run_task.result()
 
     def close(self):
+        self.cancel_run()
         self.imd_server.close()
         self.frame_server.close()
