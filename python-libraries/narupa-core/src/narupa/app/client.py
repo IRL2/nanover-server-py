@@ -1,5 +1,5 @@
 """
-Module containing a basic interactive moleculary dynamics client that receives frames
+Module containing a basic interactive molecular dynamics client that receives frames
 and can publish interactions.
 """
 from collections import deque
@@ -49,10 +49,13 @@ class NarupaClient:
     def first_frame(self) -> FrameData:
         return self._first_frame
 
-    def start_interaction(self) -> int:
+    def start_interaction(self, interaction=None) -> int:
         if self._imd_client is None:
             raise ValueError("Client started without IMD, cannot start an interaction!")
-        return self._imd_client.start_interaction()
+        interaction_id = self._imd_client.start_interaction()
+        if interaction is not None:
+            self.update_interaction(interaction_id)
+        return interaction_id
 
     def update_interaction(self, interaction_id, interaction):
         if self._imd_client is None:
