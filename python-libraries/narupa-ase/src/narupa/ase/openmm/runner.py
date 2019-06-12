@@ -27,7 +27,7 @@ def openmm_ase_frame_server(ase_atoms: Atoms, frame_server):
         # generate topology frame using OpenMM converter.
         if send.frame_index == 0:
             imd_calculator = ase_atoms.get_calculator()
-            send.topology = imd_calculator.calculator.simulation.topology
+            send.topology = imd_calculator.calculator.topology
             frame = openmm_to_frame_data(positions=None, topology=send.topology)
             add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
         # from then on, just send positions and state.

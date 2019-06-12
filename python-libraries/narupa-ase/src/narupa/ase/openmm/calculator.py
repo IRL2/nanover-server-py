@@ -95,7 +95,8 @@ class OpenMMCalculator(Calculator):
 
         return atoms
 
-    def get_topology(self):
+    @property
+    def topology(self):
         return self.simulation.topology
 
     @staticmethod
