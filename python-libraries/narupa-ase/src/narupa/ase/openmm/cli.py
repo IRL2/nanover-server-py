@@ -17,7 +17,7 @@ from narupa.ase.openmm import OpenMMIMDRunner
 from narupa.ase.openmm.runner import ImdParams
 
 
-def handle_user_arguments() -> argparse.Namespace:
+def handle_user_arguments(args=None) -> argparse.Namespace:
     """
     Parse the arguments from the command line.
 
@@ -37,20 +37,17 @@ def handle_user_arguments() -> argparse.Namespace:
         action='store_true',
         help='Display state information.',
     )
-    parser.add_argument('-t', '--trajectory_port', default=None)
-    parser.add_argument('-i', '--imd_port', default=None)
+    parser.add_argument('-t', '--trajectory_port', type=int, default=None)
+    parser.add_argument('-i', '--imd_port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
-    parser.add_argument('-f', '--frame_interval', default=5)
-    parser.add_argument('-s', '--time_step', default=2.0)
-    arguments = parser.parse_args()
+    parser.add_argument('-f', '--frame_interval', type=int, default=5)
+    parser.add_argument('-s', '--time_step', type=float, default=2.0)
+    arguments = parser.parse_args(args)
     return arguments
 
 
-def main():
-    """
-    Entry point for the command line.
-    """
-    arguments = handle_user_arguments()
+def initialise(args=None):
+    arguments = handle_user_arguments(args)
 
     # TODO clean way to handle params?
     params = ImdParams(arguments.address,
@@ -60,7 +57,14 @@ def main():
                        arguments.time_step,
                        arguments.verbose)
     runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params)
+    return runner
 
+
+def main():
+    """
+    Entry point for the command line.
+    """
+    runner = initialise()
     print(f'Running dynamics')
     while True:
         runner.run(100)

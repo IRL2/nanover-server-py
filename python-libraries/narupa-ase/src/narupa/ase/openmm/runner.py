@@ -68,6 +68,8 @@ class OpenMMIMDRunner:
         self._address = params.address
         self._trajectory_port = params.trajectory_port
         self._imd_port = params.imd_port
+        if params.trajectory_port is not None and params.trajectory_port == params.imd_port:
+            raise ValueError("Trajectory serving port and IMD serving port must be different!")
         self._frame_interval = params.frame_interval
         self._time_step = params.time_step
         self._verbose = params.verbose
@@ -139,7 +141,7 @@ class OpenMMIMDRunner:
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, 300 * units.kB)
 
-        self._dynamics = NVTBerendsen(self.atoms, 1 * units.fs, 300, self.time_step * units.fs)
+        self._dynamics = NVTBerendsen(self.atoms, self.time_step * units.fs, 300, self.time_step * units.fs)
 
         if self.verbose:
             self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,
