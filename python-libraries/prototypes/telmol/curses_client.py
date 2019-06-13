@@ -115,7 +115,7 @@ class Renderer:
         return positions
 
 element_colors = {
-    #1: curses.COLOR_WHITE,
+    1: curses.COLOR_WHITE,
     6: curses.COLOR_CYAN,
     7: curses.COLOR_BLUE,
     8: curses.COLOR_RED,
@@ -165,8 +165,8 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
         start = (int(start[0]), int(start[1]), start[2])
         end = (int(end[0]), int(end[1]), end[2])
 
-        #color_index = int(((bond[0]+bond[1])*.5 * .1) % color_count)
-        color_index = element_colors[elements[bond[1]]]
+        color_index = int(((bond[0]+bond[1])*.5 * .1) % color_count)
+        #color_index = element_colors[elements[bond[1]]]
         color = renderer.colors[color_index]
 
         for x, y, z in get_line(start, end):
@@ -462,7 +462,7 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
         stdscr.clear()
 
         renderer.render()
-        #show_controls(stdscr)
+        show_controls(stdscr)
 
         fpses.append(fps_timer.reset())
         
@@ -475,7 +475,7 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
             stdscr.addstr(h - 1, 0, "{} fps".format(round(1.0 / average_fps)))
         except ZeroDivisionError:
             pass
-        
+
         stdscr.noutrefresh()
         curses.doupdate()
 
