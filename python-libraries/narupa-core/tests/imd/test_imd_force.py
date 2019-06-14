@@ -231,7 +231,7 @@ def test_get_com_all(particles):
 
     com = get_center_of_mass_subset(positions, masses, subset)
 
-    expected_com = np.sum((position * mass for (position, mass) in zip(positions, masses))) / sum(masses)
+    expected_com = np.sum(positions * masses[:, None], axis=0) / masses.sum()
 
     assert np.allclose(com, expected_com)
 
@@ -242,8 +242,10 @@ def test_get_com_subset(particles):
 
     com = get_center_of_mass_subset(positions, masses, subset)
 
-    expected_com = np.sum((position * mass for (position, mass) in zip(positions[subset], masses[subset]))) / sum(
-        masses[subset])
+    expected_com = (
+        np.sum(positions[subset] * masses[subset, None], axis=0)
+        / masses[subset].sum()
+    )
 
     assert np.allclose(com, expected_com)
 
@@ -296,8 +298,10 @@ def test_get_com_subset_pbc(positions_pbc):
     positions, masses, positions_periodic, periodic_box_lengths = positions_pbc
     subset = [i for i in range(0, len(positions), 2)]
 
-    total_mass = sum(masses[subset])
-    expected_com = np.sum((position * mass for (position, mass) in zip(positions[subset], masses[subset]))) / total_mass
+    expected_com = (
+            np.sum(positions[subset] * masses[subset, None], axis=0)
+            / masses[subset].sum()
+    )
 
     com = get_center_of_mass_subset(positions_periodic, masses, subset, periodic_box_lengths=periodic_box_lengths)
 
