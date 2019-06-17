@@ -12,7 +12,7 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 from narupa.imd.imd_force import calculate_imd_force
 from narupa.imd.imd_service import ImdService
-from narupa.imd.interaction import Interaction
+from narupa.imd.particle_interaction import ParticleInteraction
 
 
 def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
@@ -70,7 +70,7 @@ class ImdCalculator(Calculator):
         return self._calculator
 
     @property
-    def interactions(self) -> Dict[Tuple[str, str], Interaction]:
+    def interactions(self) -> Dict[Tuple[str, str], ParticleInteraction]:
         """
         Returns a shallow copy of the current interactions.
         """

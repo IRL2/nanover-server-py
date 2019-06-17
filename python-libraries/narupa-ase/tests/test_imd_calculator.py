@@ -9,7 +9,7 @@ from narupa.ase import converter
 from narupa.imd.imd_client import delayed_generator
 from narupa.imd.imd_server import ImdServer
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
-from narupa.imd.interaction import Interaction
+from narupa.imd.particle_interaction import ParticleInteraction
 from util import imd_client
 
 
@@ -28,7 +28,7 @@ def atoms():
 
 @pytest.fixture
 def interact_c():
-    interaction = Interaction(position=[1, 0, 0], particles=[0], scale=100., interaction_type='spring')
+    interaction = ParticleInteraction(position=[1, 0, 0], particles=[0], scale=100., interaction_type='spring')
     return interaction
 
 

@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace Narupa.Protocol.Test.Imd
 {
-    public class InteractionTests
+    public class ParticleInteractionTests
     {
         /// <summary>
         ///     Generates an interaction with fields set to default values, using both constructors.
@@ -12,8 +12,8 @@ namespace Narupa.Protocol.Test.Imd
         private static IEnumerable<TestCaseData>
             DefaultInteraction()
         {
-            yield return new TestCaseData(new Interaction("1"));
-            yield return new TestCaseData(new Interaction());
+            yield return new TestCaseData(new ParticleInteraction("1"));
+            yield return new TestCaseData(new ParticleInteraction());
         }
 
         /// <summary>
@@ -22,68 +22,68 @@ namespace Narupa.Protocol.Test.Imd
         private static IEnumerable<TestCaseData>
             TestInteraction()
         {
-            yield return new TestCaseData(new Interaction("2", "1", "harmonic",
+            yield return new TestCaseData(new ParticleInteraction("2", "1", "harmonic",
                 1000f, false));
         }
 
         private static IEnumerable<TestCaseData>
             DefaultConstructor()
         {
-            yield return new TestCaseData(new Interaction());
+            yield return new TestCaseData(new ParticleInteraction());
         }
 
         [Test]
         [TestCaseSource(nameof(DefaultInteraction))]
-        public void TestDefaultType(Interaction interaction)
+        public void TestDefaultType(ParticleInteraction interaction)
         {
             Assert.AreEqual("gaussian", interaction.Type);
         }
 
         [Test]
         [TestCaseSource(nameof(DefaultInteraction))]
-        public void TestDefaultScale(Interaction interaction)
+        public void TestDefaultScale(ParticleInteraction interaction)
         {
             Assert.AreEqual(1f, interaction.Scale);
         }
 
         [Test]
         [TestCaseSource(nameof(DefaultInteraction))]
-        public void TestDefaultMassWeighted(Interaction interaction)
+        public void TestDefaultMassWeighted(ParticleInteraction interaction)
         {
             Assert.AreEqual(true, interaction.MassWeighted);
         }
 
         [Test]
         [TestCaseSource(nameof(TestInteraction))]
-        public void TestConstructor_PlayerId(Interaction testInteraction)
+        public void TestConstructor_PlayerId(ParticleInteraction testInteraction)
         {
             Assert.AreEqual("2", testInteraction.PlayerId);
         }
 
         [Test]
         [TestCaseSource(nameof(TestInteraction))]
-        public void TestConstructor_Type(Interaction testInteraction)
+        public void TestConstructor_Type(ParticleInteraction testInteraction)
         {
             Assert.AreEqual("harmonic", testInteraction.Type);
         }
 
         [Test]
         [TestCaseSource(nameof(TestInteraction))]
-        public void TestConstructor_Interact(Interaction testInteraction)
+        public void TestConstructor_Interact(ParticleInteraction testInteraction)
         {
             Assert.AreEqual("1", testInteraction.InteractionId);
         }
 
         [Test]
         [TestCaseSource(nameof(TestInteraction))]
-        public void TestConstructor_Scale(Interaction testInteraction)
+        public void TestConstructor_Scale(ParticleInteraction testInteraction)
         {
             Assert.That(testInteraction.Scale, Is.EqualTo(1000f).Within(1e-8f));
         }
 
         [Test]
         [TestCaseSource(nameof(TestInteraction))]
-        public void TestConstructor_MassWeighted(Interaction testInteraction)
+        public void TestConstructor_MassWeighted(ParticleInteraction testInteraction)
         {
             Assert.AreEqual(false, testInteraction.MassWeighted);
         }
@@ -91,37 +91,37 @@ namespace Narupa.Protocol.Test.Imd
 
         [Test]
         [TestCaseSource(nameof(DefaultInteraction))]
-        public void TestSetInteractionType(Interaction interaction)
+        public void TestSetInteractionType(ParticleInteraction interaction)
         {
             var targetType = "harmonic";
             interaction.Type = targetType;
 
             Assert.AreEqual(targetType, interaction.Type);
-            Assert.AreEqual(targetType, interaction.Properties.Fields[Interaction.TypeKey].StringValue);
+            Assert.AreEqual(targetType, interaction.Properties.Fields[ParticleInteraction.TypeKey].StringValue);
         }
 
         [Test]
         [TestCaseSource(nameof(DefaultInteraction))]
-        public void TestSetScale(Interaction interaction)
+        public void TestSetScale(ParticleInteraction interaction)
         {
             var scale = 1000f;
             interaction.Scale = scale;
 
             Assert.AreEqual(scale, interaction.Scale);
             Assert.That(scale, Is.EqualTo(interaction.Scale).Within(1e-8f));
-            Assert.That((float) interaction.Properties.Fields[Interaction.ScaleKey].NumberValue,
+            Assert.That((float) interaction.Properties.Fields[ParticleInteraction.ScaleKey].NumberValue,
                 Is.EqualTo(scale).Within(1e-8f));
         }
 
         [Test]
         [TestCaseSource(nameof(DefaultInteraction))]
-        public void TestSetMassWeighted(Interaction interaction)
+        public void TestSetMassWeighted(ParticleInteraction interaction)
         {
             var massWeighted = false;
             interaction.MassWeighted = massWeighted;
 
             Assert.AreEqual(massWeighted, interaction.MassWeighted);
-            Assert.AreEqual(massWeighted, interaction.Properties.Fields[Interaction.MassWeightedKey].BoolValue);
+            Assert.AreEqual(massWeighted, interaction.Properties.Fields[ParticleInteraction.MassWeightedKey].BoolValue);
         }
     }
 }
