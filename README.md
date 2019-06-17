@@ -50,12 +50,17 @@ Running the tests is a crucial part of keeping the code base functional. To run 
 
 ## Running the examples
 
+### ASE IMD Simulations 
+
 `narupa.ase` provides a command line interface for running serialised OpenMM simulations. For example:
     
     narupa-omm-ase python-libraries/narupa-ase/examples/nanotube.xml 
     
-The `python-libraries/narupa-ase/examples/nanotube.xml` examples folder also contains several
+The `python-libraries/narupa-ase/examples` examples folder also contains several
 Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
+The [Narupa ASE documentation](python-libraries/narupa-ase/README.md) provides more details on setting up ASE simulations.
+
+### MD Analysis Trajectories
 
 `narupa.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
 trajectory. To serve the frames on port 54321, run

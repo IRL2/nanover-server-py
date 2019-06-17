@@ -3,12 +3,13 @@ ASE server for Narupa
 
 This server implements interactive molecular dynamics (IMD) for an ASE molecular dynamics simulation. 
 
-Running an OpenMM server from the command line
+Running an ASE OpenMM server from the command line
 -----------------------------------------------
 
 When `narupa-ase` is installed, it provides the `narupa-omm-ase`
 command in the command line. When provided with the description of an
-OpenMM simulation as an XML file, `narupa-omm-ase` runs an interactive simulation. 
+OpenMM simulation as an XML file serialised as described in the [Narupa OpenMM documentation](../narupa-openmm/README.md) 
+, `narupa-omm-ase` runs an interactive simulation. 
 The host address and port can be set with
 the `--address` and the `--port` option, respectively.
 
@@ -20,6 +21,7 @@ The `narupa-ase` module provides the
 `narupa.ase.ASEImdServer` class. Given an ASE simulation set up with an 
 [ASE molecular dynamics runner](https://wiki.fysik.dtu.dk/ase/ase/md.html), this class will 
 attach interactive molecular dynamics functionality and frame serving to the dynamics. 
+An example is given below, assuming an ASE Atoms object has been set up, named `atoms`:
 
 ```python
 from ase import units
@@ -35,6 +37,23 @@ while True:
     imd.run(100)
 ```
 
-Full examples are given in the [examples](./examples) folder, which contains several
-Jupyter notebooks that explore how Narupa can be used with OpenMM.
+Full examples are given in the [examples](./examples) folder, which additionally
+contains several Jupyter notebooks that explore how Narupa can be used with OpenMM:
+
+* `narupa_ase_client_server`: A notebook showing how one can run the server for an OpenMM simulation, 
+connect a client to it, and render a simple visualisation. 
+* `narupa_ase_interactive_md`: A notebook that runs a simulation of a carbon nanotube, then applies
+interactive forces to it from the notebook.
+* `narupa_interactive_visualiser`: A notebook that assumes a server is already running, and visualises it
+with [NGLView](https://github.com/arose/nglview). To run this notebook, ensure NGLView is installed with:
+
+```bash
+conda install nglview -c conda-forge
+# might need: jupyter-nbextension enable nglview --py --sys-prefix
+
+# if you already installed nglview, you can `upgrade`
+conda upgrade nglview --force
+# might need: jupyter-nbextension enable nglview --py --sys-prefix
+```
+
 
