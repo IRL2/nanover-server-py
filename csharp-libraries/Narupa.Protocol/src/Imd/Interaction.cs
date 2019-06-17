@@ -6,7 +6,7 @@ using Narupa.Protocol.Protobuf.Extensions;
 
 namespace Narupa.Protocol.Imd
 {
-    public partial class Interaction
+    public partial class ParticleInteraction
     {
         /// <summary>
         /// Field name in the underlying properties structure that corresponds to interaction type.
@@ -31,7 +31,7 @@ namespace Narupa.Protocol.Imd
         /// <param name="interactionType">The type of interaction to apply.</param>
         /// <param name="scale">The scale to be applied.</param>
         /// <param name="massWeighted">Whether mass weighting should be used.</param>
-        public Interaction(string playerId, string interactionId = "0", string interactionType = "gaussian",
+        public ParticleInteraction(string playerId, string interactionId = "0", string interactionType = "gaussian",
             float scale = 1.0f, bool massWeighted = true)
         {
             Properties = new Struct();

@@ -4,7 +4,7 @@ from hypothesis import strategies, given
 from math import exp
 from narupa.imd.imd_force import (get_center_of_mass_subset, calculate_spring_force,
                                   calculate_gaussian_force, apply_single_interaction_force, calculate_imd_force)
-from narupa.imd.interaction import Interaction
+from narupa.imd.particle_interaction import ParticleInteraction
 
 # precomputed results of gaussian force.
 EXP_1 = exp(-1 / 2)
@@ -34,7 +34,7 @@ def particles():
 def single_interaction():
     position = (0, 0, 0)
     index = 1
-    return Interaction(position=position, particles=[index])
+    return ParticleInteraction(position=position, particles=[index])
 
 
 @pytest.fixture
@@ -52,8 +52,8 @@ def test_multiple_interactions(particles):
     """
 
     positions, masses = particles
-    interaction = Interaction(position=[0.5, 0.5, 0.5], particles=[0, 1])
-    interaction_2 = Interaction(position=[1.5, 1.5, 1.5], particles=[1, 2])
+    interaction = ParticleInteraction(position=[0.5, 0.5, 0.5], particles=[0, 1])
+    interaction_2 = ParticleInteraction(position=[1.5, 1.5, 1.5], particles=[1, 2])
     # set masses of atoms 0 and 2 to be the same, so things cancel out nicely.
     masses[2] = masses[0]
     single_forces = np.zeros((len(positions), 3))
@@ -136,7 +136,7 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     """
     position = np.array(position)
     selection = np.array(selection)
-    interaction = Interaction(position=position, particles=selection)
+    interaction = ParticleInteraction(position=position, particles=selection)
     positions, masses = particles
     # set non uniform masses based on parameterisation
     for index, mass in zip(selection, selection_masses):
@@ -172,7 +172,7 @@ def test_interaction_force_no_mass_weighting(particles, position, selection, sel
     """
     position = np.array(position)
     selection = np.array(selection)
-    interaction = Interaction(position=position, particles=selection, mass_weighted=False)
+    interaction = ParticleInteraction(position=position, particles=selection, mass_weighted=False)
     positions, masses = particles
     # set non uniform masses based on parameterisation
     for index, mass in zip(selection, selection_masses):
@@ -211,7 +211,7 @@ def test_interaction_force_default_type(particles):
 
     selection = [1]
     position = positions[selection[0]]
-    interaction = Interaction(position=position, particles=selection)
+    interaction = ParticleInteraction(position=position, particles=selection)
     interaction.type = None
     forces = np.zeros((len(positions), 3))
 

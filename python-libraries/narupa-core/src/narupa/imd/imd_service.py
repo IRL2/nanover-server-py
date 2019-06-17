@@ -5,7 +5,7 @@ Module providing an implementation of an IMD service.
 """
 import grpc
 
-from narupa.imd.interaction import Interaction
+from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply
 
 
@@ -83,6 +83,6 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             if key not in active_interactions and key in self.interactions:
                 raise ValueError('The given player_id and interaction_id is already in use in another interaction.')
             active_interactions.add(key)
-            self.interactions[key] = Interaction.from_proto(interaction)
+            self.interactions[key] = ParticleInteraction.from_proto(interaction)
             if self._callback is not None:
                 self._callback()

@@ -17,7 +17,7 @@ def set_default_property(properties: Struct, key, default):
         properties[key] = default
 
 
-class Interaction:
+class ParticleInteraction:
     """
     A wrapper around the protobuf representation of an interaction.
     Provides easy to use getters and setters.
@@ -32,7 +32,7 @@ class Interaction:
     :param scale: The scale factor applied to the interaction, default is 1.
 
     """
-    _interaction: imd_pb2.Interaction
+    _interaction: imd_pb2.ParticleInteraction
 
     TYPE_KEY = "type"
     SCALE_KEY = "scale"
@@ -46,7 +46,7 @@ class Interaction:
                  interaction_type='gaussian',
                  scale=1,
                  mass_weighted=True):
-        self._interaction = imd_pb2.Interaction(player_id=player_id, interaction_id=interaction_id)
+        self._interaction = imd_pb2.ParticleInteraction(player_id=player_id, interaction_id=interaction_id)
         self.position = position
         self._properties = self._interaction.properties
         self.scale = scale
@@ -71,7 +71,7 @@ class Interaction:
         return interaction
 
     @property
-    def proto(self) -> imd_pb2.Interaction:
+    def proto(self) -> imd_pb2.ParticleInteraction:
         """
         Gets the underlying protobuf representation.
         :return: The underlying protobuf Interaction representation.
