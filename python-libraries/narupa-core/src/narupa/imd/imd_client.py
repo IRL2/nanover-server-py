@@ -9,7 +9,7 @@ from typing import Iterable, Optional
 
 import grpc
 from narupa.imd.imd_server import DEFAULT_ADDRESS, DEFAULT_PORT
-from narupa.imd.interaction import Interaction
+from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractiveMolecularDynamicsStub, InteractionEndReply
 
 
@@ -59,7 +59,7 @@ def queue_generator(queue: Queue, sentinel: object):
         yield val
 
 
-def _to_proto(interactions: Iterable[Interaction]):
+def _to_proto(interactions: Iterable[ParticleInteraction]):
     for interaction in interactions:
         yield interaction.proto
 
@@ -95,7 +95,7 @@ class ImdClient:
         self._active_interactions[interaction_id] = (queue, sentinel, future)
         return interaction_id
 
-    def update_interaction(self, interaction_id, interaction: Interaction):
+    def update_interaction(self, interaction_id, interaction: ParticleInteraction):
         """
         Update the interaction given by the interaction_id with an updated instance of an
         interaction. Typically used to adjust the position of an interaction over time.
@@ -116,7 +116,7 @@ class ImdClient:
         del self._active_interactions[interaction_id]
         return future.result()
 
-    def publish_interactions_async(self, interactions: Iterable[Interaction]) -> Future:
+    def publish_interactions_async(self, interactions: Iterable[ParticleInteraction]) -> Future:
         """
         Publishes the iterable of interactions on a thread.
         :param interactions: An iterable generator or collection of interactions.
@@ -124,7 +124,7 @@ class ImdClient:
         """
         return self.threads.submit(self.publish_interactions, interactions)
 
-    def publish_interactions(self, interactions: Iterable[Interaction]) -> InteractionEndReply:
+    def publish_interactions(self, interactions: Iterable[ParticleInteraction]) -> InteractionEndReply:
         """
         Publishes the generator of interactions on a thread.
         :param interactions: An iterable generator or collection of interactions.
