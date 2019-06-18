@@ -1,0 +1,25 @@
+package:
+  name: narupa-core
+  version: 0.1.0
+
+source:
+  path: ../../
+
+build:
+  noarch: python
+  number: 0
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - grpcio-tools
+
+  run:
+    - python
+    - protobuf
+    - grpcio
+    - numpy
+
+about:
+  home: narupa.readthedocs.io

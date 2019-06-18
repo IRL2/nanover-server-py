@@ -143,5 +143,5 @@ setup(name='narupa',
       install_requires=requirements,
       cmdclass={
           'compile_proto': CompileProtoCommand,
-      }
+      },
      )
