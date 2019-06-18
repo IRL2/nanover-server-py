@@ -8,36 +8,42 @@ def test_initialise(serialized_simulation_path):
     args = [str(serialized_simulation_path)]
     runner = initialise(args)
     assert runner.simulation is not None
+    runner.close()
 
 
 def test_timestep(serialized_simulation_path):
     args = [str(serialized_simulation_path), '-s', '0.5']
     runner = initialise(args)
     assert runner.time_step == 0.5
+    runner.close()
 
 
 def test_interval(serialized_simulation_path):
     args = [str(serialized_simulation_path), '-f', '2']
     runner = initialise(args)
     assert runner.frame_interval == 2
+    runner.close()
 
 
 def test_address(serialized_simulation_path):
     args = [str(serialized_simulation_path), '-a', 'localhost']
     runner = initialise(args)
     assert runner.address == 'localhost'
+    runner.close()
 
 
 def test_traj_port(serialized_simulation_path):
     args = [str(serialized_simulation_path), '-t', '54324']
     runner = initialise(args)
     assert runner.trajectory_port == 54324
+    runner.close()
 
 
 def test_imd_port(serialized_simulation_path):
     args = [str(serialized_simulation_path), '-i', '54324']
     runner = initialise(args)
     assert runner.imd_port == 54324
+    runner.close()
 
 
 def test_same_port(serialized_simulation_path):

@@ -27,6 +27,7 @@ def test_receive_frames(client_server, simple_frame_data):
     time.sleep(0.2)
     frame_server.send_frame(0, simple_frame_data)
     time.sleep(0.5)
+    assert client.latest_frame is not None
     assert client.first_frame is not None
     assert client.latest_frame == client.first_frame
     assert len(client.frames) == 1
