@@ -1,5 +1,3 @@
-
-
 import time
 
 import grpc
@@ -17,8 +15,16 @@ def client():
     client.close()
 
 
-def test_receive_frames(frame_server, imd_server, simple_frame_data, client):
-    time.sleep(0.1)
+@pytest.fixture
+def client_server(frame_server, imd_server):
+    client = NarupaClient()
+    yield client, frame_server, imd_server
+    client.close()
+
+
+def test_receive_frames(client_server, simple_frame_data):
+    client, frame_server, imd_server = client_server
+    time.sleep(0.2)
     frame_server.send_frame(0, simple_frame_data)
     time.sleep(0.5)
     assert client.first_frame is not None
@@ -79,6 +85,7 @@ def test_update_interaction(frame_server, imd_server, interaction, client):
     time.sleep(0.5)
     assert len(imd_server.service.interactions) == 1
     assert np.allclose(list(imd_server.service.interactions.values())[0].position, (2, 2, 2))
+
 
 def test_no_imd(frame_server, interaction):
     client = NarupaClient(run_imd=False)
