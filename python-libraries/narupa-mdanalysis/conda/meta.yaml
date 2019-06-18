@@ -1,0 +1,24 @@
+package:
+  name: narupa-mdanalysis
+  version: 0.1.0
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  number: 0
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+    - narupa-core
+    - numpy
+    - mdanalysis
+
+about:
+  home: narupa.readthedocs.io
