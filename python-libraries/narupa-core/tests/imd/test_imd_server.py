@@ -5,7 +5,7 @@ import grpc
 import pytest
 from narupa.imd.imd_client import ImdClient, delayed_generator
 from narupa.imd.imd_server import ImdServer
-from narupa.imd.interaction import Interaction
+from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractionEndReply
 from narupa.protocol.imd.imd_pb2_grpc import InteractiveMolecularDynamicsStub
 
@@ -34,12 +34,12 @@ def stub():
 
 @pytest.fixture
 def interaction():
-    return Interaction()
+    return ParticleInteraction()
 
 
 @pytest.fixture
 def interactions():
-    return [Interaction()] * 10
+    return [ParticleInteraction()] * 10
 
 
 def test_server(imd_server):
@@ -57,8 +57,8 @@ def test_publish_interaction(imd_server, stub, interaction):
 def test_publish_multiple_interactions(imd_server, imd_client):
     mock = Mock()
     imd_server.service.set_callback(mock.callback)
-    first_set = [Interaction()] * 10
-    second_set = [Interaction(interaction_id="2")] * 10
+    first_set = [ParticleInteraction()] * 10
+    second_set = [ParticleInteraction(interaction_id="2")] * 10
     imd_client.publish_interactions_async(delayed_generator(first_set, delay=0.1))
     result = imd_client.publish_interactions(delayed_generator(second_set, delay=0.15))
     assert result is not None
@@ -72,8 +72,8 @@ def test_multiplexing_interactions(imd_server, imd_client):
     """
     mock = Mock()
     imd_server.service.set_callback(mock.callback)
-    first_set = [Interaction()] * 10
-    second_set = [Interaction(interaction_id="2")] * 10
+    first_set = [ParticleInteraction()] * 10
+    second_set = [ParticleInteraction(interaction_id="2")] * 10
     interleaved = [val for pair in zip(first_set, second_set) for val in pair]
     # TODO use a coroutine awaiting input as the generator to control this without needing sleeps
     imd_client.publish_interactions_async(delayed_generator(interleaved, delay=0.01))

@@ -1,5 +1,6 @@
 # Requirement files for running the tests.
 pytest
 pytest-cov
+pytest-timeout
 hypothesis
 ase

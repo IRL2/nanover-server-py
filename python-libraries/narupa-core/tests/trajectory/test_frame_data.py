@@ -29,7 +29,7 @@ EXACT_SINGLE_VALUE_STRATEGY = st.one_of(
 
 NUMBER_SINGLE_VALUE_STRATEGY = st.one_of(
     st.floats(min_value=float(MIN_DOUBLE), max_value=float(MAX_DOUBLE)),
-    st.integers(min_value=MIN_DOUBLE, max_value=MAX_DOUBLE),
+    st.integers(min_value=int(MIN_DOUBLE), max_value=int(MAX_DOUBLE)),
 )
 
 ARRAYS_STRATEGIES = {

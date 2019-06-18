@@ -15,14 +15,14 @@ service InteractiveMolecularDynamics {
        properties of the interaction over the duration of the stream, then close the stream when done.
        Multiple RPCs can be used to facilitate multiple simultaneous interactions.
      */
-    rpc PublishInteraction(stream Interaction) returns (InteractionEndReply);
+    rpc PublishInteraction(stream ParticleInteraction) returns (InteractionEndReply);
 }
 
 /* Reply after interaction stopped.  */
-message InteractionEndReply{}
+message InteractionEndReply {}
 
 /* Represents a request to perform an interaction at a given point to a set of particles. */
-message Interaction {
+message ParticleInteraction {
     /* The player ID performing the interaction. */
     string player_id = 1;
     /* The interaction ID identifying this particular interaction for the given player. */
