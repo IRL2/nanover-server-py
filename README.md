@@ -56,6 +56,9 @@ Running the tests is a crucial part of keeping the code base functional. To run 
     
     narupa-omm-ase python-libraries/narupa-ase/examples/nanotube.xml 
     
+
+#### Jupyter Notebooks 
+
 The `python-libraries/narupa-ase/examples` examples folder also contains several
 Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
 The [Narupa ASE documentation](python-libraries/narupa-ase/README.md) provides more details on setting up ASE simulations.
