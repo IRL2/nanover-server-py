@@ -45,4 +45,4 @@ build_conda:
     stage: deploy
     script:
         - conda install conda-build
-        - find python-libraries -name conda --exec conda build {} \;
+        - find python-libraries -name conda -exec conda build {} \;
