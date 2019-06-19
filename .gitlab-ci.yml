@@ -45,4 +45,10 @@ build_conda:
     stage: deploy
     script:
         - conda install conda-build
-        - find python-libraries -name conda -exec conda build {} \;
+        # narupa-core must come first as all depends on it
+        - conda build python-libraries/narupa-core/conda
+        - conda build python-libraries/narupa-openmm/conda
+        - conda build python-libraries/narupa-ase/conda
+        - conda build python-libraries/narupa-mdanalysis/conda
+        # narupa-server must come last as it depends on everything
+        - conda build python-libraries/narupa-server/conda
