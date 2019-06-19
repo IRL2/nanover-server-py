@@ -17,6 +17,7 @@ requirements:
   run:
     - python
     - narupa-core
+    - narupa-openmm
     - numpy
     - ase
 
