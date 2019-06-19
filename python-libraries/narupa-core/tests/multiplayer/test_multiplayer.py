@@ -185,8 +185,10 @@ def test_edit_scene_receive_late(multiplayer_server_selfsending, test_scene):
 
     another_client = MultiplayerClient(channel=channel)
     another_client.join_multiplayer(username="someotherguy", join_streams=True)
-    time.sleep(0.05)
+    time.sleep(0.1)
     assert another_client.scene_properties is not None
+    another_client.close()
+    multiplayer_client.close()
 
 
 def test_edit_scene_locked(multiplayer_server_selfsending, test_scene):
@@ -206,3 +208,5 @@ def test_edit_scene_locked(multiplayer_server_selfsending, test_scene):
     another_client.join_multiplayer(username="someotherguy", join_streams=True)
     edit_success = another_client.set_scene_properties(test_scene)
     assert edit_success is False
+    multiplayer_client.close()
+    another_client.close()
