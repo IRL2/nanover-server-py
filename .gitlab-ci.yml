@@ -44,8 +44,9 @@ test_dotnet:
 build_conda:
     stage: deploy
     script:
-        - conda install conda-build
+        - conda install conda-build grpcio-tools
         # narupa-core must come first as all depends on it
+        - python python-libraries/narupa-core/setup.py compile-proto --proto-dir=protocol
         - conda build python-libraries/narupa-core/conda
         - conda build python-libraries/narupa-openmm/conda
         - conda build python-libraries/narupa-ase/conda
