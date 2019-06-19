@@ -40,3 +40,8 @@ test_dotnet:
   script:
     - "cd $test_path"
     - "dotnet test"
+
+build_conda:
+    stage: deploy
+    script:
+        - conda build python-libraries/narupa-core/conda
