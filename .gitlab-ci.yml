@@ -44,4 +44,5 @@ test_dotnet:
 build_conda:
     stage: deploy
     script:
-        - conda build python-libraries/narupa-core/conda
+        - conda install conda-build
+        - find python-libraries -name conda --exec conda build {} \;
