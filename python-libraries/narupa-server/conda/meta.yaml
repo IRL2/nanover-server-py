@@ -1,0 +1,13 @@
+package:
+  name: narupa-server
+  version: 0.1.0
+
+requirements:
+  run:
+    - narupa-core
+    - narupa-openmm
+    - narupa-ase
+    - narupa-mdanalysis
+
+about:
+  home: narupa.readthedocs.io
