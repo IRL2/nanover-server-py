@@ -44,9 +44,13 @@ test_dotnet:
 build_conda:
     stage: deploy
     script:
+        # Configure the environment. We need conda-forge to get the science
+        # related packages (openmm, ase, mdanalysis)
+        - conda config --env --add channels conda-forge
         - conda install conda-build grpcio-tools
-        # narupa-core must come first as all depends on it
+        # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
+        # narupa-core must come first as all depends on it
         - conda build python-libraries/narupa-core/conda
         - conda build python-libraries/narupa-openmm/conda
         - conda build python-libraries/narupa-ase/conda
