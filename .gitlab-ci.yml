@@ -46,7 +46,7 @@ build_conda:
     script:
         - conda install conda-build grpcio-tools
         # narupa-core must come first as all depends on it
-        - python python-libraries/narupa-core/setup.py compile-proto --proto-dir=protocol
+        - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
         - conda build python-libraries/narupa-core/conda
         - conda build python-libraries/narupa-openmm/conda
         - conda build python-libraries/narupa-ase/conda
