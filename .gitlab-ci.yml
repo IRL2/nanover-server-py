@@ -43,6 +43,8 @@ test_dotnet:
 
 build_conda:
     stage: deploy
+    variables:
+        build_command: "conda build --prefix-length=100 "
     script:
         # Configure the environment. We need conda-forge to get the science
         # related packages (openmm, ase, mdanalysis)
@@ -51,9 +53,9 @@ build_conda:
         # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
         # narupa-core must come first as all depends on it
-        - conda build python-libraries/narupa-core/conda
-        - conda build python-libraries/narupa-openmm/conda
-        - conda build python-libraries/narupa-ase/conda
-        - conda build python-libraries/narupa-mdanalysis/conda
+        - $build_command python-libraries/narupa-core/conda
+        - $build_command python-libraries/narupa-openmm/conda
+        - $build_command python-libraries/narupa-ase/conda
+        - $build_command python-libraries/narupa-mdanalysis/conda
         # narupa-server must come last as it depends on everything
-        - conda build python-libraries/narupa-server/conda
+        - $build_command python-libraries/narupa-server/conda
