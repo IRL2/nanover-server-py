@@ -3,6 +3,7 @@
 
 import time
 from concurrent import futures
+from concurrent.futures import Future
 from typing import Collection, Iterable, Generator
 
 import grpc
@@ -32,13 +33,13 @@ class ImdClient:
         self.stub = InteractiveMolecularDynamicsStub(self.channel)
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
 
-    def publish_interactions_async(self, interactions):
+    def publish_interactions_async(self, interactions) -> Future:
         """
         Publishes the collection of interactions on a thread, with an optional delay between
         each publication.
         :param interactions: A generator of interactions.
         """
-        self.threads.submit(self.publish_interactions, interactions)
+        return self.threads.submit(self.publish_interactions, interactions)
 
     def publish_interactions(self, interactions) -> InteractionEndReply:
         """
