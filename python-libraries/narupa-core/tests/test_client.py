@@ -54,10 +54,10 @@ def test_reconnect_receive(frame_server, imd_server, client, simple_frame_data):
 def test_close_interaction(frame_server, imd_server, interaction, client):
     id = client.start_interaction(interaction)
     time.sleep(0.2)
-    assert len(imd_server.service.interactions) == 1
+    assert len(imd_server.service.active_interactions) == 1
     client.close()
     time.sleep(0.2)
-    assert len(imd_server.service.interactions) == 0
+    assert len(imd_server.service.active_interactions) == 0
 
 
 def test_running_imd(client):
@@ -67,16 +67,16 @@ def test_running_imd(client):
 def test_stop_interaction(frame_server, imd_server, client, interaction):
     id = client.start_interaction(interaction)
     time.sleep(0.2)
-    assert len(imd_server.service.interactions) == 1
+    assert len(imd_server.service.active_interactions) == 1
     client.stop_interaction(id)
     time.sleep(0.2)
-    assert len(imd_server.service.interactions) == 0
+    assert len(imd_server.service.active_interactions) == 0
 
 
 def test_start_interaction(client, frame_server, imd_server, interaction):
     client.start_interaction(interaction)
     time.sleep(0.2)
-    assert len(imd_server.service.interactions) == 1
+    assert len(imd_server.service.active_interactions) == 1
 
 
 def test_update_interaction(frame_server, imd_server, interaction, client):
@@ -84,8 +84,8 @@ def test_update_interaction(frame_server, imd_server, interaction, client):
     interaction.position = [2, 2, 2]
     client.update_interaction(id, interaction)
     time.sleep(0.5)
-    assert len(imd_server.service.interactions) == 1
-    assert np.allclose(list(imd_server.service.interactions.values())[0].position, (2, 2, 2))
+    assert len(imd_server.service.active_interactions) == 1
+    assert np.allclose(list(imd_server.service.active_interactions)[0].position, (2, 2, 2))
 
 
 def test_no_imd(frame_server, interaction):

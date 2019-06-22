@@ -21,18 +21,18 @@ def test_get_key(interaction):
 def test_add_same_key(interaction):
     service = ImdService()
     key = ImdService.get_key(interaction)
-    service.interactions[key] = interaction
+    service._interactions[key] = interaction
     interaction = ParticleInteraction()
     key = ImdService.get_key(interaction)
-    service.interactions[key] = interaction
-    assert len(service.interactions) == 1
+    service._interactions[key] = interaction
+    assert len(service.active_interactions) == 1
 
 
 def test_multiple_keys(interaction):
     service = ImdService()
     key = ImdService.get_key(interaction)
-    service.interactions[key] = interaction
+    service._interactions[key] = interaction
     interaction = ParticleInteraction()
     key = ("2", "0")
-    service.interactions[key] = interaction
-    assert len(service.interactions) == 2
+    service._interactions[key] = interaction
+    assert len(service.active_interactions) == 2
