@@ -4,7 +4,9 @@ Unit tests for :mod:`narupa.core.request_queues`.
 
 import time
 from concurrent.futures import ThreadPoolExecutor
+from queue import Queue, Empty
 import pytest
+import itertools
 
 from narupa.core import request_queues
 
@@ -15,6 +17,13 @@ def test_one_queue_serial():
     with many_queues.one_queue(0) as queue:
         assert list(many_queues.queues.keys()) == [0]
     assert not many_queues.queues
+
+
+@pytest.mark.parametrize('queue_type', (Queue, request_queues.SingleItemQueue))
+def test_one_queue_type(queue_type):
+    many_queues = request_queues.DictOfQueues()
+    with many_queues.one_queue(0, queue_class=queue_type) as queue:
+        assert isinstance(queue, queue_type)
 
 
 @pytest.mark.timeout(20)
@@ -80,3 +89,110 @@ def test_iter_queues_threaded():
         )
         thread_pool.submit(iterate_over_queues, many_queues)
 
+
+class TestSingleItemQueue:
+    @pytest.fixture
+    def single_item_queue(self):
+        return request_queues.SingleItemQueue()
+
+    def test_put_one_item(self, single_item_queue):
+        item = 'hello'
+        single_item_queue.put(item)
+        assert single_item_queue._item is item
+
+    def test_put_many_item_serial(self, single_item_queue):
+        for item in range(5):
+            single_item_queue.put(item)
+        assert single_item_queue._item is item
+
+    @pytest.mark.timeout(20)
+    def test_put_many_item_threaded(self, single_item_queue):
+
+        def put_values(thread_id, queue):
+            for i in range(10):
+                time.sleep(0.1)
+                item = (thread_id, i)
+                queue.put(item)
+
+        max_workers = 2
+        thread_pool = ThreadPoolExecutor(max_workers=max_workers)
+        futures = [
+            thread_pool.submit(put_values, thread_id, single_item_queue)
+            for thread_id in range(10)
+        ]
+
+        # wait for the threads to be done
+        for future in futures:
+            future.result()
+
+        assert single_item_queue._item is not None
+
+    def test_get_initial(self, single_item_queue):
+        with pytest.raises(Empty):
+            single_item_queue.get()
+
+    def test_get_item(self, single_item_queue):
+        item = 'hello'
+        single_item_queue.put(item)
+        retrieved = single_item_queue.get()
+        assert retrieved == item
+
+    def test_many_get(self, single_item_queue):
+        single_item_queue.put(0)
+        single_item_queue.get()
+        with pytest.raises(Empty):
+            single_item_queue.get()
+
+    @pytest.mark.timeout(20)
+    def test_threading(self, single_item_queue):
+
+        def produce_data(thread_id, queue, number_of_records):
+            for i in range(number_of_records):
+                time.sleep(0.1)
+                item = (thread_id, i)
+                queue.put(item)
+
+        def consume_data(queue, context):
+            obtained_data = []
+            while context['running']:
+                try:
+                    item = queue.get()
+                except Empty:
+                    pass
+                else:
+                    obtained_data.append(item)
+            return obtained_data
+
+        number_of_producers = 10
+        number_of_consumers = 5
+        number_of_records_per_producer = 10
+        max_workers = 2
+        thread_pool = ThreadPoolExecutor(max_workers=max_workers)
+        producer_futures = [
+            thread_pool.submit(
+                produce_data,
+                thread_id,
+                single_item_queue,
+                number_of_records_per_producer,
+            )
+            for thread_id in range(number_of_producers)
+        ]
+
+        context = {'running': True}
+        consumer_futures = [
+            thread_pool.submit(consume_data, single_item_queue, context)
+            for _ in range(number_of_consumers)
+        ]
+
+        # wait for the producers
+        for future in producer_futures:
+            future.result()
+
+        # get the result of the consumers
+        context['running'] = False
+        obtained = list(itertools.chain(*(
+            future.result() for future in consumer_futures
+        )))
+
+        assert len(obtained) == len(set(obtained))
+        assert len(obtained) <= number_of_producers * number_of_records_per_producer
