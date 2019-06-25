@@ -3,7 +3,7 @@ Provides a dictionary of queues.
 """
 
 from typing import Dict, Hashable, Generator
-from queue import Queue
+from queue import Queue, Empty
 from threading import Lock
 from contextlib import contextmanager
 
@@ -78,3 +78,25 @@ class DictOfQueues:
         """
         with self.lock:
             yield from self.queues.values()
+
+
+class SingleItemQueue:
+    """
+    Mimics the basic interface of a :class:`Queue` but only store one item.
+    """
+    def __init__(self):
+        self._lock = Lock()
+        self._item = None
+
+    def put(self, item):
+        with self._lock:
+            self._item = item
+
+    def get(self):
+        with self._lock:
+            item = self._item
+            if item is None:
+                raise Empty('No value available.')
+            else:
+                self._item = None
+            return item
