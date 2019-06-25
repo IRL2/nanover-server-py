@@ -14,14 +14,14 @@ import concurrent.futures
 
 @pytest.fixture
 def imd_server():
-    server = ImdServer(address=None, port=None)
+    server = ImdServer()
     yield server
     server.close()
 
 
 @pytest.fixture
 def imd_client():
-    client = ImdClient(address='localhost', port=54322)
+    client = ImdClient()
     yield client
     client.close()
 
@@ -116,6 +116,20 @@ def test_publish_identical_interactions(imd_server, imd_client, interactions):
     imd_client.publish_interactions_async(delayed_generator(interactions, delay=0.1))
     with pytest.raises(grpc.RpcError):
         imd_client.publish_interactions(delayed_generator(interactions, delay=0.15))
+
+
+def test_publish_interactive_interaction(imd_server, imd_client, interactions):
+    """
+    Tests that we can publish interactions using interactive generator.
+    """
+    mock = Mock()
+    imd_server.service.set_callback(mock.callback)
+    guid = imd_client.start_interaction()
+    for interaction in interactions:
+        imd_client.update_interaction(guid, interaction)
+    imd_client.stop_interaction(guid)
+    time.sleep(0.05)
+    assert mock.callback.call_count == len(interactions)
 
 
 @pytest.mark.timeout(20)

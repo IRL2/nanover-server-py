@@ -12,7 +12,7 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.md.md import MolecularDynamics
 
-from .frame_server import ASEFrameServer
+from .frame_server import send_ase_frame
 from .imd_calculator import ImdCalculator
 from narupa.imd.imd_server import ImdServer
 from narupa.trajectory import FrameServer
@@ -35,7 +35,7 @@ class ASEImdServer:
                  trajectory_port:Optional[int]=None,
                  imd_port:Optional[int]=None):
         if frame_method is None:
-            frame_method = ASEFrameServer
+            frame_method = send_ase_frame
         self.frame_server = FrameServer(address=address, port=trajectory_port)
         self.imd_server = ImdServer(address=address, port=imd_port)
         self.dynamics = dynamics
@@ -85,10 +85,13 @@ class ASEImdServer:
         self._cancelled = False
 
     def cancel_run(self, wait=False):
+        if self._cancelled:
+            return
         self._cancelled = True
         if wait:
             self._run_task.result()
 
     def close(self):
+        self.cancel_run()
         self.imd_server.close()
         self.frame_server.close()

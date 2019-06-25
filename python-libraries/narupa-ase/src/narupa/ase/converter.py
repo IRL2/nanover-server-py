@@ -1,6 +1,6 @@
 from typing import Iterable, Optional
 
-from ase import Atoms
+from ase import Atoms, Atom
 import itertools
 import numpy as np
 
@@ -60,6 +60,26 @@ def ase_to_frame_data(ase_atoms: Atoms, positions=True, topology=True, state=Tru
     if state:
         add_ase_state_to_frame_data(data, ase_atoms)
     return data
+
+
+
+
+def frame_data_to_ase(frame_data: FrameData, positions=True, topology=True, ase_atoms=None) -> Atoms:
+    if ase_atoms is None:
+        ase_atoms = Atoms()
+    if topology:
+        ase_atoms = Atoms()
+        add_frame_data_topology_to_ase(frame_data, ase_atoms)
+    if positions:
+        add_frame_data_positions_to_ase(frame_data, ase_atoms)
+    return ase_atoms
+
+def add_frame_data_topology_to_ase(data: FrameData, atoms: Atoms):
+    for element in data.particle_elements:
+        atoms.append(Atom(symbol=element))
+
+def add_frame_data_positions_to_ase(frame_data, ase_atoms):
+    ase_atoms.set_positions(np.array(frame_data.particle_positions) * NM_TO_ANG)
 
 def add_ase_positions_to_frame_data(data: FrameData, positions: np.array ):
     """

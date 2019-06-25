@@ -1,15 +1,21 @@
 from concurrent import futures
+from typing import Optional
 from concurrent.futures import Future
 
 import grpc
 
 from narupa.protocol.trajectory import TrajectoryServiceStub, GetFrameRequest
 from narupa.trajectory import FrameData
+from narupa.trajectory.frame_server import DEFAULT_ADDRESS, DEFAULT_PORT
 
 
 class FrameClient:
 
-    def __init__(self, *, address: str, port: int):
+    def __init__(self, *, address:Optional[str]=None, port: Optional[int]=None):
+        if address is None:
+            address = DEFAULT_ADDRESS
+        if port is None:
+            port = DEFAULT_PORT
         self.channel = grpc.insecure_channel("{0}:{1}".format(address, port))
         self.stub = TrajectoryServiceStub(self.channel)
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
