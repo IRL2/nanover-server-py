@@ -94,11 +94,11 @@ class SingleItemQueue:
         self._lock = Lock()
         self._item = None
 
-    def put(self, item):
+    def put(self, item, **kwargs):
         with self._lock:
             self._item = item
 
-    def get(self):
+    def get(self, **kwargs):
         with self._lock:
             item = self._item
             if item is None:
