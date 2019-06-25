@@ -1,9 +1,7 @@
 from queue import Queue, Empty
-from typing import Dict
 from threading import Lock
-from contextlib import contextmanager
 
-from narupa.core.request_queues import DictOfQueues
+from narupa.core.request_queues import DictOfQueues, SingleItemQueue
 from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameResponse, FrameData
 
 
@@ -13,7 +11,7 @@ class FramePublisher(TrajectoryServiceServicer):
     to send data to clients when called by other python code.
     """
 
-    frame_queues: Dict[int, Queue]
+    frame_queues: DictOfQueues
     last_frame: FrameData
     last_frame_index: int
     last_request_id: int
@@ -27,13 +25,19 @@ class FramePublisher(TrajectoryServiceServicer):
         self.last_frame_index = 0
         self.last_request_id = 0
         self._last_frame_lock = Lock()
-        self._request_id_lock =  Lock()
+        self._request_id_lock = Lock()
 
     def SubscribeFrames(self, request, context):
+        yield from self._subscribe_frame_base(request, context, queue_type=Queue)
+
+    def SubscribeLastFrames(self, request, context):
+        yield from self._subscribe_frame_base(request, context, queue_type=SingleItemQueue)
+
+    def _subscribe_frame_base(self, request, context, queue_type):
         request_id = self._get_new_request_id()
         yield from self._yield_last_frame_if_any()
 
-        with self.frame_queues.one_queue(request_id) as queue:
+        with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
             while context.is_active():
                 try:
                     item = queue.get(block=True, timeout=0.5)
