@@ -6,6 +6,7 @@ using the python_invoke/fix command as demonstrated in the example LAMMPS inputs
 import ctypes
 from ctypes import c_int, c_double
 import logging
+from typing import Optional, Dict, Tuple, List
 
 import numpy as np
 try:
@@ -15,6 +16,12 @@ except ImportError:
 
 from narupa.trajectory import FrameServer, FrameData
 from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
+
+# IMD related imports
+from narupa.imd.imd_force import calculate_imd_force
+from narupa.imd.imd_server import ImdServer
+from narupa.imd.imd_service import ImdService
+from narupa.imd.particle_interaction import ParticleInteraction
 
 # LAMMPS works with arbitrary masses, so we need to convert it to a nuclear number
 # This list is a best guess for atom types, but won't work for isotopes for now.
@@ -59,6 +66,7 @@ ELEMENT_INDEX_MASS = {
     89:  39,
 }
 
+
 class DummyLammps:
     """
     A fake lammps object intended just for unit testing the lammps code
@@ -78,8 +86,10 @@ class DummyLammps:
         """
         if array_type is "x":
             data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(3 * self.n_atoms))
+        elif array_type is "f":
+            data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(3 * self.n_atoms))
         elif array_type is "type":
-            data_array = (ctypes.c_int * (self.n_atoms+1))(*range(1,1))
+            data_array = (ctypes.c_int * (self.n_atoms))(*range(1,1))
             # All atoms have the same type for DummyLammps testing
             for i in range(self.n_atoms):
                 data_array[i] = 1
@@ -137,10 +147,6 @@ class DummyLammps:
         return dummy_element_list
 
 
-
-
-
-
 class LammpsHook:
     """
     lammps_hook is a series of routines the can communicate with the LAMMPS program through
@@ -175,10 +181,15 @@ class LammpsHook:
         """
         # Start frame server, must come before MPI
         port_no = 8080
+        imd_port = 8081
+        address = '[::]'
         # TODO raise exception when this fails, i.e if port is blocked
-        self.frame_server = FrameServer(address='[::]', port=port_no)
+        self.frame_server = FrameServer(address=address, port=port_no)
+        self.imd_server = ImdServer(address=address, port=imd_port)
         self.frame_index = 0
         self.frame_loop = 0
+        #self._service = imd_service
+        #self._service = self.imd_server.service
 
         try:
             self.frame_data = FrameData()
@@ -219,16 +230,8 @@ class LammpsHook:
         :param L: LAMMPS class that contains all the needed routines
         type :return: 3N matrix with all the data requested
         """
-
-        n_atoms = L.get_natoms()
         data_array = L.gather_atoms(matrix_type, 1, 3)
 
-        # This test case slowly translates the molecular system
-        #for idx in range(n_atoms):
-        #    data_array[3 * idx + 0] += 0.0001000
-        #    data_array[3 * idx + 1] *= 1.0000000
-        #    data_array[3 * idx + 2] *= 1.0000000
-        L.scatter_atoms(matrix_type, 1, 3, data_array)
         return data_array
 
     def gather_lammps_particle_types(self, L):
@@ -252,10 +255,11 @@ class LammpsHook:
         # Create a new list rounded to the nearest mass integer
         atom_mass_type = [round(x) for x in atom_type_mass[0:ntypes+1]]
         # Convert to masses
-        atom_elements = [atom_mass_type[particle] for particle in atom_kind]
+        final_masses = [atom_mass_type[particle] for particle in atom_kind]
+        final_masses = np.array(final_masses)
         # Convert to elements
-        final_elements = [ELEMENT_INDEX_MASS.get(mass, 1) for mass in atom_elements]
-        return final_elements
+        final_elements = [ELEMENT_INDEX_MASS.get(mass, 1) for mass in final_masses]
+        return final_elements, final_masses
 
     def lammps_positions_to_frame_data(self,
                                        frame_data: FrameData,
@@ -275,6 +279,34 @@ class LammpsHook:
         positions = np.multiply(0.1, positions)
         frame_data.arrays[POSITIONS] = positions
 
+    @property
+    def interactions(self) -> List[ParticleInteraction]:
+        """
+        Returns a shallow copy of the current interactions.
+        This is copied from the ASE example, but reduces the abstracted degree
+        """
+        return self.imd_server.service.active_interactions
+
+    def add_interaction_to_ctype(self, interaction_forces: np.array, lammps_forces):
+
+        # initialise dummy type
+        #ctype_3N_array = ctypes.c_double * (self.n_atoms * 3)
+        # great array of dummy type
+        #scatterable_array = ctype_3N_array()
+
+        # Flatten array into the ctype
+        scatterable_array = interaction_forces.flatten()
+        #print(type(scatterable_array), type(lammps_forces))
+        #print(lammps_forces)
+        for idx in range(3*self.n_atoms):
+            #print(lammps_forces[idx],scatterable_array[idx])
+            lammps_forces[idx] += scatterable_array[idx] * 0.000000000000001
+
+        return lammps_forces
+
+    def return_array_to_lammps(self, matrix_type: str, scatter_array, L):
+        L.scatter_atoms(matrix_type, 1, 3, scatter_array)
+
     def lammps_hook(self, lmp=None):
         """
         lammps_hook is the main routine that is run within LAMMPS MD
@@ -289,7 +321,7 @@ class LammpsHook:
         if lmp is None:
             print("Running without lammps, assuming interactive debugging")
             try:
-                L = DummyLammps(n_atoms_default=10)
+                L = DummyLammps() #n_atoms_default=10)
             except Exception as e:
                 # Many possible reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load DummyLammps", e)
@@ -301,13 +333,35 @@ class LammpsHook:
                 # Many possible reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load LAMMPS wrapper", e)
 
+        self.n_atoms = L.get_natoms()
         # Choose the matrix type that will be extracted
-        matrix_type = "x"
+        positions = self.manipulate_lammps_array('x', L)
+        # Copy the ctype array to numpy for processing
+        positions3N = np.fromiter(positions, dtype=np.float, count=len(positions))
+        # Convert to nm
+        positions3N = np.multiply(0.1, positions3N).reshape(self.n_atoms, 3)
+        #print(np.shape(positions3N))
 
-        data_array = self.manipulate_lammps_array(matrix_type, L)
-        atom_type = self.gather_lammps_particle_types(L)
+        # Collect forces from LAMMPS
+        forces = self.manipulate_lammps_array('f', L)
+        # Collect force vector from client
+        interactions = self.interactions
+
+        # get atom types and masses
+        atom_type, masses = self.gather_lammps_particle_types(L)
+
+        # Create numpy arrays with the forces to be added
+        energy_kjmol, forces_kjmol = calculate_imd_force(positions3N, masses, interactions)
+        #print(forces_kjmol[68,1])
+        # Add interactive force vector to lammps ctype
+        forces = self.add_interaction_to_ctype(forces_kjmol, forces)
+
+        # Return new force vector to LAMMPS
+        self.return_array_to_lammps('f', forces, L)
+
         # Convert positions
-        self.lammps_positions_to_frame_data(self.frame_data, data_array)
+
+        self.lammps_positions_to_frame_data(self.frame_data, positions)
 
         # Convert elements from list to frame data
         self.frame_data.arrays[ELEMENTS] = atom_type
@@ -319,7 +373,11 @@ class LammpsHook:
         # Print every 100 cycles if python interpreter is still running
         # This helps ensure that everything in lammps is continuing to run
         self.frame_loop += 1
+
         if self.frame_loop == 100:
             logging.info("LAMMPS python fix is running step %s", self.frame_index)
             #logging.info("FRAME STUFF %s %s", self.frame_index, self.frame_data.raw)
             self.frame_loop = 0
+            print(self.frame_index)
+
+
