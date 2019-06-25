@@ -4,7 +4,7 @@ Unit tests for :mod:`narupa.core.request_queues`.
 
 import time
 from concurrent.futures import ThreadPoolExecutor
-from queue import Empty
+from queue import Queue, Empty
 import pytest
 import itertools
 
@@ -17,6 +17,13 @@ def test_one_queue_serial():
     with many_queues.one_queue(0) as queue:
         assert list(many_queues.queues.keys()) == [0]
     assert not many_queues.queues
+
+
+@pytest.mark.parametrize('queue_type', (Queue, request_queues.SingleItemQueue))
+def test_one_queue_type(queue_type):
+    many_queues = request_queues.DictOfQueues()
+    with many_queues.one_queue(0, queue_class=queue_type) as queue:
+        assert isinstance(queue, queue_type)
 
 
 @pytest.mark.timeout(20)
