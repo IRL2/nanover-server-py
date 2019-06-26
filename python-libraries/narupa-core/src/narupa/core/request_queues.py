@@ -95,10 +95,31 @@ class SingleItemQueue:
         self._item = None
 
     def put(self, item, **kwargs):
+        """
+        Store a value, replace the previous one if any.
+
+        This method is thread-safe and is meant to be a drop in replacement
+        to :meth:`Queue.put`.
+
+        :param item: The value to store.
+        :param kwargs: Unused arguments for compatibility with :meth:`Queue.put`.
+        """
         with self._lock:
             self._item = item
 
     def get(self, **kwargs):
+        """
+        Get the stored value, and remove it from storage.
+
+        If there is no value to get, then the method raises an :exc:`Empty`
+        exception.
+
+        This method is thread-safe and is meant to be a drop in replacement
+        to :meth:`Queue.get`.
+
+        :param kwargs: Unused arguments for compatibility with :meth:`Queue.get`.
+        :return: The stored value.
+        """
         with self._lock:
             item = self._item
             if item is None:
