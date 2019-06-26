@@ -84,7 +84,7 @@ class DictOfQueues:
 
 class SingleItemQueue:
     """
-    Mimics the basic interface of a :class:`Queue` but only store one item.
+    Mimics the basic interface of a :class:`Queue` but only stores one item.
     """
     def __init__(self, maxsize=None):
         """
