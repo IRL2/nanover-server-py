@@ -144,7 +144,10 @@ class TestSingleItemQueue:
             single_item_queue.get()
 
     @pytest.mark.timeout(20)
-    def test_threading(self, single_item_queue):
+    def test_put_and_get_threaded(self, single_item_queue):
+        """
+        Add and get data from the SingleItemQueue from multiple threads.
+        """
 
         def produce_data(thread_id, queue, number_of_records):
             for i in range(number_of_records):
