@@ -14,7 +14,7 @@ service TrajectoryService {
   rpc SubscribeFrames (GetFrameRequest) returns (stream GetFrameResponse);
 
   /* Subscribe to a continuous updating source of frames. The client gets the latest available frame at the time of transmission. */
-  rpc SubscribeLastFrames (GetFrameRequest) returns (stream GetFrameResponse);
+  rpc SubscribeLatestFrames (GetFrameRequest) returns (stream GetFrameResponse);
 
   /* Request a set of frames specified in the request */
   rpc GetFrames (GetFrameRequest) returns (stream GetFrameResponse);

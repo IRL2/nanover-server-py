@@ -25,7 +25,7 @@ class FrameClient:
         return self.threads.submit(self.subscribe_frames_blocking, callback)
 
     def subscribe_last_frames_blocking(self, callback):
-        for response in self.stub.SubscribeLastFrames(GetFrameRequest()):
+        for response in self.stub.SubscribeLatestFrames(GetFrameRequest()):
             callback(frame_index=response.frame_index, frame=FrameData(response.frame))
 
     def close(self):

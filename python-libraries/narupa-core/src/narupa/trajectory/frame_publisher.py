@@ -30,7 +30,7 @@ class FramePublisher(TrajectoryServiceServicer):
     def SubscribeFrames(self, request, context):
         yield from self._subscribe_frame_base(request, context, queue_type=Queue)
 
-    def SubscribeLastFrames(self, request, context):
+    def SubscribeLatestFrames(self, request, context):
         yield from self._subscribe_frame_base(request, context, queue_type=SingleItemQueue)
 
     def _subscribe_frame_base(self, request, context, queue_type):
