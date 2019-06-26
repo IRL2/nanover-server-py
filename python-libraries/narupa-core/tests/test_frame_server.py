@@ -99,7 +99,8 @@ def test_blankdata_earlyclient(frame_server, frame_client, subscribe_method):
 
 # Checks the transmitted data is correct
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-def test_data_earlyclient(frame_server, frame_client, simple_frame_data, subscribe_method):
+def test_data_earlyclient(frame_server, frame_client, simple_frame_data,
+                          subscribe_method):
     result = None
 
     def callback(frame, **kwargs):
@@ -120,7 +121,8 @@ def test_data_earlyclient(frame_server, frame_client, simple_frame_data, subscri
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-def test_data_lateclient(frame_server, frame_client, simple_frame_data, subscribe_method):
+def test_data_lateclient(frame_server, frame_client, simple_frame_data,
+                         subscribe_method):
     result = None
 
     def callback(frame, **kwargs):
@@ -137,8 +139,9 @@ def test_data_lateclient(frame_server, frame_client, simple_frame_data, subscrib
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-def test_data_disjoint(frame_server, frame_client, simple_frame_data, disjoint_frame_data,
-                       simple_and_disjoint_frame_data, subscribe_method):
+def test_data_disjoint(frame_server, frame_client, simple_frame_data,
+                       disjoint_frame_data, simple_and_disjoint_frame_data,
+                       subscribe_method):
     result = None
 
     def callback(frame, **kwargs):
@@ -156,7 +159,9 @@ def test_data_disjoint(frame_server, frame_client, simple_frame_data, disjoint_f
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-def test_data_overlap(frame_server, frame_client, simple_frame_data, overlap_frame_data, simple_and_overlap_frame_data, subscribe_method):
+def test_data_overlap(frame_server, frame_client, simple_frame_data,
+                      overlap_frame_data, simple_and_overlap_frame_data,
+                      subscribe_method):
     result = None
 
     def callback(frame, **kwargs):
@@ -174,7 +179,8 @@ def test_data_overlap(frame_server, frame_client, simple_frame_data, overlap_fra
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-def test_slow_frame_publishing(frame_server, frame_client, simple_frame_data, subscribe_method):
+def test_slow_frame_publishing(frame_server, frame_client, simple_frame_data,
+                               subscribe_method):
     result = None
 
     def callback(frame, **kwargs):
