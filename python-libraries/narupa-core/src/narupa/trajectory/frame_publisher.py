@@ -28,9 +28,20 @@ class FramePublisher(TrajectoryServiceServicer):
         self._request_id_lock = Lock()
 
     def SubscribeFrames(self, request, context):
+        """
+        Subscribe to all the frames produced by the service.
+
+        This method publishes all the frames produced by the trajectory service,
+        starting when the client subscribes.
+        """
         yield from self._subscribe_frame_base(request, context, queue_type=Queue)
 
     def SubscribeLatestFrames(self, request, context):
+        """
+        Subscribe to the last produced frames produced by the service.
+
+        This method publishes the latest frame available at the time of yielding.
+        """
         yield from self._subscribe_frame_base(request, context, queue_type=SingleItemQueue)
 
     def _subscribe_frame_base(self, request, context, queue_type):
