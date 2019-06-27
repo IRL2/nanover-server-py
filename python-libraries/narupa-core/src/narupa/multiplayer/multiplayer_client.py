@@ -50,7 +50,7 @@ class MultiplayerClient(object):
     scene_properties: mult_proto.SceneProperties
     _avatar_queue: Queue
 
-    def __init__(self, address='localhost', port=7654, pubsub_fps: float = 30, channel=None):
+    def __init__(self, address='localhost', port=54323, pubsub_fps: float = 30, channel=None):
 
         if channel is None:
             self.channel = grpc.insecure_channel("{0}:{1}".format(address, port))

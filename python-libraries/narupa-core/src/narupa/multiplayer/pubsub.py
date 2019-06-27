@@ -4,6 +4,7 @@
 """
 Module providing a PubSub (publication/subscribe) model for use with gRPC.
 """
+import logging
 from queue import Queue, Empty
 from typing import Dict, Iterator
 
@@ -27,6 +28,7 @@ class PubSub:
         self.queues = {}
         self.max_queue_size = max_queue_size
         self.latest_publication = None
+        self.logger = logging.Logger(__name__)
 
     def subscribe(self, request, context):
         """
@@ -41,6 +43,7 @@ class PubSub:
             raise KeyError("Player ID already subscribed! Join multiplayer to get a unique player ID.")
         self.queues[request.player_id] = queue
         if self.send_latest and self.latest_publication is not None:
+            self.logger.debug(f'Sending latest avatar to: {request.player_id}.')
             yield self.latest_publication
         while context.is_active():
             # wait for the next publication and yield it.
@@ -50,6 +53,7 @@ class PubSub:
                 pass
             else:
                 self.latest_publication = publication
+                self.logger.debug(f'Sending avatar to: {request.player_id}.')
                 yield publication
 
         del self.queues[queue]

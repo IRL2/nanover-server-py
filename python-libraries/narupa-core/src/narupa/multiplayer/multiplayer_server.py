@@ -10,8 +10,8 @@ from narupa.core.grpc_server import  GrpcServer
 from narupa.multiplayer.multiplayer_service import MultiplayerService
 from narupa.protocol.multiplayer import multiplayer_pb2_grpc as multiplayer_proto_grpc
 
-DEFAULT_ADDRESS = 'localhost'
-DEFAULT_PORT = 7654
+DEFAULT_ADDRESS = '[::]'
+DEFAULT_PORT = 54323
 
 
 class MultiplayerServer(GrpcServer):

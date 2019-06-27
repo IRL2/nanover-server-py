@@ -4,7 +4,7 @@
 """
 Module providing an implementation of a multiplayer service,.
 """
-
+import logging
 from typing import Iterator, Dict
 
 import grpc
@@ -43,6 +43,7 @@ class MultiplayerService(MultiplayerServicer):
         default_scene_properties = scene.get_default_scene_properties()
         self.scene_properties = MultiplayerObjectLock(default_scene_properties)
         self.send_self = send_self
+        self.logger = logging.getLogger(__name__)
 
     def JoinMultiplayer(self, request, context):
         """
@@ -53,6 +54,7 @@ class MultiplayerService(MultiplayerServicer):
         """
         player_id = self.generate_player_id()
         self.players[player_id] = request
+        self.logger.info(f'Username {player_id} has joined multiplayer.')
         return multiplayer_proto.JoinMultiplayerResponse(player_id=player_id)
 
     def SubscribeToAvatars(self, request, context) -> Avatar:
@@ -65,11 +67,14 @@ class MultiplayerService(MultiplayerServicer):
         if request.player_id not in self.players:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details("Unknown player ID. Join multiplayer session first!")
+            self.logger.error('Unknown playerID attempted to join avatars.')
             return
         try:
             for publication in self.avatar_pubsub.subscribe(request, context):
+                self.logger.debug(f'Publishing avatar for player: {request.player_id} ')
                 yield publication
         except KeyError as e:
+            self.logger.error('Unknown playerID used in subscription to avatars.')
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details(str(e))
             return
@@ -108,6 +113,8 @@ class MultiplayerService(MultiplayerServicer):
         reply = multiplayer_proto.LockRequest()
         reply.locked = is_locked
         reply.player_id = player_id
+        self.logger.debug(f'Lock request from player: {request.player_id}. Granted: {is_locked}')
+
         return reply
 
     def SetSceneProperty(self, request: multiplayer_proto.ScenePropertyRequest, context):
@@ -126,6 +133,7 @@ class MultiplayerService(MultiplayerServicer):
         reply = EditObjectReply()
         reply.success = success
         reply.player_id = player_id
+        self.logger.debug(f'Scene edit from player: {request.player_id}. Succeeded: {success}')
 
         return reply
 
