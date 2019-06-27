@@ -173,8 +173,7 @@ def test_edit_scene_receive_late(multiplayer_server_selfsending, test_scene):
     Tests that a second multiplayer client receives the scene property changes if it joins late.
 
     """
-    channel = grpc.insecure_channel(
-        "{0}:{1}".format(multiplayer_server_selfsending.address, multiplayer_server_selfsending.port))
+    channel = grpc.insecure_channel(f"localhost:{multiplayer_server_selfsending.port}")
     multiplayer_client = MultiplayerClient(channel=channel)
     multiplayer_client.join_multiplayer(username="user", join_streams=True)
     time.sleep(0.05)
@@ -194,8 +193,7 @@ def test_edit_scene_locked(multiplayer_server_selfsending, test_scene):
     Tests that a second client cannot edit the scene property changes if it is locked
 
     """
-    channel = grpc.insecure_channel(
-        "{0}:{1}".format(multiplayer_server_selfsending.address, multiplayer_server_selfsending.port))
+    channel = grpc.insecure_channel(f"localhost:{multiplayer_server_selfsending.port}")
     multiplayer_client = MultiplayerClient(channel=channel)
     multiplayer_client.join_multiplayer(username="user", join_streams=True)
     time.sleep(0.05)
