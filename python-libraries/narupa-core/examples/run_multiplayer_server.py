@@ -47,9 +47,9 @@ def main():
     
     if arguments.verbose:
         server.multiplayer_services.logger.setLevel("INFO")
-        server.multiplayer_services.logger.addHandler(StreamHandler())
     if arguments.debug:
         server.multiplayer_services.logger.setLevel("DEBUG")
+    if argument.verbose or argument.debug:
         server.multiplayer_services.logger.addHandler(StreamHandler())
 
     print(f'Serving multiplayer on port {arguments.port}')
