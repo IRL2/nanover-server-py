@@ -32,6 +32,7 @@ def handle_user_arguments() -> argparse.Namespace:
     parser.add_argument('-a', '--address', default='[::]')
     parser.add_argument('-s', '--send-self', action="store_true", default=False)
     parser.add_argument('-v', '--verbose', action="store_true", default=False)
+    parser.add_argument('-vv', '--debug', action="store_true", default=False)
     arguments = parser.parse_args()
     return arguments
 
@@ -46,6 +47,9 @@ def main():
     
     if arguments.verbose:
         server.multiplayer_services.logger.setLevel("INFO")
+        server.multiplayer_services.logger.addHandler(StreamHandler())
+    if argument.debug:
+        server.multiplayer_services.logger.setLevel("DEBUG")
         server.multiplayer_services.logger.addHandler(StreamHandler())
 
     print(f'Serving multiplayer on port {arguments.port}')
