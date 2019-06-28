@@ -48,7 +48,7 @@ def main():
     if arguments.verbose:
         server.multiplayer_services.logger.setLevel("INFO")
         server.multiplayer_services.logger.addHandler(StreamHandler())
-    if argument.debug:
+    if arguments.debug:
         server.multiplayer_services.logger.setLevel("DEBUG")
         server.multiplayer_services.logger.addHandler(StreamHandler())
 
