@@ -2,7 +2,7 @@
 Provides a dictionary of queues.
 """
 
-from typing import Dict, Hashable, Generator
+from typing import Dict, Hashable, Generator, Tuple
 from queue import Queue, Empty
 from threading import Lock
 from contextlib import contextmanager
@@ -44,6 +44,10 @@ class DictOfQueues:
         self.queue_max_size = queue_max_size
         self.queues = {}
         self.lock = Lock()
+    
+    def __contains__(self, key):
+        with self.lock:
+            return key in self.queues
 
     @contextmanager
     def one_queue(self, request_id, queue_class=Queue):
@@ -80,6 +84,16 @@ class DictOfQueues:
         """
         with self.lock:
             yield from self.queues.values()
+    
+    def iter_queues_items(self) -> Generator[Tuple[Hashable, Queue], None, None]:
+        """
+        Iterate over the queues and their keys.
+
+        The method places a lock on the dictionary so no queue can be added or
+        removed while iterating.
+        """
+        with self.lock:
+            yield from self.queues.items()
 
 
 class SingleItemQueue:
