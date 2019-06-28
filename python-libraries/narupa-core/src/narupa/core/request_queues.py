@@ -3,7 +3,7 @@ Provides a dictionary of queues.
 """
 
 from typing import Dict, Hashable, Generator
-from queue import Queue
+from queue import Queue, Empty
 from threading import Lock
 from contextlib import contextmanager
 
@@ -46,7 +46,7 @@ class DictOfQueues:
         self.lock = Lock()
 
     @contextmanager
-    def one_queue(self, request_id):
+    def one_queue(self, request_id, queue_class=Queue):
         """
         Works with a queue.
 
@@ -57,8 +57,10 @@ class DictOfQueues:
         :param request_id: The key for the queue. This key has to be unique, if
             a queue is already registered with that key, then a
             :exc:`ValueError` is raised.
+        :param queue_class: The class to instantiate for that queue. By default,
+            a :class:`Queue` is instantiated.
         """
-        queue = Queue(maxsize=self.queue_max_size)
+        queue = queue_class(maxsize=self.queue_max_size)
         with self.lock:
             if request_id in self.queues:
                 raise ValueError(f'The key {request_id} is already registered.')
@@ -78,3 +80,50 @@ class DictOfQueues:
         """
         with self.lock:
             yield from self.queues.values()
+
+
+class SingleItemQueue:
+    """
+    Mimics the basic interface of a :class:`Queue` but only stores one item.
+    """
+    def __init__(self, maxsize=None):
+        """
+        :param maxsize: Unused parameter, included for compatibility with
+            :class:`Queue`.
+        """
+        self._lock = Lock()
+        self._item = None
+
+    def put(self, item, **kwargs):
+        """
+        Store a value, replace the previous one if any.
+
+        This method is thread-safe and is meant to be a drop in replacement
+        to :meth:`Queue.put`.
+
+        :param item: The value to store.
+        :param kwargs: Unused arguments for compatibility with :meth:`Queue.put`.
+        """
+        with self._lock:
+            self._item = item
+
+    def get(self, **kwargs):
+        """
+        Get the stored value, and remove it from storage.
+
+        If there is no value to get, then the method raises an :exc:`Empty`
+        exception.
+
+        This method is thread-safe and is meant to be a drop in replacement
+        to :meth:`Queue.get`.
+
+        :param kwargs: Unused arguments for compatibility with :meth:`Queue.get`.
+        :return: The stored value.
+        """
+        with self._lock:
+            item = self._item
+            if item is None:
+                raise Empty('No value available.')
+            else:
+                self._item = None
+            return item
