@@ -49,7 +49,7 @@ def main():
         server.multiplayer_services.logger.setLevel("INFO")
     if arguments.debug:
         server.multiplayer_services.logger.setLevel("DEBUG")
-    if argument.verbose or argument.debug:
+    if arguments.verbose or arguments.debug:
         server.multiplayer_services.logger.addHandler(StreamHandler())
 
     print(f'Serving multiplayer on port {arguments.port}')
@@ -58,7 +58,7 @@ def main():
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print('Good bye.')
+        print('Closing due to keyboard interrupt')
     finally:
         server.close()
 
