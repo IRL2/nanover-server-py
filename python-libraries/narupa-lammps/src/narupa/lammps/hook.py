@@ -173,23 +173,18 @@ class LammpsHook:
     or ones available from within LAMMPS (manipulate_lammps_arrays).
     """
 
-    def __init__(self):
+    def __init__(self, traj_port: int = 8080, imd_port: int = 8081, address: str = "[::]"):
         """
         Items that should be initialised on instantiation of lammpsHook class
         The MPI routines are essential to stop thread issues that cause internal
         LAMMPS crashes
         """
         # Start frame server, must come before MPI
-        port_no = 8080
-        imd_port = 8081
-        address = '[::]'
         # TODO raise exception when this fails, i.e if port is blocked
-        self.frame_server = FrameServer(address=address, port=port_no)
+        self.frame_server = FrameServer(address=address, port=traj_port)
         self.imd_server = ImdServer(address=address, port=imd_port)
         self.frame_index = 0
         self.frame_loop = 0
-        #self._service = imd_service
-        #self._service = self.imd_server.service
 
         try:
             self.frame_data = FrameData()
@@ -206,7 +201,8 @@ class LammpsHook:
         logging.info("Lammpshook initialised for NarupaXR")
         logging.info("MPI rank %s", me)
         logging.info("MPI n processors %s ", nprocs)
-        logging.info("Port %s ", port_no)
+        logging.info("Trajectory Port %s ", traj_port)
+        logging.info("Interactive Port %s ", imd_port)
         # TODO make it so that the simulation waits on connect as an option
 
     def test_debug(self):
@@ -294,13 +290,13 @@ class LammpsHook:
         # great array of dummy type
         #scatterable_array = ctype_3N_array()
 
+        # Convert units fron narupa standard of  kj/mol/nm to whatever units LAMMPS is using
+        # For real units types LAMMPS uses  Kcal/mole-Angstrom 4.14 for kj-> Kcal and 10x for nm -> Angstrom
+        interaction_forces * 41.4
         # Flatten array into the ctype
         scatterable_array = interaction_forces.flatten()
-        #print(type(scatterable_array), type(lammps_forces))
-        #print(lammps_forces)
         for idx in range(3*self.n_atoms):
-            #print(lammps_forces[idx],scatterable_array[idx])
-            lammps_forces[idx] += scatterable_array[idx] * 0.000000000000001
+            lammps_forces[idx] += scatterable_array[idx]
 
         return lammps_forces
 
@@ -340,7 +336,6 @@ class LammpsHook:
         positions3N = np.fromiter(positions, dtype=np.float, count=len(positions))
         # Convert to nm
         positions3N = np.multiply(0.1, positions3N).reshape(self.n_atoms, 3)
-        #print(np.shape(positions3N))
 
         # Collect forces from LAMMPS
         forces = self.manipulate_lammps_array('f', L)
@@ -352,7 +347,6 @@ class LammpsHook:
 
         # Create numpy arrays with the forces to be added
         energy_kjmol, forces_kjmol = calculate_imd_force(positions3N, masses, interactions)
-        #print(forces_kjmol[68,1])
         # Add interactive force vector to lammps ctype
         forces = self.add_interaction_to_ctype(forces_kjmol, forces)
 
@@ -360,7 +354,6 @@ class LammpsHook:
         self.return_array_to_lammps('f', forces, L)
 
         # Convert positions
-
         self.lammps_positions_to_frame_data(self.frame_data, positions)
 
         # Convert elements from list to frame data
