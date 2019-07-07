@@ -53,10 +53,15 @@ Running the tests is a crucial part of keeping the code base functional. To run 
 `narupa.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
 trajectory. To serve the frames on port 54321, run
 
+    # On MacOS and Linux
+    python ./python-libraries/narupa-mdanalysis/examples/example.py
+    # On Windows
     python .\python-libraries\narupa-mdanalysis\examples\example.py
 
 `narupa.ase` provides a server that runs a demo ASE simulation using the OpenMM
 forcefield. An example usage is:
 
+    # On MacOS and Linux
     python python-libraries/narupa-ase/examples/imd_openmm.py python-libraries/narupa-ase/examples/nanotube.xml 
-
+    # On Windows
+    python python-libraries\narupa-ase\examples\imd_openmm.py python-libraries\narupa-ase\examples\nanotube.xml 
