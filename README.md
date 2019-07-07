@@ -14,7 +14,7 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-### Setup narupa-protocol on Linux
+### Setup narupa-protocol on Mac and Linux
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Install dotnet
