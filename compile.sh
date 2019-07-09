@@ -43,14 +43,9 @@ announce "Compiling proto files to python"
 python ./python-libraries/narupa-core/setup.py compile_proto
 
 announce "Installing the python packages"
-python -m pip install ${edit_option} ${narupa_user_option} \
-    ./python-libraries/narupa-core/
-python -m pip install ${edit_option} ${narupa_user_option} \
-    ./python-libraries/narupa-openmm/
-python -m pip install ${edit_option} ${narupa_user_option} \
-    ./python-libraries/narupa-ase/
-python -m pip install ${edit_option} ${narupa_user_option} \
-    ./python-libraries/narupa-lammps/
+for package in python-libraries/narupa-*/; do
+    python -m pip install ${edit_option} ${narupa_user_option} ${package}
+done
 
 python -c "import simtk" 2>&1 > /dev/null || {
     announce "OpenMM is not installed."

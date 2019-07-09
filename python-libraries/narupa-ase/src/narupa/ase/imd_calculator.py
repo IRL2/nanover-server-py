@@ -12,7 +12,7 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 from narupa.imd.imd_force import calculate_imd_force
 from narupa.imd.imd_service import ImdService
-from narupa.imd.interaction import Interaction
+from narupa.imd.particle_interaction import ParticleInteraction
 
 
 def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
@@ -70,11 +70,11 @@ class ImdCalculator(Calculator):
         return self._calculator
 
     @property
-    def interactions(self) -> Dict[Tuple[str, str], Interaction]:
+    def interactions(self) -> Dict[Tuple[str, str], ParticleInteraction]:
         """
         Returns a shallow copy of the current interactions.
         """
-        return self._service.interactions
+        return self._service.active_interactions
 
     def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
                   system_changes=all_changes):
@@ -112,7 +112,7 @@ class ImdCalculator(Calculator):
         masses = atoms.get_masses()
 
         periodic_box_lengths = get_periodic_box_lengths(atoms)
-        interactions = self.interactions.values()
+        interactions = self.interactions
         energy_kjmol, forces_kjmol = calculate_imd_force(positions, masses, interactions,
                                                          periodic_box_lengths=periodic_box_lengths)
         ev_per_kjmol = converter.KJMOL_TO_EV

@@ -1,8 +1,7 @@
-# Narupa protocol
+# Narupa 2 Protocol
 
-Working space for the new narupa protocol and associated implementations using gRPC.
-
-This is very much a work in progress!
+Repository containing the gRPC protocol and python based implementations 
+of servers for Narupa 2. 
 
 ## Getting Started
 
@@ -15,7 +14,7 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-### Setup narupa-protocol on Linux
+### Setup narupa-protocol on Mac and Linux
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Install dotnet
@@ -40,10 +39,8 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
 
 ## Coming Soon
 
-* Interactive MD servers
 * Multiplayer
 * Lobby
-* Trajectory serving
 
 ## Running the tests
 
@@ -51,14 +48,20 @@ Running the tests is a crucial part of keeping the code base functional. To run 
 
     python -m pytest python-libraries
 
-## Running test servers
+## Running Example Servers
 
 `narupa.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
 trajectory. To serve the frames on port 54321, run
 
+    # On MacOS and Linux
+    python ./python-libraries/narupa-mdanalysis/examples/example.py
+    # On Windows
     python .\python-libraries\narupa-mdanalysis\examples\example.py
 
-`narupa.ase` provides a server that runs a demo ase simulation. To serve the frames of that simulation on port 54321,
-run
+`narupa.ase` provides a server that runs a demo ASE simulation using the OpenMM
+forcefield. An example usage is:
 
-    python .\python-libraries\narupa-ase\src\narupa\ase\example\molecular_dynamics.py
+    # On MacOS and Linux
+    python python-libraries/narupa-ase/examples/imd_openmm.py python-libraries/narupa-ase/examples/nanotube.xml 
+    # On Windows
+    python python-libraries\narupa-ase\examples\imd_openmm.py python-libraries\narupa-ase\examples\nanotube.xml 

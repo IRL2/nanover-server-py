@@ -1,21 +1,21 @@
 import narupa.protocol.imd.imd_pb2 as imd_pb2
 import numpy as np
 import pytest
-from narupa.imd.interaction import Interaction
+from narupa.imd.particle_interaction import ParticleInteraction
 
 
 @pytest.fixture
 def interaction():
-    return Interaction()
+    return ParticleInteraction()
 
 
 def test_player_id():
-    interaction = Interaction("2")
+    interaction = ParticleInteraction("2")
     assert interaction.player_id == "2"
 
 
 def test_interaction_id():
-    interaction = Interaction(interaction_id="2")
+    interaction = ParticleInteraction(interaction_id="2")
     assert interaction.interaction_id == "2"
 
 
@@ -29,8 +29,8 @@ def test_set_position(interaction):
 
 
 def test_from_proto():
-    interaction_grpc = imd_pb2.Interaction(player_id='1', interaction_id='0')
-    interaction = Interaction.from_proto(interaction_grpc)
+    interaction_grpc = imd_pb2.ParticleInteraction(player_id='1', interaction_id='0')
+    interaction = ParticleInteraction.from_proto(interaction_grpc)
     assert interaction.player_id == "1"
     assert interaction.interaction_id == "0"
     assert interaction.type == "gaussian"
@@ -95,8 +95,8 @@ def test_get_mass(interaction):
 
 
 def test_get_mass_unset():
-    proto = imd_pb2.Interaction()
-    interaction = Interaction.from_proto(proto)
+    proto = imd_pb2.ParticleInteraction()
+    interaction = ParticleInteraction.from_proto(proto)
     assert interaction.mass_weighted == True
 
 

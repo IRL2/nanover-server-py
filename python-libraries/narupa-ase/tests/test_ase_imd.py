@@ -8,20 +8,20 @@ from ase.md import Langevin, VelocityVerlet
 from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.imd.imd_client import ImdClient, delayed_generator
-from narupa.imd.interaction import Interaction
+from narupa.imd.particle_interaction import ParticleInteraction
 from util import co_atoms, imd_client
 
 
 
 @pytest.fixture
 def interact_c():
-    interaction = Interaction(position=[0, 1, 0], particles=[0], scale=20000., interaction_type='spring')
+    interaction = ParticleInteraction(position=[0, 1, 0], particles=[0], scale=20000., interaction_type='spring')
     return interaction
 
 
 @pytest.fixture
 def interact_both():
-    interaction = Interaction(position=[0, 1, 0], particles=[0, 1], scale=20000., interaction_type='spring')
+    interaction = ParticleInteraction(position=[0, 1, 0], particles=[0, 1], scale=20000., interaction_type='spring')
     return interaction
 
 
