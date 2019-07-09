@@ -38,6 +38,12 @@ def multiplayer_server_selfsending():
 
 
 @pytest.fixture
+def channel(multiplayer_server_selfsending):
+    channel = grpc.insecure_channel(f"localhost:{multiplayer_server_selfsending.port}")
+    yield channel
+    channel.close()
+
+@pytest.fixture
 def avatar():
     components = [AvatarComponent(name="Head", position=[0, 0, 1], rotation=[1, 1, 1, 1])]
     avatar = Avatar(player_id="1", component=components)
@@ -168,12 +174,11 @@ def test_self_sending_off_scene_properties(multiplayer_client, multiplayer_serve
     assert multiplayer_client.scene_properties is None
 
 
-def test_edit_scene_receive_late(multiplayer_server_selfsending, test_scene):
+def test_edit_scene_receive_late(multiplayer_server_selfsending, test_scene, channel):
     """
     Tests that a second multiplayer client receives the scene property changes if it joins late.
 
     """
-    channel = grpc.insecure_channel(f"localhost:{multiplayer_server_selfsending.port}")
     multiplayer_client = MultiplayerClient(channel=channel)
     multiplayer_client.join_multiplayer(username="user", join_streams=True)
     time.sleep(0.05)
@@ -188,12 +193,11 @@ def test_edit_scene_receive_late(multiplayer_server_selfsending, test_scene):
     assert another_client.scene_properties is not None
 
 
-def test_edit_scene_locked(multiplayer_server_selfsending, test_scene):
+def test_edit_scene_locked(multiplayer_server_selfsending, test_scene, channel):
     """
     Tests that a second client cannot edit the scene property changes if it is locked
 
     """
-    channel = grpc.insecure_channel(f"localhost:{multiplayer_server_selfsending.port}")
     multiplayer_client = MultiplayerClient(channel=channel)
     multiplayer_client.join_multiplayer(username="user", join_streams=True)
     time.sleep(0.05)
