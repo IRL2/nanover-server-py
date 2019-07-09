@@ -8,8 +8,8 @@ Reference multiplayer client implementation.
 
 import time
 from queue import Queue, Empty
-from threading import Thread
 from typing import Dict
+from concurrent import futures
 
 import grpc
 
@@ -66,6 +66,7 @@ class MultiplayerClient(object):
         self.current_avatars = {}
         self.closed = False
         self.scene_properties = None
+        self.threadpool = futures.ThreadPoolExecutor(max_workers=10)
 
     def close(self):
         """
@@ -73,6 +74,7 @@ class MultiplayerClient(object):
         :return:
         """
         self.closed = True
+        self.threadpool.shutdown()
         if not self.shared_channel:
             self.channel.close()
 
@@ -100,8 +102,7 @@ class MultiplayerClient(object):
         """
         self._ensure_joined_multiplayer()
         request = mult_proto.SubscribeToAvatarsRequest(player_id=self.player_id)
-        thread = Thread(target=self._join_avatar_stream, args=(request,))
-        thread.start()
+        self.threadpool.submit(self._join_avatar_stream, request)
 
     def join_avatar_publish(self):
         """
@@ -109,8 +110,7 @@ class MultiplayerClient(object):
         Use publish_avatar to publish.
         """
         self._ensure_joined_multiplayer()
-        thread = Thread(target=self._join_avatar_publish, args=(), daemon=True)
-        thread.start()
+        self.threadpool.submit(self._join_avatar_publish)
 
     def publish_avatar(self, avatar):
         """
@@ -141,8 +141,7 @@ class MultiplayerClient(object):
         """
         self._ensure_joined_multiplayer()
         request = mult_proto.ScenePropertyRequest(player_id=self.player_id)
-        thread = Thread(target=self._join_scene_properties_stream, args=(request,), daemon=True)
-        thread.start()
+        self.threadpool.submit(self._join_scene_properties_stream, request)
 
     def try_lock_scene(self, player_id=None):
         """
