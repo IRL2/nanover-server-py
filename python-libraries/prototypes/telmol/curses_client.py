@@ -395,7 +395,7 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
         if ELEMENTS in frame:
             renderer.elements = frame.particle_elements
 
-    client.subscribe_frames_async(get_frame)
+    client.subscribe_last_frames_async(get_frame)
 
     def show_controls(window):
         window.addstr(0, 0, "arrows -- rotate camera")
