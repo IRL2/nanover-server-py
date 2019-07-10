@@ -27,13 +27,24 @@ class TestServer(TestRunner):
 
     This runs the tests for the :class:`narupa.openmm.Runner` class applied to
     :class:`Server`, as well as the :class:`Server` specific tests.
+
+    When writing a test that requires a port, use the :attr:`next_port` property.
+    This property returns the next port starting from :attr:`starting_port` + 1.
+    This allows to avoid using twice the same port in two different tests as freeing
+    a port takes time. Use the :attr:`last_port` property to get the last port that
+    was provided.
     """
     __test__ = True
 
+    starting_port = 6000
     expected_number_of_reporters_verbosity = {
         True: 3,
         False: 2,
     }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._current_port = self.starting_port
 
     @pytest.fixture
     def runner(self, basic_simulation):
@@ -43,9 +54,19 @@ class TestServer(TestRunner):
         The simulation has a reporter attached to it to assure removing a reporter
         only removes only that reporter.
         """
-        server = Server(basic_simulation, address='[::]', port=54321)
+        server = Server(basic_simulation, address='[::]', port=self.next_port)
         server.simulation.reporters.append(DoNothingReporter())
-        return server
+        yield server
+        server.close()
+    
+    @property
+    def next_port(self):
+        self._current_port += 1
+        return self._current_port
+    
+    @property
+    def last_port(self):
+        return self._current_port
 
     def test_class(self, runner):
         assert isinstance(runner, Server)
@@ -53,7 +74,7 @@ class TestServer(TestRunner):
     def test_from_xml_input(self, serialized_simulation_path):
         server = Server.from_xml_input(
             serialized_simulation_path,
-            address='[::]', port=54321,
+            address='[::]', port=self.next_port,
             publish_interval=2,
         )
         n_atoms_in_system = 8
@@ -108,37 +129,31 @@ class TestServer(TestRunner):
         We can instantiate a server without providing the address.
         """
         # TODO: The address in used should be checked, but I do not know how
-        #  to access it.
-        try:
-            server = Server(basic_simulation, port=8000)
-        finally:
-            server.close()
+        #  to access it. See issue #59.
+        server = Server(basic_simulation, port=self.next_port)
+        server.close()
 
     def test_default_port(self, basic_simulation):
         """
         We can instantiate a server without providing the port.
         """
         # TODO: The port in used should be checked, but I do not know how
-        #  to access it.
-        try:
-            server = Server(basic_simulation, address='[::]')
-        finally:
-            server.close()
+        #  to access it. See issue #59.
+        server = Server(basic_simulation, address='[::]')
+        server.close()
 
     def test_default_host(self, basic_simulation):
         """
         We can instantiate a server without providing neither an address nor a port.
         """
         # TODO: The address and port in used should be checked, but I do not know how
-        #  to access them.
-        try:
-            server = Server(basic_simulation)
-        finally:
-            server.close()
+        #  to access them. See issue #59.
+        server = Server(basic_simulation)
+        server.close()
 
     def test_context_manager(self, basic_simulation):
         """
         We can use a server as a context manager without an error.
         """
-        with Server(basic_simulation, address='[::]', port=8000) as server:
+        with Server(basic_simulation, address='[::]', port=self.next_port) as server:
             server.run(n_steps=1)
