@@ -205,6 +205,11 @@ class LammpsHook:
         logging.info("Interactive Port %s ", imd_port)
         # TODO make it so that the simulation waits on connect as an option
 
+        # Set some variables that do not change during the simulation
+        self.n_atoms = None
+        self.units = None
+
+
     def test_debug(self):
         """
         Test routine to check correct python loading in LAMMPS
@@ -329,7 +334,14 @@ class LammpsHook:
                 # Many possible reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load LAMMPS wrapper", e)
 
-        self.n_atoms = L.get_natoms()
+        # Check if we are in the first cycle of the MD to allocate static variables
+        if self.n_atoms is None:
+            self.n_atoms = L.get_natoms()
+            # Use planks constant to work out what units we are working in
+            self.units = L.extract_global("hplanck", 1)
+            print("units", type(self.units),self.units)
+
+
         # Choose the matrix type that will be extracted
         positions = self.manipulate_lammps_array('x', L)
         # Copy the ctype array to numpy for processing
