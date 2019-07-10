@@ -43,6 +43,8 @@ announce "Compiling proto files to python"
 python ./python-libraries/narupa-core/setup.py compile_proto
 
 announce "Installing the python packages"
+python -m pip install ${edit_option} ${narupa_user_option} ./python-libraries/narupa-core/
+
 for package in python-libraries/narupa-*/; do
     python -m pip install ${edit_option} ${narupa_user_option} ${package}
 done
