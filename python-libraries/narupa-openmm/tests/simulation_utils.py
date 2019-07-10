@@ -116,11 +116,13 @@ def basic_simulation():
 
     integrator = mm.LangevinIntegrator(300 * kelvin, 1 / picosecond, 2 * femtosecond)
 
-    simulation = app.Simulation(topology, system, integrator)
+    platform = mm.Platform.getPlatformByName('CPU')
+    simulation = app.Simulation(topology, system, integrator, platform=platform)
     simulation.context.setPeriodicBoxVectors(*periodic_box_vector)
     simulation.context.setPositions(positions * nanometer)
 
-    return simulation
+    yield simulation
+    del simulation, integrator
 
 
 @pytest.fixture
