@@ -66,6 +66,26 @@ ELEMENT_INDEX_MASS = {
     89:  39,
 }
 
+# Check what units are being used in LAMMPS using this dict
+# For now support converting lj and real, for full unit list see https://lammps.sandia.gov/doc/units.html
+# List goes type, postion, force need to convert into nm and kj/mol/nm
+
+LAMMPS_UNITS_CHECK= {
+    # Lenard jones: is unitless, forces
+    1.0           : ["lj", 1, 1],
+    # Real: 1 angstrom,  23.060549 (kj/mol/angstrom -> kcal/mol/angstrom)
+    95.306976368  : ["real", 0.1, 2.39006],
+    # Metal : angstrom
+    4.135667403e-3: ["metal", 0.1],
+    # SI: meters
+    6.62606896e-34: ["si", 10**-10],
+    6.62606896e-27: ["cgs"],
+    0.1519829846  : ["electron"],
+    6.62606896e-13: ["micro"],
+    6.62606896e-4:  ["nano"]
+}
+
+
 
 class DummyLammps:
     """
