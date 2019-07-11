@@ -6,11 +6,10 @@ Module providing implemenation of a muliplayer server.
 from typing import Optional
 
 import grpc
-from narupa.core.grpc_server import  GrpcServer
+from narupa.core import GrpcServer, get_requested_port_or_default, DEFAULT_SERVE_ADDRESS
 from narupa.multiplayer.multiplayer_service import MultiplayerService
 from narupa.protocol.multiplayer import multiplayer_pb2_grpc as multiplayer_proto_grpc
 
-DEFAULT_ADDRESS = '[::]'
 DEFAULT_PORT = 54323
 
 
@@ -29,9 +28,8 @@ class MultiplayerServer(GrpcServer):
     def __init__(self, *, address: Optional[str] = None, port: Optional[int] =None, send_self=False):
         self.send_self = send_self
         if address is None:
-            address = DEFAULT_ADDRESS
-        if port is None:
-            port = DEFAULT_PORT
+            address = DEFAULT_SERVE_ADDRESS
+        port = get_requested_port_or_default(port, DEFAULT_PORT)
         self.address = address
         self.port = port
         super().__init__(address=address, port=port)

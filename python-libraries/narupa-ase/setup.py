@@ -11,8 +11,11 @@ setup(name='narupa-ase',
       url='https://gitlab.com/intangiblerealities/',
       packages=find_namespace_packages('src', include='narupa.*'),
       package_dir={'': 'src'},
-      requires=(
-            'narupa',
-            'ase',
+      install_requires=(
+          'narupa',
+          'ase',
       ),
-     )
+      entry_points={
+          'console_scripts': ['narupa-omm-ase=narupa.ase.openmm.cli:main'],
+      },
+      )

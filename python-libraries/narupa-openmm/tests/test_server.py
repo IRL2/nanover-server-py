@@ -36,15 +36,11 @@ class TestServer(TestRunner):
     """
     __test__ = True
 
-    starting_port = 6000
+    _current_port = 6000
     expected_number_of_reporters_verbosity = {
         True: 3,
         False: 2,
     }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._current_port = self.starting_port
 
     @pytest.fixture
     def runner(self, basic_simulation):
@@ -61,7 +57,10 @@ class TestServer(TestRunner):
     
     @property
     def next_port(self):
-        self._current_port += 1
+        # Potentially, a new instance of that class is created for each test.
+        # Therefore, we need the port to be stored at the class level, and not
+        # at the instance level.
+        self.__class__._current_port += 1
         return self._current_port
     
     @property
