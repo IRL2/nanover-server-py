@@ -13,6 +13,8 @@ from concurrent import futures
 
 import grpc
 
+from narupa.core import DEFAULT_CONNECT_ADDRESS
+from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
 
@@ -50,7 +52,7 @@ class MultiplayerClient(object):
     scene_properties: mult_proto.SceneProperties
     _avatar_queue: Queue
 
-    def __init__(self, address='localhost', port=54323, pubsub_fps: float = 30, channel=None):
+    def __init__(self, address=DEFAULT_CONNECT_ADDRESS, port=DEFAULT_PORT, pubsub_fps: float = 30, channel=None):
 
         if channel is None:
             self.channel = grpc.insecure_channel("{0}:{1}".format(address, port))
