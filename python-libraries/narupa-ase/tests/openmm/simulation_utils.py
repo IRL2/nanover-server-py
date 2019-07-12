@@ -1,6 +1,8 @@
 """
 Fixtures and utilities for tests that requires OpenMM simulations.
 """
+# TODO: This is a duplicated file from narupa-openmm. See issue #60.
+
 # Pylint does not recognize pytest fixtures, which causes some false warnings.
 # pylint: disable=unused-argument,redefined-outer-name
 import pytest
@@ -14,28 +16,6 @@ from simtk.openmm import app
 from simtk.unit import kelvin, picosecond, femtosecond, nanometer  # pylint: disable=no-name-in-module
 
 from narupa.openmm import serializer
-
-
-class DoNothingReporter:
-    """
-    OpenMM reporter that does nothing.
-
-    The reporter does nothing but is valid. It is meant to populate the list of
-    reporters of an OpenMM simulation.
-    """
-    # The name of the method is part of the OpenMM API. It cannot be made to
-    # conform PEP8.
-    def describeNextReport(self, simulation):  # pylint: disable=invalid-name,no-self-use
-        """
-        Activate the reporting every step, but collect no data.
-        """
-        return 1, False, False, False, False
-
-    def report(self, simulation, state):
-        """
-        Do not report anything.
-        """
-        pass
 
 
 @pytest.fixture
@@ -100,7 +80,7 @@ def basic_simulation():
     system.addParticle(mass=1)
 
     force = mm.NonbondedForce()
-    force.setNonbondedMethod(force.NoCutoff)
+    force.setNonbondedMethod(force.CutoffPeriodic)
     # These non-bonded parameters are completely wrong, but it does not matter
     # for the tests as long as we do not start testing the dynamic and
     # thermodynamics properties of methane.
@@ -121,8 +101,7 @@ def basic_simulation():
     simulation.context.setPeriodicBoxVectors(*periodic_box_vector)
     simulation.context.setPositions(positions * nanometer)
 
-    yield simulation
-    del simulation, integrator
+    return simulation
 
 
 @pytest.fixture

@@ -3,11 +3,10 @@
 
 from typing import Optional
 
-from narupa.core import GrpcServer
+from narupa.core import GrpcServer, get_requested_port_or_default, DEFAULT_SERVE_ADDRESS
 from narupa.imd.imd_service import ImdService
 from narupa.protocol.imd.imd_pb2_grpc import add_InteractiveMolecularDynamicsServicer_to_server
 
-DEFAULT_ADDRESS = '[::]'
 DEFAULT_PORT = 54322
 
 
@@ -16,9 +15,8 @@ class ImdServer(GrpcServer):
 
     def __init__(self, *, address: Optional[str]=None, port: Optional[int]=None):
         if address is None:
-            address = DEFAULT_ADDRESS
-        if port is None:
-            port = DEFAULT_PORT
+            address = DEFAULT_SERVE_ADDRESS
+        port = get_requested_port_or_default(port, DEFAULT_PORT)
         super().__init__(address=address, port=port)
 
     @property
