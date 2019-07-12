@@ -131,6 +131,23 @@ element_colors = {
 
 depth_buffer = None
 
+def bonds_without_hydrogens(bonds, elements):
+    for bond in bonds:
+        if elements[bond[0]] != 1 and elements[bond[1]] != 1:
+            yield bond
+
+def bonds_to_pixels(bonds, positions, color_count):
+    for bond in bonds:
+        start = positions[bond[0]]
+        end = positions[bond[1]]
+        start = (int(start[0]), int(start[1]), start[2])
+        end = (int(end[0]), int(end[1]), end[2])
+
+        color_index = int(((bond[0]+bond[1])*.5 * .1) % color_count)
+
+        for x, y, z in get_line(start, end):
+            yield color_index, x, y, z
+
 def render_bonds_to_window(window, positions, renderer, elements=None, bonds=None):
     global depth_buffer
     h, w = window.getmaxyx()
@@ -151,7 +168,7 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
 
     minus_infinity = float("-inf")
 
-    def record_color(color, x, y, z):
+    def write_pixel(color, x, y, z):
         nonlocal min_depth, max_depth
 
         coord = (x, y)
@@ -163,26 +180,18 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
             color_buffer[coord] = color
             depth_buffer[x, y] = this_depth
 
-    for bond in bonds:
-        if elements[bond[0]] not in element_colors or elements[bond[1]] not in element_colors:
+    if elements is not None:
+        bonds = bonds_without_hydrogens(bonds, elements)
+    
+    pixels = bonds_to_pixels(bonds, positions, color_count)
+    
+    for color_index, x, y, z in pixels:
+        if x < 0 or x >= w or y < 0 or y >= h:
+            continue
+        if x == w - 1 and y == h - 1:
             continue
 
-        start = positions[bond[0]]
-        end = positions[bond[1]]
-        start = (int(start[0]), int(start[1]), start[2])
-        end = (int(end[0]), int(end[1]), end[2])
-
-        color_index = int(((bond[0]+bond[1])*.5 * .1) % color_count)
-        #color_index = element_colors[elements[bond[1]]]
-        color = renderer.colors[color_index]
-
-        for x, y, z in get_line(start, end):
-            if x < 0 or x >= w or y < 0 or y >= h:
-                continue
-            if x == w - 1 and y == h - 1:
-                continue
-
-            record_color(color, x, y, z)
+        write_pixel(renderer.colors[color_index], x, y, z)
 
     min_depth = depth_buffer.min()
     max_depth = depth_buffer.max()
@@ -197,7 +206,6 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
     depth_buffer -= min_depth
     depth_buffer *= depth_scale
     np.rint(depth_buffer, out=depth_buffer)
-
     depth_buffer.clip(0, char_count-1, out=depth_buffer)
 
     char_buffer = renderer.character_lookup[depth_buffer.astype(int)]
