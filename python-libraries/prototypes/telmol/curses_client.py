@@ -20,10 +20,8 @@ import colorsys
 import time
 import itertools
 
-from narupa.core import DEFAULT_CONNECT_ADDRESS
-from narupa.trajectory.frame_server import DEFAULT_PORT
-from narupa.trajectory import FrameClient
-from narupa.trajectory.frame_data import POSITIONS, ELEMENTS, BONDS
+from narupa.app import NarupaClient
+from narupa.trajectory.frame_data import POSITIONS
 
 from transformations import rotation_matrix, scale_matrix, translation_matrix, compose_matrix
 from bresenham import get_line
@@ -83,21 +81,22 @@ class Renderer:
         self.shader = shader
         self.camera = Camera()
 
-        self.frame = None
+        self.positions = None
         self.elements = None
+        self.bonds = None
 
         self.show_hydrogens = True
 
         self._offset = (0, 0, 0)
-        self._recenter = False
+        self._recenter = True
 
     def render(self):
         self.window.clear()
         
-        if self.frame:
-            positions = self._process_frame(self.frame)
+        if self.positions is not None:
+            self._process_frame()
 
-            frame = dict(positions=positions,
+            frame = dict(positions=self.positions,
                          elements=self.elements,
                          bonds=self.bonds,
                          skip_atoms=set())
@@ -112,27 +111,19 @@ class Renderer:
     def recenter_camera(self):
         self._recenter = True
 
-    def _process_frame(self, frame):
-        # convert positions from frame
-        raw_positions = frame._raw.arrays[POSITIONS].float_values.values
-        positions = np.array(raw_positions, dtype=np.float32).reshape((-1, 3))
-
+    def _process_frame(self):
         # center the camera
-        #self.camera.origin = np.median(positions, axis=0)
-                
         if self._recenter:
-            self._offset = np.median(positions, axis=0)[:3]
+            self._offset = np.median(self.positions, axis=0)[:3]
             self._recenter = False
             
-        positions -= self._offset
+        self.positions -= self._offset
 
         # add w component to positions then multiply by camera matrix
-        positions = np.append(positions, np.ones((len(positions), 1)), axis=-1)
-        positions = positions @ self.camera.get_matrix()
+        self.positions = np.append(self.positions, np.ones((len(self.positions), 1)), axis=-1)
+        self.positions = self.positions @ self.camera.get_matrix()
 
-        center_positions_in_window(self.window, positions)
-
-        return positions
+        center_positions_in_window(self.window, self.positions)
 
 element_colors = {
     1: curses.COLOR_WHITE,
@@ -260,7 +251,7 @@ def generate_colors(override_colors=False):
 
     return colors
 
-def run_curses_client(stdscr, *, address: str, port: int, override_colors=False):
+def run_curses_frontend(stdscr, client, *, override_colors=False):
     """
     Connect to a Narupa frame server and render the received frames to a curses 
     window.
@@ -288,20 +279,8 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
     stdscr.addstr(0, 0, "Connecting...")
     stdscr.refresh()
 
-    client = FrameClient(address=address, port=port)
-
     stdscr.clear()
     stdscr.addstr(0, 0, "Connected.")
-
-    def get_frame(frame_index, frame):
-        renderer.frame = frame
-
-        if BONDS in frame:
-            renderer.bonds = frame.bonds
-        if ELEMENTS in frame:
-            renderer.elements = frame.particle_elements
-
-    client.subscribe_last_frames_async(get_frame)
 
     def show_controls(window):
         window.addstr(0, 0, "arrows -- rotate camera")
@@ -366,12 +345,16 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
     def loop():
         check_input()
 
-        if render_timer.get_delta() < frame_delay:
+        if render_timer.get_delta() < frame_delay or not client.first_frame:
             return
 
         render_timer.reset()
 
         stdscr.clear()
+
+        renderer.positions = np.array(client.latest_frame._raw.arrays[POSITIONS].float_values.values, dtype=np.float32).reshape((-1, 3))
+        renderer.bonds = client.first_frame.bonds
+        renderer.elements = client.first_frame.particle_elements
 
         renderer.render()
         show_controls(stdscr)
@@ -398,8 +381,6 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
                 time.sleep(.0001)
         except UserQuitException:
             pass
-        finally:
-            client.close()
     
     main_loop()
 
@@ -411,8 +392,9 @@ def handle_user_args() -> argparse.Namespace:
     """
     description = "Connect to a Narupa trajectory server and render the atoms live in a curses display."
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--host', default=DEFAULT_CONNECT_ADDRESS)
-    parser.add_argument('--port', type=int, default=DEFAULT_PORT)
+    parser.add_argument('--address', default=None)
+    parser.add_argument('--traj', '-t', type=int, default=None)
+    parser.add_argument('--imd', '-i', type=int, default=None)
     parser.add_argument('--rainbow', action="store_true")
     arguments = parser.parse_args()
     return arguments
@@ -420,10 +402,15 @@ def handle_user_args() -> argparse.Namespace:
 
 def main(stdscr):
     arguments = handle_user_args()
-    run_curses_client(stdscr,
-                      address=arguments.host,
-                      port=arguments.port,
-                      override_colors=arguments.rainbow)
+
+    client = NarupaClient(address=arguments.address, 
+                          trajectory_port=arguments.traj,
+                          imd_port=arguments.imd)
+
+    try:
+        run_curses_frontend(stdscr, client, override_colors=arguments.rainbow)
+    finally:
+        client.close()
 
 if __name__ == '__main__':
     curses.wrapper(main)
