@@ -4,11 +4,15 @@ Narupa frame client that renders atoms to a curses display in the terminal.
 The client connects to a Narupa Frame server, and renders the frames it receives
 into the terminal.
 """
+try:
+    import curses
+except ModuleNotFoundError:
+    raise ModuleNotFoundError("Broken curses module. Try `pip install windows-curses` if you are on windows.")
+
 import argparse
 
 import math
 import numpy as np
-import curses
 import colorsys
 import time
 
