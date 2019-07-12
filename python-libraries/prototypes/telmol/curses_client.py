@@ -20,6 +20,8 @@ import colorsys
 import time
 import itertools
 
+from narupa.core import DEFAULT_CONNECT_ADDRESS
+from narupa.trajectory.frame_server import DEFAULT_PORT
 from narupa.trajectory import FrameClient
 from narupa.trajectory.frame_data import POSITIONS, ELEMENTS, BONDS
 
@@ -409,8 +411,8 @@ def handle_user_args() -> argparse.Namespace:
     """
     description = "Connect to a Narupa trajectory server and render the atoms live in a curses display."
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--host', default='localhost')
-    parser.add_argument('--port', type=int, default=54321)
+    parser.add_argument('--host', default=DEFAULT_CONNECT_ADDRESS)
+    parser.add_argument('--port', type=int, default=DEFAULT_PORT)
     parser.add_argument('--rainbow', action="store_true")
     arguments = parser.parse_args()
     return arguments
