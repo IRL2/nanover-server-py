@@ -18,6 +18,7 @@ import math
 import numpy as np
 import colorsys
 import time
+import itertools
 
 from narupa.trajectory import FrameClient
 from narupa.trajectory.frame_data import POSITIONS, ELEMENTS, BONDS
@@ -74,15 +75,16 @@ class Style:
         self.color_lookup = np.array(self.colors)
 
 class Renderer:
-    def __init__(self, window, style):
+    def __init__(self, window, style, shader):
         self.window = window
         self.style = style
+        self.shader = shader
         self.camera = Camera()
 
         self.frame = None
         self.elements = None
 
-        self.cpk = True
+        self.show_hydrogens = True
 
         self._offset = (0, 0, 0)
         self._recenter = False
@@ -92,9 +94,16 @@ class Renderer:
         
         if self.frame:
             positions = self._process_frame(self.frame)
-            
-            #render_positions_to_window(self.window, positions, self.style, self.elements if self.cpk else None)
-            render_bonds_to_window(self.window, positions, self.style, self.elements, bonds=self.bonds)
+
+            frame = dict(positions=positions,
+                         elements=self.elements,
+                         bonds=self.bonds,
+                         skip_atoms=set())
+
+            if not self.show_hydrogens:
+                frame['skip_atoms'] = set(index for index, element in enumerate(frame['elements']) if element == 1)
+
+            render_frame_to_window(self.window, self.style, frame, self.shader)
         
         self.window.noutrefresh()
 
@@ -119,6 +128,8 @@ class Renderer:
         positions = np.append(positions, np.ones((len(positions), 1)), axis=-1)
         positions = positions @ self.camera.get_matrix()
 
+        center_positions_in_window(self.window, positions)
+
         return positions
 
 element_colors = {
@@ -131,29 +142,48 @@ element_colors = {
 
 depth_buffer = None
 
-def bonds_without_hydrogens(bonds, elements):
-    for bond in bonds:
-        if elements[bond[0]] != 1 and elements[bond[1]] != 1:
-            yield bond
+def iterate_frame_atoms(frame):
+    for index, position, element in zip(itertools.count(), frame['positions'], frame['elements']):
+        if index not in frame['skip_atoms']:
+            yield index, position, element
 
-def bonds_to_pixels(bonds, positions, color_count):
-    for bond in bonds:
-        start = positions[bond[0]]
-        end = positions[bond[1]]
+def iterate_frame_bonds(frame):
+    for atom_a_index, atom_b_index in frame['bonds']:
+        if atom_a_index not in frame['skip_atoms'] and atom_b_index not in frame['skip_atoms']:
+            yield atom_a_index, atom_b_index
+
+def atoms_to_pixels_cpk(frame, color_count):
+    for index, position, element in iterate_frame_atoms(frame):        
+        if element not in element_colors:
+            continue
+
+        x, y, z = int(position[0]), int(position[1]), position[2]
+
+        yield element_colors[element], x, y, z
+
+def atoms_to_pixels_gradient(frame, color_count):
+    for index, position, element in iterate_frame_atoms(frame):
+        x, y, z = int(position[0]), int(position[1]), position[2]
+        color_index = int((index * .1) % color_count)
+
+        yield color_index, x, y, z
+
+def bonds_to_pixels_gradient(frame, color_count):
+    for atom_a_index, atom_b_index in iterate_frame_bonds(frame):
+        start = frame['positions'][atom_a_index]
+        end = frame['positions'][atom_b_index]
+
         start = (int(start[0]), int(start[1]), start[2])
         end = (int(end[0]), int(end[1]), end[2])
 
-        color_index = int(((bond[0]+bond[1])*.5 * .1) % color_count)
+        color_index = int(((atom_a_index + atom_b_index) *.05) % color_count)
 
         for x, y, z in get_line(start, end):
             yield color_index, x, y, z
 
-def render_bonds_to_window(window, positions, renderer, elements=None, bonds=None):
+def render_pixels_to_window(window, style, pixels):
     global depth_buffer
     h, w = window.getmaxyx()
-
-    positions[:,0] += (w / 2)
-    positions[:,1] += (h / 2)
 
     if depth_buffer is None: 
         depth_buffer = np.full((w, h), 0, dtype=np.float32)
@@ -162,15 +192,9 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
 
     color_buffer = {}
 
-    color_count = len(renderer.colors) - 1
-
-    min_depth = max_depth = positions[0][2]
-
     minus_infinity = float("-inf")
 
     def write_pixel(color, x, y, z):
-        nonlocal min_depth, max_depth
-
         coord = (x, y)
 
         prev_depth = depth_buffer[x, y] if coord in color_buffer else minus_infinity
@@ -180,18 +204,13 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
             color_buffer[coord] = color
             depth_buffer[x, y] = this_depth
 
-    if elements is not None:
-        bonds = bonds_without_hydrogens(bonds, elements)
-    
-    pixels = bonds_to_pixels(bonds, positions, color_count)
-    
     for color_index, x, y, z in pixels:
         if x < 0 or x >= w or y < 0 or y >= h:
             continue
         if x == w - 1 and y == h - 1:
             continue
 
-        write_pixel(renderer.colors[color_index], x, y, z)
+        write_pixel(style.colors[color_index], x, y, z)
 
     min_depth = depth_buffer.min()
     max_depth = depth_buffer.max()
@@ -199,7 +218,7 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
     if not color_buffer:
         return
 
-    char_count = len(renderer.characters)
+    char_count = len(style.characters)
     depth_scale = char_count / (max_depth - min_depth)
 
     # transform depths into cell indexes
@@ -208,150 +227,19 @@ def render_bonds_to_window(window, positions, renderer, elements=None, bonds=Non
     np.rint(depth_buffer, out=depth_buffer)
     depth_buffer.clip(0, char_count-1, out=depth_buffer)
 
-    char_buffer = renderer.character_lookup[depth_buffer.astype(int)]
+    char_buffer = style.character_lookup[depth_buffer.astype(int)]
 
     for (x, y), color in color_buffer.items():
         window.addch(y, x, char_buffer[x, y], color)
 
-def render_positions_to_window(window, positions, renderer, elements=None):
-    global depth_buffer
+def center_positions_in_window(window, positions):
     h, w = window.getmaxyx()
-
     positions[:,0] += (w / 2)
     positions[:,1] += (h / 2)
-    positions[:,2] *= 1000
 
-    if depth_buffer is None: 
-        depth_buffer = np.full((w, h), 0, dtype=np.float32)
-    else:
-        depth_buffer.fill(0)
-
-    color_buffer = {}
-
-    color_count = len(renderer.colors) - 1
-
-    min_depth = max_depth = positions[0][2]
-
-    minus_infinity = float("-inf")
-
-    def record_color(index, x, y, z):
-        nonlocal min_depth, max_depth
-
-        coord = (x, y)
-
-        prev_depth = depth_buffer[x, y] if coord in color_buffer else minus_infinity
-        this_depth = z
-
-        #min_depth = min(min_depth, this_depth)
-        #max_depth = max(max_depth, this_depth)
-
-        if this_depth >= prev_depth:
-            if elements:
-                element = elements[index]
-                if element not in element_colors:
-                    return
-
-                color_index = element_colors[element]
-            else:
-                color_index = int((index * .1) % color_count)
-
-            color_buffer[coord] = renderer.colors[color_index]
-            depth_buffer[x, y] = this_depth
-
-    for index, position in enumerate(positions):
-        x, y, z = int(position[0]), int(position[1]), position[2]
-
-        if x < 0 or x >= w or y < 0 or y >= h:
-            continue
-        if x == w - 1 and y == h - 1:
-            continue
-
-        record_color(index, x, y, z)
-
-    min_depth = depth_buffer.min()
-    max_depth = depth_buffer.max()
-
-    if not color_buffer:
-        return
-
-    char_count = len(renderer.characters)
-    depth_scale = char_count / (max_depth - min_depth)
-
-    # transform depths into cell indexes
-    depth_buffer -= min_depth
-    depth_buffer *= depth_scale
-    np.rint(depth_buffer, out=depth_buffer)
-
-    depth_buffer.clip(0, char_count-1, out=depth_buffer)
-
-    char_buffer = renderer.character_lookup[depth_buffer.astype(int)]
-
-    for (x, y), color in color_buffer.items():
-        window.addch(y, x, char_buffer[x, y], color)
-
-    return
-    selection = [0, 1, 2, 4, 5]
-    selection = [positions[i] for i in selection]
-
-    x_min = min(int(pos[0]) for pos in selection)
-    x_max = max(int(pos[0]) for pos in selection)
-    y_min = min(int(pos[1]) for pos in selection)
-    y_max = max(int(pos[1]) for pos in selection)
-
-    draw_box(window, x_min - 1, y_min - 1, x_max + 1, y_max + 1)
-
-    for position in selection:
-        x, y = int(position[0]), int(position[1])
-        
-        if x < 0 or x >= w or y < 0 or y >= h:
-            continue
-        if x == w - 1 and y == h - 1:
-            continue
-        window.addch(y, x, "o")
-
-def draw_box(window, x_min, y_min, x_max, y_max):
-    h, w = window.getmaxyx()
-    
-    if x_min >= w or y_min >= h or x_max < 0 or y_max < 0:
-        return
-
-    y_start_inside = y_min >= 0
-    x_start_inside = x_min >= 0
-    y_end_inside = y_max < h
-    x_end_inside = x_max < w
-
-    if y_start_inside:
-        for x in range(max(x_min + 1, 0), min(x_max-1, w-1)+1):
-            window.addch(y_min, x, curses.ACS_HLINE)
-
-    if y_end_inside:
-        for x in range(max(x_min + 1, 0), min(x_max-1, w-1)+1):
-            window.addch(y_max, x, curses.ACS_HLINE)
-
-    if x_start_inside:
-        for y in range(max(y_min + 1, 0), min(y_max-1, h-1)+1):
-            window.addch(y, x_min, curses.ACS_VLINE)
-    
-    if x_end_inside:
-        for y in range(max(y_min + 1, 0), min(y_max-1, h-1)+1):
-            window.addch(y, x_max, curses.ACS_VLINE)
-
-    x_min = max(x_min, 0)
-    y_min = max(y_min, 0)
-    x_max = min(x_max, w-1)
-    y_max = min(y_max, h-1)
-
-    if y_start_inside and x_start_inside:
-        window.addch(y_min, x_min, curses.ACS_ULCORNER)
-    
-    if y_start_inside and x_end_inside:
-        window.addch(y_min, x_max, curses.ACS_URCORNER)
-    
-    if y_end_inside and x_start_inside:
-        window.addch(y_max, x_min, curses.ACS_LLCORNER)
-
-    if y_end_inside and x_end_inside and (x_max < w-1 or y_max < h-1):
-        window.addch(y_max, x_max, curses.ACS_LRCORNER)
+def render_frame_to_window(window, style, frame, shader):
+    pixels = shader(frame, len(style.colors) - 1)
+    render_pixels_to_window(window, style, pixels)
 
 def generate_colors(override_colors=False):
     max_colors = 8
@@ -383,11 +271,12 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
     """
 
     colors = generate_colors(override_colors=override_colors)
-    style = Style(character_sets["boxes"], colors)
+    style = Style(character_sets["boxes"], colors)    
+    shaders = [atoms_to_pixels_cpk, atoms_to_pixels_gradient, bonds_to_pixels_gradient]
 
     fps_timer = Timer()
     render_timer = Timer()
-    renderer = Renderer(stdscr, style)
+    renderer = Renderer(stdscr, style, shaders[0])
 
     fpses = []
 
@@ -417,8 +306,9 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
         window.addstr(1, 0, "  c    -- recenter camera")
         window.addstr(2, 0, " < >   -- zoom")
 
-        window.addstr(4, 0, "  x    -- toggle cpk colors")
-        window.addstr(5, 0, "  z    -- cycle skins")
+        window.addstr(4, 0, " x -- cycle representations")
+        window.addstr(5, 0, " z -- cycle skins")
+        window.addstr(6, 0, " v -- toggle hydrogens")
 
     def rotate_plus():
         renderer.camera.angle += .1
@@ -432,12 +322,16 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
         renderer.camera.scale *= .9
     def zoom_out():
         renderer.camera.scale /= .9
-    def toggle_cpk():
-        renderer.cpk = not renderer.cpk
+    def cycle_shaders():
+        index = shaders.index(renderer.shader)
+        index = (index + 1) % len(shaders)
+        renderer.shader = shaders[index]
     def cycle_charsets():
         index = character_sets_indexed.index(renderer.style.characters)
         index = (index + 1) % len(character_sets_indexed)
         renderer.style.set_characters(character_sets_indexed[index])
+    def toggle_hydrogens():
+        renderer.show_hydrogens = not renderer.show_hydrogens
     def quit():
         raise UserQuitException()
 
@@ -449,9 +343,10 @@ def run_curses_client(stdscr, *, address: str, port: int, override_colors=False)
         ord(","):         zoom_in,
         ord("."):         zoom_out,
         ord("q"):         quit,
-        ord("x"):         toggle_cpk,
+        ord("x"):         cycle_shaders,
         ord("z"):         cycle_charsets,
         ord("c"):         renderer.recenter_camera,
+        ord("v"):         toggle_hydrogens,
     }
 
     def check_input():
