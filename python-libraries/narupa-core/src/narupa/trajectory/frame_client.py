@@ -25,10 +25,7 @@ class FrameClient:
 
     def subscribe_frames_blocking(self, callback):
         for response in self.stub.SubscribeFrames(GetFrameRequest()):
-            try:
-                callback(frame_index=response.frame_index, frame=FrameData(response.frame))
-            except Exception as e:
-                print(e)
+            callback(frame_index=response.frame_index, frame=FrameData(response.frame))
 
     def subscribe_last_frames_async(self, callback) -> Future:
         return self.threads.submit(self.subscribe_frames_blocking, callback)
