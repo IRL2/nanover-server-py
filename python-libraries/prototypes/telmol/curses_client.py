@@ -42,12 +42,11 @@ class Camera:
         self.angle = 0
         self.pitch = math.pi / 2
         self.scale = 5
-        self.origin = None
 
     def get_matrix(self):
-        return (scale_matrix(self.scale, origin=self.origin)
-              @ rotation_matrix(self.angle, [0, 0, 1], point=self.origin)
-              @ rotation_matrix(self.pitch, [1, 0, 0], point=self.origin))
+        return (scale_matrix(self.scale)
+              @ rotation_matrix(self.angle, [0, 0, 1])
+              @ rotation_matrix(self.pitch, [1, 0, 0]))
 
 class Timer:
     def __init__(self):
@@ -342,14 +341,7 @@ def run_curses_frontend(stdscr, client, *, override_colors=False):
 
     frame_delay = 1 / 30
 
-    def loop():
-        check_input()
-
-        if render_timer.get_delta() < frame_delay or not client.first_frame:
-            return
-
-        render_timer.reset()
-
+    def render():
         stdscr.clear()
 
         renderer.positions = np.array(client.latest_frame._raw.arrays[POSITIONS].float_values.values, dtype=np.float32).reshape((-1, 3))
@@ -373,6 +365,17 @@ def run_curses_frontend(stdscr, client, *, override_colors=False):
 
         stdscr.noutrefresh()
         curses.doupdate()
+
+    
+    def loop():
+        check_input()
+
+        if render_timer.get_delta() < frame_delay or not client.first_frame:
+            return
+
+        render_timer.reset()
+
+        render()
 
     def main_loop():
         try:
@@ -405,7 +408,8 @@ def main(stdscr):
 
     client = NarupaClient(address=arguments.address, 
                           trajectory_port=arguments.traj,
-                          imd_port=arguments.imd)
+                          imd_port=arguments.imd,
+                          run_imd=False)
 
     try:
         run_curses_frontend(stdscr, client, override_colors=arguments.rainbow)
