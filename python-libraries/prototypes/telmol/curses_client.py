@@ -23,7 +23,7 @@ import itertools
 from narupa.app import NarupaClient
 from narupa.trajectory.frame_data import POSITIONS
 
-from transformations import rotation_matrix, scale_matrix, translation_matrix, compose_matrix
+from transformations import rotation_matrix, scale_matrix
 from bresenham import get_line
 
 character_sets = {
