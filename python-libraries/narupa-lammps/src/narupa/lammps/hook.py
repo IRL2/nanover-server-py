@@ -71,18 +71,34 @@ ELEMENT_INDEX_MASS = {
 # List goes type, postion, force need to convert into nm and kj/mol/nm
 
 LAMMPS_UNITS_CHECK= {
-    # Lenard jones: is unitless, forces
+    # Lenard jones: Is unitless, everything is set to 1
     1.0           : ["lj", 1, 1],
-    # Real: 1 angstrom,  23.060549 (kj/mol/angstrom -> kcal/mol/angstrom)
-    95.306976368  : ["real", 0.1, 2.39006],
-    # Metal : angstrom
-    4.135667403e-3: ["metal", 0.1],
-    # SI: meters
-    6.62606896e-34: ["si", 10**-10],
-    6.62606896e-27: ["cgs"],
-    0.1519829846  : ["electron"],
-    6.62606896e-13: ["micro"],
-    6.62606896e-4:  ["nano"]
+    # Real:
+    # Distance: 1 angstrom- > nm (10)
+    # Force:    kj/mol/angstrom -> kcal/mol/nm (4.1840 *10)
+    95.306976368  : ["real", 10, 41.840],
+    # Metal:
+    # Distance: angstrom -> nm, (10)
+    # Force: eV/angstrom -> kcal/mol/nm (96.485*10)
+    4.135667403e-3: ["metal", 10, 964.85],
+    # SI:
+    # Distance: meters ->nm (10^-9)
+    # Force: Newtons q-> kcal/mol/nm (602214128999.9999)
+    6.62606896e-34: ["si", 10**-9, 602214128999.9999],
+    # cgs: centemters -> nm , dyne
+    6.62606896e-27: ["cgs", 10**-7],
+    # Electron:
+    # Distance: Bohr -> nm
+    # Force: Hartree/Bohr
+    0.1519829846  : ["electron", 0.05529177],
+    # Mirco:
+    # Distance: mircometers -> nm,
+    # Force: pircogram-micrometer/microsecond^2
+    6.62606896e-13: ["micro", 1000],
+    # Nano:
+    # Distance: nanometers,
+    # Force: atoogram-nanometer/nanosecond^2
+    6.62606896e-4:  ["nano", 1.0]
 }
 
 
