@@ -76,7 +76,7 @@ class MultiplayerClient(object):
         :return:
         """
         self.closed = True
-        self.threadpool.shutdown()
+        self.threadpool.shutdown(wait=False)
         if not self.shared_channel:
             self.channel.close()
 

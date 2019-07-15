@@ -11,6 +11,7 @@ Tests for the :class:`narupa.openmm.Server` facility.
 # pylint: disable=no-self-use
 import pytest
 
+from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJECTORY_DEFAULT_PORT
 from narupa.openmm import Server, NarupaReporter
 
 from simulation_utils import (
@@ -36,7 +37,6 @@ class TestServer(TestRunner):
     """
     __test__ = True
 
-    _current_port = 6000
     expected_number_of_reporters_verbosity = {
         True: 3,
         False: 2,
@@ -50,22 +50,10 @@ class TestServer(TestRunner):
         The simulation has a reporter attached to it to assure removing a reporter
         only removes only that reporter.
         """
-        server = Server(basic_simulation, address='[::]', port=self.next_port)
+        server = Server(basic_simulation, address='[::]', port=0)
         server.simulation.reporters.append(DoNothingReporter())
         yield server
         server.close()
-    
-    @property
-    def next_port(self):
-        # Potentially, a new instance of that class is created for each test.
-        # Therefore, we need the port to be stored at the class level, and not
-        # at the instance level.
-        self.__class__._current_port += 1
-        return self._current_port
-    
-    @property
-    def last_port(self):
-        return self._current_port
 
     def test_class(self, runner):
         assert isinstance(runner, Server)
@@ -73,7 +61,7 @@ class TestServer(TestRunner):
     def test_from_xml_input(self, serialized_simulation_path):
         server = Server.from_xml_input(
             serialized_simulation_path,
-            address='[::]', port=self.next_port,
+            address='[::]', port=0,
             publish_interval=2,
         )
         n_atoms_in_system = 8
@@ -129,16 +117,16 @@ class TestServer(TestRunner):
         """
         # TODO: The address in used should be checked, but I do not know how
         #  to access it. See issue #59.
-        server = Server(basic_simulation, port=self.next_port)
+        server = Server(basic_simulation, port=0)
         server.close()
 
     def test_default_port(self, basic_simulation):
         """
-        We can instantiate a server without providing the port.
+        We can instantiate a server without providing the trajectory port and it 
+        uses the default trajectory port.
         """
-        # TODO: The port in used should be checked, but I do not know how
-        #  to access it. See issue #59.
         server = Server(basic_simulation, address='[::]')
+        assert server.trajectory_port == TRAJECTORY_DEFAULT_PORT
         server.close()
 
     def test_default_host(self, basic_simulation):
@@ -154,5 +142,5 @@ class TestServer(TestRunner):
         """
         We can use a server as a context manager without an error.
         """
-        with Server(basic_simulation, address='[::]', port=self.next_port) as server:
+        with Server(basic_simulation, address='[::]', port=0) as server:
             server.run(n_steps=1)

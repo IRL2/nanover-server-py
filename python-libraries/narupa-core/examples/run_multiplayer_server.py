@@ -6,7 +6,7 @@ Demonstrates multiplayer server with no additional features.
 Run with:
 
 .. code bash
-    python multiplayer_only.py
+    python run_multiplayer_server.py
 
 """
 import argparse
@@ -52,7 +52,7 @@ def main():
     if arguments.verbose or arguments.debug:
         server.multiplayer_services.logger.addHandler(StreamHandler())
 
-    print(f'Serving multiplayer on port {arguments.port}')
+    print(f'Serving multiplayer on port {server.port}')
 
     try:
         while True:

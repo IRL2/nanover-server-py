@@ -31,7 +31,6 @@ class MultiplayerServer(GrpcServer):
             address = DEFAULT_SERVE_ADDRESS
         port = get_requested_port_or_default(port, DEFAULT_PORT)
         self.address = address
-        self.port = port
         super().__init__(address=address, port=port)
 
     def setup_services(self):
