@@ -25,8 +25,8 @@ def test_defaults(runner):
     assert runner.verbose == default_params.verbose
     assert runner.frame_interval == default_params.frame_interval
     assert runner.time_step == default_params.time_step
-    assert runner.imd_port == default_params.imd_port
-    assert runner.trajectory_port == default_params.trajectory_port
+    assert runner.imd_port == IMD_DEFAULT_PORT
+    assert runner.trajectory_port == TRAJ_DEFAULT_PORT
     assert runner.address == default_params.address
 
 

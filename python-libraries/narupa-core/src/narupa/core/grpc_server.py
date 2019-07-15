@@ -15,7 +15,8 @@ DEFAULT_CONNECT_ADDRESS = 'localhost'
 
 class GrpcServer:
     """
-    A base class for running GRPC servers that handles the starting and closing of the underlying server.
+    A base class for running GRPC servers that handles the starting and closing
+    of the underlying server.
 
     :param address: The IP address at which to run the server.
     :param port: The port on which to run the server.
@@ -26,8 +27,16 @@ class GrpcServer:
 
         self.setup_services()
 
-        self._port = self.server.add_insecure_port(address="{0}:{1}".format(address, port))
+        self._port = self.server.add_insecure_port(address=f"{address}:{port}")
         self.server.start()
+
+    @property
+    def port(self):
+        """
+        Get the port that the service is or was provided on. This is 0 if a port
+        was unable to be chosen.
+        """
+        return self._port
 
     def setup_services(self):
         pass

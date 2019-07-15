@@ -69,11 +69,9 @@ class OpenMMIMDRunner:
         if not params:
             params = ImdParams()
         self._address = params.address
-        self._trajectory_port = params.trajectory_port
-        self._imd_port = params.imd_port
         if self._services_use_same_port(
-                trajectory_port=self._trajectory_port,
-                imd_port=self._imd_port,
+                trajectory_port=params.trajectory_port,
+                imd_port=params.imd_port,
             ):
             raise ValueError("Trajectory serving port and IMD serving port must be different!")
         self._frame_interval = params.frame_interval
@@ -82,7 +80,7 @@ class OpenMMIMDRunner:
 
         self._initialise_calculator(simulation)
         self._initialise_dynamics()
-        self._initialise_server(self.dynamics)
+        self._initialise_server(self.dynamics, params.trajectory_port, params.imd_port)
 
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
@@ -115,11 +113,11 @@ class OpenMMIMDRunner:
 
     @property
     def trajectory_port(self):
-        return self._trajectory_port
+        return self.imd.frame_server.port
 
     @property
     def imd_port(self):
-        return self._imd_port
+        return self.imd.imd_server.port
 
     @property
     def dynamics(self):
@@ -134,14 +132,14 @@ class OpenMMIMDRunner:
         """
         self.imd.close()
 
-    def _initialise_server(self, dynamics):
+    def _initialise_server(self, dynamics, trajectory_port=None, imd_port=None):
         # set the server to use the OpenMM frame convert for performance purposes.
         self.imd = ASEImdServer(dynamics,
                                 frame_method=openmm_ase_frame_server,
                                 address=self.address,
                                 frame_interval=self.frame_interval,
-                                trajectory_port=self.trajectory_port,
-                                imd_port=self.imd_port,
+                                trajectory_port=trajectory_port,
+                                imd_port=imd_port,
                                 )
 
     def _initialise_calculator(self, simulation):
