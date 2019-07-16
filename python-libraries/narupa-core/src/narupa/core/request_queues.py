@@ -134,6 +134,9 @@ class SingleItemQueue:
         :param kwargs: Unused arguments for compatibility with :meth:`Queue.get`.
         :return: The stored value.
         """
+        if kwargs.get('block', True):
+            raise NotImplementedError("Blocking not implemented.")
+
         with self._lock:
             item = self._item
             if item is None:

@@ -53,7 +53,7 @@ class FramePublisher(TrajectoryServiceServicer):
         with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
             while context.is_active():
                 try:
-                    item = queue.get(block=True)
+                    item = queue.get(block=False)
                 except Empty:
                     time.sleep(1/30)
                 else:
