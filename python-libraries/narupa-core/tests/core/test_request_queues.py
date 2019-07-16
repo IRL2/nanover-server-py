@@ -95,6 +95,14 @@ class TestSingleItemQueue:
     def single_item_queue(self):
         return request_queues.SingleItemQueue()
 
+    def test_blocking_get_unimplemented(self, single_item_queue):
+        with pytest.raises(NotImplementedError):
+            single_item_queue.get(block=True)
+
+    def test_blocking_get_default(self, single_item_queue):
+        with pytest.raises(NotImplementedError):
+            single_item_queue.get()
+
     def test_put_one_item(self, single_item_queue):
         item = 'hello'
         single_item_queue.put(item)
@@ -110,7 +118,7 @@ class TestSingleItemQueue:
 
         def put_values(thread_id, queue):
             for i in range(10):
-                time.sleep(0.1)
+                time.sleep(0.01)
                 item = (thread_id, i)
                 queue.put(item)
 
@@ -129,19 +137,19 @@ class TestSingleItemQueue:
 
     def test_get_initial(self, single_item_queue):
         with pytest.raises(Empty):
-            single_item_queue.get()
+            single_item_queue.get(block=False)
 
     def test_get_item(self, single_item_queue):
         item = 'hello'
         single_item_queue.put(item)
-        retrieved = single_item_queue.get()
+        retrieved = single_item_queue.get(block=False)
         assert retrieved == item
 
     def test_many_get(self, single_item_queue):
-        single_item_queue.put(0)
-        single_item_queue.get()
+        single_item_queue.put(0, block=False)
+        single_item_queue.get(block=False)
         with pytest.raises(Empty):
-            single_item_queue.get()
+            single_item_queue.get(block=False)
 
     @pytest.mark.timeout(20)
     def test_put_and_get_threaded(self, single_item_queue):
@@ -151,7 +159,7 @@ class TestSingleItemQueue:
 
         def produce_data(thread_id, queue, number_of_records):
             for i in range(number_of_records):
-                time.sleep(0.1)
+                time.sleep(0.01)
                 item = (thread_id, i)
                 queue.put(item)
 
@@ -159,7 +167,7 @@ class TestSingleItemQueue:
             obtained_data = []
             while context['running']:
                 try:
-                    item = queue.get()
+                    item = queue.get(block=False)
                 except Empty:
                     pass
                 else:

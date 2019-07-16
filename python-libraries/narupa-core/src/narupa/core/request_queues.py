@@ -122,7 +122,7 @@ class SingleItemQueue:
         with self._lock:
             self._item = item
 
-    def get(self, block=True, **kwargs):
+    def get(self, block=True, timeout=None):
         """
         Get the stored value, and remove it from storage.
 
@@ -132,7 +132,6 @@ class SingleItemQueue:
         This method is thread-safe and is meant to be a drop in replacement
         to :meth:`Queue.get`.
 
-        :param kwargs: Unused arguments for compatibility with :meth:`Queue.get`.
         :return: The stored value.
         """
         if block:
