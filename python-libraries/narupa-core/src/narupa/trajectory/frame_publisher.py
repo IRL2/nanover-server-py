@@ -4,6 +4,8 @@ from threading import Lock
 from narupa.core.request_queues import DictOfQueues, SingleItemQueue
 from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameResponse, FrameData
 
+import time
+
 
 class FramePublisher(TrajectoryServiceServicer):
     """
@@ -51,9 +53,9 @@ class FramePublisher(TrajectoryServiceServicer):
         with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
             while context.is_active():
                 try:
-                    item = queue.get(block=True, timeout=0.5)
+                    item = queue.get(block=True)
                 except Empty:
-                    pass
+                    time.sleep(1/30)
                 else:
                     yield item
 
