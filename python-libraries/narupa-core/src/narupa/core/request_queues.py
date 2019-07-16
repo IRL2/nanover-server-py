@@ -44,7 +44,7 @@ class DictOfQueues:
         self.queue_max_size = queue_max_size
         self.queues = {}
         self.lock = Lock()
-    
+
     def __contains__(self, key):
         with self.lock:
             return key in self.queues
@@ -84,7 +84,7 @@ class DictOfQueues:
         """
         with self.lock:
             yield from self.queues.values()
-    
+
     def iter_queues_items(self) -> Generator[Tuple[Hashable, Queue], None, None]:
         """
         Iterate over the queues and their keys.
@@ -100,6 +100,7 @@ class SingleItemQueue:
     """
     Mimics the basic interface of a :class:`Queue` but only stores one item.
     """
+
     def __init__(self, maxsize=None):
         """
         :param maxsize: Unused parameter, included for compatibility with
@@ -121,7 +122,7 @@ class SingleItemQueue:
         with self._lock:
             self._item = item
 
-    def get(self, **kwargs):
+    def get(self, block=True, **kwargs):
         """
         Get the stored value, and remove it from storage.
 
@@ -134,7 +135,7 @@ class SingleItemQueue:
         :param kwargs: Unused arguments for compatibility with :meth:`Queue.get`.
         :return: The stored value.
         """
-        if kwargs.get('block', True):
+        if block:
             raise NotImplementedError("Blocking not implemented.")
 
         with self._lock:
