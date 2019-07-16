@@ -57,6 +57,9 @@ class FramePublisher(TrajectoryServiceServicer):
                 except Empty:
                     time.sleep(1/30)
                 else:
+                    if item is None:
+                        break
+
                     yield item
 
     def _get_new_request_id(self) -> int:
@@ -97,3 +100,7 @@ class FramePublisher(TrajectoryServiceServicer):
 
         for queue in self.frame_queues.iter_queues():
             queue.put(GetFrameResponse(frame_index=frame_index, frame=frame))
+
+    def close(self):
+        for queue in self.frame_queues.iter_queues():
+            queue.put(None)
