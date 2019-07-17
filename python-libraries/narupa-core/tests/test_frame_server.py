@@ -78,7 +78,7 @@ def test_blankdata_lateclient(frame_server_client_pair, subscribe_method):
 
     getattr(frame_client, subscribe_method)(mock.callback)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     mock.callback.assert_called_once()
 
@@ -93,7 +93,7 @@ def test_blankdata_earlyclient(frame_server_client_pair, subscribe_method):
 
     frame_server.send_frame(0, FrameData())
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     mock.callback.assert_called_once()
 
@@ -117,7 +117,7 @@ def test_data_earlyclient(frame_server_client_pair, simple_frame_data,
 
     frame_server.send_frame(0, simple_frame_data)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     assert result == simple_frame_data
 
@@ -136,7 +136,7 @@ def test_data_lateclient(frame_server_client_pair, simple_frame_data,
 
     getattr(frame_client, subscribe_method)(callback)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     assert result == simple_frame_data
 
@@ -157,7 +157,7 @@ def test_data_disjoint(frame_server_client_pair, simple_frame_data,
 
     getattr(frame_client, subscribe_method)(callback)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     assert result == simple_and_disjoint_frame_data
 
@@ -178,7 +178,7 @@ def test_data_overlap(frame_server_client_pair, simple_frame_data,
 
     getattr(frame_client, subscribe_method)(callback)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     assert result == simple_and_overlap_frame_data
 
@@ -194,13 +194,13 @@ def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
         result = frame
 
     future = getattr(frame_client, subscribe_method)(callback)
-    time.sleep(0.1)
+    time.sleep(0.01)
 
     for i in range(5):
-        time.sleep(0.5)
+        time.sleep(0.01)
         frame_server.send_frame(i, simple_frame_data)
 
-    time.sleep(0.5)
+    time.sleep(0.01)
     # TODO there is no way to cancel the subscription stream...
     frame_client.close()
     # this result would throw an exception if an exception was raised during subscription.
@@ -212,3 +212,33 @@ def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
             raise e
 
     assert result == simple_frame_data
+
+
+def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair, simple_frame_data):
+    frame_server, frame_client = frame_server_client_pair
+
+    frame_interval = 1 / 30
+    first_index = None
+
+    def callback(frame, frame_index):
+        nonlocal first_index
+        if first_index is None:
+            first_index = frame_index
+
+    future = getattr(frame_client, 'subscribe_last_frames_async')(callback)
+    time.sleep(0.01)
+
+    for i in range(5):
+        frame_server.send_frame(i, simple_frame_data)
+
+    time.sleep(2 * frame_interval)
+    assert first_index == 4
+
+    frame_client.close()
+    # this result would throw an exception if an exception was raised during subscription.
+    # here, we handle the expected cancelled exception, anything else is a bug.
+    try:
+        subscribe_result = future.result()
+    except RpcError as e:
+        if not e._state.code == StatusCode.CANCELLED:
+            raise e
