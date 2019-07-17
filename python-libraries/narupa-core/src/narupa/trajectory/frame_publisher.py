@@ -52,15 +52,10 @@ class FramePublisher(TrajectoryServiceServicer):
 
         with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
             while context.is_active():
-                try:
-                    item = queue.get(block=False)
-                except Empty:
-                    time.sleep(1/30)
-                else:
-                    if item is None:
-                        break
-
-                    yield item
+                item = queue.get(block=True)
+                if item is None:
+                    break
+                yield item
 
     def _get_new_request_id(self) -> int:
         """

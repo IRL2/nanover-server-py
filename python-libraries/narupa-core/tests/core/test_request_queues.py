@@ -95,13 +95,19 @@ class TestSingleItemQueue:
     def single_item_queue(self):
         return request_queues.SingleItemQueue()
 
-    def test_blocking_get_unimplemented(self, single_item_queue):
-        with pytest.raises(NotImplementedError):
-            single_item_queue.get(block=True)
+    def test_queue_none(self, single_item_queue):
+        single_item_queue.put(None)
+        assert single_item_queue.get() is None
 
-    def test_blocking_get_default(self, single_item_queue):
-        with pytest.raises(NotImplementedError):
-            single_item_queue.get()
+    @pytest.mark.timeout(3)
+    def test_blocking_get_with_content(self, single_item_queue):
+        single_item_queue.put(0)
+        single_item_queue.get(block=True)
+
+    @pytest.mark.timeout(3)
+    def test_blocking_get_timeout(self, single_item_queue):
+        with pytest.raises(Empty):
+            single_item_queue.get(block=True, timeout=.5)
 
     def test_put_one_item(self, single_item_queue):
         item = 'hello'
