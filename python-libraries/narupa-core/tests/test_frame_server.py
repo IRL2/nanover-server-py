@@ -56,17 +56,20 @@ def simple_and_overlap_frame_data():
     basic_frame_data.values["bool"] = True
     return basic_frame_data
 
+
 @pytest.fixture
 def frame_server():
     frame_server = FrameServer(address='localhost', port=0)
     yield frame_server
     frame_server.close()
 
+
 @pytest.fixture
 def frame_server_client_pair(frame_server):
     client = FrameClient(address='localhost', port=frame_server.port)
     yield frame_server, client
     client.close()
+
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
 def test_blankdata_lateclient(frame_server_client_pair, subscribe_method):
