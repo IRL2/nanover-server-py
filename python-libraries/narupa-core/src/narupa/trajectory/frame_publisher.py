@@ -47,20 +47,21 @@ class FramePublisher(TrajectoryServiceServicer):
         yield from self._subscribe_frame_base(request,
                                               context,
                                               queue_type=SingleItemQueue,
-                                              frame_delay=1/30)
+                                              frame_interval=1/30)
 
-    def _subscribe_frame_base(self, request, context, queue_type, frame_delay=None):
+    def _subscribe_frame_base(self, request, context, queue_type, frame_interval=0):
         request_id = self._get_new_request_id()
         yield from self._yield_last_frame_if_any()
 
         with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
             while context.is_active():
+                wait_until = time.monotonic() + frame_interval
                 item = queue.get(block=True)
                 if item is None:
                     break
                 yield item
-                if frame_delay:
-                    time.sleep(frame_delay)
+                wait_duration = max(0, time.monotonic() - wait_until)
+                time.sleep(wait_duration)
 
     def _get_new_request_id(self) -> int:
         """
