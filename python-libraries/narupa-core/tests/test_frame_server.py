@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from unittest.mock import Mock
 
 import pytest
@@ -186,6 +187,15 @@ def test_data_overlap(frame_server_client_pair, simple_frame_data,
     assert result == simple_and_overlap_frame_data
 
 
+@contextmanager
+def raises_rpc_cancelled():
+    try:
+        yield
+    except RpcError as e:
+        if not e._state.code == StatusCode.CANCELLED:
+            raise e
+
+
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
 def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
                                subscribe_method):
@@ -206,13 +216,9 @@ def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
     time.sleep(0.01)
     # TODO there is no way to cancel the subscription stream...
     frame_client.close()
-    # this result would throw an exception if an exception was raised during subscription.
-    # here, we handle the expected cancelled exception, anything else is a bug.
-    try:
-        subscribe_result = future.result()
-    except RpcError as e:
-        if not e._state.code == StatusCode.CANCELLED:
-            raise e
+
+    with raises_rpc_cancelled():
+        future.result()
 
     assert result == simple_frame_data
 
@@ -238,10 +244,6 @@ def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair, si
     assert first_index == 4
 
     frame_client.close()
-    # this result would throw an exception if an exception was raised during subscription.
-    # here, we handle the expected cancelled exception, anything else is a bug.
-    try:
-        subscribe_result = future.result()
-    except RpcError as e:
-        if not e._state.code == StatusCode.CANCELLED:
-            raise e
+
+    with raises_rpc_cancelled():
+        future.result()
