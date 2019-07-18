@@ -210,7 +210,7 @@ def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
     time.sleep(0.01)
 
     for i in range(5):
-        time.sleep(0.01)
+        time.sleep(0.1)
         frame_server.send_frame(i, simple_frame_data)
 
     time.sleep(0.01)
@@ -243,11 +243,6 @@ def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair, si
     time.sleep(2 * frame_interval)
     assert first_index == 4
 
-    frame_client.close()
-
-    with raises_rpc_cancelled():
-        future.result()
-
 
 def test_subscribe_latest_frames_has_frame_interval(frame_server_client_pair, simple_frame_data):
     frame_server, frame_client = frame_server_client_pair
@@ -271,8 +266,3 @@ def test_subscribe_latest_frames_has_frame_interval(frame_server_client_pair, si
     assert last_index < 4
     time.sleep(3 * frame_interval)
     assert last_index == 4
-
-    frame_client.close()
-
-    with raises_rpc_cancelled():
-        future.result()
