@@ -53,15 +53,19 @@ class FramePublisher(TrajectoryServiceServicer):
         request_id = self._get_new_request_id()
         yield from self._yield_last_frame_if_any()
 
+        last_yield = 0
+
         with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
             while context.is_active():
-                wait_until = time.monotonic() + frame_interval
                 item = queue.get(block=True)
                 if item is None:
                     break
-                yield item
-                wait_duration = max(0, time.monotonic() - wait_until)
+                time_since_last_yield = time.monotonic() - last_yield
+                wait_duration = max(0, frame_interval - time_since_last_yield)
                 time.sleep(wait_duration)
+                yield item
+                last_yield = time.monotonic()
+
 
     def _get_new_request_id(self) -> int:
         """
