@@ -42,8 +42,8 @@ class OscClient:
         self.frame_client = NarupaClient(address=traj_address,
                                          trajectory_port=traj_port)
 
-    def run(self):
-        for _ in yield_interval(self.send_interval):
+    def run(self, limit=100):
+        for _ in zip(range(limit), yield_interval(self.send_interval)):
             frame = self.frame_client.latest_frame
             if frame is not None:
                 self.process_frame(frame)
