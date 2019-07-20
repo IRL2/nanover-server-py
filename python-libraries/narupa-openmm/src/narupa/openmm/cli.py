@@ -27,8 +27,8 @@ def handle_user_arguments() -> argparse.Namespace:
         help=('Display the step number, the potential energy in kJ/mol, '
               'and the performance in ns/day.'),
     )
-    parser.add_argument('-p', '--port', default=54321)
-    parser.add_argument('-a', '--address', default='[::]')
+    parser.add_argument('-t', '--trajectory_port', default=None)
+    parser.add_argument('-a', '--address', default=None)
     parser.add_argument(
         '--no-serve',
         dest='do_serve', action='store_false', default=True,
@@ -49,12 +49,19 @@ def main():
         simulation_runner = Server.from_xml_input(
             input_xml=arguments.simulation_xml_path,
             address=arguments.address,
-            port=arguments.port,
+            port=arguments.trajectory_port,
         )
+        print(f'Serving frames on port {simulation_runner.trajectory_port}.')
     else:
         simulation_runner = Runner.from_xml_input(arguments.simulation_xml_path)
-    simulation_runner.verbose = arguments.verbose
-    simulation_runner.run()
+        print(f'Running without serving frames.')
+
+    with simulation_runner:
+        simulation_runner.verbose = arguments.verbose
+        try:
+            simulation_runner.run()
+        except KeyboardInterrupt:
+            print("Closing due to keyboard interrupt.")
 
 
 if __name__ == '__main__':
