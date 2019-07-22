@@ -54,6 +54,7 @@ build_conda:
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
         # narupa-core must come first as all depends on it
         - cd python-libraries/narupa-core/conda; $build_command .
+        - cd ../../../
         - $build_command python-libraries/narupa-openmm/conda
         - $build_command python-libraries/narupa-ase/conda
         - $build_command python-libraries/narupa-mdanalysis/conda
