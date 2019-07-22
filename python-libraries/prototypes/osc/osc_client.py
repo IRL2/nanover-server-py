@@ -38,7 +38,9 @@ class OscClient:
 
         self.message_generator = message_generator or null_message_generator
         self.send_interval = send_interval
-        self.osc_client = udp_client.SimpleUDPClient(osc_address, osc_port)
+        self.osc_client = udp_client.SimpleUDPClient(osc_address,
+                                                     osc_port,
+                                                     allow_broadcast=True)
         self.frame_client = NarupaClient(address=traj_address,
                                          trajectory_port=traj_port)
 
