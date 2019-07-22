@@ -26,6 +26,9 @@ def simple_frame_data():
 
 @pytest.fixture
 def frame_server():
+    """
+    Provide a frame server hosting on an available port on localhost.
+    """
     frame_server = FrameServer(address='localhost', port=0)
     yield frame_server
     frame_server.close()
@@ -33,6 +36,9 @@ def frame_server():
 
 @pytest.fixture
 def osc_server():
+    """
+    Provide an OSC server hosting on an available port on localhost.
+    """
     server = ThreadingOSCUDPServer(('localhost', 0), dispatcher.Dispatcher())
     threading.Thread(target=server.serve_forever, daemon=True).start()
     yield server
@@ -40,7 +46,11 @@ def osc_server():
 
 
 @pytest.fixture
-def server_dispatcher_client(frame_server, osc_server):
+def frame_osc_converter(frame_server, osc_server):
+    """
+    Provide a frame server, OSC server, and a client that is connected to both
+    of them.
+    """
     osc_port = osc_server.socket.getsockname()[1]
     client = OscClient(osc_address='localhost', osc_port=osc_port,
                        traj_address='localhost', traj_port=frame_server.port,
@@ -51,11 +61,14 @@ def server_dispatcher_client(frame_server, osc_server):
     client.close()
 
 
-def test_test(server_dispatcher_client, simple_frame_data):
-    frame_server, osc_server, osc_client = server_dispatcher_client
+def test_transmission(frame_osc_converter, simple_frame_data):
+    """
+    Test that OscClient receiving frames can trigger the sending OSC messages.
+    """
+    frame_server, osc_server, osc_client = frame_osc_converter
 
     test_address = "/test"
-    send_message = 69
+    send_message = "hello"
     recv_message = None
 
     simple_frame_data.values[test_address] = send_message
