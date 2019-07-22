@@ -48,7 +48,7 @@ build_conda:
     script:
         # Configure the environment. We need conda-forge to get the science
         # related packages (openmm, ase, mdanalysis)
-        - conda config --env --add channels conda-forge
+        - conda config --env --add channels conda-forge omnia
         - conda install conda-build grpcio-tools
         # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
