@@ -70,7 +70,7 @@ ELEMENT_INDEX_MASS = {
 # For now support converting lj and real, for full unit list see https://lammps.sandia.gov/doc/units.html
 # List goes type, postion, force need to convert into nm and kj/mol/nm
 
-LAMMPS_UNITS_CHECK= {
+LAMMPS_UNITS_CHECK = {
     # Lenard jones: Is unitless, everything is set to 1
     1.0           : ["lj", 1, 1],
     # Real:
@@ -153,6 +153,8 @@ class DummyLammps:
         '''
         if types is "ntypes":
             dummy_element_list = 1
+        elif types is "hplanck":
+            dummy_element_list = 95.306976368
         else:
             logging.error('Unknown array type asked for in dummyLammps.extract_global')
             exit()
@@ -246,6 +248,9 @@ class LammpsHook:
         # Set some variables that do not change during the simulation
         self.n_atoms = None
         self.units = None
+        self.units_type = None
+        self.force_factor = None
+        self.distance_factor = None
 
 
     def test_debug(self):
@@ -315,7 +320,7 @@ class LammpsHook:
         # Copy the ctype array to numpy for processing
         positions = np.fromiter(data_array, dtype=np.float, count=len(data_array))
         # Convert to nm
-        positions = np.multiply(0.1, positions)
+        positions = np.multiply(self.distance_factor, positions)
         frame_data.arrays[POSITIONS] = positions
 
     @property
@@ -335,7 +340,7 @@ class LammpsHook:
 
         # Convert units fron narupa standard of  kj/mol/nm to whatever units LAMMPS is using
         # For real units types LAMMPS uses  Kcal/mole-Angstrom 4.14 for kj-> Kcal and 10x for nm -> Angstrom
-        interaction_forces * 41.4
+        interaction_forces / self.force_factor
         # Flatten array into the ctype
         scatterable_array = interaction_forces.flatten()
         for idx in range(3*self.n_atoms):
@@ -378,6 +383,10 @@ class LammpsHook:
             # Use planks constant to work out what units we are working in
             self.units = L.extract_global("hplanck", 1)
             print("units", type(self.units),self.units)
+            self.units_type = LAMMPS_UNITS_CHECK.get(self.units, None)[0]
+            self.force_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[1]
+            self.distance_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[2]
+            print(self.units_type,self.force_factor,self.distance_factor)
 
 
         # Choose the matrix type that will be extracted
