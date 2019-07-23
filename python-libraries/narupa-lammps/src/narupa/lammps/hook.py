@@ -320,7 +320,7 @@ class LammpsHook:
         # Copy the ctype array to numpy for processing
         positions = np.fromiter(data_array, dtype=np.float, count=len(data_array))
         # Convert to nm
-        positions = np.multiply(self.distance_factor, positions)
+        positions = np.divide(positions, self.distance_factor)
         frame_data.arrays[POSITIONS] = positions
 
     @property
@@ -384,8 +384,8 @@ class LammpsHook:
             self.units = L.extract_global("hplanck", 1)
             print("units", type(self.units),self.units)
             self.units_type = LAMMPS_UNITS_CHECK.get(self.units, None)[0]
-            self.force_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[1]
-            self.distance_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[2]
+            self.distance_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[1]
+            self.force_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[2]
             print(self.units_type,self.force_factor,self.distance_factor)
 
 
@@ -394,7 +394,7 @@ class LammpsHook:
         # Copy the ctype array to numpy for processing
         positions3N = np.fromiter(positions, dtype=np.float, count=len(positions))
         # Convert to nm
-        positions3N = np.multiply(0.1, positions3N).reshape(self.n_atoms, 3)
+        positions3N = np.multiply(self.distance_factor, positions3N).reshape(self.n_atoms, 3)
 
         # Collect forces from LAMMPS
         forces = self.manipulate_lammps_array('f', L)
