@@ -18,7 +18,7 @@ def frame_to_osc_messages(frame):
     if frame is None:
         return
 
-    yield "/filter", frame.particle_positions[0]
+    yield "/energy/kinetic", frame.values['energy.kinetic']
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
