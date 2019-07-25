@@ -8,19 +8,6 @@ import textwrap
 from osc_client import OscClient
 
 
-def frame_to_osc_messages(frame):
-    """
-    Take a Narupa frame and generate a number of address, message pairs to be
-    sent over OSC.
-    :param frame: a Narupa frame
-    :return: An iterator over OSC address, message pairs
-    """
-    if frame is None:
-        return
-
-    yield "/energy/kinetic", frame.values['energy.kinetic']
-
-
 def handle_user_arguments(args=None) -> argparse.Namespace:
     """
     Parse the arguments from the command line.
@@ -38,6 +25,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('-t', '--traj-port', type=int, default=None)
     parser.add_argument('-o', '--osc-port', type=int, default=None)
     parser.add_argument('-i', '--send-interval', type=float, default=.01)
+    parser.add_argument('-v', '--verbose', action="store_true", default=False)
     arguments = parser.parse_args(args)
     return arguments
 
@@ -50,15 +38,17 @@ def initialise(args=None):
                        osc_address=arguments.osc_address,
                        osc_port=arguments.osc_port,
                        send_interval=arguments.send_interval,
-                       message_generator=frame_to_osc_messages)
+                       verbose=arguments.verbose)
     return runner
 
 
-def main():
+def main(frame_generator_setup=None):
     """
     Entry point for the command line.
     """
     with initialise() as runner:
+        if frame_generator_setup is not None:
+            frame_generator_setup(runner)
         print('Running...')
         try:
             runner.run()

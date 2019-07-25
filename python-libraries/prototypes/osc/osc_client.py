@@ -32,10 +32,12 @@ class OscClient:
                  osc_address=None, osc_port=None,
                  traj_address=None, traj_port=None,
                  send_interval=1/30,
-                 message_generator=None):
+                 message_generator=None,
+                 verbose=False):
         osc_address = osc_address or DEFAULT_OSC_ADDRESS
         osc_port = osc_port or DEFAULT_OSC_PORT
 
+        self.verbose = verbose
         self.message_generator = message_generator or null_message_generator
         self.send_interval = send_interval
         self.osc_client = udp_client.SimpleUDPClient(osc_address,
@@ -56,6 +58,8 @@ class OscClient:
     def process_frame(self, frame):
         for address, message in self.message_generator(frame):
             self.osc_client.send_message(address, message)
+            if self.verbose:
+                print(address, message)
 
     def __enter__(self):
         return self
