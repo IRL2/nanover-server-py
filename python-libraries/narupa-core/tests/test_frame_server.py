@@ -189,6 +189,9 @@ def test_data_overlap(frame_server_client_pair, simple_frame_data,
 
 @contextmanager
 def raises_rpc_cancelled():
+    """
+    Silently ignore an RpcError exception with the CANCELLED status code.
+    """
     try:
         yield
     except RpcError as e:
