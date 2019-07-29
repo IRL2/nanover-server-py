@@ -25,6 +25,10 @@ class FrameServer(GrpcServer):
         self._trajectory_service.send_frame(frame_index, frame_data.raw)
         self._frame_count += 1
 
+    def close(self):
+        super().close()
+        self._trajectory_service.close()
+
     @property
     def frame_count(self):
         """

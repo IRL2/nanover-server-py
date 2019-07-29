@@ -13,6 +13,9 @@ message GetFrameRequest {
 
   /* Arbitrary data that can be used by a TrajectoryService to decide what frames to return */
   google.protobuf.Struct data = 1;
+
+  /* Interval to send new frames at e.g 1/30 sends 30 frames every second. */
+  float frame_interval = 2;
 }
 
 /* A server response representing a frame of a molecular trajectory */

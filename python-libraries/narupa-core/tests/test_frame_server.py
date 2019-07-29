@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from unittest.mock import Mock
 
 import pytest
@@ -7,6 +8,7 @@ from grpc import RpcError, StatusCode
 from narupa.trajectory import FrameServer, FrameClient, FrameData
 
 SUBSCRIBE_METHODS = ('subscribe_frames_async', 'subscribe_last_frames_async')
+
 
 @pytest.fixture
 def simple_frame_data():
@@ -56,17 +58,20 @@ def simple_and_overlap_frame_data():
     basic_frame_data.values["bool"] = True
     return basic_frame_data
 
+
 @pytest.fixture
 def frame_server():
     frame_server = FrameServer(address='localhost', port=0)
     yield frame_server
     frame_server.close()
 
+
 @pytest.fixture
 def frame_server_client_pair(frame_server):
     client = FrameClient(address='localhost', port=frame_server.port)
     yield frame_server, client
     client.close()
+
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
 def test_blankdata_lateclient(frame_server_client_pair, subscribe_method):
@@ -78,7 +83,7 @@ def test_blankdata_lateclient(frame_server_client_pair, subscribe_method):
 
     getattr(frame_client, subscribe_method)(mock.callback)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     mock.callback.assert_called_once()
 
@@ -93,7 +98,7 @@ def test_blankdata_earlyclient(frame_server_client_pair, subscribe_method):
 
     frame_server.send_frame(0, FrameData())
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     mock.callback.assert_called_once()
 
@@ -117,7 +122,7 @@ def test_data_earlyclient(frame_server_client_pair, simple_frame_data,
 
     frame_server.send_frame(0, simple_frame_data)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     assert result == simple_frame_data
 
@@ -136,7 +141,7 @@ def test_data_lateclient(frame_server_client_pair, simple_frame_data,
 
     getattr(frame_client, subscribe_method)(callback)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     assert result == simple_frame_data
 
@@ -157,7 +162,7 @@ def test_data_disjoint(frame_server_client_pair, simple_frame_data,
 
     getattr(frame_client, subscribe_method)(callback)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     assert result == simple_and_disjoint_frame_data
 
@@ -178,9 +183,21 @@ def test_data_overlap(frame_server_client_pair, simple_frame_data,
 
     getattr(frame_client, subscribe_method)(callback)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     assert result == simple_and_overlap_frame_data
+
+
+@contextmanager
+def raises_rpc_cancelled():
+    """
+    Silently ignore an RpcError exception with the CANCELLED status code.
+    """
+    try:
+        yield
+    except RpcError as e:
+        if e._state.code != StatusCode.CANCELLED:
+            raise e
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
@@ -194,21 +211,67 @@ def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
         result = frame
 
     future = getattr(frame_client, subscribe_method)(callback)
-    time.sleep(0.1)
+    time.sleep(0.01)
 
     for i in range(5):
-        time.sleep(0.5)
+        time.sleep(0.1)
         frame_server.send_frame(i, simple_frame_data)
 
-    time.sleep(0.5)
+    time.sleep(0.01)
     # TODO there is no way to cancel the subscription stream...
     frame_client.close()
-    # this result would throw an exception if an exception was raised during subscription.
-    # here, we handle the expected cancelled exception, anything else is a bug.
-    try:
-        subscribe_result = future.result()
-    except RpcError as e:
-        if not e._state.code == StatusCode.CANCELLED:
-            raise e
+
+    with raises_rpc_cancelled():
+        future.result()
 
     assert result == simple_frame_data
+
+
+def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair,
+                                                    simple_frame_data):
+    frame_server, frame_client = frame_server_client_pair
+
+    frame_interval = 1 / 30
+    first_index = None
+
+    def callback(frame, frame_index):
+        nonlocal first_index
+        if first_index is None:
+            first_index = frame_index
+
+    future = getattr(frame_client, 'subscribe_last_frames_async')(callback)
+    time.sleep(0.01)
+
+    for i in range(5):
+        frame_server.send_frame(i, simple_frame_data)
+
+    time.sleep(2 * frame_interval)
+    assert first_index == 4
+
+
+@pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
+@pytest.mark.parametrize('frame_interval', (1/10, 1/30, 1/60))
+def test_subscribe_frames_frame_interval(frame_server_client_pair,
+                                         simple_frame_data,
+                                         subscribe_method,
+                                         frame_interval):
+    frame_server, frame_client = frame_server_client_pair
+
+    last_index = None
+
+    def callback(frame, frame_index):
+        nonlocal last_index
+        last_index = frame_index
+
+        if frame_index < 4:
+            frame_server.send_frame(frame_index + 1, simple_frame_data)
+
+    future = getattr(frame_client, subscribe_method)(callback, frame_interval)
+    time.sleep(0.01)
+
+    frame_server.send_frame(0, simple_frame_data)
+
+    time.sleep(2 * frame_interval)
+    assert last_index < 4
+    time.sleep(3 * frame_interval)
+    assert last_index == 4
