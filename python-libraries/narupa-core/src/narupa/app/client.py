@@ -21,7 +21,9 @@ class NarupaClient:
                  trajectory_port: Optional[int] = None,
                  imd_port: Optional[int] = None,
                  max_frames=50,
-                 run_imd=True):
+                 run_imd=True,
+                 all_frames=True):
+        self.all_frames = all_frames
         self.connect(address, trajectory_port, imd_port, run_imd)
 
         self.max_frames = max_frames
@@ -92,7 +94,10 @@ class NarupaClient:
         return self._imd_client.stop_interaction(interaction_id)
 
     def _join_trajectory(self):
-        self._frame_client.subscribe_last_frames_async(self._on_frame_received)
+        if self.all_frames:
+            self._frame_client.subscribe_frames_async(self._on_frame_received)
+        else:
+            self._frame_client.subscribe_last_frames_async(self._on_frame_received)
 
     def _on_frame_received(self, frame_index: int, frame: FrameData):
         if self._first_frame is None:
