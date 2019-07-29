@@ -40,8 +40,11 @@ def test_run(runner):
 
 
 def test_frames_sent(runner):
+    """
+    Test that the frame server has received frames after running dynamics.
+    """
     runner.run(12)
-    assert runner.imd.frame_server.frame_count == 2
+    assert runner.imd.frame_server.frame_count > 0
 
 
 def test_verbose(basic_simulation):
@@ -50,11 +53,18 @@ def test_verbose(basic_simulation):
         runner.run(10)
 
 
-def test_frame_interval(basic_simulation):
-    params = ImdParams(frame_interval=1)
+@pytest.mark.parametrize('interval', (1, 2, 3))
+def test_frame_interval(basic_simulation, interval):
+    """
+    Test that the frame server receives frames at the correct interval of
+    dynamics steps.
+    """
+    params = ImdParams(frame_interval=interval)
     with OpenMMIMDRunner(basic_simulation, params) as runner:
-        runner.run(2)
-        assert runner.imd.frame_server.frame_count == 2
+        runner.run(1)
+        prev = runner.imd.frame_server.frame_count
+        runner.run(interval * 3)
+        assert runner.imd.frame_server.frame_count == prev + 3
 
 
 def test_time_step(basic_simulation):
