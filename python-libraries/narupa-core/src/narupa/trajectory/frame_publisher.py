@@ -6,6 +6,8 @@ from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameRespon
 
 import time
 
+SENTINEL = None
+
 
 class FramePublisher(TrajectoryServiceServicer):
     """
@@ -58,7 +60,7 @@ class FramePublisher(TrajectoryServiceServicer):
         with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
             while context.is_active():
                 item = queue.get(block=True)
-                if item is None:
+                if item is SENTINEL:
                     break
                 time_since_last_yield = time.monotonic() - last_yield
                 wait_duration = max(0, frame_interval - time_since_last_yield)
@@ -108,4 +110,4 @@ class FramePublisher(TrajectoryServiceServicer):
 
     def close(self):
         for queue in self.frame_queues.iter_queues():
-            queue.put(None)
+            queue.put(SENTINEL)
