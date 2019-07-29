@@ -1,4 +1,4 @@
-from cli import main
+from osc_app import OscApp
 
 import selections
 import itertools
@@ -51,8 +51,8 @@ def distance(position_a, position_b):
     return math.sqrt(dx * dx + dy * dy + dz * dz)
 
 
-def build_frame_generator(runner):
-    first_frame = runner.frame_client.wait_until_first_frame()
+def build_frame_generator(osc_client):
+    first_frame = osc_client.frame_client.wait_until_first_frame()
     atom_listing = selections.atom_listing_from_frame(first_frame)
 
     hydrogen_atoms = [atom for atom in atom_listing if atom['element'] == 1]
@@ -99,8 +99,9 @@ def build_frame_generator(runner):
         yield "/methane/centrality", centrality
         yield "/energy/kinetic", frame.values['energy.kinetic']
 
-    runner.message_generator = frame_to_osc_messages
+    osc_client.message_generator = frame_to_osc_messages
 
 
 if __name__ == '__main__':
-    main(build_frame_generator)
+    app = OscApp(build_frame_generator)
+    app.run()
