@@ -158,7 +158,8 @@ class TestSingleItemQueue:
             single_item_queue.get(block=False)
 
     @pytest.mark.timeout(20)
-    def test_put_and_get_threaded(self, single_item_queue):
+    @pytest.mark.parametrize('blocking', (True, False))
+    def test_put_and_get_threaded(self, single_item_queue, blocking):
         """
         Add and get data from the SingleItemQueue from multiple threads.
         """
@@ -173,7 +174,8 @@ class TestSingleItemQueue:
             obtained_data = []
             while context['running']:
                 try:
-                    item = queue.get(block=False)
+                    # timeout only applies when blocking
+                    item = queue.get(block=blocking, timeout=.5)
                 except Empty:
                     pass
                 else:

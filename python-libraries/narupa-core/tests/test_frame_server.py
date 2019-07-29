@@ -252,7 +252,7 @@ def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair,
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
 @pytest.mark.parametrize('frame_interval', (1/10, 1/30, 1/60))
 def test_subscribe_frames_frame_interval(frame_server_client_pair,
-                                         simple_frame_data, 
+                                         simple_frame_data,
                                          subscribe_method,
                                          frame_interval):
     frame_server, frame_client = frame_server_client_pair
