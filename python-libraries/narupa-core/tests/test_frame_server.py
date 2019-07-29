@@ -195,7 +195,7 @@ def raises_rpc_cancelled():
     try:
         yield
     except RpcError as e:
-        if not e._state.code == StatusCode.CANCELLED:
+        if e._state.code != StatusCode.CANCELLED:
             raise e
 
 
