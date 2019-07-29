@@ -102,7 +102,7 @@ class TestSingleItemQueue:
     @pytest.mark.timeout(3)
     def test_blocking_get_with_content(self, single_item_queue):
         single_item_queue.put(0)
-        single_item_queue.get(block=True)
+        assert single_item_queue.get(block=True) == 0
 
     @pytest.mark.timeout(3)
     def test_blocking_get_timeout(self, single_item_queue):
