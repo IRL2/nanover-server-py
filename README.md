@@ -20,7 +20,7 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
 * Install dotnet
 * Clone the narupa-protocol repository
 * In a terminal, in the repository root:
-    * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev python>3.6`
+    * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev "python>3.6"`
     * Activate the conda environment: `conda activate narupa-dev`
     * Install the required conda package: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
     * Compile the protocol and install the Narupa libraries in your conda environment: `./compile.sh`. If you plan on
@@ -32,7 +32,7 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
 * Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
 * Clone the narupa-protocol repository
 * In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev python>3.6`
+    * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev "python>3.6"`
     * Activate the conda environment: `conda activate narupa-dev`
     * Install the required conda packages: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
     * Compile the protocol and install the Narupa libraries in your conda environment: `./win_compile.ps1`. If you plan on modifying the python packages, run `./win_compile.ps1 -edit` instead.
