@@ -9,6 +9,7 @@ from narupa.trajectory import FrameServer, FrameClient, FrameData
 
 SUBSCRIBE_METHODS = ('subscribe_frames_async', 'subscribe_last_frames_async')
 
+
 @pytest.fixture
 def simple_frame_data():
     basic_frame_data = FrameData()
@@ -226,7 +227,8 @@ def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
     assert result == simple_frame_data
 
 
-def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair, simple_frame_data):
+def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair,
+                                                    simple_frame_data):
     frame_server, frame_client = frame_server_client_pair
 
     frame_interval = 1 / 30
@@ -247,8 +249,12 @@ def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair, si
     assert first_index == 4
 
 
+@pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
 @pytest.mark.parametrize('frame_interval', (1/10, 1/30, 1/60))
-def test_subscribe_latest_frames_has_frame_interval(frame_server_client_pair, simple_frame_data, frame_interval):
+def test_subscribe_frames_frame_interval(frame_server_client_pair,
+                                         simple_frame_data, 
+                                         subscribe_method,
+                                         frame_interval):
     frame_server, frame_client = frame_server_client_pair
 
     last_index = None
@@ -260,7 +266,7 @@ def test_subscribe_latest_frames_has_frame_interval(frame_server_client_pair, si
         if frame_index < 4:
             frame_server.send_frame(frame_index + 1, simple_frame_data)
 
-    future = frame_client.subscribe_last_frames_async(callback, frame_interval)
+    future = getattr(frame_client, subscribe_method)(callback, frame_interval)
     time.sleep(0.01)
 
     frame_server.send_frame(0, simple_frame_data)
