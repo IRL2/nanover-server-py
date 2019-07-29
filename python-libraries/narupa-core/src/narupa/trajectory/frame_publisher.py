@@ -38,24 +38,27 @@ class FramePublisher(TrajectoryServiceServicer):
         This method publishes all the frames produced by the trajectory service,
         starting when the client subscribes.
         """
-        yield from self._subscribe_frame_base(request, context, queue_type=Queue)
+        yield from self._subscribe_frame_base(request,
+                                              context,
+                                              queue_type=Queue)
 
     def SubscribeLatestFrames(self, request, context):
         """
         Subscribe to the last produced frames produced by the service.
 
-        This method publishes the latest frame available at the time of yielding.
+        This method publishes the latest frame available at the time of
+        yielding.
         """
         yield from self._subscribe_frame_base(request,
                                               context,
-                                              queue_type=SingleItemQueue,
-                                              frame_interval=1/30)
+                                              queue_type=SingleItemQueue)
 
-    def _subscribe_frame_base(self, request, context, queue_type, frame_interval=0):
+    def _subscribe_frame_base(self, request, context, queue_type):
         request_id = self._get_new_request_id()
         yield from self._yield_last_frame_if_any()
 
         last_yield = 0
+        frame_interval = request.frame_interval
 
         with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
             while context.is_active():
@@ -68,7 +71,6 @@ class FramePublisher(TrajectoryServiceServicer):
                 yield item
                 last_yield = time.monotonic()
 
-
     def _get_new_request_id(self) -> int:
         """
         Provide a new client id in a thread safe way.
@@ -80,7 +82,8 @@ class FramePublisher(TrajectoryServiceServicer):
 
     def _yield_last_frame_if_any(self):
         """
-        Yields the last frame as a :class:`GetFrameResponse` object if there is one.
+        Yields the last frame as a :class:`GetFrameResponse` object if there is
+        one.
 
         This method places a lock on :attr:`last_frame` and
         :attr:`last_frame_index` to prevent other threads to modify them as we

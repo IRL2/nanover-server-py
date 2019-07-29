@@ -27,11 +27,13 @@ class FrameClient:
         for response in self.stub.SubscribeFrames(GetFrameRequest()):
             callback(frame_index=response.frame_index, frame=FrameData(response.frame))
 
-    def subscribe_last_frames_async(self, callback) -> Future:
-        return self.threads.submit(self.subscribe_last_frames_blocking, callback)
+    def subscribe_last_frames_async(self, callback, frame_interval=0) -> Future:
+        return self.threads.submit(self.subscribe_last_frames_blocking, callback, frame_interval)
 
-    def subscribe_last_frames_blocking(self, callback):
-        for response in self.stub.SubscribeLatestFrames(GetFrameRequest()):
+    def subscribe_last_frames_blocking(self, callback, frame_interval=0):
+        request = GetFrameRequest()
+        request.frame_interval = frame_interval
+        for response in self.stub.SubscribeLatestFrames(request):
             callback(frame_index=response.frame_index, frame=FrameData(response.frame))
 
     def close(self):
