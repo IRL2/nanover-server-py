@@ -66,7 +66,7 @@ class MultiplayerClient(object):
         self.pubsub_rate = 1.0 / pubsub_fps
         self.current_avatars = {}
         self.closed = False
-        self.scene_properties = None
+        self.resources = dict()
         self.threadpool = futures.ThreadPoolExecutor(max_workers=10)
 
     def close(self):
@@ -141,8 +141,8 @@ class MultiplayerClient(object):
         request = mult_proto.SubscribeAllResourceValuesRequest()
         self.threadpool.submit(self._join_scene_properties_stream, request)
 
-    def try_lock_scene(self):
-        lock_request = mult_proto.AcquireLockRequest(player_id=self.player_id,
+    def try_lock_scene(self, player_id=None):
+        lock_request = mult_proto.AcquireLockRequest(player_id=player_id or self.player_id,
                                                      resource_id="scene")
         reply = self.stub.AcquireResourceLock(lock_request)
         return reply.success
@@ -153,27 +153,12 @@ class MultiplayerClient(object):
         reply = self.stub.ReleaseResourceLock(lock_request)
         return reply.success
 
-    def set_scene_properties(self, properties) -> bool:
-        """
-        Attempts to set the multiplayer scene properties.
-        If the scene properties are locked by someone else, this will fail.
-        :param properties: The new properties to apply.
-        :return: True if properties sucessfully set, false otherwise.
-        """
-        self._ensure_joined_multiplayer()
-        if not self.try_lock_scene():
-            return False
-        property_request = mult_proto.SetResourceValueRequest(player_id=self.player_id,
-                                                              resource_id="scene",
-                                                              resource_value=properties)
-        reply = self.stub.SetResourceValue(property_request)
-        if not reply.success:
-            # This shouldn't happen, as the box will have been locked above, but check it just in case.
-            return False  # pragma: no cover
-        if not self.try_unlock_scene():
-            # Should always be able to unlock the box, but throw exception here just in case.
-            raise RuntimeError("Unable to unlock scene after edit!")  # pragma: no cover
-        return True
+    def set_scene_properties(self, value) -> bool:
+        request = mult_proto.SetResourceValueRequest(player_id=self.player_id,
+                                                     resource_id="scene",
+                                                     resource_value=value)
+        response = self.stub.SetResourceValue(request)
+        return response.success
 
     def _ensure_joined_multiplayer(self):
         if not self.joined_multiplayer:
@@ -201,9 +186,17 @@ class MultiplayerClient(object):
 
     @_end_upon_channel_close
     def _join_scene_properties(self, request):
-        for publication in self.stub.SubscribeAllResourceValues(request):
-            self.scene_properties = publication
-            time.sleep(self.pubsub_rate)
+        print("joining scene properties")
+        print(type(request))
+        try:
+            for update in self.stub.SubscribeAllResourceValues(request):
+                print(f"hello {update}")
+                for key, value in update.resource_value_changes:
+                    print(key, value)
+                self.resources = update
+                time.sleep(self.pubsub_rate)
+        except Exception as e:
+            print(f"client exception: {e}")
 
     @_end_upon_channel_close
     def _join_scene_properties_stream(self, request):
