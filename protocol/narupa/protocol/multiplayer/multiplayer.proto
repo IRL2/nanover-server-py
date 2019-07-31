@@ -1,37 +1,36 @@
-// Copyright (c) Mike O'Connor, University Of Bristol. All rights reserved.
+// Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 // Licensed under the GPL. See License.txt in the project root for license information.
+
 syntax = "proto3";
 import "google/protobuf/struct.proto";
-import "google/protobuf/any.proto";
 
 package narupa.multiplayer;
 
-/* Defines a VR multiplayer service.*/
 service Multiplayer {
+    // Create a new player for this multiplayer session.
+    rpc CreatePlayer(CreatePlayerRequest) returns (CreatePlayerResponse) {}
 
-    /* Request to join multiplayer session, and receive a player_id. */
-    rpc JoinMultiplayer(JoinMultiplayerRequest) returns (JoinMultiplayerResponse) {}
+    // Streams updates of player avatars.
+    rpc SubscribePlayerAvatars(SubscribePlayerAvatarsRequest) returns (stream Avatar) {}
 
-    /* Represents an avatar stream. */
-    rpc SubscribeToAvatars(SubscribeToAvatarsRequest) returns (stream Avatar) {}
+    // Call to provide a stream of player avatar updates.
+    rpc UpdatePlayerAvatar(stream Avatar) returns (StreamEndedResponse) {}
 
-    /* Client publish avatar stream.*/
-    rpc PublishAvatar(stream Avatar) returns (PublishAvatarReply) {}
-    
-    /* Joins the stream of updates to the multiplayer scene properties.*/
-    rpc SubscribeToSceneProperties(ScenePropertyRequest) returns (stream SetScenePropertyRequest) {}
+    // Acquire a lock for a player on a specified resource.
+    rpc AcquireResourceLock(AcquireLockRequest) returns (StreamEndedResponse) {}
 
-    /* Request to lock the scene.*/
-    rpc SetLockScene(LockRequest) returns (LockRequest) {}
+    // Release a player's lock on a specified resource.
+    rpc ReleaseResourceLock(ReleaseLockRequest) returns (StreamEndedResponse) {}
 
-    /* Request to unlock the scene.*/
-    rpc UnlockScene(LockRequest) returns (LockRequest) {}
+    // Set a resource's value.
+    rpc SetResourceValue(SetResourceValueRequest) returns (StreamEndedResponse) {}
 
-    /* Request to set the scene properties.*/
-    rpc SetSceneProperty(SetScenePropertyRequest) returns (EditObjectReply) {}
-
+    // Streams initial value and then changes of all resources.
+    rpc SubscribeAllResourceValues(SubscribeAllResourceValuesRequest) returns (StreamEndedResponse) {}
 }
 
+message StreamEndedResponse {
+}
 
 /* Represents an avatar component: e.g. an HMD, controller or glove.*/
 message AvatarComponent {
@@ -48,68 +47,50 @@ message Avatar {
     repeated AvatarComponent component = 2;    
 }
 
-/* Represents a request to join the avatars stream.*/
-message SubscribeToAvatarsRequest {
-    /* Player ID.*/
+message SubscribePlayerAvatarsRequest {
+    // ID of player to ignore (usually either your own ID or none).
+    string ignore_player_id = 1;
+}
+
+message CreatePlayerRequest {
+    // Friendly name for the new player.
+    string player_name = 1;
+}
+
+message CreatePlayerResponse {
+    // The ID assigned to the newly created player.
     string player_id = 1;
 }
 
-/* Represents a reply at the termination of the avatar publish stream.*/
-message PublishAvatarReply {}
-
-/* Represents a request to join scene properties.*/
-message ScenePropertyRequest {
+message AcquireLockRequest {
+    // ID of player making request.
     string player_id = 1;
+    // Identifier of resource to be locked.
+    string resource_id = 2;
 }
 
-/* Represents a request to set scene properties. */
-message SetScenePropertyRequest {
-    /* ID representing the ownership of the scene property lock.*/
+message ReleaseLockRequest {
+    // ID of player making request.
     string player_id = 1;
-    /* Scene properties to be set.*/
-    SceneProperties properties = 2;
-
-
+    // Identifier of resource to be locked.
+    string resource_id = 2;
 }
 
-/* Represents a request to join multiplayer.*/
-message JoinMultiplayerRequest {
-    /* friendly username for player.*/
-    string username = 1;
-}
-
-/* Represents a response to join multiplayer.*/
-message JoinMultiplayerResponse {
-    /* ID assigned to player.*/
+message SetResourceValueRequest {
+    // ID of player making request
     string player_id = 1;
+    // Identifier of resource to be set.
+    string resource_id = 2;
+    // Value to set the resource to.
+    google.protobuf.Value resource_value = 3;
 }
 
-/* Represents a lock on an object. */
-message LockRequest 
-{
-    /* Whether the object has been locked.*/
-    bool locked = 1; 
-    /* ID representing the lock request.*/
-    string player_id = 2;
-
+message SubscribeAllResourceValuesRequest {
+    // Interval between update sends.
+    float update_interval = 1;
 }
 
-message EditObjectReply
-{
-    /* Indication that editing was successful. */
-    bool success=1;
-    /* The player id currently editting the object. */
-    string player_id = 2;
-}
-
-/* Represents a multiplayer scene, for synchronising between VR clients.*/
-message SceneProperties {
-    /* Vector3 Position of the scene.*/
-    repeated float position = 1; 
-    /* Quaternion Rotation of the scene.*/
-    repeated float rotation = 2; 
-    /* Scaling of the scene.*/
-    float scale = 3;
-    /* Key word additional arguments.*/
-    map<string, google.protobuf.Value> additional = 4;
+message ResourceValuesUpdate {
+    // Map of resource address to updated resource value.
+    map<string, google.protobuf.Value> resource_value_changes = 1;
 }
