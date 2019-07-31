@@ -31,7 +31,7 @@ class PubSub:
         self.latest_publication = None
         self.logger = logging.Logger(__name__)
 
-    def subscribe(self, request, context):
+    def subscribe(self, stream_id, context):
         """
         Subscribe to a (potentially infinite) stream.
 
@@ -39,13 +39,12 @@ class PubSub:
         :param context:
         :return: Publications from queue.
         """
-        queue = SingleItemQueue(maxsize=self.max_queue_size)
-        if request.player_id in self.queues:
-            raise KeyError("Player ID already subscribed! Join multiplayer to get a unique player ID.")
+        if stream_id in self.queues:
+            raise KeyError("Stream ID already in use!") # TODO: remove this
         
-        with self.queues.one_queue(request.player_id) as queue:
+        with self.queues.one_queue(stream_id) as queue:
             if self.send_latest and self.latest_publication is not None:
-                self.logger.debug(f'Sending latest avatar to: {request.player_id}.')
+                self.logger.debug(f'Sending latest avatar to: {stream_id}.')
                 yield self.latest_publication
             while context.is_active():
                 # wait for the next publication and yield it.
@@ -55,11 +54,10 @@ class PubSub:
                     pass
                 else:
                     self.latest_publication = publication
-                    self.logger.debug(f'Sending avatar to: {request.player_id}.')
+                    self.logger.debug(f'Sending avatar to: {stream_id}.')
                     yield publication
 
-    def start_publish(self, request_iterator: Iterator, context,
-                      send_self=False):
+    def start_publish(self, request_iterator: Iterator, context):
         """
         Publish to a stream from a (potentially infinite) iterator.
 
@@ -71,14 +69,14 @@ class PubSub:
         try:
             # TODO no clean way to elegantly cancel publication?
             for request in request_iterator:
-                self.publish(request, send_self)
+                self.publish(request)
         except grpc.RpcError as e:
             if not context.is_active():
                 return
             else:  # pragma: no cover
                 raise e  # pragma: no cover
 
-    def publish(self, publication, send_self=False):
+    def publish(self, publication):
         """
         Publish an object onto the stream.
 
@@ -87,6 +85,4 @@ class PubSub:
         :return:
         """
         for player_id, queue in self.queues.iter_queues_items():
-            if not send_self and (publication.player_id == player_id):
-                continue
             queue.put(publication)

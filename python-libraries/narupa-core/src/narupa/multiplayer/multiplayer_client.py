@@ -49,7 +49,6 @@ class MultiplayerClient(object):
     """
     stub: mult_proto_grpc.MultiplayerStub
     current_avatars: Dict[int, mult_proto.Avatar]
-    scene_properties: mult_proto.SceneProperties
     _avatar_queue: Queue
 
     def __init__(self, address=DEFAULT_CONNECT_ADDRESS, port=DEFAULT_PORT, pubsub_fps: float = 30, channel=None):
@@ -80,17 +79,17 @@ class MultiplayerClient(object):
         if not self.shared_channel:
             self.channel.close()
 
-    def join_multiplayer(self, username, join_streams=True):
+    def join_multiplayer(self, player_name, join_streams=True):
         """
         Joins a multiplayer server
-        :param username: The user name to use for multiplayer.
+        :param player_name: The user name to use for multiplayer.
         :param join_streams: Whether to automatically join all streams.
         :return: Player ID received from the multiplayer server.
         """
         if self.joined_multiplayer:
             return self._player_id
-        result = self.stub.JoinMultiplayer(mult_proto.JoinMultiplayerRequest(username=username), timeout=5)
-        self._player_id = result.player_id
+        response = self.stub.CreatePlayer(mult_proto.CreatePlayerRequest(player_name=player_name), timeout=5)
+        self._player_id = response.player_id
         if join_streams:
             self.join_avatar_stream()
             self.join_avatar_publish()
@@ -103,7 +102,7 @@ class MultiplayerClient(object):
         Joins the avatar stream, which will start receiving avatar updates in the background.
         """
         self._ensure_joined_multiplayer()
-        request = mult_proto.SubscribeToAvatarsRequest(player_id=self.player_id)
+        request = mult_proto.SubscribePlayerAvatarsRequest(ignore_player_id=self.player_id)
         self.threadpool.submit(self._join_avatar_stream, request)
 
     def join_avatar_publish(self):
@@ -135,37 +134,24 @@ class MultiplayerClient(object):
         Indicates whether multiplayer joined, and the client has a valid player ID.
         :return: True if multiplayer has been joined, false otherwise.
         """
-        return self.player_id != None
+        return self.player_id is not None
 
     def join_scene_properties_stream(self):
-        """
-        Joins the scene properties stream.
-        """
         self._ensure_joined_multiplayer()
-        request = mult_proto.ScenePropertyRequest(player_id=self.player_id)
+        request = mult_proto.SubscribeAllResourceValuesRequest()
         self.threadpool.submit(self._join_scene_properties_stream, request)
 
-    def try_lock_scene(self, player_id=None):
-        """
-        Try to lock the scene properties for editing.
-        :param player_id: The player_id to use to make the lock request.
-        """
-        if player_id == None:
-            player_id = self.player_id
-        lock_request = mult_proto.LockRequest(player_id=player_id)
-        reply = self.stub.SetLockScene(lock_request)
-        return reply.locked
+    def try_lock_scene(self):
+        lock_request = mult_proto.AcquireLockRequest(player_id=self.player_id,
+                                                     resource_id="scene")
+        reply = self.stub.AcquireResourceLock(lock_request)
+        return reply.success
 
-    def try_unlock_scene(self, player_id=None):
-        """
-        Try to unlock the scene properties.
-        :param player_id: The player ID to use to make the unlock request.
-        """
-        if player_id == None:
-            player_id = self.player_id
-        lock_request = mult_proto.LockRequest(player_id=player_id)
-        reply = self.stub.UnlockScene(lock_request)
-        return not reply.locked
+    def try_unlock_scene(self):
+        lock_request = mult_proto.ReleaseLockRequest(player_id=self.player_id,
+                                                     resource_id="scene")
+        reply = self.stub.ReleaseResourceLock(lock_request)
+        return reply.success
 
     def set_scene_properties(self, properties) -> bool:
         """
@@ -177,8 +163,10 @@ class MultiplayerClient(object):
         self._ensure_joined_multiplayer()
         if not self.try_lock_scene():
             return False
-        property_request = mult_proto.SetScenePropertyRequest(player_id=self.player_id, properties=properties)
-        reply = self.stub.SetSceneProperty(property_request)
+        property_request = mult_proto.SetResourceValueRequest(player_id=self.player_id,
+                                                              resource_id="scene",
+                                                              resource_value=properties)
+        reply = self.stub.SetResourceValue(property_request)
         if not reply.success:
             # This shouldn't happen, as the box will have been locked above, but check it just in case.
             return False  # pragma: no cover
@@ -193,13 +181,13 @@ class MultiplayerClient(object):
 
     @_end_upon_channel_close
     def _join_avatar_stream(self, request):
-        for publication in self.stub.SubscribeToAvatars(request):
+        for publication in self.stub.SubscribePlayerAvatars(request):
             self.current_avatars[publication.player_id] = publication
             time.sleep(self.pubsub_rate / min(1, len(self.current_avatars)))
 
     @_end_upon_channel_close
     def _join_avatar_publish(self):
-        self.stub.PublishAvatar(self._publish_avatar())
+        self.stub.UpdatePlayerAvatar(self._publish_avatar())
 
     def _publish_avatar(self):
         while True:
@@ -213,10 +201,10 @@ class MultiplayerClient(object):
 
     @_end_upon_channel_close
     def _join_scene_properties(self, request):
-        for publication in self.stub.SubscribeToSceneProperties(request):
+        for publication in self.stub.SubscribeAllResourceValues(request):
             self.scene_properties = publication
             time.sleep(self.pubsub_rate)
 
     @_end_upon_channel_close
     def _join_scene_properties_stream(self, request):
-        self.stub.SubscribeToSceneProperties(self._join_scene_properties(request))
+        self.stub.SubscribeAllResourceValues(self._join_scene_properties(request))

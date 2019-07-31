@@ -5,8 +5,7 @@
 Module with helper functions for editing the multiplayer scene.
 """
 
-import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
-from narupa.multiplayer.multiplayer_lock import MultiplayerObjectLock
+from google.protobuf.struct_pb2 import Struct
 
 #TODO replace this with a real wrapper class around the scene properties.
 def get_default_scene_properties():
@@ -17,7 +16,12 @@ def get_default_scene_properties():
     position = [0, 0, 0]
     rotation = [0, 0, 0, 1]
     scale = 1
-    properties = multiplayer_proto.SceneProperties(position=position, rotation=rotation, scale=scale)
+
+    properties = Struct()
+    properties["position"] = position
+    properties["rotation"] = rotation
+    properties["scale"] = scale
+
     return properties
 
 

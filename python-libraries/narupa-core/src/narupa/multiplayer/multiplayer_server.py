@@ -25,8 +25,8 @@ class MultiplayerServer(GrpcServer):
 
     multiplayer_services: MultiplayerService
 
-    def __init__(self, *, address: Optional[str] = None, port: Optional[int] =None, send_self=False):
-        self.send_self = send_self
+    def __init__(self, *, address: Optional[str] = None,
+                 port: Optional[int] = None):
         if address is None:
             address = DEFAULT_SERVE_ADDRESS
         port = get_requested_port_or_default(port, DEFAULT_PORT)
@@ -35,6 +35,6 @@ class MultiplayerServer(GrpcServer):
 
     def setup_services(self):
         super().setup_services()
-        self.multiplayer_services = MultiplayerService(send_self=self.send_self)
+        self.multiplayer_services = MultiplayerService()
         multiplayer_proto_grpc.add_MultiplayerServicer_to_server(
             self.multiplayer_services, self.server)

@@ -7,26 +7,26 @@ import "google/protobuf/struct.proto";
 package narupa.multiplayer;
 
 service Multiplayer {
-    // Create a new player for this multiplayer session.
-    rpc CreatePlayer(CreatePlayerRequest) returns (CreatePlayerResponse) {}
-
     // Streams updates of player avatars.
     rpc SubscribePlayerAvatars(SubscribePlayerAvatarsRequest) returns (stream Avatar) {}
+
+    // Streams initial value and then changes of all resources.
+    rpc SubscribeAllResourceValues(SubscribeAllResourceValuesRequest) returns (stream ResourceValuesUpdate) {}
+
+    // Create a new player for this multiplayer session.
+    rpc CreatePlayer(CreatePlayerRequest) returns (CreatePlayerResponse) {}
 
     // Call to provide a stream of player avatar updates.
     rpc UpdatePlayerAvatar(stream Avatar) returns (StreamEndedResponse) {}
 
     // Acquire a lock for a player on a specified resource.
-    rpc AcquireResourceLock(AcquireLockRequest) returns (StreamEndedResponse) {}
+    rpc AcquireResourceLock(AcquireLockRequest) returns (ResourceRequestResponse) {}
 
     // Release a player's lock on a specified resource.
-    rpc ReleaseResourceLock(ReleaseLockRequest) returns (StreamEndedResponse) {}
+    rpc ReleaseResourceLock(ReleaseLockRequest) returns (ResourceRequestResponse) {}
 
     // Set a resource's value.
-    rpc SetResourceValue(SetResourceValueRequest) returns (StreamEndedResponse) {}
-
-    // Streams initial value and then changes of all resources.
-    rpc SubscribeAllResourceValues(SubscribeAllResourceValuesRequest) returns (StreamEndedResponse) {}
+    rpc SetResourceValue(SetResourceValueRequest) returns (ResourceRequestResponse) {}
 }
 
 message StreamEndedResponse {
@@ -83,6 +83,11 @@ message SetResourceValueRequest {
     string resource_id = 2;
     // Value to set the resource to.
     google.protobuf.Value resource_value = 3;
+}
+
+message ResourceRequestResponse {
+    // Whether the request was successful.
+    bool success = 1;
 }
 
 message SubscribeAllResourceValuesRequest {

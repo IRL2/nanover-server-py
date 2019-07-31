@@ -12,7 +12,7 @@ import pytest
 
 from narupa.multiplayer.multiplayer_client import MultiplayerClient
 from narupa.multiplayer.multiplayer_server import MultiplayerServer
-from narupa.protocol.multiplayer.multiplayer_pb2 import Avatar, AvatarComponent, SceneProperties
+from narupa.protocol.multiplayer.multiplayer_pb2 import Avatar, AvatarComponent
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 
 
@@ -25,7 +25,7 @@ def multiplayer_server():
 
 @pytest.fixture
 def multiplayer_server_send_self():
-    server = MultiplayerServer(address='localhost', port=0, send_self=True)
+    server = MultiplayerServer(address='localhost', port=0)
     yield server
     server.close()
 
@@ -82,39 +82,34 @@ def test_publish_avatar_not_joined(multiplayer_server_client):
 
 def test_join_avatar_stream(multiplayer_server_client):
     multiplayer_server, multiplayer_client = multiplayer_server_client
-    multiplayer_client.join_multiplayer(username="user", join_streams=False)
+    multiplayer_client.join_multiplayer(player_name="user", join_streams=False)
     multiplayer_client.join_avatar_stream()
 
 
 def test_join_avatar_before_joining_multiplayer(multiplayer_server_client):
     multiplayer_server, multiplayer_client = multiplayer_server_client
-    request = mult_proto.SubscribeToAvatarsRequest(player_id="5")
-    with pytest.raises(grpc.RpcError):
-        for _ in multiplayer_client.stub.SubscribeToAvatars(request):
-            pass
+    request = mult_proto.SubscribePlayerAvatarsRequest()
+    avatar_stream = multiplayer_client.stub.SubscribePlayerAvatars(request)
 
 
 def test_join_avatar_stream_twice(multiplayer_server_client):
     multiplayer_server, multiplayer_client = multiplayer_server_client
-    multiplayer_client.join_multiplayer(username="user", join_streams=False)
-    multiplayer_client.join_avatar_stream()
+    multiplayer_client.join_multiplayer(player_name="user", join_streams=False)
 
-    # manually join the stream again with the same player id.
-    request = mult_proto.SubscribeToAvatarsRequest(player_id="1")
-    with pytest.raises(grpc.RpcError):
-        for _ in multiplayer_client.stub.SubscribeToAvatars(request):
-            pass
+    request = mult_proto.SubscribePlayerAvatarsRequest()
+    avatar_stream1 = multiplayer_client.stub.SubscribePlayerAvatars(request)
+    avatar_stream2 = multiplayer_client.stub.SubscribePlayerAvatars(request)
 
 
 def test_join_publish_avatar(multiplayer_server_client_send_self):
     multiplayer_server, multiplayer_client = multiplayer_server_client_send_self
-    multiplayer_client.join_multiplayer(username="user", join_streams=False)
+    multiplayer_client.join_multiplayer(player_name="user", join_streams=False)
     multiplayer_client.join_avatar_publish()
 
 
 def test_publish_avatar(multiplayer_server_client_send_self):
     multiplayer_server, multiplayer_client = multiplayer_server_client_send_self
-    player_id = multiplayer_client.join_multiplayer(username="user", join_streams=True)
+    player_id = multiplayer_client.join_multiplayer(player_name="user", join_streams=True)
     time.sleep(0.05)
 
     components = [AvatarComponent(name="Head", position=[0, 0, 1], rotation=[1, 1, 1, 1])]
@@ -127,7 +122,7 @@ def test_publish_avatar(multiplayer_server_client_send_self):
 
 def test_publish_avatar_multiple_transmission(multiplayer_server_client_send_self, avatar):
     multiplayer_server, multiplayer_client = multiplayer_server_client_send_self
-    player_id = multiplayer_client.join_multiplayer(username="user", join_streams=True)
+    player_id = multiplayer_client.join_multiplayer(player_name="user", join_streams=True)
     time.sleep(0.05)
 
     multiplayer_client.publish_avatar(avatar)
@@ -140,31 +135,17 @@ def test_publish_avatar_multiple_transmission(multiplayer_server_client_send_sel
     assert multiplayer_client.current_avatars[player_id].component[0].position == [0, 0, 3]
 
 
-def test_self_sending_off_avatar(multiplayer_server_client, avatar):
-    """
-    Tests that multiplayer client does not receive avatars it publishes, by default.
-    """
-    multiplayer_server, multiplayer_client = multiplayer_server_client
-    player_id = multiplayer_client.join_multiplayer(username="user", join_streams=True)
-    time.sleep(0.05)
-
-    multiplayer_client.publish_avatar(avatar)
-
-    time.sleep(0.05)
-    assert len(multiplayer_client.current_avatars) == 0
-
-
 @pytest.fixture
 def test_scene():
     rotation = [0, 0, 0, 1]
     scale = 1
-    properties = SceneProperties(position=[1, 1, 1], rotation=rotation, scale=scale)
+    properties = None#SceneProperties(position=[1, 1, 1], rotation=rotation, scale=scale)
     return properties
 
 
 def test_set_scene_properties(multiplayer_server_client_send_self, test_scene):
     multiplayer_server, multiplayer_client = multiplayer_server_client_send_self
-    multiplayer_client.join_multiplayer(username="user", join_streams=True)
+    multiplayer_client.join_multiplayer(player_name="user", join_streams=True)
     time.sleep(0.05)
 
     success = multiplayer_client.set_scene_properties(test_scene)
@@ -173,7 +154,7 @@ def test_set_scene_properties(multiplayer_server_client_send_self, test_scene):
 
 def test_set_scene_properties_received(multiplayer_server_client_send_self, test_scene):
     multiplayer_server, multiplayer_client = multiplayer_server_client_send_self
-    multiplayer_client.join_multiplayer(username="user", join_streams=True)
+    multiplayer_client.join_multiplayer(player_name="user", join_streams=True)
     time.sleep(0.05)
 
     multiplayer_client.set_scene_properties(test_scene)
@@ -187,7 +168,7 @@ def test_self_sending_off_scene_properties(multiplayer_server_client, test_scene
     Tests that multiplayer client does not receive scene properties it publishes, by default.
     """
     multiplayer_server, multiplayer_client = multiplayer_server_client
-    multiplayer_client.join_multiplayer(username="user", join_streams=True)
+    multiplayer_client.join_multiplayer(player_name="user", join_streams=True)
     time.sleep(0.05)
 
     multiplayer_client.set_scene_properties(test_scene)
@@ -202,7 +183,7 @@ def test_edit_scene_receive_late(multiplayer_server_channel_send_self, test_scen
     """
     multiplayer_server, channel = multiplayer_server_channel_send_self
     multiplayer_client = MultiplayerClient(channel=channel)
-    multiplayer_client.join_multiplayer(username="user", join_streams=True)
+    multiplayer_client.join_multiplayer(player_name="user", join_streams=True)
     time.sleep(0.05)
 
     multiplayer_client.set_scene_properties(test_scene)
@@ -210,7 +191,7 @@ def test_edit_scene_receive_late(multiplayer_server_channel_send_self, test_scen
     assert multiplayer_client.scene_properties is not None
 
     another_client = MultiplayerClient(channel=channel)
-    another_client.join_multiplayer(username="someotherguy", join_streams=True)
+    another_client.join_multiplayer(player_name="someotherguy", join_streams=True)
     time.sleep(0.05)
     assert another_client.scene_properties is not None
 
@@ -222,12 +203,12 @@ def test_edit_scene_locked(multiplayer_server_channel_send_self, test_scene):
     """
     multiplayer_server, channel = multiplayer_server_channel_send_self
     multiplayer_client = MultiplayerClient(channel=channel)
-    multiplayer_client.join_multiplayer(username="user", join_streams=True)
+    multiplayer_client.join_multiplayer(player_name="user", join_streams=True)
     time.sleep(0.05)
 
     multiplayer_client.try_lock_scene()
 
     another_client = MultiplayerClient(channel=channel)
-    another_client.join_multiplayer(username="someotherguy", join_streams=True)
+    another_client.join_multiplayer(player_name="someotherguy", join_streams=True)
     edit_success = another_client.set_scene_properties(test_scene)
     assert edit_success is False
