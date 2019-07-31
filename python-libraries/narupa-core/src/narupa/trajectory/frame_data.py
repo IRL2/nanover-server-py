@@ -117,7 +117,7 @@ class FrameData(metaclass=_FrameDataMeta):
                   field_type='string', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='bonds', key=BONDS, record_type='arrays',
                   field_type='index', to_python=_n_by_2, to_raw=_flatten_2d),
-        _Shortcut(name='box_vector', key=BOX_VECTORS, record_type='arrays',
+        _Shortcut(name='box_vectors', key=BOX_VECTORS, record_type='arrays',
                   field_type='float', to_python=_n_by_3, to_raw=_flatten_2d),
     )
 

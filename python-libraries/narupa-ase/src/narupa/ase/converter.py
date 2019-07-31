@@ -48,7 +48,13 @@ ATOM_RADIUS_ANG = {
 }
 
 
-def ase_to_frame_data(ase_atoms: Atoms, positions: bool = True, topology: bool = True, state: bool = True) -> FrameData:
+def ase_to_frame_data(
+        ase_atoms: Atoms,
+        positions: bool = True,
+        topology: bool = True,
+        state: bool = True,
+        box_vectors: bool = True,
+) -> FrameData:
     """
     Constructs a Narupa frame from the state of the atoms in an ASE simulation.
 
@@ -65,6 +71,8 @@ def ase_to_frame_data(ase_atoms: Atoms, positions: bool = True, topology: bool =
         add_ase_topology_to_frame_data(data, ase_atoms)
     if state:
         add_ase_state_to_frame_data(data, ase_atoms)
+    if box_vectors:
+        add_ase_box_vectors_to_frame_data(data, ase_atoms)
     return data
 
 
@@ -120,6 +128,15 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
     :param positions:
     """
     data.particle_positions = positions * ANG_TO_NM
+
+
+def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
+    """
+    Adds the periodic box vectors to the frame.
+
+    The box vectors form the 3x3 matrix that describes a triclinic box.
+    """
+    data.box_vectors = ase_atoms.cell * ANG_TO_NM
 
 
 def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
