@@ -1,11 +1,15 @@
+from simtk.openmm import State
 from simtk.openmm.app.topology import Topology
-from simtk.unit import Quantity, nanometer
+from simtk.unit import nanometer
 
 from narupa.trajectory import FrameData
 
 
-def add_openmm_positions_to_frame_data(data: FrameData, positions: Quantity):
+def add_openmm_state_to_frame_data(data: FrameData, state: State):
+    positions = state.getPositions()
+    box_vectors = state.getPeriodicBoxVectors()
     data.particle_positions = positions.value_in_unit(nanometer)
+    data.box_vectors = box_vectors.value_in_unit(nanometer)
 
 
 def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
@@ -31,10 +35,10 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
     data.bonds = bonds
 
 
-def openmm_to_frame_data(*, positions=None, topology=None) -> FrameData:
+def openmm_to_frame_data(*, state=None, topology=None) -> FrameData:
     data = FrameData()
-    if positions is not None:
-        add_openmm_positions_to_frame_data(data, positions)
+    if state is not None:
+        add_openmm_state_to_frame_data(data, state)
     if topology is not None:
         add_openmm_topology_to_frame_data(data, topology)
     return data

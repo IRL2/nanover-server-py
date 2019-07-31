@@ -35,10 +35,10 @@ class NarupaReporter:
     def report(self, simulation, state):
         if self._frameIndex == 0:
             self._topology = simulation.topology
-            self._frameData = openmm_to_frame_data(positions=None,
+            self._frameData = openmm_to_frame_data(state=None,
                                                    topology=self._topology)
             self._frameServer.send_frame(self._frameIndex, self._frameData)
-        self._frameData = openmm_to_frame_data(positions=state.getPositions(),
+        self._frameData = openmm_to_frame_data(state=state,
                                                topology=None)
         self._frameServer.send_frame(self._frameIndex, self._frameData)
         self._frameIndex += 1
