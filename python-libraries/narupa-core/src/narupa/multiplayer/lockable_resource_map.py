@@ -32,3 +32,7 @@ class LockableResourceMap:
     def get(self, resource_id, default=None):
         with self._lock:
             return self._values.get(resource_id, default)
+
+    def get_all(self):
+        with self._lock:
+            return dict(self._values)

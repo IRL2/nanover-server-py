@@ -137,7 +137,6 @@ class MultiplayerClient(object):
         return self.player_id is not None
 
     def join_scene_properties_stream(self):
-        self._ensure_joined_multiplayer()
         request = mult_proto.SubscribeAllResourceValuesRequest()
         self.threadpool.submit(self._join_scene_properties_stream, request)
 
@@ -186,17 +185,10 @@ class MultiplayerClient(object):
 
     @_end_upon_channel_close
     def _join_scene_properties(self, request):
-        print("joining scene properties")
-        print(type(request))
-        try:
-            for update in self.stub.SubscribeAllResourceValues(request):
-                print(f"hello {update}")
-                for key, value in update.resource_value_changes:
-                    print(key, value)
-                self.resources = update
-                time.sleep(self.pubsub_rate)
-        except Exception as e:
-            print(f"client exception: {e}")
+        for update in self.stub.SubscribeAllResourceValues(request):
+            for key, value in update.resource_value_changes.items():
+                self.resources[key] = value
+            time.sleep(self.pubsub_rate)
 
     @_end_upon_channel_close
     def _join_scene_properties_stream(self, request):

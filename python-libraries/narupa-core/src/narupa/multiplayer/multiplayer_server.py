@@ -23,7 +23,7 @@ class MultiplayerServer(GrpcServer):
 
     """
 
-    multiplayer_services: MultiplayerService
+    multiplayer_service: MultiplayerService
 
     def __init__(self, *, address: Optional[str] = None,
                  port: Optional[int] = None):
@@ -35,6 +35,6 @@ class MultiplayerServer(GrpcServer):
 
     def setup_services(self):
         super().setup_services()
-        self.multiplayer_services = MultiplayerService()
+        self.multiplayer_service = MultiplayerService()
         multiplayer_proto_grpc.add_MultiplayerServicer_to_server(
-            self.multiplayer_services, self.server)
+            self.multiplayer_service, self.server)

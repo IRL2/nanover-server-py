@@ -6,14 +6,14 @@ Module providing an implementation of a multiplayer service,.
 """
 import logging
 import time
+from threading import Lock
 from typing import Iterator
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
-from narupa.multiplayer import scene
-from narupa.multiplayer.multiplayer_lock import MultiplayerObjectLock
+from narupa.multiplayer.resource_change_buffer import ResourceChangeBuffer
 from narupa.multiplayer.lockable_resource_map import LockableResourceMap, ResourceLockedException
 from narupa.multiplayer.pubsub import PubSub
-from narupa.protocol.multiplayer.multiplayer_pb2 import StreamEndedResponse, Avatar, ResourceRequestResponse, SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse, SubscribePlayerAvatarsRequest
+from narupa.protocol.multiplayer.multiplayer_pb2 import StreamEndedResponse, Avatar, ResourceRequestResponse, SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse, SubscribePlayerAvatarsRequest, ResourceValuesUpdate
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
 
 
@@ -35,10 +35,10 @@ class MultiplayerService(MultiplayerServicer):
         self.scene_pubsub = PubSub(max_avatar_queue_size)
         self.max_queue_size = max_avatar_queue_size
         self.logger = logging.getLogger(__name__)
-        self.resources = LockableResourceMap()
 
-        self.logger.setLevel("DEBUG")
-        self.logger.addHandler(logging.StreamHandler())
+        self._change_buffers_lock = Lock()
+        self._change_buffers = set()
+        self.resources = LockableResourceMap()
 
     def CreatePlayer(self,
                      request: CreatePlayerRequest,
@@ -57,12 +57,6 @@ class MultiplayerService(MultiplayerServicer):
     def SubscribePlayerAvatars(self,
                                request: SubscribePlayerAvatarsRequest,
                                context) -> Avatar:
-        """
-        Subscribe to the avatar stream, infinitely yielding avatars as they are published by other players.
-        :param request: Request to join avatar stream.
-        :param context: gRPC context.
-        :return: yields Avatars
-        """
         outgoing_id = str(time.monotonic())
         for publication in self.avatar_pubsub.subscribe(outgoing_id, context):
             self.logger.debug(f'Publishing avatar to stream {outgoing_id}')
@@ -81,15 +75,21 @@ class MultiplayerService(MultiplayerServicer):
         return StreamEndedResponse()
 
     def SubscribeAllResourceValues(self, request, context):
-        """
-        Subscribe to changes in the multiplayer scene properties
-        :param request: Request to join scene property changes.
-        :param context: gRPC context.
-        :return: 
-        """
-        outgoing_id = str(time.monotonic())
-        for publication in self.scene_pubsub.subscribe(outgoing_id, context):
-            yield publication
+        change_buffer = self._create_change_buffer()
+        initial_values = ResourceValuesUpdate()
+        for key, value in self.resources.get_all().items():
+            entry = initial_values.resource_value_changes.get_or_create(key)
+            entry.MergeFrom(value)
+        yield initial_values
+
+        while True:
+            response = ResourceValuesUpdate()
+            changes = change_buffer.flush_changed()
+            for key, value in changes.items():
+                entry = response.resource_value_changes.get_or_create(key)
+                entry.MergeFrom(value)
+            yield response
+            time.sleep(1/30) # TODO: give change buffers a wait function
 
     def AcquireResourceLock(self,
                             request: multiplayer_proto.AcquireLockRequest,
@@ -121,12 +121,23 @@ class MultiplayerService(MultiplayerServicer):
                                request.resource_id,
                                request.resource_value)
             success = True
-            #self.scene_pubsub.publish(request)
+            self._buffer_change(request.resource_id, request.resource_value)
         except ResourceLockedException:
             success = False
 
         self.logger.debug(f'{request.player_id} attempts {request.resource_id}={request.resource_value} (Successs: {success})')
         return ResourceRequestResponse(success=success)
+
+    def _create_change_buffer(self):
+        buffer = ResourceChangeBuffer()
+        with self._change_buffers_lock:
+            self._change_buffers.add(buffer)
+        return buffer
+
+    def _buffer_change(self, key, value):
+        with self._change_buffers_lock:
+            for buffer in self._change_buffers:
+                buffer.set_changed(key, value)
 
     def generate_player_id(self):
         """
