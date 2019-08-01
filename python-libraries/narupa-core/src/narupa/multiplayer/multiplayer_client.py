@@ -12,6 +12,7 @@ from typing import Dict
 from concurrent import futures
 
 import grpc
+from google.protobuf.struct_pb2 import Value
 
 from narupa.core import DEFAULT_CONNECT_ADDRESS
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
@@ -153,6 +154,9 @@ class MultiplayerClient(object):
         return reply.success
 
     def try_set_resource_value(self, resource_id, value) -> bool:
+        if not isinstance(value, Value):
+            raise TypeError("'value' must be a grpc Value type.")
+
         request = mult_proto.SetResourceValueRequest(player_id=self.player_id,
                                                      resource_id=resource_id,
                                                      resource_value=value)
@@ -188,3 +192,9 @@ class MultiplayerClient(object):
     @_end_upon_channel_close
     def _join_scene_properties_stream(self, request):
         self.stub.SubscribeAllResourceValues(self._join_scene_properties(request))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

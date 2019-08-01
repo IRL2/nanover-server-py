@@ -44,6 +44,12 @@ class GrpcServer:
     def close(self):
         self.server.stop(grace=False)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
 
 def get_requested_port_or_default(port: Optional[int], default: int) -> int:
     """
