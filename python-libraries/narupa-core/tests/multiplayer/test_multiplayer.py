@@ -258,27 +258,37 @@ def test_cant_lock_other_locked(server_client_pair):
     """
     Test that you cannot lock a resource that is locked by someone else.
     """
-    server, client = server_client_pair
-    client.try_lock_resource("scene", player_id="fake")
-    assert not client.try_lock_resource("scene")
+    server, client1 = server_client_pair
+    with MultiplayerClient(port=server.port) as client2:
+        client1.join_multiplayer("main")
+        client2.join_multiplayer("other")
+        client2.try_lock_resource("scene")
+        assert not client1.try_lock_resource("scene")
 
 
 def test_cant_release_other_lock(server_client_pair):
     """
     Test that you cannot release a resource that is locked by someone else.
     """
-    server, client = server_client_pair
-    client.try_lock_resource("scene", player_id="fake")
-    assert not client.try_release_resource("scene")
+    server, client1 = server_client_pair
+    with MultiplayerClient(port=server.port) as client2:
+        client1.join_multiplayer("main")
+        client2.join_multiplayer("other")
+        client2.try_lock_resource("scene")
+        assert not client1.try_release_resource("scene")
 
 
 def test_cant_set_other_locked(server_client_pair, scene):
     """
     Test that you cannot set a resource that is locked by someone else.
     """
-    server, client = server_client_pair
-    client.try_lock_resource("scene", player_id="fake")
-    assert not client.try_set_resource_value("scene", scene)
+    server, client1 = server_client_pair
+    with MultiplayerClient(port=server.port) as client2:
+        client1.join_multiplayer("main")
+        client2.join_multiplayer("other")
+        client2.try_lock_resource("scene")
+        assert not client1.try_set_resource_value("scene", scene)
+
 
 def test_cant_set_non_value(server_client_pair):
     """

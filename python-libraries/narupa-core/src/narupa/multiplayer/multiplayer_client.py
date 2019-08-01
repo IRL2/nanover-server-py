@@ -141,8 +141,8 @@ class MultiplayerClient(object):
         request = mult_proto.SubscribeAllResourceValuesRequest()
         self.threadpool.submit(self._join_scene_properties_stream, request)
 
-    def try_lock_resource(self, resource_id, player_id=None):
-        lock_request = mult_proto.AcquireLockRequest(player_id=player_id or self.player_id,
+    def try_lock_resource(self, resource_id):
+        lock_request = mult_proto.AcquireLockRequest(player_id=self.player_id,
                                                      resource_id=resource_id)
         reply = self.stub.AcquireResourceLock(lock_request)
         return reply.success
