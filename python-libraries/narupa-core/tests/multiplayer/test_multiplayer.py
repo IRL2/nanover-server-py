@@ -59,16 +59,8 @@ def test_join_multiplayer_twice(multiplayer_server_client):
     assert player_id == "1"
 
 
-def test_publish_avatar_not_joined(multiplayer_server_client):
-    multiplayer_server, multiplayer_client = multiplayer_server_client
-    with pytest.raises(RuntimeError):
-        result = multiplayer_client.join_avatar_stream()
-        print('Result', result)
-
-
 def test_join_avatar_stream(multiplayer_server_client):
     multiplayer_server, multiplayer_client = multiplayer_server_client
-    multiplayer_client.join_multiplayer(player_name="user", join_streams=False)
     multiplayer_client.join_avatar_stream()
 
 
@@ -89,26 +81,49 @@ def test_join_avatar_stream_twice(multiplayer_server_client):
 
 def test_join_publish_avatar(multiplayer_server_client):
     multiplayer_server, multiplayer_client = multiplayer_server_client
-    multiplayer_client.join_multiplayer(player_name="user", join_streams=False)
+    multiplayer_client.join_multiplayer(player_name="user")
     multiplayer_client.join_avatar_publish()
 
 
-def test_publish_avatar(multiplayer_server_client):
+def test_publish_avatar_to_self(multiplayer_server_client, avatar):
     multiplayer_server, multiplayer_client = multiplayer_server_client
-    player_id = multiplayer_client.join_multiplayer(player_name="user", join_streams=True)
+    player_id = multiplayer_client.join_multiplayer(player_name="user")
     time.sleep(0.05)
 
-    components = [AvatarComponent(name="Head", position=[0, 0, 1], rotation=[1, 1, 1, 1])]
-    avatar = Avatar(player_id=player_id, component=components)
+    multiplayer_client.join_avatar_publish()
+    multiplayer_client.join_avatar_stream(ignore_self=False)
+    time.sleep(0.05)
+
+    avatar.player_id = player_id
     multiplayer_client.publish_avatar(avatar)
-
     time.sleep(0.05)
-    assert len(multiplayer_client.current_avatars) == 1
+
+    assert str(multiplayer_client.current_avatars[player_id]) == str(avatar)
+
+
+def test_publish_avatar_ignore_self(multiplayer_server_client, avatar):
+    multiplayer_server, multiplayer_client = multiplayer_server_client
+    player_id = multiplayer_client.join_multiplayer(player_name="user")
+    time.sleep(0.05)
+
+    multiplayer_client.join_avatar_publish()
+    multiplayer_client.join_avatar_stream(ignore_self=True)
+    time.sleep(0.05)
+
+    avatar.player_id = player_id
+    multiplayer_client.publish_avatar(avatar)
+    time.sleep(0.05)
+
+    assert len(multiplayer_client.current_avatars) == 0
 
 
 def test_publish_avatar_multiple_transmission(multiplayer_server_client, avatar):
     multiplayer_server, multiplayer_client = multiplayer_server_client
-    player_id = multiplayer_client.join_multiplayer(player_name="user", join_streams=True)
+    player_id = multiplayer_client.join_multiplayer(player_name="user")
+    time.sleep(0.05)
+
+    multiplayer_client.join_avatar_publish()
+    multiplayer_client.join_avatar_stream(ignore_self=False)
     time.sleep(0.05)
 
     multiplayer_client.publish_avatar(avatar)
@@ -117,8 +132,9 @@ def test_publish_avatar_multiple_transmission(multiplayer_server_client, avatar)
     avatar.component[0].position[:] = [0, 0, 3]
     multiplayer_client.publish_avatar(avatar)
     time.sleep(0.05)
-    assert len(multiplayer_client.current_avatars) == 1
-    assert multiplayer_client.current_avatars[player_id].component[0].position == [0, 0, 3]
+
+    client_avatar = multiplayer_client.current_avatars[player_id]
+    assert client_avatar.component[0].position == [0, 0, 3]
 
 
 @pytest.fixture

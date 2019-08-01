@@ -12,29 +12,19 @@ from typing import Iterator
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
 from narupa.multiplayer.resource_change_buffer import ResourceChangeBuffer
 from narupa.multiplayer.lockable_resource_map import LockableResourceMap, ResourceLockedException
-from narupa.multiplayer.pubsub import PubSub
 from narupa.protocol.multiplayer.multiplayer_pb2 import StreamEndedResponse, Avatar, ResourceRequestResponse, SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse, SubscribePlayerAvatarsRequest, ResourceValuesUpdate
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
 
 
 class MultiplayerService(MultiplayerServicer):
-    """
-    A generic multiplayer service.
-    Provides player IDs for multiplayer sessions, as well as streams for synchronising avatars and the properties
-    of the shared multiplayer scene.
-
-    :param max_avatar_queue_size: Maximum number of avatar requests to place in queue.
-    :param send_self: Whether to publish updates back to self.
-
-    """
-    def __init__(self, max_avatar_queue_size: int = 10):
+    def __init__(self):
         super().__init__()
 
         self.players = {}
-        self.avatar_pubsub = PubSub(max_avatar_queue_size)
-        self.scene_pubsub = PubSub(max_avatar_queue_size)
-        self.max_queue_size = max_avatar_queue_size
         self.logger = logging.getLogger(__name__)
+
+        self._avatar_change_buffers_lock = Lock()
+        self._avatar_change_buffers = set()
 
         self._change_buffers_lock = Lock()
         self._change_buffers = set()
@@ -43,12 +33,6 @@ class MultiplayerService(MultiplayerServicer):
     def CreatePlayer(self,
                      request: CreatePlayerRequest,
                      context) -> CreatePlayerResponse:
-        """
-        Adds the player to the multiplayer service.
-        :param request: Request to join multiplayer.
-        :param context: gRPC context.
-        :return: A message containing the assigned player ID.
-        """
         player_id = self.generate_player_id()
         self.players[player_id] = request
         self.logger.info(f'{request.player_name} ({player_id}) has joined multiplayer.')
@@ -57,21 +41,20 @@ class MultiplayerService(MultiplayerServicer):
     def SubscribePlayerAvatars(self,
                                request: SubscribePlayerAvatarsRequest,
                                context) -> Avatar:
-        outgoing_id = str(time.monotonic())
-        for publication in self.avatar_pubsub.subscribe(outgoing_id, context):
-            self.logger.debug(f'Publishing avatar to stream {outgoing_id}')
-            yield publication
+        change_buffer = self._create_avatar_change_buffer()
+        while context.is_active():
+            changes = change_buffer.flush_changed()
+            if changes:
+                for player_id, avatar in changes.items():
+                    if player_id != request.ignore_player_id:
+                        yield avatar
+            time.sleep(request.update_interval)
 
     def UpdatePlayerAvatar(self,
                            request_iterator: Iterator,
                            context) -> StreamEndedResponse:
-        """
-        Publish avatar to the avatar stream.
-        :param request_iterator: Stream of avatar publications from the client.
-        :param context: gRPC context.
-        :return: Reply indicating success once stream has ended.
-        """
-        self.avatar_pubsub.start_publish(request_iterator, context)
+        for avatar in request_iterator:
+            self._buffer_avatar_change(avatar.player_id, avatar)
         return StreamEndedResponse()
 
     def SubscribeAllResourceValues(self, request, context):
@@ -82,14 +65,15 @@ class MultiplayerService(MultiplayerServicer):
             entry.MergeFrom(value)
         yield initial_values
 
-        while True:
+        while context.is_active():
             response = ResourceValuesUpdate()
             changes = change_buffer.flush_changed()
-            for key, value in changes.items():
-                entry = response.resource_value_changes.get_or_create(key)
-                entry.MergeFrom(value)
-            yield response
-            time.sleep(1/30) # TODO: give change buffers a wait function
+            if changes:
+                for key, value in changes.items():
+                    entry = response.resource_value_changes.get_or_create(key)
+                    entry.MergeFrom(value)
+                yield response
+            time.sleep(request.update_interval)  # TODO: give change buffers a wait function
 
     def AcquireResourceLock(self,
                             request: multiplayer_proto.AcquireLockRequest,
@@ -127,6 +111,17 @@ class MultiplayerService(MultiplayerServicer):
 
         self.logger.debug(f'{request.player_id} attempts {request.resource_id}={request.resource_value} (Successs: {success})')
         return ResourceRequestResponse(success=success)
+
+    def _create_avatar_change_buffer(self):
+        buffer = ResourceChangeBuffer()
+        with self._avatar_change_buffers_lock:
+            self._avatar_change_buffers.add(buffer)
+        return buffer
+
+    def _buffer_avatar_change(self, player_id, avatar):
+        with self._avatar_change_buffers_lock:
+            for buffer in self._avatar_change_buffers:
+                buffer.set_changed(player_id, avatar)
 
     def _create_change_buffer(self):
         buffer = ResourceChangeBuffer()

@@ -97,12 +97,12 @@ class MultiplayerClient(object):
 
         return self._player_id
 
-    def join_avatar_stream(self):
+    def join_avatar_stream(self, ignore_self=True):
         """
         Joins the avatar stream, which will start receiving avatar updates in the background.
         """
-        self._assert_has_player_id()
-        request = mult_proto.SubscribePlayerAvatarsRequest(ignore_player_id=self.player_id)
+        ignore = self.player_id if ignore_self else None
+        request = mult_proto.SubscribePlayerAvatarsRequest(ignore_player_id=ignore)
         self.threadpool.submit(self._join_avatar_stream, request)
 
     def join_avatar_publish(self):
@@ -165,9 +165,8 @@ class MultiplayerClient(object):
 
     @_end_upon_channel_close
     def _join_avatar_stream(self, request):
-        for publication in self.stub.SubscribePlayerAvatars(request):
-            self.current_avatars[publication.player_id] = publication
-            time.sleep(self.pubsub_rate / min(1, len(self.current_avatars)))
+        for avatar in self.stub.SubscribePlayerAvatars(request):
+            self.current_avatars[avatar.player_id] = avatar
 
     @_end_upon_channel_close
     def _join_avatar_publish(self):
@@ -176,12 +175,8 @@ class MultiplayerClient(object):
     def _publish_avatar(self):
         while True:
             time.sleep(self.pubsub_rate)
-            try:
-                avatar = self._avatar_queue.get(block=True, timeout=0.5)
-            except Empty:
-                pass
-            else:
-                yield avatar
+            avatar = self._avatar_queue.get(block=True)
+            yield avatar
 
     @_end_upon_channel_close
     def _join_scene_properties(self, request):

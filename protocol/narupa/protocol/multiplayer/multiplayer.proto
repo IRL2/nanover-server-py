@@ -48,8 +48,10 @@ message Avatar {
 }
 
 message SubscribePlayerAvatarsRequest {
+    // Interval between update sends.
+    float update_interval = 1;
     // ID of player to ignore (usually either your own ID or none).
-    string ignore_player_id = 1;
+    string ignore_player_id = 2;
 }
 
 message CreatePlayerRequest {
