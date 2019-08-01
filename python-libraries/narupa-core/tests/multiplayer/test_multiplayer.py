@@ -6,8 +6,6 @@ Integration tests of the multiplayer server with the reference multiplayer clien
 """
 
 import time
-
-import grpc
 import pytest
 
 from narupa.multiplayer.multiplayer_client import MultiplayerClient
@@ -40,7 +38,9 @@ def multiplayer_server_client(multiplayer_server):
 
 @pytest.fixture
 def avatar():
-    components = [AvatarComponent(name="Head", position=[0, 0, 1], rotation=[1, 1, 1, 1])]
+    components = [AvatarComponent(name="Head",
+                                  position=[0, 0, 1],
+                                  rotation=[1, 1, 1, 1])]
     avatar = Avatar(player_id="1", component=components)
     return avatar
 
@@ -127,50 +127,49 @@ def test_scene():
     pose["position"] = {"x": 1, "y": 1, "z": 1}
     pose["rotation"] = {"x": 0, "y": 0, "z": 0, "w": 1}
     pose["scale"] = 1
-
     return Value(struct_value=pose)
 
 
-def test_can_lock_unlocked_scene(multiplayer_server_client):
+def test_can_lock_unlocked(multiplayer_server_client):
     server, client = multiplayer_server_client
-    assert client.try_lock_scene()
+    assert client.try_lock_resource("scene")
 
 
-def test_can_lock_own_locked_scene(multiplayer_server_client):
+def test_can_lock_own_locked(multiplayer_server_client):
     server, client = multiplayer_server_client
-    client.try_lock_scene()
-    assert client.try_lock_scene()
+    client.try_lock_resource("scene")
+    assert client.try_lock_resource("scene")
 
 
 def test_can_release_own_lock(multiplayer_server_client):
     server, client = multiplayer_server_client
-    client.try_lock_scene()
-    assert client.try_unlock_scene()
+    client.try_lock_resource("scene")
+    assert client.try_release_resource("scene")
 
 
 def test_can_set_unlocked(multiplayer_server_client, test_scene):
     server, client = multiplayer_server_client
-    assert client.set_scene_properties(test_scene)
+    assert client.try_set_resource_value("scene", test_scene)
 
 
 def test_can_set_own_locked(multiplayer_server_client, test_scene):
     server, client = multiplayer_server_client
-    client.try_lock_scene()
-    assert client.set_scene_properties(test_scene)
+    client.try_lock_resource("scene")
+    assert client.try_set_resource_value("scene", test_scene)
 
 
 def test_set_value_updates_server_values(multiplayer_server_client, test_scene):
     server, client = multiplayer_server_client
-    client.set_scene_properties(test_scene)
+    client.try_set_resource_value("scene", test_scene)
     server_scene = server.multiplayer_service.resources.get("scene")
     assert str(test_scene) == str(server_scene)
 
 
 def test_set_value_sends_update(multiplayer_server_client, test_scene):
     server, client = multiplayer_server_client
-    client.join_scene_properties_stream()
+    client.subscribe_all_value_updates()
     time.sleep(0.1)
-    client.set_scene_properties(test_scene)
+    client.try_set_resource_value("scene", test_scene)
     time.sleep(0.1)
     recv_scene = client.resources.get("scene")
     assert str(test_scene) == str(recv_scene)
@@ -178,27 +177,27 @@ def test_set_value_sends_update(multiplayer_server_client, test_scene):
 
 def test_server_sends_initial_values(multiplayer_server_client, test_scene):
     server, client = multiplayer_server_client
-    client.set_scene_properties(test_scene)
+    client.try_set_resource_value("scene", test_scene)
     time.sleep(0.1)
     assert client.resources.get("scene") is None
-    client.join_scene_properties_stream()
+    client.subscribe_all_value_updates()
     time.sleep(0.1)
     assert str(client.resources.get("scene")) == str(test_scene)
 
 
-def test_cant_lock_other_locked_scene(multiplayer_server_client):
+def test_cant_lock_other_locked(multiplayer_server_client):
     server, client = multiplayer_server_client
-    client.try_lock_scene(player_id="fake")
-    assert not client.try_lock_scene()
+    client.try_lock_resource("scene", player_id="fake")
+    assert not client.try_lock_resource("scene")
 
 
 def test_cant_release_other_lock(multiplayer_server_client):
     server, client = multiplayer_server_client
-    client.try_lock_scene(player_id="fake")
-    assert not client.try_unlock_scene()
+    client.try_lock_resource("scene", player_id="fake")
+    assert not client.try_release_resource("scene")
 
 
 def test_cant_set_other_locked(multiplayer_server_client, test_scene):
     server, client = multiplayer_server_client
-    client.try_lock_scene(player_id="fake")
-    assert not client.set_scene_properties(test_scene)
+    client.try_lock_resource("scene", player_id="fake")
+    assert not client.try_set_resource_value("scene", test_scene)

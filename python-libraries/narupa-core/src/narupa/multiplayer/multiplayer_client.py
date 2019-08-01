@@ -93,7 +93,7 @@ class MultiplayerClient(object):
         if join_streams:
             self.join_avatar_stream()
             self.join_avatar_publish()
-            self.join_scene_properties_stream()
+            self.subscribe_all_value_updates()
 
         return self._player_id
 
@@ -101,7 +101,7 @@ class MultiplayerClient(object):
         """
         Joins the avatar stream, which will start receiving avatar updates in the background.
         """
-        self._ensure_joined_multiplayer()
+        self._assert_has_player_id()
         request = mult_proto.SubscribePlayerAvatarsRequest(ignore_player_id=self.player_id)
         self.threadpool.submit(self._join_avatar_stream, request)
 
@@ -110,7 +110,7 @@ class MultiplayerClient(object):
         Joins the avatar publishing stream.
         Use publish_avatar to publish.
         """
-        self._ensure_joined_multiplayer()
+        self._assert_has_player_id()
         self.threadpool.submit(self._join_avatar_publish)
 
     def publish_avatar(self, avatar):
@@ -136,30 +136,30 @@ class MultiplayerClient(object):
         """
         return self.player_id is not None
 
-    def join_scene_properties_stream(self):
+    def subscribe_all_value_updates(self):
         request = mult_proto.SubscribeAllResourceValuesRequest()
         self.threadpool.submit(self._join_scene_properties_stream, request)
 
-    def try_lock_scene(self, player_id=None):
+    def try_lock_resource(self, resource_id, player_id=None):
         lock_request = mult_proto.AcquireLockRequest(player_id=player_id or self.player_id,
-                                                     resource_id="scene")
+                                                     resource_id=resource_id)
         reply = self.stub.AcquireResourceLock(lock_request)
         return reply.success
 
-    def try_unlock_scene(self):
+    def try_release_resource(self, resource_id):
         lock_request = mult_proto.ReleaseLockRequest(player_id=self.player_id,
-                                                     resource_id="scene")
+                                                     resource_id=resource_id)
         reply = self.stub.ReleaseResourceLock(lock_request)
         return reply.success
 
-    def set_scene_properties(self, value) -> bool:
+    def try_set_resource_value(self, resource_id, value) -> bool:
         request = mult_proto.SetResourceValueRequest(player_id=self.player_id,
-                                                     resource_id="scene",
+                                                     resource_id=resource_id,
                                                      resource_value=value)
         response = self.stub.SetResourceValue(request)
         return response.success
 
-    def _ensure_joined_multiplayer(self):
+    def _assert_has_player_id(self):
         if not self.joined_multiplayer:
             raise RuntimeError("Join multiplayer before attempting this operation.")
 
