@@ -19,26 +19,21 @@ class MultiplayerServer(GrpcServer):
 
     :param address: The IP or web address to run the server on.
     :param port: The port to run the server on.
-    :param send_self: Whether to subscribe to own publications (e.g. receive own avatar).
-
     """
-
-    multiplayer_service: MultiplayerService
+    _multiplayer_service: MultiplayerService
 
     def __init__(self, *, address: Optional[str] = None,
                  port: Optional[int] = None):
-        if address is None:
-            address = DEFAULT_SERVE_ADDRESS
-        port = get_requested_port_or_default(port, DEFAULT_PORT)
-        self.address = address
+        address = address or DEFAULT_SERVE_ADDRESS
+        port = port or DEFAULT_PORT
         super().__init__(address=address, port=port)
 
     def setup_services(self):
         super().setup_services()
-        self.multiplayer_service = MultiplayerService()
+        self._multiplayer_service = MultiplayerService()
         multiplayer_proto_grpc.add_MultiplayerServicer_to_server(
-            self.multiplayer_service, self.server)
+            self._multiplayer_service, self.server)
 
     def close(self):
         super().close()
-        self.multiplayer_service.close()
+        self._multiplayer_service.close()

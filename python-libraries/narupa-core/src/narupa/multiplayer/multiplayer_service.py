@@ -15,6 +15,7 @@ from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
 
 
 class MultiplayerService(MultiplayerServicer):
+    """Implementation of the Multiplayer service."""
     def __init__(self):
         super().__init__()
 
@@ -28,6 +29,7 @@ class MultiplayerService(MultiplayerServicer):
     def CreatePlayer(self,
                      request: CreatePlayerRequest,
                      context) -> CreatePlayerResponse:
+        """Create a new unique player and return their id."""
         player_id = self.generate_player_id()
         self.players[player_id] = request
         self.logger.info(f'{request.player_name} ({player_id}) has joined multiplayer.')
@@ -36,6 +38,7 @@ class MultiplayerService(MultiplayerServicer):
     def SubscribePlayerAvatars(self,
                                request: SubscribePlayerAvatarsRequest,
                                context) -> Avatar:
+        """Provides a stream of updates to player avatars."""
         for changes in self._avatars.subscribe_updates(request.update_interval):
             for player_id, avatar in changes.items():
                 if player_id != request.ignore_player_id:
@@ -44,11 +47,13 @@ class MultiplayerService(MultiplayerServicer):
     def UpdatePlayerAvatar(self,
                            request_iterator: Iterator,
                            context) -> StreamEndedResponse:
+        """Accepts a stream of avatar updates."""
         for avatar in request_iterator:
             self._avatars.update({avatar.player_id: avatar})
         return StreamEndedResponse()
 
     def SubscribeAllResourceValues(self, request, context):
+        """Provides a stream of updates to a shared key/value store."""
         for changes in self._resources.subscribe_updates(interval=request.update_interval):
             response = ResourceValuesUpdate()
             for key, value in changes.items():
@@ -59,6 +64,8 @@ class MultiplayerService(MultiplayerServicer):
     def AcquireResourceLock(self,
                             request: multiplayer_proto.AcquireLockRequest,
                             context) -> ResourceRequestResponse:
+        """Attempt to acquire exclusive write access to a key in the shared
+        key/value store."""
         try:
             self.resources.lock_key(request.player_id, request.resource_id)
             success = True
@@ -71,6 +78,8 @@ class MultiplayerService(MultiplayerServicer):
     def ReleaseResourceLock(self,
                             request: multiplayer_proto.ReleaseLockRequest,
                             context) -> ResourceRequestResponse:
+        """Attempt to release exclusive write access to a key in the shared
+        key/value store."""
         try:
             self.resources.release_key(request.player_id, request.resource_id)
             success = True
@@ -81,6 +90,7 @@ class MultiplayerService(MultiplayerServicer):
     def SetResourceValue(self,
                          request: SetResourceValueRequest,
                          context) -> ResourceRequestResponse:
+        """Attempt to write a value in the shared key/value store."""
         try:
             self.resources.set(request.player_id,
                                request.resource_id,
@@ -104,5 +114,3 @@ class MultiplayerService(MultiplayerServicer):
     def close(self):
         self._avatars.close()
         self._resources.close()
-
-

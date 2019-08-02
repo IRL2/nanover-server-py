@@ -45,11 +45,11 @@ def main():
     server = MultiplayerServer(address=arguments.address, port=arguments.port)
     
     if arguments.verbose:
-        server.multiplayer_service.logger.setLevel("INFO")
+        server._multiplayer_service.logger.setLevel("INFO")
     if arguments.debug:
-        server.multiplayer_service.logger.setLevel("DEBUG")
+        server._multiplayer_service.logger.setLevel("DEBUG")
     if arguments.verbose or arguments.debug:
-        server.multiplayer_service.logger.addHandler(StreamHandler())
+        server._multiplayer_service.logger.addHandler(StreamHandler())
 
     print(f'Serving multiplayer on port {server.port}')
 

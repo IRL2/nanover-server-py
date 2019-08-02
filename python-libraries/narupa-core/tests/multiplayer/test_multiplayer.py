@@ -258,7 +258,7 @@ def test_set_value_updates_server_values(server_client_pair, scene):
     """
     server, client = server_client_pair
     client.try_set_resource_value("scene", scene)
-    server_scene = server.multiplayer_service.resources.get("scene")
+    server_scene = server._multiplayer_service.resources.get("scene")
     assert str(scene) == str(server_scene)
 
 
