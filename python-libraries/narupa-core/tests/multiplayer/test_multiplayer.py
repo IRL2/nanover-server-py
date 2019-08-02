@@ -11,8 +11,11 @@ import pytest
 from narupa.multiplayer.multiplayer_client import MultiplayerClient
 from narupa.multiplayer.multiplayer_server import MultiplayerServer
 from narupa.protocol.multiplayer.multiplayer_pb2 import Avatar, AvatarComponent
-import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 from google.protobuf.struct_pb2 import Value, Struct
+
+
+CONNECT_WAIT_TIME = 0.05
+IMMEDIATE_REPLY_WAIT_TIME = 0.01
 
 
 @pytest.fixture
@@ -105,11 +108,11 @@ def test_publish_avatar_to_self(server_client_pair, avatar):
     player_id = client.join_multiplayer(player_name="user")
     client.join_avatar_publish()
     client.join_avatar_stream(ignore_self=False)
-    time.sleep(0.05)
+    time.sleep(CONNECT_WAIT_TIME)
 
     avatar.player_id = player_id
     client.publish_avatar(avatar)
-    time.sleep(0.05)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     assert str(client.current_avatars[player_id]) == str(avatar)
 
@@ -123,11 +126,11 @@ def test_publish_avatar_ignore_self(server_client_pair, avatar):
     player_id = client.join_multiplayer(player_name="user")
     client.join_avatar_publish()
     client.join_avatar_stream()
-    time.sleep(0.05)
+    time.sleep(CONNECT_WAIT_TIME)
 
     avatar.player_id = player_id
     client.publish_avatar(avatar)
-    time.sleep(0.05)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     assert len(client.current_avatars) == 0
 
@@ -141,17 +144,56 @@ def test_publish_avatar_multiple_transmission(server_client_pair, avatar):
     player_id = client.join_multiplayer(player_name="user")
     client.join_avatar_publish()
     client.join_avatar_stream(ignore_self=False)
-    time.sleep(0.05)
+    time.sleep(CONNECT_WAIT_TIME)
 
     client.publish_avatar(avatar)
     avatar.component[0].position[:] = [0, 0, 2]
     client.publish_avatar(avatar)
     avatar.component[0].position[:] = [0, 0, 3]
     client.publish_avatar(avatar)
-    time.sleep(0.05)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 3)
 
     client_avatar = client.current_avatars[player_id]
     assert client_avatar.component[0].position == [0, 0, 3]
+
+
+@pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
+def test_subscribe_avatars_sends_initial_immediately(server_client_pair, avatar,
+                                                     update_interval):
+    server, client = server_client_pair
+    player_id = client.join_multiplayer("main", join_streams=False)
+    client.join_avatar_stream(interval=update_interval, ignore_self=False)
+    client.join_avatar_publish()
+    time.sleep(CONNECT_WAIT_TIME)
+
+    client.publish_avatar(avatar)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    assert str(client.current_avatars[player_id]) == str(avatar)
+
+
+@pytest.mark.parametrize('update_interval', (.5, .2, .1))
+def test_subscribe_avatars_interval(server_client_pair, avatar, update_interval):
+    server, client = server_client_pair
+    client.join_multiplayer("main", join_streams=False)
+    client.join_avatar_stream(interval=update_interval, ignore_self=False)
+    client.join_avatar_publish()
+
+    test_values = [Avatar() for i in range(5)]
+    for i, value in enumerate(test_values):
+        value.CopyFrom(avatar)
+        value.component[0].position[:] = [i, i, i]
+
+    time.sleep(CONNECT_WAIT_TIME)
+    client.publish_avatar(test_values[0])
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+
+    client.publish_avatar(test_values[1])
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    assert str(client.current_avatars[client.player_id]) == str(test_values[0])
+
+    client.publish_avatar(test_values[2])
+    time.sleep(update_interval)
+    assert str(client.current_avatars[client.player_id]) == str(test_values[2])
 
 
 def test_can_lock_unlocked(server_client_pair):
@@ -199,6 +241,7 @@ def test_set_unlocked_repeated(server_client_pair, scene):
         assert client1.try_set_resource_value("scene", scene)
         assert client2.try_set_resource_value("scene", scene)
 
+
 def test_can_set_own_locked(server_client_pair, scene):
     """
     Test that you can set a resource value if you have locked it.
@@ -233,9 +276,9 @@ def test_set_value_sends_update(server_client_pair, scene):
     """
     server, client = server_client_pair
     client.subscribe_all_value_updates()
-    time.sleep(0.1)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     client.try_set_resource_value("scene", scene)
-    time.sleep(0.1)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     recv_scene = client.resources.get("scene")
     assert str(scene) == str(recv_scene)
 
@@ -247,10 +290,10 @@ def test_server_sends_initial_values(server_client_pair, scene):
     """
     server, client = server_client_pair
     client.try_set_resource_value("scene", scene)
-    time.sleep(0.1)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     assert client.resources.get("scene") is None
     client.subscribe_all_value_updates()
-    time.sleep(0.1)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     assert str(client.resources.get("scene")) == str(scene)
 
 
@@ -298,3 +341,38 @@ def test_cant_set_non_value(server_client_pair):
     server, client = server_client_pair
     with pytest.raises(TypeError):
         client.try_set_resource_value("scene", "hello")
+
+
+@pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
+def test_subscribe_value_sends_initial_immediately(server_client_pair,
+                                                   update_interval):
+    server, client = server_client_pair
+    client.join_multiplayer("main", join_streams=False)
+    client.subscribe_all_value_updates(interval=update_interval)
+
+    test_value = Value(string_value=f"hello")
+
+    time.sleep(CONNECT_WAIT_TIME)
+    client.try_set_resource_value("test", test_value)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    assert str(client.resources.get("test")) == str(test_value)
+
+
+@pytest.mark.parametrize('update_interval', (.5, .2, .1))
+def test_subscribe_value_interval(server_client_pair, update_interval):
+    server, client = server_client_pair
+    client.join_multiplayer("main", join_streams=False)
+    client.subscribe_all_value_updates(interval=update_interval)
+    test_values = [Value(string_value=f"hello {i}") for i in range(5)]
+    time.sleep(CONNECT_WAIT_TIME)
+
+    client.try_set_resource_value("test", test_values[0])
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+
+    client.try_set_resource_value("test", test_values[1])
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    assert str(client.resources.get("test")) == str(test_values[0])
+
+    client.try_set_resource_value("test", test_values[2])
+    time.sleep(update_interval)
+    assert str(client.resources.get("test")) == str(test_values[2])

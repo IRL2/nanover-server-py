@@ -49,7 +49,7 @@ class MultiplayerService(MultiplayerServicer):
         return StreamEndedResponse()
 
     def SubscribeAllResourceValues(self, request, context):
-        for changes in self._resources.subscribe_updates(request.update_interval):
+        for changes in self._resources.subscribe_updates(interval=request.update_interval):
             response = ResourceValuesUpdate()
             for key, value in changes.items():
                 entry = response.resource_value_changes.get_or_create(key)

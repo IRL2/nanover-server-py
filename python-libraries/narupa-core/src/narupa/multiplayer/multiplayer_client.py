@@ -6,7 +6,6 @@ Reference multiplayer client implementation.
 
 """
 
-import time
 from queue import Queue
 from typing import Dict
 from concurrent import futures
@@ -18,6 +17,7 @@ from narupa.core import DEFAULT_CONNECT_ADDRESS
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
+from narupa.multiplayer.dictionary_change_buffer import yield_interval
 
 
 def _end_upon_channel_close(function):
@@ -52,19 +52,13 @@ class MultiplayerClient(object):
     current_avatars: Dict[int, mult_proto.Avatar]
     _avatar_queue: Queue
 
-    def __init__(self, address=DEFAULT_CONNECT_ADDRESS, port=DEFAULT_PORT, pubsub_fps: float = 30, channel=None):
-
-        if channel is None:
-            self.channel = grpc.insecure_channel("{0}:{1}".format(address, port))
-            self.shared_channel = False
-        else:
-            self.channel = channel
-            self.shared_channel = True
+    def __init__(self, address=DEFAULT_CONNECT_ADDRESS, port=DEFAULT_PORT,
+                 send_interval: float = 1/60):
+        self.channel = grpc.insecure_channel(f"{address}:{port}")
         self.stub = mult_proto_grpc.MultiplayerStub(self.channel)
         self._player_id = None
+        self._send_interval = send_interval
         self._avatar_queue = Queue()
-        self.pubsub_fps = pubsub_fps
-        self.pubsub_rate = 1.0 / pubsub_fps
         self.current_avatars = {}
         self.closed = False
         self.resources = dict()
@@ -77,8 +71,7 @@ class MultiplayerClient(object):
         """
         self.closed = True
         self.threadpool.shutdown(wait=False)
-        if not self.shared_channel:
-            self.channel.close()
+        self.channel.close()
 
     def join_multiplayer(self, player_name, join_streams=True):
         """
@@ -98,12 +91,13 @@ class MultiplayerClient(object):
 
         return self._player_id
 
-    def join_avatar_stream(self, ignore_self=True):
+    def join_avatar_stream(self, interval=0, ignore_self=True):
         """
         Joins the avatar stream, which will start receiving avatar updates in the background.
         """
         ignore = self.player_id if ignore_self else None
-        request = mult_proto.SubscribePlayerAvatarsRequest(ignore_player_id=ignore)
+        request = mult_proto.SubscribePlayerAvatarsRequest(ignore_player_id=ignore,
+                                                           update_interval=interval)
         self.threadpool.submit(self._join_avatar_stream, request)
 
     def join_avatar_publish(self):
@@ -137,8 +131,8 @@ class MultiplayerClient(object):
         """
         return self.player_id is not None
 
-    def subscribe_all_value_updates(self):
-        request = mult_proto.SubscribeAllResourceValuesRequest()
+    def subscribe_all_value_updates(self, interval=0):
+        request = mult_proto.SubscribeAllResourceValuesRequest(update_interval=interval)
         self.threadpool.submit(self._join_scene_properties_stream, request)
 
     def try_lock_resource(self, resource_id):
@@ -177,8 +171,7 @@ class MultiplayerClient(object):
         self.stub.UpdatePlayerAvatar(self._publish_avatar())
 
     def _publish_avatar(self):
-        while True:
-            time.sleep(self.pubsub_rate)
+        for dt in yield_interval(self._send_interval):
             avatar = self._avatar_queue.get(block=True)
             yield avatar
 
@@ -187,7 +180,6 @@ class MultiplayerClient(object):
         for update in self.stub.SubscribeAllResourceValues(request):
             for key, value in update.resource_value_changes.items():
                 self.resources[key] = value
-            time.sleep(self.pubsub_rate)
 
     @_end_upon_channel_close
     def _join_scene_properties_stream(self, request):
