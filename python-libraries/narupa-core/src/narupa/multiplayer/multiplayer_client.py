@@ -14,6 +14,7 @@ import grpc
 from google.protobuf.struct_pb2 import Value
 
 from narupa.core import DEFAULT_CONNECT_ADDRESS
+from narupa.core.request_queues import SingleItemQueue
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
@@ -58,7 +59,7 @@ class MultiplayerClient(object):
         self.stub = mult_proto_grpc.MultiplayerStub(self.channel)
         self._player_id = None
         self._send_interval = send_interval
-        self._avatar_queue = Queue()
+        self._avatar_queue = SingleItemQueue()
         self.current_avatars = {}
         self.closed = False
         self.resources = dict()
