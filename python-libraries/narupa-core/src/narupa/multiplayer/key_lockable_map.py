@@ -11,15 +11,19 @@ class KeyLockableMap:
         self._locks = dict()
         self._values = dict()
 
+    def can_lock(self, player_id, key):
+        with self._lock:
+            return self._locks.get(key, player_id) == player_id
+
     def lock_key(self, owner_id, key):
         with self._lock:
-            if self._locks.get(key, owner_id) != owner_id:
+            if not self.can_lock(owner_id, key):
                 raise ResourceLockedException
             self._locks[key] = owner_id
 
     def release_key(self, owner_id, key):
         with self._lock:
-            if self._locks.get(key, owner_id) != owner_id:
+            if not self.can_lock(owner_id, key):
                 raise ResourceLockedException
             del self._locks[key]
 
@@ -29,7 +33,7 @@ class KeyLockableMap:
 
     def set(self, owner_id, key, value):
         with self._lock:
-            if self._locks.get(key, owner_id) != owner_id:
+            if not self.can_lock(owner_id, key):
                 raise ResourceLockedException
             self._values[key] = value
 

@@ -5,12 +5,10 @@
 Module providing an implementation of a multiplayer service,.
 """
 import logging
-import time
-from threading import Lock
 from typing import Iterator
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
-from narupa.multiplayer.dictionary_change_buffer import DictionaryChangeBuffer
+from narupa.multiplayer.dictionary_change_buffer import DictionaryChangeMultiView, ObjectClosedException
 from narupa.multiplayer.key_lockable_map import KeyLockableMap, ResourceLockedException
 from narupa.protocol.multiplayer.multiplayer_pb2 import StreamEndedResponse, Avatar, ResourceRequestResponse, SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse, SubscribePlayerAvatarsRequest, ResourceValuesUpdate
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
@@ -23,11 +21,8 @@ class MultiplayerService(MultiplayerServicer):
         self.players = {}
         self.logger = logging.getLogger(__name__)
 
-        self._avatar_change_buffers_lock = Lock()
-        self._avatar_change_buffers = set()
-
-        self._change_buffers_lock = Lock()
-        self._change_buffers = set()
+        self._avatars = DictionaryChangeMultiView()
+        self._resources = DictionaryChangeMultiView()
         self.resources = KeyLockableMap()
 
     def CreatePlayer(self,
@@ -41,41 +36,37 @@ class MultiplayerService(MultiplayerServicer):
     def SubscribePlayerAvatars(self,
                                request: SubscribePlayerAvatarsRequest,
                                context) -> Avatar:
-        change_buffer = self._create_avatar_change_buffer()
+        change_buffer = self._avatars.create_view()
         while context.is_active():
-            changes = change_buffer.flush_changed_blocking()
-            if changes:
+            try:
+                changes = change_buffer.flush_changed_blocking()
                 for player_id, avatar in changes.items():
                     if player_id != request.ignore_player_id:
                         yield avatar
-            #time.sleep(request.update_interval)
+                #time.sleep(request.update_interval)
+            except ObjectClosedException:
+                pass
 
     def UpdatePlayerAvatar(self,
                            request_iterator: Iterator,
                            context) -> StreamEndedResponse:
         for avatar in request_iterator:
-            self._buffer_avatar_change(avatar.player_id, avatar)
+            self._avatars.update({avatar.player_id: avatar})
         return StreamEndedResponse()
 
     def SubscribeAllResourceValues(self, request, context):
-        change_buffer = self._create_change_buffer()
-        initial_values = ResourceValuesUpdate()
-        for key, value in self.resources.get_all().items():
-            entry = initial_values.resource_value_changes.get_or_create(key)
-            entry.MergeFrom(value)
-        yield initial_values
-
+        change_buffer = self._resources.create_view()
         while context.is_active():
-            response = ResourceValuesUpdate()
-            changes = change_buffer.flush_changed_blocking()
-            if changes:
+            try:
+                changes = change_buffer.flush_changed_blocking()
+                response = ResourceValuesUpdate()
                 for key, value in changes.items():
                     entry = response.resource_value_changes.get_or_create(key)
                     entry.MergeFrom(value)
                 yield response
-            else:
+                # time.sleep(request.update_interval)  # TODO: give change buffers a wait function
+            except ObjectClosedException:
                 break
-            #time.sleep(request.update_interval)  # TODO: give change buffers a wait function
 
     def AcquireResourceLock(self,
                             request: multiplayer_proto.AcquireLockRequest,
@@ -107,34 +98,12 @@ class MultiplayerService(MultiplayerServicer):
                                request.resource_id,
                                request.resource_value)
             success = True
-            self._buffer_change(request.resource_id, request.resource_value)
+            self._resources.update({request.resource_id: request.resource_value})
         except ResourceLockedException:
             success = False
 
         self.logger.debug(f'{request.player_id} attempts {request.resource_id}={request.resource_value} (Successs: {success})')
         return ResourceRequestResponse(success=success)
-
-    def _create_avatar_change_buffer(self):
-        buffer = DictionaryChangeBuffer()
-        with self._avatar_change_buffers_lock:
-            self._avatar_change_buffers.add(buffer)
-        return buffer
-
-    def _buffer_avatar_change(self, player_id, avatar):
-        with self._avatar_change_buffers_lock:
-            for buffer in self._avatar_change_buffers:
-                buffer.update({player_id: avatar})
-
-    def _create_change_buffer(self):
-        buffer = DictionaryChangeBuffer()
-        with self._change_buffers_lock:
-            self._change_buffers.add(buffer)
-        return buffer
-
-    def _buffer_change(self, key, value):
-        with self._change_buffers_lock:
-            for buffer in self._change_buffers:
-                buffer.update({key: value})
 
     def generate_player_id(self):
         """
@@ -145,11 +114,7 @@ class MultiplayerService(MultiplayerServicer):
         return str(len(self.players) + 1)
 
     def close(self):
-        with self._avatar_change_buffers_lock:
-            for buffer in self._avatar_change_buffers:
-                buffer.close()
-        with self._change_buffers_lock:
-            for buffer in self._change_buffers:
-                buffer.close()
+        self._avatars.close()
+        self._resources.close()
 
 
