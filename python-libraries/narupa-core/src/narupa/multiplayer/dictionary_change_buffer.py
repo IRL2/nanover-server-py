@@ -30,10 +30,10 @@ class DictionaryChangeMultiView:
 
     def create_view(self):
         with self._lock:
-            if self._closed:
-                raise ObjectClosedException()
             view = DictionaryChangeBuffer()
             view.update(self._content)
+            if self._closed:
+                view.close()
             self._views.add(view)
             return view
 

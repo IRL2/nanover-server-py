@@ -160,6 +160,9 @@ def test_publish_avatar_multiple_transmission(server_client_pair, avatar):
 @pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
 def test_subscribe_avatars_sends_initial_immediately(server_client_pair, avatar,
                                                      update_interval):
+    """Test that subscribing avatars before any have been sent will immediately
+    send the first avatar regardless of interval.
+    """
     server, client = server_client_pair
     player_id = client.join_multiplayer("main", join_streams=False)
     client.join_avatar_stream(interval=update_interval, ignore_self=False)
@@ -173,6 +176,7 @@ def test_subscribe_avatars_sends_initial_immediately(server_client_pair, avatar,
 
 @pytest.mark.parametrize('update_interval', (.5, .2, .1))
 def test_subscribe_avatars_interval(server_client_pair, avatar, update_interval):
+    """Test that avatars updates are sent at the requested interval."""
     server, client = server_client_pair
     client.join_multiplayer("main", join_streams=False)
     client.join_avatar_stream(interval=update_interval, ignore_self=False)
@@ -336,7 +340,7 @@ def test_cant_set_other_locked(server_client_pair, scene):
 def test_cant_set_non_value(server_client_pair):
     """
     Test that setting a value to a non-grpc value raises the appropriate
-    :exception.
+    exception.
     """
     server, client = server_client_pair
     with pytest.raises(TypeError):
@@ -346,6 +350,9 @@ def test_cant_set_non_value(server_client_pair):
 @pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
 def test_subscribe_value_sends_initial_immediately(server_client_pair,
                                                    update_interval):
+    """Test that subscribing values before any have been sent will immediately
+    send the first update regardless of interval.
+    """
     server, client = server_client_pair
     client.join_multiplayer("main", join_streams=False)
     client.subscribe_all_value_updates(interval=update_interval)
@@ -360,6 +367,7 @@ def test_subscribe_value_sends_initial_immediately(server_client_pair,
 
 @pytest.mark.parametrize('update_interval', (.5, .2, .1))
 def test_subscribe_value_interval(server_client_pair, update_interval):
+    """Test that value updates are sent at the requested interval."""
     server, client = server_client_pair
     client.join_multiplayer("main", join_streams=False)
     client.subscribe_all_value_updates(interval=update_interval)

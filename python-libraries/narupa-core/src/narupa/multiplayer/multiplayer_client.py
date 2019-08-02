@@ -168,11 +168,13 @@ class MultiplayerClient(object):
 
     @_end_upon_channel_close
     def _join_avatar_publish(self):
-        self.stub.UpdatePlayerAvatar(self._publish_avatar())
+        response = self.stub.UpdatePlayerAvatar(self._publish_avatar())
 
     def _publish_avatar(self):
         for dt in yield_interval(self._send_interval):
             avatar = self._avatar_queue.get(block=True)
+            if avatar is None:
+                break
             yield avatar
 
     @_end_upon_channel_close
