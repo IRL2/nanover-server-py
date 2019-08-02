@@ -30,7 +30,6 @@ def handle_user_arguments() -> argparse.Namespace:
 
     parser.add_argument('-p', '--port', default=54323)
     parser.add_argument('-a', '--address', default='[::]')
-    parser.add_argument('-s', '--send-self', action="store_true", default=False)
     parser.add_argument('-v', '--verbose', action="store_true", default=False)
     parser.add_argument('-vv', '--debug', action="store_true", default=False)
     arguments = parser.parse_args()
@@ -43,7 +42,7 @@ def main():
     """
     arguments = handle_user_arguments()
     
-    server = MultiplayerServer(address=arguments.address, port=arguments.port, send_self=arguments.send_self)
+    server = MultiplayerServer(address=arguments.address, port=arguments.port)
     
     if arguments.verbose:
         server.multiplayer_service.logger.setLevel("INFO")
@@ -61,6 +60,7 @@ def main():
         print('Closing due to keyboard interrupt')
     finally:
         server.close()
+
 
 if __name__ == '__main__':
     main()

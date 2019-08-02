@@ -1,4 +1,20 @@
+import time
 from threading import Lock, Condition
+
+
+def yield_interval(interval):
+    """
+    Yield at a set interval, accounting for the time spent outside of this
+    function.
+    :param interval: Number of seconds to put between yields
+    """
+    last_yield = time.monotonic() - interval
+    while True:
+        time_since_yield = time.monotonic() - last_yield
+        wait_duration = max(0, interval - time_since_yield)
+        time.sleep(wait_duration)
+        yield time.monotonic() - last_yield
+        last_yield = time.monotonic()
 
 
 class ObjectClosedException(Exception):
@@ -20,6 +36,14 @@ class DictionaryChangeMultiView:
             view.update(self._content)
             self._views.add(view)
             return view
+
+    def subscribe_updates(self, interval=0):
+        view = self.create_view()
+        for dt in yield_interval(interval):
+            try:
+                yield view.flush_changed_blocking()
+            except ObjectClosedException:
+                break
 
     def update(self, updates):
         with self._lock:

@@ -7,7 +7,7 @@ Reference multiplayer client implementation.
 """
 
 import time
-from queue import Queue, Empty
+from queue import Queue
 from typing import Dict
 from concurrent import futures
 
