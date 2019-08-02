@@ -5,6 +5,7 @@
 Module providing an implementation of a multiplayer service,.
 """
 import logging
+import time
 from typing import Iterator
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
@@ -13,6 +14,28 @@ from narupa.multiplayer.key_lockable_map import KeyLockableMap, ResourceLockedEx
 from narupa.protocol.multiplayer.multiplayer_pb2 import StreamEndedResponse, Avatar, ResourceRequestResponse, SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse, SubscribePlayerAvatarsRequest, ResourceValuesUpdate
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
 
+
+def yield_interval(interval):
+    """
+    Yield at a set interval, accounting for the time spent outside of this
+    function.
+    :param interval: Number of seconds to put between yields
+    """
+    last_yield = time.monotonic() - interval
+    while True:
+        time_since_yield = time.monotonic() - last_yield
+        wait_duration = max(0, interval - time_since_yield)
+        time.sleep(wait_duration)
+        yield time.monotonic() - last_yield
+        last_yield = time.monotonic()
+
+
+def yield_changes_with_interval(interval, change_buffer):
+    for dt in yield_interval(interval):
+        try:
+            yield change_buffer.flush_changed_blocking()
+        except ObjectClosedException:
+            break
 
 class MultiplayerService(MultiplayerServicer):
     def __init__(self):
@@ -37,15 +60,11 @@ class MultiplayerService(MultiplayerServicer):
                                request: SubscribePlayerAvatarsRequest,
                                context) -> Avatar:
         change_buffer = self._avatars.create_view()
-        while context.is_active():
-            try:
-                changes = change_buffer.flush_changed_blocking()
-                for player_id, avatar in changes.items():
-                    if player_id != request.ignore_player_id:
-                        yield avatar
-                #time.sleep(request.update_interval)
-            except ObjectClosedException:
-                pass
+        for changes in yield_changes_with_interval(request.update_interval,
+                                                   change_buffer):
+            for player_id, avatar in changes.items():
+                if player_id != request.ignore_player_id:
+                    yield avatar
 
     def UpdatePlayerAvatar(self,
                            request_iterator: Iterator,
@@ -56,17 +75,13 @@ class MultiplayerService(MultiplayerServicer):
 
     def SubscribeAllResourceValues(self, request, context):
         change_buffer = self._resources.create_view()
-        while context.is_active():
-            try:
-                changes = change_buffer.flush_changed_blocking()
-                response = ResourceValuesUpdate()
-                for key, value in changes.items():
-                    entry = response.resource_value_changes.get_or_create(key)
-                    entry.MergeFrom(value)
-                yield response
-                # time.sleep(request.update_interval)  # TODO: give change buffers a wait function
-            except ObjectClosedException:
-                break
+        for changes in yield_changes_with_interval(request.update_interval,
+                                                   change_buffer):
+            response = ResourceValuesUpdate()
+            for key, value in changes.items():
+                entry = response.resource_value_changes.get_or_create(key)
+                entry.MergeFrom(value)
+            yield response
 
     def AcquireResourceLock(self,
                             request: multiplayer_proto.AcquireLockRequest,
