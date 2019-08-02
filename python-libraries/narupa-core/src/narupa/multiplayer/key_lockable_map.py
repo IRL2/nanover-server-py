@@ -5,7 +5,7 @@ class ResourceLockedException(Exception):
     pass
 
 
-class LockableResourceMap:
+class KeyLockableMap:
     def __init__(self):
         self._lock = RLock()
         self._locks = dict()
@@ -22,6 +22,10 @@ class LockableResourceMap:
             if self._locks.get(key, owner_id) != owner_id:
                 raise ResourceLockedException
             del self._locks[key]
+
+    def remove_owner(self, owner_id):
+        with self._lock:
+            self._locks = {key: owner for key, owner in self._locks.items() if owner != owner_id}
 
     def set(self, owner_id, key, value):
         with self._lock:

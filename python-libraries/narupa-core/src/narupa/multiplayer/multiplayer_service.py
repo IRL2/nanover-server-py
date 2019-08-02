@@ -10,8 +10,8 @@ from threading import Lock
 from typing import Iterator
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
-from narupa.multiplayer.resource_change_buffer import ResourceChangeBuffer
-from narupa.multiplayer.lockable_resource_map import LockableResourceMap, ResourceLockedException
+from narupa.multiplayer.dictionary_change_buffer import DictionaryChangeBuffer
+from narupa.multiplayer.key_lockable_map import KeyLockableMap, ResourceLockedException
 from narupa.protocol.multiplayer.multiplayer_pb2 import StreamEndedResponse, Avatar, ResourceRequestResponse, SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse, SubscribePlayerAvatarsRequest, ResourceValuesUpdate
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
 
@@ -28,7 +28,7 @@ class MultiplayerService(MultiplayerServicer):
 
         self._change_buffers_lock = Lock()
         self._change_buffers = set()
-        self.resources = LockableResourceMap()
+        self.resources = KeyLockableMap()
 
     def CreatePlayer(self,
                      request: CreatePlayerRequest,
@@ -43,12 +43,12 @@ class MultiplayerService(MultiplayerServicer):
                                context) -> Avatar:
         change_buffer = self._create_avatar_change_buffer()
         while context.is_active():
-            changes = change_buffer.flush_changed()
+            changes = change_buffer.flush_changed_blocking()
             if changes:
                 for player_id, avatar in changes.items():
                     if player_id != request.ignore_player_id:
                         yield avatar
-            time.sleep(request.update_interval)
+            #time.sleep(request.update_interval)
 
     def UpdatePlayerAvatar(self,
                            request_iterator: Iterator,
@@ -67,13 +67,15 @@ class MultiplayerService(MultiplayerServicer):
 
         while context.is_active():
             response = ResourceValuesUpdate()
-            changes = change_buffer.flush_changed()
+            changes = change_buffer.flush_changed_blocking()
             if changes:
                 for key, value in changes.items():
                     entry = response.resource_value_changes.get_or_create(key)
                     entry.MergeFrom(value)
                 yield response
-            time.sleep(request.update_interval)  # TODO: give change buffers a wait function
+            else:
+                break
+            #time.sleep(request.update_interval)  # TODO: give change buffers a wait function
 
     def AcquireResourceLock(self,
                             request: multiplayer_proto.AcquireLockRequest,
@@ -113,7 +115,7 @@ class MultiplayerService(MultiplayerServicer):
         return ResourceRequestResponse(success=success)
 
     def _create_avatar_change_buffer(self):
-        buffer = ResourceChangeBuffer()
+        buffer = DictionaryChangeBuffer()
         with self._avatar_change_buffers_lock:
             self._avatar_change_buffers.add(buffer)
         return buffer
@@ -121,10 +123,10 @@ class MultiplayerService(MultiplayerServicer):
     def _buffer_avatar_change(self, player_id, avatar):
         with self._avatar_change_buffers_lock:
             for buffer in self._avatar_change_buffers:
-                buffer.set_changed(player_id, avatar)
+                buffer.update({player_id: avatar})
 
     def _create_change_buffer(self):
-        buffer = ResourceChangeBuffer()
+        buffer = DictionaryChangeBuffer()
         with self._change_buffers_lock:
             self._change_buffers.add(buffer)
         return buffer
@@ -132,7 +134,7 @@ class MultiplayerService(MultiplayerServicer):
     def _buffer_change(self, key, value):
         with self._change_buffers_lock:
             for buffer in self._change_buffers:
-                buffer.set_changed(key, value)
+                buffer.update({key: value})
 
     def generate_player_id(self):
         """
@@ -141,5 +143,13 @@ class MultiplayerService(MultiplayerServicer):
         :return: A unique player ID.
         """
         return str(len(self.players) + 1)
+
+    def close(self):
+        with self._avatar_change_buffers_lock:
+            for buffer in self._avatar_change_buffers:
+                buffer.close()
+        with self._change_buffers_lock:
+            for buffer in self._change_buffers:
+                buffer.close()
 
 

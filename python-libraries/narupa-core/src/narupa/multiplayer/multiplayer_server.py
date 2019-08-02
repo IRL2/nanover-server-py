@@ -38,3 +38,7 @@ class MultiplayerServer(GrpcServer):
         self.multiplayer_service = MultiplayerService()
         multiplayer_proto_grpc.add_MultiplayerServicer_to_server(
             self.multiplayer_service, self.server)
+
+    def close(self):
+        super().close()
+        self.multiplayer_service.close()
