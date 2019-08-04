@@ -3,7 +3,7 @@
 
 import pytest
 
-from narupa.multiplayer.dictionary_change_buffer import DictionaryChangeBuffer, DictionaryChangeMultiView, ObjectClosedException
+from narupa.multiplayer.change_buffers import DictionaryChangeBuffer, DictionaryChangeMultiView, ObjectClosedException
 
 
 @pytest.fixture

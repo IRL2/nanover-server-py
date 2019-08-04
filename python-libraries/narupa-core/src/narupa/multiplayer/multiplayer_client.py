@@ -18,7 +18,7 @@ from narupa.core.request_queues import SingleItemQueue
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
-from narupa.multiplayer.dictionary_change_buffer import yield_interval
+from narupa.multiplayer.change_buffers import yield_interval
 
 
 def _end_upon_channel_close(function):

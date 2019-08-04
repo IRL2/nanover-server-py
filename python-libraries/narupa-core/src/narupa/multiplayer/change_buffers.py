@@ -18,10 +18,14 @@ def yield_interval(interval):
 
 
 class ObjectClosedException(Exception):
+    """Raised when an operation on an object cannot be performed because the
+    object has been closed."""
     pass
 
 
 class DictionaryChangeMultiView:
+    """Provides a means to acquire multiple independent DictionaryChangeBuffers
+    tracking a shared dictionary."""
     def __init__(self):
         self._content = {}
         self._closed = False
@@ -29,6 +33,8 @@ class DictionaryChangeMultiView:
         self._views = set()
 
     def create_view(self):
+        """Returns a new DictionaryChangeBuffer that tracks changes to the
+        shared dictionary, starting with the initial values."""
         with self._lock:
             view = DictionaryChangeBuffer()
             view.update(self._content)
@@ -38,6 +44,9 @@ class DictionaryChangeMultiView:
             return view
 
     def subscribe_updates(self, interval=0):
+        """Iterates over changes to the shared dictionary, starting with the
+        initial values. Waits at least :interval: seconds between each
+        iteration."""
         view = self.create_view()
         for dt in yield_interval(interval):
             try:
@@ -46,6 +55,8 @@ class DictionaryChangeMultiView:
                 break
 
     def update(self, updates):
+        """Updates the shared dictionary with key values pairs from :updates:.
+        """
         with self._lock:
             if self._closed:
                 raise ObjectClosedException()
@@ -54,6 +65,9 @@ class DictionaryChangeMultiView:
                 view.update(updates)
 
     def close(self):
+        """Prevent any further updates to the shared dictionary, ensuring that
+        future views and subscriptions provide a single update with the final
+        values."""
         with self._lock:
             self._closed = True
             for view in self._views:
