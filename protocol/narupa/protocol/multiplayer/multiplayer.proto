@@ -32,18 +32,21 @@ service Multiplayer {
 message StreamEndedResponse {
 }
 
-/* Represents an avatar component: e.g. an HMD, controller or glove.*/
+// A named object oriented in 3D space.
 message AvatarComponent {
+    // Identifier for the component type.
     string name = 1;
+    // Position vector as x, y, z components.
     repeated float position = 2;
+    // Rotation quaternion as x, y, z, w components.
     repeated float rotation = 3;
 }
 
-/* Represents an avatar, a set of components.*/
+// A collection of avatar components belonging to a particular player.
 message Avatar {
-    /* Player ID.*/
+    // ID of the player owning the avatar.
     string player_id = 1;
-    /* List of avatar components.*/
+    // Set of named components comprising the avatar.
     repeated AvatarComponent component = 2;    
 }
 
