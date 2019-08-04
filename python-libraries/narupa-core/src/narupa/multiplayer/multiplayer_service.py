@@ -5,6 +5,7 @@
 Module providing an implementation of a multiplayer service,.
 """
 import logging
+from threading import Lock
 from typing import Iterator
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
@@ -23,6 +24,7 @@ class MultiplayerService(MultiplayerServicer):
         self.logger = logging.getLogger(__name__)
 
         self._avatars = DictionaryChangeMultiView()
+        self._resource_write_lock = Lock()
         self._resources = DictionaryChangeMultiView()
         self.resources = KeyLockableMap()
 
@@ -92,11 +94,13 @@ class MultiplayerService(MultiplayerServicer):
                          context) -> ResourceRequestResponse:
         """Attempt to write a value in the shared key/value store."""
         try:
-            self.resources.set(request.player_id,
-                               request.resource_id,
-                               request.resource_value)
+            # TODO: single lockable+subscribable structure?
+            with self._resource_write_lock:
+                self.resources.set(request.player_id,
+                                   request.resource_id,
+                                   request.resource_value)
+                self._resources.update({request.resource_id: request.resource_value})
             success = True
-            self._resources.update({request.resource_id: request.resource_value})
         except ResourceLockedException:
             success = False
 
