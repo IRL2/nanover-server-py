@@ -93,8 +93,12 @@ class MultiplayerClient(object):
         return self._player_id
 
     def join_avatar_stream(self, interval=0, ignore_self=True):
-        """
-        Joins the avatar stream, which will start receiving avatar updates in the background.
+        """Joins the avatar stream, which will start receiving avatar updates in
+        the background.
+        :param interval: Minimum time (in seconds) between receiving two updates
+        for the same player's avatar.
+        :param ignore_self: Whether to request the server not to send our own
+        avatar updates back to us.
         """
         ignore = self.player_id if ignore_self else None
         request = mult_proto.SubscribePlayerAvatarsRequest(ignore_player_id=ignore,
@@ -133,22 +137,35 @@ class MultiplayerClient(object):
         return self.player_id is not None
 
     def subscribe_all_value_updates(self, interval=0):
+        """Begin receiving updates to the shared key/value store.
+        :param interval: Minimum time (in seconds) between receiving new updates
+        for any and all values.
+        """
         request = mult_proto.SubscribeAllResourceValuesRequest(update_interval=interval)
         self.threadpool.submit(self._join_scene_properties_stream, request)
 
     def try_lock_resource(self, resource_id):
+        """Attempt to gain exclusive write access to a particular key in the
+        shared key/value store.
+        :param resource_id: Key to lock."""
         lock_request = mult_proto.AcquireLockRequest(player_id=self.player_id,
                                                      resource_id=resource_id)
         reply = self.stub.AcquireResourceLock(lock_request)
         return reply.success
 
     def try_release_resource(self, resource_id):
+        """Attempt to release exclusive write access of a particular key in the
+        shared key/value store.
+        :param resource_id: Key to release."""
         lock_request = mult_proto.ReleaseLockRequest(player_id=self.player_id,
                                                      resource_id=resource_id)
         reply = self.stub.ReleaseResourceLock(lock_request)
         return reply.success
 
     def try_set_resource_value(self, resource_id, value) -> bool:
+        """Attempt to write a value to a key in the shared key/value store.
+        :param resource_id: Key to write to.
+        :param value: Value to write."""
         if not isinstance(value, Value):
             raise TypeError("'value' must be a grpc Value type.")
 

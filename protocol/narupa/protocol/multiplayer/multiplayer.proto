@@ -51,9 +51,9 @@ message Avatar {
 }
 
 message SubscribePlayerAvatarsRequest {
-    // Interval between update sends.
+    // Interval (in Seconds) between update sends.
     float update_interval = 1;
-    // ID of player to ignore (usually either your own ID or none).
+    // ID of player to ignore (usually either your own ID or omitted).
     string ignore_player_id = 2;
 }
 
@@ -96,7 +96,7 @@ message ResourceRequestResponse {
 }
 
 message SubscribeAllResourceValuesRequest {
-    // Interval between update sends.
+    // Interval (in Seconds) between update sends.
     float update_interval = 1;
 }
 

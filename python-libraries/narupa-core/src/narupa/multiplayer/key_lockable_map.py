@@ -8,32 +8,32 @@ class ResourceLockedException(Exception):
 class KeyLockableMap:
     def __init__(self):
         self._lock = RLock()
-        self._locks = dict()
+        self._key_lock_owners = dict()
         self._values = dict()
 
-    def can_lock(self, player_id, key):
+    def player_can_lock_key(self, player_id, key):
         with self._lock:
-            return self._locks.get(key, player_id) == player_id
+            return self._key_lock_owners.get(key, player_id) == player_id
 
     def lock_key(self, owner_id, key):
         with self._lock:
-            if not self.can_lock(owner_id, key):
+            if not self.player_can_lock_key(owner_id, key):
                 raise ResourceLockedException
-            self._locks[key] = owner_id
+            self._key_lock_owners[key] = owner_id
 
     def release_key(self, owner_id, key):
         with self._lock:
-            if not self.can_lock(owner_id, key):
+            if not self.player_can_lock_key(owner_id, key):
                 raise ResourceLockedException
-            del self._locks[key]
+            del self._key_lock_owners[key]
 
     def remove_owner(self, owner_id):
         with self._lock:
-            self._locks = {key: owner for key, owner in self._locks.items() if owner != owner_id}
+            self._key_lock_owners = {key: owner for key, owner in self._key_lock_owners.items() if owner != owner_id}
 
     def set(self, owner_id, key, value):
         with self._lock:
-            if not self.can_lock(owner_id, key):
+            if not self.player_can_lock_key(owner_id, key):
                 raise ResourceLockedException
             self._values[key] = value
 
