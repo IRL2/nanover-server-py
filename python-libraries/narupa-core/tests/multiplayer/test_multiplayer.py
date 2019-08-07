@@ -14,8 +14,8 @@ from narupa.protocol.multiplayer.multiplayer_pb2 import Avatar, AvatarComponent
 from google.protobuf.struct_pb2 import Value, Struct
 
 
-CONNECT_WAIT_TIME = 0.05
-IMMEDIATE_REPLY_WAIT_TIME = 0.01
+CONNECT_WAIT_TIME = 0.01
+IMMEDIATE_REPLY_WAIT_TIME = 0.005
 
 
 @pytest.fixture
@@ -160,7 +160,8 @@ def test_publish_avatar_multiple_transmission(server_client_pair, avatar):
 @pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
 def test_subscribe_avatars_sends_initial_immediately(server_client_pair, avatar,
                                                      update_interval):
-    """Test that subscribing avatars before any have been sent will immediately
+    """
+    Test that subscribing avatars before any have been sent will immediately
     send the first avatar regardless of interval.
     """
     server, client = server_client_pair
@@ -176,28 +177,35 @@ def test_subscribe_avatars_sends_initial_immediately(server_client_pair, avatar,
 
 @pytest.mark.parametrize('update_interval', (.5, .2, .1))
 def test_subscribe_avatars_interval(server_client_pair, avatar, update_interval):
-    """Test that avatars updates are sent at the requested interval."""
+    """
+    Test that avatars updates are sent at the requested interval.
+    """
     server, client = server_client_pair
     client.join_multiplayer("main", join_streams=False)
     client.join_avatar_stream(interval=update_interval, ignore_self=False)
     client.join_avatar_publish()
 
-    test_values = [Avatar() for i in range(5)]
+    test_values = [Avatar() for i in range(2)]
     for i, value in enumerate(test_values):
         value.CopyFrom(avatar)
         value.component[0].position[:] = [i, i, i]
 
+    # send the initial avatar: we expect it to be sent back immediately because
+    # there is no previous update to put an interval between.
     time.sleep(CONNECT_WAIT_TIME)
     client.publish_avatar(test_values[0])
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
+    # send the avatar update: we expect it not be sent back immediately, and
+    # that the initial value still stands, since the interval has not passed.
     client.publish_avatar(test_values[1])
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     assert str(client.current_avatars[client.player_id]) == str(test_values[0])
 
-    client.publish_avatar(test_values[2])
+    # wait the interval time: we expect the update to have arrived since the
+    # interval time has passed since the initial value was sent.
     time.sleep(update_interval)
-    assert str(client.current_avatars[client.player_id]) == str(test_values[2])
+    assert str(client.current_avatars[client.player_id]) == str(test_values[1])
 
 
 def test_can_lock_unlocked(server_client_pair):
@@ -350,7 +358,8 @@ def test_cant_set_non_value(server_client_pair):
 @pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
 def test_subscribe_value_sends_initial_immediately(server_client_pair,
                                                    update_interval):
-    """Test that subscribing values before any have been sent will immediately
+    """
+    Test that subscribing values before any have been sent will immediately
     send the first update regardless of interval.
     """
     server, client = server_client_pair
@@ -367,7 +376,9 @@ def test_subscribe_value_sends_initial_immediately(server_client_pair,
 
 @pytest.mark.parametrize('update_interval', (.5, .2, .1))
 def test_subscribe_value_interval(server_client_pair, update_interval):
-    """Test that value updates are sent at the requested interval."""
+    """
+    Test that value updates are sent at the requested interval.
+    """
     server, client = server_client_pair
     client.join_multiplayer("main", join_streams=False)
     client.subscribe_all_value_updates(interval=update_interval)
