@@ -125,7 +125,7 @@ def test_publish_avatar_ignore_self(server_client_pair, avatar):
     server, client = server_client_pair
     player_id = client.join_multiplayer(player_name="user")
     client.join_avatar_publish()
-    client.join_avatar_stream()
+    client.join_avatar_stream(ignore_self=True)
     time.sleep(CONNECT_WAIT_TIME)
 
     avatar.player_id = player_id
@@ -366,7 +366,7 @@ def test_subscribe_value_sends_initial_immediately(server_client_pair,
     client.join_multiplayer("main", join_streams=False)
     client.subscribe_all_value_updates(interval=update_interval)
 
-    test_value = Value(string_value=f"hello")
+    test_value = Value(string_value="hello")
 
     time.sleep(CONNECT_WAIT_TIME)
     client.try_set_resource_value("test", test_value)
