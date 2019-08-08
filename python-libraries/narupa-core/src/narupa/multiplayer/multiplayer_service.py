@@ -69,7 +69,12 @@ class MultiplayerService(MultiplayerServicer):
         """Attempt to acquire exclusive write access to a key in the shared
         key/value store."""
         try:
-            self.resources.lock_key(request.player_id, request.resource_id)
+            duration = request.timeout_duration
+            if duration <= 0:
+                duration = None
+            self.resources.lock_key(request.player_id,
+                                    request.resource_id,
+                                    duration)
             success = True
         except ResourceLockedException:
             success = False

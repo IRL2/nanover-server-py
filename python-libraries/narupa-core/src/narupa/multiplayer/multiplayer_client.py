@@ -144,12 +144,16 @@ class MultiplayerClient(object):
         request = mult_proto.SubscribeAllResourceValuesRequest(update_interval=interval)
         self.threadpool.submit(self._join_scene_properties_stream, request)
 
-    def try_lock_resource(self, resource_id):
-        """Attempt to gain exclusive write access to a particular key in the
+    def try_lock_resource(self, resource_id, duration=0):
+        """
+        Attempt to gain exclusive write access to a particular key in the
         shared key/value store.
-        :param resource_id: Key to lock."""
+        :param resource_id: Key to lock.
+        :param duration: Duration to lock the key for (0 for indefinite).
+        """
         lock_request = mult_proto.AcquireLockRequest(player_id=self.player_id,
-                                                     resource_id=resource_id)
+                                                     resource_id=resource_id,
+                                                     timeout_duration=duration)
         reply = self.stub.AcquireResourceLock(lock_request)
         return reply.success
 

@@ -72,6 +72,8 @@ message AcquireLockRequest {
     string player_id = 1;
     // Identifier of resource to be locked.
     string resource_id = 2;
+    // Duration in seconds to keep the lock. (default indefinite lock)
+    float timeout_duration = 3;
 }
 
 message ReleaseLockRequest {

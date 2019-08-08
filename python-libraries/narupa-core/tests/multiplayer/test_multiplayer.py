@@ -395,3 +395,43 @@ def test_subscribe_value_interval(server_client_pair, update_interval):
     client.try_set_resource_value("test", test_values[2])
     time.sleep(update_interval)
     assert str(client.resources.get("test")) == str(test_values[2])
+
+
+@pytest.mark.parametrize('lock_duration', (.5, 1, 2))
+def test_lock_durations(server_client_pair, lock_duration):
+    """
+    Test that locks expire roughly after the requested duration has passed.
+    """
+    server, client1 = server_client_pair
+    with MultiplayerClient(port=server.port) as client2:
+        client1.join_multiplayer("main")
+        client2.join_multiplayer("other")
+
+        client1.try_lock_resource("test", duration=lock_duration)
+        time.sleep(lock_duration * .9)
+        assert not client2.try_lock_resource("test")
+        time.sleep(lock_duration * .2)
+        assert client2.try_lock_resource("test")
+
+
+@pytest.mark.parametrize('lock_duration', (.5, 1, 2))
+def test_lock_duration_extend(server_client_pair, lock_duration):
+    """
+    Test that relocking a key updates the lock duration.
+    """
+    server, client1 = server_client_pair
+    with MultiplayerClient(port=server.port) as client2:
+        client1.join_multiplayer("main")
+        client2.join_multiplayer("other")
+
+        client1.try_lock_resource("test", duration=lock_duration)
+
+        # relock halfway through the existing lock
+        time.sleep(lock_duration * .5)
+        client1.try_lock_resource("test", duration=lock_duration)
+        # check lock remains after the initially requested duration expires
+        time.sleep(lock_duration * .6)
+        assert not client2.try_lock_resource("test")
+        # check lock then expires after second requested duration expires
+        time.sleep(lock_duration * .5)
+        assert client2.try_lock_resource("test")
