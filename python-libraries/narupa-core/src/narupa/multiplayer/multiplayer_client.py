@@ -7,7 +7,7 @@ Reference multiplayer client implementation.
 """
 
 from queue import Queue
-from typing import Dict
+from typing import Dict, Callable, Sequence
 from concurrent import futures
 
 import grpc
@@ -19,6 +19,9 @@ from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
 from narupa.multiplayer.change_buffers import yield_interval
+
+
+UpdateCallback = Callable[[Sequence[str]], None]
 
 
 def _end_upon_channel_close(function):
@@ -60,6 +63,7 @@ class MultiplayerClient(object):
         self._player_id = None
         self._send_interval = send_interval
         self._avatar_queue = SingleItemQueue()
+        self._value_update_callbacks = set()
         self.current_avatars = {}
         self.closed = False
         self.resources = dict()
@@ -93,7 +97,8 @@ class MultiplayerClient(object):
         return self._player_id
 
     def join_avatar_stream(self, interval=0, ignore_self=True):
-        """Joins the avatar stream, which will start receiving avatar updates in
+        """
+        Joins the avatar stream, which will start receiving avatar updates in
         the background.
         :param interval: Minimum time (in seconds) between receiving two updates
         for the same player's avatar.
@@ -137,7 +142,8 @@ class MultiplayerClient(object):
         return self.player_id is not None
 
     def subscribe_all_value_updates(self, interval=0):
-        """Begin receiving updates to the shared key/value store.
+        """
+        Begin receiving updates to the shared key/value store.
         :param interval: Minimum time (in seconds) between receiving new updates
         for any and all values.
         """
@@ -158,18 +164,22 @@ class MultiplayerClient(object):
         return reply.success
 
     def try_release_resource(self, resource_id):
-        """Attempt to release exclusive write access of a particular key in the
+        """
+        Attempt to release exclusive write access of a particular key in the
         shared key/value store.
-        :param resource_id: Key to release."""
+        :param resource_id: Key to release.
+        """
         lock_request = mult_proto.ReleaseLockRequest(player_id=self.player_id,
                                                      resource_id=resource_id)
         reply = self.stub.ReleaseResourceLock(lock_request)
         return reply.success
 
     def try_set_resource_value(self, resource_id, value) -> bool:
-        """Attempt to write a value to a key in the shared key/value store.
+        """
+        Attempt to write a value to a key in the shared key/value store.
         :param resource_id: Key to write to.
-        :param value: Value to write."""
+        :param value: Value to write.
+        """
         if not isinstance(value, Value):
             raise TypeError("'value' must be a grpc Value type.")
 
@@ -178,6 +188,9 @@ class MultiplayerClient(object):
                                                      resource_value=value)
         response = self.stub.SetResourceValue(request)
         return response.success
+
+    def add_value_update_callback(self, callback: UpdateCallback):
+        self._value_update_callbacks.add(callback)
 
     def _assert_has_player_id(self):
         if not self.joined_multiplayer:
@@ -204,6 +217,9 @@ class MultiplayerClient(object):
         for update in self.stub.SubscribeAllResourceValues(request):
             for key, value in update.resource_value_changes.items():
                 self.resources[key] = value
+            keys = set(update.resource_value_changes.keys())
+            for callback in self._value_update_callbacks:
+                callback(keys)
 
     @_end_upon_channel_close
     def _join_scene_properties_stream(self, request):

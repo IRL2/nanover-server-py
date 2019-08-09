@@ -1,14 +1,6 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-"""
-Demonstrates multiplayer server with no additional features.
 
-Run with:
-
-.. code bash
-    python run_multiplayer_server.py
-
-"""
 import argparse
 import textwrap
 import time
@@ -16,6 +8,7 @@ import time
 from logging import StreamHandler
 
 from narupa.multiplayer.multiplayer_server import MultiplayerServer
+
 
 def handle_user_arguments() -> argparse.Namespace:
     """
@@ -41,9 +34,9 @@ def main():
     Entry point for the command line.
     """
     arguments = handle_user_arguments()
-    
+
     server = MultiplayerServer(address=arguments.address, port=arguments.port)
-    
+
     if arguments.verbose:
         server._multiplayer_service.logger.setLevel("INFO")
     if arguments.debug:
