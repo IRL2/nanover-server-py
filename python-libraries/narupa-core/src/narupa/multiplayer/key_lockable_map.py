@@ -35,7 +35,7 @@ class KeyLockableMap:
             if not self.player_can_lock_key(owner_id, key):
                 raise ResourceLockedException
             self._key_lock_owners[key] = owner_id
-            if duration:
+            if duration is not None:
                 self._key_lock_timeouts[key] = time.monotonic() + duration
 
     def release_key(self, owner_id, key):

@@ -192,12 +192,14 @@ def test_subscribe_avatars_interval(server_client_pair, avatar, update_interval)
 
     # send the initial avatar: we expect it to be sent back immediately because
     # there is no previous update to put an interval between.
+    # Assumes client.publish_avatar is instant.
     time.sleep(CONNECT_WAIT_TIME)
     client.publish_avatar(test_values[0])
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     # send the avatar update: we expect it not be sent back immediately, and
     # that the initial value still stands, since the interval has not passed.
+    # Assumes client.publish_avatar is instant.
     client.publish_avatar(test_values[1])
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     assert str(client.current_avatars[client.player_id]) == str(test_values[0])
