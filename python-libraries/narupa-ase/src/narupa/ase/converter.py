@@ -62,6 +62,8 @@ def ase_to_frame_data(
     :param positions: Whether to add positions to the frame.
     :param topology: Whether to generate the current state of the topology and add it to the frame.
     :param state: Whether to add additional state information such as energies.
+    :param box_vectors: Whether to add the box vectors to the frame data. The
+        box is omitted if the system is not periodic.
     :return: Narupa frame.
     """
     data = FrameData()
@@ -137,9 +139,10 @@ def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     The box vectors form the 3x3 matrix that describes a triclinic box. The
     box is only added if the system is periodic.
     """
-    box_vectors = ase_atoms.cell.copy()
-    box_vectors[np.diag_indices_from(box_vectors)] *= ANG_TO_NM
-    data.box_vectors = box_vectors
+    if np.any(ase_atoms.pbc):
+        box_vectors = ase_atoms.cell.copy()
+        box_vectors[np.diag_indices_from(box_vectors)] *= ANG_TO_NM
+        data.box_vectors = box_vectors
 
 
 def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):

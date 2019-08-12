@@ -30,7 +30,7 @@ class NarupaReporter:
     # conform PEP8.
     def describeNextReport(self, simulation):  # pylint: disable=invalid-name
         steps = self._reportInterval - simulation.currentStep % self._reportInterval
-        return steps, True, False, False, False, False
+        return steps, True, False, False, False, True
 
     def report(self, simulation, state):
         if self._frameIndex == 0:
