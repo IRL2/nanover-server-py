@@ -3,7 +3,7 @@
 
 import pytest
 
-from narupa.multiplayer.change_buffers import DictionaryChangeBuffer, DictionaryChangeMultiView, ObjectClosedException
+from narupa.multiplayer.change_buffers import DictionaryChangeBuffer, DictionaryChangeMultiView, ObjectFrozenException
 
 
 @pytest.fixture
@@ -56,75 +56,75 @@ def test_buffer_flush_merges_same_key(change_buffer):
     assert changes["hello"] == "bar"
 
 
-def test_closed_buffer_cant_update(change_buffer):
+def test_frozen_buffer_cant_update(change_buffer):
     """
-    Test that attempting to update after closing the buffer raises the correct
+    Test that attempting to update after freezing the buffer raises the correct
     exception.
     """
-    change_buffer.close()
-    with pytest.raises(ObjectClosedException):
+    change_buffer.freeze()
+    with pytest.raises(ObjectFrozenException):
         change_buffer.update({"hello": "test"})
 
 
 @pytest.mark.timeout(1)
-def test_closed_empty_buffer_cant_flush(change_buffer):
+def test_frozen_empty_buffer_cant_flush(change_buffer):
     """
-    Test that flushing an empty buffer after closing it raises the correct
+    Test that flushing an empty buffer after freezing it raises the correct
     exception.
     """
-    change_buffer.close()
-    with pytest.raises(ObjectClosedException):
+    change_buffer.freeze()
+    with pytest.raises(ObjectFrozenException):
         change_buffer.flush_changed_blocking()
 
 
-def test_closed_buffer_update_ignored(change_buffer):
+def test_frozen_buffer_update_ignored(change_buffer):
     """
-    Test that a failed update after closing a buffer does not affect the
+    Test that a failed update after freezing a buffer does not affect the
     unflushed changes.
     """
     change_buffer.update({"hello": "test"})
-    change_buffer.close()
+    change_buffer.freeze()
     try:
         change_buffer.update({"foo": "bar"})
-    except ObjectClosedException:
+    except ObjectFrozenException:
         pass
     changes = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test" and "foo" not in changes
 
 
-def test_closed_multiview_cant_update(change_multiview):
+def test_frozen_multiview_cant_update(change_multiview):
     """
-    Test that attempting to update a closed multiview raises the correct
+    Test that attempting to update a frozen multiview raises the correct
     exception.
     """
-    change_multiview.close()
-    with pytest.raises(ObjectClosedException):
+    change_multiview.freeze()
+    with pytest.raises(ObjectFrozenException):
         change_multiview.update({"hello": "test"})
 
 
 @pytest.mark.timeout(1)
-def test_closed_multiview_view_gives_last_values(change_multiview):
+def test_frozen_multiview_view_gives_last_values(change_multiview):
     """
-    Test that views can still be created on a closed multiview but that they
+    Test that views can still be created on a frozen multiview but that they
     only provide the initial values and then raise the correct exception on
     subsequent flushes.
     """
     change_multiview.update({"hello": "test"})
-    change_multiview.close()
-    view = change_multiview.create_view()
-    changes = view.flush_changed_blocking()
-    assert changes["hello"] == "test"
-    with pytest.raises(ObjectClosedException):
-        view.flush_changed_blocking()
+    change_multiview.freeze()
+    with change_multiview.create_view() as view:
+        changes = view.flush_changed_blocking()
+        assert changes["hello"] == "test"
+        with pytest.raises(ObjectFrozenException):
+            view.flush_changed_blocking()
 
 
 @pytest.mark.timeout(1)
-def test_closed_multiview_subscribe_gives_last_values(change_multiview):
+def test_frozen_multiview_subscribe_gives_last_values(change_multiview):
     """
-    Test that subscribing a closed multiview provides the initial values and
+    Test that subscribing a frozen multiview provides the initial values and
     then ends.
     """
     change_multiview.update({"hello": "test"})
-    change_multiview.close()
+    change_multiview.freeze()
     for changes in change_multiview.subscribe_updates():
         assert changes["hello"] == "test"

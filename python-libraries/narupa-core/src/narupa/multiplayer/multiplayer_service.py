@@ -121,5 +121,5 @@ class MultiplayerService(MultiplayerServicer):
         return str(len(self.players) + 1)
 
     def close(self):
-        self._avatars.close()
-        self._resources.close()
+        self._avatars.freeze()
+        self._resources.freeze()

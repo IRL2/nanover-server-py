@@ -1,109 +1,122 @@
-import time
+from contextlib import contextmanager
 from threading import Lock, Condition
+from narupa.core.timing import yield_interval
 
 
-def yield_interval(interval):
+class ObjectFrozenException(Exception):
     """
-    Yield at a set interval, accounting for the time spent outside of this
-    function.
-    :param interval: Number of seconds to put between yields
+    Raised when an operation on an object cannot be performed because the
+    object has been frozen.
     """
-    last_yield = time.monotonic() - interval
-    while True:
-        time_since_yield = time.monotonic() - last_yield
-        wait_duration = max(0, interval - time_since_yield)
-        time.sleep(wait_duration)
-        yield time.monotonic() - last_yield
-        last_yield = time.monotonic()
-
-
-class ObjectClosedException(Exception):
-    """Raised when an operation on an object cannot be performed because the
-    object has been closed."""
     pass
 
 
 class DictionaryChangeMultiView:
-    """Provides a means to acquire multiple independent DictionaryChangeBuffers
-    tracking a shared dictionary."""
+    """
+    Provides a means to acquire multiple independent DictionaryChangeBuffers
+    tracking a shared dictionary.
+    """
     def __init__(self):
         self._content = {}
-        self._closed = False
+        self._frozen = False
         self._lock = Lock()
         self._views = set()
 
+    @contextmanager
     def create_view(self):
-        """Returns a new DictionaryChangeBuffer that tracks changes to the
-        shared dictionary, starting with the initial values."""
+        """
+        Returns a new DictionaryChangeBuffer that tracks changes to the
+        shared dictionary, starting with the initial values.
+        """
         with self._lock:
             view = DictionaryChangeBuffer()
             view.update(self._content)
-            if self._closed:
-                view.close()
+            if self._frozen:
+                view.freeze()
             self._views.add(view)
-            return view
+        yield view
+        with self._lock:
+            view.freeze()
+            self._views.remove(view)
 
     def subscribe_updates(self, interval=0):
-        """Iterates over changes to the shared dictionary, starting with the
+        """
+        Iterates over changes to the shared dictionary, starting with the
         initial values. Waits at least :interval: seconds between each
-        iteration."""
-        view = self.create_view()
-        for dt in yield_interval(interval):
-            try:
-                yield view.flush_changed_blocking()
-            except ObjectClosedException:
-                break
+        iteration.
+        """
+        with self.create_view() as view:
+            for dt in yield_interval(interval):
+                try:
+                    yield view.flush_changed_blocking()
+                except ObjectFrozenException:
+                    break
 
     def update(self, updates):
-        """Updates the shared dictionary with key values pairs from :updates:.
+        """
+        Updates the shared dictionary with key values pairs from :updates:.
         """
         with self._lock:
-            if self._closed:
-                raise ObjectClosedException()
+            if self._frozen:
+                raise ObjectFrozenException()
             self._content.update(updates)
             for view in self._views:
                 view.update(updates)
 
-    def close(self):
-        """Prevent any further updates to the shared dictionary, ensuring that
-        future views and subscriptions provide a single update with the final
-        values."""
+    def freeze(self):
+        """
+        Prevent any further updates to the shared dictionary, ensuring that
+        future views and subscriptions are frozen and provide a single update
+        with the final values.
+        """
         with self._lock:
-            self._closed = True
+            self._frozen = True
             for view in self._views:
-                view.close()
+                view.freeze()
 
 
 class DictionaryChangeBuffer:
-    """Tracks the latest values of keys that have changed between checks."""
+    """
+    Tracks the latest values of keys that have changed between checks.
+    """
     def __init__(self):
-        self._closed = False
+        self._frozen = False
         self._lock = Lock()
         self._any_changes = Condition(self._lock)
         self._changes = {}
 
-    def close(self):
-        """Close the buffer, ensuring that no more changes will be tracked."""
+    def freeze(self):
+        """
+        Freeze the buffer, ensuring that it cannot be updated with any more
+        changes.
+
+        It will still be possible to flush changes one last time if there were
+        any unflushed at the time of freezing.
+        """
         with self._lock:
-            self._closed = True
+            self._frozen = True
             self._any_changes.notify()
 
     def update(self, updates):
-        """Update the known changes from a dictionary of keys that have changed
-        to their new values."""
+        """
+        Update the known changes from a dictionary of keys that have changed
+        to their new values.
+        """
         with self._lock:
-            if self._closed:
-                raise ObjectClosedException()
+            if self._frozen:
+                raise ObjectFrozenException()
             self._changes.update(updates)
             self._any_changes.notify()
 
     def flush_changed_blocking(self):
-        """Wait until there are changes and then return them, clearing all
-        tracked changes."""
+        """
+        Wait until there are changes and then return them, clearing all
+        tracked changes.
+        """
         with self._any_changes:
             while not self._changes:
-                if self._closed:
-                    raise ObjectClosedException()
+                if self._frozen:
+                    raise ObjectFrozenException()
                 self._any_changes.wait()
             changes = self._changes
             self._changes = dict()

@@ -5,8 +5,7 @@ Module providing implemenation of a muliplayer server.
 """
 from typing import Optional
 
-import grpc
-from narupa.core import GrpcServer, get_requested_port_or_default, DEFAULT_SERVE_ADDRESS
+from narupa.core import GrpcServer, DEFAULT_SERVE_ADDRESS
 from narupa.multiplayer.multiplayer_service import MultiplayerService
 from narupa.protocol.multiplayer import multiplayer_pb2_grpc as multiplayer_proto_grpc
 
