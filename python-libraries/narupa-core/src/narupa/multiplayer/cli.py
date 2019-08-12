@@ -1,14 +1,6 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-"""
-Demonstrates multiplayer server with no additional features.
 
-Run with:
-
-.. code bash
-    python run_multiplayer_server.py
-
-"""
 import argparse
 import textwrap
 import time
@@ -16,6 +8,7 @@ import time
 from logging import StreamHandler
 
 from narupa.multiplayer.multiplayer_server import MultiplayerServer
+
 
 def handle_user_arguments() -> argparse.Namespace:
     """
@@ -30,7 +23,6 @@ def handle_user_arguments() -> argparse.Namespace:
 
     parser.add_argument('-p', '--port', default=54323)
     parser.add_argument('-a', '--address', default='[::]')
-    parser.add_argument('-s', '--send-self', action="store_true", default=False)
     parser.add_argument('-v', '--verbose', action="store_true", default=False)
     parser.add_argument('-vv', '--debug', action="store_true", default=False)
     arguments = parser.parse_args()
@@ -42,15 +34,15 @@ def main():
     Entry point for the command line.
     """
     arguments = handle_user_arguments()
-    
-    server = MultiplayerServer(address=arguments.address, port=arguments.port, send_self=arguments.send_self)
-    
+
+    server = MultiplayerServer(address=arguments.address, port=arguments.port)
+
     if arguments.verbose:
-        server.multiplayer_services.logger.setLevel("INFO")
+        server._multiplayer_service.logger.setLevel("INFO")
     if arguments.debug:
-        server.multiplayer_services.logger.setLevel("DEBUG")
+        server._multiplayer_service.logger.setLevel("DEBUG")
     if arguments.verbose or arguments.debug:
-        server.multiplayer_services.logger.addHandler(StreamHandler())
+        server._multiplayer_service.logger.addHandler(StreamHandler())
 
     print(f'Serving multiplayer on port {server.port}')
 
@@ -61,6 +53,7 @@ def main():
         print('Closing due to keyboard interrupt')
     finally:
         server.close()
+
 
 if __name__ == '__main__':
     main()
