@@ -8,7 +8,8 @@ from queue import Queue
 from typing import Iterable, Optional
 
 import grpc
-from narupa.imd.imd_server import DEFAULT_ADDRESS, DEFAULT_PORT
+from narupa.core import get_requested_port_or_default, DEFAULT_CONNECT_ADDRESS
+from narupa.imd.imd_server import DEFAULT_PORT
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractiveMolecularDynamicsStub, InteractionEndReply
 
@@ -71,9 +72,8 @@ class ImdClient:
 
     def __init__(self, *, address: Optional[str] = None, port: Optional[int] = None):
         if address is None:
-            address = DEFAULT_ADDRESS
-        if port is None:
-            port = DEFAULT_PORT
+            address = DEFAULT_CONNECT_ADDRESS
+        port = get_requested_port_or_default(port, DEFAULT_PORT)
         self.channel = grpc.insecure_channel("{0}:{1}".format(address, port))
         self.stub = InteractiveMolecularDynamicsStub(self.channel)
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
@@ -141,8 +141,7 @@ class ImdClient:
 
     def close(self):
         try:
-            pass
-            #self.stop_all_interactions()
+            self.stop_all_interactions()
         except grpc.RpcError as e:
             self._logger.exception(e)
         finally:

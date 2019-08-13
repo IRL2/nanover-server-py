@@ -65,6 +65,7 @@ class ImdCalculator(Calculator):
     def calculator(self) -> Calculator:
         """
         The internal ASE calculator being used.
+
         :return: ASE calculator being used to compute internal forces.
         """
         return self._calculator
@@ -74,6 +75,7 @@ class ImdCalculator(Calculator):
         """
         Returns a shallow copy of the current interactions.
         """
+
         return self._service.active_interactions
 
     def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),

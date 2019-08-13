@@ -6,15 +6,22 @@ Reference multiplayer client implementation.
 
 """
 
-import time
-from queue import Queue, Empty
-from threading import Thread
-from typing import Dict
+from queue import Queue
+from typing import Dict, Callable, Sequence
+from concurrent import futures
 
 import grpc
+from google.protobuf.struct_pb2 import Value
 
+from narupa.core import DEFAULT_CONNECT_ADDRESS
+from narupa.core.request_queues import SingleItemQueue
+from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
+from narupa.multiplayer.change_buffers import yield_interval
+
+
+UpdateCallback = Callable[[Sequence[str]], None]
 
 
 def _end_upon_channel_close(function):
@@ -47,25 +54,20 @@ class MultiplayerClient(object):
     """
     stub: mult_proto_grpc.MultiplayerStub
     current_avatars: Dict[int, mult_proto.Avatar]
-    scene_properties: mult_proto.SceneProperties
     _avatar_queue: Queue
 
-    def __init__(self, address='localhost', port=7654, pubsub_fps: float = 30, channel=None):
-
-        if channel is None:
-            self.channel = grpc.insecure_channel("{0}:{1}".format(address, port))
-            self.shared_channel = False
-        else:
-            self.channel = channel
-            self.shared_channel = True
+    def __init__(self, address=DEFAULT_CONNECT_ADDRESS, port=DEFAULT_PORT,
+                 send_interval: float = 1/60):
+        self.channel = grpc.insecure_channel(f"{address}:{port}")
         self.stub = mult_proto_grpc.MultiplayerStub(self.channel)
         self._player_id = None
-        self._avatar_queue = Queue()
-        self.pubsub_fps = pubsub_fps
-        self.pubsub_rate = 1.0 / pubsub_fps
+        self._send_interval = send_interval
+        self._avatar_queue = SingleItemQueue()
+        self._value_update_callbacks = set()
         self.current_avatars = {}
         self.closed = False
-        self.scene_properties = None
+        self.resources = dict()
+        self.threadpool = futures.ThreadPoolExecutor(max_workers=10)
 
     def close(self):
         """
@@ -73,44 +75,48 @@ class MultiplayerClient(object):
         :return:
         """
         self.closed = True
-        if not self.shared_channel:
-            self.channel.close()
+        self.threadpool.shutdown(wait=False)
+        self.channel.close()
 
-    def join_multiplayer(self, username, join_streams=True):
+    def join_multiplayer(self, player_name, join_streams=True):
         """
         Joins a multiplayer server
-        :param username: The user name to use for multiplayer.
+        :param player_name: The user name to use for multiplayer.
         :param join_streams: Whether to automatically join all streams.
         :return: Player ID received from the multiplayer server.
         """
         if self.joined_multiplayer:
             return self._player_id
-        result = self.stub.JoinMultiplayer(mult_proto.JoinMultiplayerRequest(username=username), timeout=5)
-        self._player_id = result.player_id
+        response = self.stub.CreatePlayer(mult_proto.CreatePlayerRequest(player_name=player_name), timeout=5)
+        self._player_id = response.player_id
         if join_streams:
             self.join_avatar_stream()
             self.join_avatar_publish()
-            self.join_scene_properties_stream()
+            self.subscribe_all_value_updates()
 
         return self._player_id
 
-    def join_avatar_stream(self):
+    def join_avatar_stream(self, interval=0, ignore_self=True):
         """
-        Joins the avatar stream, which will start receiving avatar updates in the background.
+        Joins the avatar stream, which will start receiving avatar updates in
+        the background.
+        :param interval: Minimum time (in seconds) between receiving two updates
+        for the same player's avatar.
+        :param ignore_self: Whether to request the server not to send our own
+        avatar updates back to us.
         """
-        self._ensure_joined_multiplayer()
-        request = mult_proto.SubscribeToAvatarsRequest(player_id=self.player_id)
-        thread = Thread(target=self._join_avatar_stream, args=(request,))
-        thread.start()
+        ignore = self.player_id if ignore_self else None
+        request = mult_proto.SubscribePlayerAvatarsRequest(ignore_player_id=ignore,
+                                                           update_interval=interval)
+        self.threadpool.submit(self._join_avatar_stream, request)
 
     def join_avatar_publish(self):
         """
         Joins the avatar publishing stream.
         Use publish_avatar to publish.
         """
-        self._ensure_joined_multiplayer()
-        thread = Thread(target=self._join_avatar_publish, args=(), daemon=True)
-        thread.start()
+        self._assert_has_player_id()
+        self.threadpool.submit(self._join_avatar_publish)
 
     def publish_avatar(self, avatar):
         """
@@ -133,89 +139,94 @@ class MultiplayerClient(object):
         Indicates whether multiplayer joined, and the client has a valid player ID.
         :return: True if multiplayer has been joined, false otherwise.
         """
-        return self.player_id != None
+        return self.player_id is not None
 
-    def join_scene_properties_stream(self):
+    def subscribe_all_value_updates(self, interval=0):
         """
-        Joins the scene properties stream.
+        Begin receiving updates to the shared key/value store.
+        :param interval: Minimum time (in seconds) between receiving new updates
+        for any and all values.
         """
-        self._ensure_joined_multiplayer()
-        request = mult_proto.ScenePropertyRequest(player_id=self.player_id)
-        thread = Thread(target=self._join_scene_properties_stream, args=(request,), daemon=True)
-        thread.start()
+        request = mult_proto.SubscribeAllResourceValuesRequest(update_interval=interval)
+        self.threadpool.submit(self._join_scene_properties_stream, request)
 
-    def try_lock_scene(self, player_id=None):
+    def try_lock_resource(self, resource_id, duration=0):
         """
-        Try to lock the scene properties for editing.
-        :param player_id: The player_id to use to make the lock request.
+        Attempt to gain exclusive write access to a particular key in the
+        shared key/value store.
+        :param resource_id: Key to lock.
+        :param duration: Duration to lock the key for (0 for indefinite).
         """
-        if player_id == None:
-            player_id = self.player_id
-        lock_request = mult_proto.LockRequest(player_id=player_id)
-        reply = self.stub.SetLockScene(lock_request)
-        return reply.locked
+        lock_request = mult_proto.AcquireLockRequest(player_id=self.player_id,
+                                                     resource_id=resource_id,
+                                                     timeout_duration=duration)
+        reply = self.stub.AcquireResourceLock(lock_request)
+        return reply.success
 
-    def try_unlock_scene(self, player_id=None):
+    def try_release_resource(self, resource_id):
         """
-        Try to unlock the scene properties.
-        :param player_id: The player ID to use to make the unlock request.
+        Attempt to release exclusive write access of a particular key in the
+        shared key/value store.
+        :param resource_id: Key to release.
         """
-        if player_id == None:
-            player_id = self.player_id
-        lock_request = mult_proto.LockRequest(player_id=player_id)
-        reply = self.stub.UnlockScene(lock_request)
-        return not reply.locked
+        lock_request = mult_proto.ReleaseLockRequest(player_id=self.player_id,
+                                                     resource_id=resource_id)
+        reply = self.stub.ReleaseResourceLock(lock_request)
+        return reply.success
 
-    def set_scene_properties(self, properties) -> bool:
+    def try_set_resource_value(self, resource_id, value) -> bool:
         """
-        Attempts to set the multiplayer scene properties.
-        If the scene properties are locked by someone else, this will fail.
-        :param properties: The new properties to apply.
-        :return: True if properties sucessfully set, false otherwise.
+        Attempt to write a value to a key in the shared key/value store.
+        :param resource_id: Key to write to.
+        :param value: Value to write.
         """
-        self._ensure_joined_multiplayer()
-        if not self.try_lock_scene():
-            return False
-        property_request = mult_proto.SetScenePropertyRequest(player_id=self.player_id, properties=properties)
-        reply = self.stub.SetSceneProperty(property_request)
-        if not reply.success:
-            # This shouldn't happen, as the box will have been locked above, but check it just in case.
-            return False  # pragma: no cover
-        if not self.try_unlock_scene():
-            # Should always be able to unlock the box, but throw exception here just in case.
-            raise RuntimeError("Unable to unlock scene after edit!")  # pragma: no cover
-        return True
+        if not isinstance(value, Value):
+            raise TypeError("'value' must be a grpc Value type.")
 
-    def _ensure_joined_multiplayer(self):
+        request = mult_proto.SetResourceValueRequest(player_id=self.player_id,
+                                                     resource_id=resource_id,
+                                                     resource_value=value)
+        response = self.stub.SetResourceValue(request)
+        return response.success
+
+    def add_value_update_callback(self, callback: UpdateCallback):
+        self._value_update_callbacks.add(callback)
+
+    def _assert_has_player_id(self):
         if not self.joined_multiplayer:
             raise RuntimeError("Join multiplayer before attempting this operation.")
 
     @_end_upon_channel_close
     def _join_avatar_stream(self, request):
-        for publication in self.stub.SubscribeToAvatars(request):
-            self.current_avatars[publication.player_id] = publication
-            time.sleep(self.pubsub_rate / min(1, len(self.current_avatars)))
+        for avatar in self.stub.SubscribePlayerAvatars(request):
+            self.current_avatars[avatar.player_id] = avatar
 
     @_end_upon_channel_close
     def _join_avatar_publish(self):
-        self.stub.PublishAvatar(self._publish_avatar())
+        response = self.stub.UpdatePlayerAvatar(self._publish_avatar())
 
     def _publish_avatar(self):
-        while True:
-            time.sleep(self.pubsub_rate)
-            try:
-                avatar = self._avatar_queue.get(block=True, timeout=0.5)
-            except Empty:
-                pass
-            else:
-                yield avatar
+        for dt in yield_interval(self._send_interval):
+            avatar = self._avatar_queue.get(block=True)
+            if avatar is None:
+                break
+            yield avatar
 
     @_end_upon_channel_close
     def _join_scene_properties(self, request):
-        for publication in self.stub.SubscribeToSceneProperties(request):
-            self.scene_properties = publication
-            time.sleep(self.pubsub_rate)
+        for update in self.stub.SubscribeAllResourceValues(request):
+            for key, value in update.resource_value_changes.items():
+                self.resources[key] = value
+            keys = set(update.resource_value_changes.keys())
+            for callback in self._value_update_callbacks:
+                callback(keys)
 
     @_end_upon_channel_close
     def _join_scene_properties_stream(self, request):
-        self.stub.SubscribeToSceneProperties(self._join_scene_properties(request))
+        self.stub.SubscribeAllResourceValues(self._join_scene_properties(request))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

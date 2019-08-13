@@ -15,6 +15,9 @@ from narupa.ase.converter import add_ase_positions_to_frame_data
 from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.openmm.calculator import OpenMMCalculator
 from narupa.openmm import openmm_to_frame_data, serializer
+from narupa.core import get_requested_port_or_default
+from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
+from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
 from simtk.openmm.app import Simulation
 
 
@@ -66,9 +69,10 @@ class OpenMMIMDRunner:
         if not params:
             params = ImdParams()
         self._address = params.address
-        self._trajectory_port = params.trajectory_port
-        self._imd_port = params.imd_port
-        if params.trajectory_port is not None and params.trajectory_port == params.imd_port:
+        if self._services_use_same_port(
+                trajectory_port=params.trajectory_port,
+                imd_port=params.imd_port,
+            ):
             raise ValueError("Trajectory serving port and IMD serving port must be different!")
         self._frame_interval = params.frame_interval
         self._time_step = params.time_step
@@ -76,7 +80,7 @@ class OpenMMIMDRunner:
 
         self._initialise_calculator(simulation)
         self._initialise_dynamics()
-        self._initialise_server(self.dynamics)
+        self._initialise_server(self.dynamics, params.trajectory_port, params.imd_port)
 
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
@@ -109,11 +113,11 @@ class OpenMMIMDRunner:
 
     @property
     def trajectory_port(self):
-        return self._trajectory_port
+        return self.imd.frame_server.port
 
     @property
     def imd_port(self):
-        return self._imd_port
+        return self.imd.imd_server.port
 
     @property
     def dynamics(self):
@@ -122,14 +126,20 @@ class OpenMMIMDRunner:
     def run(self, steps=None):
         self.imd.run(steps)
 
-    def _initialise_server(self, dynamics):
+    def close(self):
+        """
+        Closes the connection and stops the dynamics.
+        """
+        self.imd.close()
+
+    def _initialise_server(self, dynamics, trajectory_port=None, imd_port=None):
         # set the server to use the OpenMM frame convert for performance purposes.
         self.imd = ASEImdServer(dynamics,
                                 frame_method=openmm_ase_frame_server,
                                 address=self.address,
                                 frame_interval=self.frame_interval,
-                                trajectory_port=self.trajectory_port,
-                                imd_port=self.imd_port,
+                                trajectory_port=trajectory_port,
+                                imd_port=imd_port,
                                 )
 
     def _initialise_calculator(self, simulation):
@@ -146,9 +156,15 @@ class OpenMMIMDRunner:
         if self.verbose:
             self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,
                                      peratom=False), interval=100)
-
-    def close(self):
-        """
-        Closes the connection and stops the dynamics.
-        """
-        self.imd.close()
+    
+    @staticmethod
+    def _services_use_same_port(trajectory_port, imd_port):
+        trajectory_port = get_requested_port_or_default(trajectory_port, TRAJ_DEFAULT_PORT)
+        imd_port = get_requested_port_or_default(imd_port, IMD_DEFAULT_PORT)
+        return trajectory_port == imd_port
+        
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        self.close()

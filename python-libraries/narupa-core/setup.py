@@ -143,5 +143,8 @@ setup(name='narupa',
       install_requires=requirements,
       cmdclass={
           'compile_proto': CompileProtoCommand,
+      },
+      entry_points={
+          'console_scripts': ['narupa-multiplayer=narupa.multiplayer.cli:main'],
       }
      )

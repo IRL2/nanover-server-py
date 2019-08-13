@@ -55,6 +55,7 @@ class ASEImdServer:
     def internal_calculator(self) -> Calculator:
         """
         The internal calculator being used to compute internal energy and forces.
+
         :return: ASE internal calculator.
         """
         return self.imd_calculator.calculator
@@ -63,6 +64,7 @@ class ASEImdServer:
     def atoms(self) -> Atoms:
         """
         The atoms in the MD system.
+
         :return: ASE atoms.
         """
         return self.dynamics.atoms
@@ -70,9 +72,9 @@ class ASEImdServer:
     def run(self, steps: Optional[int] = None):
         """
         Runs the molecular dynamics forward the given number of steps.
+
         :param steps: If passed, will run the given number of steps, otherwise will run forever
         on a background thread and immediately return.
-        :return:
         """
         if steps is None:
             self._run_task = self.threads.submit(self._run_forever)
@@ -85,6 +87,11 @@ class ASEImdServer:
         self._cancelled = False
 
     def cancel_run(self, wait=False):
+        """
+        Cancel molecular dynamics that is running on a background thread.
+
+        :param wait: Whether to block and wait for the molecular dynamics to halt before returning.
+        """
         if self._cancelled:
             return
         self._cancelled = True
@@ -92,6 +99,10 @@ class ASEImdServer:
             self._run_task.result()
 
     def close(self):
+        """
+        Cancels the molecular dynamics if it is running, and closes
+        the IMD and frame servers.
+        """
         self.cancel_run()
         self.imd_server.close()
         self.frame_server.close()
