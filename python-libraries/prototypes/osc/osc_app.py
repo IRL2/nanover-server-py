@@ -1,7 +1,3 @@
-"""
-Command line interface for connecting to a narupa server and OSC server and
-generating outgoing OSC messages from incoming narupa frame data. Used f
-"""
 import argparse
 import textwrap
 
@@ -9,9 +5,14 @@ from osc_client import OscClient
 
 
 class OscApp:
-    def __init__(self, setup_callback=None):
+    """
+    For connecting to a Narupa simulation and then uses the result of the
+    message generator setup to translate incoming trajectory frames into
+    outgoing osc messages.
+    """
+    def __init__(self, message_generator_setup=None):
         self._argument_parser = self._create_argument_parser()
-        self._setup_callback = setup_callback
+        self._message_generator_setup = message_generator_setup
 
     def _create_argument_parser(self):
         description = textwrap.dedent("""\
@@ -21,7 +22,7 @@ class OscApp:
         parser = argparse.ArgumentParser(description=description)
 
         parser.add_argument('--traj-address', default=None)
-        parser.add_argument('--osc-address', default='localhost')
+        parser.add_argument('--osc-address', default=None)
         parser.add_argument('-t', '--traj-port', type=int, default=None)
         parser.add_argument('-o', '--osc-port', type=int, default=None)
         parser.add_argument('-i', '--send-interval', type=float, default=.01)
@@ -39,8 +40,11 @@ class OscApp:
         return osc_client
 
     def run(self, args=None):
+        """
+        Begin connection, setup, and then run until keyboard interrupt.
+        """
         with self._create_client(args) as osc_client:
-            self._setup_callback(osc_client)
+            osc_client.message_generator = self._messsage_generator_setup(osc_client)
             print('Running...')
             try:
                 osc_client.run()

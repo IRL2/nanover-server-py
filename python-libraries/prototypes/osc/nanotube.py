@@ -1,3 +1,12 @@
+"""
+Connects to a Narupa simulation and, assuming the simulated molecule to be a
+nanotube, computes and sends over OSC interesting metrics for sonification.
+Run with:
+
+.. code bash
+    narupa-omm-ase nanotube.xml
+    python nanotube.py --osc-port 9000
+"""
 from osc_app import OscApp
 
 import selections
@@ -9,15 +18,15 @@ from numpy.linalg import norm
 
 
 # from: https://gist.github.com/nim65s/5e9902cd67f094ce65b0
-def distance_segment_point(A, B, P):
+def distance_segment_point(a, b, p):
     """ segment line AB, point P, where each one is an array([x, y]) """
-    if all(A == P) or all(B == P):
+    if all(a == p) or all(b == p):
         return 0
-    if arccos(dot((P - A) / norm(P - A), (B - A) / norm(B - A))) > pi / 2:
-        return norm(P - A)
-    if arccos(dot((P - B) / norm(P - B), (A - B) / norm(A - B))) > pi / 2:
-        return norm(P - B)
-    return norm(cross(A-B, A-P))/norm(B-A)
+    if arccos(dot((p - a) / norm(p - a), (b - a) / norm(b - a))) > pi / 2:
+        return norm(p - a)
+    if arccos(dot((p - b) / norm(p - b), (a - b) / norm(a - b))) > pi / 2:
+        return norm(p - b)
+    return norm(cross(a - b, a - p)) / norm(b - a)
 
 
 def clamp01(value):
@@ -99,7 +108,7 @@ def build_frame_generator(osc_client):
         yield "/methane/centrality", centrality
         yield "/energy/kinetic", frame.values['energy.kinetic']
 
-    osc_client.message_generator = frame_to_osc_messages
+    return frame_to_osc_messages
 
 
 if __name__ == '__main__':

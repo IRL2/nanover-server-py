@@ -1,6 +1,5 @@
-import time
-
 from narupa.app import NarupaClient
+from narupa.core.timing import yield_interval
 from pythonosc import udp_client
 
 DEFAULT_OSC_ADDRESS = 'localhost'
@@ -9,21 +8,6 @@ DEFAULT_OSC_PORT = 60000
 
 def null_message_generator(frame):
     pass
-
-
-def yield_interval(interval):
-    """
-    Yield at a set interval, accounting for the time spent outside of this
-    function.
-    :param interval: Number of seconds to put between yields
-    """
-    last_yield = 0
-    while True:
-        time_since_yield = time.monotonic() - last_yield
-        wait_duration = max(0, interval - time_since_yield)
-        time.sleep(wait_duration)
-        yield
-        last_yield = time.monotonic()
 
 
 class OscClient:
@@ -47,7 +31,7 @@ class OscClient:
                                          trajectory_port=traj_port)
 
     def run(self):
-        for _ in yield_interval(self.send_interval):
+        for dt in yield_interval(self.send_interval):
             frame = self.frame_client.latest_frame
             if frame is not None:
                 self.process_frame(frame)
