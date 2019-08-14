@@ -361,7 +361,6 @@ class LammpsHook:
 
         :param lmp: LAMMPS object data, only populated when running from within LAMMPS
         """
-
         # Checks if LAMMPS variable is being passed
         # If not assume we are in interactive mode
         if lmp is None:
@@ -388,7 +387,7 @@ class LammpsHook:
             self.units_type = LAMMPS_UNITS_CHECK.get(self.units, None)[0]
             self.distance_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[1]
             self.force_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[2]
-            print(self.units_type,self.force_factor,self.distance_factor)
+            print(self.units_type, self.force_factor, self.distance_factor)
 
 
         # Choose the matrix type that will be extracted
