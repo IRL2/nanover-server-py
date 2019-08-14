@@ -24,10 +24,14 @@ class GrpcServer:
 
     def __init__(self, *, address: str, port: int):
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-
         self.setup_services()
-
         self._port = self.server.add_insecure_port(address=f"{address}:{port}")
+
+        if self._port == 0:
+            if port == 0:
+                raise IOError(f"Could not open any port.")
+            raise IOError(f"Could not open on port {port}.")
+
         self.server.start()
 
     @property
@@ -43,6 +47,12 @@ class GrpcServer:
 
     def close(self):
         self.server.stop(grace=False)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 
 def get_requested_port_or_default(port: Optional[int], default: int) -> int:
