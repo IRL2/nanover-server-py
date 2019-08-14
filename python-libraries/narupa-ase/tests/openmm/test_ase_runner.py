@@ -10,9 +10,8 @@ from .simulation_utils import basic_simulation, serialized_simulation_path
 
 @pytest.fixture()
 def runner(basic_simulation):
-    runner = OpenMMIMDRunner(basic_simulation)
-    yield runner
-    runner.close()
+    with OpenMMIMDRunner(basic_simulation) as runner:
+        yield runner
 
 
 def test_from_xml(serialized_simulation_path):
@@ -85,10 +84,5 @@ def test_same_port_failure(basic_simulation, trajectory_port, imd_port):
     params.imd_port = imd_port
 
     with pytest.raises(ValueError):
-        runner = OpenMMIMDRunner(basic_simulation, params)
-    # If the runner could be built, we need to close it. Though, at this point,
-    # the runner may not exist.
-    try:
-        runner.close()
-    except NameError:
-        pass
+        with OpenMMIMDRunner(basic_simulation, params):
+            pass
