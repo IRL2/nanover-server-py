@@ -110,8 +110,9 @@ class DummyLammps:
     A fake lammps object intended just for unit testing the lammps code
     without having to have lammps installed on a server
     """
-    def __init__(self, n_atoms=10):
-        self.n_atoms = n_atoms
+    def __init__(self, n_atoms: int = None):
+        _DEFAULT_ATOMS = 3
+        self.n_atoms = n_atoms if n_atoms is not None else _DEFAULT_ATOMS
 
     def gather_atoms(self, array_type: str, dummy_variable, array_shape):
         """
@@ -251,6 +252,7 @@ class LammpsHook:
         self.units_type = None
         self.force_factor = None
         self.distance_factor = None
+        self.default_atoms = 10
 
 
     def test_debug(self):
@@ -365,7 +367,7 @@ class LammpsHook:
         if lmp is None:
             print("Running without lammps, assuming interactive debugging")
             try:
-                L = DummyLammps() #n_atoms_default=10)
+                L = DummyLammps(self.default_atoms)
             except Exception as e:
                 # Many possible reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load DummyLammps", e)
