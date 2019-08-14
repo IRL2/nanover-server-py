@@ -1,0 +1,714 @@
+Parser version: 7
+
+--------------------------------------------------------------------------------
+Reading SK-files:
+Done.
+
+
+Processed input in HSD format written to 'dftb_pin.hsd'
+
+Starting initialization...
+--------------------------------------------------------------------------------
+OpenMP threads:              4
+Chosen random seed:          1910027902
+Mode:                        Conjugate gradient relaxation
+Self consistent charges:     Yes
+SCC-tolerance:                 0.100000E-04
+Max. scc iterations:                    100
+Shell resolved Hubbard:      No
+Spin polarisation:           No
+Nr. of up electrons:            10.000000
+Nr. of down electrons:          10.000000
+Periodic boundaries:         No
+Electronic solver:           Relatively robust
+Mixer:                       Broyden mixer
+Mixing parameter:                  0.200000
+Maximal SCC-cycles:                     100
+Nr. of chrg. vec. in memory:              0
+Nr. of moved atoms:                      11
+Max. nr. of geometry steps:               0
+Force tolerance:               0.100000E-03
+Electronic temperature:        0.100000E-07 H      0.272114E-06 eV
+Initial charges:             Set automatically (system chrg:   0.000E+00)
+Included shells:             C:  s, p
+                             H:  s
+Extra options:
+                             Mulliken analysis
+Force type                   original
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82862324E+01    0.00000000E+00    0.26993052E+00
+    2   -0.82867297E+01   -0.49730464E-03    0.20306902E+00
+    3   -0.82873144E+01   -0.58464125E-03    0.18511076E-01
+    4   -0.82873162E+01   -0.18201350E-05    0.42938425E-02
+    5   -0.82873163E+01   -0.70476473E-07    0.24658685E-03
+    6   -0.82873163E+01   -0.59898930E-08    0.28739665E-04
+    7   -0.82873163E+01   -0.16436630E-10    0.16869876E-04
+    8   -0.82873163E+01   -0.28313352E-10    0.90234159E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234031E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234171E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234185E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234193E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234137E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234173E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234195E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234156E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234226E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234226E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234331E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234157E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234139E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234311E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234112E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234198E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234235E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234210E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234227E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234205E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234218E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234197E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234197E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234336E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234170E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234245E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234179E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234110E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234196E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234233E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234128E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234206E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234263E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234163E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234189E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234320E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234179E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234239E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234193E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234195E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234220E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234078E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234180E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234180E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234322E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234193E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234220E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234253E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234185E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234186E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234169E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234203E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234159E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234151E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234196E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234177E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234215E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234213E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234160E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234203E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234121E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234227E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234106E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234172E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234140E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234189E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234175E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234195E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234142E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234105E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234181E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234161E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234201E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234170E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234158E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234186E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234176E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234145E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234205E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234261E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234237E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234195E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234161E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234143E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234192E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234136E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234167E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234229E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234122E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234155E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234180E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234163E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234176E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234249E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
+Total Mermin free energy:           -8.1726344053 H         -222.3887 eV
+Force related energy:               -8.1726344053 H         -222.3887 eV
+ iSCC Total electronic   Diff electronic      SCC error    
+    1   -0.82873163E+01    0.00000000E+00    0.90234202E-08
+
+Total Energy:                       -8.1726344053 H         -222.3887 eV
+Extrapolated to 0:                  -8.1726344053 H         -222.3887 eV
