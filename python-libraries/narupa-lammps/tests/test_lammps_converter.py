@@ -22,8 +22,8 @@ def test_length_lammps_atoms(simple_atom_lammps_frame):
     h.distance_factor = 1.0
     h.lammps_positions_to_frame_data(frame_data, simple_atom_lammps_frame)
     assert len(frame_data.raw.arrays[POSITIONS].float_values.values) == 9
-    #Doesnt work because we havent run the full routine
-
+    del h
+    #FrameServer.close()
 
 def test_elements_lammps_atoms():
     """
@@ -35,5 +35,4 @@ def test_elements_lammps_atoms():
     frame_data = FrameData()
     atom_type, masses = h.gather_lammps_particle_types(dummy)
     frame_data.arrays[ELEMENTS] = atom_type
-
     assert frame_data.raw.arrays[ELEMENTS].index_values.values == [1, 1, 1]

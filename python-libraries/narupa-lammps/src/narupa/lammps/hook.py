@@ -254,6 +254,13 @@ class LammpsHook:
         self.distance_factor = None
         self.default_atoms = 10
 
+    def __del__(self):
+        '''
+        Close ports when the class is destroyed
+        '''
+        logging.info("Lammps object has been destroyed, closing server")
+        self.frame_server.close()
+        self.imd_server.close()
 
     def test_debug(self):
         """
