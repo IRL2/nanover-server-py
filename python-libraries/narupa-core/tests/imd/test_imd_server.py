@@ -3,7 +3,8 @@ from unittest.mock import Mock
 
 import grpc
 import pytest
-from narupa.imd.imd_client import ImdClient, delayed_generator
+from narupa.core.timing import delayed_generator
+from narupa.imd.imd_client import ImdClient
 from narupa.imd.imd_server import ImdServer
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractionEndReply
