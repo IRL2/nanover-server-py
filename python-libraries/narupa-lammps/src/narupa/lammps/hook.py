@@ -233,10 +233,13 @@ class LammpsHook:
             raise Exception("Failed to load FrameData", e)
 
         # Load MPI routines, has to be performed here.
-        from mpi4py import MPI
-        self.comm = MPI.COMM_WORLD
-        me = self.comm.Get_rank()
-        nprocs = self.comm.Get_size()
+        try:
+            from mpi4py import MPI
+            self.comm = MPI.COMM_WORLD
+            me = self.comm.Get_rank()
+            nprocs = self.comm.Get_size()
+        except:
+            logging.info("didn't find mpi4py")
 
         logging.basicConfig(level=logging.INFO)
         logging.info("Lammpshook initialised for NarupaXR")
