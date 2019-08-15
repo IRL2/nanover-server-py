@@ -26,7 +26,7 @@ class FrameClient:
 
     def subscribe_frames_blocking(self, callback, frame_interval=0):
         for frame_index, frame in self.subscribe_frames_iterate(frame_interval):
-            callback(frame_index=frame_index, frame=FrameData(frame))
+            callback(frame_index=frame_index, frame=frame)
 
     def subscribe_frames_iterate(self, frame_interval=0):
         request = GetFrameRequest(frame_interval=frame_interval)
