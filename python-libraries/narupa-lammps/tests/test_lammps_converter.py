@@ -22,7 +22,7 @@ def test_length_lammps_atoms(simple_atom_lammps_frame):
     h.distance_factor = 1.0
     h.lammps_positions_to_frame_data(frame_data, simple_atom_lammps_frame)
     assert len(frame_data.raw.arrays[POSITIONS].float_values.values) == 9
-    del h
+    h.close()
 
 def test_elements_lammps_atoms():
     """

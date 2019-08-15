@@ -257,7 +257,7 @@ class LammpsHook:
         self.distance_factor = None
         self.default_atoms = 10
 
-    def __del__(self):
+    def close(self):
         '''
         Close ports when the class is destroyed
         '''
