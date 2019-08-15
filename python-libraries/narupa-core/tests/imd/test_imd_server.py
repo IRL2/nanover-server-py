@@ -14,20 +14,14 @@ import concurrent.futures
 
 @pytest.fixture
 def imd_server():
-    server = ImdServer(address='localhost', port=0)
-    try:
+    with ImdServer(address='localhost', port=0) as server:
         yield server
-    finally:
-        server.close()
 
 
 @pytest.fixture
 def imd_server_client(imd_server):
-    client = ImdClient(address='localhost', port=imd_server.port)
-    try:
+    with ImdClient(address='localhost', port=imd_server.port) as client:
         yield imd_server, client
-    finally:
-        client.close()
 
 
 @pytest.fixture

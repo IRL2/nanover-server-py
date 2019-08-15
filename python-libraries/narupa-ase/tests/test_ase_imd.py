@@ -12,7 +12,6 @@ from narupa.imd.particle_interaction import ParticleInteraction
 from util import co_atoms, imd_client
 
 
-
 @pytest.fixture
 def interact_c():
     interaction = ParticleInteraction(position=[0, 1, 0], particles=[0], scale=20000., interaction_type='spring')
@@ -31,9 +30,8 @@ def imd():
     calculator = LennardJones()
     atoms.set_calculator(calculator)
     dynamics = VelocityVerlet(atoms, timestep=0.5)
-    imd = ASEImdServer(dynamics)
-    yield imd, atoms
-    imd.close()
+    with ASEImdServer(dynamics) as imd:
+        yield imd, atoms
 
 
 def test_ase_imd_dynamics(imd):

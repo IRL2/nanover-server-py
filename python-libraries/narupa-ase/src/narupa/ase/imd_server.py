@@ -106,3 +106,9 @@ class ASEImdServer:
         self.cancel_run()
         self.imd_server.close()
         self.frame_server.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

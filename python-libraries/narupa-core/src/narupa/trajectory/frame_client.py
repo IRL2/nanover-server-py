@@ -11,7 +11,6 @@ from narupa.trajectory.frame_server import DEFAULT_PORT
 
 
 class FrameClient:
-
     def __init__(self, *, address:Optional[str]=None, port: Optional[int]=None):
         if address is None:
             address = DEFAULT_CONNECT_ADDRESS
@@ -45,3 +44,9 @@ class FrameClient:
     def close(self):
         self.channel.close()
         self.threads.shutdown(wait=False)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
