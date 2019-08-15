@@ -1,13 +1,12 @@
 import time
 
 import pytest
-from ase import Atoms
 from ase.calculators.lj import LennardJones
-from ase.md import Langevin, VelocityVerlet
+from ase.md import VelocityVerlet
 
 from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.imd_calculator import ImdCalculator
-from narupa.imd.imd_client import ImdClient, delayed_generator
+from narupa.core.timing import delayed_generator
 from narupa.imd.particle_interaction import ParticleInteraction
 from util import co_atoms, imd_client
 
@@ -48,6 +47,7 @@ def test_ase_imd_dynamics_interaction(imd, interact_c, imd_client):
 
     imd_calculator = atoms.get_calculator()
     assert isinstance(imd_calculator, ImdCalculator)
+
     imd_client.publish_interactions_async(delayed_generator([interact_c] * 10000, delay=0.025))
     time.sleep(0.1)
     assert len(imd_calculator.interactions) == 1
