@@ -24,13 +24,8 @@ import argparse
 import numpy as np
 import MDAnalysis as mda
 
-import grpc
-from narupa.protocol.trajectory import (
-    TrajectoryServiceStub,
-    GetFrameRequest,
-    GetFrameResponse,
-)
-from narupa.trajectory.frame_data import POSITIONS
+from narupa.trajectory import FrameClient
+from narupa.trajectory.frame_data import POSITIONS, FrameData
 
 
 def write_trajectory_from_server(destination, *, address: str, port: int):
@@ -42,25 +37,32 @@ def write_trajectory_from_server(destination, *, address: str, port: int):
     :param address: Host name to connect to.
     :param port: Port to connect to on the host.
     """
-    host = '{}:{}'.format(address, port)
-    channel = grpc.insecure_channel(host)
-    stub = TrajectoryServiceStub(channel)
-    frame_iter = stub.SubscribeFrames(GetFrameRequest())
-
-    first_frame = frame_to_ndarray(next(frame_iter))
-    universe = mda.Universe.empty(n_atoms=first_frame.shape[0], trajectory=True)
-    universe.atoms.positions = first_frame
-    writer_class = mda.coordinates.core.get_writer_for(destination, multiframe=True)
-    with writer_class(destination, n_atoms=first_frame.shape[0]) as writer:
-        writer.write(universe.atoms)
-        for frame in frame_iter:
-            positions = frame_to_ndarray(frame)
-            universe.atoms.positions = positions
+    with FrameClient(address=address, port=port) as client:
+        print("Running...")
+        frame_iter = client.subscribe_frames_iterate()
+        frame_index, first_frame = next(frame_iter)
+        first_positions = frame_to_ndarray(first_frame)
+        universe = universe_from_positions(first_positions)
+        writer_class = mda.coordinates.core.get_writer_for(destination,
+                                                           multiframe=True)
+        with writer_class(destination, n_atoms=first_positions.shape[0]) as writer:
             writer.write(universe.atoms)
-    channel.close()
+            try:
+                for frame_index, frame in frame_iter:
+                    positions = frame_to_ndarray(frame)
+                    universe.atoms.positions = positions
+                    writer.write(universe.atoms)
+            except KeyboardInterrupt:
+                print(f"Finishing on frame {frame_index} due to keyboard interrupt.")
 
 
-def frame_to_ndarray(frame: GetFrameResponse) -> np.ndarray:
+def universe_from_positions(positions: np.ndarray) -> mda.Universe:
+    universe = mda.Universe.empty(n_atoms=positions.shape[0], trajectory=True)
+    universe.atoms.positions = positions
+    return universe
+
+
+def frame_to_ndarray(frame: FrameData) -> np.ndarray:
     """
     Convert a frame received from the Narupa server to an array of coordinates.
 
@@ -74,7 +76,8 @@ def frame_to_ndarray(frame: GetFrameResponse) -> np.ndarray:
     """
     raw_positions = (
         frame
-        .frame.arrays[POSITIONS]
+        .raw
+        .arrays[POSITIONS]
         .float_values
         .values
     )
@@ -91,10 +94,9 @@ def handle_user_args() -> argparse.Namespace:
 
     :return: The namespace of arguments read from the command line.
     """
-    description = "Connect to a Narupa trajectory server and write the trajectory."
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--host', default='localhost')
-    parser.add_argument('--port', type=int, default=8000)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--host', default=None)
+    parser.add_argument('--port', type=int, default=None)
     parser.add_argument('destination')
     arguments = parser.parse_args()
     return arguments

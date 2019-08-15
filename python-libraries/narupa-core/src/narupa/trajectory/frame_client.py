@@ -25,10 +25,13 @@ class FrameClient:
                                    frame_interval)
 
     def subscribe_frames_blocking(self, callback, frame_interval=0):
+        for frame_index, frame in self.subscribe_frames_iterate(frame_interval):
+            callback(frame_index=frame_index, frame=FrameData(frame))
+
+    def subscribe_frames_iterate(self, frame_interval=0):
         request = GetFrameRequest(frame_interval=frame_interval)
         for response in self.stub.SubscribeFrames(request):
-            callback(frame_index=response.frame_index,
-                     frame=FrameData(response.frame))
+            yield response.frame_index, FrameData(response.frame)
 
     def subscribe_last_frames_async(self, callback, frame_interval=0) -> Future:
         return self.threads.submit(self.subscribe_last_frames_blocking,
