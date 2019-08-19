@@ -38,9 +38,12 @@ def osc_server():
     """
     Provide an OSC server hosting on an available port on localhost.
     """
-    with ThreadingOSCUDPServer(('localhost', 0), dispatcher.Dispatcher()) as server:
+    try:
+        server = ThreadingOSCUDPServer(('localhost', 0), dispatcher.Dispatcher())
         threading.Thread(target=server.serve_forever, daemon=True).start()
         yield server
+    finally:
+        server.shutdown()
 
 
 @pytest.fixture
