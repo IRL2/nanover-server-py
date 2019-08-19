@@ -95,6 +95,20 @@ class TestSingleItemQueue:
     def single_item_queue(self):
         return request_queues.SingleItemQueue()
 
+    def test_queue_none(self, single_item_queue):
+        single_item_queue.put(None)
+        assert single_item_queue.get() is None
+
+    @pytest.mark.timeout(3)
+    def test_blocking_get_with_content(self, single_item_queue):
+        single_item_queue.put(0)
+        assert single_item_queue.get(block=True) == 0
+
+    @pytest.mark.timeout(3)
+    def test_blocking_get_timeout(self, single_item_queue):
+        with pytest.raises(Empty):
+            single_item_queue.get(block=True, timeout=.5)
+
     def test_put_one_item(self, single_item_queue):
         item = 'hello'
         single_item_queue.put(item)
@@ -110,7 +124,7 @@ class TestSingleItemQueue:
 
         def put_values(thread_id, queue):
             for i in range(10):
-                time.sleep(0.1)
+                time.sleep(0.01)
                 item = (thread_id, i)
                 queue.put(item)
 
@@ -129,29 +143,30 @@ class TestSingleItemQueue:
 
     def test_get_initial(self, single_item_queue):
         with pytest.raises(Empty):
-            single_item_queue.get()
+            single_item_queue.get(block=False)
 
     def test_get_item(self, single_item_queue):
         item = 'hello'
         single_item_queue.put(item)
-        retrieved = single_item_queue.get()
+        retrieved = single_item_queue.get(block=False)
         assert retrieved == item
 
     def test_many_get(self, single_item_queue):
-        single_item_queue.put(0)
-        single_item_queue.get()
+        single_item_queue.put(0, block=False)
+        single_item_queue.get(block=False)
         with pytest.raises(Empty):
-            single_item_queue.get()
+            single_item_queue.get(block=False)
 
     @pytest.mark.timeout(20)
-    def test_put_and_get_threaded(self, single_item_queue):
+    @pytest.mark.parametrize('blocking', (True, False))
+    def test_put_and_get_threaded(self, single_item_queue, blocking):
         """
         Add and get data from the SingleItemQueue from multiple threads.
         """
 
         def produce_data(thread_id, queue, number_of_records):
             for i in range(number_of_records):
-                time.sleep(0.1)
+                time.sleep(0.01)
                 item = (thread_id, i)
                 queue.put(item)
 
@@ -159,7 +174,8 @@ class TestSingleItemQueue:
             obtained_data = []
             while context['running']:
                 try:
-                    item = queue.get()
+                    # timeout only applies when blocking
+                    item = queue.get(block=blocking, timeout=.5)
                 except Empty:
                     pass
                 else:

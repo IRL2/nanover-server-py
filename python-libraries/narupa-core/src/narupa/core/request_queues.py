@@ -4,9 +4,9 @@ Provides a dictionary of queues.
 
 from typing import Dict, Hashable, Generator, Tuple
 from queue import Queue, Empty
-from threading import Lock
+from threading import Lock, Condition
 from contextlib import contextmanager
-
+from time import monotonic as time
 
 class DictOfQueues:
     """
@@ -44,7 +44,7 @@ class DictOfQueues:
         self.queue_max_size = queue_max_size
         self.queues = {}
         self.lock = Lock()
-    
+
     def __contains__(self, key):
         with self.lock:
             return key in self.queues
@@ -84,7 +84,7 @@ class DictOfQueues:
         """
         with self.lock:
             yield from self.queues.values()
-    
+
     def iter_queues_items(self) -> Generator[Tuple[Hashable, Queue], None, None]:
         """
         Iterate over the queues and their keys.
@@ -96,10 +96,12 @@ class DictOfQueues:
             yield from self.queues.items()
 
 
+# adapted from https://github.com/python/cpython/blob/master/Lib/queue.py
 class SingleItemQueue:
     """
     Mimics the basic interface of a :class:`Queue` but only stores one item.
     """
+
     def __init__(self, maxsize=None):
         """
         :param maxsize: Unused parameter, included for compatibility with
@@ -107,6 +109,9 @@ class SingleItemQueue:
         """
         self._lock = Lock()
         self._item = None
+        self._has_item = False
+
+        self.not_empty = Condition(self._lock)
 
     def put(self, item, **kwargs):
         """
@@ -120,8 +125,10 @@ class SingleItemQueue:
         """
         with self._lock:
             self._item = item
+            self._has_item = True
+            self.not_empty.notify()
 
-    def get(self, **kwargs):
+    def get(self, block=True, timeout=None):
         """
         Get the stored value, and remove it from storage.
 
@@ -131,13 +138,27 @@ class SingleItemQueue:
         This method is thread-safe and is meant to be a drop in replacement
         to :meth:`Queue.get`.
 
-        :param kwargs: Unused arguments for compatibility with :meth:`Queue.get`.
+        :param block: Whether to wait until a value is available.
+        :param timeout: Timeout for waiting until a value is available.
         :return: The stored value.
         """
-        with self._lock:
-            item = self._item
-            if item is None:
-                raise Empty('No value available.')
+        with self.not_empty:
+            if not block:
+                if not self._has_item:
+                    raise Empty
+            elif timeout is None:
+                while not self._has_item:
+                    self.not_empty.wait()
+            elif timeout < 0:
+                raise ValueError("'timeout' must be a non-negative number")
             else:
-                self._item = None
+                endtime = time() + timeout
+                while not self._has_item:
+                    remaining = endtime - time()
+                    if remaining <= 0.0:
+                        raise Empty
+                    self.not_empty.wait(remaining)
+            item = self._item
+            self._item = None
+            self._has_item = False
             return item

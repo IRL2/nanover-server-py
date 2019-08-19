@@ -64,10 +64,14 @@ def main():
     """
     Entry point for the command line.
     """
-    runner = initialise()
-    print(f'Running dynamics')
-    while True:
-        runner.run(100)
+    with initialise() as runner:
+        print(f'Serving frames on port {runner.trajectory_port} and IMD on {runner.imd_port}')
+        
+        try:
+            while True:
+                runner.run(100)
+        except KeyboardInterrupt:
+            print("Closing due to keyboard interrupt.")
 
 
 if __name__ == '__main__':

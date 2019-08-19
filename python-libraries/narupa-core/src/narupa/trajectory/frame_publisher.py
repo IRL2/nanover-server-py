@@ -2,7 +2,12 @@ from queue import Queue, Empty
 from threading import Lock
 
 from narupa.core.request_queues import DictOfQueues, SingleItemQueue
+from narupa.core.timing import yield_interval
 from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameResponse, FrameData
+
+import time
+
+SENTINEL = None
 
 
 class FramePublisher(TrajectoryServiceServicer):
@@ -34,28 +39,32 @@ class FramePublisher(TrajectoryServiceServicer):
         This method publishes all the frames produced by the trajectory service,
         starting when the client subscribes.
         """
-        yield from self._subscribe_frame_base(request, context, queue_type=Queue)
+        yield from self._subscribe_frame_base(request,
+                                              context,
+                                              queue_type=Queue)
 
     def SubscribeLatestFrames(self, request, context):
         """
         Subscribe to the last produced frames produced by the service.
 
-        This method publishes the latest frame available at the time of yielding.
+        This method publishes the latest frame available at the time of
+        yielding.
         """
-        yield from self._subscribe_frame_base(request, context, queue_type=SingleItemQueue)
+        yield from self._subscribe_frame_base(request,
+                                              context,
+                                              queue_type=SingleItemQueue)
 
     def _subscribe_frame_base(self, request, context, queue_type):
         request_id = self._get_new_request_id()
         yield from self._yield_last_frame_if_any()
-
         with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
-            while context.is_active():
-                try:
-                    item = queue.get(block=True, timeout=0.5)
-                except Empty:
-                    pass
-                else:
-                    yield item
+            for dt in yield_interval(request.frame_interval):
+                if not context.is_active():
+                    break
+                item = queue.get(block=True)
+                if item is SENTINEL:
+                    break
+                yield item
 
     def _get_new_request_id(self) -> int:
         """
@@ -68,7 +77,8 @@ class FramePublisher(TrajectoryServiceServicer):
 
     def _yield_last_frame_if_any(self):
         """
-        Yields the last frame as a :class:`GetFrameResponse` object if there is one.
+        Yields the last frame as a :class:`GetFrameResponse` object if there is
+        one.
 
         This method places a lock on :attr:`last_frame` and
         :attr:`last_frame_index` to prevent other threads to modify them as we
@@ -95,3 +105,7 @@ class FramePublisher(TrajectoryServiceServicer):
 
         for queue in self.frame_queues.iter_queues():
             queue.put(GetFrameResponse(frame_index=frame_index, frame=frame))
+
+    def close(self):
+        for queue in self.frame_queues.iter_queues():
+            queue.put(SENTINEL)

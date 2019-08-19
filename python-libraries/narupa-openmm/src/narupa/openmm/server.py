@@ -84,6 +84,10 @@ class Server(Runner):
             publish_interval=publish_interval,
         )
 
+    @property
+    def trajectory_port(self):
+        return self._frame_server.port
+
     def make_publish_frames(self):
         """
         Activate the publication of the frames.

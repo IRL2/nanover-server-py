@@ -5,8 +5,8 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.lj import LennardJones
 from narupa.ase import converter
+from narupa.core.timing import delayed_generator
 
-from narupa.imd.imd_client import delayed_generator
 from narupa.imd.imd_server import ImdServer
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
 from narupa.imd.particle_interaction import ParticleInteraction
