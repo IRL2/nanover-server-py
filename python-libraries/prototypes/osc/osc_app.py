@@ -10,7 +10,7 @@ class OscApp:
     message generator setup to translate incoming trajectory frames into
     outgoing osc messages.
     """
-    def __init__(self, message_generator_setup=None):
+    def __init__(self, message_generator_setup):
         self._argument_parser = self._create_argument_parser()
         self._message_generator_setup = message_generator_setup
 
@@ -44,7 +44,7 @@ class OscApp:
         Begin connection, setup, and then run until keyboard interrupt.
         """
         with self._create_client(args) as osc_client:
-            osc_client.message_generator = self._messsage_generator_setup(osc_client)
+            osc_client.message_generator = self._message_generator_setup(osc_client)
             print('Running...')
             try:
                 osc_client.run()
