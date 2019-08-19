@@ -100,6 +100,7 @@ def add_frame_data_topology_to_ase(frame_data: FrameData, atoms: Atoms):
     """
     for element in frame_data.particle_elements:
         atoms.append(Atom(symbol=element))
+    frame_data.particle_count = len(Atoms)
 
 
 def add_frame_data_positions_to_ase(frame_data, ase_atoms):
