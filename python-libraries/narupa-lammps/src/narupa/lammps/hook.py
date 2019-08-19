@@ -111,6 +111,7 @@ class DummyLammps:
     without having to have lammps installed on a server
     """
     def __init__(self, n_atoms: int = None):
+        # Set a default atom length for tests
         _DEFAULT_ATOMS = 3
         self.n_atoms = n_atoms if n_atoms is not None else _DEFAULT_ATOMS
 
@@ -126,7 +127,7 @@ class DummyLammps:
         if array_type is "x":
             data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(3 * self.n_atoms))
         elif array_type is "f":
-            data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(3 * self.n_atoms))
+            data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(0))
         elif array_type is "type":
             data_array = (ctypes.c_int * (self.n_atoms))(*range(1,1))
             # All atoms have the same type for DummyLammps testing
@@ -344,13 +345,13 @@ class LammpsHook:
         return self.imd_server.service.active_interactions
 
     def add_interaction_to_ctype(self, interaction_forces: np.array, lammps_forces):
+        """
+        :param interaction_forces: External (user) forces
+        :param lammps_forces: Internal lammps forces
+        :return: Combined c_type forces
+        """
 
-        # initialise dummy type
-        #ctype_3N_array = ctypes.c_double * (self.n_atoms * 3)
-        # great array of dummy type
-        #scatterable_array = ctype_3N_array()
-
-        # Convert units fron narupa standard of  kj/mol/nm to whatever units LAMMPS is using
+        # Convert units from narupa standard of  kj/mol/nm to whatever units LAMMPS is using
         # For real units types LAMMPS uses  Kcal/mole-Angstrom 4.14 for kj-> Kcal and 10x for nm -> Angstrom
         interaction_forces / self.force_factor
         # Flatten array into the ctype
@@ -393,7 +394,7 @@ class LammpsHook:
             self.n_atoms = L.get_natoms()
             # Use planks constant to work out what units we are working in
             self.units = L.extract_global("hplanck", 1)
-            print("units", type(self.units),self.units)
+            print("Plank units", type(self.units),self.units)
             self.units_type = LAMMPS_UNITS_CHECK.get(self.units, None)[0]
             self.distance_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[1]
             self.force_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[2]
