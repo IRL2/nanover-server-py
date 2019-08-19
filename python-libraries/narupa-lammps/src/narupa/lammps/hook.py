@@ -232,19 +232,19 @@ class LammpsHook:
         except Exception as e:
             raise Exception("Failed to load FrameData", e)
 
+        logging.basicConfig(level=logging.INFO)
+        logging.info("Lammpshook initialised for NarupaXR")
         # Load MPI routines, has to be performed here.
         try:
             from mpi4py import MPI
             self.comm = MPI.COMM_WORLD
             me = self.comm.Get_rank()
             nprocs = self.comm.Get_size()
+            logging.info("MPI rank %s", me)
+            logging.info("MPI n processors %s ", nprocs)
         except:
             logging.info("didn't find mpi4py")
 
-        logging.basicConfig(level=logging.INFO)
-        logging.info("Lammpshook initialised for NarupaXR")
-        logging.info("MPI rank %s", me)
-        logging.info("MPI n processors %s ", nprocs)
         logging.info("Trajectory Port %s ", traj_port)
         logging.info("Interactive Port %s ", imd_port)
         # TODO make it so that the simulation waits on connect as an option
