@@ -9,12 +9,20 @@ ATOM_PROPERTIES = {
 }
 
 
-def grouper(iterable, n):
+def chunk(iterable, n):
+    """
+    Split a sequence into chunks of length n, discarding tail elements that
+    cannot make a full chunk.
+    """
     args = [iter(iterable)] * n
     return zip(*args)
 
 
 def atom_listing_from_frame(frame):
+    """
+    Create a list with one dictionary per atom with entries, where present, for
+    the id, element, residue, and neighbour information of each atom.
+    """
     atom_arrays = {}
 
     for name, key in ATOM_PROPERTIES.items():
@@ -45,12 +53,16 @@ def atom_listing_from_frame(frame):
 
 
 def neighbour_map_from_frame(frame):
+    """
+    Map out neighbour relationships of atoms from the bond information present
+    in a narupa frame.
+    """
     neighbour_map = {}
 
     if 'bond' not in frame.arrays:
         return neighbour_map
 
-    for a, b in grouper(frame.arrays['bond'], 2):
+    for a, b in chunk(frame.arrays['bond'], 2):
         neighbours = neighbour_map.get(a, set())
         neighbours.add(b)
         neighbour_map[a] = neighbours
