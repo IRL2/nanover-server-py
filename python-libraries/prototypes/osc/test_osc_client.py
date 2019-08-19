@@ -29,9 +29,8 @@ def frame_server():
     """
     Provide a frame server hosting on an available port on localhost.
     """
-    frame_server = FrameServer(address='localhost', port=0)
-    yield frame_server
-    frame_server.close()
+    with FrameServer(address='localhost', port=0) as frame_server:
+        yield frame_server
 
 
 @pytest.fixture
@@ -39,10 +38,9 @@ def osc_server():
     """
     Provide an OSC server hosting on an available port on localhost.
     """
-    server = ThreadingOSCUDPServer(('localhost', 0), dispatcher.Dispatcher())
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    yield server
-    server.shutdown()
+    with ThreadingOSCUDPServer(('localhost', 0), dispatcher.Dispatcher()) as server:
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        yield server
 
 
 @pytest.fixture
@@ -52,13 +50,12 @@ def frame_osc_converter(frame_server, osc_server):
     of them.
     """
     osc_port = osc_server.socket.getsockname()[1]
-    client = OscClient(osc_address='localhost', osc_port=osc_port,
-                       traj_address='localhost', traj_port=frame_server.port,
-                       message_generator=simple_frame_to_message,
-                       send_interval=SEND_INTERVAL)
-    threading.Thread(target=client.run, daemon=True).start()
-    yield frame_server, osc_server, client
-    client.close()
+    with OscClient(osc_address='localhost', osc_port=osc_port,
+                   traj_address='localhost', traj_port=frame_server.port,
+                   message_generator=simple_frame_to_message,
+                   send_interval=SEND_INTERVAL) as client:
+        threading.Thread(target=client.run, daemon=True).start()
+        yield frame_server, osc_server, client
 
 
 def test_transmission(frame_osc_converter, simple_frame_data):

@@ -1,6 +1,7 @@
 """
-Connects to a Narupa simulation and, assuming the simulated molecule to be a
-nanotube, computes and sends over OSC interesting metrics for sonification.
+Connects to a Narupa simulation and, assuming the simulated molecules to be the
+narupa nanotube demo (nanotube with no hydrogens, single methane), computes and
+sends over OSC interesting metrics for sonification.
 Run with:
 
 .. code bash
@@ -9,7 +10,7 @@ Run with:
 """
 from osc_app import OscApp
 
-import selections
+import topology
 import itertools
 import math
 
@@ -62,13 +63,17 @@ def distance(position_a, position_b):
 
 def build_frame_generator(osc_client):
     first_frame = osc_client.frame_client.wait_until_first_frame()
-    atom_listing = selections.atom_listing_from_frame(first_frame)
+    atom_listing = topology.atom_listing_from_frame(first_frame)
 
+    # find the methane's single carbon, knowing it to be the single neighbour of
+    # all hydrogens present.
     hydrogen_atoms = [atom for atom in atom_listing if atom['element'] == 1]
-    carbon_atom = hydrogen_atoms[0]['neighbours'][0]
+    methane_atom = hydrogen_atoms[0]['neighbours'][0]
+    methane_index = methane_atom['index']
 
-    carbon_index = carbon_atom['index']
-
+    # find the nanotube "ends", defined as the terminal carbons with only two
+    # neighbours instead of three. Assume two ends lie somewhere on different
+    # sides of atom index 30.
     carbons = [atom for atom in atom_listing if atom['element'] == 6]
     ends = [atom for atom in carbons if len(atom['neighbours']) == 2]
     front_indexes = [atom['index'] for atom in ends if atom['index'] < 30]
@@ -87,7 +92,7 @@ def build_frame_generator(osc_client):
         max_radius = max(itertools.chain(front_radiuses, back_radiuses))
         min_radius = min(itertools.chain(front_radiuses, back_radiuses))
 
-        methane_position = frame.particle_positions[carbon_index]
+        methane_position = frame.particle_positions[methane_index]
         methane_distance = distance_segment_point(array(front_point),
                                                   array(back_point),
                                                   array(methane_position))
