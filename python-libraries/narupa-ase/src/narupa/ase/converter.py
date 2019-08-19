@@ -68,7 +68,7 @@ def ase_to_frame_data(
     """
     data = FrameData()
     if positions:
-        add_ase_positions_to_frame_data(data, ase_atoms.get_positions())
+        add_ase_positions_to_frame_data(data, ase_atoms.get_positions(wrap=True))
     if topology:
         add_ase_topology_to_frame_data(data, ase_atoms)
     if state:
