@@ -2,6 +2,7 @@
 Module containing a basic interactive molecular dynamics client that receives frames
 and can publish interactions.
 """
+import time
 from collections import deque
 from typing import Optional, Sequence, Dict
 
@@ -69,6 +70,16 @@ class NarupaClient:
             self.connect_imd(address, imd_port)
         if run_multiplayer:
             self.connect_multiplayer(address, multiplayer_port)
+
+    def wait_until_first_frame(self, check_interval=0.01, timeout=1):
+        endtime = 0 if timeout is None else time.monotonic() + timeout
+
+        while self.first_frame is None:
+            if 0 < endtime < time.monotonic():
+                raise Exception("Timed out waiting for first frame.")
+            time.sleep(check_interval)
+
+        return self.first_frame
 
     @property
     def running_imd(self) -> bool:
@@ -143,3 +154,9 @@ class NarupaClient:
         if self._first_frame is None:
             self._first_frame = frame
         self._frames.append(frame)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
