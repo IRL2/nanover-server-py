@@ -6,13 +6,12 @@ into a file using MDAnalysis.
 
 The client can be started either from python or from the command line. From the
 command line, run this script with the `--help` option to see the usage. From
-python, here is an example::
+python, here is an example:
 
-    from client import DummyClient
-    trajectory_client = DummyClient('foo.xtc', address='localhost', port=9000)
-    trajectory_client.write_trajectory()
+    from trajectory_client import write_trajectory_from_server
+    write_trajectory_from_server('foo.xtc', address='localhost', port=54321)
 
-This will connect to ``localhost:9000`` and writes the trajectory in 'foo.xtc'
+This will connect to ``localhost:54321`` and writes the trajectory in 'foo.xtc'
 in Gromacs's XTC format.
 
 The client handles the trajectory formats that can be written by MDAnalysis;
@@ -25,7 +24,7 @@ import numpy as np
 import MDAnalysis as mda
 
 from narupa.trajectory import FrameClient
-from narupa.trajectory.frame_data import POSITIONS, FrameData
+from narupa.trajectory.frame_data import FrameData
 
 
 def write_trajectory_from_server(destination, *, address: str, port: int):
@@ -74,17 +73,10 @@ def frame_to_ndarray(frame: FrameData) -> np.ndarray:
     :return: A numpy array of ``np.float32`` with one row per atom, and 3
         columns. The coordinates are expressed in ångstöm.
     """
-    raw_positions = (
-        frame
-        .raw
-        .arrays[POSITIONS]
-        .float_values
-        .values
-    )
     # Here we assume that the coordinates are in 3 dimensions.
     # The frames obtained from Narupa use distances in nm, while MDAnalysis
     # expresses them in Å; this is where we do the unit conversion.
-    positions = np.array(raw_positions, dtype=np.float32).reshape((-1, 3)) * 10
+    positions = np.array(frame.particle_positions, dtype=np.float32) * 10
     return positions
 
 
@@ -94,7 +86,8 @@ def handle_user_args() -> argparse.Namespace:
 
     :return: The namespace of arguments read from the command line.
     """
-    parser = argparse.ArgumentParser(description=__doc__)
+    description = "Connect to a Narupa trajectory server and write the trajectory."
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--host', default=None)
     parser.add_argument('--port', type=int, default=None)
     parser.add_argument('destination')
