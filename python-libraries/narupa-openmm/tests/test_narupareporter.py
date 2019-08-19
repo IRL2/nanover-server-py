@@ -114,8 +114,3 @@ def test_report(basic_simulation):
 
     reporter.report(basic_simulation, state)
     assert len(frame_server.all_sent_frames) == 3
-
-
-def
-
-def test_pbc_wrap()
