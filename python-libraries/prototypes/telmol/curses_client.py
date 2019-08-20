@@ -34,8 +34,10 @@ character_sets = {
 
 character_sets_indexed = list(character_sets.values())
 
+
 class UserQuitException(Exception):
     pass
+
 
 class Camera:
     def __init__(self):
@@ -47,6 +49,7 @@ class Camera:
         return (scale_matrix(self.scale)
               @ rotation_matrix(self.angle, [0, 0, 1])
               @ rotation_matrix(self.pitch, [1, 0, 0]))
+
 
 class Timer:
     def __init__(self):
@@ -60,6 +63,33 @@ class Timer:
         self.last_time = time.time()
         return delta_time
 
+
+class FPSTimer:
+    def __init__(self, count=5):
+        self.timer = Timer()
+        self.intervals = []
+        self.fps = 0
+        self.count = count
+
+    def mark(self):
+        self.intervals.append(self.timer.reset())
+        self.intervals[:] = self.intervals[-self.count:]
+        self.fps = len(self.intervals) / sum(self.intervals)
+
+
+class FrameTimer:
+    def __init__(self, fps=30):
+        self.interval = 1 / fps
+        self.next_time = time.monotonic()
+
+    def check(self):
+        now = time.monotonic()
+        if now >= self.next_time:
+            self.next_time = now + self.interval
+            return True
+        return False
+
+
 class Style:
     def __init__(self, characters, colors):
         self.set_characters(characters)
@@ -72,6 +102,7 @@ class Style:
     def set_colors(self, colors):
         self.colors = colors
         self.color_lookup = np.array(self.colors)
+
 
 class Renderer:
     def __init__(self, window, style, shader):
@@ -124,6 +155,7 @@ class Renderer:
 
         center_positions_in_window(self.window, self.positions)
 
+
 element_colors = {
     1: curses.COLOR_WHITE,
     6: curses.COLOR_CYAN,
@@ -134,15 +166,18 @@ element_colors = {
 
 depth_buffer = None
 
+
 def iterate_frame_atoms(frame):
     for index, position, element in zip(itertools.count(), frame['positions'], frame['elements']):
         if index not in frame['skip_atoms']:
             yield index, position, element
 
+
 def iterate_frame_bonds(frame):
     for atom_a_index, atom_b_index in frame['bonds']:
         if atom_a_index not in frame['skip_atoms'] and atom_b_index not in frame['skip_atoms']:
             yield atom_a_index, atom_b_index
+
 
 def atoms_to_pixels_cpk(frame, color_count):
     for index, position, element in iterate_frame_atoms(frame):        
@@ -160,6 +195,7 @@ def atoms_to_pixels_gradient(frame, color_count):
 
         yield color_index, x, y, z
 
+
 def bonds_to_pixels_gradient(frame, color_count):
     for atom_a_index, atom_b_index in iterate_frame_bonds(frame):
         start = frame['positions'][atom_a_index]
@@ -172,6 +208,7 @@ def bonds_to_pixels_gradient(frame, color_count):
 
         for x, y, z in get_line(start, end):
             yield color_index, x, y, z
+
 
 def render_pixels_to_window(window, style, pixels):
     global depth_buffer
@@ -224,14 +261,17 @@ def render_pixels_to_window(window, style, pixels):
     for (x, y), color in color_buffer.items():
         window.addch(y, x, char_buffer[x, y], color)
 
+
 def center_positions_in_window(window, positions):
     h, w = window.getmaxyx()
     positions[:,0] += (w / 2)
     positions[:,1] += (h / 2)
 
+
 def render_frame_to_window(window, style, frame, shader):
     pixels = shader(frame, len(style.colors) - 1)
     render_pixels_to_window(window, style, pixels)
+
 
 def generate_colors(override_colors=False):
     max_colors = 8
@@ -250,6 +290,7 @@ def generate_colors(override_colors=False):
 
     return colors
 
+
 def run_curses_frontend(stdscr, client, *, override_colors=False):
     """
     Connect to a Narupa frame server and render the received frames to a curses 
@@ -266,11 +307,10 @@ def run_curses_frontend(stdscr, client, *, override_colors=False):
     style = Style(character_sets["boxes"], colors)    
     shaders = [atoms_to_pixels_cpk, atoms_to_pixels_gradient, bonds_to_pixels_gradient]
 
-    fps_timer = Timer()
-    render_timer = Timer()
-    renderer = Renderer(stdscr, style, shaders[0])
+    render_timer = FrameTimer(fps=30)
+    fps_timer = FPSTimer(5)
 
-    fpses = []
+    renderer = Renderer(stdscr, style, shaders[0])
 
     curses.curs_set(False)
     stdscr.clear()
@@ -339,8 +379,6 @@ def run_curses_frontend(stdscr, client, *, override_colors=False):
 
     h, w = stdscr.getmaxyx()
 
-    frame_delay = 1 / 30
-
     def render():
         stdscr.clear()
 
@@ -351,43 +389,38 @@ def run_curses_frontend(stdscr, client, *, override_colors=False):
         renderer.render()
         show_controls(stdscr)
 
-        fpses.append(fps_timer.reset())
-        
-        if len(fpses) > 5:
-            del fpses[0]
+        fps_timer.mark()
 
-        average_fps = sum(fpses) / len(fpses)
-
-        try:
-            stdscr.addstr(h - 1, 0, "{} fps".format(round(1.0 / average_fps)))
-        except ZeroDivisionError:
-            pass
-
+        stdscr.addstr(h - 1, 0, "{} fps".format(round(fps_timer.fps)))
         stdscr.noutrefresh()
         curses.doupdate()
 
-    
     def loop():
         check_input()
 
-        if render_timer.get_delta() < frame_delay or not client.first_frame:
+        if not client.first_frame:
             return
 
-        render_timer.reset()
-
-        render()
+        if render_timer.check():
+            render()
 
     def main_loop():
         try:
             while True:
                 loop()
-                time.sleep(.0001)
+                time.sleep(.001)
         except UserQuitException:
             pass
     
     main_loop()
 
-def handle_user_args() -> argparse.Namespace:
+
+class CursesApp:
+    def __init__(self, stdscr, client, override_colors=False):
+        run_curses_frontend(stdscr, client, override_colors=override_colors)
+
+
+def handle_user_args(args=None) -> argparse.Namespace:
     """
     Parse the arguments from the command line.
 
@@ -399,7 +432,7 @@ def handle_user_args() -> argparse.Namespace:
     parser.add_argument('--traj', '-t', type=int, default=None)
     parser.add_argument('--imd', '-i', type=int, default=None)
     parser.add_argument('--rainbow', action="store_true")
-    arguments = parser.parse_args()
+    arguments = parser.parse_args(args)
     return arguments
 
 
@@ -409,7 +442,7 @@ def main(stdscr):
     client = NarupaClient(address=arguments.address, 
                           trajectory_port=arguments.traj,
                           imd_port=arguments.imd,
-                          run_imd=False)
+                          all_frames=False)
 
     try:
         run_curses_frontend(stdscr, client, override_colors=arguments.rainbow)

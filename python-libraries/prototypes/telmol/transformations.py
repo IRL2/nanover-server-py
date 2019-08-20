@@ -1937,7 +1937,7 @@ def _import_module(name, package=None, warn=True, postfix='_py', ignore='_'):
         return True
 
 
-_import_module('_transformations', __package__)
+#_import_module('_transformations', __package__)
 
 
 if __name__ == '__main__':
