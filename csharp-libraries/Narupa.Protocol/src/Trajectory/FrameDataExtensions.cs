@@ -424,11 +424,11 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the particle count if present, else returning 0.
+        /// Get the particle count if present, else returning null.
         /// </summary>
-        public static int GetParticleCount(this IFrameData data)
+        public static int? GetParticleCount(this IFrameData data)
         {
-            return (int) data.GetNumericValue(FrameData.ParticleCountValueKey);
+            return (int?) data.GetNumericValue(FrameData.ParticleCountValueKey);
         }
 
         #endregion
@@ -463,11 +463,11 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the kinetic energy if present, else returning 0.
+        /// Get the kinetic energy if present, else returning null.
         /// </summary>
-        public static int GetKineticEnergy(this IFrameData data)
+        public static float? GetKineticEnergy(this IFrameData data)
         {
-            return (int) data.GetNumericValue(FrameData.KineticEnergyValueKey);
+            return (float?) data.GetNumericValue(FrameData.KineticEnergyValueKey);
         }
 
         #endregion
@@ -502,11 +502,11 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the potential energy if present, else returning 0.
+        /// Get the potential energy if present, else returning null.
         /// </summary>
-        public static int GetPotentialEnergy(this IFrameData data)
+        public static float? GetPotentialEnergy(this IFrameData data)
         {
-            return (int) data.GetNumericValue(FrameData.PotentialEnergyValueKey);
+            return (float?) data.GetNumericValue(FrameData.PotentialEnergyValueKey);
         }
 
         #endregion
@@ -529,10 +529,10 @@ namespace Narupa.Protocol.Trajectory
             return data.TryGetFloatArray(id, out var array) ? array : null;
         }
 
-        public static double GetNumericValue(this IFrameData data,
-                                             string id)
+        public static double? GetNumericValue(this IFrameData data,
+                                              string id)
         {
-            return data.TryGetNumericValue(id, out var array) ? array : 0;
+            return data.TryGetNumericValue(id, out var array) ? (double?) array : null;
         }
 
         public static bool TryGetIntegerValue(this IFrameData data,
