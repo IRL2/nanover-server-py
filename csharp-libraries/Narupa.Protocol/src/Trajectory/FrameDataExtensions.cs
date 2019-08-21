@@ -34,7 +34,7 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the bonds if present, else returning an empty array.
+        /// Get the bonds if present, else returning null.
         /// </summary>
         public static IReadOnlyList<uint> GetBonds(this IFrameData data)
         {
@@ -73,7 +73,7 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the bond orders if present, else returning an empty array.
+        /// Get the bond orders if present, else returning null.
         /// </summary>
         public static IReadOnlyList<float> GetBondOrders(this IFrameData data)
         {
@@ -112,7 +112,7 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the particle positions if present, else returning an empty array.
+        /// Get the particle positions if present, else returning null.
         /// </summary>
         public static IReadOnlyList<float> GetParticlePositions(this IFrameData data)
         {
@@ -151,7 +151,7 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the particle elements if present, else returning an empty array.
+        /// Get the particle elements if present, else returning null.
         /// </summary>
         public static IReadOnlyList<uint> GetParticleElements(this IFrameData data)
         {
@@ -190,7 +190,7 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the particle types if present, else returning an empty array.
+        /// Get the particle types if present, else returning null.
         /// </summary>
         public static IReadOnlyList<string> GetParticleTypes(this IFrameData data)
         {
@@ -229,7 +229,7 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the particle names if present, else returning an empty array.
+        /// Get the particle names if present, else returning null.
         /// </summary>
         public static IReadOnlyList<string> GetParticleNames(this IFrameData data)
         {
@@ -268,7 +268,7 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the particle residues if present, else returning an empty array.
+        /// Get the particle residues if present, else returning null.
         /// </summary>
         public static IReadOnlyList<uint> GetParticleResidues(this IFrameData data)
         {
@@ -307,7 +307,7 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the residue names if present, else returning an empty array.
+        /// Get the residue names if present, else returning null.
         /// </summary>
         public static IReadOnlyList<string> GetResidueNames(this IFrameData data)
         {
@@ -346,7 +346,7 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the residue chains if present, else returning an empty array.
+        /// Get the residue chains if present, else returning null.
         /// </summary>
         public static IReadOnlyList<uint> GetResidueChains(this IFrameData data)
         {
@@ -385,7 +385,7 @@ namespace Narupa.Protocol.Trajectory
         }
 
         /// <summary>
-        /// Get the chain names if present, else returning an empty array.
+        /// Get the chain names if present, else returning null.
         /// </summary>
         public static IReadOnlyList<string> GetChainNames(this IFrameData data)
         {
@@ -514,19 +514,19 @@ namespace Narupa.Protocol.Trajectory
         public static IReadOnlyList<string> GetStringArray(this IFrameData data,
                                                            string id)
         {
-            return data.TryGetStringArray(id, out var array) ? array : new string[0];
+            return data.TryGetStringArray(id, out var array) ? array : null;
         }
 
         public static IReadOnlyList<uint> GetIndexArray(this IFrameData data,
                                                         string id)
         {
-            return data.TryGetIndexArray(id, out var array) ? array : new uint[0];
+            return data.TryGetIndexArray(id, out var array) ? array : null;
         }
 
         public static IReadOnlyList<float> GetFloatArray(this IFrameData data,
                                                          string id)
         {
-            return data.TryGetFloatArray(id, out var array) ? array : new float[0];
+            return data.TryGetFloatArray(id, out var array) ? array : null;
         }
 
         public static double GetNumericValue(this IFrameData data,

@@ -99,7 +99,7 @@ namespace Narupa.Protocol.Trajectory
             }
         }
 
-        /// <inheritdoc cref=""/>
+        /// <inheritdoc cref="IFrameData.AddFloatArray"/>
         public void AddFloatArray(string id, IEnumerable<float> array)
         {
             var valueArray = new ValueArray { FloatValues = new FloatArray() };
@@ -108,11 +108,7 @@ namespace Narupa.Protocol.Trajectory
             Arrays.Add(id, valueArray);
         }
 
-        /// <summary>
-        /// Add an array of uint[] values, storing with the key 'id'
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="array"></param>
+        /// <inheritdoc cref="IFrameData.AddIndexArray"/>
         public void AddIndexArray(string id, IEnumerable<uint> array)
         {
             var valueArray = new ValueArray { IndexValues = new IndexArray() };
@@ -121,11 +117,7 @@ namespace Narupa.Protocol.Trajectory
             Arrays.Add(id, valueArray);
         }
 
-        /// <summary>
-        /// Add an array of string[] values, storing with the key 'id'
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="array"></param>
+        /// <inheritdoc cref="IFrameData.AddStringArray"/>
         public void AddStringArray(string id, IEnumerable<string> array)
         {
             var valueArray = new ValueArray { StringValues = new StringArray() };
@@ -134,20 +126,14 @@ namespace Narupa.Protocol.Trajectory
             Arrays.Add(id, valueArray);
         }
 
-        /// <summary>
-        /// Add an uint values, storing with the key 'id'
-        /// </summary>
+        /// <inheritdoc cref="IFrameData.AddNumericValue"/>
         public void AddNumericValue(string id, double value)
         {
             var valuePb = Value.ForNumber(value);
             Values.Add(id, valuePb);
         }
 
-        /// <summary>
-        /// Get a numeric value stored with the key 'id' and assigns it to value, returning
-        /// true if the
-        /// key existed and false otherwise
-        /// </summary>
+        /// <inheritdoc cref="IFrameData.TryGetNumericValue"/>
         public bool TryGetNumericValue(string id, out double value)
         {
             if (Values.TryGetValue(id, out var array) &&
