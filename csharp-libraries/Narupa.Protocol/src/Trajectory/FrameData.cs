@@ -5,69 +5,40 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Google.Protobuf.Collections;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Narupa.Protocol.Trajectory
 {
-    public partial class FrameData : IEnumerable
+    public partial class FrameData : IEnumerable, IFrameData
     {
         public const string BondArrayKey = "bond";
+        public const string BondOrderArrayKey = "bond.order";
+
+        public const string ParticlePositionArrayKey = "particle.position";
         public const string ParticleElementArrayKey = "particle.element";
         public const string ParticleTypeArrayKey = "particle.type";
-        public const string ParticlePositionArrayKey = "particle.position";
+        public const string ParticleNameArrayKey = "particle.name";
+        public const string ParticleResidueArrayKey = "particle.residue";
         public const string ParticleCountValueKey = "particle.count";
 
-        /// <summary>
-        ///     Float array of particle positions. Nominally grouped in sets of three to form 3D vectors
-        /// </summary>
-        public IReadOnlyList<float> ParticlePositions
-        {
-            get => GetFloatArray(ParticlePositionArrayKey);
-            set => AddFloatArray(ParticlePositionArrayKey, value);
-        }
+        public const string ResidueNameArrayKey = "residue.name";
+        public const string ResidueChainArrayKey = "residue.chain";
 
-        /// <summary>
-        ///     Array of indices representing bonds between particles
-        /// </summary>
-        public IReadOnlyList<uint> Bonds
-        {
-            get => GetIndexArray(BondArrayKey);
-            set => AddIndexArray(BondArrayKey, value);
-        }
+        public const string ChainNameArrayKey = "chain.name";
 
-        /// <summary>
-        ///     Array of indices representing particles that are atomic elements. Use 0 to indicate an particle that is not
-        ///     an atom
-        /// </summary>
-        public IReadOnlyList<uint> ParticleElements
-        {
-            get => GetIndexArray(ParticleElementArrayKey);
-            set => AddIndexArray(ParticleElementArrayKey, value);
-        }
-
-        /// <summary>
-        ///     Array of string representing atom names
-        /// </summary>
-        public IReadOnlyList<string> ParticleTypes
-        {
-            get => GetStringArray(ParticleTypeArrayKey);
-            set => AddStringArray(ParticleTypeArrayKey, value);
-        }
+        public const string KineticEnergyValueKey = "energy.kinetic";
+        public const string PotentialEnergyValueKey = "energy.potential";
 
         public IEnumerator GetEnumerator()
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        ///     Get an array of uint[] values stored with the key 'id' and assigns it to value, returning true if the
-        ///     key existed and false otherwise
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool TryGetIndexArray(string id, out RepeatedField<uint> value)
+        /// <inheritdoc cref="IFrameData.TryGetIndexArray"/>
+        public bool TryGetIndexArray(string id, out IReadOnlyList<uint> value)
         {
-            if (Arrays.TryGetValue(id, out var array) && array.ValuesCase == ValueArray.ValuesOneofCase.IndexValues)
+            if (Arrays.TryGetValue(id, out var array) &&
+                array.ValuesCase == ValueArray.ValuesOneofCase.IndexValues)
             {
                 value = array.IndexValues.Values;
                 return true;
@@ -77,16 +48,11 @@ namespace Narupa.Protocol.Trajectory
             return false;
         }
 
-        /// <summary>
-        ///     Get an array of float[] values stored with the key 'id' and assigns it to value, returning true if the
-        ///     key existed and false otherwise
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool TryGetFloatArray(string id, out RepeatedField<float> value)
+        /// <inheritdoc cref="IFrameData.TryGetFloatArray"/>
+        public bool TryGetFloatArray(string id, out IReadOnlyList<float> value)
         {
-            if (Arrays.TryGetValue(id, out var array) && array.ValuesCase == ValueArray.ValuesOneofCase.FloatValues)
+            if (Arrays.TryGetValue(id, out var array) &&
+                array.ValuesCase == ValueArray.ValuesOneofCase.FloatValues)
             {
                 value = array.FloatValues.Values;
                 return true;
@@ -96,16 +62,11 @@ namespace Narupa.Protocol.Trajectory
             return false;
         }
 
-        /// <summary>
-        ///     Get an array of string[] values stored with the key 'id' and assigns it to value, returning true if the
-        ///     key existed and false otherwise
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool TryGetStringArray(string id, out RepeatedField<string> value)
+        /// <inheritdoc cref="IFrameData.TryGetStringArray"/>
+        public bool TryGetStringArray(string id, out IReadOnlyList<string> value)
         {
-            if (Arrays.TryGetValue(id, out var array) && array.ValuesCase == ValueArray.ValuesOneofCase.StringValues)
+            if (Arrays.TryGetValue(id, out var array) &&
+                array.ValuesCase == ValueArray.ValuesOneofCase.StringValues)
             {
                 value = array.StringValues.Values;
                 return true;
@@ -115,42 +76,11 @@ namespace Narupa.Protocol.Trajectory
             return false;
         }
 
-        /// <summary>
-        ///     Get an array of uint[] values stored with the key 'id', returning null if it does not exist
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public RepeatedField<uint> GetIndexArray(string id)
-        {
-            return TryGetIndexArray(id, out var value) ? value : null;
-        }
 
         /// <summary>
-        ///     Get an array of float[] values stored with the key 'id', returning null if it does not exist
+        /// Add a general object 'item' to FrameData. If 'item' cannot be stored, throws an
+        /// InvalidOperationException
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public RepeatedField<float> GetFloatArray(string id)
-        {
-            return TryGetFloatArray(id, out var value) ? value : null;
-        }
-
-        /// <summary>
-        ///     Get an array of string[] values stored with the key 'id', returning null if it does not exist
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public RepeatedField<string> GetStringArray(string id)
-        {
-            return TryGetStringArray(id, out var value) ? value : null;
-        }
-
-        /// <summary>
-        ///     Add a general object 'item' to FrameData. If 'item' cannot be stored, throws an InvalidOperationException
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="item"></param>
-        /// <exception cref="InvalidOperationException"></exception>
         public void Add(string id, object item)
         {
             switch (item)
@@ -169,43 +99,66 @@ namespace Narupa.Protocol.Trajectory
             }
         }
 
-        /// <summary>
-        ///     Add an array of float[] values, storing with the key 'id'
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="array"></param>
+        /// <inheritdoc cref=""/>
         public void AddFloatArray(string id, IEnumerable<float> array)
         {
-            var valueArray = new ValueArray {FloatValues = new FloatArray()};
+            var valueArray = new ValueArray { FloatValues = new FloatArray() };
             var values = valueArray.FloatValues.Values;
             values.AddRange(array);
             Arrays.Add(id, valueArray);
         }
 
         /// <summary>
-        ///     Add an array of uint[] values, storing with the key 'id'
+        /// Add an array of uint[] values, storing with the key 'id'
         /// </summary>
         /// <param name="id"></param>
         /// <param name="array"></param>
         public void AddIndexArray(string id, IEnumerable<uint> array)
         {
-            var valueArray = new ValueArray {IndexValues = new IndexArray()};
+            var valueArray = new ValueArray { IndexValues = new IndexArray() };
             var values = valueArray.IndexValues.Values;
             values.AddRange(array);
             Arrays.Add(id, valueArray);
         }
 
         /// <summary>
-        ///     Add an array of string[] values, storing with the key 'id'
+        /// Add an array of string[] values, storing with the key 'id'
         /// </summary>
         /// <param name="id"></param>
         /// <param name="array"></param>
         public void AddStringArray(string id, IEnumerable<string> array)
         {
-            var valueArray = new ValueArray {StringValues = new StringArray()};
+            var valueArray = new ValueArray { StringValues = new StringArray() };
             var values = valueArray.StringValues.Values;
             values.AddRange(array);
             Arrays.Add(id, valueArray);
+        }
+
+        /// <summary>
+        /// Add an uint values, storing with the key 'id'
+        /// </summary>
+        public void AddNumericValue(string id, double value)
+        {
+            var valuePb = Value.ForNumber(value);
+            Values.Add(id, valuePb);
+        }
+
+        /// <summary>
+        /// Get a numeric value stored with the key 'id' and assigns it to value, returning
+        /// true if the
+        /// key existed and false otherwise
+        /// </summary>
+        public bool TryGetNumericValue(string id, out double value)
+        {
+            if (Values.TryGetValue(id, out var array) &&
+                array.KindCase == Value.KindOneofCase.NumberValue)
+            {
+                value = array.NumberValue;
+                return true;
+            }
+
+            value = default(double);
+            return false;
         }
     }
 }
