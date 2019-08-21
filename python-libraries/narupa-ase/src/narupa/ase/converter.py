@@ -131,8 +131,8 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     :param frame_data: Frame data to add topology information to.
     :param ase_atoms: ASE atoms to extract topology information from.
     """
-    frame_data.arrays['residue.id'] = ["ASE"]
-    frame_data.arrays['residue.chain'] = [0]
+    frame_data.residue_names = ["ASE"]
+    frame_data.residue_chains = [0]
 
     atom_names = []
     elements = []
@@ -142,9 +142,9 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
         elements.append(atom.number)
         residue_ids.append(0)
 
-    frame_data.arrays['atom.id'] = atom_names
+    frame_data.particle_names = atom_names
     frame_data.particle_elements = elements
-    frame_data.arrays['atom.residue'] = residue_ids
+    frame_data.particle_residues = residue_ids
 
     bonds = generate_bonds(ase_atoms)
     frame_data.bonds = bonds
@@ -161,8 +161,8 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     # get the energy directly, without performing a recalculation.
     energy = ase_atoms.get_calculator().get_property('energy', allow_calculation=False)
     if energy is not None:
-        frame_data.values['energy.potential'] = energy
-    frame_data.values['energy.kinetic'] = ase_atoms.get_kinetic_energy()
+        frame_data.potential_energy = energy
+    frame_data.kinetic_energy = ase_atoms.get_kinetic_energy()
 
 
 def get_radius_of_element(symbol: str):

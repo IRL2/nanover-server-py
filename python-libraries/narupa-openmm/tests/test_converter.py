@@ -39,7 +39,7 @@ def test_topology_atoms(simple_openmm_topology):
 def test_topology_residues(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert data.raw.arrays['residue.id'].string_values.values == ["RES"]
+    assert data.raw.residue_names.string_values.values == ["RES"]
 
 
 def test_topology_particle_count(simple_openmm_topology):

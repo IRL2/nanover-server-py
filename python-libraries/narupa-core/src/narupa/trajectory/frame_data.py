@@ -4,11 +4,25 @@ import numbers
 import numpy as np
 from narupa.protocol import trajectory
 
-POSITIONS = 'particle.position'
-ELEMENTS = 'particle.element'
-TYPES = 'particle.type'
 BONDS = 'bond'
-COUNT = 'particle.count'
+BOND_ORDERS = 'bond.order'
+
+PARTICLE_POSITIONS = 'particle.position'
+PARTICLE_ELEMENTS = 'particle.element'
+PARTICLE_TYPES = 'particle.types'
+PARTICLE_NAMES = 'particle.names'
+PARTICLE_RESIDUES = 'particle.residues'
+PARTICLE_COUNT = 'particle.count'
+
+RESIDUE_NAMES = 'residue.names'
+RESIDUE_CHAINS = 'residue.chains'
+RESIDUE_COUNT = 'residue.count'
+
+CHAIN_NAMES = 'chain.names'
+CHAIN_COUNT = 'chain.count'
+
+KINETIC_ENERGY = 'energy.kinetic'
+POTENTIAL_ENERGY = 'energy.potential'
 
 # This dictionary matches the python types to the attributes of the GRPC
 # values. This is not to do type conversion (which is handled by protobuf),
@@ -109,15 +123,39 @@ class FrameData(metaclass=_FrameDataMeta):
     :exc:`MissingDataError` that can also be caught as a :exc:`KeyError`.
     """
     _shortcuts = (
-        _Shortcut(name='particle_positions', key=POSITIONS, record_type='arrays',
-                  field_type='float', to_python=_n_by_3, to_raw=_flatten_2d),
-        _Shortcut(name='particle_elements', key=ELEMENTS, record_type='arrays',
-                  field_type='index', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='particle_types', key=TYPES, record_type='arrays',
-                  field_type='string', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='bonds', key=BONDS, record_type='arrays',
                   field_type='index', to_python=_n_by_2, to_raw=_flatten_2d),
-        _Shortcut(name='particle_count', key=COUNT, record_type='values',
+        _Shortcut(name='bond_orders', key=BOND_ORDERS, record_type='arrays',
+                  field_type='float', to_python=_as_is, to_raw=_as_is),
+
+        _Shortcut(name='particle_positions', key=PARTICLE_POSITIONS, record_type='arrays',
+                  field_type='float', to_python=_n_by_3, to_raw=_flatten_2d),
+        _Shortcut(name='particle_elements', key=PARTICLE_ELEMENTS, record_type='arrays',
+                  field_type='index', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='particle_types', key=PARTICLE_TYPES, record_type='arrays',
+                  field_type='string', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='particle_names', key=PARTICLE_NAMES, record_type='arrays',
+                  field_type='string', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='particle_residues', key=PARTICLE_RESIDUES, record_type='arrays',
+                  field_type='index', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='particle_count', key=PARTICLE_COUNT, record_type='values',
+                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+
+        _Shortcut(name='residue_names', key=RESIDUE_NAMES, record_type='arrays',
+                  field_type='string', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='residue_chains', key=RESIDUE_CHAINS, record_type='arrays',
+                  field_type='index', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='residue_count', key=RESIDUE_COUNT, record_type='values',
+                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+
+        _Shortcut(name='chain_names', key=CHAIN_NAMES, record_type='arrays',
+                  field_type='string', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='chain_count', key=CHAIN_COUNT, record_type='values',
+                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+
+        _Shortcut(name='kinetic_energy', key=KINETIC_ENERGY, record_type='values',
+                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='potential_energy', key=POTENTIAL_ENERGY, record_type='values',
                   field_type='number_value', to_python=_as_is, to_raw=_as_is),
     )
 
