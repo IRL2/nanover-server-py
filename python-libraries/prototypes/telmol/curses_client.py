@@ -44,6 +44,10 @@ class FPSTimer:
     Stores a number of frame intervals to compute an average frames per second
     measure.
     """
+    intervals: Sequence[float]
+    fps: float
+    count: int
+
     def __init__(self, count: int = 5):
         self.intervals = []
         self.fps = 0
@@ -76,10 +80,15 @@ class FrameTimer:
 
 
 class Renderer:
+    charset: Sequence[str]
+    colors: Sequence[rendering.ColorPair]
+    shader: rendering.Shader
+    camera: Camera
+
     def __init__(self,
                  window,
                  charset: Sequence[str],
-                 colors: Sequence,
+                 colors: Sequence[rendering.ColorPair],
                  shader: rendering.Shader):
         self.window = window
         self.charset = charset
@@ -271,7 +280,7 @@ def override_terminal_colors(max_colors: int,
         curses.init_color(i, int(r * 1000), int(g * 1000), int(b * 1000))
 
 
-def generate_colors(override_colors=False) -> Sequence:
+def generate_colors(override_colors=False) -> Sequence[rendering.ColorPair]:
     """
     Return a sequence of all available curses color pairs of a foreground color
     on a black background.

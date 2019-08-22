@@ -1,6 +1,6 @@
 import curses
 import itertools
-from typing import Tuple, Iterable, Iterator, Callable, Sequence, Dict
+from typing import Tuple, Iterable, Iterator, Callable, Sequence, Dict, Any
 import numpy as np
 from bresenham import get_line
 
@@ -21,6 +21,7 @@ element_colors = {
     16: curses.COLOR_YELLOW,
 }
 
+ColorPair = Any # curses.color_pair
 Position = Tuple[float, float, float, float]
 Fragment = Tuple[int, int, int, float]
 BondPair = Tuple[int, int]
@@ -74,7 +75,7 @@ def bonds_to_pixels_gradient(frame, color_count) -> Iterator[Fragment]:
 
 def render_pixels_to_window(window,
                             charset: Sequence[str],
-                            colors: Sequence,
+                            colors: Sequence[ColorPair],
                             pixels: Iterable[Fragment]):
     h, w = window.getmaxyx()
     depth_buffer = np.full((w, h), 0, dtype=np.float32)
