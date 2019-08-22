@@ -6,6 +6,7 @@ into the terminal.
 """
 import sys
 import textwrap
+from typing import Dict, Callable
 
 try:
     import curses
@@ -24,10 +25,6 @@ from narupa.app import NarupaClient
 
 from transformations import rotation_matrix, scale_matrix
 import rendering
-
-
-class UserQuitException(Exception):
-    pass
 
 
 class Camera:
@@ -136,34 +133,15 @@ class Renderer:
         self.positions[:, 1] += (h / 2)
 
 
-def generate_colors(override_colors=False):
-    max_colors = 8
-
-    if curses.can_change_color() and override_colors:
-        max_colors = 16
-        curses.init_color(0, 0, 0, 0)
-        for i in range(1, max_colors):
-            r, g, b = colorsys.hsv_to_rgb(i / max_colors, .5, 1)
-            curses.init_color(i, int(r * 1000), int(g * 1000), int(b * 1000))
-
-    for i in range(1, max_colors):
-        curses.init_pair(i, i, curses.COLOR_BLACK)
-
-    colors = [curses.color_pair(i) for i in range(max_colors)]
-
-    return colors
-
-
-def next_in_cycle(cycle, current, move=1):
-    current_index = cycle.index(current)
-    next_index = (current_index + move) % len(cycle)
-    return cycle[next_index]
-
-
 class CursesFrontend:
-    def __init__(self, stdscr, client, override_colors=False):
+    client: NarupaClient
+    renderer: Renderer
+    bindings: Dict[str, Callable]
+
+    def __init__(self, stdscr, client: NarupaClient, override_colors=False):
         self.stdscr = stdscr
         self.client = client
+        self.user_quit = False
 
         colors = generate_colors(override_colors=override_colors)
         style = rendering.Style(rendering.character_sets["boxes"], colors)
@@ -172,8 +150,19 @@ class CursesFrontend:
         self._fps_timer = FPSTimer(5)
         self.renderer = Renderer(stdscr, style, rendering.SHADERS[0])
 
-        self.bindings = {}
-        self._setup_bindings()
+        self.bindings = {
+            curses.KEY_LEFT: self.rotate_camera_clockwise,
+            curses.KEY_RIGHT: self.rotate_camera_anticlockwise,
+            curses.KEY_UP: self.pitch_camera_up,
+            curses.KEY_DOWN: self.pitch_camera_down,
+            ord(","): self.zoom_camera_in,
+            ord("."): self.zoom_camera_out,
+            ord("q"): self.quit,
+            ord("x"): self.cycle_shaders,
+            ord("z"): self.cycle_charsets,
+            ord("c"): self.renderer.recenter_camera,
+            ord("v"): self.toggle_hydrogens,
+        }
 
     def run(self):
         curses.curs_set(False)
@@ -182,12 +171,9 @@ class CursesFrontend:
         self.stdscr.addstr(0, 0, "Starting...")
         self.stdscr.refresh()
 
-        try:
-            while True:
-                self.update()
-                time.sleep(.001)
-        except UserQuitException:
-            pass
+        while not self.user_quit:
+            self.update()
+            time.sleep(.001)
 
     def update(self):
         self.check_input()
@@ -231,53 +217,62 @@ class CursesFrontend:
 
         curses.flushinp()
 
-    def _setup_bindings(self):
-        def rotate_plus():
-            self.renderer.camera.angle += .1
+    def rotate_camera_clockwise(self):
+        self.renderer.camera.angle += .1
 
-        def rotate_minus():
-            self.renderer.camera.angle -= .1
+    def rotate_camera_anticlockwise(self):
+        self.renderer.camera.angle -= .1
 
-        def pitch_plus():
-            self.renderer.camera.pitch += .1
+    def pitch_camera_up(self):
+        self.renderer.camera.pitch += .1
 
-        def pitch_minus():
-            self.renderer.camera.pitch -= .1
+    def pitch_camera_down(self):
+        self.renderer.camera.pitch -= .1
 
-        def zoom_in():
-            self.renderer.camera.scale *= .9
+    def zoom_camera_in(self):
+        self.renderer.camera.scale *= .9
 
-        def zoom_out():
-            self.renderer.camera.scale /= .9
+    def zoom_camera_out(self):
+        self.renderer.camera.scale /= .9
 
-        def cycle_shaders():
-            self.renderer.shader = next_in_cycle(rendering.SHADERS,
-                                                 self.renderer.shader)
+    def cycle_shaders(self):
+        self.renderer.shader = next_in_cycle(rendering.SHADERS,
+                                             self.renderer.shader)
 
-        def cycle_charsets():
-            characters = next_in_cycle(rendering.character_sets_indexed,
-                                       self.renderer.style.characters)
-            self.renderer.style.set_characters(characters)
+    def cycle_charsets(self):
+        characters = next_in_cycle(rendering.character_sets_indexed,
+                                   self.renderer.style.characters)
+        self.renderer.style.set_characters(characters)
 
-        def toggle_hydrogens():
-            self.renderer.show_hydrogens = not self.renderer.show_hydrogens
+    def toggle_hydrogens(self):
+        self.renderer.show_hydrogens = not self.renderer.show_hydrogens
 
-        def quit():
-            raise UserQuitException()
+    def quit(self):
+        self.user_quit = True
 
-        self.bindings = {
-            curses.KEY_LEFT: rotate_plus,
-            curses.KEY_RIGHT: rotate_minus,
-            curses.KEY_UP: pitch_plus,
-            curses.KEY_DOWN: pitch_minus,
-            ord(","): zoom_in,
-            ord("."): zoom_out,
-            ord("q"): quit,
-            ord("x"): cycle_shaders,
-            ord("z"): cycle_charsets,
-            ord("c"): self.renderer.recenter_camera,
-            ord("v"): toggle_hydrogens,
-        }
+
+def generate_colors(override_colors=False):
+    max_colors = 8
+
+    if curses.can_change_color() and override_colors:
+        max_colors = 16
+        curses.init_color(0, 0, 0, 0)
+        for i in range(1, max_colors):
+            r, g, b = colorsys.hsv_to_rgb(i / max_colors, .5, 1)
+            curses.init_color(i, int(r * 1000), int(g * 1000), int(b * 1000))
+
+    for i in range(1, max_colors):
+        curses.init_pair(i, i, curses.COLOR_BLACK)
+
+    colors = [curses.color_pair(i) for i in range(max_colors)]
+
+    return colors
+
+
+def next_in_cycle(cycle, current, move=1):
+    current_index = cycle.index(current)
+    next_index = (current_index + move) % len(cycle)
+    return cycle[next_index]
 
 
 def handle_user_args(args=None) -> argparse.Namespace:

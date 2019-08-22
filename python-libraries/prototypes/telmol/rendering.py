@@ -1,6 +1,6 @@
 import curses
 import itertools
-from typing import Tuple, Iterable, Iterator, Callable
+from typing import Tuple, Iterable, Iterator, Callable, Sequence
 import numpy as np
 from bresenham import get_line
 
@@ -29,7 +29,7 @@ Shader = Callable[[], Iterator[Fragment]]
 
 
 class Style:
-    def __init__(self, characters, colors):
+    def __init__(self, characters: Sequence[str], colors):
         self.set_characters(characters)
         self.colors = colors
 
