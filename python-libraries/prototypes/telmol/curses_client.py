@@ -21,7 +21,6 @@ import colorsys
 import time
 
 from narupa.app import NarupaClient
-from narupa.trajectory.frame_data import POSITIONS
 
 from transformations import rotation_matrix, scale_matrix
 import rendering
@@ -37,34 +36,27 @@ class Camera:
         self.pitch = math.pi / 2
         self.scale = 5
 
-    def get_matrix(self):
+    def get_matrix(self) -> np.ndarray:
         return (scale_matrix(self.scale)
-              @ rotation_matrix(self.angle, [0, 0, 1])
-              @ rotation_matrix(self.pitch, [1, 0, 0]))
-
-
-class Timer:
-    def __init__(self):
-        self.last_time = time.time()
-
-    def get_delta(self):
-        return time.time() - self.last_time
-
-    def reset(self):
-        delta_time = self.get_delta()
-        self.last_time = time.time()
-        return delta_time
+                @ rotation_matrix(self.angle, [0, 0, 1])
+                @ rotation_matrix(self.pitch, [1, 0, 0]))
 
 
 class FPSTimer:
+    """
+    Stores a number of frame intervals to compute an average frames per second
+    measure.
+    """
     def __init__(self, count=5):
-        self.timer = Timer()
         self.intervals = []
         self.fps = 0
         self.count = count
+        self._prev_checkpoint = time.monotonic()
 
     def checkpoint(self):
-        self.intervals.append(self.timer.reset())
+        interval = time.monotonic() - self._prev_checkpoint
+        self._prev_checkpoint = time.monotonic()
+        self.intervals.append(interval)
         self.intervals[:] = self.intervals[-self.count:]
         self.fps = len(self.intervals) / sum(self.intervals)
 
@@ -74,7 +66,11 @@ class FrameTimer:
         self.interval = 1 / fps
         self.next_time = time.monotonic()
 
-    def check(self):
+    def check(self) -> bool:
+        """
+        Return True if the interval has passed, resetting the timer for the next
+        interval if it has.
+        """
         now = time.monotonic()
         if now >= self.next_time:
             self.next_time = now + self.interval
@@ -82,22 +78,8 @@ class FrameTimer:
         return False
 
 
-class Style:
-    def __init__(self, characters, colors):
-        self.set_characters(characters)
-        self.set_colors(colors)
-
-    def set_characters(self, characters):
-        self.characters = characters
-        self.character_lookup = np.array(self.characters)
-
-    def set_colors(self, colors):
-        self.colors = colors
-        self.color_lookup = np.array(self.colors)
-
-
 class Renderer:
-    def __init__(self, window, style, shader):
+    def __init__(self, window, style: rendering.Style, shader: rendering.Shader):
         self.window = window
         self.style = style
         self.shader = shader
@@ -184,7 +166,7 @@ class CursesFrontend:
         self.client = client
 
         colors = generate_colors(override_colors=override_colors)
-        style = Style(rendering.character_sets["boxes"], colors)
+        style = rendering.Style(rendering.character_sets["boxes"], colors)
 
         self._render_timer = FrameTimer(fps=30)
         self._fps_timer = FPSTimer(5)

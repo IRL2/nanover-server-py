@@ -1,5 +1,6 @@
 import curses
 import itertools
+from typing import Tuple, Iterable, Iterator, Callable
 import numpy as np
 from bresenham import get_line
 
@@ -20,20 +21,36 @@ element_colors = {
     16: curses.COLOR_YELLOW,
 }
 
+Position = Tuple[float, float, float, float]
+Fragment = Tuple[int, int, int, float]
+BondPair = Tuple[int, int]
+AtomInfo = Tuple[int, Position, int]
+Shader = Callable[[], Iterator[Fragment]]
 
-def iterate_frame_atoms(frame):
+
+class Style:
+    def __init__(self, characters, colors):
+        self.set_characters(characters)
+        self.colors = colors
+
+    def set_characters(self, characters):
+        self.characters = characters
+        self.character_lookup = np.array(self.characters)
+
+
+def iterate_frame_atoms(frame) -> Iterator[AtomInfo]:
     for index, position, element in zip(itertools.count(), frame['positions'], frame['elements']):
         if index not in frame['skip_atoms']:
             yield index, position, element
 
 
-def iterate_frame_bonds(frame):
+def iterate_frame_bonds(frame) -> Iterator[BondPair]:
     for atom_a_index, atom_b_index in frame['bonds']:
         if atom_a_index not in frame['skip_atoms'] and atom_b_index not in frame['skip_atoms']:
             yield atom_a_index, atom_b_index
 
 
-def atoms_to_pixels_cpk(frame, color_count):
+def atoms_to_pixels_cpk(frame, color_count) -> Iterator[Fragment]:
     for index, position, element in iterate_frame_atoms(frame):
         if element not in element_colors:
             continue
@@ -43,7 +60,7 @@ def atoms_to_pixels_cpk(frame, color_count):
         yield element_colors[element], x, y, z
 
 
-def atoms_to_pixels_gradient(frame, color_count):
+def atoms_to_pixels_gradient(frame, color_count) -> Iterator[Fragment]:
     for index, position, element in iterate_frame_atoms(frame):
         x, y, z = int(position[0]), int(position[1]), position[2]
         color_index = int((index * .1) % color_count)
@@ -51,7 +68,7 @@ def atoms_to_pixels_gradient(frame, color_count):
         yield color_index, x, y, z
 
 
-def bonds_to_pixels_gradient(frame, color_count):
+def bonds_to_pixels_gradient(frame, color_count) -> Iterator[Fragment]:
     for atom_a_index, atom_b_index in iterate_frame_bonds(frame):
         start = frame['positions'][atom_a_index]
         end = frame['positions'][atom_b_index]
@@ -65,7 +82,7 @@ def bonds_to_pixels_gradient(frame, color_count):
             yield color_index, x, y, z
 
 
-def render_pixels_to_window(window, style, pixels):
+def render_pixels_to_window(window, style: Style, pixels: Iterable[Fragment]):
     h, w = window.getmaxyx()
     depth_buffer = np.full((w, h), 0, dtype=np.float32)
     color_buffer = {}
