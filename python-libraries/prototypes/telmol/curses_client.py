@@ -6,7 +6,7 @@ into the terminal.
 """
 import sys
 import textwrap
-from typing import Dict, Callable, Sequence
+from typing import Dict, Callable, Sequence, Any
 
 try:
     import curses
@@ -259,15 +259,28 @@ class CursesFrontend:
         self.user_quit = True
 
 
-def generate_colors(override_colors=False):
+def override_terminal_colors(max_colors: int,
+                             saturation: float = .5,
+                             value: float = 1):
+    """
+    Updates the terminal colors to black + a hue cycle.
+    """
+    curses.init_color(0, 0, 0, 0)
+    for i in range(1, max_colors):
+        r, g, b = colorsys.hsv_to_rgb(i / max_colors, saturation, value)
+        curses.init_color(i, int(r * 1000), int(g * 1000), int(b * 1000))
+
+
+def generate_colors(override_colors=False) -> Sequence:
+    """
+    Return a sequence of all available curses color pairs of a foreground color
+    on a black background.
+    """
     max_colors = 8
 
     if curses.can_change_color() and override_colors:
         max_colors = 16
-        curses.init_color(0, 0, 0, 0)
-        for i in range(1, max_colors):
-            r, g, b = colorsys.hsv_to_rgb(i / max_colors, .5, 1)
-            curses.init_color(i, int(r * 1000), int(g * 1000), int(b * 1000))
+        override_terminal_colors(max_colors)
 
     for i in range(1, max_colors):
         curses.init_pair(i, i, curses.COLOR_BLACK)
@@ -277,7 +290,7 @@ def generate_colors(override_colors=False):
     return colors
 
 
-def next_in_cycle(cycle, current, move=1):
+def next_in_cycle(cycle: Sequence[Any], current: Any, move: int = 1):
     current_index = cycle.index(current)
     next_index = (current_index + move) % len(cycle)
     return cycle[next_index]
