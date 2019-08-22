@@ -1,6 +1,6 @@
 import curses
 import itertools
-from typing import Tuple, Iterable, Iterator, Callable, Sequence
+from typing import Tuple, Iterable, Iterator, Callable, Sequence, Dict
 import numpy as np
 from bresenham import get_line
 
@@ -25,17 +25,7 @@ Position = Tuple[float, float, float, float]
 Fragment = Tuple[int, int, int, float]
 BondPair = Tuple[int, int]
 AtomInfo = Tuple[int, Position, int]
-Shader = Callable[[], Iterator[Fragment]]
-
-
-class Style:
-    def __init__(self, characters: Sequence[str], colors):
-        self.set_characters(characters)
-        self.colors = colors
-
-    def set_characters(self, characters):
-        self.characters = characters
-        self.character_lookup = np.array(self.characters)
+Shader = Callable[[Dict, int], Iterator[Fragment]]
 
 
 def iterate_frame_atoms(frame) -> Iterator[AtomInfo]:
@@ -82,7 +72,10 @@ def bonds_to_pixels_gradient(frame, color_count) -> Iterator[Fragment]:
             yield color_index, x, y, z
 
 
-def render_pixels_to_window(window, style: Style, pixels: Iterable[Fragment]):
+def render_pixels_to_window(window,
+                            charset: Sequence[str],
+                            colors: Sequence,
+                            pixels: Iterable[Fragment]):
     h, w = window.getmaxyx()
     depth_buffer = np.full((w, h), 0, dtype=np.float32)
     color_buffer = {}
@@ -105,7 +98,7 @@ def render_pixels_to_window(window, style: Style, pixels: Iterable[Fragment]):
         if x == w - 1 and y == h - 1:
             continue
 
-        write_pixel(style.colors[color_index], x, y, z)
+        write_pixel(colors[color_index], x, y, z)
 
     min_depth = depth_buffer.min()
     max_depth = depth_buffer.max()
@@ -113,7 +106,7 @@ def render_pixels_to_window(window, style: Style, pixels: Iterable[Fragment]):
     if not color_buffer:
         return
 
-    char_count = len(style.characters)
+    char_count = len(charset)
     depth_scale = char_count / (max_depth - min_depth)
 
     # transform depths into cell indexes
@@ -122,7 +115,8 @@ def render_pixels_to_window(window, style: Style, pixels: Iterable[Fragment]):
     np.rint(depth_buffer, out=depth_buffer)
     depth_buffer.clip(0, char_count-1, out=depth_buffer)
 
-    char_buffer = style.character_lookup[depth_buffer.astype(int)]
+    character_lookup = np.array(charset)
+    char_buffer = character_lookup[depth_buffer.astype(int)]
 
     for (x, y), color in color_buffer.items():
         window.addch(y, x, char_buffer[x, y], color)

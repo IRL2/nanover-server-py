@@ -6,7 +6,7 @@ into the terminal.
 """
 import sys
 import textwrap
-from typing import Dict, Callable
+from typing import Dict, Callable, Sequence
 
 try:
     import curses
@@ -44,7 +44,7 @@ class FPSTimer:
     Stores a number of frame intervals to compute an average frames per second
     measure.
     """
-    def __init__(self, count=5):
+    def __init__(self, count: int = 5):
         self.intervals = []
         self.fps = 0
         self.count = count
@@ -59,7 +59,7 @@ class FPSTimer:
 
 
 class FrameTimer:
-    def __init__(self, fps=30):
+    def __init__(self, fps: int = 30):
         self.interval = 1 / fps
         self.next_time = time.monotonic()
 
@@ -76,9 +76,14 @@ class FrameTimer:
 
 
 class Renderer:
-    def __init__(self, window, style: rendering.Style, shader: rendering.Shader):
+    def __init__(self,
+                 window,
+                 charset: Sequence[str],
+                 colors: Sequence,
+                 shader: rendering.Shader):
         self.window = window
-        self.style = style
+        self.charset = charset
+        self.colors = colors
         self.shader = shader
         self.camera = Camera()
 
@@ -107,8 +112,9 @@ class Renderer:
             if not self.show_hydrogens:
                 frame['skip_atoms'] = set(index for index, element in enumerate(frame['elements']) if element == 1)
 
-            pixels = self.shader(frame, len(self.style.colors) - 1)
-            rendering.render_pixels_to_window(self.window, self.style, pixels)
+            pixels = self.shader(frame, len(self.colors) - 1)
+            rendering.render_pixels_to_window(self.window, self.charset,
+                                              self.colors, pixels)
         
         self.window.noutrefresh()
 
@@ -136,19 +142,21 @@ class Renderer:
 class CursesFrontend:
     client: NarupaClient
     renderer: Renderer
-    bindings: Dict[str, Callable]
+    bindings: Dict[int, Callable]
 
     def __init__(self, stdscr, client: NarupaClient, override_colors=False):
         self.stdscr = stdscr
         self.client = client
         self.user_quit = False
 
-        colors = generate_colors(override_colors=override_colors)
-        style = rendering.Style(rendering.character_sets["boxes"], colors)
-
         self._render_timer = FrameTimer(fps=30)
         self._fps_timer = FPSTimer(5)
-        self.renderer = Renderer(stdscr, style, rendering.SHADERS[0])
+
+        colors = generate_colors(override_colors=override_colors)
+        self.renderer = Renderer(stdscr,
+                                 rendering.character_sets["boxes"],
+                                 colors,
+                                 rendering.SHADERS[0])
 
         self.bindings = {
             curses.KEY_LEFT: self.rotate_camera_clockwise,
@@ -240,9 +248,9 @@ class CursesFrontend:
                                              self.renderer.shader)
 
     def cycle_charsets(self):
-        characters = next_in_cycle(rendering.character_sets_indexed,
-                                   self.renderer.style.characters)
-        self.renderer.style.set_characters(characters)
+        charset = next_in_cycle(rendering.character_sets_indexed,
+                                self.renderer.charset)
+        self.renderer.charset = charset
 
     def toggle_hydrogens(self):
         self.renderer.show_hydrogens = not self.renderer.show_hydrogens
