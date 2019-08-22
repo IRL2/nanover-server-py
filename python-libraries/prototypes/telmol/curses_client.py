@@ -225,6 +225,7 @@ class CursesFrontend:
         self.stdscr.addstr(4, 0, " x -- cycle representations")
         self.stdscr.addstr(5, 0, " z -- cycle skins")
         self.stdscr.addstr(6, 0, " v -- toggle hydrogens")
+        self.stdscr.addstr(7, 0, " q -- quit")
 
     def check_input(self):
         char = self.stdscr.getch()
