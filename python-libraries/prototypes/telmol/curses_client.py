@@ -124,7 +124,7 @@ class Renderer:
     def _process_frame(self):
         # center the camera
         if self._recenter:
-            self._offset = np.median(self.positions, axis=0)[:3]
+            self._offset = np.median(self.positions, axis=0)
             self._recenter = False
             
         self.positions -= self._offset
