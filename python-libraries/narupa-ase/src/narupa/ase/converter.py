@@ -135,14 +135,10 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
 def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     """
     Adds the periodic box vectors to the frame.
-
-    The box vectors form the 3x3 matrix that describes a triclinic box. The
-    box is only added if the system is periodic.
     """
-    if np.any(ase_atoms.pbc):
-        box_vectors = ase_atoms.cell.copy()
-        box_vectors[np.diag_indices_from(box_vectors)] *= ANG_TO_NM
-        data.box_vectors = box_vectors
+    box_vectors = ase_atoms.cell.copy()
+    box_vectors[np.diag_indices_from(box_vectors)] *= ANG_TO_NM
+    data.box_vectors = box_vectors
 
 
 def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
