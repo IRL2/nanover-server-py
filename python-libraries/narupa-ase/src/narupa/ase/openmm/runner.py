@@ -151,7 +151,16 @@ class OpenMMIMDRunner:
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, 300 * units.kB)
 
-        self._dynamics = NVTBerendsen(self.atoms, self.time_step * units.fs, 300, self.time_step * units.fs)
+        # We do not remove the center of mass (fixcm=False). If the center of
+        # mass translations should be removed, then the removal should be added
+        # to the OpenMM system.
+        self._dynamics = NVTBerendsen(
+            atoms=self.atoms,
+            timestep=self.time_step * units.fs,
+            temperature=300,
+            taut=self.time_step * units.fs,
+            fixcm=False,
+        )
 
         if self.verbose:
             self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,
