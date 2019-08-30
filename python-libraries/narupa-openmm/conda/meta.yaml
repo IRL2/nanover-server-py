@@ -13,6 +13,7 @@ requirements:
   build:
     - python
     - setuptools
+    - openmm
 
   run:
     - python
