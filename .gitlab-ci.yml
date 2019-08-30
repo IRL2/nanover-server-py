@@ -61,6 +61,8 @@ build_conda:
         - $build_command python-libraries/narupa-mdanalysis/conda
         # narupa-server must come last as it depends on everything
         - $build_command python-libraries/narupa-server/conda
+        - pwd
+        - ls -R
     artifacts:
         paths:
             - /miniconda/conda-bld
