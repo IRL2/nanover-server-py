@@ -42,6 +42,7 @@ class MultiplayerService(MultiplayerServicer):
                                context) -> Avatar:
         """Provides a stream of updates to player avatars."""
         changes_stream = self._avatars.subscribe_updates(
+            interval=request.update_interval,
             subscribe_cancellation=context.add_callback,
         )
         for changes in changes_stream:
