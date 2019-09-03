@@ -41,7 +41,10 @@ class MultiplayerService(MultiplayerServicer):
                                request: SubscribePlayerAvatarsRequest,
                                context) -> Avatar:
         """Provides a stream of updates to player avatars."""
-        for changes in self._avatars.subscribe_updates(request.update_interval):
+        changes_stream = self._avatars.subscribe_updates(
+            subscribe_cancellation=context.add_callback,
+        )
+        for changes in changes_stream:
             for player_id, avatar in changes.items():
                 if player_id != request.ignore_player_id:
                     yield avatar
@@ -56,11 +59,11 @@ class MultiplayerService(MultiplayerServicer):
 
     def SubscribeAllResourceValues(self, request, context):
         """Provides a stream of updates to a shared key/value store."""
-        subscription = self._resources.subscribe_updates(
+        changes_stream = self._resources.subscribe_updates(
             interval=request.update_interval,
             subscribe_cancellation=context.add_callback,
         )
-        for changes in subscription:
+        for changes in changes_stream:
             if not context.is_active():
                 break
             response = ResourceValuesUpdate()
