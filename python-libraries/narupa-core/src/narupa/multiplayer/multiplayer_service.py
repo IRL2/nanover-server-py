@@ -64,8 +64,6 @@ class MultiplayerService(MultiplayerServicer):
             subscribe_cancellation=context.add_callback,
         )
         for changes in changes_stream:
-            if not context.is_active():
-                break
             response = ResourceValuesUpdate()
             for key, value in changes.items():
                 entry = response.resource_value_changes.get_or_create(key)
