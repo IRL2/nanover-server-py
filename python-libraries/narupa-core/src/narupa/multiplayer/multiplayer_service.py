@@ -34,21 +34,22 @@ class MultiplayerService(MultiplayerServicer):
         """Create a new unique player and return their id."""
         player_id = self.generate_player_id()
         self.players[player_id] = request
-        self.logger.info(f'{request.player_name} ({player_id}) has joined multiplayer.')
+        self.logger.info(f'{request.player_name} ({player_id}) has joined '
+                         f'multiplayer.')
         return CreatePlayerResponse(player_id=player_id)
 
     def SubscribePlayerAvatars(self,
                                request: SubscribePlayerAvatarsRequest,
                                context) -> Avatar:
         """Provides a stream of updates to player avatars."""
-        changes_stream = self._avatars.subscribe_updates(
-            interval=request.update_interval,
-            listen_for_cancellation=context.add_callback,
-        )
-        for changes in changes_stream:
-            for player_id, avatar in changes.items():
-                if player_id != request.ignore_player_id:
-                    yield avatar
+        interval = request.update_interval
+        with self._avatars.create_view() as change_buffer:
+            if not context.add_callback(lambda: change_buffer.freeze()):
+                return
+            for changes in change_buffer.subscribe_changes(interval):
+                for player_id, avatar in changes.items():
+                    if player_id != request.ignore_player_id:
+                        yield avatar
 
     def UpdatePlayerAvatar(self,
                            request_iterator: Iterator,
@@ -60,17 +61,16 @@ class MultiplayerService(MultiplayerServicer):
 
     def SubscribeAllResourceValues(self, request, context):
         """Provides a stream of updates to a shared key/value store."""
-        changes_stream = self._resources.subscribe_updates(
-            interval=request.update_interval,
-            listen_for_cancellation=context.add_callback,
-        )
-
-        for changes in changes_stream:
-            response = ResourceValuesUpdate()
-            for key, value in changes.items():
-                entry = response.resource_value_changes.get_or_create(key)
-                entry.MergeFrom(value)
-            yield response
+        interval = request.update_interval
+        with self._resources.create_view() as change_buffer:
+            if not context.add_callback(lambda: change_buffer.freeze()):
+                return
+            for changes in change_buffer.subscribe_changes(interval):
+                response = ResourceValuesUpdate()
+                for key, value in changes.items():
+                    entry = response.resource_value_changes.get_or_create(key)
+                    entry.MergeFrom(value)
+                yield response
 
     def AcquireResourceLock(self,
                             request: multiplayer_proto.AcquireLockRequest,

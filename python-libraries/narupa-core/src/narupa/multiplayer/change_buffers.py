@@ -3,8 +3,6 @@ from contextlib import contextmanager
 from threading import Lock, Condition
 from narupa.core.timing import yield_interval
 
-SubscribeEventCallback = Callable[[Callable[[], None]], None]
-
 
 class ObjectFrozenException(Exception):
     """
@@ -48,25 +46,14 @@ class DictionaryChangeMultiView:
             self._views.remove(view)
             view.freeze()
 
-    def subscribe_updates(
-            self,
-            interval: float = 0,
-            listen_for_cancellation: Optional[SubscribeEventCallback] = None
-    ):
+    def subscribe_changes(self, interval: float = 0):
         """
         Iterates over changes to the shared dictionary, starting with the
         initial values. Waits at least :interval: seconds between each
-        iteration. If a listen for cancellation callback is provided, the
-        subscription will end itself appropriately upon cancellation.
+        iteration.
         """
         with self.create_view() as view:
-            if listen_for_cancellation is not None:
-                listen_for_cancellation(lambda: self.remove_view(view))
-            for dt in yield_interval(interval):
-                try:
-                    yield view.flush_changed_blocking()
-                except ObjectFrozenException:
-                    break
+            yield from view.subscribe_changes(interval)
 
     def update(self, updates):
         """
@@ -76,8 +63,11 @@ class DictionaryChangeMultiView:
             if self._frozen:
                 raise ObjectFrozenException()
             self._content.update(updates)
-            for view in self._views:
-                view.update(updates)
+            for view in set(self._views):
+                try:
+                    view.update(updates)
+                except ObjectFrozenException:
+                    self._views.remove(view)
 
     def freeze(self):
         """
@@ -137,3 +127,14 @@ class DictionaryChangeBuffer:
             changes = self._changes
             self._changes = dict()
             return changes
+
+    def subscribe_changes(self, interval: float = 0):
+        """
+        Iterates over changes to the buffer. Waits at least :interval: seconds
+        between each iteration.
+        """
+        for dt in yield_interval(interval):
+            try:
+                yield self.flush_changed_blocking()
+            except ObjectFrozenException:
+                break
