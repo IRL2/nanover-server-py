@@ -12,6 +12,10 @@ import grpc
 DEFAULT_SERVE_ADDRESS = '[::]'
 DEFAULT_CONNECT_ADDRESS = 'localhost'
 
+EXPECTED_CLIENTS = 8
+EXPECTED_THREADS_PER_CLIENT = 4
+MAX_WORKERS = EXPECTED_CLIENTS * EXPECTED_THREADS_PER_CLIENT
+
 
 class GrpcServer:
     """
@@ -23,7 +27,8 @@ class GrpcServer:
     """
 
     def __init__(self, *, address: str, port: int):
-        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        executor = futures.ThreadPoolExecutor(max_workers=MAX_WORKERS)
+        self.server = grpc.server(executor)
         self.setup_services()
         self._port = self.server.add_insecure_port(address=f"{address}:{port}")
 
