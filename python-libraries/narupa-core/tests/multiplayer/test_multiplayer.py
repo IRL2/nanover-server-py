@@ -446,7 +446,7 @@ def test_repeated_disconnect_frees_workers():
     """
     Test that disconnecting frees workers on the server. With just enough
     workers to service one subscription and one request, the server will get
-    stuck queueing request if any subscriptions are left hanging.
+    stuck queueing requests if any subscriptions are left hanging.
     """
     # 2 workers: 1 for value subscription, 1 for single request
     with MultiplayerServer(address='localhost', port=0, max_workers=2) as server:
