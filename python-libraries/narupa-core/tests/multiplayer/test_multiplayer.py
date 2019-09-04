@@ -15,7 +15,7 @@ from google.protobuf.struct_pb2 import Value, Struct
 
 
 CONNECT_WAIT_TIME = 0.01
-IMMEDIATE_REPLY_WAIT_TIME = 0.005
+IMMEDIATE_REPLY_WAIT_TIME = 0.01
 
 
 @pytest.fixture
