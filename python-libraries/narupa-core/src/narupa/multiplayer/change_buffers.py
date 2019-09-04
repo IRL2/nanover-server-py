@@ -57,7 +57,7 @@ class DictionaryChangeMultiView:
         Iterates over changes to the shared dictionary, starting with the
         initial values. Waits at least :interval: seconds between each
         iteration. If a listen for cancellation callback is provided, the
-        subscription will
+        subscription will end itself appropriately upon cancellation.
         """
         with self.create_view() as view:
             if listen_for_cancellation is not None:
