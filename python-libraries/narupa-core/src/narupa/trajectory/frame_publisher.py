@@ -53,11 +53,12 @@ class FramePublisher(TrajectoryServiceServicer):
                                               queue_type=SingleItemQueue)
 
     def _subscribe_frame_base(self, request, context, queue_type):
-        add_disconnect_listener = context.add_callback
+        listen_for_cancellation = context.add_callback
         request_id = self._get_new_request_id()
         yield from self._yield_last_frame_if_any()
         with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
-            add_disconnect_listener(lambda: queue.put(SENTINEL))
+            if not listen_for_cancellation(lambda: queue.put(SENTINEL)):
+                return
             for dt in yield_interval(request.frame_interval):
                 item = queue.get(block=True)
                 if item is SENTINEL:

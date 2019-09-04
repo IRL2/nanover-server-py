@@ -6,8 +6,6 @@ Integration tests of the multiplayer server with the reference multiplayer clien
 """
 
 import time
-from contextlib import contextmanager
-
 import pytest
 
 from narupa.multiplayer.multiplayer_client import MultiplayerClient

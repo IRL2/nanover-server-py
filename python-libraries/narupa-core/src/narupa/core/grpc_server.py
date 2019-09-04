@@ -14,7 +14,7 @@ DEFAULT_CONNECT_ADDRESS = 'localhost'
 
 EXPECTED_CLIENTS = 8
 EXPECTED_THREADS_PER_CLIENT = 4
-MAX_WORKERS = EXPECTED_CLIENTS * EXPECTED_THREADS_PER_CLIENT
+DEFAULT_MAX_WORKERS = EXPECTED_CLIENTS * EXPECTED_THREADS_PER_CLIENT
 
 
 class GrpcServer:
@@ -26,7 +26,13 @@ class GrpcServer:
     :param port: The port on which to run the server.
     """
 
-    def __init__(self, *, address: str, port: int, max_workers=MAX_WORKERS):
+    def __init__(
+            self,
+            *,
+            address: str,
+            port: int,
+            max_workers=DEFAULT_MAX_WORKERS,
+    ):
         executor = futures.ThreadPoolExecutor(max_workers=max_workers)
         self.server = grpc.server(executor)
         self.setup_services()

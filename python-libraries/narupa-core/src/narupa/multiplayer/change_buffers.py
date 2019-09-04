@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from threading import Lock, Condition
 from narupa.core.timing import yield_interval
 
-SubscribeEventCallback = Callable[[Callable], None]
+SubscribeEventCallback = Callable[[Callable[[], None]], None]
 
 
 class ObjectFrozenException(Exception):
@@ -51,16 +51,17 @@ class DictionaryChangeMultiView:
     def subscribe_updates(
             self,
             interval: float = 0,
-            subscribe_cancellation: Optional[SubscribeEventCallback] = None
+            listen_for_cancellation: Optional[SubscribeEventCallback] = None
     ):
         """
         Iterates over changes to the shared dictionary, starting with the
         initial values. Waits at least :interval: seconds between each
-        iteration.
+        iteration. If a listen for cancellation callback is provided, the
+        subscription will
         """
         with self.create_view() as view:
-            if subscribe_cancellation is not None:
-                subscribe_cancellation(lambda: self.remove_view(view))
+            if listen_for_cancellation is not None:
+                listen_for_cancellation(lambda: self.remove_view(view))
             for dt in yield_interval(interval):
                 try:
                     yield view.flush_changed_blocking()

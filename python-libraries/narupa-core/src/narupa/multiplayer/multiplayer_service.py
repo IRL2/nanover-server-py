@@ -43,7 +43,7 @@ class MultiplayerService(MultiplayerServicer):
         """Provides a stream of updates to player avatars."""
         changes_stream = self._avatars.subscribe_updates(
             interval=request.update_interval,
-            subscribe_cancellation=context.add_callback,
+            listen_for_cancellation=context.add_callback,
         )
         for changes in changes_stream:
             for player_id, avatar in changes.items():
@@ -62,8 +62,9 @@ class MultiplayerService(MultiplayerServicer):
         """Provides a stream of updates to a shared key/value store."""
         changes_stream = self._resources.subscribe_updates(
             interval=request.update_interval,
-            subscribe_cancellation=context.add_callback,
+            listen_for_cancellation=context.add_callback,
         )
+
         for changes in changes_stream:
             response = ResourceValuesUpdate()
             for key, value in changes.items():

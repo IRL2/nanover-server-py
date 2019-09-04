@@ -53,8 +53,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             )
         except KeyError:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
-            message = "Tried to create an interaction with a player ID and " \
-                      "device ID combination that's already in use "
+            message = ("Tried to create an interaction with a player ID and "
+                       "device ID combination that's already in use.")
             context.set_details(message)
         finally:
             # clean up all the interactions after the stream

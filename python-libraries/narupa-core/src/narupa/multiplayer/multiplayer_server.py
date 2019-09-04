@@ -6,7 +6,7 @@ Module providing implemenation of a muliplayer server.
 from typing import Optional
 
 from narupa.core import GrpcServer, DEFAULT_SERVE_ADDRESS
-from narupa.core.grpc_server import MAX_WORKERS
+from narupa.core.grpc_server import DEFAULT_MAX_WORKERS
 from narupa.multiplayer.multiplayer_service import MultiplayerService
 from narupa.protocol.multiplayer import multiplayer_pb2_grpc as multiplayer_proto_grpc
 
@@ -27,7 +27,7 @@ class MultiplayerServer(GrpcServer):
             *,
             address: Optional[str] = None,
             port: Optional[int] = None,
-            max_workers: int = MAX_WORKERS,
+            max_workers: int = DEFAULT_MAX_WORKERS,
     ):
         address = address or DEFAULT_SERVE_ADDRESS
         port = port or DEFAULT_PORT
