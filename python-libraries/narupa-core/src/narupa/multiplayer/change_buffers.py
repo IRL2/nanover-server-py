@@ -38,9 +38,15 @@ class DictionaryChangeMultiView:
                 view.freeze()
             self._views.add(view)
         yield view
+        self.remove_view(view)
+
+    def remove_view(self, view):
+        """
+        Freeze the given change buffer and stop providing updates to it.
+        """
         with self._lock:
-            view.freeze()
             self._views.remove(view)
+            view.freeze()
 
     def subscribe_updates(
             self,
@@ -54,7 +60,7 @@ class DictionaryChangeMultiView:
         """
         with self.create_view() as view:
             if subscribe_cancellation is not None:
-                subscribe_cancellation(view.freeze)
+                subscribe_cancellation(lambda: self.remove_view(view))
             for dt in yield_interval(interval):
                 try:
                     yield view.flush_changed_blocking()

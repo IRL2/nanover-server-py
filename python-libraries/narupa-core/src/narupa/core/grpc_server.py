@@ -26,8 +26,8 @@ class GrpcServer:
     :param port: The port on which to run the server.
     """
 
-    def __init__(self, *, address: str, port: int):
-        executor = futures.ThreadPoolExecutor(max_workers=MAX_WORKERS)
+    def __init__(self, *, address: str, port: int, max_workers=MAX_WORKERS):
+        executor = futures.ThreadPoolExecutor(max_workers=max_workers)
         self.server = grpc.server(executor)
         self.setup_services()
         self._port = self.server.add_insecure_port(address=f"{address}:{port}")
