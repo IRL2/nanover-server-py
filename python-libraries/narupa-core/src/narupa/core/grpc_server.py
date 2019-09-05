@@ -12,9 +12,11 @@ import grpc
 DEFAULT_SERVE_ADDRESS = '[::]'
 DEFAULT_CONNECT_ADDRESS = 'localhost'
 
-EXPECTED_CLIENTS = 8
-EXPECTED_THREADS_PER_CLIENT = 4
-DEFAULT_MAX_WORKERS = EXPECTED_CLIENTS * EXPECTED_THREADS_PER_CLIENT
+# We expect that reserving a large number of threads should not present a
+# performance issue. Each concurrent GRPC request requires a worker, and streams
+# occupy those workers indefinitely, so several workers must be available for
+# each expected client.
+DEFAULT_MAX_WORKERS = 128
 
 
 class GrpcServer:
