@@ -4,8 +4,9 @@
 """
 Integration tests of the multiplayer server with the reference multiplayer client.
 """
-
+import threading
 import time
+
 import pytest
 
 from narupa.multiplayer.multiplayer_client import MultiplayerClient
@@ -453,4 +454,27 @@ def test_repeated_disconnect_frees_workers():
                 client.join_multiplayer("test", join_streams=False)
                 time.sleep(CONNECT_WAIT_TIME)
                 client.subscribe_all_value_updates()
-                result = client.try_set_resource_value("test", Value(number_value=0))
+                client.try_set_resource_value("test", Value(number_value=0))
+
+
+@pytest.mark.timeout(3)
+def test_repeated_connections_stall_server():
+    """
+    Test that too many clients not disconnecting will cause a queue in the
+    server's executor.
+    """
+    with MultiplayerServer(address='localhost', port=0, max_workers=2) as server:
+        def loads_of_clients():
+            clients = []
+            try:
+                for _ in range(32):
+                    client = MultiplayerClient(port=server.port)
+                    clients.append(client)
+                    client.join_multiplayer("test")
+            finally:
+                for client in clients:
+                    client.close()
+
+        threading.Thread(target=loads_of_clients, daemon=True).start()
+        time.sleep(CONNECT_WAIT_TIME)
+        assert server.server._state.thread_pool._work_queue.qsize() > 0
