@@ -135,7 +135,7 @@ class MultiplayerClient(GrpcClient):
         for any and all values.
         """
         request = mult_proto.SubscribeAllResourceValuesRequest(update_interval=interval)
-        self.threads.submit(self._join_scene_properties_stream, request)
+        self.threads.submit(self._join_scene_properties, request)
 
     def try_lock_resource(self, resource_id, duration=0):
         """
@@ -207,7 +207,3 @@ class MultiplayerClient(GrpcClient):
             keys = set(update.resource_value_changes.keys())
             for callback in self._value_update_callbacks:
                 callback(keys)
-
-    @_end_upon_channel_close
-    def _join_scene_properties_stream(self, request):
-        self.stub.SubscribeAllResourceValues(self._join_scene_properties(request))

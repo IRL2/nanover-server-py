@@ -1,3 +1,4 @@
+from typing import Callable, Optional
 from contextlib import contextmanager
 from threading import Lock, Condition
 from narupa.core.timing import yield_interval
@@ -35,22 +36,24 @@ class DictionaryChangeMultiView:
                 view.freeze()
             self._views.add(view)
         yield view
-        with self._lock:
-            view.freeze()
-            self._views.remove(view)
+        self.remove_view(view)
 
-    def subscribe_updates(self, interval=0):
+    def remove_view(self, view):
+        """
+        Freeze the given change buffer and stop providing updates to it.
+        """
+        with self._lock:
+            self._views.remove(view)
+            view.freeze()
+
+    def subscribe_changes(self, interval: float = 0):
         """
         Iterates over changes to the shared dictionary, starting with the
         initial values. Waits at least :interval: seconds between each
         iteration.
         """
         with self.create_view() as view:
-            for dt in yield_interval(interval):
-                try:
-                    yield view.flush_changed_blocking()
-                except ObjectFrozenException:
-                    break
+            yield from view.subscribe_changes(interval)
 
     def update(self, updates):
         """
@@ -60,8 +63,11 @@ class DictionaryChangeMultiView:
             if self._frozen:
                 raise ObjectFrozenException()
             self._content.update(updates)
-            for view in self._views:
-                view.update(updates)
+            for view in set(self._views):
+                try:
+                    view.update(updates)
+                except ObjectFrozenException:
+                    self._views.remove(view)
 
     def freeze(self):
         """
@@ -121,3 +127,14 @@ class DictionaryChangeBuffer:
             changes = self._changes
             self._changes = dict()
             return changes
+
+    def subscribe_changes(self, interval: float = 0):
+        """
+        Iterates over changes to the buffer. Waits at least :interval: seconds
+        between each iteration.
+        """
+        for dt in yield_interval(interval):
+            try:
+                yield self.flush_changed_blocking()
+            except ObjectFrozenException:
+                break
