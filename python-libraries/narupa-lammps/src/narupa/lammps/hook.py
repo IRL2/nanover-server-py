@@ -119,13 +119,13 @@ class DummyLammps:
         _DEFAULT_ATOMS = 3
         self.n_atoms = n_atoms if n_atoms is not None else _DEFAULT_ATOMS
 
-    def gather_atoms(self, array_type: str, dummy_variable, array_shape):
+    def gather_atoms(self, array_type: str, _dummy_variable, _array_shape):
         """
         This routine generates fake ctypes to mimic lammps internal pointers
 
         :param array_type: determines the type of data that should be replicated
-        :param dummy_variable: Unused here, only relevant to lammps
-        :param array_shape: Unused here, only relevant to lammps
+        :param _dummy_variable: Unused here, only relevant to lammps
+        :param _array_shape: Unused here, only relevant to lammps
         :return: matrix data_array that contains all the dummy data
         """
         if array_type is "x":
@@ -143,18 +143,18 @@ class DummyLammps:
 
         return data_array
 
-    def scatter_atoms(self, array_type, dummy_variable, array_shape, data_array):
+    def scatter_atoms(self, _array_type, _dummy_variable, _array_shape, __data_array):
         """
         This routine mimics lammp_class.scatter_atoms, in the dummy case it does nothing
         """
 
-    def extract_global(self, types: str, number_type):
+    def extract_global(self, types: str, _number_type):
         '''
         Generate dummy element list for testing
 
         replicates lammp_class.extract_global("ntypes", 0)
         :param types: LAMMPS global variable that is needed
-        :param number_type: unused
+        :param _number_type: unused
         :return:
         '''
         if types is "ntypes":
@@ -172,11 +172,11 @@ class DummyLammps:
         '''
         return self.n_atoms
 
-    def extract_atom(self, types: str, number_type):
+    def extract_atom(self, types: str, _number_type):
         '''
         `Generate dummy element list for testing
         :param types: string that indicates the info that should be passed
-        :param number_type: unused parameter to indicate integer float. etc
+        :param _number_type: unused parameter to indicate integer float. etc
         :return: dummy_element_list
         '''
         if types is "mass":
@@ -234,8 +234,8 @@ class LammpsHook:
 
         try:
             self.frame_data = FrameData()
-        except Exception as e:
-            raise Exception("Failed to load FrameData", e)
+        except Exception as err:
+            raise Exception("Failed to load FrameData", err)
 
         logging.basicConfig(level=logging.INFO)
         logging.info("Lammpshook initialised for NarupaXR")
@@ -247,8 +247,8 @@ class LammpsHook:
             nprocs = self.comm.Get_size()
             logging.info("MPI rank %s", me)
             logging.info("MPI n processors %s ", nprocs)
-        except:
-            logging.info("didn't find mpi4py")
+        except Exception as err:
+            logging.info("didn't find mpi4py %s", err)
 
         logging.info("Trajectory Port %s ", traj_port)
         logging.info("Interactive Port %s ", imd_port)
@@ -358,7 +358,7 @@ class LammpsHook:
         # Convert units from narupa standard of  kj/mol/nm to whatever units LAMMPS is using
         # For real units types LAMMPS uses  Kcal/mole-Angstrom 4.14
         # for kj-> Kcal and 10x for nm -> Angstrom
-        interaction_forces / self.force_factor
+        interaction_forces = interaction_forces / self.force_factor
         # Flatten array into the ctype
         scatterable_array = interaction_forces.flatten()
         for idx in range(3 * self.n_atoms):
