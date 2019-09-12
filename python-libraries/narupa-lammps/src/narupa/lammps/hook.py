@@ -4,9 +4,9 @@ This program can be run as a standalone using dummy data or from within LAMMPS
 using the python_invoke/fix command as demonstrated in the example LAMMPS inputs.
 """
 import ctypes
-from ctypes import c_int, c_double
+#from ctypes import c_int, c_double
 import logging
-from typing import Optional, Dict, Tuple, List
+from typing import List
 
 import numpy as np
 
@@ -21,7 +21,6 @@ from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
 # IMD related imports
 from narupa.imd.imd_force import calculate_imd_force
 from narupa.imd.imd_server import ImdServer
-from narupa.imd.imd_service import ImdService
 from narupa.imd.particle_interaction import ParticleInteraction
 
 # LAMMPS works with arbitrary masses, so we need to convert it to a nuclear number
@@ -128,11 +127,11 @@ class DummyLammps:
         :param _array_shape: Unused here, only relevant to lammps
         :return: matrix data_array that contains all the dummy data
         """
-        if array_type is "x":
+        if array_type == "x":
             data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(3 * self.n_atoms))
-        elif array_type is "f":
+        elif array_type == "f":
             data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(0))
-        elif array_type is "type":
+        elif array_type == "type":
             data_array = (ctypes.c_int * self.n_atoms)(*range(1, 1))
             # All atoms have the same type for DummyLammps testing
             for i in range(self.n_atoms):
@@ -149,17 +148,17 @@ class DummyLammps:
         """
 
     def extract_global(self, types: str, _number_type):
-        '''
+        """
         Generate dummy element list for testing
 
         replicates lammp_class.extract_global("ntypes", 0)
         :param types: LAMMPS global variable that is needed
         :param _number_type: unused
         :return:
-        '''
-        if types is "ntypes":
+        """
+        if types == "ntypes":
             dummy_element_list = 1
-        elif types is "hplanck":
+        elif types == "hplanck":
             dummy_element_list = 95.306976368
         else:
             logging.error('Unknown array type asked for in dummyLammps.extract_global')
@@ -167,19 +166,19 @@ class DummyLammps:
         return dummy_element_list
 
     def get_natoms(self):
-        '''
+        """
         Generate dummy element list for testing
-        '''
+        """
         return self.n_atoms
 
     def extract_atom(self, types: str, _number_type):
-        '''
-        `Generate dummy element list for testing
+        """
+        Generate dummy element list for testing
         :param types: string that indicates the info that should be passed
         :param _number_type: unused parameter to indicate integer float. etc
         :return: dummy_element_list
-        '''
-        if types is "mass":
+        """
+        if types == "mass":
             # initialise dummy type
             dummy_element_type = ctypes.c_double * 2
             # great array of dummy type
@@ -252,7 +251,6 @@ class LammpsHook:
 
         logging.info("Trajectory Port %s ", traj_port)
         logging.info("Interactive Port %s ", imd_port)
-        # TODO make it so that the simulation waits on connect as an option
 
         # Set some variables that do not change during the simulation
         self.n_atoms = None
@@ -403,7 +401,7 @@ class LammpsHook:
         # Check if we are in the first cycle of the MD to allocate static variables
         if self.n_atoms is None:
             self.n_atoms = lammps_class.get_natoms()
-            # Use planks constant to work out what units we are working in
+            # Use Plank's constant to work out what units we are working in
             self.units = lammps_class.extract_global("hplanck", 1)
             print("Plank units", type(self.units), self.units)
             self.units_type = LAMMPS_UNITS_CHECK.get(self.units, None)[0]
