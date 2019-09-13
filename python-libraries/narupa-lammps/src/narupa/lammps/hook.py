@@ -73,38 +73,49 @@ ELEMENT_INDEX_MASS = {
 
 LAMMPS_UNITS_CHECK = {
     # Lenard jones: Is unitless, everything is set to 1
-    1.0: ["lj", 1, 1],
+    0: ["lj", 1, 1],
     # Real:
     # Distance: 1 angstrom- > nm (10)
     # Force:    kj/mol/angstrom -> kcal/mol/nm (4.1840 *10) (Confirmed in MDanaysis)
-    95.306976368: ["real", 10, 41.840],
+    1: ["real", 10, 41.840],
     # Metal:
     # Distance: angstrom -> nm, (10)
     # Force: eV/angstrom -> kcal/mol/nm (96.485*10) (Confirmed in MDanalysis)
-    4.135667403e-3: ["metal", 10, 964.85],
+    2: ["metal", 10, 964.85],
     # SI:
     # Distance: meters ->nm (10^-9)
     # Force: Newtons q-> kcal/mol/nm (602214128999.9999)
-    6.62606896e-34: ["si", 10 ** -9, 602214128999.9999],
+    3: ["si", 10 ** -9, 602214128999.9999],
     # cgs:
     # Distance: centemters -> nm
     # Froce: dyne (1/100000 Newtons) -> kj/mol*nm
-    6.62606896e-27: ["cgs", 10 ** -7, 6022141.289999999],
+    4: ["cgs", 10 ** -7, 6022141.289999999],
     # Electron:
     # Distance: Bohr -> nm
     # Force: Hartree/Bohr (2625.50 / 0.0529117) ->  kj/mol*nm
-    0.1519829846: ["electron", 0.05529177, 49620.4053],
+    5: ["electron", 0.05529177, 49620.4053],
     # Mirco:
     # Distance: mircometers -> nm,
     # Force: pircogram-micrometer/microsecond^2 -> Newtons
     # (1/1000000000000 *((1/1000000)/(1/1000000)^2) ->  kj/mol*nm
-    6.62606896e-13: ["micro", 1000, 60221.41289999999],
+    6: ["micro", 1000, 60221.41289999999],
     # Nano:
     # Distance: nanometers,
     # Force: atoogram-nanometer/nanosecond^2  -> Newtons
     # (1/1e-12 *((1/1e-9)/(1/1e-9)^2) ->  kj/mol*nm
-    6.62606896e-4: ["nano", 1.0, 602214128.9999999]
+    7: ["nano", 1.0, 602214128.9999999]
 }
+# store plank values as a list so that we don't do float lookups in a dict.
+plank_values = [
+    1.0,
+    95.306976368,
+    4.135667403e-3,
+    6.62606896e-34,
+    6.62606896e-27,
+    0.1519829846,
+    6.62606896e-13,
+    6.62606896e-4
+]
 
 
 class DummyLammps:
@@ -365,13 +376,22 @@ class LammpsHook:
         return lammps_forces
 
     def return_array_to_lammps(self, matrix_type: str, scatter_array, lammp_class):
-        '''
+        """
         Routine to return arrays to lammps
         :param matrix_type: Label for the matrix (eg. X, F, V.)
         :param scatter_array: The array to be MPI scattered
         :param lammp_class: the LAMMPS object
-        '''
+        """
         lammp_class.scatter_atoms(matrix_type, 1, 3, scatter_array)
+
+    def find_unit_type(self):
+        """
+        Check the unit type collected from LAMMPS against the plank_values list and fid its index
+        :return: The replaced units from the list.
+        """
+        self.units = min(range(len(plank_values)), key=lambda i: abs(plank_values[i] - self.units))
+        logging.info("Key detected %s", self.units)
+        return self.units
 
     def lammps_hook(self, lmp=None):
         """
@@ -403,11 +423,13 @@ class LammpsHook:
             self.n_atoms = lammps_class.get_natoms()
             # Use Plank's constant to work out what units we are working in
             self.units = lammps_class.extract_global("hplanck", 1)
-            print("Plank units", type(self.units), self.units)
+            logging.info("Plank units %s ", self.units)
+
+            self.units = self.find_unit_type()
             self.units_type = LAMMPS_UNITS_CHECK.get(self.units, None)[0]
             self.distance_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[1]
             self.force_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[2]
-            print(self.units_type, self.force_factor, self.distance_factor)
+            logging.info("%s %s %s", self.units_type, self.force_factor, self.distance_factor)
 
         # Choose the matrix type that will be extracted
         positions = self.manipulate_lammps_array('x', lammps_class)
