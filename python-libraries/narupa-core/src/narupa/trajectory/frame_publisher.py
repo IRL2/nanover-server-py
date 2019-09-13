@@ -1,10 +1,9 @@
-from queue import Queue, Empty
+from queue import Queue
 from threading import Lock
 
 from narupa.core.request_queues import DictOfQueues, SingleItemQueue
+from narupa.core.timing import yield_interval
 from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameResponse, FrameData
-
-import time
 
 SENTINEL = None
 
@@ -54,22 +53,17 @@ class FramePublisher(TrajectoryServiceServicer):
                                               queue_type=SingleItemQueue)
 
     def _subscribe_frame_base(self, request, context, queue_type):
+        listen_for_cancellation = context.add_callback
         request_id = self._get_new_request_id()
         yield from self._yield_last_frame_if_any()
-
-        last_yield = 0
-        frame_interval = request.frame_interval
-
         with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
-            while context.is_active():
+            if not listen_for_cancellation(lambda: queue.put(SENTINEL)):
+                return
+            for dt in yield_interval(request.frame_interval):
                 item = queue.get(block=True)
                 if item is SENTINEL:
                     break
-                time_since_last_yield = time.monotonic() - last_yield
-                wait_duration = max(0, frame_interval - time_since_last_yield)
-                time.sleep(wait_duration)
                 yield item
-                last_yield = time.monotonic()
 
     def _get_new_request_id(self) -> int:
         """

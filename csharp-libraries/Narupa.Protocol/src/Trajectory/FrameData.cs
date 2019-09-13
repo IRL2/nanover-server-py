@@ -14,6 +14,7 @@ namespace Narupa.Protocol.Trajectory
         public const string ParticleElementArrayKey = "particle.element";
         public const string ParticleTypeArrayKey = "particle.type";
         public const string ParticlePositionArrayKey = "particle.position";
+        public const string ParticleCountValueKey = "particle.count";
 
         /// <summary>
         ///     Float array of particle positions. Nominally grouped in sets of three to form 3D vectors

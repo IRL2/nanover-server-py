@@ -3,7 +3,8 @@ from unittest.mock import Mock
 
 import grpc
 import pytest
-from narupa.imd.imd_client import ImdClient, delayed_generator
+from narupa.core.timing import delayed_generator
+from narupa.imd.imd_client import ImdClient
 from narupa.imd.imd_server import ImdServer
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractionEndReply
@@ -14,20 +15,14 @@ import concurrent.futures
 
 @pytest.fixture
 def imd_server():
-    server = ImdServer(address='localhost', port=0)
-    try:
+    with ImdServer(address='localhost', port=0) as server:
         yield server
-    finally:
-        server.close()
 
 
 @pytest.fixture
 def imd_server_client(imd_server):
-    client = ImdClient(address='localhost', port=imd_server.port)
-    try:
+    with ImdClient(address='localhost', port=imd_server.port) as client:
         yield imd_server, client
-    finally:
-        client.close()
 
 
 @pytest.fixture

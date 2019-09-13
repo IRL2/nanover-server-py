@@ -126,5 +126,5 @@ def test_frozen_multiview_subscribe_gives_last_values(change_multiview):
     """
     change_multiview.update({"hello": "test"})
     change_multiview.freeze()
-    for changes in change_multiview.subscribe_updates():
+    for changes in change_multiview.subscribe_changes():
         assert changes["hello"] == "test"

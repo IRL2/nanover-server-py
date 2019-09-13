@@ -100,6 +100,7 @@ def add_frame_data_topology_to_ase(frame_data: FrameData, atoms: Atoms):
     """
     for element in frame_data.particle_elements:
         atoms.append(Atom(symbol=element))
+    frame_data.particle_count = len(atoms)
 
 
 def add_frame_data_positions_to_ase(frame_data, ase_atoms):
@@ -151,7 +152,7 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
 
 def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
-    Adds simulaton state information to the frame,
+    Adds simulation state information to the frame,
     consisting of the potential energy and kinetic energy.
 
     :param frame_data: Frame data to add ASE state information to.

@@ -12,6 +12,12 @@ import grpc
 DEFAULT_SERVE_ADDRESS = '[::]'
 DEFAULT_CONNECT_ADDRESS = 'localhost'
 
+# We expect that reserving a large number of threads should not present a
+# performance issue. Each concurrent GRPC request requires a worker, and streams
+# occupy those workers indefinitely, so several workers must be available for
+# each expected client.
+DEFAULT_MAX_WORKERS = 128
+
 
 class GrpcServer:
     """
@@ -22,8 +28,15 @@ class GrpcServer:
     :param port: The port on which to run the server.
     """
 
-    def __init__(self, *, address: str, port: int):
-        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    def __init__(
+            self,
+            *,
+            address: str,
+            port: int,
+            max_workers=DEFAULT_MAX_WORKERS,
+    ):
+        executor = futures.ThreadPoolExecutor(max_workers=max_workers)
+        self.server = grpc.server(executor)
         self.setup_services()
         self._port = self.server.add_insecure_port(address=f"{address}:{port}")
 
