@@ -2,6 +2,10 @@ package:
   name: narupa-server
   version: 0.1.0
 
+build:
+  noarch: python
+  number: 0
+
 requirements:
   run:
     - narupa-core
