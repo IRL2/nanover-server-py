@@ -1,5 +1,8 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+"""
+ASE calculator for use with OpenMM.
+"""
 from typing import Optional
 
 import ase
@@ -16,23 +19,33 @@ from narupa.ase.converter import KJMOL_TO_EV
 
 class OpenMMCalculator(Calculator):
     """
-    Simple implementation of a ASE calculator for OpenMM. Initialises an OpenMM context with the given
-    serialised OpenMM simulation file.
+    Simple implementation of a ASE calculator for OpenMM. Initialises an OpenMM context with
+    the given OpenMM simulation.
 
     Parameters:
-        input_xml :  An OpenMM simulation, serialised with :module: serializer.
+        simulation :  An OpenMM simulation.
     """
     simulation: Simulation
     implemented_properties = ['energy', 'forces']
 
-    def __init__(self, input_xml, atoms: Optional[Atoms] = None, **kwargs):
-
+    def __init__(self, simulation, atoms: Optional[Atoms] = None, **kwargs):
         super().__init__(**kwargs)
-        with open(input_xml) as infile:
-            self.simulation = serializer.deserialize_simulation(infile.read())
-
+        self.simulation = simulation
         self.context = self.simulation.context
         self.atoms = atoms
+
+    @classmethod
+    def from_xml(cls, input_xml, atoms: Optional[Atoms] = None, **kwargs):
+        """
+        Initialises an OpenMMCalculator from a simulation serialised to XML with :module serializer.
+        :param input_xml:
+        :param atoms:
+        :param kwargs:
+        :return:
+        """
+        with open(input_xml) as infile:
+            simulation = serializer.deserialize_simulation(infile.read())
+        return OpenMMCalculator(simulation, atoms, **kwargs)
 
     def calculate(self, atoms: Optional[Atoms] = None,
                   properties=('energy', 'forces'),
@@ -82,7 +95,8 @@ class OpenMMCalculator(Calculator):
 
         return atoms
 
-    def get_topology(self):
+    @property
+    def topology(self):
         return self.simulation.topology
 
     @staticmethod

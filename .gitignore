@@ -23,3 +23,6 @@ htmlcov
 
 .hypothesis/
 *.DotSettings.user
+
+python-libraries/narupa-ase/examples/\.ipynb_checkpoints/
+.mypy_cache/

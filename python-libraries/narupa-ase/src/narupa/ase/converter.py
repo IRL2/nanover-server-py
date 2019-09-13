@@ -1,11 +1,15 @@
+"""Narupa ASE conversion tools.
+
+This module methods for converting between ASE simulations and Narupa frames.
+
+"""
 from typing import Iterable, Optional
 
-from ase import Atoms
+from ase import Atoms, Atom
 import itertools
 import numpy as np
 
 from narupa.trajectory import FrameData
-
 
 ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM
@@ -43,9 +47,11 @@ ATOM_RADIUS_ANG = {
     "As": 1.85,
 }
 
-def ase_to_frame_data(ase_atoms: Atoms, positions=True, topology=True, state=True) -> FrameData:
+
+def ase_to_frame_data(ase_atoms: Atoms, positions: bool = True, topology: bool = True, state: bool = True) -> FrameData:
     """
-    Constructs a Narupa frame from the state if an ASE simulation.
+    Constructs a Narupa frame from the state of the atoms in an ASE simulation.
+
     :param ase_atoms: The ASE atoms object representing the state of the simulation to send.
     :param positions: Whether to add positions to the frame.
     :param topology: Whether to generate the current state of the topology and add it to the frame.
@@ -61,22 +67,72 @@ def ase_to_frame_data(ase_atoms: Atoms, positions=True, topology=True, state=Tru
         add_ase_state_to_frame_data(data, ase_atoms)
     return data
 
-def add_ase_positions_to_frame_data(data: FrameData, positions: np.array ):
+
+def frame_data_to_ase(frame_data: FrameData, positions: bool = True, topology: bool = True,
+                      ase_atoms: Optional[Atoms] = None) -> Atoms:
+    """
+    Constructs an ASE atoms object from a Narupa frame.
+
+    :param frame_data: The Narupa frame.
+    :param positions: Whether to add positions to the ASE atoms.
+    :param topology: Whether to add topology information within the frame data to ASE.
+    :param ase_atoms:
+    :return:
+    """
+    if ase_atoms is None:
+        ase_atoms = Atoms()
+    if topology:
+        ase_atoms = Atoms()
+        add_frame_data_topology_to_ase(frame_data, ase_atoms)
+    if positions:
+        add_frame_data_positions_to_ase(frame_data, ase_atoms)
+    return ase_atoms
+
+
+def add_frame_data_topology_to_ase(frame_data: FrameData, atoms: Atoms):
+    """
+    Adds frame data topology information to ASE atoms.
+    Since ASE atoms do not have a concept of bonds, this just adds
+    particle elements.
+
+    :param frame_data: Frame data from which to extract topology.
+    :param atoms: ASE atoms to add element data to.
+    """
+    for element in frame_data.particle_elements:
+        atoms.append(Atom(symbol=element))
+    frame_data.particle_count = len(atoms)
+
+
+def add_frame_data_positions_to_ase(frame_data, ase_atoms):
+    """
+    Adds frame data particle positions to ASE atoms, converting to angstroms.
+
+    :param frame_data: Frame data from which to extract positions.
+    :param ase_atoms: ASE atoms to add particle positions to.
+    """
+    ase_atoms.set_positions(np.array(frame_data.particle_positions) * NM_TO_ANG)
+
+
+def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
     """
     Adds ASE positions to the frame data, converting to nanometers.
+
     :param data:
     :param positions:
     """
     data.particle_positions = positions * ANG_TO_NM
 
-def add_ase_topology_to_frame_data(data: FrameData, ase_atoms: Atoms):
+
+def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
     Generates a topology for the current state of the atoms and adds it to the frame.
-    :param data:
-    :param ase_atoms:
+    Since ASE atoms have no concept of bonds, they are generated using distance criteria.
+
+    :param frame_data: Frame data to add topology information to.
+    :param ase_atoms: ASE atoms to extract topology information from.
     """
-    data.arrays['residue.id'] = ["ASE"]
-    data.arrays['residue.chain'] = [0]
+    frame_data.arrays['residue.id'] = ["ASE"]
+    frame_data.arrays['residue.chain'] = [0]
 
     atom_names = []
     elements = []
@@ -86,38 +142,43 @@ def add_ase_topology_to_frame_data(data: FrameData, ase_atoms: Atoms):
         elements.append(atom.number)
         residue_ids.append(0)
 
-    data.arrays['atom.id'] = atom_names
-    data.particle_elements = elements
-    data.arrays['atom.residue'] = residue_ids
+    frame_data.arrays['atom.id'] = atom_names
+    frame_data.particle_elements = elements
+    frame_data.arrays['atom.residue'] = residue_ids
 
     bonds = generate_bonds(ase_atoms)
-    data.bonds = bonds
+    frame_data.bonds = bonds
 
-def add_ase_state_to_frame_data(data: FrameData, ase_atoms: Atoms):
+
+def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
-    Adds simulaton state information to the frame.
-    :param data:
-    :param ase_atoms:
-    :return:
+    Adds simulation state information to the frame,
+    consisting of the potential energy and kinetic energy.
+
+    :param frame_data: Frame data to add ASE state information to.
+    :param ase_atoms: The ASE atoms from which to extract state information.
     """
     # get the energy directly, without performing a recalculation.
     energy = ase_atoms.get_calculator().get_property('energy', allow_calculation=False)
     if energy is not None:
-        data.values['energy.potential'] = energy
-    data.values['energy.kinetic'] = ase_atoms.get_kinetic_energy()
+        frame_data.values['energy.potential'] = energy
+    frame_data.values['energy.kinetic'] = ase_atoms.get_kinetic_energy()
 
-def get_radius_of_element(symbol):
+
+def get_radius_of_element(symbol: str):
     """
-    Gets the radius of an atom (Angstrom)
-    :param symbol:
-    :return:
+    Gets the radius of an atom in angstroms.
+
+    :param symbol: The chemical symbol representing the element.
+    :return: The VDW radius of the atom in angstroms.
     """
     return ATOM_RADIUS_ANG[symbol]
 
 
-def bond_threshold(radii: Iterable):
+def _bond_threshold(radii: Iterable):
     """
     Returns the distance threshold for a bond between a given pair of radii.
+
     :param radii: Pair or radii.
     :return: Distance threshold indicating the distance at which a bond is formed.
     """
@@ -125,10 +186,19 @@ def bond_threshold(radii: Iterable):
 
 
 def generate_bonds(atoms: Atoms):
+    """
+    Generates bonds for the given configuration of ASE atoms using a distance criterion.
+
+    A bond is placed between two atoms if the distance between them is less than 0.6 times
+    the VDW radii of the atoms.
+
+    :param atoms: ASE atoms to generate bonds for.
+    :return: A list of pairs of atom indexes representing bonds.
+    """
     bonds = []
     for pair in itertools.combinations(atoms, 2):
         distance = np.linalg.norm(pair[0].position - pair[1].position)
         radii = [get_radius_of_element(atom.symbol) for atom in pair]
-        if distance < bond_threshold(radii):
+        if distance < _bond_threshold(radii):
             bonds.append([atom.index for atom in pair])
     return bonds

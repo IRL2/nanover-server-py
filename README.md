@@ -14,13 +14,13 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-### Setup narupa-protocol on Linux
+### Setup narupa-protocol on Mac and Linux
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Install dotnet
 * Clone the narupa-protocol repository
 * In a terminal, in the repository root:
-    * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev python>3.6`
+    * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev "python>3.6"`
     * Activate the conda environment: `conda activate narupa-dev`
     * Install the required conda package: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
     * Compile the protocol and install the Narupa libraries in your conda environment: `./compile.sh`. If you plan on
@@ -32,7 +32,7 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
 * Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
 * Clone the narupa-protocol repository
 * In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev python>3.6`
+    * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev "python>3.6"`
     * Activate the conda environment: `conda activate narupa-dev`
     * Install the required conda packages: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
     * Compile the protocol and install the Narupa libraries in your conda environment: `./win_compile.ps1`. If you plan on modifying the python packages, run `./win_compile.ps1 -edit` instead.
@@ -48,15 +48,29 @@ Running the tests is a crucial part of keeping the code base functional. To run 
 
     python -m pytest python-libraries
 
-## Running Example Servers
+## Running the examples
+
+### ASE IMD Simulations 
+
+`narupa.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the `narupa-protocol` directory:
+    
+    # On MacOS and Linux
+    narupa-omm-ase python-libraries/narupa-ase/examples/nanotube.xml 
+    # On Windows
+    narupa-omm-ase python-libraries\narupa-ase\examples\nanotube.xml 
+
+#### Jupyter Notebooks 
+
+The `python-libraries/narupa-ase/examples` examples folder also contains several
+Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
+The [Narupa ASE documentation](python-libraries/narupa-ase/README.md) provides more details on setting up ASE simulations.
+
+### MD Analysis Trajectories
 
 `narupa.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
-trajectory. To serve the frames on port 54321, run
+trajectory. To serve the frames on port 54321, from the `narupa-protocol` directory, run
 
+    # On MacOS and Linux
+    python ./python-libraries/narupa-mdanalysis/examples/example.py
+    # On Windows
     python .\python-libraries\narupa-mdanalysis\examples\example.py
-
-`narupa.ase` provides a server that runs a demo ASE simulation using the OpenMM
-forcefield. An example usage is:
-
-    python python-libraries/narupa-ase/examples/imd_openmm.py python-libraries/narupa-ase/examples/nanotube.xml 
-
