@@ -40,7 +40,7 @@ class GrpcServer:
             ('grpc.so_reuseport', 0),
         )
         executor = futures.ThreadPoolExecutor(max_workers=max_workers)
-        self.server = grpc.server(executor, grpc_options)
+        self.server = grpc.server(executor, options=grpc_options)
         self.setup_services()
         self._port = self.server.add_insecure_port(address=f"{address}:{port}")
 
