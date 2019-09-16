@@ -6,7 +6,7 @@ source:
   path: ../
 
 build:
-  noarch: python
+  noarch: generic
   number: 0
   entry_points:
     - narupa-omm-server = narupa.openmm.cli:main
@@ -22,7 +22,6 @@ requirements:
     - narupa-core
     - numpy
     - openmm
-    - setuptools
 
 about:
   home: narupa.readthedocs.io

@@ -16,6 +16,7 @@ requirements:
 
   run:
     - python
+    - attrs
     - narupa-core
     - narupa-openmm
     - numpy
