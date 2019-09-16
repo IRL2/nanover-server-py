@@ -22,6 +22,7 @@ requirements:
     - narupa-core
     - numpy
     - openmm
+    - setuptools
 
 about:
   home: narupa.readthedocs.io
