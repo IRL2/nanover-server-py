@@ -23,7 +23,7 @@ namespace Narupa.Protocol.Test.Imd
             TestInteraction()
         {
             yield return new TestCaseData(new ParticleInteraction("2", "1", "harmonic",
-                1000f, false));
+                1000f, false, true));
         }
 
         private static IEnumerable<TestCaseData>
@@ -53,6 +53,13 @@ namespace Narupa.Protocol.Test.Imd
             Assert.AreEqual(true, interaction.MassWeighted);
         }
 
+        [Test]
+        [TestCaseSource(nameof(DefaultInteraction))]
+        public void TestDefaultResetVels(ParticleInteraction interaction)
+        {
+            Assert.AreEqual(false, interaction.ResetVelocities);
+        }
+        
         [Test]
         [TestCaseSource(nameof(TestInteraction))]
         public void TestConstructor_PlayerId(ParticleInteraction testInteraction)
@@ -88,6 +95,12 @@ namespace Narupa.Protocol.Test.Imd
             Assert.AreEqual(false, testInteraction.MassWeighted);
         }
 
+        [Test]
+        [TestCaseSource(nameof(TestInteraction))]
+        public void TestConstructor_ResetVelocities(ParticleInteraction testInteraction)
+        {
+            Assert.AreEqual(true, testInteraction.ResetVelocities);
+        }
 
         [Test]
         [TestCaseSource(nameof(DefaultInteraction))]
@@ -122,6 +135,17 @@ namespace Narupa.Protocol.Test.Imd
 
             Assert.AreEqual(massWeighted, interaction.MassWeighted);
             Assert.AreEqual(massWeighted, interaction.Properties.Fields[ParticleInteraction.MassWeightedKey].BoolValue);
+        }
+        
+        [Test]
+        [TestCaseSource(nameof(DefaultInteraction))]
+        public void TestSetResetVels(ParticleInteraction interaction)
+        {
+            var value = true;
+            interaction.ResetVelocities = value;
+
+            Assert.AreEqual(value, interaction.ResetVelocities);
+            Assert.AreEqual(value, interaction.Properties.Fields[ParticleInteraction.ResetVelocitiesKey].BoolValue);
         }
     }
 }

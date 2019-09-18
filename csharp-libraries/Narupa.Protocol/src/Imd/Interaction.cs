@@ -23,6 +23,12 @@ namespace Narupa.Protocol.Imd
         public const string MassWeightedKey = "mass_weighted";
 
         /// <summary>
+        /// Field name in the underlying properties structure that corresponds to whether or not to
+        /// reset velocities.
+        /// </summary>
+        public const string ResetVelocitiesKey = "reset_velocities";
+
+        /// <summary>
         ///     Constructor for an interactive molecular dynamics interaction that provides shortcuts
         ///     for setting commonly used parameters.
         /// </summary>
@@ -31,8 +37,13 @@ namespace Narupa.Protocol.Imd
         /// <param name="interactionType">The type of interaction to apply.</param>
         /// <param name="scale">The scale to be applied.</param>
         /// <param name="massWeighted">Whether mass weighting should be used.</param>
-        public ParticleInteraction(string playerId, string interactionId = "0", string interactionType = "gaussian",
-            float scale = 1.0f, bool massWeighted = true)
+        /// <param name="resetVelocities">Whether to reset velocities after interaction.</param>
+        public ParticleInteraction(string playerId, 
+            string interactionId = "0", 
+            string interactionType = "gaussian",
+            float scale = 1.0f, 
+            bool massWeighted = true,
+            bool resetVelocities = false)
         {
             Properties = new Struct();
             PlayerId = playerId;
@@ -40,6 +51,7 @@ namespace Narupa.Protocol.Imd
             Type = interactionType;
             Scale = scale;
             MassWeighted = massWeighted;
+            ResetVelocities = resetVelocities;
         }
 
         /// <summary>
@@ -97,6 +109,23 @@ namespace Narupa.Protocol.Imd
             {
                 EnsurePropertiesExists();
                 Properties.SetBoolValue(MassWeightedKey, value);
+            }
+        }
+        
+        /// <summary>
+        ///     Whether the interaction should reset the velocities of the selected atoms after completion.
+        /// </summary>
+        public bool ResetVelocities
+        {
+            get
+            {
+                EnsurePropertiesExists();
+                return Properties.GetBoolValue(ResetVelocitiesKey) ?? false;
+            }
+            set
+            {
+                EnsurePropertiesExists();
+                Properties.SetBoolValue(ResetVelocitiesKey, value);
             }
         }
         
