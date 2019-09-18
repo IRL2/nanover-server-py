@@ -138,12 +138,13 @@ class DummyLammps:
         :param _array_shape: Unused here, only relevant to lammps
         :return: matrix data_array that contains all the dummy data
         """
+        empty_list = []
         if array_type == "x":
             data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(3 * self.n_atoms))
         elif array_type == "f":
-            data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(0))
+            data_array = (ctypes.c_double * (3 * self.n_atoms))(*empty_list)
         elif array_type == "type":
-            data_array = (ctypes.c_int * self.n_atoms)(*range(1, 1))
+            data_array = (ctypes.c_int * self.n_atoms)(*empty_list)
             # All atoms have the same type for DummyLammps testing
             for i in range(self.n_atoms):
                 data_array[i] = 1
