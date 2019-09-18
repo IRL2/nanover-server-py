@@ -62,13 +62,12 @@ def ase_to_frame_data(
     :param positions: Whether to add positions to the frame.
     :param topology: Whether to generate the current state of the topology and add it to the frame.
     :param state: Whether to add additional state information such as energies.
-    :param box_vectors: Whether to add the box vectors to the frame data. The
-        box is omitted if the system is not periodic.
+    :param box_vectors: Whether to add the box vectors to the frame data.
     :return: Narupa frame.
     """
     data = FrameData()
     if positions:
-        add_ase_positions_to_frame_data(data, ase_atoms.get_positions(wrap=True))
+        add_ase_positions_to_frame_data(data, ase_atoms.get_positions(wrap=False))
     if topology:
         add_ase_topology_to_frame_data(data, ase_atoms)
     if state:
