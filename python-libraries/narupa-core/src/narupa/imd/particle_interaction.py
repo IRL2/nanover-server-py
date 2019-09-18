@@ -37,7 +37,7 @@ class ParticleInteraction:
     TYPE_KEY = "type"
     SCALE_KEY = "scale"
     MASS_WEIGHTED_KEY = "mass_weighted"
-
+    RESET_VELOCITIES_KEY = "reset_velocities"
 
     def __init__(self, player_id: str = "1",
                  interaction_id="0",
@@ -45,17 +45,23 @@ class ParticleInteraction:
                  particles=(),
                  interaction_type='gaussian',
                  scale=1,
-                 mass_weighted=True):
+                 mass_weighted=True,
+                 reset_velocities=False):
         self._interaction = imd_pb2.ParticleInteraction(player_id=player_id, interaction_id=interaction_id)
         self.position = position
         self._properties = self._interaction.properties
         self.scale = scale
         self.type = interaction_type
         self.mass_weighted = mass_weighted
+        self.reset_velocities = reset_velocities
         self.particles = particles
 
     @classmethod
-    def from_proto(cls, interaction_proto, default_interaction_type='gaussian', default_scale=1, default_mass_weighted=True):
+    def from_proto(cls, interaction_proto,
+                   default_interaction_type='gaussian',
+                   default_scale=1,
+                   default_mass_weighted=True,
+                   default_reset_velocities=False):
         """
         Initialises an interaction from the protobuf representation.
         :param interaction_proto: The protobuf representation of the interaction.
@@ -65,8 +71,9 @@ class ParticleInteraction:
         interaction._interaction = interaction_proto
         interaction._properties = interaction_proto.properties
         set_default_property(interaction.properties, cls.TYPE_KEY, default_interaction_type)
-        set_default_property(interaction.properties, cls.MASS_WEIGHTED_KEY, default_scale)
-        set_default_property(interaction.properties, cls.SCALE_KEY, default_mass_weighted)
+        set_default_property(interaction.properties, cls.MASS_WEIGHTED_KEY, default_mass_weighted)
+        set_default_property(interaction.properties, cls.SCALE_KEY, default_scale)
+        set_default_property(interaction.properties, cls.RESET_VELOCITIES_KEY, default_reset_velocities)
 
         return interaction
 
@@ -164,7 +171,7 @@ class ParticleInteraction:
     def mass_weighted(self) -> bool:
         """
         Indicates whether this interaction should be mass weighted, default True.
-        :return:
+        :return: Whether to mass weight this interaction.
         """
         try:
             result = self._properties['mass_weighted']
@@ -178,10 +185,31 @@ class ParticleInteraction:
         """
         Sets this interaction to be mass weighted or not.
         :param value:
-        :return:
         """
         self._properties['mass_weighted'] = value
 
+    @property
+    def reset_velocities(self) -> bool:
+        """
+        Indicates whether this interaction should be reset the velocities of the atoms it interacts
+        with after interaction, defaulting to False.
+        :return: Whether to reset velocities after this interaction.
+        """
+        #TODO should we update these to set the property if it does not exist, for serialisation?
+        try:
+            result = self._properties[self.RESET_VELOCITIES_KEY]
+        except ValueError:
+            return False
+        else:
+            return result
+
+    @reset_velocities.setter
+    def reset_velocities(self, value):
+        """
+        Sets this interaction to reset the velocities of the selected atoms or not after the interaction is complete.
+        :param value: Whether to reset velocities after this interaction.
+        """
+        self._properties[self.RESET_VELOCITIES_KEY] = value
 
     @property
     def properties(self) -> Struct:

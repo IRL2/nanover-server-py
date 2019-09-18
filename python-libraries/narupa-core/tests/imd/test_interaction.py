@@ -35,7 +35,7 @@ def test_from_proto():
     assert interaction.interaction_id == "0"
     assert interaction.type == "gaussian"
     assert interaction.scale == 1
-    assert interaction.mass_weighted == True
+    assert interaction.mass_weighted is True
 
 
 def test_set_invalid_position(interaction):
@@ -91,18 +91,23 @@ def test_set_scale(interaction):
 
 
 def test_get_mass(interaction):
-    assert interaction.mass_weighted == True
+    assert interaction.mass_weighted is True
 
 
 def test_get_mass_unset():
     proto = imd_pb2.ParticleInteraction()
     interaction = ParticleInteraction.from_proto(proto)
-    assert interaction.mass_weighted == True
+    assert interaction.mass_weighted is True
+
+
+def test_set_reset_vels(interaction):
+    interaction.reset_velocities = True
+    assert interaction.properties['reset_velocities'] is True
 
 
 def test_set_mass(interaction):
     interaction.mass_weighted = False
-    assert interaction.properties['mass_weighted'] == False
+    assert interaction.properties['mass_weighted'] is False
 
 
 def test_get_proto(interaction):

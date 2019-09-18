@@ -89,7 +89,7 @@ def test_update_interaction(client_server, interaction):
     client.update_interaction(id, interaction)
     time.sleep(0.5)
     assert len(imd_server.service.active_interactions) == 1
-    assert np.allclose(list(imd_server.service.active_interactions)[0].position, (2, 2, 2))
+    assert np.allclose(list(imd_server.service.active_interactions.values())[0].position, (2, 2, 2))
 
 
 def test_no_imd(frame_server, interaction):
