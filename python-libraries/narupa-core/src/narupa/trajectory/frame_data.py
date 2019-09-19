@@ -135,6 +135,9 @@ class FrameData(metaclass=_FrameDataMeta):
     def __eq__(self, other):
         return self.raw == other.raw
 
+    def __repr__(self):
+        return repr(self.raw)
+
     @property
     def raw(self):
         """
@@ -170,6 +173,24 @@ class FrameData(metaclass=_FrameDataMeta):
         :param value: The array to store.
         """
         self.raw.arrays[key].string_values.values[:] = value
+
+    def value_keys(self):
+        return self.values.keys()
+
+    def array_keys(self):
+        return self.arrays.keys()
+
+    @property
+    def shortcuts(self):
+        return set(shortcut.name for shortcut in self._shortcuts)
+
+    @property
+    def used_shortcuts(self):
+        return set(
+            shortcut.name
+            for shortcut in self._shortcuts
+            if shortcut.key in self
+        )
 
 
 class RecordView:
@@ -217,6 +238,9 @@ class RecordView:
         The method needs to be adapted to the type of field that is manipulated.
         """
         raise NotImplementedError('Subclasses must overwrite the _convert_to_python method.')
+
+    def keys(self):
+        return set(self._raw_record.keys())
 
 
 class ValuesView(RecordView):

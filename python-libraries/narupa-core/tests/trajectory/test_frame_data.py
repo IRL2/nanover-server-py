@@ -551,3 +551,27 @@ def test_set_single_value_shortcut():
     frame = DummyFrameData()
     frame.single = 'foobar'
     assert frame.raw.values['dummy.single'].string_value == 'foobar'
+
+def test_value_keys(simple_frame):
+    expected = {'sample.number', 'sample.string', 'sample.true', 'sample.false'}
+    obtained = simple_frame.value_keys()
+    assert expected == obtained
+
+
+def test_array_keys(simple_frame):
+    expected = {'array.index', 'array.float', 'array.string',
+                frame_data.POSITIONS, frame_data.ELEMENTS, frame_data.BONDS}
+    obtained = simple_frame.array_keys()
+    assert expected == obtained
+
+
+def test_listing_shortcut():
+    frame = DummyFrameData()
+    expected = {'single', 'untyped'}
+    assert frame.shortcuts == expected
+
+
+def test_listing_used_shortcut():
+    frame = DummyFrameData()
+    frame.single = 'something'
+    assert frame.used_shortcuts == {'single', }
