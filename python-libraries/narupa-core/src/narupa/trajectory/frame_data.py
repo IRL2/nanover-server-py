@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple, Set
 import itertools
 import numbers
 import numpy as np
@@ -103,10 +103,17 @@ class FrameData(metaclass=_FrameDataMeta):
     :attr:`arrays` one. Both attribute behave like a dictionary. Trying to
     access a key that does not exist raises a :exc:`KeyError`.
 
+    The set of keys with data in the frame is listed by :meth:`value_keys`
+    and :meth:`array_keys`.
+
     The most common frame properties are accessible as attribute in a
     normalized format. Shortcuts are not guaranteed to contain data. Trying to
     access a shortcut that does not contain data raises a
     :exc:`MissingDataError` that can also be caught as a :exc:`KeyError`.
+
+    The available shortcuts can be listed using the :attr:`shortcuts` property.
+    The set of shortcuts that contain data is available from the
+    :attr:`used_shortcuts`.
     """
     _shortcuts = (
         _Shortcut(name='particle_positions', key=POSITIONS, record_type='arrays',
@@ -174,18 +181,18 @@ class FrameData(metaclass=_FrameDataMeta):
         """
         self.raw.arrays[key].string_values.values[:] = value
 
-    def value_keys(self):
+    def value_keys(self) -> Set:
         return self.values.keys()
 
-    def array_keys(self):
+    def array_keys(self) -> Set:
         return self.arrays.keys()
 
     @property
-    def shortcuts(self):
+    def shortcuts(self) -> Set:
         return set(shortcut.name for shortcut in self._shortcuts)
 
     @property
-    def used_shortcuts(self):
+    def used_shortcuts(self) -> Set:
         return set(
             shortcut.name
             for shortcut in self._shortcuts
@@ -239,7 +246,7 @@ class RecordView:
         """
         raise NotImplementedError('Subclasses must overwrite the _convert_to_python method.')
 
-    def keys(self):
+    def keys(self) -> Set:
         return set(self._raw_record.keys())
 
 
