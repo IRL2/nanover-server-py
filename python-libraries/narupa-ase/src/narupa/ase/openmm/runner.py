@@ -13,6 +13,7 @@ from attr import dataclass
 from narupa.ase import ase_to_frame_data
 from narupa.ase.converter import add_ase_positions_to_frame_data
 from narupa.ase.imd_server import ASEImdServer
+from narupa.ase.wall_calculator import VelocityWallCalculator
 from narupa.ase.openmm.calculator import OpenMMCalculator
 from narupa.openmm import openmm_to_frame_data, serializer
 from narupa.core import get_requested_port_or_default
@@ -145,13 +146,14 @@ class OpenMMIMDRunner:
     def _initialise_calculator(self, simulation):
         self._openmm_calculator = OpenMMCalculator(simulation)
         self.atoms = self._openmm_calculator.generate_atoms()
+        self._openmm_calculator = VelocityWallCalculator(self._openmm_calculator, self.atoms)
         self.atoms.set_calculator(self._openmm_calculator)
 
     def _initialise_dynamics(self):
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, 300 * units.kB)
 
-        self._dynamics = NVTBerendsen(self.atoms, self.time_step * units.fs, 300, self.time_step * units.fs)
+        self._dynamics = NVTBerendsen(self.atoms, self.time_step * units.fs, 300, self.time_step * units.fs, fixcm=False)
 
         if self.verbose:
             self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,
