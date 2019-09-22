@@ -135,8 +135,7 @@ def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     """
     Adds the periodic box vectors to the frame.
     """
-    box_vectors = ase_atoms.cell.copy()
-    box_vectors[np.diag_indices_from(box_vectors)] *= ANG_TO_NM
+    box_vectors = ase_atoms.cell.copy() * ANG_TO_NM
     data.box_vectors = box_vectors
 
 
