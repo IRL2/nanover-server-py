@@ -27,9 +27,6 @@ class VelocityWallCalculator(Calculator):
 
     def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
                   system_changes=all_changes):
-        energy = 0.0
-        forces = np.zeros((len(atoms), 3))
-
         if atoms is None:
             atoms = self.atoms
         if atoms is None:
@@ -38,14 +35,14 @@ class VelocityWallCalculator(Calculator):
                 'and no ASE atoms supplied with initialisation.'
             )
 
-
+        energy = 0.0
+        forces = np.zeros((len(atoms), 3))
         if self._calculator is not None:
             self._calculator.calculate(atoms, properties, system_changes)
             if 'energy' in properties:
                 energy = self._calculator.results['energy']
             if 'forces' in properties:
                 forces = self._calculator.results['forces']
-        
         if 'energy' in properties:
             self.results['energy'] = energy
         if 'forces' in properties:
