@@ -181,9 +181,11 @@ class FrameData(metaclass=_FrameDataMeta):
         """
         self.raw.arrays[key].string_values.values[:] = value
 
+    @property
     def value_keys(self) -> Set:
         return self.values.keys()
 
+    @property
     def array_keys(self) -> Set:
         return self.arrays.keys()
 
