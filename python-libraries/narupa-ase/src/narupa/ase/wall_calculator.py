@@ -24,6 +24,12 @@ class VelocityWallCalculator(Calculator):
         super().__init__(**kwargs)
         self._calculator = calculator
         self.atoms = atoms
+        self.implemented_properties = ('energy', 'forces')
+        if self._calculator is not None:
+            self.implemented_properties = tuple(
+                set(self.implemented_properties)
+                | set(self._calculator.implemented_properties)
+            )
 
     def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
                   system_changes=all_changes):
@@ -37,16 +43,19 @@ class VelocityWallCalculator(Calculator):
 
         energy = 0.0
         forces = np.zeros((len(atoms), 3))
-        if self._calculator is not None:
-            self._calculator.calculate(atoms, properties, system_changes)
-            if 'energy' in properties:
-                energy = self._calculator.results['energy']
-            if 'forces' in properties:
-                forces = self._calculator.results['forces']
         if 'energy' in properties:
             self.results['energy'] = energy
         if 'forces' in properties:
             self.results['forces'] = forces
+        if self._calculator is not None:
+            self._calculator.calculate(atoms, properties, system_changes)
+            if 'energy' in properties:
+                self.results['energy'] = self._calculator.results['energy']
+            if 'forces' in properties:
+                self.results['forces'] = self._calculator.results['forces']
+            for key, value in self._calculator.results.items():
+                if key not in ('energy', 'forces'):
+                    self.results[key] = value
 
         self._bounce_atoms(atoms)
 
