@@ -32,6 +32,17 @@ def test_length_lammps_atoms(simple_atom_lammps_frame, lammps_hook):
     assert len(frame_data.raw.arrays[POSITIONS].float_values.values) == 9
 
 
+def test_get_atoms(lammps_hook):
+    """
+    Checks that the atoms are correctly set withing Dummy_Lammps
+    """
+    # Instantiate classes
+    dummy = DummyLammps(3)
+    # Check that get_atoms works
+    dummy.n_atoms_in_dummy = 3
+    assert dummy.get_natoms() == 3
+
+
 def test_elements_lammps_atoms(lammps_hook):
     """
     Checks that the dimensionality of the position array is correctly returned for dummy LAMMPS
@@ -40,8 +51,6 @@ def test_elements_lammps_atoms(lammps_hook):
     dummy = DummyLammps(3)
     # Check that get_atoms works
     dummy.n_atoms_in_dummy = 3
-    assert dummy.get_natoms() == 3
-
     frame_data = FrameData()
     atom_type, masses = lammps_hook.gather_lammps_particle_types(dummy)
     frame_data.arrays[ELEMENTS] = atom_type
