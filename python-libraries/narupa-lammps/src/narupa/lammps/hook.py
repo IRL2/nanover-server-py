@@ -23,6 +23,7 @@ from narupa.imd.particle_interaction import ParticleInteraction
 
 # LAMMPS works with arbitrary masses, so we need to convert it to a nuclear number
 # This list is a best guess for atom types, but won't work for isotopes for now.
+# see issue 82 https://gitlab.com/intangiblerealities/narupa-protocol/issues/82
 ELEMENT_INDEX_MASS = {
     1: 1,
     3: 1,
