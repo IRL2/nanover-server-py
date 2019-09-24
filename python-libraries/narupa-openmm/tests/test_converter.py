@@ -27,7 +27,7 @@ def simple_openmm_topology():
 def test_topology_bonds(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert data.raw.arrays[frame_data.BONDS].index_values.values == [0, 1, 1, 2]
+    assert data.raw.arrays[frame_data.BOND_PAIRS].index_values.values == [0, 1, 1, 2]
 
 
 def test_topology_atoms(simple_openmm_topology):

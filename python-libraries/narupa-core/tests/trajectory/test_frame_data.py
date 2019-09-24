@@ -119,7 +119,7 @@ def simple_frame():
         7.6, 8.7, 9.8,
         0.9, 1.1, 2.2,
     ))
-    raw.arrays[frame_data.BONDS].index_values.values.extend((
+    raw.arrays[frame_data.BOND_PAIRS].index_values.values.extend((
         0, 1,
         1, 2,
         2, 3,
@@ -361,7 +361,7 @@ def test_positions_shortcuts_set(value, expected):
 
 
 @pytest.mark.parametrize('key, raw_key, value, expected', (
-    ('bonds', frame_data.BONDS, [[3, 4], [2, 3]], [3, 4, 2, 3]),
+    ('bonds', frame_data.BOND_PAIRS, [[3, 4], [2, 3]], [3, 4, 2, 3]),
     ('particle_elements', frame_data.PARTICLE_ELEMENTS, [2, 3, 5], [2, 3, 5]),
 ))
 def test_exact_shortcuts_set(key, raw_key, value, expected):

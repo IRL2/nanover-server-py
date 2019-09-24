@@ -4,7 +4,7 @@ import numbers
 import numpy as np
 from narupa.protocol import trajectory
 
-BONDS = 'bond'
+BOND_PAIRS = 'bond.pairs'
 BOND_ORDERS = 'bond.orders'
 
 PARTICLE_POSITIONS = 'particle.positions'
@@ -123,7 +123,7 @@ class FrameData(metaclass=_FrameDataMeta):
     :exc:`MissingDataError` that can also be caught as a :exc:`KeyError`.
     """
     _shortcuts = (
-        _Shortcut(name='bonds', key=BONDS, record_type='arrays',
+        _Shortcut(name='bonds', key=BOND_PAIRS, record_type='arrays',
                   field_type='index', to_python=_n_by_2, to_raw=_flatten_2d),
         _Shortcut(name='bond_orders', key=BOND_ORDERS, record_type='arrays',
                   field_type='float', to_python=_as_is, to_raw=_as_is),

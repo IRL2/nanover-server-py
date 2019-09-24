@@ -17,26 +17,26 @@ namespace Narupa.Protocol.Trajectory
         /// <summary>
         /// Set the bonds of this frame.
         /// </summary>
-        public static void SetBonds(this FrameData data,
+        public static void SetBondPairs(this FrameData data,
                                     IEnumerable<uint> values)
         {
             data.AddIndexArray(FrameData.BondArrayKey, values);
         }
 
         /// <summary>
-        /// Try to get the bonds array, returning true and setting the out
+        /// Try to get the bond indices array, returning true and setting the out
         /// variable values to the array if found.
         /// </summary>
-        public static bool TryGetBonds(this FrameData data,
+        public static bool TryGetBondPairs(this FrameData data,
                                        out IReadOnlyList<uint> values)
         {
             return data.TryGetIndexArray(FrameData.BondArrayKey, out values);
         }
 
         /// <summary>
-        /// Get the bonds if present, else returning null.
+        /// Get the bond indices if present, else returning null.
         /// </summary>
-        public static IReadOnlyList<uint> GetBonds(this FrameData data)
+        public static IReadOnlyList<uint> GetBondPairs(this FrameData data)
         {
             return data.GetIndexArray(FrameData.BondArrayKey);
         }

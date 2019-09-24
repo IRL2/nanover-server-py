@@ -67,8 +67,8 @@ namespace Narupa.Protocol.Test
             yield return new ShortcutParameter
             {
                 Array = new[] { 0u, 1u, 2u },
-                Get = data => data.GetBonds(),
-                Set = (data, value) => data.SetBonds((IReadOnlyList<uint>) value)
+                Get = data => data.GetBondPairs(),
+                Set = (data, value) => data.SetBondPairs((IReadOnlyList<uint>) value)
             };
             yield return new ShortcutParameter
             {
