@@ -94,6 +94,9 @@ namespace Narupa.Protocol.Trajectory
                 case string[] stringArray:
                     AddStringArray(id, stringArray);
                     break;
+                case double value:
+                    AddNumericValue(id, value);
+                    break;
                 default:
                     throw new ArgumentException($"Invalid FrameData Item with key {id}");
             }
