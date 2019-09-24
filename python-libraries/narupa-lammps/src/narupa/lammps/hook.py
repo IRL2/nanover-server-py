@@ -122,10 +122,10 @@ class DummyLammps:
     without having to have lammps installed on a server
     """
 
-    def __init__(self, n_atoms: int = None):
+    def __init__(self, n_atoms_in_dummy: int = None):
         # Set a default atom length for tests
         _DEFAULT_ATOMS = 3
-        self.n_atoms = n_atoms if n_atoms is not None else _DEFAULT_ATOMS
+        self.n_atoms = n_atoms_in_dummy if n_atoms_in_dummy is not None else _DEFAULT_ATOMS
 
     def gather_atoms(self, array_type: str, _dummy_variable, _array_shape):
         """
@@ -267,7 +267,7 @@ class LammpsHook:
         self.units_type = None
         self.force_factor = None
         self.distance_factor = None
-        self.default_atoms = 10
+        self.n_atoms_in_dummy = 10
 
     def close(self):
         """
@@ -374,7 +374,7 @@ class LammpsHook:
         :return: The replaced units from the list.
         """
         plank_value = lammps_class.extract_global("hplanck", 1)
-        logging.info("Plank units %s ", plank_value)
+        logging.info("Plank value from lammps_internal %s ", plank_value)
         plank_type = min(range(len(PLANK_VALUES)), key=lambda i: abs(PLANK_VALUES[i] - plank_value))
         logging.info("Key detected %s", plank_type)
         return plank_type
@@ -392,7 +392,7 @@ class LammpsHook:
         if lmp is None:
             print("Running without lammps, assuming interactive debugging")
             try:
-                lammps_class = DummyLammps(self.default_atoms)
+                lammps_class = DummyLammps(self.n_atoms_in_dummy)
             except Exception as err:
                 # Many possible reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load DummyLammps", err)
@@ -407,31 +407,31 @@ class LammpsHook:
         # Check if we are in the first cycle of the MD to allocate static variables
         if self.n_atoms is None:
             self.n_atoms = lammps_class.get_natoms()
-            # Use Plank's constant to work out what units we are working in
 
+            # Use Plank's constant to work out what units we are working in
             self.units = self.find_unit_type(lammps_class)
             self.units_type = LAMMPS_UNITS_CHECK.get(self.units, None)[0]
             self.distance_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[1]
             self.force_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[2]
             logging.info("%s %s %s", self.units_type, self.force_factor, self.distance_factor)
 
-        # Choose the matrix type that will be extracted
+            # get atom types and masses
+            self.atom_type, self.masses = self.gather_lammps_particle_types(lammps_class)
+
+        # Extract the position matrix
         positions = self.manipulate_lammps_array('x', lammps_class)
         # Copy the ctype array to numpy for processing
-        positions_3n = np.fromiter(positions, dtype=np.float, count=len(positions))
+        positions_3n = np.fromiter(positions, dtype=np.float, count=len(positions)).reshape(self.n_atoms, 3)
         # Convert to nm
-        positions_3n = np.multiply(self.distance_factor, positions_3n).reshape(self.n_atoms, 3)
+        positions_3n *= self.distance_factor
 
         # Collect forces from LAMMPS
         forces = self.manipulate_lammps_array('f', lammps_class)
         # Collect force vector from client
         interactions = self.interactions
 
-        # get atom types and masses
-        atom_type, masses = self.gather_lammps_particle_types(lammps_class)
-
         # Create numpy arrays with the forces to be added
-        energy_kjmol, forces_kjmol = calculate_imd_force(positions_3n, masses, interactions)
+        energy_kjmol, forces_kjmol = calculate_imd_force(positions_3n, self.masses, interactions)
         # Add interactive force vector to lammps ctype
         self.add_interaction_to_ctype(forces_kjmol, forces)
 
@@ -442,7 +442,7 @@ class LammpsHook:
         self.lammps_positions_to_frame_data(self.frame_data, positions)
 
         # Convert elements from list to frame data
-        self.frame_data.arrays[ELEMENTS] = atom_type
+        self.frame_data.arrays[ELEMENTS] = self.atom_type
 
         # Send frame data
         self.frame_server.send_frame(self.frame_index, self.frame_data)
@@ -454,6 +454,4 @@ class LammpsHook:
 
         if self.frame_loop == 100:
             logging.info("LAMMPS python fix is running step %s", self.frame_index)
-            # logging.info("FRAME STUFF %s %s", self.frame_index, self.frame_data.raw)
             self.frame_loop = 0
-            print(self.frame_index)
