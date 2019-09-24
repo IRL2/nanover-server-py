@@ -113,7 +113,7 @@ def simple_frame():
     raw.arrays['array.float'].float_values.values.extend([2.3, 4.5, 6.7])
     raw.arrays['array.string'].string_values.values.extend(['foo', 'bar', 'toto'])
 
-    raw.arrays[frame_data.POSITIONS].float_values.values.extend((
+    raw.arrays[frame_data.PARTICLE_POSITIONS].float_values.values.extend((
         1.0, 2.1, 3.2,
         4.3, 5.4, 6.5,
         7.6, 8.7, 9.8,
@@ -124,7 +124,7 @@ def simple_frame():
         1, 2,
         2, 3,
     ))
-    raw.arrays[frame_data.ELEMENTS].index_values.values.extend((10, 12, 14, 16))
+    raw.arrays[frame_data.PARTICLE_ELEMENTS].index_values.values.extend((10, 12, 14, 16))
     return FrameData(raw)
 
 
@@ -356,13 +356,13 @@ def test_positions_shortcuts_set(value, expected):
     frame = FrameData()
     frame.positions = value
     assert pytest.approx(
-        frame.raw.arrays[frame_data.POSITIONS].float_values.values, expected
+        frame.raw.arrays[frame_data.PARTICLE_POSITIONS].float_values.values, expected
     )
 
 
 @pytest.mark.parametrize('key, raw_key, value, expected', (
     ('bonds', frame_data.BONDS, [[3, 4], [2, 3]], [3, 4, 2, 3]),
-    ('particle_elements', frame_data.ELEMENTS, [2, 3, 5], [2, 3, 5]),
+    ('particle_elements', frame_data.PARTICLE_ELEMENTS, [2, 3, 5], [2, 3, 5]),
 ))
 def test_exact_shortcuts_set(key, raw_key, value, expected):
     """

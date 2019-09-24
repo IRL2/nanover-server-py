@@ -9,7 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace Narupa.Protocol.Trajectory
 {
-    public partial class FrameData : IEnumerable, IFrameData
+    public partial class FrameData : IEnumerable
     {
         public const string BondArrayKey = "bond";
         public const string BondOrderArrayKey = "bond.order";
