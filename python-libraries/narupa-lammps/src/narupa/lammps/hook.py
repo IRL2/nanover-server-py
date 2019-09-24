@@ -380,6 +380,32 @@ class LammpsHook:
         logging.info("Key detected %s", plank_type)
         return plank_type
 
+    def manipulate_lammps_internal_matrix(self, lammps_class, positions_3n, matrix_type):
+        """
+        This groups together the routines needed to return forces to lammps, is has been made general
+        in case one day we and to do velocity renormalisation or another type of manipulation.
+
+        :param lammps_class: LAMMPS class that contains all the needed routines
+        :param positions_3n: Positon matrix needed to calcualte_imd_forces
+        :param matrix_type: The matrix to eb scattered, usually f (forces), but could also be V (velocities)
+        :return:
+        """
+        # Collect matrix from LAMMPS
+        forces = self.manipulate_lammps_array(matrix_type, lammps_class)
+        # Collect interaction vector from client
+        interactions = self.interactions
+
+        # For now only forces supported, but other manipulations might become useful
+        if matrix_type == 'f':
+            # Create numpy arrays with the forces to be added
+            energy_kjmol, forces_kjmol = calculate_imd_force(positions_3n, self.masses, interactions)
+        else :
+            raise Exception("Unsupported matrix type to be returned to lammps", matrix_type)
+        # Add interactive force vector to lammps ctype
+        self.add_interaction_to_ctype(forces_kjmol, forces)
+        # Return new force vector to LAMMPS
+        self.return_array_to_lammps(matrix_type, forces, lammps_class)
+
     def lammps_hook(self, lmp=None):
         """
         lammps_hook is the main routine that is run within LAMMPS MD
@@ -426,18 +452,8 @@ class LammpsHook:
         # Convert to nm
         positions_3n *= self.distance_factor
 
-        # Collect forces from LAMMPS
-        forces = self.manipulate_lammps_array('f', lammps_class)
-        # Collect force vector from client
-        interactions = self.interactions
-
-        # Create numpy arrays with the forces to be added
-        energy_kjmol, forces_kjmol = calculate_imd_force(positions_3n, self.masses, interactions)
-        # Add interactive force vector to lammps ctype
-        self.add_interaction_to_ctype(forces_kjmol, forces)
-
-        # Return new force vector to LAMMPS
-        self.return_array_to_lammps('f', forces, lammps_class)
+        # Collect client data and return to lammps internal arrays
+        self.manipulate_lammps_internal_matrix(lammps_class, positions_3n, 'f')
 
         # Convert positions
         self.lammps_positions_to_frame_data(self.frame_data, positions)
@@ -456,3 +472,4 @@ class LammpsHook:
         if self.frame_loop == 100:
             logging.info("LAMMPS python fix is running step %s", self.frame_index)
             self.frame_loop = 0
+
