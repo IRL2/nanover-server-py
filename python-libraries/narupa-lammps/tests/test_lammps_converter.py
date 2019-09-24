@@ -3,7 +3,7 @@ import numpy as np
 from narupa.lammps import LammpsHook
 from narupa.lammps import DummyLammps
 from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
-from narupa.trajectory import FrameServer, FrameData
+from narupa.trajectory import FrameData
 
 
 @pytest.fixture
@@ -23,8 +23,8 @@ def test_length_lammps_atoms(simple_atom_lammps_frame):
     frame_data = FrameData()
     h.distance_factor = 1.0
     h.lammps_positions_to_frame_data(frame_data, simple_atom_lammps_frame)
-    assert len(frame_data.raw.arrays[POSITIONS].float_values.values) == 9
     h.close()
+    assert len(frame_data.raw.arrays[POSITIONS].float_values.values) == 9
 
 
 def test_elements_lammps_atoms():
@@ -41,8 +41,8 @@ def test_elements_lammps_atoms():
     frame_data = FrameData()
     atom_type, masses = h.gather_lammps_particle_types(dummy)
     frame_data.arrays[ELEMENTS] = atom_type
-    assert frame_data.raw.arrays[ELEMENTS].index_values.values == [1, 1, 1]
     h.close()
+    assert frame_data.raw.arrays[ELEMENTS].index_values.values == [1, 1, 1]
 
 
 def test_forces_lammps_atoms():
@@ -60,11 +60,11 @@ def test_forces_lammps_atoms():
 
     # Set external forces as numpy array
     temp_forces = np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0])
-    c_type_forces = h.add_interaction_to_ctype(temp_forces, data_array)
+    h.add_interaction_to_ctype(temp_forces, data_array)
     # Convert back to numpy for assert
-    final_forces = np.ctypeslib.as_array(c_type_forces)
-    assert final_forces.all() == np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]).all()
+    final_forces = np.ctypeslib.as_array(data_array)
     h.close()
+    assert final_forces.all() == np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]).all()
 
 
 def test_main_hook():
@@ -77,5 +77,5 @@ def test_main_hook():
     # Get first three positions and convert to list floats
     positions = h.frame_data.raw.arrays[POSITIONS].float_values.values[0:3]
     positions = [float("%.1f" % x) for x in positions]
-    assert positions == [0.0, 0.1, 0.2]
     h.close()
+    assert positions == [0.0, 0.1, 0.2]
