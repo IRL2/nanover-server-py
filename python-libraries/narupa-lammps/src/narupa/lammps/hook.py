@@ -227,7 +227,7 @@ class LammpsHook:
     or ones available from within LAMMPS (manipulate_lammps_arrays).
     """
 
-    def __init__(self, traj_port: int = 8080, imd_port: int = 8081, address: str = "[::]"):
+    def __init__(self, traj_port: int = None, imd_port: int = None, address: str = "[::]"):
         """
         Items that should be initialised on instantiation of lammpsHook class
         The MPI routines are essential to stop thread issues that cause internal
