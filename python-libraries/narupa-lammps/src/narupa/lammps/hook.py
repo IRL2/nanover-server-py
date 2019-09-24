@@ -255,7 +255,7 @@ class LammpsHook:
             nprocs = self.comm.Get_size()
             logging.info("MPI rank %s", me)
             logging.info("MPI n processors %s ", nprocs)
-        except Exception as err:
+        except ImportError as err:
             logging.info("Didn't find mpi4py %s", err)
 
         logging.info("Trajectory Port %s ", traj_port)
@@ -368,14 +368,16 @@ class LammpsHook:
         """
         lammp_class.scatter_atoms(matrix_type, 1, 3, scatter_array)
 
-    def find_unit_type(self):
+    def find_unit_type(self, lammps_class):
         """
         Check the unit type collected from LAMMPS against the plank_values list and fid its index
         :return: The replaced units from the list.
         """
-        self.units = min(range(len(PLANK_VALUES)), key=lambda i: abs(PLANK_VALUES[i] - self.units))
-        logging.info("Key detected %s", self.units)
-        return self.units
+        plank_value = lammps_class.extract_global("hplanck", 1)
+        logging.info("Plank units %s ", plank_value)
+        plank_type = min(range(len(PLANK_VALUES)), key=lambda i: abs(PLANK_VALUES[i] - plank_value))
+        logging.info("Key detected %s", plank_type)
+        return plank_type
 
     def lammps_hook(self, lmp=None):
         """
@@ -406,10 +408,8 @@ class LammpsHook:
         if self.n_atoms is None:
             self.n_atoms = lammps_class.get_natoms()
             # Use Plank's constant to work out what units we are working in
-            self.units = lammps_class.extract_global("hplanck", 1)
-            logging.info("Plank units %s ", self.units)
 
-            self.units = self.find_unit_type()
+            self.units = self.find_unit_type(lammps_class)
             self.units_type = LAMMPS_UNITS_CHECK.get(self.units, None)[0]
             self.distance_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[1]
             self.force_factor = LAMMPS_UNITS_CHECK.get(self.units, None)[2]
