@@ -274,7 +274,7 @@ class LammpsHook:
         """
         Close ports to prevent blocking
         """
-        logging.info("Lammps object has been destroyed, closing server")
+        logging.info("Closing Narupa server")
         self.frame_server.close()
         self.imd_server.close()
 
