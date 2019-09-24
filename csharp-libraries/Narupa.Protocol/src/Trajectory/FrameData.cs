@@ -12,7 +12,7 @@ namespace Narupa.Protocol.Trajectory
     public partial class FrameData : IEnumerable
     {
         public const string BondArrayKey = "bond";
-        public const string BondOrderArrayKey = "bond.order";
+        public const string BondOrderArrayKey = "bonds.order";
 
         public const string ParticlePositionArrayKey = "particles.position";
         public const string ParticleElementArrayKey = "particles.element";

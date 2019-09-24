@@ -5,7 +5,7 @@ import numpy as np
 from narupa.protocol import trajectory
 
 BONDS = 'bond'
-BOND_ORDERS = 'bond.order'
+BOND_ORDERS = 'bonds.order'
 
 PARTICLE_POSITIONS = 'particles.position'
 PARTICLE_ELEMENTS = 'particles.element'
