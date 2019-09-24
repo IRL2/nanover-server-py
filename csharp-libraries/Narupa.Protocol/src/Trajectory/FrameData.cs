@@ -12,19 +12,19 @@ namespace Narupa.Protocol.Trajectory
     public partial class FrameData : IEnumerable
     {
         public const string BondArrayKey = "bond";
-        public const string BondOrderArrayKey = "bonds.order";
+        public const string BondOrderArrayKey = "bond.orders";
 
-        public const string ParticlePositionArrayKey = "particles.position";
-        public const string ParticleElementArrayKey = "particles.element";
-        public const string ParticleTypeArrayKey = "particles.type";
-        public const string ParticleNameArrayKey = "particles.name";
-        public const string ParticleResidueArrayKey = "particles.residue";
-        public const string ParticleCountValueKey = "particles.count";
+        public const string ParticlePositionArrayKey = "particle.positions";
+        public const string ParticleElementArrayKey = "particle.elements";
+        public const string ParticleTypeArrayKey = "particle.types";
+        public const string ParticleNameArrayKey = "particle.names";
+        public const string ParticleResidueArrayKey = "particle.residues";
+        public const string ParticleCountValueKey = "particle.count";
 
-        public const string ResidueNameArrayKey = "residues.name";
-        public const string ResidueChainArrayKey = "residues.chain";
+        public const string ResidueNameArrayKey = "residue.names";
+        public const string ResidueChainArrayKey = "residue.chains";
 
-        public const string ChainNameArrayKey = "chains.name";
+        public const string ChainNameArrayKey = "chain.names";
 
         public const string KineticEnergyValueKey = "energy.kinetic";
         public const string PotentialEnergyValueKey = "energy.potential";

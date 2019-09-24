@@ -5,21 +5,21 @@ import numpy as np
 from narupa.protocol import trajectory
 
 BONDS = 'bond'
-BOND_ORDERS = 'bonds.order'
+BOND_ORDERS = 'bond.orders'
 
-PARTICLE_POSITIONS = 'particles.position'
-PARTICLE_ELEMENTS = 'particles.element'
-PARTICLE_TYPES = 'particles.types'
-PARTICLE_NAMES = 'particles.names'
-PARTICLE_RESIDUES = 'particles.residues'
-PARTICLE_COUNT = 'particles.count'
+PARTICLE_POSITIONS = 'particle.positions'
+PARTICLE_ELEMENTS = 'particle.elements'
+PARTICLE_TYPES = 'particle.types'
+PARTICLE_NAMES = 'particle.names'
+PARTICLE_RESIDUES = 'particle.residues'
+PARTICLE_COUNT = 'particle.count'
 
-RESIDUE_NAMES = 'residues.name'
-RESIDUE_CHAINS = 'residues.chain'
-RESIDUE_COUNT = 'residues.count'
+RESIDUE_NAMES = 'residue.names'
+RESIDUE_CHAINS = 'residue.chains'
+RESIDUE_COUNT = 'residue.counts'
 
-CHAIN_NAMES = 'chains.name'
-CHAIN_COUNT = 'chains.count'
+CHAIN_NAMES = 'chain.names'
+CHAIN_COUNT = 'chain.count'
 
 KINETIC_ENERGY = 'energy.kinetic'
 POTENTIAL_ENERGY = 'energy.potential'
