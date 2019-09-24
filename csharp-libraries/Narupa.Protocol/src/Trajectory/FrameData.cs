@@ -14,17 +14,17 @@ namespace Narupa.Protocol.Trajectory
         public const string BondArrayKey = "bond";
         public const string BondOrderArrayKey = "bond.order";
 
-        public const string ParticlePositionArrayKey = "particle.position";
-        public const string ParticleElementArrayKey = "particle.element";
-        public const string ParticleTypeArrayKey = "particle.type";
-        public const string ParticleNameArrayKey = "particle.name";
-        public const string ParticleResidueArrayKey = "particle.residue";
-        public const string ParticleCountValueKey = "particle.count";
+        public const string ParticlePositionArrayKey = "particles.position";
+        public const string ParticleElementArrayKey = "particles.element";
+        public const string ParticleTypeArrayKey = "particles.type";
+        public const string ParticleNameArrayKey = "particles.name";
+        public const string ParticleResidueArrayKey = "particles.residue";
+        public const string ParticleCountValueKey = "particles.count";
 
-        public const string ResidueNameArrayKey = "residue.name";
-        public const string ResidueChainArrayKey = "residue.chain";
+        public const string ResidueNameArrayKey = "residues.name";
+        public const string ResidueChainArrayKey = "residues.chain";
 
-        public const string ChainNameArrayKey = "chain.name";
+        public const string ChainNameArrayKey = "chains.name";
 
         public const string KineticEnergyValueKey = "energy.kinetic";
         public const string PotentialEnergyValueKey = "energy.potential";
