@@ -155,6 +155,7 @@ class DummyLammps:
         """
         This routine mimics lammp_class.scatter_atoms, in the dummy case it does nothing
         """
+        return None
 
     def extract_global(self, types: str, _number_type):
         """
