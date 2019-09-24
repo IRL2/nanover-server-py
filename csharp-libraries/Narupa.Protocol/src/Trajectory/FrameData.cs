@@ -23,9 +23,11 @@ namespace Narupa.Protocol.Trajectory
 
         public const string ResidueNameArrayKey = "residue.names";
         public const string ResidueChainArrayKey = "residue.chains";
-
+        public const string ResidueCountValueKey = "residue.count";
+        
         public const string ChainNameArrayKey = "chain.names";
-
+        public const string ChainCountValueKey = "chain.count";
+        
         public const string KineticEnergyValueKey = "energy.kinetic";
         public const string PotentialEnergyValueKey = "energy.potential";
 

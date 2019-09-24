@@ -355,6 +355,45 @@ namespace Narupa.Protocol.Trajectory
 
         #endregion
 
+        #region Residue Count
+
+        /// <summary>
+        /// Does this frame have a residue count?
+        /// </summary>
+        public static bool HasResidueCount(this FrameData data)
+        {
+            return data.TryGetNumericValue(FrameData.ResidueCountValueKey, out _);
+        }
+
+        /// <summary>
+        /// Set the residue count of this frame.
+        /// </summary>
+        public static void SetResidueCount(this FrameData data,
+            int value)
+        {
+            data.AddNumericValue(FrameData.ResidueCountValueKey, value);
+        }
+
+        /// <summary>
+        /// Try to get the residue count, returning true and setting the out
+        /// variable values to the value if found.
+        /// </summary>
+        public static bool TryGetResidueCount(this FrameData data,
+            out int value)
+        {
+            return data.TryGetIntegerValue(FrameData.ResidueCountValueKey, out value);
+        }
+
+        /// <summary>
+        /// Get the residue count if present, else returning null.
+        /// </summary>
+        public static int? GetResidueCount(this FrameData data)
+        {
+            return (int?) data.GetNumericValue(FrameData.ResidueCountValueKey);
+        }
+
+        #endregion
+        
         #region ChainNames
 
         /// <summary>
@@ -394,6 +433,45 @@ namespace Narupa.Protocol.Trajectory
 
         #endregion
 
+        #region Chain Count
+
+        /// <summary>
+        /// Does this frame have a chain count?
+        /// </summary>
+        public static bool HasChainCount(this FrameData data)
+        {
+            return data.TryGetNumericValue(FrameData.ChainCountValueKey, out _);
+        }
+
+        /// <summary>
+        /// Set the chain count of this frame.
+        /// </summary>
+        public static void SetChainCount(this FrameData data,
+            int value)
+        {
+            data.AddNumericValue(FrameData.ChainCountValueKey, value);
+        }
+
+        /// <summary>
+        /// Try to get the chain count, returning true and setting the out
+        /// variable values to the value if found.
+        /// </summary>
+        public static bool TryGetChainCount(this FrameData data,
+            out int value)
+        {
+            return data.TryGetIntegerValue(FrameData.ChainCountValueKey, out value);
+        }
+
+        /// <summary>
+        /// Get the chain count if present, else returning null.
+        /// </summary>
+        public static int? GetChainCount(this FrameData data)
+        {
+            return (int?) data.GetNumericValue(FrameData.ChainCountValueKey);
+        }
+
+        #endregion
+        
         #region Particle Count
 
         /// <summary>

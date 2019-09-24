@@ -16,7 +16,7 @@ PARTICLE_COUNT = 'particle.count'
 
 RESIDUE_NAMES = 'residue.names'
 RESIDUE_CHAINS = 'residue.chains'
-RESIDUE_COUNT = 'residue.counts'
+RESIDUE_COUNT = 'residue.count'
 
 CHAIN_NAMES = 'chain.names'
 CHAIN_COUNT = 'chain.count'
