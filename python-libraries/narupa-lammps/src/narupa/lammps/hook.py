@@ -4,10 +4,8 @@ This program can be run as a standalone using dummy data or from within LAMMPS
 using the python_invoke/fix command as demonstrated in the example LAMMPS inputs.
 """
 import ctypes
-#from ctypes import c_int, c_double
 import logging
 from typing import List
-
 import numpy as np
 
 try:
@@ -106,7 +104,7 @@ LAMMPS_UNITS_CHECK = {
     7: ["nano", 1.0, 602214128.9999999]
 }
 # store plank values as a list so that we don't do float lookups in a dict.
-plank_values = [
+PLANK_VALUES = (
     1.0,
     95.306976368,
     4.135667403e-3,
@@ -115,7 +113,7 @@ plank_values = [
     0.1519829846,
     6.62606896e-13,
     6.62606896e-4
-]
+)
 
 
 class DummyLammps:
@@ -149,8 +147,7 @@ class DummyLammps:
             for i in range(self.n_atoms):
                 data_array[i] = 1
         else:
-            logging.error('Unknown array type asked for in dummyLammps.gather_atoms')
-            exit()
+            raise Exception('Unknown array type asked for in dummyLammps.gather_atoms')
 
         return data_array
 
@@ -173,8 +170,8 @@ class DummyLammps:
         elif types == "hplanck":
             dummy_element_list = 95.306976368
         else:
-            logging.error('Unknown array type asked for in dummyLammps.extract_global')
-            exit()
+            raise Exception('Unknown array type asked for in dummyLammps.extract_global')
+
         return dummy_element_list
 
     def get_natoms(self):
@@ -199,8 +196,8 @@ class DummyLammps:
             dummy_element_list[0] = 0
             dummy_element_list[1] = 1
         else:
-            logging.error('Unknown array type asked for in dummyLammps.extract_atom')
-            exit()
+            raise Exception('Unknown array type asked for in dummyLammps.extract_atom')
+
         return dummy_element_list
 
 
@@ -259,7 +256,7 @@ class LammpsHook:
             logging.info("MPI rank %s", me)
             logging.info("MPI n processors %s ", nprocs)
         except Exception as err:
-            logging.info("didn't find mpi4py %s", err)
+            logging.info("Didn't find mpi4py %s", err)
 
         logging.info("Trajectory Port %s ", traj_port)
         logging.info("Interactive Port %s ", imd_port)
@@ -274,24 +271,11 @@ class LammpsHook:
 
     def close(self):
         """
-        Close ports when the class is destroyed
+        Close ports to prevent blocking
         """
         logging.info("Lammps object has been destroyed, closing server")
         self.frame_server.close()
         self.imd_server.close()
-
-    def test_debug(self):
-        """
-        Test routine to check correct python loading in LAMMPS
-        TODO remove once more robust testing of loading in LAMMPS is developed
-        """
-        try:
-            lammps_class = lammps(ptr=lmp, comm=self.comm)
-        except Exception as err:
-            raise Exception("Failed to load LAMMPS wrapper", err)
-
-        n_atoms = lammps_class.get_natoms()
-        print("In class testy", "Atoms : ", n_atoms)
 
     def manipulate_lammps_array(self, matrix_type: str, lammps_class):
         """
@@ -301,6 +285,7 @@ class LammpsHook:
         :param lammps_class: LAMMPS class that contains all the needed routines
         type :return: 3N matrix with all the data requested
         """
+
         data_array = lammps_class.gather_atoms(matrix_type, 1, 3)
 
         return data_array
@@ -371,10 +356,8 @@ class LammpsHook:
         interaction_forces = interaction_forces / self.force_factor
         # Flatten array into the ctype
         scatterable_array = interaction_forces.flatten()
-        for idx in range(3 * self.n_atoms):
-            lammps_forces[idx] += scatterable_array[idx]
-
-        return lammps_forces
+        for idx, force in enumerate(scatterable_array):
+            lammps_forces[idx] += force
 
     def return_array_to_lammps(self, matrix_type: str, scatter_array, lammp_class):
         """
@@ -390,7 +373,7 @@ class LammpsHook:
         Check the unit type collected from LAMMPS against the plank_values list and fid its index
         :return: The replaced units from the list.
         """
-        self.units = min(range(len(plank_values)), key=lambda i: abs(plank_values[i] - self.units))
+        self.units = min(range(len(PLANK_VALUES)), key=lambda i: abs(PLANK_VALUES[i] - self.units))
         logging.info("Key detected %s", self.units)
         return self.units
 
@@ -450,7 +433,7 @@ class LammpsHook:
         # Create numpy arrays with the forces to be added
         energy_kjmol, forces_kjmol = calculate_imd_force(positions_3n, masses, interactions)
         # Add interactive force vector to lammps ctype
-        forces = self.add_interaction_to_ctype(forces_kjmol, forces)
+        self.add_interaction_to_ctype(forces_kjmol, forces)
 
         # Return new force vector to LAMMPS
         self.return_array_to_lammps('f', forces, lammps_class)
