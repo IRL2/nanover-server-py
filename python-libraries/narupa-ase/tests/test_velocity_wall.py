@@ -77,3 +77,12 @@ def test_velocity_wall(walled_dynamics_and_expectations):
 
     assert np.allclose(positions, expected_positions)
     assert np.allclose(velocities, expected_velocities)
+
+
+@pytest.mark.parametrize('broken_cell', (
+    Cell(np.zeros((3, 3), dtype=float)),  # Nul volume
+    Cell(np.array([[1., 1., 0.], [0., 1., 1.], [0., 0., 1.]])), # Not orthorhombic
+))
+def test_validate_box(broken_cell):
+    with pytest.raises(ValueError):
+        wall_calculator.VelocityWallCalculator._validate_box(broken_cell)

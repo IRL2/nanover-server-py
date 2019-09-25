@@ -12,6 +12,7 @@ from typing import Optional
 import numpy as np
 from ase.calculators.calculator import Calculator, all_changes
 from ase import Atoms
+from ase.cell import Cell
 
 
 class VelocityWallCalculator(Calculator):
@@ -30,7 +31,7 @@ class VelocityWallCalculator(Calculator):
                 | set(self._calculator.implemented_properties)
             )
 
-    def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
+    def calculate(self, atoms: Atoms, properties=('energy', 'forces'),
                   system_changes=all_changes):
         if atoms is None:
             raise ValueError(
@@ -47,12 +48,12 @@ class VelocityWallCalculator(Calculator):
         self.results['energy'] = energy
         self.results['forces'] = forces
 
+        self._validate_box(atoms.cell)
         self._bounce_atoms(atoms)
 
-    def _bounce_atoms(self, atoms: Atoms):
-        # TODO: fail if there is no box defined.
+    @staticmethod
+    def _bounce_atoms(atoms: Atoms):
         # TODO: fail if the box is not orthorhombic.
-        # TODO: fail if the box volume is 0.
         box = atoms.cell
         positions = atoms.get_positions()
         velocities = atoms.get_velocities()
@@ -65,6 +66,16 @@ class VelocityWallCalculator(Calculator):
             mask = np.logical_or(left, right)
             velocities[mask, dimension] *= -1
         atoms.set_velocities(velocities)
+
+    @staticmethod
+    def _validate_box(cell: Cell):
+        """
+        Raise an exception is the box is not compatible with the walls.
+        """
+        if np.isclose(cell.volume, 0):
+            raise ValueError('The simulation box has a nul volume.')
+        if not np.allclose(cell.angles(), [90, 90, 90]):
+            raise ValueError('VelocityWall only works for orthorhombic boxes.')
     
     @property
     def topology(self):
