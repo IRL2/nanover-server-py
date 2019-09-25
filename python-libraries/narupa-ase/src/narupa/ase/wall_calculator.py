@@ -53,7 +53,6 @@ class VelocityWallCalculator(Calculator):
 
     @staticmethod
     def _bounce_atoms(atoms: Atoms):
-        # TODO: fail if the box is not orthorhombic.
         box = atoms.cell
         positions = atoms.get_positions()
         velocities = atoms.get_velocities()
