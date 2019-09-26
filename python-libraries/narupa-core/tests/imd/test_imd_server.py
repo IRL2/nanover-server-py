@@ -3,7 +3,8 @@ from unittest.mock import Mock
 
 import grpc
 import pytest
-from narupa.imd.imd_client import ImdClient, delayed_generator
+from narupa.core.timing import delayed_generator
+from narupa.imd.imd_client import ImdClient
 from narupa.imd.imd_server import ImdServer
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractionEndReply
@@ -14,20 +15,14 @@ import concurrent.futures
 
 @pytest.fixture
 def imd_server():
-    server = ImdServer(address='localhost', port=0)
-    try:
+    with ImdServer(address='localhost', port=0) as server:
         yield server
-    finally:
-        server.close()
 
 
 @pytest.fixture
 def imd_server_client(imd_server):
-    client = ImdClient(address='localhost', port=imd_server.port)
-    try:
+    with ImdClient(address='localhost', port=imd_server.port) as client:
         yield imd_server, client
-    finally:
-        client.close()
 
 
 @pytest.fixture
@@ -43,6 +38,11 @@ def imd_server_stub(imd_server):
 @pytest.fixture
 def interaction():
     return ParticleInteraction()
+
+
+@pytest.fixture
+def interactions_reset():
+    return [ParticleInteraction(reset_velocities=True)] * 10
 
 
 @pytest.fixture
@@ -172,7 +172,7 @@ def test_multithreaded_interactions(imd_server_client):
 
     # access the interactions, while other tasks are still running.
     for _ in concurrent.futures.as_completed(interaction_tasks):
-        for interaction in imd_server.service.active_interactions:
+        for interaction in imd_server.service.active_interactions.values():
             # sleep while iterating over the interactions. If access is not threadsafe, this will cause a
             # RuntimeError.
             time.sleep(0.01)
@@ -180,3 +180,15 @@ def test_multithreaded_interactions(imd_server_client):
 
     # check that the callback has been called the correct number of times
     assert mock.callback.call_count == interactions_per_run * number_of_runs
+
+
+def test_velocity_reset_not_enabled(imd_server_client, interactions_reset):
+    imd_server, imd_client = imd_server_client
+    with pytest.raises(grpc.RpcError):
+        imd_client.publish_interactions(delayed_generator(interactions_reset, delay=0.1))
+
+
+def test_velocity_reset_not_enabled(imd_server_client, interactions_reset):
+    imd_server, imd_client = imd_server_client
+    imd_server.service.velocity_reset_enabled = True
+    imd_client.publish_interactions(delayed_generator(interactions_reset, delay=0.1))

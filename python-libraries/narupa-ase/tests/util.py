@@ -14,8 +14,5 @@ def co_atoms():
 
 @pytest.fixture
 def imd_client():
-    client = ImdClient(address='localhost', port=54322)
-    yield client
-    client.close()
-
-
+    with ImdClient(address='localhost', port=54322) as client:
+        yield client

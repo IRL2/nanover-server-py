@@ -6,13 +6,12 @@ into a file using MDAnalysis.
 
 The client can be started either from python or from the command line. From the
 command line, run this script with the `--help` option to see the usage. From
-python, here is an example::
+python, here is an example:
 
-    from client import DummyClient
-    trajectory_client = DummyClient('foo.xtc', address='localhost', port=9000)
-    trajectory_client.write_trajectory()
+    from trajectory_client import write_trajectory_from_server
+    write_trajectory_from_server('foo.xtc', address='localhost', port=54321)
 
-This will connect to ``localhost:9000`` and writes the trajectory in 'foo.xtc'
+This will connect to ``localhost:54321`` and writes the trajectory in 'foo.xtc'
 in Gromacs's XTC format.
 
 The client handles the trajectory formats that can be written by MDAnalysis;
@@ -24,13 +23,8 @@ import argparse
 import numpy as np
 import MDAnalysis as mda
 
-import grpc
-from narupa.protocol.trajectory import (
-    TrajectoryServiceStub,
-    GetFrameRequest,
-    GetFrameResponse,
-)
-from narupa.trajectory.frame_data import POSITIONS
+from narupa.trajectory import FrameClient
+from narupa.trajectory.frame_data import FrameData
 
 
 def write_trajectory_from_server(destination, *, address: str, port: int):
@@ -42,25 +36,32 @@ def write_trajectory_from_server(destination, *, address: str, port: int):
     :param address: Host name to connect to.
     :param port: Port to connect to on the host.
     """
-    host = '{}:{}'.format(address, port)
-    channel = grpc.insecure_channel(host)
-    stub = TrajectoryServiceStub(channel)
-    frame_iter = stub.SubscribeFrames(GetFrameRequest())
-
-    first_frame = frame_to_ndarray(next(frame_iter))
-    universe = mda.Universe.empty(n_atoms=first_frame.shape[0], trajectory=True)
-    universe.atoms.positions = first_frame
-    writer_class = mda.coordinates.core.get_writer_for(destination, multiframe=True)
-    with writer_class(destination, n_atoms=first_frame.shape[0]) as writer:
-        writer.write(universe.atoms)
-        for frame in frame_iter:
-            positions = frame_to_ndarray(frame)
-            universe.atoms.positions = positions
+    with FrameClient(address=address, port=port) as client:
+        print("Running...")
+        frame_iter = client.subscribe_frames_iterate()
+        frame_index, first_frame = next(frame_iter)
+        first_positions = frame_to_ndarray(first_frame)
+        universe = universe_from_positions(first_positions)
+        writer_class = mda.coordinates.core.get_writer_for(destination,
+                                                           multiframe=True)
+        with writer_class(destination, n_atoms=first_positions.shape[0]) as writer:
             writer.write(universe.atoms)
-    channel.close()
+            try:
+                for frame_index, frame in frame_iter:
+                    positions = frame_to_ndarray(frame)
+                    universe.atoms.positions = positions
+                    writer.write(universe.atoms)
+            except KeyboardInterrupt:
+                print(f"Finishing on frame {frame_index} due to keyboard interrupt.")
 
 
-def frame_to_ndarray(frame: GetFrameResponse) -> np.ndarray:
+def universe_from_positions(positions: np.ndarray) -> mda.Universe:
+    universe = mda.Universe.empty(n_atoms=positions.shape[0], trajectory=True)
+    universe.atoms.positions = positions
+    return universe
+
+
+def frame_to_ndarray(frame: FrameData) -> np.ndarray:
     """
     Convert a frame received from the Narupa server to an array of coordinates.
 
@@ -72,16 +73,10 @@ def frame_to_ndarray(frame: GetFrameResponse) -> np.ndarray:
     :return: A numpy array of ``np.float32`` with one row per atom, and 3
         columns. The coordinates are expressed in ångstöm.
     """
-    raw_positions = (
-        frame
-        .frame.arrays[POSITIONS]
-        .float_values
-        .values
-    )
     # Here we assume that the coordinates are in 3 dimensions.
     # The frames obtained from Narupa use distances in nm, while MDAnalysis
     # expresses them in Å; this is where we do the unit conversion.
-    positions = np.array(raw_positions, dtype=np.float32).reshape((-1, 3)) * 10
+    positions = np.array(frame.particle_positions, dtype=np.float32) * 10
     return positions
 
 
@@ -93,8 +88,8 @@ def handle_user_args() -> argparse.Namespace:
     """
     description = "Connect to a Narupa trajectory server and write the trajectory."
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--host', default='localhost')
-    parser.add_argument('--port', type=int, default=8000)
+    parser.add_argument('--host', default=None)
+    parser.add_argument('--port', type=int, default=None)
     parser.add_argument('destination')
     arguments = parser.parse_args()
     return arguments

@@ -4,3 +4,4 @@ from .grpc_server import (
     DEFAULT_SERVE_ADDRESS,
     DEFAULT_CONNECT_ADDRESS,
 )
+from .grpc_client import GrpcClient

@@ -8,22 +8,11 @@ from queue import Queue
 from typing import Iterable, Optional
 
 import grpc
-from narupa.core import get_requested_port_or_default, DEFAULT_CONNECT_ADDRESS
+from narupa.core import get_requested_port_or_default, DEFAULT_CONNECT_ADDRESS, \
+    GrpcClient
 from narupa.imd.imd_server import DEFAULT_PORT
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractiveMolecularDynamicsStub, InteractionEndReply
-
-
-def delayed_generator(iterable: Iterable, delay: float = 0):
-    """
-    Turns an iterable collection into a generator, where each item is yielded after the given delay (seconds).
-    :param iterable: Iterable collection of items to be yielded.
-    :param delay: delay (seconds) to wait until yielding the next item in the collection.
-    :return:
-    """
-    for item in iterable:
-        time.sleep(delay)
-        yield item
 
 
 def queue_generator(queue: Queue, sentinel: object):
@@ -65,18 +54,15 @@ def _to_proto(interactions: Iterable[ParticleInteraction]):
         yield interaction.proto
 
 
-class ImdClient:
+class ImdClient(GrpcClient):
     """
     A simple IMD client, primarily for testing the IMD server.
     """
-
-    def __init__(self, *, address: Optional[str] = None, port: Optional[int] = None):
-        if address is None:
-            address = DEFAULT_CONNECT_ADDRESS
+    def __init__(self, *, address: Optional[str] = None,
+                 port: Optional[int] = None):
         port = get_requested_port_or_default(port, DEFAULT_PORT)
-        self.channel = grpc.insecure_channel("{0}:{1}".format(address, port))
-        self.stub = InteractiveMolecularDynamicsStub(self.channel)
-        self.threads = futures.ThreadPoolExecutor(max_workers=10)
+        super().__init__(address=address, port=port,
+                         stub=InteractiveMolecularDynamicsStub)
         self._active_interactions = {}
         self._logger = logging.getLogger(__name__)
 
@@ -145,5 +131,4 @@ class ImdClient:
         except grpc.RpcError as e:
             self._logger.exception(e)
         finally:
-            self.channel.close()
-            self.threads.shutdown(wait=False)
+            super().close()

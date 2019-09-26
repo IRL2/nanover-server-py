@@ -6,20 +6,19 @@ Reference multiplayer client implementation.
 
 """
 
+from concurrent import futures
 from queue import Queue
 from typing import Dict, Callable, Sequence
-from concurrent import futures
 
 import grpc
-from google.protobuf.struct_pb2 import Value
-
-from narupa.core import DEFAULT_CONNECT_ADDRESS
-from narupa.core.request_queues import SingleItemQueue
-from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
+from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerStub
+from google.protobuf.struct_pb2 import Value
+from narupa.core import GrpcClient
+from narupa.core.request_queues import SingleItemQueue
 from narupa.multiplayer.change_buffers import yield_interval
-
+from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
 
 UpdateCallback = Callable[[Sequence[str]], None]
 
@@ -44,39 +43,27 @@ def _end_upon_channel_close(function):
     return wrapped
 
 
-class MultiplayerClient(object):
+class MultiplayerClient(GrpcClient):
     """
     Represents a client to the multiplayer server.
 
     :param address: IP or web address of server to connect to.
     :param port: Server port.
-    :param pubsub_fps: FPS at which to send/receive pub/sub messages.
     """
     stub: mult_proto_grpc.MultiplayerStub
     current_avatars: Dict[int, mult_proto.Avatar]
     _avatar_queue: Queue
 
-    def __init__(self, address=DEFAULT_CONNECT_ADDRESS, port=DEFAULT_PORT,
+    def __init__(self, address=None, port=None,
                  send_interval: float = 1/60):
-        self.channel = grpc.insecure_channel(f"{address}:{port}")
-        self.stub = mult_proto_grpc.MultiplayerStub(self.channel)
+        super().__init__(address=address, port=port or DEFAULT_PORT,
+                         stub=MultiplayerStub)
         self._player_id = None
         self._send_interval = send_interval
         self._avatar_queue = SingleItemQueue()
         self._value_update_callbacks = set()
         self.current_avatars = {}
-        self.closed = False
         self.resources = dict()
-        self.threadpool = futures.ThreadPoolExecutor(max_workers=10)
-
-    def close(self):
-        """
-        Closes the client connection.
-        :return:
-        """
-        self.closed = True
-        self.threadpool.shutdown(wait=False)
-        self.channel.close()
 
     def join_multiplayer(self, player_name, join_streams=True):
         """
@@ -108,7 +95,7 @@ class MultiplayerClient(object):
         ignore = self.player_id if ignore_self else None
         request = mult_proto.SubscribePlayerAvatarsRequest(ignore_player_id=ignore,
                                                            update_interval=interval)
-        self.threadpool.submit(self._join_avatar_stream, request)
+        self.threads.submit(self._join_avatar_stream, request)
 
     def join_avatar_publish(self):
         """
@@ -116,7 +103,7 @@ class MultiplayerClient(object):
         Use publish_avatar to publish.
         """
         self._assert_has_player_id()
-        self.threadpool.submit(self._join_avatar_publish)
+        self.threads.submit(self._join_avatar_publish)
 
     def publish_avatar(self, avatar):
         """
@@ -148,7 +135,7 @@ class MultiplayerClient(object):
         for any and all values.
         """
         request = mult_proto.SubscribeAllResourceValuesRequest(update_interval=interval)
-        self.threadpool.submit(self._join_scene_properties_stream, request)
+        self.threads.submit(self._join_scene_properties, request)
 
     def try_lock_resource(self, resource_id, duration=0):
         """
@@ -220,13 +207,3 @@ class MultiplayerClient(object):
             keys = set(update.resource_value_changes.keys())
             for callback in self._value_update_callbacks:
                 callback(keys)
-
-    @_end_upon_channel_close
-    def _join_scene_properties_stream(self, request):
-        self.stub.SubscribeAllResourceValues(self._join_scene_properties(request))
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()

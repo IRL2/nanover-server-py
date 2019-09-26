@@ -66,3 +66,9 @@ def test_positions(basic_simulation):
         data.raw.arrays[frame_data.POSITIONS].float_values.values,
         expected,
     )
+
+
+def test_topology_particle_count(simple_openmm_topology):
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
+
+    assert data.raw.values[frame_data.COUNT].number_value == 3
