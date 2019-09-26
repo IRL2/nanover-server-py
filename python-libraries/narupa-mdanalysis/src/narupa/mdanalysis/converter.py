@@ -17,12 +17,12 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     frame_data = FrameData()
 
     if topology:
-        frame_data.arrays['residue.id'] = u.residues.resnames
-        frame_data.arrays['residue.chain'] = u.residues.segindices
-        frame_data.arrays['atom.id'] = u.atoms.names
+        frame_data.residue_names = u.residues.resnames
+        frame_data.residue_chains = u.residues.segindices
+        frame_data.particle_names = u.atoms.names
         elements = [element_index[guess_atom_element(name)] for name in u.atoms.names]
         frame_data.particle_elements = elements
-        frame_data.arrays['atom.residue'] = u.atoms.resids
+        frame_data.particle_residues = u.atoms.resids
         frame_data.bonds = u.atoms.bonds.indices
 
     if positions:

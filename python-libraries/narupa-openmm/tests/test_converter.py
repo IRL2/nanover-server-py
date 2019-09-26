@@ -27,22 +27,22 @@ def simple_openmm_topology():
 def test_topology_bonds(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert data.raw.arrays[frame_data.BONDS].index_values.values == [0, 1, 1, 2]
+    assert data.raw.arrays[frame_data.BOND_PAIRS].index_values.values == [0, 1, 1, 2]
 
 
 def test_topology_atoms(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert data.raw.arrays[frame_data.ELEMENTS].index_values.values == [1, 2, 3]
+    assert data.raw.arrays[frame_data.PARTICLE_ELEMENTS].index_values.values == [1, 2, 3]
 
 
 def test_topology_residues(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert data.raw.arrays['residue.id'].string_values.values == ["RES"]
+    assert data.raw.arrays[frame_data.RESIDUE_NAMES].string_values.values == ["RES"]
 
 
 def test_topology_particle_count(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
 
-    assert data.raw.values[frame_data.COUNT].number_value == 3
+    assert data.raw.values[frame_data.PARTICLE_COUNT].number_value == 3
