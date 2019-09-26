@@ -18,11 +18,7 @@ from simtk.unit import kelvin, picosecond, femtosecond, nanometer  # pylint: dis
 from narupa.openmm import serializer
 
 
-@pytest.fixture
-def basic_simulation():
-    """
-    Setup a minimal OpenMM simulation with two methane molecules.
-    """
+def build_basic_simulation():
     # In ths function, we define matrices and we want to align the column.
     # We disable the pylint warning about bad spacing for the scope of the
     # function.
@@ -103,6 +99,13 @@ def basic_simulation():
 
     return simulation
 
+
+@pytest.fixture
+def basic_simulation():
+    """
+    Setup a minimal OpenMM simulation with two methane molecules.
+    """
+    return basic_simulation()
 
 @pytest.fixture
 def serialized_simulation_path(basic_simulation, tmp_path):

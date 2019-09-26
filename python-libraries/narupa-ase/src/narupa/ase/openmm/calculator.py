@@ -50,6 +50,7 @@ class OpenMMCalculator(Calculator):
     def calculate(self, atoms: Optional[Atoms] = None,
                   properties=('energy', 'forces'),
                   system_changes=all_changes):
+        print('OMM calculate', id(self))
 
         if atoms is None:
             atoms = self.atoms

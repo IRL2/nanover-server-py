@@ -8,6 +8,8 @@ from ase import Atoms, units
 from ase.cell import Cell
 from ase.md import VelocityVerlet
 from narupa.ase import wall_calculator
+from narupa.ase.openmm.calculator import OpenMMCalculator
+from openmm.simulation_utils import build_basic_simulation
 
 
 @pytest.fixture
@@ -86,3 +88,35 @@ def test_velocity_wall(walled_dynamics_and_expectations):
 def test_validate_box(broken_cell):
     with pytest.raises(ValueError):
         wall_calculator.VelocityWallCalculator._validate_box(broken_cell)
+
+
+def test_chaining_calculators():
+    reference_simulation = build_basic_simulation()
+    reference_calculator = OpenMMCalculator(reference_simulation)
+    reference_atoms = reference_calculator.generate_atoms()
+    reference_atoms.set_calculator(reference_calculator)
+    reference_dynamics = VelocityVerlet(atoms=reference_atoms, timestep=1 * units.fs)
+
+    for_walled_simulation = build_basic_simulation()
+    for_walled_calculator = OpenMMCalculator(for_walled_simulation)
+    walled_atoms = for_walled_calculator.generate_atoms()
+    walled_calculator = wall_calculator.VelocityWallCalculator(
+        atoms=walled_atoms, calculator=for_walled_calculator)
+    walled_atoms.set_calculator(walled_calculator)
+    walled_dynamics = VelocityVerlet(atoms=walled_atoms, timestep=1 * units.fs)
+
+    print(reference_simulation.context.getState().getPeriodicBoxVectors())
+    print(reference_atoms.cell)
+
+    print('Reference', id(reference_calculator))
+    print('Walled', id(walled_calculator), id(for_walled_calculator))
+
+    for _ in range(10):
+        print('STEP')
+        reference_dynamics.run(1)
+        walled_dynamics.run(1)
+        print(reference_atoms.get_potential_energy(), walled_atoms.get_potential_energy())
+
+    assert walled_atoms is not reference_atoms
+    assert walled_atoms.get_potential_energy() == reference_atoms.get_potential_energy()
+    assert False

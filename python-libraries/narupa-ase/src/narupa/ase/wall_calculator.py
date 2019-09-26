@@ -33,6 +33,7 @@ class VelocityWallCalculator(Calculator):
 
     def calculate(self, atoms: Atoms, properties=('energy', 'forces'),
                   system_changes=all_changes):
+        print('Calculate!', id(self))
         if atoms is None:
             raise ValueError(
                 'No ASE atoms supplied to IMD calculation, '
@@ -45,8 +46,8 @@ class VelocityWallCalculator(Calculator):
             self._calculator.calculate(atoms, properties, system_changes)
             for key, value in self._calculator.results.items():
                 self.results[key] = value
-        self.results['energy'] = energy
-        self.results['forces'] = forces
+        self.results['energy'] = self.results.get('energy', energy)
+        self.results['forces'] = self.results.get('forces', forces)
 
         self._validate_box(atoms.cell)
         self._bounce_atoms(atoms)
