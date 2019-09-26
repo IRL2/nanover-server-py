@@ -13,8 +13,8 @@ def add_openmm_state_to_frame_data(data: FrameData, state: State):
 
 
 def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
-    data.arrays['residue.id'] = [residue.name for residue in topology.residues()]
-    data.arrays['residue.chain'] = [residue.chain.index for residue in topology.residues()]
+    data.residue_names = [residue.name for residue in topology.residues()]
+    data.residue_chains = [residue.chain.index for residue in topology.residues()]
 
     atom_names = []
     elements = []
@@ -29,9 +29,9 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
     for bond in topology.bonds():
         bonds.append((bond[0].index, bond[1].index))
 
-    data.arrays['atom.id'] = atom_names
+    data.particle_names = atom_names
     data.particle_elements = elements
-    data.arrays['atom.residue'] = residue_indices
+    data.particle_residues = residue_indices
     data.bonds = bonds
 
     data.particle_count = len(atom_names)

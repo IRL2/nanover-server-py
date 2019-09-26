@@ -113,18 +113,18 @@ def simple_frame():
     raw.arrays['array.float'].float_values.values.extend([2.3, 4.5, 6.7])
     raw.arrays['array.string'].string_values.values.extend(['foo', 'bar', 'toto'])
 
-    raw.arrays[frame_data.POSITIONS].float_values.values.extend((
+    raw.arrays[frame_data.PARTICLE_POSITIONS].float_values.values.extend((
         1.0, 2.1, 3.2,
         4.3, 5.4, 6.5,
         7.6, 8.7, 9.8,
         0.9, 1.1, 2.2,
     ))
-    raw.arrays[frame_data.BONDS].index_values.values.extend((
+    raw.arrays[frame_data.BOND_PAIRS].index_values.values.extend((
         0, 1,
         1, 2,
         2, 3,
     ))
-    raw.arrays[frame_data.ELEMENTS].index_values.values.extend((10, 12, 14, 16))
+    raw.arrays[frame_data.PARTICLE_ELEMENTS].index_values.values.extend((10, 12, 14, 16))
     return FrameData(raw)
 
 
@@ -356,13 +356,13 @@ def test_positions_shortcuts_set(value, expected):
     frame = FrameData()
     frame.positions = value
     assert pytest.approx(
-        frame.raw.arrays[frame_data.POSITIONS].float_values.values, expected
+        frame.raw.arrays[frame_data.PARTICLE_POSITIONS].float_values.values, expected
     )
 
 
 @pytest.mark.parametrize('key, raw_key, value, expected', (
-    ('bonds', frame_data.BONDS, [[3, 4], [2, 3]], [3, 4, 2, 3]),
-    ('particle_elements', frame_data.ELEMENTS, [2, 3, 5], [2, 3, 5]),
+    ('bonds', frame_data.BOND_PAIRS, [[3, 4], [2, 3]], [3, 4, 2, 3]),
+    ('particle_elements', frame_data.PARTICLE_ELEMENTS, [2, 3, 5], [2, 3, 5]),
 ))
 def test_exact_shortcuts_set(key, raw_key, value, expected):
     """
@@ -551,3 +551,29 @@ def test_set_single_value_shortcut():
     frame = DummyFrameData()
     frame.single = 'foobar'
     assert frame.raw.values['dummy.single'].string_value == 'foobar'
+
+def test_value_keys(simple_frame):
+    expected = {'sample.number', 'sample.string', 'sample.true', 'sample.false'}
+    obtained = simple_frame.value_keys
+    assert expected == obtained
+
+
+def test_array_keys(simple_frame):
+    expected = {'array.index', 'array.float', 'array.string',
+                frame_data.PARTICLE_POSITIONS,
+                frame_data.PARTICLE_ELEMENTS,
+                frame_data.BOND_PAIRS}
+    obtained = simple_frame.array_keys
+    assert expected == obtained
+
+
+def test_listing_shortcut():
+    frame = DummyFrameData()
+    expected = {'single', 'untyped'}
+    assert frame.shortcuts == expected
+
+
+def test_listing_used_shortcut():
+    frame = DummyFrameData()
+    frame.single = 'something'
+    assert frame.used_shortcuts == {'single', }
