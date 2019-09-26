@@ -4,6 +4,8 @@ import numbers
 import numpy as np
 from narupa.protocol import trajectory
 
+BOX_VECTORS = 'system.box.vectors'
+
 BOND_PAIRS = 'bond.pairs'
 BOND_ORDERS = 'bond.orders'
 
@@ -164,6 +166,8 @@ class FrameData(metaclass=_FrameDataMeta):
                   field_type='number_value', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='potential_energy', key=POTENTIAL_ENERGY, record_type='values',
                   field_type='number_value', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='box_vectors', key=BOX_VECTORS, record_type='arrays',
+                  field_type='float', to_python=_n_by_3, to_raw=_flatten_2d),
     )
 
     def __init__(self, raw_frame=None):

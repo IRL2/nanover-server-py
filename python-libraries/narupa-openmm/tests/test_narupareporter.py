@@ -75,7 +75,7 @@ def test_describeNextReport(  # pylint: disable=invalid-name
     # * or energies
     # to be pulled from the context. The NarupaReported only needs the
     # positions.
-    expected_answer = (expected_steps, True, False, False, False, False)
+    expected_answer = (expected_steps, True, False, False, False, True)
     assert answer == expected_answer
 
 

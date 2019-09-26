@@ -560,7 +560,9 @@ def test_value_keys(simple_frame):
 
 def test_array_keys(simple_frame):
     expected = {'array.index', 'array.float', 'array.string',
-                frame_data.POSITIONS, frame_data.ELEMENTS, frame_data.BONDS}
+                frame_data.PARTICLE_POSITIONS,
+                frame_data.PARTICLE_ELEMENTS,
+                frame_data.BOND_PAIRS}
     obtained = simple_frame.array_keys
     assert expected == obtained
 

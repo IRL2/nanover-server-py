@@ -1,11 +1,12 @@
 """
 Functions for extracting topology from narupa frames into per-atom dictionaries.
 """
+from narupa.trajectory.frame_data import PARTICLE_ELEMENTS, PARTICLE_RESIDUES, PARTICLE_NAMES
 
 ATOM_PROPERTIES = {
-    'element': 'particle.element',
-    'id': 'atom.id',
-    'residue': 'atom.residue',
+    'element': PARTICLE_ELEMENTS,
+    'name': PARTICLE_NAMES,
+    'residue': PARTICLE_RESIDUES,
 }
 
 

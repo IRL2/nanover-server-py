@@ -48,7 +48,13 @@ ATOM_RADIUS_ANG = {
 }
 
 
-def ase_to_frame_data(ase_atoms: Atoms, positions: bool = True, topology: bool = True, state: bool = True) -> FrameData:
+def ase_to_frame_data(
+        ase_atoms: Atoms,
+        positions: bool = True,
+        topology: bool = True,
+        state: bool = True,
+        box_vectors: bool = True,
+) -> FrameData:
     """
     Constructs a Narupa frame from the state of the atoms in an ASE simulation.
 
@@ -56,15 +62,18 @@ def ase_to_frame_data(ase_atoms: Atoms, positions: bool = True, topology: bool =
     :param positions: Whether to add positions to the frame.
     :param topology: Whether to generate the current state of the topology and add it to the frame.
     :param state: Whether to add additional state information such as energies.
+    :param box_vectors: Whether to add the box vectors to the frame data.
     :return: Narupa frame.
     """
     data = FrameData()
     if positions:
-        add_ase_positions_to_frame_data(data, ase_atoms.get_positions())
+        add_ase_positions_to_frame_data(data, ase_atoms.get_positions(wrap=False))
     if topology:
         add_ase_topology_to_frame_data(data, ase_atoms)
     if state:
         add_ase_state_to_frame_data(data, ase_atoms)
+    if box_vectors:
+        add_ase_box_vectors_to_frame_data(data, ase_atoms)
     return data
 
 
@@ -121,6 +130,14 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
     :param positions:
     """
     data.particle_positions = positions * ANG_TO_NM
+
+
+def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
+    """
+    Adds the periodic box vectors to the frame.
+    """
+    box_vectors = ase_atoms.cell.copy() * ANG_TO_NM
+    data.box_vectors = box_vectors
 
 
 def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
