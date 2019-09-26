@@ -1,14 +1,30 @@
-from collections import namedtuple
+from collections import namedtuple, Set
 import itertools
 import numbers
 import numpy as np
 from narupa.protocol import trajectory
 
-POSITIONS = 'particle.position'
-ELEMENTS = 'particle.element'
-TYPES = 'particle.type'
-BONDS = 'bond'
-COUNT = 'particle.count'
+BOX_VECTORS = 'system.box.vectors'
+
+BOND_PAIRS = 'bond.pairs'
+BOND_ORDERS = 'bond.orders'
+
+PARTICLE_POSITIONS = 'particle.positions'
+PARTICLE_ELEMENTS = 'particle.elements'
+PARTICLE_TYPES = 'particle.types'
+PARTICLE_NAMES = 'particle.names'
+PARTICLE_RESIDUES = 'particle.residues'
+PARTICLE_COUNT = 'particle.count'
+
+RESIDUE_NAMES = 'residue.names'
+RESIDUE_CHAINS = 'residue.chains'
+RESIDUE_COUNT = 'residue.count'
+
+CHAIN_NAMES = 'chain.names'
+CHAIN_COUNT = 'chain.count'
+
+KINETIC_ENERGY = 'energy.kinetic'
+POTENTIAL_ENERGY = 'energy.potential'
 
 # This dictionary matches the python types to the attributes of the GRPC
 # values. This is not to do type conversion (which is handled by protobuf),
@@ -103,22 +119,55 @@ class FrameData(metaclass=_FrameDataMeta):
     :attr:`arrays` one. Both attribute behave like a dictionary. Trying to
     access a key that does not exist raises a :exc:`KeyError`.
 
+    The set of keys with data in the frame is listed by :meth:`value_keys`
+    and :meth:`array_keys`.
+
     The most common frame properties are accessible as attribute in a
     normalized format. Shortcuts are not guaranteed to contain data. Trying to
     access a shortcut that does not contain data raises a
     :exc:`MissingDataError` that can also be caught as a :exc:`KeyError`.
+
+    The available shortcuts can be listed using the :attr:`shortcuts` property.
+    The set of shortcuts that contain data is available from the
+    :attr:`used_shortcuts`.
     """
     _shortcuts = (
-        _Shortcut(name='particle_positions', key=POSITIONS, record_type='arrays',
-                  field_type='float', to_python=_n_by_3, to_raw=_flatten_2d),
-        _Shortcut(name='particle_elements', key=ELEMENTS, record_type='arrays',
-                  field_type='index', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='particle_types', key=TYPES, record_type='arrays',
-                  field_type='string', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='bonds', key=BONDS, record_type='arrays',
+        _Shortcut(name='bonds', key=BOND_PAIRS, record_type='arrays',
                   field_type='index', to_python=_n_by_2, to_raw=_flatten_2d),
-        _Shortcut(name='particle_count', key=COUNT, record_type='values',
+        _Shortcut(name='bond_orders', key=BOND_ORDERS, record_type='arrays',
+                  field_type='float', to_python=_as_is, to_raw=_as_is),
+
+        _Shortcut(name='particle_positions', key=PARTICLE_POSITIONS, record_type='arrays',
+                  field_type='float', to_python=_n_by_3, to_raw=_flatten_2d),
+        _Shortcut(name='particle_elements', key=PARTICLE_ELEMENTS, record_type='arrays',
+                  field_type='index', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='particle_types', key=PARTICLE_TYPES, record_type='arrays',
+                  field_type='string', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='particle_names', key=PARTICLE_NAMES, record_type='arrays',
+                  field_type='string', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='particle_residues', key=PARTICLE_RESIDUES, record_type='arrays',
+                  field_type='index', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='particle_count', key=PARTICLE_COUNT, record_type='values',
                   field_type='number_value', to_python=_as_is, to_raw=_as_is),
+
+        _Shortcut(name='residue_names', key=RESIDUE_NAMES, record_type='arrays',
+                  field_type='string', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='residue_chains', key=RESIDUE_CHAINS, record_type='arrays',
+                  field_type='index', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='residue_count', key=RESIDUE_COUNT, record_type='values',
+                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+
+        _Shortcut(name='chain_names', key=CHAIN_NAMES, record_type='arrays',
+                  field_type='string', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='chain_count', key=CHAIN_COUNT, record_type='values',
+                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+
+        _Shortcut(name='kinetic_energy', key=KINETIC_ENERGY, record_type='values',
+                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='potential_energy', key=POTENTIAL_ENERGY, record_type='values',
+                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='box_vectors', key=BOX_VECTORS, record_type='arrays',
+                  field_type='float', to_python=_n_by_3, to_raw=_flatten_2d),
     )
 
     def __init__(self, raw_frame=None):
@@ -134,6 +183,9 @@ class FrameData(metaclass=_FrameDataMeta):
 
     def __eq__(self, other):
         return self.raw == other.raw
+
+    def __repr__(self):
+        return repr(self.raw)
 
     @property
     def raw(self):
@@ -170,6 +222,26 @@ class FrameData(metaclass=_FrameDataMeta):
         :param value: The array to store.
         """
         self.raw.arrays[key].string_values.values[:] = value
+
+    @property
+    def value_keys(self) -> Set:
+        return self.values.keys()
+
+    @property
+    def array_keys(self) -> Set:
+        return self.arrays.keys()
+
+    @property
+    def shortcuts(self) -> Set:
+        return set(shortcut.name for shortcut in self._shortcuts)
+
+    @property
+    def used_shortcuts(self) -> Set:
+        return set(
+            shortcut.name
+            for shortcut in self._shortcuts
+            if shortcut.key in self
+        )
 
 
 class RecordView:
@@ -217,6 +289,9 @@ class RecordView:
         The method needs to be adapted to the type of field that is manipulated.
         """
         raise NotImplementedError('Subclasses must overwrite the _convert_to_python method.')
+
+    def keys(self) -> Set:
+        return set(self._raw_record.keys())
 
 
 class ValuesView(RecordView):

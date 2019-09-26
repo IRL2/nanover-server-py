@@ -32,7 +32,7 @@ def openmm_ase_frame_server(ase_atoms: Atoms, frame_server):
         if send.frame_index == 0:
             imd_calculator = ase_atoms.get_calculator()
             send.topology = imd_calculator.calculator.topology
-            frame = openmm_to_frame_data(positions=None, topology=send.topology)
+            frame = openmm_to_frame_data(state=None, topology=send.topology)
             add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
         # from then on, just send positions and state.
         else:
@@ -153,7 +153,16 @@ class OpenMMIMDRunner:
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, 300 * units.kB)
 
-        self._dynamics = NVTBerendsen(self.atoms, self.time_step * units.fs, 300, self.time_step * units.fs, fixcm=False)
+        # We do not remove the center of mass (fixcm=False). If the center of
+        # mass translations should be removed, then the removal should be added
+        # to the OpenMM system.
+        self._dynamics = NVTBerendsen(
+            atoms=self.atoms,
+            timestep=self.time_step * units.fs,
+            temperature=300,
+            taut=self.time_step * units.fs,
+            fixcm=False,
+        )
 
         if self.verbose:
             self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,

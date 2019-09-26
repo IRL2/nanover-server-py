@@ -16,6 +16,26 @@ from simtk.unit import kelvin, picosecond, femtosecond, nanometer  # pylint: dis
 from narupa.openmm import serializer
 
 
+BASIC_SIMULATION_BOX_VECTORS = [
+    [50,  0,  0],
+    [ 0, 50,  0],
+    [ 0,  0, 50]
+]
+BASIC_SIMULATION_POSITIONS = [
+    # First residue
+    [ 0,       0,      0],  # C
+    [ 5.288,   1.610,  9.359],  # H
+    [ 2.051,   8.240, -6.786],  # H
+    [-10.685, -0.537,  1.921],  # H
+    # Second residue, copied from the first but shifted
+    # by 5 nm along the Z axis
+    [  0,      0,      5],  # C
+    [  5.288,  1.610, 14.359],  # H
+    [  2.051,  8.240, -1.786],  # H
+    [-10.685, -0.537,  6.921],  # H
+]
+
+
 class DoNothingReporter:
     """
     OpenMM reporter that does nothing.
@@ -47,24 +67,8 @@ def basic_simulation():
     # We disable the pylint warning about bad spacing for the scope of the
     # function.
     # pylint: disable=bad-whitespace
-    periodic_box_vector = [
-        [50,  0,  0],
-        [ 0, 50,  0],
-        [ 0,  0, 50]
-    ]
-    positions = np.array([
-        # First residue
-        [ 0,       0,      0],  # C
-        [ 5.288,   1.610,  9.359],  # H
-        [ 2.051,   8.240, -6.786],  # H
-        [-10.685, -0.537,  1.921],  # H
-        # Second residue, copied from the first but shifted
-        # by 5 nm along the Z axis
-        [  0,      0,      5],  # C
-        [  5.288,  1.610, 14.359],  # H
-        [  2.051,  8.240, -1.786],  # H
-        [-10.685, -0.537,  6.921],  # H
-    ], dtype=np.float32)
+    periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
+    positions = np.array(BASIC_SIMULATION_POSITIONS, dtype=np.float32)
 
     topology = app.Topology()
     carbon = app.Element.getBySymbol('C')

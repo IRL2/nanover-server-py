@@ -108,7 +108,6 @@ class OpenMMCalculator(Calculator):
         :param system: OpenMM system.
         :return:
         """
-        if system.usesPeriodicBoundaryConditions():
-            boxvectors: Quantity = system.getDefaultPeriodicBoxVectors()
-            atoms.set_pbc(True)
-            atoms.set_cell(np.array([vector.value_in_unit(angstrom) for vector in boxvectors]))
+        boxvectors: Quantity = system.getDefaultPeriodicBoxVectors()
+        atoms.set_pbc(system.usesPeriodicBoundaryConditions())
+        atoms.set_cell(np.array([vector.value_in_unit(angstrom) for vector in boxvectors]))

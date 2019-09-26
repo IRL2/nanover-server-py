@@ -41,7 +41,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('-i', '--imd_port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
     parser.add_argument('-f', '--frame_interval', type=int, default=5)
-    parser.add_argument('-s', '--time_step', type=float, default=2.0)
+    parser.add_argument('-s', '--time_step', type=float, default=1.0)
     arguments = parser.parse_args(args)
     return arguments
 
