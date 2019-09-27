@@ -130,6 +130,8 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
     :param positions:
     """
     data.particle_positions = positions * ANG_TO_NM
+    data.particle_count = len(positions)
+
 
 
 def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
@@ -162,6 +164,9 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.particle_names = atom_names
     frame_data.particle_elements = elements
     frame_data.particle_residues = residue_ids
+    frame_data.particle_count = len(ase_atoms)
+    frame_data.residue_count = 1
+
 
     bonds = generate_bonds(ase_atoms)
     frame_data.bonds = bonds
