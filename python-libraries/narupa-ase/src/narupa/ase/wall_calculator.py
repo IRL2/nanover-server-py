@@ -33,7 +33,6 @@ class VelocityWallCalculator(Calculator):
 
     def calculate(self, atoms: Atoms, properties=('energy', 'forces'),
                   system_changes=all_changes):
-        print('Calculate!', id(self))
         if atoms is None:
             raise ValueError(
                 'No ASE atoms supplied to IMD calculation, '

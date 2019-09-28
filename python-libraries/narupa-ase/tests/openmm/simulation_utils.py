@@ -24,9 +24,9 @@ def build_basic_simulation():
     # function.
     # pylint: disable=bad-whitespace
     periodic_box_vector = [
-        [50,  0,  0],
-        [ 0, 50,  0],
-        [ 0,  0, 50]
+        [15,  0,  0],
+        [ 0, 15,  0],
+        [ 0,  0, 15]
     ]
     positions = np.array([
         # First residue
@@ -105,7 +105,8 @@ def basic_simulation():
     """
     Setup a minimal OpenMM simulation with two methane molecules.
     """
-    return basic_simulation()
+    return build_basic_simulation()
+
 
 @pytest.fixture
 def serialized_simulation_path(basic_simulation, tmp_path):
