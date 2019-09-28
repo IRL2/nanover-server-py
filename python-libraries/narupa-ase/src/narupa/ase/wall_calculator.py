@@ -8,7 +8,7 @@ The wall avoids particle to fly out of the box in non-periodic system. Instead,
 the particles bounced against the wall.
 """
 
-from typing import Optional
+from typing import Optional, Any
 import numpy as np
 from ase.calculators.calculator import Calculator, all_changes
 from ase import Atoms
@@ -22,13 +22,13 @@ class VelocityWallCalculator(Calculator):
             atoms: Optional[Atoms] = None,
             **kwargs
     ):
+        self._parent_calculator = calculator
         super().__init__(**kwargs)
-        self._calculator = calculator
         self.implemented_properties = ('energy', 'forces')
-        if self._calculator is not None:
+        if self._parent_calculator is not None:
             self.implemented_properties = tuple(
                 set(self.implemented_properties)
-                | set(self._calculator.implemented_properties)
+                | set(self._parent_calculator.implemented_properties)
             )
 
     def calculate(self, atoms: Atoms, properties=('energy', 'forces'),
@@ -41,9 +41,9 @@ class VelocityWallCalculator(Calculator):
 
         energy = 0.0
         forces = np.zeros((len(atoms), 3))
-        if self._calculator is not None:
-            self._calculator.calculate(atoms, properties, system_changes)
-            for key, value in self._calculator.results.items():
+        if self._parent_calculator is not None:
+            self._parent_calculator.calculate(atoms, properties, system_changes)
+            for key, value in self._parent_calculator.results.items():
                 self.results[key] = value
         self.results['energy'] = self.results.get('energy', energy)
         self.results['forces'] = self.results.get('forces', forces)
@@ -76,7 +76,13 @@ class VelocityWallCalculator(Calculator):
         if not np.allclose(cell.angles(), [90, 90, 90]):
             raise ValueError('VelocityWall only works for orthorhombic boxes.')
     
-    @property
-    def topology(self):
-        # TODO: this property is very ad hoc. I need a better solution.
-        return self._calculator.topology
+    def __getattr__(self, name: str) -> Any:
+        """
+        Give direct access to the attribute of the parent calculator if they
+        are not redefined in this one.
+
+        This is required as some uses expect some specific methods or attributes
+        from a specific calculator, and they must be available even if the
+        calculator is chained (e.g. OpenMMCalculator.topology).
+        """
+        return getattr(self._parent_calculator, name)
