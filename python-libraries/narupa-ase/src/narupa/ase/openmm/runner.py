@@ -56,6 +56,7 @@ class ImdParams:
     frame_interval: int = 5
     time_step: float = 1.0
     verbose: bool = False
+    walls: bool = False
 
 
 class OpenMMIMDRunner:
@@ -79,7 +80,7 @@ class OpenMMIMDRunner:
         self._time_step = params.time_step
         self._verbose = params.verbose
 
-        self._initialise_calculator(simulation)
+        self._initialise_calculator(simulation, walls=params.walls)
         self._initialise_dynamics()
         self._initialise_server(self.dynamics, params.trajectory_port, params.imd_port)
 
@@ -143,11 +144,13 @@ class OpenMMIMDRunner:
                                 imd_port=imd_port,
                                 )
 
-    def _initialise_calculator(self, simulation):
+    def _initialise_calculator(self, simulation, walls=False):
         self._openmm_calculator = OpenMMCalculator(simulation)
+        self._md_calculator = self._openmm_calculator
         self.atoms = self._openmm_calculator.generate_atoms()
-        self._openmm_calculator = VelocityWallCalculator(self._openmm_calculator, self.atoms)
-        self.atoms.set_calculator(self._openmm_calculator)
+        if walls:
+            self._md_calculator = VelocityWallCalculator(self._openmm_calculator, self.atoms)
+        self.atoms.set_calculator(self._md_calculator)
 
     def _initialise_dynamics(self):
         # Set the momenta corresponding to T=300K
@@ -172,6 +175,10 @@ class OpenMMIMDRunner:
     def _services_use_same_port(trajectory_port, imd_port):
         trajectory_port = get_requested_port_or_default(trajectory_port, TRAJ_DEFAULT_PORT)
         imd_port = get_requested_port_or_default(imd_port, IMD_DEFAULT_PORT)
+        # If a port is set to 0, then GRPC will affect one available port; so
+        # 0 is always a valid value.
+        if trajectory_port == 0 or imd_port == 0:
+            return False
         return trajectory_port == imd_port
         
     def __enter__(self):
