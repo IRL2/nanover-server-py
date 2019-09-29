@@ -123,8 +123,24 @@ class OpenMMIMDRunner:
     def dynamics(self):
         return self._dynamics
 
-    def run(self, steps=None):
-        self.imd.run(steps)
+    def run(self, steps: Optional[int] = None,
+            block: Optional[bool] = None, reset_energy: Optional[float] = None):
+        """
+        Runs the molecular dynamics.
+
+        :param steps: If passed, will run the given number of steps, otherwise
+            will run forever on a background thread and immediately return.
+        :param block: If ``False`` run in a separate thread. By default, "block"
+            is ``None``, which means it is automatically set to ``True`` is a
+            number of steps is provided and to ``False`` otherwise.
+        :param reset_energy: Threshold of total energy in kJ/mol above which
+            the simulation is reset to its initial conditions. If a value is
+            provided, the simulation is reset if the total energy is greater
+            than this value, or if the total energy is `nan` or infinite. If
+            ``None`` is provided instead, then the simulation will not be
+            automatically reset.
+        """
+        self.imd.run(steps, block=block, reset_energy=reset_energy)
 
     def close(self):
         """
@@ -171,9 +187,9 @@ class OpenMMIMDRunner:
         trajectory_port = get_requested_port_or_default(trajectory_port, TRAJ_DEFAULT_PORT)
         imd_port = get_requested_port_or_default(imd_port, IMD_DEFAULT_PORT)
         return trajectory_port == imd_port
-        
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, type, value, traceback):
         self.close()
