@@ -11,7 +11,7 @@ setup(name='narupa-lammps',
       url='https://gitlab.com/intangiblerealities/',
       packages=find_namespace_packages('src', include='narupa.*'),
       package_dir={'': 'src'},
-      requires=(
+      install_requires=(
             'narupa',
             'mpi4py',
             'numpy',

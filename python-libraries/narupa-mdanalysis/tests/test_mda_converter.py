@@ -1,3 +1,7 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+import os
+
 import numpy as np
 import pytest
 from MDAnalysis import Universe
@@ -5,7 +9,10 @@ from narupa.mdanalysis.converter import mdanalysis_to_frame_data, INDEX_ELEMENT,
     ALL_MDA_ATTRIBUTES, frame_data_to_mdanalysis, get_mda_attribute
 from narupa.trajectory.frame_data import (PARTICLE_ELEMENTS, MissingDataError, FrameData)
 
-TEST_SYSTEM = "2efv_fragment.pdb"
+TEST_SYSTEM = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    '2efv_fragment.pdb',
+    )
 
 
 @pytest.fixture

@@ -1,3 +1,5 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 from simtk.openmm import State
 from simtk.openmm.app.topology import Topology
 from simtk.unit import nanometer
@@ -19,7 +21,7 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
     data.residue_chains = [residue.chain.index for residue in topology.residues()]
     data.residue_count = topology.getNumResidues()
 
-    data.chain_names = [chain.name for chain in topology.chains()]
+    data.chain_names = [chain.id for chain in topology.chains()]
     data.chain_count = topology.getNumChains()
 
     atom_names = []

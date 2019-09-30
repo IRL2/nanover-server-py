@@ -1,3 +1,5 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Functions for extracting topology from narupa frames into per-atom dictionaries.
 """

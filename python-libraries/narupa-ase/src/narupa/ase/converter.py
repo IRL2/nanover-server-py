@@ -1,6 +1,9 @@
-"""Narupa ASE conversion tools.
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+"""
+Narupa ASE conversion tools.
 
-This module methods for converting between ASE simulations and Narupa frames.
+This module contains methods for converting between ASE simulations and Narupa frames.
 
 """
 from typing import Iterable, Optional

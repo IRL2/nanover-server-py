@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+
+# !/usr/bin/env python
 
 import os
 from contextlib import contextmanager
@@ -94,7 +97,6 @@ def compile_protocol(proto_dir, python_dir, logger):
                 init_py.write("from .%s import *\n" % file_name)
 
 
-
 @contextmanager
 def move_in_directory(destination):
     """
@@ -147,4 +149,4 @@ setup(name='narupa',
       entry_points={
           'console_scripts': ['narupa-multiplayer=narupa.multiplayer.cli:main'],
       }
-     )
+      )
