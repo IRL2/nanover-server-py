@@ -49,10 +49,10 @@ class VelocityWallCalculator(Calculator):
         self.results['forces'] = self.results.get('forces', forces)
 
         self._validate_box(atoms.cell)
-        self._bounce_atoms(atoms)
+        self._reflect_velocities(atoms)
 
     @staticmethod
-    def _bounce_atoms(atoms: Atoms):
+    def _reflect_velocities(atoms: Atoms):
         box = atoms.cell
         positions = atoms.get_positions()
         velocities = atoms.get_velocities()
