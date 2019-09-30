@@ -4,7 +4,7 @@
 """
 ASE calculator that implement a wall around the simulation box.
 
-The wall avoids particle to fly out of the box in non-periodic system. Instead,
+The wall prevents a particle from flying out of the box in non-periodic system. Instead,
 the particles bounced against the wall.
 """
 
