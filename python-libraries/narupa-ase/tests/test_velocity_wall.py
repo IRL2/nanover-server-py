@@ -119,8 +119,8 @@ def test_chaining_calculators(walled_calculator_and_atoms, openmm_calculator_and
     walled_dynamics = VelocityVerlet(atoms=walled_atoms, timestep=1 * units.fs)
 
     # We make sure we do not use the same atom object for the reference and for
-    # the walled system. This should not happen expect because of an accident
-    # when building the test.
+    # the walled system. This should not happen expect in the event of
+    # accidentally referencing the same object during construction of the test.
     assert walled_atoms is not reference_atoms
 
     # The first 7 steps should be identical with and without the wall:
