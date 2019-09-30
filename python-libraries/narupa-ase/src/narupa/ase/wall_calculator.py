@@ -72,7 +72,7 @@ class VelocityWallCalculator(Calculator):
         Raise an exception if the box is not compatible with the walls.
         """
         if np.isclose(cell.volume, 0):
-            raise ValueError('The simulation box has a nul volume.')
+            raise ValueError('The simulation box has a null volume.')
         if not np.allclose(cell.angles(), [90, 90, 90]):
             raise ValueError('VelocityWall only works for orthorhombic boxes.')
     
