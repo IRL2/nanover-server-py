@@ -74,7 +74,7 @@ class VelocityWallCalculator(Calculator):
         if np.isclose(cell.volume, 0):
             raise ValueError('The simulation box has a null volume.')
         if not np.allclose(cell.angles(), [90, 90, 90]):
-            raise ValueError('VelocityWall only works for orthorhombic boxes.')
+            raise ValueError('VelocityWall is only compatible with orthorhombic boxes.')
     
     def __getattr__(self, name: str) -> Any:
         """
