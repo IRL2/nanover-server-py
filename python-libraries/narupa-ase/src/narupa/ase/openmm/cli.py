@@ -45,6 +45,10 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('--reset-energy', type=float, default=1e6)
     parser.add_argument('--no-auto-reset', dest='auto_reset',
                         action='store_false', default=True)
+    parser.add_argument(
+        '-w', '--walls', action='store_true', default=False,
+        help='Set a wall around the box, atoms will bounce against it.',
+    )
     arguments = parser.parse_args(args)
     return arguments
 
@@ -53,12 +57,15 @@ def initialise(args=None):
     arguments = handle_user_arguments(args)
 
     # TODO clean way to handle params?
-    params = ImdParams(arguments.address,
-                       arguments.trajectory_port,
-                       arguments.imd_port,
-                       arguments.frame_interval,
-                       arguments.time_step,
-                       arguments.verbose)
+    params = ImdParams(
+        arguments.address,
+        arguments.trajectory_port,
+        arguments.imd_port,
+        arguments.frame_interval,
+        arguments.time_step,
+        arguments.verbose,
+        arguments.walls,
+    )
     runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params)
     # Shamefully store CLI arguments in the runner.
     runner.cli_options = {

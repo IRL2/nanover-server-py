@@ -18,19 +18,15 @@ from simtk.unit import kelvin, picosecond, femtosecond, nanometer  # pylint: dis
 from narupa.openmm import serializer
 
 
-@pytest.fixture
-def basic_simulation():
-    """
-    Setup a minimal OpenMM simulation with two methane molecules.
-    """
+def build_basic_simulation():
     # In ths function, we define matrices and we want to align the column.
     # We disable the pylint warning about bad spacing for the scope of the
     # function.
     # pylint: disable=bad-whitespace
     periodic_box_vector = [
-        [50,  0,  0],
-        [ 0, 50,  0],
-        [ 0,  0, 50]
+        [15,  0,  0],
+        [ 0, 15,  0],
+        [ 0,  0, 15]
     ]
     positions = np.array([
         # First residue
@@ -102,6 +98,14 @@ def basic_simulation():
     simulation.context.setPositions(positions * nanometer)
 
     return simulation
+
+
+@pytest.fixture
+def basic_simulation():
+    """
+    Setup a minimal OpenMM simulation with two methane molecules.
+    """
+    return build_basic_simulation()
 
 
 @pytest.fixture
