@@ -69,7 +69,7 @@ class VelocityWallCalculator(Calculator):
     @staticmethod
     def _validate_box(cell: Cell):
         """
-        Raise an exception is the box is not compatible with the walls.
+        Raise an exception if the box is not compatible with the walls.
         """
         if np.isclose(cell.volume, 0):
             raise ValueError('The simulation box has a nul volume.')
