@@ -32,11 +32,11 @@ class ASEImdServer:
     """
 
     def __init__(self, dynamics: MolecularDynamics,
-                 frame_method:Optional[Callable]=None,
+                 frame_method: Optional[Callable]=None,
                  frame_interval=1,
-                 address:Optional[str]=None,
-                 trajectory_port:Optional[int]=None,
-                 imd_port:Optional[int]=None):
+                 address: Optional[str]=None,
+                 trajectory_port: Optional[int]=None,
+                 imd_port: Optional[int]=None):
         if frame_method is None:
             frame_method = send_ase_frame
         self.frame_server = FrameServer(address=address, port=trajectory_port)
@@ -112,17 +112,21 @@ class ASEImdServer:
             steps_for_this_iteration = min(10, remaining_steps)
             self.dynamics.run(steps_for_this_iteration)
             remaining_steps -= steps_for_this_iteration
-            if reset_energy is not None:
-                energy = self.dynamics.atoms.get_total_energy() * EV_TO_KJMOL
-                if not np.isfinite(energy) or energy > reset_energy:
-                    self.reset()
+            self._reset_if_required(reset_energy)
         self._cancelled = False
+
+    def _reset_if_required(self, reset_energy):
+        if reset_energy is not None:
+            energy = self.dynamics.atoms.get_total_energy() * EV_TO_KJMOL
+            if not np.isfinite(energy) or energy > reset_energy:
+                self.reset()
 
     def cancel_run(self, wait=False):
         """
         Cancel molecular dynamics that is running on a background thread.
 
-        :param wait: Whether to block and wait for the molecular dynamics to halt before returning.
+        :param wait: Whether to block and wait for the molecular dynamics to
+            halt before returning.
         """
         if self._cancelled:
             return
@@ -137,11 +141,25 @@ class ASEImdServer:
         When this happens, the "on_reset" event is triggered and all the
         callbacks listed in the :attr:`on_reset_listeners` are called. These
         callbacks are called without arguments and no return value is stored.
+
+        .. note::
+
+            Only the positions, the velocities, and the simulation box are
+            reset to their initial values. If a simulation needs any other
+            state to be reset or updated, one should register a callback in
+            the :attr:`on_reset_listeners` list. The callbacks are executed
+            in the order of the list, after the positions, velocities, and box
+            are reset.
+
+            Such callbacks also allow to modify the simulation at each reset.
+            They would allow, for instance, to draw new velocities, or to
+            place molecules differently.
+
         """
-        self._call_on_reset()
         self.atoms.set_positions(self._initial_positions)
         self.atoms.set_velocities(self._initial_velocities)
         self.atoms.set_cell(self._initial_box)
+        self._call_on_reset()
 
     def _call_on_reset(self):
         for callback in self.on_reset_listeners:
