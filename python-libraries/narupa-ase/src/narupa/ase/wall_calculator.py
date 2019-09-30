@@ -5,7 +5,7 @@
 ASE calculator that implement a wall around the simulation box.
 
 The wall prevents a particle from flying out of the box in non-periodic system. Instead,
-the particles bounced against the wall.
+the particles bounce against the wall, preserving velocity.
 """
 
 from typing import Optional, Any
