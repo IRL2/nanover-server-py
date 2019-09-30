@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 from MDAnalysis import Universe
-from narupa.mdanalysis.converter import mdanalysis_to_frame_data, INDEX_ELEMENT, FRAME_DATA_TO_MDANALYSIS_COUNTS, \
-    ALL_MDA_ATTRIBUTES
-from narupa.trajectory.frame_data import (PARTICLE_ELEMENTS, MissingDataError)
+from narupa.mdanalysis.converter import mdanalysis_to_frame_data, INDEX_ELEMENT, MDANALYSIS_COUNTS_TO_FRAME_DATA, \
+    ALL_MDA_ATTRIBUTES, frame_data_to_mdanalysis, get_mda_attribute
+from narupa.trajectory.frame_data import (PARTICLE_ELEMENTS, MissingDataError, FrameData)
 
 TEST_SYSTEM = "2efv_fragment.pdb"
 
@@ -17,9 +17,11 @@ def universe():
 def empty_universe():
     return Universe.empty(1, trajectory=True)
 
+
 @pytest.fixture()
 def empty_universe_no_positions():
     return Universe.empty(1, trajectory=False)
+
 
 @pytest.fixture()
 def single_atom_universe(empty_universe: Universe):
@@ -43,7 +45,7 @@ def test_mdanalysis_to_frame_data(universe):
 def test_mdanalysis_particle_field(universe_attribute, mda_attribute, frame_field, frame_data):
     frame, universe = frame_data
     # fetches the atoms, residues or chains object, then the attribute.
-    attribute = getattr(getattr(universe, universe_attribute), mda_attribute)
+    attribute = get_mda_attribute(universe, universe_attribute, mda_attribute)
     field = frame.arrays[frame_field]
     if frame_field == PARTICLE_ELEMENTS:
         field = [INDEX_ELEMENT[x] for x in field]
@@ -56,7 +58,7 @@ def test_mdanalysis_positions(frame_data):
 
 
 @pytest.mark.parametrize("mda_attribute, frame_field",
-                         [(key, value) for key, value in FRAME_DATA_TO_MDANALYSIS_COUNTS.items()]
+                         [(key, value) for key, value in MDANALYSIS_COUNTS_TO_FRAME_DATA.items()]
                          )
 def test_mdanalysis_counts(mda_attribute, frame_field, frame_data):
     frame, universe = frame_data
@@ -88,3 +90,47 @@ def test_single_atom_universe(single_atom_universe):
     assert frame.residue_count == 1
     with pytest.raises(MissingDataError):
         _ = frame.bonds
+
+
+@pytest.mark.parametrize("universe_attribute, mda_attribute, frame_field",
+                         ALL_MDA_ATTRIBUTES
+                         )
+def test_framedata_to_mda_attributes(universe_attribute, mda_attribute, frame_field, frame_data):
+    frame, universe = frame_data
+    new_universe = frame_data_to_mdanalysis(frame)
+    new_universe_attribute = get_mda_attribute(new_universe, universe_attribute, mda_attribute)
+    universe_attribute = get_mda_attribute(universe, universe_attribute, mda_attribute)
+    assert all(a == b for a, b in zip(new_universe_attribute, universe_attribute))
+
+
+def test_framedata_to_mda_positions(frame_data):
+    frame, universe = frame_data
+    new_universe = frame_data_to_mdanalysis(frame)
+    assert np.allclose(new_universe.atoms.positions, universe.atoms.positions)
+
+
+@pytest.mark.parametrize("mda_attribute, frame_field",
+                         [(key, value) for key, value in MDANALYSIS_COUNTS_TO_FRAME_DATA.items()]
+                         )
+def test_framedata_to_mdanalysis_counts(mda_attribute, frame_field, frame_data):
+    frame, universe = frame_data
+    new_universe = frame_data_to_mdanalysis(frame)
+    assert len(getattr(universe, mda_attribute)) == len(getattr(new_universe, mda_attribute))
+
+
+def test_framedata_to_mda_missing_data(frame_data):
+    """
+    Tests that an MDA universe can be constructed from just particle count and particle positions,
+    with the resulting structure conforming to expectations.
+    """
+    frame, universe = frame_data
+    new_frame = FrameData()
+    new_frame.particle_count = frame.particle_count
+    new_frame.particle_positions = frame.particle_positions
+
+    new_universe = frame_data_to_mdanalysis(new_frame)
+    assert np.allclose(new_universe.atoms.positions, universe.atoms.positions)
+    assert len(new_universe.residues) == 1
+    assert len(new_universe.segments) == 1
+    with pytest.raises(AttributeError):
+        _ = new_universe.residues.resnames

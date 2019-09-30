@@ -15,6 +15,7 @@ def add_openmm_state_to_frame_data(data: FrameData, state: State):
 
 def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
     data.residue_names = [residue.name for residue in topology.residues()]
+    data.residue_ids = [residue.id for residue in topology.residues()]
     data.residue_chains = [residue.chain.index for residue in topology.residues()]
     data.residue_count = topology.getNumResidues()
 

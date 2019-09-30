@@ -13,10 +13,11 @@ PARTICLE_POSITIONS = 'particle.positions'
 PARTICLE_ELEMENTS = 'particle.elements'
 PARTICLE_TYPES = 'particle.types'
 PARTICLE_NAMES = 'particle.names'
-PARTICLE_RESIDUES = 'particle.residues'
+PARTICLE_RESIDUES = 'particle.residues'  # Index of the residue each particle belongs to.
 PARTICLE_COUNT = 'particle.count'
 
 RESIDUE_NAMES = 'residue.names'
+RESIDUE_IDS = 'residue.ids'  # Index of the chain each residue belongs to.
 RESIDUE_CHAINS = 'residue.chains'
 RESIDUE_COUNT = 'residue.count'
 
@@ -48,6 +49,10 @@ class MissingDataError(KeyError):
 
 def _as_is(value):
     return value
+
+
+def _as_int(value):
+    return int(value)
 
 
 def _n_by_2(value):
@@ -148,19 +153,19 @@ class FrameData(metaclass=_FrameDataMeta):
         _Shortcut(name='particle_residues', key=PARTICLE_RESIDUES, record_type='arrays',
                   field_type='index', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='particle_count', key=PARTICLE_COUNT, record_type='values',
-                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+                  field_type='number_value', to_python=_as_int, to_raw=_as_is),
 
         _Shortcut(name='residue_names', key=RESIDUE_NAMES, record_type='arrays',
                   field_type='string', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='residue_chains', key=RESIDUE_CHAINS, record_type='arrays',
                   field_type='index', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='residue_count', key=RESIDUE_COUNT, record_type='values',
-                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+                  field_type='number_value', to_python=_as_int, to_raw=_as_is),
 
         _Shortcut(name='chain_names', key=CHAIN_NAMES, record_type='arrays',
                   field_type='string', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='chain_count', key=CHAIN_COUNT, record_type='values',
-                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+                  field_type='number_value', to_python=_as_int, to_raw=_as_is),
 
         _Shortcut(name='kinetic_energy', key=KINETIC_ENERGY, record_type='values',
                   field_type='number_value', to_python=_as_is, to_raw=_as_is),

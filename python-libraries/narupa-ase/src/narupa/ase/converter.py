@@ -133,7 +133,6 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
     data.particle_count = len(positions)
 
 
-
 def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     """
     Adds the periodic box vectors to the frame.
@@ -151,7 +150,12 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     :param ase_atoms: ASE atoms to extract topology information from.
     """
     frame_data.residue_names = ["ASE"]
+    frame_data.residue_ids = ["1"]
     frame_data.residue_chains = [0]
+    frame_data.residue_count = 1
+
+    frame_data.chain_names = ["A"]
+    frame_data.chain_count = 1
 
     atom_names = []
     elements = []
@@ -165,8 +169,6 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.particle_elements = elements
     frame_data.particle_residues = residue_ids
     frame_data.particle_count = len(ase_atoms)
-    frame_data.residue_count = 1
-
 
     bonds = generate_bonds(ase_atoms)
     frame_data.bonds = bonds
