@@ -44,7 +44,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('-s', '--time_step', type=float, default=1.0)
     parser.add_argument(
         '-w', '--walls', action='store_true', default=False,
-        help='Set a wall around the bos, atoms will bounce against it.',
+        help='Set a wall around the box, atoms will bounce against it.',
     )
     arguments = parser.parse_args(args)
     return arguments
