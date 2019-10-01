@@ -42,9 +42,15 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('-a', '--address', default=None)
     parser.add_argument('-f', '--frame_interval', type=int, default=5)
     parser.add_argument('-s', '--time_step', type=float, default=1.0)
-    parser.add_argument('--reset-energy', type=float, default=1e6)
-    parser.add_argument('--no-auto-reset', dest='auto_reset',
-                        action='store_false', default=True)
+    parser.add_argument(
+        '--reset-energy', type=float, default=1e6,
+        help=('Threshold of total energy above which the simulation is reset '
+              '(kJ/mol). The value is ignored if --no-auto-reset is used.'),
+    )
+    parser.add_argument(
+        '--no-auto-reset', dest='auto_reset', action='store_false', default=True,
+        help='Do not reset the simulation when the energy high.',
+    )
     parser.add_argument(
         '-w', '--walls', action='store_true', default=False,
         help='Set a wall around the box, atoms will bounce against it.',
