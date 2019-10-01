@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from narupa.lammps import LammpsHook
 from narupa.lammps import DummyLammps
-from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
+from narupa.trajectory.frame_data import PARTICLE_POSITIONS, PARTICLE_ELEMENTS
 from narupa.trajectory import FrameData
 
 
@@ -29,7 +29,7 @@ def test_length_lammps_atoms(simple_atom_lammps_frame, lammps_hook):
     frame_data = FrameData()
     lammps_hook.distance_factor = 1.0
     lammps_hook.lammps_positions_to_frame_data(frame_data, simple_atom_lammps_frame)
-    assert len(frame_data.raw.arrays[POSITIONS].float_values.values) == 9
+    assert len(frame_data.raw.arrays[PARTICLE_POSITIONS].float_values.values) == 9
 
 
 def test_get_atoms(lammps_hook):
@@ -53,8 +53,8 @@ def test_elements_lammps_atoms(lammps_hook):
     dummy.n_atoms_in_dummy = 3
     frame_data = FrameData()
     atom_type, masses = lammps_hook.gather_lammps_particle_types(dummy)
-    frame_data.arrays[ELEMENTS] = atom_type
-    assert frame_data.raw.arrays[ELEMENTS].index_values.values == [1, 1, 1]
+    frame_data.arrays[PARTICLE_ELEMENTS] = atom_type
+    assert frame_data.raw.arrays[PARTICLE_ELEMENTS].index_values.values == [1, 1, 1]
 
 
 def test_forces_lammps_atoms(lammps_hook):
@@ -84,6 +84,6 @@ def test_main_hook(lammps_hook):
     lammps_hook.default_atoms = 3
     lammps_hook.lammps_hook()
     # Get first three positions and convert to list floats
-    positions = lammps_hook.frame_data.raw.arrays[POSITIONS].float_values.values[0:3]
+    positions = lammps_hook.frame_data.raw.arrays[PARTICLE_POSITIONS].float_values.values[0:3]
     positions = [float("%.1f" % x) for x in positions]
     assert positions == [0.0, 0.1, 0.2]

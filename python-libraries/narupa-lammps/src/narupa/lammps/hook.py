@@ -14,7 +14,7 @@ except ImportError:
     logging.info('lammps failed to import', exc_info=True)
 
 from narupa.trajectory import FrameServer, FrameData
-from narupa.trajectory.frame_data import POSITIONS, ELEMENTS
+from narupa.trajectory.frame_data import PARTICLE_POSITIONS, PARTICLE_ELEMENTS
 
 # IMD related imports
 from narupa.imd.imd_force import calculate_imd_force
@@ -335,7 +335,7 @@ class LammpsHook:
         positions = np.fromiter(data_array, dtype=np.float, count=len(data_array))
         # Convert to nm
         positions = np.divide(positions, self.distance_factor)
-        frame_data.arrays[POSITIONS] = positions
+        frame_data.arrays[PARTICLE_POSITIONS] = positions
 
     @property
     def interactions(self) -> List[ParticleInteraction]:
@@ -460,7 +460,7 @@ class LammpsHook:
         self.lammps_positions_to_frame_data(self.frame_data, positions)
 
         # Convert elements from list to frame data
-        self.frame_data.arrays[ELEMENTS] = self.atom_type
+        self.frame_data.arrays[PARTICLE_ELEMENTS] = self.atom_type
 
         # Send frame data
         self.frame_server.send_frame(self.frame_index, self.frame_data)
