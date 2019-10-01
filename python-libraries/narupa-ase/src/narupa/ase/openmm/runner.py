@@ -133,7 +133,7 @@ class OpenMMIMDRunner:
         :param steps: If passed, will run the given number of steps, otherwise
             will run forever on a background thread and immediately return.
         :param block: If ``False`` run in a separate thread. By default, "block"
-            is ``None``, which means it is automatically set to ``True`` is a
+            is ``None``, which means it is automatically set to ``True`` if a
             number of steps is provided and to ``False`` otherwise.
         :param reset_energy: Threshold of total energy in kJ/mol above which
             the simulation is reset to its initial conditions. If a value is
