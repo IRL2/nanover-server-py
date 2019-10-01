@@ -40,7 +40,7 @@ class ASEImdServer:
         self.imd_server = ImdServer(address=address, port=imd_port)
         self.dynamics = dynamics
         calculator = self.dynamics.atoms.get_calculator()
-        self.imd_calculator = ImdCalculator(self.imd_server.service, calculator)
+        self.imd_calculator = ImdCalculator(self.imd_server.service, calculator, dynamics=dynamics)
         self.atoms.set_calculator(self.imd_calculator)
         self.dynamics.attach(frame_method(self.atoms, self.frame_server), interval=frame_interval)
         self.threads = futures.ThreadPoolExecutor(max_workers=1)

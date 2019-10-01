@@ -41,6 +41,11 @@ def interaction():
 
 
 @pytest.fixture
+def interactions_reset():
+    return [ParticleInteraction(reset_velocities=True)] * 10
+
+
+@pytest.fixture
 def interactions():
     return [ParticleInteraction()] * 10
 
@@ -167,7 +172,7 @@ def test_multithreaded_interactions(imd_server_client):
 
     # access the interactions, while other tasks are still running.
     for _ in concurrent.futures.as_completed(interaction_tasks):
-        for interaction in imd_server.service.active_interactions:
+        for interaction in imd_server.service.active_interactions.values():
             # sleep while iterating over the interactions. If access is not threadsafe, this will cause a
             # RuntimeError.
             time.sleep(0.01)
@@ -175,3 +180,15 @@ def test_multithreaded_interactions(imd_server_client):
 
     # check that the callback has been called the correct number of times
     assert mock.callback.call_count == interactions_per_run * number_of_runs
+
+
+def test_velocity_reset_not_enabled(imd_server_client, interactions_reset):
+    imd_server, imd_client = imd_server_client
+    with pytest.raises(grpc.RpcError):
+        imd_client.publish_interactions(delayed_generator(interactions_reset, delay=0.1))
+
+
+def test_velocity_reset_not_enabled(imd_server_client, interactions_reset):
+    imd_server, imd_client = imd_server_client
+    imd_server.service.velocity_reset_enabled = True
+    imd_client.publish_interactions(delayed_generator(interactions_reset, delay=0.1))

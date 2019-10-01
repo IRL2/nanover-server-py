@@ -113,7 +113,7 @@ def build_frame_generator(osc_client):
         yield "/methane/centrality", centrality
 
         if 'energy.kinetic' in frame.values:
-            yield "/energy/kinetic", frame.values['energy.kinetic']
+            yield "/energy/kinetic", frame.kinetic_energy
 
     return frame_to_osc_messages
 
