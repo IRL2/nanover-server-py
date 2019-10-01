@@ -110,7 +110,7 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     return frame_data
 
 
-def frame_data_to_mdanalysis(frame: FrameData):
+def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
     """
     Converts from a Narupa FrameData object to an MDAnalysis universe.
 
