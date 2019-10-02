@@ -54,7 +54,7 @@ def neighbour_map_from_frame(frame):
     if BOND_PAIRS not in frame.arrays:
         return neighbour_map
 
-    for a, b in frame.bonds:
+    for a, b in frame.bond_pairs:
         neighbours = neighbour_map.get(a, set())
         neighbours.add(b)
         neighbour_map[a] = neighbours
