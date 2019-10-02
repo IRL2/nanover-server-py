@@ -23,7 +23,7 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
         elements = [element_index[guess_atom_element(name)] for name in u.atoms.names]
         frame_data.particle_elements = elements
         frame_data.particle_residues = u.atoms.resids
-        frame_data.bonds = u.atoms.bonds.indices
+        frame_data.bond_pairs = u.atoms.bonds.indices
 
     if positions:
         frame_data.particle_positions = u.atoms.positions * 0.1

@@ -135,7 +135,7 @@ class FrameData(metaclass=_FrameDataMeta):
     The set of shortcuts that contain data is available from the
     :attr:`used_shortcuts`.
     """
-    bonds = _Shortcut(
+    bond_pairs = _Shortcut(
         key=BOND_PAIRS, record_type='arrays',
         field_type='index', to_python=_n_by_2, to_raw=_flatten_2d)
     bond_orders = _Shortcut(
