@@ -43,17 +43,15 @@ class DummyFrameData(FrameData):
     """
     A dummy subclass of :class:`FrameData` with shortcut relevant for testing.
     """
-    _shortcuts = (
-        frame_data._Shortcut(
-            name='single', record_type='values', field_type=None,
-            key='dummy.single', to_python=frame_data._as_is,
-            to_raw=frame_data._as_is
-        ),
-        frame_data._Shortcut(
-            name='untyped', record_type='arrays', field_type=None,
-            key='untyped.arrays', to_python=frame_data._as_is,
-            to_raw=frame_data._as_is
-        ),
+    single = frame_data._Shortcut(
+        record_type='values', field_type=None,
+        key='dummy.single', to_python=frame_data._as_is,
+        to_raw=frame_data._as_is
+    )
+    untyped = frame_data._Shortcut(
+        record_type='arrays', field_type=None,
+        key='untyped.arrays', to_python=frame_data._as_is,
+        to_raw=frame_data._as_is
     )
 
 

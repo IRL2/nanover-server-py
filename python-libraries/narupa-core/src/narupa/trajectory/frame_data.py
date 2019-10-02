@@ -35,7 +35,7 @@ PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE = {
 }
 
 _Shortcut = namedtuple(
-    '_Shortcut', ['name', 'record_type', 'key', 'field_type', 'to_python', 'to_raw']
+    '_Shortcut', ['record_type', 'key', 'field_type', 'to_python', 'to_raw']
 )
 
 
@@ -101,12 +101,16 @@ class _FrameDataMeta(type):
     The shortcuts are defined as a tuple of :class:`_Shortcut` named tuples
     under the :attr:`_shortcuts` class attribute.
     """
-    _shortcuts = ()
+    _shortcuts = {}
 
     def __init__(cls, name, bases, nmspc):
+        shortcuts = {}
         super().__init__(name, bases, nmspc)
-        for shortcut in cls._shortcuts:
-            setattr(cls, shortcut.name, _make_shortcut(shortcut))
+        for attribute_name, attribute in nmspc.items():
+            if isinstance(attribute, _Shortcut):
+                shortcuts[attribute_name] = attribute
+                setattr(cls, attribute_name, _make_shortcut(attribute))
+        cls._shortcuts = shortcuts
 
 
 class FrameData(metaclass=_FrameDataMeta):
@@ -131,44 +135,58 @@ class FrameData(metaclass=_FrameDataMeta):
     The set of shortcuts that contain data is available from the
     :attr:`used_shortcuts`.
     """
-    _shortcuts = (
-        _Shortcut(name='bonds', key=BOND_PAIRS, record_type='arrays',
-                  field_type='index', to_python=_n_by_2, to_raw=_flatten_2d),
-        _Shortcut(name='bond_orders', key=BOND_ORDERS, record_type='arrays',
-                  field_type='float', to_python=_as_is, to_raw=_as_is),
+    bonds = _Shortcut(
+        key=BOND_PAIRS, record_type='arrays',
+        field_type='index', to_python=_n_by_2, to_raw=_flatten_2d)
+    bond_orders = _Shortcut(
+        key=BOND_ORDERS, record_type='arrays',
+        field_type='float', to_python=_as_is, to_raw=_as_is)
 
-        _Shortcut(name='particle_positions', key=PARTICLE_POSITIONS, record_type='arrays',
-                  field_type='float', to_python=_n_by_3, to_raw=_flatten_2d),
-        _Shortcut(name='particle_elements', key=PARTICLE_ELEMENTS, record_type='arrays',
-                  field_type='index', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='particle_types', key=PARTICLE_TYPES, record_type='arrays',
-                  field_type='string', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='particle_names', key=PARTICLE_NAMES, record_type='arrays',
-                  field_type='string', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='particle_residues', key=PARTICLE_RESIDUES, record_type='arrays',
-                  field_type='index', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='particle_count', key=PARTICLE_COUNT, record_type='values',
-                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+    particle_positions = _Shortcut(
+        key=PARTICLE_POSITIONS, record_type='arrays',
+        field_type='float', to_python=_n_by_3, to_raw=_flatten_2d)
+    particle_elements = _Shortcut(
+        key=PARTICLE_ELEMENTS, record_type='arrays',
+        field_type='index', to_python=_as_is, to_raw=_as_is)
+    particle_types = _Shortcut(
+        key=PARTICLE_TYPES, record_type='arrays',
+        field_type='string', to_python=_as_is, to_raw=_as_is)
+    particle_names = _Shortcut(
+        key=PARTICLE_NAMES, record_type='arrays',
+        field_type='string', to_python=_as_is, to_raw=_as_is)
+    particle_residues = _Shortcut(
+        key=PARTICLE_RESIDUES, record_type='arrays',
+        field_type='index', to_python=_as_is, to_raw=_as_is)
+    particle_count = _Shortcut(
+        key=PARTICLE_COUNT, record_type='values',
+        field_type='number_value', to_python=_as_is, to_raw=_as_is)
 
-        _Shortcut(name='residue_names', key=RESIDUE_NAMES, record_type='arrays',
-                  field_type='string', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='residue_chains', key=RESIDUE_CHAINS, record_type='arrays',
-                  field_type='index', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='residue_count', key=RESIDUE_COUNT, record_type='values',
-                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+    residue_names = _Shortcut(
+        key=RESIDUE_NAMES, record_type='arrays',
+        field_type='string', to_python=_as_is, to_raw=_as_is)
+    residue_chains = _Shortcut(
+        key=RESIDUE_CHAINS, record_type='arrays',
+        field_type='index', to_python=_as_is, to_raw=_as_is)
+    residue_count = _Shortcut(
+        key=RESIDUE_COUNT, record_type='values',
+        field_type='number_value', to_python=_as_is, to_raw=_as_is)
 
-        _Shortcut(name='chain_names', key=CHAIN_NAMES, record_type='arrays',
-                  field_type='string', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='chain_count', key=CHAIN_COUNT, record_type='values',
-                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
+    chain_names = _Shortcut(
+        key=CHAIN_NAMES, record_type='arrays',
+        field_type='string', to_python=_as_is, to_raw=_as_is)
+    chain_count = _Shortcut(
+        key=CHAIN_COUNT, record_type='values',
+        field_type='number_value', to_python=_as_is, to_raw=_as_is)
 
-        _Shortcut(name='kinetic_energy', key=KINETIC_ENERGY, record_type='values',
-                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='potential_energy', key=POTENTIAL_ENERGY, record_type='values',
-                  field_type='number_value', to_python=_as_is, to_raw=_as_is),
-        _Shortcut(name='box_vectors', key=BOX_VECTORS, record_type='arrays',
-                  field_type='float', to_python=_n_by_3, to_raw=_flatten_2d),
-    )
+    kinetic_energy = _Shortcut(
+        key=KINETIC_ENERGY, record_type='values',
+        field_type='number_value', to_python=_as_is, to_raw=_as_is)
+    potential_energy = _Shortcut(
+        key=POTENTIAL_ENERGY, record_type='values',
+        field_type='number_value', to_python=_as_is, to_raw=_as_is)
+    box_vectors = _Shortcut(
+        key=BOX_VECTORS, record_type='arrays',
+        field_type='float', to_python=_n_by_3, to_raw=_flatten_2d)
 
     def __init__(self, raw_frame=None):
         if raw_frame is None:
@@ -233,13 +251,12 @@ class FrameData(metaclass=_FrameDataMeta):
 
     @property
     def shortcuts(self) -> Set:
-        return set(shortcut.name for shortcut in self._shortcuts)
+        return set(self._shortcuts.keys())
 
     @property
     def used_shortcuts(self) -> Set:
         return set(
-            shortcut.name
-            for shortcut in self._shortcuts
+            name for name, shortcut in self._shortcuts.items()
             if shortcut.key in self
         )
 
