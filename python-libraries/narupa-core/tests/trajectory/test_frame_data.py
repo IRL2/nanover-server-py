@@ -43,17 +43,15 @@ class DummyFrameData(FrameData):
     """
     A dummy subclass of :class:`FrameData` with shortcut relevant for testing.
     """
-    _shortcuts = (
-        frame_data._Shortcut(
-            name='single', record_type='values', field_type=None,
-            key='dummy.single', to_python=frame_data._as_is,
-            to_raw=frame_data._as_is
-        ),
-        frame_data._Shortcut(
-            name='untyped', record_type='arrays', field_type=None,
-            key='untyped.arrays', to_python=frame_data._as_is,
-            to_raw=frame_data._as_is
-        ),
+    single = frame_data._Shortcut(
+        record_type='values', field_type=None,
+        key='dummy.single', to_python=frame_data._as_is,
+        to_raw=frame_data._as_is
+    )
+    untyped = frame_data._Shortcut(
+        record_type='arrays', field_type=None,
+        key='untyped.arrays', to_python=frame_data._as_is,
+        to_raw=frame_data._as_is
     )
 
 
@@ -335,7 +333,7 @@ def test_positions_shortcut_get(simple_frame):
 
 
 @pytest.mark.parametrize('key, expected', (
-    ('bonds', [[0, 1], [1, 2], [2, 3]]),
+    ('bond_pairs', [[0, 1], [1, 2], [2, 3]]),
     ('particle_elements', [10, 12, 14, 16]),
 ))
 def test_exact_shortcuts_get(simple_frame, key, expected):
@@ -361,7 +359,7 @@ def test_positions_shortcuts_set(value, expected):
 
 
 @pytest.mark.parametrize('key, raw_key, value, expected', (
-    ('bonds', frame_data.BOND_PAIRS, [[3, 4], [2, 3]], [3, 4, 2, 3]),
+    ('bond_pairs', frame_data.BOND_PAIRS, [[3, 4], [2, 3]], [3, 4, 2, 3]),
     ('particle_elements', frame_data.PARTICLE_ELEMENTS, [2, 3, 5], [2, 3, 5]),
 ))
 def test_exact_shortcuts_set(key, raw_key, value, expected):

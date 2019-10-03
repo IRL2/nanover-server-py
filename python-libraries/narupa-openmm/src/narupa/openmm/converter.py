@@ -32,7 +32,7 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
     data.particle_names = atom_names
     data.particle_elements = elements
     data.particle_residues = residue_indices
-    data.bonds = bonds
+    data.bond_pairs = bonds
 
     data.particle_count = len(atom_names)
 
