@@ -5,14 +5,20 @@ import os
 import numpy as np
 import pytest
 from MDAnalysis import Universe
-from narupa.mdanalysis.converter import mdanalysis_to_frame_data, INDEX_ELEMENT, MDANALYSIS_COUNTS_TO_FRAME_DATA, \
-    ALL_MDA_ATTRIBUTES, frame_data_to_mdanalysis, _get_mda_attribute
+from narupa.mdanalysis.converter import (
+    INDEX_ELEMENT,
+    MDANALYSIS_COUNTS_TO_FRAME_DATA,
+    ALL_MDA_ATTRIBUTES,
+    mdanalysis_to_frame_data,
+    frame_data_to_mdanalysis,
+    _get_mda_attribute,
+)
 from narupa.trajectory.frame_data import (PARTICLE_ELEMENTS, MissingDataError, FrameData)
 
 TEST_SYSTEM_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     '2efv_fragment.pdb',
-    )
+)
 
 
 @pytest.fixture
@@ -46,9 +52,10 @@ def test_mdanalysis_to_frame_data(universe):
     assert frame_data is not None
 
 
-@pytest.mark.parametrize("universe_attribute, mda_attribute, frame_field",
-                         ALL_MDA_ATTRIBUTES
-                         )
+@pytest.mark.parametrize(
+    "universe_attribute, mda_attribute, frame_field",
+    ALL_MDA_ATTRIBUTES,
+)
 def test_mdanalysis_particle_field(universe_attribute, mda_attribute, frame_field, frame_data_and_universe):
     frame, universe = frame_data_and_universe
     # fetches the atoms, residues or chains object, then the attribute.

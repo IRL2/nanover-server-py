@@ -96,6 +96,7 @@ MDA_UNIVERSE_PARAMS_TO_FRAME_DATA = {'n_atoms': FrameDataFieldConversion(PARTICL
 def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> FrameData:
     """
     Converts from an MDAnalysis universe to Narupa FrameData object.
+
     :param u: MDAnalysis universe.
     :param topology: Whether to include topology.
     :param positions: Whether to include positions.
@@ -177,6 +178,7 @@ def add_frame_positions_to_mda(u: Universe, frame: FrameData):
 def _add_bonds_to_mda(u: Universe, frame: FrameData):
     """
     Add bonds from a framedata object to an MDAnalysis universe.
+
     :param u: MDAnalysis universe.
     :param frame: Narupa FrameData.
     """
@@ -190,6 +192,7 @@ def _add_bonds_to_mda(u: Universe, frame: FrameData):
 def _get_universe_constructor_params(frame: FrameData):
     """
     Gets the MDAnalysis universe constructor params from a Narupa frame data.
+
     :param frame: Narupa FrameData object.
     :return: Dictionary of params to construct an MDAnalysis universe object.
 
@@ -197,8 +200,11 @@ def _get_universe_constructor_params(frame: FrameData):
     options such as number of atoms, number of residues, number of segments, and their identifiers.
     This method extracts this data from a Narupa FrameData object.
     """
-    params = {param_name: converter(_try_get_field(frame, field)) for param_name, (field, converter) in
-              MDA_UNIVERSE_PARAMS_TO_FRAME_DATA.items()}
+    params = {
+        param_name: converter(_try_get_field(frame, field))
+        for param_name, (field, converter)
+        in MDA_UNIVERSE_PARAMS_TO_FRAME_DATA.items()
+    }
 
     params['trajectory'] = True
     return params
@@ -207,6 +213,7 @@ def _get_universe_constructor_params(frame: FrameData):
 def _get_mda_attribute(u: Universe, group, group_attribute):
     """
     Gets an attribute associated with a particular group.
+
     :param u: MDAnalysis universe.
     :param group: The group in the MDAnalysis universe in which the attribute exists.
     :param group_attribute: The attribute.
@@ -220,6 +227,7 @@ def _get_mda_attribute(u: Universe, group, group_attribute):
 def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
     """
     Adds all available MDAnalysis attributes from the given universe to the given frame data
+
     :param u: MDAnalysis universe.
     :param frame_data: Narupa frame data.
 
@@ -238,6 +246,7 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
 def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
     """
     Adds the counts of all available MDAnalysis groups from the given universe to the given frame data.
+
     :param u: MDAnalysis universe.
     :param frame_data: Narupa frame data.
 
