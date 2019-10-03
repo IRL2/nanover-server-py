@@ -153,7 +153,6 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     :param ase_atoms: ASE atoms to extract topology information from.
     """
     frame_data.residue_names = ["ASE"]
-    frame_data.residue_ids = ["1"]
     frame_data.residue_chains = [0]
     frame_data.residue_count = 1
 
