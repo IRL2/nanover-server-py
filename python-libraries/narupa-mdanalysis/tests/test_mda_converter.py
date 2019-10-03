@@ -71,9 +71,10 @@ def test_mdanalysis_positions(frame_data_and_universe):
     assert np.allclose(np.array(frame.particle_positions) * 10, universe.atoms.positions)
 
 
-@pytest.mark.parametrize("mda_attribute, frame_field",
-                         [(key, value) for key, value in MDANALYSIS_COUNTS_TO_FRAME_DATA.items()]
-                         )
+@pytest.mark.parametrize(
+    "mda_attribute, frame_field",
+    list(MDANALYSIS_COUNTS_TO_FRAME_DATA.items())
+)
 def test_mdanalysis_counts(mda_attribute, frame_field, frame_data_and_universe):
     frame, universe = frame_data_and_universe
     assert len(getattr(universe, mda_attribute)) == frame.values[frame_field]
@@ -83,7 +84,7 @@ def test_mdanalysis_bonds(frame_data_and_universe):
     frame, universe = frame_data_and_universe
     frame_bonds = np.array(frame.bonds)
     universe_bonds = np.array(universe.bonds.indices)
-    assert np.allclose(frame_bonds, universe_bonds)
+    assert np.all(frame_bonds == universe_bonds)
 
 
 def test_empty_universe(empty_universe_no_positions):
@@ -106,9 +107,10 @@ def test_single_atom_universe(single_atom_universe):
         _ = frame.bonds
 
 
-@pytest.mark.parametrize("universe_attribute, mda_attribute, frame_field",
-                         ALL_MDA_ATTRIBUTES
-                         )
+@pytest.mark.parametrize(
+    "universe_attribute, mda_attribute, frame_field",
+    ALL_MDA_ATTRIBUTES
+)
 def test_framedata_to_mda_attributes(universe_attribute, mda_attribute, frame_field, frame_data_and_universe):
     frame, universe = frame_data_and_universe
     new_universe = frame_data_to_mdanalysis(frame)
