@@ -90,6 +90,7 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
 
     """
     Converts from an MDAnalysis universe to Narupa FrameData object.
+
     :param u: MDAnalysis universe.
     :param topology: Whether to include topology.
     :param positions: Whether to include positions.
