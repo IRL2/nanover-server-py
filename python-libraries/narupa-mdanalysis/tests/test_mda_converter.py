@@ -18,7 +18,7 @@ from narupa.trajectory.frame_data import (PARTICLE_ELEMENTS, MissingDataError, F
 TEST_SYSTEM = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     '2efv_fragment.pdb',
-    )
+)
 
 
 @pytest.fixture
