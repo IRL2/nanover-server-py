@@ -52,9 +52,10 @@ def test_mdanalysis_to_frame_data(universe):
     assert frame_data is not None
 
 
-@pytest.mark.parametrize("universe_attribute, mda_attribute, frame_field",
-                         ALL_MDA_ATTRIBUTES
-                         )
+@pytest.mark.parametrize(
+    "universe_attribute, mda_attribute, frame_field",
+    ALL_MDA_ATTRIBUTES,
+)
 def test_mdanalysis_particle_field(universe_attribute, mda_attribute, frame_field, frame_data):
     frame, universe = frame_data
     # fetches the atoms, residues or chains object, then the attribute.
