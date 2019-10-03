@@ -138,6 +138,7 @@ def add_positions_to_mda(u: Universe, frame: FrameData):
 def add_bonds_to_mda(u: Universe, frame: FrameData):
     """
     Add bonds from a framedata object to an MDAnalysis universe.
+
     :param u: MDAnalysis universe.
     :param frame: Narupa FrameData.
     """
