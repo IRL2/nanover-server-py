@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from MDAnalysis import Universe
 from narupa.mdanalysis.converter import mdanalysis_to_frame_data, INDEX_ELEMENT, MDANALYSIS_COUNTS_TO_FRAME_DATA, \
-    ALL_MDA_ATTRIBUTES, frame_data_to_mdanalysis, get_mda_attribute
+    ALL_MDA_ATTRIBUTES, frame_data_to_mdanalysis, _get_mda_attribute
 from narupa.trajectory.frame_data import (PARTICLE_ELEMENTS, MissingDataError, FrameData)
 
 TEST_SYSTEM = os.path.join(
@@ -52,7 +52,7 @@ def test_mdanalysis_to_frame_data(universe):
 def test_mdanalysis_particle_field(universe_attribute, mda_attribute, frame_field, frame_data):
     frame, universe = frame_data
     # fetches the atoms, residues or chains object, then the attribute.
-    attribute = get_mda_attribute(universe, universe_attribute, mda_attribute)
+    attribute = _get_mda_attribute(universe, universe_attribute, mda_attribute)
     field = frame.arrays[frame_field]
     if frame_field == PARTICLE_ELEMENTS:
         field = [INDEX_ELEMENT[x] for x in field]
@@ -105,8 +105,8 @@ def test_single_atom_universe(single_atom_universe):
 def test_framedata_to_mda_attributes(universe_attribute, mda_attribute, frame_field, frame_data):
     frame, universe = frame_data
     new_universe = frame_data_to_mdanalysis(frame)
-    new_universe_attribute = get_mda_attribute(new_universe, universe_attribute, mda_attribute)
-    universe_attribute = get_mda_attribute(universe, universe_attribute, mda_attribute)
+    new_universe_attribute = _get_mda_attribute(new_universe, universe_attribute, mda_attribute)
+    universe_attribute = _get_mda_attribute(universe, universe_attribute, mda_attribute)
     assert all(a == b for a, b in zip(new_universe_attribute, universe_attribute))
 
 

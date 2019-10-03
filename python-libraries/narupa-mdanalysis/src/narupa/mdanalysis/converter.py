@@ -1,5 +1,8 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+"""
+Module for performing conversions between MDAnalysis universes and Narupa FrameData objects.
+"""
 import collections
 from collections import Container
 
@@ -12,8 +15,11 @@ from narupa.trajectory.frame_data import (PARTICLE_COUNT, RESIDUE_COUNT, CHAIN_C
                                           PARTICLE_RESIDUES, RESIDUE_NAMES, RESIDUE_CHAINS, CHAIN_NAMES,
                                           MissingDataError, RESIDUE_IDS)
 
+# tuple for storing a frame data key and whether it is required in conversion.
 FrameDataField = collections.namedtuple('FrameDataField', 'key required')
-FrameDataFieldConversion = collections.namedtuple('FrameDataFieldConversion', 'key converter')
+# tuple for storing a frame data key and a conversion method to apply when producing the corresponding attribute
+# in MDAnalysis.
+FrameDataFieldConversion = collections.namedtuple('FrameDataFieldConversion', 'key converter') # tuple for
 
 ELEMENT_INDEX = {
     'H': 1,
@@ -53,6 +59,7 @@ def nullable_int(value):
         return value
     return int(value)
 
+
 def _identity(value):
     return value
 
@@ -87,7 +94,6 @@ MDA_UNIVERSE_PARAMS_TO_FRAME_DATA = {'n_atoms': FrameDataFieldConversion(PARTICL
 
 
 def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> FrameData:
-
     """
     Converts from an MDAnalysis universe to Narupa FrameData object.
     :param u: MDAnalysis universe.
@@ -100,12 +106,10 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     frame_data = FrameData()
 
     if topology:
-        _add_mda_attributes(u, frame_data)
-        _add_mda_counts_to_frame_data(u, frame_data)
-        _add_mda_bonds_to_frame_data(u, frame_data)
+        add_mda_topology_to_frame_data(u, frame_data)
 
     if positions:
-        _add_mda_positions_to_frame_data(u, frame_data)
+        add_mda_positions_to_frame_data(u, frame_data)
 
     return frame_data
 
@@ -121,20 +125,56 @@ def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
     params = _get_universe_constructor_params(frame)
     universe = Universe.empty(**params)
 
-    add_positions_to_mda(universe, frame)
+    add_frame_positions_to_mda(universe, frame)
 
     # additional topology information.
     _add_frame_attributes_to_mda(universe, frame)
-    add_bonds_to_mda(universe, frame)
+    _add_bonds_to_mda(universe, frame)
 
     return universe
 
 
-def add_positions_to_mda(u: Universe, frame: FrameData):
+def add_mda_topology_to_frame_data(u, frame_data):
+    """
+    Adds available topology information from an MDAnalysis Universe to a FrameData.
+    :param u: MDAnalysis universe.
+    :param frame_data: FrameData to add to.
+    """
+    _add_mda_attributes_to_frame_data(u, frame_data)
+    _add_mda_counts_to_frame_data(u, frame_data)
+    _add_mda_bonds_to_frame_data(u, frame_data)
+
+
+def add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData):
+    """
+    Adds the positions in a MDAnalysis universe to the frame data, if they exist.
+    :param u: MDAnalysis universe.
+    :param frame_data: Narupa frame data.
+
+    :raises: MissingDataError, if no positions exist in the universe.
+   """
+    try:
+        frame_data.particle_positions = u.atoms.positions * 0.1
+    except AttributeError:
+        raise MissingDataError("MDAnalysis universe has no positions.")
+    frame_data.particle_count = len(u.atoms)
+
+
+def add_frame_topology_to_mda(u: Universe, frame: FrameData):
+    _add_bonds_to_mda(u, frame)
+    _add_frame_attributes_to_mda(u, frame)
+
+
+def add_frame_positions_to_mda(u: Universe, frame: FrameData):
+    """
+    Updates the positions in an MDAnalysis universe with those from the given frame.
+    :param u: MDAnalysis universe to set positions of.
+    :param frame: Narupa Frame.
+    """
     u.atoms.positions = np.array(frame.particle_positions) * 10
 
 
-def add_bonds_to_mda(u: Universe, frame: FrameData):
+def _add_bonds_to_mda(u: Universe, frame: FrameData):
     """
     Add bonds from a framedata object to an MDAnalysis universe.
     :param u: MDAnalysis universe.
@@ -164,7 +204,7 @@ def _get_universe_constructor_params(frame: FrameData):
     return params
 
 
-def get_mda_attribute(u: Universe, group, group_attribute):
+def _get_mda_attribute(u: Universe, group, group_attribute):
     """
     Gets an attribute associated with a particular group.
     :param u: MDAnalysis universe.
@@ -177,7 +217,7 @@ def get_mda_attribute(u: Universe, group, group_attribute):
     return getattr(getattr(u, group), group_attribute)
 
 
-def _add_mda_attributes(u: Universe, frame_data: FrameData):
+def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
     """
     Adds all available MDAnalysis attributes from the given universe to the given frame data
     :param u: MDAnalysis universe.
@@ -187,7 +227,7 @@ def _add_mda_attributes(u: Universe, frame_data: FrameData):
     """
     for group, attribute, frame_key in ALL_MDA_ATTRIBUTES:
         try:
-            field = get_mda_attribute(u, group, attribute)
+            field = _get_mda_attribute(u, group, attribute)
         except AttributeError:
             continue
         if frame_key == PARTICLE_ELEMENTS:
@@ -221,21 +261,6 @@ def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
         frame_data.bonds = u.atoms.bonds.indices
     except AttributeError:
         pass
-
-
-def _add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData):
-    """
-    Adds the positions in a MDAnalysis universe to the frame data, if they exist.
-    :param u: MDAnalysis universe.
-    :param frame_data: Narupa frame data.
-
-    :raises: MissingDataError, if no positions exist in the universe.
-   """
-    try:
-        frame_data.particle_positions = u.atoms.positions * 0.1
-    except AttributeError:
-        raise MissingDataError("MDAnalysis universe has no positions.")
-    frame_data.particle_count = len(u.atoms)
 
 
 def _try_get_field(frame: FrameData, field):
