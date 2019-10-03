@@ -75,7 +75,7 @@ def test_describeNextReport(  # pylint: disable=invalid-name
     # * or energies
     # to be pulled from the context. The NarupaReported only needs the
     # positions.
-    expected_answer = (expected_steps, True, False, False, False, False)
+    expected_answer = (expected_steps, True, False, False, False, True)
     assert answer == expected_answer
 
 
@@ -102,12 +102,12 @@ def test_report(basic_simulation):
 
     frame_index, topology = frame_server.all_sent_frames[0]
     assert frame_index == 0
-    assert topology.arrays['residue.id'] == ['METH1', 'METH2']
-    assert topology.arrays['residue.chain'] == [0, 1]
-    assert topology.arrays['atom.id'] == ['C1', 'H2', 'H3', 'H4'] * 2
+    assert topology.residue_names == ['METH1', 'METH2']
+    assert topology.residue_chains == [0, 1]
+    assert topology.particle_names == ['C1', 'H2', 'H3', 'H4'] * 2
     assert topology.particle_elements == [6, 1, 1, 1] * 2
-    assert topology.arrays['atom.residue'] == [0] * 4 + [1] * 4
-    assert topology.bonds == [
+    assert topology.particle_residues == [0] * 4 + [1] * 4
+    assert topology.bond_pairs == [
         [0, 1], [0, 2], [0, 3],  # First residue
         [4, 5], [4, 6], [4, 7],  # Second residue
     ]

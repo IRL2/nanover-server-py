@@ -41,7 +41,11 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('-i', '--imd_port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
     parser.add_argument('-f', '--frame_interval', type=int, default=5)
-    parser.add_argument('-s', '--time_step', type=float, default=2.0)
+    parser.add_argument('-s', '--time_step', type=float, default=1.0)
+    parser.add_argument(
+        '-w', '--walls', action='store_true', default=False,
+        help='Set a wall around the box, atoms will bounce against it.',
+    )
     arguments = parser.parse_args(args)
     return arguments
 
@@ -50,12 +54,15 @@ def initialise(args=None):
     arguments = handle_user_arguments(args)
 
     # TODO clean way to handle params?
-    params = ImdParams(arguments.address,
-                       arguments.trajectory_port,
-                       arguments.imd_port,
-                       arguments.frame_interval,
-                       arguments.time_step,
-                       arguments.verbose)
+    params = ImdParams(
+        arguments.address,
+        arguments.trajectory_port,
+        arguments.imd_port,
+        arguments.frame_interval,
+        arguments.time_step,
+        arguments.verbose,
+        arguments.walls,
+    )
     runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params)
     return runner
 

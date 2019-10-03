@@ -48,7 +48,13 @@ ATOM_RADIUS_ANG = {
 }
 
 
-def ase_to_frame_data(ase_atoms: Atoms, positions: bool = True, topology: bool = True, state: bool = True) -> FrameData:
+def ase_to_frame_data(
+        ase_atoms: Atoms,
+        positions: bool = True,
+        topology: bool = True,
+        state: bool = True,
+        box_vectors: bool = True,
+) -> FrameData:
     """
     Constructs a Narupa frame from the state of the atoms in an ASE simulation.
 
@@ -56,15 +62,18 @@ def ase_to_frame_data(ase_atoms: Atoms, positions: bool = True, topology: bool =
     :param positions: Whether to add positions to the frame.
     :param topology: Whether to generate the current state of the topology and add it to the frame.
     :param state: Whether to add additional state information such as energies.
+    :param box_vectors: Whether to add the box vectors to the frame data.
     :return: Narupa frame.
     """
     data = FrameData()
     if positions:
-        add_ase_positions_to_frame_data(data, ase_atoms.get_positions())
+        add_ase_positions_to_frame_data(data, ase_atoms.get_positions(wrap=False))
     if topology:
         add_ase_topology_to_frame_data(data, ase_atoms)
     if state:
         add_ase_state_to_frame_data(data, ase_atoms)
+    if box_vectors:
+        add_ase_box_vectors_to_frame_data(data, ase_atoms)
     return data
 
 
@@ -123,6 +132,14 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
     data.particle_positions = positions * ANG_TO_NM
 
 
+def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
+    """
+    Adds the periodic box vectors to the frame.
+    """
+    box_vectors = ase_atoms.cell.copy() * ANG_TO_NM
+    data.box_vectors = box_vectors
+
+
 def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
     Generates a topology for the current state of the atoms and adds it to the frame.
@@ -131,8 +148,8 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     :param frame_data: Frame data to add topology information to.
     :param ase_atoms: ASE atoms to extract topology information from.
     """
-    frame_data.arrays['residue.id'] = ["ASE"]
-    frame_data.arrays['residue.chain'] = [0]
+    frame_data.residue_names = ["ASE"]
+    frame_data.residue_chains = [0]
 
     atom_names = []
     elements = []
@@ -142,12 +159,12 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
         elements.append(atom.number)
         residue_ids.append(0)
 
-    frame_data.arrays['atom.id'] = atom_names
+    frame_data.particle_names = atom_names
     frame_data.particle_elements = elements
-    frame_data.arrays['atom.residue'] = residue_ids
+    frame_data.particle_residues = residue_ids
 
     bonds = generate_bonds(ase_atoms)
-    frame_data.bonds = bonds
+    frame_data.bond_pairs = bonds
 
 
 def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
@@ -161,8 +178,8 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     # get the energy directly, without performing a recalculation.
     energy = ase_atoms.get_calculator().get_property('energy', allow_calculation=False)
     if energy is not None:
-        frame_data.values['energy.potential'] = energy
-    frame_data.values['energy.kinetic'] = ase_atoms.get_kinetic_energy()
+        frame_data.potential_energy = energy
+    frame_data.kinetic_energy = ase_atoms.get_kinetic_energy()
 
 
 def get_radius_of_element(symbol: str):

@@ -1,70 +1,70 @@
 <OpenMMSimulation>
-	<pdb>REMARK   1 CREATED WITH OPENMM 7.3, 2019-05-15
-HETATM    1 mm3_ mm3 A   1      -4.162   3.411   2.797  1.00  0.00           C  
-HETATM    2 mm3_ mm3 A   1      -3.844   3.625   1.661  1.00  0.00           C  
-HETATM    3 mm3_ mm3 A   1      -2.530   3.615   1.080  1.00  0.00           C  
-HETATM    4 mm3_ mm3 A   1      -1.901   4.925   0.710  1.00  0.00           C  
-HETATM    5 mm3_ mm3 A   1      -2.640   6.134   0.953  1.00  0.00           C  
-HETATM    6 mm3_ mm3 A   1      -2.453   6.969   1.792  1.00  0.00           C  
-HETATM    7 mm3_ mm3 A   1      -1.431   7.016   2.799  1.00  0.00           C  
-HETATM    8 mm3_ mm3 A   1      -1.810   6.777   4.227  1.00  0.00           C  
-HETATM    9 mm3_ mm3 A   1      -3.191   6.629   4.563  1.00  0.00           C  
-HETATM   10 mm3_ mm3 A   1      -3.838   5.316   4.944  1.00  0.00           C  
-HETATM   11 mm3_ mm3 A   1      -3.102   4.090   4.987  1.00  0.00           C  
-HETATM   12 mm3_ mm3 A   1      -3.326   3.071   3.914  1.00  0.00           C  
-HETATM   13 mm3_ mm3 A   1      -2.068   2.379   3.376  1.00  0.00           C  
-HETATM   14 mm3_ mm3 A   1      -1.653   2.660   1.901  1.00  0.00           C  
-HETATM   15 mm3_ mm3 A   1      -0.181   2.632   1.620  1.00  0.00           C  
-HETATM   16 mm3_ mm3 A   1       0.454   3.953   1.246  1.00  0.00           C  
-HETATM   17 mm3_ mm3 A   1      -0.462   5.138   1.200  1.00  0.00           C  
-HETATM   18 mm3_ mm3 A   1      -0.219   6.226   2.288  1.00  0.00           C  
-HETATM   19 mm3_ mm3 A   1       0.893   5.948   3.251  1.00  0.00           C  
-HETATM   20 mm3_ mm3 A   1       0.483   5.677   4.682  1.00  0.00           C  
-HETATM   21 mm3_ mm3 A   1      -0.991   5.722   4.967  1.00  0.00           C  
-HETATM   22 mm3_ mm3 A   1      -1.644   4.365   5.352  1.00  0.00           C  
-HETATM   23 mm3_ mm3 A   1      -0.715   3.184   5.387  1.00  0.00           C  
-HETATM   24 mm3_ mm3 A   1      -0.944   2.125   4.332  1.00  0.00           C  
-HETATM   25 mm3_ mm3 A   1       0.271   1.407   3.831  1.00  0.00           C  
-HETATM   26 mm3_ mm3 A   1       0.676   1.674   2.394  1.00  0.00           C  
-HETATM   27 mm3_ mm3 A   1       2.149   1.647   2.102  1.00  0.00           C  
-HETATM   28 mm3_ mm3 A   1       2.785   2.969   1.728  1.00  0.00           C  
-HETATM   29 mm3_ mm3 A   1       1.872   4.161   1.691  1.00  0.00           C  
-HETATM   30 mm3_ mm3 A   1       2.103   5.218   2.753  1.00  0.00           C  
-HETATM   31 mm3_ mm3 A   1       3.217   4.957   3.723  1.00  0.00           C  
-HETATM   32 mm3_ mm3 A   1       2.811   4.689   5.159  1.00  0.00           C  
-HETATM   33 mm3_ mm3 A   1       1.338   4.716   5.451  1.00  0.00           C  
-HETATM   34 mm3_ mm3 A   1       0.702   3.394   5.826  1.00  0.00           C  
-HETATM   35 mm3_ mm3 A   1       1.615   2.202   5.863  1.00  0.00           C  
-HETATM   36 mm3_ mm3 A   1       1.384   1.145   4.801  1.00  0.00           C  
-HETATM   37 mm3_ mm3 A   1       2.594   0.416   4.302  1.00  0.00           C  
-HETATM   38 mm3_ mm3 A   1       3.004   0.687   2.872  1.00  0.00           C  
-HETATM   39 mm3_ mm3 A   1       4.478   0.641   2.587  1.00  0.00           C  
-HETATM   40 mm3_ mm3 A   1       5.132   1.999   2.202  1.00  0.00           C  
-HETATM   41 mm3_ mm3 A   1       4.203   3.179   2.166  1.00  0.00           C  
-HETATM   42 mm3_ mm3 A   1       4.432   4.239   3.221  1.00  0.00           C  
-HETATM   43 mm3_ mm3 A   1       5.555   3.985   4.178  1.00  0.00           C  
-HETATM   44 mm3_ mm3 A   1       5.140   3.704   5.653  1.00  0.00           C  
-HETATM   45 mm3_ mm3 A   1       3.668   3.732   5.933  1.00  0.00           C  
-HETATM   46 mm3_ mm3 A   1       3.033   2.411   6.307  1.00  0.00           C  
-HETATM   47 mm3_ mm3 A   1       3.949   1.225   6.354  1.00  0.00           C  
-HETATM   48 mm3_ mm3 A   1       3.706   0.137   5.266  1.00  0.00           C  
-HETATM   49 mm3_ mm3 A   1       4.918  -0.653   4.755  1.00  0.00           C  
-HETATM   50 mm3_ mm3 A   1       5.297  -0.413   3.327  1.00  0.00           C  
-HETATM   51 mm3_ mm3 A   1       6.679  -0.265   2.993  1.00  0.00           C  
-HETATM   52 mm3_ mm3 A   1       7.326   1.047   2.612  1.00  0.00           C  
-HETATM   53 mm3_ mm3 A   1       6.590   2.273   2.567  1.00  0.00           C  
-HETATM   54 mm3_ mm3 A   1       6.814   3.292   3.640  1.00  0.00           C  
-HETATM   55 mm3_ mm3 A   1       7.650   2.951   4.757  1.00  0.00           C  
-HETATM   56 mm3_ mm3 A   1       7.331   2.738   5.893  1.00  0.00           C  
-HETATM   57 mm3_ mm3 A   1       6.017   2.748   6.474  1.00  0.00           C  
-HETATM   58 mm3_ mm3 A   1       5.388   1.439   6.845  1.00  0.00           C  
-HETATM   59 mm3_ mm3 A   1       6.126   0.230   6.601  1.00  0.00           C  
-HETATM   60 mm3_ mm3 A   1       5.940  -0.605   5.762  1.00  0.00           C  
-HETATM   61 mm3_ mm3 A   1      -6.504   6.814   2.428  1.00  0.00           C  
-HETATM   62 mm3_ mm3 A   1      -7.236   7.252   3.110  1.00  0.00           H  
-HETATM   63 mm3_ mm3 A   1      -5.599   7.425   2.427  1.00  0.00           H  
-HETATM   64 mm3_ mm3 A   1      -6.262   5.802   2.758  1.00  0.00           H  
-HETATM   65 mm3_ mm3 A   1      -6.920   6.778   1.419  1.00  0.00           H  
+	<pdb>REMARK   1 CREATED WITH OPENMM 7.3.1, 2019-09-17
+HETATM    1 mm3_ mm3 A   1      29.729  34.950  34.124  1.00  0.00           C  
+HETATM    2 mm3_ mm3 A   1      30.047  35.164  32.988  1.00  0.00           C  
+HETATM    3 mm3_ mm3 A   1      31.361  35.154  32.407  1.00  0.00           C  
+HETATM    4 mm3_ mm3 A   1      31.990  36.464  32.037  1.00  0.00           C  
+HETATM    5 mm3_ mm3 A   1      31.251  37.673  32.280  1.00  0.00           C  
+HETATM    6 mm3_ mm3 A   1      31.438  38.508  33.119  1.00  0.00           C  
+HETATM    7 mm3_ mm3 A   1      32.460  38.555  34.126  1.00  0.00           C  
+HETATM    8 mm3_ mm3 A   1      32.081  38.316  35.554  1.00  0.00           C  
+HETATM    9 mm3_ mm3 A   1      30.700  38.168  35.890  1.00  0.00           C  
+HETATM   10 mm3_ mm3 A   1      30.053  36.855  36.271  1.00  0.00           C  
+HETATM   11 mm3_ mm3 A   1      30.789  35.629  36.314  1.00  0.00           C  
+HETATM   12 mm3_ mm3 A   1      30.565  34.610  35.241  1.00  0.00           C  
+HETATM   13 mm3_ mm3 A   1      31.823  33.918  34.703  1.00  0.00           C  
+HETATM   14 mm3_ mm3 A   1      32.238  34.199  33.228  1.00  0.00           C  
+HETATM   15 mm3_ mm3 A   1      33.710  34.171  32.947  1.00  0.00           C  
+HETATM   16 mm3_ mm3 A   1      34.345  35.492  32.573  1.00  0.00           C  
+HETATM   17 mm3_ mm3 A   1      33.429  36.677  32.527  1.00  0.00           C  
+HETATM   18 mm3_ mm3 A   1      33.672  37.765  33.615  1.00  0.00           C  
+HETATM   19 mm3_ mm3 A   1      34.784  37.487  34.578  1.00  0.00           C  
+HETATM   20 mm3_ mm3 A   1      34.374  37.216  36.009  1.00  0.00           C  
+HETATM   21 mm3_ mm3 A   1      32.900  37.261  36.294  1.00  0.00           C  
+HETATM   22 mm3_ mm3 A   1      32.247  35.904  36.679  1.00  0.00           C  
+HETATM   23 mm3_ mm3 A   1      33.176  34.723  36.714  1.00  0.00           C  
+HETATM   24 mm3_ mm3 A   1      32.947  33.664  35.659  1.00  0.00           C  
+HETATM   25 mm3_ mm3 A   1      34.162  32.946  35.158  1.00  0.00           C  
+HETATM   26 mm3_ mm3 A   1      34.567  33.213  33.721  1.00  0.00           C  
+HETATM   27 mm3_ mm3 A   1      36.040  33.186  33.429  1.00  0.00           C  
+HETATM   28 mm3_ mm3 A   1      36.676  34.508  33.055  1.00  0.00           C  
+HETATM   29 mm3_ mm3 A   1      35.763  35.700  33.018  1.00  0.00           C  
+HETATM   30 mm3_ mm3 A   1      35.994  36.757  34.080  1.00  0.00           C  
+HETATM   31 mm3_ mm3 A   1      37.108  36.496  35.050  1.00  0.00           C  
+HETATM   32 mm3_ mm3 A   1      36.702  36.228  36.486  1.00  0.00           C  
+HETATM   33 mm3_ mm3 A   1      35.229  36.255  36.778  1.00  0.00           C  
+HETATM   34 mm3_ mm3 A   1      34.593  34.933  37.153  1.00  0.00           C  
+HETATM   35 mm3_ mm3 A   1      35.506  33.741  37.190  1.00  0.00           C  
+HETATM   36 mm3_ mm3 A   1      35.275  32.684  36.128  1.00  0.00           C  
+HETATM   37 mm3_ mm3 A   1      36.485  31.955  35.629  1.00  0.00           C  
+HETATM   38 mm3_ mm3 A   1      36.895  32.226  34.199  1.00  0.00           C  
+HETATM   39 mm3_ mm3 A   1      38.369  32.180  33.914  1.00  0.00           C  
+HETATM   40 mm3_ mm3 A   1      39.023  33.538  33.529  1.00  0.00           C  
+HETATM   41 mm3_ mm3 A   1      38.094  34.718  33.493  1.00  0.00           C  
+HETATM   42 mm3_ mm3 A   1      38.323  35.778  34.548  1.00  0.00           C  
+HETATM   43 mm3_ mm3 A   1      39.446  35.524  35.505  1.00  0.00           C  
+HETATM   44 mm3_ mm3 A   1      39.031  35.243  36.980  1.00  0.00           C  
+HETATM   45 mm3_ mm3 A   1      37.559  35.271  37.260  1.00  0.00           C  
+HETATM   46 mm3_ mm3 A   1      36.924  33.950  37.634  1.00  0.00           C  
+HETATM   47 mm3_ mm3 A   1      37.840  32.764  37.681  1.00  0.00           C  
+HETATM   48 mm3_ mm3 A   1      37.597  31.676  36.593  1.00  0.00           C  
+HETATM   49 mm3_ mm3 A   1      38.809  30.886  36.082  1.00  0.00           C  
+HETATM   50 mm3_ mm3 A   1      39.188  31.126  34.654  1.00  0.00           C  
+HETATM   51 mm3_ mm3 A   1      40.570  31.274  34.320  1.00  0.00           C  
+HETATM   52 mm3_ mm3 A   1      41.217  32.586  33.939  1.00  0.00           C  
+HETATM   53 mm3_ mm3 A   1      40.481  33.812  33.894  1.00  0.00           C  
+HETATM   54 mm3_ mm3 A   1      40.705  34.831  34.967  1.00  0.00           C  
+HETATM   55 mm3_ mm3 A   1      41.541  34.490  36.084  1.00  0.00           C  
+HETATM   56 mm3_ mm3 A   1      41.222  34.277  37.220  1.00  0.00           C  
+HETATM   57 mm3_ mm3 A   1      39.908  34.287  37.801  1.00  0.00           C  
+HETATM   58 mm3_ mm3 A   1      39.279  32.978  38.172  1.00  0.00           C  
+HETATM   59 mm3_ mm3 A   1      40.017  31.769  37.928  1.00  0.00           C  
+HETATM   60 mm3_ mm3 A   1      39.831  30.934  37.089  1.00  0.00           C  
+HETATM   61 mm3_ mm3 A   1      27.387  38.353  33.755  1.00  0.00           C  
+HETATM   62 mm3_ mm3 A   1      26.655  38.791  34.437  1.00  0.00           H  
+HETATM   63 mm3_ mm3 A   1      28.292  38.964  33.754  1.00  0.00           H  
+HETATM   64 mm3_ mm3 A   1      27.629  37.341  34.085  1.00  0.00           H  
+HETATM   65 mm3_ mm3 A   1      26.971  38.317  32.746  1.00  0.00           H  
 TER      66      mm3 A   1
 CONECT    1    2   12
 CONECT    2    1    3
@@ -133,19 +133,19 @@ CONECT   64   61
 CONECT   65   61
 END
 </pdb>
-	<System openmmVersion="7.3" type="System" version="1">
+	<System openmmVersion="7.3.1" type="System" version="1">
 		
 	
 		<PeriodicBoxVectors>
 			
 		
-			<A x="2" y="0" z="0"/>
+			<A x="7" y="0" z="0"/>
 			
 		
-			<B x="0" y="2" z="0"/>
+			<B x="0" y="7" z="0"/>
 			
 		
-			<C x="0" y="0" z="2"/>
+			<C x="0" y="0" z="7"/>
 			
 	
 		</PeriodicBoxVectors>
@@ -1670,6 +1670,237 @@ END
 				
 			
 				<InteractionGroups/>
+				
+		
+			</Force>
+			
+		
+			<Force energy="fx + fy + fz; fx=(c12 / rx6^2) - (c6 / rx6); fy=(c12 / ry6^2) - (c6 / ry6); fz=(c12 / rz6^2) - (c6 / rz6); rx6=rx^6; ry6=ry^6; rz6=rz^6; rx=min(x, mx-x); ry=min(y, my-y); rz=min(z, mz-z); " forceGroup="0" type="CustomExternalForce" version="1">
+				
+			
+				<PerParticleParameters/>
+				
+			
+				<GlobalParameters>
+					
+				
+					<Parameter default="7" name="mx"/>
+					
+				
+					<Parameter default="7" name="my"/>
+					
+				
+					<Parameter default="7" name="mz"/>
+					
+				
+					<Parameter default="0" name="c6"/>
+					
+				
+					<Parameter default="1" name="c12"/>
+					
+			
+				</GlobalParameters>
+				
+			
+				<Particles>
+					
+				
+					<Particle index="0"/>
+					
+				
+					<Particle index="1"/>
+					
+				
+					<Particle index="2"/>
+					
+				
+					<Particle index="3"/>
+					
+				
+					<Particle index="4"/>
+					
+				
+					<Particle index="5"/>
+					
+				
+					<Particle index="6"/>
+					
+				
+					<Particle index="7"/>
+					
+				
+					<Particle index="8"/>
+					
+				
+					<Particle index="9"/>
+					
+				
+					<Particle index="10"/>
+					
+				
+					<Particle index="11"/>
+					
+				
+					<Particle index="12"/>
+					
+				
+					<Particle index="13"/>
+					
+				
+					<Particle index="14"/>
+					
+				
+					<Particle index="15"/>
+					
+				
+					<Particle index="16"/>
+					
+				
+					<Particle index="17"/>
+					
+				
+					<Particle index="18"/>
+					
+				
+					<Particle index="19"/>
+					
+				
+					<Particle index="20"/>
+					
+				
+					<Particle index="21"/>
+					
+				
+					<Particle index="22"/>
+					
+				
+					<Particle index="23"/>
+					
+				
+					<Particle index="24"/>
+					
+				
+					<Particle index="25"/>
+					
+				
+					<Particle index="26"/>
+					
+				
+					<Particle index="27"/>
+					
+				
+					<Particle index="28"/>
+					
+				
+					<Particle index="29"/>
+					
+				
+					<Particle index="30"/>
+					
+				
+					<Particle index="31"/>
+					
+				
+					<Particle index="32"/>
+					
+				
+					<Particle index="33"/>
+					
+				
+					<Particle index="34"/>
+					
+				
+					<Particle index="35"/>
+					
+				
+					<Particle index="36"/>
+					
+				
+					<Particle index="37"/>
+					
+				
+					<Particle index="38"/>
+					
+				
+					<Particle index="39"/>
+					
+				
+					<Particle index="40"/>
+					
+				
+					<Particle index="41"/>
+					
+				
+					<Particle index="42"/>
+					
+				
+					<Particle index="43"/>
+					
+				
+					<Particle index="44"/>
+					
+				
+					<Particle index="45"/>
+					
+				
+					<Particle index="46"/>
+					
+				
+					<Particle index="47"/>
+					
+				
+					<Particle index="48"/>
+					
+				
+					<Particle index="49"/>
+					
+				
+					<Particle index="50"/>
+					
+				
+					<Particle index="51"/>
+					
+				
+					<Particle index="52"/>
+					
+				
+					<Particle index="53"/>
+					
+				
+					<Particle index="54"/>
+					
+				
+					<Particle index="55"/>
+					
+				
+					<Particle index="56"/>
+					
+				
+					<Particle index="57"/>
+					
+				
+					<Particle index="58"/>
+					
+				
+					<Particle index="59"/>
+					
+				
+					<Particle index="60"/>
+					
+				
+					<Particle index="61"/>
+					
+				
+					<Particle index="62"/>
+					
+				
+					<Particle index="63"/>
+					
+				
+					<Particle index="64"/>
+					
+			
+				</Particles>
 				
 		
 			</Force>

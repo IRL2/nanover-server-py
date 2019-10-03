@@ -12,20 +12,21 @@ namespace Narupa.Protocol.Test
         {
             yield return new AddArrayParameter
             {
-                Array = new[] {0u, 1u, 2u},
+                Array = new[] { 0u, 1u, 2u },
                 AddArray = (data, array) => data.AddIndexArray("test", (IEnumerable<uint>) array),
                 GetArray = data => data.Arrays["test"].IndexValues.Values
             };
             yield return new AddArrayParameter
             {
-                Array = new[] {0f, 1f, 2f},
+                Array = new[] { 0f, 1f, 2f },
                 AddArray = (data, array) => data.AddFloatArray("test", (IEnumerable<float>) array),
                 GetArray = data => data.Arrays["test"].FloatValues.Values
             };
             yield return new AddArrayParameter
             {
-                Array = new[] {"a", "b", "c"},
-                AddArray = (data, array) => data.AddStringArray("test", (IEnumerable<string>) array),
+                Array = new[] { "a", "b", "c" },
+                AddArray =
+                    (data, array) => data.AddStringArray("test", (IEnumerable<string>) array),
                 GetArray = data => data.Arrays["test"].StringValues.Values
             };
         }
@@ -35,27 +36,45 @@ namespace Narupa.Protocol.Test
         {
             yield return new ShortcutParameter
             {
-                Array = new[] {0f, 1f, 2f},
-                Get = data => data.ParticlePositions,
-                Set = (data, value) => data.ParticlePositions = (IReadOnlyList<float>) value
+                Array = new[] { 0f, 1f, 2f },
+                Get = data => data.GetParticlePositions(),
+                Set = (data, value) => data.SetParticlePositions((IEnumerable<float>) value)
             };
             yield return new ShortcutParameter
             {
-                Array = new[] {"a", "b", "c"},
-                Get = data => data.ParticleTypes,
-                Set = (data, value) => data.ParticleTypes = (IReadOnlyList<string>) value
+                Array = new[] { "a", "b", "c" },
+                Get = data => data.GetParticleTypes(),
+                Set = (data, value) => data.SetParticleTypes((IEnumerable<string>) value)
             };
             yield return new ShortcutParameter
             {
-                Array = new[] {0u, 1u, 2u},
-                Get = data => data.Bonds,
-                Set = (data, value) => data.Bonds = (IReadOnlyList<uint>) value
+                Array = new[] { "a", "b", "c" },
+                Get = data => data.GetParticleNames(),
+                Set = (data, value) => data.SetParticleNames((IEnumerable<string>) value)
             };
             yield return new ShortcutParameter
             {
-                Array = new[] {0u, 1u, 2u},
-                Get = data => data.ParticleElements,
-                Set = (data, value) => data.ParticleElements = (IReadOnlyList<uint>) value
+                Array = new[] { "a", "b", "c" },
+                Get = data => data.GetResidueNames(),
+                Set = (data, value) => data.SetResidueNames((IEnumerable<string>) value)
+            };
+            yield return new ShortcutParameter
+            {
+                Array = new[] { "a", "b", "c" },
+                Get = data => data.GetChainNames(),
+                Set = (data, value) => data.SetChainNames((IEnumerable<string>) value)
+            };
+            yield return new ShortcutParameter
+            {
+                Array = new[] { 0u, 1u, 2u },
+                Get = data => data.GetBondPairs(),
+                Set = (data, value) => data.SetBondPairs((IReadOnlyList<uint>) value)
+            };
+            yield return new ShortcutParameter
+            {
+                Array = new[] { 0u, 1u, 2u },
+                Get = data => data.GetParticleElements(),
+                Set = (data, value) => data.SetParticleElements((IReadOnlyList<uint>) value)
             };
         }
 
@@ -64,37 +83,45 @@ namespace Narupa.Protocol.Test
         {
             yield return new TryGetArrayParameter
             {
-                Array = new[] {0u, 1u, 2u},
+                Array = new[] { 0u, 1u, 2u },
                 AddArray = (data, array) => data.AddIndexArray("test", (IEnumerable<uint>) array),
-                AddArrayWrongName = (data, array) => data.AddIndexArray("test2", (IEnumerable<uint>) array),
-                AddArrayWrongType = data => data.AddStringArray("test", new[] {"a", "b", "c"}),
-                TryGetArray = data => data.TryGetIndexArray("test", out var value) ? (true, value) : (false, null),
+                AddArrayWrongName = (data, array)
+                    => data.AddIndexArray("test2", (IEnumerable<uint>) array),
+                AddArrayWrongType = data => data.AddStringArray("test", new[] { "a", "b", "c" }),
+                TryGetArray = data
+                    => data.TryGetIndexArray("test", out var value) ? (true, value) : (false, null),
                 GetArray = data => data.GetIndexArray("test")
             };
             yield return new TryGetArrayParameter
             {
-                Array = new[] {0f, 1f, 2f},
+                Array = new[] { 0f, 1f, 2f },
                 AddArray = (data, array) => data.AddFloatArray("test", (IEnumerable<float>) array),
-                AddArrayWrongName = (data, array) => data.AddFloatArray("test2", (IEnumerable<float>) array),
-                AddArrayWrongType = data => data.AddStringArray("test", new[] {"a", "b", "c"}),
-                TryGetArray = data => data.TryGetFloatArray("test", out var value) ? (true, value) : (false, null),
+                AddArrayWrongName = (data, array)
+                    => data.AddFloatArray("test2", (IEnumerable<float>) array),
+                AddArrayWrongType = data => data.AddStringArray("test", new[] { "a", "b", "c" }),
+                TryGetArray = data
+                    => data.TryGetFloatArray("test", out var value) ? (true, value) : (false, null),
                 GetArray = data => data.GetFloatArray("test")
             };
             yield return new TryGetArrayParameter
             {
-                Array = new[] {"a", "b", "c"},
-                AddArray = (data, array) => data.AddStringArray("test", (IEnumerable<string>) array),
-                AddArrayWrongName = (data, array) => data.AddStringArray("test2", (IEnumerable<string>) array),
-                AddArrayWrongType = data => data.AddFloatArray("test", new[] {0f, 1f, 2f}),
-                TryGetArray = data => data.TryGetStringArray("test", out var value) ? (true, value) : (false, null),
+                Array = new[] { "a", "b", "c" },
+                AddArray =
+                    (data, array) => data.AddStringArray("test", (IEnumerable<string>) array),
+                AddArrayWrongName = (data, array)
+                    => data.AddStringArray("test2", (IEnumerable<string>) array),
+                AddArrayWrongType = data => data.AddFloatArray("test", new[] { 0f, 1f, 2f }),
+                TryGetArray = data
+                    => data.TryGetStringArray("test", out var value)
+                           ? (true, value)
+                           : (false, null),
                 GetArray = data => data.GetStringArray("test")
             };
         }
 
         [Test]
         public void AddArray(
-            [ValueSource(nameof(GetAddArrayParameters))]
-            AddArrayParameter testParameters)
+            [ValueSource(nameof(GetAddArrayParameters))] AddArrayParameter testParameters)
         {
             var data = new FrameData();
             testParameters.AddArray(data, testParameters.Array);
@@ -212,8 +239,7 @@ namespace Narupa.Protocol.Test
 
         [Test]
         public void SetAndGetShortcut(
-            [ValueSource(nameof(ShortcutParameters))]
-            ShortcutParameter testParameters)
+            [ValueSource(nameof(ShortcutParameters))] ShortcutParameter testParameters)
         {
             var data = new FrameData();
             testParameters.Set(data, testParameters.Array);
@@ -225,8 +251,7 @@ namespace Narupa.Protocol.Test
 
         [Test]
         public void GetShortcut_Missing(
-            [ValueSource(nameof(ShortcutParameters))]
-            ShortcutParameter testParameters)
+            [ValueSource(nameof(ShortcutParameters))] ShortcutParameter testParameters)
         {
             var data = new FrameData();
 
