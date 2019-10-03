@@ -187,6 +187,7 @@ def get_mda_attribute(u: Universe, group, group_attribute):
 def _add_mda_attributes(u: Universe, frame_data: FrameData):
     """
     Adds all available MDAnalysis attributes from the given universe to the given frame data
+
     :param u: MDAnalysis universe.
     :param frame_data: Narupa frame data.
 
