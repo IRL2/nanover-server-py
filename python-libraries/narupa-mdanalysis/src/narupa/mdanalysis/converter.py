@@ -173,6 +173,7 @@ def _get_universe_constructor_params(frame: FrameData):
 def get_mda_attribute(u: Universe, group, group_attribute):
     """
     Gets an attribute associated with a particular group.
+
     :param u: MDAnalysis universe.
     :param group: The group in the MDAnalysis universe in which the attribute exists.
     :param group_attribute: The attribute.
