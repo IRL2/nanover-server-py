@@ -158,8 +158,11 @@ def _get_universe_constructor_params(frame: FrameData):
     options such as number of atoms, number of residues, number of segments, and their identifiers.
     This method extracts this data from a Narupa FrameData object.
     """
-    params = {param_name: converter(_try_get_field(frame, field)) for param_name, (field, converter) in
-              MDA_UNIVERSE_PARAMS_TO_FRAME_DATA.items()}
+    params = {
+        param_name: converter(_try_get_field(frame, field))
+        for param_name, (field, converter)
+        in MDA_UNIVERSE_PARAMS_TO_FRAME_DATA.items()
+    }
 
     params['trajectory'] = True
     return params
