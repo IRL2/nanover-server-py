@@ -152,6 +152,7 @@ def add_bonds_to_mda(u: Universe, frame: FrameData):
 def _get_universe_constructor_params(frame: FrameData):
     """
     Gets the MDAnalysis universe constructor params from a Narupa frame data.
+
     :param frame: Narupa FrameData object.
     :return: Dictionary of params to construct an MDAnalysis universe object.
 
