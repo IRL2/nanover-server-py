@@ -5,8 +5,14 @@ import os
 import numpy as np
 import pytest
 from MDAnalysis import Universe
-from narupa.mdanalysis.converter import mdanalysis_to_frame_data, INDEX_ELEMENT, MDANALYSIS_COUNTS_TO_FRAME_DATA, \
-    ALL_MDA_ATTRIBUTES, frame_data_to_mdanalysis, get_mda_attribute
+from narupa.mdanalysis.converter import (
+    INDEX_ELEMENT,
+    MDANALYSIS_COUNTS_TO_FRAME_DATA,
+    ALL_MDA_ATTRIBUTES,
+    mdanalysis_to_frame_data,
+    frame_data_to_mdanalysis,
+    get_mda_attribute,
+)
 from narupa.trajectory.frame_data import (PARTICLE_ELEMENTS, MissingDataError, FrameData)
 
 TEST_SYSTEM = os.path.join(
