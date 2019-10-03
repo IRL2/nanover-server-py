@@ -206,6 +206,7 @@ def _add_mda_attributes(u: Universe, frame_data: FrameData):
 def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
     """
     Adds the counts of all available MDAnalysis groups from the given universe to the given frame data.
+
     :param u: MDAnalysis universe.
     :param frame_data: Narupa frame data.
 
