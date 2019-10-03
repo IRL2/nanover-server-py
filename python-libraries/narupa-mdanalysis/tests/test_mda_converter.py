@@ -9,7 +9,7 @@ from narupa.mdanalysis.converter import mdanalysis_to_frame_data, INDEX_ELEMENT,
     ALL_MDA_ATTRIBUTES, frame_data_to_mdanalysis, _get_mda_attribute
 from narupa.trajectory.frame_data import (PARTICLE_ELEMENTS, MissingDataError, FrameData)
 
-TEST_SYSTEM = os.path.join(
+TEST_SYSTEM_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     '2efv_fragment.pdb',
     )
@@ -17,7 +17,7 @@ TEST_SYSTEM = os.path.join(
 
 @pytest.fixture
 def universe():
-    return Universe(TEST_SYSTEM, guess_bonds=True)
+    return Universe(TEST_SYSTEM_PATH, guess_bonds=True)
 
 
 @pytest.fixture()
@@ -37,7 +37,7 @@ def single_atom_universe(empty_universe: Universe):
 
 
 @pytest.fixture
-def frame_data(universe):
+def frame_data_and_universe(universe):
     return mdanalysis_to_frame_data(universe), universe
 
 
@@ -49,8 +49,8 @@ def test_mdanalysis_to_frame_data(universe):
 @pytest.mark.parametrize("universe_attribute, mda_attribute, frame_field",
                          ALL_MDA_ATTRIBUTES
                          )
-def test_mdanalysis_particle_field(universe_attribute, mda_attribute, frame_field, frame_data):
-    frame, universe = frame_data
+def test_mdanalysis_particle_field(universe_attribute, mda_attribute, frame_field, frame_data_and_universe):
+    frame, universe = frame_data_and_universe
     # fetches the atoms, residues or chains object, then the attribute.
     attribute = _get_mda_attribute(universe, universe_attribute, mda_attribute)
     field = frame.arrays[frame_field]
@@ -59,21 +59,21 @@ def test_mdanalysis_particle_field(universe_attribute, mda_attribute, frame_fiel
     assert all(a == b for a, b in zip(attribute, field))
 
 
-def test_mdanalysis_positions(frame_data):
-    frame, universe = frame_data
+def test_mdanalysis_positions(frame_data_and_universe):
+    frame, universe = frame_data_and_universe
     assert np.allclose(np.array(frame.particle_positions) * 10, universe.atoms.positions)
 
 
 @pytest.mark.parametrize("mda_attribute, frame_field",
                          [(key, value) for key, value in MDANALYSIS_COUNTS_TO_FRAME_DATA.items()]
                          )
-def test_mdanalysis_counts(mda_attribute, frame_field, frame_data):
-    frame, universe = frame_data
+def test_mdanalysis_counts(mda_attribute, frame_field, frame_data_and_universe):
+    frame, universe = frame_data_and_universe
     assert len(getattr(universe, mda_attribute)) == frame.values[frame_field]
 
 
-def test_mdanalysis_bonds(frame_data):
-    frame, universe = frame_data
+def test_mdanalysis_bonds(frame_data_and_universe):
+    frame, universe = frame_data_and_universe
     frame_bonds = np.array(frame.bonds)
     universe_bonds = np.array(universe.bonds.indices)
     assert np.allclose(frame_bonds, universe_bonds)
@@ -102,16 +102,16 @@ def test_single_atom_universe(single_atom_universe):
 @pytest.mark.parametrize("universe_attribute, mda_attribute, frame_field",
                          ALL_MDA_ATTRIBUTES
                          )
-def test_framedata_to_mda_attributes(universe_attribute, mda_attribute, frame_field, frame_data):
-    frame, universe = frame_data
+def test_framedata_to_mda_attributes(universe_attribute, mda_attribute, frame_field, frame_data_and_universe):
+    frame, universe = frame_data_and_universe
     new_universe = frame_data_to_mdanalysis(frame)
     new_universe_attribute = _get_mda_attribute(new_universe, universe_attribute, mda_attribute)
     universe_attribute = _get_mda_attribute(universe, universe_attribute, mda_attribute)
     assert all(a == b for a, b in zip(new_universe_attribute, universe_attribute))
 
 
-def test_framedata_to_mda_positions(frame_data):
-    frame, universe = frame_data
+def test_framedata_to_mda_positions(frame_data_and_universe):
+    frame, universe = frame_data_and_universe
     new_universe = frame_data_to_mdanalysis(frame)
     assert np.allclose(new_universe.atoms.positions, universe.atoms.positions)
 
@@ -119,18 +119,18 @@ def test_framedata_to_mda_positions(frame_data):
 @pytest.mark.parametrize("mda_attribute, frame_field",
                          [(key, value) for key, value in MDANALYSIS_COUNTS_TO_FRAME_DATA.items()]
                          )
-def test_framedata_to_mdanalysis_counts(mda_attribute, frame_field, frame_data):
-    frame, universe = frame_data
+def test_framedata_to_mdanalysis_counts(mda_attribute, frame_field, frame_data_and_universe):
+    frame, universe = frame_data_and_universe
     new_universe = frame_data_to_mdanalysis(frame)
     assert len(getattr(universe, mda_attribute)) == len(getattr(new_universe, mda_attribute))
 
 
-def test_framedata_to_mda_missing_data(frame_data):
+def test_framedata_to_mda_missing_data(frame_data_and_universe):
     """
     Tests that an MDA universe can be constructed from just particle count and particle positions,
     with the resulting structure conforming to expectations.
     """
-    frame, universe = frame_data
+    frame, universe = frame_data_and_universe
     new_frame = FrameData()
     new_frame.particle_count = frame.particle_count
     new_frame.particle_positions = frame.particle_positions
