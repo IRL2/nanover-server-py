@@ -49,7 +49,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
     parser.add_argument(
         '--no-auto-reset', dest='auto_reset', action='store_false', default=True,
-        help='Do not reset the simulation when the energy high.',
+        help='Do not reset the simulation, even if the energy becomes high.',
     )
     parser.add_argument(
         '-w', '--walls', action='store_true', default=False,
