@@ -50,7 +50,7 @@ build_conda:
         # related packages (openmm, ase, mdanalysis)
         - conda config --env --add channels conda-forge
         - conda config --env --add channels omnia
-        - conda install conda-build grpcio-tools conda-verify
+        - conda install conda-build grpcio-tools conda-verify anaconda
         # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
         # narupa-core must come first as all depends on it
