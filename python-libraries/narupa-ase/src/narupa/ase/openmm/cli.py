@@ -43,6 +43,15 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('-f', '--frame_interval', type=int, default=5)
     parser.add_argument('-s', '--time_step', type=float, default=1.0)
     parser.add_argument(
+        '--reset-energy', type=float, default=1e6,
+        help=('Threshold of total energy above which the simulation is reset '
+              '(kJ/mol). The value is ignored if --no-auto-reset is used.'),
+    )
+    parser.add_argument(
+        '--no-auto-reset', dest='auto_reset', action='store_false', default=True,
+        help='Do not reset the simulation, even if the energy becomes high.',
+    )
+    parser.add_argument(
         '-w', '--walls', action='store_true', default=False,
         help='Set a wall around the box, atoms will bounce against it.',
     )
@@ -64,6 +73,10 @@ def initialise(args=None):
         arguments.walls,
     )
     runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params)
+    # Shamefully store CLI arguments in the runner.
+    runner.cli_options = {
+        'reset_energy': arguments.reset_energy if arguments.auto_reset else None,
+    }
     return runner
 
 
@@ -72,11 +85,12 @@ def main():
     Entry point for the command line.
     """
     with initialise() as runner:
+        runner.imd.on_reset_listeners.append(lambda: print('RESET! ' * 10))
         print(f'Serving frames on port {runner.trajectory_port} and IMD on {runner.imd_port}')
         
         try:
             while True:
-                runner.run(100)
+                runner.run(100, reset_energy=runner.cli_options['reset_energy'])
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
 
