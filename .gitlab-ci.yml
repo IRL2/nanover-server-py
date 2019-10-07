@@ -63,7 +63,7 @@ build_conda:
         - $build_command python-libraries/narupa-server/conda
         - cp -r /miniconda/conda-bld .
         - echo Y | anaconda login --username irl_bot --password $ANACONDA_PASSWORD
-        - anaconda upload --user irl conda-bld/noarch/narupa-core-*.tar.bz2 || echo "fail?"
+        - anaconda  -v --show-traceback  upload --user irl conda-bld/noarch/narupa-core-*.tar.bz2 || echo "fail?"
         - anaconda logout
     artifacts:
         paths:
