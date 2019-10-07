@@ -54,17 +54,19 @@ build_conda:
         # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
         # narupa-core must come first as all depends on it
-        - cd python-libraries/narupa-core/conda; $build_command .
-        - cd ../../../
+        - $build_command python-libraries/narupa-core/conda
         - $build_command python-libraries/narupa-openmm/conda
         - $build_command python-libraries/narupa-ase/conda
         - $build_command python-libraries/narupa-mdanalysis/conda
         # narupa-server must come last as it depends on everything
         - $build_command python-libraries/narupa-server/conda
         - cp -r /miniconda/conda-bld .
+        # The login token may be used by a failed build already. If we are asked
+        # if we want it back, we say yes. Hence the echo Y.
         - echo Y | anaconda login --username irl_bot --password $ANACONDA_PASSWORD
-        - anaconda  -v --show-traceback  upload --user irl conda-bld/noarch/narupa-core-*.tar.bz2 || echo "fail?"
-        - anaconda logout
+        - anaconda  upload --user irl conda-bld/noarch/narupa-*.tar.bz2
+        # Do not fail the build if we cannot logout.
+        - anaconda logout || echo "Could not logout. Too bad."
     artifacts:
         paths:
           - conda-bld
