@@ -70,13 +70,15 @@ upload_conda:
     stage: deploy
     only:
       - feature/conda
+    variables:
     script:
+      - export NARUPA_BUILD_VARIABLE="0.1.$(git describe --always)"
       - conda install anaconda
       # The login token may be used by a failed build already. If we are asked
       # if we want it back, we say yes. Hence the echo Y.
       - echo Y | anaconda login --username irl_bot --password $ANACONDA_PASSWORD
       # Anaconda will complain if the given version of a package is already
-      # there. Until we have some versionning, we force the upload.
+      # there. Until we have some visioning, we force the upload.
       - anaconda  upload --user irl conda-bld/noarch/narupa-*.tar.bz2 --force
       # Do not fail the build if we cannot logout.
       - anaconda logout || echo "Could not logout. Too bad."
