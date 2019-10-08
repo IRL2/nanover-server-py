@@ -1,6 +1,7 @@
 image: intangiblerealitieslab/dotnet-conda
 stages:
   - test
+  - packaging
   - deploy
 
 release:
@@ -42,7 +43,7 @@ test_dotnet:
     - "dotnet test"
 
 build_conda:
-    stage: deploy
+    stage: packaging
     variables:
         build_command: "conda build --prefix-length=100 "
     script:
@@ -61,12 +62,20 @@ build_conda:
         # narupa-server must come last as it depends on everything
         - $build_command python-libraries/narupa-server/conda
         - cp -r /miniconda/conda-bld .
-        # The login token may be used by a failed build already. If we are asked
-        # if we want it back, we say yes. Hence the echo Y.
-        - echo Y | anaconda login --username irl_bot --password $ANACONDA_PASSWORD
-        - anaconda  upload --user irl conda-bld/noarch/narupa-*.tar.bz2
-        # Do not fail the build if we cannot logout.
-        - anaconda logout || echo "Could not logout. Too bad."
     artifacts:
         paths:
           - conda-bld
+
+upload_conda:
+    stage: deploy
+    only:
+      - feature/conda
+    script:
+      # The login token may be used by a failed build already. If we are asked
+      # if we want it back, we say yes. Hence the echo Y.
+      - echo Y | anaconda login --username irl_bot --password $ANACONDA_PASSWORD
+      # Anaconda will complain if the given version of a package is already
+      # there. Until we have some versionning, we force the upload.
+      - anaconda  upload --user irl conda-bld/noarch/narupa-*.tar.bz2 --force
+      # Do not fail the build if we cannot logout.
+      - anaconda logout || echo "Could not logout. Too bad."
