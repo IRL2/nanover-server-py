@@ -47,6 +47,7 @@ build_conda:
     variables:
         build_command: "conda build --prefix-length=100 "
     script:
+        - export NARUPA_BUILD_VERSION="0.1.$(git describe --always)"
         # Configure the environment. We need conda-forge to get the science
         # related packages (openmm, ase, mdanalysis)
         - conda config --env --add channels conda-forge
@@ -70,9 +71,7 @@ upload_conda:
     stage: deploy
     only:
       - feature/conda
-    variables:
     script:
-      - export NARUPA_BUILD_VERSION="0.1.$(git describe --always)"
       - conda install anaconda
       # The login token may be used by a failed build already. If we are asked
       # if we want it back, we say yes. Hence the echo Y.

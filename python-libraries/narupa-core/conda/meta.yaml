@@ -1,6 +1,6 @@
 package:
   name: narupa-core
-  version: 0.1.0
+  version: {{ os.environ["NARUPA_BUILD_VERSION"] }}
 
 source:
   path: ../
