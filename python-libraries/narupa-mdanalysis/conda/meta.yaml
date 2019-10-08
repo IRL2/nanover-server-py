@@ -11,14 +11,23 @@ build:
 
 requirements:
   build:
-    - python
+    - python >= 3.6.0
     - setuptools
 
   run:
-    - python
+    - python >= 3.6.0
     - narupa-core
     - numpy
     - mdanalysis
 
 about:
-  home: narupa.readthedocs.io
+  home: https://narupa.readthedocs.io
+  license: GPL-3
+  license_file: {{ RECIPE_DIR }}/../../../LICENSE
+  summary: MDAnalysis binding for Narupa.
+  description: |
+    Narupa is a framework for interactive molecular dynamics simulation is
+    virtual reality. This package provides bindings between MDAnalysis and
+    Narupa.
+  doc_url: https://narupa.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/narupa-protocol
