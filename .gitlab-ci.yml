@@ -47,7 +47,8 @@ build_conda:
     variables:
         build_command: "conda build --prefix-length=100 "
     script:
-        - export NARUPA_BUILD_VERSION="0.1.$(git describe --always)"
+        # We use the number of commits in the branch to set the version number.
+        - export NARUPA_BUILD_VERSION="0.1.$(git rev-list --count HEAD)"
         # Configure the environment. We need conda-forge to get the science
         # related packages (openmm, ase, mdanalysis)
         - conda config --env --add channels conda-forge

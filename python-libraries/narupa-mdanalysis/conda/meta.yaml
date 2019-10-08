@@ -1,6 +1,6 @@
 package:
   name: narupa-mdanalysis
-  version: 0.1.0
+  version: {{ NARUPA_BUILD_VERSION }}
 
 source:
   path: ../
@@ -16,7 +16,7 @@ requirements:
 
   run:
     - python >=3.6.0
-    - narupa-core
+    - narupa-core =={{ NARUPA_BUILD_VERSION }}
     - numpy
     - mdanalysis
 

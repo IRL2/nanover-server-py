@@ -1,6 +1,6 @@
 package:
   name: narupa-ase
-  version: {{ os.environ["NARUPA_BUILD_VERSION"] }}
+  version: {{ NARUPA_BUILD_VERSION }}
 
 source:
   path: ../
@@ -19,8 +19,8 @@ requirements:
   run:
     - python >=3.6.0
     - attrs
-    - narupa-core
-    - narupa-openmm
+    - narupa-core =={{ NARUPA_BUILD_VERSION }}
+    - narupa-openmm =={{ NARUPA_BUILD_VERSION }}
     - numpy
     - ase >=3.18.0
 
