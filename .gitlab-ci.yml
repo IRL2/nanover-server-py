@@ -72,7 +72,7 @@ upload_conda:
       - feature/conda
     variables:
     script:
-      - export NARUPA_BUILD_VARIABLE="0.1.$(git describe --always)"
+      - export NARUPA_BUILD_VERSION="0.1.$(git describe --always)"
       - conda install anaconda
       # The login token may be used by a failed build already. If we are asked
       # if we want it back, we say yes. Hence the echo Y.
