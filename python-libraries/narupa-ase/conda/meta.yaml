@@ -20,7 +20,7 @@ requirements:
     - narupa-core
     - narupa-openmm
     - numpy
-    - ase >= 3.18.0
+    - ase >=3.18.0
 
 about:
   home: https://narupa.readthedocs.io
