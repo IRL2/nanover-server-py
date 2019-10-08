@@ -51,7 +51,7 @@ build_conda:
         # related packages (openmm, ase, mdanalysis)
         - conda config --env --add channels conda-forge
         - conda config --env --add channels omnia
-        - conda install conda-build grpcio-tools conda-verify anaconda
+        - conda install conda-build grpcio-tools conda-verify
         # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
         # narupa-core must come first as all depends on it
@@ -71,6 +71,7 @@ upload_conda:
     only:
       - feature/conda
     script:
+      - conda install anaconda
       # The login token may be used by a failed build already. If we are asked
       # if we want it back, we say yes. Hence the echo Y.
       - echo Y | anaconda login --username irl_bot --password $ANACONDA_PASSWORD
