@@ -14,7 +14,16 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-### Setup narupa-protocol on Mac and Linux
+### Setup narupa-protocol with Anaconda
+
+* Install Anaconda (avoid Anaconda 2.7 as it is outdated)
+* Create a conda environment (here we call the environment "narupa"): `conda create -n narupa "python>3.6"`
+* Activate the conda environment: `conda activate narupa`
+* Install the Narupa packages: `conda install -c irl -c omnia -c conda-forge narupa-server`
+
+Developers will want the manual install described bellow.
+
+### Setup narupa-protocol for developers on Mac and Linux
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Install dotnet
@@ -26,7 +35,7 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
     * Compile the protocol and install the Narupa libraries in your conda environment: `./compile.sh`. If you plan on
       modifying the python packages, run `./compile.sh --edit` instead.
 
-### Setup narupa-protocol on Windows
+### Setup narupa-protocol for developers on Windows
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
