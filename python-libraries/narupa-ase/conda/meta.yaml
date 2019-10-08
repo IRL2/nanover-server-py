@@ -11,11 +11,11 @@ build:
 
 requirements:
   build:
-    - python >= 3.6.0
+    - python >=3.6.0
     - setuptools
 
   run:
-    - python >= 3.6.0
+    - python >=3.6.0
     - attrs
     - narupa-core
     - narupa-openmm
