@@ -26,7 +26,7 @@ about:
   license_file: {{ RECIPE_DIR }}/../../../LICENSE
   summary: MDAnalysis binding for Narupa.
   description: |
-    Narupa is a framework for interactive molecular dynamics simulation is
+    Narupa is a framework for interactive molecular dynamics simulation in
     virtual reality. This package provides bindings between MDAnalysis and
     Narupa.
   doc_url: https://narupa.readthedocs.io
