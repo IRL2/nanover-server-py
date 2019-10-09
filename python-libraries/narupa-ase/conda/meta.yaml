@@ -27,7 +27,7 @@ requirements:
 about:
   home: https://narupa.readthedocs.io
   license: GPL-3
-  license_file: {{ RECIPE_DIR }}/../../../LICENSE
+  license_file: {{ NARUPA_LICENSE_PATH }}
   summary: ASE bondings for Narupa.
   description: |
     Narupa is a framework for interactive molecular dynamics simulation is

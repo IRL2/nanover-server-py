@@ -1,2 +1,2 @@
 #!/bin/bash
-$PYTHON -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv     # Python command to install the script.
+$PYTHON -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv
