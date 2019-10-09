@@ -15,7 +15,6 @@ requirements:
   build:
     - python >=3.6.0
     - setuptools
-    - openmm
 
   run:
     - python >=3.6.0
