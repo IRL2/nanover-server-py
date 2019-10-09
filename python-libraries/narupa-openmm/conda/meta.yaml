@@ -8,8 +8,8 @@ source:
 build:
   noarch: python
   number: 0
-  #entry_points:
-  #  - narupa-omm-server = narupa.openmm.cli:main
+  entry_points:
+    - narupa-omm-server = narupa.openmm.cli:main
 
 requirements:
   build:
