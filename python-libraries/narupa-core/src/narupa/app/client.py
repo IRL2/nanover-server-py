@@ -12,6 +12,9 @@ from narupa.imd import ImdClient
 from narupa.multiplayer import MultiplayerClient
 from google.protobuf.struct_pb2 import Value
 
+# Default to a low framerate to avoid build up in the frame stream
+DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
+
 
 class NarupaClient:
     _frame_client: FrameClient
@@ -148,7 +151,10 @@ class NarupaClient:
         if self.all_frames:
             self._frame_client.subscribe_frames_async(self._on_frame_received)
         else:
-            self._frame_client.subscribe_last_frames_async(self._on_frame_received)
+            self._frame_client.subscribe_last_frames_async(
+                self._on_frame_received,
+                DEFAULT_SUBSCRIPTION_INTERVAL,
+            )
 
     def _on_frame_received(self, frame_index: int, frame: FrameData):
         if self._first_frame is None:
