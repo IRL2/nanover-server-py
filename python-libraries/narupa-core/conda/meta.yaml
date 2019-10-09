@@ -29,7 +29,7 @@ about:
   license_file: {{ RECIPE_DIR }}/../../../LICENSE
   summary: Core modules to use the Narupa python library.
   description: |
-    Narupa is a framework for interactive molecular dynamics simulation is
+    Narupa is a framework for interactive molecular dynamics simulation in
     virtual reality. This package provides the core components to write a
     server or a client program in python.
   doc_url: https://narupa.readthedocs.io
