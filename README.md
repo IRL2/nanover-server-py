@@ -46,11 +46,6 @@ Developers will want the manual install described bellow.
     * Install the required conda packages: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
     * Compile the protocol and install the Narupa libraries in your conda environment: `./win_compile.ps1`. If you plan on modifying the python packages, run `./win_compile.ps1 -edit` instead.
 
-## Coming Soon
-
-* Multiplayer
-* Lobby
-
 ## Running the tests
 
 Running the tests is a crucial part of keeping the code base functional. To run the test of the python libraries, run:
@@ -68,9 +63,17 @@ Running the tests is a crucial part of keeping the code base functional. To run 
     # On Windows
     narupa-omm-ase python-libraries\narupa-ase\examples\nanotube.xml 
 
+The example files are distributed in the directory
+`python-library/narupa-ase/examples` from the [git repository](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/python-libraries/narupa-ase/examples).
+The examples include:
+
+* [A carbon nanotube and a methane molecule](https://gitlab.com/intangiblerealities/narupa-protocol/raw/master/python-libraries/narupa-ase/examples/nanotube.xml)
+* [A helicene molecule](https://gitlab.com/intangiblerealities/narupa-protocol/raw/master/python-libraries/narupa-ase/examples/helicene.xml)
+* [Neuraminidase and tamiflu](https://gitlab.com/intangiblerealities/narupa-protocol/raw/master/python-libraries/narupa-ase/examples/neuraminidase.xml)
+
 #### Jupyter Notebooks 
 
-The `python-libraries/narupa-ase/examples` examples folder also contains several
+The [`python-libraries/narupa-ase/examples`](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/python-libraries/narupa-ase/examples) examples folder also contains several
 Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
 The [Narupa ASE documentation](python-libraries/narupa-ase/README.md) provides more details on setting up ASE simulations.
 
