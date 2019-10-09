@@ -71,7 +71,7 @@ build_conda:
 upload_conda:
     stage: deploy
     only:
-      - feature/conda
+      - master
     script:
       - conda install anaconda
       # The login token may be used by a failed build already. If we are asked
