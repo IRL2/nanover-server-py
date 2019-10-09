@@ -30,7 +30,7 @@ about:
   license_file: {{ NARUPA_LICENSE_PATH }}
   summary: ASE bondings for Narupa.
   description: |
-    Narupa is a framework for interactive molecular dynamics simulation is
+    Narupa is a framework for interactive molecular dynamics simulation in
     virtual reality. This package provides ASE bindings and servers for
     Narupa.
   doc_url: https://narupa.readthedocs.io
