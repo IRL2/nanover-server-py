@@ -8,8 +8,8 @@ source:
 build:
   noarch: python
   number: 0
-  script_env:
-    - NARUPA_BUILD_VERSION
+  entry_points:
+    - narupa-omm-ase = narupa.ase.openmm.cli:main
 
 requirements:
   build:
