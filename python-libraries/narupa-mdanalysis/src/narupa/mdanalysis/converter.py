@@ -97,10 +97,10 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     """
     Converts from an MDAnalysis universe to Narupa FrameData object.
 
-    :param u: MDAnalysis universe.
+    :param u: MDAnalysis :class: Universe.
     :param topology: Whether to include topology.
     :param positions: Whether to include positions.
-    :return: Frame data constructed from MDAnalysis universe.
+    :return: :class: FrameData constructed from MDAnalysis universe.
 
     :raises: MissingDataError if no positions exist in the MDAnalysis universe, and positions are specified.
 
@@ -120,10 +120,10 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
 
 def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
     """
-    Converts from a Narupa FrameData object to an MDAnalysis universe.
+    Converts from a Narupa :class: FrameData object to an MDAnalysis universe.
 
-    :param frame: Narupa FrameData object.
-    :return: MDAnalysis universe constructed from the given FrameData.
+    :param frame: Narupa :class: FrameData object.
+    :return: MDAnalysis :class: Universe constructed from the given FrameData.
     """
 
     params = _get_universe_constructor_params(frame)
@@ -141,8 +141,8 @@ def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
 def add_mda_topology_to_frame_data(u, frame_data):
     """
     Adds available topology information from an MDAnalysis Universe to a FrameData.
-    :param u: MDAnalysis universe.
-    :param frame_data: FrameData to add to.
+    :param u: MDAnalysis :class: Universe.
+    :param frame_data: :class: FrameData to add to.
     """
     _add_mda_attributes_to_frame_data(u, frame_data)
     _add_mda_counts_to_frame_data(u, frame_data)
@@ -152,10 +152,10 @@ def add_mda_topology_to_frame_data(u, frame_data):
 def add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData):
     """
     Adds the positions in a MDAnalysis universe to the frame data, if they exist.
-    :param u: MDAnalysis universe.
-    :param frame_data: Narupa frame data.
+    :param u: MDAnalysis :class: Universe.
+    :param frame_data: Narupa :class: FrameData to add to.
 
-    :raises: MissingDataError, if no positions exist in the universe.
+    :raises: :class: MissingDataError, if no positions exist in the universe.
    """
     try:
         frame_data.particle_positions = u.atoms.positions * 0.1
@@ -171,9 +171,9 @@ def add_frame_topology_to_mda(u: Universe, frame: FrameData):
 
 def add_frame_positions_to_mda(u: Universe, frame: FrameData):
     """
-    Updates the positions in an MDAnalysis universe with those from the given frame.
-    :param u: MDAnalysis universe to set positions of.
-    :param frame: Narupa Frame.
+    Updates the positions in an MDAnalysis :class: Universe with those from the given frame.
+    :param u: MDAnalysis :class: Universe to set positions of.
+    :param frame: Narupa :class: FrameData from which to extract positions.
     """
     u.atoms.positions = np.array(frame.particle_positions) * 10
 
@@ -182,8 +182,8 @@ def _add_bonds_to_mda(u: Universe, frame: FrameData):
     """
     Add bonds from a framedata object to an MDAnalysis universe.
 
-    :param u: MDAnalysis universe.
-    :param frame: Narupa FrameData.
+    :param u: MDAnalysis :class: Universe.
+    :param frame: Narupa :class: FrameData.
     """
     try:
         bonds = [(bond[0], bond[1]) for bond in frame.bonds]

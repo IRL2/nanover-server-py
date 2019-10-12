@@ -10,9 +10,12 @@ from threading import Lock, Condition
 from contextlib import contextmanager
 from time import monotonic as time
 
+
 class DictOfQueues:
     """
     Dictionary of request queues.
+    This class is used by Narupa servers to provide a thread-safe
+    way to publish data to multiple clients using queues.
 
     .. example::
 

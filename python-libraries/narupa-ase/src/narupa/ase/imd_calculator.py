@@ -54,7 +54,7 @@ class ImdCalculator(Calculator):
         self._initialise_velocity_reset()
 
     @property
-    def temperature(self):
+    def temperature(self) -> float:
         """
         Gets the temperature used for reinitialising velocities after an interaction.
         By default, it will attempt to use the temperature of the dynamics.
@@ -118,7 +118,22 @@ class ImdCalculator(Calculator):
 
     def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
                   system_changes=all_changes):
+        """
+        Calculates the given properties of the ASE atoms. The internal molecular calculator is called first,
+        and then any interactive forces currently being applied to the system are added.
+        Results are stored in the results dictionary, as normal.
 
+        :param atoms: Optional :class: Atoms object to perform the calculation on. If no atoms is passed,
+        the atoms object passed at initialisation are used.
+        :param properties: The properties to calculate. The ImdCalculator support 'energy' and 'forces',
+        but will pass any other requested properties to the internal atomic calculator.
+        See :method: Calculator.calculate for details.
+        :param system_changes: List of what has changed since last calculation. See :method: Calculator.calculate for
+        details.
+
+        :raises ValueError If no ASE atoms are supplied to the calculation, and no ASE atoms were supplied during
+        initialisation.
+        """
         energy = 0.0
         if atoms is None:
             atoms = self.atoms

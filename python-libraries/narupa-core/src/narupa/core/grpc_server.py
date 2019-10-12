@@ -60,9 +60,19 @@ class GrpcServer:
         return self._port
 
     def setup_services(self):
+        """
+        Inheritors of this class should setup any services they run.
+        """
         pass
 
     def close(self):
+        """
+        Stops the server.
+
+        Inheritors of this class should override this method with routines to stop
+        services that are running.
+        :return:
+        """
         self.server.stop(grace=False)
 
     def __enter__(self):

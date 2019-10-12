@@ -47,12 +47,12 @@ class MultiplayerClient(GrpcClient):
     """
     Represents a client to the multiplayer server.
 
-    :param address: IP or web address of server to connect to.
-    :param port: Server port.
+    :param address: IP or URL of multiplayer server to connect to.
+    :param port: Multiplayer server port.
     """
     stub: mult_proto_grpc.MultiplayerStub
     current_avatars: Dict[int, mult_proto.Avatar]
-    _avatar_queue: Queue
+    _avatar_queue: SingleItemQueue
 
     def __init__(self, address=None, port=None,
                  send_interval: float = 1/60):
@@ -100,15 +100,15 @@ class MultiplayerClient(GrpcClient):
     def join_avatar_publish(self):
         """
         Joins the avatar publishing stream.
-        Use publish_avatar to publish.
+        Use :method: MultiplayerClient.publish_avatar to publish.
         """
         self._assert_has_player_id()
         self.threads.submit(self._join_avatar_publish)
 
-    def publish_avatar(self, avatar):
+    def publish_avatar(self, avatar: mult_proto.Avatar):
         """
         Updates an avatar to be published.
-        :param avatar:
+        :param avatar: The avatar to be published.
         """
         self._avatar_queue.put(avatar)
 
@@ -177,6 +177,10 @@ class MultiplayerClient(GrpcClient):
         return response.success
 
     def add_value_update_callback(self, callback: UpdateCallback):
+        """
+        Add a callback method to be called whenever a value changes in the shared key/value store.
+        :param callback: Method to be called, that takes the set of keys that have changed as arguments.
+        """
         self._value_update_callbacks.add(callback)
 
     def _assert_has_player_id(self):

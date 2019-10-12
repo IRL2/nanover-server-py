@@ -43,9 +43,9 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         The implementation is stateless, and so each Interaction message should
         contain the full set of fields.
 
-        :param request_iterator:
-        :param context:
-        :return:
+        :param request_iterator: Stream of interaction requests.
+        :param context: gRPC context.
+        :return: :class: InteractionEndReply, indicating the successful interaction.
         """
         interactions_in_request = set()
         try:
@@ -73,7 +73,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     @property
     def active_interactions(self) -> Dict[Tuple[str, str], ParticleInteraction]:
         """
-        The current mapping of active interactions, keyed by player id and interaction id.
+        The current dictionary of active interactions, keyed by player id and interaction id.
+        :return A copy of the dictionary of active interactions.
         """
         with self._interaction_lock:
             return dict(self._interactions)
@@ -91,7 +92,6 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         Sets the callback to be used whenever an interaction is received.
         :param callback: Method to be called
-        :return:
         """
         self._callback = callback
 

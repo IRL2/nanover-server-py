@@ -28,21 +28,18 @@ def queue_generator(queue: Queue, sentinel: object):
                      the generator stops.
     :return: Yields the items in put into the queue, in the order they were put in.
 
-    Example
-    -------
+    .. example::
 
-    .. code python
+        queue = Queue()
+        sentinel = object()
 
-    queue = Queue()
-    sentinel = object()
+        queue.put(1)
+        queue.put(2)
+        queue.put(sentinel)
 
-    queue.put(1)
-    queue.put(2)
-    queue.put(sentinel)
-
-    generator = queue_generator(queue, sentinel)
-    for item in generator:
-        print(item)
+        generator = queue_generator(queue, sentinel)
+        for item in generator:
+            print(item)
 
     """
     for val in iter(queue.get, sentinel):
@@ -57,6 +54,9 @@ def _to_proto(interactions: Iterable[ParticleInteraction]):
 class ImdClient(GrpcClient):
     """
     A simple IMD client, primarily for testing the IMD server.
+
+    :param address: Address of the IMD server to connect to.
+    :param port: The port of the IMD server to connect to.
     """
     def __init__(self, *, address: Optional[str] = None,
                  port: Optional[int] = None):
@@ -83,8 +83,14 @@ class ImdClient(GrpcClient):
 
     def update_interaction(self, interaction_id, interaction: ParticleInteraction):
         """
-        Update the interaction given by the interaction_id with an updated instance of an
-        interaction. Typically used to adjust the position of an interaction over time.
+        Updates the interaction identified with the given interaction_id on the server with
+        parameters from the given interaction.
+        :param interaction_id: The unique interaction ID, created with :method: ImdClient.start_interaction,
+        that identifies the interaction to update.
+        :param interaction: The :class: ParticleInteraction providing new parameters for the interaction.
+
+        :raises: ValueError, if invalid parameters are passed to the server.
+        :raises: KeyError, if the given interaction ID does not exist.
         """
         if interaction_id not in self._active_interactions:
             raise KeyError("Attempted to update an interaction with an unknown interaction ID.")
@@ -93,7 +99,11 @@ class ImdClient(GrpcClient):
 
     def stop_interaction(self, interaction_id) -> InteractionEndReply:
         """
-        Stop the interaction determined by the given ID.
+        Stops the interaction identified with the given interaction_id on the server.
+        :param interaction_id: The unique interaction ID, created with :method: ImdClient.start_interaction,
+        that identifies the interaction to stop.
+
+        :raises: KeyError, if the given interaction ID does not exist.
         """
         if interaction_id not in self._active_interactions:
             raise KeyError("Attempted to stop an interaction with an unknown interaction ID.")
@@ -126,9 +136,13 @@ class ImdClient(GrpcClient):
             self.stop_interaction(interaction_id)
 
     def close(self):
+        """
+        Closes the IMD client.
+        """
         try:
             self.stop_all_interactions()
         except grpc.RpcError as e:
             self._logger.exception(e)
+            raise e
         finally:
             super().close()
