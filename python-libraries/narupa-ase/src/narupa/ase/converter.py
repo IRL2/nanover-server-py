@@ -1,9 +1,9 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Narupa ASE conversion tools.
 
-This module contains methods for converting between ASE simulations and Narupa frames.
+Module containing methods for converting between ASE simulations consisting of :class:`Atoms` and the Narupa
+:class:`FrameData` object for transmission to Narupa clients.
 
 """
 from typing import Iterable, Optional
@@ -67,6 +67,8 @@ def ase_to_frame_data(
     :param state: Whether to add additional state information such as energies.
     :param box_vectors: Whether to add the box vectors to the frame data.
     :return: Narupa frame.
+
+    :raises: AttributeError Raised if state is `True`, and `ase_atoms` has no calculator attached.
     """
     data = FrameData()
     if positions:
@@ -83,13 +85,14 @@ def ase_to_frame_data(
 def frame_data_to_ase(frame_data: FrameData, positions: bool = True, topology: bool = True,
                       ase_atoms: Optional[Atoms] = None) -> Atoms:
     """
-    Constructs an ASE atoms object from a Narupa frame.
+    Constructs an ASE :class:`Atoms`. object from a Narupa :class:`FrameData`.
 
     :param frame_data: The Narupa frame.
     :param positions: Whether to add positions to the ASE atoms.
     :param topology: Whether to add topology information within the frame data to ASE.
-    :param ase_atoms:
-    :return:
+    :param ase_atoms: Optional ASE :class:`Atoms` object, which will have its positions replaced. If
+    the flag `topology` is set, then a new object will still be constructed.
+    :return: ASE Atoms updated or created with the data contained in the Narupa frame.
     """
     if ase_atoms is None:
         ase_atoms = Atoms()
@@ -103,12 +106,12 @@ def frame_data_to_ase(frame_data: FrameData, positions: bool = True, topology: b
 
 def add_frame_data_topology_to_ase(frame_data: FrameData, atoms: Atoms):
     """
-    Adds frame data topology information to ASE atoms.
-    Since ASE atoms do not have a concept of bonds, this just adds
+    Adds frame data topology information to ASE :class:`Atoms`.
+    Since ASE :class:`Atoms` do not have a concept of bonds, this just adds
     particle elements.
 
-    :param frame_data: Frame data from which to extract topology.
-    :param atoms: ASE atoms to add element data to.
+    :param frame_data: :class:`FrameData` from which to extract topology.
+    :param atoms: ASE :class:`Atoms` to add element data to.
     """
     for element in frame_data.particle_elements:
         atoms.append(Atom(symbol=element))
@@ -119,8 +122,8 @@ def add_frame_data_positions_to_ase(frame_data, ase_atoms):
     """
     Adds frame data particle positions to ASE atoms, converting to angstroms.
 
-    :param frame_data: Frame data from which to extract positions.
-    :param ase_atoms: ASE atoms to add particle positions to.
+    :param frame_data: :class:`FrameData` from which to extract positions.
+    :param ase_atoms: ASE :class:`Atoms` to add particle positions to.
     """
     ase_atoms.set_positions(np.array(frame_data.particle_positions) * NM_TO_ANG)
 
@@ -129,8 +132,8 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
     """
     Adds ASE positions to the frame data, converting to nanometers.
 
-    :param data:
-    :param positions:
+    :param data: :class:`FrameData` to add atom positions to.
+    :param positions: Array of atomic positions, in angstroms.
     """
     data.particle_positions = positions * ANG_TO_NM
     data.particle_count = len(positions)
@@ -138,7 +141,10 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
 
 def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     """
-    Adds the periodic box vectors to the frame.
+    Adds the periodic box vectors from the given ASE :class:`Atoms`
+    object to the given :class:`FrameData`.
+    :param data: :class:`FrameData` upon which to add periodic box vectors.
+    :param ase_atoms: :class:`Atoms` from which to extract periodic box vectors.
     """
     box_vectors = ase_atoms.cell.copy() * ANG_TO_NM
     data.box_vectors = box_vectors
@@ -196,19 +202,20 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
-def get_radius_of_element(symbol: str):
+def get_radius_of_element(symbol: str, default=1.0):
     """
-    Gets the radius of an atom in angstroms.
+    Gets the radius of an atom in Angstroms.
 
     :param symbol: The chemical symbol representing the element.
+    :param default: Default radius to use if the radius for the given chemical symbol is not known.
     :return: The VDW radius of the atom in angstroms.
     """
-    return ATOM_RADIUS_ANG[symbol]
+    return ATOM_RADIUS_ANG.get(symbol, default)
 
 
 def _bond_threshold(radii: Iterable):
     """
-    Returns the distance threshold for a bond between a given pair of radii.
+    Returns the distance threshold, in Angstroms, for a bond between a given pair of radii.
 
     :param radii: Pair or radii.
     :return: Distance threshold indicating the distance at which a bond is formed.
