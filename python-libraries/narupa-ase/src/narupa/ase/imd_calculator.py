@@ -34,6 +34,11 @@ class ImdCalculator(Calculator):
     :param reset_scale: A scale factor to apply to velocities when reset.
     :param kwargs: Key word args passed to the base calculator.
 
+    .. seealso::
+
+    The :class: ImdServer class makes use of this class, and makes
+    running an interactive molecular dynamics simulation in ASE straightforward.
+    
     """
 
     def __init__(self, imd_service: ImdService,
