@@ -22,7 +22,7 @@ from simulation_utils import (
 @pytest.fixture
 def simple_openmm_topology():
     topology = Topology()
-    chain = topology.addChain()
+    chain = topology.addChain(id="A")
     residue = topology.addResidue("RES", chain, 0)
     atom1 = topology.addAtom("Atom1", Element.getByAtomicNumber(1), residue)
     atom2 = topology.addAtom("Atom2", Element.getByAtomicNumber(2), residue)
@@ -45,9 +45,52 @@ def test_topology_atoms(simple_openmm_topology):
     assert data.raw.arrays[frame_data.PARTICLE_ELEMENTS].index_values.values == [1, 2, 3]
 
 
+def test_topology_particle_count(simple_openmm_topology):
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
+    assert data.raw.values[frame_data.PARTICLE_COUNT] == simple_openmm_topology.getNumAtoms()
+
+
 def test_topology_residues(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
     assert data.raw.arrays[frame_data.RESIDUE_NAMES].string_values.values == ["RES"]
+
+
+def test_topology_residue_count(simple_openmm_topology):
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
+    frame_count = data.raw.values[frame_data.RESIDUE_COUNT]
+    frame_count = int(frame_count.number_value)
+    assert frame_count == simple_openmm_topology.getNumResidues()
+
+
+def test_topology_chain_count(simple_openmm_topology):
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
+    frame_count = data.raw.values[frame_data.CHAIN_COUNT]
+    frame_count = int(frame_count.number_value)
+    assert frame_count == simple_openmm_topology.getNumChains()
+
+
+def test_topology_chain_names(simple_openmm_topology):
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
+    assert data.raw.arrays[frame_data.CHAIN_NAMES].string_values.values == ["A"]
+
+
+def test_topology_particle_residues(simple_openmm_topology):
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
+    frame_residues = data.raw.arrays[frame_data.PARTICLE_RESIDUES].index_values.values
+    openmm_residues = [0, 0, 0]
+    assert frame_residues == openmm_residues
+
+
+def test_topology_residue_ids(simple_openmm_topology):
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
+    assert data.raw.arrays[frame_data.RESIDUE_IDS].index_values.values == [0]
+
+
+def test_topology_residue_chains(simple_openmm_topology):
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
+    frame_chains = data.raw.arrays[frame_data.RESIDUE_CHAINS].index_values.values
+    openmm_chains = [0]
+    assert frame_chains == openmm_chains
 
 
 def test_box_vectors(basic_simulation):

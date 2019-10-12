@@ -159,6 +159,8 @@ class FrameData(metaclass=_FrameDataMeta):
 
         _Shortcut(name='residue_names', key=RESIDUE_NAMES, record_type='arrays',
                   field_type='string', to_python=_as_is, to_raw=_as_is),
+        _Shortcut(name='residue_ids', key=RESIDUE_IDS, record_type='arrays',
+                  field_type='index', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='residue_chains', key=RESIDUE_CHAINS, record_type='arrays',
                   field_type='index', to_python=_as_is, to_raw=_as_is),
         _Shortcut(name='residue_count', key=RESIDUE_COUNT, record_type='values',
