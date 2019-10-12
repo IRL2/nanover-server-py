@@ -1,3 +1,5 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 from ase.calculators.lj import LennardJones
 from narupa.ase import ase_to_frame_data
 import numpy as np
@@ -105,6 +107,7 @@ def test_frame_kinetic_energy(atoms_lj_calc):
 def test_frame_to_ase_positions(frame):
     atoms = frame_data_to_ase(frame)
     assert np.allclose(atoms.positions, [(0, 0, 0), (0, 0, 1.1)])
+
 
 def test_frame_to_ase_elements(frame):
     atoms = frame_data_to_ase(frame)
