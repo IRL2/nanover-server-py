@@ -16,7 +16,7 @@ from narupa.imd.imd_server import ImdServer
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths, _get_cancelled_interactions, \
     _get_atoms_to_reset
 from narupa.imd.particle_interaction import ParticleInteraction
-from util import imd_client
+from .util import imd_client
 
 
 def co_atoms():

@@ -19,7 +19,7 @@ from narupa.trajectory.frame_data import (PARTICLE_COUNT, RESIDUE_COUNT, CHAIN_C
 FrameDataField = collections.namedtuple('FrameDataField', 'key required')
 # tuple for storing a frame data key and a conversion method to apply when producing the corresponding attribute
 # in MDAnalysis.
-FrameDataFieldConversion = collections.namedtuple('FrameDataFieldConversion', 'key converter') # tuple for
+FrameDataFieldConversion = collections.namedtuple('FrameDataFieldConversion', 'key converter')
 
 ELEMENT_INDEX = {
     'H': 1,
@@ -103,6 +103,9 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     :return: Frame data constructed from MDAnalysis universe.
 
     :raises: MissingDataError if no positions exist in the MDAnalysis universe, and positions are specified.
+
+    Topological information consists any available information such as bonds, residue names,
+    residue ids, atom names, chain names, residue index and chain indexes
     """
     frame_data = FrameData()
 
