@@ -162,7 +162,7 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.residue_names = ["ASE"]
     frame_data.residue_chains = [0]
     frame_data.residue_count = 1
-    frame_data.residue_ids =[0]
+    frame_data.residue_ids =['1']
 
     frame_data.chain_names = ["A"]
     frame_data.chain_count = 1

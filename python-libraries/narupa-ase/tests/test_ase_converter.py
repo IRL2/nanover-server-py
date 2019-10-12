@@ -39,7 +39,7 @@ def test_convert_atom_residue_count(frame):
 
 
 def test_convert_residue_ids(frame):
-    assert frame.residue_ids == [0]
+    assert frame.residue_ids == ['1']
 
 
 def test_convert_residue_names(frame):

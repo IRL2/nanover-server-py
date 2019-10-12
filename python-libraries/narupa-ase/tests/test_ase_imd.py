@@ -10,7 +10,7 @@ from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.core.timing import delayed_generator
 from narupa.imd.particle_interaction import ParticleInteraction
-from util import co_atoms, imd_client
+from .util import co_atoms, imd_client
 
 
 @pytest.fixture

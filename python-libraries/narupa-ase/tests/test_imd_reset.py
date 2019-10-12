@@ -14,7 +14,7 @@ from narupa.ase.imd_calculator import (ImdCalculator, _get_cancelled_interaction
 from narupa.imd import ImdServer
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.trajectory.frame_data import MissingDataError
-from test_imd_calculator import imd_calculator_co
+from .test_imd_calculator import imd_calculator_co
 import numpy as np
 
 # Sets of dummy interactions to test cancellation selections.
