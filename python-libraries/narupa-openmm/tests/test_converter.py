@@ -5,15 +5,11 @@
 import itertools
 
 import pytest
-
-from simtk.openmm.app.element import Element
-from simtk.openmm.app.topology import Topology
-
 from narupa.openmm import openmm_to_frame_data
 from narupa.trajectory import frame_data
-
+from simtk.openmm.app.element import Element
+from simtk.openmm.app.topology import Topology
 from simulation_utils import (
-    basic_simulation,
     BASIC_SIMULATION_POSITIONS,
     BASIC_SIMULATION_BOX_VECTORS,
 )
@@ -40,9 +36,25 @@ def test_topology_bonds(simple_openmm_topology):
     assert data.raw.arrays[frame_data.BOND_PAIRS].index_values.values == [0, 1, 1, 2]
 
 
-def test_topology_atoms(simple_openmm_topology):
+def test_topology_atom_elements(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
     assert data.raw.arrays[frame_data.PARTICLE_ELEMENTS].index_values.values == [1, 2, 3]
+
+
+def test_topology_atom_names(simple_openmm_topology):
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
+    assert data.raw.arrays[frame_data.PARTICLE_NAMES].index_values.values == ["Atom1", "Atom2", "Atom3"]
+
+
+def test_topology_atom_types(simple_openmm_topology):
+    """
+    Tests that the OpenMM converter does not produce atom types.
+    :param simple_openmm_topology: Simple OpenMM topology to test.
+    """
+
+    data = openmm_to_frame_data(topology=simple_openmm_topology)
+    with pytest.raises(KeyError):
+        _ = data.arrays[frame_data.PARTICLE_TYPES].string_values.values
 
 
 def test_topology_particle_count(simple_openmm_topology):
