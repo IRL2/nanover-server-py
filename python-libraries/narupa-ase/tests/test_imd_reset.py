@@ -15,6 +15,7 @@ from narupa.imd import ImdServer
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.trajectory.frame_data import MissingDataError
 import numpy as np
+from test_imd_calculator import imd_calculator_co
 
 # Sets of dummy interactions to test cancellation selections.
 NUM_INTERACTIONS = 10
@@ -52,22 +53,6 @@ def fcc_atoms():
     return atoms
 
 
-def co_atoms():
-    d = 1.1
-    co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)],
-               cell=[20, 20, 20],
-               pbc=[1, 1, 1])
-    return co
-
-
-@pytest.fixture
-def imd_calculator_co():
-    server = ImdServer(address=None, port=None)
-    atoms = co_atoms()
-    calculator = LennardJones()
-    imd_calculator = ImdCalculator(server.service, calculator, atoms)
-    yield imd_calculator, atoms
-    server.close()
 
 
 @pytest.fixture

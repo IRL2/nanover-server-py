@@ -7,14 +7,7 @@ import numpy as np
 import pytest
 from narupa.ase.converter import EV_TO_KJMOL, frame_data_to_ase
 from narupa.trajectory.frame_data import MissingDataError
-
-
-def co_atoms():
-    d = 1.1
-    co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)],
-               cell=[2, 2, 2],
-               pbc=[1, 1, 1])
-    return co
+from util import co_atoms
 
 
 @pytest.fixture
