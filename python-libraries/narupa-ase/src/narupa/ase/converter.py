@@ -85,7 +85,7 @@ def ase_to_frame_data(
 def frame_data_to_ase(frame_data: FrameData, positions: bool = True, topology: bool = True,
                       ase_atoms: Optional[Atoms] = None) -> Atoms:
     """
-    Constructs an ASE :class: Atoms. object from a Narupa :class: FrameData.
+    Constructs an ASE :class: Atoms object from a Narupa :class: FrameData.
 
     :param frame_data: The Narupa frame.
     :param positions: Whether to add positions to the ASE atoms.
