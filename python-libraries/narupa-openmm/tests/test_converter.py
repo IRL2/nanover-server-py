@@ -12,6 +12,7 @@ from simtk.openmm.app.topology import Topology
 from simulation_utils import (
     BASIC_SIMULATION_POSITIONS,
     BASIC_SIMULATION_BOX_VECTORS,
+    basic_simulation
 )
 
 
@@ -19,7 +20,7 @@ from simulation_utils import (
 def simple_openmm_topology():
     topology = Topology()
     chain = topology.addChain(id="A")
-    residue = topology.addResidue("RES", chain, 0)
+    residue = topology.addResidue("RES", chain, "0")
     atom1 = topology.addAtom("Atom1", Element.getByAtomicNumber(1), residue)
     atom2 = topology.addAtom("Atom2", Element.getByAtomicNumber(2), residue)
     atom3 = topology.addAtom("Atom3", Element.getByAtomicNumber(3), residue)
@@ -43,7 +44,7 @@ def test_topology_atom_elements(simple_openmm_topology):
 
 def test_topology_atom_names(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.arrays[frame_data.PARTICLE_NAMES].index_values.values == ["Atom1", "Atom2", "Atom3"]
+    assert data.raw.arrays[frame_data.PARTICLE_NAMES].string_values.values == ["Atom1", "Atom2", "Atom3"]
 
 
 def test_topology_atom_types(simple_openmm_topology):
@@ -95,7 +96,7 @@ def test_topology_particle_residues(simple_openmm_topology):
 
 def test_topology_residue_ids(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.arrays[frame_data.RESIDUE_IDS].index_values.values == [0]
+    assert data.raw.arrays[frame_data.RESIDUE_IDS].string_values.values == ["0"]
 
 
 def test_topology_residue_chains(simple_openmm_topology):

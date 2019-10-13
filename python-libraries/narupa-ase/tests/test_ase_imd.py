@@ -3,14 +3,29 @@
 import time
 
 import pytest
+from ase import Atoms
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
+from narupa.imd import ImdClient
 
 from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.core.timing import delayed_generator
 from narupa.imd.particle_interaction import ParticleInteraction
-from .util import co_atoms, imd_client
+
+
+def co_atoms():
+    d = 1.1
+    co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)],
+               cell=[20, 20, 20],
+               pbc=[1, 1, 1])
+    return co
+
+
+@pytest.fixture
+def imd_client():
+    with ImdClient(address='localhost', port=54322) as client:
+        yield client
 
 
 @pytest.fixture
