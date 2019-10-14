@@ -35,7 +35,7 @@ def restraint_force(force_constant: Quantity = DEFAULT_RESTRAINT_FORCE_CONSTANT)
     .. note::
 
         Like any force in OpenMM, the position restraints need to be added to
-        the system before the system is made part of the simulation.
+        the system before a context is created from the molecular system.
 
     :param force_constant: The force constant, :math:`k`. The value is expected
         to be a :class:`Quantity`, it will be converted to kJ/(mol * nm^2).
