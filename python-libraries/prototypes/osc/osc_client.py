@@ -2,7 +2,9 @@ from narupa.app import NarupaClient
 from narupa.core.timing import yield_interval
 from pythonosc import udp_client
 
-DEFAULT_OSC_ADDRESS = 'localhost'
+# doesn't support both IPv4 and IPv6 at once, so we probably want IPv4
+# See https://github.com/attwad/python-osc/issues/109
+DEFAULT_OSC_ADDRESS = '127.0.0.1'
 DEFAULT_OSC_PORT = 60000
 
 
