@@ -136,7 +136,7 @@ class ImdCalculator(Calculator):
         :param system_changes: List of what has changed since last calculation. See :method: Calculator.calculate for
         details.
 
-        :raises ValueError If no ASE atoms are supplied to the calculation, and no ASE atoms were supplied during
+        :raises ValueError: If no ASE atoms are supplied to the calculation, and no ASE atoms were supplied during
         initialisation.
         """
         energy = 0.0
