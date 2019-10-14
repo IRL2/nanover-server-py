@@ -4,6 +4,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Narupa.Protocol", "Narupa.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Narupa.Protocol.Test", "Narupa.Protocol.Test\Narupa.Protocol.Test.csproj", "{73B1F5D7-6DA2-4E3B-B368-89978DB8AE3D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Essd", "Essd\Essd.csproj", "{09F44577-4598-4B31-B65F-9B1B28DFFB20}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssdClientCLI", "EssdClientCLI\EssdClientCLI.csproj", "{4195E14E-D2F0-4D17-BB9A-EC47CFD83585}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{73B1F5D7-6DA2-4E3B-B368-89978DB8AE3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73B1F5D7-6DA2-4E3B-B368-89978DB8AE3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{73B1F5D7-6DA2-4E3B-B368-89978DB8AE3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09F44577-4598-4B31-B65F-9B1B28DFFB20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09F44577-4598-4B31-B65F-9B1B28DFFB20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09F44577-4598-4B31-B65F-9B1B28DFFB20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09F44577-4598-4B31-B65F-9B1B28DFFB20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4195E14E-D2F0-4D17-BB9A-EC47CFD83585}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4195E14E-D2F0-4D17-BB9A-EC47CFD83585}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4195E14E-D2F0-4D17-BB9A-EC47CFD83585}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4195E14E-D2F0-4D17-BB9A-EC47CFD83585}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

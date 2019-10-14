@@ -1,0 +1,9 @@
+/Users/mike/Code/narupa/narupa-protocol/csharp-libraries/Essd/bin/Debug/netstandard2.0/Essd.deps.json
+/Users/mike/Code/narupa/narupa-protocol/csharp-libraries/Essd/bin/Debug/netstandard2.0/Essd.dll
+/Users/mike/Code/narupa/narupa-protocol/csharp-libraries/Essd/bin/Debug/netstandard2.0/Essd.pdb
+/Users/mike/Code/narupa/narupa-protocol/csharp-libraries/Essd/obj/Debug/netstandard2.0/Essd.csprojAssemblyReference.cache
+/Users/mike/Code/narupa/narupa-protocol/csharp-libraries/Essd/obj/Debug/netstandard2.0/Essd.csproj.CoreCompileInputs.cache
+/Users/mike/Code/narupa/narupa-protocol/csharp-libraries/Essd/obj/Debug/netstandard2.0/Essd.AssemblyInfoInputs.cache
+/Users/mike/Code/narupa/narupa-protocol/csharp-libraries/Essd/obj/Debug/netstandard2.0/Essd.AssemblyInfo.cs
+/Users/mike/Code/narupa/narupa-protocol/csharp-libraries/Essd/obj/Debug/netstandard2.0/Essd.dll
+/Users/mike/Code/narupa/narupa-protocol/csharp-libraries/Essd/obj/Debug/netstandard2.0/Essd.pdb

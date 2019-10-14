@@ -94,7 +94,6 @@ class DiscoveryServer:
         self._socket.sendto(message.encode(), (IP_ADDRESS_BROADCAST, BROADCAST_PORT))
 
     def __enter__(self):
-        self.start()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
