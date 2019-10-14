@@ -11,14 +11,18 @@ from MDAnalysis import Universe
 from MDAnalysis.topology.guessers import guess_atom_element
 
 from narupa.trajectory import FrameData
-from narupa.trajectory.frame_data import (PARTICLE_COUNT, RESIDUE_COUNT, CHAIN_COUNT, PARTICLE_ELEMENTS, PARTICLE_NAMES,
-                                          PARTICLE_RESIDUES, RESIDUE_NAMES, RESIDUE_CHAINS, CHAIN_NAMES,
-                                          MissingDataError, RESIDUE_IDS)
+from narupa.trajectory.frame_data import (
+    PARTICLE_COUNT, RESIDUE_COUNT, CHAIN_COUNT,
+    PARTICLE_ELEMENTS, PARTICLE_NAMES, PARTICLE_RESIDUES,
+    RESIDUE_NAMES, RESIDUE_CHAINS, RESIDUE_IDS,
+    CHAIN_NAMES,
+    MissingDataError,
+)
 
 # tuple for storing a frame data key and whether it is required in conversion.
 FrameDataField = collections.namedtuple('FrameDataField', 'key required')
-# tuple for storing a frame data key and a conversion method to apply when producing the corresponding attribute
-# in MDAnalysis.
+# tuple for storing a frame data key and a conversion method to apply when
+# producing the corresponding attribute in MDAnalysis.
 FrameDataFieldConversion = collections.namedtuple('FrameDataFieldConversion', 'key converter')
 
 ELEMENT_INDEX = {
@@ -50,8 +54,11 @@ MDANALYSIS_GROUP_TO_ATTRIBUTES = {'atoms': MDANALYSIS_ATOMS_TO_FRAME_DATA,
                                   'residues': MDANALYSIS_RESIDUES_TO_FRAME_DATA,
                                   'segments': MDANALYSIS_CHAINS_TO_FRAME_DATA}
 
-ALL_MDA_ATTRIBUTES = [(group, key, value) for group in MDANALYSIS_GROUP_TO_ATTRIBUTES for key, value in
-                      MDANALYSIS_GROUP_TO_ATTRIBUTES[group].items()]
+ALL_MDA_ATTRIBUTES = [
+    (group, key, value)
+    for group in MDANALYSIS_GROUP_TO_ATTRIBUTES
+    for key, value in MDANALYSIS_GROUP_TO_ATTRIBUTES[group].items()
+]
 
 
 def nullable_int(value):
@@ -102,10 +109,12 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     :param positions: Whether to include positions.
     :return: Frame data constructed from MDAnalysis universe.
 
-    :raises: MissingDataError if no positions exist in the MDAnalysis universe, and positions are specified.
+    :raises MissingDataError: if no positions exist in the MDAnalysis universe,
+        and positions are specified.
 
-    Topological information consists any available information such as bonds, residue names,
-    residue ids, atom names, chain names, residue index and chain indexes
+    Topological information consists any available information such as bonds,
+    residue names, residue ids, atom names, chain names, residue index and
+    chain indexes
     """
     frame_data = FrameData()
 
@@ -141,6 +150,7 @@ def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
 def add_mda_topology_to_frame_data(u, frame_data):
     """
     Adds available topology information from an MDAnalysis Universe to a FrameData.
+
     :param u: MDAnalysis universe.
     :param frame_data: FrameData to add to.
     """
@@ -152,6 +162,7 @@ def add_mda_topology_to_frame_data(u, frame_data):
 def add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData):
     """
     Adds the positions in a MDAnalysis universe to the frame data, if they exist.
+
     :param u: MDAnalysis universe.
     :param frame_data: Narupa frame data.
 
@@ -172,6 +183,7 @@ def add_frame_topology_to_mda(u: Universe, frame: FrameData):
 def add_frame_positions_to_mda(u: Universe, frame: FrameData):
     """
     Updates the positions in an MDAnalysis universe with those from the given frame.
+
     :param u: MDAnalysis universe to set positions of.
     :param frame: Narupa Frame.
     """
@@ -199,9 +211,10 @@ def _get_universe_constructor_params(frame: FrameData):
     :param frame: Narupa FrameData object.
     :return: Dictionary of params to construct an MDAnalysis universe object.
 
-    The MDAnalysis universe empty constructor takes several optional parameters used to define
-    options such as number of atoms, number of residues, number of segments, and their identifiers.
-    This method extracts this data from a Narupa FrameData object.
+    The MDAnalysis universe empty constructor takes several optional parameters
+    used to define options such as number of atoms, number of residues, number
+    of segments, and their identifiers. This method extracts this data from a
+    Narupa :class:`FrameData` object.
     """
     params = {
         param_name: converter(_try_get_field(frame, field))
@@ -221,8 +234,9 @@ def _get_mda_attribute(u: Universe, group, group_attribute):
     :param group: The group in the MDAnalysis universe in which the attribute exists.
     :param group_attribute: The attribute.
     :return: The attribute, if it exists.
-    :raises: AttributeError: If either the universe does not contain the given group, or the attribute
-    does not exist in the given group, an AttributeError will be raised.
+    :raises AttributeError: If either the universe does not contain the given
+        group, or the attribute does not exist in the given group, an
+        :exc:`AttributeError` will be raised.
     """
     return getattr(getattr(u, group), group_attribute)
 
@@ -266,6 +280,7 @@ def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
 def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
     """
     Adds the bonds in a MDAnalysis universe to the frame data, if they exist.
+
     :param u: MDAnalysis universe.
     :param frame_data: Narupa frame data.
    """

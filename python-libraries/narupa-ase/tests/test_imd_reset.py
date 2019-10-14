@@ -53,8 +53,6 @@ def fcc_atoms():
     return atoms
 
 
-
-
 @pytest.fixture
 def imd_calculator_berendsen_dynamics():
     """
