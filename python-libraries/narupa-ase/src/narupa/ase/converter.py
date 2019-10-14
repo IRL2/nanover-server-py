@@ -175,7 +175,7 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.particle_count = len(ase_atoms)
 
     bonds = generate_bonds(ase_atoms)
-    frame_data.bonds = bonds
+    frame_data.bond_pairs = bonds
 
 
 def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):

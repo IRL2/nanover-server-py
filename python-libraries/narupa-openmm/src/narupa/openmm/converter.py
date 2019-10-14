@@ -41,10 +41,7 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
     data.particle_elements = elements
     data.particle_residues = residue_indices
     data.particle_count = topology.getNumAtoms()
-
-    data.bonds = bonds
-
-    data.particle_count = len(atom_names)
+    data.bond_pairs = bonds
 
 
 def openmm_to_frame_data(*, state=None, topology=None) -> FrameData:

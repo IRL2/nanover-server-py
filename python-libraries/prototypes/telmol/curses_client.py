@@ -206,7 +206,7 @@ class CursesFrontend:
     def render(self):
         self.stdscr.clear()
         self.renderer.positions = np.array(self.client.latest_frame.particle_positions, dtype=np.float32)
-        self.renderer.bonds = self.client.first_frame.bonds
+        self.renderer.bonds = self.client.first_frame.bond_pairs
         self.renderer.elements = self.client.first_frame.particle_elements
 
         self.renderer.render()

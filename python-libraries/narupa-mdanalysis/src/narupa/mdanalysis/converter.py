@@ -198,7 +198,7 @@ def _add_bonds_to_mda(u: Universe, frame: FrameData):
     :param frame: Narupa FrameData.
     """
     try:
-        bonds = [(bond[0], bond[1]) for bond in frame.bonds]
+        bonds = [(bond[0], bond[1]) for bond in frame.bond_pairs]
     except MissingDataError:
         return
     u.add_TopologyAttr('bonds', bonds)
@@ -285,7 +285,7 @@ def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
     :param frame_data: Narupa frame data.
    """
     try:
-        frame_data.bonds = u.atoms.bonds.indices
+        frame_data.bond_pairs = u.atoms.bonds.indices
     except AttributeError:
         pass
 

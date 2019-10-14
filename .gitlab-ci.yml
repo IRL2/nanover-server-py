@@ -1,6 +1,7 @@
 image: intangiblerealitieslab/dotnet-conda
 stages:
   - test
+  - packaging
   - deploy
 
 release:
@@ -40,3 +41,45 @@ test_dotnet:
   script:
     - "cd $test_path"
     - "dotnet test"
+
+build_conda:
+    stage: packaging
+    variables:
+        build_command: "conda build --prefix-length=100 "
+    script:
+        # We use the number of commits in the branch to set the version number.
+        - export NARUPA_BUILD_VERSION="0.1.$(git rev-list --count HEAD)"
+        - export NARUPA_LICENSE_PATH="$(readlink -f LICENSE)"
+        # Configure the environment. We need conda-forge to get the science
+        # related packages (openmm, ase, mdanalysis)
+        - conda config --env --add channels conda-forge
+        - conda config --env --add channels omnia
+        - conda install conda-build grpcio-tools conda-verify
+        # Compiling the prototypes
+        - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
+        # narupa-core must come first as all depends on it
+        - $build_command python-libraries/narupa-core/conda
+        - $build_command python-libraries/narupa-openmm/conda
+        - $build_command python-libraries/narupa-ase/conda
+        - $build_command python-libraries/narupa-mdanalysis/conda
+        # narupa-server must come last as it depends on everything
+        - $build_command python-libraries/narupa-server/conda
+        - cp -r /miniconda/conda-bld .
+    artifacts:
+        paths:
+          - conda-bld
+
+upload_conda:
+    stage: deploy
+    only:
+      - master
+    script:
+      - conda install anaconda
+      # The login token may be used by a failed build already. If we are asked
+      # if we want it back, we say yes. Hence the echo Y.
+      - echo Y | anaconda login --username irl_bot --password $ANACONDA_PASSWORD
+      # Anaconda will complain if the given version of a package is already
+      # there. Until we have some visioning, we force the upload.
+      - anaconda  upload --user irl conda-bld/noarch/narupa-*.tar.bz2 --force
+      # Do not fail the build if we cannot logout.
+      - anaconda logout || echo "Could not logout. Too bad."

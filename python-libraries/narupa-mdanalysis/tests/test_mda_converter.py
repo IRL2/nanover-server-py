@@ -82,7 +82,7 @@ def test_mdanalysis_counts(mda_attribute, frame_field, frame_data_and_universe):
 
 def test_mdanalysis_bonds(frame_data_and_universe):
     frame, universe = frame_data_and_universe
-    frame_bonds = np.array(frame.bonds)
+    frame_bonds = np.array(frame.bond_pairs)
     universe_bonds = np.array(universe.bonds.indices)
     assert np.all(frame_bonds == universe_bonds)
 
@@ -104,7 +104,7 @@ def test_single_atom_universe(single_atom_universe):
     assert np.allclose(frame.particle_positions, [0, 0, 0])
     assert frame.residue_count == 1
     with pytest.raises(MissingDataError):
-        _ = frame.bonds
+        _ = frame.bond_pairs
 
 
 @pytest.mark.parametrize(

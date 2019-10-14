@@ -188,7 +188,34 @@ def test_velocity_reset_not_enabled(imd_server_client, interactions_reset):
         imd_client.publish_interactions(delayed_generator(interactions_reset, delay=0.1))
 
 
-def test_velocity_reset_not_enabled(imd_server_client, interactions_reset):
+def test_velocity_reset_enabled(imd_server_client, interactions_reset):
     imd_server, imd_client = imd_server_client
     imd_server.service.velocity_reset_enabled = True
     imd_client.publish_interactions(delayed_generator(interactions_reset, delay=0.1))
+
+
+def test_particle_range_max(imd_server_client, interaction):
+    imd_server, imd_client = imd_server_client
+    imd_server.service.number_of_particles = 5
+    interaction.particles = [1, 2, 3, 4, 5, 6]
+    with pytest.raises(grpc.RpcError):
+        imd_client.publish_interactions([interaction])
+
+
+def test_particle_range_particles_not_set(imd_server_client, interaction):
+    """
+    Tests that if the number of particles is not set in the imd service, it will not
+    report error if particle out of range.
+    """
+    imd_server, imd_client = imd_server_client
+    interaction.particles = [1, 2, 3, 4, 5, 6]
+    imd_client.publish_interactions([interaction])
+
+def test_particle_range_particles_not_set(imd_server_client, interaction):
+    """
+    Tests that if the number of particles is not set in the imd service, it will not
+    report error if particle out of range.
+    """
+    imd_server, imd_client = imd_server_client
+    interaction.particles = [1, 2, 3, 4, 5, 6]
+    imd_client.publish_interactions([interaction])
