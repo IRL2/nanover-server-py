@@ -68,8 +68,9 @@ class ImdCalculator(Calculator):
             return self._custom_temperature
 
         if self._dynamics is None:
-            raise MissingDataError("No temperature has been set, and no molecular dynamics object has been passed to the "
-                                 "IMD calculator.")
+            raise MissingDataError(
+                "No temperature has been set, and no molecular dynamics object has been passed to the "
+                "IMD calculator.")
 
         try:
             return self._dynamics.temperature
@@ -124,6 +125,7 @@ class ImdCalculator(Calculator):
             atoms = self.atoms
         if atoms is None:
             raise ValueError('No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation.')
+        self._service.number_of_particles = len(atoms)  # update number of atoms in interaction service, for validating.
 
         forces = np.zeros((len(atoms), 3))
 
