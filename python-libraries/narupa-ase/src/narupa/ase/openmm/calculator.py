@@ -22,7 +22,7 @@ class OpenMMCalculator(Calculator):
     Simple implementation of a ASE calculator for OpenMM. Initialises an OpenMM context with
     the given OpenMM simulation.
 
-    :param simulation An OpenMM simulation.
+    :param simulation: An OpenMM simulation.
     :param atoms ASE :class: Atoms to use with the calculator. The topology of the ASE atoms should be consistent
     with the OpenMM simulation. See :method: OpenMMCalculator.generate_atoms for a helper function to generate a
     compatible ASE atoms object.
