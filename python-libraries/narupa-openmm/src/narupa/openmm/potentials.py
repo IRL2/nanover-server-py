@@ -1,7 +1,8 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Helpers around useful potentials.
+Helpers around useful potentials that can
+be applied to OpenMM systems.
 """
 
 from typing import Iterable
