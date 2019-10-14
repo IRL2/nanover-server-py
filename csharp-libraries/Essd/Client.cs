@@ -8,14 +8,24 @@ using System.Timers;
 
 namespace Essd
 {
+    /// <summary>
+    /// Implementation of an Extremely Simple Service Discovery (ESSD) client. 
+    /// </summary>
     public class Client
     {
-        public const int ListenPort = 54545;
+        /// <summary>
+        /// Default port upon which ESSD clients listen for services.
+        /// </summary>
+        public const int DefaultListenPort = 54545;
         
         private UdpClient udpClient;
 
 
-        public Client(int listenPort=ListenPort)
+        /// <summary>
+        /// Initialises an ESSD client.
+        /// </summary>
+        /// <param name="listenPort">Port at which to listen for services.</param>
+        public Client(int listenPort=DefaultListenPort)
         {
             udpClient = new UdpClient();
     
@@ -115,16 +125,35 @@ namespace Essd
     public class ServiceHub : IEquatable<ServiceHub>
     {
 
+        /// <summary>
+        /// The key used for the service name field, which is always required.
+        /// </summary>
         public const string NameKey = "name";
+        
+        /// <summary>
+        /// The key used for the service address field, which is always required.
+        /// </summary>
         public const string AddressKey = "address";
+        
+        /// <summary>
+        /// The name of the service.
+        /// </summary>
         public string Name => (string) Properties[NameKey];
+        
+        /// <summary>
+        /// The address of the service.
+        /// </summary>
         public string Address => (string) Properties[AddressKey];
         
         private Dictionary<string, object> Properties;
 
-        public ServiceHub(string message)
+        /// <summary>
+        /// Initialises a service hub from a JSON string describing the service hub.
+        /// </summary>
+        /// <param name="serviceHubJson">JSON string describing the service.</param>
+        public ServiceHub(string serviceHubJson)
         {
-            Properties = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(message);
+            Properties = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(serviceHubJson);
             ValidateProperties(Properties);
         }
 
@@ -153,6 +182,13 @@ namespace Essd
             }
         }
 
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// For the purposes of discovery, two service hubs are considered equal if
+        /// they have the same name and are serving at the same address.
+        /// </remarks>
+        /// TODO remove this constraint? It doesn't really make sense.
         public bool Equals(ServiceHub other)
         {
             if (ReferenceEquals(null, other)) return false;
@@ -160,6 +196,7 @@ namespace Essd
             return Name.Equals(other.Name) || Address.Equals(other.Address);
         }
 
+        /// <inheritdoc />
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
@@ -168,6 +205,7 @@ namespace Essd
             return Equals((ServiceHub) obj);
         }
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             return (Name + Address).GetHashCode();
