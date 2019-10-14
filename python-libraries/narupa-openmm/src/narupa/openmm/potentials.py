@@ -56,7 +56,7 @@ def restrain_particles(
         force_constant: Quantity = DEFAULT_RESTRAINT_FORCE_CONSTANT,
 ):
     """
-    Generate an OpenMM force that restrain the position of the selected particles.
+    Generate an OpenMM force that restrains the position of the selected particles.
 
     Apply a harmonic potential to restrain the position of the selected
     particles. The particles are restrained to their positions in the given
