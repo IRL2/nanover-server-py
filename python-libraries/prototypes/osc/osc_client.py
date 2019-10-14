@@ -5,7 +5,7 @@ from pythonosc import udp_client
 DEFAULT_OSC_ADDRESS = 'localhost'
 DEFAULT_OSC_PORT = 60000
 
-#
+
 def null_message_generator(frame):
     pass
 
