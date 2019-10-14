@@ -81,7 +81,7 @@ def test_transmission(frame_osc_converter, simple_frame_data):
     osc_server.dispatcher.map(test_address, recv_test)
     frame_server.send_frame(frame_data=simple_frame_data, frame_index=0)
 
-    time.sleep(DEFAULT_SUBSCRIPTION_INTERVAL)
+    time.sleep(DEFAULT_SUBSCRIPTION_INTERVAL * 2)
     time.sleep(OSC_SEND_INTERVAL * 2)
 
     assert recv_message == send_message
