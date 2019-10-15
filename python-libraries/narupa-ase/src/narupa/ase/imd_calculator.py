@@ -36,8 +36,8 @@ class ImdCalculator(Calculator):
 
     .. seealso::
 
-    The :class: ImdServer class makes use of this class, and makes
-    running an interactive molecular dynamics simulation in ASE straightforward.
+        The :class:`ImdServer` class makes use of this class, and makes
+        running an interactive molecular dynamics simulation in ASE straightforward.
     
     """
 
@@ -128,7 +128,7 @@ class ImdCalculator(Calculator):
         and then any interactive forces currently being applied to the system are added.
         Results are stored in the results dictionary, as normal.
 
-        :param atoms: Optional :class: Atoms object to perform the calculation on. If no atoms is passed,
+        :param atoms: Optional :class:`Atoms` object to perform the calculation on. If no atoms is passed,
         the atoms object passed at initialisation are used.
         :param properties: The properties to calculate. The ImdCalculator support 'energy' and 'forces',
         but will pass any other requested properties to the internal atomic calculator.

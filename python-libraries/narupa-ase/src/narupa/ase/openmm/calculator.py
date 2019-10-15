@@ -42,7 +42,7 @@ class OpenMMCalculator(Calculator):
         """
         Initialises an :class: OpenMMCalculator from a simulation serialised to XML with :module serializer.
         :param input_xml: XML file from which to create OpenMM simulation.
-        :param atoms: ASE :class: Atoms to pass to the resulting OpenMMCalculator.
+        :param atoms: ASE :class:`Atoms` to pass to the resulting OpenMMCalculator.
         :param kwargs: Keyword arguments for the OpenMMCalculator to be passed upon construction.
         :return: An :class: OpenMMCalculator, .
         """
@@ -81,7 +81,7 @@ class OpenMMCalculator(Calculator):
     def generate_atoms(self) -> Atoms:
         """
         Generates ASE atoms representation of the OpenMM system.
-        :return: ASE :class: Atoms, with positions and chemical symbols set as according to the current
+        :return: ASE :class:`Atoms`, with positions and chemical symbols set as according to the current
         state of the OpenMM system.
         """
         top: Topology = self.simulation.topology

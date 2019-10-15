@@ -18,14 +18,14 @@ class NarupaReporter:
     To use it, create a NarupaReporter, then add it to the Simulation's list
     of reporters.
 
-    .. example::
+    Example
+    =======
+
+    .. code-block:: python
 
         frame_server = FrameServer(address="localhost", port=54321)
-        frame_reporter = NarupaReporter(
-            report_interval=5,
-            frame_server=frame_server,
-        )
-        # Assume we have some OpenMM simulation already.
+        frame_reporter = NarupaReporter(report_interval=5,frame_server=frame_server)
+        # Assume some OpenMM simulation already exists
         simulation.reporters.add(frame_reporter)
 
     :param report_interval: Interval in frames between two reports.

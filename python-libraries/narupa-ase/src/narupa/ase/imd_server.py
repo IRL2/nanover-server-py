@@ -10,10 +10,13 @@ from typing import Optional, Callable
 
 from ase import Atoms
 from ase.calculators.calculator import Calculator
+from ase.lattice.cubic import FaceCenteredCubic
+from ase.md import Langevin
 from ase.md.md import MolecularDynamics
+from narupa.app import NarupaClient
 
-from .frame_server import send_ase_frame
-from .imd_calculator import ImdCalculator
+from narupa.ase.frame_server import send_ase_frame
+from narupa.ase.imd_calculator import ImdCalculator
 from narupa.imd.imd_server import ImdServer
 from narupa.trajectory import FrameServer
 
@@ -24,16 +27,32 @@ class ASEImdServer:
 
     :param dynamics: A prepared ASE molecular dynamics object to run, with IMD attached.
     :param frame_interval: Interval, in steps, at which to publish frames.
-    :param frame_method(ase_atoms, frame_server): Method to use to generate frames, given the the ASE :class: Atoms
+    :param frame_method(ase_atoms, frame_server): Method to use to generate frames, given the the ASE :class:`Atoms`
            and a :class: FrameServer.
+
+
+    Example
+    =======
+
+    >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
+    >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300, friction=1.0)
+    >>> server = ASEImdServer(dynamics)
+    >>> client = NarupaClient(run_multiplayer=False)
+    >>> server.run(5)
+    >>> client.first_frame.particle_count
+    32
+    >>> # Alternatively, use a 'with' statement to manage the context.
+    >>> client.close()
+    >>> server.close()
+
     """
 
     def __init__(self, dynamics: MolecularDynamics,
-                 frame_method:Optional[Callable]=None,
+                 frame_method: Optional[Callable] = None,
                  frame_interval=1,
-                 address:Optional[str]=None,
-                 trajectory_port:Optional[int]=None,
-                 imd_port:Optional[int]=None):
+                 address: Optional[str] = None,
+                 trajectory_port: Optional[int] = None,
+                 imd_port: Optional[int] = None):
         if frame_method is None:
             frame_method = send_ase_frame
         self.frame_server = FrameServer(address=address, port=trajectory_port)
@@ -49,7 +68,6 @@ class ASEImdServer:
         self.logger = logging.getLogger(__name__)
         self.logger.info(f"Running frame server at {address}:{trajectory_port}")
         self.logger.info(f"Running IMD server at {address}:{imd_port}")
-
 
     @property
     def internal_calculator(self) -> Calculator:

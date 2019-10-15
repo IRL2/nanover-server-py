@@ -120,7 +120,7 @@ class NarupaClient:
         Wait until the first frame is received from the server.
         :param check_interval: Interval at which to check if a frame has been received.
         :param timeout: Timeout after which to stop waiting for a frame.
-        :return: The first :class: FrameData received.
+        :return: The first :class:`FrameData` received.
         :raises: :class: Exception if no frame is received.
         """
         endtime = 0 if timeout is None else time.monotonic() + timeout
@@ -152,7 +152,7 @@ class NarupaClient:
     def latest_frame(self) -> Optional[FrameData]:
         """
         The trajectory frame most recently received, if any.
-        :return: :class: FrameData, or `None` if none has been received.
+        :return: :class:`FrameData`, or `None` if none has been received.
         """
         if len(self.frames) is 0:
             return None

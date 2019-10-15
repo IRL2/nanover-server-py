@@ -28,18 +28,16 @@ def queue_generator(queue: Queue, sentinel: object):
                      the generator stops.
     :return: Yields the items in put into the queue, in the order they were put in.
 
-    .. example::
-
-        queue = Queue()
-        sentinel = object()
-
-        queue.put(1)
-        queue.put(2)
-        queue.put(sentinel)
-
-        generator = queue_generator(queue, sentinel)
-        for item in generator:
-            print(item)
+    >>> queue = Queue()
+    >>> sentinel = object()
+    >>> queue.put(1)
+    >>> queue.put(2)
+    >>> queue.put(sentinel)
+    >>> generator = queue_generator(queue, sentinel)
+    >>> for item in generator:
+    ...     print(item)
+    1
+    2
 
     """
     for val in iter(queue.get, sentinel):
