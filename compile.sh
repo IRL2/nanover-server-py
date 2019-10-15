@@ -49,7 +49,9 @@ announce "Installing the python packages"
 python -m pip install ${edit_option} ${narupa_user_option} ./python-libraries/narupa-core/
 
 for package in python-libraries/narupa-*/; do
-    python -m pip install ${edit_option} ${narupa_user_option} ${package}
+    if [[ -f "${package}/setup.py" ]]; then
+        python -m pip install ${edit_option} ${narupa_user_option} ${package}
+    fi
 done
 
 python -c "import simtk" 2>&1 > /dev/null || {

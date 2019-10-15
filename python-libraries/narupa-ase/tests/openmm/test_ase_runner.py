@@ -6,6 +6,8 @@ from narupa.ase.openmm import OpenMMIMDRunner
 from narupa.ase.openmm.runner import ImdParams
 from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
 from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
+from narupa.ase.openmm.calculator import OpenMMCalculator
+from narupa.ase.wall_calculator import VelocityWallCalculator
 
 from .simulation_utils import basic_simulation, serialized_simulation_path
 
@@ -88,3 +90,28 @@ def test_same_port_failure(basic_simulation, trajectory_port, imd_port):
     with pytest.raises(ValueError):
         with OpenMMIMDRunner(basic_simulation, params):
             pass
+
+
+@pytest.mark.parametrize('trajectory_port, imd_port', (
+        (0, 0),
+        (0, None),
+        (None, 0),
+        (0, 80),
+        (80, 0),
+))
+def test_same_port_accepts_zero(trajectory_port, imd_port):
+    assert not OpenMMIMDRunner._services_use_same_port(trajectory_port, imd_port)
+
+
+@pytest.mark.parametrize('walls, expected_calculator_class', (
+    (False, OpenMMCalculator),
+    (True, VelocityWallCalculator),
+))
+def test_walls(basic_simulation, walls, expected_calculator_class):
+    params = ImdParams()
+    params.trajectory_port = 0
+    params.imd_port = 0
+    params.walls = walls
+
+    with OpenMMIMDRunner(basic_simulation, params) as runner:
+        assert isinstance(runner._md_calculator, expected_calculator_class)

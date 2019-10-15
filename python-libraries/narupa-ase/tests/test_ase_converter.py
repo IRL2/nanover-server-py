@@ -32,7 +32,7 @@ def test_convert_atom_positions(frame):
 
 
 def test_convert_bonds(frame):
-    assert np.allclose(frame.bonds, [(0, 1)])
+    assert np.allclose(frame.bond_pairs, [(0, 1)])
 
 
 def test_convert_atom_residues(frame):
@@ -63,16 +63,13 @@ def test_convert_chain_count(frame):
     assert frame.chain_count == 1
 
 
-def test_frame_positions_only(atoms):
+@pytest.mark.parametrize(
+    'shortcut', ('bond_pairs', 'particle_residues', 'residue_chains', 'chain_names'),
+)
+def test_frame_positions_only(atoms, shortcut):
     frame = ase_to_frame_data(atoms, positions=True, topology=False, state=False)
     with pytest.raises(MissingDataError):
-        _ = frame.bonds
-    with pytest.raises(MissingDataError):
-        _ = frame.particle_residues
-    with pytest.raises(MissingDataError):
-        _ = frame.residue_chains
-    with pytest.raises(MissingDataError):
-        _ = frame.chain_names
+        _ = getattr(frame, shortcut)
 
 
 def test_frame_no_positions(atoms):

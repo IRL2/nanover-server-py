@@ -3,22 +3,13 @@
 """
 Functions for extracting topology from narupa frames into per-atom dictionaries.
 """
-from narupa.trajectory.frame_data import PARTICLE_ELEMENTS, PARTICLE_RESIDUES, PARTICLE_NAMES
+from narupa.trajectory.frame_data import PARTICLE_ELEMENTS, PARTICLE_RESIDUES, PARTICLE_NAMES, BOND_PAIRS
 
 ATOM_PROPERTIES = {
     'element': PARTICLE_ELEMENTS,
     'name': PARTICLE_NAMES,
     'residue': PARTICLE_RESIDUES,
 }
-
-
-def chunk(iterable, n):
-    """
-    Split a sequence into chunks of length n, discarding tail elements that
-    cannot make a full chunk.
-    """
-    args = [iter(iterable)] * n
-    return zip(*args)
 
 
 def atom_listing_from_frame(frame):
@@ -62,10 +53,10 @@ def neighbour_map_from_frame(frame):
     """
     neighbour_map = {}
 
-    if 'bond' not in frame.arrays:
+    if BOND_PAIRS not in frame.arrays:
         return neighbour_map
 
-    for a, b in chunk(frame.bonds, 2):
+    for a, b in frame.bond_pairs:
         neighbours = neighbour_map.get(a, set())
         neighbours.add(b)
         neighbour_map[a] = neighbours

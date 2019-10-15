@@ -13,6 +13,7 @@ from attr import dataclass
 from narupa.ase import ase_to_frame_data
 from narupa.ase.converter import add_ase_positions_to_frame_data
 from narupa.ase.imd_server import ASEImdServer
+from narupa.ase.wall_calculator import VelocityWallCalculator
 from narupa.ase.openmm.calculator import OpenMMCalculator
 from narupa.openmm import openmm_to_frame_data, serializer
 from narupa.core import get_requested_port_or_default
@@ -55,6 +56,7 @@ class ImdParams:
     frame_interval: int = 5
     time_step: float = 1.0
     verbose: bool = False
+    walls: bool = False
 
 
 class OpenMMIMDRunner:
@@ -78,7 +80,7 @@ class OpenMMIMDRunner:
         self._time_step = params.time_step
         self._verbose = params.verbose
 
-        self._initialise_calculator(simulation)
+        self._initialise_calculator(simulation, walls=params.walls)
         self._initialise_dynamics()
         self._initialise_server(self.dynamics, params.trajectory_port, params.imd_port)
 
@@ -152,14 +154,24 @@ class OpenMMIMDRunner:
         """
         return self._dynamics
 
-    def run(self, steps=None):
+    def run(self, steps: Optional[int] = None,
+            block: Optional[bool] = None, reset_energy: Optional[float] = None):
         """
-        Runs the molecular dynamics forward the given number of steps.
+        Runs the molecular dynamics.
 
-        :param steps: If passed, will run the given number of steps, otherwise will run forever
-        on a background thread and immediately return.
+        :param steps: If passed, will run the given number of steps, otherwise
+            will run forever on a background thread and immediately return.
+        :param block: If ``False`` run in a separate thread. By default, "block"
+            is ``None``, which means it is automatically set to ``True`` if a
+            number of steps is provided and to ``False`` otherwise.
+        :param reset_energy: Threshold of total energy in kJ/mol above which
+            the simulation is reset to its initial conditions. If a value is
+            provided, the simulation is reset if the total energy is greater
+            than this value, or if the total energy is `nan` or infinite. If
+            ``None`` is provided instead, then the simulation will not be
+            automatically reset.
         """
-        self.imd.run(steps)
+        self.imd.run(steps, block=block, reset_energy=reset_energy)
 
     def close(self):
         """
@@ -177,10 +189,13 @@ class OpenMMIMDRunner:
                                 imd_port=imd_port,
                                 )
 
-    def _initialise_calculator(self, simulation):
+    def _initialise_calculator(self, simulation, walls=False):
         self._openmm_calculator = OpenMMCalculator(simulation)
+        self._md_calculator = self._openmm_calculator
         self.atoms = self._openmm_calculator.generate_atoms()
-        self.atoms.set_calculator(self._openmm_calculator)
+        if walls:
+            self._md_calculator = VelocityWallCalculator(self._openmm_calculator, self.atoms)
+        self.atoms.set_calculator(self._md_calculator)
 
     def _initialise_dynamics(self):
         # Set the momenta corresponding to T=300K
@@ -205,10 +220,14 @@ class OpenMMIMDRunner:
     def _services_use_same_port(trajectory_port, imd_port):
         trajectory_port = get_requested_port_or_default(trajectory_port, TRAJ_DEFAULT_PORT)
         imd_port = get_requested_port_or_default(imd_port, IMD_DEFAULT_PORT)
+        # If a port is set to 0, then GRPC will affect one available port; so
+        # 0 is always a valid value.
+        if trajectory_port == 0 or imd_port == 0:
+            return False
         return trajectory_port == imd_port
-        
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, type, value, traceback):
         self.close()

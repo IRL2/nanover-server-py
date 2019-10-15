@@ -4,6 +4,8 @@ import pytest
 
 from .simulation_utils import basic_simulation, serialized_simulation_path
 from narupa.ase.openmm.cli import initialise
+from narupa.ase.openmm.calculator import OpenMMCalculator
+from narupa.ase.wall_calculator import VelocityWallCalculator
 
 
 def test_initialise(serialized_simulation_path):
@@ -46,3 +48,16 @@ def test_same_port(serialized_simulation_path):
     args = [str(serialized_simulation_path), '-t', '54324', '-i', '54324']
     with pytest.raises(ValueError):
         _ = initialise(args)
+
+
+@pytest.mark.parametrize('wall_argument, expected_calculator_class', (
+        ('-w', VelocityWallCalculator),
+        ('--walls', VelocityWallCalculator),
+        (None, OpenMMCalculator),
+))
+def test_walls(serialized_simulation_path, wall_argument, expected_calculator_class):
+    args = [str(serialized_simulation_path)]
+    if wall_argument is not None:
+        args.append(wall_argument)
+    with initialise(args) as runner:
+        assert isinstance(runner._md_calculator, expected_calculator_class)
