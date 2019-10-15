@@ -36,10 +36,10 @@ class ASEImdServer:
 
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
     >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300, friction=1.0)
-    >>> server = ASEImdServer(dynamics)
-    >>> client = NarupaClient(run_multiplayer=False)
-    >>> server.run(5)
-    >>> client.first_frame.particle_count
+    >>> server = ASEImdServer(dynamics) # create the server with the molecular dynamics object.
+    >>> client = NarupaClient(run_multiplayer=False) # have a client connect to the server
+    >>> server.run(5) # run some dynamics.
+    >>> client.first_frame.particle_count # client will have received some frames!
     32
     >>> # Alternatively, use a 'with' statement to manage the context.
     >>> client.close()

@@ -106,6 +106,7 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
 
     Topological information consists any available information such as bonds, residue names,
     residue ids, atom names, chain names, residue index and chain indexes
+
     """
     frame_data = FrameData()
 
