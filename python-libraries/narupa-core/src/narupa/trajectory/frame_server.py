@@ -1,3 +1,5 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Optional
 from narupa.core import GrpcServer, get_requested_port_or_default, DEFAULT_SERVE_ADDRESS
 from narupa.protocol.trajectory import add_TrajectoryServiceServicer_to_server

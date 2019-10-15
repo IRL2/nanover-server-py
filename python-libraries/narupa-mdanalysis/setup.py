@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+
 from distutils.core import setup
 from setuptools import find_namespace_packages
 
@@ -11,7 +14,7 @@ setup(name='narupa-mdanalysis',
       url='https://gitlab.com/intangiblerealities/',
       packages=find_namespace_packages('src', include='narupa.*'),
       package_dir={'': 'src'},
-      requires=(
+      install_requires=(
             'narupa',
             'MDAnalysis',
       ),

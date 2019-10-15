@@ -1,3 +1,5 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 import curses
 import itertools
 from typing import Tuple, Iterable, Iterator, Callable, Sequence, Dict, Any

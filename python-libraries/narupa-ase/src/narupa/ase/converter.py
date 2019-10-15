@@ -1,6 +1,9 @@
-"""Narupa ASE conversion tools.
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+"""
+Narupa ASE conversion tools.
 
-This module methods for converting between ASE simulations and Narupa frames.
+This module contains methods for converting between ASE simulations and Narupa frames.
 
 """
 from typing import Iterable, Optional
@@ -130,6 +133,7 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
     :param positions:
     """
     data.particle_positions = positions * ANG_TO_NM
+    data.particle_count = len(positions)
 
 
 def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
@@ -148,8 +152,14 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     :param frame_data: Frame data to add topology information to.
     :param ase_atoms: ASE atoms to extract topology information from.
     """
+    # TODO it would be nice to do dynamic molecule/chain detection here.
     frame_data.residue_names = ["ASE"]
     frame_data.residue_chains = [0]
+    frame_data.residue_count = 1
+    frame_data.residue_ids =['1']
+
+    frame_data.chain_names = ["A"]
+    frame_data.chain_count = 1
 
     atom_names = []
     elements = []
@@ -162,6 +172,7 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.particle_names = atom_names
     frame_data.particle_elements = elements
     frame_data.particle_residues = residue_ids
+    frame_data.particle_count = len(ase_atoms)
 
     bonds = generate_bonds(ase_atoms)
     frame_data.bond_pairs = bonds
@@ -176,10 +187,13 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     :param ase_atoms: The ASE atoms from which to extract state information.
     """
     # get the energy directly, without performing a recalculation.
-    energy = ase_atoms.get_calculator().get_property('energy', allow_calculation=False)
+    try:
+        energy = ase_atoms.get_calculator().get_property('energy', allow_calculation=False)
+    except AttributeError:
+        raise AttributeError("No calculator in atoms, so energy cannot be computed")
     if energy is not None:
-        frame_data.potential_energy = energy
-    frame_data.kinetic_energy = ase_atoms.get_kinetic_energy()
+        frame_data.potential_energy = energy * EV_TO_KJMOL
+    frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
 def get_radius_of_element(symbol: str):
