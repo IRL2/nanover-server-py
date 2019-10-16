@@ -3,11 +3,41 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using Newtonsoft.Json;
+using Timer = System.Timers.Timer;
 
 namespace Essd
 {
+    
+    // https://stackoverflow.com/questions/19404199/how-to-to-make-udpclient-receiveasync-cancelable
+    public static class AsyncExtensions
+    {
+        /// <summary>
+        /// Enables a task to be cancellable.
+        /// </summary>
+        /// <param name="task">Task that usually cannot be canceled.</param>
+        /// <param name="cancellationToken">Cancellation token to use for cancellation.</param>
+        /// <typeparam name="T">Task result type.</typeparam>
+        /// <returns>Task</returns>
+        /// <exception cref="OperationCanceledException">If the task is cancelled before completion.</exception>
+        public static async Task<T> WithCancellation<T>( this Task<T> task, CancellationToken cancellationToken )
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            using( cancellationToken.Register( s => ( (TaskCompletionSource<bool>)s ).TrySetResult( true ), tcs ) )
+            {
+                if( task != await Task.WhenAny( task, tcs.Task ) )
+                {
+                    throw new OperationCanceledException( cancellationToken );
+                }
+            }
+
+            return task.Result;
+        }
+    }
+    
     /// <summary>
     /// Implementation of an Extremely Simple Service Discovery (ESSD) client. 
     /// </summary>
@@ -17,9 +47,23 @@ namespace Essd
         /// Default port upon which ESSD clients listen for services.
         /// </summary>
         public const int DefaultListenPort = 54545;
+
+
+        /// <summary>
+        /// Whether this client is currently searching for services.
+        /// </summary>
+        public bool Searching => searching;
+
+        /// <summary>
+        /// Event triggered when a service is found.
+        /// </summary>
+        public event EventHandler<ServiceHub> ServiceFound; 
         
         private UdpClient udpClient;
 
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private bool searching;
+        private Task searchTask;
 
         /// <summary>
         /// Initialises an ESSD client.
@@ -32,6 +76,55 @@ namespace Essd
             udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, listenPort));
         }
 
+        public Task StartSearch()
+        {
+            if (searching)
+                throw new InvalidOperationException("Already searching!");
+            searchTask = SearchForServicesAsync(cancellationTokenSource.Token);
+            return searchTask;
+        }
+
+        private async Task SearchForServicesAsync(CancellationToken token)
+        {
+            searching = true;
+            while (!token.IsCancellationRequested)
+            {
+                UdpReceiveResult message;
+                try
+                {
+                    message = await udpClient.ReceiveAsync().WithCancellation(token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                
+                ServiceHub service;
+                try
+                {
+                    service = DecodeServiceHub(message.Buffer);
+                }
+                catch (ArgumentException e)
+                {
+                    Console.WriteLine($"ESSD: Exception passing service definition: {e.Message}");
+                    continue;
+                }
+
+                ServiceFound?.Invoke(this, service);
+
+            }
+
+            searching = false;
+        }
+
+        public async Task StopSearch()
+        {
+            if(!searching)
+                throw new InvalidOperationException("Attempted to stop a non-existent search for services");
+            cancellationTokenSource.Cancel();
+            await searchTask;
+        }
+        
         /// <summary>
         /// Searches for services for the given duration, blocking.
         /// </summary>
@@ -41,8 +134,12 @@ namespace Essd
         /// There is no guarantee that services found during the search will still
         /// be up after the search ends.
         /// </remarks>
-        public ICollection<ServiceHub> SearchForServices(int duration=3000)
+        public ICollection<ServiceHub> SearchForServices(int listenPort=DefaultListenPort, int duration=3000)
         {
+            if (Searching)
+                throw new InvalidOperationException(
+                    "Cannot start a blocking search while running another search in the background");
+            
             HashSet<ServiceHub> servicesFound = new HashSet<ServiceHub>();
 
             var from = new IPEndPoint(0, 0);
@@ -55,33 +152,19 @@ namespace Essd
             
             while(!timerElapsed)
             {
-                byte[] messageBytes;
-                try
-                {
-                    messageBytes = udpClient.Receive(ref from);
-                }
-                catch (SocketException e)
-                {
-                    if(e.SocketErrorCode == SocketError.TimedOut)
-                        break;
-                    throw;
-                }
-                
-                var message = DecodeMessage(messageBytes);
-                if (message is null)
-                {
-                    Console.WriteLine($"ESSD: Received invalid message, not a valid UTF8 string.");
-                    continue;
-                }
 
+                var (timedOut, messageBytes) = WaitForMessage(ref from);
+                if (timedOut)
+                    break;
+                
                 ServiceHub service;
                 try
                 {
-                    service = new ServiceHub(message);
+                    service = DecodeServiceHub(messageBytes);
                 }
-                catch (ArgumentException)
+                catch (ArgumentException e)
                 {
-                    Console.WriteLine($"ESSD: Received invalid service definition.");
+                    Console.WriteLine($"ESSD: Exception passing service definition: {e.Message}");
                     continue;
                 }
 
@@ -98,7 +181,28 @@ namespace Essd
         }
 
 
+        private ServiceHub DecodeServiceHub(byte[] messageBytes)
+        {
+            var message = DecodeMessage(messageBytes);
+            var service = new ServiceHub(message);
+            return service;
+        }
+        private (bool, byte[]) WaitForMessage(ref IPEndPoint from)
+        {
+            byte[] messageBytes;
+            try
+            {
+                messageBytes = udpClient.Receive(ref from);
+            }
+            catch (SocketException e)
+            {
+                if(e.SocketErrorCode == SocketError.TimedOut)
+                    return (true, null);
+                throw;
+            }
 
+            return (false, messageBytes);
+        }
         private string DecodeMessage(byte[] messageBytes)
         {
             try
@@ -108,107 +212,11 @@ namespace Essd
             }
             catch (ArgumentException)
             {
-                return null;
+                throw new ArgumentException("ESSD: Received invalid message, not a valid UTF8 string.");
             }
             
         }
 
 
-    }
-
-    /// <summary>
-    ///     A definition of a ServiceHub that can be discovered or broadcast.
-    /// 
-    ///     A service hub consists of properties that must at least consist of a name and ip address.
-    ///     The payload can optionally include additional information on the services provided.
-    /// </summary>
-    public class ServiceHub : IEquatable<ServiceHub>
-    {
-
-        /// <summary>
-        /// The key used for the service name field, which is always required.
-        /// </summary>
-        public const string NameKey = "name";
-        
-        /// <summary>
-        /// The key used for the service address field, which is always required.
-        /// </summary>
-        public const string AddressKey = "address";
-        
-        /// <summary>
-        /// The name of the service.
-        /// </summary>
-        public string Name => (string) Properties[NameKey];
-        
-        /// <summary>
-        /// The address of the service.
-        /// </summary>
-        public string Address => (string) Properties[AddressKey];
-        
-        private Dictionary<string, object> Properties;
-
-        /// <summary>
-        /// Initialises a service hub from a JSON string describing the service hub.
-        /// </summary>
-        /// <param name="serviceHubJson">JSON string describing the service.</param>
-        public ServiceHub(string serviceHubJson)
-        {
-            Properties = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(serviceHubJson);
-            ValidateProperties(Properties);
-        }
-
-        private void ValidateProperties(Dictionary<string, object> properties)
-        {
-            try
-            {
-                var name = properties[NameKey];
-                var address = properties[AddressKey];
-            }
-            catch (KeyNotFoundException e)
-            {
-                throw new ArgumentException(e.Message);
-            }
-        }
-
-        private void ValidateField(Dictionary<string, object> properties, string key)
-        {
-            try
-            {
-                var field = properties[key];
-            }
-            catch (KeyNotFoundException)
-            {
-                throw new ArgumentException($"Field {key} not found in service hub definition.");
-            }
-        }
-
-
-        /// <inheritdoc />
-        /// <remarks>
-        /// For the purposes of discovery, two service hubs are considered equal if
-        /// they have the same name and are serving at the same address.
-        /// </remarks>
-        /// TODO remove this constraint? It doesn't really make sense.
-        public bool Equals(ServiceHub other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return Name.Equals(other.Name) || Address.Equals(other.Address);
-        }
-
-        /// <inheritdoc />
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((ServiceHub) obj);
-        }
-
-        /// <inheritdoc />
-        public override int GetHashCode()
-        {
-            return (Name + Address).GetHashCode();
-        }
     }
 }
