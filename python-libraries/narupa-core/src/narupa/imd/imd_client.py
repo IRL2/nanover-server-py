@@ -21,7 +21,7 @@ def queue_generator(queue: Queue, sentinel: object):
     given sentinel is added to the queue. The iterator will block until this sentinel is passed.
 
     Enables one to take control of when items are passed to a streaming iterator, such as that used
-    in :method: publish_interactions_async.
+    in :func:`publish_interactions_async`.
 
     :param queue: Queue that items will be submitted to.
     :param sentinel: A sentinel that indicates the end of iteration. When added to the queue,
@@ -83,7 +83,7 @@ class ImdClient(GrpcClient):
         """
         Updates the interaction identified with the given interaction_id on the server with
         parameters from the given interaction.
-        :param interaction_id: The unique interaction ID, created with :method: ImdClient.start_interaction,
+        :param interaction_id: The unique interaction ID, created with :func:`~ImdClient.start_interaction`,
         that identifies the interaction to update.
         :param interaction: The :class: ParticleInteraction providing new parameters for the interaction.
 
@@ -98,7 +98,7 @@ class ImdClient(GrpcClient):
     def stop_interaction(self, interaction_id) -> InteractionEndReply:
         """
         Stops the interaction identified with the given interaction_id on the server.
-        :param interaction_id: The unique interaction ID, created with :method: ImdClient.start_interaction,
+        :param interaction_id: The unique interaction ID, created with :func:`~ImdClient.start_interaction`,
         that identifies the interaction to stop.
 
         :raises: KeyError, if the given interaction ID does not exist.

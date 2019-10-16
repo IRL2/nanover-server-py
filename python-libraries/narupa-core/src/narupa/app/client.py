@@ -191,7 +191,7 @@ class NarupaClient:
         Start an interaction with the IMD server.
         :param interaction: An optional :class: ParticleInteraction with which to begin.
         :return: The unique interaction ID of this interaction, which can be used to update
-        the interaction with :method: NarupaClient.update_interaction .
+        the interaction with :func:`~NarupaClient.update_interaction`.
 
         :raises: ValueError, if the there is no IMD connection available.
         """
@@ -206,7 +206,7 @@ class NarupaClient:
         """
         Updates the interaction identified with the given interaction_id on the server with
         parameters from the given interaction.
-        :param interaction_id: The unique interaction ID, created with :method: NarupaClient.start_interaction,
+        :param interaction_id: The unique interaction ID, created with :func:`~NarupaClient.start_interaction`,
         that identifies the interaction to update.
         :param interaction: The :class: ParticleInteraction providing new parameters for the interaction.
 
@@ -221,7 +221,7 @@ class NarupaClient:
     def stop_interaction(self, interaction_id) -> InteractionEndReply:
         """
         Stops the interaction identified with the given interaction_id on the server.
-        :param interaction_id: The unique interaction ID, created with :method: NarupaClient.start_interaction,
+        :param interaction_id: The unique interaction ID, created with :func:`~NarupaClient.start_interaction`,
         that identifies the interaction to stop.
 
         :raises: ValueError, if the there is no IMD connection available, or if invalid parameters

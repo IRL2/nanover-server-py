@@ -100,7 +100,7 @@ class MultiplayerClient(GrpcClient):
     def join_avatar_publish(self):
         """
         Joins the avatar publishing stream.
-        Use :method: MultiplayerClient.publish_avatar to publish.
+        Use :func:`~MultiplayerClient.publish_avatar` to publish.
         """
         self._assert_has_player_id()
         self.threads.submit(self._join_avatar_publish)

@@ -133,8 +133,8 @@ class ImdCalculator(Calculator):
         the atoms object passed at initialisation are used.
         :param properties: The properties to calculate. The ImdCalculator support 'energy' and 'forces',
         but will pass any other requested properties to the internal atomic calculator.
-        See :method: Calculator.calculate for details.
-        :param system_changes: List of what has changed since last calculation. See :method: Calculator.calculate for
+        See :func:`~Calculator.calculate` for details.
+        :param system_changes: List of what has changed since last calculation. See :func:`~Calculator.calculate` for
         details.
 
         :raises ValueError: If no ASE atoms are supplied to the calculation, and no ASE atoms were supplied during
