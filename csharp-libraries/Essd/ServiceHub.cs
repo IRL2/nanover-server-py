@@ -41,14 +41,7 @@ namespace Essd
         /// <param name="serviceHubJson">JSON string describing the service.</param>
         public ServiceHub(string serviceHubJson)
         {
-            try
-            {
-                Properties = JsonConvert.DeserializeObject<SortedDictionary<string, object>>(serviceHubJson);
-            }
-            catch (ArgumentException)
-            {
-                throw new ArgumentException($"Invalid JSON string for service hub: {serviceHubJson}");
-            }
+            Properties = JsonConvert.DeserializeObject<SortedDictionary<string, object>>(serviceHubJson);
             ValidateProperties(Properties);
         }
 
@@ -91,8 +84,7 @@ namespace Essd
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            if (other.Properties.Count != Properties.Count) return false;
-            return ToJson().Equals(other.ToJson());
+            return (Name == other.Name && Address == other.Address);
         }
 
         /// <inheritdoc />
@@ -107,12 +99,17 @@ namespace Essd
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return ToJson().GetHashCode();
+            return (Name + Address).GetHashCode();
         }
 
         public string ToJson()
         {
             return JsonConvert.SerializeObject(Properties);
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}:{Address}";
         }
     }
 }

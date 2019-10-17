@@ -134,7 +134,7 @@ namespace Essd
         /// There is no guarantee that services found during the search will still
         /// be up after the search ends.
         /// </remarks>
-        public ICollection<ServiceHub> SearchForServices(int listenPort=DefaultListenPort, int duration=3000)
+        public ICollection<ServiceHub> SearchForServices(int duration=3000)
         {
             if (Searching)
                 throw new InvalidOperationException(
@@ -184,7 +184,16 @@ namespace Essd
         private ServiceHub DecodeServiceHub(byte[] messageBytes)
         {
             var message = DecodeMessage(messageBytes);
-            var service = new ServiceHub(message);
+            ServiceHub service;
+            try
+            {
+                service = new ServiceHub(message);
+            }
+            catch (JsonException e)
+            {
+                throw new ArgumentException("Invalid JSON string encountered.");
+            }
+            
             return service;
         }
         private (bool, byte[]) WaitForMessage(ref IPEndPoint from)

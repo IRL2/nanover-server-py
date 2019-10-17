@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -28,6 +30,8 @@ namespace Essd.Test
             Assert.AreEqual(1, services.Count);
             Assert.AreEqual(services.First(), testService);
         }
+        
+
         
         [Test]
         public async Task TestClientBlockingSearchReceiveSameService()
@@ -89,6 +93,60 @@ namespace Essd.Test
             await client.StopSearch();
         }
         
+        [Test]
+        public async Task TestClientInvalidString()
+        {
+            var client = new Client(54550);
+            var server = new UdpClient();
+            var blockingSearch = Task.Run(() => client.SearchForServices(duration: 500));
+            byte[] invalidString = Encoding.UTF32.GetBytes("somestring");
+            await server.SendAsync(invalidString, invalidString.Length, "255.255.255.255", 54550);
+            var services = await blockingSearch;
+            Assert.AreEqual(0, services.Count);
+        }
         
+        [Test]
+        public async Task TestClientInvalidJson()
+        {
+            var client = new Client(54551);
+            var server = new UdpClient();
+            var blockingSearch = Task.Run(() => client.SearchForServices(duration: 500));
+            byte[] invalidString = Encoding.UTF8.GetBytes("somestring");
+            await server.SendAsync(invalidString, invalidString.Length, "255.255.255.255", 54550);
+            var services = await blockingSearch;
+            Assert.AreEqual(0, services.Count);
+        }
+
+        [Test]
+        public async Task TestClientDoubleStartSearch()
+        {
+            var client = new Client(54552);
+            client.StartSearch();
+            try
+            {
+                client.StartSearch();
+            }
+            catch (InvalidOperationException)
+            {
+                Assert.Pass();
+            }
+            Assert.Fail();
+        }
+
+        [Test]
+        public async Task TestClientStartBlockingWhileSearching()
+        {
+            var client = new Client(54553);
+            client.StartSearch();
+            try
+            {
+                client.SearchForServices();
+            }
+            catch (InvalidOperationException)
+            {
+                Assert.Pass();
+            }
+            Assert.Fail();
+        }
     }
 }
