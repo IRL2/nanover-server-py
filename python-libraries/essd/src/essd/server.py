@@ -64,12 +64,8 @@ class DiscoveryServer:
         if self._broadcast_thread is not None:
             raise RuntimeError("Discovery service already running!")
         self._socket = _connect_socket()
-        try:
-            self._broadcast_thread = threading.Thread(target=self._broadcast, daemon=True)
-            self._broadcast_thread.start()
-        except:
-            # if anything goes wrong, be sure to close the socket.
-            self._socket.close()
+        self._broadcast_thread = threading.Thread(target=self._broadcast, daemon=True)
+        self._broadcast_thread.start()
 
     def close(self):
         if self.broadcasting:

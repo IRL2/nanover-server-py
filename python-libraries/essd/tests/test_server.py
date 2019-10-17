@@ -2,7 +2,7 @@ import pytest
 
 from essd.server import DiscoveryServer
 from essd.servicehub import ServiceHub
-from .test_service import properties
+from test_service import properties
 
 
 @pytest.fixture

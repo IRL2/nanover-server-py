@@ -1,8 +1,8 @@
 import pytest
 
 from essd.client import DiscoveryClient
-from .test_service import properties
-from .test_server import server, service
+from test_service import properties
+from test_server import server, service
 
 
 @pytest.fixture
