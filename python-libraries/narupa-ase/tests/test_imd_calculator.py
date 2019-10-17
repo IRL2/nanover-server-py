@@ -1,3 +1,5 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 import time
 from typing import Dict
 
@@ -7,6 +9,8 @@ from ase import Atoms
 from ase.calculators.lj import LennardJones
 from ase.md import Langevin
 from ase.md.nvtberendsen import NVTBerendsen
+from narupa.imd import ImdClient
+
 from narupa.ase import converter
 from narupa.core.timing import delayed_generator
 
@@ -14,15 +18,13 @@ from narupa.imd.imd_server import ImdServer
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths, _get_cancelled_interactions, \
     _get_atoms_to_reset
 from narupa.imd.particle_interaction import ParticleInteraction
-from util import imd_client
+from util import co_atoms
 
+@pytest.fixture
+def imd_client():
+    with ImdClient(address='localhost', port=54322) as client:
+        yield client
 
-def co_atoms():
-    d = 1.1
-    co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)],
-               cell=[2, 2, 2],
-               pbc=[1, 1, 1])
-    return co
 
 
 @pytest.fixture

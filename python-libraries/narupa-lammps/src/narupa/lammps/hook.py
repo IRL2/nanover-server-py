@@ -1,3 +1,5 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 """
 LAMMPS python integration with Narupa
 This program can be run as a standalone using dummy data or from within LAMMPS

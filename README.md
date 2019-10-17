@@ -14,7 +14,16 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-### Setup narupa-protocol on Mac and Linux
+### Setup narupa-protocol with Anaconda
+
+* Install Anaconda (avoid Anaconda 2.7 as it is outdated)
+* Create a conda environment (here we call the environment "narupa"): `conda create -n narupa "python>3.6"`
+* Activate the conda environment: `conda activate narupa`
+* Install the Narupa packages: `conda install -c irl -c omnia -c conda-forge narupa-server`
+
+Developers will want the manual install described bellow.
+
+### Setup narupa-protocol for developers on Mac and Linux
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Install dotnet
@@ -26,7 +35,7 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
     * Compile the protocol and install the Narupa libraries in your conda environment: `./compile.sh`. If you plan on
       modifying the python packages, run `./compile.sh --edit` instead.
 
-### Setup narupa-protocol on Windows
+### Setup narupa-protocol for developers on Windows
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
@@ -36,11 +45,6 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
     * Activate the conda environment: `conda activate narupa-dev`
     * Install the required conda packages: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
     * Compile the protocol and install the Narupa libraries in your conda environment: `./win_compile.ps1`. If you plan on modifying the python packages, run `./win_compile.ps1 -edit` instead.
-
-## Coming Soon
-
-* Multiplayer
-* Lobby
 
 ## Running the tests
 
@@ -59,9 +63,17 @@ Running the tests is a crucial part of keeping the code base functional. To run 
     # On Windows
     narupa-omm-ase python-libraries\narupa-ase\examples\nanotube.xml 
 
+The example files are distributed in the directory
+`python-library/narupa-ase/examples` from the [git repository](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/python-libraries/narupa-ase/examples).
+The examples include:
+
+* [A carbon nanotube and a methane molecule](https://gitlab.com/intangiblerealities/narupa-protocol/raw/master/python-libraries/narupa-ase/examples/nanotube.xml)
+* [A helicene molecule](https://gitlab.com/intangiblerealities/narupa-protocol/raw/master/python-libraries/narupa-ase/examples/helicene.xml)
+* [Neuraminidase and tamiflu](https://gitlab.com/intangiblerealities/narupa-protocol/raw/master/python-libraries/narupa-ase/examples/neuraminidase.xml)
+
 #### Jupyter Notebooks 
 
-The `python-libraries/narupa-ase/examples` examples folder also contains several
+The [`python-libraries/narupa-ase/examples`](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/python-libraries/narupa-ase/examples) examples folder also contains several
 Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
 The [Narupa ASE documentation](python-libraries/narupa-ase/README.md) provides more details on setting up ASE simulations.
 

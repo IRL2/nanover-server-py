@@ -1,3 +1,5 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Module containing a basic interactive molecular dynamics client that receives frames
 and can publish interactions.
@@ -11,6 +13,9 @@ from narupa.trajectory import FrameClient, FrameData
 from narupa.imd import ImdClient
 from narupa.multiplayer import MultiplayerClient
 from google.protobuf.struct_pb2 import Value
+
+# Default to a low framerate to avoid build up in the frame stream
+DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
 
 
 class NarupaClient:
@@ -148,7 +153,10 @@ class NarupaClient:
         if self.all_frames:
             self._frame_client.subscribe_frames_async(self._on_frame_received)
         else:
-            self._frame_client.subscribe_last_frames_async(self._on_frame_received)
+            self._frame_client.subscribe_last_frames_async(
+                self._on_frame_received,
+                DEFAULT_SUBSCRIPTION_INTERVAL,
+            )
 
     def _on_frame_received(self, frame_index: int, frame: FrameData):
         if self._first_frame is None:

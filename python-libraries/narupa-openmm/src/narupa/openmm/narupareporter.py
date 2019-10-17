@@ -1,3 +1,5 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Provide a reporter for OpenMM simulation to publish frames as a Narupa server.
 """
