@@ -48,6 +48,7 @@ python ./python-libraries/narupa-core/setup.py compile_proto
 announce "Installing the python packages"
 python -m pip install ${edit_option} ${narupa_user_option} ./python-libraries/narupa-core/
 
+python -m pip install ${edit_option} ${narupa_user_option} ./python-libraries/essd/
 for package in python-libraries/narupa-*/; do
     if [[ -f "${package}/setup.py" ]]; then
         python -m pip install ${edit_option} ${narupa_user_option} ${package}
