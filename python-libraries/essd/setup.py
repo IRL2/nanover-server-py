@@ -11,6 +11,6 @@ setup(name='essd',
       author='Intangible Realities Lab',
       author_email='m.oconnor@bristol.ac.uk',
       url='https://gitlab.com/intangiblerealities/',
-      packages=find_namespace_packages('src', include='narupa.*'),
+      packages=find_namespace_packages('src', include='essd'),
       package_dir={'': 'src'}
       )
