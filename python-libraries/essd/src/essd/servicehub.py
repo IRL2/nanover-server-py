@@ -3,6 +3,7 @@ Module defining a Service.
 """
 import json
 from socket import socket, AF_INET, SOCK_DGRAM, error
+from typing import Optional
 
 MAXIMUM_MESSAGE_SIZE = 1024
 
@@ -75,6 +76,34 @@ class ServiceHub:
     def from_json(cls, payload):
         properties = json.loads(payload)
         return cls(**properties)
+
+    def to_message(self, override_address: Optional[str] = None) -> str:
+        """
+        Returns the JSON message representing this service hub, with the option to override this address.
+        :param override_address: The address to override in the resulting message.
+        :return: JSON message representing this service hub.
+
+        When broadcasting services, it is useful to be able to provide human-readable shortcuts for underlying addresses,
+        but clients receiving broadcasting need to know the actual address the service hub is running at.
+
+        A typical use case is when using the '[::]' notation for defining a gRPC service, which means it will
+        listen on all interfaces. When it comes to broadcasting, the discovery server will broadcast on all interfaces
+        with the correct address for that interface.
+
+        >>> hub = ServiceHub(name='Example', address='[::]')
+        >>> # The resulting message is not particularly useful.
+        >>> hub.message
+        '{"name": "Example", "address": "[::]"}'
+        >>> # Instead, at transmission, override with an actual address for the target interface.
+        >>> hub.to_message(override_address="192.168.1.15")
+        '{"name": "Example", "address": "192.168.1.15"}'
+        """
+        if override_address is not None:
+            hub = ServiceHub(**dict(self.properties))
+            hub.properties[SERVICE_ADDRESS_KEY] = override_address
+        else:
+            hub = self
+        return hub.message
 
     def __repr__(self):
         return f'{self.name}:{self.address}'

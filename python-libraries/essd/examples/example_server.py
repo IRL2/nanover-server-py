@@ -8,7 +8,7 @@ from essd.servicehub import ServiceHub, get_default_ip
 
 with DiscoveryServer() as server:
 
-    hub = ServiceHub(name="Example Narupa service", address=get_default_ip())
+    hub = ServiceHub(name="Example Narupa service", address="[::]")
     print(f'Registering hub: {hub}')
     server.register_service(hub)
     try:
