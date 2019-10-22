@@ -31,8 +31,9 @@ class ASEImdServer:
     :param frame_interval: Interval, in steps, at which to publish frames.
     :param frame_method(ase_atoms, frame_server): Method to use to generate frames, given the the ASE :class: Atoms
            and a :class: FrameServer.
-   :param run_discovery: Whether to run a discovery server that will enable this server to be discovered on the
-   local area network.
+    :param run_discovery: Whether to run a :class:`DiscoveryServer` that will enable this server to be discovered on the
+    local area network.
+    :param discovery_port: Port on which to run the discovery server, if running.
     """
 
     def __init__(self, dynamics: MolecularDynamics,
