@@ -14,6 +14,8 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.md.md import MolecularDynamics
 
+from essd import DiscoveryServer
+from essd.servicehub import ServiceHub
 from .frame_server import send_ase_frame
 from .imd_calculator import ImdCalculator
 from .converter import EV_TO_KJMOL
@@ -29,18 +31,30 @@ class ASEImdServer:
     :param frame_interval: Interval, in steps, at which to publish frames.
     :param frame_method(ase_atoms, frame_server): Method to use to generate frames, given the the ASE :class: Atoms
            and a :class: FrameServer.
+   :param run_discovery: Whether to run a discovery server that will enable this server to be discovered on the
+   local area network.
     """
 
     def __init__(self, dynamics: MolecularDynamics,
-                 frame_method: Optional[Callable]=None,
+                 frame_method: Optional[Callable] = None,
                  frame_interval=1,
-                 address: Optional[str]=None,
-                 trajectory_port: Optional[int]=None,
-                 imd_port: Optional[int]=None):
+                 address: Optional[str] = None,
+                 trajectory_port: Optional[int] = None,
+                 imd_port: Optional[int] = None,
+                 name: Optional[str] = "Narupa ASE Server",
+                 run_discovery: Optional[bool] = True,
+                 discovery_port: Optional[int] = None,
+                 ):
         if frame_method is None:
             frame_method = send_ase_frame
         self.frame_server = FrameServer(address=address, port=trajectory_port)
         self.imd_server = ImdServer(address=address, port=imd_port)
+        self.name = name
+        if run_discovery:
+            self.discovery_server = DiscoveryServer(discovery_port)
+            self._register_services(name)
+        else:
+            self.discovery_server = None
         self.dynamics = dynamics
         calculator = self.dynamics.atoms.get_calculator()
         self.imd_calculator = ImdCalculator(self.imd_server.service, calculator, dynamics=dynamics)
@@ -58,7 +72,6 @@ class ASEImdServer:
         self.logger = logging.getLogger(__name__)
         self.logger.info(f"Running frame server at {address}:{trajectory_port}")
         self.logger.info(f"Running IMD server at {address}:{imd_port}")
-
 
     @property
     def internal_calculator(self) -> Calculator:
@@ -171,6 +184,8 @@ class ASEImdServer:
         the IMD and frame servers.
         """
         self.cancel_run()
+        if self.discovery_server is not None:
+            self.discovery_server.close()
         self.imd_server.close()
         self.frame_server.close()
 
@@ -179,3 +194,9 @@ class ASEImdServer:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+    def _register_services(self, server_name):
+        hub = ServiceHub(name=server_name, address=self.frame_server.address)
+        hub.add_service(name="imd", port=self.imd_server.port)
+        hub.add_service(name="trajectory", port=self.frame_server.port)
+        self.discovery_server.register_service(hub)

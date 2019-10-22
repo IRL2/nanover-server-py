@@ -44,6 +44,37 @@ def test_imd_port(serialized_simulation_path):
         assert runner.imd_port == 54324
 
 
+def test_discovery_service(serialized_simulation_path):
+    args = [str(serialized_simulation_path)]
+    with initialise(args) as runner:
+        assert runner.running_discovery is True
+
+
+def test_discovery_service_not_running(serialized_simulation_path):
+    args = [str(serialized_simulation_path), '--no_discovery']
+    with initialise(args) as runner:
+        assert runner.running_discovery is False
+
+
+def test_discovery_service_port(serialized_simulation_path):
+    args = [str(serialized_simulation_path), '--discovery_port', '88888']
+    with initialise(args) as runner:
+        assert runner.discovery_port == 88888
+
+
+def test_name(serialized_simulation_path):
+    args = [str(serialized_simulation_path), '--name', 'Test Server']
+    with initialise(args) as runner:
+        assert runner.name == 'Test Server'
+
+
+def test_discovery_service_port_not_running(serialized_simulation_path):
+    args = [str(serialized_simulation_path), '--no_discovery']
+    with initialise(args) as runner:
+        with pytest.raises(AttributeError):
+            _ = runner.discovery_port
+
+
 def test_same_port(serialized_simulation_path):
     args = [str(serialized_simulation_path), '-t', '54324', '-i', '54324']
     with pytest.raises(ValueError):

@@ -57,6 +57,9 @@ class ImdParams:
     time_step: float = 1.0
     verbose: bool = False
     walls: bool = False
+    name: str = None
+    discovery: bool = True
+    discovery_port: int = None
 
 
 class OpenMMIMDRunner:
@@ -66,7 +69,8 @@ class OpenMMIMDRunner:
     :param simulation OpenMM simulation to run interactively.
     :param params IMD parameters to tune the server.
     """
-    def __init__(self, simulation:Simulation, params: Optional[ImdParams] = None):
+
+    def __init__(self, simulation: Simulation, params: Optional[ImdParams] = None):
         self.simulation = simulation
         if not params:
             params = ImdParams()
@@ -74,7 +78,7 @@ class OpenMMIMDRunner:
         if self._services_use_same_port(
                 trajectory_port=params.trajectory_port,
                 imd_port=params.imd_port,
-            ):
+        ):
             raise ValueError("Trajectory serving port and IMD serving port must be different!")
         self._frame_interval = params.frame_interval
         self._time_step = params.time_step
@@ -82,7 +86,12 @@ class OpenMMIMDRunner:
 
         self._initialise_calculator(simulation, walls=params.walls)
         self._initialise_dynamics()
-        self._initialise_server(self.dynamics, params.trajectory_port, params.imd_port)
+        self._initialise_server(self.dynamics,
+                                params.trajectory_port,
+                                params.imd_port,
+                                params.name,
+                                params.discovery,
+                                params.discovery_port)
 
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
@@ -122,6 +131,24 @@ class OpenMMIMDRunner:
         return self.imd.imd_server.port
 
     @property
+    def name(self):
+        return self.imd.name
+
+    @property
+    def running_discovery(self):
+        try:
+            return self.imd.discovery_server is not None
+        except AttributeError:
+            return False
+
+    @property
+    def discovery_port(self):
+        try:
+            return self.imd.discovery_server.port
+        except AttributeError:
+            raise AttributeError("Discovery service not running")
+
+    @property
     def dynamics(self):
         return self._dynamics
 
@@ -150,7 +177,12 @@ class OpenMMIMDRunner:
         """
         self.imd.close()
 
-    def _initialise_server(self, dynamics, trajectory_port=None, imd_port=None):
+    def _initialise_server(self, dynamics,
+                           trajectory_port=None,
+                           imd_port=None,
+                           name=None,
+                           run_discovery=True,
+                           discovery_port=None):
         # set the server to use the OpenMM frame convert for performance purposes.
         self.imd = ASEImdServer(dynamics,
                                 frame_method=openmm_ase_frame_server,
@@ -158,6 +190,9 @@ class OpenMMIMDRunner:
                                 frame_interval=self.frame_interval,
                                 trajectory_port=trajectory_port,
                                 imd_port=imd_port,
+                                name=name,
+                                run_discovery=run_discovery,
+                                discovery_port=discovery_port
                                 )
 
     def _initialise_calculator(self, simulation, walls=False):
@@ -185,8 +220,8 @@ class OpenMMIMDRunner:
 
         if self.verbose:
             self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,
-                                     peratom=False), interval=100)
-    
+                                           peratom=False), interval=100)
+
     @staticmethod
     def _services_use_same_port(trajectory_port, imd_port):
         trajectory_port = get_requested_port_or_default(trajectory_port, TRAJ_DEFAULT_PORT)

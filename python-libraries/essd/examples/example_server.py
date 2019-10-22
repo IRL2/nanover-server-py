@@ -4,7 +4,7 @@
 Simple example of running a server and registering service hub.
 """
 from essd.server import DiscoveryServer
-from essd.servicehub import ServiceHub, get_default_ip
+from essd.servicehub import ServiceHub
 
 with DiscoveryServer() as server:
 

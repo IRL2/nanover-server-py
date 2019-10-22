@@ -37,6 +37,11 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         action='store_true',
         help='Display state information.',
     )
+    parser.add_argument(
+        '-n', '--name',
+        type=str, default='Narupa OpenMM ASE Server',
+        help='Give a friendly name to the server.'
+    )
     parser.add_argument('-t', '--trajectory_port', type=int, default=None)
     parser.add_argument('-i', '--imd_port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
@@ -55,6 +60,14 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         '-w', '--walls', action='store_true', default=False,
         help='Set a wall around the box, atoms will bounce against it.',
     )
+    parser.add_argument(
+        '--no_discovery', action='store_true', default=False,
+        help='Run without the discovery service, so this server will not broadcast itself on the LAN.'
+    )
+    parser.add_argument(
+        '--discovery_port', type=int, default=None,
+        help='Port at which to run discovery service'
+    )
     arguments = parser.parse_args(args)
     return arguments
 
@@ -71,6 +84,9 @@ def initialise(args=None):
         arguments.time_step,
         arguments.verbose,
         arguments.walls,
+        arguments.name,
+        not arguments.no_discovery,
+        arguments.discovery_port
     )
     runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params)
     # Shamefully store CLI arguments in the runner.
@@ -87,7 +103,7 @@ def main():
     with initialise() as runner:
         runner.imd.on_reset_listeners.append(lambda: print('RESET! ' * 10))
         print(f'Serving frames on port {runner.trajectory_port} and IMD on {runner.imd_port}')
-        
+
         try:
             while True:
                 runner.run(100, reset_energy=runner.cli_options['reset_energy'])

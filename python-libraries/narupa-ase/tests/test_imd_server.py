@@ -8,6 +8,8 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.md import VelocityVerlet
 from ase.cell import Cell
+
+from essd import DiscoveryClient
 from narupa.trajectory import FrameData
 from narupa.ase.imd_server import ASEImdServer
 
@@ -169,7 +171,7 @@ def test_run_blocking(arbitrary_ase_server):
     frame_count = 0
 
     def count_frames(*args, **kwargs):
-        nonlocal  frame_count
+        nonlocal frame_count
         frame_count += 1
 
     arbitrary_ase_server.dynamics.attach(count_frames, interval=1)
@@ -182,7 +184,7 @@ def test_run_non_blocking(arbitrary_ase_server):
     frame_count = 0
 
     def count_frames(*args, **kwargs):
-        nonlocal  frame_count
+        nonlocal frame_count
         frame_count += 1
 
     arbitrary_ase_server.dynamics.attach(count_frames, interval=1)
@@ -199,3 +201,19 @@ def test_cancel_run(arbitrary_ase_server):
     assert not arbitrary_ase_server._cancelled
     arbitrary_ase_server.cancel_run(wait=False)
     assert arbitrary_ase_server._cancelled
+
+
+def test_discovery(arbitrary_ase_server):
+    assert arbitrary_ase_server.discovery_server is not None
+    assert len(arbitrary_ase_server.discovery_server.services) == 1
+
+
+def test_discovery_with_client(arbitrary_ase_server):
+    with DiscoveryClient() as client:
+        services = client.search_for_services(search_time=0.3, interval=0.01)
+        assert len(services) == 1
+        for service in services:
+            assert service in arbitrary_ase_server.discovery_server.services
+            assert service.services['imd'] == arbitrary_ase_server.imd_server.port
+            assert service.services['trajectory'] == arbitrary_ase_server.frame_server.port
+

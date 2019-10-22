@@ -9,22 +9,17 @@ import logging
 import threading
 import time
 from collections import namedtuple
-
-import netifaces
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST
 from typing import Optional, List
 
-import essd
-from .servicehub import ServiceHub
 import netifaces
+
+from .servicehub import ServiceHub
 
 BROADCAST_PORT = 54545
 IP_ADDRESS_BROADCAST = '255.255.255.255'
 
 ServiceHubEntry = namedtuple('ServiceHubEntry', ['service', 'broadcast_addresses'])
-
-def get_essd_version() -> str:
-    return essd.__version__
 
 
 def _connect_socket() -> socket:
@@ -56,35 +51,58 @@ def get_ipv4_addresses(interfaces: List[str] = None):
 
 
 def get_broadcast_addresses(interfaces: List[str] = None):
+    """
+    Gets all the IPV4 addresses currently available on all the given interfaces that have broadcast addresses.
+    :param interfaces: Optional list of interfaces to extract addresses from. If none are provided,
+    all interfaces will be used.
+    :return: A list of dictionaries containing the IP address and other information for each interface,
+    as returned by :fun:`netifaces.ifaddresses`.
+
+    In the netifaces API, the address entries are returned as dictionaries in the following format:
+
+    .. code
+        {
+          'addr': '172.23.43.33',
+          'netmask': '255.255.0.0',
+          'broadcast': '172.23.255.255'
+        }
+
+    """
+
     ipv4_addrs = get_ipv4_addresses(interfaces)
-    broadcast_addrs = []
-    for address_entry in ipv4_addrs:
-        try:
-            broadcast_addrs.append(address_entry)
-        except KeyError:
-            # some addresses don't have broadcast addresses, so we ignore those.
-            continue
-    return broadcast_addrs
+    return [address_entry for address_entry in ipv4_addrs if 'broadcast' in address_entry]
 
 
-def is_in_network(address, interface_address):
+def is_in_network(address, interface_address_entry):
+    """
+    An internal mechanism for determining whether a given IP address is part of the same network as a given
+    interface network as defined by their IPv4 subnet mask and broadcast address.
+
+    :param address: An IPv4 address.
+    :param interface_address_entry: An IPv4 address entry, as produced by :fun:`netifaces.ifaddresses`. It must
+    contain the `netmask` and `broadcast` fields, representing the subnet mask IP and the broadcast IP for the given
+    interface.
+    :return: `True`, if the given address is in the same network as given interface address, `False` otherwise.
+    :raises: ValueError, if invalid IP addresses are given for any field.
+    :raises: KeyError, if the `netmask` and `broadcast` fields are not present in the interface address entry
+    argument.
+    """
     try:
         ip_address = ipaddress.ip_address(address)
     except ValueError:
         raise ValueError(f'Given address {address} is not a valid IP address.')
     try:
-        netmask = ipaddress.ip_address(interface_address['netmask'])
-        broadcast_address = ipaddress.ip_address(interface_address['broadcast'])
+        netmask = ipaddress.ip_address(interface_address_entry['netmask'])
+        broadcast_address = ipaddress.ip_address(interface_address_entry['broadcast'])
         # to network address e.g. 255.255.255.0 & 192.168.1.255 = 192.168.1.0
         network_address = ipaddress.ip_address(int(netmask) & int(broadcast_address))
-        ip_network = ipaddress.ip_network((network_address, interface_address['netmask']))
+        ip_network = ipaddress.ip_network((network_address, interface_address_entry['netmask']))
     except ValueError:
-        raise ValueError(f'Given address {interface_address} is not a valid IP network address.')
+        raise ValueError(f'Given address {interface_address_entry} is not a valid IP network address.')
     except KeyError:
         raise KeyError(f'Given interface address dictionary did not contain either \'broadcast\' or \'netmask\' keys: '
-                       f'{interface_address}')
+                       f'{interface_address_entry}')
     return ip_address in ip_network
-
 
 
 class DiscoveryServer:
@@ -117,12 +135,12 @@ class DiscoveryServer:
         :param service: Service to register.
         """
         if service in self.services:
-            raise KeyError(f"A service with the same name and IP address has already been registered: {service}")
+            raise KeyError(f"A service with the same ID has already been registered: {service}")
         broadcast_addresses = self.get_broadcast_addresses_for_service(service)
         if len(broadcast_addresses) == 0:
             raise ValueError(f"No valid broadcast address found for service {service}, check network configuration.")
         with self._lock:
-            self.services[str(service)] = ServiceHubEntry(service, broadcast_addresses)
+            self.services[service] = broadcast_addresses
 
     @property
     def broadcasting(self):
@@ -150,7 +168,7 @@ class DiscoveryServer:
 
     def _broadcast_services(self):
         with self._lock:
-            for service, addresses in self.services.values():
+            for service, addresses in self.services.items():
                 self._broadcast_service(service, addresses)
 
     def _broadcast_service(self, service: ServiceHub, addresses):
@@ -177,5 +195,3 @@ class DiscoveryServer:
             return [{'addr': '127.0.0.1', 'broadcast': '127.255.255.255'}]
         return [broadcast_address for broadcast_address in self.broadcast_addresses
                 if is_in_network(address, broadcast_address)]
-
-

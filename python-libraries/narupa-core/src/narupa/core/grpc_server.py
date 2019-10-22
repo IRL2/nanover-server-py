@@ -42,6 +42,7 @@ class GrpcServer:
         executor = futures.ThreadPoolExecutor(max_workers=max_workers)
         self.server = grpc.server(executor, options=grpc_options)
         self.setup_services()
+        self._address = address
         self._port = self.server.add_insecure_port(address=f"{address}:{port}")
 
         if self._port == 0:
@@ -52,9 +53,16 @@ class GrpcServer:
         self.server.start()
 
     @property
+    def address(self):
+        """
+        Get the address that this server is or was provided at.
+        """
+        return self._address
+
+    @property
     def port(self):
         """
-        Get the port that the service is or was provided on. This is 0 if a port
+        Get the port that the server is or was provided on. This is 0 if a port
         was unable to be chosen.
         """
         return self._port
