@@ -1,6 +1,7 @@
 import pytest
 
-from essd.server import DiscoveryServer, get_ipv4_addresses, get_broadcast_addresses, is_in_network
+from essd.server import DiscoveryServer
+from essd.utils import get_ipv4_addresses, get_broadcast_addresses, is_in_network
 from essd.servicehub import ServiceHub
 import netifaces
 from test_service import properties
