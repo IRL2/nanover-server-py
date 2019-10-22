@@ -3,22 +3,31 @@ import json
 import pytest
 
 import narupa.essd
-from narupa.essd.servicehub import ServiceHub, SERVICE_NAME_KEY, SERVICE_ADDRESS_KEY
+from narupa.essd.servicehub import (ServiceHub, SERVICE_NAME_KEY, SERVICE_ADDRESS_KEY, SERVICE_SERVICES_KEY,
+                                    SERVICE_ID_KEY, ESSD_VERSION_KEY)
+from narupa.essd.utils import get_broadcast_addresses
+
+
+def get_broadcastable_ip():
+    broadcast_addresses = get_broadcast_addresses()
+    if len(broadcast_addresses) == 0:
+        raise RuntimeError("No broadcastable IP addresses could be found on the system!")
+    return broadcast_addresses[0]['addr']
 
 
 @pytest.fixture
 def properties():
     properties = {
         SERVICE_NAME_KEY: 'test service',
-        SERVICE_ADDRESS_KEY: '127.0.0.1',
-        "services": {
+        SERVICE_ADDRESS_KEY: get_broadcastable_ip(),
+        SERVICE_SERVICES_KEY: {
             "trajectory": 54321,
             "imd": 54322,
             "multiplayer": 54323,
             "builder": 54324
         },
-        "essd_version": "1.0.0",
-        "id": "12345"
+        ESSD_VERSION_KEY: "1.0.0",
+        SERVICE_ID_KEY: "12345"
     }
     return properties
 
