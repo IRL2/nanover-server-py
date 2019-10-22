@@ -41,6 +41,13 @@ class ServiceHub:
     A service hub consists of properties that must at least consist of a name and ip address.
     The payload can optionally include additional information on the services provided.
 
+    :param: name: The name of the service hub.
+    :param: address: The address of the service hub.
+    :param: id: The unique ID of the service hub. If not specified, it will be generated.
+    :param: essd_version: The version of ESSD this service hub uses. If not specified it will be determined automatically.
+    :param: services: Dictionary of service names and their ports. Standard Narupa services include
+    imd, trajectory, multiplayer and builder.
+
     Example
     =======
 
@@ -53,6 +60,22 @@ class ServiceHub:
     >>> hub.message
     '{"name": "Example Narupa Service Hub", "address": "localhost", "id": "12345", "essd_version": "1.0.0", "services": {"imd": 54322, "trajectory": 54323}}'
 
+    The IP address of a service can either be a specific IP address of the interface to be broadcast, or it can be
+    one of two special values: `localhost` or `[::]`.
+
+    If `localhost` is specified, it will be broadcasted as running at 127.0.0.1, which is the usual translation of
+    such a definition.
+
+    If `[::]` is specified, then the appropriate IP address will be broadcast for each interface on the system.
+
+    Example
+    =======
+
+    Consider a system with two interfaces, with IP addresses 192.168.1.2 (e.g. ethernet), and 72.34.5.5 (e.g. wireless),
+    and broadcast addresses 192.168.1.255 and 72.34.255.255 respectively.
+    The address [::] is provided. Then the service will be broadcast at as being at 192.168.1.2 on the ethernet
+    network, and as being at 72.34.5.5 on the second network.
+    Thus, a client at on the ethernet network will receive the address 192.168.1.2, which it can route to.
     """
 
     def __init__(self, **properties):
