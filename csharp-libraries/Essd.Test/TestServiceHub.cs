@@ -64,7 +64,7 @@ namespace Essd.Test
         [Test]
         public void TestToJson()
         {
-            string expectedJson = "{'address':'1.2.3.4','name':'test','services':{'imd':54321}}";
+            string expectedJson = "{'address':'1.2.3.4','name':'test','services':{'imd':54321},'id':'1234','essd_version':'1.0.0'}";
             
             var hub = new ServiceHub(expectedJson);
             var json = hub.ToJson();
@@ -75,9 +75,9 @@ namespace Essd.Test
         [Test]
         public void TestEquality()
         {
-            string json = "{'address':'1.2.3.4','name':'test','services':{'trajectory':54322,'imd':54321}}";
+            string json = "{'address':'1.2.3.4','name':'test','services':{'trajectory':54322,'imd':54321},'id':'1234','essd_version':'1.0.0'}";
             var hub = new ServiceHub(json);
-            var secondHub = new ServiceHub("test", "1.2.3.4");
+            var secondHub = new ServiceHub("test", "1.2.3.4", "1234","1.0.0");
             var serviceDict = new Dictionary<string, int>();
             serviceDict["imd"] = 12345;
             serviceDict["trajectory"] = 54322;
@@ -138,9 +138,9 @@ namespace Essd.Test
         [Test]
         public void TestObjectEquality()
         {
-            string json = "{'address':'1.2.3.4','name':'test','services':{'trajectory':54322,'imd':54321}}";
+            string json = "{'address':'1.2.3.4','name':'test','id':'1234','services':{'trajectory':54322,'imd':54321}}";
             var hub = new ServiceHub(json);
-            var secondHub = new ServiceHub("test", "1.2.3.4");
+            var secondHub = new ServiceHub("test", "1.2.3.4", "1234");
             var serviceDict = new Dictionary<string, int>();
             serviceDict["imd"] = 12345;
             serviceDict["trajectory"] = 54322;
@@ -181,16 +181,16 @@ namespace Essd.Test
         [Test]
         public void TestToString()
         {
-            var hub = new ServiceHub("test", "1.2.3.4");
-            Assert.AreEqual("test:1.2.3.4", hub.ToString());
+            var hub = new ServiceHub("test", "1.2.3.4", id:"1234");
+            Assert.AreEqual("test:1.2.3.4:1234", hub.ToString());
 
         }
         
         [Test]
         public void TestHashCode()
         {
-            var hub = new ServiceHub("test", "1.2.3.4");
-            int hash = ("test" + "1.2.3.4").GetHashCode();
+            var hub = new ServiceHub("test", "1.2.3.4", id:"1234");
+            int hash = "1234".GetHashCode();
             Assert.AreEqual(hash, hub.GetHashCode());
         }
     }

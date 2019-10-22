@@ -22,6 +22,12 @@ namespace Essd
         /// The key used for the service address field, which is always required.
         /// </summary>
         public const string AddressKey = "address";
+
+        public const string VersionKey = "essd_version";
+
+        public const string ServicesKey = "services";
+
+        public const string IdKey = "id";
         
         /// <summary>
         /// The name of the service.
@@ -32,8 +38,12 @@ namespace Essd
         /// The address of the service.
         /// </summary>
         public string Address => (string) Properties[AddressKey];
+
+        public string Version => (string) Properties[VersionKey];
+
+        public string Id => (string) Properties[IdKey];
         
-        public SortedDictionary<string, object> Properties;
+        public Dictionary<string, object> Properties;
 
         /// <summary>
         /// Initialises a service hub from a JSON string describing the service hub.
@@ -41,18 +51,37 @@ namespace Essd
         /// <param name="serviceHubJson">JSON string describing the service.</param>
         public ServiceHub(string serviceHubJson)
         {
-            Properties = JsonConvert.DeserializeObject<SortedDictionary<string, object>>(serviceHubJson);
+            Properties = JsonConvert.DeserializeObject<Dictionary<string, object>>(serviceHubJson);
             ValidateProperties(Properties);
+
+            if (!Properties.ContainsKey(VersionKey))
+                Properties[VersionKey] = GetVersion();
+            if (!Properties.ContainsKey(IdKey))
+                Properties[IdKey] = GenerateUUID();
+            if (!Properties.ContainsKey(ServicesKey))
+                Properties[ServicesKey] = new Dictionary<string, object>();
         }
 
-        public ServiceHub(string name, string address)
+        public ServiceHub(string name, string address, string id=null, string version=null)
         {
-            Properties = new SortedDictionary<string, object>();
+            Properties = new Dictionary<string, object>();
             Properties[NameKey] = name;
             Properties[AddressKey] = address;
-            ValidateProperties(Properties);
+            
+            Properties[VersionKey] = version == null ? GetVersion(): version;
+            Properties[IdKey] = id == null ? GenerateUUID() : id;
+        }
+
+        private string GetVersion()
+        {
+            return GetType().Assembly.GetName().Version.ToString();
         }
         
+        private string GenerateUUID()
+        {
+            return System.Guid.NewGuid().ToString();
+        }
+
         private void ValidateProperties(IDictionary<string, object> properties)
         {
             try
@@ -84,7 +113,7 @@ namespace Essd
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return (Name == other.Name && Address == other.Address);
+            return (Id == other.Id);
         }
 
         /// <inheritdoc />
@@ -99,7 +128,7 @@ namespace Essd
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return (Name + Address).GetHashCode();
+            return Id.GetHashCode();
         }
 
         public string ToJson()
@@ -109,7 +138,7 @@ namespace Essd
 
         public override string ToString()
         {
-            return $"{Name}:{Address}";
+            return $"{Name}:{Address}:{Id}";
         }
     }
 }
