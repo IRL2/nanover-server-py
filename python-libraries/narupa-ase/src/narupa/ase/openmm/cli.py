@@ -44,6 +44,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
     parser.add_argument('-t', '--trajectory_port', type=int, default=None)
     parser.add_argument('-i', '--imd_port', type=int, default=None)
+    parser.add_argument('-m', '--multiplayer_port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
     parser.add_argument('-f', '--frame_interval', type=int, default=5)
     parser.add_argument('-s', '--time_step', type=float, default=1.0)
@@ -63,6 +64,10 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument(
         '--no_discovery', action='store_true', default=False,
         help='Run without the discovery service, so this server will not broadcast itself on the LAN.'
+    )
+    parser.add_argument(
+        '--no_multiplayer', action='store_true', default=False,
+        help='Run without the multiplayer service.'
     )
     parser.add_argument(
         '--discovery_port', type=int, default=None,
@@ -85,6 +90,8 @@ def initialise(args=None):
         arguments.verbose,
         arguments.walls,
         arguments.name,
+        not arguments.no_multiplayer,
+        arguments.multiplayer_port,
         not arguments.no_discovery,
         arguments.discovery_port
     )
@@ -103,6 +110,8 @@ def main():
     with initialise() as runner:
         runner.imd.on_reset_listeners.append(lambda: print('RESET! ' * 10))
         print(f'Serving frames on port {runner.trajectory_port} and IMD on {runner.imd_port}')
+        if runner.running_multiplayer:
+            print(f'Serving multiplayer on port {runner.multiplayer_port}')
 
         try:
             while True:

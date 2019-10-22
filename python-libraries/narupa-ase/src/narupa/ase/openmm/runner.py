@@ -15,6 +15,7 @@ from narupa.ase.converter import add_ase_positions_to_frame_data
 from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.wall_calculator import VelocityWallCalculator
 from narupa.ase.openmm.calculator import OpenMMCalculator
+from narupa.multiplayer import MultiplayerServer
 from narupa.openmm import openmm_to_frame_data, serializer
 from narupa.core import get_requested_port_or_default
 from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
@@ -58,6 +59,8 @@ class ImdParams:
     verbose: bool = False
     walls: bool = False
     name: str = None
+    multiplayer: bool = True
+    multiplayer_port: int = None
     discovery: bool = True
     discovery_port: int = None
 
@@ -89,6 +92,8 @@ class OpenMMIMDRunner:
         self._initialise_server(self.dynamics,
                                 params.trajectory_port,
                                 params.imd_port,
+                                params.multiplayer,
+                                params.multiplayer_port,
                                 params.name,
                                 params.discovery,
                                 params.discovery_port)
@@ -129,6 +134,20 @@ class OpenMMIMDRunner:
     @property
     def imd_port(self):
         return self.imd.imd_server.port
+
+    @property
+    def running_multiplayer(self):
+        try:
+            return self.imd.discovery_server is not None
+        except AttributeError:
+            return False
+
+    @property
+    def multiplayer_port(self):
+        try:
+            return self.multiplayer.port
+        except AttributeError:
+            raise AttributeError("Multiplayer service not running")
 
     @property
     def name(self):
@@ -180,6 +199,8 @@ class OpenMMIMDRunner:
     def _initialise_server(self, dynamics,
                            trajectory_port=None,
                            imd_port=None,
+                           run_multiplayer=True,
+                           multiplayer_port=None,
                            name=None,
                            run_discovery=True,
                            discovery_port=None):
@@ -194,6 +215,10 @@ class OpenMMIMDRunner:
                                 run_discovery=run_discovery,
                                 discovery_port=discovery_port
                                 )
+        if run_multiplayer:
+            self.multiplayer = MultiplayerServer(address=self.address, port=multiplayer_port)
+        else:
+            self.multiplayer = None
 
     def _initialise_calculator(self, simulation, walls=False):
         self._openmm_calculator = OpenMMCalculator(simulation)

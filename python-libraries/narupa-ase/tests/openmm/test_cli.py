@@ -62,6 +62,31 @@ def test_discovery_service_port(serialized_simulation_path):
         assert runner.discovery_port == 88888
 
 
+def test_multiplayer(serialized_simulation_path):
+    args = [str(serialized_simulation_path)]
+    with initialise(args) as runner:
+        assert runner.running_multiplayer is True
+
+
+def test_multiplayer_not_running(serialized_simulation_path):
+    args = [str(serialized_simulation_path), '--no_multiplayer']
+    with initialise(args) as runner:
+        assert runner.multiplayer is False
+
+
+def test_multiplayer_port(serialized_simulation_path):
+    args = [str(serialized_simulation_path), '-m', '66666']
+    with initialise(args) as runner:
+        assert runner.multiplayer_port == 66666
+
+
+def test_multiplayer_port_not_set(serialized_simulation_path):
+    args = [str(serialized_simulation_path), '--no_multiplayer']
+    with initialise(args) as runner:
+        with pytest.raises(AttributeError):
+            _ = runner.multiplayer_port
+
+
 def test_name(serialized_simulation_path):
     args = [str(serialized_simulation_path), '--name', 'Test Server']
     with initialise(args) as runner:
