@@ -7,8 +7,8 @@ import time
 
 from logging import StreamHandler
 
-from essd import DiscoveryServer
-from essd.servicehub import ServiceHub
+from narupa.essd import DiscoveryServer
+from narupa.essd.servicehub import ServiceHub
 from narupa.multiplayer.multiplayer_server import MultiplayerServer
 
 

@@ -23,9 +23,9 @@ import time
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST
 from typing import Optional
 
-from essd.utils import get_broadcast_addresses, is_in_network
+from narupa.essd.utils import get_broadcast_addresses, is_in_network
 from narupa.multiplayer import MultiplayerServer
-from essd.servicehub import ServiceHub
+from narupa.essd.servicehub import ServiceHub
 
 BROADCAST_PORT = 54545
 

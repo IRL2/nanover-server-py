@@ -1,8 +1,8 @@
 import pytest
 
-from essd.server import DiscoveryServer
-from essd.utils import get_ipv4_addresses, get_broadcast_addresses, is_in_network
-from essd.servicehub import ServiceHub
+from narupa.essd.server import DiscoveryServer
+from narupa.essd.utils import get_ipv4_addresses, get_broadcast_addresses, is_in_network
+from narupa.essd.servicehub import ServiceHub
 import netifaces
 from test_service import properties
 

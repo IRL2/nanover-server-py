@@ -9,7 +9,7 @@ from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.md import VelocityVerlet
 from ase.cell import Cell
 
-from essd import DiscoveryClient
+from narupa.essd import DiscoveryClient
 from narupa.trajectory import FrameData
 from narupa.ase.imd_server import ASEImdServer
 

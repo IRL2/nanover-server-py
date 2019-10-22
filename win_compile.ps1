@@ -36,7 +36,6 @@ python ./python-libraries/narupa-core/setup.py compile_proto
 announce "Installing the python packages"
 python -m pip install ${edit_option} ${user_option} ./python-libraries/narupa-core/
 
-python -m pip install ${edit_option} ${user_option} ./python-libraries/essd/
 Get-ChildItem -Directory python-libraries/narupa-* | ForEach-Object {
     if (Test-Path -Path "$($_.FullName)/setup.py") {
         Write-Host "$($_.FullName)"

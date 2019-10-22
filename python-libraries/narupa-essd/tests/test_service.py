@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-import essd
-from essd.servicehub import ServiceHub, SERVICE_NAME_KEY, SERVICE_ADDRESS_KEY
+import narupa.essd
+from narupa.essd.servicehub import ServiceHub, SERVICE_NAME_KEY, SERVICE_ADDRESS_KEY
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def test_service_message(properties):
 def test_version(properties):
     del properties['essd_version']
     service = ServiceHub(**properties)
-    assert service.version == essd.__version__
+    assert service.version == narupa.essd.__version__
 
 
 def test_service_generate_uuid(properties):

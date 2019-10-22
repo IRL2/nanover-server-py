@@ -4,7 +4,7 @@ Module defining a Service.
 import json
 from typing import Optional
 from uuid import uuid4
-import essd
+import narupa.essd
 MAXIMUM_MESSAGE_SIZE = 1024
 SERVICE_NAME_KEY = "name"
 SERVICE_ADDRESS_KEY = "address"
@@ -61,7 +61,7 @@ class ServiceHub:
         if SERVICE_ID_KEY not in properties:
             self.properties[SERVICE_ID_KEY] = str(uuid4())
         if ESSD_VERSION_KEY not in properties:
-            self.properties[ESSD_VERSION_KEY] = essd.__version__
+            self.properties[ESSD_VERSION_KEY] = narupa.essd.__version__
         if SERVICE_SERVICES_KEY not in properties:
             self.properties[SERVICE_SERVICES_KEY] = {}
 

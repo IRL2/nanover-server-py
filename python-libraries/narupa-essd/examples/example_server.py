@@ -3,8 +3,8 @@
 """
 Simple example of running a server and registering service hub.
 """
-from essd.server import DiscoveryServer
-from essd.servicehub import ServiceHub
+from narupa.essd.server import DiscoveryServer
+from narupa.essd.servicehub import ServiceHub
 
 with DiscoveryServer() as server:
 

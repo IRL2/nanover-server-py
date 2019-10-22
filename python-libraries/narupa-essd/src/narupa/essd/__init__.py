@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-from essd.server import DiscoveryServer
-from essd.client import DiscoveryClient
+from narupa.essd.server import DiscoveryServer
+from narupa.essd.client import DiscoveryClient
 
 """
 Module providing extremely simple service discovery over UDP.

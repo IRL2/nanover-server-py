@@ -1,3 +1,4 @@
+import signal
 import time
 import subprocess
 import pytest
@@ -12,4 +13,5 @@ def test_run_multiplayer_server_runs():
     server_process = subprocess.Popen(["narupa-multiplayer"])
     time.sleep(1)
     assert is_process_running(server_process)
-    server_process.terminate()
+    server_process.send_signal(signal.CTRL_C_EVENT)
+

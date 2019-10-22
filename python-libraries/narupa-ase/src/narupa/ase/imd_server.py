@@ -14,8 +14,8 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.md.md import MolecularDynamics
 
-from essd import DiscoveryServer
-from essd.servicehub import ServiceHub
+from narupa.essd import DiscoveryServer
+from narupa.essd.servicehub import ServiceHub
 from .frame_server import send_ase_frame
 from .imd_calculator import ImdCalculator
 from .converter import EV_TO_KJMOL

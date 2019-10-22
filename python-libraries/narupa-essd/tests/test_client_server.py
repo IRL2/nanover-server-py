@@ -1,11 +1,11 @@
 import pytest
 
-from essd import DiscoveryServer
-from essd.client import DiscoveryClient
+from narupa.essd import DiscoveryServer
+from narupa.essd.client import DiscoveryClient
 from test_service import properties
-from test_server import server, service
+from test_essd_server import server, service
 
-from essd.servicehub import ServiceHub
+from narupa.essd.servicehub import ServiceHub
 
 
 @pytest.fixture
