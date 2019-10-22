@@ -61,10 +61,10 @@ def test_get_broadcast_addresses():
     interfaces = netifaces.interfaces()
     if interfaces is None or len(interfaces) == 0:
         return
-    interface = [interfaces[0]]
-    broadcast_addresses = get_broadcast_addresses(interface)
-    expected_addresses = netifaces.ifaddresses(interface[0])[netifaces.AF_INET]
-    assert broadcast_addresses == expected_addresses
+    broadcast_addresses = get_broadcast_addresses()
+    print(broadcast_addresses)
+    assert len(broadcast_addresses) > 0
+
 
 
 @pytest.mark.parametrize('address, netmask, broadcast_address, expected_result',
