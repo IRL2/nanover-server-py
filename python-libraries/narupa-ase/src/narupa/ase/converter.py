@@ -1,10 +1,9 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-
-Module containing methods for converting between ASE simulations consisting of :class:`Atoms`  and the Narupa
-:class:`FrameData` object for transmission to Narupa clients.
-
+Module containing methods for converting between ASE simulations consisting of
+:class:`Atoms`  and the Narupa :class:`FrameData` object for transmission to
+Narupa clients.
 """
 from typing import Iterable, Optional
 
@@ -61,14 +60,17 @@ def ase_to_frame_data(
     """
     Constructs a Narupa frame from the state of the atoms in an ASE simulation.
 
-    :param ase_atoms: The ASE atoms object representing the state of the simulation to send.
+    :param ase_atoms: The ASE atoms object representing the state of the
+        simulation to send.
     :param positions: Whether to add positions to the frame.
-    :param topology: Whether to generate the current state of the topology and add it to the frame.
+    :param topology: Whether to generate the current state of the topology and
+        add it to the frame.
     :param state: Whether to add additional state information such as energies.
     :param box_vectors: Whether to add the box vectors to the frame data.
     :return: Narupa frame.
 
-    :raises: AttributeError Raised if state is `True`, and `ase_atoms` has no calculator attached.
+    :raises: AttributeError Raised if state is `True`, and `ase_atoms` has no
+        calculator attached.
 
     Example
     =======
@@ -102,10 +104,13 @@ def frame_data_to_ase(frame_data: FrameData, positions: bool = True, topology: b
 
     :param frame_data: The Narupa :class:`FrameData`.
     :param positions: Whether to add positions to the ASE atoms.
-    :param topology: Whether to add topology information within the frame data to ASE.
-    :param ase_atoms: Optional ASE :class:`Atoms` object, which will have its positions replaced. If
-    the flag `topology` is set, then a new object will still be constructed.
-    :return: ASE Atoms updated or created with the data contained in the Narupa frame.
+    :param topology: Whether to add topology information within the frame data
+        to ASE.
+    :param ase_atoms: Optional ASE :class:`Atoms` object, which will have its
+        positions replaced. If the flag `topology` is set, then a new object
+        will still be constructed.
+    :return: ASE Atoms updated or created with the data contained in the
+        Narupa frame.
 
     Example:
     ========
@@ -131,6 +136,7 @@ def frame_data_to_ase(frame_data: FrameData, positions: bool = True, topology: b
 def add_frame_data_topology_to_ase(frame_data: FrameData, atoms: Atoms):
     """
     Adds frame data topology information to ASE :class:`Atoms`.
+
     Since ASE :class:`Atoms` do not have a concept of bonds, this just adds
     particle elements.
 
@@ -177,7 +183,9 @@ def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
 def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
     Generates a topology for the current state of the atoms and adds it to the frame.
-    Since ASE atoms have no concept of bonds, they are generated using distance criteria.
+
+    Since ASE atoms have no concept of bonds, they are generated using distance
+    criteria.
 
     :param frame_data: Frame data to add topology information to.
     :param ase_atoms: ASE atoms to extract topology information from.
@@ -231,7 +239,8 @@ def get_radius_of_element(symbol: str, default=1.0):
     Gets the radius of an atom in Angstroms.
 
     :param symbol: The chemical symbol representing the element.
-    :param default: Default radius to use if the radius for the given chemical symbol is not known.
+    :param default: Default radius to use if the radius for the given chemical
+        symbol is not known.
     :return: The VDW radius of the atom in angstroms.
     """
     return ATOM_RADIUS_ANG.get(symbol, default)
@@ -251,8 +260,8 @@ def generate_bonds(atoms: Atoms):
     """
     Generates bonds for the given configuration of ASE atoms using a distance criterion.
 
-    A bond is placed between two atoms if the distance between them is less than 0.6 times
-    the VDW radii of the atoms.
+    A bond is placed between two atoms if the distance between them is less
+    than 0.6 times the VDW radii of the atoms.
 
     :param atoms: ASE atoms to generate bonds for.
     :return: A list of pairs of atom indexes representing bonds.
@@ -260,7 +269,9 @@ def generate_bonds(atoms: Atoms):
     Example
     =======
 
-    The following example produces a bond between the two atoms in a carbon monoxide molecule:
+    The following example produces a bond between the two atoms in a carbon
+    monoxide molecule:
+
     >>> co = Atoms('CO', positions=[(0, 0, 0), (0, 0, 1.1)], cell=[2, 2, 2])
     >>> generate_bonds(co)
     [[0, 1]]

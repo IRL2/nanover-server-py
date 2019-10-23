@@ -19,13 +19,12 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     dynamics simulation.
 
     :param callback: A callback to be used whenever an interaction is published
-    or updated.
-    :param velocity_reset_enabled: Whether the dynamics this service is being used in
-    supports velocity reset.
-    :param number_of_particles: If set, allows the IMD service to validate the particle indices
-    in an interaction are valid. If not set, it is up to consumers of the
-    interactions to validate.
-
+        or updated.
+    :param velocity_reset_enabled: Whether the dynamics this service is being
+        used in supports velocity reset.
+    :param number_of_particles: If set, allows the IMD service to validate the
+        particle indices in an interaction are valid. If not set, it is up to
+        consumers of the interactions to validate.
     """
 
     def __init__(self,
@@ -79,7 +78,9 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     @property
     def active_interactions(self) -> Dict[Tuple[str, str], ParticleInteraction]:
         """
-        The current dictionary of active interactions, keyed by player id and interaction id.
+        The current dictionary of active interactions, keyed by player id and
+        interaction id.
+
         :return A copy of the dictionary of active interactions.
         """
         with self._interaction_lock:
@@ -89,6 +90,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     def get_key(interaction):
         """
         Gets the key to use with an interaction.
+
         :param interaction:
         :return: key formed of a tuple of player_id and interaction_id.
         """
@@ -97,6 +99,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     def set_callback(self, callback):
         """
         Sets the callback to be used whenever an interaction is received.
+
         :param callback: Method to be called
         """
         self._callback = callback

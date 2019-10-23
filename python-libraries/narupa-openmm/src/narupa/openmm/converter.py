@@ -66,13 +66,15 @@ def openmm_to_frame_data(*, state: Optional[State] = None, topology: Optional[To
     """
     Converts the given OpenMM state and topology objects into a Narupa :class:`FrameData`.
 
-    Both fields are optional. For performance reasons, it is best to construct a Narupa :class:`FrameData`
-    once with topology information, and from then on just update the state, as that will result in less
-    data being transmitted.
+    Both fields are optional. For performance reasons, it is best to construct
+    a Narupa :class:`FrameData` once with topology information, and from then
+    on just update the state, as that will result in less data being transmitted.
 
     :param state: An optional OpenMM :class: State from which to extract state data.
-    :param topology: An optional OpenMM :class:`Topology` from which to extract topological information.
-    :return: A :class:`FrameData` with the state and topology information provided added to it.
+    :param topology: An optional OpenMM :class:`Topology` from which to extract
+        topological information.
+    :return: A :class:`FrameData` with the state and topology information
+        provided added to it.
     """
     data = FrameData()
     if state is not None:

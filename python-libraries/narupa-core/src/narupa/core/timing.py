@@ -11,6 +11,7 @@ def yield_interval(interval: float):
     """
     Yield at a set interval, accounting for the time spent outside of this
     function.
+
     :param interval: Number of seconds to put between yields
     """
     last_yield = time.monotonic() - interval
@@ -26,6 +27,7 @@ def delayed_generator(iterable: Iterable, delay: float):
     """
     Generate items from the given iterable, with the given delay between
     each item.
+
     :param iterable: Iterable object to generate items from.
     :param delay: Delay, in seconds, between each item.
     :yield The items in the iterable.

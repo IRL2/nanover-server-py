@@ -87,8 +87,9 @@ class OpenMMIMDRunner:
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
         """
-        Initialises a :class: OpenMMIMDRunner from a simulation XML file serialised with
-        :class: serializer
+        Initialises a :class:`OpenMMIMDRunner` from a simulation XML file
+        serialised with :fun:`serializer.serialize_simulation`.
+
         :param simulation_xml: Path to XML file.
         :param params: The :class: ImdParams to run the server with.
         :return: An OpenMM simulation runner.
@@ -100,8 +101,9 @@ class OpenMMIMDRunner:
     @property
     def verbose(self):
         """
-        Whether this OpenMM runner is set to run in verbose mode. If it is, it will print state information
-        every 100 steps using an :class: MDLogger.
+        Whether this OpenMM runner is set to run in verbose mode. If it is, it
+        will print state information every 100 steps using an :class: MDLogger.
+
         :return: `True` if set to run verbosely, `False` otherwise.
         """
         return self._verbose
@@ -110,6 +112,7 @@ class OpenMMIMDRunner:
     def time_step(self):
         """
         Gets the time step of the simulation, in femtoseconds.
+
         :return: The time step of the simulation.
         """
         return self._time_step
@@ -118,6 +121,7 @@ class OpenMMIMDRunner:
     def frame_interval(self):
         """
         Gets the interval at which frames are sent, in steps.
+
         :return: The frame interval, in steps.
         """
         return self._frame_interval
@@ -126,6 +130,7 @@ class OpenMMIMDRunner:
     def address(self):
         """
         Gets the URL or IP address the server is running at.
+
         :return: The URL or IP address of the server.
         """
         return self._address
@@ -133,7 +138,8 @@ class OpenMMIMDRunner:
     @property
     def trajectory_port(self):
         """
-        Gets the port the :class: FrameServer is running on.
+        Gets the port the :class:`FrameServer` is running on.
+
         :return: The port the frame service is running on.
         """
         return self.imd.frame_server.port
@@ -141,7 +147,8 @@ class OpenMMIMDRunner:
     @property
     def imd_port(self):
         """
-        Gets the port the :class: ImdServer is running on.
+        Gets the port the :class:`ImdServer` is running on.
+
         :return: The port the IMD server is running on.
         """
         return self.imd.imd_server.port
@@ -149,7 +156,8 @@ class OpenMMIMDRunner:
     @property
     def dynamics(self):
         """
-        Gets the ASE :class: MolecularDynamics object that is running the dynamics.
+        Gets the ASE :class:`MolecularDynamics` object that is running the dynamics.
+
         :return: The ASE molecular dynamics object.
         """
         return self._dynamics

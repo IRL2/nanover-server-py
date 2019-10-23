@@ -17,15 +17,16 @@ from narupa.protocol.imd import InteractiveMolecularDynamicsStub, InteractionEnd
 
 def queue_generator(queue: Queue, sentinel: object):
     """
-    Produces a generator that can be used to iterate over the values submitted to a queue, until the
-    given sentinel is added to the queue. The iterator will block until this sentinel is passed.
+    Produces a generator that can be used to iterate over the values submitted
+    to a queue, until the given sentinel is added to the queue. The iterator
+    will block until this sentinel is passed.
 
-    Enables one to take control of when items are passed to a streaming iterator, such as that used
-    in :func:`publish_interactions_async`.
+    Enables one to take control of when items are passed to a streaming
+    iterator, such as that used in :func:`publish_interactions_async`.
 
     :param queue: Queue that items will be submitted to.
-    :param sentinel: A sentinel that indicates the end of iteration. When added to the queue,
-                     the generator stops.
+    :param sentinel: A sentinel that indicates the end of iteration. When added
+        to the queue, the generator stops.
     :return: Yields the items in put into the queue, in the order they were put in.
 
     >>> queue = Queue()
@@ -67,6 +68,7 @@ class ImdClient(GrpcClient):
     def start_interaction(self) -> int:
         """
         Start an interaction
+
         :return: A unique identifier to be used to update the interaction.
         """
         queue = Queue()
@@ -83,9 +85,12 @@ class ImdClient(GrpcClient):
         """
         Updates the interaction identified with the given interaction_id on the server with
         parameters from the given interaction.
-        :param interaction_id: The unique interaction ID, created with :func:`~ImdClient.start_interaction`,
-        that identifies the interaction to update.
-        :param interaction: The :class: ParticleInteraction providing new parameters for the interaction.
+
+        :param interaction_id: The unique interaction ID, created with
+            :func:`~ImdClient.start_interaction`, that identifies the
+            interaction to update.
+        :param interaction: The :class: ParticleInteraction providing new
+            parameters for the interaction.
 
         :raises: ValueError, if invalid parameters are passed to the server.
         :raises: KeyError, if the given interaction ID does not exist.
@@ -98,8 +103,10 @@ class ImdClient(GrpcClient):
     def stop_interaction(self, interaction_id) -> InteractionEndReply:
         """
         Stops the interaction identified with the given interaction_id on the server.
-        :param interaction_id: The unique interaction ID, created with :func:`~ImdClient.start_interaction`,
-        that identifies the interaction to stop.
+
+        :param interaction_id: The unique interaction ID, created with
+            :func:`~ImdClient.start_interaction`, that identifies the
+            interaction to stop.
 
         :raises: KeyError, if the given interaction ID does not exist.
         """
@@ -113,6 +120,7 @@ class ImdClient(GrpcClient):
     def publish_interactions_async(self, interactions: Iterable[ParticleInteraction]) -> Future:
         """
         Publishes the iterable of interactions on a thread.
+
         :param interactions: An iterable generator or collection of interactions.
         :return Future representing the state of the interaction task.
         """
@@ -121,6 +129,7 @@ class ImdClient(GrpcClient):
     def publish_interactions(self, interactions: Iterable[ParticleInteraction]) -> InteractionEndReply:
         """
         Publishes the generator of interactions on a thread.
+
         :param interactions: An iterable generator or collection of interactions.
         :return: A reply indicating successful publishing of interaction.
         """

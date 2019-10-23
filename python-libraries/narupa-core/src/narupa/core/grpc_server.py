@@ -71,7 +71,6 @@ class GrpcServer:
 
         Inheritors of this class should override this method with routines to stop
         services that are running.
-        :return:
         """
         self.server.stop(grace=False)
 

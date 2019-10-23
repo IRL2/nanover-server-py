@@ -68,6 +68,7 @@ class MultiplayerClient(GrpcClient):
     def join_multiplayer(self, player_name, join_streams=True):
         """
         Joins a multiplayer server
+
         :param player_name: The user name to use for multiplayer.
         :param join_streams: Whether to automatically join all streams.
         :return: Player ID received from the multiplayer server.
@@ -87,6 +88,7 @@ class MultiplayerClient(GrpcClient):
         """
         Joins the avatar stream, which will start receiving avatar updates in
         the background.
+
         :param interval: Minimum time (in seconds) between receiving two updates
         for the same player's avatar.
         :param ignore_self: Whether to request the server not to send our own
@@ -100,6 +102,7 @@ class MultiplayerClient(GrpcClient):
     def join_avatar_publish(self):
         """
         Joins the avatar publishing stream.
+
         Use :func:`~MultiplayerClient.publish_avatar` to publish.
         """
         self._assert_has_player_id()
@@ -108,6 +111,7 @@ class MultiplayerClient(GrpcClient):
     def publish_avatar(self, avatar: mult_proto.Avatar):
         """
         Updates an avatar to be published.
+
         :param avatar: The avatar to be published.
         """
         self._avatar_queue.put(avatar)
@@ -116,6 +120,7 @@ class MultiplayerClient(GrpcClient):
     def player_id(self):
         """
         The player ID assigned to this client after joining multiplayer.
+
         :return: The player ID.
         """
         return self._player_id
@@ -124,6 +129,7 @@ class MultiplayerClient(GrpcClient):
     def joined_multiplayer(self) -> bool:
         """
         Indicates whether multiplayer joined, and the client has a valid player ID.
+
         :return: True if multiplayer has been joined, false otherwise.
         """
         return self.player_id is not None
@@ -131,8 +137,9 @@ class MultiplayerClient(GrpcClient):
     def subscribe_all_value_updates(self, interval=0):
         """
         Begin receiving updates to the shared key/value store.
+
         :param interval: Minimum time (in seconds) between receiving new updates
-        for any and all values.
+            for any and all values.
         """
         request = mult_proto.SubscribeAllResourceValuesRequest(update_interval=interval)
         self.threads.submit(self._join_scene_properties, request)
@@ -141,6 +148,7 @@ class MultiplayerClient(GrpcClient):
         """
         Attempt to gain exclusive write access to a particular key in the
         shared key/value store.
+
         :param resource_id: Key to lock.
         :param duration: Duration to lock the key for (0 for indefinite).
         """
@@ -154,6 +162,7 @@ class MultiplayerClient(GrpcClient):
         """
         Attempt to release exclusive write access of a particular key in the
         shared key/value store.
+
         :param resource_id: Key to release.
         """
         lock_request = mult_proto.ReleaseLockRequest(player_id=self.player_id,
@@ -164,6 +173,7 @@ class MultiplayerClient(GrpcClient):
     def try_set_resource_value(self, resource_id, value) -> bool:
         """
         Attempt to write a value to a key in the shared key/value store.
+
         :param resource_id: Key to write to.
         :param value: Value to write.
         """
@@ -178,8 +188,11 @@ class MultiplayerClient(GrpcClient):
 
     def add_value_update_callback(self, callback: UpdateCallback):
         """
-        Add a callback method to be called whenever a value changes in the shared key/value store.
-        :param callback: Method to be called, that takes the set of keys that have changed as arguments.
+        Add a callback method to be called whenever a value changes in the
+        shared key/value store.
+
+        :param callback: Method to be called, that takes the set of keys that
+            have changed as arguments.
         """
         self._value_update_callbacks.add(callback)
 

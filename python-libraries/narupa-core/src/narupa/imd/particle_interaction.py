@@ -26,9 +26,11 @@ class ParticleInteraction:
     rather than the low level containers used by protobuf.
 
     :param player_id: The player ID to be associated with the interaction.
-    :param interaction_id: The interaction ID to be associated with the interaction. Typically, this identifies
-        the VR controller, or other input device.
-    :param interaction_type: The type of interaction being used, default is Gaussian force.
+    :param interaction_id: The interaction ID to be associated with the
+        interaction. Typically, this identifies the VR controller, or other
+        input device.
+    :param interaction_type: The type of interaction being used, default is
+        'gaussian' for a Gaussian force.
     :param scale: The scale factor applied to the interaction, default is 1.
 
     """
@@ -64,8 +66,8 @@ class ParticleInteraction:
                    default_reset_velocities=False):
         """
         Initialises an interaction from the protobuf representation.
+
         :param interaction_proto: The protobuf representation of the interaction.
-        :return:
         """
         interaction = cls()
         interaction._interaction = interaction_proto
@@ -81,6 +83,7 @@ class ParticleInteraction:
     def proto(self) -> imd_pb2.ParticleInteraction:
         """
         Gets the underlying protobuf representation.
+
         :return: The underlying protobuf Interaction representation.
         """
         return self._interaction
@@ -89,6 +92,7 @@ class ParticleInteraction:
     def player_id(self) -> str:
         """
         Gets the player ID associated with this interaction.
+
         :return: The player ID associated with this interaction.
         """
         return self._interaction.player_id
@@ -97,6 +101,7 @@ class ParticleInteraction:
     def interaction_id(self) -> str:
         """
         Gets the interaction ID associated with this interaction.
+
         :return: The interaction ID associated with this interaction.
         """
         return self._interaction.interaction_id
@@ -105,6 +110,7 @@ class ParticleInteraction:
     def type(self) -> str:
         """
         Gets the type of interaction being applied, default 'gaussian'.
+
         :return: The type of interaction being applied.
         """
         return self._get_property('type')
@@ -113,6 +119,7 @@ class ParticleInteraction:
     def type(self, value: str):
         """
         Sets the interaction type.
+
         :param value: Interaction type to apply. Typically 'gaussian' or 'spring'.
         """
         self._set_property('type', value)
@@ -121,7 +128,9 @@ class ParticleInteraction:
     def scale(self) -> float:
         """
         Gets the scale factor of the interaction, which defaults to 1.
+
         Adjusting this changes the strength of the interactive force applied.
+
         :return: The scale factor of the interaction.
         """
         return self._get_property('scale')
@@ -130,6 +139,7 @@ class ParticleInteraction:
     def scale(self, value: Number):
         """
         Sets the scale factor of the interaction.
+
         :param value: The new scale factor to set.
         """
         self._set_property('scale', value)
@@ -137,7 +147,8 @@ class ParticleInteraction:
     @property
     def position(self) -> Collection:
         """
-        Gets the position of the interaction, which defaults to [0,0,0]
+        Gets the position of the interaction, which defaults to ``[0,0,0]``
+
         :return: The position of the interaction, in nanometers.
         """
         return np.array(self._interaction.position)
@@ -146,6 +157,7 @@ class ParticleInteraction:
     def position(self, position: Collection):
         """
         Set the position of the interaction
+
         :param position: 3 dimensional vector position of interaction, in nanometers.
         """
         if len(position) != 3:
@@ -157,6 +169,7 @@ class ParticleInteraction:
     def particles(self) -> np.ndarray:
         """
         Gets the list of particles this interaction applies to.
+
         :return: The list of the indices of the particles this interaction applies to.
         """
         return np.array(self._interaction.particles)
@@ -165,6 +178,7 @@ class ParticleInteraction:
     def particles(self, particles: Collection):
         """
         Set the particles of the interaction.
+
         :param particles: A collection of particles. If it contains duplicates, these will be removed.
         """
         self._interaction.particles[:] = np.unique(particles)
@@ -173,6 +187,7 @@ class ParticleInteraction:
     def mass_weighted(self) -> bool:
         """
         Indicates whether this interaction should be mass weighted, default `True`.
+
         :return: Whether to mass weight this interaction.
         """
         try:
@@ -186,6 +201,7 @@ class ParticleInteraction:
     def mass_weighted(self, value: bool):
         """
         Sets this interaction to be mass weighted or not.
+
         :param value: Boolean value to set.
         """
         self._properties['mass_weighted'] = value
@@ -193,8 +209,9 @@ class ParticleInteraction:
     @property
     def reset_velocities(self) -> bool:
         """
-        Indicates whether this interaction should be reset the velocities of the atoms it interacts
-        with after interaction, defaulting to False.
+        Indicates whether this interaction should be reset the velocities of
+        the atoms it interacts with after interaction, defaulting to False.
+
         :return: Whether to reset velocities after this interaction.
         """
         # TODO should we update these to set the property if it does not exist, for serialisation?
@@ -208,7 +225,9 @@ class ParticleInteraction:
     @reset_velocities.setter
     def reset_velocities(self, value):
         """
-        Sets this interaction to reset the velocities of the selected atoms or not after the interaction is complete.
+        Sets this interaction to reset the velocities of the selected atoms or
+        not after the interaction is complete.
+
         :param value: Whether to reset velocities after this interaction.
         """
         self._properties[self.RESET_VELOCITIES_KEY] = value
@@ -217,7 +236,6 @@ class ParticleInteraction:
     def properties(self) -> Struct:
         """
         Gets the properties Struct field of the interaction structure.
-        :return:
         """
         return self._properties
 

@@ -2,8 +2,9 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 
 """
-Module providing an implementation of a dictionary-like object that can be locked during access to provide a way for
-asynchronous clients to edit the contents in a thread-safe manner.
+Module providing an implementation of a dictionary-like object that can be
+locked during access to provide a way for asynchronous clients to edit the
+contents in a thread-safe manner.
 """
 
 import time
@@ -16,8 +17,9 @@ class ResourceLockedException(Exception):
 
 class KeyLockableMap:
     """
-    Module providing an implementation of a dictionary-object that can be locked during access to provide a way for
-    asynchronous clients to edit the contents in a thread-safe manner.
+    Module providing an implementation of a dictionary-object that can be
+    locked during access to provide a way for asynchronous clients to edit the
+    contents in a thread-safe manner.
     """
 
     def __init__(self):

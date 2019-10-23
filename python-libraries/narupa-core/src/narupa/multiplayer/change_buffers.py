@@ -1,8 +1,8 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Module providing utility classes used by the multiplayer service to create a shared key/value store between
-multiple clients.
+Module providing utility classes used by the multiplayer service to create a
+shared key/value store between multiple clients.
 """
 from typing import Callable, Optional
 from contextlib import contextmanager
