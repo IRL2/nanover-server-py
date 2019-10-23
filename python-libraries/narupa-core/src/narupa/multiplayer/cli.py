@@ -2,6 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 
 import argparse
+import signal
 import textwrap
 import time
 
@@ -58,6 +59,18 @@ def setup_discovery(server, name, discovery_port) -> DiscoveryServer:
     discovery_server.register_service(service)
     return discovery_server
 
+def just_raise():
+    print('Raising exception due to sigterm!')
+    raise Exception
+
+class GracefulKiller:
+  kill_now = False
+  def __init__(self):
+    signal.signal(signal.SIGINT, self.exit_gracefully)
+    signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+  def exit_gracefully(self,signum, frame):
+    self.kill_now = True
 
 def main():
     """
@@ -80,11 +93,13 @@ def main():
     if not arguments.no_discovery:
         discovery_server = setup_discovery(server, arguments.name, arguments.discovery_port)
     try:
-        while True:
-            time.sleep(1)
+        killer = GracefulKiller()
+        while not killer.kill_now:
+            time.sleep(0.0001)
     except KeyboardInterrupt:
         print('Closing due to keyboard interrupt')
     finally:
+        print('Cleaning up...')
         server.close()
         if discovery_server is not None:
             discovery_server.close()
