@@ -138,7 +138,7 @@ class OpenMMIMDRunner:
     @property
     def running_multiplayer(self):
         try:
-            return self.imd.discovery_server is not None
+            return self.multiplayer is not None
         except AttributeError:
             return False
 

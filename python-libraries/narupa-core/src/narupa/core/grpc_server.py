@@ -49,7 +49,7 @@ class GrpcServer:
             if port == 0:
                 raise IOError(f"Could not open any port.")
             raise IOError(f"Could not open on port {port}.")
-
+        print(f'Running server {self.__class__.__name__} on port {self.port}')
         self.server.start()
 
     @property
