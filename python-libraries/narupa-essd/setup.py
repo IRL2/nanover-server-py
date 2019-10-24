@@ -13,7 +13,7 @@ setup(name='narupa-essd',
       url='https://gitlab.com/intangiblerealities/',
       packages=find_namespace_packages('src', include='narupa.*'),
       install_requires=(
-          'netifaces'
+          'netifaces',
       ),
-      package_dir={'': 'src'}
-      )
+      package_dir={'': 'src'},
+)
