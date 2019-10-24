@@ -4,7 +4,7 @@
 Module providing an implementation of an IMD service.
 """
 from threading import Lock
-from typing import Iterable, List, Dict, Tuple
+from typing import Iterable, List, Dict, Tuple, Callable
 
 import grpc
 
@@ -96,11 +96,11 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         return interaction.player_id, interaction.interaction_id
 
-    def set_callback(self, callback):
+    def set_callback(self, callback: Callable[[ParticleInteraction], None]):
         """
         Sets the callback to be used whenever an interaction is received.
 
-        :param callback: Method to be called
+        :param callback: Method to be called, taking the received particle interaction as an argument.
         """
         self._callback = callback
 
@@ -120,7 +120,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
                 interactions_in_request.add(key)
                 self._interactions[key] = interaction
             if self._callback is not None:
-                self._callback()
+                self._callback(interaction)
 
     def _validate_interaction(self, interaction):
         self._validate_particle_range(interaction)

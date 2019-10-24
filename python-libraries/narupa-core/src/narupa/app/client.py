@@ -245,14 +245,19 @@ class NarupaClient:
     def stop_interaction(self, interaction_id) -> InteractionEndReply:
         """
         Stops the interaction identified with the given interaction_id on the server.
+        This method blocks until the server returns a reply indicating that the
+        interaction has stopped.
 
         :param interaction_id: The unique interaction ID, created with
             :func:`~NarupaClient.start_interaction`, that identifies the
             interaction to stop.
+        :return: An :class:`InteractionEndReply`, which is an empty message indicating
+        successful termination of the interaction.
 
         :raises ValueError: if the there is no IMD connection available, or
             if invalid parameters are passed to the server.
         :raises KeyError: if the given interaction ID does not exist.
+
         """
         if self._imd_client is None:
             raise ValueError("Client started without IMD, cannot stop an interaction!")
