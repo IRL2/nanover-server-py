@@ -11,152 +11,131 @@ using Timer = System.Timers.Timer;
 
 namespace Essd
 {
-    
     // https://stackoverflow.com/questions/19404199/how-to-to-make-udpclient-receiveasync-cancelable
     public static class AsyncExtensions
     {
         /// <summary>
-        /// Enables a task to be cancellable.
+        ///     Enables a task to be cancellable.
         /// </summary>
         /// <param name="task">Task that usually cannot be canceled.</param>
         /// <param name="cancellationToken">Cancellation token to use for cancellation.</param>
         /// <typeparam name="T">Task result type.</typeparam>
         /// <returns>Task</returns>
         /// <exception cref="OperationCanceledException">If the task is cancelled before completion.</exception>
-        public static async Task<T> WithCancellation<T>( this Task<T> task, CancellationToken cancellationToken )
+        public static async Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool>();
-            using( cancellationToken.Register( s => ( (TaskCompletionSource<bool>)s ).TrySetResult( true ), tcs ) )
+            using (cancellationToken.Register(s => ((TaskCompletionSource<bool>) s).TrySetResult(true), tcs))
             {
-                if( task != await Task.WhenAny( task, tcs.Task ) )
-                {
-                    throw new OperationCanceledException( cancellationToken );
-                }
+                if (task != await Task.WhenAny(task, tcs.Task)) throw new OperationCanceledException(cancellationToken);
             }
 
             return task.Result;
         }
     }
-    
+
     /// <summary>
-    /// Implementation of an Extremely Simple Service Discovery (ESSD) client. 
+    ///     Implementation of an Extremely Simple Service Discovery (ESSD) client.
+    ///     Provides methods for searching for discoverable services.
     /// </summary>
     public class Client
     {
         /// <summary>
-        /// Default port upon which ESSD clients listen for services.
+        ///     Default port upon which ESSD clients listen for services.
         /// </summary>
         public const int DefaultListenPort = 54545;
 
-
-        /// <summary>
-        /// Whether this client is currently searching for services.
-        /// </summary>
-        public bool Searching => searching;
-
-        /// <summary>
-        /// Event triggered when a service is found.
-        /// </summary>
-        public event EventHandler<ServiceHub> ServiceFound; 
-        
-        private UdpClient udpClient;
-
-        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        private bool searching;
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         private Task searchTask;
 
+        private readonly UdpClient udpClient;
+
         /// <summary>
-        /// Initialises an ESSD client.
+        ///     Initialises an ESSD client.
         /// </summary>
         /// <param name="listenPort">Port at which to listen for services.</param>
-        public Client(int listenPort=DefaultListenPort)
+        public Client(int listenPort = DefaultListenPort)
         {
             udpClient = new UdpClient();
-    
+
             udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, listenPort));
         }
 
+        /// <summary>
+        ///     Whether this client is currently searching for services.
+        /// </summary>
+        public bool Searching { get; private set; }
+
+        /// <summary>
+        ///     Event triggered when a service is found.
+        /// </summary>
+        /// <remarks>
+        ///     Note that this event is only triggered when using the background search, and it will be
+        ///     triggered every time a service is found, even if that service has been previously encountered.
+        /// </remarks>
+        public event EventHandler<ServiceHub> ServiceFound;
+
+        /// <summary>
+        ///     Start searching for discoverable services in the background.
+        /// </summary>
+        /// <returns> Task representing the search. </returns>
+        /// <exception cref="InvalidOperationException"> If a search is already happening. </exception>
         public Task StartSearch()
         {
-            if (searching)
+            if (Searching)
                 throw new InvalidOperationException("Already searching!");
             searchTask = SearchForServicesAsync(cancellationTokenSource.Token);
             return searchTask;
         }
 
-        private async Task SearchForServicesAsync(CancellationToken token)
-        {
-            searching = true;
-            while (!token.IsCancellationRequested)
-            {
-                UdpReceiveResult message;
-                try
-                {
-                    message = await udpClient.ReceiveAsync().WithCancellation(token);
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
-                
-                ServiceHub service;
-                try
-                {
-                    service = DecodeServiceHub(message.Buffer);
-                }
-                catch (ArgumentException e)
-                {
-                    Console.WriteLine($"ESSD: Exception passing service definition: {e.Message}");
-                    continue;
-                }
 
-                ServiceFound?.Invoke(this, service);
-
-            }
-
-            searching = false;
-        }
-
+        /// <summary>
+        ///     Stops searching for discoverable services, if a search was underway.
+        /// </summary>
+        /// <returns> The task representing the search, which will have been instructed to terminate. </returns>
+        /// <exception
+        ///     cref="InvalidOperationException">
+        ///     If an attempt to stop a non-existent search is made.
+        /// </exception>
         public async Task StopSearch()
         {
-            if(!searching)
+            if (!Searching)
                 throw new InvalidOperationException("Attempted to stop a non-existent search for services");
             cancellationTokenSource.Cancel();
             await searchTask;
         }
-        
+
         /// <summary>
-        /// Searches for services for the given duration, blocking.
+        ///     Searches for services for the given duration, blocking while searching.
         /// </summary>
         /// <param name="duration">Duration to search for, in milliseconds.</param>
         /// <returns>Collection of unique services found during search.</returns>
         /// <remarks>
-        /// There is no guarantee that services found during the search will still
-        /// be up after the search ends.
+        ///     There is no guarantee that services found during the search will still
+        ///     be up after the search ends.
         /// </remarks>
-        public ICollection<ServiceHub> SearchForServices(int duration=3000)
+        public ICollection<ServiceHub> SearchForServices(int duration = 3000)
         {
             if (Searching)
                 throw new InvalidOperationException(
                     "Cannot start a blocking search while running another search in the background");
-            
-            HashSet<ServiceHub> servicesFound = new HashSet<ServiceHub>();
+
+            var servicesFound = new HashSet<ServiceHub>();
 
             var from = new IPEndPoint(0, 0);
-            
+
             var timer = new Timer(duration);
             udpClient.Client.ReceiveTimeout = duration;
             timer.Elapsed += OnTimerElapsed;
-            bool timerElapsed = false;
+            var timerElapsed = false;
             timer.Start();
-            
-            while(!timerElapsed)
-            {
 
+            while (!timerElapsed)
+            {
                 var (timedOut, messageBytes) = WaitForMessage(ref from);
                 if (timedOut)
                     break;
-                
+
                 ServiceHub service;
                 try
                 {
@@ -177,9 +156,40 @@ namespace Essd
             {
                 timerElapsed = true;
             }
-            
         }
 
+
+        private async Task SearchForServicesAsync(CancellationToken token)
+        {
+            Searching = true;
+            while (!token.IsCancellationRequested)
+            {
+                UdpReceiveResult message;
+                try
+                {
+                    message = await udpClient.ReceiveAsync().WithCancellation(token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+
+                ServiceHub service;
+                try
+                {
+                    service = DecodeServiceHub(message.Buffer);
+                }
+                catch (ArgumentException e)
+                {
+                    Console.WriteLine($"ESSD: Exception passing service definition: {e.Message}");
+                    continue;
+                }
+
+                ServiceFound?.Invoke(this, service);
+            }
+
+            Searching = false;
+        }
 
         private ServiceHub DecodeServiceHub(byte[] messageBytes)
         {
@@ -193,9 +203,10 @@ namespace Essd
             {
                 throw new ArgumentException("Invalid JSON string encountered.");
             }
-            
+
             return service;
         }
+
         private (bool, byte[]) WaitForMessage(ref IPEndPoint from)
         {
             byte[] messageBytes;
@@ -205,13 +216,14 @@ namespace Essd
             }
             catch (SocketException e)
             {
-                if(e.SocketErrorCode == SocketError.TimedOut)
+                if (e.SocketErrorCode == SocketError.TimedOut)
                     return (true, null);
                 throw;
             }
 
             return (false, messageBytes);
         }
+
         private string DecodeMessage(byte[] messageBytes)
         {
             try
@@ -223,9 +235,6 @@ namespace Essd
             {
                 throw new ArgumentException("ESSD: Received invalid message, not a valid UTF8 string.");
             }
-            
         }
-
-
     }
 }

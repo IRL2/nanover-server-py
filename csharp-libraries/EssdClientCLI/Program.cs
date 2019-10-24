@@ -6,7 +6,10 @@ using Essd;
 
 namespace EssdClientCLI
 {
-    
+    /// <summary>
+    ///  A basic ESSD client application that searches for services on the local network and prints them out,
+    /// useful for testing in the real world.
+    /// </summary>
     class Program
     {
         static void Main(string[] args)
