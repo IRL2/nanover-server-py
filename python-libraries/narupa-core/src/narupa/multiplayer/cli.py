@@ -48,6 +48,7 @@ def handle_user_arguments() -> argparse.Namespace:
 def setup_discovery(server, name, discovery_port) -> DiscoveryServer:
     """
     Sets up an ESSD :class:`DiscoveryServer` for this multiplayer server.
+
     :param server: Multiplayer server.
     :param name: Name to broadcast with.
     :param discovery_port: Port on which to broadcast
