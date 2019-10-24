@@ -15,5 +15,5 @@ setup(name='narupa-essd',
       install_requires=(
           'netifaces'
       ),
-      package_dir={'': 'src'}
-      )
+      package_dir={'': 'src'},
+)
