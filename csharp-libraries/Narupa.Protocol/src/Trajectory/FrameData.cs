@@ -22,6 +22,7 @@ namespace Narupa.Protocol.Trajectory
         public const string ParticleCountValueKey = "particle.count";
 
         public const string ResidueNameArrayKey = "residue.names";
+        public const string ResidueIdArrayKey = "residue.ids";
         public const string ResidueChainArrayKey = "residue.chains";
         public const string ResidueCountValueKey = "residue.count";
         

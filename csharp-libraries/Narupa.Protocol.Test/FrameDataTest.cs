@@ -60,6 +60,12 @@ namespace Narupa.Protocol.Test
             };
             yield return new ShortcutParameter
             {
+                Array = new[] { 1, 2, 3},
+                Get = data => data.GetResidueIds(),
+                Set = (data, value) => data.SetResidueIds((IEnumerable<uint>) value)
+            };
+            yield return new ShortcutParameter
+            {
                 Array = new[] { "a", "b", "c" },
                 Get = data => data.GetChainNames(),
                 Set = (data, value) => data.SetChainNames((IEnumerable<string>) value)
