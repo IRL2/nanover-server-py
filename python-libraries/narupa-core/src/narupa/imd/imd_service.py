@@ -4,7 +4,7 @@
 Module providing an implementation of an IMD service.
 """
 from threading import Lock
-from typing import Iterable, List, Dict, Tuple
+from typing import Iterable, List, Dict, Tuple, Callable
 
 import grpc
 
@@ -19,13 +19,12 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     dynamics simulation.
 
     :param callback: A callback to be used whenever an interaction is published
-    or updated.
-    :param velocity_reset_enabled: Whether the dynamics this service is being used in
-    supports velocity reset.
-    :param number_of_particles: If set, allows the IMD service to validate the particle indices
-    in an interaction are valid. If not set, it is up to consumers of the
-    interactions to validate.
-
+        or updated.
+    :param velocity_reset_enabled: Whether the dynamics this service is being
+        used in supports velocity reset.
+    :param number_of_particles: If set, allows the IMD service to validate the
+        particle indices in an interaction are valid. If not set, it is up to
+        consumers of the interactions to validate.
     """
 
     def __init__(self,
@@ -50,9 +49,9 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         The implementation is stateless, and so each Interaction message should
         contain the full set of fields.
 
-        :param request_iterator:
-        :param context:
-        :return:
+        :param request_iterator: Stream of interaction requests.
+        :param context: gRPC context.
+        :return: :class: InteractionEndReply, indicating the successful interaction.
         """
         interactions_in_request = set()
         try:
@@ -79,7 +78,10 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     @property
     def active_interactions(self) -> Dict[Tuple[str, str], ParticleInteraction]:
         """
-        The current mapping of active interactions, keyed by player id and interaction id.
+        The current dictionary of active interactions, keyed by player id and
+        interaction id.
+
+        :return: A copy of the dictionary of active interactions.
         """
         with self._interaction_lock:
             return dict(self._interactions)
@@ -88,16 +90,17 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     def get_key(interaction):
         """
         Gets the key to use with an interaction.
+
         :param interaction:
         :return: key formed of a tuple of player_id and interaction_id.
         """
         return interaction.player_id, interaction.interaction_id
 
-    def set_callback(self, callback):
+    def set_callback(self, callback: Callable[[ParticleInteraction], None]):
         """
         Sets the callback to be used whenever an interaction is received.
-        :param callback: Method to be called
-        :return:
+
+        :param callback: Method to be called, taking the received particle interaction as an argument.
         """
         self._callback = callback
 
@@ -117,7 +120,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
                 interactions_in_request.add(key)
                 self._interactions[key] = interaction
             if self._callback is not None:
-                self._callback()
+                self._callback(interaction)
 
     def _validate_interaction(self, interaction):
         self._validate_particle_range(interaction)
