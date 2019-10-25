@@ -218,8 +218,9 @@ class ImdCalculator(Calculator):
 def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
     """
     Gets the periodic box lengths of an orthorhombic box, in nm, from an ASE atoms collection, if it exists.
+
     :param atoms: ASE atoms.
-    :return: Array of periodic box lengths if periodic boundaries are in use, None otherwise.
+    :return: Array of periodic box lengths if periodic boundaries are in use, ``None`` otherwise.
     """
     if not np.all(atoms.get_pbc()):
         if np.any(atoms.get_pbc()):
