@@ -18,7 +18,7 @@ def add_openmm_state_to_frame_data(data: FrameData, state: State):
     positions and periodic box vectors.
 
     :param data: Narupa :class:`FrameData` to add state information to.
-    :param state: OpenMM :State: from which to extract state information.
+    :param state: OpenMM :class:`State` from which to extract state information.
     """
     positions = state.getPositions()
     box_vectors = state.getPeriodicBoxVectors()
@@ -29,8 +29,9 @@ def add_openmm_state_to_frame_data(data: FrameData, state: State):
 
 def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
     """
-    Adds the OpenMM topology information to the given :class:`FrameData`:,
+    Adds the OpenMM topology information to the given :class:`FrameData`,
     including residue, chain, atomic and bond information.
+
     :param data: :class:`FrameData` to add topology information to.
     :param topology: OpenMM :class:`Topology` from which to extract information.
     """
@@ -70,7 +71,7 @@ def openmm_to_frame_data(*, state: Optional[State] = None, topology: Optional[To
     a Narupa :class:`FrameData` once with topology information, and from then
     on just update the state, as that will result in less data being transmitted.
 
-    :param state: An optional OpenMM :class: State from which to extract state data.
+    :param state: An optional OpenMM :class:`State` from which to extract state data.
     :param topology: An optional OpenMM :class:`Topology` from which to extract
         topological information.
     :return: A :class:`FrameData` with the state and topology information

@@ -81,7 +81,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         The current dictionary of active interactions, keyed by player id and
         interaction id.
 
-        :return A copy of the dictionary of active interactions.
+        :return: A copy of the dictionary of active interactions.
         """
         with self._interaction_lock:
             return dict(self._interactions)

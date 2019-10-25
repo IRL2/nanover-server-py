@@ -62,12 +62,14 @@ class ImdCalculator(Calculator):
     def temperature(self) -> float:
         """
         Gets the temperature used for reinitialising velocities after an interaction.
+
         By default, it will attempt to use the temperature of the dynamics.
         If a custom temperature has been set by this attributes setter, then that will be used.
+
         :return: The temperature used for reinitialising velocities after an interaction.
         :raises: AttributeError: If no temperature is defined for this calculator, in the case
-        that no dynamics object has been passed, or the dynamics object does not implement the
-        temperature or 'temp' attribute.
+            that no dynamics object has been passed, or the dynamics object does not implement the
+            temperature or 'temp' attribute.
         """
         if self._custom_temperature is not None:
             return self._custom_temperature
@@ -91,6 +93,7 @@ class ImdCalculator(Calculator):
         """
         Sets the temperature used for reinitialising velocities after an interaction. Note that
         if this is set, it will be used instead of the temperature that the dynamics is running at.
+
         :param value: The custom temperature to use.
         """
         self._custom_temperature = value
@@ -100,6 +103,7 @@ class ImdCalculator(Calculator):
         """
         The temperature this calculator will reset the velocities of atoms interacted with to if the interaction
         is set to reset velocities.
+
         :return: The reset temperature.
         :raises: Attribute error, if not temperature has been defined.
         """
@@ -127,18 +131,19 @@ class ImdCalculator(Calculator):
         """
         Calculates the given properties of the ASE atoms. The internal molecular calculator is called first,
         and then any interactive forces currently being applied to the system are added.
+
         Results are stored in the results dictionary, as normal.
 
         :param atoms: Optional :class:`Atoms` object to perform the calculation on. If no atoms is passed,
-        the atoms object passed at initialisation are used.
+            the atoms object passed at initialisation are used.
         :param properties: The properties to calculate. The ImdCalculator support 'energy' and 'forces',
-        but will pass any other requested properties to the internal atomic calculator.
-        See :func:`~Calculator.calculate` for details.
+            but will pass any other requested properties to the internal atomic calculator.
+            See :func:`~Calculator.calculate` for details.
         :param system_changes: List of what has changed since last calculation. See :func:`~Calculator.calculate` for
-        details.
+            details.
 
         :raises ValueError: If no ASE atoms are supplied to the calculation, and no ASE atoms were supplied during
-        initialisation.
+            initialisation.
         """
         energy = 0.0
         if atoms is None:

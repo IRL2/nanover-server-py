@@ -166,7 +166,7 @@ def add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData):
     :param u: MDAnalysis :class:`Universe`.
     :param frame_data: Narupa :class:`FrameData` to add to.
 
-    :raises: :class: MissingDataError, if no positions exist in the universe.
+    :raises MissingDataError: if no positions exist in the universe.
    """
     try:
         frame_data.particle_positions = u.atoms.positions * 0.1

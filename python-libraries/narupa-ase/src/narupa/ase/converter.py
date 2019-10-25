@@ -173,6 +173,7 @@ def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     """
     Adds the periodic box vectors from the given ASE :class:`Atoms`
     object to the given :class:`FrameData`.
+
     :param data: :class:`FrameData` upon which to add periodic box vectors.
     :param ase_atoms: :class:`Atoms` from which to extract periodic box vectors.
     """
