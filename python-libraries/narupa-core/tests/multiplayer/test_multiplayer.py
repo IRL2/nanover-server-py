@@ -17,7 +17,7 @@ from google.protobuf.struct_pb2 import Value, Struct
 
 CONNECT_WAIT_TIME = 0.01
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
-
+CLIENT_SEND_INTERVAL = 1 / 60
 
 @pytest.fixture
 def server_client_pair():
@@ -26,7 +26,10 @@ def server_client_pair():
     and a multiplayer client connected to it.
     """
     server = MultiplayerServer(address='localhost', port=0)
-    client = MultiplayerClient(port=server.port)
+    client = MultiplayerClient(
+        port=server.port,
+        send_interval=CLIENT_SEND_INTERVAL
+    )
 
     with client, server:
         yield server, client
@@ -234,7 +237,7 @@ def test_clearing_disconnected_avatars(server_client_pair, avatar):
         assert len(first_avatar.component) == 1
 
         first_client.close()
-        time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+        time.sleep(CLIENT_SEND_INTERVAL * 2)
 
         first_avatar = second_client.current_avatars[first_player_id]
         assert len(first_avatar.component) == 0
