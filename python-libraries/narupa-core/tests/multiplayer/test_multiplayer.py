@@ -222,14 +222,12 @@ def test_clearing_disconnected_avatars(server_client_pair, avatar):
     server, first_client = server_client_pair
 
     first_player_id = first_client.join_multiplayer("first client")
-    first_client.join_avatar_publish()
     time.sleep(CONNECT_WAIT_TIME)
     avatar.player_id = first_player_id
     first_client.publish_avatar(avatar)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     with MultiplayerClient(port=server.port) as second_client:
-        second_client.join_multiplayer("second client")
         second_client.join_avatar_stream(interval=0, ignore_self=False)
         time.sleep(CONNECT_WAIT_TIME)
 

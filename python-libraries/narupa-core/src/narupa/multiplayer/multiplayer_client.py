@@ -65,6 +65,10 @@ class MultiplayerClient(GrpcClient):
         self.current_avatars = {}
         self.resources = dict()
 
+    def close(self):
+        self._avatar_queue.put(None)
+        super().close()
+
     def join_multiplayer(self, player_name, join_streams=True):
         """
         Joins a multiplayer server
