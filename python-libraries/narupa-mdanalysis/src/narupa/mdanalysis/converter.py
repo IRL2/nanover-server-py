@@ -4,7 +4,6 @@
 Module for performing conversions between MDAnalysis universes and Narupa FrameData objects.
 """
 import collections
-from collections import Container
 
 import numpy as np
 from MDAnalysis import Universe
