@@ -47,14 +47,19 @@ def test_get_ipv4_addresses():
     assert len(ipv4_addresses) > 0
 
 
-def test_get_ipv4_addresses_interface():
-    interfaces = netifaces.interfaces()
-    if interfaces is None or len(interfaces) == 0:
-        return
-    interface = [interfaces[0]]
-    ipv4_addresses = get_ipv4_addresses(interface)
-    expected_addresses = netifaces.ifaddresses(interface[0])[netifaces.AF_INET]
-    assert ipv4_addresses == expected_addresses
+def test_get_ipv4_addresses_per_interface():
+    """
+    Test that each interface returns the correct list of ipv4 addresses or empty
+    if none exist on the interface.
+    """
+    for interface in netifaces.interfaces():
+        ipv4_addresses = get_ipv4_addresses([interface])
+        if_addresses = netifaces.ifaddresses(interface)
+        try:
+            expected_addresses = if_addresses[netifaces.AF_INET]
+            assert ipv4_addresses == expected_addresses
+        except KeyError:
+            assert len(ipv4_addresses) == 0
 
 
 def test_get_broadcast_addresses():
