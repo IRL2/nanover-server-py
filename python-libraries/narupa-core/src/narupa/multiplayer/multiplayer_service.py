@@ -64,11 +64,15 @@ class MultiplayerService(MultiplayerServicer):
         Accepts a stream of avatar updates.
         """
         touched_player_ids = set()
+        
+        def clear_touched_avatars():
+            for player_id in touched_player_ids:
+                self._clear_player_avatar(player_id)
+        context.add_callback(clear_touched_avatars)
+
         for avatar in request_iterator:
             touched_player_ids.add(avatar.player_id)
             self._avatars.update({avatar.player_id: avatar})
-        for player_id in touched_player_ids:
-            self._clear_player_avatar(player_id)
         return StreamEndedResponse()
 
     def SubscribeAllResourceValues(self, request, context):
