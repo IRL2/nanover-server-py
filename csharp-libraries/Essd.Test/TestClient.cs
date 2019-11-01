@@ -50,6 +50,24 @@ namespace Essd.Test
         }
         
         [Test]
+        public async Task TestMultipleClientSocketReuse()
+        {
+            var client = new Client(54544);
+            var server = new SimpleServer(54544);
+            var anotherClient = new Client(54544);
+
+            var blockingSearch = Task.Run(() => client.SearchForServices(duration: 500));
+            var anotherSearch = Task.Run((() => anotherClient.SearchForServices(500)));
+            await server.BroadcastAsync(testService);
+            var services = await blockingSearch;
+            var secondServices = await anotherSearch;
+            Assert.AreEqual(1, services.Count);
+            Assert.AreEqual(services.First(), testService);
+            Assert.AreEqual(services, secondServices);
+            
+        }
+        
+        [Test]
         public async Task TestClientStopNoSearch()
         {
             var client = new Client(54547);

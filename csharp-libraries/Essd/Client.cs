@@ -57,6 +57,7 @@ namespace Essd
         public Client(int listenPort = DefaultListenPort)
         {
             udpClient = new UdpClient();
+            udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
             udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, listenPort));
         }
