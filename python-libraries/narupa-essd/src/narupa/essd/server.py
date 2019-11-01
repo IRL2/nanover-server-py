@@ -20,7 +20,7 @@ Example
 import logging
 import threading
 import time
-from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST
+from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
 from typing import Optional
 
 from narupa.essd.utils import get_broadcast_addresses, is_in_network
@@ -35,6 +35,7 @@ def _connect_socket() -> socket:
     s = socket(AF_INET, SOCK_DGRAM)
     # Enable broadcasting
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+    s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     return s
 
 
