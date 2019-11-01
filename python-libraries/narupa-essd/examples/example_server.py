@@ -3,8 +3,12 @@
 """
 Simple example of running a server and registering service hub.
 """
+import logging
+
 from narupa.essd.server import DiscoveryServer
 from narupa.essd.servicehub import ServiceHub
+
+logging.basicConfig(level=logging.DEBUG)
 
 with DiscoveryServer() as server:
 

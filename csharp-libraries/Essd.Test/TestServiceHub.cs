@@ -153,9 +153,9 @@ namespace Essd.Test
         [Test]
         public void TestInequalityName()
         {
-            string json = "{'address':'1.2.3.4','name':'test','services':{'trajectory':54322,'imd':54321}}";
+            string json = "{'address':'1.2.3.4','name':'test','id':'1234''services':{'trajectory':54322,'imd':54321}}";
             var hub = new ServiceHub(json);
-            var secondHub = new ServiceHub("other", "1.2.3.4");
+            var secondHub = new ServiceHub("other", "1.2.3.4", id="1234");
             var serviceDict = new Dictionary<string, int>();
             serviceDict["imd"] = 54322;
             serviceDict["trajectory"] = 54322;

@@ -102,7 +102,7 @@ namespace Essd
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Id == other.Id;
+            return Name == other.Name && Address == other.Address && Id == other.Id;
         }
 
         private string GetVersion()

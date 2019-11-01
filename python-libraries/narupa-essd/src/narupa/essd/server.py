@@ -113,6 +113,7 @@ class DiscoveryServer:
                 message = service.to_message(override_address=broadcast_address['addr'])
             else:
                 message = service.to_message()
+            self.logger.debug(f'Sending service {service} to {broadcast_address["broadcast"]}:{self.port}')
             self._socket.sendto(message.encode(), (broadcast_address['broadcast'], self.port))
 
     def __enter__(self):
