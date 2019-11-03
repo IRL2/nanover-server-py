@@ -97,7 +97,16 @@ namespace Essd
             Properties[IdKey] = id == null ? GenerateUUID() : id;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Determines whether this service hub definition is equivalent to another service hub.
+        /// Equality is determined based on the name and address of the hub. 
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns><c>true</c>, if the service hubs are the same, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// When receiving the same service hub on multiple interfaces, they will have different addresses.
+        /// The ID field can be used in this case to determine equality in origin.
+        /// </remarks>
         public bool Equals(ServiceHub other)
         {
             if (ReferenceEquals(null, other)) return false;

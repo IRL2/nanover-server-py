@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -165,6 +166,75 @@ namespace Essd.Test
                 Assert.Pass();
             }
             Assert.Fail();
+        }
+
+        [Test]
+        public void TestFilterServicesById()
+        {
+            var serviceB = new ServiceHub(testService.Name, "123.434.345.234", testService.Id);
+            var services = new List<ServiceHub>();
+            services.Add(testService);
+            services.Add(serviceB);
+            var filtered = Client.FilterServicesById(services);
+            Assert.AreEqual(1, filtered.Count);
+        }
+        
+        [Test]
+        public void TestFilterServicesByIdLocalHost()
+        {
+            var serviceB = new ServiceHub(testService.Name, "127.0.0.1", testService.Id);
+            var services = new List<ServiceHub>();
+            services.Add(testService);
+            services.Add(serviceB);
+            var filtered = Client.FilterServicesById(services);
+            Assert.AreEqual(1, filtered.Count);
+            Assert.True(filtered.First().Address == "127.0.0.1");
+        }
+        
+        [Test]
+        public void TestFilterServicesByIdNotLocalHost()
+        {
+            var serviceB = new ServiceHub(testService.Name, "127.0.0.1", testService.Id);
+            var services = new List<ServiceHub>();
+            services.Add(testService);
+            services.Add(serviceB);
+            var filtered = Client.FilterServicesById(services, prioritiseLocalHost:false);
+            Assert.AreEqual(1, filtered.Count);
+            Assert.False(filtered.First().Address == "127.0.0.1");
+        }
+        
+        [Test]
+        public void TestFilterServicesByIdMultipleServices()
+        {
+            var serviceB = new ServiceHub(testService.Name, "123.434.345.234", testService.Id);
+            var serviceC = new ServiceHub(testService.Name, "1.3.4.5", "5483");
+            var serviceD = new ServiceHub(testService.Name, "24.4.5.8", "5483");
+            var services = new List<ServiceHub>();
+            services.Add(testService);
+            services.Add(serviceB);
+            services.Add(serviceC);
+            services.Add(serviceD);
+            
+            var filtered = Client.FilterServicesById(services);
+            Assert.AreEqual(2, filtered.Count);
+        }
+        
+        [Test]
+        public void TestFilterServicesByIdMultipleServicesLocalhost()
+        {
+            var serviceB = new ServiceHub(testService.Name, "123.434.345.234", testService.Id);
+            var serviceC = new ServiceHub(testService.Name, "1.3.4.5", "5483");
+            var serviceD = new ServiceHub(testService.Name, "127.0.0.1", "5483");
+            var services = new List<ServiceHub>();
+            services.Add(testService);
+            services.Add(serviceB);
+            services.Add(serviceC);
+            services.Add(serviceD);
+            
+            var filtered = Client.FilterServicesById(services);
+            Assert.AreEqual(2, filtered.Count);
+            var localHostCount = filtered.Where(s => s.Address == "127.0.0.1").Count();
+            Assert.AreEqual(1, localHostCount);
         }
     }
 }

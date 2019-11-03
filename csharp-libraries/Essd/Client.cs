@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -104,6 +105,57 @@ namespace Essd
                 throw new InvalidOperationException("Attempted to stop a non-existent search for services");
             cancellationTokenSource.Cancel();
             await searchTask;
+        }
+
+        /// <summary>
+        /// Method to filter a collection of service hubs to select only one service hub per ID. Useful when
+        /// a client receives the same service hub from multiple interfaces with different addresses. 
+        /// </summary>
+        /// <param name="services"> The collection of service hubs to filter.</param>
+        /// <param name="prioritiseLocalHost">
+        /// Whether to prioritise the localhost IP address, if available,
+        /// in selecting from services with the same ID.
+        /// </param>
+        /// <returns>
+        /// A collection of service hubs such that there is only one service hub for each ID
+        /// found in the original collection.
+        /// </returns>
+        public static ICollection<ServiceHub> FilterServicesById(ICollection<ServiceHub> services, bool prioritiseLocalHost=true)
+        {
+            var idToServiceMap = GetIdToServiceMap(services);
+            var filteredServices = new HashSet<ServiceHub>();
+            foreach (var id in idToServiceMap)
+            {
+                ServiceHub selectedService = null;
+                if (prioritiseLocalHost)
+                    selectedService = GetLocalHostService(id.Value);
+                if(selectedService == null)
+                    selectedService = id.Value.First();
+                filteredServices.Add(selectedService);
+            }
+
+            return filteredServices;
+        }
+
+        private static ServiceHub GetLocalHostService(IEnumerable<ServiceHub> services)
+        {
+            var selectedServices = services.Where(s => s.Address == "127.0.0.1");
+            if (!selectedServices.Any())
+                return null;
+            return selectedServices.First();
+        }
+
+        private static IDictionary<string, HashSet<ServiceHub>> GetIdToServiceMap(ICollection<ServiceHub> services)
+        {
+            var idToServiceMap = new Dictionary<string, HashSet<ServiceHub>>();
+            foreach (var service in services)
+            {
+                if(idToServiceMap.ContainsKey(service.Id) == false)
+                    idToServiceMap[service.Id] = new HashSet<ServiceHub>();
+                idToServiceMap[service.Id].Add(service);
+            }
+
+            return idToServiceMap;
         }
 
         /// <summary>
