@@ -9,10 +9,10 @@ package narupa.protocol.command;
 service Command {
 
     /* Get a stream of all the commands available on this service */
-    rpc GetCommands (GetCommandRequest) returns (stream Command) {}
+    rpc GetCommands (GetCommandRequest) returns (stream CommandMessage) {}
 
     /* Runs a command on the service */
-    rpc RunCommand (Command) returns (CommandReply) {}
+    rpc RunCommand (CommandMessage) returns (CommandReply) {}
 }
 
 message GetCommandRequest {
@@ -23,7 +23,7 @@ message CommandReply {
     google.protobuf.Struct result=1;
 }
 
-message Command {
+message CommandMessage {
     string name=1;
     google.protobuf.Struct arguments=2;
 }
