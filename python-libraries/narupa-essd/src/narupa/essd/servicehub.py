@@ -158,6 +158,7 @@ class ServiceHub:
     def from_json(cls, json_properties):
         """
         Constructs an instance of :class:`ServiceHub` from the given json string.
+
         :param json_properties: The JSON string containing the properties of the ServiceHub
         :return: An instance of :class:`ServiceHub`
         :raises:`KeyError` if the properties do not contain required fields, name and address.
