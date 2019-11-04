@@ -12,7 +12,6 @@ import select
 
 from narupa.essd.server import BROADCAST_PORT, _connect_socket
 from narupa.essd.servicehub import ServiceHub, MAXIMUM_MESSAGE_SIZE
-from narupa.essd.utils import yield_interval
 
 IP_ADDRESS_ANY = "0.0.0.0"
 
