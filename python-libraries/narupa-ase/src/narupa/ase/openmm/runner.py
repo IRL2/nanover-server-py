@@ -93,8 +93,8 @@ class OpenMMIMDRunner:
         relevant warnings.
         """
         if self.simulation.system.getNumConstraints() > 0:
-            logging.warning("The simulation contains constraints which will "
-                            "be ignored by this runner!")
+            self.logger.warning("The simulation contains constraints which "
+                                "will be ignored by this runner!")
 
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
