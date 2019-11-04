@@ -16,7 +16,7 @@ namespace Essd
     public static class AsyncExtensions
     {
         /// <summary>
-        ///     Enables a task to be cancellable.
+        /// Enables a task to be cancellable.
         /// </summary>
         /// <param name="task">Task that usually cannot be canceled.</param>
         /// <param name="cancellationToken">Cancellation token to use for cancellation.</param>
@@ -36,13 +36,13 @@ namespace Essd
     }
 
     /// <summary>
-    ///     Implementation of an Extremely Simple Service Discovery (ESSD) client.
-    ///     Provides methods for searching for discoverable services.
+    /// Implementation of an Extremely Simple Service Discovery (ESSD) client.
+    /// Provides methods for searching for discoverable services.
     /// </summary>
     public class Client
     {
         /// <summary>
-        ///     Default port upon which ESSD clients listen for services.
+        /// Default port upon which ESSD clients listen for services.
         /// </summary>
         public const int DefaultListenPort = 54545;
 
@@ -52,7 +52,7 @@ namespace Essd
         private readonly UdpClient udpClient;
 
         /// <summary>
-        ///     Initialises an ESSD client.
+        /// Initialises an ESSD client.
         /// </summary>
         /// <param name="listenPort">Port at which to listen for services.</param>
         public Client(int listenPort = DefaultListenPort)
@@ -64,21 +64,21 @@ namespace Essd
         }
 
         /// <summary>
-        ///     Whether this client is currently searching for services.
+        /// Whether this client is currently searching for services.
         /// </summary>
         public bool Searching { get; private set; }
 
         /// <summary>
-        ///     Event triggered when a service is found.
+        /// Event triggered when a service is found.
         /// </summary>
         /// <remarks>
-        ///     Note that this event is only triggered when using the background search, and it will be
-        ///     triggered every time a service is found, even if that service has been previously encountered.
+        /// Note that this event is only triggered when using the background search, and it will be
+        /// triggered every time a service is found, even if that service has been previously encountered.
         /// </remarks>
         public event EventHandler<ServiceHub> ServiceFound;
 
         /// <summary>
-        ///     Start searching for discoverable services in the background.
+        /// Start searching for discoverable services in the background.
         /// </summary>
         /// <returns> Task representing the search. </returns>
         /// <exception cref="InvalidOperationException"> If a search is already happening. </exception>
@@ -92,12 +92,12 @@ namespace Essd
 
 
         /// <summary>
-        ///     Stops searching for discoverable services, if a search was underway.
+        /// Stops searching for discoverable services, if a search was underway.
         /// </summary>
         /// <returns> The task representing the search, which will have been instructed to terminate. </returns>
         /// <exception
-        ///     cref="InvalidOperationException">
-        ///     If an attempt to stop a non-existent search is made.
+        /// cref="InvalidOperationException">
+        /// If an attempt to stop a non-existent search is made.
         /// </exception>
         public async Task StopSearch()
         {
@@ -159,13 +159,13 @@ namespace Essd
         }
 
         /// <summary>
-        ///     Searches for services for the given duration, blocking while searching.
+        /// Searches for services for the given duration, blocking while searching.
         /// </summary>
         /// <param name="duration">Duration to search for, in milliseconds.</param>
         /// <returns>Collection of unique services found during search.</returns>
         /// <remarks>
-        ///     There is no guarantee that services found during the search will still
-        ///     be up after the search ends.
+        /// There is no guarantee that services found during the search will still
+        /// be up after the search ends.
         /// </remarks>
         public ICollection<ServiceHub> SearchForServices(int duration = 3000)
         {

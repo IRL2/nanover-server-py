@@ -5,34 +5,34 @@ using Newtonsoft.Json;
 namespace Essd
 {
     /// <summary>
-    ///     A definition of a ServiceHub that can be discovered or broadcast.
-    ///     A service hub consists of properties that must at least consist of a name and IP address.
-    ///     The payload can optionally include additional information on the services provided.
+    /// A definition of a ServiceHub that can be discovered or broadcast.
+    /// A service hub consists of properties that must at least consist of a name and IP address.
+    /// The payload can optionally include additional information on the services provided.
     /// </summary>
     public class ServiceHub : IEquatable<ServiceHub>
     {
         /// <summary>
-        ///     The key used for the service name field, which is always required.
+        /// The key used for the service name field, which is always required.
         /// </summary>
         public const string NameKey = "name";
 
         /// <summary>
-        ///     The key used for the service address field, which is always required.
+        /// The key used for the service address field, which is always required.
         /// </summary>
         public const string AddressKey = "address";
 
         /// <summary>
-        ///     The key used for the ESSD version field, which will be generated if not provided.
+        /// The key used for the ESSD version field, which will be generated if not provided.
         /// </summary>
         public const string VersionKey = "essd_version";
 
         /// <summary>
-        ///     The key used for the services field.
+        /// The key used for the services field.
         /// </summary>
         public const string ServicesKey = "services";
 
         /// <summary>
-        ///     The key used for the ID field.
+        /// The key used for the ID field.
         /// </summary>
         public const string IdKey = "id";
 
@@ -42,27 +42,27 @@ namespace Essd
         public Dictionary<string, object> Properties { get; }
 
         /// <summary>
-        ///     The name of the service hub.
+        /// The name of the service hub.
         /// </summary>
         public string Name => (string) Properties[NameKey];
 
         /// <summary>
-        ///     The address of the service hub.
+        /// The address of the service hub.
         /// </summary>
         public string Address => (string) Properties[AddressKey];
 
         /// <summary>
-        ///     The ESSD version of this service hub.
+        /// The ESSD version of this service hub.
         /// </summary>
         public string Version => (string) Properties[VersionKey];
 
         /// <summary>
-        ///     The ID of the service hub.
+        /// The ID of the service hub.
         /// </summary>
         public string Id => (string) Properties[IdKey];
         
         /// <summary>
-        ///     Initialises a service hub from a JSON string describing the service hub.
+        /// Initialises a service hub from a JSON string describing the service hub.
         /// </summary>
         /// <param name="serviceHubJson">JSON string describing the service.</param>
         public ServiceHub(string serviceHubJson)

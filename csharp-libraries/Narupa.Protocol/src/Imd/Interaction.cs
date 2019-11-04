@@ -29,8 +29,8 @@ namespace Narupa.Protocol.Imd
         public const string ResetVelocitiesKey = "reset_velocities";
 
         /// <summary>
-        ///     Constructor for an interactive molecular dynamics interaction that provides shortcuts
-        ///     for setting commonly used parameters.
+        /// Constructor for an interactive molecular dynamics interaction that provides shortcuts
+        /// for setting commonly used parameters.
         /// </summary>
         /// <param name="playerId">The player ID performing the interaction. </param>
         /// <param name="interactionId">An identifier of the interaction.</param>
@@ -55,10 +55,10 @@ namespace Narupa.Protocol.Imd
         }
 
         /// <summary>
-        ///     The type of interaction potential to be used with this interaction.
+        /// The type of interaction potential to be used with this interaction.
         /// </summary>
         /// <remarks>
-        ///     Typically set to "gaussian" or "harmonic".
+        /// Typically set to "gaussian" or "harmonic".
         /// </remarks>
         public string Type
         {
@@ -75,7 +75,7 @@ namespace Narupa.Protocol.Imd
         }
 
         /// <summary>
-        ///     The scale factor to apply to the interaction, adjusting the strength.
+        /// The scale factor to apply to the interaction, adjusting the strength.
         /// </summary>
         public float Scale
         {
@@ -92,11 +92,11 @@ namespace Narupa.Protocol.Imd
         }
 
         /// <summary>
-        ///     Whether the interaction should be mass weighted according to the mass of the particles it is applied to.
+        /// Whether the interaction should be mass weighted according to the mass of the particles it is applied to.
         /// </summary>
         /// <remarks>
-        ///     For classical molecular mechanics simulations, mass weighting generally provides stability.
-        ///     For reactive simulations not using mass weighting can make it easier to break/form bonds.
+        /// For classical molecular mechanics simulations, mass weighting generally provides stability.
+        /// For reactive simulations not using mass weighting can make it easier to break/form bonds.
         /// </remarks>
         public bool MassWeighted
         {
@@ -113,7 +113,7 @@ namespace Narupa.Protocol.Imd
         }
         
         /// <summary>
-        ///     Whether the interaction should reset the velocities of the selected atoms after completion.
+        /// Whether the interaction should reset the velocities of the selected atoms after completion.
         /// </summary>
         public bool ResetVelocities
         {
