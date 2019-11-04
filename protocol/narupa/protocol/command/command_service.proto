@@ -9,13 +9,13 @@ package narupa.protocol.command;
 service Command {
 
     /* Get a stream of all the commands available on this service */
-    rpc GetCommands (GetCommandRequest) returns (stream CommandMessage) {}
+    rpc GetCommands (GetCommandsRequest) returns (stream CommandMessage) {}
 
     /* Runs a command on the service */
     rpc RunCommand (CommandMessage) returns (CommandReply) {}
 }
 
-message GetCommandRequest {
+message GetCommandsRequest {
 
 }
 

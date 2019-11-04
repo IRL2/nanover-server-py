@@ -1,11 +1,11 @@
 from collections import namedtuple
-from typing import Dict, Callable
+from typing import Dict, Callable, Optional
 
 import grpc
 from google.protobuf.struct_pb2 import Struct
 
 from narupa.multiplayer.key_lockable_map import KeyLockableMap
-from narupa.protocol.command import CommandServicer, CommandMessage
+from narupa.protocol.command import CommandServicer, CommandMessage, CommandReply
 
 Command = namedtuple('Command', ['callback', 'default_args'])
 
@@ -24,7 +24,7 @@ class CommandService(CommandServicer):
     def commands(self) -> Dict[str, Command]:
         return self._commands.get_all()
 
-    def register_command(self, name: str, callback: Callable[[Struct], None], default_arguments: Struct):
+    def register_command(self, name: str, callback: Callable[[Struct], Optional[Struct]], default_arguments: Struct):
         """
         Registers a command with this service
 
@@ -59,4 +59,8 @@ class CommandService(CommandServicer):
             message = f'Unknown command: {command}'
             context.set_details(message)
             return
-        command.callback(request.arguments)
+        results = command.callback(request.arguments)
+        if type(results) is Struct:
+            return CommandReply(result=results)
+        else:
+            return CommandReply()
