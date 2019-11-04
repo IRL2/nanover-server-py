@@ -169,6 +169,7 @@ class ServiceHub:
     def to_message(self, override_address: Optional[str] = None) -> str:
         """
         Returns the JSON message representing this service hub, with the option to override this address.
+
         :param override_address: The address to override in the resulting message.
         :return: JSON message representing this service hub.
 
