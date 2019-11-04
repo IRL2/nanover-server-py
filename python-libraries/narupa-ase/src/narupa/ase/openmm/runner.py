@@ -137,10 +137,7 @@ class OpenMMIMDRunner:
 
     @property
     def running_multiplayer(self):
-        try:
-            return self.multiplayer is not None
-        except AttributeError:
-            return False
+        return self.multiplayer is not None
 
     @property
     def multiplayer_port(self):
