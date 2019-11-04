@@ -9,7 +9,7 @@ using NUnit.Framework;
 
 namespace Essd.Test
 {
-    public class Tests
+    internal class Tests
     {
 
         private ServiceHub testService = new ServiceHub("test","3.4.5.6");

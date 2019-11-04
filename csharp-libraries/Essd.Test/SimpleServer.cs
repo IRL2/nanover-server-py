@@ -5,8 +5,9 @@ using Essd;
 
 namespace Essd.Test
 {
-    public class SimpleServer
+    internal class SimpleServer
     {
+        private const string broadcastIPAddress = "255.255.255.255";
         private int port;
         private UdpClient client = new UdpClient(); 
         
@@ -19,7 +20,7 @@ namespace Essd.Test
         {
             string hubJson = hub.ToJson();
             var message = Encoding.UTF8.GetBytes(hubJson);
-            return await client.SendAsync(message, message.Length, "255.255.255.255", port);
+            return await client.SendAsync(message, message.Length, broadcastIPAddress , port);
         }
         
     }

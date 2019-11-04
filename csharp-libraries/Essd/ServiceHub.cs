@@ -39,7 +39,7 @@ namespace Essd
         /// <summary>
         /// The raw properties of this service hub.
         /// </summary>
-        public Dictionary<string, object> Properties;
+        public Dictionary<string, object> Properties { get; }
 
         /// <summary>
         ///     The name of the service hub.
