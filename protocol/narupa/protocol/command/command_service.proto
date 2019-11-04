@@ -1,0 +1,29 @@
+// Copyright (c) Intangible Realities Laboratory, University of Bristol. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+syntax = "proto3";
+import "google/protobuf/struct.proto";
+
+package narupa.protocol.command;
+
+service Command {
+
+    /* Get a stream of all the commands available on this service */
+    rpc GetCommands (GetCommandRequest) returns (stream Command) {}
+
+    /* Runs a command on the service */
+    rpc RunCommand (Command) returns (CommandReply) {}
+}
+
+message GetCommandRequest {
+
+}
+
+message CommandReply {
+    google.protobuf.Struct result=1;
+}
+
+message Command {
+    string name=1;
+    google.protobuf.Struct arguments=2;
+}
