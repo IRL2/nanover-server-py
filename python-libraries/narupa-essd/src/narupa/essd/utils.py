@@ -35,7 +35,7 @@ def get_broadcast_addresses(interfaces: List[str] = None):
 
     In the netifaces API, the address entries are returned as dictionaries in the following format:
 
-    .. code
+    .. code::
         {
           'addr': '172.23.43.33',
           'netmask': '255.255.0.0',
