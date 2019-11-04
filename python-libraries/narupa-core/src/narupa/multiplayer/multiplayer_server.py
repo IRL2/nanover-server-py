@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Module providing implemenation of a muliplayer server.
+Module providing an implementation of a multiplayer server.
 """
 from typing import Optional
 

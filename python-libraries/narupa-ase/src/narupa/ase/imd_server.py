@@ -12,13 +12,16 @@ import numpy as np
 
 from ase import Atoms
 from ase.calculators.calculator import Calculator
+from ase.lattice.cubic import FaceCenteredCubic
+from ase.md import Langevin
 from ase.md.md import MolecularDynamics
+from narupa.app import NarupaClient
 
 from narupa.essd import DiscoveryServer
 from narupa.essd.servicehub import ServiceHub
-from .frame_server import send_ase_frame
-from .imd_calculator import ImdCalculator
-from .converter import EV_TO_KJMOL
+from narupa.ase.frame_server import send_ase_frame
+from narupa.ase.imd_calculator import ImdCalculator
+from narupa.ase.converter import EV_TO_KJMOL
 from narupa.imd.imd_server import ImdServer
 from narupa.trajectory import FrameServer
 
@@ -29,11 +32,27 @@ class ASEImdServer:
 
     :param dynamics: A prepared ASE molecular dynamics object to run, with IMD attached.
     :param frame_interval: Interval, in steps, at which to publish frames.
-    :param frame_method(ase_atoms, frame_server): Method to use to generate frames, given the the ASE :class: Atoms
-           and a :class: FrameServer.
+    :param frame_method: Method to use to generate frames, given the the ASE :class:`Atoms`
+        and a :class:`FrameServer`. The signature of the callback is expected to be ``frame_method(ase_atoms, frame_server)``.
     :param run_discovery: Whether to run a :class:`DiscoveryServer` that will enable this server to be discovered on the
     local area network.
     :param discovery_port: Port on which to run the discovery server, if running.
+
+
+    Example
+    =======
+
+    >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
+    >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300, friction=1.0)
+    >>> server = ASEImdServer(dynamics) # create the server with the molecular dynamics object.
+    >>> client = NarupaClient(run_multiplayer=False) # have a client connect to the server
+    >>> server.run(5) # run some dynamics.
+    >>> client.first_frame.particle_count # client will have received some frames!
+    32
+    >>> client.close()
+    >>> # Alternatively, use a 'with' statement to manage the context.
+    >>> server.close()
+
     """
 
     def __init__(self, dynamics: MolecularDynamics,

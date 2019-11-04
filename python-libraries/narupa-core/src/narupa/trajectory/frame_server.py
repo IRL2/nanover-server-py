@@ -8,10 +8,11 @@ from .frame_publisher import FramePublisher
 
 DEFAULT_PORT = 54321
 
+
 class FrameServer(GrpcServer):
     _trajectory_service: FramePublisher
 
-    def __init__(self, *, address: Optional[str]=None, port: Optional[int]=None):
+    def __init__(self, *, address: Optional[str] = None, port: Optional[int] = None):
         if address is None:
             address = DEFAULT_SERVE_ADDRESS
         port = get_requested_port_or_default(port, DEFAULT_PORT)

@@ -3,6 +3,8 @@
 """
 Provide a reporter for OpenMM simulation to publish frames as a Narupa server.
 """
+from typing import Union
+
 from simtk.openmm.app.topology import Topology
 
 from narupa.trajectory.frame_server import FrameServer
@@ -16,10 +18,20 @@ class NarupaReporter:
     To use it, create a NarupaReporter, then add it to the Simulation's list
     of reporters.
 
+    Example
+    =======
+
+    .. code-block:: python
+
+        frame_server = FrameServer(address="localhost", port=54321)
+        frame_reporter = NarupaReporter(report_interval=5,frame_server=frame_server)
+        # Assume some OpenMM simulation already exists
+        simulation.reporters.add(frame_reporter)
+
     :param report_interval: Interval in frames between two reports.
     :param frame_server: Instance of a Narupa frame server.
     """
-    _topology: Topology
+    _topology: Union[Topology, None]
 
     def __init__(self, *, report_interval, frame_server):
         self._reportInterval = report_interval
@@ -30,6 +42,7 @@ class NarupaReporter:
 
     # The name of the method is part of the OpenMM API. It cannot be made to
     # conform PEP8.
+    # noinspection PyPep8Naming
     def describeNextReport(self, simulation):  # pylint: disable=invalid-name
         steps = self._reportInterval - simulation.currentStep % self._reportInterval
         # The reporter needs:

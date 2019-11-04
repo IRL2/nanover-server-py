@@ -16,7 +16,9 @@ from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
 
 
 class MultiplayerService(MultiplayerServicer):
-    """Implementation of the Multiplayer service."""
+    """
+    Implementation of the Multiplayer service.
+    """
     def __init__(self):
         super().__init__()
 
@@ -31,7 +33,9 @@ class MultiplayerService(MultiplayerServicer):
     def CreatePlayer(self,
                      request: CreatePlayerRequest,
                      context) -> CreatePlayerResponse:
-        """Create a new unique player and return their id."""
+        """
+        Create a new unique player and return their id.
+        """
         player_id = self.generate_player_id()
         self.players[player_id] = request
         self.logger.info(f'{request.player_name} ({player_id}) has joined '
@@ -41,7 +45,9 @@ class MultiplayerService(MultiplayerServicer):
     def SubscribePlayerAvatars(self,
                                request: SubscribePlayerAvatarsRequest,
                                context) -> Avatar:
-        """Provides a stream of updates to player avatars."""
+        """
+        Provides a stream of updates to player avatars.
+        """
         interval = request.update_interval
         with self._avatars.create_view() as change_buffer:
             if not context.add_callback(lambda: change_buffer.freeze()):
@@ -54,13 +60,25 @@ class MultiplayerService(MultiplayerServicer):
     def UpdatePlayerAvatar(self,
                            request_iterator: Iterator,
                            context) -> StreamEndedResponse:
-        """Accepts a stream of avatar updates."""
+        """
+        Accepts a stream of avatar updates.
+        """
+        touched_player_ids = set()
+        
+        def clear_touched_avatars():
+            for player_id in touched_player_ids:
+                self._clear_player_avatar(player_id)
+        context.add_callback(clear_touched_avatars)
+
         for avatar in request_iterator:
+            touched_player_ids.add(avatar.player_id)
             self._avatars.update({avatar.player_id: avatar})
         return StreamEndedResponse()
 
     def SubscribeAllResourceValues(self, request, context):
-        """Provides a stream of updates to a shared key/value store."""
+        """
+        Provides a stream of updates to a shared key/value store.
+        """
         interval = request.update_interval
         with self._resources.create_view() as change_buffer:
             if not context.add_callback(lambda: change_buffer.freeze()):
@@ -75,8 +93,10 @@ class MultiplayerService(MultiplayerServicer):
     def AcquireResourceLock(self,
                             request: multiplayer_proto.AcquireLockRequest,
                             context) -> ResourceRequestResponse:
-        """Attempt to acquire exclusive write access to a key in the shared
-        key/value store."""
+        """
+        Attempt to acquire exclusive write access to a key in the shared
+        key/value store.
+        """
         try:
             duration = request.timeout_duration
             if duration <= 0:
@@ -94,8 +114,10 @@ class MultiplayerService(MultiplayerServicer):
     def ReleaseResourceLock(self,
                             request: multiplayer_proto.ReleaseLockRequest,
                             context) -> ResourceRequestResponse:
-        """Attempt to release exclusive write access to a key in the shared
-        key/value store."""
+        """
+        Attempt to release exclusive write access to a key in the shared
+        key/value store.
+        """
         try:
             self.resources.release_key(request.player_id, request.resource_id)
             success = True
@@ -106,7 +128,9 @@ class MultiplayerService(MultiplayerServicer):
     def SetResourceValue(self,
                          request: SetResourceValueRequest,
                          context) -> ResourceRequestResponse:
-        """Attempt to write a value in the shared key/value store."""
+        """
+        Attempt to write a value in the shared key/value store.
+        """
         try:
             # TODO: single lockable+subscribable structure?
             with self._resource_write_lock:
@@ -132,3 +156,10 @@ class MultiplayerService(MultiplayerServicer):
     def close(self):
         self._avatars.freeze()
         self._resources.freeze()
+
+    def _clear_player_avatar(self, player_id: str):
+        """
+        Replace a player's avatar with an empty avatar.
+        """
+        avatar = Avatar(player_id=player_id, component=[])
+        self._avatars.update({avatar.player_id: avatar})

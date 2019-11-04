@@ -12,7 +12,7 @@ class GrpcClient:
     A base class for GRPC clients that handles service connection and client
     closing.
 
-    :param address: The IP address of the service to connect to.
+    :param address: The URL or IP address of the service to connect to.
     :param port: The port on which to connect.
     :param stub: The GRPC service stub class.
     """
