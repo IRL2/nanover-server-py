@@ -149,6 +149,7 @@ class ServiceHub:
     def message(self):
         """
         Returns the JSON message that represents this service hub.
+
         :return: The JSON message representing this service hub.
         """
         return construct_message(self.properties)
