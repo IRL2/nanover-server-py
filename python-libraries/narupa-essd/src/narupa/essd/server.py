@@ -66,6 +66,7 @@ class DiscoveryServer:
     def register_service(self, service: ServiceHub):
         """
         Register a service for discovery.
+
         :param service: Service to register.
         """
         if service in self.services:
