@@ -102,6 +102,7 @@ class ServiceHub:
     def address(self):
         """
         The IP address of the service hub.
+
         :return: The IP address of the service hub.
         :raises: KeyError if name has not been set.
         """
