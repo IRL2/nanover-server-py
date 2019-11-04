@@ -3,6 +3,7 @@
 """
 Interactive molecular dynamics runner for ASE with OpenMM.
 """
+import logging
 from typing import Optional
 
 from ase import units, Atoms
@@ -67,6 +68,7 @@ class OpenMMIMDRunner:
     :param params IMD parameters to tune the server.
     """
     def __init__(self, simulation:Simulation, params: Optional[ImdParams] = None):
+        self.logger = logging.getLogger(__name__)
         self.simulation = simulation
         self._validate_simulation()
         if not params:
@@ -91,8 +93,8 @@ class OpenMMIMDRunner:
         relevant warnings.
         """
         if self.simulation.system.getNumConstraints() > 0:
-            print("WARNING: The simulation contains constraints which will be "
-                  "ignored by this runner!")
+            logging.warning("The simulation contains constraints which will "
+                            "be ignored by this runner!")
 
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
