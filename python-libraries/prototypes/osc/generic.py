@@ -9,6 +9,7 @@ Run with:
     narupa-omm-ase nanotube.xml
     python generic.py --osc-port 9000
 """
+from narupa.trajectory.frame_data import KINETIC_ENERGY, POTENTIAL_ENERGY
 from osc_app import OscApp
 
 
@@ -20,8 +21,10 @@ def build_frame_generator(osc_client):
         for key, value in multiplayer.resources.items():
             yield f"/multiplayer/{key}", value.number_value
 
-        if 'energy.kinetic' in frame.values:
+        if KINETIC_ENERGY in frame.values:
             yield "/energy/kinetic", frame.kinetic_energy
+        if POTENTIAL_ENERGY in frame.values:
+            yield "/energy/potential", frame.potential_energy
 
     return frame_to_osc_messages
 
