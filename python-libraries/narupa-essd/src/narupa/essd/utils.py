@@ -11,7 +11,7 @@ def get_ipv4_addresses(interfaces: List[str] = None):
     :param interfaces: Optional list of interfaces to extract addresses from. If none are provided,
         all interfaces will be used.
     :return: A list of dictionaries containing the IP address and other information for each interface,
-    as returned by :fun:`netifaces.ifaddresses`.
+        as returned by :fun:`netifaces.ifaddresses`.
     """
     if interfaces is None:
         interfaces = netifaces.interfaces()
