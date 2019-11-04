@@ -130,6 +130,7 @@ class ServiceHub:
     def services(self):
         """
         Gets the services registered at this service hub.
+
         :return: Dictionary of service definitions.
         """
         return self.properties[SERVICE_SERVICES_KEY]
