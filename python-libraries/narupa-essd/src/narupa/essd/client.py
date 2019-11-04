@@ -63,6 +63,7 @@ class DiscoveryClient:
                 if service is not None:
                     services.add(service)
             time.sleep(interval)
+        return services
 
     def close(self):
         self._socket.close()
