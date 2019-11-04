@@ -68,6 +68,7 @@ class OpenMMIMDRunner:
     """
     def __init__(self, simulation:Simulation, params: Optional[ImdParams] = None):
         self.simulation = simulation
+        self._validate_simulation()
         if not params:
             params = ImdParams()
         self._address = params.address
@@ -83,6 +84,15 @@ class OpenMMIMDRunner:
         self._initialise_calculator(simulation, walls=params.walls)
         self._initialise_dynamics()
         self._initialise_server(self.dynamics, params.trajectory_port, params.imd_port)
+
+    def _validate_simulation(self):
+        """
+        Check this runner's simulation for unsupported features and issue the
+        relevant warnings.
+        """
+        if self.simulation.system.getNumConstraints() > 0:
+            print("WARNING: The simulation contains constraints which will be "
+                  "ignored by this runner!")
 
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
