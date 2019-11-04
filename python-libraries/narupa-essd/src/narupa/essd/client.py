@@ -47,6 +47,7 @@ class DiscoveryClient:
     def search_for_services(self, search_time: float = 5.0, interval=0.033):
         """
         Searches for services for the given amount of time, blocking.
+
         :param search_time: Time, in seconds, to search for.
         :return: A set of services discovered over the duration.
 
