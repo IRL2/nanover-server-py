@@ -105,9 +105,9 @@ class DiscoveryServer:
     def _broadcast_services(self):
         with self._lock:
             for service, addresses in self.services.items():
-                self._broadcast_service(service, addresses)
+                self._broadcast_one_service(service, addresses)
 
-    def _broadcast_service(self, service: ServiceHub, addresses):
+    def _broadcast_one_service(self, service: ServiceHub, addresses):
         address = service.address
         for broadcast_address in addresses:
             if address == "[::]" or address == "localhost":
