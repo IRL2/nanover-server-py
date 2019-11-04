@@ -79,6 +79,8 @@ class NarupaClient:
         self._frame_client.close()
         if self.running_imd:
             self._imd_client.close()
+        if self.running_multiplayer:
+            self._multiplayer_client.close()
 
     def connect_trajectory(self, address: str, port: Optional[int] = None) -> None:
         """
