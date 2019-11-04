@@ -55,8 +55,8 @@ def is_in_network(address, interface_address_entry):
 
     :param address: An IPv4 address.
     :param interface_address_entry: An IPv4 address entry, as produced by :fun:`netifaces.ifaddresses`. It must
-    contain the `netmask` and `broadcast` fields, representing the subnet mask IP and the broadcast IP for the given
-    interface.
+        contain the `netmask` and `broadcast` fields, representing the subnet mask IP and the broadcast IP for the given
+        interface
     :return: `True`, if the given address is in the same network as given interface address, `False` otherwise.
     :raises: ValueError, if invalid IP addresses are given for any field.
     :raises: KeyError, if the `netmask` and `broadcast` fields are not present in the interface address entry
