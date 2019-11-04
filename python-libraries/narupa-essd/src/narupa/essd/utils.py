@@ -29,7 +29,7 @@ def get_broadcast_addresses(interfaces: List[str] = None):
     """
     Gets all the IPV4 addresses currently available on all the given interfaces that have broadcast addresses.
     :param interfaces: Optional list of interfaces to extract addresses from. If none are provided,
-    all interfaces will be used.
+        all interfaces will be used.
     :return: A list of dictionaries containing the IP address and other information for each interface,
     as returned by :fun:`netifaces.ifaddresses`.
 
