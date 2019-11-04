@@ -138,6 +138,7 @@ class ServiceHub:
     def add_service(self, name, port):
         """
         Adds a service with the given name and port to the service hub definition.
+
         :param name: Name of the service
         :param port: Port at which the service is running
 
