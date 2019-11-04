@@ -57,17 +57,13 @@ class DiscoveryClient:
         """
         total_time = 0
         services = set()
-        previous_time = time.monotonic()
-        for _ in yield_interval(interval):
-            new_time = time.monotonic()
-            total_time += new_time - previous_time
-            previous_time = new_time
-            if total_time > search_time:
-                return services
+        deadline = time.monotonic() + search_time
+        while time.monotonic() <= deadline:
             if self._check_for_messages():
                 service = self._receive_service()
                 if service is not None:
                     services.add(service)
+            time.sleep(interval)
 
     def close(self):
         self._socket.close()
