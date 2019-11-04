@@ -36,9 +36,9 @@ def default_runner(basic_simulation):
         yield runner
 
 
-def test_from_xml(serialized_simulation_path):
+def test_from_xml(serialized_simulation_path, params):
     with OpenMMIMDRunner.from_xml(serialized_simulation_path,
-                                  params=ImdParams(trajectory_port=0, imd_port=0, multiplayer_port=0)) as runner:
+                                  params=params) as runner:
         assert runner.simulation is not None
 
 
@@ -97,30 +97,40 @@ def test_time_step(basic_simulation, params):
         assert runner.dynamics.get_timestep() == pytest.approx(0.5 * units.fs)
 
 
-@pytest.mark.parametrize('trajectory_port, imd_port', (
-        (5555, 5555),
-        (None, TRAJ_DEFAULT_PORT),
-        (IMD_DEFAULT_PORT, None),
+@pytest.mark.parametrize('trajectory_port, imd_port, multiplayer_port', (
+        (5555, 5555, 5555),
+        (5555, 5555, 5556),
+        (5555, 5556, 5555),
+        (5556, 5555, 5555),
+        (None, TRAJ_DEFAULT_PORT, 5555),
+        (IMD_DEFAULT_PORT, None, 5555),
+        (None, 5555, TRAJ_DEFAULT_PORT),
+        (5555, None, IMD_DEFAULT_PORT),
+        (MULTIPLAYER_DEFAULT_PORT, 5555, None),
+        (5555, MULTIPLAYER_DEFAULT_PORT, None),
 ))
-def test_same_port_failure(basic_simulation, trajectory_port, imd_port, params):
+def test_same_port_failure(basic_simulation, trajectory_port, imd_port, multiplayer_port, params):
     params.address = 'localhost'
     params.trajectory_port = trajectory_port
     params.imd_port = imd_port
+    params.multiplayer_port = multiplayer_port
 
     with pytest.raises(ValueError):
         with OpenMMIMDRunner(basic_simulation, params):
             pass
 
 
-@pytest.mark.parametrize('trajectory_port, imd_port', (
-        (0, 0),
-        (0, None),
-        (None, 0),
-        (0, 80),
-        (80, 0),
+@pytest.mark.parametrize('trajectory_port, imd_port, multiplayer_port', (
+        (0, 0, 0),
+        (0, None, 0),
+        (None, 0, 0),
+        (0, 0, None),
+        (0, 80, 0),
+        (80, 0, 0),
+        (0, 0, 80)
 ))
-def test_same_port_accepts_zero(trajectory_port, imd_port):
-    assert not OpenMMIMDRunner._services_use_same_port(trajectory_port, imd_port)
+def test_same_port_accepts_zero(trajectory_port, imd_port, multiplayer_port):
+    assert not OpenMMIMDRunner._services_use_same_port(trajectory_port, imd_port, multiplayer_port)
 
 
 @pytest.mark.parametrize('walls, expected_calculator_class', (

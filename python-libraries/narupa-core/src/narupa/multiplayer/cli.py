@@ -2,7 +2,6 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 
 import argparse
-import signal
 import textwrap
 import time
 
@@ -34,11 +33,11 @@ def handle_user_arguments() -> argparse.Namespace:
     parser.add_argument('-v', '--verbose', action="store_true", default=False)
     parser.add_argument('-vv', '--debug', action="store_true", default=False)
     parser.add_argument(
-        '--no_discovery', action='store_true', default=False,
+        '--no-discovery', dest='discovery', action='store_false', default=True,
         help='Run without the discovery service, so this server will not broadcast itself on the LAN.'
     )
     parser.add_argument(
-        '--discovery_port', type=int, default=None,
+        '--discovery-port', type=int, default=None,
         help='Port at which to run discovery service'
     )
     arguments = parser.parse_args()
@@ -79,7 +78,7 @@ def main():
     print(f'Serving multiplayer on port {server.port}')
 
     discovery_server = None
-    if not arguments.no_discovery:
+    if arguments.discovery:
         discovery_server = setup_discovery(server, arguments.name, arguments.discovery_port)
     try:
         while True:

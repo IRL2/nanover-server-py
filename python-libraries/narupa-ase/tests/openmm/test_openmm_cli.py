@@ -37,13 +37,13 @@ def test_address(serialized_simulation_path, test_ports):
         assert runner.address == 'localhost'
 
 
-def test_traj_port(serialized_simulation_path, test_ports):
+def test_traj_port(serialized_simulation_path):
     args = [str(serialized_simulation_path), '-t', '62034', '-m', '0', '-i', '0']
     with initialise(args) as runner:
         assert runner.trajectory_port == 62034
 
 
-def test_imd_port(serialized_simulation_path, test_ports):
+def test_imd_port(serialized_simulation_path):
     args = [str(serialized_simulation_path), '-i', '62035', '-t', '0', '-m', '0']
     with initialise(args) as runner:
         assert runner.imd_port == 62035
@@ -56,15 +56,28 @@ def test_discovery_service(serialized_simulation_path, test_ports):
 
 
 def test_discovery_service_not_running(serialized_simulation_path, test_ports):
-    args = [str(serialized_simulation_path), '--no_discovery'] + test_ports
+    args = [str(serialized_simulation_path), '--no-discovery'] + test_ports
     with initialise(args) as runner:
         assert runner.running_discovery is False
 
 
 def test_discovery_service_port(serialized_simulation_path, test_ports):
-    args = [str(serialized_simulation_path), '--discovery_port', '88888'] + test_ports
+    args = [str(serialized_simulation_path), '--discovery-port', '88888'] + test_ports
     with initialise(args) as runner:
         assert runner.discovery_port == 88888
+
+
+def test_discovery_service_port_not_running(serialized_simulation_path, test_ports):
+    args = [str(serialized_simulation_path), '--no-discovery'] + test_ports
+    with initialise(args) as runner:
+        with pytest.raises(AttributeError):
+            _ = runner.discovery_port
+
+
+def test_name(serialized_simulation_path, test_ports):
+    args = [str(serialized_simulation_path), '--name', 'Test Server'] + test_ports
+    with initialise(args) as runner:
+        assert runner.name == 'Test Server'
 
 
 def test_multiplayer(serialized_simulation_path, test_ports):
@@ -74,7 +87,7 @@ def test_multiplayer(serialized_simulation_path, test_ports):
 
 
 def test_multiplayer_not_running(serialized_simulation_path, test_ports):
-    args = [str(serialized_simulation_path), '--no_multiplayer'] + test_ports
+    args = [str(serialized_simulation_path), '--no-multiplayer'] + test_ports
     with initialise(args) as runner:
         assert runner.running_multiplayer is False
 
@@ -86,23 +99,10 @@ def test_multiplayer_port(serialized_simulation_path):
 
 
 def test_multiplayer_port_not_set(serialized_simulation_path, test_ports):
-    args = [str(serialized_simulation_path), '--no_multiplayer'] + test_ports
+    args = [str(serialized_simulation_path), '--no-multiplayer'] + test_ports
     with initialise(args) as runner:
         with pytest.raises(AttributeError):
             _ = runner.multiplayer_port
-
-
-def test_name(serialized_simulation_path, test_ports):
-    args = [str(serialized_simulation_path), '--name', 'Test Server'] + test_ports
-    with initialise(args) as runner:
-        assert runner.name == 'Test Server'
-
-
-def test_discovery_service_port_not_running(serialized_simulation_path, test_ports):
-    args = [str(serialized_simulation_path), '--no_discovery'] + test_ports
-    with initialise(args) as runner:
-        with pytest.raises(AttributeError):
-            _ = runner.discovery_port
 
 
 def test_same_port(serialized_simulation_path):

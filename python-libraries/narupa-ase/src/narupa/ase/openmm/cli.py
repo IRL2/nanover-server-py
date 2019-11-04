@@ -62,15 +62,15 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         help='Set a wall around the box, atoms will bounce against it.',
     )
     parser.add_argument(
-        '--no_discovery', action='store_true', default=False,
+        '--no-discovery', dest='discovery', action='store_false', default=True,
         help='Run without the discovery service, so this server will not broadcast itself on the LAN.'
     )
     parser.add_argument(
-        '--no_multiplayer', action='store_true', default=False,
+        '--no-multiplayer', dest='multiplayer', action='store_false', default=True,
         help='Run without the multiplayer service.'
     )
     parser.add_argument(
-        '--discovery_port', type=int, default=None,
+        '--discovery-port', type=int, default=None,
         help='Port at which to run discovery service'
     )
     arguments = parser.parse_args(args)
@@ -90,9 +90,9 @@ def initialise(args=None):
         arguments.verbose,
         arguments.walls,
         arguments.name,
-        not arguments.no_multiplayer,
+        arguments.multiplayer,
         arguments.multiplayer_port,
-        not arguments.no_discovery,
+        arguments.discovery,
         arguments.discovery_port
     )
     runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params)

@@ -20,6 +20,7 @@ from narupa.openmm import openmm_to_frame_data, serializer
 from narupa.core import get_requested_port_or_default
 from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
 from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
+from narupa.multiplayer.multiplayer_server import DEFAULT_PORT as MULTIPLAYER_DEFAULT_PORT
 from simtk.openmm.app import Simulation
 
 
@@ -81,8 +82,9 @@ class OpenMMIMDRunner:
         if self._services_use_same_port(
                 trajectory_port=params.trajectory_port,
                 imd_port=params.imd_port,
+                multiplayer_port=params.multiplayer_port
         ):
-            raise ValueError("Trajectory serving port and IMD serving port must be different!")
+            raise ValueError("Trajectory serving port, IMD serving port and multiplayer serving port must be different!")
         self._frame_interval = params.frame_interval
         self._time_step = params.time_step
         self._verbose = params.verbose
@@ -245,14 +247,13 @@ class OpenMMIMDRunner:
                                            peratom=False), interval=100)
 
     @staticmethod
-    def _services_use_same_port(trajectory_port, imd_port):
+    def _services_use_same_port(trajectory_port, imd_port, multiplayer_port):
         trajectory_port = get_requested_port_or_default(trajectory_port, TRAJ_DEFAULT_PORT)
         imd_port = get_requested_port_or_default(imd_port, IMD_DEFAULT_PORT)
-        # If a port is set to 0, then GRPC will affect one available port; so
+        multiplayer_port = get_requested_port_or_default(multiplayer_port, MULTIPLAYER_DEFAULT_PORT)
+        # If a port is set to 0, then GRPC will choose one available port; so
         # 0 is always a valid value.
-        if trajectory_port == 0 or imd_port == 0:
-            return False
-        return trajectory_port == imd_port
+        return trajectory_port == imd_port != 0 or trajectory_port == multiplayer_port != 0 or imd_port == multiplayer_port != 0
 
     def __enter__(self):
         return self
