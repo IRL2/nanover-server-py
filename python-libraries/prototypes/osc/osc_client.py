@@ -31,17 +31,17 @@ class OscClient:
         self.osc_client = udp_client.SimpleUDPClient(osc_address,
                                                      osc_port,
                                                      allow_broadcast=True)
-        self.frame_client = NarupaClient(address=traj_address,
-                                         trajectory_port=traj_port)
+        self.narupa_client = NarupaClient(address=traj_address,
+                                          trajectory_port=traj_port)
 
     def run(self):
         for dt in yield_interval(self.send_interval):
-            frame = self.frame_client.latest_frame
+            frame = self.narupa_client.latest_frame
             if frame is not None:
                 self.process_frame(frame)
 
     def close(self):
-        self.frame_client.close()
+        self.narupa_client.close()
 
     def process_frame(self, frame):
         for address, message in self.message_generator(frame):
