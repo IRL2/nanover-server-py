@@ -112,6 +112,7 @@ class ServiceHub:
     def id(self):
         """
         Gets the unique ID string of this service hub.
+
         :return: The unique ID string of this service hub.
         """
         return self.properties[SERVICE_ID_KEY]
