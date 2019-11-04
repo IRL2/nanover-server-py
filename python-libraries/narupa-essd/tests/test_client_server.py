@@ -68,6 +68,7 @@ def run_with_server(service):
 def test_context_managers(service):
     """
     tests that running the server and client with context managers cleans up correctly.
+    If discovery servers do not clean up cleanly, future clients will find additional servers.
     """
     for i in range(2):
         run_with_server(service)

@@ -88,6 +88,18 @@ class ServiceHub:
         if SERVICE_SERVICES_KEY not in properties:
             self.properties[SERVICE_SERVICES_KEY] = {}
 
+    @classmethod
+    def from_json(cls, json_properties):
+        """
+        Constructs an instance of :class:`ServiceHub` from the given json string.
+
+        :param json_properties: The JSON string containing the properties of the ServiceHub
+        :return: An instance of :class:`ServiceHub`
+        :raises:`KeyError` if the properties do not contain required fields, name and address.
+        """
+        properties = json.loads(json_properties)
+        return cls(**properties)
+
     @property
     def name(self):
         """
@@ -135,16 +147,6 @@ class ServiceHub:
         """
         return self.properties[SERVICE_SERVICES_KEY]
 
-    def add_service(self, name, port):
-        """
-        Adds a service with the given name and port to the service hub definition.
-
-        :param name: Name of the service
-        :param port: Port at which the service is running
-
-        """
-        self.services[name] = port
-
     @property
     def message(self):
         """
@@ -154,17 +156,15 @@ class ServiceHub:
         """
         return construct_message(self.properties)
 
-    @classmethod
-    def from_json(cls, json_properties):
+    def add_service(self, name, port):
         """
-        Constructs an instance of :class:`ServiceHub` from the given json string.
+        Adds a service with the given name and port to the service hub definition.
 
-        :param json_properties: The JSON string containing the properties of the ServiceHub
-        :return: An instance of :class:`ServiceHub`
-        :raises:`KeyError` if the properties do not contain required fields, name and address.
+        :param name: Name of the service
+        :param port: Port at which the service is running
+
         """
-        properties = json.loads(json_properties)
-        return cls(**properties)
+        self.services[name] = port
 
     def to_message(self, override_address: Optional[str] = None) -> str:
         """
