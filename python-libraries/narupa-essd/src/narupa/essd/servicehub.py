@@ -121,6 +121,7 @@ class ServiceHub:
     def version(self):
         """
         Gets the version of ESSD this service hub is compatible with.
+
         :return: Version string of this service hub.
         """
         return self.properties[ESSD_VERSION_KEY]
