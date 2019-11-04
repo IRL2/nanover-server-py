@@ -92,6 +92,7 @@ class ServiceHub:
     def name(self):
         """
         The name of the service hub.
+
         :return: The name of the service hub.
         :raises: KeyError if name has not been set.
         """
