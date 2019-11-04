@@ -75,6 +75,12 @@ class KeyLockableMap:
         with self._lock:
             return self._values.get(resource_id, default)
 
+    def delete(self, owner_id, key):
+        with self._lock:
+            if not self.player_can_lock_key(owner_id, key):
+                raise  ResourceLockedException
+            del self._values[key]
+
     def get_all(self):
         with self._lock:
             return dict(self._values)
