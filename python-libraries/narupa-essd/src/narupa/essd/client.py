@@ -12,7 +12,7 @@ import select
 
 from narupa.essd.server import BROADCAST_PORT, _connect_socket
 from narupa.essd.servicehub import ServiceHub, MAXIMUM_MESSAGE_SIZE
-from narupa.core.timing import yield_interval
+from narupa.essd.utils import yield_interval
 
 IP_ADDRESS_ANY = "0.0.0.0"
 
@@ -57,7 +57,7 @@ class DiscoveryClient:
         total_time = 0
         services = set()
         previous_time = time.monotonic()
-        for dt in yield_interval(interval):
+        for _ in yield_interval(interval):
             new_time = time.monotonic()
             total_time += new_time - previous_time
             previous_time = new_time
