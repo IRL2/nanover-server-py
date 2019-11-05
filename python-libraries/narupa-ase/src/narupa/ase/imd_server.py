@@ -20,7 +20,9 @@ from narupa.app import NarupaClient
 from narupa.ase.frame_server import send_ase_frame
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.ase.converter import EV_TO_KJMOL
+from narupa.command import CommandService
 from narupa.imd.imd_server import ImdServer
+from narupa.protocol.command import add_CommandServicer_to_server
 from narupa.trajectory import FrameServer
 
 
@@ -60,6 +62,8 @@ class ASEImdServer:
             frame_method = send_ase_frame
         self.frame_server = FrameServer(address=address, port=trajectory_port)
         self.imd_server = ImdServer(address=address, port=imd_port)
+        self._attach_command_service()
+
         self.dynamics = dynamics
         calculator = self.dynamics.atoms.get_calculator()
         self.imd_calculator = ImdCalculator(self.imd_server.service, calculator, dynamics=dynamics)
@@ -95,6 +99,13 @@ class ASEImdServer:
         :return: ASE atoms.
         """
         return self.dynamics.atoms
+
+    def _attach_command_service(self):
+        self.command_service = CommandService()
+        add_CommandServicer_to_server(self.command_service, self.frame_server)
+
+    def register_commands(self):
+        raise NotImplementedError
 
     def run(self, steps: Optional[int] = None,
             block: Optional[bool] = None, reset_energy: Optional[float] = None):
