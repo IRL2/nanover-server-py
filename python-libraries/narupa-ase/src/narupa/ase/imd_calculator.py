@@ -34,6 +34,11 @@ class ImdCalculator(Calculator):
     :param reset_scale: A scale factor to apply to velocities when reset.
     :param kwargs: Key word args passed to the base calculator.
 
+    .. seealso::
+
+        The :class:`ImdServer` class makes use of this class, and makes
+        running an interactive molecular dynamics simulation in ASE straightforward.
+    
     """
 
     def __init__(self, imd_service: ImdService,
@@ -54,22 +59,25 @@ class ImdCalculator(Calculator):
         self._initialise_velocity_reset()
 
     @property
-    def temperature(self):
+    def temperature(self) -> float:
         """
         Gets the temperature used for reinitialising velocities after an interaction.
+
         By default, it will attempt to use the temperature of the dynamics.
         If a custom temperature has been set by this attributes setter, then that will be used.
+
         :return: The temperature used for reinitialising velocities after an interaction.
         :raises: AttributeError: If no temperature is defined for this calculator, in the case
-        that no dynamics object has been passed, or the dynamics object does not implement the
-        temperature or 'temp' attribute.
+            that no dynamics object has been passed, or the dynamics object does not implement the
+            temperature or 'temp' attribute.
         """
         if self._custom_temperature is not None:
             return self._custom_temperature
 
         if self._dynamics is None:
-            raise MissingDataError("No temperature has been set, and no molecular dynamics object has been passed to the "
-                                 "IMD calculator.")
+            raise MissingDataError(
+                "No temperature has been set, and no molecular dynamics object has been passed to the "
+                "IMD calculator.")
 
         try:
             return self._dynamics.temperature
@@ -85,6 +93,7 @@ class ImdCalculator(Calculator):
         """
         Sets the temperature used for reinitialising velocities after an interaction. Note that
         if this is set, it will be used instead of the temperature that the dynamics is running at.
+
         :param value: The custom temperature to use.
         """
         self._custom_temperature = value
@@ -94,6 +103,7 @@ class ImdCalculator(Calculator):
         """
         The temperature this calculator will reset the velocities of atoms interacted with to if the interaction
         is set to reset velocities.
+
         :return: The reset temperature.
         :raises: Attribute error, if not temperature has been defined.
         """
@@ -118,12 +128,29 @@ class ImdCalculator(Calculator):
 
     def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
                   system_changes=all_changes):
+        """
+        Calculates the given properties of the ASE atoms. The internal molecular calculator is called first,
+        and then any interactive forces currently being applied to the system are added.
 
+        Results are stored in the results dictionary, as normal.
+
+        :param atoms: Optional :class:`Atoms` object to perform the calculation on. If no atoms is passed,
+            the atoms object passed at initialisation are used.
+        :param properties: The properties to calculate. The ImdCalculator support 'energy' and 'forces',
+            but will pass any other requested properties to the internal atomic calculator.
+            See :func:`~Calculator.calculate` for details.
+        :param system_changes: List of what has changed since last calculation. See :func:`~Calculator.calculate` for
+            details.
+
+        :raises ValueError: If no ASE atoms are supplied to the calculation, and no ASE atoms were supplied during
+            initialisation.
+        """
         energy = 0.0
         if atoms is None:
             atoms = self.atoms
         if atoms is None:
             raise ValueError('No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation.')
+        self._service.number_of_particles = len(atoms)  # update number of atoms in interaction service, for validating.
 
         forces = np.zeros((len(atoms), 3))
 
@@ -191,8 +218,9 @@ class ImdCalculator(Calculator):
 def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
     """
     Gets the periodic box lengths of an orthorhombic box, in nm, from an ASE atoms collection, if it exists.
+
     :param atoms: ASE atoms.
-    :return: Array of periodic box lengths if periodic boundaries are in use, None otherwise.
+    :return: Array of periodic box lengths if periodic boundaries are in use, ``None`` otherwise.
     """
     if not np.all(atoms.get_pbc()):
         if np.any(atoms.get_pbc()):

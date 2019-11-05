@@ -17,7 +17,7 @@ from google.protobuf.struct_pb2 import Value, Struct
 
 CONNECT_WAIT_TIME = 0.01
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
-
+CLIENT_SEND_INTERVAL = 1 / 60
 
 @pytest.fixture
 def server_client_pair():
@@ -26,7 +26,10 @@ def server_client_pair():
     and a multiplayer client connected to it.
     """
     server = MultiplayerServer(address='localhost', port=0)
-    client = MultiplayerClient(port=server.port)
+    client = MultiplayerClient(
+        port=server.port,
+        send_interval=CLIENT_SEND_INTERVAL
+    )
 
     with client, server:
         yield server, client
@@ -209,6 +212,33 @@ def test_subscribe_avatars_interval(server_client_pair, avatar, update_interval)
     # interval time has passed since the initial value was sent.
     time.sleep(update_interval)
     assert str(client.current_avatars[client.player_id]) == str(test_values[1])
+
+
+def test_clearing_disconnected_avatars(server_client_pair, avatar):
+    """
+    Test that disconnecting from the server clears the old avatar. Note the
+    avatar will persist but will have no components.
+    """
+    server, first_client = server_client_pair
+
+    first_player_id = first_client.join_multiplayer("first client")
+    time.sleep(CONNECT_WAIT_TIME)
+    avatar.player_id = first_player_id
+    first_client.publish_avatar(avatar)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+
+    with MultiplayerClient(port=server.port) as second_client:
+        second_client.join_avatar_stream(interval=0, ignore_self=False)
+        time.sleep(CONNECT_WAIT_TIME)
+
+        first_avatar = second_client.current_avatars[first_player_id]
+        assert len(first_avatar.component) == 1
+
+        first_client.close()
+        time.sleep(CLIENT_SEND_INTERVAL * 2)
+
+        first_avatar = second_client.current_avatars[first_player_id]
+        assert len(first_avatar.component) == 0
 
 
 def test_can_lock_unlocked(server_client_pair):
@@ -478,3 +508,4 @@ def test_repeated_connections_stall_server():
         threading.Thread(target=loads_of_clients, daemon=True).start()
         time.sleep(CONNECT_WAIT_TIME)
         assert server.server._state.thread_pool._work_queue.qsize() > 0
+

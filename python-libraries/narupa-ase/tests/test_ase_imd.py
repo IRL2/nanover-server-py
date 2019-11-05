@@ -1,8 +1,12 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 import time
 
 import pytest
+from ase import Atoms
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
+from narupa.imd import ImdClient
 
 from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.imd_calculator import ImdCalculator

@@ -87,8 +87,9 @@ class OpenMMIMDRunner:
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
         """
-        Initialises a :class: OpenMMIMDRunner from a simulation XML file serialised with
-        :class: serializer
+        Initialises a :class:`OpenMMIMDRunner` from a simulation XML file
+        serialised with :fun:`serializer.serialize_simulation`.
+
         :param simulation_xml: Path to XML file.
         :param params: The :class: ImdParams to run the server with.
         :return: An OpenMM simulation runner.
@@ -99,34 +100,86 @@ class OpenMMIMDRunner:
 
     @property
     def verbose(self):
+        """
+        Whether this OpenMM runner is set to run in verbose mode. If it is, it
+        will print state information every 100 steps using an :class: MDLogger.
+
+        :return: `True` if set to run verbosely, `False` otherwise.
+        """
         return self._verbose
 
     @property
     def time_step(self):
+        """
+        Gets the time step of the simulation, in femtoseconds.
+
+        :return: The time step of the simulation.
+        """
         return self._time_step
 
     @property
     def frame_interval(self):
+        """
+        Gets the interval at which frames are sent, in steps.
+
+        :return: The frame interval, in steps.
+        """
         return self._frame_interval
 
     @property
     def address(self):
+        """
+        Gets the URL or IP address the server is running at.
+
+        :return: The URL or IP address of the server.
+        """
         return self._address
 
     @property
     def trajectory_port(self):
+        """
+        Gets the port the :class:`FrameServer` is running on.
+
+        :return: The port the frame service is running on.
+        """
         return self.imd.frame_server.port
 
     @property
     def imd_port(self):
+        """
+        Gets the port the :class:`ImdServer` is running on.
+
+        :return: The port the IMD server is running on.
+        """
         return self.imd.imd_server.port
 
     @property
     def dynamics(self):
+        """
+        Gets the ASE :class:`MolecularDynamics` object that is running the dynamics.
+
+        :return: The ASE molecular dynamics object.
+        """
         return self._dynamics
 
-    def run(self, steps=None):
-        self.imd.run(steps)
+    def run(self, steps: Optional[int] = None,
+            block: Optional[bool] = None, reset_energy: Optional[float] = None):
+        """
+        Runs the molecular dynamics.
+
+        :param steps: If passed, will run the given number of steps, otherwise
+            will run forever on a background thread and immediately return.
+        :param block: If ``False`` run in a separate thread. By default, "block"
+            is ``None``, which means it is automatically set to ``True`` if a
+            number of steps is provided and to ``False`` otherwise.
+        :param reset_energy: Threshold of total energy in kJ/mol above which
+            the simulation is reset to its initial conditions. If a value is
+            provided, the simulation is reset if the total energy is greater
+            than this value, or if the total energy is `nan` or infinite. If
+            ``None`` is provided instead, then the simulation will not be
+            automatically reset.
+        """
+        self.imd.run(steps, block=block, reset_energy=reset_energy)
 
     def close(self):
         """
@@ -180,9 +233,9 @@ class OpenMMIMDRunner:
         if trajectory_port == 0 or imd_port == 0:
             return False
         return trajectory_port == imd_port
-        
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, type, value, traceback):
         self.close()

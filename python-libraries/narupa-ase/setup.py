@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
 
 from distutils.core import setup
 from setuptools import find_namespace_packages
@@ -13,7 +15,7 @@ setup(name='narupa-ase',
       package_dir={'': 'src'},
       install_requires=(
           'narupa',
-          'ase',
+          'ase>=3.18',
       ),
       entry_points={
           'console_scripts': ['narupa-omm-ase=narupa.ase.openmm.cli:main'],

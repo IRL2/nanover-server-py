@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
+
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+
 
 import os
 from contextlib import contextmanager
@@ -94,7 +98,6 @@ def compile_protocol(proto_dir, python_dir, logger):
                 init_py.write("from .%s import *\n" % file_name)
 
 
-
 @contextmanager
 def move_in_directory(destination):
     """
@@ -104,14 +107,13 @@ def move_in_directory(destination):
     the given destination. When the interpreter exists the context manager, the
     working directory is restored to where the working directory was before entering.
 
-    .. example::
+    Example:
+    ========
 
-        # working directory is "foo"
-        with move_in_directory("bar"):
-            # working directory is "bar"
-            pass
-        # working directory is "foo" again.
-
+    >>> with move_in_directory("bar"):
+    >>>    # working directory is "bar"
+    >>>    pass
+    >>> # working directory is "foo" again
 
     :param destination: The directory to use as working directory.
     """
@@ -147,4 +149,4 @@ setup(name='narupa',
       entry_points={
           'console_scripts': ['narupa-multiplayer=narupa.multiplayer.cli:main'],
       }
-     )
+      )

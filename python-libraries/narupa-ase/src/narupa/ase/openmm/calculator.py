@@ -19,11 +19,15 @@ from narupa.ase.converter import KJMOL_TO_EV
 
 class OpenMMCalculator(Calculator):
     """
-    Simple implementation of a ASE calculator for OpenMM. Initialises an OpenMM context with
-    the given OpenMM simulation.
+    Simple implementation of a ASE calculator for OpenMM. Initialises an OpenMM
+    context with the given OpenMM simulation.
 
-    Parameters:
-        simulation :  An OpenMM simulation.
+    :param simulation: An OpenMM simulation.
+    :param atoms: ASE :class:`Atoms` to use with the calculator. The topology
+        of the ASE atoms should be consistent with the OpenMM simulation.
+        See :func:`~OpenMMCalculator.generate_atoms` for a helper function to
+        generate a compatible ASE atoms object.
+
     """
     simulation: Simulation
     implemented_properties = ['energy', 'forces']
@@ -37,11 +41,14 @@ class OpenMMCalculator(Calculator):
     @classmethod
     def from_xml(cls, input_xml, atoms: Optional[Atoms] = None, **kwargs):
         """
-        Initialises an OpenMMCalculator from a simulation serialised to XML with :module serializer.
-        :param input_xml:
-        :param atoms:
-        :param kwargs:
-        :return:
+        Initialises an :class: OpenMMCalculator from a simulation serialised to
+        XML with :module serializer.
+
+        :param input_xml: XML file from which to create OpenMM simulation.
+        :param atoms: ASE :class:`Atoms` to pass to the resulting OpenMMCalculator.
+        :param kwargs: Keyword arguments for the OpenMMCalculator to be passed
+            upon construction.
+        :return: An :class: OpenMMCalculator.
         """
         with open(input_xml) as infile:
             simulation = serializer.deserialize_simulation(infile.read())
@@ -78,7 +85,9 @@ class OpenMMCalculator(Calculator):
     def generate_atoms(self) -> Atoms:
         """
         Generates ASE atoms representation of the OpenMM system.
-        :return: ASE Atoms.
+
+        :return: ASE :class:`Atoms`, with positions and chemical symbols set as
+            according to the current state of the OpenMM system.
         """
         top: Topology = self.simulation.topology
         atoms = Atoms()
@@ -102,10 +111,11 @@ class OpenMMCalculator(Calculator):
     @staticmethod
     def set_periodic_bounds(atoms: Atoms, system: System):
         """
-        Sets ASE atoms object with the same periodic boundaries as that used in the given OpenMM system.
+        Sets ASE atoms object with the same periodic boundaries as that used in
+        the given OpenMM system.
+
         :param atoms: ASE Atoms
         :param system: OpenMM system.
-        :return:
         """
         boxvectors: Quantity = system.getDefaultPeriodicBoxVectors()
         atoms.set_pbc(system.usesPeriodicBoundaryConditions())

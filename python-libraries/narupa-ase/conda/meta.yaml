@@ -1,0 +1,37 @@
+package:
+  name: narupa-ase
+  version: {{ NARUPA_BUILD_VERSION }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  number: 0
+  entry_points:
+    - narupa-omm-ase = narupa.ase.openmm.cli:main
+
+requirements:
+  build:
+    - python >=3.6.0
+    - setuptools
+
+  run:
+    - python >=3.6.0
+    - attrs
+    - narupa-core =={{ NARUPA_BUILD_VERSION }}
+    - narupa-openmm =={{ NARUPA_BUILD_VERSION }}
+    - numpy
+    - ase >=3.18.0
+
+about:
+  home: https://narupa.readthedocs.io
+  license: GPL-3
+  license_file: {{ NARUPA_LICENSE_PATH }}
+  summary: ASE bondings for Narupa.
+  description: |
+    Narupa is a framework for interactive molecular dynamics simulation in
+    virtual reality. This package provides ASE bindings and servers for
+    Narupa.
+  doc_url: https://narupa.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/narupa-protocol

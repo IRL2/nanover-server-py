@@ -1,0 +1,36 @@
+package:
+  name: narupa-core
+  version: {{ os.environ["NARUPA_BUILD_VERSION"] }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  number: 0
+  entry_points:
+    - narupa-multiplayer = narupa.multiplayer.cli:main
+
+requirements:
+  build:
+    - python >=3.6.0
+    - setuptools
+    - grpcio-tools
+
+  run:
+    - python >=3.6.0
+    - protobuf
+    - grpcio
+    - numpy
+
+about:
+  home: https://narupa.readthedocs.io
+  license: GPL-3
+  license_file: {{ NARUPA_LICENSE_PATH }}
+  summary: Core modules to use the Narupa python library.
+  description: |
+    Narupa is a framework for interactive molecular dynamics simulation in
+    virtual reality. This package provides the core components to write a
+    server or a client program in python.
+  doc_url: https://narupa.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/narupa-protocol

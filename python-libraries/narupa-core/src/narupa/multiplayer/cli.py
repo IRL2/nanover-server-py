@@ -9,6 +9,20 @@ from logging import StreamHandler
 
 from narupa.multiplayer.multiplayer_server import MultiplayerServer
 
+"""
+Command line interface for running a Narupa multiplayer server.
+Run with:
+
+.. code:: bash
+    python cli.py
+
+If the module is installed with pip, run with:
+
+.. code:: bash
+    narupa-multiplayer
+
+"""
+
 
 def handle_user_arguments() -> argparse.Namespace:
     """
