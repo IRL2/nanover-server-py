@@ -401,8 +401,8 @@ class LammpsHook:
         # For now only forces supported, but other manipulations might become useful
         if matrix_type == 'f':
             # Create numpy arrays with the forces to be added
-            energy_kjmol, forces_kjmol = calculate_imd_force(positions_3n, self.masses, interactions)
-        else :
+            energy_kjmol, forces_kjmol = calculate_imd_force(positions_3n, self.masses, interactions.values())
+        else:
             raise Exception("Unsupported matrix type to be returned to lammps", matrix_type)
         # Add interactive force vector to lammps ctype
         self.add_interaction_to_ctype(forces_kjmol, forces)
@@ -475,4 +475,3 @@ class LammpsHook:
         if self.frame_loop == 100:
             logging.info("LAMMPS python fix is running step %s", self.frame_index)
             self.frame_loop = 0
-
