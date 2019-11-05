@@ -1,9 +1,12 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+
 """
-Implementation of a client for :class:`CommandServicer`, primarily for testing.
+Module providing an implementation of a client for :class:`CommandServicer`, primarily for testing.
 """
 from typing import Optional, Collection
 
-from google.protobuf.internal.well_known_types import Struct
+from google.protobuf.struct_pb2 import Struct
 
 from narupa.command.command_server import DEFAULT_PORT
 from narupa.core import GrpcClient, get_requested_port_or_default
@@ -11,6 +14,13 @@ from narupa.protocol.command import CommandStub, CommandMessage, GetCommandsRequ
 
 
 class CommandClient(GrpcClient):
+    """
+    A gRPC client for the :class:`CommandServicer`.
+
+    :param address: Address of server to connect to.
+    :param port: Port of server to connect to.
+
+    """
 
     def __init__(self, *, address: Optional[str] = None,
                  port: Optional[int] = None):
@@ -18,13 +28,15 @@ class CommandClient(GrpcClient):
         super().__init__(address=address, port=port,
                          stub=CommandStub)
 
-    def run_command(self, name: str, arguments: Struct):
+    def run_command(self, name: str, arguments: Optional[Struct] = None):
         """
         Runs a command on the command server.
 
         :param name: Name of command to run.
         :param arguments: Arguments to provide to command.
         """
+        if arguments is None:
+            arguments = Struct()
         message = CommandMessage(name=name, arguments=arguments)
         return self.stub.RunCommand(message)
 

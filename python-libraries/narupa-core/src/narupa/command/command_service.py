@@ -1,3 +1,9 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+"""
+Module providing an implementation of the :class:`CommandServicer`.
+
+"""
 from collections import namedtuple
 from typing import Dict, Callable, Optional
 
@@ -12,7 +18,8 @@ Command = namedtuple('Command', ['callback', 'default_args'])
 
 class CommandService(CommandServicer):
     """
-    Implementation of the Command service, enabling services to register arbitrary commands.
+    Implementation of the Command service, enabling services to register arbitrary commands
+    which are run as callbacks.
     """
 
     def __init__(self):
@@ -24,17 +31,21 @@ class CommandService(CommandServicer):
     def commands(self) -> Dict[str, Command]:
         return self._commands.get_all()
 
-    def register_command(self, name: str, callback: Callable[[Struct], Optional[Struct]], default_arguments: Struct):
+    def register_command(self, name: str, callback: Callable[[Struct], Optional[Struct]],
+                         default_arguments: Optional[Struct] = None):
         """
         Registers a command with this service
 
         :param name: Name of the command to register
-        :param callback: Method to be called whenever this command is run by a client.
+        :param callback: Method to be called whenever the given command name is run by a client.
+        :param default_arguments: A description of the arguments of the callback and their default values.
 
         :raises: ValueError: Raised when a command with the same name already exists.
         """
         if self._commands.get(name) is not None:
             raise ValueError(f"Command with name {name} has already been registered.")
+        if default_arguments is None:
+            default_arguments = Struct()
         self._commands.set(self._id, name, Command(callback, default_arguments))
 
     def delete_command(self, name):

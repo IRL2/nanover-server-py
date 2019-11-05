@@ -1,5 +1,8 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+
 """
-Implementation of a server for :class:`CommandServicer`, primarily for testing.
+Module providing an implementation of a server for :class:`CommandServicer`, primarily for testing.
 """
 from typing import Optional
 
@@ -11,6 +14,9 @@ DEFAULT_PORT = 54324
 
 
 class CommandServer(GrpcServer):
+    """
+    An implementation of a server for use with :class:`CommandServicer`, primarily for testing.
+    """
 
     def __init__(self, *, address: Optional[str] = None, port: Optional[int] = None):
         if address is None:

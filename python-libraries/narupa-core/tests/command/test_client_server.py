@@ -2,6 +2,7 @@ import time
 
 import pytest
 from google.protobuf.struct_pb2 import Struct
+from grpc import RpcError
 from mock import Mock
 
 from narupa.command.command_client import CommandClient
@@ -61,6 +62,14 @@ def test_run_command(client, server):
     assert mock.callback.call_count == 1
 
 
+def test_run_no_args(client, server):
+    mock = Mock()
+    server.service.register_command("test", mock.callback)
+    client.run_command("test")
+    time.sleep(0.1)
+    assert mock.callback.call_count == 1
+
+
 def test_run_command_with_args(client, server):
     def sqr(struct: Struct) -> Struct:
         x = struct['x']
@@ -73,3 +82,8 @@ def test_run_command_with_args(client, server):
     server.service.register_command("sqr", sqr, example_params)
     reply = client.run_command("sqr", example_params)
     assert reply.result['y'] == 4
+
+
+def test_unknown_command(client, server):
+    with pytest.raises(RpcError):
+        client.run_command("unknown", Struct())
