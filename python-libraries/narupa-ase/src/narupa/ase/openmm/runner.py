@@ -22,6 +22,9 @@ from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
 from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
 from simtk.openmm.app import Simulation
 
+CONSTRAINTS_UNSUPPORTED_MESSAGE = (
+    "The simulation contains constraints which will be ignored by this runner!")
+
 
 def openmm_ase_frame_server(ase_atoms: Atoms, frame_server):
     """
@@ -93,8 +96,7 @@ class OpenMMIMDRunner:
         relevant warnings.
         """
         if self.simulation.system.getNumConstraints() > 0:
-            self.logger.warning("The simulation contains constraints which "
-                                "will be ignored by this runner!")
+            self.logger.warning(CONSTRAINTS_UNSUPPORTED_MESSAGE)
 
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):

@@ -5,7 +5,7 @@ from logging import Handler, WARNING
 import pytest
 from ase import units
 from narupa.ase.openmm import OpenMMIMDRunner
-from narupa.ase.openmm.runner import ImdParams
+from narupa.ase.openmm.runner import ImdParams, CONSTRAINTS_UNSUPPORTED_MESSAGE
 from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
 from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
 from narupa.ase.openmm.calculator import OpenMMCalculator
@@ -25,6 +25,9 @@ class ListLogHandler(Handler):
 
     def emit(self, record):
         self.records.append(record)
+
+    def count_records(self, message: str, levelno: int):
+        return sum(1 for record in self.records if record.message == message and record.levelno == levelno)
 
 
 @pytest.fixture()
@@ -142,7 +145,7 @@ def test_no_constraint_no_warning(basic_simulation):
     with OpenMMIMDRunner(basic_simulation) as runner:
         runner.logger.addHandler(handler)
         runner._validate_simulation()
-        assert len(handler.records) == 0
+        assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 0
 
 
 def test_constraint_warning(basic_simulation):
@@ -156,5 +159,4 @@ def test_constraint_warning(basic_simulation):
     with OpenMMIMDRunner(basic_simulation) as runner:
         runner.logger.addHandler(handler)
         runner._validate_simulation()
-        assert len(handler.records) == 1
-        assert handler.records[0].levelno == WARNING
+        assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 1
