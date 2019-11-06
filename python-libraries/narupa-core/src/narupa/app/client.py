@@ -19,7 +19,7 @@ from google.protobuf.struct_pb2 import Value
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
 
 
-class NarupaClient:
+class NarupaImdClient:
     """
     Basic interactive molecular dynamics client that receives frames and can
     publish interactions.

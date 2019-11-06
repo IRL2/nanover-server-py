@@ -14,10 +14,10 @@ from narupa.multiplayer.multiplayer_server import MultiplayerServer
 from narupa.protocol.multiplayer.multiplayer_pb2 import Avatar, AvatarComponent
 from google.protobuf.struct_pb2 import Value, Struct
 
-
 CONNECT_WAIT_TIME = 0.01
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
 CLIENT_SEND_INTERVAL = 1 / 60
+
 
 @pytest.fixture
 def server_client_pair():
@@ -55,7 +55,7 @@ def scene():
     pose = Struct()
     pose["position"] = {"x": 1, "y": 1, "z": 1}
     pose["rotation"] = {"x": 0, "y": 0, "z": 0, "w": 1}
-    pose["scale"] = 1
+    pose["scale"] = 2
     return Value(struct_value=pose)
 
 
@@ -161,7 +161,7 @@ def test_publish_avatar_multiple_transmission(server_client_pair, avatar):
     assert client_avatar.component[0].position == [0, 0, 3]
 
 
-@pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
+@pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
 def test_subscribe_avatars_sends_initial_immediately(server_client_pair, avatar,
                                                      update_interval):
     """
@@ -388,7 +388,7 @@ def test_cant_set_non_value(server_client_pair):
         client.try_set_resource_value("scene", "hello")
 
 
-@pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
+@pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
 def test_subscribe_value_sends_initial_immediately(server_client_pair,
                                                    update_interval):
     """
@@ -508,4 +508,3 @@ def test_repeated_connections_stall_server():
         threading.Thread(target=loads_of_clients, daemon=True).start()
         time.sleep(CONNECT_WAIT_TIME)
         assert server.server._state.thread_pool._work_queue.qsize() > 0
-

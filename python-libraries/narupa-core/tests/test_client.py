@@ -4,14 +4,14 @@ import grpc
 import pytest
 from .test_frame_server import simple_frame_data, frame_server
 from .imd.test_imd_server import imd_server, interaction
-from narupa.app.client import NarupaClient
+from narupa.app.client import NarupaImdClient
 import numpy as np
 
 
 @pytest.fixture
 def client_server(frame_server, imd_server):
-    client = NarupaClient(trajectory_port=frame_server.port,
-                          imd_port=imd_server.port)
+    client = NarupaImdClient(trajectory_port=frame_server.port,
+                             imd_port=imd_server.port)
     yield client, frame_server, imd_server
     client.close()
 
@@ -93,21 +93,21 @@ def test_update_interaction(client_server, interaction):
 
 
 def test_no_imd(frame_server, interaction):
-    client = NarupaClient(run_imd=False, trajectory_port=frame_server.port)
+    client = NarupaImdClient(run_imd=False, trajectory_port=frame_server.port)
     with pytest.raises(ValueError):
         client.start_interaction(interaction)
     client.close()
 
 
 def test_no_imd_update(frame_server, interaction):
-    client = NarupaClient(run_imd=False, trajectory_port=frame_server.port)
+    client = NarupaImdClient(run_imd=False, trajectory_port=frame_server.port)
     with pytest.raises(ValueError):
         client.update_interaction(0, interaction)
     client.close()
 
 
 def test_no_imd_stop(frame_server, interaction):
-    client = NarupaClient(run_imd=False, trajectory_port=frame_server.port)
+    client = NarupaImdClient(run_imd=False, trajectory_port=frame_server.port)
     with pytest.raises(ValueError):
         client.stop_interaction(0)
     client.close()

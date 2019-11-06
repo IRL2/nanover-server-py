@@ -13,6 +13,12 @@ from google.protobuf.struct_pb2 import Struct
 from narupa.multiplayer.key_lockable_map import KeyLockableMap
 from narupa.protocol.command import CommandServicer, CommandMessage, CommandReply
 
+PLAY_COMMAND_KEY = "playback/play"
+RESET_COMMAND_KEY = "playback/reset"
+STEP_COMMAND_KEY = "playback/step"
+PAUSE_COMMAND_KEY = "playback/pause"
+
+
 Command = namedtuple('Command', ['callback', 'default_args'])
 
 

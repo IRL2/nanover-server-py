@@ -2,3 +2,4 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 
 from narupa.command.command_service import CommandService
+from narupa.command.command_service import Command
