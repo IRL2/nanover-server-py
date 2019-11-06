@@ -33,8 +33,6 @@ class NarupaClient(GrpcClient):
         :param name: Name of command to run.
         :param arguments: Arguments to provide to command.
         """
-        if arguments is None:
-            arguments = Struct()
         message = CommandMessage(name=name, arguments=arguments)
         return self._command_stub.RunCommand(message)
 

@@ -13,12 +13,6 @@ from google.protobuf.struct_pb2 import Struct
 from narupa.core.key_lockable_map import KeyLockableMap
 from narupa.protocol.command import CommandServicer, CommandMessage, CommandReply
 
-PLAY_COMMAND_KEY = "playback/play"
-RESET_COMMAND_KEY = "playback/reset"
-STEP_COMMAND_KEY = "playback/step"
-PAUSE_COMMAND_KEY = "playback/pause"
-
-
 Command = namedtuple('Command', ['callback', 'default_args'])
 
 
@@ -76,7 +70,12 @@ class CommandService(CommandServicer):
             message = f'Unknown command: {command}'
             context.set_details(message)
             return
-        results = command.callback(request.arguments)
+        args = request.arguments
+        if len(args) == 0:
+            # TODO elegantly detect whether the callback requires args? Hard to know.
+            results = command.callback()
+        else:
+            results = command.callback(request.arguments)
         if type(results) is Struct:
             return CommandReply(result=results)
         else:

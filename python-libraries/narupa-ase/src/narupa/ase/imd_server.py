@@ -6,23 +6,22 @@ Interactive molecular dynamics server for use with an ASE molecular dynamics sim
 """
 import logging
 from concurrent import futures
+from threading import RLock
 from typing import Optional, Callable
 
 import numpy as np
-
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
-from narupa.app import NarupaClient
 
+from narupa.app import NarupaImdClient
+from narupa.ase.converter import EV_TO_KJMOL
 from narupa.ase.frame_server import send_ase_frame
 from narupa.ase.imd_calculator import ImdCalculator
-from narupa.ase.converter import EV_TO_KJMOL
-from narupa.command import CommandService
+from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY
 from narupa.imd.imd_server import ImdServer
-from narupa.protocol.command import add_CommandServicer_to_server
 from narupa.trajectory import FrameServer
 
 
@@ -33,7 +32,8 @@ class ASEImdServer:
     :param dynamics: A prepared ASE molecular dynamics object to run, with IMD attached.
     :param frame_interval: Interval, in steps, at which to publish frames.
     :param frame_method: Method to use to generate frames, given the the ASE :class:`Atoms`
-        and a :class:`FrameServer`. The signature of the callback is expected to be ``frame_method(ase_atoms, frame_server)``.
+        and a :class:`FrameServer`. The signature of the callback is expected to be
+        ``frame_method(ase_atoms, frame_server)``.
 
 
     Example
@@ -42,7 +42,7 @@ class ASEImdServer:
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
     >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300, friction=1.0)
     >>> server = ASEImdServer(dynamics) # create the server with the molecular dynamics object.
-    >>> client = NarupaClient(run_multiplayer=False) # have a client connect to the server
+    >>> client = NarupaImdClient(run_multiplayer=False) # have a client connect to the server
     >>> server.run(5) # run some dynamics.
     >>> client.first_frame.particle_count # client will have received some frames!
     32
@@ -62,7 +62,8 @@ class ASEImdServer:
             frame_method = send_ase_frame
         self.frame_server = FrameServer(address=address, port=trajectory_port)
         self.imd_server = ImdServer(address=address, port=imd_port)
-        self._attach_command_service()
+        self._cancel_lock = RLock()
+        self._register_commands()
 
         self.dynamics = dynamics
         calculator = self.dynamics.atoms.get_calculator()
@@ -100,12 +101,41 @@ class ASEImdServer:
         """
         return self.dynamics.atoms
 
-    def _attach_command_service(self):
-        self.command_service = CommandService()
-        add_CommandServicer_to_server(self.command_service, self.frame_server)
+    @property
+    def is_running(self):
+        """
+        Whether or not the molecular dynamics is currently running on a background thread or not.
+        :return: `True`, if molecular dynamics is running, `False` otherwise.
+        """
+        # ideally we'd just check _run_task.running(), but there can be a delay between the task
+        # starting and hitting the running state.
+        return self._run_task is not None and not (self._run_task.cancelled() or self._run_task.done())
 
-    def register_commands(self):
-        raise NotImplementedError
+    def step(self, args=None):
+        """
+        Take a single step of the simulation and stop.
+        """
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+            self.run(1, block=True)
+            self.cancel_run(wait=True)
+
+    def pause(self):
+        """
+        Pause the simulation, by cancelling any current run.
+        """
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+
+    def play(self):
+        """
+        Run the simulation indefinitely
+
+        Cancels any current run and then begins running the simulation on a background thread.
+        """
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+        self.run()
 
     def run(self, steps: Optional[int] = None,
             block: Optional[bool] = None, reset_energy: Optional[float] = None):
@@ -124,6 +154,8 @@ class ASEImdServer:
             ``None`` is provided instead, then the simulation will not be
             automatically reset.
         """
+        if self.is_running:
+            raise RuntimeError("Dynamics are already running on a thread!")
         # The default is to be blocking if a number of steps is provided, and
         # not blocking if we run forever.
         if block is None:
@@ -157,11 +189,15 @@ class ASEImdServer:
         :param wait: Whether to block and wait for the molecular dynamics to
             halt before returning.
         """
+        if self._run_task is None:
+            return
+
         if self._cancelled:
             return
         self._cancelled = True
         if wait:
             self._run_task.result()
+            self._cancelled = False
 
     def reset(self):
         """
@@ -193,6 +229,12 @@ class ASEImdServer:
     def _call_on_reset(self):
         for callback in self.on_reset_listeners:
             callback()
+
+    def _register_commands(self):
+        self.frame_server.register_command(PLAY_COMMAND_KEY, self.play)
+        self.frame_server.register_command(RESET_COMMAND_KEY, self.reset)
+        self.frame_server.register_command(STEP_COMMAND_KEY, self.step)
+        self.frame_server.register_command(PAUSE_COMMAND_KEY, self.pause)
 
     def close(self):
         """

@@ -43,7 +43,7 @@ class GrpcServer:
         self.server = grpc.server(executor, options=grpc_options)
         self.setup_services()
         self._port = self.server.add_insecure_port(address=f"{address}:{port}")
-
+        self._address = address
         if self._port == 0:
             if port == 0:
                 raise IOError(f"Could not open any port.")
@@ -58,6 +58,13 @@ class GrpcServer:
         was unable to be chosen.
         """
         return self._port
+
+    @property
+    def address(self):
+        """
+        Get the address that the service is or was provided on.
+        """
+        return self._address
 
     def setup_services(self):
         """
