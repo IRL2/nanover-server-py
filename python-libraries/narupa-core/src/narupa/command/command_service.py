@@ -10,7 +10,7 @@ from typing import Dict, Callable, Optional
 import grpc
 from google.protobuf.struct_pb2 import Struct
 
-from narupa.multiplayer.key_lockable_map import KeyLockableMap
+from narupa.core.key_lockable_map import KeyLockableMap
 from narupa.protocol.command import CommandServicer, CommandMessage, CommandReply
 
 PLAY_COMMAND_KEY = "playback/play"

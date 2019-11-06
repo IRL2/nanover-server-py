@@ -1,4 +1,4 @@
-from narupa.multiplayer.key_lockable_map import KeyLockableMap, ResourceLockedException
+from narupa.core.key_lockable_map import KeyLockableMap, ResourceLockedException
 import pytest
 
 

@@ -1,15 +1,13 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 import logging
-import time
-from concurrent import futures
 from concurrent.futures import Future
 from queue import Queue
 from typing import Iterable, Optional
 
 import grpc
-from narupa.core import get_requested_port_or_default, DEFAULT_CONNECT_ADDRESS, \
-    GrpcClient
+
+from narupa.core import get_requested_port_or_default, NarupaClient
 from narupa.imd.imd_server import DEFAULT_PORT
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractiveMolecularDynamicsStub, InteractionEndReply
@@ -50,7 +48,7 @@ def _to_proto(interactions: Iterable[ParticleInteraction]):
         yield interaction.proto
 
 
-class ImdClient(GrpcClient):
+class ImdClient(NarupaClient):
     """
     A simple IMD client, primarily for testing the IMD server.
 

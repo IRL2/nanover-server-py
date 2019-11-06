@@ -10,7 +10,7 @@ from typing import Iterator
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
-from narupa.multiplayer.key_lockable_map import KeyLockableMap, ResourceLockedException
+from narupa.core.key_lockable_map import KeyLockableMap, ResourceLockedException
 from narupa.protocol.multiplayer.multiplayer_pb2 import StreamEndedResponse, Avatar, ResourceRequestResponse, SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse, SubscribePlayerAvatarsRequest, ResourceValuesUpdate
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
 

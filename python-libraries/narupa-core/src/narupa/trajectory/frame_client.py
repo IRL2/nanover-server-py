@@ -4,13 +4,13 @@ from concurrent.futures import Future
 from typing import Optional
 
 import grpc
-from narupa.core import get_requested_port_or_default, GrpcClient
+from narupa.core import get_requested_port_or_default, NarupaClient
 from narupa.protocol.trajectory import TrajectoryServiceStub, GetFrameRequest
 from narupa.trajectory import FrameData
 from narupa.trajectory.frame_server import DEFAULT_PORT
 
 
-class FrameClient(GrpcClient):
+class FrameClient(NarupaClient):
     def __init__(self, *, address: Optional[str] = None,
                  port: Optional[int] = None):
         port = get_requested_port_or_default(port, DEFAULT_PORT)
