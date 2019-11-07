@@ -111,9 +111,11 @@ class ASEImdServer:
         # starting and hitting the running state.
         return self._run_task is not None and not (self._run_task.cancelled() or self._run_task.done())
 
-    def step(self, args=None):
+    def step(self):
         """
         Take a single step of the simulation and stop.
+
+        This method is called whenever a client runs the step command, described in :mod:narupa.trajectory.frame_server.
         """
         with self._cancel_lock:
             self.cancel_run(wait=True)
@@ -123,6 +125,9 @@ class ASEImdServer:
     def pause(self):
         """
         Pause the simulation, by cancelling any current run.
+
+        This method is called whenever a client runs the pause command,
+        described in :mod:narupa.trajectory.frame_server.
         """
         with self._cancel_lock:
             self.cancel_run(wait=True)
@@ -132,6 +137,10 @@ class ASEImdServer:
         Run the simulation indefinitely
 
         Cancels any current run and then begins running the simulation on a background thread.
+
+        This method is called whenever a client runs the play command,
+        described in :mod:narupa.trajectory.frame_server.
+
         """
         with self._cancel_lock:
             self.cancel_run(wait=True)
@@ -219,6 +228,9 @@ class ASEImdServer:
             Such callbacks also allow to modify the simulation at each reset.
             They would allow, for instance, to draw new velocities, or to
             place molecules differently.
+
+        This method is called whenever a client runs the reset command,
+        described in :mod:narupa.trajectory.frame_server.
 
         """
         self.atoms.set_positions(self._initial_positions)

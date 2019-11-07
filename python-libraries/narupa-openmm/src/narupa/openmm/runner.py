@@ -91,7 +91,7 @@ class Runner:
     @verbose.setter
     def verbose(self, value):
         """
-        Sets the verbosity; attach or detach de verbosity reporter if needed.
+        Sets the verbosity; attach or detach the verbosity reporter if needed.
         """
         if value:
             self.make_verbose()
