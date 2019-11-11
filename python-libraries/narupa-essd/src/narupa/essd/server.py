@@ -70,8 +70,10 @@ class DiscoveryServer:
             raise KeyError(f"A service with the same ID has already been registered: {service}")
         broadcast_addresses = self.get_broadcast_addresses_for_service(service)
         if len(broadcast_addresses) == 0:
-            raise ValueError(f"No valid broadcast address found for service {service}, check network configuration. "
-                             f"The following broadcast addresses were found on the system: {self.broadcast_addresses}")
+            msg = f"No valid broadcast address found for service {service}, check network configuration. "
+            if len(self.broadcast_addresses) > 0:
+                msg += f"The following broadcast addresses were found on the system: {self.broadcast_addresses}"
+            raise ValueError(msg)
         with self._lock:
             self.services[service] = broadcast_addresses
 
