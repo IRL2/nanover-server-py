@@ -26,7 +26,7 @@ class ServiceHub:
     :param: id: The unique ID of the service hub. If not specified, it will be generated.
     :param: essd_version: The version of ESSD this service hub uses. If not specified it will be determined automatically.
     :param: services: Dictionary of service names and their ports. Standard Narupa services include
-    imd, trajectory, multiplayer and builder.
+        imd, trajectory, multiplayer and builder.
 
     Example
     =======
