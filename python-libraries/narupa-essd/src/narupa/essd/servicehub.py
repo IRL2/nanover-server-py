@@ -96,7 +96,7 @@ class ServiceHub:
         The IP address of the service hub.
 
         :return: The IP address of the service hub.
-        :raises: KeyError if name has not been set.
+        :raises KeyError: if name has not been set.
         """
         return self.properties[SERVICE_ADDRESS_KEY]
 
