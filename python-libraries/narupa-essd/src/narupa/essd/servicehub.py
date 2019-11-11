@@ -5,33 +5,13 @@ import json
 from typing import Optional
 from uuid import uuid4
 import narupa.essd
+
 MAXIMUM_MESSAGE_SIZE = 1024
 SERVICE_NAME_KEY = "name"
 SERVICE_ADDRESS_KEY = "address"
 SERVICE_ID_KEY = "id"
 SERVICE_SERVICES_KEY = "services"
 ESSD_VERSION_KEY = "essd_version"
-
-
-def construct_message(payload) -> str:
-    return json.dumps(payload)
-
-
-def validate_field(properties, key):
-    if key not in properties:
-        raise KeyError(f"Service does not contain the required field: {key}")
-
-
-def validate_service(properties):
-    validate_message_length(properties)
-    for field in [SERVICE_NAME_KEY, SERVICE_ADDRESS_KEY]:
-        validate_field(properties, field)
-
-
-def validate_message_length(properties):
-    message = construct_message(properties).encode()
-    if len(message) > MAXIMUM_MESSAGE_SIZE:
-        raise ValueError(f"Service definition exceeds the maximum message size of {MAXIMUM_MESSAGE_SIZE}")
 
 
 class ServiceHub:
@@ -79,7 +59,7 @@ class ServiceHub:
     """
 
     def __init__(self, **properties):
-        validate_service(properties)
+        _validate_service(properties)
         self.properties = properties
         if SERVICE_ID_KEY not in properties:
             self.properties[SERVICE_ID_KEY] = str(uuid4())
@@ -154,7 +134,7 @@ class ServiceHub:
 
         :return: The JSON message representing this service hub.
         """
-        return construct_message(self.properties)
+        return _construct_message(self.properties)
 
     def add_service(self, name, port):
         """
@@ -210,3 +190,22 @@ class ServiceHub:
         return hash(self) == hash(other)
 
 
+def _construct_message(payload) -> str:
+    return json.dumps(payload)
+
+
+def _validate_field(properties, key):
+    if key not in properties:
+        raise KeyError(f"Service does not contain the required field: {key}")
+
+
+def _validate_service(properties):
+    _validate_message_length(properties)
+    for field in [SERVICE_NAME_KEY, SERVICE_ADDRESS_KEY]:
+        _validate_field(properties, field)
+
+
+def _validate_message_length(properties):
+    message = _construct_message(properties).encode()
+    if len(message) > MAXIMUM_MESSAGE_SIZE:
+        raise ValueError(f"Service definition exceeds the maximum message size of {MAXIMUM_MESSAGE_SIZE}")

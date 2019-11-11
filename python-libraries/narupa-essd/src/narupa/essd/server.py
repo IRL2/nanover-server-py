@@ -78,7 +78,7 @@ class DiscoveryServer:
             self.services[service] = broadcast_addresses
 
     @property
-    def broadcasting(self):
+    def is_broadcasting(self):
         return self._broadcast_thread is not None
 
     def start(self):
@@ -89,7 +89,7 @@ class DiscoveryServer:
         self._broadcast_thread.start()
 
     def close(self):
-        if self.broadcasting:
+        if self.is_broadcasting:
             self._cancel = True
             self._broadcast_thread.join()
             self._broadcast_thread = None
