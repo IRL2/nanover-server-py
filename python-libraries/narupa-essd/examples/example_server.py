@@ -4,6 +4,7 @@
 Simple example of running a server and registering service hub.
 """
 import logging
+import time
 
 from narupa.essd.server import DiscoveryServer
 from narupa.essd.servicehub import ServiceHub
@@ -17,6 +18,6 @@ with DiscoveryServer() as server:
     server.register_service(hub)
     try:
         while True:
-            pass
+            time.sleep(0.1)
     except KeyboardInterrupt:
         print("Closing due to keyboard interrupt.")
