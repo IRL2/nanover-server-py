@@ -72,3 +72,15 @@ def test_context_managers(service):
     """
     for i in range(2):
         run_with_server(service)
+
+@pytest.mark.parametrize('utf_str',
+                         ['한국어',
+                          '😀',
+                         ])
+def test_send_utf8(client, server, service, utf_str):
+    service.properties['name'] = service.name + utf_str
+    server.register_service(service)
+    services = client.search_for_services(search_time=0.4, interval=0.001)
+    assert len(services) == 1
+    assert service in services
+

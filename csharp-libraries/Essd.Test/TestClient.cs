@@ -236,5 +236,18 @@ namespace Essd.Test
             var localHostCount = filtered.Where(s => s.Address == "127.0.0.1").Count();
             Assert.AreEqual(1, localHostCount);
         }
+
+        [Test]
+        public async Task TestSendUTF8()
+        {
+            testService.Properties["name"] = testService.Name + "한국어😀";
+            var client = new Client(54554);
+            var server = new SimpleServer(54554);
+            var blockingSearch = Task.Run(() => client.SearchForServices(duration: 500));
+            await server.BroadcastAsync(testService);
+            var services = await blockingSearch;
+            Assert.AreEqual(1, services.Count);
+            Assert.AreEqual(services.First(), testService);
+        }
     }
 }
