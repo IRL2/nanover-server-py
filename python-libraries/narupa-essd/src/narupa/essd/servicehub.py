@@ -132,7 +132,7 @@ class ServiceHub:
         """
         Returns the JSON message that represents this service hub.
 
-        :return: The JSON message representing this service hub.
+        :return: The JSON message representing this service hub, as a string.
         """
         return _construct_message(self.properties)
 
