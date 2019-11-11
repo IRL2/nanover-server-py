@@ -55,7 +55,7 @@ def scene():
     pose = Struct()
     pose["position"] = {"x": 1, "y": 1, "z": 1}
     pose["rotation"] = {"x": 0, "y": 0, "z": 0, "w": 1}
-    pose["scale"] = 2
+    pose["scale"] = 1
     return Value(struct_value=pose)
 
 
