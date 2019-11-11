@@ -86,7 +86,7 @@ class ServiceHub:
         The name of the service hub.
 
         :return: The name of the service hub.
-        :raises: KeyError if name has not been set.
+        :raises KeyError: if name has not been set.
         """
         return self.properties[SERVICE_NAME_KEY]
 
