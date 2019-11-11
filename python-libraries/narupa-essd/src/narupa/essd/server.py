@@ -9,11 +9,9 @@ Example
 =======
 
 >>> discovery_server = DiscoveryServer(broadcast_port=54545)
->>> multiplayer = MultiplayerServer(address='localhost', port=54323)
->>> hub = ServiceHub(name="Example Narupa Service Hub", address=multiplayer.address)
->>> hub.add_service("multiplayer", multiplayer.port)
->>> # hub information will now be broadcast on port 54545
->>> multiplayer.close()
+>>> # assume one has created a multiplayer server.
+>>> hub = ServiceHub(name="Example Narupa Service Hub", address="[::]")
+>>> hub.add_service("multiplayer", 54323)
 >>> discovery_server.close()
 
 """
@@ -24,7 +22,6 @@ from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REU
 from typing import Optional
 
 from narupa.essd.utils import get_broadcast_addresses, is_in_network
-from narupa.multiplayer import MultiplayerServer
 from narupa.essd.servicehub import ServiceHub
 
 BROADCAST_PORT = 54545
