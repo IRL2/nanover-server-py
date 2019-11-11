@@ -56,7 +56,7 @@ class DiscoveryServer:
         self.start()
 
     def log_addresses(self, level=logging.DEBUG):
-        self.logger.log(level, f"ESSD: Able to broadcast on the following IPV4 addresses:")
+        self.logger.log(level, "ESSD: Able to broadcast on the following IPV4 addresses:")
         for address in self.broadcast_addresses:
             self.logger.log(level, f"ESSD:   - {address}")
 
