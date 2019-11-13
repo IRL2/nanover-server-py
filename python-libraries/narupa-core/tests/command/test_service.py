@@ -28,10 +28,11 @@ def test_unregister_command(service):
     mock = Mock()
     service.register_command("test", mock.callback, Struct())
     assert len(service.commands) == 1
-    service.delete_command("test")
+    service.unregister_command("test")
     assert len(service.commands) == 0
+    assert "test" not in service.commands
 
 
 def test_unregister_nonexisting_command(service):
     with pytest.raises(KeyError):
-        service.delete_command("test")
+        service.unregister_command("test")

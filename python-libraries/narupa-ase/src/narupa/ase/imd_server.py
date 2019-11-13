@@ -69,6 +69,7 @@ class ASEImdServer:
         calculator = self.dynamics.atoms.get_calculator()
         self.imd_calculator = ImdCalculator(self.imd_server.service, calculator, dynamics=dynamics)
         self.atoms.set_calculator(self.imd_calculator)
+        self._frame_interval = frame_interval
         self.dynamics.attach(frame_method(self.atoms, self.frame_server), interval=frame_interval)
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._run_task = None
@@ -119,7 +120,7 @@ class ASEImdServer:
         """
         with self._cancel_lock:
             self.cancel_run(wait=True)
-            self.run(1, block=True)
+            self.run(self._frame_interval, block=True)
             self.cancel_run(wait=True)
 
     def pause(self):

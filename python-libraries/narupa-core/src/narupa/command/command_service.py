@@ -48,7 +48,7 @@ class CommandService(CommandServicer):
             default_arguments = Struct()
         self._commands.set(self._id, name, Command(callback, default_arguments))
 
-    def delete_command(self, name):
+    def unregister_command(self, name):
         """
         Deletes a command from this service.
 

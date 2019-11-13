@@ -49,10 +49,10 @@ class NarupaServer(GrpcServer):
         """
         self._command_service.register_command(name, callback, default_arguments)
 
-    def delete_command(self, name):
+    def unregister_command(self, name):
         """
         Deletes a command from this service.
 
         :param name: Name of the command to delete
         """
-        self._command_service.delete_command(name)
+        self._command_service.unregister_command(name)
