@@ -45,7 +45,7 @@ class NarupaServer(GrpcServer):
         :param callback: Method to be called whenever the given command name is run by a client.
         :param default_arguments: A description of the arguments of the callback and their default values.
 
-        :raises: ValueError: Raised when a command with the same name already exists.
+        :raises ValueError: Raised when a command with the same name already exists.
         """
         self._command_service.register_command(name, callback, default_arguments)
 
