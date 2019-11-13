@@ -32,7 +32,7 @@ def test_interval(serialized_simulation_path, test_ports):
 
 
 def test_address(serialized_simulation_path, test_ports):
-    args = [str(serialized_simulation_path), '-a', 'localhost'] + test_ports
+    args = [str(serialized_simulation_path), '-a', 'localhost', '--no-discovery'] + test_ports
     with initialise(args) as runner:
         assert runner.address == 'localhost'
 

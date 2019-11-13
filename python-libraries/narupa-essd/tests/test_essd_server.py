@@ -103,23 +103,17 @@ def test_is_in_network_missing_fields(entry):
         _ = is_in_network('192.168.0.1', entry)
 
 
-def test_resolve_localhost_address():
-    addr = resolve_host_broadcast_address('localhost')
-    assert addr is not None
-    assert 'addr' in addr
-    assert 'broadcast' in addr
-
-
 def test_resolve_address():
     """
     Tests that we can resolve a broadcast address, given a valid address on the network.
     The resolve address function is primarily used with 'localhost', but that
-    does not exist on the CI.
+    does not exist on the CI, so we test what we can. 
     """
     ip = get_broadcastable_ip()
     addr = resolve_host_broadcast_address(ip)
     assert addr is not None
     assert addr['addr'] == ip
+    assert 'broadcast' in addr
 
 
 def test_resolve_invalid_address():
