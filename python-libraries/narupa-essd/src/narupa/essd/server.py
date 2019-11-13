@@ -21,7 +21,7 @@ import time
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
 from typing import Optional
 
-from narupa.essd.utils import get_broadcast_addresses, is_in_network
+from narupa.essd.utils import get_broadcast_addresses, is_in_network, resolve_host_broadcast_address
 from narupa.essd.servicehub import ServiceHub
 
 BROADCAST_PORT = 54545
@@ -34,6 +34,9 @@ def _connect_socket() -> socket:
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     return s
+
+
+
 
 
 class DiscoveryServer:
@@ -127,7 +130,9 @@ class DiscoveryServer:
         if address == "[::]":
             return self.broadcast_addresses
         if address == "localhost":
-            # manually construct an address/broadcast address pair for the localhost shortcut.
-            return [{'addr': '127.0.0.1', 'broadcast': '127.255.255.255'}]
+            localhost_address = resolve_host_broadcast_address(address)
+            if localhost_address is None:
+                raise ValueError("Cannot broadcast on localhost on this system!")
+            return [localhost_address]
         return [broadcast_address for broadcast_address in self.broadcast_addresses
                 if is_in_network(address, broadcast_address)]

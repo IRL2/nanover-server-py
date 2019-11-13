@@ -1,4 +1,5 @@
 import ipaddress
+import socket
 import time
 from typing import List, Optional, Iterable, Dict
 
@@ -48,6 +49,16 @@ def get_broadcast_addresses(interfaces: Optional[Iterable[str]] = None) -> List[
 
     ipv4_addrs = get_ipv4_addresses(interfaces)
     return [address_entry for address_entry in ipv4_addrs if 'broadcast' in address_entry]
+
+
+def resolve_host_broadcast_address(host: str, ipv4_addrs: Dict[str, object] = None):
+    try:
+        address = socket.gethostbyname(host)
+    except socket.error:
+        return None
+    if ipv4_addrs is None:
+        ipv4_addrs = get_ipv4_addresses()
+    return next((item for item in ipv4_addrs if item["addr"] == address and 'broadcast' in item), None)
 
 
 def is_in_network(address: str, interface_address_entry: Dict[str, object]) -> bool:

@@ -1,10 +1,10 @@
 import pytest
 
 from narupa.essd.server import DiscoveryServer
-from narupa.essd.utils import get_ipv4_addresses, get_broadcast_addresses, is_in_network
+from narupa.essd.utils import get_ipv4_addresses, get_broadcast_addresses, is_in_network, resolve_host_broadcast_address
 from narupa.essd.servicehub import ServiceHub
 import netifaces
-from test_service import properties
+from test_service import properties, get_broadcastable_ip
 
 
 @pytest.fixture
@@ -71,7 +71,6 @@ def test_get_broadcast_addresses():
     assert len(broadcast_addresses) > 0
 
 
-
 @pytest.mark.parametrize('address, netmask, broadcast_address, expected_result',
                          [('192.168.1.2', '255.255.0.0', '192.168.255.255', True),
                           ('192.5.1.2', '255.255.0.0', '192.168.255.255', False),
@@ -102,3 +101,27 @@ def test_is_in_network_invalid_addresses(address, netmask, broadcast_address):
 def test_is_in_network_missing_fields(entry):
     with pytest.raises(KeyError):
         _ = is_in_network('192.168.0.1', entry)
+
+
+def test_resolve_localhost_address():
+    addr = resolve_host_broadcast_address('localhost')
+    assert addr is not None
+    assert 'addr' in addr
+    assert 'broadcast' in addr
+
+
+def test_resolve_address():
+    """
+    Tests that we can resolve a broadcast address, given a valid address on the network.
+    The resolve address function is primarily used with 'localhost', but that
+    does not exist on the CI.
+    """
+    ip = get_broadcastable_ip()
+    addr = resolve_host_broadcast_address(ip)
+    assert addr is not None
+    assert addr['addr'] == ip
+
+
+def test_resolve_invalid_address():
+    addr = resolve_host_broadcast_address('blah')
+    assert addr is None
