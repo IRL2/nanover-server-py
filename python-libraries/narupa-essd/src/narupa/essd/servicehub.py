@@ -130,9 +130,9 @@ class ServiceHub:
     @property
     def message(self):
         """
-        Returns the JSON message that represents this service hub.
+        Returns the message that represents this service hub as a JSON string.
 
-        :return: The JSON message representing this service hub, as a string.
+        :return: The message representing this service hub, as a JSON string.
         """
         return _construct_message(self.properties)
 
