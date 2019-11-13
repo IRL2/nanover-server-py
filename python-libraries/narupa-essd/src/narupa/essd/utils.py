@@ -5,7 +5,7 @@ from typing import List
 import netifaces
 
 
-def get_ipv4_addresses(interfaces: List[str] = None):
+def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None):
     """
     Gets all the IPV4 addresses currently available on all the given interfaces.
 
