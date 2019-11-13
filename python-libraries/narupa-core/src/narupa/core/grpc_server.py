@@ -4,6 +4,7 @@
 """
 Module providing a wrapper around the running of GRPC servers.
 """
+import logging
 from concurrent import futures
 from typing import Optional
 
@@ -49,7 +50,8 @@ class GrpcServer:
             if port == 0:
                 raise IOError(f"Could not open any port.")
             raise IOError(f"Could not open on port {port}.")
-        print(f'Running server {self.__class__.__name__} on port {self.port}')
+        self.logger = logging.getLogger(__name__)
+        self.logger.info(f'Running server {self.__class__.__name__} on port {self.port}')
         self.server.start()
 
     @property

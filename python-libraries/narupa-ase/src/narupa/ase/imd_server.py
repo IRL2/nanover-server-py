@@ -90,8 +90,6 @@ class ASEImdServer:
         self.on_reset_listeners = []
 
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f"Running frame server at {address}:{trajectory_port}")
-        self.logger.info(f"Running IMD server at {address}:{imd_port}")
 
     @property
     def internal_calculator(self) -> Calculator:

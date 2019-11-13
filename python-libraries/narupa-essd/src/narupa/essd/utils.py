@@ -1,11 +1,11 @@
 import ipaddress
 import time
-from typing import List
+from typing import List, Optional, Iterable, Dict
 
 import netifaces
 
 
-def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None):
+def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None) -> List[Dict[str, object]]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces.
 
@@ -26,9 +26,10 @@ def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None):
     return ipv4_addrs
 
 
-def get_broadcast_addresses(interfaces: List[str] = None):
+def get_broadcast_addresses(interfaces: Optional[Iterable[str]] = None) -> List[Dict[str, object]]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces that have broadcast addresses.
+
     :param interfaces: Optional list of interfaces to extract addresses from. If none are provided,
         all interfaces will be used.
     :return: A list of dictionaries containing the IP address and other information for each interface,
@@ -49,7 +50,7 @@ def get_broadcast_addresses(interfaces: List[str] = None):
     return [address_entry for address_entry in ipv4_addrs if 'broadcast' in address_entry]
 
 
-def is_in_network(address, interface_address_entry):
+def is_in_network(address: str, interface_address_entry: Dict[str, object]) -> bool:
     """
     An internal mechanism for determining whether a given IP address is part of the same network as a given
     interface network as defined by their IPv4 subnet mask and broadcast address.
@@ -59,8 +60,8 @@ def is_in_network(address, interface_address_entry):
         contain the `netmask` and `broadcast` fields, representing the subnet mask IP and the broadcast IP for the given
         interface
     :return: `True`, if the given address is in the same network as given interface address, `False` otherwise.
-    :raises: ValueError, if invalid IP addresses are given for any field.
-    :raises: KeyError, if the `netmask` and `broadcast` fields are not present in the interface address entry
+    :raises: ValueError: if invalid IP addresses are given for any field.
+    :raises: KeyError: if the `netmask` and `broadcast` fields are not present in the interface address entry
     argument.
     """
     try:

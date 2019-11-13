@@ -24,12 +24,15 @@ class DiscoveryClient:
         if port is None:
             port = BROADCAST_PORT
         self.address = address
-        self.port = port
-        self._connect()
+        self._connect(port)
 
-    def _connect(self):
+    @property
+    def port(self):
+        return self._socket.getsockname()[1]
+
+    def _connect(self, port):
         self._socket = _connect_socket()
-        self._socket.bind((self.address, self.port))
+        self._socket.bind((self.address, port))
 
     def _check_for_messages(self):
         socket_list = [self._socket]

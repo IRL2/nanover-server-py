@@ -2,20 +2,28 @@ import pytest
 
 from narupa.essd import DiscoveryServer
 from narupa.essd.client import DiscoveryClient
+from test_essd_server import service
 from test_service import properties
-from test_essd_server import server, service
 
 from narupa.essd.servicehub import ServiceHub
 
 
 @pytest.fixture
 def client():
-    client = DiscoveryClient()
+    client = DiscoveryClient(port=0)
     yield client
     client.close()
 
 
-def test_send_service(client, server, service):
+@pytest.fixture
+def client_server(client):
+    server = DiscoveryServer(broadcast_port=client.port)
+    yield client, server
+    server.close()
+
+
+def test_send_service(client_server, service):
+    client, server = client_server
     server.register_service(service)
     services = client.search_for_services(search_time=0.4, interval=0.001)
     assert len(services) == 1
@@ -31,8 +39,9 @@ def test_send_service_different_port(service):
             assert service in services
 
 
-def test_send_service_multiple_clients(client, server, service):
-    with DiscoveryClient() as second_client:
+def test_send_service_multiple_clients(client_server, service):
+    client, server = client_server
+    with DiscoveryClient(port=client.port) as second_client:
         server.register_service(service)
         services = client.search_for_services(search_time=0.4, interval=0.001)
         second_services = second_client.search_for_services(search_time=0.4, interval=0.001)
@@ -41,7 +50,8 @@ def test_send_service_multiple_clients(client, server, service):
         assert service in second_services
 
 
-def test_send_service_all_interfaces(client, server, service):
+def test_send_service_all_interfaces(client_server, service):
+    client, server = client_server
     properties = dict(service.properties)
     properties['address'] = '[::]'
     service = ServiceHub(**properties)
@@ -70,7 +80,7 @@ def test_context_managers(service):
     tests that running the server and client with context managers cleans up correctly.
     If discovery servers do not clean up cleanly, future clients will find additional servers.
     """
-    for i in range(2):
+    for port in range(2):
         run_with_server(service)
 
 
@@ -78,7 +88,8 @@ def test_context_managers(service):
                          ['한국어',
                           '😀',
                           ])
-def test_send_utf8(client, server, service, utf_str):
+def test_send_utf8(client_server, service, utf_str):
+    client, server = client_server
     service.properties['name'] = service.name + utf_str
     server.register_service(service)
     services = client.search_for_services(search_time=0.4, interval=0.001)
