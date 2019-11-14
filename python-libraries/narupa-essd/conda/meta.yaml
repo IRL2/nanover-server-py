@@ -17,7 +17,6 @@ requirements:
   run:
     - python >=3.6.0
     - netifaces
-    - narupa-core =={{ NARUPA_BUILD_VERSION }}
 
 about:
   home: https://narupa.readthedocs.io
