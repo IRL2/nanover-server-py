@@ -6,14 +6,15 @@ and can publish interactions.
 """
 import time
 from collections import deque
-from typing import Optional, Sequence, Dict
+from typing import Optional, Sequence, Dict, Iterable
 
+from narupa.app.selection import NarupaImdSelection
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractionEndReply
 from narupa.trajectory import FrameClient, FrameData
 from narupa.imd import ImdClient
 from narupa.multiplayer import MultiplayerClient
-from google.protobuf.struct_pb2 import Value
+from google.protobuf.struct_pb2 import Value, Struct
 
 # Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
@@ -39,6 +40,8 @@ class NarupaClient:
     _imd_client: ImdClient
     _multiplayer_client: MultiplayerClient
     _frames: deque
+
+    _next_selection_id: int = 0
 
     def __init__(self, *,
                  address: Optional[str] = None,
@@ -282,6 +285,34 @@ class NarupaClient:
         :return: `True` if successful, `False` otherwise.
         """
         return self._multiplayer_client.try_set_resource_value(key, value)
+
+    def create_selection(
+            self,
+            name: str,
+            particle_ids: Iterable[int] = set(),
+    ) -> NarupaImdSelection:
+        selection_id = f'selection.{self._multiplayer_client.player_id}.{self._next_selection_id}'
+        self._next_selection_id += 1
+
+        selection = NarupaImdSelection(selection_id, name)
+        selection.select_particles(particle_ids)
+
+        struct = Struct()
+        struct.update(selection.to_selection_message())
+        self.set_shared_value(selection_id, Value(struct_value=struct))
+
+        return selection
+
+    def update_selection(self, selection: NarupaImdSelection):
+        struct = Struct()
+        struct.update(selection.to_selection_message())
+        self.set_shared_value(selection.selection_id, Value(struct_value=struct))
+
+    @property
+    def selections(self) -> Iterable[NarupaImdSelection]:
+        for key, value in self._multiplayer_client.resources.items():
+            if key.startswith('selection.'):
+                yield NarupaImdSelection.from_selection_message(value.struct_value)
 
     def _join_trajectory(self):
         if self.all_frames:
