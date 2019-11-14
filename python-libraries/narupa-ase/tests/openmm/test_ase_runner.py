@@ -162,20 +162,20 @@ def test_walls(basic_simulation, walls, expected_calculator_class, params):
         assert isinstance(runner._md_calculator, expected_calculator_class)
 
 
-def test_no_constraint_no_warning(basic_simulation):
+def test_no_constraint_no_warning(basic_simulation, params):
     """
     Test that a system without constraints does not cause a constraint warning
     to be logged.
     """
     handler = ListLogHandler()
 
-    with OpenMMIMDRunner(basic_simulation) as runner:
+    with OpenMMIMDRunner(basic_simulation, params) as runner:
         runner.logger.addHandler(handler)
         runner._validate_simulation()
         assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 0
 
 
-def test_constraint_warning(basic_simulation):
+def test_constraint_warning(basic_simulation, params):
     """
     Test that a system with constraints causes a constraint warning to be
     logged.
@@ -183,7 +183,7 @@ def test_constraint_warning(basic_simulation):
     handler = ListLogHandler()
     basic_simulation.system.addConstraint(0, 1, 1)
 
-    with OpenMMIMDRunner(basic_simulation) as runner:
+    with OpenMMIMDRunner(basic_simulation, params) as runner:
         runner.logger.addHandler(handler)
         runner._validate_simulation()
         assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 1
