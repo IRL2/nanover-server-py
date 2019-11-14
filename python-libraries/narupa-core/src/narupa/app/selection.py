@@ -29,12 +29,14 @@ class NarupaImdSelection:
             'method',
         )
         selection.velocity_reset = get_nested_or_default(
+            message,
             False,
             'properties',
             'narupa.interaction',
             'velocity.reset',
         )
         selection.rendering_renderer = get_nested_or_default(
+            message,
             RENDERER_LIQUORICE,
             'properties',
             'narupa.rendering',
@@ -81,6 +83,6 @@ def get_nested_or_default(dict: Dict, default, *layers: Iterable[str]):
     for layer in layers:
         try:
             dict = dict[layer]
-        except (ValueError, TypeError):  # GRPC raises these
+        except KeyError:
             return default
     return dict

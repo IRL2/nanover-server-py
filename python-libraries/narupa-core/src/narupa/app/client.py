@@ -8,6 +8,7 @@ import time
 from collections import deque
 from typing import Optional, Sequence, Dict, Iterable
 
+from google.protobuf.json_format import MessageToDict
 from narupa.app.selection import NarupaImdSelection
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractionEndReply
@@ -312,7 +313,8 @@ class NarupaClient:
     def selections(self) -> Iterable[NarupaImdSelection]:
         for key, value in self._multiplayer_client.resources.items():
             if key.startswith('selection.'):
-                yield NarupaImdSelection.from_selection_message(value.struct_value)
+                message = MessageToDict(value.struct_value)
+                yield NarupaImdSelection.from_selection_message(message)
 
     def _join_trajectory(self):
         if self.all_frames:
