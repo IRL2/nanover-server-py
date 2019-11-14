@@ -4,7 +4,7 @@ from typing import Callable, Optional, Dict
 
 from google.protobuf.struct_pb2 import Struct
 
-from narupa.command import CommandService, Command
+from narupa.core.command_service import CommandService, CommandRegistration
 from narupa.core import GrpcServer
 from narupa.core.grpc_server import DEFAULT_MAX_WORKERS
 from narupa.protocol.command import add_CommandServicer_to_server
@@ -28,7 +28,7 @@ class NarupaServer(GrpcServer):
         add_CommandServicer_to_server(self._command_service, self.server)
 
     @property
-    def commands(self) -> Dict[str, Command]:
+    def commands(self) -> Dict[str, CommandRegistration]:
         """
         Gets the commands available on this server.
 

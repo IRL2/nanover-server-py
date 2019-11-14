@@ -12,3 +12,4 @@ from .grpc_server import (
 from .grpc_client import GrpcClient
 from .narupa_client import NarupaClient
 from .narupa_server import NarupaServer
+from .command_info import CommandInfo

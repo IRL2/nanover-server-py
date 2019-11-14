@@ -16,14 +16,25 @@ def client_server():
             yield c, s
 
 
-def test_get_commands(client_server):
+@pytest.fixture
+def default_args():
+    return {'a': 2, 'b': [1, 3, 4], 'c': True}
+
+
+@pytest.fixture
+def mock_callback(default_args):
+    return Mock(return_value=default_args)
+
+
+def test_get_commands(client_server, default_args):
     client, server = client_server
     mock = Mock()
-    server.register_command("test", mock.callback, Struct())
+    server.register_command("test", mock.callback, default_args)
 
-    commands = client.get_commands_blocking()
+    commands = client.get_commands()
     assert len(commands) == 1
     assert commands[0].name == "test"
+    assert commands[0].arguments == default_args
 
 
 def test_get_multiple_commands(client_server):
@@ -35,57 +46,61 @@ def test_get_multiple_commands(client_server):
         expected_names.add(name)
         server.register_command(name, mock.callback, Struct())
 
-    commands = client.get_commands_blocking()
+    commands = client.get_commands()
     assert len(commands) == 10
     assert set([command.name for command in commands]) == expected_names
-    assert all(command.arguments == Struct() for command in commands)
+    assert all(command.arguments == {} for command in commands)
 
 
 def test_get_command_with_argument(client_server):
     client, server = client_server
     mock = Mock()
-    arguments = Struct()
-    arguments['x'] = 1
-    arguments['y'] = 2
+    arguments = {'x': 1, 'y': 2}
     server.register_command("test", mock.callback, arguments)
-    commands = client.get_commands_blocking()
+    commands = client.get_commands()
     assert commands[0].arguments == arguments
 
 
-def test_run_command(client_server):
+def test_run_command(client_server, mock_callback):
     client, server = client_server
-    mock = Mock()
-    server.register_command("test", mock.callback, Struct())
-    client.run_command("test", Struct())
+    server.register_command("test", mock_callback)
+    results = client.run_command("test", **{})
     time.sleep(0.1)
-    assert mock.callback.call_count == 1
+    mock_callback.assert_called_once()
+    assert results == mock_callback()
 
 
-def test_run_no_args(client_server):
+def test_run_no_args(client_server, mock_callback):
     client, server = client_server
-    mock = Mock()
-    server.register_command("test", mock.callback)
+    server.register_command("test", mock_callback)
     client.run_command("test")
     time.sleep(0.1)
-    assert mock.callback.call_count == 1
+    mock_callback.assert_called_once()
 
 
 def test_run_command_with_args(client_server):
-    def sqr(struct: Struct) -> Struct:
-        x = struct['x']
-        result = Struct()
-        result['y'] = x * x
+    def sqr(x=2):
+        result = {'y': x * x}
         return result
 
     client, server = client_server
-    example_params = Struct()
-    example_params['x'] = 2
+    example_params = {'x': 2}
     server.register_command("sqr", sqr, example_params)
-    reply = client.run_command("sqr", example_params)
-    assert reply.result['y'] == 4
+    reply = client.run_command("sqr", **example_params)
+    assert reply == {'y': 4}
+
+
+def test_run_command_with_no_result(client_server):
+    def method():
+        pass
+
+    client, server = client_server
+    server.register_command("test", method)
+    reply = client.run_command("test")
+    assert reply == {}
 
 
 def test_unknown_command(client_server):
     client, server = client_server
     with pytest.raises(RpcError):
-        client.run_command("unknown", Struct())
+        client.run_command("unknown")
