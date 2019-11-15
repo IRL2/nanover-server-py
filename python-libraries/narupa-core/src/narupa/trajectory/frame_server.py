@@ -8,6 +8,11 @@ from .frame_publisher import FramePublisher
 
 DEFAULT_PORT = 54321
 
+PLAY_COMMAND_KEY = "playback/play"
+RESET_COMMAND_KEY = "playback/reset"
+STEP_COMMAND_KEY = "playback/step"
+PAUSE_COMMAND_KEY = "playback/pause"
+
 
 class FrameServer(NarupaServer):
     _trajectory_service: FramePublisher
@@ -38,9 +43,3 @@ class FrameServer(NarupaServer):
         Counts how many times send_frame has been called on this publisher.
         """
         return self._frame_count
-
-
-PLAY_COMMAND_KEY = "playback/play"
-RESET_COMMAND_KEY = "playback/reset"
-STEP_COMMAND_KEY = "playback/step"
-PAUSE_COMMAND_KEY = "playback/pause"
