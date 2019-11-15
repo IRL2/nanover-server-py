@@ -205,6 +205,7 @@ def test_discovery_with_client(basic_simulation, params):
             assert len(services) == 1
             for service in services:
                 assert service in runner.discovery_server.services
+                assert service.name == runner.imd.name
                 assert service.services['imd'] == runner.imd.imd_server.port
                 assert service.services['trajectory'] == runner.imd.frame_server.port
                 assert service.services['multiplayer'] == runner.multiplayer.port

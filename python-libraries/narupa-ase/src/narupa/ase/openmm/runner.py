@@ -18,9 +18,12 @@ from narupa.ase.wall_calculator import VelocityWallCalculator
 from narupa.ase.openmm.calculator import OpenMMCalculator
 from narupa.essd import DiscoveryServer
 from narupa.essd.servicehub import ServiceHub
+from narupa.imd.imd_service import IMD_SERVICE_NAME
 from narupa.multiplayer import MultiplayerServer
+from narupa.multiplayer.multiplayer_service import MULTIPLAYER_SERVICE_NAME
 from narupa.openmm import openmm_to_frame_data, serializer
 from narupa.core import get_requested_port_or_default
+from narupa.trajectory.frame_publisher import TRAJECTORY_SERVICE_NAME
 from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
 from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT as MULTIPLAYER_DEFAULT_PORT
@@ -326,7 +329,7 @@ class OpenMMIMDRunner:
 
     def _register_services(self, server_name):
         hub = ServiceHub(name=server_name, address=self.imd.frame_server.address)
-        hub.add_service(name="imd", port=self.imd.imd_server.port)
-        hub.add_service(name="trajectory", port=self.imd.frame_server.port)
-        hub.add_service(name="multiplayer", port=self.multiplayer.port)
+        hub.add_service(name=IMD_SERVICE_NAME, port=self.imd.imd_server.port)
+        hub.add_service(name=TRAJECTORY_SERVICE_NAME, port=self.imd.frame_server.port)
+        hub.add_service(name=MULTIPLAYER_SERVICE_NAME, port=self.multiplayer.port)
         self.discovery_server.register_service(hub)
