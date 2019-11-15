@@ -206,14 +206,14 @@ class OpenMMIMDRunner:
     @property
     def running_discovery(self):
         try:
-            return self.imd.discovery_server is not None
+            return self.discovery_server is not None
         except AttributeError:
             return False
 
     @property
     def discovery_port(self):
         try:
-            return self.imd.discovery_server.port
+            return self.discovery_server.port
         except AttributeError:
             raise AttributeError("Discovery service not running")
 
