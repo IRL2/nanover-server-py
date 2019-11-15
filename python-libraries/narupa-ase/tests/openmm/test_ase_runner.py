@@ -6,6 +6,7 @@ import pytest
 from ase import units
 from narupa.ase.openmm import OpenMMIMDRunner
 from narupa.ase.openmm.runner import ImdParams, CONSTRAINTS_UNSUPPORTED_MESSAGE
+from narupa.essd import DiscoveryClient
 from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
 from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT as MULTIPLAYER_DEFAULT_PORT
@@ -187,3 +188,23 @@ def test_constraint_warning(basic_simulation, params):
         runner.logger.addHandler(handler)
         runner._validate_simulation()
         assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 1
+
+
+def test_discovery(basic_simulation, params):
+    with OpenMMIMDRunner(basic_simulation, params) as runner:
+        assert runner.discovery_server is not None
+        assert len(runner.discovery_server.services) == 1
+
+
+def test_discovery_with_client(basic_simulation, params):
+    with OpenMMIMDRunner(basic_simulation, params) as runner:
+        assert runner.discovery_server is not None
+        assert len(runner.discovery_server.services) == 1
+        with DiscoveryClient() as client:
+            services = client.search_for_services(search_time=0.3, interval=0.01)
+            assert len(services) == 1
+            for service in services:
+                assert service in runner.discovery_server.services
+                assert service.services['imd'] == runner.imd.imd_server.port
+                assert service.services['trajectory'] == runner.imd.frame_server.port
+                assert service.services['multiplayer'] == runner.multiplayer.port

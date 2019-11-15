@@ -16,6 +16,8 @@ from narupa.ase.converter import add_ase_positions_to_frame_data
 from narupa.ase.imd_server import ASEImdServer
 from narupa.ase.wall_calculator import VelocityWallCalculator
 from narupa.ase.openmm.calculator import OpenMMCalculator
+from narupa.essd import DiscoveryServer
+from narupa.essd.servicehub import ServiceHub
 from narupa.multiplayer import MultiplayerServer
 from narupa.openmm import openmm_to_frame_data, serializer
 from narupa.core import get_requested_port_or_default
@@ -245,6 +247,9 @@ class OpenMMIMDRunner:
         Closes the connection and stops the dynamics.
         """
         self.imd.close()
+        self.multiplayer.close()
+        if self.discovery_server is not None:
+            self.discovery_server.close()
 
     def _initialise_server(self, dynamics,
                            trajectory_port=None,
@@ -261,14 +266,21 @@ class OpenMMIMDRunner:
                                 frame_interval=self.frame_interval,
                                 trajectory_port=trajectory_port,
                                 imd_port=imd_port,
-                                name=name,
-                                run_discovery=run_discovery,
-                                discovery_port=discovery_port
+                                name=name
                                 )
+
         if run_multiplayer:
             self.multiplayer = MultiplayerServer(address=self.address, port=multiplayer_port)
         else:
             self.multiplayer = None
+
+        if run_discovery:
+            self.discovery_server = DiscoveryServer(discovery_port)
+            self._register_services(name)
+        else:
+            self.discovery_server = None
+
+
 
     def _initialise_calculator(self, simulation, walls=False):
         self._openmm_calculator = OpenMMCalculator(simulation)
@@ -311,3 +323,10 @@ class OpenMMIMDRunner:
 
     def __exit__(self, type, value, traceback):
         self.close()
+
+    def _register_services(self, server_name):
+        hub = ServiceHub(name=server_name, address=self.imd.frame_server.address)
+        hub.add_service(name="imd", port=self.imd.imd_server.port)
+        hub.add_service(name="trajectory", port=self.imd.frame_server.port)
+        hub.add_service(name="multiplayer", port=self.multiplayer.port)
+        self.discovery_server.register_service(hub)

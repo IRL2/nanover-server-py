@@ -34,9 +34,6 @@ class ASEImdServer:
     :param frame_interval: Interval, in steps, at which to publish frames.
     :param frame_method: Method to use to generate frames, given the the ASE :class:`Atoms`
         and a :class:`FrameServer`. The signature of the callback is expected to be ``frame_method(ase_atoms, frame_server)``.
-    :param run_discovery: Whether to run a :class:`DiscoveryServer` that will enable this server to be discovered on the
-    local area network.
-    :param discovery_port: Port on which to run the discovery server, if running.
 
 
     Example
@@ -62,19 +59,12 @@ class ASEImdServer:
                  trajectory_port: Optional[int] = None,
                  imd_port: Optional[int] = None,
                  name: Optional[str] = "Narupa ASE Server",
-                 run_discovery: Optional[bool] = True,
-                 discovery_port: Optional[int] = None,
                  ):
         if frame_method is None:
             frame_method = send_ase_frame
         self.frame_server = FrameServer(address=address, port=trajectory_port)
         self.imd_server = ImdServer(address=address, port=imd_port)
         self.name = name
-        if run_discovery:
-            self.discovery_server = DiscoveryServer(discovery_port)
-            self._register_services(name)
-        else:
-            self.discovery_server = None
         self.dynamics = dynamics
         calculator = self.dynamics.atoms.get_calculator()
         self.imd_calculator = ImdCalculator(self.imd_server.service, calculator, dynamics=dynamics)
@@ -202,8 +192,6 @@ class ASEImdServer:
         the IMD and frame servers.
         """
         self.cancel_run()
-        if self.discovery_server is not None:
-            self.discovery_server.close()
         self.imd_server.close()
         self.frame_server.close()
 
@@ -213,8 +201,3 @@ class ASEImdServer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def _register_services(self, server_name):
-        hub = ServiceHub(name=server_name, address=self.frame_server.address)
-        hub.add_service(name="imd", port=self.imd_server.port)
-        hub.add_service(name="trajectory", port=self.frame_server.port)
-        self.discovery_server.register_service(hub)

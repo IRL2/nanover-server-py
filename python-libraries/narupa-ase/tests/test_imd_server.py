@@ -201,19 +201,3 @@ def test_cancel_run(arbitrary_ase_server):
     assert not arbitrary_ase_server._cancelled
     arbitrary_ase_server.cancel_run(wait=False)
     assert arbitrary_ase_server._cancelled
-
-
-def test_discovery(arbitrary_ase_server):
-    assert arbitrary_ase_server.discovery_server is not None
-    assert len(arbitrary_ase_server.discovery_server.services) == 1
-
-
-def test_discovery_with_client(arbitrary_ase_server):
-    with DiscoveryClient() as client:
-        services = client.search_for_services(search_time=0.3, interval=0.01)
-        assert len(services) == 1
-        for service in services:
-            assert service in arbitrary_ase_server.discovery_server.services
-            assert service.services['imd'] == arbitrary_ase_server.imd_server.port
-            assert service.services['trajectory'] == arbitrary_ase_server.frame_server.port
-
