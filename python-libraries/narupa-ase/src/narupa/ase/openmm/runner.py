@@ -250,7 +250,8 @@ class OpenMMIMDRunner:
         Closes the connection and stops the dynamics.
         """
         self.imd.close()
-        self.multiplayer.close()
+        if self.multiplayer is not None:
+            self.multiplayer.close()
         if self.discovery_server is not None:
             self.discovery_server.close()
 
@@ -331,5 +332,6 @@ class OpenMMIMDRunner:
         hub = ServiceHub(name=server_name, address=self.imd.frame_server.address)
         hub.add_service(name=IMD_SERVICE_NAME, port=self.imd.imd_server.port)
         hub.add_service(name=TRAJECTORY_SERVICE_NAME, port=self.imd.frame_server.port)
-        hub.add_service(name=MULTIPLAYER_SERVICE_NAME, port=self.multiplayer.port)
+        if self.multiplayer is not None:
+            hub.add_service(name=MULTIPLAYER_SERVICE_NAME, port=self.multiplayer.port)
         self.discovery_server.register_service(hub)

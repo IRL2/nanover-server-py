@@ -190,6 +190,12 @@ def test_constraint_warning(basic_simulation, params):
         assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 1
 
 
+def test_no_multiplayer(basic_simulation, params):
+    params.multiplayer = False
+    with OpenMMIMDRunner(basic_simulation, params) as runner:
+        assert runner.multiplayer is None
+
+
 def test_discovery(basic_simulation, params):
     with OpenMMIMDRunner(basic_simulation, params) as runner:
         assert runner.discovery_server is not None
