@@ -49,11 +49,12 @@ class CommandService(CommandServicer):
 
         :raises ValueError: Raised when a command with the same name already exists.
         """
-        if self._commands.get(name) is not None:
-            raise ValueError(f"Command with name {name} has already been registered.")
         if default_arguments is None:
             default_arguments = {}
-        self._commands.set(self._id, name, CommandRegistration(CommandInfo(name, **default_arguments), callback))
+        try:
+            self._commands.set_no_replace(name, CommandRegistration(CommandInfo(name, **default_arguments), callback))
+        except KeyError:
+            raise ValueError(f"Command with name {name} has already been registered.")
 
     def unregister_command(self, name):
         """
