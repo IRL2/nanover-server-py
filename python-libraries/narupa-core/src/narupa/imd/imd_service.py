@@ -9,7 +9,7 @@ from typing import Iterable, List, Dict, Tuple, Callable
 import grpc
 
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply
+from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply, SubscribeInteractionsRequest
 
 
 class ImdService(InteractiveMolecularDynamicsServicer):
@@ -74,6 +74,19 @@ class ImdService(InteractiveMolecularDynamicsServicer):
                 for key in interactions_in_request:
                     del self._interactions[key]
         return InteractionEndReply()
+
+    def SubscribeInteractions(self, request: SubscribeInteractionsRequest, context):
+        """
+        Provides a stream of updates to interactions.
+        """
+        interval = request.update_interval
+        with self._avatars.create_view() as change_buffer:
+            if not context.add_callback(lambda: change_buffer.freeze()):
+                return
+            for changes in change_buffer.subscribe_changes(interval):
+                for player_id, avatar in changes.items():
+                    if player_id != request.ignore_player_id:
+                        yield avatar
 
     @property
     def active_interactions(self) -> Dict[Tuple[str, str], ParticleInteraction]:
