@@ -1,7 +1,7 @@
 image: intangiblerealitieslab/dotnet-conda
 stages:
-  - packaging
-  - test
+  - stage1
+  - stage2
   - deploy
 
 release:
@@ -22,8 +22,8 @@ trigger_docs_build:
   script:
     - "curl -X POST -F token=6ebebef71969e5dd996b5df299bb22 -F ref=master https://gitlab.com/api/v4/projects/11677300/trigger/pipeline"
 
-debug:
-  stage: test
+test_python:
+  stage: stage2
   script:
     - conda install -c omnia -c conda-forge -c ./conda-bld narupa-server
     - python -m pip install -r python-libraries/requirements.test
@@ -35,15 +35,16 @@ debug:
       - csharp-libraries/Narupa.Protocol/bin/Release
 
 test_dotnet:
-  stage: test
+  stage: stage1
   variables:
     test_path: "csharp-libraries"
   script:
+    - ./compile
     - "cd $test_path"
     - "dotnet test"
 
 build_conda:
-    stage: packaging
+    stage: stage1
     variables:
         build_command: "conda build --prefix-length=100 "
     script:
