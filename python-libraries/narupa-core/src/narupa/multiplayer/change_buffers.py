@@ -7,12 +7,12 @@ shared key/value store between multiple clients.
 from __future__ import annotations
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Dict, ContextManager, Tuple, Iterator
+from typing import Any, Set, Dict, ContextManager, Tuple, Iterator, Iterable
 
 from narupa.core.timing import yield_interval
 
 KeyUpdates = Dict[str, Any]
-KeyRemovals = Set[str]
+KeyRemovals = Iterable[str]
 DictionaryChange = Tuple[KeyUpdates, KeyRemovals]
 
 
@@ -73,7 +73,11 @@ class DictionaryChangeMultiView:
         with self.create_view() as view:
             yield from view.subscribe_changes(interval)
 
-    def update(self, updates: KeyUpdates, removals: KeyRemovals = frozenset()):
+    def update(
+            self,
+            updates: KeyUpdates = {},
+            removals: KeyRemovals = frozenset(),
+    ):
         """
         Updates the shared dictionary with key values pairs from :updates:.
         """
@@ -106,15 +110,15 @@ class DictionaryChangeBuffer:
     _frozen: bool
     _lock: Lock
     _any_changes: Condition
-    _changes: Dict[str, Any]
-    _removals: Set[str]
+    _pending_changes: Dict[str, Any]
+    _pending_removals: Set[str]
 
     def __init__(self):
         self._frozen = False
         self._lock = Lock()
         self._any_changes = Condition(self._lock)
-        self._changes = {}
-        self._removals = set()
+        self._pending_changes = {}
+        self._pending_removals = set()
 
     def freeze(self):
         """
@@ -128,7 +132,11 @@ class DictionaryChangeBuffer:
             self._frozen = True
             self._any_changes.notify()
 
-    def update(self, updates: KeyUpdates, removals: KeyRemovals = frozenset()):
+    def update(
+            self,
+            updates: KeyUpdates = {},
+            removals: KeyRemovals = frozenset(),
+    ):
         """
         Update the known changes from a dictionary of keys that have changed
         to their new values.
@@ -136,8 +144,15 @@ class DictionaryChangeBuffer:
         with self._lock:
             if self._frozen:
                 raise ObjectFrozenException()
-            self._changes.update(updates)
-            self._removals.update(removals)
+
+            # pending key deletions with new values are no longer removed
+            for key in updates:
+                self._pending_removals.discard(key)
+            # pending changes for deleted keys don't matter
+            for key in removals:
+                self._pending_changes.pop(key, None)
+            self._pending_changes.update(updates)
+            self._pending_removals.update(removals)
             self._any_changes.notify()
 
     def flush_changed_blocking(self) -> DictionaryChange:
@@ -146,14 +161,12 @@ class DictionaryChangeBuffer:
         tracked changes.
         """
         with self._any_changes:
-            while not self._changes and not self._removals:
+            while not self._pending_changes and not self._pending_removals:
                 if self._frozen:
                     raise ObjectFrozenException()
                 self._any_changes.wait()
-            changes = self._changes
-            removals = self._removals
-            self._changes = dict()
-            self._removals = set()
+            changes, removals = self._pending_changes, self._pending_removals
+            self._pending_changes, self._pending_removals = dict(), set()
             return changes, removals
 
     def subscribe_changes(self, interval: float = 0) \

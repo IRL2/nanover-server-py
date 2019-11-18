@@ -14,7 +14,7 @@ from narupa.multiplayer.key_lockable_map import KeyLockableMap, ResourceLockedEx
 from narupa.protocol.multiplayer.multiplayer_pb2 import StreamEndedResponse, Avatar, ResourceRequestResponse, SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse, SubscribePlayerAvatarsRequest, ResourceValuesUpdate
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
 
-MULTIPLAYER_SERVICE_NAME="multiplayer"
+MULTIPLAYER_SERVICE_NAME = "multiplayer"
 
 class MultiplayerService(MultiplayerServicer):
     """
