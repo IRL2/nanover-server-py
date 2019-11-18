@@ -45,3 +45,14 @@ message ParticleInteraction {
     /* A map representing additional properties of the interaction. */
     google.protobuf.Struct properties = 5;
 }
+
+message InteractionsUpdate {
+    // Set of latest interactions for interactions that changed after the last
+    // update.
+    // Note: this is not a map because interaction_id is part of the
+    // ParticleInteraction.
+    repeated ParticleInteraction updated_interactions = 1;
+
+    // Set of interaction_ids for interactions that ended after the last update
+    repeated string removals = 2;
+}

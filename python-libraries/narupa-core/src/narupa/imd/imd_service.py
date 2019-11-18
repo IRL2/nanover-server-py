@@ -9,6 +9,7 @@ from typing import Iterable, List, Dict, Tuple, Callable
 import grpc
 
 from narupa.imd.particle_interaction import ParticleInteraction
+from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
 from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply, SubscribeInteractionsRequest
 
 
@@ -80,7 +81,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         Provides a stream of updates to interactions.
         """
         interval = request.update_interval
-        with self._avatars.create_view() as change_buffer:
+        with self._interactions.create_view() as change_buffer:
             if not context.add_callback(lambda: change_buffer.freeze()):
                 return
             for changes in change_buffer.subscribe_changes(interval):

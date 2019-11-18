@@ -117,3 +117,11 @@ def test_queue_generator_threaded():
 
     result = future.result(timeout=0.01)
     assert result == items
+
+
+def test_subscribe_interactions(imd_server_client):
+    """
+    Test that IMD interactions can be subscribed.
+    """
+    imd_server, imd_client = imd_server_client
+    imd_client.subscribe_interactions()

@@ -5,14 +5,15 @@ import time
 from concurrent import futures
 from concurrent.futures import Future
 from queue import Queue
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Dict
 
 import grpc
 from narupa.core import get_requested_port_or_default, DEFAULT_CONNECT_ADDRESS, \
     GrpcClient
 from narupa.imd.imd_server import DEFAULT_PORT
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.protocol.imd import InteractiveMolecularDynamicsStub, InteractionEndReply
+from narupa.protocol.imd import InteractiveMolecularDynamicsStub, \
+    InteractionEndReply, SubscribeInteractionsRequest, InteractionsUpdate
 
 
 def queue_generator(queue: Queue, sentinel: object):
@@ -57,11 +58,15 @@ class ImdClient(GrpcClient):
     :param address: Address of the IMD server to connect to.
     :param port: The port of the IMD server to connect to.
     """
+    stub: InteractiveMolecularDynamicsStub
+    interactions: Dict[str, ParticleInteraction]
+
     def __init__(self, *, address: Optional[str] = None,
                  port: Optional[int] = None):
         port = get_requested_port_or_default(port, DEFAULT_PORT)
         super().__init__(address=address, port=port,
                          stub=InteractiveMolecularDynamicsStub)
+        self.interactions = {}
         self._active_interactions = {}
         self._logger = logging.getLogger(__name__)
 
@@ -141,6 +146,23 @@ class ImdClient(GrpcClient):
         """
         for interaction_id in list(self._active_interactions.keys()):
             self.stop_interaction(interaction_id)
+
+    def subscribe_interactions(self, interval=0):
+        """
+        Begin receiving updates known interactions.
+
+        :param interval: Minimum time (in seconds) between receiving new updates
+            for interaction changes.
+        """
+        request = SubscribeInteractionsRequest(update_interval=interval)
+        self.threads.submit(self._subscribe_interactions, request)
+
+    def _subscribe_interactions(self, request: SubscribeInteractionsRequest):
+        for update in self.stub.SubscribeInteractions(request):
+            for interaction_id in update.removals:
+                removed = self.interactions.pop(interaction_id, None)
+            for interaction in update.interaction_updates:
+                self.interactions[interaction.interaction_id] = interaction
 
     def close(self):
         """
