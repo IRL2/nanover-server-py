@@ -73,15 +73,13 @@ class DictionaryChangeMultiView:
         with self.create_view() as view:
             yield from view.subscribe_changes(interval)
 
-    def update(
-            self,
-            updates: KeyUpdates = {},
-            removals: KeyRemovals = frozenset(),
-    ):
+    def update(self, updates: KeyUpdates = None, removals: KeyRemovals = None):
         """
         Updates the shared dictionary with key values pairs from :updates: and
         key removals from :removals:.
         """
+        updates = updates or {}
+        removals = removals or set()
         with self._lock:
             if self._frozen:
                 raise ObjectFrozenException()
@@ -133,15 +131,13 @@ class DictionaryChangeBuffer:
             self._frozen = True
             self._any_changes.notify()
 
-    def update(
-            self,
-            updates: KeyUpdates = {},
-            removals: KeyRemovals = frozenset(),
-    ):
+    def update(self, updates: KeyUpdates = None, removals: KeyRemovals = None):
         """
         Update the known changes from a dictionary of keys that have changed
         to their new values or have been removed.
         """
+        updates = updates or {}
+        removals = removals or set()
         with self._lock:
             if self._frozen:
                 raise ObjectFrozenException()
