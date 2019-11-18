@@ -7,13 +7,17 @@ shared key/value store between multiple clients.
 from __future__ import annotations
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Dict, ContextManager, Tuple, Iterator, Iterable
+from typing import Any, Set, Dict, ContextManager, Iterator, Iterable, NamedTuple
 
 from narupa.core.timing import yield_interval
 
 KeyUpdates = Dict[str, Any]
 KeyRemovals = Iterable[str]
-DictionaryChange = Tuple[KeyUpdates, KeyRemovals]
+
+
+class DictionaryChange(NamedTuple):
+    updates: KeyUpdates
+    removals: KeyRemovals
 
 
 class ObjectFrozenException(Exception):
