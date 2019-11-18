@@ -22,6 +22,11 @@ def client_server(client):
     server.close()
 
 
+@pytest.mark.timeout(0.4)
+def test_client_timeout(client):
+    services = client.search_for_services(search_time=0.2)
+    assert not services
+
 def test_send_service(client_server, service):
     client, server = client_server
     server.register_service(service)

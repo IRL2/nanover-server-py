@@ -34,9 +34,9 @@ class DiscoveryClient:
         self._socket = _connect_socket()
         self._socket.bind((self.address, port))
 
-    def _check_for_messages(self):
+    def _check_for_messages(self, timeout):
         socket_list = [self._socket]
-        readable, _, exceptional = select.select(socket_list, [], socket_list)
+        readable, _, exceptional = select.select(socket_list, [], socket_list, timeout)
         if len(exceptional) > 0:
             raise ConnectionError("Exception on socket while checking for messages.")
         return len(readable) > 0
@@ -57,11 +57,10 @@ class DiscoveryClient:
         still exist by the end of the search.
 
         """
-        total_time = 0
         services = set()
         deadline = time.monotonic() + search_time
         while time.monotonic() <= deadline:
-            if self._check_for_messages():
+            if self._check_for_messages(timeout=min(search_time, interval)):
                 service = self._receive_service()
                 if service is not None:
                     services.add(service)
