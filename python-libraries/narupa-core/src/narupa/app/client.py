@@ -16,6 +16,8 @@ from narupa.multiplayer import MultiplayerClient
 from google.protobuf.struct_pb2 import Value
 
 # Default to a low framerate to avoid build up in the frame stream
+from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY
+
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
 
 
@@ -264,6 +266,60 @@ class NarupaImdClient:
         if self._imd_client is None:
             raise ValueError("Client started without IMD, cannot stop an interaction!")
         return self._imd_client.stop_interaction(interaction_id)
+
+    def run_play(self):
+        """
+        Sends a request to start playing the trajectory to the trajectory service.
+        """
+        if self._frame_client is None:
+            raise ValueError("Cannot request server to play without a valid connection.")
+        self._frame_client.run_command(PLAY_COMMAND_KEY)
+
+    def run_step(self):
+        """
+        Sends a request to take one step to the trajectory service.
+        """
+        if self._frame_client is None:
+            raise ValueError("Cannot request server to step without a valid connection.")
+        self._frame_client.run_command(STEP_COMMAND_KEY)
+
+    def run_pause(self):
+        """
+        Sends a request to pause the simulation to the trajectory service.
+        """
+        if self._frame_client is None:
+            raise ValueError("Cannot request server to pause without a valid connection.")
+        self._frame_client.run_command(PAUSE_COMMAND_KEY)
+
+    def run_reset(self):
+        """
+        Sends a request to reset the simulation to the trajectory service.
+        """
+        if self._frame_client is None:
+            raise ValueError("Cannot request server to reset without a valid connection.")
+        self._frame_client.run_command(RESET_COMMAND_KEY)
+
+    def run_trajectory_command(self, name:str, **args) -> Dict[str,object]:
+        """
+        Runs a command on the trajectory service.
+
+        :param name: Name of the command to run
+        :param args: Dictionary of arguments to run with the command.
+        :return:
+        """
+        if self._frame_client is None:
+            raise ValueError("Cannot request to trajectory service without a valid connection.")
+        return self._frame_client.run_command(name, **args)
+
+    def run_imd_command(self, name: str, **args) -> Dict[str, object]:
+        if self._imd_client is None:
+            raise ValueError("Cannot request to iMD service without a valid connection.")
+        return self._imd_client.run_command(name, **args)
+
+    def run_multiplayer_command(self, name: str, **args):
+        if self._multiplayer_client is None:
+            raise ValueError("Cannot request to multiplayer service without a valid connection.")
+        return self._multiplayer_client.run_command(name, **args)
 
     def join_multiplayer(self, player_name):
         """
