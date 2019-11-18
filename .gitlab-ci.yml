@@ -1,7 +1,7 @@
 image: intangiblerealitieslab/dotnet-conda
 stages:
-  - test
   - packaging
+  - test
   - deploy
 
 release:
@@ -25,7 +25,7 @@ trigger_docs_build:
 debug:
   stage: test
   script:
-    - ./compile.sh
+    - conda install -c omnia -c conda-forge -c ./conda-bld narupa-server
     - python -m pip install -r python-libraries/requirements.test
     - python -m pytest --cov=narupa python-libraries
     - coverage html
