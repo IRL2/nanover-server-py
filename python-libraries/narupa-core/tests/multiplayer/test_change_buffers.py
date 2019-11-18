@@ -21,7 +21,7 @@ def test_buffer_flush_reflects_update(change_buffer):
     Test that flushing reflects the previous update.
     """
     change_buffer.update({"hello": "test"})
-    changes = change_buffer.flush_changed_blocking()
+    changes, removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test"
 
 
@@ -41,7 +41,7 @@ def test_buffer_flush_merges_updates(change_buffer):
     """
     change_buffer.update({"hello": "test"})
     change_buffer.update({"foo": "bar"})
-    changes = change_buffer.flush_changed_blocking()
+    changes, removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test" and changes["foo"] == "bar"
 
 
@@ -52,7 +52,7 @@ def test_buffer_flush_merges_same_key(change_buffer):
     """
     change_buffer.update({"hello": "test"})
     change_buffer.update({"hello": "bar"})
-    changes = change_buffer.flush_changed_blocking()
+    changes, removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "bar"
 
 
@@ -88,7 +88,7 @@ def test_frozen_buffer_update_ignored(change_buffer):
         change_buffer.update({"foo": "bar"})
     except ObjectFrozenException:
         pass
-    changes = change_buffer.flush_changed_blocking()
+    changes, removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test" and "foo" not in changes
 
 
@@ -112,7 +112,7 @@ def test_frozen_multiview_view_gives_last_values(change_multiview):
     change_multiview.update({"hello": "test"})
     change_multiview.freeze()
     with change_multiview.create_view() as view:
-        changes = view.flush_changed_blocking()
+        changes, removals = view.flush_changed_blocking()
         assert changes["hello"] == "test"
         with pytest.raises(ObjectFrozenException):
             view.flush_changed_blocking()
@@ -126,5 +126,5 @@ def test_frozen_multiview_subscribe_gives_last_values(change_multiview):
     """
     change_multiview.update({"hello": "test"})
     change_multiview.freeze()
-    for changes in change_multiview.subscribe_changes():
+    for changes, removals in change_multiview.subscribe_changes():
         assert changes["hello"] == "test"

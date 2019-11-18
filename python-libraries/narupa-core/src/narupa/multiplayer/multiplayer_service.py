@@ -52,7 +52,7 @@ class MultiplayerService(MultiplayerServicer):
         with self._avatars.create_view() as change_buffer:
             if not context.add_callback(lambda: change_buffer.freeze()):
                 return
-            for changes in change_buffer.subscribe_changes(interval):
+            for changes, removals in change_buffer.subscribe_changes(interval):
                 for player_id, avatar in changes.items():
                     if player_id != request.ignore_player_id:
                         yield avatar
@@ -83,8 +83,9 @@ class MultiplayerService(MultiplayerServicer):
         with self._resources.create_view() as change_buffer:
             if not context.add_callback(lambda: change_buffer.freeze()):
                 return
-            for changes in change_buffer.subscribe_changes(interval):
+            for changes, removals in change_buffer.subscribe_changes(interval):
                 response = ResourceValuesUpdate()
+                response.resource_value_removals.extend(removals)
                 for key, value in changes.items():
                     entry = response.resource_value_changes.get_or_create(key)
                     entry.MergeFrom(value)
