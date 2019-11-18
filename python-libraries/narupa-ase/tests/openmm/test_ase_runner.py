@@ -207,7 +207,7 @@ def test_discovery_with_client(basic_simulation, params):
         assert runner.discovery_server is not None
         assert len(runner.discovery_server.services) == 1
         with DiscoveryClient() as client:
-            services = client.search_for_services(search_time=0.3, interval=0.01)
+            services = client.search_for_services(search_time=0.8, interval=0.01)
             assert len(services) == 1
             for service in services:
                 assert service in runner.discovery_server.services
