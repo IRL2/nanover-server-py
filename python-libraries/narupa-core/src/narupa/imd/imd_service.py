@@ -11,6 +11,8 @@ import grpc
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply
 
+IMD_SERVICE_NAME = "imd"
+
 
 class ImdService(InteractiveMolecularDynamicsServicer):
     """

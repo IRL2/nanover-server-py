@@ -10,8 +10,8 @@ namespace Narupa.Protocol.Protobuf.Extensions
     {
 
         /// <summary>
-        ///     Gets a float value from the given <see cref="Struct" /> and key,
-        ///     returning null if no such key or value type exists.
+        /// Gets a float value from the given <see cref="Struct" /> and key,
+        /// returning null if no such key or value type exists.
         /// </summary>
         /// <param name="structure">Protobuf struct type from which to extract a value.</param>
         /// <param name="key">Field name in the struct to fetch value for.</param>
@@ -23,8 +23,8 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Gets a double value from the given <see cref="Struct" /> and key,
-        ///     returning null if no such key or value type exists.
+        /// Gets a double value from the given <see cref="Struct" /> and key,
+        /// returning null if no such key or value type exists.
         /// </summary>
         /// <param name="structure">Protobuf struct type from which to extract a value.</param>
         /// <param name="key">Field name in the struct to fetch value for.</param>
@@ -36,8 +36,8 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Gets an integer value from the given <see cref="Struct" /> and key,
-        ///     returning null if no such key or value type exists.
+        /// Gets an integer value from the given <see cref="Struct" /> and key,
+        /// returning null if no such key or value type exists.
         /// </summary>
         /// <param name="structure">Protobuf struct type from which to extract a value.</param>
         /// <param name="key">Field name in the struct to fetch value for.</param>
@@ -49,8 +49,8 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Gets an unsigned integer value from the given <see cref="Struct" /> and key,
-        ///     returning null if no such key or value type exists.
+        /// Gets an unsigned integer value from the given <see cref="Struct" /> and key,
+        /// returning null if no such key or value type exists.
         /// </summary>
         /// <param name="structure">Protobuf struct type from which to extract a value.</param>
         /// <param name="key">Field name in the struct to fetch value for.</param>
@@ -62,8 +62,8 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Gets a string value from the given <see cref="Struct" /> and key,
-        ///     returning null if no such key or value type exists.
+        /// Gets a string value from the given <see cref="Struct" /> and key,
+        /// returning null if no such key or value type exists.
         /// </summary>
         /// <param name="structure">Protobuf struct type from which to extract a value.</param>
         /// <param name="key">Field name in the struct to fetch value for.</param>
@@ -75,8 +75,8 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Gets a bool value from the given <see cref="Struct" /> and key,
-        ///     returning null if no such key or value type exists.
+        /// Gets a bool value from the given <see cref="Struct" /> and key,
+        /// returning null if no such key or value type exists.
         /// </summary>
         /// <param name="structure">Protobuf struct type from which to extract a value.</param>
         /// <param name="key">Field name in the struct to fetch value for.</param>
@@ -88,8 +88,8 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Gets a <see cref="Struct" /> value from the given <see cref="Struct" /> and key,
-        ///     returning null if no such key or value type exists.
+        /// Gets a <see cref="Struct" /> value from the given <see cref="Struct" /> and key,
+        /// returning null if no such key or value type exists.
         /// </summary>
         /// <param name="structure">Protobuf struct type from which to extract a value.</param>
         /// <param name="key">Field name in the struct to fetch value for.</param>
@@ -101,8 +101,8 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Gets a <see cref="ListValue" /> value from the given <see cref="Struct" /> and key,
-        ///     returning null if no such key or value type exists.
+        /// Gets a <see cref="ListValue" /> value from the given <see cref="Struct" /> and key,
+        /// returning null if no such key or value type exists.
         /// </summary>
         /// <param name="structure">Protobuf struct type from which to extract a value.</param>
         /// <param name="key">Field name in the struct to fetch value for.</param>
@@ -114,8 +114,8 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Gets a <see cref="Value" /> from the given <see cref="Struct" /> and key,
-        ///     returning null if no such key or the structure itself exists.
+        /// Gets a <see cref="Value" /> from the given <see cref="Struct" /> and key,
+        /// returning null if no such key or the structure itself exists.
         /// </summary>
         /// <param name="structure">Protobuf struct type from which to extract a value.</param>
         /// <param name="key">Field name in the struct to fetch value for.</param>
@@ -127,7 +127,7 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Sets a boolean value in the given <see cref="Struct" /> and field, replacing any existing value.
+        /// Sets a boolean value in the given <see cref="Struct" /> and field, replacing any existing value.
         /// </summary>
         /// <param name="structure">Protobuf struct type in which to set a value.</param>
         /// <param name="key">Field name in the struct to set value for.</param>
@@ -138,7 +138,7 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Sets a string value in the given <see cref="Struct" /> and field, replacing any existing value.
+        /// Sets a string value in the given <see cref="Struct" /> and field, replacing any existing value.
         /// </summary>
         /// <param name="structure">Protobuf struct type in which to set a value.</param>
         /// <param name="key">Field name in the struct to set value for.</param>
@@ -149,7 +149,7 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Sets a <see cref="Struct" /> value in the given <see cref="Struct" /> and field, replacing any existing value.
+        /// Sets a <see cref="Struct" /> value in the given <see cref="Struct" /> and field, replacing any existing value.
         /// </summary>
         /// <param name="structure">Protobuf struct type in which to set a value.</param>
         /// <param name="key">Field name in the struct to set value for.</param>
@@ -160,7 +160,7 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Sets a float value in the given <see cref="Struct" /> and field, replacing any existing value.
+        /// Sets a float value in the given <see cref="Struct" /> and field, replacing any existing value.
         /// </summary>
         /// <param name="structure">Protobuf struct type in which to set a value.</param>
         /// <param name="key">Field name in the struct to set value for.</param>
@@ -171,7 +171,7 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Sets an integer value in the given <see cref="Struct" /> and field, replacing any existing value.
+        /// Sets an integer value in the given <see cref="Struct" /> and field, replacing any existing value.
         /// </summary>
         /// <param name="structure">Protobuf struct type in which to set a value.</param>
         /// <param name="key">Field name in the struct to set value for.</param>
@@ -182,7 +182,7 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Sets an unsigned integer value in the given <see cref="Struct" /> and field, replacing any existing value.
+        /// Sets an unsigned integer value in the given <see cref="Struct" /> and field, replacing any existing value.
         /// </summary>
         /// <param name="structure">Protobuf struct type in which to set a value.</param>
         /// <param name="key">Field name in the struct to set value for.</param>
@@ -193,7 +193,7 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Sets a double value in the given <see cref="Struct" /> and field, replacing any existing value.
+        /// Sets a double value in the given <see cref="Struct" /> and field, replacing any existing value.
         /// </summary>
         /// <param name="structure">Protobuf struct type in which to set a value.</param>
         /// <param name="key">Field name in the struct to set value for.</param>
@@ -204,7 +204,7 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Sets a <see cref="ListValue" /> in the given <see cref="Struct" /> and field, replacing any existing value.
+        /// Sets a <see cref="ListValue" /> in the given <see cref="Struct" /> and field, replacing any existing value.
         /// </summary>
         /// <param name="structure">Protobuf struct type in which to set a value.</param>
         /// <param name="key">Field name in the struct to set value for.</param>
@@ -215,7 +215,7 @@ namespace Narupa.Protocol.Protobuf.Extensions
         }
 
         /// <summary>
-        ///     Sets a <see cref="ListValue" /> in the given <see cref="Struct" /> and field, replacing any existing value.
+        /// Sets a <see cref="ListValue" /> in the given <see cref="Struct" /> and field, replacing any existing value.
         /// </summary>
         /// <param name="structure">Protobuf struct type in which to set a value.</param>
         /// <param name="key">Field name in the struct to set value for.</param>

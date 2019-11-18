@@ -17,6 +17,8 @@ from ase.md import Langevin
 from ase.md.md import MolecularDynamics
 from narupa.app import NarupaClient
 
+from narupa.essd import DiscoveryServer
+from narupa.essd.servicehub import ServiceHub
 from narupa.ase.frame_server import send_ase_frame
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.ase.converter import EV_TO_KJMOL
@@ -44,8 +46,8 @@ class ASEImdServer:
     >>> server.run(5) # run some dynamics.
     >>> client.first_frame.particle_count # client will have received some frames!
     32
-    >>> # Alternatively, use a 'with' statement to manage the context.
     >>> client.close()
+    >>> # Alternatively, use a 'with' statement to manage the context.
     >>> server.close()
 
     """
@@ -55,11 +57,14 @@ class ASEImdServer:
                  frame_interval=1,
                  address: Optional[str] = None,
                  trajectory_port: Optional[int] = None,
-                 imd_port: Optional[int] = None):
+                 imd_port: Optional[int] = None,
+                 name: Optional[str] = "Narupa ASE Server",
+                 ):
         if frame_method is None:
             frame_method = send_ase_frame
         self.frame_server = FrameServer(address=address, port=trajectory_port)
         self.imd_server = ImdServer(address=address, port=imd_port)
+        self.name = name
         self.dynamics = dynamics
         calculator = self.dynamics.atoms.get_calculator()
         self.imd_calculator = ImdCalculator(self.imd_server.service, calculator, dynamics=dynamics)
@@ -75,8 +80,6 @@ class ASEImdServer:
         self.on_reset_listeners = []
 
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f"Running frame server at {address}:{trajectory_port}")
-        self.logger.info(f"Running IMD server at {address}:{imd_port}")
 
     @property
     def internal_calculator(self) -> Calculator:
@@ -197,3 +200,4 @@ class ASEImdServer:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
