@@ -10,9 +10,8 @@ from typing import Optional, Callable
 
 import numpy as np
 
-from ase import Atoms
+from ase import Atoms, units
 from ase.calculators.calculator import Calculator
-from ase.lattice.cubic import FaceCenteredCubic
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
 from narupa.app import NarupaClient
@@ -37,8 +36,11 @@ class ASEImdServer:
     Example
     =======
 
+    >>> from ase.calculators.emt import EMT
+    >>> from ase.lattice.cubic import FaceCenteredCubic
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
-    >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300, friction=1.0)
+    >>> atoms.set_calculator(EMT())
+    >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
     >>> server = ASEImdServer(dynamics) # create the server with the molecular dynamics object.
     >>> client = NarupaClient(run_multiplayer=False) # have a client connect to the server
     >>> server.run(5) # run some dynamics.
