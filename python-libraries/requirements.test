@@ -3,3 +3,5 @@ pytest
 pytest-cov
 pytest-timeout
 hypothesis
+# python-osc is needed to test an example
+python-osc
