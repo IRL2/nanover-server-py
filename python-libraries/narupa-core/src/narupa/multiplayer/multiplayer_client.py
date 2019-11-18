@@ -190,6 +190,17 @@ class MultiplayerClient(GrpcClient):
         response = self.stub.SetResourceValue(request)
         return response.success
 
+    def try_remove_resource_key(self, resource_id: str) -> bool:
+        """
+        Attempt to remove a key from the shared key/value store.
+
+        :param resource_id: Key to remove.
+        """
+        request = mult_proto.RemoveResourceKeyRequest(player_id=self.player_id,
+                                                      resource_id=resource_id)
+        response = self.stub.RemoveResourceKey(request)
+        return response.success
+
     def add_value_update_callback(self, callback: UpdateCallback):
         """
         Add a callback method to be called whenever a value changes in the

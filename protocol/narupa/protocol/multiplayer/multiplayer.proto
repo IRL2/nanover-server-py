@@ -27,6 +27,9 @@ service Multiplayer {
 
     // Set a resource's value.
     rpc SetResourceValue(SetResourceValueRequest) returns (ResourceRequestResponse) {}
+
+    // Remove a resource.
+    rpc RemoveResourceKey(RemoveResourceKeyRequest) returns (ResourceRequestResponse) {}
 }
 
 message StreamEndedResponse {
@@ -90,6 +93,13 @@ message SetResourceValueRequest {
     string resource_id = 2;
     // Value to set the resource to.
     google.protobuf.Value resource_value = 3;
+}
+
+message RemoveResourceKeyRequest {
+    // ID of player making request
+    string player_id = 1;
+    // Identifier of resource to be removed.
+    string resource_id = 2;
 }
 
 message ResourceRequestResponse {

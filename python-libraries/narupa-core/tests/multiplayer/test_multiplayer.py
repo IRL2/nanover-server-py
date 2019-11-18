@@ -307,6 +307,20 @@ def test_set_value_updates_server_values(server_client_pair, scene):
     assert str(scene) == str(server_scene)
 
 
+def test_remove_key_updates_server_keys(server_client_pair, scene):
+    """
+    Test that setting a resource value updates the server's internal resource
+    map.
+    """
+    server, client = server_client_pair
+    client.try_set_resource_value("scene", scene)
+    server_scene = server._multiplayer_service.resources.get("scene")
+    assert str(scene) == str(server_scene)
+    client.try_remove_resource_key("scene")
+    server_scene = server._multiplayer_service.resources.get("scene")
+    assert server_scene is None
+
+
 def test_subscribe_value_update(server_client_pair):
     """
     Test that resource value updates can be subscribed.

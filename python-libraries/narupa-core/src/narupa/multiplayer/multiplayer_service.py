@@ -11,7 +11,12 @@ from typing import Iterator
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
 from narupa.multiplayer.key_lockable_map import KeyLockableMap, ResourceLockedException
-from narupa.protocol.multiplayer.multiplayer_pb2 import StreamEndedResponse, Avatar, ResourceRequestResponse, SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse, SubscribePlayerAvatarsRequest, ResourceValuesUpdate
+from narupa.protocol.multiplayer.multiplayer_pb2 import (
+    StreamEndedResponse, Avatar, ResourceRequestResponse,
+    SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse,
+    SubscribePlayerAvatarsRequest, ResourceValuesUpdate,
+    RemoveResourceKeyRequest,
+)
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
 
 MULTIPLAYER_SERVICE_NAME = "multiplayer"
@@ -127,9 +132,11 @@ class MultiplayerService(MultiplayerServicer):
             success = False
         return ResourceRequestResponse(success=success)
 
-    def SetResourceValue(self,
-                         request: SetResourceValueRequest,
-                         context) -> ResourceRequestResponse:
+    def SetResourceValue(
+            self,
+            request: SetResourceValueRequest,
+            context,
+    ) -> ResourceRequestResponse:
         """
         Attempt to write a value in the shared key/value store.
         """
@@ -145,6 +152,28 @@ class MultiplayerService(MultiplayerServicer):
             success = False
 
         self.logger.debug(f'{request.player_id} attempts {request.resource_id}={request.resource_value} (Successs: {success})')
+        return ResourceRequestResponse(success=success)
+
+    def RemoveResourceKey(
+            self,
+            request: multiplayer_proto.RemoveResourceKeyRequest,
+            context,
+    ) -> ResourceRequestResponse:
+        """
+        Attempt to remove a key from the shared key/value store.
+        """
+        try:
+            # TODO: single lockable+subscribable structure?
+            with self._resource_write_lock:
+                self.resources.set(request.player_id,
+                                   request.resource_id,
+                                   None)
+                self._resources.update(removals=[request.resource_id])
+            success = True
+        except ResourceLockedException:
+            success = False
+
+        self.logger.debug(f'{request.player_id} attempts del {request.resource_id} (Successs: {success})')
         return ResourceRequestResponse(success=success)
 
     def generate_player_id(self):
