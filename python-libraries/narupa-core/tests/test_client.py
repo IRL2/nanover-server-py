@@ -136,7 +136,7 @@ def test_set_multiplayer_value(client_server):
 def test_set_multiplayer_value_disconnected(frame_server):
     client = NarupaClient(run_imd=False, run_multiplayer=False, trajectory_port=frame_server.port)
     value = Value(string_value='hi')
-    with pytest.raises(ValueError):
+    with pytest.raises(RuntimeError):
         client.set_shared_value('test', value)
 
 
