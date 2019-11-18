@@ -2,6 +2,7 @@ import time
 
 import grpc
 import pytest
+from google.protobuf.struct_pb2 import Value
 
 from narupa.multiplayer import MultiplayerServer
 from .test_frame_server import simple_frame_data, frame_server
@@ -16,11 +17,12 @@ def multiplayer_server():
     yield server
     server.close()
 
+
 @pytest.fixture
 def client_server(frame_server, imd_server, multiplayer_server):
     client = NarupaClient(trajectory_port=frame_server.port,
-                             imd_port=imd_server.port,
-                             multiplayer_port=multiplayer_server.port)
+                          imd_port=imd_server.port,
+                          multiplayer_port=multiplayer_server.port)
     yield client, frame_server, imd_server, multiplayer_server
     client.close()
 
@@ -120,3 +122,31 @@ def test_no_imd_stop(frame_server, multiplayer_server, interaction):
     with pytest.raises(ValueError):
         client.stop_interaction(0)
     client.close()
+
+
+def test_set_multiplayer_value(client_server):
+    client, frame_server, imd_server, multiplayer_server = client_server
+    client.join_multiplayer("1")
+    value = Value(string_value='hi')
+    client.set_shared_value('test', value)
+    time.sleep(0.5)
+    assert client.latest_multiplayer_values == {'test': value}
+
+
+def test_set_multiplayer_value_disconnected(frame_server):
+    client = NarupaClient(run_imd=False, run_multiplayer=False, trajectory_port=frame_server.port)
+    value = Value(string_value='hi')
+    with pytest.raises(ValueError):
+        client.set_shared_value('test', value)
+
+
+def test_join_multiplayer_disconnected(frame_server):
+    client = NarupaClient(run_imd=False, run_multiplayer=False, trajectory_port=frame_server.port)
+    with pytest.raises(RuntimeError):
+        client.join_multiplayer("1")
+
+
+def test_get_shared_resources_disconnected(frame_server):
+    client = NarupaClient(run_imd=False, run_multiplayer=False, trajectory_port=frame_server.port)
+    with pytest.raises(RuntimeError):
+        _ = client.latest_multiplayer_values
