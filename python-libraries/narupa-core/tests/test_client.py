@@ -48,6 +48,18 @@ def test_receive_multiple_frames(client_server, simple_frame_data):
     assert len(client.frames) == 2
 
 
+def test_latest_frame_only(frame_server, simple_frame_data):
+    with NarupaClient(run_imd=False, run_multiplayer=False, all_frames=False, trajectory_port=frame_server.port) as client:
+        num_frames=2
+        for i in range(num_frames):
+            frame_server.send_frame(0, simple_frame_data)
+        time.sleep(0.5)
+        assert client.latest_frame is not None
+        assert client.first_frame is not None
+        assert client.latest_frame == client.first_frame
+        assert len(client.frames) < num_frames
+
+
 def test_reconnect_receive(client_server, simple_frame_data):
     client, frame_server, imd_server, multiplayer_server = client_server
     frame_server.send_frame(0, simple_frame_data)
