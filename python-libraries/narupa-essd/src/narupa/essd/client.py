@@ -59,12 +59,16 @@ class DiscoveryClient:
         """
         services = set()
         deadline = time.monotonic() + search_time
-        while time.monotonic() <= deadline:
-            if self._check_for_messages(timeout=min(search_time, interval)):
+        while time.monotonic() < deadline:
+            time_before_recv = time.monotonic()
+            if self._check_for_messages(timeout=search_time):
                 service = self._receive_service()
                 if service is not None:
                     services.add(service)
-            time.sleep(interval)
+            time_spent_receiving = time.monotonic() - time_before_recv
+            time_remaining = interval - time_spent_receiving
+            if time_remaining > 0:
+                time.sleep(time_remaining)
         return services
 
     def close(self):
