@@ -79,7 +79,8 @@ class DictionaryChangeMultiView:
             removals: KeyRemovals = frozenset(),
     ):
         """
-        Updates the shared dictionary with key values pairs from :updates:.
+        Updates the shared dictionary with key values pairs from :updates: and
+        key removals from :removals:.
         """
         with self._lock:
             if self._frozen:
@@ -139,7 +140,7 @@ class DictionaryChangeBuffer:
     ):
         """
         Update the known changes from a dictionary of keys that have changed
-        to their new values.
+        to their new values or have been removed.
         """
         with self._lock:
             if self._frozen:
