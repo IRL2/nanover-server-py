@@ -342,6 +342,23 @@ def test_set_value_sends_update(server_client_pair, scene):
     assert str(scene) == str(recv_scene)
 
 
+def test_remove_key_sends_update(server_client_pair, scene):
+    """
+    Test that removing a resource key is propagated back to the client.
+    """
+    server, client = server_client_pair
+    client.subscribe_all_value_updates()
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    client.try_set_resource_value("scene", scene)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    recv_scene = client.resources.get("scene")
+    assert str(scene) == str(recv_scene)
+    client.try_remove_resource_key("scene")
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    recv_scene = client.resources.get("scene")
+    assert recv_scene is None
+
+
 def test_server_sends_initial_values(server_client_pair, scene):
     """
     Test that subscribing resource values sends any resources values that have

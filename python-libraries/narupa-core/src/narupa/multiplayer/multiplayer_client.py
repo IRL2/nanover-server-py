@@ -236,6 +236,8 @@ class MultiplayerClient(GrpcClient):
         for update in self.stub.SubscribeAllResourceValues(request):
             for key, value in update.resource_value_changes.items():
                 self.resources[key] = value
+            for key in update.resource_value_removals:
+                self.resources.pop(key, None)
             keys = set(update.resource_value_changes.keys())
             for callback in self._value_update_callbacks:
                 callback(keys)
