@@ -17,7 +17,7 @@ LS_COMMAND="ls python-libraries/narupa-*/src/narupa/__init__.py"
 exit_code=0
 n_init_files=$(${LS_COMMAND} 2> /dev/null | tee | wc -l)
 if [[ ${n_init_files} > 0 ]]; then
-    echo "Check the root of the python subpackages for surperfluous __init__.py files."
+    echo "Check the root of the python subpackages for superfluous __init__.py files."
     $LS_COMMAND
     exit_code=1
 fi
