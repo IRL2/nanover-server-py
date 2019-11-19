@@ -166,7 +166,6 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
     :param positions: Array of atomic positions, in angstroms.
     """
     data.particle_positions = positions * ANG_TO_NM
-    data.particle_count = len(positions)
 
 
 def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
