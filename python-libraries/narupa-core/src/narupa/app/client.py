@@ -8,7 +8,8 @@ import time
 from collections import deque, ChainMap
 from typing import Optional, Sequence, Dict, List, Collection, Set, MutableMapping
 
-from narupa.core import CommandInfo
+from grpc import RpcError, StatusCode
+from narupa.core import CommandInfo, NarupaClient
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractionEndReply
 from narupa.trajectory import FrameClient, FrameData
@@ -19,6 +20,16 @@ from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, P
 
 # Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
+
+
+def _update_commands(client: NarupaClient):
+    try:
+        return client.update_available_commands()
+    except RpcError as e:
+        if e._state.code == StatusCode.UNAVAILABLE:
+            return {}
+        else:
+            raise e
 
 
 class NarupaImdClient:
@@ -48,22 +59,14 @@ class NarupaImdClient:
                  imd_port: Optional[int] = None,
                  multiplayer_port: Optional[int] = None,
                  max_frames=50,
-                 run_imd=True,
-                 run_multiplayer=True,
                  all_frames=True):
         self.all_frames = all_frames
         self.max_frames = max_frames
 
-        self._frame_client = None
-        self._imd_client = None
-        self._multiplayer_client = None
-
         self.connect(address=address,
                      trajectory_port=trajectory_port,
                      imd_port=imd_port,
-                     multiplayer_port=multiplayer_port,
-                     run_imd=run_imd,
-                     run_multiplayer=run_multiplayer)
+                     multiplayer_port=multiplayer_port)
 
         self._frames = deque(maxlen=self.max_frames)
         self._first_frame = None
@@ -81,10 +84,8 @@ class NarupaImdClient:
             self._first_frame = None
             self._frames.clear()
         self._frame_client.close()
-        if self.running_imd:
-            self._imd_client.close()
-        if self.running_multiplayer:
-            self._multiplayer_client.close()
+        self._imd_client.close()
+        self._multiplayer_client.close()
 
     def connect_trajectory(self, address: str, port: Optional[int] = None) -> None:
         """
@@ -116,7 +117,7 @@ class NarupaImdClient:
         self._multiplayer_client = MultiplayerClient(address=address, port=port)
 
     def connect(self, *, address=None, trajectory_port=None, imd_port=None,
-                run_imd=True, multiplayer_port=None, run_multiplayer=True):
+                multiplayer_port=None):
         """
         Connects the client to all the services, assuming they are running at
         the same URL on different ports.
@@ -124,15 +125,11 @@ class NarupaImdClient:
         :param address: The address of the server(s).
         :param trajectory_port: The frame server port.
         :param imd_port: The IMD server port.
-        :param run_imd: Whether to connect to the IMD server.
         :param multiplayer_port: The multiplayer server port.
-        :param run_multiplayer: Whether to connect to the multiplayer server.
         """
         self.connect_trajectory(address, trajectory_port)
-        if run_imd:
-            self.connect_imd(address, imd_port)
-        if run_multiplayer:
-            self.connect_multiplayer(address, multiplayer_port)
+        self.connect_imd(address, imd_port)
+        self.connect_multiplayer(address, multiplayer_port)
 
     def wait_until_first_frame(self, check_interval=0.01, timeout=1):
         """
@@ -154,25 +151,6 @@ class NarupaImdClient:
         return self.first_frame
 
     @property
-    def running_imd(self) -> bool:
-        """
-        Indicates whether this client is running an IMD client or not.
-
-        :return: `True` if this client is running an IMD client, `False` otherwise.
-        """
-        return self._imd_client is not None
-
-    @property
-    def running_multiplayer(self) -> bool:
-        """
-        Indicates whether this client is running a multiplayer client or not.
-
-        :return: `True` if this client is running an multiplayer client,
-            `False` otherwise.
-        """
-        return self._multiplayer_client is not None
-
-    @property
     def latest_frame(self) -> Optional[FrameData]:
         """
         The trajectory frame most recently received, if any.
@@ -191,8 +169,6 @@ class NarupaImdClient:
 
         :return: Dictionary of the current state of multiplayer shared key/value store.
         """
-        if self._multiplayer_client is None:
-            raise RuntimeError("Not connected to multiplayer service")
         return dict(self._multiplayer_client.resources)
 
     @property
@@ -224,8 +200,6 @@ class NarupaImdClient:
 
         :raises: ValueError, if the there is no IMD connection available.
         """
-        if self._imd_client is None:
-            raise ValueError("Client started without IMD, cannot start an interaction!")
         interaction_id = self._imd_client.start_interaction()
         if interaction is not None:
             self.update_interaction(interaction_id, interaction)
@@ -246,8 +220,6 @@ class NarupaImdClient:
             if invalid parameters are passed to the server.
         :raises KeyError: if the given interaction ID does not exist.
         """
-        if self._imd_client is None:
-            raise ValueError("Client started without IMD, cannot update an interaction!")
         self._imd_client.update_interaction(interaction_id, interaction)
 
     def stop_interaction(self, interaction_id) -> InteractionEndReply:
@@ -267,40 +239,30 @@ class NarupaImdClient:
         :raises KeyError: if the given interaction ID does not exist.
 
         """
-        if self._imd_client is None:
-            raise ValueError("Client started without IMD, cannot stop an interaction!")
         return self._imd_client.stop_interaction(interaction_id)
 
     def run_play(self):
         """
         Sends a request to start playing the trajectory to the trajectory service.
         """
-        if self._frame_client is None:
-            raise ValueError("Cannot request server to play without a valid connection.")
         self._frame_client.run_command(PLAY_COMMAND_KEY)
 
     def run_step(self):
         """
         Sends a request to take one step to the trajectory service.
         """
-        if self._frame_client is None:
-            raise ValueError("Cannot request server to step without a valid connection.")
         self._frame_client.run_command(STEP_COMMAND_KEY)
 
     def run_pause(self):
         """
         Sends a request to pause the simulation to the trajectory service.
         """
-        if self._frame_client is None:
-            raise ValueError("Cannot request server to pause without a valid connection.")
         self._frame_client.run_command(PAUSE_COMMAND_KEY)
 
     def run_reset(self):
         """
         Sends a request to reset the simulation to the trajectory service.
         """
-        if self._frame_client is None:
-            raise ValueError("Cannot request server to reset without a valid connection.")
         self._frame_client.run_command(RESET_COMMAND_KEY)
 
     def update_available_commands(self) -> MutableMapping[str, CommandInfo]:
@@ -314,10 +276,10 @@ class NarupaImdClient:
         returned :class:`ChainMap` will enable the user to determine the correct one to call.
         """
 
-        self._trajectory_commands = self._frame_client.update_available_commands()
-        self._imd_commands = self._imd_client.update_available_commands()
-        self._multiplayer_commands = self._multiplayer_client.update_available_commands()
-        return ChainMap(self._trajectory_commands,self._imd_commands,self._multiplayer_commands)
+        self._trajectory_commands = _update_commands(self._frame_client)
+        self._imd_commands = _update_commands(self._imd_client)
+        self._multiplayer_commands = _update_commands(self._multiplayer_client)
+        return ChainMap(self._trajectory_commands, self._imd_commands, self._multiplayer_commands)
 
     def run_command(self, name, **args):
         """
@@ -345,8 +307,6 @@ class NarupaImdClient:
         :param args: Dictionary of arguments to run with the command.
         :return: Results of the command, if any.
         """
-        if self._frame_client is None:
-            raise ValueError("Cannot request to trajectory service without a valid connection.")
         return self._frame_client.run_command(name, **args)
 
     def run_imd_command(self, name: str, **args) -> Dict[str, object]:
@@ -357,8 +317,7 @@ class NarupaImdClient:
         :param args: Dictionary of arguments to run with the command.
         :return: Results of the command, if any.
         """
-        if self._imd_client is None:
-            raise ValueError("Cannot request to iMD service without a valid connection.")
+
         return self._imd_client.run_command(name, **args)
 
     def run_multiplayer_command(self, name: str, **args):
@@ -369,8 +328,7 @@ class NarupaImdClient:
         :param args: Dictionary of arguments to run with the command.
         :return: Results of the command, if any.
         """
-        if self._multiplayer_client is None:
-            raise ValueError("Cannot request to multiplayer service without a valid connection.")
+
         return self._multiplayer_client.run_command(name, **args)
 
     def join_multiplayer(self, player_name):
@@ -379,8 +337,6 @@ class NarupaImdClient:
 
         :param player_name: The player name with which to be identified.
         """
-        if self._multiplayer_client is None:
-            raise RuntimeError("Not connected to multiplayer service")
         self._multiplayer_client.join_multiplayer(player_name)
 
     def set_shared_value(self, key, value) -> bool:
@@ -391,8 +347,6 @@ class NarupaImdClient:
         :param value: The new value to store.
         :return: `True` if successful, `False` otherwise.
         """
-        if self._multiplayer_client is None:
-            raise RuntimeError("Not connected to multiplayer service")
         return self._multiplayer_client.try_set_resource_value(key, value)
 
     def _join_trajectory(self):
