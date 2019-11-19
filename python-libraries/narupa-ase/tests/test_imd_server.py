@@ -9,7 +9,10 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.cell import Cell
 from ase.md import VelocityVerlet
+from ase.cell import Cell
 
+from narupa.essd import DiscoveryClient
+from narupa.trajectory import FrameData
 from narupa.ase.imd_server import ASEImdServer
 from narupa.core import NarupaClient
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY

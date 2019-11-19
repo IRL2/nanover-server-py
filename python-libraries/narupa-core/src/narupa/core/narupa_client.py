@@ -1,6 +1,6 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-from typing import Optional, Collection, Dict, List
+from typing import Optional, Collection, Dict, List, Set
 
 from google.protobuf.struct_pb2 import Struct
 
@@ -26,6 +26,17 @@ class NarupaClient(GrpcClient):
                          stub=stub)
 
         self._command_stub = CommandStub(self.channel)
+        self._available_commands = Dict[str, CommandInfo]
+
+    @property
+    def available_commands(self) -> Dict[str, CommandInfo]:
+        """
+        Returns a copy of the dictionary of commands available on the server,
+        as determined by previously calling :fun:`update_available_commands`.
+
+        :return: A dictionary of command information, keyed by the command names.
+        """
+        return dict(self._available_commands)
 
     def run_command(self, name: str, **arguments) -> Dict[str, object]:
         """
@@ -34,7 +45,7 @@ class NarupaClient(GrpcClient):
         :param name: Name of command to run.
         :param arguments: Arguments to provide to command.
 
-        :returns Dictionary of results, which may be empty.
+        :return: Dictionary of results, which may be empty.
         """
         arguments_struct = Struct()
         try:
@@ -48,11 +59,15 @@ class NarupaClient(GrpcClient):
         result_message = self._command_stub.RunCommand(message)
         return struct_to_dict(result_message.result)
 
-    def get_commands(self) -> List[CommandMessage]:
+    def update_available_commands(self) -> Dict[str, CommandInfo]:
         """
-        Get a list of all the commands on the command server. Blocks until the list of commands of
-        available commands is received.
+        Get a set of all the commands on the command server, and updates this
+        clients set of known commands.
+        Blocks until the list of commands of available commands is received.
 
-        :return: A list of all the commands on the command server.
+        :return: A set of all the commands on the command server.
         """
-        return [CommandInfo.from_proto(raw) for raw in self._command_stub.GetCommands(GetCommandsRequest()).commands]
+
+        command_responses = self._command_stub.GetCommands(GetCommandsRequest()).commands
+        self._available_commands = {raw.name: CommandInfo.from_proto(raw) for raw in command_responses}
+        return self._available_commands

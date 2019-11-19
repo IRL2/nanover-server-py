@@ -31,7 +31,7 @@ def test_get_commands(client_server, default_args):
     mock = Mock()
     server.register_command("test", mock.callback, default_args)
 
-    commands = client.get_commands()
+    commands = client.update_available_commands()
     assert len(commands) == 1
     assert commands[0].name == "test"
     assert commands[0].arguments == default_args
@@ -46,7 +46,7 @@ def test_get_multiple_commands(client_server):
         expected_names.add(name)
         server.register_command(name, mock.callback, Struct())
 
-    commands = client.get_commands()
+    commands = client.update_available_commands()
     assert len(commands) == 10
     assert set([command.name for command in commands]) == expected_names
     assert all(command.arguments == {} for command in commands)
@@ -57,7 +57,7 @@ def test_get_command_with_argument(client_server):
     mock = Mock()
     arguments = {'x': 1, 'y': 2}
     server.register_command("test", mock.callback, arguments)
-    commands = client.get_commands()
+    commands = client.update_available_commands()
     assert commands[0].arguments == arguments
 
 

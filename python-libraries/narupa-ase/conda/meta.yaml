@@ -28,7 +28,7 @@ about:
   home: https://narupa.readthedocs.io
   license: GPL-3
   license_file: {{ NARUPA_LICENSE_PATH }}
-  summary: ASE bondings for Narupa.
+  summary: ASE bindings for Narupa.
   description: |
     Narupa is a framework for interactive molecular dynamics simulation in
     virtual reality. This package provides ASE bindings and servers for

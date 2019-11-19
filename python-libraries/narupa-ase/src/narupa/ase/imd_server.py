@@ -10,12 +10,14 @@ from threading import RLock
 from typing import Optional, Callable
 
 import numpy as np
-from ase import Atoms
+
+from ase import Atoms, units
 from ase.calculators.calculator import Calculator
-from ase.lattice.cubic import FaceCenteredCubic
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
 
+from narupa.essd import DiscoveryServer
+from narupa.essd.servicehub import ServiceHub
 from narupa.app import NarupaImdClient
 from narupa.ase.converter import EV_TO_KJMOL
 from narupa.ase.frame_server import send_ase_frame
@@ -39,15 +41,18 @@ class ASEImdServer:
     Example
     =======
 
+    >>> from ase.calculators.emt import EMT
+    >>> from ase.lattice.cubic import FaceCenteredCubic
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
-    >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300, friction=1.0)
+    >>> atoms.set_calculator(EMT())
+    >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
     >>> server = ASEImdServer(dynamics) # create the server with the molecular dynamics object.
     >>> client = NarupaImdClient(run_multiplayer=False) # have a client connect to the server
     >>> server.run(5) # run some dynamics.
     >>> client.first_frame.particle_count # client will have received some frames!
     32
-    >>> # Alternatively, use a 'with' statement to manage the context.
     >>> client.close()
+    >>> # Alternatively, use a 'with' statement to manage the context.
     >>> server.close()
 
     """
@@ -57,11 +62,14 @@ class ASEImdServer:
                  frame_interval=1,
                  address: Optional[str] = None,
                  trajectory_port: Optional[int] = None,
-                 imd_port: Optional[int] = None):
+                 imd_port: Optional[int] = None,
+                 name: Optional[str] = "Narupa ASE Server",
+                 ):
         if frame_method is None:
             frame_method = send_ase_frame
         self.frame_server = FrameServer(address=address, port=trajectory_port)
         self.imd_server = ImdServer(address=address, port=imd_port)
+        self.name = name
         self._cancel_lock = RLock()
         self._register_commands()
 
@@ -81,8 +89,6 @@ class ASEImdServer:
         self.on_reset_listeners = []
 
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f"Running frame server at {address}:{trajectory_port}")
-        self.logger.info(f"Running IMD server at {address}:{imd_port}")
 
     @property
     def internal_calculator(self) -> Calculator:

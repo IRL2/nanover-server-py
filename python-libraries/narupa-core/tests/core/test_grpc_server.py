@@ -8,6 +8,12 @@ TEST_PORTS = (54321, 60000, 62123)
 
 
 @pytest.mark.parametrize('server_factory', TEST_SERVERS)
+def test_address(server_factory):
+    with server_factory(address='localhost', port=0) as frame_server:
+        assert frame_server.address == 'localhost'
+
+
+@pytest.mark.parametrize('server_factory', TEST_SERVERS)
 def test_any_port(server_factory):
     with server_factory(address='localhost', port=0) as frame_server:
         assert frame_server.port != 0

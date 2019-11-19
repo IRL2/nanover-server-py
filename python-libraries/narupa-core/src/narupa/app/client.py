@@ -5,19 +5,19 @@ Module containing a basic interactive molecular dynamics client that receives fr
 and can publish interactions.
 """
 import time
-from collections import deque
-from typing import Optional, Sequence, Dict
+from collections import deque, ChainMap
+from typing import Optional, Sequence, Dict, List, Collection, Set, MutableMapping
 
+from narupa.core import CommandInfo
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractionEndReply
 from narupa.trajectory import FrameClient, FrameData
 from narupa.imd import ImdClient
 from narupa.multiplayer import MultiplayerClient
 from google.protobuf.struct_pb2 import Value
-
-# Default to a low framerate to avoid build up in the frame stream
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY
 
+# Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
 
 
@@ -67,6 +67,8 @@ class NarupaImdClient:
 
         self._frames = deque(maxlen=self.max_frames)
         self._first_frame = None
+
+        self.update_available_commands()  # initialise the set of available commands.
 
     def close(self, clear_frames=True):
         """
@@ -189,6 +191,8 @@ class NarupaImdClient:
 
         :return: Dictionary of the current state of multiplayer shared key/value store.
         """
+        if self._multiplayer_client is None:
+            raise RuntimeError("Not connected to multiplayer service")
         return dict(self._multiplayer_client.resources)
 
     @property
@@ -299,24 +303,72 @@ class NarupaImdClient:
             raise ValueError("Cannot request server to reset without a valid connection.")
         self._frame_client.run_command(RESET_COMMAND_KEY)
 
-    def run_trajectory_command(self, name:str, **args) -> Dict[str,object]:
+    def update_available_commands(self) -> MutableMapping[str, CommandInfo]:
+        """
+        Fetches an updated set of available commands from the services this client is connected
+        to.
+
+        :return: A collection of :class:`CommandInfo`, detailing the commands available.
+
+        If the same command name is available on multiple services, the nested nature of the
+        returned :class:`ChainMap` will enable the user to determine the correct one to call.
+        """
+
+        self._trajectory_commands = self._frame_client.update_available_commands()
+        self._imd_commands = self._imd_client.update_available_commands()
+        self._multiplayer_commands = self._multiplayer_client.update_available_commands()
+        return ChainMap(self._trajectory_commands,self._imd_commands,self._multiplayer_commands)
+
+    def run_command(self, name, **args):
+        """
+        Runs a command on the trajectory service, multiplayer service or imd service as appropriate.
+
+        :param name: Name of the command to run
+        :param args: Dictionary of arguments to run with the command.
+        :return: Results of the command, if any.
+        """
+
+        if name in self._trajectory_commands:
+            return self.run_trajectory_command(name, **args)
+        if name in self._imd_commands:
+            return self.run_imd_command(name, **args)
+        if name in self._multiplayer_commands:
+            return self.run_multiplayer_command(name, **args)
+        else:
+            raise KeyError(f"Unknown command: {name}, run update_available_commands to refresh commands.")
+
+    def run_trajectory_command(self, name: str, **args) -> Dict[str, object]:
         """
         Runs a command on the trajectory service.
 
         :param name: Name of the command to run
         :param args: Dictionary of arguments to run with the command.
-        :return:
+        :return: Results of the command, if any.
         """
         if self._frame_client is None:
             raise ValueError("Cannot request to trajectory service without a valid connection.")
         return self._frame_client.run_command(name, **args)
 
     def run_imd_command(self, name: str, **args) -> Dict[str, object]:
+        """
+        Runs a command on the iMD service.
+
+        :param name: Name of the command to run
+        :param args: Dictionary of arguments to run with the command.
+        :return: Results of the command, if any.
+        """
         if self._imd_client is None:
             raise ValueError("Cannot request to iMD service without a valid connection.")
         return self._imd_client.run_command(name, **args)
 
     def run_multiplayer_command(self, name: str, **args):
+        """
+        Runs a command on the multiplayer service.
+
+        :param name: Name of the command to run
+        :param args: Dictionary of arguments to run with the command.
+        :return: Results of the command, if any.
+        """
         if self._multiplayer_client is None:
             raise ValueError("Cannot request to multiplayer service without a valid connection.")
         return self._multiplayer_client.run_command(name, **args)
@@ -327,6 +379,8 @@ class NarupaImdClient:
 
         :param player_name: The player name with which to be identified.
         """
+        if self._multiplayer_client is None:
+            raise RuntimeError("Not connected to multiplayer service")
         self._multiplayer_client.join_multiplayer(player_name)
 
     def set_shared_value(self, key, value) -> bool:
@@ -337,6 +391,8 @@ class NarupaImdClient:
         :param value: The new value to store.
         :return: `True` if successful, `False` otherwise.
         """
+        if self._multiplayer_client is None:
+            raise RuntimeError("Not connected to multiplayer service")
         return self._multiplayer_client.try_set_resource_value(key, value)
 
     def _join_trajectory(self):
