@@ -87,12 +87,8 @@ class DictionaryChangeMultiView:
         with self._lock:
             if self._frozen:
                 raise ObjectFrozenException()
-            self._content.update(updates)
-            for view in set(self._views):
-                try:
-                    view.update(updates, removals)
-                except ObjectFrozenException:
-                    self._views.remove(view)
+            self._update_content(updates, removals)
+            self._update_views(updates, removals)
 
     def freeze(self):
         """
@@ -105,16 +101,24 @@ class DictionaryChangeMultiView:
             for view in self._views:
                 view.freeze()
 
-    def copy_content(self):
+    def _update_content(self, updates: KeyUpdates, removals: KeyRemovals):
         """
-        Return a shallow copy of the dictionary at this instant.
+        Apply updates and removals to the known content of this dictionary.
         """
-        with self._lock:
-            return dict(self._content)
+        self._content.update(updates)
+        for key in removals:
+            self._content.pop(key, None)
 
-    def __contains__(self, item):
-        with self._lock:
-            return item in self._content
+    def _update_views(self, updates: KeyUpdates, removals: KeyRemovals):
+        """
+        Forward updates and removals to the tracked change buffers of this
+        dictionary.
+        """
+        for view in set(self._views):
+            try:
+                view.update(updates, removals)
+            except ObjectFrozenException:
+                self._views.remove(view)
 
 
 class DictionaryChangeBuffer:
