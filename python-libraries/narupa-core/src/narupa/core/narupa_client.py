@@ -27,6 +27,9 @@ class NarupaClient(GrpcClient):
 
         self._command_stub = CommandStub(self.channel)
         self._available_commands = {}
+        # TODO @review I'm not sure if it's better to try to update commands at initialisation,
+        # which may throw an error if the server isn't available yet?
+        self.update_available_commands()
 
     @property
     def available_commands(self) -> Dict[str, CommandInfo]:

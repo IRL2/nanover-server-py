@@ -37,10 +37,29 @@ def test_available_commands(client_server, default_args):
 
 def test_available_commands_init(client_server, default_args):
     """
-    tests that the available commands is empty at initialisation of the client.
+    tests that the available commands is empty at initialisation of the client, if server has no
+    commands.
     """
     client, server = client_server
     assert client.available_commands == {}
+
+
+def test_commands_exist_client_init(client_server, default_args):
+    """
+    tests that the available commands is populated at the initialisation of the client, if
+    the server has commands.
+    """
+    with NarupaServer(address="localhost", port=0) as server:
+        mock = Mock()
+        server.register_command("test", mock.callback, default_args)
+        with NarupaClient(address="localhost", port=server.port) as client:
+            assert len(client.available_commands) == 1
+
+
+def test_client_error_if_no_server():
+    with pytest.raises(RpcError):
+        client = NarupaClient(address="localhost", port=68393)
+        client.close()
 
 
 def test_get_commands(client_server, default_args):
