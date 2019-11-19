@@ -88,6 +88,8 @@ class DictionaryChangeMultiView:
             if self._frozen:
                 raise ObjectFrozenException()
             self._content.update(updates)
+            for key in removals:
+                self._content.pop(key, None)
             for view in set(self._views):
                 try:
                     view.update(updates, removals)

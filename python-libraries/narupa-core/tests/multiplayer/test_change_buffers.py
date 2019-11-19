@@ -151,11 +151,13 @@ def test_frozen_multiview_view_gives_last_values_and_no_removals(change_multivie
     only provide the initial values and then raise the correct exception on
     subsequent flushes.
     """
-    change_multiview.update({"hello": "test"})
+    change_multiview.update({"hello": "test", "foo": "bar"})
+    change_multiview.update(removals={"foo"})
     change_multiview.freeze()
     with change_multiview.create_view() as view:
         changes, removals = view.flush_changed_blocking()
         assert changes["hello"] == "test"
+        assert "foo" not in changes
         assert not removals
         with pytest.raises(ObjectFrozenException):
             view.flush_changed_blocking()
