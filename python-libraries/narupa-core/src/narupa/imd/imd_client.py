@@ -173,8 +173,8 @@ class ImdClient(GrpcClient):
         for update in self.stub.SubscribeInteractions(request):
             for interaction_id in update.removals:
                 removed = self.interactions.pop(interaction_id, None)
-            for interaction in update.interaction_updates:
-                self.interactions[interaction.interaction_id] = interaction
+            for interaction in update.updated_interactions:
+                self.interactions[interaction.interaction_id] = ParticleInteraction.from_proto(interaction)
 
     def close(self):
         """

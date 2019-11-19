@@ -18,7 +18,7 @@ service InteractiveMolecularDynamics {
     rpc PublishInteraction(stream ParticleInteraction) returns (InteractionEndReply);
 
     // Streams updates of interactions.
-    rpc SubscribeInteractions(SubscribeInteractionsRequest) returns (stream ParticleInteraction) {}
+    rpc SubscribeInteractions(SubscribeInteractionsRequest) returns (stream InteractionsUpdate) {}
 }
 
 message SubscribeInteractionsRequest {

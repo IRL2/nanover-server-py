@@ -81,7 +81,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
                 return
             for changes, removals in change_buffer.subscribe_changes(interval):
                 response = InteractionsUpdate()
-                response.updated_interactions.extend(changes.values())
+                protos = [interaction.proto for interaction in changes.values()]
+                response.updated_interactions.extend(protos)
                 response.removals.extend(removals)
                 yield response
 

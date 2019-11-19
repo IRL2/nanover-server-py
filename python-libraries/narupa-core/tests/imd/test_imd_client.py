@@ -1,10 +1,14 @@
+import time
 from concurrent import futures
 from queue import Queue
 
 import grpc
 import pytest
 from narupa.imd.imd_client import queue_generator
+
 from .test_imd_server import imd_server_client, imd_server, interaction
+
+IMMEDIATE_REPLY_WAIT_TIME = 0.01
 
 
 def test_start_interaction(imd_server_client):
@@ -124,9 +128,40 @@ def test_queue_generator_threaded():
     assert result == items
 
 
-def test_subscribe_interactions(imd_server_client):
+def test_subscribe_interactions(imd_server_client, interaction):
     """
     Test that IMD interactions can be subscribed.
     """
     imd_server, imd_client = imd_server_client
-    imd_client.subscribe_interactions()
+    imd_client.subscribe_interactions(interval=0)
+
+
+def test_subscribe_own_interaction(imd_server_client, interaction):
+    """
+    Test that after subscribing interactions, we receive our own published
+    interaction.
+    """
+    imd_server, imd_client = imd_server_client
+    imd_client.subscribe_interactions(interval=0)
+    local_interaction_id = imd_client.start_interaction()
+    imd_client.update_interaction(local_interaction_id, interaction)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 5)
+    assert local_interaction_id in imd_client.interactions
+
+
+def test_subscribe_own_interaction_removed(imd_server_client, interaction):
+    """
+    Test that after subscribing interactions, we receive our own published
+    interaction and after removal it is removed.
+    """
+    imd_server, imd_client = imd_server_client
+    imd_client.subscribe_interactions(interval=0)
+    local_interaction_id = imd_client.start_interaction()
+    imd_client.update_interaction(local_interaction_id, interaction)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    assert local_interaction_id in imd_client.interactions
+
+    imd_client.stop_interaction(local_interaction_id)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    assert local_interaction_id not in imd_client.interactions
+

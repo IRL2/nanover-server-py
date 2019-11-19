@@ -81,17 +81,16 @@ def test_multiplexing_interactions(imd_server_client):
     are transmitted over the same stream. While not the typical usage, it is tested.
     """
     imd_server, imd_client = imd_server_client
+    update_delay = 0.01
     mock = Mock()
     imd_server.service.set_callback(mock.callback)
-    first_set = [ParticleInteraction()] * 10
-    second_set = [ParticleInteraction(interaction_id="2")] * 10
-    interleaved = [val for pair in zip(first_set, second_set) for val in pair]
+    interleaved = [ParticleInteraction(interaction_id="1"), ParticleInteraction(interaction_id="2")] * 10
     # TODO use a coroutine awaiting input as the generator to control this without needing sleeps
-    imd_client.publish_interactions_async(delayed_generator(interleaved, delay=0.01))
-    time.sleep(0.04)
+    imd_client.publish_interactions_async(delayed_generator(interleaved, delay=update_delay))
+    time.sleep(update_delay * 4)
     assert len(imd_server.service.active_interactions) == 2
-    time.sleep(0.4)
-    assert mock.callback.call_count == len(first_set) + len(second_set)
+    time.sleep(update_delay * (len(interleaved) + 3))
+    assert mock.callback.call_count == len(interleaved)
 
 
 def test_clear_interactions(imd_server_client, interactions):
