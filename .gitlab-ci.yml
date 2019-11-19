@@ -39,7 +39,7 @@ test_dotnet:
   variables:
     test_path: "csharp-libraries"
   script:
-    - ./compile
+    - ./compile.sh
     - "cd $test_path"
     - "dotnet test"
 
@@ -48,6 +48,8 @@ build_conda:
     variables:
         build_command: "conda build --prefix-length=100 "
     script:
+        # Test that the repo is sane and does not contain superfluous __init__ file
+        - bash maintainers/check_extra_init_files.sh
         # We use the number of commits in the branch to set the version number.
         - export NARUPA_BUILD_VERSION="0.1.$(git rev-list --count HEAD)"
         - export NARUPA_LICENSE_PATH="$(readlink -f LICENSE)"
