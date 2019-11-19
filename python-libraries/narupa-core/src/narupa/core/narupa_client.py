@@ -26,7 +26,7 @@ class NarupaClient(GrpcClient):
                          stub=stub)
 
         self._command_stub = CommandStub(self.channel)
-        self._available_commands = Dict[str, CommandInfo]
+        self._available_commands = {}
 
     @property
     def available_commands(self) -> Dict[str, CommandInfo]:

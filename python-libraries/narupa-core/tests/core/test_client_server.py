@@ -26,6 +26,23 @@ def mock_callback(default_args):
     return Mock(return_value=default_args)
 
 
+def test_available_commands(client_server, default_args):
+    client, server = client_server
+    mock = Mock()
+    server.register_command("test", mock.callback, default_args)
+    commands = client.update_available_commands()
+
+    assert client.available_commands == commands
+
+
+def test_available_commands_init(client_server, default_args):
+    """
+    tests that the available commands is empty at initialisation of the client.
+    """
+    client, server = client_server
+    assert client.available_commands == {}
+
+
 def test_get_commands(client_server, default_args):
     client, server = client_server
     mock = Mock()
