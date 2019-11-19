@@ -68,6 +68,7 @@ def test_dict_to_struct(dictionary):
     struct = dict_to_struct(dictionary)
     assert_struct_dictionary_equal(struct, dictionary)
 
+
 @pytest.mark.parametrize('dictionary',
                          [
                              {object(): 1},

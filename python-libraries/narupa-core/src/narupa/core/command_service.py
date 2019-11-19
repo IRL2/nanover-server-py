@@ -10,7 +10,7 @@ from typing import Dict, Callable, Optional
 import grpc
 from google.protobuf.struct_pb2 import Struct
 
-from narupa.core.command_info import CommandInfo
+from narupa.core.command_info import CommandInfo, dict_to_struct
 from narupa.core.key_lockable_map import KeyLockableMap
 from narupa.protocol.command import CommandServicer, CommandMessage, CommandReply, GetCommandsReply
 
@@ -84,12 +84,11 @@ class CommandService(CommandServicer):
         args.update(request.arguments)
         results = command.callback(**args)
         if results is not None:
-            result_struct = Struct()
             try:
-                result_struct.update(results)
+                result_struct = dict_to_struct(results)
             except ValueError:
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-                message = f'Command ({command}) generated results that cannot be serialised: {results}'
+                message = f'Command ({name}) generated results that cannot be serialised: {results}'
                 context.set_details(message)
                 return
             return CommandReply(result=result_struct)

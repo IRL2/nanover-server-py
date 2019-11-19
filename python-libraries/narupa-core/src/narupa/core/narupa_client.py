@@ -5,7 +5,7 @@ from typing import Optional, Collection, Dict, List, Set
 from google.protobuf.struct_pb2 import Struct
 
 from narupa.core import GrpcClient
-from narupa.core.command_info import CommandInfo, struct_to_dict
+from narupa.core.command_info import CommandInfo, struct_to_dict, dict_to_struct
 from narupa.protocol.command import CommandStub, CommandMessage, GetCommandsRequest
 
 
@@ -45,13 +45,7 @@ class NarupaClient(GrpcClient):
 
         :return: Dictionary of results, which may be empty.
         """
-        arguments_struct = Struct()
-        try:
-            arguments_struct.update(arguments)
-        except ValueError:
-            raise ValueError("Unable to construct serialise arguments into a protobuf struct. "
-                             "Only value types such as numbers, strings, booleans, and collections of those types"
-                             "can be serialised.")
+        arguments_struct = dict_to_struct(arguments)
 
         message = CommandMessage(name=name, arguments=arguments_struct)
         result_message = self._command_stub.RunCommand(message)

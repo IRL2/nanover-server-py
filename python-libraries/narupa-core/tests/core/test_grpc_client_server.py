@@ -8,6 +8,8 @@ from mock import Mock
 from narupa.core.narupa_client import NarupaClient
 from narupa.core.narupa_server import NarupaServer
 
+TEST_COMMAND_KEY = "test"
+
 
 @pytest.fixture
 def client_server():
@@ -29,7 +31,7 @@ def mock_callback(default_args):
 def test_available_commands(client_server, default_args):
     client, server = client_server
     mock = Mock()
-    server.register_command("test", mock.callback, default_args)
+    server.register_command(TEST_COMMAND_KEY, mock.callback, default_args)
     commands = client.update_available_commands()
 
     assert client.available_commands == commands
@@ -55,14 +57,41 @@ def test_client_inits_if_no_server():
 def test_get_commands(client_server, default_args):
     client, server = client_server
     mock = Mock()
-    server.register_command("test", mock.callback, default_args)
+    server.register_command(TEST_COMMAND_KEY, mock.callback, default_args)
 
     commands = client.update_available_commands()
     assert len(commands) == 1
-    assert 'test' in commands
+    assert TEST_COMMAND_KEY in commands
     command = next(iter(commands.values()))
-    assert command.name == "test"
+    assert command.name == TEST_COMMAND_KEY
     assert command.arguments == default_args
+
+
+def test_commands_on_server(client_server):
+    client, server = client_server
+    mock = Mock()
+
+    server.register_command(TEST_COMMAND_KEY, mock.callback)
+    commands = server.commands
+    assert TEST_COMMAND_KEY in commands
+    command_registration = next(iter(commands.values()))
+    assert command_registration.info.name == TEST_COMMAND_KEY
+    assert command_registration.callback == mock.callback
+
+
+def test_unregister_command(client_server):
+    client, server = client_server
+    mock = Mock()
+
+    server.register_command(TEST_COMMAND_KEY, mock.callback)
+
+    commands = client.update_available_commands()
+    assert len(commands) == 1
+    assert TEST_COMMAND_KEY in commands
+
+    server.unregister_command(TEST_COMMAND_KEY)
+    commands = client.update_available_commands()
+    assert len(commands) == 0
 
 
 def test_get_multiple_commands(client_server):
@@ -85,15 +114,15 @@ def test_get_command_with_argument(client_server):
     client, server = client_server
     mock = Mock()
     arguments = {'x': 1, 'y': 2}
-    server.register_command("test", mock.callback, arguments)
+    server.register_command(TEST_COMMAND_KEY, mock.callback, arguments)
     commands = client.update_available_commands()
     assert next(iter(commands.values())).arguments == arguments
 
 
 def test_run_command(client_server, mock_callback):
     client, server = client_server
-    server.register_command("test", mock_callback)
-    results = client.run_command("test", **{})
+    server.register_command(TEST_COMMAND_KEY, mock_callback)
+    results = client.run_command(TEST_COMMAND_KEY, **{})
     time.sleep(0.1)
     mock_callback.assert_called_once()
     assert results == mock_callback()
@@ -101,8 +130,8 @@ def test_run_command(client_server, mock_callback):
 
 def test_run_no_args(client_server, mock_callback):
     client, server = client_server
-    server.register_command("test", mock_callback)
-    client.run_command("test")
+    server.register_command(TEST_COMMAND_KEY, mock_callback)
+    client.run_command(TEST_COMMAND_KEY)
     time.sleep(0.1)
     mock_callback.assert_called_once()
 
@@ -124,8 +153,8 @@ def test_run_command_with_no_result(client_server):
         pass
 
     client, server = client_server
-    server.register_command("test", method)
-    reply = client.run_command("test")
+    server.register_command(TEST_COMMAND_KEY, method)
+    reply = client.run_command(TEST_COMMAND_KEY)
     assert reply == {}
 
 
@@ -133,3 +162,19 @@ def test_unknown_command(client_server):
     client, server = client_server
     with pytest.raises(RpcError):
         client.run_command("unknown")
+
+
+def test_command_invalid_results(client_server):
+    """
+    tests that a command that has unserialisable results
+    throws an rpc exception.
+    """
+
+    def invalid_method():
+        result = {'y': object()}
+        return result
+
+    client, server = client_server
+    server.register_command(TEST_COMMAND_KEY, invalid_method)
+    with pytest.raises(RpcError):
+        client.run_command(TEST_COMMAND_KEY)
