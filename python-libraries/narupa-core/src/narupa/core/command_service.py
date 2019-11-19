@@ -62,6 +62,8 @@ class CommandService(CommandServicer):
 
         :param name: Name of the command to delete
         """
+        if self._commands.get(name) is None:
+            raise KeyError(f"Command {name} does not exist")
         self._commands.delete(self._id, name)
 
     def GetCommands(self, request, context):
