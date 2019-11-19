@@ -55,13 +55,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         :param context: gRPC context.
         :return: :class: InteractionEndReply, indicating the successful interaction.
         """
-        interactions_in_request = set()
         try:
-            self._publish_interaction(
-                interactions_in_request,
-                request_iterator,
-                context,
-            )
+            self._publish_interaction(request_iterator, context)
         except KeyError as e:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
             message = str(e)
@@ -70,8 +65,6 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             message = str(e)
             context.set_details(message)
-        finally:
-            self._interactions.update(removals=interactions_in_request)
         return InteractionEndReply()
 
     def SubscribeInteractions(
@@ -115,21 +108,26 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         self._callback = callback
 
-    def _publish_interaction(self, interactions_in_request, request_iterator,
-                             context):
-        for interaction in request_iterator:
-            if interaction.interaction_id not in interactions_in_request and interaction.interaction_id in self._interactions:
-                raise KeyError('The given player_id and interaction_id '
-                               'is already in use in another '
-                               'interaction.')
-            # convert to wrapped interaction type.
-            interaction = ParticleInteraction.from_proto(interaction)
-            self._validate_interaction(interaction)
+    def _publish_interaction(self, request_iterator, context):
+        interactions_in_request = set()
+        try:
+            for interaction in request_iterator:
+                id_owned = interaction.interaction_id in interactions_in_request
+                id_exists = interaction.interaction_id in self._interactions
+                if not id_owned and id_exists:
+                    raise KeyError('The given player_id and interaction_id '
+                                   'is already in use in another '
+                                   'interaction.')
+                # convert to wrapped interaction type.
+                interaction = ParticleInteraction.from_proto(interaction)
+                self._validate_interaction(interaction)
 
-            interactions_in_request.add(interaction.interaction_id)
-            self._interactions.update({interaction.interaction_id: interaction})
-            if self._callback is not None:
-                self._callback(interaction)
+                interactions_in_request.add(interaction.interaction_id)
+                self._interactions.update({interaction.interaction_id: interaction})
+                if self._callback is not None:
+                    self._callback(interaction)
+        finally:
+            self._interactions.update(removals=interactions_in_request)
 
     def _validate_interaction(self, interaction):
         self._validate_particle_range(interaction)

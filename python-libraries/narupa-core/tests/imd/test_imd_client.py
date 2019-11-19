@@ -8,16 +8,21 @@ from .test_imd_server import imd_server_client, imd_server, interaction
 
 
 def test_start_interaction(imd_server_client):
+    """
+    Test that you can start an interaction.
+    """
     imd_server, imd_client = imd_server_client
-    interaction_id = imd_client.start_interaction()
-    assert interaction_id == 0
+    assert imd_client.start_interaction() is not None
 
 
 def test_start_interaction_twice(imd_server_client):
+    """
+    Test that you can start two independent interactions.
+    """
     imd_server, imd_client = imd_server_client
-    imd_client.start_interaction()
-    interaction_id = imd_client.start_interaction()
-    assert interaction_id == 1
+    id1 = imd_client.start_interaction()
+    id2 = imd_client.start_interaction()
+    assert id1 != id2
 
 
 def test_update_interaction(imd_server_client, interaction):
@@ -34,21 +39,21 @@ def test_update_unknown_interaction(imd_server_client, interaction):
     interaction_id = imd_client.start_interaction()
 
     with pytest.raises(KeyError):
-        imd_client.update_interaction(interaction_id + 1, interaction)
+        imd_client.update_interaction(interaction_id + "nonsense", interaction)
 
 
 def test_delete_interaction(imd_server_client, interaction):
     imd_server, imd_client = imd_server_client
     interaction_id = imd_client.start_interaction()
     imd_client.stop_interaction(interaction_id)
-    assert len(imd_client._active_interactions) == 0
+    assert len(imd_client._local_interactions_states) == 0
 
 
 def test_delete_unknown_interaction(imd_server_client, interaction):
     imd_server, imd_client = imd_server_client
     interaction_id = imd_client.start_interaction()
     with pytest.raises(KeyError):
-        imd_client.stop_interaction(interaction_id + 1)
+        imd_client.stop_interaction(interaction_id + "nonsense")
 
 
 def test_delete_deleted_interaction(imd_server_client, interaction):
@@ -72,7 +77,7 @@ def test_stop_all_interactions(imd_server_client, interaction):
     imd_client.start_interaction()
     imd_client.start_interaction()
     imd_client.stop_all_interactions()
-    assert len(imd_client._active_interactions) == 0
+    assert len(imd_client._local_interactions_states) == 0
 
 
 def test_bad_interaction_type(imd_server_client):

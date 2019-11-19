@@ -151,8 +151,8 @@ class ImdClient(GrpcClient):
         """
         Stops all active interactions governed by this client.
         """
-        for interaction_id in list(self._local_interactions_states.keys()):
-            self.stop_interaction(interaction_id)
+        for local_interaction_id in list(self._local_interactions_states.keys()):
+            self.stop_interaction(local_interaction_id)
 
     def subscribe_interactions(self, interval=0):
         """

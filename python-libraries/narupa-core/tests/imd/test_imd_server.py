@@ -99,12 +99,14 @@ def test_clear_interactions(imd_server_client, interactions):
     Tests that after interacting the set of interactions are cleared
     """
     imd_server, imd_client = imd_server_client
+    update_delay = 0.01
+    update_count = len(interactions)
     mock = Mock()
     imd_server.service.set_callback(mock.callback)
-    imd_client.publish_interactions_async(delayed_generator(interactions, delay=0.01))
-    time.sleep(0.04)
+    imd_client.publish_interactions_async(delayed_generator(interactions, delay=update_delay))
+    time.sleep(update_delay * 4)
     assert len(imd_server.service.active_interactions) == 1
-    time.sleep(0.3)
+    time.sleep(update_delay * (update_count + 3))
     assert len(imd_server.service.active_interactions) == 0
 
 
