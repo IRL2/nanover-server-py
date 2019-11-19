@@ -16,20 +16,15 @@ class NarupaClient(GrpcClient):
 
     :param address: Address of server to connect to.
     :param port: Port of server to connect to.
-    :param stub: gRPC stub to attach.
 
     """
 
     def __init__(self, *, address: str,
-                 port: int, stub: Optional = None):
-        super().__init__(address=address, port=port,
-                         stub=stub)
+                 port: int):
+        super().__init__(address=address, port=port)
 
         self._command_stub = CommandStub(self.channel)
         self._available_commands = {}
-        # TODO @review I'm not sure if it's better to try to update commands at initialisation,
-        # which may throw an error if the server isn't available yet?
-        self.update_available_commands()
 
     @property
     def available_commands(self) -> Dict[str, CommandInfo]:
@@ -70,7 +65,23 @@ class NarupaClient(GrpcClient):
 
         :return: A set of all the commands on the command server.
         """
-
         command_responses = self._command_stub.GetCommands(GetCommandsRequest()).commands
         self._available_commands = {raw.name: CommandInfo.from_proto(raw) for raw in command_responses}
         return self._available_commands
+
+
+class NarupaStubClient(NarupaClient):
+    """
+    A base gRPC client for Narupa services. Automatically sets up a stub for the :class:`CommandServicer`,
+    and attaches the provided stub to the underlying gRPC channel.
+
+    :param address: Address of server to connect to.
+    :param port: Port of server to connect to.
+    :param stub: gRPC stub to attach.
+
+    """
+
+    def __init__(self, *, address: str,
+                 port: int, stub):
+        super().__init__(address=address, port=port)
+        self.stub = stub(self.channel)

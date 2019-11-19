@@ -13,7 +13,7 @@ from google.protobuf.struct_pb2 import Value
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
-from narupa.core import NarupaClient
+from narupa.core import NarupaStubClient
 from narupa.core.request_queues import SingleItemQueue
 from narupa.multiplayer.change_buffers import yield_interval
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
@@ -42,7 +42,7 @@ def _end_upon_channel_close(function):
     return wrapped
 
 
-class MultiplayerClient(NarupaClient):
+class MultiplayerClient(NarupaStubClient):
     """
     Represents a client to the multiplayer server.
 

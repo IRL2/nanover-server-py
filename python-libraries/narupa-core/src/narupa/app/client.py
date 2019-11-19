@@ -34,8 +34,8 @@ def _update_commands(client: NarupaClient):
 
 class NarupaImdClient:
     """
-    Basic interactive molecular dynamics client that receives frames and can
-    publish interactions.
+    Basic interactive molecular dynamics client that receives frames, can
+    publish interactions, send commands and join the multiplayer shared state.
 
     :param address Address of the Narupa frame server.
     :param trajectory_port: Port at which the Narupa frame server is running.
@@ -43,8 +43,6 @@ class NarupaImdClient:
     :param multiplayer_port: Port at which the Narupa multiplayer server is running.
     :param max_frames: Maximum number of frames to retain. If more frames are
         received, older frames will be removed.
-    :param run_imd: Whether to connect to the IMD server.
-    :param run_multiplayer: Whether to connect to the multiplayer server.
     :param all_frames: Whether to receive all frames produced by the trajectory
         server, or just subscribe to the latest frame.
     """

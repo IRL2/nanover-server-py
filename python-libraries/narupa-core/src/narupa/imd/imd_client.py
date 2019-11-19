@@ -7,7 +7,7 @@ from typing import Iterable, Optional
 
 import grpc
 
-from narupa.core import get_requested_port_or_default, NarupaClient
+from narupa.core import get_requested_port_or_default, NarupaStubClient
 from narupa.imd.imd_server import DEFAULT_PORT
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import InteractiveMolecularDynamicsStub, InteractionEndReply
@@ -48,7 +48,7 @@ def _to_proto(interactions: Iterable[ParticleInteraction]):
         yield interaction.proto
 
 
-class ImdClient(NarupaClient):
+class ImdClient(NarupaStubClient):
     """
     A simple IMD client, primarily for testing the IMD server.
 

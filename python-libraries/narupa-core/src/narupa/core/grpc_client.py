@@ -17,11 +17,9 @@ class GrpcClient:
     :param stub: The GRPC service stub class.
     """
 
-    def __init__(self, *, address: Optional[str] = None, port: int, stub: Optional = None):
+    def __init__(self, *, address: Optional[str] = None, port: int):
         address = address or DEFAULT_CONNECT_ADDRESS
         self.channel = grpc.insecure_channel(f"{address}:{port}")
-        if stub is not None:
-            self.stub = stub(self.channel)
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
 
     def close(self):
