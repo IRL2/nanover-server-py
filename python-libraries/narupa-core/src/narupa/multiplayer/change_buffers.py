@@ -105,6 +105,17 @@ class DictionaryChangeMultiView:
             for view in self._views:
                 view.freeze()
 
+    def copy_content(self):
+        """
+        Return a shallow copy of the dictionary at this instant.
+        """
+        with self._lock:
+            return dict(self._content)
+
+    def __contains__(self, item):
+        with self._lock:
+            return item in self._content
+
 
 class DictionaryChangeBuffer:
     """

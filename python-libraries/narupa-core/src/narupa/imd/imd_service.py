@@ -3,14 +3,14 @@
 """
 Module providing an implementation of an IMD service.
 """
-from threading import Lock
-from typing import Iterable, List, Dict, Tuple, Callable
+from typing import Dict, Callable
 
 import grpc
 
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
-from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply, SubscribeInteractionsRequest
+from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, \
+    InteractionEndReply, SubscribeInteractionsRequest, InteractionsUpdate
 
 IMD_SERVICE_NAME = "imd"
 
@@ -34,11 +34,10 @@ class ImdService(InteractiveMolecularDynamicsServicer):
                  callback=None,
                  velocity_reset_enabled=False,
                  number_of_particles=None):
-        self._interactions = {}
+        self._interactions = DictionaryChangeMultiView()
         self._callback = callback
         self.velocity_reset_enabled = velocity_reset_enabled
         self.number_of_particles = number_of_particles
-        self._interaction_lock = Lock()
 
     def PublishInteraction(self, request_iterator, context):
         """
@@ -72,13 +71,14 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             message = str(e)
             context.set_details(message)
         finally:
-            # clean up all the interactions after the stream
-            with self._interaction_lock:
-                for key in interactions_in_request:
-                    del self._interactions[key]
+            self._interactions.update(removals=interactions_in_request)
         return InteractionEndReply()
 
-    def SubscribeInteractions(self, request: SubscribeInteractionsRequest, context):
+    def SubscribeInteractions(
+            self,
+            request: SubscribeInteractionsRequest,
+            context,
+    ):
         """
         Provides a stream of updates to interactions.
         """
@@ -86,31 +86,26 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         with self._interactions.create_view() as change_buffer:
             if not context.add_callback(lambda: change_buffer.freeze()):
                 return
-            for changes in change_buffer.subscribe_changes(interval):
-                for player_id, avatar in changes.items():
-                    if player_id != request.ignore_player_id:
-                        yield avatar
+            for changes, removals in change_buffer.subscribe_changes(interval):
+                response = InteractionsUpdate()
+                response.updated_interactions.extend(changes.values())
+                response.removals.extend(removals)
+                yield response
+
+    def insert_interaction(self, interaction):
+        self._interactions.update({interaction.interaction_id: interaction})
+
+    def remove_interaction(self, interaction):
+        self._interactions.update(removals=[interaction.interaction_id])
 
     @property
-    def active_interactions(self) -> Dict[Tuple[str, str], ParticleInteraction]:
+    def active_interactions(self) -> Dict[str, ParticleInteraction]:
         """
-        The current dictionary of active interactions, keyed by player id and
-        interaction id.
+        The current dictionary of active interactions, keyed by interaction id.
 
         :return: A copy of the dictionary of active interactions.
         """
-        with self._interaction_lock:
-            return dict(self._interactions)
-
-    @staticmethod
-    def get_key(interaction):
-        """
-        Gets the key to use with an interaction.
-
-        :param interaction:
-        :return: key formed of a tuple of player_id and interaction_id.
-        """
-        return interaction.player_id, interaction.interaction_id
+        return self._interactions.copy_content()
 
     def set_callback(self, callback: Callable[[ParticleInteraction], None]):
         """
@@ -123,18 +118,16 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     def _publish_interaction(self, interactions_in_request, request_iterator,
                              context):
         for interaction in request_iterator:
-            key = self.get_key(interaction)
-            with self._interaction_lock:
-                if key not in interactions_in_request and key in self._interactions:
-                    raise KeyError('The given player_id and interaction_id '
-                                   'is already in use in another '
-                                   'interaction.')
-                # convert to wrapped interaction type.
-                interaction = ParticleInteraction.from_proto(interaction)
-                self._validate_interaction(interaction)
+            if interaction.interaction_id not in interactions_in_request and interaction.interaction_id in self._interactions:
+                raise KeyError('The given player_id and interaction_id '
+                               'is already in use in another '
+                               'interaction.')
+            # convert to wrapped interaction type.
+            interaction = ParticleInteraction.from_proto(interaction)
+            self._validate_interaction(interaction)
 
-                interactions_in_request.add(key)
-                self._interactions[key] = interaction
+            interactions_in_request.add(interaction.interaction_id)
+            self._interactions.update({interaction.interaction_id: interaction})
             if self._callback is not None:
                 self._callback(interaction)
 
