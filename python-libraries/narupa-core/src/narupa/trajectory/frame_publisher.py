@@ -9,6 +9,8 @@ from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameRespon
 
 SENTINEL = None
 
+TRAJECTORY_SERVICE_NAME = "trajectory"
+
 
 class FramePublisher(TrajectoryServiceServicer):
     """

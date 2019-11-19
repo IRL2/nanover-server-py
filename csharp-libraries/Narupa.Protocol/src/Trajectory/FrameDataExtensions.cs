@@ -316,6 +316,45 @@ namespace Narupa.Protocol.Trajectory
 
         #endregion
 
+        #region ResidueIds
+
+        /// <summary>
+        /// Does this frame have residue ids?
+        /// </summary>
+        public static bool HasResidueIds(this FrameData data)
+        {
+            return data.TryGetStringArray(FrameData.ResidueIdArrayKey, out _);
+        }
+
+        /// <summary>
+        /// Set the residue ids of this frame.
+        /// </summary>
+        public static void SetResidueIds(this FrameData data,
+            IEnumerable<string> values)
+        {
+            data.AddStringArray(FrameData.ResidueIdArrayKey, values);
+        }
+
+        /// <summary>
+        /// Try to get the residue ids array, returning true and setting the out
+        /// variable values to the array if found.
+        /// </summary>
+        public static bool TryGetResidueIds(this FrameData data,
+            out IReadOnlyList<string> values)
+        {
+            return data.TryGetStringArray(FrameData.ResidueIdArrayKey, out values);
+        }
+
+        /// <summary>
+        /// Get the residue ids if present, else returning null.
+        /// </summary>
+        public static IReadOnlyList<string> GetResidueIds(this FrameData data)
+        {
+            return data.GetStringArray(FrameData.ResidueIdArrayKey);
+        }
+
+        #endregion
+        
         #region ResidueChains
 
         /// <summary>

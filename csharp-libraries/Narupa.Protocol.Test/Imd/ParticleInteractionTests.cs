@@ -7,7 +7,7 @@ namespace Narupa.Protocol.Test.Imd
     public class ParticleInteractionTests
     {
         /// <summary>
-        ///     Generates an interaction with fields set to default values, using both constructors.
+        /// Generates an interaction with fields set to default values, using both constructors.
         /// </summary>
         private static IEnumerable<TestCaseData>
             DefaultInteraction()
@@ -17,7 +17,7 @@ namespace Narupa.Protocol.Test.Imd
         }
 
         /// <summary>
-        ///     Generates an interaction with some different values et.
+        /// Generates an interaction with some different values et.
         /// </summary>
         private static IEnumerable<TestCaseData>
             TestInteraction()

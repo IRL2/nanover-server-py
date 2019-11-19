@@ -12,6 +12,8 @@ from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
 from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply, SubscribeInteractionsRequest
 
+IMD_SERVICE_NAME = "imd"
+
 
 class ImdService(InteractiveMolecularDynamicsServicer):
     """

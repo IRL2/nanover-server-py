@@ -187,6 +187,8 @@ class NarupaClient:
 
         :return: Dictionary of the current state of multiplayer shared key/value store.
         """
+        if self._multiplayer_client is None:
+            raise RuntimeError("Not connected to multiplayer service")
         return dict(self._multiplayer_client.resources)
 
     @property
@@ -271,6 +273,8 @@ class NarupaClient:
 
         :param player_name: The player name with which to be identified.
         """
+        if self._multiplayer_client is None:
+            raise RuntimeError("Not connected to multiplayer service")
         self._multiplayer_client.join_multiplayer(player_name)
 
     def set_shared_value(self, key, value) -> bool:
@@ -281,6 +285,8 @@ class NarupaClient:
         :param value: The new value to store.
         :return: `True` if successful, `False` otherwise.
         """
+        if self._multiplayer_client is None:
+            raise RuntimeError("Not connected to multiplayer service")
         return self._multiplayer_client.try_set_resource_value(key, value)
 
     def _join_trajectory(self):
