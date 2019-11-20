@@ -55,3 +55,4 @@ catch
 
 announce "Compiling proto files to C#"
 dotnet build --configuration Release csharp-libraries/Narupa.Protocol
+dotnet publish --configuration Release csharp-libraries/Narupa.Protocol

@@ -22,6 +22,7 @@ requirements:
     - protobuf
     - grpcio
     - numpy
+    - narupa-essd =={{ NARUPA_BUILD_VERSION }}
 
 about:
   home: https://narupa.readthedocs.io

@@ -8,6 +8,8 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.md import VelocityVerlet
 from ase.cell import Cell
+
+from narupa.essd import DiscoveryClient
 from narupa.trajectory import FrameData
 from narupa.ase.imd_server import ASEImdServer
 
@@ -169,7 +171,7 @@ def test_run_blocking(arbitrary_ase_server):
     frame_count = 0
 
     def count_frames(*args, **kwargs):
-        nonlocal  frame_count
+        nonlocal frame_count
         frame_count += 1
 
     arbitrary_ase_server.dynamics.attach(count_frames, interval=1)
@@ -182,7 +184,7 @@ def test_run_non_blocking(arbitrary_ase_server):
     frame_count = 0
 
     def count_frames(*args, **kwargs):
-        nonlocal  frame_count
+        nonlocal frame_count
         frame_count += 1
 
     arbitrary_ase_server.dynamics.attach(count_frames, interval=1)
