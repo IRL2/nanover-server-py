@@ -24,7 +24,7 @@ message GetCommandsReply{
 }
 
 message CommandReply {
-    google.protobuf.Struct result=1;
+    google.protobuf.Struct result = 1;
 }
 
 message CommandMessage {
