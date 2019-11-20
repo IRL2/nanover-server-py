@@ -29,5 +29,5 @@ message CommandReply {
 
 message CommandMessage {
     string name = 1;
-    google.protobuf.Struct arguments=2;
+    google.protobuf.Struct arguments = 2;
 }
