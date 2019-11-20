@@ -294,33 +294,54 @@ class NarupaClient:
         return self._multiplayer_client.try_set_resource_value(key, value)
 
     def create_selection(
-            self,
-            name: str,
-            particle_ids: Iterable[int] = set(),
+        self,
+        name: str,
+        particle_ids: Iterable[int] = None,
     ) -> NarupaImdSelection:
+        """
+        Create a particle selection with the given name.
+
+        :param name: The user-friendly name of the selection.
+        :param particle_ids: The indices of the particles to include in the selection.
+        :return: The selection that was created.
+        """
+        if particle_ids is None:
+            particle_ids = set()
+
+        # Give the selection an ID based upon the multiplayer player ID and an incrementing counter
         selection_id = f'selection.{self._multiplayer_client.player_id}.{self._next_selection_id}'
         self._next_selection_id += 1
 
+        # Create the selection and setup the particles that it contains
         selection = NarupaImdSelection(selection_id, name)
-        selection.select_particles(particle_ids)
+        selection.set_particles(particle_ids)
 
-        struct = Struct()
-        struct.update(selection.to_selection_message())
-        self.set_shared_value(selection_id, Value(struct_value=struct))
+        # Mark the selection as needing updating, which adds it to the shared value store.
+        self.update_selection(selection)
 
         return selection
 
     def update_selection(self, selection: NarupaImdSelection):
+        """
+        Applies changes to the given selection to the shared key store.
+
+        :param selection: The selection to update.
+        :return:
+        """
         struct = Struct()
-        struct.update(selection.to_selection_message())
+        struct.update(selection.to_dictionary())
         self.set_shared_value(selection.selection_id, Value(struct_value=struct))
 
     @property
     def selections(self) -> Iterable[NarupaImdSelection]:
+        """
+        Get all selections which are stored in the shared key store.
+
+        :return: An iterable of all the selections stored in the shared key store.
+        """
         for key, value in self._multiplayer_client.resources.items():
             if key.startswith('selection.'):
-                message = MessageToDict(value.struct_value)
-                yield NarupaImdSelection.from_selection_message(message)
+                yield NarupaImdSelection.from_dictionary(MessageToDict(value.struct_value))
 
     def _join_trajectory(self):
         if self.all_frames:
