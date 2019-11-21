@@ -57,7 +57,7 @@ def test_server(imd_server):
 def test_publish_interaction(imd_server_stub, interaction):
     imd_server, stub = imd_server_stub
     mock = Mock()
-    imd_server.service.set_callback(mock.callback)
+    imd_server.service.set_interaction_updated_callback(mock.callback)
     reply = stub.PublishInteraction((i.proto for i in [interaction]))
     assert isinstance(reply, InteractionEndReply)
     mock.callback.assert_called_once()
@@ -66,7 +66,7 @@ def test_publish_interaction(imd_server_stub, interaction):
 def test_publish_multiple_interactions(imd_server_client):
     imd_server, imd_client = imd_server_client
     mock = Mock()
-    imd_server.service.set_callback(mock.callback)
+    imd_server.service.set_interaction_updated_callback(mock.callback)
     first_set = [ParticleInteraction()] * 10
     second_set = [ParticleInteraction(interaction_id="2")] * 10
     imd_client.publish_interactions_async(delayed_generator(first_set, delay=0.1))
@@ -83,7 +83,7 @@ def test_multiplexing_interactions(imd_server_client):
     imd_server, imd_client = imd_server_client
     update_delay = 0.01
     mock = Mock()
-    imd_server.service.set_callback(mock.callback)
+    imd_server.service.set_interaction_updated_callback(mock.callback)
     interleaved = [ParticleInteraction(interaction_id="1"), ParticleInteraction(interaction_id="2")] * 10
     # TODO use a coroutine awaiting input as the generator to control this without needing sleeps
     imd_client.publish_interactions_async(delayed_generator(interleaved, delay=update_delay))
@@ -101,7 +101,7 @@ def test_clear_interactions(imd_server_client, interactions):
     update_delay = 0.01
     update_count = len(interactions)
     mock = Mock()
-    imd_server.service.set_callback(mock.callback)
+    imd_server.service.set_interaction_updated_callback(mock.callback)
     imd_client.publish_interactions_async(delayed_generator(interactions, delay=update_delay))
     time.sleep(update_delay * 4)
     assert len(imd_server.service.active_interactions) == 1
@@ -112,7 +112,7 @@ def test_clear_interactions(imd_server_client, interactions):
 def test_repeat_interactions(imd_server_client, interactions):
     imd_server, imd_client = imd_server_client
     mock = Mock()
-    imd_server.service.set_callback(mock.callback)
+    imd_server.service.set_interaction_updated_callback(mock.callback)
     imd_client.publish_interactions(delayed_generator(interactions, delay=0.01))
     assert mock.callback.call_count == len(interactions)
     imd_client.publish_interactions(delayed_generator(interactions, delay=0.01))
@@ -125,7 +125,7 @@ def test_publish_identical_interactions(imd_server_client, interactions):
     """
     imd_server, imd_client = imd_server_client
     mock = Mock()
-    imd_server.service.set_callback(mock.callback)
+    imd_server.service.set_interaction_updated_callback(mock.callback)
     imd_client.publish_interactions_async(delayed_generator(interactions, delay=0.1))
     with pytest.raises(grpc.RpcError):
         imd_client.publish_interactions(delayed_generator(interactions, delay=0.15))
@@ -137,7 +137,7 @@ def test_publish_interactive_interaction(imd_server_client, interactions):
     """
     imd_server, imd_client = imd_server_client
     mock = Mock()
-    imd_server.service.set_callback(mock.callback)
+    imd_server.service.set_interaction_updated_callback(mock.callback)
     guid = imd_client.start_interaction()
     for interaction in interactions:
         imd_client.update_interaction(guid, interaction)
@@ -159,7 +159,7 @@ def test_multithreaded_interactions(imd_server_client):
     interactions_per_run = 10
     random = Random()
     mock = Mock()
-    imd_server.service.set_callback(mock.callback)
+    imd_server.service.set_interaction_updated_callback(mock.callback)
 
     # runs an interaction on the threadpool.
     def run_interaction(imd_client: ImdClient, interaction_id, num_interactions):

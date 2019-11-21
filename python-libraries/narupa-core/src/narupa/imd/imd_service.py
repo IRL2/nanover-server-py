@@ -38,15 +38,17 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         particle indices in an interaction are valid. If not set, it is up to
         consumers of the interactions to validate.
     """
-    _interactions = DictionaryChangeMultiView,
-    _callback = Optional[Callable[[ParticleInteraction], None]],
+    _interactions: DictionaryChangeMultiView
+    _interaction_updated_callback: Optional[Callable[[ParticleInteraction], None]]
+    velocity_reset_enabled: bool
+    number_of_particles: Optional[int]
 
     def __init__(self,
                  callback=None,
                  velocity_reset_enabled=False,
                  number_of_particles=None):
         self._interactions = DictionaryChangeMultiView()
-        self._callback = callback
+        self._interaction_updated_callback = callback
         self.velocity_reset_enabled = velocity_reset_enabled
         self.number_of_particles = number_of_particles
 
@@ -97,8 +99,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
 
     def insert_interaction(self, interaction: ParticleInteraction):
         self._interactions.update({interaction.interaction_id: interaction})
-        if self._callback is not None:
-            self._callback(interaction)
+        if self._interaction_updated_callback is not None:
+            self._interaction_updated_callback(interaction)
 
     def remove_interaction(self, interaction: ParticleInteraction):
         self.remove_interactions_by_ids([interaction.interaction_id])
@@ -115,13 +117,13 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         return self._interactions.copy_content()
 
-    def set_callback(self, callback: Callable[[ParticleInteraction], None]):
+    def set_interaction_updated_callback(self, callback: Callable[[ParticleInteraction], None]):
         """
         Sets the callback to be used whenever an interaction is received.
 
         :param callback: Method to be called, taking the received particle interaction as an argument.
         """
-        self._callback = callback
+        self._interaction_updated_callback = callback
 
     def _publish_interaction_stream(self, request_iterator):
         interactions_in_request = set()
