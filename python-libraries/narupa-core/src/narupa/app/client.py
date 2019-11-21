@@ -293,6 +293,21 @@ class NarupaClient:
             raise RuntimeError("Not connected to multiplayer service")
         return self._multiplayer_client.try_set_resource_value(key, value)
 
+    @property
+    def root_selection(self):
+        """
+        Get the root selection, creating it if it does not exist yet.
+
+        :return:
+        """
+
+        try:
+            selection = self._multiplayer_client.resources['selection.root']
+            return NarupaImdSelection.from_dictionary(MessageToDict(selection.struct_value))
+        except KeyError:
+            selection = NarupaImdSelection('selection.root', "Base Selection")
+            return selection
+
     def create_selection(
         self,
         name: str,

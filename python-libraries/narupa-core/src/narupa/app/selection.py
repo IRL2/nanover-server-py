@@ -1,6 +1,6 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-from typing import Dict, Iterable, Set
+from typing import Dict, Iterable, Set, Union
 
 INTERACTION_SINGLE = 'single'
 INTERACTION_GROUP = 'group'
@@ -45,8 +45,8 @@ class NarupaImdSelection:
     # Should the velocities be reset for this interaction
     velocity_reset: bool
 
-    # The renderer to be used for this selection
-    rendering_renderer = str
+    # The renderer to be used for this selection. Either a string name, or a dict
+    renderer: Union[str, Dict]
 
     @classmethod
     def from_dictionary(cls, dict: Dict):
@@ -99,7 +99,7 @@ class NarupaImdSelection:
 
         self.interaction_method = INTERACTION_METHOD_DEFAULT
         self.velocity_reset = VELOCITY_RESET_DEFAULT
-        self.rendering_renderer = RENDERER_DEFAULT
+        self.renderer = RENDERER_DEFAULT
 
     def clear_particles(self):
         """
@@ -146,7 +146,7 @@ class NarupaImdSelection:
             KEY_SELECTION_PROPERTIES: {
                 KEY_PROPERTY_INTERACTION_METHOD: self.interaction_method,
                 KEY_PROPERTY_VELOCITY_RESET: self.velocity_reset,
-                KEY_PROPERTY_RENDERER: self.rendering_renderer
+                KEY_PROPERTY_RENDERER: self.renderer
             }
         }
 
