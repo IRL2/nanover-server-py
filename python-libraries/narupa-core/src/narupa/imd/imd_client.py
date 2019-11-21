@@ -9,11 +9,17 @@ import grpc
 from narupa.core import get_requested_port_or_default, GrpcClient
 from narupa.imd.imd_server import DEFAULT_PORT
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.protocol.imd import InteractiveMolecularDynamicsStub, \
-    InteractionEndReply, SubscribeInteractionsRequest
+from narupa.protocol.imd import (
+    InteractiveMolecularDynamicsStub,
+    InteractionEndReply,
+    SubscribeInteractionsRequest,
+)
 
 
-class LocalInteractionState(NamedTuple):
+class _LocalInteractionState(NamedTuple):
+    """
+    Internal state for managing and publishing the client's active interactions.
+    """
     queue: Queue
     sentinel: Any
     future: Future
@@ -64,7 +70,7 @@ class ImdClient(GrpcClient):
     stub: InteractiveMolecularDynamicsStub
     interactions: Dict[str, ParticleInteraction]
     _next_local_interaction_id: int = 0
-    _local_interactions_states: Dict[str, LocalInteractionState]
+    _local_interactions_states: Dict[str, _LocalInteractionState]
     _logger: logging.Logger
 
     def __init__(self, *, address: Optional[str] = None,
@@ -86,7 +92,7 @@ class ImdClient(GrpcClient):
         sentinel = object()
         future = self.publish_interactions_async(queue_generator(queue, sentinel))
         local_interaction_id = self._get_new_local_interaction_id()
-        self._local_interactions_states[local_interaction_id] = LocalInteractionState(queue, sentinel, future)
+        self._local_interactions_states[local_interaction_id] = _LocalInteractionState(queue, sentinel, future)
         return local_interaction_id
 
     def update_interaction(
