@@ -20,13 +20,13 @@ set -euo pipefail
 # Running "./compile.sh --user" will pip install with the --user option.
 
 # A developer most likely want to install narupa's python packages in edit
-# mode. We add a --edit option to the script to allow this.
+# mode. If not, they can supply the --no-edit argument.
 user_option=""
 edit_option="-e"
 for option in "$@"; do
     if [[ "$option" == "--user" ]]; then
         user_option="--user"
-    elif [[ "$option" == "--frozen" ]]; then
+    elif [[ "$option" == "--no-edit" ]]; then
         edit_option=""
     fi
 done
