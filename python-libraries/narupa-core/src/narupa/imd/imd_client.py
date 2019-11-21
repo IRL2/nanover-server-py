@@ -160,7 +160,7 @@ class ImdClient(GrpcClient):
         for local_interaction_id in list(self._local_interactions_states.keys()):
             self.stop_interaction(local_interaction_id)
 
-    def subscribe_interactions(self, interval=0):
+    def subscribe_interactions(self, interval=0) -> Future:
         """
         Begin receiving updates known interactions.
 
@@ -168,7 +168,7 @@ class ImdClient(GrpcClient):
             for interaction changes.
         """
         request = SubscribeInteractionsRequest(update_interval=interval)
-        self.threads.submit(self._subscribe_interactions, request)
+        return self.threads.submit(self._subscribe_interactions, request)
 
     def _get_new_local_interaction_id(self) -> str:
         local_interaction_id = str(self._next_local_interaction_id)

@@ -9,8 +9,12 @@ import grpc
 
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
-from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, \
-    InteractionEndReply, SubscribeInteractionsRequest, InteractionsUpdate
+from narupa.protocol.imd import (
+    InteractiveMolecularDynamicsServicer,
+    InteractionEndReply,
+    SubscribeInteractionsRequest,
+    InteractionsUpdate,
+)
 
 IMD_SERVICE_NAME = "imd"
 
