@@ -29,7 +29,7 @@ def handle_user_arguments() -> argparse.Namespace:
         help=('Display the step number, the potential energy in kJ/mol, '
               'and the performance in ns/day.'),
     )
-    parser.add_argument('-t', '--trajectory_port', default=None)
+    parser.add_argument('-t', '--trajectory-port', default=None)
     parser.add_argument('-a', '--address', default=None)
     parser.add_argument(
         '--no-serve',
