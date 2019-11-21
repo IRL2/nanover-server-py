@@ -67,13 +67,26 @@ class CommandService(CommandServicer):
             raise KeyError(f"Command {name} does not exist")
         self._commands.delete(self._id, name)
 
-    def GetCommands(self, request, context):
+    def GetCommands(self, request, context) -> GetCommandsReply:
+        """
+        GRPC method to get all of the commands available on this service.
+        :param request: :class:`GetCommandsRequest`
+        :param context: GRPC context.
+        :return: :class:`GetCommandsReply`, detailing all the available commands.
+        """
         commands_copy = self.commands
         commands = [command.info.raw for command in
                     commands_copy.values()]
         return GetCommandsReply(commands=commands)
 
     def RunCommand(self, request, context):
+        """
+        GRPC method to run a command.
+
+        :param request: :class:`CommandMessage` detailing the command to run and any arguments.
+        :param context: GRPC context.
+        :return: :class:`CommandReply`, consisting of any results of the command.
+        """
         name = request.name
         command = self._commands.get(name)
         if command is None:

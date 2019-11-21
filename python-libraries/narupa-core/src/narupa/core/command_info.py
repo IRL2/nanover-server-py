@@ -11,7 +11,8 @@ class CommandInfo:
     A wrapper around an underlying protobuf :class:`CommandMessage`,
     providing information about a given command.
 
-    :param raw: The raw :class:`CommandMessage` this command is based on.
+    :param name: Name of the command.
+    :param arguments: Dictionary of command arguments.
     """
 
     def __init__(self, name, **arguments):
