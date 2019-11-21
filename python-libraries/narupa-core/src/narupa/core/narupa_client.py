@@ -5,7 +5,8 @@ from typing import Optional, Collection, Dict, List, Set
 from google.protobuf.struct_pb2 import Struct
 
 from narupa.core import GrpcClient
-from narupa.core.command_info import CommandInfo, struct_to_dict, dict_to_struct
+from narupa.core.command_info import CommandInfo
+from narupa.core.protobuf_utilities import dict_to_struct, struct_to_dict
 from narupa.protocol.command import CommandStub, CommandMessage, GetCommandsRequest
 
 

@@ -1,26 +1,9 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-from typing import Optional, Dict
+from typing import Dict
 
-from google.protobuf.json_format import MessageToDict
-from google.protobuf.struct_pb2 import Struct
-
+from narupa.core.protobuf_utilities import dict_to_struct, struct_to_dict
 from narupa.protocol.command import CommandMessage
-
-
-def dict_to_struct(dictionary: Dict[str, object]) -> Struct:
-    struct = Struct()
-    try:
-        struct.update(dictionary)
-    except (ValueError, TypeError):
-        raise ValueError("Unable to construct serialise dictionary into a protobuf struct. "
-                         "Only value types such as numbers, strings, booleans, and collections of those types"
-                         "can be serialised.")
-    return struct
-
-
-def struct_to_dict(struct: Struct) -> Dict[str, object]:
-    return MessageToDict(struct)
 
 
 class CommandInfo:
@@ -37,9 +20,9 @@ class CommandInfo:
 
     @classmethod
     def from_proto(cls, raw):
-        args_raw = raw.arguments
-        arguments = struct_to_dict(args_raw)
-        return cls(raw.name, **arguments)
+        instance = cls(raw.name)
+        instance.raw.MergeFrom(raw)
+        return instance
 
     @property
     def name(self) -> str:
