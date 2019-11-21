@@ -1,6 +1,9 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+from contextlib import contextmanager
 from typing import Dict, Iterable, Set, Union
+
+from narupa.core import Event
 
 INTERACTION_SINGLE = 'single'
 INTERACTION_GROUP = 'group'
@@ -47,6 +50,12 @@ class NarupaImdSelection:
 
     # The renderer to be used for this selection. Either a string name, or a dict
     renderer: Union[str, Dict]
+
+    # Event which is invoked with this as an argument
+    updated: Event
+
+    # Event triggered when this is destroyed
+    removed: Event
 
     @classmethod
     def from_dictionary(cls, dict: Dict):
@@ -100,6 +109,23 @@ class NarupaImdSelection:
         self.interaction_method = INTERACTION_METHOD_DEFAULT
         self.velocity_reset = VELOCITY_RESET_DEFAULT
         self.renderer = RENDERER_DEFAULT
+
+        self.updated = Event()
+        self.removed = Event()
+
+    @contextmanager
+    def modify(self):
+        yield
+        self.update()
+
+    def update(self):
+        """
+        Update this selection.
+        """
+        self.updated(self)
+
+    def remove(self):
+        self.removed(self)
 
     def clear_particles(self):
         """

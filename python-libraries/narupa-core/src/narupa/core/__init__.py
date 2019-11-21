@@ -10,3 +10,5 @@ from .grpc_server import (
     DEFAULT_CONNECT_ADDRESS,
 )
 from .grpc_client import GrpcClient
+
+from .event import Event

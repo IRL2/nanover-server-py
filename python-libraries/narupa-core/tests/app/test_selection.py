@@ -7,7 +7,7 @@ def test_selection_defaults():
     assert selection.selection_name == "name"
     assert selection.selection_id == "id"
     assert selection.interaction_method == INTERACTION_METHOD_DEFAULT
-    assert selection.rendering_renderer == RENDERER_DEFAULT
+    assert selection.renderer == RENDERER_DEFAULT
     assert selection.velocity_reset == VELOCITY_RESET_DEFAULT
 
 
@@ -20,7 +20,7 @@ def test_selection_dict_with_name_and_id():
     assert selection.selection_name == "name"
     assert selection.selection_id == "id"
     assert selection.interaction_method == INTERACTION_METHOD_DEFAULT
-    assert selection.rendering_renderer == RENDERER_DEFAULT
+    assert selection.renderer == RENDERER_DEFAULT
     assert selection.velocity_reset == VELOCITY_RESET_DEFAULT
 
 
@@ -88,3 +88,21 @@ def test_clear_selection():
     assert selection.selected_particle_ids == {0, 1, 2, 3}
     selection.clear_particles()
     assert selection.selected_particle_ids == set()
+
+
+def test_selection_updated():
+    selection = NarupaImdSelection("id", "name")
+
+    def callback(selection):
+        callback.call_count += 1
+
+    callback.call_count = 0
+
+    selection.updated += callback
+
+    assert callback.call_count == 0
+
+    with selection.modify():
+        selection.set_particles([0, 1, 2])
+
+    assert callback.call_count == 1

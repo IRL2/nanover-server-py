@@ -293,6 +293,15 @@ class NarupaClient:
             raise RuntimeError("Not connected to multiplayer service")
         return self._multiplayer_client.try_set_resource_value(key, value)
 
+    def remove_shared_value(self, key: str) -> bool:
+        """
+        Attempts to remove the given key on the multiplayer shared value store.
+
+        """
+        if self._multiplayer_client is None:
+            raise RuntimeError("Not connected to multiplayer service")
+        return self._multiplayer_client.try_remove_resource_key(key)
+
     @property
     def root_selection(self):
         """
@@ -331,6 +340,9 @@ class NarupaClient:
         selection = NarupaImdSelection(selection_id, name)
         selection.set_particles(particle_ids)
 
+        selection.updated += self.update_selection
+        selection.removed += self.remove_selection
+
         # Mark the selection as needing updating, which adds it to the shared value store.
         self.update_selection(selection)
 
@@ -347,6 +359,20 @@ class NarupaClient:
         struct.update(selection.to_dictionary())
         self.set_shared_value(selection.selection_id, Value(struct_value=struct))
 
+    def remove_selection(self, selection: NarupaImdSelection):
+        """
+        Delete the given selection
+        """
+        self.remove_shared_value(selection.selection_id)
+
+    def clear_selections(self):
+        """
+        Remove all selections in the system
+        """
+        selections = list(self.selections)
+        for selection in selections:
+            self.remove_selection(selection)
+
     @property
     def selections(self) -> Iterable[NarupaImdSelection]:
         """
@@ -356,7 +382,16 @@ class NarupaClient:
         """
         for key, value in self._multiplayer_client.resources.items():
             if key.startswith('selection.'):
-                yield NarupaImdSelection.from_dictionary(MessageToDict(value.struct_value))
+                yield self.get_selection(key)
+
+    def get_selection(self, id: str) -> NarupaImdSelection:
+        value = self._multiplayer_client.resources[id]
+        selection = NarupaImdSelection.from_dictionary(MessageToDict(value.struct_value))
+
+        selection.updated += self.update_selection
+        selection.removed += self.remove_selection
+
+        return selection
 
     def _join_trajectory(self):
         if self.all_frames:
