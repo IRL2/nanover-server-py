@@ -165,3 +165,47 @@ def test_subscribe_own_interaction_removed(imd_server_client, interaction):
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     assert local_interaction_id not in imd_client.interactions
 
+
+@pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
+def test_subscribe_interactions_sends_initial_immediately(
+        imd_server_client,
+        update_interval,
+        interaction,
+):
+    """
+    Test that subscribing interactions before any have been sent will
+    immediately send the first update regardless of interval.
+    """
+    imd_server, imd_client = imd_server_client
+    imd_client.subscribe_interactions(interval=update_interval)
+    local_interaction_id = imd_client.start_interaction()
+    imd_client.update_interaction(local_interaction_id, interaction)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    assert local_interaction_id in imd_client.interactions
+
+
+@pytest.mark.parametrize('update_interval', (.5, .2, .1))
+def test_subscribe_interactions_interval(
+        imd_server_client,
+        update_interval,
+        interaction,
+):
+    """
+    Test that interaction updates are sent at the requested interval.
+    """
+    imd_server, imd_client = imd_server_client
+    imd_client.subscribe_interactions(interval=update_interval)
+    local_interaction_id = imd_client.start_interaction()
+
+    interaction.position = [1, 0, 0]
+    imd_client.update_interaction(local_interaction_id, interaction)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+
+    interaction.position = [2, 0, 0]
+    imd_client.update_interaction(local_interaction_id, interaction)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    assert imd_client.interactions[local_interaction_id].position[0] == 1
+
+    imd_client.update_interaction(local_interaction_id, interaction)
+    time.sleep(update_interval)
+    assert imd_client.interactions[local_interaction_id].position[0] == 2

@@ -20,6 +20,10 @@ from narupa.protocol.imd import (
 IMD_SERVICE_NAME = "imd"
 
 
+class GrpcContextAlreadyCancelledError(Exception):
+    pass
+
+
 class ImdService(InteractiveMolecularDynamicsServicer):
     """
     An implementation of an IMD service, that keeps track of interactions
@@ -84,6 +88,10 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         interval = request.update_interval
         with self._interactions.create_view() as change_buffer:
+            try:
+                _add_cancellation_callback(context, change_buffer.freeze)
+            except GrpcContextAlreadyCancelledError:
+                return
             for changes, removals in change_buffer.subscribe_changes(interval):
                 yield _changes_to_interactions_update_message(changes, removals)
 
@@ -164,3 +172,8 @@ def _changes_to_interactions_update_message(changes, removals):
     message.updated_interactions.extend(protos)
     message.removals.extend(removals)
     return message
+
+
+def _add_cancellation_callback(context, callback: Callable[[], None]):
+    if not context.add_callback(callback):
+        raise GrpcContextAlreadyCancelledError()
