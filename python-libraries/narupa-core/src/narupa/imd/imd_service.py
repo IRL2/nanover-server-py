@@ -93,9 +93,9 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             self._callback(interaction)
 
     def remove_interaction(self, interaction: PythonParticleInteraction):
-        self.remove_interactions_by_ids(interaction.interaction_id)
+        self.remove_interactions_by_ids([interaction.interaction_id])
 
-    def remove_interactions_by_ids(self, *interaction_ids: Iterable[str]):
+    def remove_interactions_by_ids(self, interaction_ids: Iterable[str]):
         self._interactions.update(removals=interaction_ids)
 
     @property
