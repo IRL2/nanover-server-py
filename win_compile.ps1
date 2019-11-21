@@ -1,6 +1,6 @@
 # Param statement must be first non-comment, non-blank line in the script
 param(
-    [switch][alias("e")]$edit = $false,
+    [switch][alias("f")]$frozen = $false,
     [switch][alias("u")]$user = $false
 )
     
@@ -12,7 +12,11 @@ function announce {
 $edit_option = ""
 $user_option = "" 
 
-if ($edit)
+if ($frozen)
+{
+    announce "Installing narupa in non-edit mode."
+}
+else
 {
     $edit_option = "-e"
     Announce "Installing narupa-protocol in edit mode."

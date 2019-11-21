@@ -22,12 +22,12 @@ set -euo pipefail
 # A developer most likely want to install narupa's python packages in edit
 # mode. We add a --edit option to the script to allow this.
 user_option=""
-edit_option=""
+edit_option="-e"
 for option in "$@"; do
     if [[ "$option" == "--user" ]]; then
         user_option="--user"
-    elif [[ "$option" == "--edit" ]]; then
-        edit_option="-e"
+    elif [[ "$option" == "--frozen" ]]; then
+        edit_option=""
     fi
 done
 # We do not want to use pip with --user if we use -e.
