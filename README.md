@@ -32,7 +32,7 @@ Developers will want the manual install described bellow.
     * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev "python>3.6"`
     * Activate the conda environment: `conda activate narupa-dev`
     * Install the required conda package: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
-    * Compile the protocol and install the Narupa libraries in your conda environment: `./compile.sh`.
+    * Compile the protocol and install the Narupa libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead.
 
 ### Setup narupa-protocol for developers on Windows
 
@@ -43,7 +43,7 @@ Developers will want the manual install described bellow.
     * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev "python>3.6"`
     * Activate the conda environment: `conda activate narupa-dev`
     * Install the required conda packages: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
-    * Compile the protocol and install the Narupa libraries in your conda environment: `./win_compile.ps1`.
+    * Compile the protocol and install the Narupa libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead.
 
 ## Running the tests
 
