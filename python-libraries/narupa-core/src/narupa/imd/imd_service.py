@@ -3,17 +3,18 @@
 """
 Module providing an implementation of an IMD service.
 """
-from typing import Dict, Callable
+from typing import Dict, Callable, Optional, Iterable
 
 import grpc
 
-from narupa.imd.particle_interaction import ParticleInteraction
+from narupa.imd.particle_interaction import ParticleInteraction as PythonParticleInteraction
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
 from narupa.protocol.imd import (
     InteractiveMolecularDynamicsServicer,
     InteractionEndReply,
     SubscribeInteractionsRequest,
     InteractionsUpdate,
+    ParticleInteraction as ProtobufParticleInteraction,
 )
 
 IMD_SERVICE_NAME = "imd"
@@ -33,6 +34,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         particle indices in an interaction are valid. If not set, it is up to
         consumers of the interactions to validate.
     """
+    _interactions = DictionaryChangeMultiView,
+    _callback = Optional[Callable[[PythonParticleInteraction], None]],
 
     def __init__(self,
                  callback=None,
@@ -60,7 +63,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         :return: :class: InteractionEndReply, indicating the successful interaction.
         """
         try:
-            self._publish_interaction(request_iterator, context)
+            self._publish_interaction_stream(request_iterator)
         except KeyError as e:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
             message = str(e)
@@ -81,23 +84,22 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         interval = request.update_interval
         with self._interactions.create_view() as change_buffer:
-            if not context.add_callback(lambda: change_buffer.freeze()):
-                return
             for changes, removals in change_buffer.subscribe_changes(interval):
-                response = InteractionsUpdate()
-                protos = [interaction.proto for interaction in changes.values()]
-                response.updated_interactions.extend(protos)
-                response.removals.extend(removals)
-                yield response
+                yield _changes_to_interactions_update_message(changes, removals)
 
-    def insert_interaction(self, interaction):
+    def insert_interaction(self, interaction: PythonParticleInteraction):
         self._interactions.update({interaction.interaction_id: interaction})
+        if self._callback is not None:
+            self._callback(interaction)
 
-    def remove_interaction(self, interaction):
-        self._interactions.update(removals=[interaction.interaction_id])
+    def remove_interaction(self, interaction: PythonParticleInteraction):
+        self.remove_interactions_by_ids(interaction.interaction_id)
+
+    def remove_interactions_by_ids(self, *interaction_ids: Iterable[str]):
+        self._interactions.update(removals=interaction_ids)
 
     @property
-    def active_interactions(self) -> Dict[str, ParticleInteraction]:
+    def active_interactions(self) -> Dict[str, PythonParticleInteraction]:
         """
         The current dictionary of active interactions, keyed by interaction id.
 
@@ -105,7 +107,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         return self._interactions.copy_content()
 
-    def set_callback(self, callback: Callable[[ParticleInteraction], None]):
+    def set_callback(self, callback: Callable[[PythonParticleInteraction], None]):
         """
         Sets the callback to be used whenever an interaction is received.
 
@@ -113,26 +115,27 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         self._callback = callback
 
-    def _publish_interaction(self, request_iterator, context):
+    def _publish_interaction_stream(self, request_iterator):
         interactions_in_request = set()
-        try:
-            for interaction in request_iterator:
-                id_owned = interaction.interaction_id in interactions_in_request
-                id_exists = interaction.interaction_id in self._interactions
-                if not id_owned and id_exists:
-                    raise KeyError('The given player_id and interaction_id '
-                                   'is already in use in another '
-                                   'interaction.')
-                # convert to wrapped interaction type.
-                interaction = ParticleInteraction.from_proto(interaction)
-                self._validate_interaction(interaction)
 
-                interactions_in_request.add(interaction.interaction_id)
-                self._interactions.update({interaction.interaction_id: interaction})
-                if self._callback is not None:
-                    self._callback(interaction)
+        def validate_interaction_id(interaction: ProtobufParticleInteraction):
+            id_owned = interaction.interaction_id in interactions_in_request
+            id_exists = interaction.interaction_id in self._interactions
+            if not id_owned and id_exists:
+                raise KeyError('The given player_id and interaction_id is '
+                               'already in use in another interaction.')
+
+        try:
+            for protobuf_interaction in request_iterator:
+                python_interaction = PythonParticleInteraction.from_proto(protobuf_interaction)
+
+                validate_interaction_id(protobuf_interaction)
+                self._validate_interaction(python_interaction)
+                interactions_in_request.add(protobuf_interaction.interaction_id)
+
+                self.insert_interaction(python_interaction)
         finally:
-            self._interactions.update(removals=interactions_in_request)
+            self.remove_interactions_by_ids(interactions_in_request)
 
     def _validate_interaction(self, interaction):
         self._validate_particle_range(interaction)
@@ -149,3 +152,15 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         out_of_range = self.number_of_particles is not None and max_index >= self.number_of_particles
         if out_of_range:
             raise ValueError('Range of particles selected invalid.')
+
+
+def _changes_to_interactions_update_message(changes, removals):
+    """
+    Creates a protobuf InteractionsUpdate message from changes and removals to
+    an interactions dictionary.
+    """
+    message = InteractionsUpdate()
+    protos = [interaction.proto for interaction in changes.values()]
+    message.updated_interactions.extend(protos)
+    message.removals.extend(removals)
+    return message
