@@ -7,14 +7,14 @@ from typing import Dict, Callable, Optional, Iterable
 
 import grpc
 
-from narupa.imd.particle_interaction import ParticleInteraction as PythonParticleInteraction
+from narupa.imd.particle_interaction import ParticleInteraction as ParticleInteraction
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
 from narupa.protocol.imd import (
     InteractiveMolecularDynamicsServicer,
     InteractionEndReply,
     SubscribeInteractionsRequest,
     InteractionsUpdate,
-    ParticleInteraction as ProtobufParticleInteraction,
+    ParticleInteraction as ParticleInteractionMessage,
 )
 
 IMD_SERVICE_NAME = "imd"
@@ -39,7 +39,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         consumers of the interactions to validate.
     """
     _interactions = DictionaryChangeMultiView,
-    _callback = Optional[Callable[[PythonParticleInteraction], None]],
+    _callback = Optional[Callable[[ParticleInteraction], None]],
 
     def __init__(self,
                  callback=None,
@@ -95,19 +95,19 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             for changes, removals in change_buffer.subscribe_changes(interval):
                 yield _changes_to_interactions_update_message(changes, removals)
 
-    def insert_interaction(self, interaction: PythonParticleInteraction):
+    def insert_interaction(self, interaction: ParticleInteraction):
         self._interactions.update({interaction.interaction_id: interaction})
         if self._callback is not None:
             self._callback(interaction)
 
-    def remove_interaction(self, interaction: PythonParticleInteraction):
+    def remove_interaction(self, interaction: ParticleInteraction):
         self.remove_interactions_by_ids([interaction.interaction_id])
 
     def remove_interactions_by_ids(self, interaction_ids: Iterable[str]):
         self._interactions.update(removals=interaction_ids)
 
     @property
-    def active_interactions(self) -> Dict[str, PythonParticleInteraction]:
+    def active_interactions(self) -> Dict[str, ParticleInteraction]:
         """
         The current dictionary of active interactions, keyed by interaction id.
 
@@ -115,7 +115,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         return self._interactions.copy_content()
 
-    def set_callback(self, callback: Callable[[PythonParticleInteraction], None]):
+    def set_callback(self, callback: Callable[[ParticleInteraction], None]):
         """
         Sets the callback to be used whenever an interaction is received.
 
@@ -126,7 +126,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     def _publish_interaction_stream(self, request_iterator):
         interactions_in_request = set()
 
-        def validate_interaction_id(interaction: ProtobufParticleInteraction):
+        def validate_interaction_id(interaction: ParticleInteractionMessage):
             id_owned = interaction.interaction_id in interactions_in_request
             id_exists = interaction.interaction_id in self._interactions
             if not id_owned and id_exists:
@@ -134,14 +134,14 @@ class ImdService(InteractiveMolecularDynamicsServicer):
                                'already in use in another interaction.')
 
         try:
-            for protobuf_interaction in request_iterator:
-                python_interaction = PythonParticleInteraction.from_proto(protobuf_interaction)
+            for interaction_message in request_iterator:
+                interaction = ParticleInteraction.from_proto(interaction_message)
 
-                validate_interaction_id(protobuf_interaction)
-                self._validate_interaction(python_interaction)
-                interactions_in_request.add(protobuf_interaction.interaction_id)
+                validate_interaction_id(interaction_message)
+                self._validate_interaction(interaction)
+                interactions_in_request.add(interaction_message.interaction_id)
 
-                self.insert_interaction(python_interaction)
+                self.insert_interaction(interaction)
         finally:
             self.remove_interactions_by_ids(interactions_in_request)
 
