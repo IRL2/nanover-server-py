@@ -7,7 +7,7 @@ from typing import Dict, Callable, Optional, Iterable
 
 import grpc
 
-from narupa.imd.particle_interaction import ParticleInteraction as ParticleInteraction
+from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
 from narupa.protocol.imd import (
     InteractiveMolecularDynamicsServicer,
