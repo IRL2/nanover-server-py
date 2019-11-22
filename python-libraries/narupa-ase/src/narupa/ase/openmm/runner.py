@@ -270,7 +270,7 @@ class OpenMMIMDRunner:
                                 frame_interval=self.frame_interval,
                                 trajectory_port=trajectory_port,
                                 imd_port=imd_port,
-                                name=name
+                                name=name,
                                 )
 
         if run_multiplayer:
