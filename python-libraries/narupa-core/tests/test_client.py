@@ -162,7 +162,6 @@ def test_no_imd_stop(frame_server, multiplayer_server, interaction):
     client.close()
 
 
-
 def test_set_multiplayer_value(client_server):
     """
     tests that setting multiplayer value works correctly.

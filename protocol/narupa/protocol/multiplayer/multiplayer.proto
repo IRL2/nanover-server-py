@@ -108,7 +108,7 @@ message ResourceRequestResponse {
 }
 
 message SubscribeAllResourceValuesRequest {
-    // Interval (in Seconds) between update sends.
+    // Interval (in seconds) between update sends.
     float update_interval = 1;
 }
 
