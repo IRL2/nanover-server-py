@@ -237,7 +237,7 @@ class ASEImdServer:
             place molecules differently.
 
         This method is called whenever a client runs the reset command,
-        described in :mod:narupa.trajectory.frame_server.
+        described in :mod:`narupa.trajectory.frame_server`.
 
         """
         self.atoms.set_positions(self._initial_positions)
