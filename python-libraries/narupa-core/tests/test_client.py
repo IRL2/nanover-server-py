@@ -22,9 +22,8 @@ TEST_VALUE = Value(string_value='hi')
 
 @pytest.fixture
 def multiplayer_server():
-    server = MultiplayerServer(address='localhost', port=0)
-    yield server
-    server.close()
+    with MultiplayerServer(address='localhost', port=0) as server:
+        yield server
 
 
 @pytest.fixture
