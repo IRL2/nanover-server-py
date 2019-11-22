@@ -39,8 +39,8 @@ class CommandService(CommandServicer):
         """
         return self._commands.get_all()
 
-    def register_command(self, name: str, callback: Callable[[Dict[str, object]], Optional[Dict[str, object]]],
-                         default_arguments: Optional[Dict[str, object]] = None):
+    def register_command(self, name: str, callback: Callable[[Dict[str, Any]], Optional[Dict[str, Any]]],
+                         default_arguments: Optional[Dict[str, Any]] = None):
         """
         Registers a command with this service
 
