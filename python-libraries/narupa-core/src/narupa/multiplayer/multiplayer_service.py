@@ -14,8 +14,10 @@ from narupa.core.grpc_utils import (
     RpcContextAlreadyTerminatedError,
 )
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
-from narupa.multiplayer.key_lockable_map import KeyLockableMap, \
-    ResourceLockedException
+from narupa.multiplayer.key_lockable_map import (
+    KeyLockableMap,
+    ResourceLockedException,
+)
 from narupa.protocol.multiplayer.multiplayer_pb2 import (
     StreamEndedResponse, Avatar, ResourceRequestResponse,
     SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse,
