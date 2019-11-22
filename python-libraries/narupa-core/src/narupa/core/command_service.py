@@ -5,7 +5,7 @@ Module providing an implementation of the :class:`CommandServicer`.
 
 """
 from typing import NamedTuple
-from typing import Dict, Callable, Optional
+from typing import Dict, Callable, Optional, Any
 
 import grpc
 from google.protobuf.struct_pb2 import Struct

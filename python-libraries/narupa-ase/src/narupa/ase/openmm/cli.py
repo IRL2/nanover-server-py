@@ -43,12 +43,12 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         type=str, default='Narupa OpenMM ASE Server',
         help='Give a friendly name to the server.'
     )
-    parser.add_argument('-t', '--trajectory_port', type=int, default=None)
-    parser.add_argument('-i', '--imd_port', type=int, default=None)
-    parser.add_argument('-m', '--multiplayer_port', type=int, default=None)
+    parser.add_argument('-t', '--trajectory-port', type=int, default=None)
+    parser.add_argument('-i', '--imd-port', type=int, default=None)
+    parser.add_argument('-m', '--multiplayer-port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
-    parser.add_argument('-f', '--frame_interval', type=int, default=5)
-    parser.add_argument('-s', '--time_step', type=float, default=1.0)
+    parser.add_argument('-f', '--frame-interval', type=int, default=5)
+    parser.add_argument('-s', '--time-step', type=float, default=1.0)
     parser.add_argument(
         '--reset-energy', type=float, default=1e6,
         help=('Threshold of total energy above which the simulation is reset '

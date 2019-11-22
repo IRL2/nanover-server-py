@@ -16,13 +16,23 @@ def change_multiview():
     return DictionaryChangeMultiView()
 
 
-def test_buffer_flush_reflects_update(change_buffer):
+def test_buffer_flush_reflects_changes(change_buffer):
     """
     Test that flushing reflects the previous update.
     """
     change_buffer.update({"hello": "test"})
-    changes = change_buffer.flush_changed_blocking()
+    changes, removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test"
+
+
+def test_buffer_flush_reflects_removal(change_buffer):
+    """
+    Test that flushing reflects the previous key removal.
+    """
+    change_buffer.update({"hello": "test"})
+    change_buffer.update(removals=["hello"])
+    changes, removals = change_buffer.flush_changed_blocking()
+    assert removals == set(["hello"])
 
 
 def test_buffer_flush_empties_changes(change_buffer):
@@ -30,9 +40,20 @@ def test_buffer_flush_empties_changes(change_buffer):
     Test that flushing empties the buffer of changes.
     """
     change_buffer.update({"hello": "test"})
-    assert change_buffer._changes
+    assert change_buffer._pending_changes
     change_buffer.flush_changed_blocking()
-    assert not change_buffer._changes
+    assert not change_buffer._pending_changes
+
+
+def test_buffer_flush_empties_removals(change_buffer):
+    """
+    Test that flushing empties the buffer of removals.
+    """
+    change_buffer.update({"hello": "test"})
+    change_buffer.update(removals=["hello"])
+    assert change_buffer._pending_removals
+    change_buffer.flush_changed_blocking()
+    assert not change_buffer._pending_removals
 
 
 def test_buffer_flush_merges_updates(change_buffer):
@@ -41,19 +62,40 @@ def test_buffer_flush_merges_updates(change_buffer):
     """
     change_buffer.update({"hello": "test"})
     change_buffer.update({"foo": "bar"})
-    changes = change_buffer.flush_changed_blocking()
+    changes, removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test" and changes["foo"] == "bar"
 
 
-def test_buffer_flush_merges_same_key(change_buffer):
+def test_buffer_flush_merges_removals(change_buffer):
+    """
+    Test that flushing after two removals gives a single combined removal.
+    """
+    change_buffer.update({"hello": "test", "foo": "bar"})
+    change_buffer.update(removals=["hello"])
+    change_buffer.update(removals=["foo"])
+    changes, removals = change_buffer.flush_changed_blocking()
+    assert removals == set(["hello", "foo"])
+
+
+def test_buffer_flush_merges_same_change_key(change_buffer):
     """
     Test that flushing after two updates of the same key gives a single latest
     value.
     """
     change_buffer.update({"hello": "test"})
     change_buffer.update({"hello": "bar"})
-    changes = change_buffer.flush_changed_blocking()
+    changes, removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "bar"
+
+
+def test_change_then_removal_discards_change(change_buffer):
+    """
+    Test that flushing after adding a key then removing the key gives no change.
+    """
+    change_buffer.update({"hello": "test"})
+    change_buffer.update(removals=["hello"])
+    changes, removals = change_buffer.flush_changed_blocking()
+    assert not changes
 
 
 def test_frozen_buffer_cant_update(change_buffer):
@@ -88,7 +130,7 @@ def test_frozen_buffer_update_ignored(change_buffer):
         change_buffer.update({"foo": "bar"})
     except ObjectFrozenException:
         pass
-    changes = change_buffer.flush_changed_blocking()
+    changes, removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test" and "foo" not in changes
 
 
@@ -103,28 +145,31 @@ def test_frozen_multiview_cant_update(change_multiview):
 
 
 @pytest.mark.timeout(1)
-def test_frozen_multiview_view_gives_last_values(change_multiview):
+def test_frozen_multiview_view_gives_last_values_and_no_removals(change_multiview):
     """
     Test that views can still be created on a frozen multiview but that they
     only provide the initial values and then raise the correct exception on
     subsequent flushes.
     """
-    change_multiview.update({"hello": "test"})
+    change_multiview.update({"hello": "test", "foo": "bar"})
+    change_multiview.update(removals={"foo"})
     change_multiview.freeze()
     with change_multiview.create_view() as view:
-        changes = view.flush_changed_blocking()
+        changes, removals = view.flush_changed_blocking()
         assert changes["hello"] == "test"
+        assert "foo" not in changes
+        assert not removals
         with pytest.raises(ObjectFrozenException):
             view.flush_changed_blocking()
 
 
 @pytest.mark.timeout(1)
-def test_frozen_multiview_subscribe_gives_last_values(change_multiview):
+def test_frozen_multiview_subscribe_gives_last_values_and_no_removals(change_multiview):
     """
     Test that subscribing a frozen multiview provides the initial values and
     then ends.
     """
     change_multiview.update({"hello": "test"})
     change_multiview.freeze()
-    for changes in change_multiview.subscribe_changes():
-        assert changes["hello"] == "test"
+    for changes, removals in change_multiview.subscribe_changes():
+        assert changes["hello"] == "test" and not removals
