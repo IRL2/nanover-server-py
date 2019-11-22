@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from concurrent import futures
-from typing import Optional
+from typing import Optional, Any, Callable
 
 import grpc
 from narupa.core import DEFAULT_CONNECT_ADDRESS
@@ -16,7 +16,17 @@ class GrpcClient:
     :param port: The port on which to connect.
     :param stub: The GRPC service stub class.
     """
-    def __init__(self, *, address: Optional[str] = None, port: int, stub):
+    channel: grpc.Channel
+    stub: Any
+    threads: futures.ThreadPoolExecutor
+
+    def __init__(
+            self,
+            *,
+            address: Optional[str] = None,
+            port: int,
+            stub: Callable[[grpc.Channel], Any],
+    ):
         address = address or DEFAULT_CONNECT_ADDRESS
         self.channel = grpc.insecure_channel(f"{address}:{port}")
         self.stub = stub(self.channel)
