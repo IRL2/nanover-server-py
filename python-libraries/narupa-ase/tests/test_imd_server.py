@@ -225,8 +225,6 @@ def test_run_twice(arbitrary_ase_server):
 
 
 def test_step(arbitrary_ase_server):
-    arbitrary_ase_server.run(block=False)
-    arbitrary_ase_server.cancel_run(wait=True)
     step_count = arbitrary_ase_server.dynamics.get_number_of_steps()
     arbitrary_ase_server.step()
     assert arbitrary_ase_server.dynamics.get_number_of_steps() == step_count + 1
@@ -283,7 +281,7 @@ def test_play_command(client_server):
 @pytest.mark.timeout(1)
 def test_pause_command(client_server):
     client, server = client_server
-    assert not server.is_running
+    server.run()
     client.run_command(PAUSE_COMMAND_KEY)
     while server.is_running:
         continue

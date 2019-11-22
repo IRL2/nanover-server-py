@@ -4,7 +4,7 @@
 Module providing an implementation of the :class:`CommandServicer`.
 
 """
-from collections import namedtuple
+from typing import NamedTuple
 from typing import Dict, Callable, Optional
 
 import grpc
@@ -15,7 +15,16 @@ from narupa.core.protobuf_utilities import dict_to_struct
 from narupa.core.key_lockable_map import KeyLockableMap
 from narupa.protocol.command import CommandServicer, CommandMessage, CommandReply, GetCommandsReply
 
-CommandRegistration = namedtuple('Command', ['info', 'callback'])
+
+class CommandRegistration(NamedTuple):
+    """
+    Represents a registration of a command on the service, consisting of
+    a :class:`CommandInfo` detailing the command name and default arguments,
+    and an associated callback.
+    """
+
+    info: CommandInfo
+    callback: Callable[[Dict[str, object]], Optional[Dict[str, object]]]
 
 
 class CommandService(CommandServicer):
@@ -63,9 +72,10 @@ class CommandService(CommandServicer):
 
         :param name: Name of the command to delete
         """
-        if self._commands.get(name) is None:
+        try:
+            self._commands.delete(self._id, name)
+        except KeyError:
             raise KeyError(f"Command {name} does not exist")
-        self._commands.delete(self._id, name)
 
     def GetCommands(self, request, context) -> GetCommandsReply:
         """

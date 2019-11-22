@@ -36,8 +36,8 @@ class NarupaServer(GrpcServer):
         """
         return self._command_service.commands
 
-    def register_command(self, name: str, callback: Callable[[Struct], Optional[Struct]],
-                         default_arguments: Optional[Struct] = None):
+    def register_command(self, name: str, callback: Callable[[Dict], Optional[Dict]],
+                         default_arguments: Optional[Dict] = None):
         """
         Registers a command with the :class:`CommandService` running on this server.
 
