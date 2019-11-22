@@ -37,9 +37,11 @@ def params():
     """
     Test ImdParams set to use any available port, to avoid port clashes between tests..
     """
-    params = ImdParams(trajectory_port=0,
-                       imd_port=0,
-                       multiplayer_port=0)
+    params = ImdParams(
+        trajectory_port=0,
+        imd_port=0,
+        multiplayer_port=0,
+    )
     return params
 
 
