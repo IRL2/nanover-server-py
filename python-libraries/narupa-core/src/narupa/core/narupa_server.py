@@ -21,7 +21,7 @@ class NarupaServer(GrpcServer):
 
     def setup_services(self):
         """
-        Sets up the :class:`CommandService`.
+        Sets up the services, including the :class:`CommandService`.
         """
         super().setup_services()
         self._command_service = CommandService()
