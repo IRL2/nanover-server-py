@@ -47,7 +47,7 @@ def test_set_attempt_replace(key_map):
 
 def test_set_no_replace_then_set(key_map):
     key = "name"
-    key_map.set("1", key, 2)
+    key_map.set_no_replace(key, 2)
     assert key_map.get(key) == 2
     key_map.set("1", key, 3)
     assert key_map.get(key) == 3
