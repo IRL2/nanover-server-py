@@ -21,7 +21,7 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
 * Activate the conda environment: `conda activate narupa`
 * Install the Narupa packages: `conda install -c irl -c omnia -c conda-forge narupa-server`
 
-Developers will want the manual install described bellow.
+Developers will want the manual install described below.
 
 ### Setup narupa-protocol for developers on Mac and Linux
 
@@ -32,8 +32,7 @@ Developers will want the manual install described bellow.
     * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev "python>3.6"`
     * Activate the conda environment: `conda activate narupa-dev`
     * Install the required conda package: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
-    * Compile the protocol and install the Narupa libraries in your conda environment: `./compile.sh`. If you plan on
-      modifying the python packages, run `./compile.sh --edit` instead.
+    * Compile the protocol and install the Narupa libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the narupa packages will be installed in edit mode (`pip install -e`) meaning that changes in the `narupa-protocol` directory will be directly reflected in your python environment.
 
 ### Setup narupa-protocol for developers on Windows
 
@@ -44,7 +43,7 @@ Developers will want the manual install described bellow.
     * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev "python>3.6"`
     * Activate the conda environment: `conda activate narupa-dev`
     * Install the required conda packages: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
-    * Compile the protocol and install the Narupa libraries in your conda environment: `./win_compile.ps1`. If you plan on modifying the python packages, run `./win_compile.ps1 -edit` instead.
+    * Compile the protocol and install the Narupa libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the narupa packages will be installed in edit mode (`pip install -e`) meaning that changes in the `narupa-protocol` directory will be directly reflected in your python environment.
 
 ## Running the tests
 
@@ -57,11 +56,8 @@ Running the tests is a crucial part of keeping the code base functional. To run 
 ### ASE IMD Simulations 
 
 `narupa.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the `narupa-protocol` directory:
-    
-    # On MacOS and Linux
+
     narupa-omm-ase python-libraries/narupa-ase/examples/nanotube.xml 
-    # On Windows
-    narupa-omm-ase python-libraries\narupa-ase\examples\nanotube.xml 
 
 The example files are distributed in the directory
 `python-library/narupa-ase/examples` from the [git repository](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/python-libraries/narupa-ase/examples).
@@ -82,7 +78,4 @@ The [Narupa ASE documentation](python-libraries/narupa-ase/README.md) provides m
 `narupa.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
 trajectory. To serve the frames on port 54321, from the `narupa-protocol` directory, run
 
-    # On MacOS and Linux
     python ./python-libraries/narupa-mdanalysis/examples/example.py
-    # On Windows
-    python .\python-libraries\narupa-mdanalysis\examples\example.py
