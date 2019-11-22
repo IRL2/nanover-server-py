@@ -19,6 +19,7 @@ KEY_SELECTION_PROPERTIES = 'properties'
 KEY_PROPERTY_INTERACTION_METHOD = 'narupa.interaction.method'
 KEY_PROPERTY_VELOCITY_RESET = 'narupa.interaction.velocity_reset'
 KEY_PROPERTY_RENDERER = 'narupa.rendering.renderer'
+KEY_PROPERTY_HIDE = 'narupa.rendering.hide'
 
 INTERACTION_METHOD_DEFAULT = INTERACTION_SINGLE
 VELOCITY_RESET_DEFAULT = False
@@ -47,6 +48,9 @@ class NarupaImdSelection:
 
     # Should the velocities be reset for this interaction
     velocity_reset: bool
+
+    # Should this renderer be hidden
+    hide: bool
 
     # The renderer to be used for this selection. Either a string name, or a dict
     renderer: Union[str, Dict]
@@ -93,6 +97,13 @@ class NarupaImdSelection:
             KEY_PROPERTY_RENDERER,
         )
 
+        selection.hide = get_nested_or_default(
+            dict,
+            False,
+            KEY_SELECTION_PROPERTIES,
+            KEY_PROPERTY_HIDE,
+        )
+
         return selection
 
     def __init__(self, id: str, name: str = 'Unnamed Selection'):
@@ -109,6 +120,7 @@ class NarupaImdSelection:
         self.interaction_method = INTERACTION_METHOD_DEFAULT
         self.velocity_reset = VELOCITY_RESET_DEFAULT
         self.renderer = RENDERER_DEFAULT
+        self.hide = False
 
         self.updated = Event()
         self.removed = Event()
@@ -172,7 +184,8 @@ class NarupaImdSelection:
             KEY_SELECTION_PROPERTIES: {
                 KEY_PROPERTY_INTERACTION_METHOD: self.interaction_method,
                 KEY_PROPERTY_VELOCITY_RESET: self.velocity_reset,
-                KEY_PROPERTY_RENDERER: self.renderer
+                KEY_PROPERTY_RENDERER: self.renderer,
+                KEY_PROPERTY_HIDE: self.hide
             }
         }
 

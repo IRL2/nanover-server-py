@@ -312,10 +312,15 @@ class NarupaClient:
 
         try:
             selection = self._multiplayer_client.resources['selection.root']
-            return NarupaImdSelection.from_dictionary(MessageToDict(selection.struct_value))
+            root_selection = NarupaImdSelection.from_dictionary(MessageToDict(selection.struct_value))
         except KeyError:
-            selection = NarupaImdSelection('selection.root', "Base Selection")
-            return selection
+            selection = NarupaImdSelection('selection.root', "Base")
+            root_selection = selection
+
+        root_selection.updated += self.update_selection
+        root_selection.removed += self.remove_selection
+
+        return root_selection
 
     def create_selection(
         self,
