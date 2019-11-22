@@ -29,6 +29,9 @@ def mock_callback(default_args):
 
 
 def test_available_commands(client_server, default_args):
+    """
+    tests that the cached set of available commands matches those returned when updating.
+    """
     client, server = client_server
     mock = Mock()
     server.register_command(TEST_COMMAND_KEY, mock.callback, default_args)
@@ -136,16 +139,22 @@ def test_run_no_args(client_server, mock_callback):
     mock_callback.assert_called_once()
 
 
-def test_run_command_with_args(client_server):
-    def sqr(x=2):
-        result = {'y': x * x}
+@pytest.mark.parametrize('args, expected_result',
+                         [({'x': 8}, 8),
+                          ({'z': 2}, 8),
+                          ({'x': 4, 'z': 4}, 16),
+                          ({}, 4),
+                          ])
+def test_run_command_with_args(client_server, args, expected_result):
+    def multiply(x=2, z=1):
+        result = {'y': x * z}
         return result
 
     client, server = client_server
-    example_params = {'x': 2}
-    server.register_command("sqr", sqr, example_params)
-    reply = client.run_command("sqr", **example_params)
-    assert reply == {'y': 4}
+    example_params = {'x': 4, 'z': 1}
+    server.register_command("multiply", multiply, example_params)
+    reply = client.run_command("multiply", **args)
+    assert {'y': expected_result} == reply
 
 
 def test_run_command_with_no_result(client_server):
