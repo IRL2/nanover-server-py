@@ -7,7 +7,7 @@ from typing import Dict, Callable, Optional, Iterable
 
 import grpc
 from narupa.core.grpc_utils import (
-    RpcContextAlreadyTerminatedError,
+    RpcAlreadyTerminatedError,
     subscribe_rpc_termination,
 )
 
@@ -92,7 +92,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         with self._interactions.create_view() as change_buffer:
             try:
                 subscribe_rpc_termination(context, change_buffer.freeze)
-            except RpcContextAlreadyTerminatedError:
+            except RpcAlreadyTerminatedError:
                 return
             for changes, removals in change_buffer.subscribe_changes(interval):
                 yield _changes_to_interactions_update_message(changes, removals)

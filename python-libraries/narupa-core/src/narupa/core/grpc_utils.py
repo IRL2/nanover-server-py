@@ -10,7 +10,7 @@ from typing import Callable
 import grpc
 
 
-class RpcContextAlreadyTerminatedError(Exception):
+class RpcAlreadyTerminatedError(Exception):
     pass
 
 
@@ -27,4 +27,4 @@ def subscribe_rpc_termination(
         callback: Callable[[], None]
 ):
     if not context.add_callback(callback):
-        raise RpcContextAlreadyTerminatedError()
+        raise RpcAlreadyTerminatedError()

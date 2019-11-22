@@ -11,7 +11,7 @@ from typing import Iterator
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
 from narupa.core.grpc_utils import (
     subscribe_rpc_termination,
-    RpcContextAlreadyTerminatedError,
+    RpcAlreadyTerminatedError,
 )
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
 from narupa.multiplayer.key_lockable_map import (
@@ -65,7 +65,7 @@ class MultiplayerService(MultiplayerServicer):
         with self._avatars.create_view() as change_buffer:
             try:
                 subscribe_rpc_termination(context, change_buffer.freeze)
-            except RpcContextAlreadyTerminatedError:
+            except RpcAlreadyTerminatedError:
                 return
             for changes, removals in change_buffer.subscribe_changes(interval):
                 for player_id, avatar in changes.items():
@@ -98,7 +98,7 @@ class MultiplayerService(MultiplayerServicer):
         with self._resources.create_view() as change_buffer:
             try:
                 subscribe_rpc_termination(context, change_buffer.freeze)
-            except RpcContextAlreadyTerminatedError:
+            except RpcAlreadyTerminatedError:
                 return
             for changes, removals in change_buffer.subscribe_changes(interval):
                 response = ResourceValuesUpdate()
