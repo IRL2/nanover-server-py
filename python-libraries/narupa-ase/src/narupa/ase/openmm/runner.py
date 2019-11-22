@@ -320,7 +320,9 @@ class OpenMMIMDRunner:
         multiplayer_port = get_requested_port_or_default(multiplayer_port, MULTIPLAYER_DEFAULT_PORT)
         # If a port is set to 0, then GRPC will choose one available port; so
         # 0 is always a valid value.
-        return trajectory_port == imd_port != 0 or trajectory_port == multiplayer_port != 0 or imd_port == multiplayer_port != 0
+        all_ports = (trajectory_port, imd_port, multiplayer_port)
+        non_zero_ports = [port for port in all_ports if port != 0]
+        return len(non_zero_ports) != len(set(non_zero_ports))
 
     def __enter__(self):
         return self
