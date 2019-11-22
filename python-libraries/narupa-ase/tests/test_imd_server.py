@@ -215,6 +215,7 @@ def test_cancel_run(arbitrary_ase_server):
 
 
 def test_cancel_never_running(arbitrary_ase_server):
+    # Cancelling a non running simulation should not raise an exception.
     arbitrary_ase_server.cancel_run()
 
 
