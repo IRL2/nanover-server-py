@@ -54,11 +54,11 @@ class NarupaClient(GrpcClient):
 
     def update_available_commands(self) -> Dict[str, CommandInfo]:
         """
-        Get a set of all the commands on the command server, and updates this
-        clients set of known commands.
-        Blocks until the list of commands of available commands is received.
+        Gets all the commands on the command server, and updates this
+        client's known commands.
+        Blocks until the dictionary of available commands is received.
 
-        :return: A set of all the commands on the command server.
+        :return: A dictionary of all the commands on the command server, keyed by name
         """
         command_responses = self._command_stub.GetCommands(GetCommandsRequest()).commands
         self._available_commands = {raw.name: CommandInfo.from_proto(raw) for raw in command_responses}
