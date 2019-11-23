@@ -16,6 +16,16 @@ service InteractiveMolecularDynamics {
        Multiple RPCs can be used to facilitate multiple simultaneous interactions.
      */
     rpc PublishInteraction(stream ParticleInteraction) returns (InteractionEndReply);
+
+    // Streams updates of interactions.
+    rpc SubscribeInteractions(SubscribeInteractionsRequest) returns (stream InteractionsUpdate) {}
+}
+
+message SubscribeInteractionsRequest {
+    // Interval (in Seconds) between update sends.
+    float update_interval = 1;
+    // ID of player to ignore (usually either your own ID or omitted).
+    string ignore_player_id = 2;
 }
 
 /* Reply after interaction stopped.  */
@@ -34,4 +44,15 @@ message ParticleInteraction {
     repeated uint32 particles = 4;
     /* A map representing additional properties of the interaction. */
     google.protobuf.Struct properties = 5;
+}
+
+message InteractionsUpdate {
+    // Set of latest interactions for interactions that changed after the last
+    // update.
+    // Note: this is not a map because interaction_id is part of the
+    // ParticleInteraction.
+    repeated ParticleInteraction updated_interactions = 1;
+
+    // Set of interaction_ids for interactions that ended after the last update
+    repeated string removals = 2;
 }
