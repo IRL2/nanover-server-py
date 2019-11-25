@@ -259,7 +259,7 @@ class NarupaImdSelection:
         self._renderer = value
 
 
-def get_nested_or_default(dict: Dict, default, *keys: Iterable[str]):
+def get_nested_or_default(dict: Dict, default: object, *keys: Iterable[str]) -> object:
     """
     Iterate down a nested dictionary by accesssing subsequent keys, returning the default if at any point a key is not found.
     :param dict: The dictionary to iterate.

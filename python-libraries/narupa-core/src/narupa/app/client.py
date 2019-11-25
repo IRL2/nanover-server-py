@@ -277,6 +277,8 @@ class NarupaClient:
         Joins multiplayer with the given player name.
 
         :param player_name: The player name with which to be identified.
+
+        :raises RuntimeError: When not connected to a multiplayer service
         """
         if self._multiplayer_client is None:
             raise RuntimeError("Not connected to multiplayer service")
@@ -289,6 +291,8 @@ class NarupaClient:
         :param key: The key that identifies the value to be stored.
         :param value: The new value to store.
         :return: `True` if successful, `False` otherwise.
+
+        :raises RuntimeError: When not connected to a multiplayer service
         """
         if self._multiplayer_client is None:
             raise RuntimeError("Not connected to multiplayer service")
@@ -298,6 +302,7 @@ class NarupaClient:
         """
         Attempts to remove the given key on the multiplayer shared value store.
 
+        :raises RuntimeError: When not connected to a multiplayer service
         """
         if self._multiplayer_client is None:
             raise RuntimeError("Not connected to multiplayer service")
@@ -309,6 +314,8 @@ class NarupaClient:
 
         :param key: The key that identifies the value
         :return: The value stored in the dictionary
+
+        :raises RuntimeError: When not connected to a multiplayer service
         """
         if self._multiplayer_client is None:
             raise RuntimeError("Not connected to multiplayer service")
@@ -370,7 +377,6 @@ class NarupaClient:
         Applies changes to the given selection to the shared key store.
 
         :param selection: The selection to update.
-        :return:
         """
         struct = Struct()
         struct.update(selection.to_dictionary())
