@@ -20,6 +20,11 @@ from google.protobuf.struct_pb2 import Value, Struct
 # Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
 
+# ID of the root selection
+SELECTION_ROOT_ID = 'selection.root'
+# Name of the root selection
+SELECTION_ROOT_NAME = 'Base'
+
 
 class NarupaClient:
     """
@@ -322,18 +327,18 @@ class NarupaClient:
         return self._multiplayer_client.resources[key]
 
     @property
-    def root_selection(self):
+    def root_selection(self) -> NarupaImdSelection:
         """
         Get the root selection, creating it if it does not exist yet.
 
-        :return:
+        :return: The selection representing the root selection of the system
         """
 
         try:
-            selection = self._multiplayer_client.resources['selection.root']
+            selection = self._multiplayer_client.resources[SELECTION_ROOT_ID]
             root_selection = NarupaImdSelection.from_dictionary(MessageToDict(selection.struct_value))
         except KeyError:
-            selection = NarupaImdSelection('selection.root', "Base")
+            selection = NarupaImdSelection(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
             root_selection = selection
 
         root_selection.updated += self.update_selection
