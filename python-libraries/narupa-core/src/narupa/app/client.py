@@ -333,18 +333,10 @@ class NarupaClient:
 
         :return: The selection representing the root selection of the system
         """
-
         try:
-            selection = self._multiplayer_client.resources[SELECTION_ROOT_ID]
-            root_selection = NarupaImdSelection.from_dictionary(MessageToDict(selection.struct_value))
+            return self.get_selection(SELECTION_ROOT_ID)
         except KeyError:
-            selection = NarupaImdSelection(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
-            root_selection = selection
-
-        root_selection.updated += self.update_selection
-        root_selection.removed += self.remove_selection
-
-        return root_selection
+            return self._create_selection_from_id_and_name(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
 
     def create_selection(
         self,
@@ -366,11 +358,8 @@ class NarupaClient:
         self._next_selection_id += 1
 
         # Create the selection and setup the particles that it contains
-        selection = NarupaImdSelection(selection_id, name)
+        selection = self._create_selection_from_id_and_name(selection_id, name)
         selection.set_particles(particle_ids)
-
-        selection.updated += self.update_selection
-        selection.removed += self.remove_selection
 
         # Mark the selection as needing updating, which adds it to the shared value store.
         self.update_selection(selection)
@@ -422,11 +411,18 @@ class NarupaClient:
         :return: The selection if it is present
         """
         value = self._multiplayer_client.resources[id]
+        return self._create_selection_from_protobuf_value(value)
+
+    def _create_selection_from_protobuf_value(self, value : Value) -> NarupaImdSelection:
         selection = NarupaImdSelection.from_dictionary(MessageToDict(value.struct_value))
+        selection.updated.add_callback(self.update_selection)
+        selection.removed.add_callback(self.remove_selection)
+        return selection
 
-        selection.updated += self.update_selection
-        selection.removed += self.remove_selection
-
+    def _create_selection_from_id_and_name(self, id: str, name: str) -> NarupaImdSelection:
+        selection = NarupaImdSelection(id, name)
+        selection.updated.add_callback(self.update_selection)
+        selection.removed.add_callback(self.remove_selection)
         return selection
 
     def _join_trajectory(self):

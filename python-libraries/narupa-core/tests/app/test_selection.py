@@ -98,7 +98,7 @@ def test_selection_updated():
 
     callback.call_count = 0
 
-    selection.updated += callback
+    selection.updated.add_callback(callback)
 
     assert callback.call_count == 0
 
@@ -116,7 +116,7 @@ def test_selection_removed():
 
     callback.call_count = 0
 
-    selection.removed += callback
+    selection.removed.add_callback(callback)
 
     assert callback.call_count == 0
 

@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from contextlib import contextmanager
-from typing import Dict, Iterable, Set, Union
+from typing import Dict, Iterable, Set, Union, TypeVar
 
 from narupa.core import Event
 
@@ -26,6 +26,9 @@ VELOCITY_RESET_DEFAULT = False
 RENDERER_DEFAULT = RENDERER_LIQUORICE
 SELECTED_PARTICLE_IDS_DEFAULT = None
 
+# TODO: Replace when minimum python is 3.7+
+SelectionClass = TypeVar('NarupaImdSelection')
+
 
 class NarupaImdSelection:
     """
@@ -34,7 +37,7 @@ class NarupaImdSelection:
     """
 
     @classmethod
-    def from_dictionary(cls, dict: Dict) -> NarupaImdSelection:
+    def from_dictionary(cls, dict: Dict) -> SelectionClass:
         """
         Decode a dictionary into a selection.
 

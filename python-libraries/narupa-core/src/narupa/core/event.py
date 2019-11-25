@@ -1,3 +1,5 @@
+from typing import Callable, TypeVar
+
 class Event:
     """
     A class which can have callback added and removed using += and -=, and invokes them when called.
@@ -6,13 +8,21 @@ class Event:
     def __init__(self):
         self._callbacks = []
 
-    def __iadd__(self, callback):
-        self._callbacks.append(callback)
-        return self
+    def add_callback(self, callback: Callable[..., None]):
+        """
+        Add a callback to this event, which will be invoked everytime this event is invoked.
 
-    def __isub__(self, callback):
+        :param callback: The callback to be called when this event is triggered
+        """
+        self._callbacks.append(callback)
+
+    def remove_callback(self, callback: Callable[..., None]):
+        """
+        Remove a callback from this event.
+
+        :param callback: The callback to be removed from this event's callbacks
+        """
         self._callbacks.remove(callback)
-        return self
 
     def __call__(self, *args, **kwargs):
         for callback in self._callbacks:
