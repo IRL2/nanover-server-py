@@ -106,3 +106,20 @@ def test_selection_updated():
         selection.set_particles([0, 1, 2])
 
     assert callback.call_count == 1
+
+
+def test_selection_removed():
+    selection = NarupaImdSelection("id", "name")
+
+    def callback(selection):
+        callback.call_count += 1
+
+    callback.call_count = 0
+
+    selection.removed += callback
+
+    assert callback.call_count == 0
+
+    selection.remove()
+
+    assert callback.call_count == 1

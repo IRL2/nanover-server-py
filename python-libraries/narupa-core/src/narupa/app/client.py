@@ -303,6 +303,17 @@ class NarupaClient:
             raise RuntimeError("Not connected to multiplayer service")
         return self._multiplayer_client.try_remove_resource_key(key)
 
+    def get_shared_value(self, key):
+        """
+        Attempts to retrieve the value for the given key in the multiplayer shared value store.
+
+        :param key: The key that identifies the value
+        :return: The value stored in the dictionary
+        """
+        if self._multiplayer_client is None:
+            raise RuntimeError("Not connected to multiplayer service")
+        return self._multiplayer_client.resources[key]
+
     @property
     def root_selection(self):
         """
