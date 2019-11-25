@@ -23,6 +23,11 @@ def test_delete_key_locked(key_map):
         key_map.delete("2", key)
 
 
+def test_delete_missing_key(key_map):
+    with pytest.raises(KeyError):
+        key_map.delete("1", "non-existant-key")
+
+
 def test_set_no_replace(key_map):
     key = "name"
     key_map.set_no_replace(key, 2)
