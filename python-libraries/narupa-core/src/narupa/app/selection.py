@@ -141,7 +141,6 @@ class NarupaImdSelection:
         Add more particles to this selection, appending the previous selection.
 
         :param particle_ids:
-        :return:
         """
         if particle_ids is None:
             particle_ids = set()
