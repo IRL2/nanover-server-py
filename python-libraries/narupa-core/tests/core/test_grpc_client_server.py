@@ -9,6 +9,7 @@ from narupa.core.narupa_client import NarupaClient
 from narupa.core.narupa_server import NarupaServer
 
 TEST_COMMAND_KEY = "test"
+MULTIPLY_KEY = "multiply"
 
 
 @pytest.fixture
@@ -139,6 +140,11 @@ def test_run_no_args(client_server, mock_callback):
     mock_callback.assert_called_once()
 
 
+def multiply(x=2, z=1):
+    result = {'y': x * z}
+    return result
+
+
 @pytest.mark.parametrize('args, expected_result',
                          [({'x': 8}, 8),
                           ({'z': 2}, 8),
@@ -146,15 +152,44 @@ def test_run_no_args(client_server, mock_callback):
                           ({}, 4),
                           ])
 def test_run_command_with_args(client_server, args, expected_result):
-    def multiply(x=2, z=1):
-        result = {'y': x * z}
-        return result
-
+    """
+    tests that for various combinations of overriding default arguments, the expected result is returned.
+    """
     client, server = client_server
     example_params = {'x': 4, 'z': 1}
-    server.register_command("multiply", multiply, example_params)
-    reply = client.run_command("multiply", **args)
+    server.register_command(MULTIPLY_KEY, multiply, example_params)
+    reply = client.run_command(MULTIPLY_KEY, **args)
     assert {'y': expected_result} == reply
+
+
+@pytest.mark.parametrize('args, expected_result',
+                         [({'x': 8}, 8),
+                          ({'z': 2}, 4),
+                          ({'x': 4, 'z': 4}, 16),
+                          ({}, 2),
+                          ])
+def test_run_command_with_args(client_server, args, expected_result):
+    """
+    tests that a command that takes arguments, but has no default args set upon registration, works correctly
+    """
+    client, server = client_server
+    server.register_command(MULTIPLY_KEY, multiply)
+    reply = client.run_command(MULTIPLY_KEY, **args)
+    assert {'y': expected_result} == reply
+
+
+@pytest.mark.parametrize('args',
+                         [{'invalid_arg': 8},
+                          {'x': {'key': 'value'}},
+                          ])
+def test_run_command_with_invalid_args(client_server, args):
+    """
+    tests that running a command with invalid arguments raises exceptions.
+    """
+    client, server = client_server
+    server.register_command(MULTIPLY_KEY, multiply)
+    with pytest.raises(RpcError):
+        reply = client.run_command(MULTIPLY_KEY, **args)
 
 
 def test_run_command_with_no_result(client_server):
