@@ -31,35 +31,7 @@ class NarupaImdSelection:
     """
     A selection of a group of particles in a Narupa simulation.
 
-    :ivar selection_id: Blah
     """
-
-    # The unique selection ID
-    selection_id: str
-
-    # User readable name of the selection
-    selection_name: str
-
-    # Set of particles indices that are in this selection
-    selected_particle_ids: Set[int]
-
-    # The interaction method for Narupa iMD
-    interaction_method: str
-
-    # Should the velocities be reset for this interaction
-    velocity_reset: bool
-
-    # Should this renderer be hidden
-    hide: bool
-
-    # The renderer to be used for this selection. Either a string name, or a dict
-    renderer: Union[str, Dict]
-
-    # Event which is invoked with this as an argument
-    updated: Event
-
-    # Event triggered when this is destroyed
-    removed: Event
 
     @classmethod
     def from_dictionary(cls, dict: Dict):
@@ -122,11 +94,15 @@ class NarupaImdSelection:
         self.renderer = RENDERER_DEFAULT
         self.hide = False
 
-        self.updated = Event()
-        self.removed = Event()
+        self._updated = Event()
+        self._removed = Event()
 
     @contextmanager
     def modify(self):
+        """
+        Gives a context in which the selection can have multiple modifications made to it, and which calls update()
+        when the context is left
+        """
         yield
         self.update()
 
@@ -134,10 +110,14 @@ class NarupaImdSelection:
         """
         Update this selection.
         """
-        self.updated(self)
+        self._updated(self)
 
     def remove(self):
-        self.removed(self)
+        """
+        Remove this selection from the server
+        :return:
+        """
+        self._removed(self)
 
     def clear_particles(self):
         """
@@ -154,9 +134,7 @@ class NarupaImdSelection:
         :param particle_ids:
         :return:
         """
-        if particle_ids is None:
-            particle_ids = set()
-        self.selected_particle_ids = set(particle_ids)
+        self.selected_particle_ids = particle_ids
 
     def add_particles(self, particle_ids: Iterable[int] = None):
         """
@@ -188,6 +166,99 @@ class NarupaImdSelection:
                 KEY_PROPERTY_HIDE: self.hide
             }
         }
+
+    @property
+    def selection_id(self) -> str:
+        """
+        The unique selection ID
+        """
+        return self._selection_id
+
+    @selection_id.setter
+    def selection_id(self, value: str):
+        self._selection_id = value
+
+    @property
+    def selection_name(self) -> str:
+        """
+        User readable name of the selection
+        """
+        return self._selection_name
+
+    @selection_name.setter
+    def selection_name(self, value: str):
+        self._selection_name = value
+
+    @property
+    def selected_particle_ids(self) -> Set[int]:
+        """
+        Set of particles indices that are in this selection
+        """
+        return self._selected_particle_ids
+
+    @selected_particle_ids.setter
+    def selected_particle_ids(self, value: Set[int]):
+        if value is None:
+            value = set()
+        self._selected_particle_ids = set(value)
+
+    @property
+    def updated(self) -> Event:
+        """
+        Event which is invoked when modifications to this selections are applied
+        """
+        return self._updated
+
+    @property
+    def removed(self) -> Event:
+        """
+        Event which is invoked when this selection is removed
+        """
+        return self._removed
+
+    @property
+    def interaction_method(self) -> str:
+        """
+        The interaction method for Narupa iMD
+        """
+        return self._interaction_method
+
+    @interaction_method.setter
+    def interaction_method(self, value: str):
+        self._interaction_method = value
+
+    @property
+    def velocity_reset(self) -> bool:
+        """
+        Should the velocities be reset for this interaction
+        """
+        return self._velocity_reset
+
+    @velocity_reset.setter
+    def velocity_reset(self, value: bool):
+        self._velocity_reset = value
+
+    @property
+    def hide(self) -> bool:
+        """
+        Should this renderer be hidden
+        """
+        return self._hide
+
+    @hide.setter
+    def hide(self, value: bool):
+        self._hide = value
+
+    @property
+    def renderer(self) -> Union[str, Dict]:
+        """
+        The renderer to be used for this selection. Either a string name of a predefined visualiser, or a dictionary describing one.
+        """
+        return self._renderer
+
+    @renderer.setter
+    def renderer(self, value: Union[str, Dict]):
+        self._renderer = value
 
 
 def get_nested_or_default(dict: Dict, default, *keys: Iterable[str]):
