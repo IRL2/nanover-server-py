@@ -187,7 +187,6 @@ def test_get_selection(server_clients):
         s = client2.get_selection("selection.invalid_id")
 
 
-
 def test_root_selection(server_clients):
     server, client1, client2 = server_clients
 
@@ -203,3 +202,29 @@ def test_root_selection(server_clients):
     selection = client2.root_selection
 
     assert selection.hide is True
+
+
+def test_remove_selection_while_in_use(server_clients):
+    server, client1, client2 = server_clients
+
+    selection = client1.create_selection("Selection 1")
+
+    assert selection is not None
+
+    time.sleep(UPDATE_TIME)
+
+    with selection.modify():
+        selection.selection_name = "Selection 2"
+
+        assert len(list(client2.selections)) == 1
+
+        client2.clear_selections()
+
+        time.sleep(UPDATE_TIME)
+
+        assert len(list(client1.selections)) == 0
+
+    time.sleep(UPDATE_TIME)
+
+    assert len(list(client1.selections)) == 1
+    assert len(list(client2.selections)) == 1
