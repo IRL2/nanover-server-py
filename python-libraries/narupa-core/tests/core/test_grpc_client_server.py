@@ -145,6 +145,11 @@ def multiply(x=2, z=1):
     return result
 
 
+def multiply_positional(x, z):
+    result = {'y': x * z}
+    return result
+
+
 @pytest.mark.parametrize('args, expected_result',
                          [({'x': 8}, 8),
                           ({'z': 2}, 8),
@@ -189,8 +194,17 @@ def test_run_command_with_invalid_args(client_server, args):
     client, server = client_server
     server.register_command(MULTIPLY_KEY, multiply)
     with pytest.raises(RpcError):
-        reply = client.run_command(MULTIPLY_KEY, **args)
+        _ = client.run_command(MULTIPLY_KEY, **args)
 
+
+def test_run_command_with_positional_args(client_server):
+    """
+    tests that running a command with positional arguments raises an exception.
+    """
+    client, server = client_server
+    server.register_command(MULTIPLY_KEY, multiply_positional)
+    with pytest.raises(RpcError):
+        _ = client.run_command(MULTIPLY_KEY)
 
 def test_run_command_with_no_result(client_server):
     def method():
