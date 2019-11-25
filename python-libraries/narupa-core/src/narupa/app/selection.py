@@ -34,12 +34,12 @@ class NarupaImdSelection:
     """
 
     @classmethod
-    def from_dictionary(cls, dict: Dict):
+    def from_dictionary(cls, dict: Dict) -> NarupaImdSelection:
         """
         Decode a dictionary into a selection.
 
         :param dict: A dictionary, such as json or a protobuf value.
-        :return:
+        :return: A selection decoded from the given dictionary
         """
         selection = cls(dict[KEY_SELECTION_ID], dict[KEY_SELECTION_NAME])
         selection.set_particles(
