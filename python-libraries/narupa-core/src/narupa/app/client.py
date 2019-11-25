@@ -402,6 +402,14 @@ class NarupaClient:
                 yield self.get_selection(key)
 
     def get_selection(self, id: str) -> NarupaImdSelection:
+        """
+        Get the selection with the given selection id, throwing a KeyError if
+        it is not present. For the root selection, use the root_selection
+        property
+
+        :param id: The id of the selection
+        :return: The selection if it is present
+        """
         value = self._multiplayer_client.resources[id]
         selection = NarupaImdSelection.from_dictionary(MessageToDict(value.struct_value))
 
