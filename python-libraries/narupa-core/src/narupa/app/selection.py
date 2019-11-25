@@ -261,7 +261,7 @@ class NarupaImdSelection:
 
 def get_nested_or_default(dict: Dict, default, *keys: Iterable[str]):
     """
-    Iterate down a nested dictionary by accesssing subsequent keys, returning the default if at any point a key is not found.
+    Iterate down a nested dictionary by accessing subsequent keys, returning the default if at any point a key is not found.
     :param dict: The dictionary to iterate.
     :param default: The default value if a key is not found.
     :param keys: The keys to look up recursively in the dictionary.
