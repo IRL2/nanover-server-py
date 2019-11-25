@@ -123,7 +123,6 @@ class NarupaImdSelection:
         """
         Clear all particles in this selection.
 
-        :return:
         """
         self.selected_particle_ids.clear()
 
