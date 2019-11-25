@@ -181,7 +181,25 @@ def test_get_selection(server_clients):
 
     assert len(list(client2.selections)) == 1
 
-    assert client2.get_selection(id) != None
+    assert client2.get_selection(id) is not None
 
     with pytest.raises(KeyError):
         s = client2.get_selection("selection.invalid_id")
+
+
+
+def test_root_selection(server_clients):
+    server, client1, client2 = server_clients
+
+    selection = client1.root_selection
+
+    assert selection is not None
+
+    with selection.modify():
+        selection.hide = True
+
+    time.sleep(UPDATE_TIME)
+
+    selection = client2.root_selection
+
+    assert selection.hide is True
