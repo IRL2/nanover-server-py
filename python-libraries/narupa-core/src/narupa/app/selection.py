@@ -131,7 +131,6 @@ class NarupaImdSelection:
         Set the particles in this selection, replacing the previous selection.
 
         :param particle_ids:
-        :return:
         """
         self.selected_particle_ids = particle_ids
 
