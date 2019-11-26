@@ -14,7 +14,7 @@ def test_invoke_callback():
 
     callback.called = False
 
-    event += callback
+    event.add_callback(callback)
 
     assert callback.called == False
 
@@ -31,7 +31,7 @@ def test_invoke_callback_then_remove():
 
     callback.called = 0
 
-    event += callback
+    event.add_callback(callback)
 
     assert callback.called == 0
 
@@ -39,7 +39,7 @@ def test_invoke_callback_then_remove():
 
     assert callback.called == 1
 
-    event -= callback
+    event.remove_callback(callback)
 
     event()
 
