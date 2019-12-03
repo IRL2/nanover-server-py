@@ -2,7 +2,7 @@ from typing import Callable, TypeVar
 
 class Event:
     """
-    A class which can have callback added and removed using += and -=, and invokes them when called.
+    A class which stores a set of callbacks, which are invoked when an event is published.
     """
 
     def __init__(self):
@@ -24,6 +24,12 @@ class Event:
         """
         self._callbacks.remove(callback)
 
-    def __call__(self, *args, **kwargs):
+    def publish(self, *args, **kwargs):
+        """
+        Invoke the callbacks associated with this event with the provided arguments.
+
+        :param args: Positional arguments for the event, passed on to each callback.
+        :param kwargs: Keywords arguments for the event, passed on to each callback.
+        """
         for callback in self._callbacks:
             callback(*args, **kwargs)

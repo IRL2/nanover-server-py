@@ -106,21 +106,20 @@ class NarupaImdSelection:
         Gives a context in which the selection can have multiple modifications made to it, and which calls update()
         when the context is left
         """
-        yield
+        yield self
         self.update()
 
     def update(self):
         """
         Update this selection.
         """
-        self._updated(self)
+        self.updated.publish(self)
 
     def remove(self):
         """
-        Remove this selection from the server
-        :return:
+        Remove this selection from the server.
         """
-        self._removed(self)
+        self.removed.publish(self)
 
     def clear_particles(self):
         """

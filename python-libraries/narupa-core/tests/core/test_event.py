@@ -3,7 +3,7 @@ from narupa.core import Event
 
 def test_invoke_nocallbacks():
     event = Event()
-    event('argument')
+    event.publish('argument')
 
 
 def test_invoke_callback():
@@ -18,7 +18,7 @@ def test_invoke_callback():
 
     assert callback.called == False
 
-    event()
+    event.publish()
 
     assert callback.called == True
 
@@ -35,12 +35,12 @@ def test_invoke_callback_then_remove():
 
     assert callback.called == 0
 
-    event()
+    event.publish()
 
     assert callback.called == 1
 
     event.remove_callback(callback)
 
-    event()
+    event.publish()
 
     assert callback.called == 1

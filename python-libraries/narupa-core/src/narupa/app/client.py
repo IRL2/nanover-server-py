@@ -27,7 +27,7 @@ DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
 # ID of the root selection
 SELECTION_ROOT_ID = 'selection.root'
 # Name of the root selection
-SELECTION_ROOT_NAME = 'Base'
+SELECTION_ROOT_NAME = 'Root Selection'
 
 
 def _update_commands(client: NarupaClient):
@@ -38,6 +38,15 @@ def _update_commands(client: NarupaClient):
             return {}
         else:
             raise e
+
+
+def need_multiplayer(func):
+    def wrapper(self: NarupaImdClient, *args, **kwargs):
+        if self._multiplayer_client is None:
+            raise RuntimeError("Not connected to multiplayer service")
+        func(self, *args, **kwargs)
+
+    return wrapper
 
 
 class NarupaImdClient:
@@ -350,6 +359,7 @@ class NarupaImdClient:
         """
         self._multiplayer_client.join_multiplayer(player_name)
 
+    @need_multiplayer
     def set_shared_value(self, key, value) -> bool:
         """
         Attempts to set the given key/value pair on the multiplayer shared value store.
@@ -362,16 +372,16 @@ class NarupaImdClient:
         """
         return self._multiplayer_client.try_set_resource_value(key, value)
 
+    @need_multiplayer
     def remove_shared_value(self, key: str) -> bool:
         """
         Attempts to remove the given key on the multiplayer shared value store.
 
         :raises RuntimeError: When not connected to a multiplayer service
         """
-        if self._multiplayer_client is None:
-            raise RuntimeError("Not connected to multiplayer service")
         return self._multiplayer_client.try_remove_resource_key(key)
 
+    @need_multiplayer
     def get_shared_value(self, key):
         """
         Attempts to retrieve the value for the given key in the multiplayer shared value store.
@@ -381,8 +391,6 @@ class NarupaImdClient:
 
         :raises RuntimeError: When not connected to a multiplayer service
         """
-        if self._multiplayer_client is None:
-            raise RuntimeError("Not connected to multiplayer service")
         return self._multiplayer_client.resources[key]
 
     @property
