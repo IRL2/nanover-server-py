@@ -338,6 +338,7 @@ class NarupaImdClient:
 
         return self._imd_client.run_command(name, **args)
 
+    @need_multiplayer
     def run_multiplayer_command(self, name: str, **args):
         """
         Runs a command on the multiplayer service.
@@ -349,6 +350,7 @@ class NarupaImdClient:
 
         return self._multiplayer_client.run_command(name, **args)
 
+    @need_multiplayer
     def join_multiplayer(self, player_name):
         """
         Joins multiplayer with the given player name.
@@ -405,6 +407,7 @@ class NarupaImdClient:
         except KeyError:
             return self._create_selection_from_id_and_name(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
 
+    @need_multiplayer
     def create_selection(
         self,
         name: str,
@@ -433,6 +436,7 @@ class NarupaImdClient:
 
         return selection
 
+    @need_multiplayer
     def update_selection(self, selection: NarupaImdSelection):
         """
         Applies changes to the given selection to the shared key store.
@@ -443,12 +447,14 @@ class NarupaImdClient:
         struct.update(selection.to_dictionary())
         self.set_shared_value(selection.selection_id, Value(struct_value=struct))
 
+    @need_multiplayer
     def remove_selection(self, selection: NarupaImdSelection):
         """
         Delete the given selection
         """
         self.remove_shared_value(selection.selection_id)
 
+    @need_multiplayer
     def clear_selections(self):
         """
         Remove all selections in the system
@@ -468,6 +474,7 @@ class NarupaImdClient:
             if key.startswith('selection.'):
                 yield self.get_selection(key)
 
+    @need_multiplayer
     def get_selection(self, id: str) -> NarupaImdSelection:
         """
         Get the selection with the given selection id, throwing a KeyError if
