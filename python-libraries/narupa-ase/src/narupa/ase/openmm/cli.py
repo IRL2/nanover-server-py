@@ -12,6 +12,7 @@ If the module is installed with pip, run with:
 """
 import argparse
 import textwrap
+import time
 
 from narupa.ase.openmm import OpenMMIMDRunner
 from narupa.ase.openmm.runner import ImdParams
@@ -114,8 +115,9 @@ def main():
             print(f'Serving multiplayer on port {runner.multiplayer_port}')
 
         try:
+            runner.run(block=False, reset_energy=runner.cli_options['reset_energy'])
             while True:
-                runner.run(100, reset_energy=runner.cli_options['reset_energy'])
+                time.sleep(1)
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
 

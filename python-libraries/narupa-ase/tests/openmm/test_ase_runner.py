@@ -37,9 +37,11 @@ def params():
     """
     Test ImdParams set to use any available port, to avoid port clashes between tests..
     """
-    params = ImdParams(trajectory_port=0,
-                       imd_port=0,
-                       multiplayer_port=0)
+    params = ImdParams(
+        trajectory_port=0,
+        imd_port=0,
+        multiplayer_port=0,
+    )
     return params
 
 
@@ -196,8 +198,15 @@ def test_no_multiplayer(basic_simulation, params):
         assert runner.multiplayer is None
 
 
+def test_no_discovery(basic_simulation, params):
+    params.discovery = False
+    with OpenMMIMDRunner(basic_simulation, params) as runner:
+        assert not runner.running_discovery
+
+
 def test_discovery(basic_simulation, params):
     with OpenMMIMDRunner(basic_simulation, params) as runner:
+        assert runner.running_discovery
         assert runner.discovery_server is not None
         assert len(runner.discovery_server.services) == 1
 

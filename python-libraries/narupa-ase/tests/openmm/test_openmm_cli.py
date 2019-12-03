@@ -13,6 +13,12 @@ def test_ports():
     return ['-t', '0', '-i', '0', '-m', '0']
 
 
+def set_port_arg(option_list, flag, port):
+    flag_index = option_list.index(flag)
+    value_index = flag_index + 1
+    option_list[value_index] = port
+
+
 def test_initialise(serialized_simulation_path, test_ports):
     args = [str(serialized_simulation_path)] + test_ports
     with initialise(args) as runner:
@@ -32,19 +38,22 @@ def test_interval(serialized_simulation_path, test_ports):
 
 
 def test_address(serialized_simulation_path, test_ports):
+    # cannot run discovery here, as the CI servers cannot broadcast on localhost
     args = [str(serialized_simulation_path), '-a', 'localhost', '--no-discovery'] + test_ports
     with initialise(args) as runner:
         assert runner.address == 'localhost'
 
 
-def test_traj_port(serialized_simulation_path):
-    args = [str(serialized_simulation_path), '-t', '62034', '-m', '0', '-i', '0']
+def test_traj_port(serialized_simulation_path, test_ports):
+    set_port_arg(test_ports, '-t', '62034')
+    args = [str(serialized_simulation_path)] + test_ports
     with initialise(args) as runner:
         assert runner.trajectory_port == 62034
 
 
-def test_imd_port(serialized_simulation_path):
-    args = [str(serialized_simulation_path), '-i', '62035', '-t', '0', '-m', '0']
+def test_imd_port(serialized_simulation_path, test_ports):
+    set_port_arg(test_ports, '-i', '62035')
+    args = [str(serialized_simulation_path)] + test_ports
     with initialise(args) as runner:
         assert runner.imd_port == 62035
 
@@ -92,8 +101,9 @@ def test_multiplayer_not_running(serialized_simulation_path, test_ports):
         assert runner.running_multiplayer is False
 
 
-def test_multiplayer_port(serialized_simulation_path):
-    args = [str(serialized_simulation_path), '-m', '64321', '-i', '0', '-t', '0']
+def test_multiplayer_port(serialized_simulation_path, test_ports):
+    set_port_arg(test_ports, '-m', '64321')
+    args = [str(serialized_simulation_path)] + test_ports
     with initialise(args) as runner:
         assert runner.multiplayer_port == 64321
 
@@ -105,8 +115,10 @@ def test_multiplayer_port_not_set(serialized_simulation_path, test_ports):
             _ = runner.multiplayer_port
 
 
-def test_same_port(serialized_simulation_path):
-    args = [str(serialized_simulation_path), '-t', '54324', '-i', '54324', '-m', '0']
+def test_same_port(serialized_simulation_path, test_ports):
+    set_port_arg(test_ports, '-t', '54324')
+    set_port_arg(test_ports, '-i', '54324')
+    args = [str(serialized_simulation_path)] + test_ports
     with pytest.raises(ValueError):
         _ = initialise(args)
 

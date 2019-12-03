@@ -4,7 +4,7 @@ from narupa.essd.server import DiscoveryServer
 from narupa.essd.utils import get_ipv4_addresses, get_broadcast_addresses, is_in_network, resolve_host_broadcast_address
 from narupa.essd.servicehub import ServiceHub
 import netifaces
-from test_service import properties, get_broadcastable_ip
+from test_essd_service import properties, get_broadcastable_ip
 
 
 @pytest.fixture
