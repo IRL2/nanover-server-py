@@ -5,24 +5,20 @@ Module containing a basic interactive molecular dynamics client that receives fr
 and can publish interactions.
 """
 import time
-<<<<<<< HEAD
-from collections import deque
-from typing import Optional, Sequence, Dict, Iterable
+from collections import deque, ChainMap
+from typing import Iterable
+from typing import Optional, Sequence, Dict, MutableMapping
 
 from google.protobuf.json_format import MessageToDict
-from narupa.app.selection import NarupaImdSelection
-=======
-from collections import deque, ChainMap
-from typing import Optional, Sequence, Dict, List, Collection, Set, MutableMapping
-
+from google.protobuf.struct_pb2 import Value, Struct
 from grpc import RpcError, StatusCode
+from narupa.app.selection import NarupaImdSelection
 from narupa.core import CommandInfo, NarupaClient
+from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
+from narupa.multiplayer import MultiplayerClient
 from narupa.protocol.imd import InteractionEndReply
 from narupa.trajectory import FrameClient, FrameData
-from narupa.imd import ImdClient
-from narupa.multiplayer import MultiplayerClient
-from google.protobuf.struct_pb2 import Value, Struct
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY
 
 # Default to a low framerate to avoid build up in the frame stream
