@@ -10,17 +10,11 @@ import functools
 import logging
 from typing import List
 import numpy as np
-from mpi4py import MPI
 
 try:
     from lammps import lammps
 except ImportError:
     logging.info('lammps failed to import', exc_info=True)
-
-# from mpi4py import MPI
-# comm = MPI.COMM_WORLD
-# me = comm.Get_rank()
-# nprocs = comm.Get_size()
 
 from narupa.trajectory import FrameServer, FrameData
 from narupa.trajectory.frame_data import PARTICLE_POSITIONS, PARTICLE_ELEMENTS
