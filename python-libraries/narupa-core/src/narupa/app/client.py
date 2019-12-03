@@ -6,14 +6,15 @@ and can publish interactions.
 """
 import time
 from collections import deque, ChainMap
+from functools import wraps
 from typing import Iterable
 from typing import Optional, Sequence, Dict, MutableMapping
 
-from google.protobuf.json_format import MessageToDict
-from google.protobuf.struct_pb2 import Value, Struct
+from google.protobuf.struct_pb2 import Value
 from grpc import RpcError, StatusCode
 from narupa.app.selection import NarupaImdSelection
 from narupa.core import CommandInfo, NarupaClient
+from narupa.core.protobuf_utilities import struct_to_dict, dict_to_struct
 from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.multiplayer import MultiplayerClient
@@ -41,6 +42,11 @@ def _update_commands(client: NarupaClient):
 
 
 def need_multiplayer(func):
+    """
+    Ensure that there is a multiplayer client, raising a RuntimeError if not.
+    """
+
+    @wraps(func)
     def wrapper(self, *args, **kwargs):
         if self._multiplayer_client is None:
             raise RuntimeError("Not connected to multiplayer service")
@@ -443,8 +449,7 @@ class NarupaImdClient:
 
         :param selection: The selection to update.
         """
-        struct = Struct()
-        struct.update(selection.to_dictionary())
+        struct = dict_to_struct(selection.to_dictionary())
         self.set_shared_value(selection.selection_id, Value(struct_value=struct))
 
     @need_multiplayer
@@ -479,7 +484,7 @@ class NarupaImdClient:
         """
         Get the selection with the given selection id, throwing a KeyError if
         it is not present. For the root selection, use the root_selection
-        property
+        property.
 
         :param id: The id of the selection
         :return: The selection if it is present
@@ -488,7 +493,8 @@ class NarupaImdClient:
         return self._create_selection_from_protobuf_value(value)
 
     def _create_selection_from_protobuf_value(self, value : Value) -> NarupaImdSelection:
-        selection = NarupaImdSelection.from_dictionary(MessageToDict(value.struct_value))
+
+        selection = NarupaImdSelection.from_dictionary(struct_to_dict(value.struct_value))
         selection.updated.add_callback(self.update_selection)
         selection.removed.add_callback(self.remove_selection)
         return selection
