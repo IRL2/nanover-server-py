@@ -3,7 +3,7 @@ import time
 import pytest
 from google.protobuf.struct_pb2 import Value
 
-from narupa.app import NarupaClient
+from narupa.app import NarupaImdClient
 from narupa.multiplayer import MultiplayerServer, MultiplayerClient
 
 UPDATE_TIME = 0.1
@@ -15,11 +15,11 @@ def server_clients():
     and two Narupa clients connected to it.
     """
     server = MultiplayerServer(address='localhost', port=0)
-    client1 = NarupaClient(
+    client1 = NarupaImdClient(
         multiplayer_port=server.port,
         address=server.address
     )
-    client2 = NarupaClient(
+    client2 = NarupaImdClient(
         multiplayer_port=server.port,
         address=server.address
     )

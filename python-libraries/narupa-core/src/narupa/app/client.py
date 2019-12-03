@@ -41,10 +41,10 @@ def _update_commands(client: NarupaClient):
 
 
 def need_multiplayer(func):
-    def wrapper(self: NarupaImdClient, *args, **kwargs):
+    def wrapper(self, *args, **kwargs):
         if self._multiplayer_client is None:
             raise RuntimeError("Not connected to multiplayer service")
-        func(self, *args, **kwargs)
+        return func(self, *args, **kwargs)
 
     return wrapper
 

@@ -1,5 +1,6 @@
 from typing import Callable, TypeVar
 
+
 class Event:
     """
     A class which stores a set of callbacks, which are invoked when an event is published.
