@@ -507,7 +507,6 @@ class LammpsHook:
             units_type = self.units_type
             force_factor = self.force_factor
 
-        self.comm.barrier()
         if self.topology_loop is True:
             atom_type, masses = self.gather_lammps_particle_types(lammps_class)
             self.masses = masses
