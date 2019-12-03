@@ -6,7 +6,7 @@ from queue import Queue
 from typing import Iterable, Optional, Dict, Any, NamedTuple
 
 import grpc
-from narupa.core import get_requested_port_or_default, GrpcClient
+from narupa.core import get_requested_port_or_default, NarupaStubClient
 from narupa.imd.imd_server import DEFAULT_PORT
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import (
@@ -60,7 +60,7 @@ def _to_proto(interactions: Iterable[ParticleInteraction]):
         yield interaction.proto
 
 
-class ImdClient(GrpcClient):
+class ImdClient(NarupaStubClient):
     """
     A simple IMD client, primarily for testing the IMD server.
 
@@ -118,7 +118,7 @@ class ImdClient(GrpcClient):
         queue, _, _ = self._local_interactions_states[local_interaction_id]
         queue.put(interaction)
 
-    def stop_interaction(self, local_interaction_id) -> InteractionEndReply:
+    def stop_interaction(self, local_interaction_id: str) -> InteractionEndReply:
         """
         Stops the interaction identified with the given interaction_id on the server.
 

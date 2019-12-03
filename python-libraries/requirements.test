@@ -5,3 +5,5 @@ pytest-timeout
 hypothesis
 # python-osc is needed to test an example
 python-osc
+# mock is required for some core tests
+mock

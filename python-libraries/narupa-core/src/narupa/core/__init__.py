@@ -10,5 +10,7 @@ from .grpc_server import (
     DEFAULT_CONNECT_ADDRESS,
 )
 from .grpc_client import GrpcClient
-
 from .event import Event
+from .narupa_client import NarupaClient, NarupaStubClient
+from .narupa_server import NarupaServer
+from .command_info import CommandInfo
