@@ -337,35 +337,25 @@ class LammpsHook:
         :param lammps_class: LAMMPS class that contains all the needed routines
         :return: 1N matrix with all the data requested
         """
-        print("AAAAHAHHAHAHAHHAHAHAHAHAHAHHAHAHAH  ", self.me)
-        # me = self.comm.Get_rank()
-        # nprocs = self.comm.Get_size()
-        # logging.info("gather MPI rank %s", me)
-        # logging.info("gather MPI n processors %s ", nprocs)
         # Extract the number of atoms types in the system.
         ntypes = lammps_class.extract_global("ntypes", 0)
-        logging.info("test 1 %s %s", ntypes, self.me)
 
         # Extract the masses of the types, 1D float of home many
         # mass types were defined in input. Indexed from 1 not zero in lammps
         atom_type_mass = lammps_class.extract_atom("mass", 2)
-        logging.info("test 2 %s %s", atom_type_mass[1:10], self.me)
 
         # Gather the atom types, 1D int of n atoms length.
         atom_kind = lammps_class.gather_atoms("type", 0, 1)
-        logging.info("test 3 %s %s", atom_kind[0:9], self.me)
 
         # Atom mass is indexed from 1 in lammps for some reason.
         # Create a new list rounded to the nearest mass integer
         atom_mass_type = [round(x) for x in atom_type_mass[0:ntypes + 1]]
-        logging.info("test 4 %s %s", atom_mass_type[1:10], self.me)
 
         # Convert to masses
         final_masses = [atom_mass_type[particle] for particle in atom_kind]
         final_masses = np.array(final_masses)
         # Convert to elements
         final_elements = [ELEMENT_INDEX_MASS.get(mass, 1) for mass in final_masses]
-        # logging.info("final elements test %s %s", self.me, final_elements[1:10])
         return final_elements, final_masses
 
     def lammps_positions_to_frame_data(self,
@@ -491,8 +481,6 @@ class LammpsHook:
         if self.topology_loop is True:
             units = self.find_unit_type(lammps_class)
             n_atoms = lammps_class.get_natoms()
-
-            #print("N_atoms is", n_atoms, self.me)
             units_type = LAMMPS_UNITS_CHECK.get(units, None)[0]
             distance_factor = LAMMPS_UNITS_CHECK.get(units, None)[1]
             force_factor = LAMMPS_UNITS_CHECK.get(units, None)[2]
