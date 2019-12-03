@@ -254,6 +254,7 @@ class LammpsHook:
                 logging.info("MPI n processors %s ", nprocs)
         except ImportError as err:
             logging.info("Didn't find mpi4py %s", err)
+            self.me = 0
         # Start frame server, must come before MPI
         if me == 0:
             # TODO raise exception when this fails, i.e if port is blocked
@@ -482,7 +483,6 @@ class LammpsHook:
         else:
             # Make sure LAMMPS object is callable
             try:
-                # logging.info(comm)
                 lammps_class = lammps(ptr=lmp)  # , comm=comm)
             except Exception as err:
                 # Many possible reasons for LAMMPS failures so for the moment catch all
@@ -492,7 +492,7 @@ class LammpsHook:
             units = self.find_unit_type(lammps_class)
             n_atoms = lammps_class.get_natoms()
 
-            print("N_atoms is", n_atoms, self.me)
+            #print("N_atoms is", n_atoms, self.me)
             units_type = LAMMPS_UNITS_CHECK.get(units, None)[0]
             distance_factor = LAMMPS_UNITS_CHECK.get(units, None)[1]
             force_factor = LAMMPS_UNITS_CHECK.get(units, None)[2]
