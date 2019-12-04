@@ -269,8 +269,6 @@ class LammpsHook:
                 raise Exception("Failed to load FrameData", err)
 
             logging.info("Lammpshook initialised for NarupaXR")
-            # Load MPI routines, has to be performed here.
-
             logging.info("Trajectory Port %s ", traj_port)
             logging.info("Interactive Port %s ", imd_port)
 
@@ -495,13 +493,13 @@ class LammpsHook:
             units_type = self.units_type
             force_factor = self.force_factor
 
+        # Extract the masses of the types, 1D float of home many
+        # mass types were defined in input. Indexed from 1 not zero in lammps
         if self.topology_loop is True:
             atom_type, masses = self.gather_lammps_particle_types(lammps_class)
             self.masses = masses
             self.atom_type = atom_type
 
-        # Extract the masses of the types, 1D float of home many
-        # mass types were defined in input. Indexed from 1 not zero in lammps
 
         # Extract the position matrix
         positions = self.manipulate_lammps_array('x', lammps_class)
