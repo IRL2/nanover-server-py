@@ -14,15 +14,15 @@ class RpcAlreadyTerminatedError(Exception):
     pass
 
 
-def subscribe_channel_status_change(
+def subscribe_channel_connectivity_change(
         channel: grpc.Channel,
         callback: Callable[[grpc.ChannelConnectivity], None],
         force_connection: bool = False,
 ):
     """
-    Subscribe to channel status changes with a callback that is called with the
-    channel's latest status. Optionally force the channel to begin connecting
-    instead of waiting for an RPC attempt.
+    Subscribe to channel connectivity changes with a callback that is called
+    with the channel's latest connectivity status. Optionally force the channel
+    to begin connecting instead of waiting for an RPC attempt.
     """
     channel.subscribe(callback, force_connection)
 
