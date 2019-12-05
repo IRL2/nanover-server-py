@@ -25,7 +25,6 @@ def connectivity_recorder() -> ConnectivityRecorder:
     connectivity_history = []
 
     def record_connectivity(connectivity: ChannelConnectivity):
-        print(connectivity)
         connectivity_history.append(connectivity)
 
     return ConnectivityRecorder(connectivity_history, record_connectivity)
@@ -58,15 +57,13 @@ def test_subscribe_unused_channel_closed(channel, connectivity_recorder):
 def test_subscribe_unused_channel_connect(channel, connectivity_recorder):
     """
     Test that subscribing a unused channel's connectivity and forcing connection
-    when no corresponding server exists calls the callback with `IDLE`,
-     `CONNECTING` then `TRANSIENT_FAILURE` states.
+    when no corresponding server exists calls the callback first with `IDLE` and
+    ends with a `TRANSIENT_FAILURE` state, potentially entering `CONNECTING`
+    state between them.
     """
     subscribe_channel_connectivity_change(channel,
                                           connectivity_recorder.callback,
                                           force_connection=True)
     time.sleep(NOMINAL_WAIT_TIME)
-    assert connectivity_recorder.history == [
-        ChannelConnectivity.IDLE,
-        ChannelConnectivity.CONNECTING,
-        ChannelConnectivity.TRANSIENT_FAILURE,
-    ]
+    assert connectivity_recorder.history[0] == ChannelConnectivity.IDLE
+    assert connectivity_recorder.history[-1] == ChannelConnectivity.TRANSIENT_FAILURE
