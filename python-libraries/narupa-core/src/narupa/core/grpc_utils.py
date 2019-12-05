@@ -17,8 +17,13 @@ class RpcAlreadyTerminatedError(Exception):
 def subscribe_channel_status_change(
         channel: grpc.Channel,
         callback: Callable[[grpc.ChannelConnectivity], None],
-        force_connection: bool,
+        force_connection: bool = False,
 ):
+    """
+    Subscribe to channel status changes with a callback that is called with the
+    channel's latest status. Optionally force the channel to begin connecting
+    instead of waiting for an RPC attempt.
+    """
     channel.subscribe(callback, force_connection)
 
 
@@ -26,5 +31,11 @@ def subscribe_rpc_termination(
         context: grpc.RpcContext,
         callback: Callable[[], None]
 ):
-    if not context.add_callback(callback):
+    """
+    Subscribe the termination of an RPC with the given callback.
+    :raises: RpcAlreadyTerminatedError if the callback will not be used because
+    termination has already occurred.
+    """
+    added = context.add_callback(callback)
+    if not added:
         raise RpcAlreadyTerminatedError()
