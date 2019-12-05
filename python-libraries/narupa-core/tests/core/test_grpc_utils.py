@@ -15,6 +15,12 @@ class ConnectivityRecorder(NamedTuple):
 
 
 @pytest.fixture
+def channel():
+    with insecure_channel('localhost:0') as channel:
+        yield channel
+
+
+@pytest.fixture
 def connectivity_recorder() -> ConnectivityRecorder:
     connectivity_history = []
 
@@ -25,25 +31,23 @@ def connectivity_recorder() -> ConnectivityRecorder:
     return ConnectivityRecorder(connectivity_history, record_connectivity)
 
 
-def test_subscribe_unused_channel(connectivity_recorder):
+def test_subscribe_unused_channel(channel, connectivity_recorder):
     """
     Test that subscribing a unused channel's connectivity calls the callback
     with the default `IDLE` state.
     """
-    channel = insecure_channel("localhost:0")
     subscribe_channel_connectivity_change(channel,
                                           connectivity_recorder.callback)
     time.sleep(NOMINAL_WAIT_TIME)
     assert connectivity_recorder.history == [ChannelConnectivity.IDLE]
 
 
-def test_subscribe_unused_channel_closed(connectivity_recorder):
+def test_subscribe_unused_channel_closed(channel, connectivity_recorder):
     """
     Test that subscribing a closed channel's connectivity does not call the
     callback. This will cause an exception on another thread, but it can't be
     tested for.
     """
-    channel = insecure_channel("localhost:0")
     channel.close()
     subscribe_channel_connectivity_change(channel,
                                           connectivity_recorder.callback)
@@ -51,13 +55,12 @@ def test_subscribe_unused_channel_closed(connectivity_recorder):
     assert connectivity_recorder.history == []
 
 
-def test_subscribe_unused_channel_connect(connectivity_recorder):
+def test_subscribe_unused_channel_connect(channel, connectivity_recorder):
     """
     Test that subscribing a unused channel's connectivity and forcing connection
     when no corresponding server exists calls the callback with `IDLE`,
      `CONNECTING` then `TRANSIENT_FAILURE` states.
     """
-    channel = insecure_channel("localhost:0")
     subscribe_channel_connectivity_change(channel,
                                           connectivity_recorder.callback,
                                           force_connection=True)
