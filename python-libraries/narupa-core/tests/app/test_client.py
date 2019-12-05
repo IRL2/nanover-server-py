@@ -187,7 +187,18 @@ def test_get_selection(server_clients):
         s = client2.get_selection("selection.invalid_id")
 
 
-def test_root_selection(server_clients):
+def test_root_selection_fields(server_clients):
+    server, client1, client2 = server_clients
+
+    selection = client1.root_selection
+
+    assert selection is not None
+
+    assert selection.selected_particle_ids is None
+
+
+
+def test_root_selection_set_field(server_clients):
     server, client1, client2 = server_clients
 
     selection = client1.root_selection

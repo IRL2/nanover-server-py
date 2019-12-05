@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from contextlib import contextmanager
-from typing import Dict, Iterable, Set, Union, TypeVar
+from typing import Dict, Iterable, Set, Union, TypeVar, Optional
 
 from narupa.core import Event
 
@@ -35,6 +35,15 @@ class NarupaImdSelection:
     A selection of a group of particles in a Narupa simulation.
 
     """
+
+    selection_id: str
+    selection_name: str
+    selected_particle_ids: Union[Set[int], None]
+
+    interaction_method: str
+    velocity_reset: bool
+    renderer: Union[Dict, str]
+    hide: bool
 
     @classmethod
     def from_dictionary(cls, dict: Dict) -> SelectionClass:
@@ -96,13 +105,16 @@ class NarupaImdSelection:
         """
         self.selected_particle_ids.clear()
 
-    def set_particles(self, particle_ids: Iterable[int] = None):
+    def set_particles(self, particle_ids: Optional[Iterable[int]] = None):
         """
         Set the particles in this selection, replacing the previous selection.
 
         :param particle_ids:
         """
-        self.selected_particle_ids = set(particle_ids)
+        if particle_ids is None:
+            self.selected_particle_ids = None
+        else:
+            self.selected_particle_ids = set(particle_ids)
 
     def add_particles(self, particle_ids: Iterable[int] = None):
         """
@@ -166,8 +178,9 @@ class NarupaImdSelection:
     @selected_particle_ids.setter
     def selected_particle_ids(self, value: Set[int]):
         if value is None:
-            value = set()
-        self._selected_particle_ids = set(value)
+            self._selected_particle_ids = None
+        else:
+            self._selected_particle_ids = set(value)
 
     @property
     def updated(self) -> Event:
@@ -219,7 +232,8 @@ class NarupaImdSelection:
     @property
     def renderer(self) -> Union[str, Dict]:
         """
-        The renderer to be used for this selection. Either a string name of a predefined visualiser, or a dictionary describing one.
+        The renderer to be used for this selection. Either a string name of a predefined visualiser,
+        or a dictionary describing one.
         """
         return self._renderer
 

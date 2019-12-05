@@ -409,9 +409,11 @@ class NarupaImdClient:
         :return: The selection representing the root selection of the system
         """
         try:
-            return self.get_selection(SELECTION_ROOT_ID)
+            root_selection = self.get_selection(SELECTION_ROOT_ID)
         except KeyError:
-            return self._create_selection_from_id_and_name(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
+            root_selection = self._create_selection_from_id_and_name(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
+        root_selection.selected_particle_ids = None
+        return root_selection
 
     @need_multiplayer
     def create_selection(
