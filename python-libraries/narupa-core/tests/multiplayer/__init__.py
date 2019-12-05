@@ -1,0 +1,1 @@
+from .test_multiplayer import server_client_pair
