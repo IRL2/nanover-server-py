@@ -45,39 +45,7 @@ class NarupaImdSelection:
         :return: A selection decoded from the given dictionary
         """
         selection = cls(dict[KEY_SELECTION_ID], dict[KEY_SELECTION_NAME])
-        selection.set_particles(
-            get_nested_or_default(
-                dict,
-                SELECTED_PARTICLE_IDS_DEFAULT,
-                KEY_SELECTION_SELECTED,
-                KEY_SELECTED_PARTICLE_IDS,
-            )
-        )
-        selection.interaction_method = get_nested_or_default(
-            dict,
-            INTERACTION_METHOD_DEFAULT,
-            KEY_SELECTION_PROPERTIES,
-            KEY_PROPERTY_INTERACTION_METHOD,
-        )
-        selection.velocity_reset = get_nested_or_default(
-            dict,
-            VELOCITY_RESET_DEFAULT,
-            KEY_SELECTION_PROPERTIES,
-            KEY_PROPERTY_VELOCITY_RESET,
-        )
-        selection.rendering_renderer = get_nested_or_default(
-            dict,
-            RENDERER_DEFAULT,
-            KEY_SELECTION_PROPERTIES,
-            KEY_PROPERTY_RENDERER,
-        )
-
-        selection.hide = get_nested_or_default(
-            dict,
-            False,
-            KEY_SELECTION_PROPERTIES,
-            KEY_PROPERTY_HIDE,
-        )
+        selection.read_from_dictionary(dict)
 
         return selection
 
@@ -134,7 +102,7 @@ class NarupaImdSelection:
 
         :param particle_ids:
         """
-        self.selected_particle_ids = particle_ids
+        self.selected_particle_ids = set(particle_ids)
 
     def add_particles(self, particle_ids: Iterable[int] = None):
         """
@@ -258,6 +226,55 @@ class NarupaImdSelection:
     @renderer.setter
     def renderer(self, value: Union[str, Dict]):
         self._renderer = value
+
+    def read_from_dictionary(self, dict: Dict):
+        self.read_selected_particles_from_dictionary(dict)
+        self.read_interaction_method_from_dictionary(dict)
+        self.read_velocity_reset_from_dictionary(dict)
+        self.read_renderer_from_dictionary(dict)
+        self.read_hide_from_dictionary(dict)
+
+    def read_selected_particles_from_dictionary(self, dict: Dict):
+        self.set_particles(
+            get_nested_or_default(
+                dict,
+                SELECTED_PARTICLE_IDS_DEFAULT,
+                KEY_SELECTION_SELECTED,
+                KEY_SELECTED_PARTICLE_IDS,
+            )
+        )
+
+    def read_interaction_method_from_dictionary(self, dict: Dict):
+        self.interaction_method = get_nested_or_default(
+            dict,
+            INTERACTION_METHOD_DEFAULT,
+            KEY_SELECTION_PROPERTIES,
+            KEY_PROPERTY_INTERACTION_METHOD,
+        )
+
+    def read_velocity_reset_from_dictionary(self, dict: Dict):
+        self.velocity_reset = get_nested_or_default(
+            dict,
+            VELOCITY_RESET_DEFAULT,
+            KEY_SELECTION_PROPERTIES,
+            KEY_PROPERTY_VELOCITY_RESET,
+        )
+
+    def read_renderer_from_dictionary(self, dict: Dict):
+        self.renderer = get_nested_or_default(
+            dict,
+            RENDERER_DEFAULT,
+            KEY_SELECTION_PROPERTIES,
+            KEY_PROPERTY_RENDERER,
+        )
+
+    def read_hide_from_dictionary(self, dict: Dict):
+        self.hide = get_nested_or_default(
+            dict,
+            False,
+            KEY_SELECTION_PROPERTIES,
+            KEY_PROPERTY_HIDE,
+        )
 
 
 def get_nested_or_default(dict: Dict, default: object, *keys: Iterable[str]) -> object:
