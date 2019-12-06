@@ -34,6 +34,12 @@ def test_specific_port(server_factory, port):
 
 
 @pytest.mark.parametrize('server_factory', TEST_SERVERS)
+def test_address(server_factory):
+    with server_factory(address='localhost', port=0) as frame_server:
+        assert frame_server.address == 'localhost'
+
+
+@pytest.mark.parametrize('server_factory', TEST_SERVERS)
 @pytest.mark.parametrize('port', TEST_PORTS)
 def test_specific_port_in_use(server_factory, port):
     with server_factory(address='localhost', port=port) as frame_server1:

@@ -14,10 +14,8 @@ class GrpcClient:
 
     :param address: The URL or IP address of the service to connect to.
     :param port: The port on which to connect.
-    :param stub: The GRPC service stub class.
     """
     channel: grpc.Channel
-    stub: Any
     threads: futures.ThreadPoolExecutor
 
     def __init__(
@@ -25,11 +23,9 @@ class GrpcClient:
             *,
             address: Optional[str] = None,
             port: int,
-            stub: Callable[[grpc.Channel], Any],
     ):
         address = address or DEFAULT_CONNECT_ADDRESS
         self.channel = grpc.insecure_channel(f"{address}:{port}")
-        self.stub = stub(self.channel)
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
 
     def close(self):

@@ -14,7 +14,7 @@ from narupa.core.grpc_utils import (
     RpcAlreadyTerminatedError,
 )
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
-from narupa.multiplayer.key_lockable_map import (
+from narupa.core.key_lockable_map import (
     KeyLockableMap,
     ResourceLockedException,
 )

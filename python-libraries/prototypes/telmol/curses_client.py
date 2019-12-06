@@ -23,7 +23,7 @@ import numpy as np
 import colorsys
 import time
 
-from narupa.app import NarupaClient
+from narupa.app import NarupaImdClient
 
 from transformations import rotation_matrix, scale_matrix
 import rendering
@@ -151,11 +151,11 @@ class Renderer:
 
 
 class CursesFrontend:
-    client: NarupaClient
+    client: NarupaImdClient
     renderer: Renderer
     bindings: Dict[int, Callable]
 
-    def __init__(self, stdscr, client: NarupaClient, override_colors=False):
+    def __init__(self, stdscr, client: NarupaImdClient, override_colors=False):
         self.stdscr = stdscr
         self.client = client
         self.user_quit = False
@@ -330,10 +330,10 @@ def handle_user_args(args=None) -> argparse.Namespace:
 def main(stdscr):
     arguments = handle_user_args()
 
-    with NarupaClient(address=arguments.address,
-                      trajectory_port=arguments.traj,
-                      imd_port=arguments.imd,
-                      all_frames=False) as client:
+    with NarupaImdClient(address=arguments.address,
+                         trajectory_port=arguments.traj,
+                         imd_port=arguments.imd,
+                         all_frames=False) as client:
         telmol = CursesFrontend(stdscr, client, override_colors=arguments.rainbow)
         telmol.run()
 
