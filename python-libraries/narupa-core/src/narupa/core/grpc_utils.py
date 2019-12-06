@@ -23,6 +23,9 @@ def subscribe_channel_connectivity_change(
     Subscribe to channel connectivity changes with a callback that is called
     with the channel's latest connectivity status. Optionally force the channel
     to begin connecting instead of waiting for an RPC attempt.
+
+    .. warning::
+        On channel close, all subscriptions are removed without state change.
     """
     channel.subscribe(callback, force_connection)
 
