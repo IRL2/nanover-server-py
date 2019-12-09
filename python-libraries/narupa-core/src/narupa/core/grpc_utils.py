@@ -38,7 +38,7 @@ def subscribe_rpc_termination(
     Subscribe the termination of an RPC with the given callback.
     
     :raises RpcAlreadyTerminatedError: if the callback will not be used because
-    termination has already occurred.
+        termination has already occurred.
     """
     added = context.add_callback(callback)
     if not added:
