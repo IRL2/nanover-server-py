@@ -25,7 +25,7 @@ class Event:
         """
         self._callbacks.remove(callback)
 
-    def publish(self, *args, **kwargs):
+    def invoke(self, *args, **kwargs):
         """
         Invoke the callbacks associated with this event with the provided arguments.
 

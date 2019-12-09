@@ -90,13 +90,13 @@ class NarupaImdSelection:
         """
         Update this selection.
         """
-        self.updated.publish(self)
+        self.updated.invoke(self)
 
     def remove(self):
         """
         Remove this selection from the server.
         """
-        self.removed.publish(self)
+        self.removed.invoke(self)
 
     def clear_particles(self):
         """
