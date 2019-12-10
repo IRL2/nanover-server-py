@@ -32,7 +32,10 @@ SelectionClass = TypeVar('NarupaImdSelection')
 
 class NarupaImdSelection:
     """
-    A selection of a group of particles in a Narupa simulation.
+    A local representation of a selection in a NarupaIMD simulation.
+    Changes to this selection are only applied when a call to
+    flush_changes() is made, or modifications are made within
+    a modify(): context manager.
 
     """
 
@@ -53,7 +56,10 @@ class NarupaImdSelection:
         :param dict: A dictionary, such as json or a protobuf value.
         :return: A selection decoded from the given dictionary
         """
-        selection = cls(dict[KEY_SELECTION_ID], dict[KEY_SELECTION_NAME])
+        try:
+            selection = cls(dict[KEY_SELECTION_ID], dict[KEY_SELECTION_NAME])
+        except KeyError:
+            raise ValueError("Selection is missing ID or name")
         selection.read_from_dictionary(dict)
 
         return selection
@@ -80,15 +86,15 @@ class NarupaImdSelection:
     @contextmanager
     def modify(self):
         """
-        Gives a context in which the selection can have multiple modifications made to it, and which calls update()
-        when the context is left
+        Gives a context in which the selection can have multiple modifications made to it, and which calls
+        flush_changes() when the context is left
         """
         yield self
-        self.update()
+        self.flush_changes()
 
-    def update(self):
+    def flush_changes(self):
         """
-        Update this selection.
+        Flushes all changes by notifying any listeners that this selection has changed.
         """
         self.updated.invoke(self)
 
