@@ -54,7 +54,7 @@ def params():
 def logging_params(tmp_path):
     params = LoggingParams(
         trajectory_file=os.path.join(tmp_path, TEST_TRAJ),
-        logging_interval=1,
+        log_interval=1,
     )
     return params
 
