@@ -119,7 +119,7 @@ class ImdCalculator(Calculator):
         return self._calculator
 
     @property
-    def interactions(self) -> Dict[Tuple[str, str], ParticleInteraction]:
+    def interactions(self) -> Dict[str, ParticleInteraction]:
         """
         Fetches a copy of the current interactions.
         """

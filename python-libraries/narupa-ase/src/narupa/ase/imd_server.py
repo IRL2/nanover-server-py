@@ -47,7 +47,7 @@ class ASEImdServer:
     >>> atoms.set_calculator(EMT())
     >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
     >>> server = ASEImdServer(dynamics) # create the server with the molecular dynamics object.
-    >>> client = NarupaImdClient(run_multiplayer=False) # have a client connect to the server
+    >>> client = NarupaImdClient() # have a client connect to the server
     >>> server.run(5) # run some dynamics.
     >>> client.first_frame.particle_count # client will have received some frames!
     32
