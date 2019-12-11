@@ -65,8 +65,8 @@ def test_write(atoms, tmp_dir, ext):
     logger = TrajectoryLogger(atoms, file)
     logger.write()
 
-    assert os.path.exists(file)
-    check_file_images([atoms], file)
+    assert os.path.exists(logger.filename)
+    check_file_images([atoms], logger.filename)
 
 
 @pytest.mark.parametrize('ext', SUPPORTED_EXTENSIONS)
@@ -77,12 +77,12 @@ def test_write_multiple_frames(atoms, tmp_dir, ext):
     for i in range(FRAMES):
         logger.write()
 
-    assert os.path.exists(file)
-    check_file_images([atoms] * FRAMES, file)
+    assert os.path.exists(logger.filename)
+    check_file_images([atoms] * FRAMES, logger.filename)
 
-@pytest.mark.parametrize('ext', SUPPORTED_EXTENSIONS)
-def test_attach_to_md(atoms, tmp_dir, ext):
-    file = os.path.join(tmp_dir, "atoms" + "." + ext)
+
+def test_attach_to_md(atoms, tmp_dir):
+    file = os.path.join(tmp_dir, "atoms" + ".xyz")
 
     logger = TrajectoryLogger(atoms, file)
 
@@ -93,10 +93,69 @@ def test_attach_to_md(atoms, tmp_dir, ext):
         md.run(FRAMES)
 
     assert os.path.exists(ase_traj_file)
-    assert os.path.exists(file)
+    assert os.path.exists(logger.filename)
 
     with Trajectory(ase_traj_file, 'r') as ase_trajectory_read:
         frames = [atoms for atoms in ase_trajectory_read]
 
     assert len(frames) == FRAMES + 1
-    check_file_images(frames, file)
+    check_file_images(frames, logger.filename)
+
+
+def test_timestamp(atoms, tmp_dir):
+    """
+    if using timestamp, the filename the logger uses should have a timestamp in it.
+    """
+    file = os.path.join(tmp_dir, "atoms" + ".xyz")
+    logger = TrajectoryLogger(atoms, file, timestamp=True)
+    assert logger.filename != file
+    import re
+    r = re.compile(r".*\d{4}:\d{2}:\d{2}_\d{2}_\d{2}_\d{2}_\d{2}\.xyz")
+    assert r.match(logger.filename) is not None
+
+
+def test_no_timestamp(atoms, tmp_dir):
+    file = os.path.join(tmp_dir, "atoms" + ".xyz")
+    logger = TrajectoryLogger(atoms, file, timestamp=False)
+    assert logger.filename == file
+
+
+def test_reset_timestamp(atoms, tmp_dir):
+    """
+    tests that resetting the logger that's using timestamps sets the frame index back to zero,
+    and creates a new file.
+    :param atoms:
+    :param tmp_dir:
+    :return:
+    """
+    file = os.path.join(tmp_dir, "atoms" + ".xyz")
+    logger = TrajectoryLogger(atoms, file)
+    logger.write()
+
+    initial_name = logger.filename
+    assert os.path.exists(initial_name)
+    assert logger.frame_index > 0
+    logger.reset()
+    assert logger.filename != initial_name
+    assert logger.frame_index == 0
+
+
+def test_reset_no_timestamp(atoms, tmp_dir):
+    """
+    tests that a logger not using a timestamp will overwrite the old file
+    when resetting.
+    """
+    file = os.path.join(tmp_dir, "atoms" + ".xyz")
+    logger = TrajectoryLogger(atoms, file, timestamp=False)
+    logger.write()
+
+    initial_name = logger.filename
+    assert os.path.exists(initial_name)
+    assert logger.frame_index > 0
+    logger.reset()
+    assert logger.filename == initial_name
+    assert logger.frame_index == 0
+    logger.write()
+    # check only one frame has been written
+    check_file_images([atoms], logger.filename)
+
