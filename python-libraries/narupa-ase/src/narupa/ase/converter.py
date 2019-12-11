@@ -68,6 +68,7 @@ def ase_to_frame_data(
         add it to the frame.
     :param state: Whether to add additional state information such as energies.
     :param box_vectors: Whether to add the box vectors to the frame data.
+    :param generate_bonds: Whether to generate bonds for the topology.
     :return: Narupa frame.
 
     :raises: AttributeError Raised if state is `True`, and `ase_atoms` has no
