@@ -32,12 +32,12 @@ class TrajectoryLogger:
                  **kwargs):
         self.frame_index = 0
         self.atoms = atoms
-        self._original_filename = filename
+        self.base_path = filename
         self.format = format
         self.parallel = parallel
         self._kwargs = kwargs
         self._timestamp = timestamp
-        self.filename = _generate_filename(self._original_filename, self.timestamping)
+        self.current_path = _generate_filename(self.base_path, self.timestamping)
 
     @property
     def timestamping(self) -> bool:
@@ -54,7 +54,7 @@ class TrajectoryLogger:
         called, appending otherwise.
         """
         should_append = self.frame_index != 0
-        ase.io.write(self.filename,
+        ase.io.write(self.current_path,
                      self.atoms,
                      format=self.format,
                      parallel=self.parallel,
@@ -76,7 +76,7 @@ class TrajectoryLogger:
 
         """
         self.frame_index = 0
-        self.filename = _generate_filename(self._original_filename, self.timestamping)
+        self.current_path = _generate_filename(self.base_path, self.timestamping)
 
     def __call__(self):
         """

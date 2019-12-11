@@ -65,8 +65,8 @@ def test_write(atoms, tmp_dir, ext):
     logger = TrajectoryLogger(atoms, file)
     logger.write()
 
-    assert os.path.exists(logger.filename)
-    check_file_images([atoms], logger.filename)
+    assert os.path.exists(logger.current_path)
+    check_file_images([atoms], logger.current_path)
 
 
 @pytest.mark.parametrize('ext', SUPPORTED_EXTENSIONS)
@@ -77,8 +77,8 @@ def test_write_multiple_frames(atoms, tmp_dir, ext):
     for i in range(FRAMES):
         logger.write()
 
-    assert os.path.exists(logger.filename)
-    check_file_images([atoms] * FRAMES, logger.filename)
+    assert os.path.exists(logger.current_path)
+    check_file_images([atoms] * FRAMES, logger.current_path)
 
 
 def test_attach_to_md(atoms, tmp_dir):
@@ -93,13 +93,13 @@ def test_attach_to_md(atoms, tmp_dir):
         md.run(FRAMES)
 
     assert os.path.exists(ase_traj_file)
-    assert os.path.exists(logger.filename)
+    assert os.path.exists(logger.current_path)
 
     with Trajectory(ase_traj_file, 'r') as ase_trajectory_read:
         frames = [atoms for atoms in ase_trajectory_read]
 
     assert len(frames) == FRAMES + 1
-    check_file_images(frames, logger.filename)
+    check_file_images(frames, logger.current_path)
 
 
 def test_timestamp(atoms, tmp_dir):
@@ -108,16 +108,16 @@ def test_timestamp(atoms, tmp_dir):
     """
     file = os.path.join(tmp_dir, "atoms" + ".xyz")
     logger = TrajectoryLogger(atoms, file, timestamp=True)
-    assert logger.filename != file
+    assert logger.current_path != file
     import re
     r = re.compile(r".*\d{4}:\d{2}:\d{2}_\d{2}_\d{2}_\d{2}_\d{2}\.xyz")
-    assert r.match(logger.filename) is not None
+    assert r.match(logger.current_path) is not None
 
 
 def test_no_timestamp(atoms, tmp_dir):
     file = os.path.join(tmp_dir, "atoms" + ".xyz")
     logger = TrajectoryLogger(atoms, file, timestamp=False)
-    assert logger.filename == file
+    assert logger.current_path == file
 
 
 def test_reset_timestamp(atoms, tmp_dir):
@@ -132,11 +132,11 @@ def test_reset_timestamp(atoms, tmp_dir):
     logger = TrajectoryLogger(atoms, file)
     logger.write()
 
-    initial_name = logger.filename
+    initial_name = logger.current_path
     assert os.path.exists(initial_name)
     assert logger.frame_index > 0
     logger.reset()
-    assert logger.filename != initial_name
+    assert logger.current_path != initial_name
     assert logger.frame_index == 0
 
 
@@ -149,13 +149,13 @@ def test_reset_no_timestamp(atoms, tmp_dir):
     logger = TrajectoryLogger(atoms, file, timestamp=False)
     logger.write()
 
-    initial_name = logger.filename
+    initial_name = logger.current_path
     assert os.path.exists(initial_name)
     assert logger.frame_index > 0
     logger.reset()
-    assert logger.filename == initial_name
+    assert logger.current_path == initial_name
     assert logger.frame_index == 0
     logger.write()
     # check only one frame has been written
-    check_file_images([atoms], logger.filename)
+    check_file_images([atoms], logger.current_path)
 

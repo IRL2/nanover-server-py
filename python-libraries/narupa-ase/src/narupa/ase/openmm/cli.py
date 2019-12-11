@@ -15,7 +15,7 @@ import textwrap
 import time
 
 from narupa.ase.openmm import OpenMMIMDRunner
-from narupa.ase.openmm.runner import ImdParams
+from narupa.ase.openmm.runner import ImdParams, LoggingParams
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -74,6 +74,14 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         '--discovery-port', type=int, default=None,
         help='Port at which to run discovery service'
     )
+    parser.add_argument(
+        '-o', '--trajectory-file', type=str, default=None,
+        help='Path to a trajectory file to output. Can be any file that ASE can output in append mode, such as XYZ'
+    )
+    parser.add_argument(
+        '--log-interval', type=int, default=1,
+        help='Interval at which to produce trajectory logs'
+    )
     arguments = parser.parse_args(args)
     return arguments
 
@@ -96,7 +104,12 @@ def initialise(args=None):
         arguments.discovery,
         arguments.discovery_port
     )
-    runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params)
+
+    logging_params = LoggingParams(
+        arguments.trajectory_file,
+        arguments.log_interval,
+    )
+    runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params, logging_params)
     # Shamefully store CLI arguments in the runner.
     runner.cli_options = {
         'reset_energy': arguments.reset_energy if arguments.auto_reset else None,
