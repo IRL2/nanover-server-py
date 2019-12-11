@@ -10,22 +10,18 @@ from threading import RLock
 from typing import Optional, Callable
 
 import numpy as np
-
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
-
-from narupa.essd import DiscoveryServer
-from narupa.essd.servicehub import ServiceHub
 from narupa.app import NarupaImdClient
+from narupa.imd.imd_server import ImdServer
+from narupa.trajectory import FrameServer
+from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY
+
 from narupa.ase.converter import EV_TO_KJMOL
 from narupa.ase.frame_server import send_ase_frame
 from narupa.ase.imd_calculator import ImdCalculator
-from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY
-from narupa.imd.imd_server import ImdServer
-from narupa.trajectory import FrameServer
-
 from narupa.ase.trajectory_logger import TrajectoryLogger
 
 
@@ -48,6 +44,7 @@ class ASEImdServer:
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
     >>> atoms.set_calculator(EMT())
     >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
+    >>> dynamics.attach(TrajectoryLogger(atoms, 'test.xyz'), interval=10) # attach an XYZ logger.
     >>> server = ASEImdServer(dynamics) # create the server with the molecular dynamics object.
     >>> client = NarupaImdClient() # have a client connect to the server
     >>> server.run(5) # run some dynamics.
