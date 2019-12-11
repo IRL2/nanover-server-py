@@ -305,7 +305,7 @@ class OpenMMIMDRunner:
             atoms=self.atoms,
             timestep=self.time_step * units.fs,
             temperature=300 * units.kB,
-            friction=1e-4,
+            friction=1e-2,
             fixcm=False,
         )
 
