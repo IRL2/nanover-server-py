@@ -12,6 +12,7 @@ If the module is installed with pip, run with:
 """
 import argparse
 import textwrap
+import time
 
 from narupa.ase.openmm import OpenMMIMDRunner
 from narupa.ase.openmm.runner import ImdParams
@@ -42,12 +43,12 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         type=str, default='Narupa OpenMM ASE Server',
         help='Give a friendly name to the server.'
     )
-    parser.add_argument('-t', '--trajectory_port', type=int, default=None)
-    parser.add_argument('-i', '--imd_port', type=int, default=None)
-    parser.add_argument('-m', '--multiplayer_port', type=int, default=None)
+    parser.add_argument('-t', '--trajectory-port', type=int, default=None)
+    parser.add_argument('-i', '--imd-port', type=int, default=None)
+    parser.add_argument('-m', '--multiplayer-port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
-    parser.add_argument('-f', '--frame_interval', type=int, default=5)
-    parser.add_argument('-s', '--time_step', type=float, default=1.0)
+    parser.add_argument('-f', '--frame-interval', type=int, default=5)
+    parser.add_argument('-s', '--time-step', type=float, default=1.0)
     parser.add_argument(
         '--reset-energy', type=float, default=1e6,
         help=('Threshold of total energy above which the simulation is reset '
@@ -114,8 +115,9 @@ def main():
             print(f'Serving multiplayer on port {runner.multiplayer_port}')
 
         try:
+            runner.run(block=False, reset_energy=runner.cli_options['reset_energy'])
             while True:
-                runner.run(100, reset_energy=runner.cli_options['reset_energy'])
+                time.sleep(1)
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
 

@@ -7,13 +7,14 @@ from typing import Optional
 
 from narupa.core import GrpcServer, DEFAULT_SERVE_ADDRESS
 from narupa.core.grpc_server import DEFAULT_MAX_WORKERS, get_requested_port_or_default
+from narupa.core import NarupaServer
 from narupa.multiplayer.multiplayer_service import MultiplayerService
 from narupa.protocol.multiplayer import multiplayer_pb2_grpc as multiplayer_proto_grpc
 
 DEFAULT_PORT = 54323
 
 
-class MultiplayerServer(GrpcServer):
+class MultiplayerServer(NarupaServer):
     """
     Server providing multiplayer synchronisation.
 

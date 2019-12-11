@@ -13,26 +13,18 @@ def interaction():
     return ParticleInteraction()
 
 
-def test_get_key(interaction):
-    key = ImdService.get_key(interaction)
-    assert key == ("1", "0")
-
-
-def test_add_same_key(interaction):
+def test_add_duplicate_interaction_id(interaction):
     service = ImdService()
-    key = ImdService.get_key(interaction)
-    service._interactions[key] = interaction
+    service.insert_interaction(interaction)
     interaction = ParticleInteraction()
-    key = ImdService.get_key(interaction)
-    service._interactions[key] = interaction
+    service.insert_interaction(interaction)
     assert len(service.active_interactions) == 1
 
 
 def test_multiple_keys(interaction):
+    interaction2 = ParticleInteraction(player_id="T", interaction_id="T.0")
+
     service = ImdService()
-    key = ImdService.get_key(interaction)
-    service._interactions[key] = interaction
-    interaction = ParticleInteraction()
-    key = ("2", "0")
-    service._interactions[key] = interaction
+    service.insert_interaction(interaction)
+    service.insert_interaction(interaction2)
     assert len(service.active_interactions) == 2
