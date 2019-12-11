@@ -1,24 +1,17 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+
+"""
+Module containing a trajectory logging class that can be used to output
+portable trajectory files from an ASE molecular dynamics simulation.
+"""
+
 import datetime
 import os
 from typing import Optional
 
 import ase.io
 from ase import Atoms
-
-
-def _get_timestamp():
-    now = datetime.datetime.now()
-    timestamp = f'{now:%Y:%m:%d_%H_%M_%S}_{int(now.microsecond / 10000):02d}'
-    return timestamp
-
-
-def _generate_filename(path: str, add_timestamp: bool):
-    if not add_timestamp:
-        return path
-    split_path = os.path.splitext(path)
-    timestamp = _get_timestamp()
-    new_path = f'{split_path[0]}_{timestamp}{split_path[1]}'
-    return new_path
 
 
 class TrajectoryLogger:
@@ -28,9 +21,10 @@ class TrajectoryLogger:
     :param atoms: ASE :class:`Atoms` from which to write data.
     :param filename: Path to filename to write to.
     :param format: Format to use, as supported by ASE. If not specified, derived from filename.
-    :param parallel:  Default is to write on master process only.  Set to `False` to write from all processes.
-    :param timestep: Whether to append a timestamp to the file name. Use to avoid overwriting the same file if
+    :param timestamp: Whether to append a timestamp to the file name. Use to avoid overwriting the same file if
     dynamics is reset.
+    :param parallel:  Default is to write on master process only.  Set to `False` to write from all processes.
+
     :param kwargs: Keyword arguments to be passed to the underlying :fun:`ase.io.write` method.
     """
 
@@ -49,6 +43,7 @@ class TrajectoryLogger:
     def timestamping(self) -> bool:
         """
         Indicates whether this logger is appending timestamps to the names of any files it produces.
+
         :return: `True`, if appending timestamps, `False` otherwise.
         """
         return self._timestamp
@@ -73,9 +68,33 @@ class TrajectoryLogger:
 
         If the logger is set to use timestamps, a new file will be generated with the current time.
         Otherwise, the file will be overwritten.
+
+        ..note
+
+        This method is used in Narupa to produce new trajectory files whenever the
+        simulation is reset by the user.
+
         """
         self.frame_index = 0
         self.filename = _generate_filename(self._original_filename, self.timestamping)
 
     def __call__(self):
+        """
+        Method to allow the logger to be called by ASE molecular dynamics logging utility.
+        """
         self.write()
+
+
+def _get_timestamp():
+    now = datetime.datetime.now()
+    timestamp = f'{now:%Y:%m:%d_%H_%M_%S}_{int(now.microsecond / 10000):02d}'
+    return timestamp
+
+
+def _generate_filename(path: str, add_timestamp: bool):
+    if not add_timestamp:
+        return path
+    split_path = os.path.splitext(path)
+    timestamp = _get_timestamp()
+    new_path = f'{split_path[0]}_{timestamp}{split_path[1]}'
+    return new_path

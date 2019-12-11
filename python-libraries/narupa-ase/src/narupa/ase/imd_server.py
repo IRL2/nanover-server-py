@@ -26,6 +26,8 @@ from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, 
 from narupa.imd.imd_server import ImdServer
 from narupa.trajectory import FrameServer
 
+from narupa.ase.trajectory_logger import TrajectoryLogger
+
 
 class ASEImdServer:
     """
@@ -64,6 +66,7 @@ class ASEImdServer:
                  trajectory_port: Optional[int] = None,
                  imd_port: Optional[int] = None,
                  name: Optional[str] = "Narupa ASE Server",
+                 logfile: Optional[str] = None,
                  ):
         if frame_method is None:
             frame_method = send_ase_frame
@@ -79,6 +82,9 @@ class ASEImdServer:
         self.atoms.set_calculator(self.imd_calculator)
         self._frame_interval = frame_interval
         self.dynamics.attach(frame_method(self.atoms, self.frame_server), interval=frame_interval)
+        if logfile is not None:
+            self._setup_trajectory_logging(logfile)
+
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._run_task = None
         self._cancelled = False
@@ -87,7 +93,6 @@ class ASEImdServer:
         self._initial_velocities = self.atoms.get_velocities()
         self._initial_box = self.atoms.get_cell()
         self.on_reset_listeners = []
-
         self.logger = logging.getLogger(__name__)
 
     @property
@@ -269,3 +274,7 @@ class ASEImdServer:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+    def _setup_trajectory_logging(self, logfile):
+        self._trajectory_logger = TrajectoryLogger(self.atoms, logfile)
+        self.on_reset_listeners.append(self._trajectory_logger.reset)

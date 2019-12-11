@@ -83,7 +83,7 @@ class OpenMMIMDRunner:
     :param params IMD parameters to tune the server.
     """
 
-    def __init__(self, simulation:Simulation, params: Optional[ImdParams] = None):
+    def __init__(self, simulation: Simulation, params: Optional[ImdParams] = None):
         self.logger = logging.getLogger(__name__)
         self.simulation = simulation
         self._validate_simulation()
@@ -95,7 +95,8 @@ class OpenMMIMDRunner:
                 imd_port=params.imd_port,
                 multiplayer_port=params.multiplayer_port
         ):
-            raise ValueError("Trajectory serving port, IMD serving port and multiplayer serving port must be different!")
+            raise ValueError(
+                "Trajectory serving port, IMD serving port and multiplayer serving port must be different!")
         self._frame_interval = params.frame_interval
         self._time_step = params.time_step
         self._verbose = params.verbose
@@ -283,8 +284,6 @@ class OpenMMIMDRunner:
             self._register_services(name)
         else:
             self.discovery_server = None
-
-
 
     def _initialise_calculator(self, simulation, walls=False):
         self._openmm_calculator = OpenMMCalculator(simulation)
