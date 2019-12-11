@@ -272,9 +272,9 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
     selection = [0, 1]
     selection = np.array(list(selection))
     interaction = ParticleInteraction(particles=selection, reset_velocities=True)
-    calculator._service._interactions[("0", "0")] = interaction
+    calculator._service.insert_interaction(interaction)
     atoms.get_forces()
-    del calculator._service._interactions[("0", "0")]
+    calculator._service.remove_interaction(interaction)
     atoms.get_forces()
 
     assert pytest.approx(atoms[selection].get_temperature()) == calculator.reset_temperature

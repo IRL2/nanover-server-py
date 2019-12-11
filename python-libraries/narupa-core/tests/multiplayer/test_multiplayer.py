@@ -14,9 +14,9 @@ from narupa.multiplayer.multiplayer_server import MultiplayerServer
 from narupa.protocol.multiplayer.multiplayer_pb2 import Avatar, AvatarComponent
 from google.protobuf.struct_pb2 import Value, Struct
 
-
 CONNECT_WAIT_TIME = 0.01
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
+CLIENT_SEND_INTERVAL = 1 / 60
 
 
 @pytest.fixture
@@ -26,7 +26,10 @@ def server_client_pair():
     and a multiplayer client connected to it.
     """
     server = MultiplayerServer(address='localhost', port=0)
-    client = MultiplayerClient(port=server.port)
+    client = MultiplayerClient(
+        port=server.port,
+        send_interval=CLIENT_SEND_INTERVAL
+    )
 
     with client, server:
         yield server, client
@@ -158,7 +161,7 @@ def test_publish_avatar_multiple_transmission(server_client_pair, avatar):
     assert client_avatar.component[0].position == [0, 0, 3]
 
 
-@pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
+@pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
 def test_subscribe_avatars_sends_initial_immediately(server_client_pair, avatar,
                                                      update_interval):
     """
@@ -209,6 +212,33 @@ def test_subscribe_avatars_interval(server_client_pair, avatar, update_interval)
     # interval time has passed since the initial value was sent.
     time.sleep(update_interval)
     assert str(client.current_avatars[client.player_id]) == str(test_values[1])
+
+
+def test_clearing_disconnected_avatars(server_client_pair, avatar):
+    """
+    Test that disconnecting from the server clears the old avatar. Note the
+    avatar will persist but will have no components.
+    """
+    server, first_client = server_client_pair
+
+    first_player_id = first_client.join_multiplayer("first client")
+    time.sleep(CONNECT_WAIT_TIME)
+    avatar.player_id = first_player_id
+    first_client.publish_avatar(avatar)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+
+    with MultiplayerClient(port=server.port) as second_client:
+        second_client.join_avatar_stream(interval=0, ignore_self=False)
+        time.sleep(CONNECT_WAIT_TIME)
+
+        first_avatar = second_client.current_avatars[first_player_id]
+        assert len(first_avatar.component) == 1
+
+        first_client.close()
+        time.sleep(CLIENT_SEND_INTERVAL * 2)
+
+        first_avatar = second_client.current_avatars[first_player_id]
+        assert len(first_avatar.component) == 0
 
 
 def test_can_lock_unlocked(server_client_pair):
@@ -277,6 +307,20 @@ def test_set_value_updates_server_values(server_client_pair, scene):
     assert str(scene) == str(server_scene)
 
 
+def test_remove_key_updates_server_keys(server_client_pair, scene):
+    """
+    Test that setting a resource value updates the server's internal resource
+    map.
+    """
+    server, client = server_client_pair
+    client.try_set_resource_value("scene", scene)
+    server_scene = server._multiplayer_service.resources.get("scene")
+    assert str(scene) == str(server_scene)
+    client.try_remove_resource_key("scene")
+    server_scene = server._multiplayer_service.resources.get("scene")
+    assert server_scene is None
+
+
 def test_subscribe_value_update(server_client_pair):
     """
     Test that resource value updates can be subscribed.
@@ -296,6 +340,23 @@ def test_set_value_sends_update(server_client_pair, scene):
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     recv_scene = client.resources.get("scene")
     assert str(scene) == str(recv_scene)
+
+
+def test_remove_key_sends_update(server_client_pair, scene):
+    """
+    Test that removing a resource key is propagated back to the client.
+    """
+    server, client = server_client_pair
+    client.subscribe_all_value_updates()
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    client.try_set_resource_value("scene", scene)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    recv_scene = client.resources.get("scene")
+    assert str(scene) == str(recv_scene)
+    client.try_remove_resource_key("scene")
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    recv_scene = client.resources.get("scene")
+    assert recv_scene is None
 
 
 def test_server_sends_initial_values(server_client_pair, scene):
@@ -358,7 +419,7 @@ def test_cant_set_non_value(server_client_pair):
         client.try_set_resource_value("scene", "hello")
 
 
-@pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
+@pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
 def test_subscribe_value_sends_initial_immediately(server_client_pair,
                                                    update_interval):
     """

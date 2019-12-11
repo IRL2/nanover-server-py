@@ -20,14 +20,14 @@ set -euo pipefail
 # Running "./compile.sh --user" will pip install with the --user option.
 
 # A developer most likely want to install narupa's python packages in edit
-# mode. We add a --edit option to the script to allow this.
+# mode. If not, they can supply the --no-edit argument.
 user_option=""
-edit_option=""
+edit_option="-e"
 for option in "$@"; do
     if [[ "$option" == "--user" ]]; then
         user_option="--user"
-    elif [[ "$option" == "--edit" ]]; then
-        edit_option="-e"
+    elif [[ "$option" == "--no-edit" ]]; then
+        edit_option=""
     fi
 done
 # We do not want to use pip with --user if we use -e.
@@ -61,3 +61,4 @@ python -c "import simtk" 2>&1 > /dev/null || {
 
 announce "Compiling proto files to C#"
 dotnet build --configuration Release csharp-libraries/Narupa.Protocol
+dotnet publish --configuration Release csharp-libraries/Narupa.Protocol

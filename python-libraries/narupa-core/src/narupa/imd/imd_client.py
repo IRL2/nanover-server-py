@@ -1,18 +1,28 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 import logging
-import time
-from concurrent import futures
 from concurrent.futures import Future
 from queue import Queue
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Dict, Any, NamedTuple
 
 import grpc
-from narupa.core import get_requested_port_or_default, DEFAULT_CONNECT_ADDRESS, \
-    GrpcClient
+from narupa.core import get_requested_port_or_default, NarupaStubClient
 from narupa.imd.imd_server import DEFAULT_PORT
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.protocol.imd import InteractiveMolecularDynamicsStub, InteractionEndReply
+from narupa.protocol.imd import (
+    InteractiveMolecularDynamicsStub,
+    InteractionEndReply,
+    SubscribeInteractionsRequest,
+)
+
+
+class _LocalInteractionState(NamedTuple):
+    """
+    Internal state for managing and publishing the client's active interactions.
+    """
+    queue: Queue
+    sentinel: Any
+    future: Future
 
 
 def queue_generator(queue: Queue, sentinel: object):
@@ -50,22 +60,29 @@ def _to_proto(interactions: Iterable[ParticleInteraction]):
         yield interaction.proto
 
 
-class ImdClient(GrpcClient):
+class ImdClient(NarupaStubClient):
     """
     A simple IMD client, primarily for testing the IMD server.
 
     :param address: Address of the IMD server to connect to.
     :param port: The port of the IMD server to connect to.
     """
+    stub: InteractiveMolecularDynamicsStub
+    interactions: Dict[str, ParticleInteraction]
+    _next_local_interaction_id: int = 0
+    _local_interactions_states: Dict[str, _LocalInteractionState]
+    _logger: logging.Logger
+
     def __init__(self, *, address: Optional[str] = None,
                  port: Optional[int] = None):
         port = get_requested_port_or_default(port, DEFAULT_PORT)
         super().__init__(address=address, port=port,
                          stub=InteractiveMolecularDynamicsStub)
-        self._active_interactions = {}
+        self.interactions = {}
+        self._local_interactions_states = {}
         self._logger = logging.getLogger(__name__)
 
-    def start_interaction(self) -> int:
+    def start_interaction(self) -> str:
         """
         Start an interaction
 
@@ -74,19 +91,20 @@ class ImdClient(GrpcClient):
         queue = Queue()
         sentinel = object()
         future = self.publish_interactions_async(queue_generator(queue, sentinel))
-        if len(self._active_interactions) == 0:
-            interaction_id = 0
-        else:
-            interaction_id = max(self._active_interactions) + 1
-        self._active_interactions[interaction_id] = (queue, sentinel, future)
-        return interaction_id
+        local_interaction_id = self._get_new_local_interaction_id()
+        self._local_interactions_states[local_interaction_id] = _LocalInteractionState(queue, sentinel, future)
+        return local_interaction_id
 
-    def update_interaction(self, interaction_id, interaction: ParticleInteraction):
+    def update_interaction(
+            self,
+            local_interaction_id: str,
+            interaction: ParticleInteraction,
+    ):
         """
         Updates the interaction identified with the given interaction_id on the server with
         parameters from the given interaction.
 
-        :param interaction_id: The unique interaction ID, created with
+        :param local_interaction_id: The unique interaction ID, created with
             :func:`~ImdClient.start_interaction`, that identifies the
             interaction to update.
         :param interaction: The :class: ParticleInteraction providing new
@@ -95,26 +113,26 @@ class ImdClient(GrpcClient):
         :raises: ValueError, if invalid parameters are passed to the server.
         :raises: KeyError, if the given interaction ID does not exist.
         """
-        if interaction_id not in self._active_interactions:
+        if local_interaction_id not in self._local_interactions_states:
             raise KeyError("Attempted to update an interaction with an unknown interaction ID.")
-        queue, _, _ = self._active_interactions[interaction_id]
+        queue, _, _ = self._local_interactions_states[local_interaction_id]
         queue.put(interaction)
 
-    def stop_interaction(self, interaction_id) -> InteractionEndReply:
+    def stop_interaction(self, local_interaction_id) -> InteractionEndReply:
         """
         Stops the interaction identified with the given interaction_id on the server.
 
-        :param interaction_id: The unique interaction ID, created with
+        :param local_interaction_id: The unique interaction ID, created with
             :func:`~ImdClient.start_interaction`, that identifies the
             interaction to stop.
 
         :raises: KeyError, if the given interaction ID does not exist.
         """
-        if interaction_id not in self._active_interactions:
+        if local_interaction_id not in self._local_interactions_states:
             raise KeyError("Attempted to stop an interaction with an unknown interaction ID.")
-        queue, sentinel, future = self._active_interactions[interaction_id]
+        queue, sentinel, future = self._local_interactions_states[local_interaction_id]
         queue.put(sentinel)
-        del self._active_interactions[interaction_id]
+        del self._local_interactions_states[local_interaction_id]
         return future.result()
 
     def publish_interactions_async(self, interactions: Iterable[ParticleInteraction]) -> Future:
@@ -139,8 +157,30 @@ class ImdClient(GrpcClient):
         """
         Stops all active interactions governed by this client.
         """
-        for interaction_id in list(self._active_interactions.keys()):
-            self.stop_interaction(interaction_id)
+        for local_interaction_id in list(self._local_interactions_states.keys()):
+            self.stop_interaction(local_interaction_id)
+
+    def subscribe_interactions(self, interval=0) -> Future:
+        """
+        Begin receiving updates known interactions.
+
+        :param interval: Minimum time (in seconds) between receiving new updates
+            for interaction changes.
+        """
+        request = SubscribeInteractionsRequest(update_interval=interval)
+        return self.threads.submit(self._subscribe_interactions, request)
+
+    def _get_new_local_interaction_id(self) -> str:
+        local_interaction_id = str(self._next_local_interaction_id)
+        self._next_local_interaction_id += 1
+        return local_interaction_id
+
+    def _subscribe_interactions(self, request: SubscribeInteractionsRequest):
+        for update in self.stub.SubscribeInteractions(request):
+            for interaction_id in update.removals:
+                removed = self.interactions.pop(interaction_id, None)
+            for interaction in update.updated_interactions:
+                self.interactions[interaction.interaction_id] = ParticleInteraction.from_proto(interaction)
 
     def close(self):
         """

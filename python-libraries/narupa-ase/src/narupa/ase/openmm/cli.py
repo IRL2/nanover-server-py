@@ -12,6 +12,7 @@ If the module is installed with pip, run with:
 """
 import argparse
 import textwrap
+import time
 
 from narupa.ase.openmm import OpenMMIMDRunner
 from narupa.ase.openmm.runner import ImdParams
@@ -37,11 +38,17 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         action='store_true',
         help='Display state information.',
     )
-    parser.add_argument('-t', '--trajectory_port', type=int, default=None)
-    parser.add_argument('-i', '--imd_port', type=int, default=None)
+    parser.add_argument(
+        '-n', '--name',
+        type=str, default='Narupa OpenMM ASE Server',
+        help='Give a friendly name to the server.'
+    )
+    parser.add_argument('-t', '--trajectory-port', type=int, default=None)
+    parser.add_argument('-i', '--imd-port', type=int, default=None)
+    parser.add_argument('-m', '--multiplayer-port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
-    parser.add_argument('-f', '--frame_interval', type=int, default=5)
-    parser.add_argument('-s', '--time_step', type=float, default=1.0)
+    parser.add_argument('-f', '--frame-interval', type=int, default=5)
+    parser.add_argument('-s', '--time-step', type=float, default=1.0)
     parser.add_argument(
         '--reset-energy', type=float, default=1e6,
         help=('Threshold of total energy above which the simulation is reset '
@@ -54,6 +61,18 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument(
         '-w', '--walls', action='store_true', default=False,
         help='Set a wall around the box, atoms will bounce against it.',
+    )
+    parser.add_argument(
+        '--no-discovery', dest='discovery', action='store_false', default=True,
+        help='Run without the discovery service, so this server will not broadcast itself on the LAN.'
+    )
+    parser.add_argument(
+        '--no-multiplayer', dest='multiplayer', action='store_false', default=True,
+        help='Run without the multiplayer service.'
+    )
+    parser.add_argument(
+        '--discovery-port', type=int, default=None,
+        help='Port at which to run discovery service'
     )
     arguments = parser.parse_args(args)
     return arguments
@@ -71,6 +90,11 @@ def initialise(args=None):
         arguments.time_step,
         arguments.verbose,
         arguments.walls,
+        arguments.name,
+        arguments.multiplayer,
+        arguments.multiplayer_port,
+        arguments.discovery,
+        arguments.discovery_port
     )
     runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params)
     # Shamefully store CLI arguments in the runner.
@@ -87,10 +111,13 @@ def main():
     with initialise() as runner:
         runner.imd.on_reset_listeners.append(lambda: print('RESET! ' * 10))
         print(f'Serving frames on port {runner.trajectory_port} and IMD on {runner.imd_port}')
-        
+        if runner.running_multiplayer:
+            print(f'Serving multiplayer on port {runner.multiplayer_port}')
+
         try:
+            runner.run(block=False, reset_energy=runner.cli_options['reset_energy'])
             while True:
-                runner.run(100, reset_energy=runner.cli_options['reset_energy'])
+                time.sleep(1)
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
 

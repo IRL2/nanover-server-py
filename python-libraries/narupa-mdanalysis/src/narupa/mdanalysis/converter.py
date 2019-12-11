@@ -4,7 +4,6 @@
 Module for performing conversions between MDAnalysis universes and Narupa FrameData objects.
 """
 import collections
-from collections import Container
 
 import numpy as np
 from MDAnalysis import Universe
@@ -172,7 +171,6 @@ def add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData):
         frame_data.particle_positions = u.atoms.positions * 0.1
     except AttributeError:
         raise MissingDataError("MDAnalysis universe has no positions.")
-    frame_data.particle_count = len(u.atoms)
 
 
 def add_frame_topology_to_mda(u: Universe, frame: FrameData):

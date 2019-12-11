@@ -3,13 +3,25 @@
 """
 Module providing an implementation of an IMD service.
 """
-from threading import Lock
-from typing import Iterable, List, Dict, Tuple, Callable
+from typing import Dict, Callable, Optional, Iterable
 
 import grpc
 
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.protocol.imd import InteractiveMolecularDynamicsServicer, InteractionEndReply
+from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
+from narupa.protocol.imd import (
+    InteractiveMolecularDynamicsServicer,
+    InteractionEndReply,
+    SubscribeInteractionsRequest,
+    InteractionsUpdate,
+    ParticleInteraction as ParticleInteractionMessage,
+)
+
+IMD_SERVICE_NAME = "imd"
+
+
+class GrpcContextAlreadyCancelledError(Exception):
+    pass
 
 
 class ImdService(InteractiveMolecularDynamicsServicer):
@@ -26,16 +38,19 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         particle indices in an interaction are valid. If not set, it is up to
         consumers of the interactions to validate.
     """
+    _interactions: DictionaryChangeMultiView
+    _interaction_updated_callback: Optional[Callable[[ParticleInteraction], None]]
+    velocity_reset_enabled: bool
+    number_of_particles: Optional[int]
 
     def __init__(self,
                  callback=None,
                  velocity_reset_enabled=False,
                  number_of_particles=None):
-        self._interactions = {}
-        self._callback = callback
+        self._interactions = DictionaryChangeMultiView()
+        self._interaction_updated_callback = callback
         self.velocity_reset_enabled = velocity_reset_enabled
         self.number_of_particles = number_of_particles
-        self._interaction_lock = Lock()
 
     def PublishInteraction(self, request_iterator, context):
         """
@@ -53,13 +68,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         :param context: gRPC context.
         :return: :class: InteractionEndReply, indicating the successful interaction.
         """
-        interactions_in_request = set()
         try:
-            self._publish_interaction(
-                interactions_in_request,
-                request_iterator,
-                context,
-            )
+            self._publish_interaction_stream(request_iterator)
         except KeyError as e:
             context.set_code(grpc.StatusCode.PERMISSION_DENIED)
             message = str(e)
@@ -68,59 +78,74 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             message = str(e)
             context.set_details(message)
-        finally:
-            # clean up all the interactions after the stream
-            with self._interaction_lock:
-                for key in interactions_in_request:
-                    del self._interactions[key]
         return InteractionEndReply()
 
-    @property
-    def active_interactions(self) -> Dict[Tuple[str, str], ParticleInteraction]:
+    def SubscribeInteractions(
+            self,
+            request: SubscribeInteractionsRequest,
+            context,
+    ):
         """
-        The current dictionary of active interactions, keyed by player id and
-        interaction id.
+        Provides a stream of updates to interactions.
+        """
+        interval = request.update_interval
+        with self._interactions.create_view() as change_buffer:
+            try:
+                _add_cancellation_callback(context, change_buffer.freeze)
+            except GrpcContextAlreadyCancelledError:
+                return
+            for changes, removals in change_buffer.subscribe_changes(interval):
+                yield _changes_to_interactions_update_message(changes, removals)
+
+    def insert_interaction(self, interaction: ParticleInteraction):
+        self._interactions.update({interaction.interaction_id: interaction})
+        if self._interaction_updated_callback is not None:
+            self._interaction_updated_callback(interaction)
+
+    def remove_interaction(self, interaction: ParticleInteraction):
+        self.remove_interactions_by_ids([interaction.interaction_id])
+
+    def remove_interactions_by_ids(self, interaction_ids: Iterable[str]):
+        self._interactions.update(removals=interaction_ids)
+
+    @property
+    def active_interactions(self) -> Dict[str, ParticleInteraction]:
+        """
+        The current dictionary of active interactions, keyed by interaction id.
 
         :return: A copy of the dictionary of active interactions.
         """
-        with self._interaction_lock:
-            return dict(self._interactions)
+        return self._interactions.copy_content()
 
-    @staticmethod
-    def get_key(interaction):
-        """
-        Gets the key to use with an interaction.
-
-        :param interaction:
-        :return: key formed of a tuple of player_id and interaction_id.
-        """
-        return interaction.player_id, interaction.interaction_id
-
-    def set_callback(self, callback: Callable[[ParticleInteraction], None]):
+    def set_interaction_updated_callback(self, callback: Callable[[ParticleInteraction], None]):
         """
         Sets the callback to be used whenever an interaction is received.
 
         :param callback: Method to be called, taking the received particle interaction as an argument.
         """
-        self._callback = callback
+        self._interaction_updated_callback = callback
 
-    def _publish_interaction(self, interactions_in_request, request_iterator,
-                             context):
-        for interaction in request_iterator:
-            key = self.get_key(interaction)
-            with self._interaction_lock:
-                if key not in interactions_in_request and key in self._interactions:
-                    raise KeyError('The given player_id and interaction_id '
-                                   'is already in use in another '
-                                   'interaction.')
-                # convert to wrapped interaction type.
-                interaction = ParticleInteraction.from_proto(interaction)
+    def _publish_interaction_stream(self, request_iterator):
+        interactions_in_request = set()
+
+        def validate_interaction_id(interaction: ParticleInteractionMessage):
+            id_owned = interaction.interaction_id in interactions_in_request
+            id_exists = interaction.interaction_id in self._interactions
+            if not id_owned and id_exists:
+                raise KeyError('The given player_id and interaction_id is '
+                               'already in use in another interaction.')
+
+        try:
+            for interaction_message in request_iterator:
+                interaction = ParticleInteraction.from_proto(interaction_message)
+
+                validate_interaction_id(interaction_message)
                 self._validate_interaction(interaction)
+                interactions_in_request.add(interaction_message.interaction_id)
 
-                interactions_in_request.add(key)
-                self._interactions[key] = interaction
-            if self._callback is not None:
-                self._callback(interaction)
+                self.insert_interaction(interaction)
+        finally:
+            self.remove_interactions_by_ids(interactions_in_request)
 
     def _validate_interaction(self, interaction):
         self._validate_particle_range(interaction)
@@ -137,3 +162,20 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         out_of_range = self.number_of_particles is not None and max_index >= self.number_of_particles
         if out_of_range:
             raise ValueError('Range of particles selected invalid.')
+
+
+def _changes_to_interactions_update_message(changes, removals):
+    """
+    Creates a protobuf InteractionsUpdate message from changes and removals to
+    an interactions dictionary.
+    """
+    message = InteractionsUpdate()
+    protos = [interaction.proto for interaction in changes.values()]
+    message.updated_interactions.extend(protos)
+    message.removals.extend(removals)
+    return message
+
+
+def _add_cancellation_callback(context, callback: Callable[[], None]):
+    if not context.add_callback(callback):
+        raise GrpcContextAlreadyCancelledError()

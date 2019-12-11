@@ -23,7 +23,6 @@ def add_openmm_state_to_frame_data(data: FrameData, state: State):
     positions = state.getPositions()
     box_vectors = state.getPeriodicBoxVectors()
     data.particle_positions = positions.value_in_unit(nanometer)
-    data.particle_count = len(positions)
     data.box_vectors = box_vectors.value_in_unit(nanometer)
 
 
@@ -35,6 +34,7 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
     :param data: :class:`FrameData` to add topology information to.
     :param topology: OpenMM :class:`Topology` from which to extract information.
     """
+
     data.residue_names = [residue.name for residue in topology.residues()]
     data.residue_ids = [residue.id for residue in topology.residues()]
     data.residue_chains = [residue.chain.index for residue in topology.residues()]
