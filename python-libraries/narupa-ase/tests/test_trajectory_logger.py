@@ -13,8 +13,9 @@ from test_imd_reset import fcc_atoms
 from ase.io import read, write
 import numpy as np
 
-SUPPORTED_EXTENSIONS = ['xyz', 'gromacs', 'netcdftrajectory']
+SUPPORTED_EXTENSIONS = ['xyz']
 FRAMES = 10
+
 
 @pytest.fixture()
 def atoms():
@@ -52,6 +53,7 @@ def test_write(atoms, tmp_dir, ext):
 
     assert os.path.exists(file)
     check_file_images([atoms], file)
+
 
 @pytest.mark.parametrize('ext', SUPPORTED_EXTENSIONS)
 def test_write_multiple_frames(atoms, tmp_dir, ext):
