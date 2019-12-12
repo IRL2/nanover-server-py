@@ -80,8 +80,11 @@ def test_frame_no_positions(atoms):
 
 def test_frame_generate_bonds(atoms):
     frame_with_bonds = ase_to_frame_data(atoms, generate_bonds=True, state=False)
-    frame_without_bonds = ase_to_frame_data(atoms, generate_bonds=False, state=False)
     assert len(frame_with_bonds.bond_pairs) == 1
+
+
+def test_frame_generate_without_bonds(atoms):
+    frame_without_bonds = ase_to_frame_data(atoms, generate_bonds=False, state=False)
     with pytest.raises(MissingDataError):
         _ = frame_without_bonds.bond_pairs
 
