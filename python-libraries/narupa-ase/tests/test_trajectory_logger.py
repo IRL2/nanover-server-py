@@ -135,6 +135,7 @@ def test_reset_timestamp(atoms, tmp_dir):
     initial_name = logger.current_path
     assert os.path.exists(initial_name)
     assert logger.frame_index > 0
+    time.sleep(0.01) # sleep briefly to ensure that timestamp will be different at the 10th of a second level.
     logger.reset()
     assert logger.current_path != initial_name
     assert logger.frame_index == 0
