@@ -56,6 +56,7 @@ def ase_to_frame_data(
         topology: bool = True,
         state: bool = True,
         box_vectors: bool = True,
+        generate_bonds: bool = True
 ) -> FrameData:
     """
     Constructs a Narupa frame from the state of the atoms in an ASE simulation.
@@ -67,6 +68,7 @@ def ase_to_frame_data(
         add it to the frame.
     :param state: Whether to add additional state information such as energies.
     :param box_vectors: Whether to add the box vectors to the frame data.
+    :param generate_bonds: Whether to generate bonds for the topology.
     :return: Narupa frame.
 
     :raises: AttributeError Raised if state is `True`, and `ase_atoms` has no
@@ -89,7 +91,7 @@ def ase_to_frame_data(
     if positions:
         add_ase_positions_to_frame_data(data, ase_atoms.get_positions(wrap=False))
     if topology:
-        add_ase_topology_to_frame_data(data, ase_atoms)
+        add_ase_topology_to_frame_data(data, ase_atoms, generate_bonds=generate_bonds)
     if state:
         add_ase_state_to_frame_data(data, ase_atoms)
     if box_vectors:
@@ -180,7 +182,7 @@ def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     data.box_vectors = box_vectors
 
 
-def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
+def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms, generate_bonds=True):
     """
     Generates a topology for the current state of the atoms and adds it to the frame.
 
@@ -212,8 +214,9 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.particle_residues = residue_ids
     frame_data.particle_count = len(ase_atoms)
 
-    bonds = generate_bonds(ase_atoms)
-    frame_data.bond_pairs = bonds
+    if generate_bonds:
+        bonds = generate_bonds_from_ase(ase_atoms)
+        frame_data.bond_pairs = bonds
 
 
 def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
@@ -256,7 +259,7 @@ def _bond_threshold(radii: Iterable):
     return 0.6 * sum(radii)
 
 
-def generate_bonds(atoms: Atoms):
+def generate_bonds_from_ase(atoms: Atoms):
     """
     Generates bonds for the given configuration of ASE atoms using a distance criterion.
 
