@@ -110,7 +110,7 @@ def test_timestamp(atoms, tmp_dir):
     logger = TrajectoryLogger(atoms, file, timestamp=True)
     assert logger.current_path != file
     import re
-    r = re.compile(r".*\d{4}:\d{2}:\d{2}_\d{2}_\d{2}_\d{2}_\d{2}\.xyz")
+    r = re.compile(r".*\d{4}_\d{2}_\d{2}__\d{2}_\d{2}_\d{2}_\d{2}\.xyz")
     assert r.match(logger.current_path) is not None
 
 
