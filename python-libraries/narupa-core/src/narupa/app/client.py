@@ -41,24 +41,10 @@ def _update_commands(client: NarupaClient):
             raise e
 
 
-def need_multiplayer(func):
-    """
-    Ensure that there is a multiplayer client, raising a RuntimeError if not.
-    """
-
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        if self._multiplayer_client is None:
-            raise RuntimeError("Not connected to multiplayer service")
-        return func(self, *args, **kwargs)
-
-    return wrapper
-
-
 class NarupaImdClient:
     """
-    Basic interactive molecular dynamics client that receives frames, can
-    publish interactions, send commands and join the multiplayer shared state.
+    Interactive molecular dynamics client that receives frames, create selections,
+    and join the multiplayer shared state.
 
     :param address Address of the Narupa frame server.
     :param trajectory_port: Port at which the Narupa frame server is running.
@@ -68,7 +54,64 @@ class NarupaImdClient:
         received, older frames will be removed.
     :param all_frames: Whether to receive all frames produced by the trajectory
         server, or just subscribe to the latest frame.
+
+
+    Inspecting a Frame
+    ==================
+
+    The Narupa Imd client can be used to inspect frames received from a :class:`narupa.trajectory.FrameServer`,
+    which can be useful for analysis.
+
+    .. python
+        # Assuming a server has been created with default address and ports.
+        client = NarupaImdClient()
+        # Fetch the first frame.
+        first_frame = client.wait_until_first_frame(check_interval=0.5, timeout=10)
+        # Print the number of particles in the frame
+        print(first_frame.particle_count)
+
+    Creating Selections for Rendering
+    =================================
+
+    One of the main uses of the client is to create selections that control how a group of particles
+    will be visualised and interacted with in other clients (e.g., the VR client):
+
+    .. python
+        # Connect to the multiplayer
+        client.join_multiplayer("Selection Example")
+        player_id = client._multiplayer_client.player_id
+
+
+        # Create a selection called 'Selection' which selects particles with indices 0-4
+        selection = client.create_selection("Selection", [0, 1, 2, 3, 4])
+
+    Selections are created and updated based on lists of particle indices. Tools such as
+    `MDAnalysis <https://www.mdanalysis.org/>`_ or `MDTraj <http://mdtraj.org/>_` are very good at
+    extracting indices of particles based on a human readable command.
+
+    With a selection in hand, the way in which it is rendered and interacted with can be changed and
+    transmitted to other clients (i.e. VR) using the `modify` context:
+
+    ..python
+
+    # Change how the selection is rendered and interacted with.
+    with selection.modify():
+        selection.renderer = {
+                'color': 'IndianRed',
+                'scale': 0.1,
+                'render': 'liquorice'
+            }
+        # Reset the velocities after interacting.
+        selection.velocity_reset = True
+        # Interact with the selection as a group.
+        selection.interaction_method = 'group'
+
+
+
     """
+
+
+
     _frame_client: FrameClient
     _imd_client: ImdClient
     _multiplayer_client: MultiplayerClient
@@ -344,7 +387,6 @@ class NarupaImdClient:
 
         return self._imd_client.run_command(name, **args)
 
-    @need_multiplayer
     def run_multiplayer_command(self, name: str, **args):
         """
         Runs a command on the multiplayer service.
@@ -356,7 +398,6 @@ class NarupaImdClient:
 
         return self._multiplayer_client.run_command(name, **args)
 
-    @need_multiplayer
     def join_multiplayer(self, player_name):
         """
         Joins multiplayer with the given player name.
@@ -367,7 +408,6 @@ class NarupaImdClient:
         """
         self._multiplayer_client.join_multiplayer(player_name)
 
-    @need_multiplayer
     def set_shared_value(self, key, value) -> bool:
         """
         Attempts to set the given key/value pair on the multiplayer shared value store.
@@ -380,7 +420,6 @@ class NarupaImdClient:
         """
         return self._multiplayer_client.try_set_resource_value(key, value)
 
-    @need_multiplayer
     def remove_shared_value(self, key: str) -> bool:
         """
         Attempts to remove the given key on the multiplayer shared value store.
@@ -389,7 +428,6 @@ class NarupaImdClient:
         """
         return self._multiplayer_client.try_remove_resource_key(key)
 
-    @need_multiplayer
     def get_shared_value(self, key):
         """
         Attempts to retrieve the value for the given key in the multiplayer shared value store.
@@ -415,11 +453,10 @@ class NarupaImdClient:
         root_selection.selected_particle_ids = None
         return root_selection
 
-    @need_multiplayer
     def create_selection(
-        self,
-        name: str,
-        particle_ids: Iterable[int] = None,
+            self,
+            name: str,
+            particle_ids: Iterable[int] = None,
     ) -> NarupaImdSelection:
         """
         Create a particle selection with the given name.
@@ -444,7 +481,6 @@ class NarupaImdClient:
 
         return selection
 
-    @need_multiplayer
     def update_selection(self, selection: NarupaImdSelection):
         """
         Applies changes to the given selection to the shared key store.
@@ -454,14 +490,12 @@ class NarupaImdClient:
         struct = dict_to_struct(selection.to_dictionary())
         self.set_shared_value(selection.selection_id, Value(struct_value=struct))
 
-    @need_multiplayer
     def remove_selection(self, selection: NarupaImdSelection):
         """
         Delete the given selection
         """
         self.remove_shared_value(selection.selection_id)
 
-    @need_multiplayer
     def clear_selections(self):
         """
         Remove all selections in the system
@@ -481,7 +515,6 @@ class NarupaImdClient:
             if key.startswith('selection.'):
                 yield self.get_selection(key)
 
-    @need_multiplayer
     def get_selection(self, id: str) -> NarupaImdSelection:
         """
         Get the selection with the given selection id, throwing a KeyError if
@@ -494,7 +527,7 @@ class NarupaImdClient:
         value = self._multiplayer_client.resources[id]
         return self._create_selection_from_protobuf_value(value)
 
-    def _create_selection_from_protobuf_value(self, value : Value) -> NarupaImdSelection:
+    def _create_selection_from_protobuf_value(self, value: Value) -> NarupaImdSelection:
 
         selection = NarupaImdSelection.from_dictionary(struct_to_dict(value.struct_value))
         selection.updated.add_callback(self.update_selection)

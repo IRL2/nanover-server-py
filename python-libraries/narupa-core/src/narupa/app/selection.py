@@ -32,11 +32,15 @@ SelectionClass = TypeVar('NarupaImdSelection')
 
 class NarupaImdSelection:
     """
+
     A local representation of a selection in a NarupaIMD simulation.
+
+    Not intended to be created directly, but rather via the :class:`NarupaImdClient`, which handles
+    synchronising the state of the selections with the server.
+
     Changes to this selection are only applied when a call to
     flush_changes() is made, or modifications are made within
     a modify(): context manager.
-
     """
 
     selection_id: str
