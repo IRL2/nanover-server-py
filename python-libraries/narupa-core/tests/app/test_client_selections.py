@@ -2,11 +2,11 @@ import time
 
 import pytest
 from google.protobuf.struct_pb2 import Value
-
 from narupa.app import NarupaImdClient
-from narupa.multiplayer import MultiplayerServer, MultiplayerClient
+from narupa.multiplayer import MultiplayerServer
 
-UPDATE_TIME = 0.1
+UPDATE_TIME = 0.05
+
 
 @pytest.fixture
 def server_clients():
@@ -184,7 +184,7 @@ def test_get_selection(server_clients):
     assert client2.get_selection(id) is not None
 
     with pytest.raises(KeyError):
-        s = client2.get_selection("selection.invalid_id")
+        _ = client2.get_selection("selection.invalid_id")
 
 
 def test_root_selection_fields(server_clients):
@@ -195,7 +195,6 @@ def test_root_selection_fields(server_clients):
     assert selection is not None
 
     assert selection.selected_particle_ids is None
-
 
 
 def test_root_selection_set_field(server_clients):

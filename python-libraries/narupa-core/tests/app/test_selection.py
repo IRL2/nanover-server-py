@@ -27,7 +27,7 @@ def test_selection_dict_with_name_and_id():
 
 def test_selection_dict_with_no_id():
     dict = {}
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError):
         selection = NarupaImdSelection.from_dictionary(dict)
 
 
