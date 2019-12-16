@@ -27,10 +27,10 @@ RENDERER_DEFAULT = RENDERER_LIQUORICE
 SELECTED_PARTICLE_IDS_DEFAULT = None
 
 # TODO: Replace when minimum python is 3.7+
-SelectionClass = TypeVar('NarupaImdSelection')
+SelectionClass = TypeVar('RenderingSelection')
 
 
-class NarupaImdSelection:
+class RenderingSelection:
     """
 
     A local representation of a selection in a NarupaIMD simulation.

@@ -3,7 +3,7 @@ from narupa.app.selection import *
 
 
 def test_selection_defaults():
-    selection = NarupaImdSelection("id", "name")
+    selection = RenderingSelection("id", "name")
     assert selection.selection_name == "name"
     assert selection.selection_id == "id"
     assert selection.selected_particle_ids == set()
@@ -17,7 +17,7 @@ def test_selection_dict_with_name_and_id():
         KEY_SELECTION_ID: "id",
         KEY_SELECTION_NAME: "name"
     }
-    selection = NarupaImdSelection.from_dictionary(dict)
+    selection = RenderingSelection.from_dictionary(dict)
     assert selection.selection_name == "name"
     assert selection.selection_id == "id"
     assert selection.interaction_method == INTERACTION_METHOD_DEFAULT
@@ -28,7 +28,7 @@ def test_selection_dict_with_name_and_id():
 def test_selection_dict_with_no_id():
     dict = {}
     with pytest.raises(ValueError):
-        selection = NarupaImdSelection.from_dictionary(dict)
+        selection = RenderingSelection.from_dictionary(dict)
 
 
 def test_selection_from_dictionary_with_interaction_method():
@@ -39,7 +39,7 @@ def test_selection_from_dictionary_with_interaction_method():
             KEY_PROPERTY_INTERACTION_METHOD: INTERACTION_GROUP
         }
     }
-    selection = NarupaImdSelection.from_dictionary(dict)
+    selection = RenderingSelection.from_dictionary(dict)
     assert selection.interaction_method == INTERACTION_GROUP
 
 
@@ -51,7 +51,7 @@ def test_selection_from_dictionary_with_velocity_reset():
             KEY_PROPERTY_VELOCITY_RESET: True
         }
     }
-    selection = NarupaImdSelection.from_dictionary(dict)
+    selection = RenderingSelection.from_dictionary(dict)
     assert selection.velocity_reset == True
 
 
@@ -63,12 +63,12 @@ def test_selection_from_dictionary_with_renderer():
             KEY_PROPERTY_RENDERER: "some_renderer"
         }
     }
-    selection = NarupaImdSelection.from_dictionary(dict)
+    selection = RenderingSelection.from_dictionary(dict)
     assert selection.renderer == "some_renderer"
 
 
 def test_set_selection():
-    selection = NarupaImdSelection("id", "name")
+    selection = RenderingSelection("id", "name")
     selection.set_particles({0, 1, 2, 3})
     assert selection.selected_particle_ids == {0, 1, 2, 3}
     selection.set_particles({2, 4, 6, 8})
@@ -76,7 +76,7 @@ def test_set_selection():
 
 
 def test_add_selection():
-    selection = NarupaImdSelection("id", "name")
+    selection = RenderingSelection("id", "name")
     selection.add_particles({0, 1, 2, 3})
     assert selection.selected_particle_ids == {0, 1, 2, 3}
     selection.add_particles({2, 4, 6, 8})
@@ -84,7 +84,7 @@ def test_add_selection():
 
 
 def test_clear_selection():
-    selection = NarupaImdSelection("id", "name")
+    selection = RenderingSelection("id", "name")
     selection.add_particles({0, 1, 2, 3})
     assert selection.selected_particle_ids == {0, 1, 2, 3}
     selection.clear_particles()
@@ -92,7 +92,7 @@ def test_clear_selection():
 
 
 def test_add_selection_none():
-    selection = NarupaImdSelection("id", "name")
+    selection = RenderingSelection("id", "name")
     selection.add_particles({0, 1, 2, 3})
     assert selection.selected_particle_ids == {0, 1, 2, 3}
     selection.add_particles(None)
@@ -100,7 +100,7 @@ def test_add_selection_none():
 
 
 def test_set_selection_none():
-    selection = NarupaImdSelection("id", "name")
+    selection = RenderingSelection("id", "name")
     selection.add_particles({0, 1, 2, 3})
     assert selection.selected_particle_ids == {0, 1, 2, 3}
     selection.set_particles(None)
@@ -108,7 +108,7 @@ def test_set_selection_none():
 
 
 def test_selection_updated():
-    selection = NarupaImdSelection("id", "name")
+    selection = RenderingSelection("id", "name")
 
     def callback(selection):
         callback.call_count += 1
@@ -126,7 +126,7 @@ def test_selection_updated():
 
 
 def test_selection_removed():
-    selection = NarupaImdSelection("id", "name")
+    selection = RenderingSelection("id", "name")
 
     def callback(selection):
         callback.call_count += 1
