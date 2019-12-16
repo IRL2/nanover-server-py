@@ -87,7 +87,7 @@ class TrajectoryLogger:
 
 def _get_timestamp():
     now = datetime.datetime.now()
-    timestamp = f'{now:%Y:%m:%d_%H_%M_%S}_{int(now.microsecond / 10000):02d}'
+    timestamp = f'{now:%Y_%m_%d__%H_%M_%S}_{int(now.microsecond / 10000):02d}'
     return timestamp
 
 
