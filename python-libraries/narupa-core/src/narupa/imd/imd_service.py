@@ -6,6 +6,10 @@ Module providing an implementation of an IMD service.
 from typing import Dict, Callable, Optional, Iterable
 
 import grpc
+from narupa.core.grpc_utils import (
+    RpcAlreadyTerminatedError,
+    subscribe_rpc_termination,
+)
 
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
@@ -18,10 +22,6 @@ from narupa.protocol.imd import (
 )
 
 IMD_SERVICE_NAME = "imd"
-
-
-class GrpcContextAlreadyCancelledError(Exception):
-    pass
 
 
 class ImdService(InteractiveMolecularDynamicsServicer):
@@ -91,8 +91,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         interval = request.update_interval
         with self._interactions.create_view() as change_buffer:
             try:
-                _add_cancellation_callback(context, change_buffer.freeze)
-            except GrpcContextAlreadyCancelledError:
+                subscribe_rpc_termination(context, change_buffer.freeze)
+            except RpcAlreadyTerminatedError:
                 return
             for changes, removals in change_buffer.subscribe_changes(interval):
                 yield _changes_to_interactions_update_message(changes, removals)
@@ -174,8 +174,3 @@ def _changes_to_interactions_update_message(changes, removals):
     message.updated_interactions.extend(protos)
     message.removals.extend(removals)
     return message
-
-
-def _add_cancellation_callback(context, callback: Callable[[], None]):
-    if not context.add_callback(callback):
-        raise GrpcContextAlreadyCancelledError()
