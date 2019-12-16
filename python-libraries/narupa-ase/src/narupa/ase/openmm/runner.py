@@ -7,27 +7,27 @@ import logging
 from typing import Optional
 
 from ase import units, Atoms
-from ase.md import MDLogger
-from ase.md.nvtberendsen import NVTBerendsen
+from ase.md import MDLogger, Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from attr import dataclass
+from narupa.core import get_requested_port_or_default
+from narupa.essd import DiscoveryServer
+from narupa.essd.servicehub import ServiceHub
+from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
+from narupa.imd.imd_service import IMD_SERVICE_NAME
+from narupa.multiplayer import MultiplayerServer
+from narupa.multiplayer.multiplayer_server import DEFAULT_PORT as MULTIPLAYER_DEFAULT_PORT
+from narupa.multiplayer.multiplayer_service import MULTIPLAYER_SERVICE_NAME
+from narupa.openmm import openmm_to_frame_data, serializer
+from narupa.trajectory.frame_publisher import TRAJECTORY_SERVICE_NAME
+from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
+from simtk.openmm.app import Simulation
+
 from narupa.ase import ase_to_frame_data
 from narupa.ase.converter import add_ase_positions_to_frame_data
 from narupa.ase.imd_server import ASEImdServer
-from narupa.ase.wall_calculator import VelocityWallCalculator
 from narupa.ase.openmm.calculator import OpenMMCalculator
-from narupa.essd import DiscoveryServer
-from narupa.essd.servicehub import ServiceHub
-from narupa.imd.imd_service import IMD_SERVICE_NAME
-from narupa.multiplayer import MultiplayerServer
-from narupa.multiplayer.multiplayer_service import MULTIPLAYER_SERVICE_NAME
-from narupa.openmm import openmm_to_frame_data, serializer
-from narupa.core import get_requested_port_or_default
-from narupa.trajectory.frame_publisher import TRAJECTORY_SERVICE_NAME
-from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
-from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
-from narupa.multiplayer.multiplayer_server import DEFAULT_PORT as MULTIPLAYER_DEFAULT_PORT
-from simtk.openmm.app import Simulation
+from narupa.ase.wall_calculator import VelocityWallCalculator
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
     "The simulation contains constraints which will be ignored by this runner!")
@@ -301,11 +301,11 @@ class OpenMMIMDRunner:
         # We do not remove the center of mass (fixcm=False). If the center of
         # mass translations should be removed, then the removal should be added
         # to the OpenMM system.
-        self._dynamics = NVTBerendsen(
+        self._dynamics = Langevin(
             atoms=self.atoms,
             timestep=self.time_step * units.fs,
-            temperature=300,
-            taut=self.time_step * units.fs,
+            temperature=300 * units.kB,
+            friction=1e-2,
             fixcm=False,
         )
 
