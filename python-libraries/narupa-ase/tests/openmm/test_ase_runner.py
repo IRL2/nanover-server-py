@@ -18,7 +18,7 @@ from narupa.ase.wall_calculator import VelocityWallCalculator
 
 from .simulation_utils import basic_simulation, serialized_simulation_path
 
-TEST_TRAJ = 'test.xyz'
+TRAJECTORY_OUTPUT_FILENAME = 'test.xyz'
 
 
 class ListLogHandler(Handler):
@@ -53,7 +53,7 @@ def params():
 @pytest.fixture()
 def logging_params(tmp_path):
     params = LoggingParams(
-        trajectory_file=os.path.join(tmp_path, TEST_TRAJ),
+        trajectory_file=os.path.join(tmp_path, TRAJECTORY_OUTPUT_FILENAME),
         log_interval=1,
     )
     return params
