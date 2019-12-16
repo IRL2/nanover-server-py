@@ -81,7 +81,6 @@ class NarupaImdClient:
         client.join_multiplayer("Selection Example")
         player_id = client._multiplayer_client.player_id
 
-
         # Create a selection called 'Selection' which selects particles with indices 0-4
         selection = client.create_selection("Selection", [0, 1, 2, 3, 4])
 
@@ -94,24 +93,19 @@ class NarupaImdClient:
 
     ..python
 
-    # Change how the selection is rendered and interacted with.
-    with selection.modify():
-        selection.renderer = {
-                'color': 'IndianRed',
-                'scale': 0.1,
-                'render': 'liquorice'
-            }
-        # Reset the velocities after interacting.
-        selection.velocity_reset = True
-        # Interact with the selection as a group.
-        selection.interaction_method = 'group'
-
-
+        # Change how the selection is rendered and interacted with.
+        with selection.modify():
+            selection.renderer = {
+                    'color': 'IndianRed',
+                    'scale': 0.1,
+                    'render': 'liquorice'
+                }
+            # Reset the velocities after interacting.
+            selection.velocity_reset = True
+            # Interact with the selection as a group.
+            selection.interaction_method = 'group'
 
     """
-
-
-
     _frame_client: FrameClient
     _imd_client: ImdClient
     _multiplayer_client: MultiplayerClient
@@ -252,6 +246,7 @@ class NarupaImdClient:
     def first_frame(self) -> Optional[FrameData]:
         """
         The first received trajectory frame, if any.
+
         :return: The first frame received by this trajectory, or `None`.
         """
         return self._first_frame
@@ -259,6 +254,7 @@ class NarupaImdClient:
     def start_interaction(self, interaction: Optional[ParticleInteraction] = None) -> str:
         """
         Start an interaction with the IMD server.
+        
         :param interaction: An optional :class: ParticleInteraction with which
             to begin.
         :return: The unique interaction ID of this interaction, which can be
