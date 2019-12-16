@@ -4,3 +4,4 @@ grpcio-tools>=1.0
 pytest
 aiogrpc
 numpy
+hypothesis
