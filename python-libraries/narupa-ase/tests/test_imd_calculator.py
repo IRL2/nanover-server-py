@@ -56,9 +56,6 @@ def imd_calculator_no_atoms():
     yield imd_calculator
     server.close()
 
-
-
-
 def test_imd_calculator_no_interactions(imd_calculator_co):
     imd_calculator, atoms = imd_calculator_co
     properties = ('energy', 'forces')
@@ -66,8 +63,10 @@ def test_imd_calculator_no_interactions(imd_calculator_co):
     expected_results = imd_calculator.calculator.results
     imd_calculator.calculate()
     results = imd_calculator.results
-    for key in results:
+    for key in properties:
         assert np.allclose(results[key], expected_results[key])
+    assert results['interactive_energy'] == 0
+    assert np.all(results['interactive_forces'] == np.zeros((len(atoms), 3)))
 
 
 def test_imd_calculator_one_dimension_pbc(imd_calculator_co):
