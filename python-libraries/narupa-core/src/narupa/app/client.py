@@ -457,7 +457,7 @@ class NarupaImdClient:
     def create_selection(
             self,
             name: str,
-            particle_ids: Iterable[int] = None,
+            particle_ids: Optional[Iterable[int]] = None,
     ) -> NarupaImdSelection:
         """
         Create a particle selection with the given name.
