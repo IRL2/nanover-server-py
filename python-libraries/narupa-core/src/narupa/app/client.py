@@ -12,7 +12,7 @@ from typing import Optional, Sequence, Dict, MutableMapping
 
 from google.protobuf.struct_pb2 import Value
 from grpc import RpcError, StatusCode
-from narupa.app.selection import NarupaImdSelection
+from narupa.app.selection import RenderingSelection
 from narupa.core import CommandInfo, NarupaClient
 from narupa.core.protobuf_utilities import struct_to_dict, dict_to_struct
 from narupa.imd import ImdClient
@@ -441,7 +441,7 @@ class NarupaImdClient:
         return self._multiplayer_client.resources[key]
 
     @property
-    def root_selection(self) -> NarupaImdSelection:
+    def root_selection(self) -> RenderingSelection:
         """
         Get the root selection, creating it if it does not exist yet.
 
@@ -458,7 +458,7 @@ class NarupaImdClient:
             self,
             name: str,
             particle_ids: Optional[Iterable[int]] = None,
-    ) -> NarupaImdSelection:
+    ) -> RenderingSelection:
         """
         Create a particle selection with the given name.
 
@@ -482,7 +482,7 @@ class NarupaImdClient:
 
         return selection
 
-    def update_selection(self, selection: NarupaImdSelection):
+    def update_selection(self, selection: RenderingSelection):
         """
         Applies changes to the given selection to the shared key store.
 
@@ -491,7 +491,7 @@ class NarupaImdClient:
         struct = dict_to_struct(selection.to_dictionary())
         self.set_shared_value(selection.selection_id, Value(struct_value=struct))
 
-    def remove_selection(self, selection: NarupaImdSelection):
+    def remove_selection(self, selection: RenderingSelection):
         """
         Delete the given selection
         """
@@ -506,7 +506,7 @@ class NarupaImdClient:
             self.remove_selection(selection)
 
     @property
-    def selections(self) -> Iterable[NarupaImdSelection]:
+    def selections(self) -> Iterable[RenderingSelection]:
         """
         Get all selections which are stored in the shared key store.
 
@@ -516,7 +516,7 @@ class NarupaImdClient:
             if key.startswith('selection.'):
                 yield self.get_selection(key)
 
-    def get_selection(self, id: str) -> NarupaImdSelection:
+    def get_selection(self, id: str) -> RenderingSelection:
         """
         Get the selection with the given selection id, throwing a KeyError if
         it is not present. For the root selection, use the root_selection
@@ -528,15 +528,15 @@ class NarupaImdClient:
         value = self._multiplayer_client.resources[id]
         return self._create_selection_from_protobuf_value(value)
 
-    def _create_selection_from_protobuf_value(self, value: Value) -> NarupaImdSelection:
+    def _create_selection_from_protobuf_value(self, value: Value) -> RenderingSelection:
 
-        selection = NarupaImdSelection.from_dictionary(struct_to_dict(value.struct_value))
+        selection = RenderingSelection.from_dictionary(struct_to_dict(value.struct_value))
         selection.updated.add_callback(self.update_selection)
         selection.removed.add_callback(self.remove_selection)
         return selection
 
-    def _create_selection_from_id_and_name(self, id: str, name: str) -> NarupaImdSelection:
-        selection = NarupaImdSelection(id, name)
+    def _create_selection_from_id_and_name(self, id: str, name: str) -> RenderingSelection:
+        selection = RenderingSelection(id, name)
         selection.updated.add_callback(self.update_selection)
         selection.removed.add_callback(self.remove_selection)
         return selection
