@@ -9,17 +9,24 @@ from threading import Lock
 from typing import Iterator
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
+from narupa.core.grpc_utils import (
+    subscribe_rpc_termination,
+    RpcAlreadyTerminatedError,
+)
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
-from narupa.core.key_lockable_map import KeyLockableMap, ResourceLockedException
+from narupa.core.key_lockable_map import (
+    KeyLockableMap,
+    ResourceLockedException,
+)
 from narupa.protocol.multiplayer.multiplayer_pb2 import (
     StreamEndedResponse, Avatar, ResourceRequestResponse,
     SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse,
     SubscribePlayerAvatarsRequest, ResourceValuesUpdate,
-    RemoveResourceKeyRequest,
 )
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
 
 MULTIPLAYER_SERVICE_NAME = "multiplayer"
+
 
 class MultiplayerService(MultiplayerServicer):
     """
@@ -56,7 +63,9 @@ class MultiplayerService(MultiplayerServicer):
         """
         interval = request.update_interval
         with self._avatars.create_view() as change_buffer:
-            if not context.add_callback(lambda: change_buffer.freeze()):
+            try:
+                subscribe_rpc_termination(context, change_buffer.freeze)
+            except RpcAlreadyTerminatedError:
                 return
             for changes, removals in change_buffer.subscribe_changes(interval):
                 for player_id, avatar in changes.items():
@@ -87,7 +96,9 @@ class MultiplayerService(MultiplayerServicer):
         """
         interval = request.update_interval
         with self._resources.create_view() as change_buffer:
-            if not context.add_callback(lambda: change_buffer.freeze()):
+            try:
+                subscribe_rpc_termination(context, change_buffer.freeze)
+            except RpcAlreadyTerminatedError:
                 return
             for changes, removals in change_buffer.subscribe_changes(interval):
                 response = ResourceValuesUpdate()
