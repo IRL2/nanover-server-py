@@ -254,7 +254,7 @@ class NarupaImdClient:
     def start_interaction(self, interaction: Optional[ParticleInteraction] = None) -> str:
         """
         Start an interaction with the IMD server.
-        
+
         :param interaction: An optional :class: ParticleInteraction with which
             to begin.
         :return: The unique interaction ID of this interaction, which can be
@@ -400,7 +400,8 @@ class NarupaImdClient:
 
         :param player_name: The player name with which to be identified.
 
-        :raises RuntimeError: When not connected to a multiplayer service
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
         """
         self._multiplayer_client.join_multiplayer(player_name)
 
@@ -412,7 +413,9 @@ class NarupaImdClient:
         :param value: The new value to store.
         :return: `True` if successful, `False` otherwise.
 
-        :raises RuntimeError: When not connected to a multiplayer service
+
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
         """
         return self._multiplayer_client.try_set_resource_value(key, value)
 
@@ -420,7 +423,8 @@ class NarupaImdClient:
         """
         Attempts to remove the given key on the multiplayer shared value store.
 
-        :raises RuntimeError: When not connected to a multiplayer service
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
         """
         return self._multiplayer_client.try_remove_resource_key(key)
 
@@ -431,7 +435,8 @@ class NarupaImdClient:
         :param key: The key that identifies the value
         :return: The value stored in the dictionary
 
-        :raises RuntimeError: When not connected to a multiplayer service
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
         """
         return self._multiplayer_client.resources[key]
 
