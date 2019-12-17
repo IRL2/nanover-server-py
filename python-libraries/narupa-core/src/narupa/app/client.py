@@ -12,7 +12,7 @@ from typing import Optional, Sequence, Dict, MutableMapping
 
 from google.protobuf.struct_pb2 import Value
 from grpc import RpcError, StatusCode
-from narupa.app.selection import NarupaImdSelection
+from narupa.app.selection import RenderingSelection
 from narupa.core import CommandInfo, NarupaClient
 from narupa.core.protobuf_utilities import struct_to_dict, dict_to_struct
 from narupa.imd import ImdClient
@@ -103,9 +103,6 @@ class NarupaImdClient:
             selection.interaction_method = 'group'  # Interact with the selection as a group.
 
     """
-
-
-
     _frame_client: FrameClient
     _imd_client: ImdClient
     _multiplayer_client: MultiplayerClient
@@ -246,6 +243,7 @@ class NarupaImdClient:
     def first_frame(self) -> Optional[FrameData]:
         """
         The first received trajectory frame, if any.
+
         :return: The first frame received by this trajectory, or `None`.
         """
         return self._first_frame
@@ -253,6 +251,7 @@ class NarupaImdClient:
     def start_interaction(self, interaction: Optional[ParticleInteraction] = None) -> str:
         """
         Start an interaction with the IMD server.
+
         :param interaction: An optional :class: ParticleInteraction with which
             to begin.
         :return: The unique interaction ID of this interaction, which can be
@@ -398,7 +397,8 @@ class NarupaImdClient:
 
         :param player_name: The player name with which to be identified.
 
-        :raises RuntimeError: When not connected to a multiplayer service
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
         """
         self._multiplayer_client.join_multiplayer(player_name)
 
@@ -410,7 +410,9 @@ class NarupaImdClient:
         :param value: The new value to store.
         :return: `True` if successful, `False` otherwise.
 
-        :raises RuntimeError: When not connected to a multiplayer service
+
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
         """
         return self._multiplayer_client.try_set_resource_value(key, value)
 
@@ -418,7 +420,8 @@ class NarupaImdClient:
         """
         Attempts to remove the given key on the multiplayer shared value store.
 
-        :raises RuntimeError: When not connected to a multiplayer service
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
         """
         return self._multiplayer_client.try_remove_resource_key(key)
 
@@ -429,12 +432,13 @@ class NarupaImdClient:
         :param key: The key that identifies the value
         :return: The value stored in the dictionary
 
-        :raises RuntimeError: When not connected to a multiplayer service
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
         """
         return self._multiplayer_client.resources[key]
 
     @property
-    def root_selection(self) -> NarupaImdSelection:
+    def root_selection(self) -> RenderingSelection:
         """
         Get the root selection, creating it if it does not exist yet.
 
@@ -450,8 +454,8 @@ class NarupaImdClient:
     def create_selection(
             self,
             name: str,
-            particle_ids: Iterable[int] = None,
-    ) -> NarupaImdSelection:
+            particle_ids: Optional[Iterable[int]] = None,
+    ) -> RenderingSelection:
         """
         Create a particle selection with the given name.
 
@@ -475,7 +479,7 @@ class NarupaImdClient:
 
         return selection
 
-    def update_selection(self, selection: NarupaImdSelection):
+    def update_selection(self, selection: RenderingSelection):
         """
         Applies changes to the given selection to the shared key store.
 
@@ -484,7 +488,7 @@ class NarupaImdClient:
         struct = dict_to_struct(selection.to_dictionary())
         self.set_shared_value(selection.selection_id, Value(struct_value=struct))
 
-    def remove_selection(self, selection: NarupaImdSelection):
+    def remove_selection(self, selection: RenderingSelection):
         """
         Delete the given selection
         """
@@ -499,7 +503,7 @@ class NarupaImdClient:
             self.remove_selection(selection)
 
     @property
-    def selections(self) -> Iterable[NarupaImdSelection]:
+    def selections(self) -> Iterable[RenderingSelection]:
         """
         Get all selections which are stored in the shared key store.
 
@@ -509,7 +513,7 @@ class NarupaImdClient:
             if key.startswith('selection.'):
                 yield self.get_selection(key)
 
-    def get_selection(self, id: str) -> NarupaImdSelection:
+    def get_selection(self, id: str) -> RenderingSelection:
         """
         Get the selection with the given selection id, throwing a KeyError if
         it is not present. For the root selection, use the root_selection
@@ -521,15 +525,15 @@ class NarupaImdClient:
         value = self._multiplayer_client.resources[id]
         return self._create_selection_from_protobuf_value(value)
 
-    def _create_selection_from_protobuf_value(self, value: Value) -> NarupaImdSelection:
+    def _create_selection_from_protobuf_value(self, value: Value) -> RenderingSelection:
 
-        selection = NarupaImdSelection.from_dictionary(struct_to_dict(value.struct_value))
+        selection = RenderingSelection.from_dictionary(struct_to_dict(value.struct_value))
         selection.updated.add_callback(self.update_selection)
         selection.removed.add_callback(self.remove_selection)
         return selection
 
-    def _create_selection_from_id_and_name(self, id: str, name: str) -> NarupaImdSelection:
-        selection = NarupaImdSelection(id, name)
+    def _create_selection_from_id_and_name(self, id: str, name: str) -> RenderingSelection:
+        selection = RenderingSelection(id, name)
         selection.updated.add_callback(self.update_selection)
         selection.removed.add_callback(self.remove_selection)
         return selection

@@ -156,20 +156,14 @@ class ImdCalculator(Calculator):
 
         if self.calculator is not None:
             self.calculator.calculate(atoms, properties, system_changes)
-            if 'energy' in properties:
-                energy = self.calculator.results['energy']
-            if 'forces' in properties:
-                forces = self.calculator.results['forces']
+            energy = self.calculator.results['energy']
+            forces = self.calculator.results['forces']
 
         imd_energy, imd_forces = self._calculate_imd(atoms)
-        if 'energy' in properties:
-            self.results['energy'] = energy + imd_energy
-        if 'forces' in properties:
-            self.results['forces'] = forces + imd_forces
-        if 'interactive_energy' in properties:
-            self.results['interactive_energy'] = imd_energy
-        if 'interactive_forces' in properties:
-            self.results['interactive_forces'] = imd_forces
+        self.results['energy'] = energy + imd_energy
+        self.results['forces'] = forces + imd_forces
+        self.results['interactive_energy'] = imd_energy
+        self.results['interactive_forces'] = imd_forces
 
     def _calculate_imd(self, atoms):
 

@@ -65,10 +65,8 @@ class OpenMMCalculator(Calculator):
 
         self._set_positions(atoms.positions)
         energy, forces = self._calculate_openmm()
-        if 'energy' in properties:
-            self.results['energy'] = energy
-        if 'forces' in properties:
-            self.results['forces'] = forces
+        self.results['energy'] = energy
+        self.results['forces'] = forces
 
     def _calculate_openmm(self):
         state: State = self.context.getState(getEnergy=True, getForces=True)
