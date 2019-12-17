@@ -53,8 +53,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
     parser.add_argument(
         '-s', '--time-step', type=float, default=1.0,
-        help='How many femtoseconds of time are simulated in each dynamics '
-             'iteration.',
+        help='The simulation time step, in femtoseconds.',
     )
     parser.add_argument(
         '--reset-energy', type=float, default=1e6,
@@ -89,7 +88,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
     parser.add_argument(
         '--log-interval', type=int, default=1,
-        help='Log a trajectory frame every N dynamics iterations.'
+        help='Interval at which trajectory will be logged, in dynamics steps.'
     )
     arguments = parser.parse_args(args)
     return arguments
