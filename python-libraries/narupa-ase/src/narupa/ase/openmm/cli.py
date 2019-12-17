@@ -49,7 +49,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('-a', '--address', default=None)
     parser.add_argument(
         '-f', '--frame-interval', type=int, default=5,
-        help='Serve a trajectory frame every N dynamics iterations.'
+        help='Interval at which frames will be produced, in dynamics steps.'
     )
     parser.add_argument(
         '-s', '--time-step', type=float, default=1.0,
