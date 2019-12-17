@@ -1,5 +1,5 @@
 package:
-  name: narupa-ase
+  name: narupa-lammps
   version: {{ NARUPA_BUILD_VERSION }}
 
 source:
@@ -8,8 +8,6 @@ source:
 build:
   noarch: python
   number: 0
-  entry_points:
-    - narupa-omm-ase = narupa.ase.openmm.cli:main
 
 requirements:
   build:
@@ -18,9 +16,7 @@ requirements:
 
   run:
     - python >=3.6.0
-    - attrs
     - narupa-core =={{ NARUPA_BUILD_VERSION }}
-    - narupa-openmm =={{ NARUPA_BUILD_VERSION }}
     - numpy
     - ase >=3.18.0
 
