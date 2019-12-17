@@ -51,7 +51,11 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         '-f', '--frame-interval', type=int, default=5,
         help='Serve a trajectory frame every N dynamics iterations.'
     )
-    parser.add_argument('-s', '--time-step', type=float, default=1.0)
+    parser.add_argument(
+        '-s', '--time-step', type=float, default=1.0,
+        help='How many femtoseconds of time are simulated in each dynamics '
+             'iteration.',
+    )
     parser.add_argument(
         '--reset-energy', type=float, default=1e6,
         help=('Threshold of total energy above which the simulation is reset '
