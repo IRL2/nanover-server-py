@@ -500,7 +500,6 @@ class LammpsHook:
             self.masses = masses
             self.atom_type = atom_type
 
-
         # Extract the position matrix
         positions = self.manipulate_lammps_array('x', lammps_class)
         # Copy the ctype array to numpy for processing
