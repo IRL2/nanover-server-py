@@ -83,7 +83,9 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
     parser.add_argument(
         '-o', '--trajectory-file', type=str, default=None,
-        help='Path to a trajectory file to output. Can be any file that ASE can output in append mode, such as XYZ'
+        help='Base filename for the trajectory output file. A timestamp will '
+             'be inserted between the name and file extensions. Can be any '
+             'file that ASE can output in append mode, such as XYZ.'
     )
     parser.add_argument(
         '--log-interval', type=int, default=1,
