@@ -258,11 +258,11 @@ def test_no_logging(basic_simulation, params, logging_params):
 
 
 def test_logging_rate(basic_simulation, params, logging_params):
-    logging_params.log_interval = 10
+    logging_params.write_interval = 10
     expected_frames = 3
 
     with OpenMMIMDRunner(basic_simulation, params, logging_params) as runner:
-        runner.run(expected_frames * logging_params.log_interval)
+        runner.run(expected_frames * logging_params.write_interval)
 
     trajectory_file = runner.logging_info.trajectory_path
     assert os.path.exists(trajectory_file)

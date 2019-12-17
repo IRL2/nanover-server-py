@@ -81,7 +81,7 @@ class LoggingParams:
     Class representing parameters for trajectory logging
     """
     trajectory_file: str = None
-    log_interval: int = 1
+    write_interval: int = 1
 
 
 class TrajectoryLoggerInfo:
@@ -92,7 +92,7 @@ class TrajectoryLoggerInfo:
     :param params: Logging parameters.
     """
 
-    def __init__(self, trajectory_logger: TrajectoryLogger, params:LoggingParams):
+    def __init__(self, trajectory_logger: TrajectoryLogger, params: LoggingParams):
         self._logger = trajectory_logger
         self._params = params
 
@@ -115,13 +115,13 @@ class TrajectoryLoggerInfo:
         return self._logger.base_path
 
     @property
-    def log_interval(self):
+    def write_interval(self):
         """
-        The interval at which logging is occurring.
+        The interval at which log writing is occurring.
 
-        :return: The interval at which logging is occurring, in steps.
+        :return: The interval at which log writing is occurring, in steps.
         """
-        return self._params.log_interval
+        return self._params.write_interval
 
 
 class OpenMMIMDRunner:
@@ -376,7 +376,7 @@ class OpenMMIMDRunner:
             self.logging_info = None
             return
         logger = TrajectoryLogger(self.atoms, logging_params.trajectory_file)
-        self.dynamics.attach(logger, logging_params.log_interval)
+        self.dynamics.attach(logger, logging_params.write_interval)
         self.imd.on_reset_listeners.append(logger.reset)
         self.logging_info = TrajectoryLoggerInfo(logger, logging_params)
 

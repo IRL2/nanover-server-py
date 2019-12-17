@@ -49,7 +49,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('-a', '--address', default=None)
     parser.add_argument(
         '-f', '--frame-interval', type=int, default=5,
-        help='Interval at which frames will be produced, in dynamics steps.'
+        help='Produce a trajectory frame every LOG_INTERVAL dynamics steps.'
     )
     parser.add_argument(
         '-s', '--time-step', type=float, default=1.0,
@@ -87,8 +87,9 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
              'file that ASE can output in append mode, such as XYZ.'
     )
     parser.add_argument(
-        '--log-interval', type=int, default=1,
-        help='Interval at which trajectory will be logged, in dynamics steps.'
+        '--write-interval', type=int, default=1,
+        help='Write a trajectory frame to file every WRITE_INTERVAL dynamics '
+             'steps.',
     )
     arguments = parser.parse_args(args)
     return arguments
@@ -115,7 +116,7 @@ def initialise(args=None):
 
     logging_params = LoggingParams(
         arguments.trajectory_file,
-        arguments.log_interval,
+        arguments.write_interval,
     )
     runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params, logging_params)
     # Shamefully store CLI arguments in the runner.

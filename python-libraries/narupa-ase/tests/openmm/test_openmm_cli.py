@@ -160,6 +160,6 @@ def test_trajectory_no_logging(serialized_simulation_path, log_path):
 
 
 def test_trajectory_logging_rate(serialized_simulation_path, log_path):
-    args = [str(serialized_simulation_path), '-o', log_path, '--log-interval', '10']
+    args = [str(serialized_simulation_path), '-o', log_path, '--write-interval', '10']
     with initialise(args) as runner:
-        assert runner.logging_info.log_interval == 10
+        assert runner.logging_info.write_interval == 10
