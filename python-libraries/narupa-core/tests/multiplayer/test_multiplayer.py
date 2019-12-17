@@ -14,10 +14,10 @@ from narupa.multiplayer.multiplayer_server import MultiplayerServer
 from narupa.protocol.multiplayer.multiplayer_pb2 import Avatar, AvatarComponent
 from google.protobuf.struct_pb2 import Value, Struct
 
-
 CONNECT_WAIT_TIME = 0.01
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
 CLIENT_SEND_INTERVAL = 1 / 60
+
 
 @pytest.fixture
 def server_client_pair():
@@ -161,7 +161,7 @@ def test_publish_avatar_multiple_transmission(server_client_pair, avatar):
     assert client_avatar.component[0].position == [0, 0, 3]
 
 
-@pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
+@pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
 def test_subscribe_avatars_sends_initial_immediately(server_client_pair, avatar,
                                                      update_interval):
     """
@@ -307,6 +307,20 @@ def test_set_value_updates_server_values(server_client_pair, scene):
     assert str(scene) == str(server_scene)
 
 
+def test_remove_key_updates_server_keys(server_client_pair, scene):
+    """
+    Test that setting a resource value updates the server's internal resource
+    map.
+    """
+    server, client = server_client_pair
+    client.try_set_resource_value("scene", scene)
+    server_scene = server._multiplayer_service.resources.get("scene")
+    assert str(scene) == str(server_scene)
+    client.try_remove_resource_key("scene")
+    server_scene = server._multiplayer_service.resources.get("scene")
+    assert server_scene is None
+
+
 def test_subscribe_value_update(server_client_pair):
     """
     Test that resource value updates can be subscribed.
@@ -326,6 +340,23 @@ def test_set_value_sends_update(server_client_pair, scene):
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     recv_scene = client.resources.get("scene")
     assert str(scene) == str(recv_scene)
+
+
+def test_remove_key_sends_update(server_client_pair, scene):
+    """
+    Test that removing a resource key is propagated back to the client.
+    """
+    server, client = server_client_pair
+    client.subscribe_all_value_updates()
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    client.try_set_resource_value("scene", scene)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    recv_scene = client.resources.get("scene")
+    assert str(scene) == str(recv_scene)
+    client.try_remove_resource_key("scene")
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    recv_scene = client.resources.get("scene")
+    assert recv_scene is None
 
 
 def test_server_sends_initial_values(server_client_pair, scene):
@@ -388,7 +419,7 @@ def test_cant_set_non_value(server_client_pair):
         client.try_set_resource_value("scene", "hello")
 
 
-@pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
+@pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
 def test_subscribe_value_sends_initial_immediately(server_client_pair,
                                                    update_interval):
     """
@@ -508,4 +539,3 @@ def test_repeated_connections_stall_server():
         threading.Thread(target=loads_of_clients, daemon=True).start()
         time.sleep(CONNECT_WAIT_TIME)
         assert server.server._state.thread_pool._work_queue.qsize() > 0
-

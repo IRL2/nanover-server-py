@@ -3,23 +3,34 @@
 """
 Interactive molecular dynamics runner for ASE with OpenMM.
 """
+import logging
 from typing import Optional
 
 from ase import units, Atoms
-from ase.md import MDLogger
-from ase.md.nvtberendsen import NVTBerendsen
+from ase.md import MDLogger, Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from attr import dataclass
+from narupa.core import get_requested_port_or_default
+from narupa.essd import DiscoveryServer
+from narupa.essd.servicehub import ServiceHub
+from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
+from narupa.imd.imd_service import IMD_SERVICE_NAME
+from narupa.multiplayer import MultiplayerServer
+from narupa.multiplayer.multiplayer_server import DEFAULT_PORT as MULTIPLAYER_DEFAULT_PORT
+from narupa.multiplayer.multiplayer_service import MULTIPLAYER_SERVICE_NAME
+from narupa.openmm import openmm_to_frame_data, serializer
+from narupa.trajectory.frame_publisher import TRAJECTORY_SERVICE_NAME
+from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
+from simtk.openmm.app import Simulation
+
 from narupa.ase import ase_to_frame_data
 from narupa.ase.converter import add_ase_positions_to_frame_data
 from narupa.ase.imd_server import ASEImdServer
-from narupa.ase.wall_calculator import VelocityWallCalculator
 from narupa.ase.openmm.calculator import OpenMMCalculator
-from narupa.openmm import openmm_to_frame_data, serializer
-from narupa.core import get_requested_port_or_default
-from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
-from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
-from simtk.openmm.app import Simulation
+from narupa.ase.wall_calculator import VelocityWallCalculator
+
+CONSTRAINTS_UNSUPPORTED_MESSAGE = (
+    "The simulation contains constraints which will be ignored by this runner!")
 
 
 def openmm_ase_frame_server(ase_atoms: Atoms, frame_server):
@@ -57,6 +68,11 @@ class ImdParams:
     time_step: float = 1.0
     verbose: bool = False
     walls: bool = False
+    name: str = None
+    multiplayer: bool = True
+    multiplayer_port: int = None
+    discovery: bool = True
+    discovery_port: int = None
 
 
 class OpenMMIMDRunner:
@@ -66,23 +82,42 @@ class OpenMMIMDRunner:
     :param simulation OpenMM simulation to run interactively.
     :param params IMD parameters to tune the server.
     """
+
     def __init__(self, simulation:Simulation, params: Optional[ImdParams] = None):
+        self.logger = logging.getLogger(__name__)
         self.simulation = simulation
+        self._validate_simulation()
         if not params:
             params = ImdParams()
         self._address = params.address
         if self._services_use_same_port(
                 trajectory_port=params.trajectory_port,
                 imd_port=params.imd_port,
-            ):
-            raise ValueError("Trajectory serving port and IMD serving port must be different!")
+                multiplayer_port=params.multiplayer_port
+        ):
+            raise ValueError("Trajectory serving port, IMD serving port and multiplayer serving port must be different!")
         self._frame_interval = params.frame_interval
         self._time_step = params.time_step
         self._verbose = params.verbose
 
         self._initialise_calculator(simulation, walls=params.walls)
         self._initialise_dynamics()
-        self._initialise_server(self.dynamics, params.trajectory_port, params.imd_port)
+        self._initialise_server(self.dynamics,
+                                params.trajectory_port,
+                                params.imd_port,
+                                params.multiplayer,
+                                params.multiplayer_port,
+                                params.name,
+                                params.discovery,
+                                params.discovery_port)
+
+    def _validate_simulation(self):
+        """
+        Check this runner's simulation for unsupported features and issue the
+        relevant warnings.
+        """
+        if self.simulation.system.getNumConstraints() > 0:
+            self.logger.warning(CONSTRAINTS_UNSUPPORTED_MESSAGE)
 
     @classmethod
     def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
@@ -154,6 +189,35 @@ class OpenMMIMDRunner:
         return self.imd.imd_server.port
 
     @property
+    def running_multiplayer(self):
+        return self.multiplayer is not None
+
+    @property
+    def multiplayer_port(self):
+        try:
+            return self.multiplayer.port
+        except AttributeError:
+            raise AttributeError("Multiplayer service not running")
+
+    @property
+    def name(self):
+        return self.imd.name
+
+    @property
+    def running_discovery(self):
+        try:
+            return self.discovery_server is not None
+        except AttributeError:
+            return False
+
+    @property
+    def discovery_port(self):
+        try:
+            return self.discovery_server.port
+        except AttributeError:
+            raise AttributeError("Discovery service not running")
+
+    @property
     def dynamics(self):
         """
         Gets the ASE :class:`MolecularDynamics` object that is running the dynamics.
@@ -186,8 +250,19 @@ class OpenMMIMDRunner:
         Closes the connection and stops the dynamics.
         """
         self.imd.close()
+        if self.multiplayer is not None:
+            self.multiplayer.close()
+        if self.discovery_server is not None:
+            self.discovery_server.close()
 
-    def _initialise_server(self, dynamics, trajectory_port=None, imd_port=None):
+    def _initialise_server(self, dynamics,
+                           trajectory_port=None,
+                           imd_port=None,
+                           run_multiplayer=True,
+                           multiplayer_port=None,
+                           name=None,
+                           run_discovery=True,
+                           discovery_port=None):
         # set the server to use the OpenMM frame convert for performance purposes.
         self.imd = ASEImdServer(dynamics,
                                 frame_method=openmm_ase_frame_server,
@@ -195,7 +270,21 @@ class OpenMMIMDRunner:
                                 frame_interval=self.frame_interval,
                                 trajectory_port=trajectory_port,
                                 imd_port=imd_port,
+                                name=name,
                                 )
+
+        if run_multiplayer:
+            self.multiplayer = MultiplayerServer(address=self.address, port=multiplayer_port)
+        else:
+            self.multiplayer = None
+
+        if run_discovery:
+            self.discovery_server = DiscoveryServer(discovery_port)
+            self._register_services(name)
+        else:
+            self.discovery_server = None
+
+
 
     def _initialise_calculator(self, simulation, walls=False):
         self._openmm_calculator = OpenMMCalculator(simulation)
@@ -212,30 +301,39 @@ class OpenMMIMDRunner:
         # We do not remove the center of mass (fixcm=False). If the center of
         # mass translations should be removed, then the removal should be added
         # to the OpenMM system.
-        self._dynamics = NVTBerendsen(
+        self._dynamics = Langevin(
             atoms=self.atoms,
             timestep=self.time_step * units.fs,
-            temperature=300,
-            taut=self.time_step * units.fs,
+            temperature=300 * units.kB,
+            friction=1e-2,
             fixcm=False,
         )
 
         if self.verbose:
             self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,
-                                     peratom=False), interval=100)
-    
+                                           peratom=False), interval=100)
+
     @staticmethod
-    def _services_use_same_port(trajectory_port, imd_port):
+    def _services_use_same_port(trajectory_port, imd_port, multiplayer_port):
         trajectory_port = get_requested_port_or_default(trajectory_port, TRAJ_DEFAULT_PORT)
         imd_port = get_requested_port_or_default(imd_port, IMD_DEFAULT_PORT)
-        # If a port is set to 0, then GRPC will affect one available port; so
+        multiplayer_port = get_requested_port_or_default(multiplayer_port, MULTIPLAYER_DEFAULT_PORT)
+        # If a port is set to 0, then GRPC will choose one available port; so
         # 0 is always a valid value.
-        if trajectory_port == 0 or imd_port == 0:
-            return False
-        return trajectory_port == imd_port
+        all_ports = (trajectory_port, imd_port, multiplayer_port)
+        non_zero_ports = [port for port in all_ports if port != 0]
+        return len(non_zero_ports) != len(set(non_zero_ports))
 
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, traceback):
         self.close()
+
+    def _register_services(self, server_name):
+        hub = ServiceHub(name=server_name, address=self.imd.frame_server.address)
+        hub.add_service(name=IMD_SERVICE_NAME, port=self.imd.imd_server.port)
+        hub.add_service(name=TRAJECTORY_SERVICE_NAME, port=self.imd.frame_server.port)
+        if self.multiplayer is not None:
+            hub.add_service(name=MULTIPLAYER_SERVICE_NAME, port=self.multiplayer.port)
+        self.discovery_server.register_service(hub)

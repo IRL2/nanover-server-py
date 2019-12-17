@@ -71,9 +71,31 @@ class KeyLockableMap:
                 raise ResourceLockedException
             self._values[key] = value
 
+    def set_no_replace(self, key, value):
+        """
+        Sets a value with the given key, subject to the constraint
+        that the key must not already exist.
+
+        :param key: Key to register value with.
+        :param value: Value to set.
+
+        :raises KeyError: If the key already exists.
+        """
+
+        with self._lock:
+            if key in self._values:
+                raise KeyError(f'Key {key} already exists.')
+            self._values[key] = value
+
     def get(self, resource_id, default=None):
         with self._lock:
             return self._values.get(resource_id, default)
+
+    def delete(self, owner_id, key):
+        with self._lock:
+            if not self.player_can_lock_key(owner_id, key):
+                raise ResourceLockedException
+            del self._values[key]
 
     def get_all(self):
         with self._lock:

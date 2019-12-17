@@ -1,0 +1,31 @@
+package:
+  name: narupa-essd
+  version: {{ NARUPA_BUILD_VERSION }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  number: 0
+
+requirements:
+  build:
+    - python >=3.6.0
+    - setuptools
+
+  run:
+    - python >=3.6.0
+    - netifaces
+
+about:
+  home: https://narupa.readthedocs.io
+  license: GPL-3
+  license_file: {{ NARUPA_LICENSE_PATH }}
+  summary: Extremely Simple Service Discovery for Narupa
+  description: |
+    Narupa is a framework for interactive molecular dynamics simulation in
+    virtual reality. This package provides a service discovery method for finding servers
+    running on a local area network.
+  doc_url: https://narupa.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/narupa-protocol

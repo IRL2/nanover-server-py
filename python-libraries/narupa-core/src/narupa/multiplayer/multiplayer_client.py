@@ -6,19 +6,18 @@ Reference multiplayer client implementation.
 
 """
 
-from concurrent import futures
-from queue import Queue
 from typing import Dict, Callable, Sequence
 
 import grpc
+from google.protobuf.struct_pb2 import Value
+
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
-from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerStub
-from google.protobuf.struct_pb2 import Value
-from narupa.core import GrpcClient
+from narupa.core import NarupaStubClient
 from narupa.core.request_queues import SingleItemQueue
 from narupa.multiplayer.change_buffers import yield_interval
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
+from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerStub
 
 UpdateCallback = Callable[[Sequence[str]], None]
 
@@ -43,7 +42,7 @@ def _end_upon_channel_close(function):
     return wrapped
 
 
-class MultiplayerClient(GrpcClient):
+class MultiplayerClient(NarupaStubClient):
     """
     Represents a client to the multiplayer server.
 
@@ -190,6 +189,17 @@ class MultiplayerClient(GrpcClient):
         response = self.stub.SetResourceValue(request)
         return response.success
 
+    def try_remove_resource_key(self, resource_id: str) -> bool:
+        """
+        Attempt to remove a key from the shared key/value store.
+
+        :param resource_id: Key to remove.
+        """
+        request = mult_proto.RemoveResourceKeyRequest(player_id=self.player_id,
+                                                      resource_id=resource_id)
+        response = self.stub.RemoveResourceKey(request)
+        return response.success
+
     def add_value_update_callback(self, callback: UpdateCallback):
         """
         Add a callback method to be called whenever a value changes in the
@@ -225,6 +235,8 @@ class MultiplayerClient(GrpcClient):
         for update in self.stub.SubscribeAllResourceValues(request):
             for key, value in update.resource_value_changes.items():
                 self.resources[key] = value
+            for key in update.resource_value_removals:
+                self.resources.pop(key, None)
             keys = set(update.resource_value_changes.keys())
             for callback in self._value_update_callbacks:
                 callback(keys)

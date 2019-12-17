@@ -9,10 +9,23 @@ from threading import Lock
 from typing import Iterator
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
+from narupa.core.grpc_utils import (
+    subscribe_rpc_termination,
+    RpcAlreadyTerminatedError,
+)
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
-from narupa.multiplayer.key_lockable_map import KeyLockableMap, ResourceLockedException
-from narupa.protocol.multiplayer.multiplayer_pb2 import StreamEndedResponse, Avatar, ResourceRequestResponse, SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse, SubscribePlayerAvatarsRequest, ResourceValuesUpdate
+from narupa.core.key_lockable_map import (
+    KeyLockableMap,
+    ResourceLockedException,
+)
+from narupa.protocol.multiplayer.multiplayer_pb2 import (
+    StreamEndedResponse, Avatar, ResourceRequestResponse,
+    SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse,
+    SubscribePlayerAvatarsRequest, ResourceValuesUpdate,
+)
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
+
+MULTIPLAYER_SERVICE_NAME = "multiplayer"
 
 
 class MultiplayerService(MultiplayerServicer):
@@ -50,9 +63,11 @@ class MultiplayerService(MultiplayerServicer):
         """
         interval = request.update_interval
         with self._avatars.create_view() as change_buffer:
-            if not context.add_callback(lambda: change_buffer.freeze()):
+            try:
+                subscribe_rpc_termination(context, change_buffer.freeze)
+            except RpcAlreadyTerminatedError:
                 return
-            for changes in change_buffer.subscribe_changes(interval):
+            for changes, removals in change_buffer.subscribe_changes(interval):
                 for player_id, avatar in changes.items():
                     if player_id != request.ignore_player_id:
                         yield avatar
@@ -81,10 +96,13 @@ class MultiplayerService(MultiplayerServicer):
         """
         interval = request.update_interval
         with self._resources.create_view() as change_buffer:
-            if not context.add_callback(lambda: change_buffer.freeze()):
+            try:
+                subscribe_rpc_termination(context, change_buffer.freeze)
+            except RpcAlreadyTerminatedError:
                 return
-            for changes in change_buffer.subscribe_changes(interval):
+            for changes, removals in change_buffer.subscribe_changes(interval):
                 response = ResourceValuesUpdate()
+                response.resource_value_removals.extend(removals)
                 for key, value in changes.items():
                     entry = response.resource_value_changes.get_or_create(key)
                     entry.MergeFrom(value)
@@ -125,9 +143,11 @@ class MultiplayerService(MultiplayerServicer):
             success = False
         return ResourceRequestResponse(success=success)
 
-    def SetResourceValue(self,
-                         request: SetResourceValueRequest,
-                         context) -> ResourceRequestResponse:
+    def SetResourceValue(
+            self,
+            request: SetResourceValueRequest,
+            context,
+    ) -> ResourceRequestResponse:
         """
         Attempt to write a value in the shared key/value store.
         """
@@ -143,6 +163,28 @@ class MultiplayerService(MultiplayerServicer):
             success = False
 
         self.logger.debug(f'{request.player_id} attempts {request.resource_id}={request.resource_value} (Successs: {success})')
+        return ResourceRequestResponse(success=success)
+
+    def RemoveResourceKey(
+            self,
+            request: multiplayer_proto.RemoveResourceKeyRequest,
+            context,
+    ) -> ResourceRequestResponse:
+        """
+        Attempt to remove a key from the shared key/value store.
+        """
+        try:
+            # TODO: single lockable+subscribable structure?
+            with self._resource_write_lock:
+                self.resources.set(request.player_id,
+                                   request.resource_id,
+                                   None)
+                self._resources.update(removals=[request.resource_id])
+            success = True
+        except ResourceLockedException:
+            success = False
+
+        self.logger.debug(f'{request.player_id} attempts del {request.resource_id} (Successs: {success})')
         return ResourceRequestResponse(success=success)
 
     def generate_player_id(self):

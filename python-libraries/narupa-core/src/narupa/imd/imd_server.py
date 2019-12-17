@@ -5,14 +5,14 @@ Module providing a server for running a :class: ImdService.
 """
 from typing import Optional
 
-from narupa.core import GrpcServer, get_requested_port_or_default, DEFAULT_SERVE_ADDRESS
+from narupa.core import NarupaServer, get_requested_port_or_default, DEFAULT_SERVE_ADDRESS
 from narupa.imd.imd_service import ImdService
 from narupa.protocol.imd.imd_pb2_grpc import add_InteractiveMolecularDynamicsServicer_to_server
 
 DEFAULT_PORT = 54322
 
 
-class ImdServer(GrpcServer):
+class ImdServer(NarupaServer):
     """
     Class providing an IMD server for running a :class: ImdService.
 
