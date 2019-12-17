@@ -8,10 +8,30 @@ portable trajectory files from an ASE molecular dynamics simulation.
 
 import datetime
 import os
+from io import StringIO
 from typing import Optional
 
 import ase.io
 from ase import Atoms
+from ase.io.formats import filetype
+
+
+def validate_ase_can_write_filetype(filename: str):
+    """
+    :raises ase.io.UnknownFileTypeError: if ase is unable to write the format
+        implied by the file extension.
+    """
+    format = filetype(filename, read=False)
+    validate_ase_can_write_format(format)
+
+
+def validate_ase_can_write_format(format: str):
+    """
+    :raises ase.io.UnknownFileTypeError: if ase is unable to write the given
+        format.
+    """
+    with StringIO() as file:
+        ase.io.write(file, [], append=True, format=format)
 
 
 class TrajectoryLogger:
@@ -48,6 +68,11 @@ class TrajectoryLogger:
         self._timestamp = timestamp
         self.current_path = _generate_filename(self.base_path, self.timestamping)
 
+        if format is not None:
+            validate_ase_can_write_format(format)
+        else:
+            validate_ase_can_write_filetype(filename)
+
     @property
     def timestamping(self) -> bool:
         """
@@ -62,6 +87,7 @@ class TrajectoryLogger:
         Writes the current state of the atoms, overwriting if this is the first time the method has been
         called, appending otherwise.
         """
+
         should_append = self.frame_index != 0
         ase.io.write(self.current_path,
                      self.atoms,
