@@ -6,20 +6,29 @@ and can publish interactions.
 """
 import time
 from collections import deque, ChainMap
-from typing import Optional, Sequence, Dict, List, Collection, Set, MutableMapping
+from functools import wraps
+from typing import Iterable
+from typing import Optional, Sequence, Dict, MutableMapping
 
+from google.protobuf.struct_pb2 import Value
 from grpc import RpcError, StatusCode
+from narupa.app.selection import RenderingSelection
 from narupa.core import CommandInfo, NarupaClient
+from narupa.core.protobuf_utilities import struct_to_dict, dict_to_struct
+from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
+from narupa.multiplayer import MultiplayerClient
 from narupa.protocol.imd import InteractionEndReply
 from narupa.trajectory import FrameClient, FrameData
-from narupa.imd import ImdClient
-from narupa.multiplayer import MultiplayerClient
-from google.protobuf.struct_pb2 import Value
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY
 
 # Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
+
+# ID of the root selection
+SELECTION_ROOT_ID = 'selection.root'
+# Name of the root selection
+SELECTION_ROOT_NAME = 'Root Selection'
 
 
 def _update_commands(client: NarupaClient):
@@ -34,8 +43,8 @@ def _update_commands(client: NarupaClient):
 
 class NarupaImdClient:
     """
-    Basic interactive molecular dynamics client that receives frames, can
-    publish interactions, send commands and join the multiplayer shared state.
+    Interactive molecular dynamics client that receives frames, create selections,
+    and join the multiplayer shared state.
 
     :param address Address of the Narupa frame server.
     :param trajectory_port: Port at which the Narupa frame server is running.
@@ -45,11 +54,61 @@ class NarupaImdClient:
         received, older frames will be removed.
     :param all_frames: Whether to receive all frames produced by the trajectory
         server, or just subscribe to the latest frame.
+
+
+    Inspecting a Frame
+    ==================
+
+    The Narupa Imd client can be used to inspect frames received from a :class:`narupa.trajectory.FrameServer`,
+    which can be useful for analysis.
+
+    .. python
+        # Assuming a server has been created with default address and ports.
+        client = NarupaImdClient()
+        # Fetch the first frame.
+        first_frame = client.wait_until_first_frame(check_interval=0.5, timeout=10)
+        # Print the number of particles in the frame
+        print(first_frame.particle_count)
+
+    Creating Selections for Rendering
+    =================================
+
+    One of the main uses of the client is to create selections that control how a group of particles
+    will be visualised and interacted with in other clients (e.g., the VR client):
+
+    .. code-block::  python
+
+        # Connect to the multiplayer
+        client.join_multiplayer("Selection Example")
+        # Create a selection called 'Selection' which selects particles with indices 0-4
+        selection = client.create_selection("Selection", [0, 1, 2, 3, 4])
+
+    Selections are created and updated based on lists of particle indices. Tools such as
+    `MDAnalysis <https://www.mdanalysis.org/>`_ or `MDTraj <http://mdtraj.org/>_` are very good at
+    extracting indices of particles based on a human readable command.
+
+    With a selection in hand, the way in which it is rendered and interacted with can be changed and
+    transmitted to other clients (i.e. VR) using the `modify` context:
+
+    .. code-block::  python
+
+        # Change how the selection is rendered and interacted with.
+        with selection.modify():
+            selection.renderer = {
+                    'color': 'IndianRed',
+                    'scale': 0.1,
+                    'render': 'liquorice'
+                }
+            selection.velocity_reset = True  # Reset the velocities after interacting.
+            selection.interaction_method = 'group'  # Interact with the selection as a group.
+
     """
     _frame_client: FrameClient
     _imd_client: ImdClient
     _multiplayer_client: MultiplayerClient
     _frames: deque
+
+    _next_selection_id: int = 0
 
     def __init__(self, *,
                  address: Optional[str] = None,
@@ -184,13 +243,15 @@ class NarupaImdClient:
     def first_frame(self) -> Optional[FrameData]:
         """
         The first received trajectory frame, if any.
+
         :return: The first frame received by this trajectory, or `None`.
         """
         return self._first_frame
 
-    def start_interaction(self, interaction: Optional[ParticleInteraction] = None) -> int:
+    def start_interaction(self, interaction: Optional[ParticleInteraction] = None) -> str:
         """
         Start an interaction with the IMD server.
+
         :param interaction: An optional :class: ParticleInteraction with which
             to begin.
         :return: The unique interaction ID of this interaction, which can be
@@ -335,6 +396,9 @@ class NarupaImdClient:
         Joins multiplayer with the given player name.
 
         :param player_name: The player name with which to be identified.
+
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
         """
         self._multiplayer_client.join_multiplayer(player_name)
 
@@ -345,8 +409,134 @@ class NarupaImdClient:
         :param key: The key that identifies the value to be stored.
         :param value: The new value to store.
         :return: `True` if successful, `False` otherwise.
+
+
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
         """
         return self._multiplayer_client.try_set_resource_value(key, value)
+
+    def remove_shared_value(self, key: str) -> bool:
+        """
+        Attempts to remove the given key on the multiplayer shared value store.
+
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
+        """
+        return self._multiplayer_client.try_remove_resource_key(key)
+
+    def get_shared_value(self, key):
+        """
+        Attempts to retrieve the value for the given key in the multiplayer shared value store.
+
+        :param key: The key that identifies the value
+        :return: The value stored in the dictionary
+
+        :raises grpc._channel._Rendezvous: When not connected to a
+            multiplayer service
+        """
+        return self._multiplayer_client.resources[key]
+
+    @property
+    def root_selection(self) -> RenderingSelection:
+        """
+        Get the root selection, creating it if it does not exist yet.
+
+        :return: The selection representing the root selection of the system
+        """
+        try:
+            root_selection = self.get_selection(SELECTION_ROOT_ID)
+        except KeyError:
+            root_selection = self._create_selection_from_id_and_name(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
+        root_selection.selected_particle_ids = None
+        return root_selection
+
+    def create_selection(
+            self,
+            name: str,
+            particle_ids: Optional[Iterable[int]] = None,
+    ) -> RenderingSelection:
+        """
+        Create a particle selection with the given name.
+
+        :param name: The user-friendly name of the selection.
+        :param particle_ids: The indices of the particles to include in the selection.
+        :return: The selection that was created.
+        """
+        if particle_ids is None:
+            particle_ids = set()
+
+        # Give the selection an ID based upon the multiplayer player ID and an incrementing counter
+        selection_id = f'selection.{self._multiplayer_client.player_id}.{self._next_selection_id}'
+        self._next_selection_id += 1
+
+        # Create the selection and setup the particles that it contains
+        selection = self._create_selection_from_id_and_name(selection_id, name)
+        selection.set_particles(particle_ids)
+
+        # Mark the selection as needing updating, which adds it to the shared value store.
+        self.update_selection(selection)
+
+        return selection
+
+    def update_selection(self, selection: RenderingSelection):
+        """
+        Applies changes to the given selection to the shared key store.
+
+        :param selection: The selection to update.
+        """
+        struct = dict_to_struct(selection.to_dictionary())
+        self.set_shared_value(selection.selection_id, Value(struct_value=struct))
+
+    def remove_selection(self, selection: RenderingSelection):
+        """
+        Delete the given selection
+        """
+        self.remove_shared_value(selection.selection_id)
+
+    def clear_selections(self):
+        """
+        Remove all selections in the system
+        """
+        selections = list(self.selections)
+        for selection in selections:
+            self.remove_selection(selection)
+
+    @property
+    def selections(self) -> Iterable[RenderingSelection]:
+        """
+        Get all selections which are stored in the shared key store.
+
+        :return: An iterable of all the selections stored in the shared key store.
+        """
+        for key, value in self._multiplayer_client.resources.items():
+            if key.startswith('selection.'):
+                yield self.get_selection(key)
+
+    def get_selection(self, id: str) -> RenderingSelection:
+        """
+        Get the selection with the given selection id, throwing a KeyError if
+        it is not present. For the root selection, use the root_selection
+        property.
+
+        :param id: The id of the selection
+        :return: The selection if it is present
+        """
+        value = self._multiplayer_client.resources[id]
+        return self._create_selection_from_protobuf_value(value)
+
+    def _create_selection_from_protobuf_value(self, value: Value) -> RenderingSelection:
+
+        selection = RenderingSelection.from_dictionary(struct_to_dict(value.struct_value))
+        selection.updated.add_callback(self.update_selection)
+        selection.removed.add_callback(self.remove_selection)
+        return selection
+
+    def _create_selection_from_id_and_name(self, id: str, name: str) -> RenderingSelection:
+        selection = RenderingSelection(id, name)
+        selection.updated.add_callback(self.update_selection)
+        selection.removed.add_callback(self.remove_selection)
+        return selection
 
     def _join_trajectory(self):
         if self.all_frames:
