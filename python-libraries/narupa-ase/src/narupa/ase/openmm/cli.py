@@ -47,7 +47,10 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('-i', '--imd-port', type=int, default=None)
     parser.add_argument('-m', '--multiplayer-port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
-    parser.add_argument('-f', '--frame-interval', type=int, default=5)
+    parser.add_argument(
+        '-f', '--frame-interval', type=int, default=5,
+        help='Serve a trajectory frame every N dynamics iterations.'
+    )
     parser.add_argument('-s', '--time-step', type=float, default=1.0)
     parser.add_argument(
         '--reset-energy', type=float, default=1e6,
@@ -80,7 +83,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
     parser.add_argument(
         '--log-interval', type=int, default=1,
-        help='Interval at which to produce trajectory logs'
+        help='Log a trajectory frame every N dynamics iterations.'
     )
     arguments = parser.parse_args(args)
     return arguments
