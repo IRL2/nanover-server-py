@@ -3,7 +3,6 @@
 import time
 from narupa.lammps import LammpsHook
 
-
 # Test call of the routine when running outside of lammps
 def main():
     h = LammpsHook()
