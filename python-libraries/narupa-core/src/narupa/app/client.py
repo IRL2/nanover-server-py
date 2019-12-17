@@ -76,12 +76,10 @@ class NarupaImdClient:
     One of the main uses of the client is to create selections that control how a group of particles
     will be visualised and interacted with in other clients (e.g., the VR client):
 
-    .. python
+    .. code-block::  python
+
         # Connect to the multiplayer
         client.join_multiplayer("Selection Example")
-        player_id = client._multiplayer_client.player_id
-
-
         # Create a selection called 'Selection' which selects particles with indices 0-4
         selection = client.create_selection("Selection", [0, 1, 2, 3, 4])
 
@@ -92,21 +90,17 @@ class NarupaImdClient:
     With a selection in hand, the way in which it is rendered and interacted with can be changed and
     transmitted to other clients (i.e. VR) using the `modify` context:
 
-    ..python
+    .. code-block::  python
 
-    # Change how the selection is rendered and interacted with.
-    with selection.modify():
-        selection.renderer = {
-                'color': 'IndianRed',
-                'scale': 0.1,
-                'render': 'liquorice'
-            }
-        # Reset the velocities after interacting.
-        selection.velocity_reset = True
-        # Interact with the selection as a group.
-        selection.interaction_method = 'group'
-
-
+        # Change how the selection is rendered and interacted with.
+        with selection.modify():
+            selection.renderer = {
+                    'color': 'IndianRed',
+                    'scale': 0.1,
+                    'render': 'liquorice'
+                }
+            selection.velocity_reset = True  # Reset the velocities after interacting.
+            selection.interaction_method = 'group'  # Interact with the selection as a group.
 
     """
 
