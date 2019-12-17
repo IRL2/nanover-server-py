@@ -93,10 +93,6 @@ class TrajectoryLoggerInfo:
     """
 
     def __init__(self, trajectory_logger: TrajectoryLogger, params:LoggingParams):
-        """
-
-
-        """
         self._logger = trajectory_logger
         self._params = params
 

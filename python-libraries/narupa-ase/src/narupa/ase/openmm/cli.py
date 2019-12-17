@@ -122,6 +122,9 @@ def main():
     Entry point for the command line.
     """
     with initialise() as runner:
+        if runner.logging_info is not None:
+            print(f'Logging frames to "{runner.logging_info.trajectory_path}"')
+
         runner.imd.on_reset_listeners.append(lambda: print('RESET! ' * 10))
         print(f'Serving frames on port {runner.trajectory_port} and IMD on {runner.imd_port}')
         if runner.running_multiplayer:
