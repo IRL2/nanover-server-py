@@ -158,6 +158,7 @@ class DummyLammps:
     def scatter_atoms(self, _array_type, _dummy_variable, _array_shape, __data_array):
         """
         This routine mimics lammp_class.scatter_atoms, in the dummy case it does nothing
+        Note: This can't be static as it is designed to replicate the internal LAMMPS class
         """
         return None
 
@@ -422,12 +423,14 @@ class LammpsHook:
     @_try_or_except
     def manipulate_lammps_internal_matrix(self, lammps_class, positions_3n, matrix_type):
         """
-        This groups together the routines needed to return forces to lammps, is has been made general
-        in case one day we and to do velocity renormalisation or another type of manipulation.
+        This groups together the routines needed to return forces to lammps,
+        is has been made general in case one day we and to do velocity renormalisation
+         or another type of manipulation.
 
         :param lammps_class: LAMMPS class that contains all the needed routines
         :param positions_3n: Positon matrix needed to calcualte_imd_forces
-        :param matrix_type: The matrix to eb scattered, usually f (forces), but could also be V (velocities)
+        :param matrix_type: The matrix to eb scattered, usually f (forces),
+        but could also be V (velocities)
         :return:
         """
         # Collect matrix from LAMMPS
@@ -471,7 +474,7 @@ class LammpsHook:
         else:
             # Make sure LAMMPS object is callable
             try:
-                lammps_class = lammps(ptr=lmp)  # , comm=comm)
+                lammps_class = lammps(ptr=lmp, comm=comm)
             except Exception as err:
                 # Many possible reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load LAMMPS wrapper", err)
