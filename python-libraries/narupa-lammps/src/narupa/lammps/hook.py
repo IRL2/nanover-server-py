@@ -515,6 +515,7 @@ class LammpsHook:
         if self.me == 0:
             # Convert positions
             self.lammps_positions_to_frame_data(self.frame_data, positions)
+            self.frame_data.particle_count = self.n_atoms
             # Convert elements from list to frame data
             self.frame_data.arrays[PARTICLE_ELEMENTS] = self.atom_type
             # Send frame data
