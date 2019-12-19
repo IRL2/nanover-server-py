@@ -13,7 +13,7 @@ from typing import Optional
 
 import ase.io
 from ase import Atoms
-from ase.io.formats import filetype
+from ase.io.formats import filetype, UnknownFileTypeError
 
 
 def validate_ase_can_write_filetype(filename: str):
@@ -31,7 +31,10 @@ def validate_ase_can_write_format(format: str):
         format.
     """
     with StringIO() as file:
-        ase.io.write(file, [], append=True, format=format)
+        try:
+            ase.io.write(file, [], append=True, format=format)
+        except KeyError:
+            raise UnknownFileTypeError
 
 
 class TrajectoryLogger:
