@@ -129,7 +129,7 @@ def test_frame_interval(basic_simulation, interval, params):
 def test_time_step(basic_simulation, params):
     params.time_step = 0.5
     with OpenMMIMDRunner(basic_simulation, params) as runner:
-        assert runner.dynamics.get_timestep() == pytest.approx(0.5 * units.fs)
+        assert runner.dynamics.dt == pytest.approx(0.5 * units.fs)
 
 
 @pytest.mark.parametrize('trajectory_port, imd_port, multiplayer_port', (

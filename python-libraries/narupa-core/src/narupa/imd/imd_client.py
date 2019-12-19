@@ -118,7 +118,7 @@ class ImdClient(NarupaStubClient):
         queue, _, _ = self._local_interactions_states[local_interaction_id]
         queue.put(interaction)
 
-    def stop_interaction(self, local_interaction_id) -> InteractionEndReply:
+    def stop_interaction(self, local_interaction_id: str) -> InteractionEndReply:
         """
         Stops the interaction identified with the given interaction_id on the server.
 
