@@ -8,33 +8,37 @@ portable trajectory files from an ASE molecular dynamics simulation.
 
 import datetime
 import os
-from io import StringIO
 from typing import Optional
 
 import ase.io
 from ase import Atoms
-from ase.io.formats import filetype, UnknownFileTypeError
+from ase.io.formats import filetype, ioformats
 
 
-def validate_ase_can_write_filetype(filename: str):
+class UnsupportedFormatError(Exception):
+    pass
+
+
+def validate_ase_can_append_filetype(filename: str):
     """
-    :raises ase.io.UnknownFileTypeError: if ase is unable to write the format
-        implied by the file extension.
+    :raises UnsupportedFormatError: if ase is unable to append the format
+        implied by the file extension
     """
-    format = filetype(filename, read=False)
-    validate_ase_can_write_format(format)
+    format = filetype(filename, read=False, guess=False)
+    validate_ase_can_append_format(format)
 
 
-def validate_ase_can_write_format(format: str):
+def validate_ase_can_append_format(format: str):
     """
-    :raises ase.io.UnknownFileTypeError: if ase is unable to write the given
+    :raises UnsupportedFormatError: if ase is unable to append the desired
         format.
     """
-    with StringIO() as file:
-        try:
-            ase.io.write(file, [], append=True, format=format)
-        except KeyError:
-            raise UnknownFileTypeError
+    try:
+        # TODO: when ASE fixes their typo we can do the correct check
+        if not ioformats[format].can_write:# or not ioformats[format].can_append:
+            raise UnsupportedFormatError
+    except KeyError:
+        raise UnsupportedFormatError
 
 
 class TrajectoryLogger:
@@ -72,9 +76,9 @@ class TrajectoryLogger:
         self.current_path = _generate_filename(self.base_path, self.timestamping)
 
         if format is not None:
-            validate_ase_can_write_format(format)
+            validate_ase_can_append_format(format)
         else:
-            validate_ase_can_write_filetype(filename)
+            validate_ase_can_append_filetype(filename)
 
     @property
     def timestamping(self) -> bool:

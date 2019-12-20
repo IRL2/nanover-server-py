@@ -8,16 +8,15 @@ from typing import NamedTuple, List
 import pytest
 from ase import Atoms
 from ase.calculators.lj import LennardJones
-from ase.io.formats import UnknownFileTypeError
 from ase.md import Langevin
 
-from narupa.ase.trajectory_logger import TrajectoryLogger
+from narupa.ase.trajectory_logger import TrajectoryLogger, UnsupportedFormatError
 from test_imd_reset import fcc_atoms
 from ase.io import read, write, Trajectory
 import numpy as np
 
 SUPPORTED_EXTENSIONS = ['xyz']
-UNSUPPORTED_EXTENSIONS = ['babyyoda']
+NONEXISTANT_EXTENSION = 'babyyoda'
 FRAMES = 10
 
 
@@ -83,20 +82,11 @@ def test_write_multiple_frames(atoms, tmp_dir, ext):
     check_file_images([atoms] * FRAMES, logger.current_path)
 
 
-@pytest.mark.parametrize('ext', UNSUPPORTED_EXTENSIONS)
-def test_write_unsupported_filename(atoms, tmp_dir, ext):
-    file = os.path.join(tmp_dir, "atoms" + "." + ext)
+def test_append_unsupported_filename(atoms, tmp_dir):
+    file = os.path.join(tmp_dir, "atoms" + "." + NONEXISTANT_EXTENSION)
 
-    with pytest.raises(UnknownFileTypeError):
+    with pytest.raises(UnsupportedFormatError):
         _ = TrajectoryLogger(atoms, file)
-
-
-@pytest.mark.parametrize('format', UNSUPPORTED_EXTENSIONS)
-def test_write_unsupported_format(atoms, tmp_dir, format):
-    file = os.path.join(tmp_dir, "atoms.txt")
-
-    with pytest.raises(UnknownFileTypeError):
-        _ = TrajectoryLogger(atoms, file, format=format)
 
 
 def test_attach_to_md(atoms, tmp_dir):
