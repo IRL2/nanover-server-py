@@ -2,11 +2,12 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from narupa.essd.server import DiscoveryServer
 from narupa.essd.client import DiscoveryClient
+from narupa.essd.servicehub import ServiceHub
 
 """
 Module providing extremely simple service discovery over UDP.
 
-Messages are broadcast over IPv4 UDP to a specific port. The message consists of a json payload encoded with
+Messages are broadcast over IPv4 UDP to a specific port. The message consists of a JSON payload encoded with
 UTF-8.
 
 An example message is: 
