@@ -154,8 +154,8 @@ def test_reset_no_timestamp(atoms, tmp_dir):
     tests that a logger not using a timestamp will overwrite the old file
     when resetting.
     """
-    file = os.path.join(tmp_dir, "atoms" + ".xyz")
-    logger = TrajectoryLogger(atoms, file, timestamp=False)
+    file_path = os.path.join(tmp_dir, "atoms" + ".xyz")
+    logger = TrajectoryLogger(atoms, file_path, timestamp=False)
     logger.write()
 
     initial_name = logger.current_path
