@@ -1,7 +1,8 @@
 from typing import Dict
 
+from google.protobuf.internal.well_known_types import _SetStructValue
 from google.protobuf.json_format import MessageToDict
-from google.protobuf.struct_pb2 import Struct
+from google.protobuf.struct_pb2 import Struct, Value
 
 
 def dict_to_struct(dictionary: Dict[str, object]) -> Struct:
@@ -30,3 +31,23 @@ def struct_to_dict(struct: Struct) -> Dict[str, object]:
     :return: A dictionary containing copies of all the items in the struct.
     """
     return MessageToDict(struct)
+
+
+def wrap_value(unwrapped: object) -> Value:
+    """
+    Convert a python value in a protobuf Value wrapping the original.
+    :param unwrapped: The original python value.
+    :return: A protobuf Value representing the original value.
+    """
+    value = Value()
+    _SetStructValue(value, unwrapped)
+    return value
+
+
+def unwrap_value(wrapped: Value) -> object:
+    """
+    Converts a protobuf Value into the wrapped python value.
+    :param wrapped: A protobuf Value to unwrap.
+    :return: The wrapped python value.
+    """
+    return MessageToDict(wrapped)

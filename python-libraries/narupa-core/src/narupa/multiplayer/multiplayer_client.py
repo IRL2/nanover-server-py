@@ -9,11 +9,11 @@ Reference multiplayer client implementation.
 from typing import Dict, Callable, Sequence
 
 import grpc
-from google.protobuf.struct_pb2 import Value
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
 from narupa.core import NarupaStubClient
+from narupa.core.protobuf_utilities import wrap_value, struct_to_dict
 from narupa.core.request_queues import SingleItemQueue
 from narupa.multiplayer.change_buffers import yield_interval
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
@@ -180,8 +180,8 @@ class MultiplayerClient(NarupaStubClient):
         :param resource_id: Key to write to.
         :param value: Value to write.
         """
-        if not isinstance(value, Value):
-            raise TypeError("'value' must be a grpc Value type.")
+
+        value = wrap_value(value)
 
         request = mult_proto.SetResourceValueRequest(player_id=self.player_id,
                                                      resource_id=resource_id,
@@ -233,8 +233,7 @@ class MultiplayerClient(NarupaStubClient):
     @_end_upon_channel_close
     def _join_scene_properties(self, request):
         for update in self.stub.SubscribeAllResourceValues(request):
-            for key, value in update.resource_value_changes.items():
-                self.resources[key] = value
+            self.resources.update(struct_to_dict(update.resource_value_changes))
             for key in update.resource_value_removals:
                 self.resources.pop(key, None)
             keys = set(update.resource_value_changes.keys())
