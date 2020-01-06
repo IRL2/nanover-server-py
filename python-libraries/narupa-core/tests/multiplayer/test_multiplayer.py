@@ -43,7 +43,7 @@ def avatar():
     components = [AvatarComponent(name="Head",
                                   position=[0, 0, 1],
                                   rotation=[1, 1, 1, 1])]
-    avatar = Avatar(player_id="1", component=components)
+    avatar = Avatar(player_id="1", components=components)
     return avatar
 
 
@@ -151,14 +151,14 @@ def test_publish_avatar_multiple_transmission(server_client_pair, avatar):
     time.sleep(CONNECT_WAIT_TIME)
 
     client.publish_avatar(avatar)
-    avatar.component[0].position[:] = [0, 0, 2]
+    avatar.components[0].position[:] = [0, 0, 2]
     client.publish_avatar(avatar)
-    avatar.component[0].position[:] = [0, 0, 3]
+    avatar.components[0].position[:] = [0, 0, 3]
     client.publish_avatar(avatar)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 3)
 
     client_avatar = client.current_avatars[player_id]
-    assert client_avatar.component[0].position == [0, 0, 3]
+    assert client_avatar.components[0].position == [0, 0, 3]
 
 
 @pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
@@ -192,7 +192,7 @@ def test_subscribe_avatars_interval(server_client_pair, avatar, update_interval)
     test_values = [Avatar() for i in range(2)]
     for i, value in enumerate(test_values):
         value.CopyFrom(avatar)
-        value.component[0].position[:] = [i, i, i]
+        value.components[0].position[:] = [i, i, i]
 
     # send the initial avatar: we expect it to be sent back immediately because
     # there is no previous update to put an interval between.
@@ -232,13 +232,13 @@ def test_clearing_disconnected_avatars(server_client_pair, avatar):
         time.sleep(CONNECT_WAIT_TIME)
 
         first_avatar = second_client.current_avatars[first_player_id]
-        assert len(first_avatar.component) == 1
+        assert len(first_avatar.components) == 1
 
         first_client.close()
         time.sleep(CLIENT_SEND_INTERVAL * 2)
 
         first_avatar = second_client.current_avatars[first_player_id]
-        assert len(first_avatar.component) == 0
+        assert len(first_avatar.components) == 0
 
 
 def test_can_lock_unlocked(server_client_pair):

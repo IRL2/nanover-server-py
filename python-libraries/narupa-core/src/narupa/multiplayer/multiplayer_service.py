@@ -203,5 +203,5 @@ class MultiplayerService(MultiplayerServicer):
         """
         Replace a player's avatar with an empty avatar.
         """
-        avatar = Avatar(player_id=player_id, component=[])
+        avatar = Avatar(player_id=player_id, components=[])
         self._avatars.update({avatar.player_id: avatar})
