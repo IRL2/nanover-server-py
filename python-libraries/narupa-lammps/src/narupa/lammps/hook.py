@@ -225,9 +225,6 @@ class LammpsHook:
     This code executes as a lammps fix allowing python to be executed after the forces are calculated.
     The particle positions can be extracted and the forces modified in the lammps ctypes.
 
-    The translation of the LAMMPS c_type pointers into FrameData is done by  np.fromiter which
-    allows a quick way of allocating a numpy array.
-
     The main lammps_hook routine will check if it is being run from within LAMMPS or as a
     stand alone program and determine if it should use dummy variables (manipulate_dummy_arrays)
     or ones available from within LAMMPS (manipulate_lammps_arrays).
@@ -255,6 +252,7 @@ class LammpsHook:
                 logging.info("MPI n processors %s ", nprocs)
         except ImportError as err:
             logging.info("Didn't find mpi4py %s", err)
+            raise Exception("Failed to load load mpi4py, please make it is installed", err)
             self.me = 0
         # Start frame server, must come before MPI
         if me == 0:
