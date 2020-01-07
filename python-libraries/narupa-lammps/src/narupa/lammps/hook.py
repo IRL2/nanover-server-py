@@ -158,7 +158,7 @@ class DummyLammps:
 
     def scatter_atoms(self, _array_type, _dummy_variable, _array_shape, __data_array):
         """
-        This routine mimics lammp_class.scatter_atoms, in the dummy case it does nothing
+        Mimics lammp_class.scatter_atoms, in the dummy case it does nothing
         Note: This can't be static as it is designed to replicate the internal LAMMPS class
         """
         return None
