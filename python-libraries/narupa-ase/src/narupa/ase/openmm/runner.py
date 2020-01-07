@@ -124,6 +124,12 @@ class TrajectoryLoggerInfo:
         """
         return self._params.write_interval
 
+    def close(self):
+        """
+        Close the log.
+        """
+        self._logger.close()
+
 
 class OpenMMIMDRunner:
     """
@@ -315,6 +321,9 @@ class OpenMMIMDRunner:
             self.multiplayer.close()
         if self.discovery_server is not None:
             self.discovery_server.close()
+        if self.logging_info:
+            self.logging_info.close()
+
 
     def _initialise_server(self, dynamics,
                            trajectory_port=None,
