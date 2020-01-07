@@ -270,7 +270,7 @@ class LammpsHook:
             except Exception as err:
                 raise Exception("Failed to load FrameData", err)
 
-            logging.info("Lammpshook initialised for NarupaXR")
+            logging.info("Narupa Lammpshook initialised")
             logging.info("Trajectory Port %s ", traj_port)
             logging.info("Interactive Port %s ", imd_port)
 
