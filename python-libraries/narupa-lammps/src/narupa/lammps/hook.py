@@ -524,11 +524,9 @@ class LammpsHook:
         # Extract the masses of the types, 1D float of home many
         # mass types were defined in input. Indexed from 1 not zero in lammps
         if self.topology_loop is True:
-            atom_type, masses = self.gather_lammps_particle_types(lammps_class)
-            self.masses = masses
-            self.atom_type = atom_type
+            self.atom_type, self.masses = self.gather_lammps_particle_types(lammps_class)
 
-        # Extract the position matrix
+        # Extract and convert the position matrix to framedata
         positions_3n = self.extract_positions(distance_factor, lammps_class)
 
         # Collect client data and return to lammps internal arrays
