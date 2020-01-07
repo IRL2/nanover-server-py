@@ -134,7 +134,7 @@ class DummyLammps:
 
     def gather_atoms(self, array_type: str, _dummy_variable, _array_shape):
         """
-        This routine generates fake ctypes to mimic lammps internal pointers
+        Generates fake ctypes to mimic lammps internal pointers
 
         :param array_type: determines the type of data that should be replicated
         :param _dummy_variable: Unused here, only relevant to lammps
