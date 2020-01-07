@@ -8,7 +8,7 @@ using the python_invoke/fix command as demonstrated in the example LAMMPS inputs
 import ctypes
 import functools
 import logging
-from typing import List
+from typing import List, NamedTuple
 import numpy as np
 
 try:
@@ -68,45 +68,47 @@ ELEMENT_INDEX_MASS = {
     89: 39,
 }
 
+
 # Check what units are being used in LAMMPS using this dict
 # For now support converting lj and real, for full unit list
 # see https://lammps.sandia.gov/doc/units.html
 # List consists of the unit type, the conversion required to convert positions to nm, 
 # and the conversion required to convert forces to kJ/mol/nm
 
+lammpsunitconverter = NamedTuple("LammpsUnitConverter", [('Type', str),('Positions', float), ('Forces', float)])
 LAMMPS_UNITS_CHECK = {
     # Lennard jones: Is unitless, everything is set to 1
-    0: ["lj", 1, 1],
+    0: lammpsunitconverter(Type="lj", Positions=1, Forces=1),
     # Real:
     # Distance: 1 angstrom- > nm (10)
     # Force:    kj/mol/angstrom -> kcal/mol/nm (4.1840 *10) (Confirmed in MDanaysis)
-    1: ["real", 10, 41.840],
+    1: lammpsunitconverter(Type="real", Positions=10, Forces=41.840),
     # Metal:
     # Distance: angstrom -> nm, (10)
     # Force: eV/angstrom -> kcal/mol/nm (96.485*10) (Confirmed in MDanalysis)
-    2: ["metal", 10, 964.85],
+    2: lammpsunitconverter(Type="metal", Positions=10, Forces=964.85),
     # SI:
     # Distance: meters ->nm (10^-9)
     # Force: Newtons q-> kcal/mol/nm (602214128999.9999)
-    3: ["si", 10 ** -9, 602214128999.9999],
+    3: lammpsunitconverter(Type="si", Positions=10 ** -9, Forces=602214128999.9999),
     # cgs:
     # Distance: centemters -> nm
     # Froce: dyne (1/100000 Newtons) -> kj/mol*nm
-    4: ["cgs", 10 ** -7, 6022141.289999999],
+    4: lammpsunitconverter(Type="cgs", Positions=10 ** -7, Forces=6022141.289999999),
     # Electron:
     # Distance: Bohr -> nm
     # Force: Hartree/Bohr (2625.50 / 0.0529117) ->  kj/mol*nm
-    5: ["electron", 0.05529177, 49620.4053],
+    5: lammpsunitconverter(Type="electron", Positions=0.05529177, Forces=49620.4053),
     # Mirco:
     # Distance: mircometers -> nm,
     # Force: pircogram-micrometer/microsecond^2 -> Newtons
     # (1/1000000000000 *((1/1000000)/(1/1000000)^2) ->  kj/mol*nm
-    6: ["micro", 1000, 60221.41289999999],
+    6: lammpsunitconverter(Type="micro", Positions=1000, Forces=60221.41289999999),
     # Nano:
     # Distance: nanometers,
     # Force: atoogram-nanometer/nanosecond^2  -> Newtons
     # (1/1e-12 *((1/1e-9)/(1/1e-9)^2) ->  kj/mol*nm
-    7: ["nano", 1.0, 602214128.9999999]
+    7: lammpsunitconverter(Type="nano", Positions=1.0, Forces=602214128.9999999)
 }
 # store plank values as a list so that we don't do float lookups in a dict.
 PLANK_VALUES = (
@@ -220,11 +222,8 @@ class LammpsHook:
     v : velocities
     f : forces
 
-    We hook into the LAMMPS MD loop just after the forces are calculated, however setting all
-    forces to zero causes the energy in LAMMPS to become large. To check the effect of this code
-    on the internal state of LAMMPS we recommend trying to set the velocities to zero, effectively
-    freezing the system. In the case below we are slowly translating all the atoms in the system
-    along the x direction.
+    This code executes as a lammps fix allowing python to be executed after the forces are calculated.
+    The particle positions can be extracted and the forces modified in the lammps ctypes.
 
     The translation of the LAMMPS c_type pointers into FrameData is done by  np.fromiter which
     allows a quick way of allocating a numpy array.
