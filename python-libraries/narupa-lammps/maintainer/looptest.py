@@ -9,6 +9,9 @@ from narupa.lammps import LammpsHook
 
 # Test call of the routine when running outside of lammps
 def main():
+    """
+   Test call of the LAMMPS hook routine when running outside of LAMMPS.
+    """    
     h = LammpsHook()
     print("Starting Trajectory Server")
     while True:
