@@ -33,21 +33,21 @@ def struct_to_dict(struct: Struct) -> Dict[str, object]:
     return MessageToDict(struct)
 
 
-def wrap_value(unwrapped: object) -> Value:
+def object_to_value(obj: object) -> Value:
     """
-    Convert a python value in a protobuf Value wrapping the original.
-    :param unwrapped: The original python value.
-    :return: A protobuf Value representing the original value.
+    Convert a python object in an equivalent protobuf Value.
+    :param obj: A python object.
+    :return: A protobuf Value equivalent to the given object.
     """
     value = Value()
-    _SetStructValue(value, unwrapped)
+    _SetStructValue(value, obj)
     return value
 
 
-def unwrap_value(wrapped: Value) -> object:
+def value_to_object(value: Value) -> object:
     """
-    Converts a protobuf Value into the wrapped python value.
-    :param wrapped: A protobuf Value to unwrap.
-    :return: The wrapped python value.
+    Converts a protobuf Value into an equivalent python object.
+    :param value: A protobuf Value to convert.
+    :return: A python object equivalent to the given protobuf Value.
     """
-    return MessageToDict(wrapped)
+    return MessageToDict(value)

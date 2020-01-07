@@ -13,7 +13,7 @@ import grpc
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
 from narupa.core import NarupaStubClient
-from narupa.core.protobuf_utilities import wrap_value, struct_to_dict
+from narupa.core.protobuf_utilities import object_to_value, struct_to_dict
 from narupa.core.request_queues import SingleItemQueue
 from narupa.multiplayer.change_buffers import yield_interval
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
@@ -181,7 +181,7 @@ class MultiplayerClient(NarupaStubClient):
         :param value: Value to write.
         """
 
-        value = wrap_value(value)
+        value = object_to_value(value)
 
         request = mult_proto.SetResourceValueRequest(player_id=self.player_id,
                                                      resource_id=resource_id,

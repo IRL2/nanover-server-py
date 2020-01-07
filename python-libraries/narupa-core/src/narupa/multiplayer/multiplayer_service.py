@@ -13,7 +13,7 @@ from narupa.core.grpc_utils import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
 )
-from narupa.core.protobuf_utilities import unwrap_value
+from narupa.core.protobuf_utilities import value_to_object
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
 from narupa.core.key_lockable_map import (
     KeyLockableMap,
@@ -150,7 +150,7 @@ class MultiplayerService(MultiplayerServicer):
         """
         Attempt to write a value in the shared key/value store.
         """
-        resource_value = unwrap_value(request.resource_value)
+        resource_value = value_to_object(request.resource_value)
         try:
             # TODO: single lockable+subscribable structure?
             with self._resource_write_lock:
