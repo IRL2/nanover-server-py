@@ -28,14 +28,4 @@
   <ItemGroup>
     <OutputFiles Include="$(TargetDir)\**\*" />
  </ItemGroup>
-
-
-
-  <Target Name="CopyDebugToNarupaXR" AfterTargets="Build" Condition="'$(Configuration)'=='Debug'  AND Exists('$(ProjectDir)\..\..\..\..\narupaXR\')">
-    <Copy SourceFiles="@(OutputFiles)" DestinationFiles="$(ProjectDir)\..\..\..\..\narupaXR\Assets\Plugins\Narupa\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="false">
-
-    </Copy>
-    <Message Text="Copied dll to client $(TargetDir)" />
-  </Target>
-
 </Project>
