@@ -2,6 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Callable, Optional, Dict
 
+import grpc
 from google.protobuf.struct_pb2 import Struct
 
 from narupa.core.command_service import CommandService, CommandRegistration
@@ -25,7 +26,7 @@ class NarupaServer(GrpcServer):
         """
         super().setup_services()
         self._command_service = CommandService()
-        add_CommandServicer_to_server(self._command_service, self.server)
+        self.add_service(self._command_service, add_CommandServicer_to_server)
 
     @property
     def commands(self) -> Dict[str, CommandRegistration]:
