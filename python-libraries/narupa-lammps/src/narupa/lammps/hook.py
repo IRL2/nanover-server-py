@@ -253,7 +253,7 @@ class LammpsHook:
         except ImportError as err:
             logging.info("Didn't find mpi4py %s", err)
             raise Exception("Failed to load load mpi4py, please make it is installed", err)
-            self.me = 0
+
         # Start frame server, must come before MPI
         if me == 0:
             # TODO raise exception when this fails, i.e if port is blocked
@@ -452,16 +452,31 @@ class LammpsHook:
         self.add_interaction_to_ctype(forces_kjmol, forces)
         self.return_array_to_lammps(matrix_type, forces, lammps_class)
 
-    def lammps_hook(self, lmp=None, comm=None):
+    def extract_positions(self, distance_factor, lammps_class):
         """
-        lammps_hook is the main routine that is run within LAMMPS MD
-        steps. It checks that the LAMMPS python wrapper is callable
-        and then attempts to extract a 3N matrix of atomic data
+        Extract the particle positions and add them to the framedata.
 
-        :param lmp: LAMMPS object data, only populated when running from within LAMMPS
+        Return: the positions_3N array for use in the force addition
         """
-        # Checks if LAMMPS variable is being passed
-        # If not assume we are in interactive mode
+
+        positions = self.manipulate_lammps_array('x', lammps_class)
+        # Copy the ctype array to numpy for processing
+        positions_3n = np.fromiter(positions, dtype=np.float64, count=len(positions)).reshape(self.n_atoms, 3)
+        positions_3n *= distance_factor
+
+        if self.me == 0:
+            # Convert positions to framedata
+            self.lammps_positions_to_frame_data(self.frame_data, positions)
+        return positions_3n
+
+    def determine_lmp_status(self, comm, lmp):
+        """
+        Checks if the real class is being passed
+        If not assume we are in interactive mode and use the DummyLammps
+
+        return: the lammps_class object
+        """
+        #
         if lmp is None:
             print("Running without lammps, assuming interactive debugging")
             try:
@@ -476,6 +491,18 @@ class LammpsHook:
             except Exception as err:
                 # Many possible reasons for LAMMPS failures so for the moment catch all
                 raise Exception("Failed to load LAMMPS wrapper", err)
+        return lammps_class
+
+
+    def lammps_hook(self, lmp=None, comm=None):
+        """
+        lammps_hook is the main routine that is run within LAMMPS MD
+        steps. It checks that the LAMMPS python wrapper is callable
+        and then attempts to extract a 3N matrix of atomic data
+
+        :param lmp: LAMMPS object data, only populated when running from within LAMMPS
+        """
+        lammps_class = self.determine_lmp_status(comm, lmp)
 
         if self.topology_loop is True:
             units = self.find_unit_type(lammps_class)
@@ -502,17 +529,12 @@ class LammpsHook:
             self.atom_type = atom_type
 
         # Extract the position matrix
-        positions = self.manipulate_lammps_array('x', lammps_class)
-        # Copy the ctype array to numpy for processing
-        positions_3n = np.fromiter(positions, dtype=np.float64, count=len(positions)).reshape(self.n_atoms, 3)
-        positions_3n *= distance_factor
+        positions_3n = self.extract_positions(distance_factor, lammps_class)
 
         # Collect client data and return to lammps internal arrays
         self.manipulate_lammps_internal_matrix(lammps_class, positions_3n, 'f')
 
         if self.me == 0:
-            # Convert positions
-            self.lammps_positions_to_frame_data(self.frame_data, positions)
             self.frame_data.particle_count = self.n_atoms
             # Convert elements from list to frame data
             self.frame_data.arrays[PARTICLE_ELEMENTS] = self.atom_type
@@ -528,3 +550,7 @@ class LammpsHook:
                 self.frame_loop = 0
 
         self.topology_loop = False
+
+
+
+
