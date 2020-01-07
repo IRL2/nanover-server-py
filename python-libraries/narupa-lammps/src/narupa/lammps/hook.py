@@ -71,7 +71,8 @@ ELEMENT_INDEX_MASS = {
 # Check what units are being used in LAMMPS using this dict
 # For now support converting lj and real, for full unit list
 # see https://lammps.sandia.gov/doc/units.html
-# List goes type, postion, force need to convert into nm and kj/mol/nm
+# List consists of the unit type, the conversion required to convert positions to nm, 
+# and the conversion required to convert forces to kJ/mol/nm
 
 LAMMPS_UNITS_CHECK = {
     # Lenard jones: Is unitless, everything is set to 1
