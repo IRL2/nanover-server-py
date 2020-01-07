@@ -445,7 +445,7 @@ class LammpsHook:
                 self.comm.send(interactions, dest=i, tag=9)
 
         # Collect interactions on all other processes from process 0
-        if self.me > 0:
+        else:
             interactions = self.comm.recv(source=0, tag=9)
 
         if matrix_type == 'f':
