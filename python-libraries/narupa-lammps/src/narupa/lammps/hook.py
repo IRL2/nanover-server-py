@@ -210,7 +210,7 @@ class DummyLammps:
 
 class LammpsHook:
     """
-    lammps_hook is a series of routines the can communicate with the LAMMPS program through
+    A class that can communicate with the LAMMPS program through
     its python interpreter. Upon initialisation, MPI is set up along with the frame server.
     The LAMMPS data is collected across all processors using GATHER and SCATTER routines
     that require mpi4py to respect the internal processor rank of LAMMPS.
