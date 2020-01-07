@@ -75,7 +75,7 @@ ELEMENT_INDEX_MASS = {
 # and the conversion required to convert forces to kJ/mol/nm
 
 LAMMPS_UNITS_CHECK = {
-    # Lenard jones: Is unitless, everything is set to 1
+    # Lennard jones: Is unitless, everything is set to 1
     0: ["lj", 1, 1],
     # Real:
     # Distance: 1 angstrom- > nm (10)
