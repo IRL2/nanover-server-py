@@ -408,6 +408,19 @@ def test_cant_set_other_locked(server_client_pair, scene):
         assert not client1.try_set_resource_value("scene", scene)
 
 
+def test_cant_set_non_basic_type(server_client_pair):
+    """
+    Test that setting a value to a non-basic type raises a ValueError.
+    """
+    server, client = server_client_pair
+
+    class UserType:
+        pass
+
+    with pytest.raises(ValueError):
+        client.try_set_resource_value("scene", UserType())
+
+
 @pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
 def test_subscribe_value_sends_initial_immediately(server_client_pair,
                                                    update_interval):
