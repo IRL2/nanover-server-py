@@ -113,8 +113,8 @@ message SubscribeAllResourceValuesRequest {
 }
 
 message ResourceValuesUpdate {
-    // Map of resource address to updated resource value.
-    map<string, google.protobuf.Value> resource_value_changes = 1;
+    // Struct of resource address to updated resource value.
+    google.protobuf.Struct resource_value_changes = 1;
     // Set of keys that have been removed since last update.
     repeated string resource_value_removals = 2;
 }
