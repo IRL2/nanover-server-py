@@ -1,0 +1,37 @@
+// Copyright (c) Intangible Realities Laboratory, University of Bristol. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+syntax = "proto3";
+import "google/protobuf/struct.proto";
+
+package narupa.protocol.state;
+
+service State {
+    // Periodically received aggregated updates from last known state to latest
+    // state of a shared key/value store.
+    rpc SubscribeStateUpdates(SubscribeStateUpdatesRequest) returns (stream StateUpdate) {}
+
+    // Attempt to make an update to the shared key/value store.
+    rpc MakeStateUpdate(StateUpdate) returns (StateUpdateResponse) {}
+}
+
+message SubscribeStateUpdatesRequest {
+    // Interval (in seconds) between update sends.
+    float update_interval = 1;
+}
+
+message StateUpdate {
+    // Struct where each field is an updated state key and it's latest value,
+    // where null is equivalent to a key removal.
+    google.protobuf.Struct changed_keys = 1;
+}
+
+message MakeStateUpdateRequest {
+    // Update to attempt.
+    StateUpdate update = 1;
+}
+
+message StateUpdateResponse {
+    // Whether the update was successful.
+    bool success = 1;
+}
