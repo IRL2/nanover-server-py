@@ -13,6 +13,10 @@ service State {
 
     // Attempt to make an update to the shared key/value store.
     rpc MakeStateUpdate(StateUpdate) returns (StateUpdateResponse) {}
+
+    // Attempt to acquire, renew, or release exclusive control of keys in the
+    // shared key/value store.
+    rpc UpdateLocks(UpdateLocksRequest) returns (UpdateLocksResponse) {}
 }
 
 message SubscribeStateUpdatesRequest {
@@ -21,17 +25,29 @@ message SubscribeStateUpdatesRequest {
 }
 
 message StateUpdate {
+    // Token for associating requests to their lock ownership.
+    string access_token = 1;
+
     // Struct where each field is an updated state key and it's latest value,
     // where null is equivalent to a key removal.
-    google.protobuf.Struct changed_keys = 1;
+    google.protobuf.Struct changed_keys = 2;
 }
 
-message MakeStateUpdateRequest {
-    // Update to attempt.
-    StateUpdate update = 1;
+message UpdateLocksRequest {
+    // Token for associating requests to their lock ownership.
+    string access_token = 1;
+
+    // Struct where each field an state key and a request to acquire, renew, or
+    // release an exclusive lock on it.
+    google.protobuf.Struct lock_keys = 2;
 }
 
 message StateUpdateResponse {
     // Whether the update was successful.
+    bool success = 1;
+}
+
+message UpdateLocksResponse {
+    // Whether the locking was successful.
     bool success = 1;
 }
