@@ -21,31 +21,21 @@ def state_dictionary():
     return state_dictionary
 
 
-def test_initial_changes_are_initial_update(state_dictionary):
+def test_initial_state(state_dictionary):
     """
-    Test that the initial changes in a change buffer from the state_dictionary
-    are the initial update.
+    Test that the initial state of the dictionary gets set.
     """
-    with state_dictionary.get_change_buffer() as change_buffer:
-        changes, removals = change_buffer.flush_changed_blocking()
-        assert changes == INITIAL_STATE
-        assert not removals
+    assert state_dictionary.content == INITIAL_STATE
 
 
 def test_update_unlocked(state_dictionary):
     """
     Test that unlocked keys can be changed and removed.
     """
-    target_state = {
-        'hello': 50,
-    }
-
-    update = DictionaryChange({'hello': 50}, set(('test',)))
+    update = DictionaryChange({'hello': 50}, {'test'})
     state_dictionary.update_state(ACCESS_TOKEN_1, update)
 
-    with state_dictionary.get_change_buffer() as change_buffer:
-        changes, removals = change_buffer.flush_changed_blocking()
-        assert changes == target_state
+    assert state_dictionary.content == {'hello': 50, }
 
 
 def test_partial_lock_atomic(state_dictionary):
@@ -59,9 +49,7 @@ def test_partial_lock_atomic(state_dictionary):
     with pytest.raises(ResourceLockedException):
         state_dictionary.update_state(ACCESS_TOKEN_1, update)
 
-    with state_dictionary.get_change_buffer() as change_buffer:
-        changes, removals = change_buffer.flush_changed_blocking()
-        assert changes == INITIAL_STATE
+    assert state_dictionary.content == INITIAL_STATE
 
 
 def test_unheld_releases_ignored(state_dictionary):
@@ -69,11 +57,6 @@ def test_unheld_releases_ignored(state_dictionary):
     Test that attempting to release locks on keys which are not locked with this
     access token will not prevent the update from occurring.
     """
-    update = DictionaryChange({'hello': 50, 'goodbye': 50}, set('goodbye'))
-
-    with pytest.raises(ResourceLockedException):
-        state_dictionary.update_state(ACCESS_TOKEN_1, update)
-
-    with state_dictionary.get_change_buffer() as change_buffer:
-        changes, removals = change_buffer.flush_changed_blocking()
-        assert changes == INITIAL_STATE
+    update = DictionaryChange({'hello': 50}, {'goodbye'})
+    state_dictionary.update_state(ACCESS_TOKEN_1, update)
+    assert state_dictionary.content['hello'] == 50

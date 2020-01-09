@@ -22,6 +22,11 @@ class StateDictionary:
         self._change_views = DictionaryChangeMultiView()
         self._write_locks = KeyLockableMap()
 
+    @property
+    def content(self) -> Dict[str, object]:
+        with self._lock:
+            return self._change_views.copy_content()
+
     def get_change_buffer(self) -> ContextManager[DictionaryChangeBuffer]:
         return self._change_views.create_view()
 
@@ -30,10 +35,11 @@ class StateDictionary:
             access_token: object,
             change: DictionaryChange,
     ):
-        if not self._can_token_access_keys(access_token, change.updates.keys()):
-            raise ResourceLockedException
+        with self._lock:
+            if not self._can_token_access_keys(access_token, change.updates.keys()):
+                raise ResourceLockedException
 
-        self._change_views.update(change.updates, change.removals)
+            self._change_views.update(change.updates, change.removals)
 
     def update_locks(
             self,
