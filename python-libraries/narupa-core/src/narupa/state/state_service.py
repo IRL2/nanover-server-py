@@ -4,7 +4,7 @@
 Module providing an implementation of the :class:`StateServicer`.
 
 """
-from typing import Iterable
+from typing import Iterable, Tuple, Set, Dict
 
 from narupa.core.grpc_utils import (
     subscribe_rpc_termination,
@@ -89,6 +89,9 @@ class StateService(StateServicer):
 
 
 def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
+    """
+    Convert a protobuf StateUpdate to a DictionaryChange.
+    """
     changes = {}
     removals = set()
 
@@ -102,6 +105,9 @@ def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
 
 
 def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
+    """
+    Convert a DictionaryChange to a protobuf StateUpdate.
+    """
     changes, removals = change
 
     update = StateUpdate()
@@ -112,7 +118,13 @@ def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
     return update
 
 
-def locks_update_to_dictionary_change(update: UpdateLocksRequest) -> DictionaryChange:
+def locks_update_to_acquire_release(
+        update: UpdateLocksRequest
+) -> Tuple[Dict[str, float], Set[str]]:
+    """
+    Convert a grpc UpdateLocksRequest to a tuple of lock times and locked keys
+    to release.
+    """
     release = set()
     acquire = {}
 
@@ -122,4 +134,4 @@ def locks_update_to_dictionary_change(update: UpdateLocksRequest) -> DictionaryC
         else:
             release.add(key)
 
-    return DictionaryChange(acquire, release)
+    return acquire, release
