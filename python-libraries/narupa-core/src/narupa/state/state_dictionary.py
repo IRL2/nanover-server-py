@@ -28,6 +28,9 @@ class StateDictionary:
             return self._change_views.copy_content()
 
     def get_change_buffer(self) -> ContextManager[DictionaryChangeBuffer]:
+        """
+        Return a DictionaryChangeBuffer that tracks changes to this dictionary.
+        """
         return self._change_views.create_view()
 
     def update_state(
@@ -35,6 +38,10 @@ class StateDictionary:
             access_token: object,
             change: DictionaryChange,
     ):
+        """
+        Update the dictionary with key changes and removals, using any locks
+        permitted by the given access token.
+        """
         with self._lock:
             if not self._can_token_access_keys(access_token, change.updates.keys()):
                 raise ResourceLockedException
@@ -47,6 +54,9 @@ class StateDictionary:
             acquire: Dict[str, float],
             release: Set[str],
     ):
+        """
+        Acquire and release locks for the given access token.
+        """
         with self._lock:
             if not self._can_token_access_keys(access_token, acquire.keys()):
                 raise ResourceLockedException
@@ -60,4 +70,8 @@ class StateDictionary:
                 self._write_locks.lock_key(access_token, key, duration)
 
     def _can_token_access_keys(self, access_token, keys):
+        """
+        Return whether or not all keys are either unlocked or locked by the
+        given access token.
+        """
         return all(self._write_locks.player_can_lock_key(access_token, key) for key in keys)

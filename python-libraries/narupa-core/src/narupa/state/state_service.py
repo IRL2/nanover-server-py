@@ -59,7 +59,8 @@ class StateService(StateServicer):
             context
     ) -> UpdateStateResponse:
         """
-        Attempt an atomic update the shared key/value store.
+        Attempts an atomic update of the shared key/value store. If any key
+        cannot be updates, no change will be made.
         """
         success = True
         change = state_update_to_dictionary_change(request.update)
@@ -74,6 +75,10 @@ class StateService(StateServicer):
             request: UpdateLocksRequest,
             context,
     ) -> UpdateLocksResponse:
+        """
+        Attempts to acquire and release locks on keys in the shared key/value
+        store. If any of the locks cannot be acquired, none of them will be.
+        """
         success = True
         acquire, release = locks_update_to_dictionary_change(request)
         try:
