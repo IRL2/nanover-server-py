@@ -4,7 +4,7 @@
 Module providing an implementation of the :class:`StateServicer`.
 
 """
-from collections import Iterable
+from typing import Iterable
 
 from narupa.core.grpc_utils import (
     subscribe_rpc_termination,

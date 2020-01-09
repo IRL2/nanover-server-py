@@ -22,16 +22,15 @@ class StateDictionary:
         self._change_views = DictionaryChangeMultiView()
         self._write_locks = KeyLockableMap()
 
-    @contextmanager
     def get_change_buffer(self) -> ContextManager[DictionaryChangeBuffer]:
-        yield self._change_views.create_view()
+        return self._change_views.create_view()
 
     def update_state(
             self,
             access_token: object,
             change: DictionaryChange,
     ):
-        if not self._can_token_access_keys(access_token, change.keys()):
+        if not self._can_token_access_keys(access_token, change.updates.keys()):
             raise ResourceLockedException
 
         self._change_views.update(change.updates, change.removals)
@@ -51,7 +50,7 @@ class StateDictionary:
                     self._write_locks.release_key(access_token, key)
                 except ResourceLockedException:
                     pass # don't care if we can't release a lock
-            for key, duration in acquire:
+            for key, duration in acquire.items():
                 self._write_locks.lock_key(access_token, key, duration)
 
     def _can_token_access_keys(self, access_token, keys):
