@@ -2,10 +2,22 @@
 Module providing an out-of-the-box Narupa application server,
 with an underyling gRPC server, discovery, multiplayer and commands.
 """
-from narupa.core import NarupaServer
+from typing import Tuple
+
+from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
 from narupa.essd import DiscoveryServer, ServiceHub
 from narupa.multiplayer.multiplayer_service import MultiplayerService, MULTIPLAYER_SERVICE_NAME
 from narupa.protocol.multiplayer import add_MultiplayerServicer_to_server
+
+
+def start_default_server_and_discovery() -> Tuple[NarupaServer, DiscoveryServer]:
+    """
+    Utility method for creating a default Narupa server along with ESSD discovery.
+    :return: tuple of Narupa server and ESSD discovery.
+    """
+    server = NarupaServer(address=DEFAULT_SERVE_ADDRESS, port=0)
+    discovery = DiscoveryServer()
+    return server, discovery
 
 
 class NarupaApplicationServer:
@@ -15,14 +27,27 @@ class NarupaApplicationServer:
 
     """
 
-    def __init__(self, name="Narupa Server", address=None, port=0):
-        self._server = NarupaServer(address=address, port=port)
-        self._discovery = DiscoveryServer()
+    def __init__(self, server: NarupaServer, discovery: DiscoveryServer, name="Narupa Server"):
+        self._server = server
+        self._discovery = discovery
         self._service_hub = ServiceHub(name=name,
                                        address=self._server.address,
                                        port=self._server.port)
         self._services = set()
         self._setup_multiplayer()
+
+    @classmethod
+    def basic_server(cls, name="Narupa Server"):
+        """
+        Initialises a basic Narupa application server with default settings,
+        with a default unencrypted server and ESSD discovery server for
+        finding it on a local area network.
+
+        :param name: Name of the server for the purposes of discovery.
+        :return: An instantiation of a basic Narupa server, registered with an ESSD discovery server.
+        """
+        server, discovery = start_default_server_and_discovery()
+        return cls(server, discovery, name)
 
     @property
     def name(self) -> str:
@@ -72,6 +97,7 @@ class NarupaApplicationServer:
 
     def _setup_multiplayer(self):
         self._multiplayer = MultiplayerService()
+        # TODO it would be great if this didn't need to know about gRPC details.
         self.add_service(MULTIPLAYER_SERVICE_NAME, self._multiplayer, add_MultiplayerServicer_to_server)
 
     def _update_discovery_services(self):
