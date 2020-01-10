@@ -7,7 +7,7 @@ from narupa.core.change_buffers import DictionaryChange
 from narupa.core.narupa_client import NarupaClient
 from narupa.core.narupa_server import NarupaServer
 
-IMMEDIATE_REPLY_WAIT_TIME = 0.1
+IMMEDIATE_REPLY_WAIT_TIME = 0.01
 
 INITIAL_STATE = {
     'hello': 100,
@@ -122,5 +122,48 @@ def test_client_state_reflects_other_update(client_server):
 
     with client1.lock_state() as state:
         assert state == {'hello': 'goodbye'}
+
+
+@pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
+def test_subscribe_updates_sends_initial_immediately(client_server,
+                                                     update_interval):
+    """
+    Test that subscribing updates before any have been sent will immediately
+    send the initial values regardless of interval.
+    """
+    client, server = client_server
+    client.subscribe_all_state_updates(update_interval)
+
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+
+    with client.lock_state() as state:
+        assert state == INITIAL_STATE
+
+
+@pytest.mark.parametrize('update_interval', (.5, .2, .1))
+def test_subscribe_updates_interval(client_server, update_interval):
+    """
+    Test that state updates are sent at the requested interval.
+    """
+    client, server = client_server
+    client.subscribe_all_state_updates(update_interval)
+
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+
+    with client.lock_state() as state:
+        assert state['hello'] == INITIAL_STATE['hello']
+
+    change = DictionaryChange({'hello': 999}, set())
+    client.attempt_update_state(change)
+
+    time.sleep(update_interval / 2)
+
+    with client.lock_state() as state:
+        assert state['hello'] == INITIAL_STATE['hello']
+
+    time.sleep(update_interval / 2)
+
+    with client.lock_state() as state:
+        assert state['hello'] == 999
 
 
