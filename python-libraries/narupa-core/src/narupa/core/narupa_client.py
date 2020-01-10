@@ -1,18 +1,24 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-from typing import Dict, Iterable
+
+from uuid import uuid4
+from typing import Dict, Iterable, ContextManager
 from narupa.core import GrpcClient
+from narupa.core.change_buffers import DictionaryChange
 from narupa.core.command_info import CommandInfo
-from narupa.core.protobuf_utilities import dict_to_struct, struct_to_dict
+from narupa.core.protobuf_utilities import dict_to_struct, struct_to_dict, \
+    deep_copy_dict
 from narupa.core.state_dictionary import StateDictionary
-from narupa.core.state_service import state_update_to_dictionary_change
+from narupa.core.state_service import state_update_to_dictionary_change, \
+    dictionary_change_to_state_update
 
 from narupa.protocol.command import (
     CommandStub, CommandMessage, GetCommandsRequest,
 )
 from narupa.protocol.state import (
-    StateStub,
-    SubscribeStateUpdatesRequest, StateUpdate)
+    StateStub, SubscribeStateUpdatesRequest, StateUpdate, UpdateStateRequest,
+    UpdateLocksRequest,
+)
 
 
 DEFAULT_STATE_UPDATE_INTERVAL = 1 / 30
@@ -30,13 +36,13 @@ class NarupaClient(GrpcClient):
     _command_stub: CommandStub
     _state_stub: StateStub
 
-    def __init__(self, *, address: str,
-                 port: int):
+    def __init__(self, *, address: str, port: int):
         super().__init__(address=address, port=port)
 
         self._command_stub = CommandStub(self.channel)
         self._available_commands = {}
         self._state_stub = StateStub(self.channel)
+        self._access_token = str(uuid4())
         self._state = StateDictionary()
 
     @property
@@ -76,6 +82,20 @@ class NarupaClient(GrpcClient):
         self._available_commands = {raw.name: CommandInfo.from_proto(raw) for raw in command_responses}
         return self._available_commands
 
+    def lock_state(self) -> ContextManager[Dict[str, object]]:
+        """
+        Context manager for reading the current state while delaying any changes
+        to it.
+        """
+        return self._state.lock_content()
+
+    def copy_state(self) -> Dict[str, object]:
+        """
+        Return a deep copy of the current state.
+        """
+        with self.lock_state() as state:
+            return deep_copy_dict(state)
+
     def subscribe_all_state_updates(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
         """
         Subscribe, in the background, updates to the shared state.
@@ -86,11 +106,27 @@ class NarupaClient(GrpcClient):
         def process_state_updates(update_stream: Iterable[StateUpdate]):
             for update in update_stream:
                 change = state_update_to_dictionary_change(update)
-                self._state.update_state(change)
+                self._state.update_state(None, change)
 
         request = SubscribeStateUpdatesRequest(update_interval=interval)
         update_stream = self._state_stub.SubscribeStateUpdates(request)
         self.threads.submit(process_state_updates, update_stream)
+
+    def attempt_update_state(self, change: DictionaryChange) -> bool:
+        request = UpdateStateRequest(
+            access_token=self._access_token,
+            update=dictionary_change_to_state_update(change),
+        )
+        response = self._state_stub.UpdateState(request)
+        return response.success
+
+    def attempt_update_locks(self, **lock_updates: Dict[str, float]) -> bool:
+        request = UpdateLocksRequest(
+            access_token=self._access_token,
+            key_changes=dict_to_struct(lock_updates),
+        )
+        response = self._state_stub.UpdateLocks(request)
+        return response.success
 
 
 class NarupaStubClient(NarupaClient):

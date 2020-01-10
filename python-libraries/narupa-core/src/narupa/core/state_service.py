@@ -10,7 +10,8 @@ from narupa.core.grpc_utils import (
     RpcAlreadyTerminatedError,
 )
 from narupa.core.key_lockable_map import ResourceLockedException
-from narupa.core.protobuf_utilities import deep_copy_dict
+from narupa.core.protobuf_utilities import deep_copy_dict, value_to_object, \
+    struct_to_dict
 
 from narupa.core.change_buffers import (
     DictionaryChange,
@@ -78,7 +79,7 @@ class StateService(StateServicer):
         Provides a stream of updates to a shared key/value store.
         """
         interval = request.update_interval
-        with self._state_dictionary.create_view() as change_buffer:
+        with self._state_dictionary.get_change_buffer() as change_buffer:
             try:
                 subscribe_rpc_termination(context, change_buffer.freeze)
             except RpcAlreadyTerminatedError:
@@ -128,7 +129,7 @@ def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
     changes = {}
     removals = set()
 
-    for key, value in update:
+    for key, value in struct_to_dict(update.changed_keys).items():
         if value is None:
             removals.add(key)
         else:
@@ -149,6 +150,15 @@ def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
         update.changed_keys[key] = None
 
     return update
+
+
+def acquire_release_to_locks_update(
+        acquire: Dict[str, float],
+        release: Set[str],
+) -> UpdateLocksRequest:
+    acquire
+
+    request = UpdateLocksRequest(lock_keys=keys)
 
 
 def locks_update_to_acquire_release(

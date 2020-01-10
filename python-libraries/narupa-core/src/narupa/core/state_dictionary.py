@@ -45,7 +45,6 @@ class StateDictionary:
         with self._lock:
             if not self._can_token_access_keys(access_token, change.updates.keys()):
                 raise ResourceLockedException
-
             self._change_views.update(change.updates, change.removals)
 
     def update_locks(

@@ -9,7 +9,7 @@ from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, 
 
 from .test_frame_server import simple_frame_data, frame_server
 from .imd.test_imd_server import imd_server, interaction
-from .core.test_grpc_client_server import mock_callback, default_args
+from .core.test_grpc_client_server_commands import mock_callback, default_args
 from narupa.app.client import NarupaImdClient
 import numpy as np
 
