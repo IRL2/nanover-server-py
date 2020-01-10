@@ -11,7 +11,7 @@ from narupa.core.grpc_utils import (
 )
 from narupa.core.key_lockable_map import ResourceLockedException
 from narupa.core.protobuf_utilities import deep_copy_dict, value_to_object, \
-    struct_to_dict
+    struct_to_dict, dict_to_struct
 
 from narupa.core.change_buffers import (
     DictionaryChange,
@@ -56,6 +56,7 @@ class StateService(StateServicer):
         Attempts an atomic update of the shared key/value store. If any key
         cannot be updates, no change will be made.
         """
+        validate_dict_is_serializable(change.updates)
         self._state_dictionary.update_state(access_token, change)
 
     def update_locks(
@@ -102,7 +103,7 @@ class StateService(StateServicer):
             self.update_state(request.access_token, change)
         except ResourceLockedException:
             success = False
-        return UpdateStateResponse(success)
+        return UpdateStateResponse(success=success)
 
     def UpdateLocks(
             self,
@@ -119,7 +120,14 @@ class StateService(StateServicer):
             self.update_locks(request.access_token, acquire, release)
         except ResourceLockedException:
             success = False
-        return UpdateLocksResponse(success)
+        return UpdateLocksResponse(success=success)
+
+
+def validate_dict_is_serializable(dictionary):
+    try:
+        dict_to_struct(dictionary)
+    except ValueError as e:
+        raise TypeError("Data is not serializable with protobuf.") from e
 
 
 def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:

@@ -10,7 +10,7 @@ from narupa.core.protobuf_utilities import dict_to_struct, struct_to_dict, \
     deep_copy_dict
 from narupa.core.state_dictionary import StateDictionary
 from narupa.core.state_service import state_update_to_dictionary_change, \
-    dictionary_change_to_state_update
+    dictionary_change_to_state_update, validate_dict_is_serializable
 
 from narupa.protocol.command import (
     CommandStub, CommandMessage, GetCommandsRequest,
@@ -113,6 +113,7 @@ class NarupaClient(GrpcClient):
         self.threads.submit(process_state_updates, update_stream)
 
     def attempt_update_state(self, change: DictionaryChange) -> bool:
+        validate_dict_is_serializable(change.updates)
         request = UpdateStateRequest(
             access_token=self._access_token,
             update=dictionary_change_to_state_update(change),
