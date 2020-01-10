@@ -160,15 +160,6 @@ def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
     return update
 
 
-def acquire_release_to_locks_update(
-        acquire: Dict[str, float],
-        release: Set[str],
-) -> UpdateLocksRequest:
-    acquire
-
-    request = UpdateLocksRequest(lock_keys=keys)
-
-
 def locks_update_to_acquire_release(
         update: UpdateLocksRequest
 ) -> Tuple[Dict[str, float], Set[str]]:
