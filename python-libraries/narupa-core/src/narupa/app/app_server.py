@@ -22,9 +22,10 @@ def start_default_server_and_discovery() -> Tuple[NarupaServer, DiscoveryServer]
 
 class NarupaApplicationServer:
     """
-    Provides a Narupa server for typical applications, with local area network discovery provided by
+    Provides a convenient Narupa server for typical applications, with local area network discovery provided by
     ESSD, multiplayer configuration and a command service.
 
+    Use this a base for building specific applications by inheriting from it and attaching additional services.
     """
 
     def __init__(self, server: NarupaServer, discovery: DiscoveryServer, name="Narupa Server"):
@@ -72,6 +73,29 @@ class NarupaApplicationServer:
         :return: Port of the server.
         """
         return self._server.port
+
+    @property
+    def server(self) -> NarupaServer:
+        """
+        The underlying Narupa server for this application.
+        One can use this to manage commands and services.
+        :return: The Narupa server.
+        """
+        return self._server
+
+    @property
+    def discovery(self) -> DiscoveryServer:
+        """
+        The discovery service that can be used to allow clients to find services hosted by this application.
+        :return: The discovery service.
+
+        Services added directly to the server running on this application via :fun:`NarupaApplicationServer.add_service`
+        are automatically added to this discovery service.
+
+        Accessing the discovery service directly enables one to register their own server that may be running
+        separately to the core application.
+        """
+        return self._discovery
 
     def close(self):
         """

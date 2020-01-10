@@ -8,7 +8,7 @@ from narupa.trajectory import FramePublisher, FRAME_SERVICE_NAME, FrameData
 class NarupaFrameServer(NarupaApplicationServer):
     """
 
-    Application-level class for implementing a Narupa frame server, something that publishes frames
+    Application-level class for implementing a Narupa frame server, something that publishes
     :class:`FrameData` that can be consumed, e.g. simulation trajectories.
 
     Example
