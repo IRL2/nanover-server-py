@@ -50,6 +50,18 @@ def test_send_service_different_port(service):
             assert service in services
 
 
+def test_remove_service(client_server, service):
+    client, server = client_server
+    server.register_service(service)
+    services = client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME)
+    assert len(services) == 1
+    assert service in services
+    server.unregister_service(service)
+    time.sleep(TEST_INTERVAL_TIME)
+    services = client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME)
+    assert service not in services
+
+
 def test_send_service_multiple_clients(client_server, service):
     client, server = client_server
     with DiscoveryClient(port=client.port) as second_client:

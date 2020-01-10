@@ -80,6 +80,18 @@ class DiscoveryServer:
         with self._lock:
             self.services[service] = broadcast_addresses
 
+    def unregister_service(self, service: ServiceHub):
+        """
+        Removes a service from discovery.
+
+        :param service: The service to remove.
+        :raises KeyError Raised if the service has never been registered with this discovery server.
+        """
+        if service not in self.services:
+            raise KeyError(f'No service with this ID has been registered {service}')
+        with self._lock:
+            del self.services[service]
+
     @property
     def is_broadcasting(self):
         return self._broadcast_thread is not None
