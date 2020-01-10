@@ -37,9 +37,16 @@ class StateService(StateServicer):
         self._state_dictionary = StateDictionary()
 
     def lock_state(self) -> ContextManager[Dict[str, object]]:
+        """
+        Context manager for reading the current state while delaying any changes
+        to it.
+        """
         return self._state_dictionary.lock_content()
 
     def copy_state(self) -> Dict[str, object]:
+        """
+        Return a deep copy of the current state.
+        """
         with self.lock_state() as state:
             return deep_copy_dict(state)
 
