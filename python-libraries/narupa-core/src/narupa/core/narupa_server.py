@@ -5,7 +5,7 @@ from typing import Callable, Optional, Dict
 from google.protobuf.struct_pb2 import Struct
 
 from narupa.core.command_service import CommandService, CommandRegistration
-from narupa.state import StateService
+from narupa.core.state_service import StateService
 from narupa.core import GrpcServer
 from narupa.core.grpc_server import DEFAULT_MAX_WORKERS
 from narupa.protocol.command import add_CommandServicer_to_server

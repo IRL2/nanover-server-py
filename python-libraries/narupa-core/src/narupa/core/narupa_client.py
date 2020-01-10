@@ -1,13 +1,21 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-from typing import Optional, Collection, Dict, List, Set
-
-from google.protobuf.struct_pb2 import Struct
-
+from typing import Dict, Iterable
 from narupa.core import GrpcClient
 from narupa.core.command_info import CommandInfo
 from narupa.core.protobuf_utilities import dict_to_struct, struct_to_dict
-from narupa.protocol.command import CommandStub, CommandMessage, GetCommandsRequest
+from narupa.core.state_dictionary import StateDictionary
+from narupa.core.state_service import state_update_to_dictionary_change
+
+from narupa.protocol.command import (
+    CommandStub, CommandMessage, GetCommandsRequest,
+)
+from narupa.protocol.state import (
+    StateStub,
+    SubscribeStateUpdatesRequest, StateUpdate)
+
+
+DEFAULT_STATE_UPDATE_INTERVAL = 1 / 30
 
 
 class NarupaClient(GrpcClient):
@@ -19,6 +27,8 @@ class NarupaClient(GrpcClient):
     :param port: Port of server to connect to.
 
     """
+    _command_stub: CommandStub
+    _state_stub: StateStub
 
     def __init__(self, *, address: str,
                  port: int):
@@ -26,6 +36,8 @@ class NarupaClient(GrpcClient):
 
         self._command_stub = CommandStub(self.channel)
         self._available_commands = {}
+        self._state_stub = StateStub(self.channel)
+        self._state = StateDictionary()
 
     @property
     def available_commands(self) -> Dict[str, CommandInfo]:
@@ -63,6 +75,22 @@ class NarupaClient(GrpcClient):
         command_responses = self._command_stub.GetCommands(GetCommandsRequest()).commands
         self._available_commands = {raw.name: CommandInfo.from_proto(raw) for raw in command_responses}
         return self._available_commands
+
+    def subscribe_all_state_updates(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
+        """
+        Subscribe, in the background, updates to the shared state.
+
+        :param interval: Minimum time (in seconds) between receiving new updates
+            for any and all values.
+        """
+        def process_state_updates(update_stream: Iterable[StateUpdate]):
+            for update in update_stream:
+                change = state_update_to_dictionary_change(update)
+                self._state.update_state(change)
+
+        request = SubscribeStateUpdatesRequest(update_interval=interval)
+        update_stream = self._state_stub.SubscribeStateUpdates(request)
+        self.threads.submit(process_state_updates, update_stream)
 
 
 class NarupaStubClient(NarupaClient):

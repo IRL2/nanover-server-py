@@ -23,7 +23,7 @@ class StateDictionary:
         self._write_locks = KeyLockableMap()
 
     @contextmanager
-    def lock_content(self):
+    def lock_content(self) -> ContextManager[Dict[str, object]]:
         with self._lock:
             yield self._change_views.copy_content()
 

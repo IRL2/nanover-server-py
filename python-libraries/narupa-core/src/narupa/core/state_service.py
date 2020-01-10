@@ -2,9 +2,8 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
 Module providing an implementation of the :class:`StateServicer`.
-
 """
-from typing import Iterable, Tuple, Set, Dict
+from typing import Iterable, Tuple, Set, Dict, ContextManager
 
 from narupa.core.grpc_utils import (
     subscribe_rpc_termination,
@@ -37,17 +36,36 @@ class StateService(StateServicer):
         self._id = "service"
         self._state_dictionary = StateDictionary()
 
-    def lock_state(self):
+    def lock_state(self) -> ContextManager[Dict[str, object]]:
         return self._state_dictionary.lock_content()
 
     def copy_state(self) -> Dict[str, object]:
-        with self._state_dictionary.lock_content() as content:
-            return deep_copy_dict(content)
+        with self.lock_state() as state:
+            return deep_copy_dict(state)
+
+    def update_state(self, access_token: object, change: DictionaryChange):
+        """
+        Attempts an atomic update of the shared key/value store. If any key
+        cannot be updates, no change will be made.
+        """
+        self._state_dictionary.update_state(access_token, change)
+
+    def update_locks(
+            self,
+            access_token: object,
+            acquire: Dict[str, float],
+            release: Set[str],
+    ):
+        """
+        Attempts to acquire and release locks on keys in the shared key/value
+        store. If any of the locks cannot be acquired, none of them will be.
+        """
+        self._state_dictionary.update_locks(access_token, acquire, release)
 
     def SubscribeStateUpdates(
             self,
             request: SubscribeStateUpdatesRequest,
-            context
+            context,
     ) -> Iterable[StateUpdate]:
         """
         Provides a stream of updates to a shared key/value store.
@@ -64,7 +82,7 @@ class StateService(StateServicer):
     def UpdateState(
             self,
             request: UpdateStateRequest,
-            context
+            context,
     ) -> UpdateStateResponse:
         """
         Attempts an atomic update of the shared key/value store. If any key
@@ -73,7 +91,7 @@ class StateService(StateServicer):
         success = True
         change = state_update_to_dictionary_change(request.update)
         try:
-            self._state_dictionary.update_state(request.access_token, change)
+            self.update_state(request.access_token, change)
         except ResourceLockedException:
             success = False
         return UpdateStateResponse(success)
@@ -90,7 +108,7 @@ class StateService(StateServicer):
         success = True
         acquire, release = locks_update_to_acquire_release(request)
         try:
-            self._state_dictionary.update_locks(request.access_token, acquire, release)
+            self.update_locks(request.access_token, acquire, release)
         except ResourceLockedException:
             success = False
         return UpdateLocksResponse(success)
