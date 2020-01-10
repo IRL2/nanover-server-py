@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from threading import Lock
 from typing import ContextManager, Set, Dict
 
-from narupa.core.key_lockable_map import KeyLockableMap, ResourceLockedException
+from narupa.core.key_lockable_map import KeyLockableMap, ResourceLockedError
 from narupa.core.change_buffers import (
     DictionaryChangeMultiView,
     DictionaryChangeBuffer,
@@ -43,8 +43,9 @@ class StateDictionary:
         permitted by the given access token.
         """
         with self._lock:
-            if not self._can_token_access_keys(access_token, change.updates.keys()):
-                raise ResourceLockedException
+            keys = set(change.updates.keys()) | set(change.removals)
+            if not self._can_token_access_keys(access_token, keys):
+                raise ResourceLockedError
             self._change_views.update(change.updates, change.removals)
 
     def update_locks(
@@ -58,12 +59,12 @@ class StateDictionary:
         """
         with self._lock:
             if not self._can_token_access_keys(access_token, acquire.keys()):
-                raise ResourceLockedException
+                raise ResourceLockedError
 
             for key in release:
                 try:
                     self._write_locks.release_key(access_token, key)
-                except ResourceLockedException:
+                except ResourceLockedError:
                     pass # don't care if we can't release a lock
             for key, duration in acquire.items():
                 self._write_locks.lock_key(access_token, key, duration)

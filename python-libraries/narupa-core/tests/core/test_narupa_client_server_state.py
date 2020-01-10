@@ -3,11 +3,13 @@ from typing import Tuple
 
 import pytest
 from narupa.core.change_buffers import DictionaryChange
+from narupa.core.key_lockable_map import ResourceLockedError
 
 from narupa.core.narupa_client import NarupaClient
 from narupa.core.narupa_server import NarupaServer
 
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
+ARBITRARY_LOCK_DURATION = 5
 
 INITIAL_STATE = {
     'hello': 100,
@@ -165,5 +167,136 @@ def test_subscribe_updates_interval(client_server, update_interval):
 
     with client.lock_state() as state:
         assert state['hello'] == 999
+
+
+def test_can_lock_unlocked(client_server):
+    """
+    Test that an unlocked state key can be locked.
+    """
+    client, server = client_server
+    assert client.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+
+
+def test_can_lock_unlocked_nonexistent(client_server):
+    """
+    Test that a nonexistent unlocked state key can be locked.
+    """
+    client, server = client_server
+    assert client.attempt_update_locks({'goodbye': ARBITRARY_LOCK_DURATION})
+
+
+def test_can_lock_own_locked(client_server):
+    """
+    Test that an attempt to lock a state key you have already lock succeeds.
+    """
+    client, server = client_server
+    client.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+    assert client.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+
+
+def test_can_update_own_locked(client_server):
+    """
+    Test that you can update state keys that you locked.
+    """
+    client, server = client_server
+    client.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+    change = DictionaryChange({'hello': 999}, {'test'})
+    assert client.attempt_update_state(change)
+
+
+def test_can_release_own_lock(client_server):
+    """
+    Test that you can release your own lock.
+    """
+    client, server = client_server
+    client.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+    assert client.attempt_update_locks({'hello': None})
+
+
+def test_can_update_unlocked(client_server):
+    """
+    Test that you can update state keys that are unlocked.
+    """
+    client, server = client_server
+    change = DictionaryChange({'hello': 999}, {'test'})
+    assert client.attempt_update_state(change)
+
+
+def test_cant_remove_locked_key(client_server):
+    """
+    Test can't remove key that is locked by another access token.
+    """
+    client, server = client_server
+    server.update_locks(acquire={'hello': ARBITRARY_LOCK_DURATION})
+    change = DictionaryChange({}, {'hello'})
+    assert not client.attempt_update_state(change)
+
+
+def test_update_unlocked_repeated(client_server):
+    client1, server = client_server
+    change1 = DictionaryChange({'hello': 1}, set())
+    change2 = DictionaryChange({'hello': 2}, set())
+    with NarupaClient(address="localhost", port=server.port) as client2:
+        assert client1.attempt_update_state(change1)
+        assert client2.attempt_update_state(change2)
+        assert client1.attempt_update_state(change1)
+        assert client2.attempt_update_state(change2)
+
+
+def test_cant_lock_other_locked(client_server):
+    """
+    Test that you cannot lock a state key that is locked by someone else.
+    """
+    client1, server = client_server
+
+    with NarupaClient(address="localhost", port=server.port) as client2:
+        client2.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+        assert not client1.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+
+
+def test_cant_release_other_lock(client_server):
+    """
+    Test that you cannot unlock a state key that is locked by someone else.
+    """
+    client1, server = client_server
+
+    with NarupaClient(address="localhost", port=server.port) as client2:
+        client2.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+        assert client1.attempt_update_locks({'hello': None})
+        change = DictionaryChange({'hello': 999}, set())
+        assert not client1.attempt_update_state(change)
+
+
+def test_cant_set_other_locked(client_server):
+    """
+    Test that you cannot set a state key that is locked by someone else.
+    """
+    client1, server = client_server
+
+    with NarupaClient(address="localhost", port=server.port) as client2:
+        client2.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+        change = DictionaryChange({'hello': 999}, set())
+        assert not client1.attempt_update_state(change)
+
+
+@pytest.mark.parametrize('lock_duration', (.5, 1, 2))
+def test_lock_durations(client_server, lock_duration):
+    """
+    Test that locks expire roughly after the requested duration has passed.
+    """
+    client, server = client_server
+
+    access_token_1 = object()
+    access_token_2 = object()
+
+    server.update_locks(access_token_1, acquire={'hello': lock_duration})
+
+    time.sleep(lock_duration * .7)
+    with pytest.raises(ResourceLockedError):
+        server.update_locks(access_token_2, acquire={'hello': lock_duration})
+
+    time.sleep(lock_duration * .7)
+    server.update_locks(access_token_2, acquire={'hello': lock_duration})
+
 
 

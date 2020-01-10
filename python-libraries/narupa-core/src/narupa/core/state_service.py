@@ -9,7 +9,7 @@ from narupa.core.grpc_utils import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
 )
-from narupa.core.key_lockable_map import ResourceLockedException
+from narupa.core.key_lockable_map import ResourceLockedError
 from narupa.core.protobuf_utilities import deep_copy_dict, value_to_object, \
     struct_to_dict, dict_to_struct
 
@@ -101,7 +101,7 @@ class StateService(StateServicer):
         change = state_update_to_dictionary_change(request.update)
         try:
             self.update_state(request.access_token, change)
-        except ResourceLockedException:
+        except ResourceLockedError:
             success = False
         return UpdateStateResponse(success=success)
 
@@ -118,7 +118,7 @@ class StateService(StateServicer):
         acquire, release = locks_update_to_acquire_release(request)
         try:
             self.update_locks(request.access_token, acquire, release)
-        except ResourceLockedException:
+        except ResourceLockedError:
             success = False
         return UpdateLocksResponse(success=success)
 
@@ -179,8 +179,8 @@ def locks_update_to_acquire_release(
     release = set()
     acquire = {}
 
-    for key, duration in update.lock_keys:
-        if duration > 0:
+    for key, duration in struct_to_dict(update.lock_keys).items():
+        if duration is not None:
             acquire[key] = duration
         else:
             release.add(key)

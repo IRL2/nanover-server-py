@@ -121,10 +121,10 @@ class NarupaClient(GrpcClient):
         response = self._state_stub.UpdateState(request)
         return response.success
 
-    def attempt_update_locks(self, **lock_updates: Dict[str, float]) -> bool:
+    def attempt_update_locks(self, lock_updates: Dict[str, float]) -> bool:
         request = UpdateLocksRequest(
             access_token=self._access_token,
-            key_changes=dict_to_struct(lock_updates),
+            lock_keys=dict_to_struct(lock_updates),
         )
         response = self._state_stub.UpdateLocks(request)
         return response.success

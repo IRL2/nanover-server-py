@@ -86,9 +86,9 @@ class NarupaServer(GrpcServer):
 
     def update_locks(
             self,
-            access_token: object,
-            acquire: Dict[str, float],
-            release: Set[str],
+            access_token: object = None,
+            acquire: Dict[str, float] = {},
+            release: Set[str] = set(),
     ):
         """
         Attempts to acquire and release locks on keys in the shared key/value

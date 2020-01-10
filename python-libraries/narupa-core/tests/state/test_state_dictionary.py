@@ -2,7 +2,7 @@ import time
 from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
-from narupa.core.key_lockable_map import ResourceLockedException
+from narupa.core.key_lockable_map import ResourceLockedError
 from narupa.core.change_buffers import DictionaryChange
 from narupa.core.state_dictionary import StateDictionary
 
@@ -53,7 +53,7 @@ def test_partial_lock_atomic(state_dictionary):
     state_dictionary.update_locks(ACCESS_TOKEN_2, {'hello': 10}, set())
     update = DictionaryChange({'hello': 50, 'goodbye': 50}, set())
 
-    with pytest.raises(ResourceLockedException):
+    with pytest.raises(ResourceLockedError):
         state_dictionary.update_state(ACCESS_TOKEN_1, update)
 
     with state_dictionary.lock_content() as current_state:
