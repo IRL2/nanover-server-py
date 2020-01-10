@@ -510,7 +510,7 @@ class LammpsHook:
             units_type = LAMMPS_UNITS_CHECK.get(units, None)[0]
             distance_factor = LAMMPS_UNITS_CHECK.get(units, None)[1]
             force_factor = LAMMPS_UNITS_CHECK.get(units, None)[2]
-            logging.info("units : %s %s %s %s", self.me, units_type, force_factor, distance_factor)
+            logging.debug("units : %s %s %s %s", self.me, units_type, force_factor, distance_factor)
             self.n_atoms = n_atoms
             self.distance_factor = distance_factor
             self.units_type = units_type
