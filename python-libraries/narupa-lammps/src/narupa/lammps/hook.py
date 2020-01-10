@@ -75,7 +75,7 @@ ELEMENT_INDEX_MASS = {
 # List consists of the unit type, the conversion required to convert positions to nm, 
 # and the conversion required to convert forces to kJ/mol/nm
 
-lammpsunitconverter = NamedTuple("LammpsUnitConverter", [('Type', str),('Positions', float), ('Forces', float)])
+lammpsunitconverter = NamedTuple("LammpsUnitConverter", [('type', str),('positions', float), ('forces', float)])
 LAMMPS_UNITS_CHECK = {
     # Lennard jones: Is unitless, everything is set to 1
     0: lammpsunitconverter(Type="lj", Positions=1, Forces=1),
