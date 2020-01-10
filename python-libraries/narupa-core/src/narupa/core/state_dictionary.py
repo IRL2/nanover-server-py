@@ -22,11 +22,6 @@ class StateDictionary:
         self._change_views = DictionaryChangeMultiView()
         self._write_locks = KeyLockableMap()
 
-    @property
-    def content(self) -> Dict[str, object]:
-        with self._lock:
-            return self._change_views.copy_content()
-
     @contextmanager
     def lock_content(self):
         with self._lock:

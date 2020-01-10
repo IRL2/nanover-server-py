@@ -19,7 +19,7 @@ INITIAL_STATE = {
 
 
 @pytest.fixture
-def state_dictionary():
+def state_dictionary() -> StateDictionary:
     state_dictionary = StateDictionary()
     change = DictionaryChange(INITIAL_STATE, set())
     state_dictionary.update_state(None, change)
@@ -30,7 +30,8 @@ def test_initial_state(state_dictionary):
     """
     Test that the initial state of the dictionary gets set.
     """
-    assert state_dictionary.content == INITIAL_STATE
+    with state_dictionary.lock_content() as current_state:
+        assert current_state == INITIAL_STATE
 
 
 def test_update_unlocked(state_dictionary):
@@ -40,7 +41,8 @@ def test_update_unlocked(state_dictionary):
     update = DictionaryChange({'hello': 50}, {'test'})
     state_dictionary.update_state(ACCESS_TOKEN_1, update)
 
-    assert state_dictionary.content == {'hello': 50, }
+    with state_dictionary.lock_content() as current_state:
+        assert current_state == {'hello': 50, }
 
 
 def test_partial_lock_atomic(state_dictionary):
@@ -54,7 +56,8 @@ def test_partial_lock_atomic(state_dictionary):
     with pytest.raises(ResourceLockedException):
         state_dictionary.update_state(ACCESS_TOKEN_1, update)
 
-    assert state_dictionary.content == INITIAL_STATE
+    with state_dictionary.lock_content() as current_state:
+        assert current_state == INITIAL_STATE
 
 
 def test_unheld_releases_ignored(state_dictionary):
@@ -64,7 +67,9 @@ def test_unheld_releases_ignored(state_dictionary):
     """
     update = DictionaryChange({'hello': 50}, {'goodbye'})
     state_dictionary.update_state(ACCESS_TOKEN_1, update)
-    assert state_dictionary.content['hello'] == 50
+
+    with state_dictionary.lock_content() as current_state:
+        assert current_state['hello'] == 50
 
 
 def test_locked_content_is_unchanged(state_dictionary):
