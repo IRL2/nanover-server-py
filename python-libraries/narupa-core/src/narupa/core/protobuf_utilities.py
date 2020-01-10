@@ -51,3 +51,11 @@ def value_to_object(value: Value) -> object:
     :return: A python object equivalent to the given protobuf Value.
     """
     return MessageToDict(value)
+
+
+def deep_copy_dict(dictionary: Dict[str, object]) -> Dict[str, object]:
+    """
+    Makes a deep copy of a dictionary by converting it to a protobuf Struct and
+    back. Only protobuf serializable elements will be preserved.
+    """
+    return struct_to_dict(dict_to_struct(dictionary))

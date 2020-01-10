@@ -5,7 +5,7 @@ from threading import Lock
 from typing import ContextManager, Set, Dict
 
 from narupa.core.key_lockable_map import KeyLockableMap, ResourceLockedException
-from narupa.multiplayer.change_buffers import (
+from narupa.core.change_buffers import (
     DictionaryChangeMultiView,
     DictionaryChangeBuffer,
     DictionaryChange,
@@ -26,6 +26,11 @@ class StateDictionary:
     def content(self) -> Dict[str, object]:
         with self._lock:
             return self._change_views.copy_content()
+
+    @contextmanager
+    def lock_content(self):
+        with self._lock:
+            yield self._change_views.copy_content()
 
     def get_change_buffer(self) -> ContextManager[DictionaryChangeBuffer]:
         """

@@ -11,8 +11,9 @@ from narupa.core.grpc_utils import (
     RpcAlreadyTerminatedError,
 )
 from narupa.core.key_lockable_map import ResourceLockedException
+from narupa.core.protobuf_utilities import deep_copy_dict
 
-from narupa.multiplayer.change_buffers import (
+from narupa.core.change_buffers import (
     DictionaryChange,
 )
 
@@ -25,7 +26,7 @@ from narupa.protocol.state import (
     UpdateStateResponse,
     UpdateLocksResponse,
 )
-from narupa.state.state_dictionary import StateDictionary
+from narupa.core.state_dictionary import StateDictionary
 
 
 class StateService(StateServicer):
@@ -35,6 +36,13 @@ class StateService(StateServicer):
         super().__init__()
         self._id = "service"
         self._state_dictionary = StateDictionary()
+
+    def lock_state(self):
+        return self._state_dictionary.lock_content()
+
+    def copy_state(self) -> Dict[str, object]:
+        with self._state_dictionary.lock_content() as content:
+            return deep_copy_dict(content)
 
     def SubscribeStateUpdates(
             self,
@@ -80,7 +88,7 @@ class StateService(StateServicer):
         store. If any of the locks cannot be acquired, none of them will be.
         """
         success = True
-        acquire, release = locks_update_to_dictionary_change(request)
+        acquire, release = locks_update_to_acquire_release(request)
         try:
             self._state_dictionary.update_locks(request.access_token, acquire, release)
         except ResourceLockedException:

@@ -3,5 +3,4 @@
 """
 Module providing a python implementation of the Narupa state services.
 """
-from .state_dictionary import StateDictionary
 from .state_service import StateService

@@ -1,8 +1,13 @@
+import time
+from concurrent.futures.thread import ThreadPoolExecutor
+
 import pytest
 from narupa.core.key_lockable_map import ResourceLockedException
-from narupa.multiplayer.change_buffers import DictionaryChange
-from narupa.state import StateDictionary
+from narupa.core.change_buffers import DictionaryChange
+from narupa.core.state_dictionary import StateDictionary
 
+
+BACKGROUND_THREAD_ACTION_TIME = .1
 
 ACCESS_TOKEN_1 = object()
 ACCESS_TOKEN_2 = object()
@@ -60,3 +65,45 @@ def test_unheld_releases_ignored(state_dictionary):
     update = DictionaryChange({'hello': 50}, {'goodbye'})
     state_dictionary.update_state(ACCESS_TOKEN_1, update)
     assert state_dictionary.content['hello'] == 50
+
+
+def test_locked_content_is_unchanged(state_dictionary):
+    """
+    Test that background changes to the StateDictionary do not take effect while
+    an exclusive lock is held on the entire state.
+    """
+    thread_pool = ThreadPoolExecutor(max_workers=1)
+
+    def meddle_with_state(state_dictionary):
+        state_dictionary.update_state(
+            ACCESS_TOKEN_1,
+            DictionaryChange({'hello': 50}, set()),
+        )
+
+    with state_dictionary.lock_content() as content:
+        thread_pool.submit(meddle_with_state, state_dictionary)
+        time.sleep(BACKGROUND_THREAD_ACTION_TIME)
+        assert content == INITIAL_STATE
+
+
+def test_locked_content_changes_after(state_dictionary):
+    """
+    Test that changes to the StateDictionary attempted while an exclusive lock
+    was held on the entire state will take effect once the lock is released.
+    """
+    thread_pool = ThreadPoolExecutor(max_workers=1)
+
+    def meddle_with_state(state):
+        state.update_state(
+            ACCESS_TOKEN_1,
+            DictionaryChange({'hello': 50}, set()),
+        )
+
+    with state_dictionary.lock_content() as content:
+        thread_pool.submit(meddle_with_state, state_dictionary)
+        time.sleep(BACKGROUND_THREAD_ACTION_TIME)
+
+    time.sleep(BACKGROUND_THREAD_ACTION_TIME)
+
+    with state_dictionary.lock_content() as content:
+        assert content['hello'] == 50

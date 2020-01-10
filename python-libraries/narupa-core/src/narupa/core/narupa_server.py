@@ -5,9 +5,11 @@ from typing import Callable, Optional, Dict
 from google.protobuf.struct_pb2 import Struct
 
 from narupa.core.command_service import CommandService, CommandRegistration
+from narupa.state import StateService
 from narupa.core import GrpcServer
 from narupa.core.grpc_server import DEFAULT_MAX_WORKERS
 from narupa.protocol.command import add_CommandServicer_to_server
+from narupa.protocol.state import add_StateServicer_to_server
 
 
 class NarupaServer(GrpcServer):
@@ -15,6 +17,8 @@ class NarupaServer(GrpcServer):
     A base for Narupa gRPC servers. Sets up a gRPC server, and automatically
     attaches a :class:`CommandService`, enabling the running of arbitrary commands.
     """
+    _command_service: CommandService
+    _state_service: StateService
 
     def __init__(self, *, address: str, port: int, max_workers=DEFAULT_MAX_WORKERS):
         super().__init__(address=address, port=port, max_workers=max_workers)
@@ -25,7 +29,9 @@ class NarupaServer(GrpcServer):
         """
         super().setup_services()
         self._command_service = CommandService()
+        self._state_service = StateService()
         add_CommandServicer_to_server(self._command_service, self.server)
+        add_StateServicer_to_server(self._state_service, self.server)
 
     @property
     def commands(self) -> Dict[str, CommandRegistration]:
@@ -56,3 +62,7 @@ class NarupaServer(GrpcServer):
         :param name: Name of the command to delete
         """
         self._command_service.unregister_command(name)
+
+    @property
+    def state(self) -> Dict[str, object]:
+        return self._state_service.lock_state()
