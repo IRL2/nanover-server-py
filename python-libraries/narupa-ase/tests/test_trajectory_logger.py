@@ -132,9 +132,6 @@ def test_reset_timestamp(atoms, tmp_dir):
     """
     tests that resetting the logger that's using timestamps sets the frame index back to zero,
     and creates a new file.
-    :param atoms:
-    :param tmp_dir:
-    :return:
     """
     file = os.path.join(tmp_dir, "atoms" + ".xyz")
     with TrajectoryLogger(atoms, file) as logger:
