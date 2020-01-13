@@ -42,6 +42,7 @@ class NarupaImdApplication(NarupaFrameApplication):
 
         :return: The :class:`ImdService` attached to this application.
         """
+        #TODO could probably just expose active interactions here.
         return self._imd_service
 
     def close(self):

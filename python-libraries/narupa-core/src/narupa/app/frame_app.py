@@ -43,6 +43,7 @@ class NarupaFrameApplication(NarupaApplicationServer):
 
         :return: The :class:`FramePublisher` attached to this application.
         """
+        # TODO could just expose send frame here.
         return self._frame_publisher
 
     def _setup_frame_publisher(self):
