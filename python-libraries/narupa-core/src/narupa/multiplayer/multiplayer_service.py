@@ -13,6 +13,7 @@ from narupa.core.grpc_utils import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
 )
+from narupa.core.protobuf_utilities import value_to_object
 from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
 from narupa.core.key_lockable_map import (
     KeyLockableMap,
@@ -103,9 +104,7 @@ class MultiplayerService(MultiplayerServicer):
             for changes, removals in change_buffer.subscribe_changes(interval):
                 response = ResourceValuesUpdate()
                 response.resource_value_removals.extend(removals)
-                for key, value in changes.items():
-                    entry = response.resource_value_changes.get_or_create(key)
-                    entry.MergeFrom(value)
+                response.resource_value_changes.update(changes)
                 yield response
 
     def AcquireResourceLock(self,
@@ -151,18 +150,19 @@ class MultiplayerService(MultiplayerServicer):
         """
         Attempt to write a value in the shared key/value store.
         """
+        resource_value = value_to_object(request.resource_value)
         try:
             # TODO: single lockable+subscribable structure?
             with self._resource_write_lock:
                 self.resources.set(request.player_id,
                                    request.resource_id,
-                                   request.resource_value)
-                self._resources.update({request.resource_id: request.resource_value})
+                                   resource_value)
+                self._resources.update({request.resource_id: resource_value})
             success = True
         except ResourceLockedException:
             success = False
 
-        self.logger.debug(f'{request.player_id} attempts {request.resource_id}={request.resource_value} (Successs: {success})')
+        self.logger.debug(f'{request.player_id} attempts {request.resource_id}={resource_value} (Successs: {success})')
         return ResourceRequestResponse(success=success)
 
     def RemoveResourceKey(

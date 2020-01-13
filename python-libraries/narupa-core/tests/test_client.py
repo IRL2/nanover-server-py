@@ -2,7 +2,6 @@ import time
 
 import grpc
 import pytest
-from google.protobuf.struct_pb2 import Value
 from mock import Mock
 
 from narupa.multiplayer import MultiplayerServer
@@ -17,7 +16,7 @@ import numpy as np
 CLIENT_WAIT_TIME = 0.2
 
 TEST_KEY = 'test'
-TEST_VALUE = Value(string_value='hi')
+TEST_VALUE = 'hi'
 
 
 @pytest.fixture
