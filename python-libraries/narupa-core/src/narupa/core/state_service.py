@@ -10,8 +10,9 @@ from narupa.core.grpc_utils import (
     RpcAlreadyTerminatedError,
 )
 from narupa.core.key_lockable_map import ResourceLockedError
-from narupa.core.protobuf_utilities import deep_copy_dict, value_to_object, \
-    struct_to_dict, dict_to_struct
+from narupa.core.protobuf_utilities import (
+    deep_copy_serializable_dict, struct_to_dict, dict_to_struct,
+)
 
 from narupa.core.change_buffers import (
     DictionaryChange,
@@ -53,7 +54,7 @@ class StateService(StateServicer):
         Return a deep copy of the current state.
         """
         with self.lock_state() as state:
-            return deep_copy_dict(state)
+            return deep_copy_serializable_dict(state)
 
     def update_state(self, access_token: object, change: DictionaryChange):
         """
@@ -127,7 +128,7 @@ class StateService(StateServicer):
         return UpdateLocksResponse(success=success)
 
 
-def _validate_dict_is_serializable(dictionary):
+def validate_dict_is_serializable(dictionary):
     """
     :raises TypeError: if the given dictionary cannot be converted to a protobuf
         struct.

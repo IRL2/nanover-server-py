@@ -53,7 +53,7 @@ def value_to_object(value: Value) -> object:
     return MessageToDict(value)
 
 
-def deep_copy_dict(dictionary: Dict[str, object]) -> Dict[str, object]:
+def deep_copy_serializable_dict(dictionary: Dict[str, object]) -> Dict[str, object]:
     """
     Makes a deep copy of a dictionary by converting it to a protobuf Struct and
     back. Only protobuf serializable elements will be preserved.

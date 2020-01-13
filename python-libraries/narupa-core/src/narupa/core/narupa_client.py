@@ -7,7 +7,7 @@ from narupa.core import GrpcClient
 from narupa.core.change_buffers import DictionaryChange
 from narupa.core.command_info import CommandInfo
 from narupa.core.protobuf_utilities import (
-    dict_to_struct, struct_to_dict, deep_copy_dict,
+    dict_to_struct, struct_to_dict, deep_copy_serializable_dict,
 )
 from narupa.core.state_dictionary import StateDictionary
 from narupa.core.state_service import (
@@ -96,7 +96,7 @@ class NarupaClient(GrpcClient):
         Return a deep copy of the current state.
         """
         with self.lock_state() as state:
-            return deep_copy_dict(state)
+            return deep_copy_serializable_dict(state)
 
     def subscribe_all_state_updates(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
         """
