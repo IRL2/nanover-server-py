@@ -2,7 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 
 from uuid import uuid4
-from typing import Dict, Iterable, ContextManager
+from typing import Dict, Iterable, ContextManager, Union
 from narupa.core import GrpcClient
 from narupa.core.change_buffers import DictionaryChange
 from narupa.core.command_info import CommandInfo
@@ -115,6 +115,14 @@ class NarupaClient(GrpcClient):
         self.threads.submit(process_state_updates, update_stream)
 
     def attempt_update_state(self, change: DictionaryChange) -> bool:
+        """
+        Attempt to make a single atomic change to the shared state, blocking
+        until a response is received.
+        :param change: A single change to make to the shared state that will
+            either be made in full, or ignored if some of the keys are locked
+            by another user.
+        :return: True if the server accepted our change, and False otherwise.
+        """
         validate_dict_is_serializable(change.updates)
         request = UpdateStateRequest(
             access_token=self._access_token,
@@ -123,7 +131,17 @@ class NarupaClient(GrpcClient):
         response = self._state_stub.UpdateState(request)
         return response.success
 
-    def attempt_update_locks(self, lock_updates: Dict[str, float]) -> bool:
+    def attempt_update_locks(
+            self,
+            lock_updates: Dict[str, Union[float, None]]
+    ) -> bool:
+        """
+        Attempt to acquire and/or free a number of locks on the shared state.
+        :param lock_updates: A dictionary of keys to either a duration in
+            seconds to attempt to acquire or renew a lock, or None to indicate
+            the lock should be released if held.
+        :return: True if the desired locks were acquired, and False otherwise.
+        """
         request = UpdateLocksRequest(
             access_token=self._access_token,
             lock_keys=dict_to_struct(lock_updates),
