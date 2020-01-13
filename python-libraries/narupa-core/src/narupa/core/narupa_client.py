@@ -36,7 +36,11 @@ class NarupaClient(GrpcClient):
 
     """
     _command_stub: CommandStub
+    _available_commands: Dict[str, CommandInfo]
+    
     _state_stub: StateStub
+    _access_token: str
+    _state: StateDictionary
 
     def __init__(self, *, address: str, port: int):
         super().__init__(address=address, port=port)
