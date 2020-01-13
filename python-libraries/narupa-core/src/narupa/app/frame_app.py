@@ -22,9 +22,9 @@ class NarupaFrameApplication(NarupaApplicationServer):
     >>> with NarupaFrameApplication.basic_server() as app:
     ...     frame_publisher = app.frame_publisher
     ...     example_frame = FrameData() # A simple frame representing two particles.
-    ...     example_frame.particle_positions = [0,0,0,1,1,1]
+    ...     example_frame.particle_positions = [[0,0,0],[1,1,1]]
     ...     example_frame.particle_count = 2
-    ...     frame_publisher.send_frame(frame_index=0, frame_data=example_frame)
+    ...     frame_publisher.send_frame(0, example_frame)
 
     """
     def __init__(self, server: NarupaServer, discovery: DiscoveryServer, name="Narupa Frame Server"):
