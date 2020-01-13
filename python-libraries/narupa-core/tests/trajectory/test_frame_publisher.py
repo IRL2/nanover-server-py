@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 import itertools
 import pytest
 
-from narupa.trajectory import FramePublisher
+from narupa.trajectory import FramePublisher, FrameData
 
 
 def test_user_queue():
@@ -18,6 +18,12 @@ def test_user_queue():
     with publisher.frame_queues.one_queue(0):
         assert list(publisher.frame_queues.queues.keys()) == [0]
     assert not publisher.frame_queues.queues
+
+
+def test_send_wrapped_frame_data():
+    publisher = FramePublisher()
+    frame = FrameData()
+    publisher.send_frame(0, frame)
 
 
 def test_get_new_request_id_serial():

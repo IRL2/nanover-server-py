@@ -2,11 +2,13 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from queue import Queue
 from threading import Lock
+from typing import Union
 
 from narupa.core.request_queues import DictOfQueues, SingleItemQueue
 from narupa.core.timing import yield_interval
-from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameResponse, FrameData
-
+from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameResponse
+from narupa.protocol.trajectory import FrameData as RawFrameData
+from narupa.trajectory.frame_data import FrameData
 SENTINEL = None
 
 FRAME_SERVICE_NAME = "trajectory"
@@ -19,7 +21,7 @@ class FramePublisher(TrajectoryServiceServicer):
     """
 
     frame_queues: DictOfQueues
-    last_frame: FrameData
+    last_frame: RawFrameData
     last_frame_index: int
     last_request_id: int
     _frame_queue_lock: Lock
@@ -91,10 +93,13 @@ class FramePublisher(TrajectoryServiceServicer):
             if self.last_frame is not None:
                 yield GetFrameResponse(frame_index=self.last_frame_index, frame=self.last_frame)
 
-    def send_frame(self, frame_index: int, frame: FrameData):
+    def send_frame(self, frame_index: int, frame: Union[FrameData, RawFrameData]):
+        if isinstance(frame, FrameData):
+            frame = frame.raw
+
         with self._last_frame_lock:
             if self.last_frame is None:
-                self.last_frame = FrameData()
+                self.last_frame = RawFrameData()
             self.last_frame_index = frame_index
 
             for key in frame.arrays.keys():
