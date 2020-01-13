@@ -75,7 +75,7 @@ ELEMENT_INDEX_MASS = {
 # List consists of the unit type, the conversion required to convert positions to nm, 
 # and the conversion required to convert forces to kJ/mol/nm
 
-lammpsunitconverter = NamedTuple("LammpsUnitConverter", [('Type', str),('Positions', float), ('Forces', float)])
+lammpsunitconverter = NamedTuple("LammpsUnitConverter", [('type', str),('positions', float), ('forces', float)])
 LAMMPS_UNITS_CHECK = {
     # Lennard jones: Is unitless, everything is set to 1
     0: lammpsunitconverter(Type="lj", Positions=1, Forces=1),
@@ -510,7 +510,7 @@ class LammpsHook:
             units_type = LAMMPS_UNITS_CHECK.get(units, None)[0]
             distance_factor = LAMMPS_UNITS_CHECK.get(units, None)[1]
             force_factor = LAMMPS_UNITS_CHECK.get(units, None)[2]
-            logging.info("units : %s %s %s %s", self.me, units_type, force_factor, distance_factor)
+            logging.debug("units : %s %s %s %s", self.me, units_type, force_factor, distance_factor)
             self.n_atoms = n_atoms
             self.distance_factor = distance_factor
             self.units_type = units_type
