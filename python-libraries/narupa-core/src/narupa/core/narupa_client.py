@@ -40,12 +40,8 @@ class NarupaClient(GrpcClient):
 
     def __init__(self, *, address: str, port: int):
         super().__init__(address=address, port=port)
-
-        self._command_stub = CommandStub(self.channel)
-        self._available_commands = {}
-        self._state_stub = StateStub(self.channel)
-        self._access_token = str(uuid4())
-        self._state = StateDictionary()
+        self._setup_command_stub()
+        self._setup_state_stub()
 
     @property
     def available_commands(self) -> Dict[str, CommandInfo]:
@@ -148,6 +144,15 @@ class NarupaClient(GrpcClient):
         )
         response = self._state_stub.UpdateLocks(request)
         return response.success
+
+    def _setup_command_stub(self):
+        self._command_stub = CommandStub(self.channel)
+        self._available_commands = {}
+
+    def _setup_state_stub(self):
+        self._state_stub = StateStub(self.channel)
+        self._access_token = str(uuid4())
+        self._state = StateDictionary()
 
 
 class NarupaStubClient(NarupaClient):
