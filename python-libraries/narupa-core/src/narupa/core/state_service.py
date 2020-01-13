@@ -142,6 +142,10 @@ def validate_dict_is_serializable(dictionary):
 def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
     """
     Convert a protobuf StateUpdate to a DictionaryChange.
+    :param update: a protobuf StateUpdate which encodes key removals as keys
+        with a protobuf null value.
+    :return: an equivalent DictionaryChange representing the key changes and
+        key removals of the StateUpdate.
     """
     changes = {}
     removals = set()
@@ -158,6 +162,10 @@ def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
 def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
     """
     Convert a DictionaryChange to a protobuf StateUpdate.
+    :param change: a DictionaryChange which species key changes and key removals
+        to make to a dictionary.
+    :return: an equivalent protobuf StateUpdate representing the key removals
+        as key changes to a protobuf null value.
     """
     changes, removals = change
 
