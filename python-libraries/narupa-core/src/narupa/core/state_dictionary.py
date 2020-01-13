@@ -1,5 +1,9 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+"""
+Module providing `StateDictionary`, a class for tracking and making changes to a
+shared key/value store.
+"""
 from contextlib import contextmanager
 from threading import Lock
 from typing import ContextManager, Set, Dict
@@ -14,8 +18,8 @@ from narupa.core.change_buffers import (
 
 class StateDictionary:
     """
-    Mechanism for tracking and manipulating a shared key/value store, including
-    the facility to acquire exclusive write access to values.
+    Mechanism for tracking and making changes to a shared key/value store,
+    including the facility to acquire exclusive write access to values.
     """
 
     _lock: Lock
