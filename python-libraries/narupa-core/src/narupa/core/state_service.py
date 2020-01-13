@@ -127,7 +127,7 @@ class StateService(StateServicer):
         return UpdateLocksResponse(success=success)
 
 
-def validate_dict_is_serializable(dictionary):
+def _validate_dict_is_serializable(dictionary):
     """
     :raises TypeError: if the given dictionary cannot be converted to a protobuf
         struct.
