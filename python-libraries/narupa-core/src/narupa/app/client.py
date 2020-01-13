@@ -248,6 +248,10 @@ class NarupaImdClient:
         """
         return self._first_frame
 
+    @property
+    def interactions(self):
+        return self._imd_client.interactions
+
     def start_interaction(self, interaction: Optional[ParticleInteraction] = None) -> str:
         """
         Start an interaction with the IMD server.

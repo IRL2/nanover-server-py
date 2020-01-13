@@ -6,3 +6,5 @@ easily build and deploy Narupa services.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from .client import NarupaImdClient
 from .app_server import NarupaApplicationServer
+from .frame_app import NarupaFrameApplication
+from .imd_app import NarupaImdApplication

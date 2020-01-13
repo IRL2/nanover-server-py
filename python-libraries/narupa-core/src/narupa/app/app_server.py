@@ -37,6 +37,12 @@ class NarupaApplicationServer:
         self._services = set()
         self._setup_multiplayer()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     @classmethod
     def basic_server(cls, name="Narupa Server"):
         """
@@ -81,6 +87,7 @@ class NarupaApplicationServer:
         One can use this to manage commands and services.
         :return: The Narupa server.
         """
+        # TODO expose command api directly?
         return self._server
 
     @property
@@ -108,7 +115,7 @@ class NarupaApplicationServer:
 
     def add_service(self, service_name, service, service_registration_method):
         """
-        Adds a gRPC service to the server and discovery.
+        Adds a gRPC service to the server and broadcast it on discovery.
         :param service_name: Name of the service.
         :param service: Service implementation
         :param service_registration_method: Method to register service.
@@ -125,5 +132,8 @@ class NarupaApplicationServer:
         self.add_service(MULTIPLAYER_SERVICE_NAME, self._multiplayer, add_MultiplayerServicer_to_server)
 
     def _update_discovery_services(self):
-        self._discovery.unregister_service(self._service_hub)
+        try:
+            self._discovery.unregister_service(self._service_hub)
+        except KeyError:
+            pass
         self._discovery.register_service(self._service_hub)

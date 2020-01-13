@@ -97,6 +97,10 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             for changes, removals in change_buffer.subscribe_changes(interval):
                 yield _changes_to_interactions_update_message(changes, removals)
 
+    def close(self):
+        # TODO would this end all interactions?
+        self._interactions.freeze()
+
     def insert_interaction(self, interaction: ParticleInteraction):
         self._interactions.update({interaction.interaction_id: interaction})
         if self._interaction_updated_callback is not None:

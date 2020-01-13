@@ -1,3 +1,8 @@
+"""
+Module providing an implementation of an Narupa frame-serving application, for publishing
+simulations and trajectories for consumption by clients.
+
+"""
 from narupa.app import NarupaApplicationServer
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer
@@ -5,7 +10,7 @@ from narupa.protocol.trajectory import add_TrajectoryServiceServicer_to_server
 from narupa.trajectory import FramePublisher, FRAME_SERVICE_NAME, FrameData
 
 
-class NarupaFrameServer(NarupaApplicationServer):
+class NarupaFrameApplication(NarupaApplicationServer):
     """
 
     Application-level class for implementing a Narupa frame server, something that publishes
@@ -14,8 +19,8 @@ class NarupaFrameServer(NarupaApplicationServer):
     Example
     =======
 
-    >>> with NarupaFrameServer.basic_server() as frame_server:
-    ...     frame_publisher = frame_server.frame_publisher
+    >>> with NarupaFrameApplication.basic_server() as app:
+    ...     frame_publisher = app.frame_publisher
     ...     example_frame = FrameData() # A simple frame representing two particles.
     ...     example_frame.particle_positions = [0,0,0,1,1,1]
     ...     example_frame.particle_count = 2
@@ -26,13 +31,17 @@ class NarupaFrameServer(NarupaApplicationServer):
         super().__init__(server, discovery, name)
         self._setup_frame_publisher()
 
+    def close(self):
+        self._frame_publisher.close()
+        super().close()
+
     @property
     def frame_publisher(self) -> FramePublisher:
         """
-        The frame publisher attached to this server. Use it to publish frames for consumption by
+        The frame publisher attached to this application. Use it to publish frames for consumption by
         Narupa frame clients.
 
-        :return: The :class:`FramePublisher` attached to this server.
+        :return: The :class:`FramePublisher` attached to this application.
         """
         return self._frame_publisher
 
