@@ -249,7 +249,12 @@ class NarupaImdClient:
         return self._first_frame
 
     @property
-    def interactions(self):
+    def interactions(self) -> Dict[str, ParticleInteraction]:
+        """
+        The dictionary of current interactions received by this client.
+        :return: Dictionary of active interactions, keyed by interaction ID identifying who is performing the
+        interactions.
+        """
         return self._imd_client.interactions
 
     def start_interaction(self, interaction: Optional[ParticleInteraction] = None) -> str:
