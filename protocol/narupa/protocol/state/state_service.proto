@@ -42,8 +42,9 @@ message UpdateLocksRequest {
     // Token for associating requests to their lock ownership.
     string access_token = 1;
 
-    // Struct where each field an state key and a request to acquire, renew, or
-    // release an exclusive lock on it.
+    // Struct where each field an state key and either a time in seconds to
+    // acquire or renew the lock for, or a null to indicate the lock should be
+    // released if held.
     google.protobuf.Struct lock_keys = 2;
 }
 
