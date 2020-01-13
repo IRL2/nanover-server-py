@@ -54,6 +54,64 @@ def test_client_cannot_set_non_basic_type(client_server):
         client.attempt_update_state(change)
 
 
+def test_client_copy_state_equals_actual_state(client_server):
+    """
+    Test that copying state from client gives a state equal to the client state.
+    """
+    client, server = client_server
+    client.subscribe_all_state_updates(0)
+
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+
+    copy = client.copy_state()
+
+    with client.lock_state() as state:
+        assert copy == state
+
+
+def test_client_copy_state_is_independent(client_server):
+    """
+    Test that copying state from client gives an independent state that can be
+    modified without changing the client state.
+    """
+    client, server = client_server
+    client.subscribe_all_state_updates(0)
+
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+
+    copy = client.copy_state()
+    copy['test']['baby'] = 'shark'
+
+    with client.lock_state() as state:
+        assert copy != state
+
+
+def test_server_copy_state_equals_actual_state(client_server):
+    """
+    Test that copying state from server gives a state equal to the server state.
+    """
+    client, server = client_server
+
+    copy = server.copy_state()
+
+    with server.lock_state() as state:
+        assert copy == state
+
+
+def test_server_copy_state_is_independent(client_server):
+    """
+    Test that copying state from server gives an independent state that can be
+    modified without changing the server state.
+    """
+    client, server = client_server
+
+    copy = server.copy_state()
+    copy['test']['baby'] = 'shark'
+
+    with server.lock_state() as state:
+        assert copy != state
+
+
 def test_server_has_initial_state(client_server):
     """
     Test that the server has the correct initial state.
