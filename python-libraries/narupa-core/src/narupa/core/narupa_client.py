@@ -86,8 +86,8 @@ class NarupaClient(GrpcClient):
 
     def lock_state(self) -> ContextManager[Dict[str, object]]:
         """
-        Context manager for reading the current state while delaying any changes
-        to it.
+        Context manager that locks and returns the state. Any attempted state
+        updates are delayed until the context is exited.
         """
         return self._state.lock_content()
 
@@ -100,7 +100,7 @@ class NarupaClient(GrpcClient):
 
     def subscribe_all_state_updates(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
         """
-        Subscribe, in the background, updates to the shared state.
+        Subscribe, in the background, to any updates made to the shared state.
 
         :param interval: Minimum time (in seconds) between receiving new updates
             for any and all values.
