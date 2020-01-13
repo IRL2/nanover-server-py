@@ -64,8 +64,6 @@ class ImdClient(NarupaStubClient):
     """
     A simple IMD client, primarily for testing the IMD server.
 
-    :param address: Address of the IMD server to connect to.
-    :param port: The port of the IMD server to connect to.
     """
     stub: InteractiveMolecularDynamicsStub
     interactions: Dict[str, ParticleInteraction]
@@ -73,11 +71,10 @@ class ImdClient(NarupaStubClient):
     _local_interactions_states: Dict[str, _LocalInteractionState]
     _logger: logging.Logger
 
-    def __init__(self, *, address: Optional[str] = None,
-                 port: Optional[int] = None):
-        port = get_requested_port_or_default(port, DEFAULT_PORT)
-        super().__init__(address=address, port=port,
-                         stub=InteractiveMolecularDynamicsStub)
+    def __init__(self, *,
+                 channel: grpc.Channel,
+                 make_channel_owner: bool = False):
+        super().__init__(channel=channel, stub=InteractiveMolecularDynamicsStub, make_channel_owner=make_channel_owner)
         self.interactions = {}
         self._local_interactions_states = {}
         self._logger = logging.getLogger(__name__)

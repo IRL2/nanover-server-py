@@ -6,14 +6,14 @@ Reference multiplayer client implementation.
 
 """
 
-from typing import Dict, Callable, Sequence
+from typing import Dict, Callable, Sequence, Optional
 
 import grpc
 from google.protobuf.struct_pb2 import Value
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as mult_proto
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
-from narupa.core import NarupaStubClient
+from narupa.core import NarupaStubClient, NarupaClient
 from narupa.core.request_queues import SingleItemQueue
 from narupa.multiplayer.change_buffers import yield_interval
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
@@ -28,6 +28,7 @@ def _end_upon_channel_close(function):
     :param function:
     :return:
     """
+
     def wrapped(self, *args, **kwargs):
         try:
             function(self, *args, **kwargs)
@@ -46,17 +47,19 @@ class MultiplayerClient(NarupaStubClient):
     """
     Represents a client to the multiplayer server.
 
-    :param address: IP or URL of multiplayer server to connect to.
-    :param port: Multiplayer server port.
     """
     stub: mult_proto_grpc.MultiplayerStub
     current_avatars: Dict[int, mult_proto.Avatar]
     _avatar_queue: SingleItemQueue
+    DEFAULT_CONNECTION_PORT = DEFAULT_PORT
 
-    def __init__(self, address=None, port=None,
-                 send_interval: float = 1/60):
-        super().__init__(address=address, port=port or DEFAULT_PORT,
-                         stub=MultiplayerStub)
+    def __init__(self, *,
+                 channel: grpc.Channel,
+                 make_channel_owner: bool = False,
+                 send_interval: float = 1 / 60):
+        super().__init__(channel=channel,
+                         stub=MultiplayerStub,
+                         make_channel_owner=make_channel_owner)
         self._player_id = None
         self._send_interval = send_interval
         self._avatar_queue = SingleItemQueue()

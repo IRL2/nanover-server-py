@@ -2,20 +2,26 @@
 Module providing an out-of-the-box Narupa application server,
 with an underyling gRPC server, discovery, multiplayer and commands.
 """
-from typing import Tuple
+from typing import Tuple, Optional
 
 from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
 from narupa.essd import DiscoveryServer, ServiceHub
 from narupa.multiplayer.multiplayer_service import MultiplayerService, MULTIPLAYER_SERVICE_NAME
 from narupa.protocol.multiplayer import add_MultiplayerServicer_to_server
 
+DEFAULT_NARUPA_PORT = 38801
 
-def start_default_server_and_discovery() -> Tuple[NarupaServer, DiscoveryServer]:
+
+def start_default_server_and_discovery(port: Optional[int] = None) -> Tuple[NarupaServer, DiscoveryServer]:
     """
     Utility method for creating a default Narupa server along with ESSD discovery.
+
+    :param: Port to run the server on, if nothing is passed, the default Narupa port will be used. The value
+    of zero should be passed to let the OS pick a free port.
     :return: tuple of Narupa server and ESSD discovery.
     """
-    server = NarupaServer(address=DEFAULT_SERVE_ADDRESS, port=0)
+    port = port or DEFAULT_NARUPA_PORT
+    server = NarupaServer(address=DEFAULT_SERVE_ADDRESS, port=port)
     discovery = DiscoveryServer()
     return server, discovery
 

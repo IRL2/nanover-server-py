@@ -2,6 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Optional, Collection, Dict, List, Set
 
+import grpc
 from google.protobuf.struct_pb2 import Struct
 
 from narupa.core import GrpcClient
@@ -15,14 +16,10 @@ class NarupaClient(GrpcClient):
     A base gRPC client for Narupa services. Automatically sets up a stub for the :class:`CommandServicer`,
     enabling the running of arbitrary commands.
 
-    :param address: Address of server to connect to.
-    :param port: Port of server to connect to.
-
     """
 
-    def __init__(self, *, address: str,
-                 port: int):
-        super().__init__(address=address, port=port)
+    def __init__(self, *, channel: grpc.Channel, make_channel_owner: bool = False):
+        super().__init__(channel=channel, make_channel_owner=make_channel_owner)
 
         self._command_stub = CommandStub(self.channel)
         self._available_commands = {}
@@ -76,7 +73,6 @@ class NarupaStubClient(NarupaClient):
 
     """
 
-    def __init__(self, *, address: str,
-                 port: int, stub):
-        super().__init__(address=address, port=port)
+    def __init__(self, *, channel: grpc.Channel, stub, make_channel_owner: bool = False):
+        super().__init__(channel=channel, make_channel_owner=make_channel_owner)
         self.stub = stub(self.channel)
