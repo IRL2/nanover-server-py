@@ -10,7 +10,7 @@ from ase.lattice.cubic import FaceCenteredCubic
 from ase.md import Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 
-from narupa.ase.imd_server import ASEImdServer
+from narupa.ase.imd import NarupaASEDynamics
 
 size = 2
 
@@ -28,6 +28,6 @@ MaxwellBoltzmannDistribution(atoms, 300 * units.kB)
 
 dyn = Langevin(atoms, 1 * units.fs, 300, 0.1)
 
-imd = ASEImdServer(dyn)
-while True:
-    imd.run(100)
+with NarupaASEDynamics.basic_imd(dyn) as imd:
+    while True:
+        imd.run(100)

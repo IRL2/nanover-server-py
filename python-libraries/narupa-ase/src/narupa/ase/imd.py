@@ -6,6 +6,7 @@ Interactive molecular dynamics server for use with an ASE molecular dynamics sim
 """
 import logging
 from concurrent import futures
+from contextlib import contextmanager
 from threading import RLock
 from typing import Optional, Callable
 
@@ -47,7 +48,7 @@ class NarupaASEDynamics:
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
     >>> atoms.set_calculator(EMT())
     >>> ase_dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
-    >>> with NarupaImdApplication.basic_server() as narupa_app, NarupaASEDynamics(narupa_app, ase_dynamics) as sim:
+    >>> with NarupaASEDynamics.basic_imd(ase_dynamics) as sim: # run basic Narupa server
     ...
     ...     with NarupaImdClient() as client: # connect an iMD client.
     ...         sim.run(10) # run some dynamics
@@ -88,6 +89,13 @@ class NarupaASEDynamics:
         self.on_reset_listeners = []
 
         self.logger = logging.getLogger(__name__)
+
+
+    @classmethod
+    @contextmanager
+    def basic_imd(cls, dynamics):
+        with NarupaImdApplication.basic_server() as app:
+            yield cls(app, dynamics)
 
     @property
     def internal_calculator(self) -> Calculator:

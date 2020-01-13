@@ -25,7 +25,7 @@ from simtk.openmm.app import Simulation
 
 from narupa.ase import ase_to_frame_data
 from narupa.ase.converter import add_ase_positions_to_frame_data
-from narupa.ase.imd_server import ASEImdServer
+from narupa.ase.imd import NarupaASEDynamics
 from narupa.ase.openmm.calculator import OpenMMCalculator
 from narupa.ase.wall_calculator import VelocityWallCalculator
 
@@ -264,15 +264,9 @@ class OpenMMIMDRunner:
                            run_discovery=True,
                            discovery_port=None):
         # set the server to use the OpenMM frame convert for performance purposes.
-        self.imd = ASEImdServer(dynamics,
-                                frame_method=openmm_ase_frame_server,
-                                address=self.address,
-                                frame_interval=self.frame_interval,
-                                trajectory_port=trajectory_port,
-                                imd_port=imd_port,
-                                name=name,
-                                )
-
+        self.imd = NarupaASEDynamics(dynamics,
+                                     frame_method=openmm_ase_frame_server,
+                                     frame_interval=self.frame_interval)
         if run_multiplayer:
             self.multiplayer = MultiplayerServer(address=self.address, port=multiplayer_port)
         else:

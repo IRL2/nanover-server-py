@@ -13,7 +13,7 @@ from ase.cell import Cell
 
 from narupa.essd import DiscoveryClient
 from narupa.trajectory import FrameData
-from narupa.ase.imd_server import ASEImdServer
+from narupa.ase.imd import NarupaASEDynamics
 from narupa.core import NarupaClient
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY
 
@@ -111,7 +111,7 @@ def arbitrary_dynamics(dummy_atoms):
 
 @pytest.fixture
 def arbitrary_ase_server(arbitrary_dynamics):
-    ase_server = ASEImdServer(
+    ase_server = NarupaASEDynamics(
         arbitrary_dynamics,
         frame_method=do_nothing_producer,
         trajectory_port=0, imd_port=0,
