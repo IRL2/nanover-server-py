@@ -28,15 +28,20 @@ def multiplayer_server():
 
 @pytest.fixture
 def client_server(frame_server, imd_server, multiplayer_server):
-    with NarupaImdClient(trajectory_port=frame_server.port,
-                         imd_port=imd_server.port,
-                         multiplayer_port=multiplayer_server.port) as client:
+    trajectory_address = frame_server.address_and_port
+    imd_address = imd_server.address_and_port
+    multiplayer_address = multiplayer_server.address_and_port
+
+    with NarupaImdClient(trajectory_address=trajectory_address,
+                         imd_address=imd_address,
+                         multiplayer_address=multiplayer_address) as client:
         yield client, frame_server, imd_server, multiplayer_server
 
 
 @pytest.fixture
 def client_frame_server(frame_server):
-    with NarupaImdClient(trajectory_port=frame_server.port) as client:
+    trajectory_address = (frame_server.address, frame_server.port)
+    with NarupaImdClient(trajectory_address=trajectory_address) as client:
         yield client, frame_server
 
 
@@ -66,7 +71,8 @@ def test_latest_frame_only(frame_server, simple_frame_data):
     Tests that running with the all_frames flag set to false, the client only receives the latest
     frame.
     """
-    with NarupaImdClient(all_frames=False, trajectory_port=frame_server.port) as client:
+    trajectory_address = frame_server.address_and_port
+    with NarupaImdClient(trajectory_address=trajectory_address, all_frames=False) as client:
         num_frames = 2
         for i in range(num_frames):
             frame_server.send_frame(0, simple_frame_data)
@@ -82,7 +88,7 @@ def test_reconnect_receive(client_server, simple_frame_data):
     frame_server.send_frame(0, simple_frame_data)
     client.close()
     assert client.latest_frame is None
-    client.connect(trajectory_port=frame_server.port, imd_port=imd_server.port)
+    client.connect(trajectory_address=frame_server.address_and_port, imd_address=imd_server.address_and_port)
     time.sleep(CLIENT_WAIT_TIME)
     assert client.latest_frame is not None
 
@@ -143,17 +149,28 @@ def test_update_interaction(client_server, interaction):
     assert np.allclose(list(imd_server.service.active_interactions.values())[0].position, (2, 2, 2))
 
 
-def test_no_imd(frame_server, multiplayer_server, interaction):
+def test_no_imd(interaction):
     """
-    tests that running an interaction raises an exception.
+    Tests that running an interaction with no connection raises a runtime exception.
+    """
+    with NarupaImdClient() as client, pytest.raises(RuntimeError):
+        _ = client.start_interaction(interaction)
 
-    An error will only be thrown when the interaction is stopped.
+
+def test_no_imd_update(interaction):
     """
-    client = NarupaImdClient(trajectory_port=frame_server.port, multiplayer_port=multiplayer_server.port)
-    id = client.start_interaction(interaction)
-    with pytest.raises(grpc.RpcError):
-        client.stop_interaction(id)
-    client.close()
+    Tests that updating an interaction with no connection raises a runtime exception.
+    """
+    with NarupaImdClient() as client, pytest.raises(RuntimeError):
+        _ = client.update_interaction("0", interaction)
+
+
+def test_no_imd_cancel(interaction):
+    """
+    Tests that cancelling an interaction with no connection raises a runtime exception.
+    """
+    with NarupaImdClient() as client, pytest.raises(RuntimeError):
+        _ = client.stop_interaction("0")
 
 
 def test_set_multiplayer_value(client_server):
@@ -168,31 +185,31 @@ def test_set_multiplayer_value(client_server):
     assert client.latest_multiplayer_values == {TEST_KEY: TEST_VALUE}
 
 
-def test_set_multiplayer_value_disconnected(frame_server):
+def test_set_multiplayer_value_disconnected():
     """
     tests that setting multiplayer value when not connected raises expected exception.
     """
-    with NarupaImdClient(trajectory_port=frame_server.port) as client:
-        with pytest.raises(grpc.RpcError):
+    with NarupaImdClient() as client:
+        with pytest.raises(RuntimeError):
             client.set_shared_value(TEST_KEY, TEST_VALUE)
 
 
-def test_join_multiplayer_disconnected(frame_server):
+def test_join_multiplayer_disconnected():
     """
     Tests that joining multiplayer when not connected raises expected exception.
     """
-    with NarupaImdClient(trajectory_port=frame_server.port) as client:
-        with pytest.raises(grpc.RpcError):
+    with NarupaImdClient() as client:
+        with pytest.raises(RuntimeError):
             client.join_multiplayer("1")
 
 
-def test_get_shared_resources_disconnected(frame_server):
+def test_get_shared_resources_disconnected():
     """
     Tests that getting shared resources produces empty dictionary.
     """
-    # TODO handle lack of connection by throwing an exception.
-    with NarupaImdClient(trajectory_port=frame_server.port) as client:
-        assert client.latest_multiplayer_values == {}
+    with NarupaImdClient() as client:
+        with pytest.raises(RuntimeError):
+            _ = client.latest_multiplayer_values
 
 
 def test_run_play(client_frame_server, mock_callback):

@@ -6,7 +6,7 @@ Module providing a wrapper around the running of GRPC servers.
 """
 import logging
 from concurrent import futures
-from typing import Optional, Callable
+from typing import Optional, Callable, Tuple
 
 import grpc
 
@@ -70,11 +70,12 @@ class GrpcServer:
         return self._port
 
     @property
-    def address(self):
+    def address_and_port(self) -> Tuple[str, int]:
         """
-        Get the address that the service is or was provided on.
+        Gets the address and port that the server is or was provided on as a tuple.
+        :return: The address and port that the server is or was provided on as a tuple.
         """
-        return self._address
+        return self.address, self.port
 
     def setup_services(self):
         """

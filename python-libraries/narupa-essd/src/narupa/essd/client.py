@@ -6,7 +6,7 @@ A module containing a Extremely Simple Service Discovery client.
 import json
 import socket
 import time
-from typing import Optional
+from typing import Optional, Set
 
 import select
 
@@ -46,7 +46,7 @@ class DiscoveryClient:
         properties = json.loads(message.decode())
         return ServiceHub(**properties)
 
-    def search_for_services(self, search_time: float = 5.0, interval=0.033):
+    def search_for_services(self, search_time: float = 5.0, interval=0.033) -> Set[ServiceHub]:
         """
         Searches for services for the given amount of time, blocking.
 

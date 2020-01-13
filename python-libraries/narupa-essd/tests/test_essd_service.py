@@ -99,3 +99,15 @@ def test_add_service_replacement(properties):
     hub.add_service("imd", 88888)
     properties['services'].update({"imd": 88888})
     assert hub.services == properties['services']
+
+
+def test_get_service_address(properties):
+    hub = ServiceHub(**properties)
+    hub.add_service("test", 54322)
+    assert hub.get_service_address('test') == (hub.address, 54322)
+
+
+def test_get_service_address_no_exist(properties):
+    hub = ServiceHub(**properties)
+    hub.add_service("test", 54322)
+    assert hub.get_service_address('unknown') is None
