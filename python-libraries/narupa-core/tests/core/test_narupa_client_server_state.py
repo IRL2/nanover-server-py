@@ -26,7 +26,7 @@ def client_server() -> Tuple[NarupaClient, NarupaServer]:
             yield client, server
 
 
-def test_server_cant_set_non_basic_type(client_server):
+def test_server_cannot_set_non_basic_type(client_server):
     """
     Test that setting a value to a non-basic type raises a ValueError.
     """
@@ -40,7 +40,7 @@ def test_server_cant_set_non_basic_type(client_server):
         server.update_state(None, change)
 
 
-def test_client_cant_set_non_basic_type(client_server):
+def test_client_cannot_set_non_basic_type(client_server):
     """
     Test that setting a value to a non-basic type raises a ValueError.
     """
@@ -222,7 +222,7 @@ def test_can_update_unlocked(client_server):
     assert client.attempt_update_state(change)
 
 
-def test_cant_remove_locked_key(client_server):
+def test_cannot_remove_locked_key(client_server):
     """
     Test can't remove key that is locked by another access token.
     """
@@ -243,7 +243,7 @@ def test_update_unlocked_repeated(client_server):
         assert client2.attempt_update_state(change2)
 
 
-def test_cant_lock_other_locked(client_server):
+def test_cannot_lock_other_locked(client_server):
     """
     Test that you cannot lock a state key that is locked by someone else.
     """
@@ -254,7 +254,7 @@ def test_cant_lock_other_locked(client_server):
         assert not client1.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
 
 
-def test_cant_release_other_lock(client_server):
+def test_cannot_release_other_lock(client_server):
     """
     Test that you cannot unlock a state key that is locked by someone else.
     """
@@ -267,7 +267,7 @@ def test_cant_release_other_lock(client_server):
         assert not client1.attempt_update_state(change)
 
 
-def test_cant_set_other_locked(client_server):
+def test_cannot_set_other_locked(client_server):
     """
     Test that you cannot set a state key that is locked by someone else.
     """
