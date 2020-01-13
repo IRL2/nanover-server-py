@@ -2,7 +2,6 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Callable, Optional, Dict, ContextManager, Set
 
-from google.protobuf.struct_pb2 import Struct
 from narupa.core.change_buffers import DictionaryChange
 
 from narupa.core.command_service import CommandService, CommandRegistration
@@ -29,10 +28,8 @@ class NarupaServer(GrpcServer):
         Sets up the services, including the :class:`CommandService`.
         """
         super().setup_services()
-        self._command_service = CommandService()
-        self._state_service = StateService()
-        add_CommandServicer_to_server(self._command_service, self.server)
-        add_StateServicer_to_server(self._state_service, self.server)
+        self._setup_command_service()
+        self._setup_state_service()
 
     @property
     def commands(self) -> Dict[str, CommandRegistration]:
@@ -95,3 +92,11 @@ class NarupaServer(GrpcServer):
         store. If any of the locks cannot be acquired, none of them will be.
         """
         self._state_service.update_locks(access_token, acquire, release)
+
+    def _setup_command_service(self):
+        self._command_service = CommandService()
+        add_CommandServicer_to_server(self._command_service, self.server)
+
+    def _setup_state_service(self):
+        self._state_service = StateService()
+        add_StateServicer_to_server(self._state_service, self.server)
