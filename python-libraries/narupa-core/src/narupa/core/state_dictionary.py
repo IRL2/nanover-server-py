@@ -13,6 +13,11 @@ from narupa.core.change_buffers import (
 
 
 class StateDictionary:
+    """
+    Mechanism for tracking and manipulating a shared key/value store, including
+    the facility to acquire exclusive write access to values.
+    """
+
     _lock: Lock
     _change_views: DictionaryChangeMultiView
     _write_locks: KeyLockableMap
@@ -24,6 +29,10 @@ class StateDictionary:
 
     @contextmanager
     def lock_content(self) -> ContextManager[Dict[str, object]]:
+        """
+        Context manager for reading the current state while delaying any changes
+        to it via an exclusive lock.
+        """
         with self._lock:
             yield self._change_views.copy_content()
 

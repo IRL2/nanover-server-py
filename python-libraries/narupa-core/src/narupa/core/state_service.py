@@ -30,6 +30,10 @@ from narupa.core.state_dictionary import StateDictionary
 
 
 class StateService(StateServicer):
+    """
+    Implementation of the State service, for tracking and making changes to a
+    shared key/value store.
+    """
     _state_dictionary: StateDictionary
 
     def __init__(self):
@@ -124,6 +128,10 @@ class StateService(StateServicer):
 
 
 def validate_dict_is_serializable(dictionary):
+    """
+    :raises TypeError: if the given dictionary cannot be converted to a protobuf
+        struct.
+    """
     try:
         dict_to_struct(dictionary)
     except ValueError as e:

@@ -6,12 +6,14 @@ from typing import Dict, Iterable, ContextManager
 from narupa.core import GrpcClient
 from narupa.core.change_buffers import DictionaryChange
 from narupa.core.command_info import CommandInfo
-from narupa.core.protobuf_utilities import dict_to_struct, struct_to_dict, \
-    deep_copy_dict
+from narupa.core.protobuf_utilities import (
+    dict_to_struct, struct_to_dict, deep_copy_dict,
+)
 from narupa.core.state_dictionary import StateDictionary
-from narupa.core.state_service import state_update_to_dictionary_change, \
-    dictionary_change_to_state_update, validate_dict_is_serializable
-
+from narupa.core.state_service import (
+    state_update_to_dictionary_change, dictionary_change_to_state_update,
+    validate_dict_is_serializable,
+)
 from narupa.protocol.command import (
     CommandStub, CommandMessage, GetCommandsRequest,
 )
