@@ -2,7 +2,6 @@ import time
 
 import grpc
 import pytest
-from google.protobuf.struct_pb2 import Value
 from mock import Mock
 
 from narupa.multiplayer import MultiplayerServer
@@ -17,7 +16,7 @@ import numpy as np
 CLIENT_WAIT_TIME = 0.2
 
 TEST_KEY = 'test'
-TEST_VALUE = Value(string_value='hi')
+TEST_VALUE = 'hi'
 
 
 @pytest.fixture
@@ -133,13 +132,19 @@ def test_update_interaction(client_server, interaction):
     assert np.allclose(list(imd_server.service.active_interactions.values())[0].position, (2, 2, 2))
 
 
-def test_no_imd(frame_server, multiplayer_server, interaction):
+def test_no_imd(frame_server, multiplayer_server, imd_server, interaction):
     """
     tests that running an interaction raises an exception.
 
     An error will only be thrown when the interaction is stopped.
     """
-    client = NarupaImdClient(trajectory_port=frame_server.port, multiplayer_port=multiplayer_server.port)
+
+    client = NarupaImdClient(
+        trajectory_port=frame_server.port,
+        imd_port=imd_server.port,
+        multiplayer_port=multiplayer_server.port,
+    )
+    imd_server.close()
     id = client.start_interaction(interaction)
     with pytest.raises(grpc.RpcError):
         client.stop_interaction(id)
@@ -158,31 +163,34 @@ def test_set_multiplayer_value(client_server):
     assert client.latest_multiplayer_values == {TEST_KEY: TEST_VALUE}
 
 
-def test_set_multiplayer_value_disconnected(frame_server):
+def test_set_multiplayer_value_disconnected(client_server):
     """
     tests that setting multiplayer value when not connected raises expected exception.
     """
-    with NarupaImdClient(trajectory_port=frame_server.port) as client:
-        with pytest.raises(grpc.RpcError):
-            client.set_shared_value(TEST_KEY, TEST_VALUE)
+    client, frame_server, imd_server, multiplayer_server = client_server
+    multiplayer_server.close()
+    with pytest.raises(grpc.RpcError):
+        client.set_shared_value(TEST_KEY, TEST_VALUE)
 
 
-def test_join_multiplayer_disconnected(frame_server):
+def test_join_multiplayer_disconnected(client_server):
     """
     Tests that joining multiplayer when not connected raises expected exception.
     """
-    with NarupaImdClient(trajectory_port=frame_server.port) as client:
-        with pytest.raises(grpc.RpcError):
-            client.join_multiplayer("1")
+    client, frame_server, imd_server, multiplayer_server = client_server
+    multiplayer_server.close()
+    with pytest.raises(grpc.RpcError):
+        client.join_multiplayer("1")
 
 
-def test_get_shared_resources_disconnected(frame_server):
+def test_get_shared_resources_disconnected(client_server):
     """
     Tests that getting shared resources produces empty dictionary.
     """
     # TODO handle lack of connection by throwing an exception.
-    with NarupaImdClient(trajectory_port=frame_server.port) as client:
-        assert client.latest_multiplayer_values == {}
+    client, frame_server, imd_server, multiplayer_server = client_server
+    multiplayer_server.close()
+    assert client.latest_multiplayer_values == {}
 
 
 def test_run_play(client_frame_server, mock_callback):

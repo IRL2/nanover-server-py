@@ -61,16 +61,14 @@ def simple_and_overlap_frame_data():
 
 @pytest.fixture
 def frame_server():
-    frame_server = FrameServer(address='localhost', port=0)
-    yield frame_server
-    frame_server.close()
+    with FrameServer(address='localhost', port=0) as frame_server:
+        yield frame_server
 
 
 @pytest.fixture
 def frame_server_client_pair(frame_server):
-    client = FrameClient(address='localhost', port=frame_server.port)
-    yield frame_server, client
-    client.close()
+    with FrameClient(address='localhost', port=frame_server.port) as client:
+        yield frame_server, client
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)

@@ -1,7 +1,6 @@
 import time
 
 import pytest
-from google.protobuf.struct_pb2 import Value
 from narupa.app import NarupaImdClient
 from narupa.multiplayer import MultiplayerServer
 
@@ -70,7 +69,7 @@ def server_clients_with_selection(server_clients):
 def test_client_key_sharing(server_clients):
     server, client1, client2 = server_clients
 
-    value = Value(string_value='value')
+    value = 'value'
     client1.set_shared_value('key', value)
     time.sleep(UPDATE_TIME)
     assert client1.get_shared_value('key') == value

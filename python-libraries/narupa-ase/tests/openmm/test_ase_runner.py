@@ -77,6 +77,7 @@ def test_from_xml(serialized_simulation_path, params):
         assert runner.simulation is not None
 
 
+@pytest.mark.serial
 def test_defaults(default_runner):
     runner = default_runner
     default_params = ImdParams()
@@ -132,6 +133,7 @@ def test_time_step(basic_simulation, params):
         assert runner.dynamics.dt == pytest.approx(0.5 * units.fs)
 
 
+@pytest.mark.serial
 @pytest.mark.parametrize('trajectory_port, imd_port, multiplayer_port', (
         (5555, 5555, 5555),
         (5555, 5555, 5556),
@@ -218,6 +220,7 @@ def test_no_discovery(basic_simulation, params):
         assert not runner.running_discovery
 
 
+@pytest.mark.serial
 def test_discovery(basic_simulation, params):
     with OpenMMIMDRunner(basic_simulation, params) as runner:
         assert runner.running_discovery
@@ -225,11 +228,12 @@ def test_discovery(basic_simulation, params):
         assert len(runner.discovery_server.services) == 1
 
 
+@pytest.mark.serial
 def test_discovery_with_client(basic_simulation, params):
     with OpenMMIMDRunner(basic_simulation, params) as runner:
         assert runner.discovery_server is not None
         assert len(runner.discovery_server.services) == 1
-        with DiscoveryClient() as client:
+        with DiscoveryClient(port=runner.discovery_port) as client:
             services = client.search_for_services(search_time=0.8, interval=0.01)
             assert len(services) == 1
             for service in services:

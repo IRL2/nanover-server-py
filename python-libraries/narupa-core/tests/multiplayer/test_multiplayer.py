@@ -12,7 +12,6 @@ import pytest
 from narupa.multiplayer.multiplayer_client import MultiplayerClient
 from narupa.multiplayer.multiplayer_server import MultiplayerServer
 from narupa.protocol.multiplayer.multiplayer_pb2 import Avatar, AvatarComponent
-from google.protobuf.struct_pb2 import Value, Struct
 
 CONNECT_WAIT_TIME = 0.01
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
@@ -43,7 +42,7 @@ def avatar():
     components = [AvatarComponent(name="Head",
                                   position=[0, 0, 1],
                                   rotation=[1, 1, 1, 1])]
-    avatar = Avatar(player_id="1", component=components)
+    avatar = Avatar(player_id="1", components=components)
     return avatar
 
 
@@ -52,11 +51,11 @@ def scene():
     """
     Provides scene test data.
     """
-    pose = Struct()
-    pose["position"] = {"x": 1, "y": 1, "z": 1}
-    pose["rotation"] = {"x": 0, "y": 0, "z": 0, "w": 1}
-    pose["scale"] = 1
-    return Value(struct_value=pose)
+    return {
+        'position': {"x": 1., "y": 1., "z": 1.},
+        'rotation': {"x": 0., "y": 0., "z": 0., "w": 1.},
+        'scale': 1.,
+    }
 
 
 def test_join_multiplayer(server_client_pair):
@@ -151,14 +150,14 @@ def test_publish_avatar_multiple_transmission(server_client_pair, avatar):
     time.sleep(CONNECT_WAIT_TIME)
 
     client.publish_avatar(avatar)
-    avatar.component[0].position[:] = [0, 0, 2]
+    avatar.components[0].position[:] = [0, 0, 2]
     client.publish_avatar(avatar)
-    avatar.component[0].position[:] = [0, 0, 3]
+    avatar.components[0].position[:] = [0, 0, 3]
     client.publish_avatar(avatar)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 3)
 
     client_avatar = client.current_avatars[player_id]
-    assert client_avatar.component[0].position == [0, 0, 3]
+    assert client_avatar.components[0].position == [0, 0, 3]
 
 
 @pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
@@ -192,7 +191,7 @@ def test_subscribe_avatars_interval(server_client_pair, avatar, update_interval)
     test_values = [Avatar() for i in range(2)]
     for i, value in enumerate(test_values):
         value.CopyFrom(avatar)
-        value.component[0].position[:] = [i, i, i]
+        value.components[0].position[:] = [i, i, i]
 
     # send the initial avatar: we expect it to be sent back immediately because
     # there is no previous update to put an interval between.
@@ -232,13 +231,13 @@ def test_clearing_disconnected_avatars(server_client_pair, avatar):
         time.sleep(CONNECT_WAIT_TIME)
 
         first_avatar = second_client.current_avatars[first_player_id]
-        assert len(first_avatar.component) == 1
+        assert len(first_avatar.components) == 1
 
         first_client.close()
         time.sleep(CLIENT_SEND_INTERVAL * 2)
 
         first_avatar = second_client.current_avatars[first_player_id]
-        assert len(first_avatar.component) == 0
+        assert len(first_avatar.components) == 0
 
 
 def test_can_lock_unlocked(server_client_pair):
@@ -304,7 +303,7 @@ def test_set_value_updates_server_values(server_client_pair, scene):
     server, client = server_client_pair
     client.try_set_resource_value("scene", scene)
     server_scene = server._multiplayer_service.resources.get("scene")
-    assert str(scene) == str(server_scene)
+    assert scene == server_scene
 
 
 def test_remove_key_updates_server_keys(server_client_pair, scene):
@@ -315,7 +314,7 @@ def test_remove_key_updates_server_keys(server_client_pair, scene):
     server, client = server_client_pair
     client.try_set_resource_value("scene", scene)
     server_scene = server._multiplayer_service.resources.get("scene")
-    assert str(scene) == str(server_scene)
+    assert scene == server_scene
     client.try_remove_resource_key("scene")
     server_scene = server._multiplayer_service.resources.get("scene")
     assert server_scene is None
@@ -339,7 +338,7 @@ def test_set_value_sends_update(server_client_pair, scene):
     client.try_set_resource_value("scene", scene)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     recv_scene = client.resources.get("scene")
-    assert str(scene) == str(recv_scene)
+    assert scene == recv_scene
 
 
 def test_remove_key_sends_update(server_client_pair, scene):
@@ -352,7 +351,7 @@ def test_remove_key_sends_update(server_client_pair, scene):
     client.try_set_resource_value("scene", scene)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     recv_scene = client.resources.get("scene")
-    assert str(scene) == str(recv_scene)
+    assert scene == recv_scene
     client.try_remove_resource_key("scene")
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     recv_scene = client.resources.get("scene")
@@ -370,7 +369,7 @@ def test_server_sends_initial_values(server_client_pair, scene):
     assert client.resources.get("scene") is None
     client.subscribe_all_value_updates()
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert str(client.resources.get("scene")) == str(scene)
+    assert client.resources.get("scene") == scene
 
 
 def test_cant_lock_other_locked(server_client_pair):
@@ -409,14 +408,17 @@ def test_cant_set_other_locked(server_client_pair, scene):
         assert not client1.try_set_resource_value("scene", scene)
 
 
-def test_cant_set_non_value(server_client_pair):
+def test_cant_set_non_basic_type(server_client_pair):
     """
-    Test that setting a value to a non-grpc value raises the appropriate
-    exception.
+    Test that setting a value to a non-basic type raises a ValueError.
     """
     server, client = server_client_pair
-    with pytest.raises(TypeError):
-        client.try_set_resource_value("scene", "hello")
+
+    class UserType:
+        pass
+
+    with pytest.raises(ValueError):
+        client.try_set_resource_value("scene", UserType())
 
 
 @pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
@@ -430,12 +432,12 @@ def test_subscribe_value_sends_initial_immediately(server_client_pair,
     client.join_multiplayer("main", join_streams=False)
     client.subscribe_all_value_updates(interval=update_interval)
 
-    test_value = Value(string_value="hello")
+    test_value = "hello"
 
     time.sleep(CONNECT_WAIT_TIME)
     client.try_set_resource_value("test", test_value)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert str(client.resources.get("test")) == str(test_value)
+    assert client.resources.get("test") == test_value
 
 
 @pytest.mark.parametrize('update_interval', (.5, .2, .1))
@@ -446,7 +448,7 @@ def test_subscribe_value_interval(server_client_pair, update_interval):
     server, client = server_client_pair
     client.join_multiplayer("main", join_streams=False)
     client.subscribe_all_value_updates(interval=update_interval)
-    test_values = [Value(string_value=f"hello {i}") for i in range(5)]
+    test_values = [f"hello {i}" for i in range(5)]
     time.sleep(CONNECT_WAIT_TIME)
 
     client.try_set_resource_value("test", test_values[0])
@@ -454,11 +456,11 @@ def test_subscribe_value_interval(server_client_pair, update_interval):
 
     client.try_set_resource_value("test", test_values[1])
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert str(client.resources.get("test")) == str(test_values[0])
+    assert client.resources.get("test") == test_values[0]
 
     client.try_set_resource_value("test", test_values[2])
     time.sleep(update_interval)
-    assert str(client.resources.get("test")) == str(test_values[2])
+    assert client.resources.get("test") == test_values[2]
 
 
 @pytest.mark.parametrize('lock_duration', (.5, 1, 2))
@@ -515,7 +517,7 @@ def test_repeated_disconnect_frees_workers():
                 client.join_multiplayer("test", join_streams=False)
                 time.sleep(CONNECT_WAIT_TIME)
                 client.subscribe_all_value_updates()
-                client.try_set_resource_value("test", Value(number_value=0))
+                client.try_set_resource_value("test", 0)
 
 
 @pytest.mark.timeout(3)
