@@ -4,9 +4,14 @@ import grpc
 import pytest
 from google.protobuf.struct_pb2 import Value
 from mock import Mock
+from narupa.essd import DiscoveryServer, ServiceHub
+from narupa.essd.utils import get_broadcastable_ip
+from narupa.imd import IMD_SERVICE_NAME, ImdServer
 
-from narupa.multiplayer import MultiplayerServer
-from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY
+from narupa.multiplayer import MultiplayerServer, MULTIPLAYER_SERVICE_NAME
+from narupa.trajectory import FRAME_SERVICE_NAME
+from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, \
+    FrameServer
 
 from .test_frame_server import simple_frame_data, frame_server
 from .imd.test_imd_server import imd_server, interaction
@@ -43,6 +48,30 @@ def client_frame_server(frame_server):
     trajectory_address = (frame_server.address, frame_server.port)
     with NarupaImdClient(trajectory_address=trajectory_address) as client:
         yield client, frame_server
+
+@pytest.fixture
+def broadcastable_servers():
+    address = get_broadcastable_ip()
+    with FrameServer(address=address, port=0) as frame_server:
+        with ImdServer(address=address, port=0) as imd_server:
+            with MultiplayerServer(address=address, port=0) as multiplayer_server:
+                yield frame_server, imd_server, multiplayer_server
+
+
+def test_autoconnect_separate_servers(broadcastable_servers):
+    frame_server, imd_server, multiplayer_server = broadcastable_servers
+    service_hub = ServiceHub(name="test", address=frame_server.address)
+    service_hub.add_service(FRAME_SERVICE_NAME, frame_server.port)
+    service_hub.add_service(IMD_SERVICE_NAME, imd_server.port)
+    service_hub.add_service(MULTIPLAYER_SERVICE_NAME, multiplayer_server.port)
+
+    with DiscoveryServer() as discovery_server:
+        discovery_server.register_service(service_hub)
+        time.sleep(CLIENT_WAIT_TIME)
+        with NarupaImdClient.autoconnect() as client:
+            frame_server.send_frame(0, simple_frame_data)
+            time.sleep(CLIENT_WAIT_TIME)
+            assert client.latest_frame is not None
 
 
 def test_receive_frames(client_server, simple_frame_data):
@@ -171,6 +200,21 @@ def test_no_imd_cancel(interaction):
     """
     with NarupaImdClient() as client, pytest.raises(RuntimeError):
         _ = client.stop_interaction("0")
+
+
+def test_no_frames_get_frame():
+    with NarupaImdClient() as client, pytest.raises(RuntimeError):
+        _ = client.frames
+
+
+def test_no_frames_get_first_frame():
+    with NarupaImdClient() as client, pytest.raises(RuntimeError):
+        _ = client.first_frame
+
+
+def test_no_frames_run_frame_command():
+    with NarupaImdClient() as client, pytest.raises(RuntimeError):
+        _ = client.run_trajectory_command("test")
 
 
 def test_set_multiplayer_value(client_server):

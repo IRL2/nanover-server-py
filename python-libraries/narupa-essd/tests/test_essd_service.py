@@ -5,14 +5,7 @@ import pytest
 import narupa.essd
 from narupa.essd.servicehub import (ServiceHub, SERVICE_NAME_KEY, SERVICE_ADDRESS_KEY, SERVICE_SERVICES_KEY,
                                     SERVICE_ID_KEY, ESSD_VERSION_KEY)
-from narupa.essd.utils import get_broadcast_addresses
-
-
-def get_broadcastable_ip():
-    broadcast_addresses = get_broadcast_addresses()
-    if len(broadcast_addresses) == 0:
-        raise RuntimeError("No broadcastable IP addresses could be found on the system!")
-    return broadcast_addresses[0]['addr']
+from narupa.essd.utils import get_broadcastable_ip
 
 
 @pytest.fixture

@@ -46,6 +46,14 @@ def _update_commands(client: NarupaClient):
             raise e
 
 
+# TODO there must be a nicer decorator way to combine these:
+
+def _need_client(client, name, func, self, *args, **kwargs):
+    if client is None:
+        raise RuntimeError(f'Not connected to {name} service')
+    return func(self, *args, **kwargs)
+
+
 def need_multiplayer(func):
     """
     Ensure that there is a multiplayer client, raising a RuntimeError if not.
@@ -53,10 +61,30 @@ def need_multiplayer(func):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        if self._multiplayer_client is None:
-            raise RuntimeError("Not connected to multiplayer service")
-        return func(self, *args, **kwargs)
+        return _need_client(self._multiplayer_client, 'multiplayer', func, self, *args, **kwargs)
 
+    return wrapper
+
+
+def need_imd(func):
+    """
+    Ensure that there is an iMD client, raising a RuntimeError if not.
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        return _need_client(self._imd_client, 'imd', func, self, *args, **kwargs)
+    return wrapper
+
+
+def need_frames(func):
+    """
+    Ensure that there is a trajectory client, raising a RuntimeError if not.
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        return _need_client(self._frame_client, 'trajectory', func, self, *args, **kwargs)
     return wrapper
 
 
@@ -165,7 +193,6 @@ class NarupaImdClient:
 
         self.update_available_commands()  # initialise the set of available commands.
 
-
     @classmethod
     def connect_to_single_server(cls, address: Optional[str] = None, port: Optional[int] = None):
         """
@@ -182,7 +209,7 @@ class NarupaImdClient:
 
     @classmethod
     def connect_to_single_server_multiple_ports(cls,
-                                                address: Optional[str]=None,
+                                                address: Optional[str] = None,
                                                 trajectory_port: Optional[int] = None,
                                                 imd_port: Optional[int] = None,
                                                 multiplayer_port: Optional[int] = None,
@@ -190,12 +217,15 @@ class NarupaImdClient:
         """
         Connect to a collection of Narupa servers running at the same address but potentially different ports.
 
+
         :param address: Address of the server.
-        :param port: Server port
+        :param multiplayer_port: The port at which multiplayer is running.
+        :param trajectory_port: The port at which the trajectory service is running.
+        :param imd_port: The port at which the iMD service is running.
         :return: Instantiation of a client connected to all available services on the server at the given destination.
         """
-        
-        #TODO this is a utility method for testing... a good place to put this?
+
+        # TODO this is a utility method for testing... a good place to put this?
         address = address or DEFAULT_CONNECT_ADDRESS
         return cls(trajectory_address=(address, trajectory_port),
                    imd_address=(address, imd_port),
@@ -281,6 +311,7 @@ class NarupaImdClient:
         if multiplayer_address is not None:
             self.connect_multiplayer(multiplayer_address)
 
+    @need_frames
     def wait_until_first_frame(self, check_interval=0.01, timeout=1):
         """
         Wait until the first frame is received from the server.
@@ -301,6 +332,7 @@ class NarupaImdClient:
         return self.first_frame
 
     @property
+    @need_frames
     def latest_frame(self) -> Optional[FrameData]:
         """
         The trajectory frame most recently received, if any.
@@ -323,6 +355,7 @@ class NarupaImdClient:
         return dict(self._multiplayer_client.resources)
 
     @property
+    @need_frames
     def frames(self) -> Sequence[FrameData]:
         """
         The most recently received frames up to the storage limit specified
@@ -333,6 +366,7 @@ class NarupaImdClient:
         return list(self._frames)
 
     @property
+    @need_frames
     def first_frame(self) -> Optional[FrameData]:
         """
         The first received trajectory frame, if any.
@@ -342,6 +376,7 @@ class NarupaImdClient:
         return self._first_frame
 
     @property
+    @need_imd
     def interactions(self) -> Dict[str, ParticleInteraction]:
         """
         The dictionary of current interactions received by this client.
@@ -350,6 +385,7 @@ class NarupaImdClient:
         """
         return self._imd_client.interactions
 
+    @need_imd
     def start_interaction(self, interaction: Optional[ParticleInteraction] = None) -> str:
         """
         Start an interaction with the IMD server.
@@ -367,6 +403,7 @@ class NarupaImdClient:
             self.update_interaction(interaction_id, interaction)
         return interaction_id
 
+    @need_imd
     def update_interaction(self, interaction_id, interaction: ParticleInteraction):
         """
         Updates the interaction identified with the given interaction_id on
@@ -384,6 +421,7 @@ class NarupaImdClient:
         """
         self._imd_client.update_interaction(interaction_id, interaction)
 
+    @need_imd
     def stop_interaction(self, interaction_id) -> InteractionEndReply:
         """
         Stops the interaction identified with the given interaction_id on the server.
@@ -403,24 +441,28 @@ class NarupaImdClient:
         """
         return self._imd_client.stop_interaction(interaction_id)
 
+    @need_frames
     def run_play(self):
         """
         Sends a request to start playing the trajectory to the trajectory service.
         """
         self._frame_client.run_command(PLAY_COMMAND_KEY)
 
+    @need_frames
     def run_step(self):
         """
         Sends a request to take one step to the trajectory service.
         """
         self._frame_client.run_command(STEP_COMMAND_KEY)
 
+    @need_frames
     def run_pause(self):
         """
         Sends a request to pause the simulation to the trajectory service.
         """
         self._frame_client.run_command(PAUSE_COMMAND_KEY)
 
+    @need_frames
     def run_reset(self):
         """
         Sends a request to reset the simulation to the trajectory service.
@@ -461,6 +503,7 @@ class NarupaImdClient:
         else:
             raise KeyError(f"Unknown command: {name}, run update_available_commands to refresh commands.")
 
+    @need_frames
     def run_trajectory_command(self, name: str, **args) -> Dict[str, object]:
         """
         Runs a command on the trajectory service.
@@ -471,6 +514,7 @@ class NarupaImdClient:
         """
         return self._frame_client.run_command(name, **args)
 
+    @need_imd
     def run_imd_command(self, name: str, **args) -> Dict[str, object]:
         """
         Runs a command on the iMD service.
@@ -688,4 +732,3 @@ class NarupaImdClient:
             client = client_type.insecure_channel(address=address[0], port=address[1])
         self._active_clients.add(client)
         return client
-

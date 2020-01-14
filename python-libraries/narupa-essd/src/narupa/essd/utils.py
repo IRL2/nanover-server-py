@@ -91,3 +91,10 @@ def is_in_network(address: str, interface_address_entry: Dict[str, object]) -> b
         raise KeyError(f'Given interface address dictionary did not contain either \'broadcast\' or \'netmask\' keys: '
                        f'{interface_address_entry}')
     return ip_address in ip_network
+
+
+def get_broadcastable_ip():
+    broadcast_addresses = get_broadcast_addresses()
+    if len(broadcast_addresses) == 0:
+        raise RuntimeError("No broadcastable IP addresses could be found on the system!")
+    return broadcast_addresses[0]['addr']
