@@ -169,11 +169,13 @@ class NarupaImdClient:
                                                 imd_port: Optional[int] = None,
                                                 multiplayer_port: Optional[int] = None,
                                                 ):
+
+        #TODO this is a utility method for testing... a good place to put this?
         address = address or DEFAULT_CONNECT_ADDRESS
         return cls(trajectory_address=(address, trajectory_port),
                    imd_address=(address, imd_port),
                    multiplayer_address=(address, multiplayer_port))
-    
+
     @classmethod
     def connect_to_single_server(cls, address: Optional[str] = None, port: Optional[int] = None):
         """
@@ -193,6 +195,7 @@ class NarupaImdClient:
                     discovery_port: Optional[int] = None):
         """
         Autoconnect to the first available server discovered that at least produces frames.
+        
         :param search_time: Time, in seconds, to search for.
         :param discovery_address: IP address to search on.
         :param discovery_port: Port upon which to listen for discovery messages.
