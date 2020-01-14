@@ -2,9 +2,9 @@ import time
 from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
-from narupa.core.key_lockable_map import ResourceLockedError
-from narupa.core.change_buffers import DictionaryChange
-from narupa.core.state_dictionary import StateDictionary
+from narupa.utilities.key_lockable_map import ResourceLockedError
+from narupa.utilities.change_buffers import DictionaryChange
+from narupa.state.state_dictionary import StateDictionary
 
 
 BACKGROUND_THREAD_ACTION_TIME = .1

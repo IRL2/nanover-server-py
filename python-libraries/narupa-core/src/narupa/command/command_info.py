@@ -2,7 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Dict
 
-from narupa.core.protobuf_utilities import dict_to_struct, struct_to_dict
+from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 from narupa.protocol.command import CommandMessage
 
 

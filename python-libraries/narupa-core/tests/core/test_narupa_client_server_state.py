@@ -2,8 +2,8 @@ import time
 from typing import Tuple
 
 import pytest
-from narupa.core.change_buffers import DictionaryChange
-from narupa.core.key_lockable_map import ResourceLockedError
+from narupa.utilities.change_buffers import DictionaryChange
+from narupa.utilities.key_lockable_map import ResourceLockedError
 
 from narupa.core.narupa_client import NarupaClient
 from narupa.core.narupa_server import NarupaServer

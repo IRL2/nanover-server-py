@@ -9,13 +9,13 @@ from threading import Lock
 from typing import Iterator
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
-from narupa.core.grpc_utils import (
+from narupa.utilities.grpc_utilities import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
 )
-from narupa.core.protobuf_utilities import value_to_object
-from narupa.core.change_buffers import DictionaryChangeMultiView
-from narupa.core.key_lockable_map import (
+from narupa.utilities.protobuf_utilities import value_to_object
+from narupa.utilities.change_buffers import DictionaryChangeMultiView
+from narupa.utilities.key_lockable_map import (
     KeyLockableMap,
     ResourceLockedError,
 )

@@ -2,14 +2,13 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Callable, Optional, Dict, ContextManager, Set
 
-from narupa.core.change_buffers import DictionaryChange
-
-from narupa.core.command_service import CommandService, CommandRegistration
-from narupa.core.state_service import StateService
+from narupa.utilities.change_buffers import DictionaryChange
 from narupa.core import GrpcServer
 from narupa.core.grpc_server import DEFAULT_MAX_WORKERS
 from narupa.protocol.command import add_CommandServicer_to_server
 from narupa.protocol.state import add_StateServicer_to_server
+from narupa.command.command_service import CommandService, CommandRegistration
+from narupa.state.state_service import StateService
 
 
 class NarupaServer(GrpcServer):

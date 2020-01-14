@@ -16,8 +16,6 @@ from ase.calculators.calculator import Calculator
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
 
-from narupa.essd import DiscoveryServer
-from narupa.essd.servicehub import ServiceHub
 from narupa.app import NarupaImdClient
 from narupa.ase.converter import EV_TO_KJMOL
 from narupa.ase.frame_server import send_ase_frame

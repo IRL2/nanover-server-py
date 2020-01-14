@@ -3,7 +3,7 @@
 from contextlib import contextmanager
 from typing import Dict, Iterable, Set, Union, TypeVar, Optional
 
-from narupa.core import Event
+from narupa.utilities.event import Event
 
 INTERACTION_SINGLE = 'single'
 INTERACTION_GROUP = 'group'

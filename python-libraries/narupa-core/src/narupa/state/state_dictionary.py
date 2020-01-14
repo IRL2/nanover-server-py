@@ -8,8 +8,10 @@ from contextlib import contextmanager
 from threading import Lock
 from typing import ContextManager, Set, Dict
 
-from narupa.core.key_lockable_map import KeyLockableMap, ResourceLockedError
-from narupa.core.change_buffers import (
+from narupa.utilities.key_lockable_map import (
+    KeyLockableMap, ResourceLockedError,
+)
+from narupa.utilities.change_buffers import (
     DictionaryChangeMultiView,
     DictionaryChangeBuffer,
     DictionaryChange,
