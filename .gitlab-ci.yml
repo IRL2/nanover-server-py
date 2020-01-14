@@ -29,7 +29,7 @@ test_python:
     - python -m pip install -r python-libraries/requirements.test
   script:
     - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial'
-    - python -m pytest --cov=narupa python-libraries -n0 -m 'serial'
+    - python -m pytest --cov=narupa --cov-append python-libraries -n0 -m 'serial'
     - coverage html
   artifacts:
     paths:
@@ -44,7 +44,7 @@ test_python_minimum:
     - python -m pip install -r python-libraries/requirements.test
   script:
     - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial'
-    - python -m pytest --cov=narupa python-libraries -n0 -m 'serial'
+    - python -m pytest --cov=narupa--cov-append python-libraries -n0 -m 'serial'
 
 test_dotnet:
   image: intangiblerealitieslab/dotnet-conda
