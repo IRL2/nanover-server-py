@@ -1,9 +1,7 @@
 import os
-import shutil
-import tempfile
 import time
-from collections import Collection
-from typing import NamedTuple, List
+import re
+from typing import List
 
 import pytest
 from ase import Atoms
@@ -114,12 +112,11 @@ def test_timestamp(atoms, tmp_dir):
     """
     if using timestamp, the filename the logger uses should have a timestamp in it.
     """
+    path_regex = re.compile(r".*\d{4}_\d{2}_\d{2}__\d{2}_\d{2}_\d{2}_\d{2}\.xyz")
     file = os.path.join(tmp_dir, "atoms" + ".xyz")
     with TrajectoryLogger(atoms, file, timestamp=True) as logger:
         assert logger.current_path != file
-        import re
-        r = re.compile(r".*\d{4}_\d{2}_\d{2}__\d{2}_\d{2}_\d{2}_\d{2}\.xyz")
-        assert r.match(logger.current_path) is not None
+        assert path_regex.match(logger.current_path) is not None
 
 
 def test_no_timestamp(atoms, tmp_dir):
