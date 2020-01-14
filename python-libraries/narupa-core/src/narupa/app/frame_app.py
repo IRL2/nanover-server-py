@@ -3,6 +3,8 @@ Module providing an implementation of an Narupa frame-serving application, for p
 simulations and trajectories for consumption by clients.
 
 """
+from typing import Optional
+
 from narupa.app import NarupaApplicationServer
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer
@@ -27,7 +29,8 @@ class NarupaFrameApplication(NarupaApplicationServer):
     ...     frame_publisher.send_frame(0, example_frame)
 
     """
-    def __init__(self, server: NarupaServer, discovery: DiscoveryServer, name="Narupa Frame Server"):
+
+    def __init__(self, server: NarupaServer, discovery: Optional[DiscoveryServer] = None, name="Narupa Frame Server"):
         super().__init__(server, discovery, name)
         self._setup_frame_publisher()
 

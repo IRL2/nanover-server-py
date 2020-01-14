@@ -4,6 +4,8 @@ simulations and trajectories for consumption by clients that can be interacted w
 biasing potentials.
 
 """
+from typing import Optional
+
 from narupa.app import NarupaApplicationServer, NarupaImdClient
 from narupa.app.frame_app import NarupaFrameApplication
 from narupa.core import NarupaServer
@@ -30,7 +32,7 @@ class NarupaImdApplication(NarupaFrameApplication):
 
     _imd_service: ImdService
 
-    def __init__(self, server: NarupaServer, discovery: DiscoveryServer, name="Narupa iMD Server"):
+    def __init__(self, server: NarupaServer, discovery: Optional[DiscoveryServer] = None, name="Narupa iMD Server"):
         super().__init__(server, discovery, name)
         self._setup_imd()
 
@@ -42,7 +44,7 @@ class NarupaImdApplication(NarupaFrameApplication):
 
         :return: The :class:`ImdService` attached to this application.
         """
-        #TODO could probably just expose active interactions here.
+        # TODO could probably just expose active interactions here.
         return self._imd_service
 
     def close(self):

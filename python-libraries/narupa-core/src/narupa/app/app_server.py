@@ -39,7 +39,7 @@ class NarupaApplicationServer:
     Use this a base for building specific applications by inheriting from it and attaching additional services.
     """
 
-    def __init__(self, server: NarupaServer, discovery: DiscoveryServer, name="Narupa Server"):
+    def __init__(self, server: NarupaServer, discovery: Optional[DiscoveryServer] = None, name="Narupa Server"):
         self._server = server
         self._discovery = discovery
         self._service_hub = ServiceHub(name=name,
@@ -104,10 +104,18 @@ class NarupaApplicationServer:
         return self._server
 
     @property
-    def discovery(self) -> DiscoveryServer:
+    def running_discovery(self) -> bool:
+        """
+        Indicates whether a discovery service is running or not.
+        :return: True if discovery is available, False otherwise.
+        """
+        return self.discovery is not None
+
+    @property
+    def discovery(self) -> Optional[DiscoveryServer]:
         """
         The discovery service that can be used to allow clients to find services hosted by this application.
-        :return: The discovery service.
+        :return: The discovery service, or None if no discovery has been set up.
 
         Services added directly to the server running on this application via :fun:`NarupaApplicationServer.add_service`
         are automatically added to this discovery service.
@@ -121,7 +129,8 @@ class NarupaApplicationServer:
         """
         Close the application server and all services.
         """
-        self._discovery.close()
+        if self.running_discovery:
+            self._discovery.close()
         for service in self._services:
             service.close()
         self._server.close()
@@ -137,7 +146,8 @@ class NarupaApplicationServer:
         # TODO package up a service, service name and method?
         self._server.add_service(service, add_service_method=service_registration_method)
         self._service_hub.add_service(service_name, self._server.port)
-        self._update_discovery_services()
+        if self.running_discovery:
+            self._update_discovery_services()
 
     def _setup_multiplayer(self):
         self._multiplayer = MultiplayerService()
