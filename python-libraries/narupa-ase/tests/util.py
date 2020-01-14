@@ -2,14 +2,13 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 import pytest
 from ase import Atoms
-from narupa.imd import ImdServer, ImdClient
+from narupa.imd import ImdServer
 
 
 @pytest.fixture
-def imd_server_client():
+def imd_server():
     with ImdServer(address='localhost', port=0) as server:
-        with ImdClient(address='localhost', port=server.port) as client:
-            yield server, client
+        yield server
 
 
 def co_atoms():

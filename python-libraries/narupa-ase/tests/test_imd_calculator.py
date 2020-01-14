@@ -8,8 +8,9 @@ from ase.calculators.lj import LennardJones
 from narupa.ase import converter
 from narupa.core.timing import delayed_generator
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
+from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
-from util import co_atoms, imd_server_client
+from util import co_atoms, imd_server
 
 
 @pytest.fixture
@@ -24,24 +25,22 @@ def interact_c():
 
 
 @pytest.fixture
-def imd_calculator_co(imd_server_client):
-    server, client = imd_server_client
+def imd_calculator_co(imd_server):
     atoms = co_atoms()
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(server.service, calculator, atoms)
-    yield imd_calculator, atoms, client
+    imd_calculator = ImdCalculator(imd_server.service, calculator, atoms)
+    yield imd_calculator, atoms, imd_server
 
 
 @pytest.fixture
-def imd_calculator_no_atoms(imd_server_client):
-    server, client = imd_server_client
+def imd_calculator_no_atoms(imd_server):
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(server.service, calculator)
+    imd_calculator = ImdCalculator(imd_server.service, calculator)
     yield imd_calculator
 
 
 def test_imd_calculator_no_interactions(imd_calculator_co):
-    imd_calculator, atoms, client = imd_calculator_co
+    imd_calculator, atoms, _ = imd_calculator_co
     properties = ('energy', 'forces')
     imd_calculator.calculator.calculate(atoms=atoms, properties=properties)
     expected_results = imd_calculator.calculator.results
@@ -54,20 +53,20 @@ def test_imd_calculator_no_interactions(imd_calculator_co):
 
 
 def test_imd_calculator_one_dimension_pbc(imd_calculator_co):
-    imd_calculator, atoms, client = imd_calculator_co
+    imd_calculator, atoms, _ = imd_calculator_co
     atoms.set_pbc((True, False, False))
     with pytest.raises(NotImplementedError):
         imd_calculator.calculate()
 
 
 def test_imd_calculator_no_pbc(imd_calculator_co):
-    imd_calculator, atoms, client = imd_calculator_co
+    imd_calculator, atoms, _ = imd_calculator_co
     atoms.set_pbc((False, False, False))
     assert get_periodic_box_lengths(atoms) is None
 
 
 def test_imd_calculator_not_orthorhombic(imd_calculator_co):
-    imd_calculator, atoms, client = imd_calculator_co
+    imd_calculator, atoms, _ = imd_calculator_co
     atoms.set_cell([1, 1, 1, 45, 45, 45])
     with pytest.raises(NotImplementedError):
         imd_calculator.calculate()
@@ -104,7 +103,7 @@ def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, in
     """
     tests an interaction in several different positions, including periodic boundary positions.
     """
-    imd_calculator, atoms, imd_client = imd_calculator_co
+    imd_calculator, atoms, imd_server = imd_calculator_co
     # reshape the expected imd forces.
     imd_forces = np.array(imd_forces)
     imd_forces = imd_forces.reshape((2, 3))
@@ -117,10 +116,12 @@ def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, in
 
     # perform the calculation with interaction applied.
     interact_c.position = position
-    imd_client.publish_interactions_async(delayed_generator([interact_c] * 20, delay=0.01))
-    time.sleep(0.05)
-    assert len(imd_calculator.interactions) == 1
-    imd_calculator.calculate(properties=properties)
+    with ImdClient(port=imd_server.port) as imd_client:
+        imd_client.publish_interactions_async(delayed_generator([interact_c] * 20, delay=0.01))
+        time.sleep(0.05)
+        assert len(imd_calculator.interactions) == 1
+        imd_calculator.calculate(properties=properties)
+        results = imd_calculator.results
 
     # set up the expected energy and forces.
     expected_imd_energy_kjmol = interact_c.scale * imd_energy * atoms.get_masses()[0]
@@ -130,11 +131,8 @@ def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, in
     expected_forces = internal_forces + expected_imd_forces
     expected_energy = internal_energy + expected_imd_energy
 
-    results = imd_calculator.results
     forces = results['forces']
     assert np.allclose(results['interactive_energy'], expected_imd_energy)
     assert np.allclose(results['interactive_forces'], expected_imd_forces)
     assert np.allclose(results['energy'], expected_energy)
     assert np.allclose(forces, expected_forces)
-
-
