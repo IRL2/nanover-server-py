@@ -1,4 +1,4 @@
-eimage: intangiblerealitieslab/dotnet-conda
+image: intangiblerealitieslab/dotnet-conda
 stages:
   - stage1
   - stage2
