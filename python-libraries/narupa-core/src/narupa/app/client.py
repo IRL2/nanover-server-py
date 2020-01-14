@@ -178,6 +178,8 @@ class NarupaImdClient:
                  all_frames=True):
 
         self._active_clients = set()
+        self._channels = {}
+
         self.all_frames = all_frames
         self.max_frames = max_frames
 
@@ -721,7 +723,6 @@ class NarupaImdClient:
         self.close()
 
     def _connect_client(self, client_type: Type[NarupaClient], address: Tuple[str, int]):
-        self._channels = {}
         # TODO add support for encryption here somehow.
 
         # if there already exists a channel with the same address, reuse it, otherwise create a new insecure
@@ -730,5 +731,6 @@ class NarupaImdClient:
             client = client_type(channel=self._channels[address], make_channel_owner=False)
         else:
             client = client_type.insecure_channel(address=address[0], port=address[1])
+            self._channels[address] = client.channel
         self._active_clients.add(client)
         return client

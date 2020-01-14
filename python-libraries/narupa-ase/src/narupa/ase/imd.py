@@ -90,11 +90,10 @@ class NarupaASEDynamics:
 
         self.logger = logging.getLogger(__name__)
 
-
     @classmethod
     @contextmanager
-    def basic_imd(cls, dynamics):
-        with NarupaImdApplication.basic_server() as app:
+    def basic_imd(cls, dynamics, address: Optional[str] = None, port: Optional[str] = None):
+        with NarupaImdApplication.basic_server(address=address, port=port) as app:
             yield cls(app, dynamics)
 
     @property

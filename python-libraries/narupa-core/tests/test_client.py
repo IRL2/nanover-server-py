@@ -1,9 +1,11 @@
 import time
 
 import grpc
+import mock
 import pytest
 from google.protobuf.struct_pb2 import Value
 from mock import Mock
+from narupa.app import NarupaImdApplication
 from narupa.essd import DiscoveryServer, ServiceHub
 from narupa.essd.utils import get_broadcastable_ip
 from narupa.imd import IMD_SERVICE_NAME, ImdServer
@@ -49,6 +51,7 @@ def client_frame_server(frame_server):
     with NarupaImdClient(trajectory_address=trajectory_address) as client:
         yield client, frame_server
 
+
 @pytest.fixture
 def broadcastable_servers():
     address = get_broadcastable_ip()
@@ -58,8 +61,41 @@ def broadcastable_servers():
                 yield frame_server, imd_server, multiplayer_server
 
 
+@pytest.fixture
+def discoverable_imd_server():
+    address = get_broadcastable_ip()
+    with NarupaImdApplication.basic_server(address=address, port=0) as app_server:
+        yield app_server
+
+
+def test_autoconnect_app_server(discoverable_imd_server):
+    """
+    Tests that an iMD application server running on one port is discoverable and
+    that the client connects to it in the expected way.
+    """
+    mock = Mock(return_value={})
+
+    discoverable_imd_server.server.register_command("test", mock)
+
+    with NarupaImdClient.autoconnect(search_time=0.5) as client:
+        assert len(client._channels) == 1  # expect the client to connect to each server on the same channel
+        client.run_trajectory_command("test")
+        client.run_imd_command("test")
+        client.run_multiplayer_command("test")
+        assert mock.call_count == 3
+
+
 def test_autoconnect_separate_servers(broadcastable_servers):
     frame_server, imd_server, multiplayer_server = broadcastable_servers
+
+    frame_mock = Mock(return_value={})
+    imd_mock = Mock(return_value={})
+    multiplayer_mock = Mock(return_value={})
+
+    frame_server.register_command("frame", frame_mock)
+    imd_server.register_command("imd", imd_mock)
+    multiplayer_server.register_command("multiplayer", multiplayer_mock)
+
     service_hub = ServiceHub(name="test", address=frame_server.address)
     service_hub.add_service(FRAME_SERVICE_NAME, frame_server.port)
     service_hub.add_service(IMD_SERVICE_NAME, imd_server.port)
@@ -68,10 +104,15 @@ def test_autoconnect_separate_servers(broadcastable_servers):
     with DiscoveryServer() as discovery_server:
         discovery_server.register_service(service_hub)
         time.sleep(CLIENT_WAIT_TIME)
-        with NarupaImdClient.autoconnect() as client:
-            frame_server.send_frame(0, simple_frame_data)
-            time.sleep(CLIENT_WAIT_TIME)
-            assert client.latest_frame is not None
+        with NarupaImdClient.autoconnect(search_time=0.5) as client:
+            assert len(client._channels) == 3  # expect the client to connect to each server on a separate channel
+            # test servers by running a command on each.
+            client.run_trajectory_command("frame")
+            client.run_imd_command("imd")
+            client.run_multiplayer_command("multiplayer")
+            frame_mock.assert_called_once()
+            imd_mock.assert_called_once()
+            multiplayer_mock.assert_called_once()
 
 
 def test_receive_frames(client_server, simple_frame_data):

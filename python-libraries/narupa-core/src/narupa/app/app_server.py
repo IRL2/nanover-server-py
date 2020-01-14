@@ -12,16 +12,21 @@ from narupa.protocol.multiplayer import add_MultiplayerServicer_to_server
 DEFAULT_NARUPA_PORT = 38801
 
 
-def start_default_server_and_discovery(port: Optional[int] = None) -> Tuple[NarupaServer, DiscoveryServer]:
+def start_default_server_and_discovery(
+        address: Optional[str] = None,
+        port: Optional[int] = None) -> Tuple[NarupaServer, DiscoveryServer]:
     """
     Utility method for creating a default Narupa server along with ESSD discovery.
 
-    :param: Port to run the server on, if nothing is passed, the default Narupa port will be used. The value
+    :param: address: Address to run the server at. If nothing is passed, the default address of all interfaces will
+    be used.
+    :param: port: Port to run the server on, if nothing is passed, the default Narupa port will be used. The value
     of zero should be passed to let the OS pick a free port.
     :return: tuple of Narupa server and ESSD discovery.
     """
+    address = address or DEFAULT_SERVE_ADDRESS
     port = port or DEFAULT_NARUPA_PORT
-    server = NarupaServer(address=DEFAULT_SERVE_ADDRESS, port=port)
+    server = NarupaServer(address=address, port=port)
     discovery = DiscoveryServer()
     return server, discovery
 
@@ -50,16 +55,18 @@ class NarupaApplicationServer:
         self.close()
 
     @classmethod
-    def basic_server(cls, name="Narupa Server"):
+    def basic_server(cls, name="Narupa Server", address: Optional[str] = None, port: Optional[int] = None):
         """
         Initialises a basic Narupa application server with default settings,
         with a default unencrypted server and ESSD discovery server for
         finding it on a local area network.
 
         :param name: Name of the server for the purposes of discovery.
+        :param address: The address at which to bind the server to. If none given, the default address of
+        :param port: Optional port on which to run the Narupa server. If none given, default port will be used.
         :return: An instantiation of a basic Narupa server, registered with an ESSD discovery server.
         """
-        server, discovery = start_default_server_and_discovery()
+        server, discovery = start_default_server_and_discovery(address=address, port=port)
         return cls(server, discovery, name)
 
     @property
