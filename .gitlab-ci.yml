@@ -1,4 +1,4 @@
-image: intangiblerealitieslab/dotnet-conda
+image: jbarnoud/ci-test
 stages:
   - stage1
   - stage2
@@ -24,9 +24,10 @@ trigger_docs_build:
 
 test_python:
   stage: stage2
-  script:
-    - conda install -c omnia -c conda-forge -c ./conda-bld narupa-server
+  before_script:
+    - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} narupa-server
     - python -m pip install -r python-libraries/requirements.test
+  script:
     - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial'
     - python -m pytest --cov=narupa python-libraries -n0 -m 'serial'
     - coverage html
@@ -35,7 +36,18 @@ test_python:
       - htmlcov
       - csharp-libraries/Narupa.Protocol/bin/Release
 
+test_python_minimum:
+  stage: stage2
+  before_script:
+    - export PIN_VERSIONS='python=3.6 ase=3.19.0'
+    - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} narupa-server
+    - python -m pip install -r python-libraries/requirements.test
+  script:
+    - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial'
+    - python -m pytest --cov=narupa python-libraries -n0 -m 'serial'
+
 test_dotnet:
+  image: intangiblerealitieslab/dotnet-conda
   stage: stage1
   variables:
     test_path: "csharp-libraries"
@@ -47,27 +59,29 @@ test_dotnet:
 build_conda:
     stage: stage1
     variables:
-        build_command: "conda build --prefix-length=100 "
+        build_command: "conda build --prefix-length=100 --no-test --no-anaconda-upload "
     script:
         # Test that the repo is sane and does not contain superfluous __init__ file
         - bash maintainers/check_extra_init_files.sh
         # We use the number of commits in the branch to set the version number.
         - export NARUPA_BUILD_VERSION="0.1.$(git rev-list --count HEAD)"
         - export NARUPA_LICENSE_PATH="$(readlink -f LICENSE)"
-        # Configure the environment. We need conda-forge to get the science
-        # related packages (openmm, ase, mdanalysis)
+        # Configure the environment. We need conda-forge and omnia to get the
+        # science related packages (openmm, ase, mdanalysis)
         - conda config --env --add channels conda-forge
         - conda config --env --add channels omnia
         - conda install conda-build grpcio-tools conda-verify
         # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
-        # narupa-core must come first as all depends on it
-        - $build_command python-libraries/narupa-core/conda
-        - $build_command python-libraries/narupa-openmm/conda
-        - $build_command python-libraries/narupa-ase/conda
-        - $build_command python-libraries/narupa-mdanalysis/conda
-        # narupa-server must come last as it depends on everything
-        - $build_command python-libraries/narupa-server/conda
+        # The order of the packages is defined by their requirements.
+        - |
+            $build_command \
+              python-libraries/narupa-essd/conda \
+              python-libraries/narupa-core/conda \
+              python-libraries/narupa-openmm/conda \
+              python-libraries/narupa-ase/conda \
+              python-libraries/narupa-mdanalysis/conda \
+              python-libraries/narupa-server/conda
         - cp -r /miniconda/conda-bld .
     artifacts:
         paths:
