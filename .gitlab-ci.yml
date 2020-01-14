@@ -5,6 +5,7 @@ stages:
   - deploy
 
 release:
+  image: intangiblerealitieslab/dotnet-conda
   stage: deploy
   only:
     - master
@@ -14,7 +15,6 @@ release:
       - python-libraries
       - csharp-libraries/Narupa.Protocol/bin/Release
   script:
-    - conda install -c omnia -c conda-forge openmm ase mdanalysis
     - ./compile.sh
 
 # triggers a build of the narupa documentation repo. 
