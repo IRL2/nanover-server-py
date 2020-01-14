@@ -86,6 +86,7 @@ def run_with_server(service):
             run_with_client(service)
 
 
+@pytest.mark.serial
 def test_context_managers(service):
     """
     tests that running the server and client with context managers cleans up correctly.

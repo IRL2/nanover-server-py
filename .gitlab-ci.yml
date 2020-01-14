@@ -1,4 +1,4 @@
-image: intangiblerealitieslab/dotnet-conda
+eimage: intangiblerealitieslab/dotnet-conda
 stages:
   - stage1
   - stage2
@@ -27,7 +27,8 @@ test_python:
   script:
     - conda install -c omnia -c conda-forge -c ./conda-bld narupa-server
     - python -m pip install -r python-libraries/requirements.test
-    - python -m pytest --cov=narupa python-libraries
+    - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial'
+    - python -m pytest --cov=narupa python-libraries -n0 -m 'serial'
     - coverage html
   artifacts:
     paths:
