@@ -2,6 +2,7 @@
 pytest
 pytest-cov
 pytest-timeout
+pytest-xdist
 hypothesis
 # python-osc is needed to test an example
 python-osc

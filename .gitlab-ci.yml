@@ -14,6 +14,7 @@ release:
       - python-libraries
       - csharp-libraries/Narupa.Protocol/bin/Release
   script:
+    - conda install -c omnia -c conda-forge openmm ase mdanalysis
     - ./compile.sh
 
 # triggers a build of the narupa documentation repo. 
@@ -28,7 +29,8 @@ test_python:
     - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} narupa-server
     - python -m pip install -r python-libraries/requirements.test
   script:
-    - python -m pytest --cov=narupa python-libraries
+    - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial'
+    - python -m pytest --cov=narupa --cov-append python-libraries -n0 -m 'serial'
     - coverage html
   artifacts:
     paths:
@@ -42,7 +44,8 @@ test_python_minimum:
     - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} narupa-server
     - python -m pip install -r python-libraries/requirements.test
   script:
-    - python -m pytest --cov=narupa python-libraries
+    - python -m pytest python-libraries -n auto -m 'not serial'
+    - python -m pytest python-libraries -n0 -m 'serial'
 
 test_dotnet:
   image: intangiblerealitieslab/dotnet-conda
