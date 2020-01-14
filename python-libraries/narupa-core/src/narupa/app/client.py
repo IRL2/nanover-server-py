@@ -163,6 +163,18 @@ class NarupaImdClient:
         self.update_available_commands()  # initialise the set of available commands.
 
     @classmethod
+    def connect_to_single_server_multiple_ports(cls,
+                                                address: Optional[str]=None,
+                                                trajectory_port: Optional[int] = None,
+                                                imd_port: Optional[int] = None,
+                                                multiplayer_port: Optional[int] = None,
+                                                ):
+        address = address or DEFAULT_CONNECT_ADDRESS
+        return cls(trajectory_address=(address, trajectory_port),
+                   imd_address=(address, imd_port),
+                   multiplayer_address=(address, multiplayer_port))
+    
+    @classmethod
     def connect_to_single_server(cls, address: Optional[str] = None, port: Optional[int] = None):
         """
         Connect to a single Narupa server running all services on the same port.
