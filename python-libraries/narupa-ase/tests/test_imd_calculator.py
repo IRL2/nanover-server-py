@@ -1,30 +1,15 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 import time
-from typing import Dict
 
 import pytest
 import numpy as np
-from ase import Atoms
 from ase.calculators.lj import LennardJones
-from ase.md import Langevin
-from ase.md.nvtberendsen import NVTBerendsen
-from narupa.imd import ImdClient
-
 from narupa.ase import converter
 from narupa.core.timing import delayed_generator
-
-from narupa.imd.imd_server import ImdServer
-from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths, _get_cancelled_interactions, \
-    _get_atoms_to_reset
+from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
 from narupa.imd.particle_interaction import ParticleInteraction
-from util import co_atoms
-
-@pytest.fixture
-def imd_client():
-    with ImdClient(address='localhost', port=54322) as client:
-        yield client
-
+from util import co_atoms, imd_server_client
 
 
 @pytest.fixture
@@ -39,25 +24,24 @@ def interact_c():
 
 
 @pytest.fixture
-def imd_calculator_co():
-    server = ImdServer(address=None, port=None)
+def imd_calculator_co(imd_server_client):
+    server, client = imd_server_client
     atoms = co_atoms()
     calculator = LennardJones()
     imd_calculator = ImdCalculator(server.service, calculator, atoms)
-    yield imd_calculator, atoms
-    server.close()
+    yield imd_calculator, atoms, client
 
 
 @pytest.fixture
-def imd_calculator_no_atoms():
-    server = ImdServer(address=None, port=None)
+def imd_calculator_no_atoms(imd_server_client):
+    server, client = imd_server_client
     calculator = LennardJones()
     imd_calculator = ImdCalculator(server.service, calculator)
     yield imd_calculator
-    server.close()
+
 
 def test_imd_calculator_no_interactions(imd_calculator_co):
-    imd_calculator, atoms = imd_calculator_co
+    imd_calculator, atoms, client = imd_calculator_co
     properties = ('energy', 'forces')
     imd_calculator.calculator.calculate(atoms=atoms, properties=properties)
     expected_results = imd_calculator.calculator.results
@@ -70,20 +54,20 @@ def test_imd_calculator_no_interactions(imd_calculator_co):
 
 
 def test_imd_calculator_one_dimension_pbc(imd_calculator_co):
-    imd_calculator, atoms = imd_calculator_co
+    imd_calculator, atoms, client = imd_calculator_co
     atoms.set_pbc((True, False, False))
     with pytest.raises(NotImplementedError):
         imd_calculator.calculate()
 
 
 def test_imd_calculator_no_pbc(imd_calculator_co):
-    imd_calculator, atoms = imd_calculator_co
+    imd_calculator, atoms, client = imd_calculator_co
     atoms.set_pbc((False, False, False))
     assert get_periodic_box_lengths(atoms) is None
 
 
 def test_imd_calculator_not_orthorhombic(imd_calculator_co):
-    imd_calculator, atoms = imd_calculator_co
+    imd_calculator, atoms, client = imd_calculator_co
     atoms.set_cell([1, 1, 1, 45, 45, 45])
     with pytest.raises(NotImplementedError):
         imd_calculator.calculate()
@@ -116,11 +100,11 @@ def test_imd_calculator_no_atoms(imd_calculator_no_atoms):
                           ([0, 0, -1], 1, [0, 0, -2, 0, 0, 0]),
                           ([5, 0, 0], 1, [2, 0, 0, 0, 0, 0]),
                           ])
-def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, interact_c, imd_client):
+def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, interact_c):
     """
     tests an interaction in several different positions, including periodic boundary positions.
     """
-    imd_calculator, atoms = imd_calculator_co
+    imd_calculator, atoms, imd_client = imd_calculator_co
     # reshape the expected imd forces.
     imd_forces = np.array(imd_forces)
     imd_forces = imd_forces.reshape((2, 3))

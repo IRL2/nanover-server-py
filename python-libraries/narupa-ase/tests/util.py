@@ -2,8 +2,14 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 import pytest
 from ase import Atoms
+from narupa.imd import ImdServer, ImdClient
 
-from narupa.imd.imd_client import ImdClient
+
+@pytest.fixture
+def imd_server_client():
+    with ImdServer(address='localhost', port=0) as server:
+        with ImdClient(address='localhost', port=server.port) as client:
+            yield server, client
 
 
 def co_atoms():
@@ -12,10 +18,4 @@ def co_atoms():
                cell=[2, 2, 2],
                pbc=[1, 1, 1])
     return co
-
-
-@pytest.fixture
-def imd_client():
-    with ImdClient(address='localhost', port=54322) as client:
-        yield client
 

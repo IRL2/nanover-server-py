@@ -16,6 +16,7 @@ from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.trajectory.frame_data import MissingDataError
 import numpy as np
 from test_imd_calculator import imd_calculator_co
+from util import imd_server_client
 
 # Sets of dummy interactions to test cancellation selections.
 NUM_INTERACTIONS = 10
@@ -119,7 +120,7 @@ def test_temperature_not_set(imd_calculator_co):
     """
     Tests handling of temperature not set in an IMD calculator.
     """
-    calculator, atoms = imd_calculator_co
+    calculator, atoms, client = imd_calculator_co
     with pytest.raises(MissingDataError):
         _ = calculator.temperature
 
@@ -141,7 +142,7 @@ def test_temperature_not_set_md(imd_calculator_co):
     Tests handling of temperature not set in an IMD calculator with a dynamics
     object that does not implement temperature.
     """
-    calculator, atoms = imd_calculator_co
+    calculator, atoms, client = imd_calculator_co
     # molecular dynamics object does not implement a temperature by default.
     calculator._dynamics = MolecularDynamics(atoms, 1.0, None)
     with pytest.raises(MissingDataError):
@@ -171,7 +172,7 @@ def test_temperature_custom(imd_calculator_co):
     Tests that setting a custom temperature enables use of a temperature
     in IMD.
     """
-    calculator, atoms = imd_calculator_co
+    calculator, atoms, client = imd_calculator_co
     calculator.temperature = TEST_TEMPERATURE
     assert calculator.temperature == TEST_TEMPERATURE
 
