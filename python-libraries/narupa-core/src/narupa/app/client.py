@@ -76,7 +76,7 @@ class NarupaImdClient:
     Interactive molecular dynamics client that receives frames, create selections,
     and join the multiplayer shared state.
 
-    :param trajectory_address: Address and port of the trajectory service
+    :param trajectory_address: Address and port of the trajectory service.
     :param imd_address: Address and port of the iMD service.
     :param multiplayer_address: Address and port of the multiplayer service.
     :param max_frames: Maximum number of frames to store in a buffer, if not storing all frames.
@@ -84,6 +84,9 @@ class NarupaImdClient:
 
     All addresses are optional, so one can, for example, just connect to a trajectory service to passively receive
     frames.
+
+    The :fun:`NarupaImdClient.autoconnect` and :fun:`NarupaImdClient.connect_to_single_server` methods provide
+    shorthands for common server setups.
 
     Inspecting a Frame
     ==================
@@ -162,24 +165,12 @@ class NarupaImdClient:
 
         self.update_available_commands()  # initialise the set of available commands.
 
-    @classmethod
-    def connect_to_single_server_multiple_ports(cls,
-                                                address: Optional[str]=None,
-                                                trajectory_port: Optional[int] = None,
-                                                imd_port: Optional[int] = None,
-                                                multiplayer_port: Optional[int] = None,
-                                                ):
-
-        #TODO this is a utility method for testing... a good place to put this?
-        address = address or DEFAULT_CONNECT_ADDRESS
-        return cls(trajectory_address=(address, trajectory_port),
-                   imd_address=(address, imd_port),
-                   multiplayer_address=(address, multiplayer_port))
 
     @classmethod
     def connect_to_single_server(cls, address: Optional[str] = None, port: Optional[int] = None):
         """
         Connect to a single Narupa server running all services on the same port.
+
         :param address: Address of the server.
         :param port: Server port
         :return: Instantiation of a client connected to all available services on the server at the given destination.
@@ -188,6 +179,27 @@ class NarupaImdClient:
         port = port or DEFAULT_NARUPA_PORT
         t = (address, port)
         return cls(trajectory_address=t, imd_address=t, multiplayer_address=t)
+
+    @classmethod
+    def connect_to_single_server_multiple_ports(cls,
+                                                address: Optional[str]=None,
+                                                trajectory_port: Optional[int] = None,
+                                                imd_port: Optional[int] = None,
+                                                multiplayer_port: Optional[int] = None,
+                                                ):
+        """
+        Connect to a collection of Narupa servers running at the same address but potentially different ports.
+
+        :param address: Address of the server.
+        :param port: Server port
+        :return: Instantiation of a client connected to all available services on the server at the given destination.
+        """
+        
+        #TODO this is a utility method for testing... a good place to put this?
+        address = address or DEFAULT_CONNECT_ADDRESS
+        return cls(trajectory_address=(address, trajectory_port),
+                   imd_address=(address, imd_port),
+                   multiplayer_address=(address, multiplayer_port))
 
     @classmethod
     def autoconnect(cls, search_time=2.0,
