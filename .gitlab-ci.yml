@@ -1,4 +1,4 @@
-image: jbarnoud/ci-test
+image: intangiblerealitieslab/conda-light
 stages:
   - stage1
   - stage2
