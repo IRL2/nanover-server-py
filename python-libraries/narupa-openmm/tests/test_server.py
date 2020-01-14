@@ -52,7 +52,7 @@ class TestServer(TestRunner):
         The simulation has a reporter attached to it to assure removing a reporter
         only removes only that reporter.
         """
-        server = Server(basic_simulation, address='[::]', port=0)
+        server = Server(basic_simulation, address='localhost', port=0)
         server.simulation.reporters.append(DoNothingReporter())
         yield server
         server.close()
@@ -63,7 +63,7 @@ class TestServer(TestRunner):
     def test_from_xml_input(self, serialized_simulation_path):
         server = Server.from_xml_input(
             serialized_simulation_path,
-            address='[::]', port=0,
+            address='localhost', port=0,
             publish_interval=2,
         )
         n_atoms_in_system = 8
@@ -122,15 +122,17 @@ class TestServer(TestRunner):
         server = Server(basic_simulation, port=0)
         server.close()
 
+    @pytest.mark.serial
     def test_default_port(self, basic_simulation):
         """
         We can instantiate a server without providing the trajectory port and it 
         uses the default trajectory port.
         """
-        server = Server(basic_simulation, address='[::]')
+        server = Server(basic_simulation, address='localhost')
         assert server.trajectory_port == TRAJECTORY_DEFAULT_PORT
         server.close()
 
+    @pytest.mark.serial
     def test_default_host(self, basic_simulation):
         """
         We can instantiate a server without providing neither an address nor a port.
@@ -144,5 +146,5 @@ class TestServer(TestRunner):
         """
         We can use a server as a context manager without an error.
         """
-        with Server(basic_simulation, address='[::]', port=0) as server:
+        with Server(basic_simulation, address='localhost', port=0) as server:
             server.run(n_steps=1)
