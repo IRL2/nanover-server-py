@@ -162,6 +162,7 @@ def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
 def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
     """
     Convert a DictionaryChange to a protobuf StateUpdate.
+
     :param change: a DictionaryChange which species key changes and key removals
         to make to a dictionary.
     :return: an equivalent protobuf StateUpdate representing the key removals
