@@ -78,6 +78,7 @@ def initialise(args=None):
     # TODO clean way to handle params?
     params = ImdParams(
         arguments.address,
+        arguments.port,
         arguments.frame_interval,
         arguments.time_step,
         arguments.verbose,
