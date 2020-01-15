@@ -142,6 +142,7 @@ def validate_dict_is_serializable(dictionary):
 def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
     """
     Convert a protobuf StateUpdate to a DictionaryChange.
+
     :param update: a protobuf StateUpdate which encodes key removals as keys
         with a protobuf null value.
     :return: an equivalent DictionaryChange representing the key changes and
