@@ -177,7 +177,6 @@ class NarupaImdClient:
                  max_frames=50,
                  all_frames=True):
 
-        self._active_clients = set()
         self._channels = {}
 
         self.all_frames = all_frames
@@ -262,12 +261,22 @@ class NarupaImdClient:
         :param clear_frames: Whether to clear the frames received by the
             client, or keep them.
         """
+        if self._imd_client is not None:
+            self._imd_client.close()
+            self._imd_client = None
+        if self._multiplayer_client is not None:
+            self._multiplayer_client.close()
+            self._multiplayer_client = None
+        if self._frame_client is not None:
+            self._frame_client.close()
+            self._frame_client = None
+        self._channels.clear()
+
         if clear_frames:
             self._first_frame = None
             self._frames.clear()
-        for client in self._active_clients:
-            if client is not None:
-                client.close()
+
+
 
     def connect_trajectory(self, address: Tuple[str, int]):
         """
@@ -732,5 +741,4 @@ class NarupaImdClient:
         else:
             client = client_type.insecure_channel(address=address[0], port=address[1])
             self._channels[address] = client.channel
-        self._active_clients.add(client)
         return client

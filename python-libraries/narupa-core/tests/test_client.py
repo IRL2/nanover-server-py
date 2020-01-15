@@ -6,6 +6,7 @@ import pytest
 from google.protobuf.struct_pb2 import Value
 from mock import Mock
 from narupa.app import NarupaImdApplication
+from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer, ServiceHub
 from narupa.essd.utils import get_broadcastable_ip
 from narupa.imd import IMD_SERVICE_NAME, ImdServer
@@ -21,7 +22,7 @@ from .core.test_grpc_client_server import mock_callback, default_args
 from narupa.app.client import NarupaImdClient
 import numpy as np
 
-CLIENT_WAIT_TIME = 0.2
+CLIENT_WAIT_TIME = 0.5
 
 TEST_KEY = 'test'
 TEST_VALUE = Value(string_value='hi')
@@ -64,7 +65,10 @@ def broadcastable_servers():
 @pytest.fixture
 def discoverable_imd_server():
     address = get_broadcastable_ip()
-    with NarupaImdApplication.basic_server(address=address, port=0) as app_server:
+
+    server = NarupaServer(address=address, port=0)
+    discovery = DiscoveryServer(broadcast_port=0)
+    with NarupaImdApplication(server, discovery) as app_server:
         yield app_server
 
 
@@ -77,7 +81,7 @@ def test_autoconnect_app_server(discoverable_imd_server):
 
     discoverable_imd_server.server.register_command("test", mock)
 
-    with NarupaImdClient.autoconnect(search_time=0.5) as client:
+    with NarupaImdClient.autoconnect(search_time=0.5, discovery_port=discoverable_imd_server.discovery.port) as client:
         assert len(client._channels) == 1  # expect the client to connect to each server on the same channel
         client.run_trajectory_command("test")
         client.run_imd_command("test")
@@ -158,8 +162,10 @@ def test_reconnect_receive(client_server, simple_frame_data):
     frame_server.send_frame(0, simple_frame_data)
     client.close()
 
-    assert client.latest_frame is None
-    client.connect(trajectory_address=frame_server.address_and_port, imd_address=imd_server.address_and_port)
+    assert len(client._frames) == 0
+    client.connect(trajectory_address=frame_server.address_and_port,
+                   imd_address=imd_server.address_and_port,
+                   multiplayer_address=multiplayer_server.address_and_port)
     time.sleep(CLIENT_WAIT_TIME)
     assert client.latest_frame is not None
 
