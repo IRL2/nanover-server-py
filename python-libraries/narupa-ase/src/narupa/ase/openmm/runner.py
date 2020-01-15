@@ -162,6 +162,15 @@ class OpenMMIMDRunner:
         return self.app_server.address
 
     @property
+    def port(self):
+        """
+        Gets the port the server is running on.
+
+        :return: The server port.
+        """
+        return self.app_server.port
+
+    @property
     def name(self):
         return self.app_server.name
 
