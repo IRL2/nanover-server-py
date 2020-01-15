@@ -78,6 +78,7 @@ class StateService(StateServicer):
         """
         Attempts to acquire and release locks on keys in the shared key/value
         store. If any of the locks cannot be acquired, none of them will be.
+        Requested lock releases are carried out regardless.
 
         :raises ResourceLockedError: if the access token cannot acquire all
             requested keys.

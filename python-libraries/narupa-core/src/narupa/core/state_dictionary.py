@@ -73,7 +73,8 @@ class StateDictionary:
     ):
         """
         Acquire and release locks for the given access token. If any of the
-        locks cannot be acquired, none of them will be.
+        locks cannot be acquired, none of them will be. Requested lock releases
+        are carried out regardless.
 
         :raises ResourceLockedError: if the access token cannot acquire all
             requested keys.
