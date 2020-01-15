@@ -59,7 +59,12 @@ class StateService(StateServicer):
     def update_state(self, access_token: object, change: DictionaryChange):
         """
         Attempts an atomic update of the shared key/value store. If any key
-        cannot be updates, no change will be made.
+        cannot be updated, no change will be made.
+
+        :raises ResourceLockedError: if the access token cannot acquire all keys
+            for updating.
+        :raises TypeError: if the update values cannot be serialized for
+            transmission.
         """
         validate_dict_is_serializable(change.updates)
         self._state_dictionary.update_state(access_token, change)
@@ -73,6 +78,9 @@ class StateService(StateServicer):
         """
         Attempts to acquire and release locks on keys in the shared key/value
         store. If any of the locks cannot be acquired, none of them will be.
+
+        :raises ResourceLockedError: if the access token cannot acquire all
+            requested keys.
         """
         self._state_dictionary.update_locks(access_token, acquire, release)
 
