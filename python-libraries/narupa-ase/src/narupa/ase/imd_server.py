@@ -10,21 +10,19 @@ from threading import RLock
 from typing import Optional, Callable
 
 import numpy as np
-
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
-
-from narupa.essd import DiscoveryServer
-from narupa.essd.servicehub import ServiceHub
 from narupa.app import NarupaImdClient
+from narupa.imd.imd_server import ImdServer
+from narupa.trajectory import FrameServer
+from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY
+
 from narupa.ase.converter import EV_TO_KJMOL
 from narupa.ase.frame_server import send_ase_frame
 from narupa.ase.imd_calculator import ImdCalculator
-from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY
-from narupa.imd.imd_server import ImdServer
-from narupa.trajectory import FrameServer
+from narupa.ase.trajectory_logger import TrajectoryLogger
 
 
 class ASEImdServer:
@@ -46,8 +44,9 @@ class ASEImdServer:
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
     >>> atoms.set_calculator(EMT())
     >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
+    >>> dynamics.attach(TrajectoryLogger(atoms, 'test.xyz'), interval=10) # attach an XYZ logger.
     >>> server = ASEImdServer(dynamics) # create the server with the molecular dynamics object.
-    >>> client = NarupaImdClient(run_multiplayer=False) # have a client connect to the server
+    >>> client = NarupaImdClient() # have a client connect to the server
     >>> server.run(5) # run some dynamics.
     >>> client.first_frame.particle_count # client will have received some frames!
     32
@@ -79,6 +78,7 @@ class ASEImdServer:
         self.atoms.set_calculator(self.imd_calculator)
         self._frame_interval = frame_interval
         self.dynamics.attach(frame_method(self.atoms, self.frame_server), interval=frame_interval)
+
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._run_task = None
         self._cancelled = False
@@ -87,7 +87,6 @@ class ASEImdServer:
         self._initial_velocities = self.atoms.get_velocities()
         self._initial_box = self.atoms.get_cell()
         self.on_reset_listeners = []
-
         self.logger = logging.getLogger(__name__)
 
     @property
