@@ -157,6 +157,7 @@ def test_reconnect_receive(client_server, simple_frame_data):
     client, frame_server, imd_server, multiplayer_server = client_server
     frame_server.send_frame(0, simple_frame_data)
     client.close()
+
     assert client.latest_frame is None
     client.connect(trajectory_address=frame_server.address_and_port, imd_address=imd_server.address_and_port)
     time.sleep(CLIENT_WAIT_TIME)

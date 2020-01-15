@@ -22,7 +22,7 @@ def imd_server() -> Generator[ImdServer, None, None]:
 
 @pytest.fixture
 def imd_server_client(imd_server) -> Generator[Tuple[ImdServer, ImdClient], None, None]:
-    with ImdClient(address='localhost', port=imd_server.port) as client:
+    with ImdClient.insecure_channel(address='localhost', port=imd_server.port) as client:
         yield imd_server, client
 
 

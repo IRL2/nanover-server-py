@@ -22,7 +22,8 @@ from util import co_atoms
 
 @pytest.fixture
 def imd_client():
-    with ImdClient(address='localhost', port=54322) as client:
+    with ImdClient.insecure_channel(
+            address='localhost', port=54322) as client:
         yield client
 
 

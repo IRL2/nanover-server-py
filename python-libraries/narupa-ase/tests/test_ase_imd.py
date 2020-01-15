@@ -6,11 +6,12 @@ import pytest
 from ase import Atoms
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
-from narupa.imd import ImdClient
+from narupa.app.app_server import DEFAULT_NARUPA_PORT
 
 from narupa.ase.imd import NarupaASEDynamics
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.core.timing import delayed_generator
+from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
 from util import co_atoms, imd_client
 
@@ -35,6 +36,12 @@ def imd():
     dynamics = VelocityVerlet(atoms, timestep=0.5)
     with NarupaASEDynamics.basic_imd(dynamics) as imd:
         yield imd, atoms
+
+
+@pytest.fixture
+def imd_client():
+    with ImdClient.insecure_channel(address="localhost", port=DEFAULT_NARUPA_PORT) as client:
+        yield client
 
 
 def test_ase_imd_dynamics(imd):
