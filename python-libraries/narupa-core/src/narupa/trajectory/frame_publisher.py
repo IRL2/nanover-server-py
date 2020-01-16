@@ -3,9 +3,11 @@
 from queue import Queue
 from threading import Lock
 
-from narupa.core.request_queues import DictOfQueues, SingleItemQueue
-from narupa.core.timing import yield_interval
-from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameResponse, FrameData
+from narupa.utilities.request_queues import DictOfQueues, SingleItemQueue
+from narupa.utilities.timing import yield_interval
+from narupa.protocol.trajectory import (
+    TrajectoryServiceServicer, GetFrameResponse, FrameData,
+)
 
 SENTINEL = None
 

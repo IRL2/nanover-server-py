@@ -1,4 +1,4 @@
-from narupa.core import Event
+from narupa.utilities.event import Event
 
 
 def test_invoke_nocallbacks():

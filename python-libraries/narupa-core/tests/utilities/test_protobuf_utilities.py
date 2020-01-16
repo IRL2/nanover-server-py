@@ -1,11 +1,9 @@
 import numbers
-from collections import abc
 from math import inf, nan
 
 import pytest
-from google.protobuf.struct_pb2 import ListValue, Struct, Value
-import numpy as np
-from narupa.core.protobuf_utilities import dict_to_struct
+from google.protobuf.struct_pb2 import Value
+from narupa.utilities.protobuf_utilities import dict_to_struct
 
 
 def assert_value_equal(proto_value, python_value):

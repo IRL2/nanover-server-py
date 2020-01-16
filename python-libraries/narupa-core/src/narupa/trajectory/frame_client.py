@@ -3,7 +3,6 @@
 from concurrent.futures import Future
 from typing import Optional
 
-import grpc
 from narupa.core import get_requested_port_or_default, NarupaStubClient
 from narupa.protocol.trajectory import TrajectoryServiceStub, GetFrameRequest
 from narupa.trajectory import FrameData
