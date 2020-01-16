@@ -92,9 +92,39 @@ class NarupaASEDynamics:
 
     @classmethod
     @contextmanager
-    def basic_imd(cls, dynamics, address: Optional[str] = None, port: Optional[str] = None):
+    def basic_imd(cls, dynamics: MolecularDynamics,
+                  address: Optional[str] = None,
+                  port: Optional[int] = None,
+                  **kwargs,
+                  ):
+        """
+        Initialises basic interactive molecular dynamics running a Narupa server
+        at the given address and port.
+
+        :param dynamics: Molecular dynamics object to attach the server to.
+        :param address: Address to run the server at.
+        :param port: Port to run the server on.
+        :param kwargs: Key-word arguments to pass to the constructor of :class:~NarupaASEDynamics
+        :return: Instantiation of a :class:~NarupaASEDynamics configured with the given server parameters and dynamics.
+        """
         with NarupaImdApplication.basic_server(address=address, port=port) as app:
-            yield cls(app, dynamics)
+            with cls(app, dynamics, **kwargs) as imd:
+                yield imd
+
+    @property
+    def address(self) -> str:
+        """
+        The address of the Narupa server.
+        """
+        return self._server.address
+
+    @property
+    def port(self) -> str:
+        """
+        The port of the Narupa server.
+        :return:
+        """
+        return self._server.port
 
     @property
     def internal_calculator(self) -> Calculator:

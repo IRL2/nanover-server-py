@@ -10,11 +10,12 @@ from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.cell import Cell
 from ase.md import VelocityVerlet
 from ase.cell import Cell
+from narupa.app import NarupaImdApplication
 
 from narupa.essd import DiscoveryClient
 from narupa.trajectory import FrameData
 from narupa.ase.imd import NarupaASEDynamics
-from narupa.core import NarupaClient
+from narupa.core import NarupaClient, NarupaServer
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY
 
 DUMMY_ATOMS_COUNT = 4
@@ -111,19 +112,16 @@ def arbitrary_dynamics(dummy_atoms):
 
 @pytest.fixture
 def arbitrary_ase_server(arbitrary_dynamics):
-    ase_server = NarupaASEDynamics(
-        arbitrary_dynamics,
-        frame_method=do_nothing_producer,
-        trajectory_port=0, imd_port=0,
-    )
-    with ase_server:
+    with NarupaASEDynamics.basic_imd(arbitrary_dynamics,
+                                     address='localhost',
+                                     port=0,
+                                     frame_method=do_nothing_producer) as ase_server:
         yield ase_server
 
 
 @pytest.fixture
 def client_server(arbitrary_ase_server):
-    with NarupaClient(address="localhost",
-                      port=arbitrary_ase_server.frame_server.port) as c:
+    with NarupaClient.insecure_channel(address='localhost', port=arbitrary_ase_server.port) as c:
         yield c, arbitrary_ase_server
 
 
