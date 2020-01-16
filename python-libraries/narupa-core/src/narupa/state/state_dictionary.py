@@ -55,7 +55,11 @@ class StateDictionary:
     ):
         """
         Update the dictionary with key changes and removals, using any locks
-        permitted by the given access token.
+        permitted by the given access token. If any key cannot be updated, no
+        change will be made.
+
+        :raises ResourceLockedError: if the access token cannot acquire all keys
+            for updating.
         """
         with self._lock:
             keys = set(change.updates.keys()) | set(change.removals)
@@ -70,7 +74,12 @@ class StateDictionary:
             release: Set[str],
     ):
         """
-        Acquire and release locks for the given access token.
+        Acquire and release locks for the given access token. If any of the
+        locks cannot be acquired, none of them will be. Requested lock releases
+        are carried out regardless.
+
+        :raises ResourceLockedError: if the access token cannot acquire all
+            requested keys.
         """
         with self._lock:
             if not self._can_token_access_keys(access_token, acquire.keys()):
@@ -80,7 +89,7 @@ class StateDictionary:
                 try:
                     self._write_locks.release_key(access_token, key)
                 except ResourceLockedError:
-                    pass # don't care if we can't release a lock
+                    pass  # don't care if we can't release a lock
             for key, duration in acquire.items():
                 self._write_locks.lock_key(access_token, key, duration)
 

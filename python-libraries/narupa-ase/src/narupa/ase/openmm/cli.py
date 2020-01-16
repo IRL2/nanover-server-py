@@ -15,7 +15,7 @@ import textwrap
 import time
 
 from narupa.ase.openmm import OpenMMIMDRunner
-from narupa.ase.openmm.runner import ImdParams
+from narupa.ase.openmm.runner import ImdParams, LoggingParams
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -47,8 +47,14 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument('-i', '--imd-port', type=int, default=None)
     parser.add_argument('-m', '--multiplayer-port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
-    parser.add_argument('-f', '--frame-interval', type=int, default=5)
-    parser.add_argument('-s', '--time-step', type=float, default=1.0)
+    parser.add_argument(
+        '-f', '--frame-interval', type=int, default=5,
+        help='Produce a trajectory frame every LOG_INTERVAL dynamics steps.'
+    )
+    parser.add_argument(
+        '-s', '--time-step', type=float, default=1.0,
+        help='The simulation time step, in femtoseconds.',
+    )
     parser.add_argument(
         '--reset-energy', type=float, default=1e6,
         help=('Threshold of total energy above which the simulation is reset '
@@ -74,6 +80,17 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         '--discovery-port', type=int, default=None,
         help='Port at which to run discovery service'
     )
+    parser.add_argument(
+        '-o', '--trajectory-file', type=str, default=None,
+        help='Base filename for the trajectory output file. A timestamp will '
+             'be inserted between the name and file extensions. Can be any '
+             'file that ASE can output in append mode, such as XYZ.'
+    )
+    parser.add_argument(
+        '--write-interval', type=int, default=1,
+        help='Write a trajectory frame to file every WRITE_INTERVAL dynamics '
+             'steps.',
+    )
     arguments = parser.parse_args(args)
     return arguments
 
@@ -96,7 +113,12 @@ def initialise(args=None):
         arguments.discovery,
         arguments.discovery_port
     )
-    runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params)
+
+    logging_params = LoggingParams(
+        arguments.trajectory_file,
+        arguments.write_interval,
+    )
+    runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params, logging_params)
     # Shamefully store CLI arguments in the runner.
     runner.cli_options = {
         'reset_energy': arguments.reset_energy if arguments.auto_reset else None,
@@ -109,6 +131,9 @@ def main():
     Entry point for the command line.
     """
     with initialise() as runner:
+        if runner.logging_info is not None:
+            print(f'Logging frames to "{runner.logging_info.trajectory_path}"')
+
         runner.imd.on_reset_listeners.append(lambda: print('RESET! ' * 10))
         print(f'Serving frames on port {runner.trajectory_port} and IMD on {runner.imd_port}')
         if runner.running_multiplayer:

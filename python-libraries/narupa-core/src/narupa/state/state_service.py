@@ -59,7 +59,12 @@ class StateService(StateServicer):
     def update_state(self, access_token: object, change: DictionaryChange):
         """
         Attempts an atomic update of the shared key/value store. If any key
-        cannot be updates, no change will be made.
+        cannot be updated, no change will be made.
+
+        :raises ResourceLockedError: if the access token cannot acquire all keys
+            for updating.
+        :raises TypeError: if the update values cannot be serialized for
+            transmission.
         """
         validate_dict_is_serializable(change.updates)
         self._state_dictionary.update_state(access_token, change)
@@ -73,6 +78,10 @@ class StateService(StateServicer):
         """
         Attempts to acquire and release locks on keys in the shared key/value
         store. If any of the locks cannot be acquired, none of them will be.
+        Requested lock releases are carried out regardless.
+
+        :raises ResourceLockedError: if the access token cannot acquire all
+            requested keys.
         """
         self._state_dictionary.update_locks(access_token, acquire, release)
 
@@ -142,6 +151,7 @@ def validate_dict_is_serializable(dictionary):
 def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
     """
     Convert a protobuf StateUpdate to a DictionaryChange.
+
     :param update: a protobuf StateUpdate which encodes key removals as keys
         with a protobuf null value.
     :return: an equivalent DictionaryChange representing the key changes and
@@ -162,6 +172,7 @@ def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
 def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
     """
     Convert a DictionaryChange to a protobuf StateUpdate.
+
     :param change: a DictionaryChange which species key changes and key removals
         to make to a dictionary.
     :return: an equivalent protobuf StateUpdate representing the key removals
