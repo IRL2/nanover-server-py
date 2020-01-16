@@ -1,4 +1,6 @@
-from narupa.core.key_lockable_map import KeyLockableMap, ResourceLockedError
+from narupa.utilities.key_lockable_map import (
+    KeyLockableMap, ResourceLockedError,
+)
 import pytest
 
 

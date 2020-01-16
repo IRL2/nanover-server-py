@@ -4,11 +4,14 @@ from queue import Queue
 from threading import Lock
 from typing import Union
 
-from narupa.core.request_queues import DictOfQueues, SingleItemQueue
-from narupa.core.timing import yield_interval
-from narupa.protocol.trajectory import TrajectoryServiceServicer, GetFrameResponse
+from narupa.utilities.request_queues import DictOfQueues, SingleItemQueue
+from narupa.utilities.timing import yield_interval
+from narupa.protocol.trajectory import (
+    TrajectoryServiceServicer, GetFrameResponse
+)
 from narupa.protocol.trajectory import FrameData as RawFrameData
-from narupa.trajectory.frame_data import FrameData
+from narupa.trajectory import FrameData
+
 SENTINEL = None
 
 FRAME_SERVICE_NAME = "trajectory"

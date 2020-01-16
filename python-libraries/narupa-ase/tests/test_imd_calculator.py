@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 from ase.calculators.lj import LennardJones
 from narupa.ase import converter
-from narupa.core.timing import delayed_generator
+from narupa.utilities.timing import delayed_generator
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
 from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction

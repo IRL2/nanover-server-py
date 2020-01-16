@@ -1,6 +1,5 @@
 import ipaddress
 import socket
-import time
 from typing import List, Optional, Iterable, Dict
 
 import netifaces

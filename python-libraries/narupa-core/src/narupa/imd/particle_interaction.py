@@ -4,7 +4,7 @@
 Module providing a wrapper class around the protobuf interaction message.
 """
 from numbers import Number
-from typing import Collection, List
+from typing import Collection
 
 import numpy as np
 from google.protobuf.struct_pb2 import Struct

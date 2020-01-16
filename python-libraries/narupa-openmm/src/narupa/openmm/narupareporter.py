@@ -7,7 +7,6 @@ from typing import Union
 
 from simtk.openmm.app.topology import Topology
 
-from narupa.trajectory.frame_server import FrameServer
 from .converter import openmm_to_frame_data
 
 

@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from threading import Lock, Condition
 from typing import Any, Set, Dict, ContextManager, Iterator, Iterable, NamedTuple
 
-from narupa.core.timing import yield_interval
+from .timing import yield_interval
 
 KeyUpdates = Dict[str, Any]
 KeyRemovals = Iterable[str]
@@ -19,7 +19,7 @@ class DictionaryChange(NamedTuple):
     removals: KeyRemovals
 
 
-class ObjectFrozenException(Exception):
+class ObjectFrozenError(Exception):
     """
     Raised when an operation on an object cannot be performed because the
     object has been frozen.
@@ -85,7 +85,7 @@ class DictionaryChangeMultiView:
         removals = removals or set()
         with self._lock:
             if self._frozen:
-                raise ObjectFrozenException()
+                raise ObjectFrozenError()
             self._update_content(updates, removals)
             self._update_views(updates, removals)
 
@@ -123,7 +123,7 @@ class DictionaryChangeMultiView:
         for view in set(self._views):
             try:
                 view.update(updates, removals)
-            except ObjectFrozenException:
+            except ObjectFrozenError:
                 self._views.remove(view)
 
     def __contains__(self, item):
@@ -169,7 +169,7 @@ class DictionaryChangeBuffer:
         removals = removals or set()
         with self._lock:
             if self._frozen:
-                raise ObjectFrozenException()
+                raise ObjectFrozenError()
 
             # pending key deletions with new values are no longer removed
             for key in updates:
@@ -189,7 +189,7 @@ class DictionaryChangeBuffer:
         with self._any_changes:
             while not self._pending_changes and not self._pending_removals:
                 if self._frozen:
-                    raise ObjectFrozenException()
+                    raise ObjectFrozenError()
                 self._any_changes.wait()
             changes, removals = self._pending_changes, self._pending_removals
             self._pending_changes, self._pending_removals = dict(), set()
@@ -204,5 +204,5 @@ class DictionaryChangeBuffer:
         for dt in yield_interval(interval):
             try:
                 yield self.flush_changed_blocking()
-            except ObjectFrozenException:
+            except ObjectFrozenError:
                 break

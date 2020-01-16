@@ -14,8 +14,9 @@ from grpc import RpcError, StatusCode
 
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from narupa.app.selection import RenderingSelection
-from narupa.core import CommandInfo, NarupaClient, DEFAULT_CONNECT_ADDRESS
-from narupa.core.protobuf_utilities import struct_to_dict, dict_to_struct
+from narupa.core import NarupaClient, DEFAULT_CONNECT_ADDRESS
+from narupa.command import CommandInfo
+from narupa.utilities.protobuf_utilities import struct_to_dict, dict_to_struct
 from narupa.essd import DiscoveryClient
 from narupa.imd import ImdClient, IMD_SERVICE_NAME
 from narupa.imd.particle_interaction import ParticleInteraction

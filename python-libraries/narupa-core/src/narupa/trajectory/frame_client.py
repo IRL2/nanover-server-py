@@ -1,13 +1,11 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from concurrent.futures import Future
-from typing import Optional
 
 import grpc
-from narupa.core import get_requested_port_or_default, NarupaStubClient
+from narupa.core import NarupaStubClient
 from narupa.protocol.trajectory import TrajectoryServiceStub, GetFrameRequest
 from narupa.trajectory import FrameData
-from narupa.trajectory.frame_server import DEFAULT_PORT
 
 
 class FrameClient(NarupaStubClient):

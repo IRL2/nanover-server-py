@@ -134,5 +134,5 @@ def test_autoconnect_separate_servers(broadcastable_servers):
 
 
 def test_autoconnect_no_server():
-    with pytest.raises(RuntimeError), NarupaImdClient.autoconnect():
+    with pytest.raises(ConnectionError), NarupaImdClient.autoconnect():
         pass

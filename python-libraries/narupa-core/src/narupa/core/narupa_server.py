@@ -2,16 +2,14 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Callable, Optional, Dict, ContextManager, Set
 
-import grpc
-from google.protobuf.struct_pb2 import Struct
-from narupa.core.change_buffers import DictionaryChange
-
-from narupa.core.command_service import CommandService, CommandRegistration
-from narupa.core.state_service import StateService
+from narupa.command.command_service import CommandService, CommandRegistration
 from narupa.core import GrpcServer
 from narupa.core.grpc_server import DEFAULT_MAX_WORKERS
 from narupa.protocol.command import add_CommandServicer_to_server
 from narupa.protocol.state import add_StateServicer_to_server
+from narupa.state.state_service import StateService
+from narupa.utilities.change_buffers import DictionaryChange
+from narupa.command import CommandService
 
 
 class NarupaServer(GrpcServer):

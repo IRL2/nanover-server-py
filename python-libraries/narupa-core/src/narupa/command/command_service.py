@@ -8,12 +8,13 @@ from typing import NamedTuple
 from typing import Dict, Callable, Optional, Any
 
 import grpc
-from google.protobuf.struct_pb2 import Struct
 
-from narupa.core.command_info import CommandInfo
-from narupa.core.protobuf_utilities import dict_to_struct
-from narupa.core.key_lockable_map import KeyLockableMap
-from narupa.protocol.command import CommandServicer, CommandMessage, CommandReply, GetCommandsReply
+from narupa.command.command_info import CommandInfo
+from narupa.utilities.protobuf_utilities import dict_to_struct
+from narupa.utilities.key_lockable_map import KeyLockableMap
+from narupa.protocol.command import (
+    CommandServicer, CommandMessage, CommandReply, GetCommandsReply,
+)
 
 
 class CommandRegistration(NamedTuple):

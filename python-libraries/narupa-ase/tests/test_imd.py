@@ -9,13 +9,8 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.cell import Cell
 from ase.md import VelocityVerlet
-from ase.cell import Cell
-from narupa.app import NarupaImdApplication
-
-from narupa.essd import DiscoveryClient
-from narupa.trajectory import FrameData
 from narupa.ase.imd import NarupaASEDynamics
-from narupa.core import NarupaClient, NarupaServer
+from narupa.core import NarupaClient
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY
 
 DUMMY_ATOMS_COUNT = 4

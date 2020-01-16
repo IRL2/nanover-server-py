@@ -10,7 +10,7 @@ from narupa.app.app_server import DEFAULT_NARUPA_PORT
 
 from narupa.ase.imd import NarupaASEDynamics
 from narupa.ase.imd_calculator import ImdCalculator
-from narupa.core.timing import delayed_generator
+from narupa.utilities.timing import delayed_generator
 from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
 from util import co_atoms

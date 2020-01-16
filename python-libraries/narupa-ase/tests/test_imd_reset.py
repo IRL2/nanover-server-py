@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 import pytest
-from ase import Atoms, units
+from ase import units
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.calculators.lj import LennardJones

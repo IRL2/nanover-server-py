@@ -4,7 +4,6 @@
 A module containing a Extremely Simple Service Discovery client.
 """
 import json
-import socket
 import time
 from typing import Optional, Set
 

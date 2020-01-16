@@ -11,7 +11,7 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 from simtk.openmm import System, State
-from simtk.openmm.app import Topology, Atom, Simulation
+from simtk.openmm.app import Topology, Simulation
 from simtk.unit import angstrom, kilojoules_per_mole, kilojoule_per_mole, amu, Quantity
 
 from narupa.ase.converter import KJMOL_TO_EV
