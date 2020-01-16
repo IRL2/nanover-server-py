@@ -26,6 +26,7 @@ class GrpcClient:
             *,
             channel: grpc.Channel,
             make_channel_owner: bool = False,
+            **kwargs
     ):
         # TODO a channel could be wrapped into a more general gRPC connection, as in the C# implementation.
         self.channel = channel
@@ -37,6 +38,7 @@ class GrpcClient:
                          *,
                          address: Optional[str] = None,
                          port: Optional[int] = None,
+                         **kwargs
                          ):
         """
         Create an insecure connection at the given address and port.
@@ -48,7 +50,7 @@ class GrpcClient:
         address = address or DEFAULT_CONNECT_ADDRESS
         port = port or cls.DEFAULT_CONNECTION_PORT
         channel = grpc.insecure_channel(f"{address}:{port}")
-        return cls(channel=channel, make_channel_owner=True)
+        return cls(channel=channel, make_channel_owner=True, **kwargs)
 
     @property
     def is_channel_owner(self) -> bool:

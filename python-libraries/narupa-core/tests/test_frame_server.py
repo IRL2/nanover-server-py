@@ -68,7 +68,7 @@ def frame_server():
 
 @pytest.fixture
 def frame_server_client_pair(frame_server):
-    client = FrameClient(address='localhost', port=frame_server.port)
+    client = FrameClient.insecure_channel(address='localhost', port=frame_server.port)
     yield frame_server, client
     client.close()
 

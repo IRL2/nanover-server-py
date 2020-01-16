@@ -26,7 +26,7 @@ def server_client_pair():
     and a multiplayer client connected to it.
     """
     server = MultiplayerServer(address='localhost', port=0)
-    client = MultiplayerClient(
+    client = MultiplayerClient.insecure_channel(
         port=server.port,
         send_interval=CLIENT_SEND_INTERVAL
     )
@@ -227,7 +227,7 @@ def test_clearing_disconnected_avatars(server_client_pair, avatar):
     first_client.publish_avatar(avatar)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
-    with MultiplayerClient(port=server.port) as second_client:
+    with MultiplayerClient.insecure_channel(port=server.port) as second_client:
         second_client.join_avatar_stream(interval=0, ignore_self=False)
         time.sleep(CONNECT_WAIT_TIME)
 
@@ -280,7 +280,7 @@ def test_set_unlocked_repeated(server_client_pair, scene):
     Test that multiple clients can take turns setting an unlocked resource.
     """
     server, client1 = server_client_pair
-    with MultiplayerClient(port=server.port) as client2:
+    with MultiplayerClient.insecure_channel(port=server.port) as client2:
         assert client1.try_set_resource_value("scene", scene)
         assert client2.try_set_resource_value("scene", scene)
         assert client1.try_set_resource_value("scene", scene)
@@ -378,7 +378,7 @@ def test_cant_lock_other_locked(server_client_pair):
     Test that you cannot lock a resource that is locked by someone else.
     """
     server, client1 = server_client_pair
-    with MultiplayerClient(port=server.port) as client2:
+    with MultiplayerClient.insecure_channel(port=server.port) as client2:
         client1.join_multiplayer("main")
         client2.join_multiplayer("other")
         client2.try_lock_resource("scene")
@@ -390,7 +390,7 @@ def test_cant_release_other_lock(server_client_pair):
     Test that you cannot release a resource that is locked by someone else.
     """
     server, client1 = server_client_pair
-    with MultiplayerClient(port=server.port) as client2:
+    with MultiplayerClient.insecure_channel(port=server.port) as client2:
         client1.join_multiplayer("main")
         client2.join_multiplayer("other")
         client2.try_lock_resource("scene")
@@ -402,7 +402,7 @@ def test_cant_set_other_locked(server_client_pair, scene):
     Test that you cannot set a resource that is locked by someone else.
     """
     server, client1 = server_client_pair
-    with MultiplayerClient(port=server.port) as client2:
+    with MultiplayerClient.insecure_channel(port=server.port) as client2:
         client1.join_multiplayer("main")
         client2.join_multiplayer("other")
         client2.try_lock_resource("scene")
@@ -467,7 +467,7 @@ def test_lock_durations(server_client_pair, lock_duration):
     Test that locks expire roughly after the requested duration has passed.
     """
     server, client1 = server_client_pair
-    with MultiplayerClient(port=server.port) as client2:
+    with MultiplayerClient.insecure_channel(port=server.port) as client2:
         client1.join_multiplayer("main")
         client2.join_multiplayer("other")
 
@@ -484,7 +484,7 @@ def test_lock_duration_extend(server_client_pair, lock_duration):
     Test that relocking a key updates the lock duration.
     """
     server, client1 = server_client_pair
-    with MultiplayerClient(port=server.port) as client2:
+    with MultiplayerClient.insecure_channel(port=server.port) as client2:
         client1.join_multiplayer("main")
         client2.join_multiplayer("other")
 
@@ -511,7 +511,7 @@ def test_repeated_disconnect_frees_workers():
     # 2 workers: 1 for value subscription, 1 for single request
     with MultiplayerServer(address='localhost', port=0, max_workers=2) as server:
         for _ in range(32):
-            with MultiplayerClient(port=server.port) as client:
+            with MultiplayerClient.insecure_channel(port=server.port) as client:
                 client.join_multiplayer("test", join_streams=False)
                 time.sleep(CONNECT_WAIT_TIME)
                 client.subscribe_all_value_updates()
@@ -529,7 +529,7 @@ def test_repeated_connections_stall_server():
             clients = []
             try:
                 for _ in range(32):
-                    client = MultiplayerClient(port=server.port)
+                    client = MultiplayerClient.insecure_channel(port=server.port)
                     clients.append(client)
                     client.join_multiplayer("test")
             finally:
