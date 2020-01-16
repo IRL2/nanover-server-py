@@ -1,0 +1,59 @@
+// Copyright (c) Intangible Realities Laboratory, University of Bristol. All rights reserved.
+// Licensed under the GPL. See License.txt in the project root for license information.
+
+syntax = "proto3";
+import "google/protobuf/struct.proto";
+
+package narupa.protocol.state;
+
+service State {
+    // Periodically received aggregated updates from last known state to latest
+    // state of a shared key/value store.
+    rpc SubscribeStateUpdates(SubscribeStateUpdatesRequest) returns (stream StateUpdate) {}
+
+    // Attempt to make an update to the shared key/value store.
+    rpc UpdateState(UpdateStateRequest) returns (UpdateStateResponse) {}
+
+    // Attempt to acquire, renew, or release exclusive control of keys in the
+    // shared key/value store.
+    rpc UpdateLocks(UpdateLocksRequest) returns (UpdateLocksResponse) {}
+}
+
+message StateUpdate {
+    // Struct where each field is an updated state key and it's latest value,
+    // where null is equivalent to a key removal.
+    google.protobuf.Struct changed_keys = 1;
+}
+
+message SubscribeStateUpdatesRequest {
+    // Interval (in seconds) between update sends.
+    float update_interval = 1;
+}
+
+message UpdateStateRequest {
+    // Token for associating requests to their lock ownership.
+    string access_token = 1;
+
+    // Updates to make to state.
+    StateUpdate update = 2;
+}
+
+message UpdateLocksRequest {
+    // Token for associating requests to their lock ownership.
+    string access_token = 1;
+
+    // Struct where each field an state key and either a time in seconds to
+    // acquire or renew the lock for, or a null to indicate the lock should be
+    // released if held.
+    google.protobuf.Struct lock_keys = 2;
+}
+
+message UpdateStateResponse {
+    // Whether the update was successful.
+    bool success = 1;
+}
+
+message UpdateLocksResponse {
+    // Whether the locking was successful.
+    bool success = 1;
+}

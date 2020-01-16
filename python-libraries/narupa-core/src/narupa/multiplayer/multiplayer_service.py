@@ -14,10 +14,10 @@ from narupa.core.grpc_utils import (
     RpcAlreadyTerminatedError,
 )
 from narupa.core.protobuf_utilities import value_to_object
-from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
+from narupa.core.change_buffers import DictionaryChangeMultiView
 from narupa.core.key_lockable_map import (
     KeyLockableMap,
-    ResourceLockedException,
+    ResourceLockedError,
 )
 from narupa.protocol.multiplayer.multiplayer_pb2 import (
     StreamEndedResponse, Avatar, ResourceRequestResponse,
@@ -122,7 +122,7 @@ class MultiplayerService(MultiplayerServicer):
                                     request.resource_id,
                                     duration)
             success = True
-        except ResourceLockedException:
+        except ResourceLockedError:
             success = False
         self.logger.debug(f'{request.player_id} attempts lock on {request.resource_id} (Success: {success})')
         response = ResourceRequestResponse(success=success)
@@ -138,7 +138,7 @@ class MultiplayerService(MultiplayerServicer):
         try:
             self.resources.release_key(request.player_id, request.resource_id)
             success = True
-        except ResourceLockedException:
+        except ResourceLockedError:
             success = False
         return ResourceRequestResponse(success=success)
 
@@ -159,7 +159,7 @@ class MultiplayerService(MultiplayerServicer):
                                    resource_value)
                 self._resources.update({request.resource_id: resource_value})
             success = True
-        except ResourceLockedException:
+        except ResourceLockedError:
             success = False
 
         self.logger.debug(f'{request.player_id} attempts {request.resource_id}={resource_value} (Successs: {success})')
@@ -181,7 +181,7 @@ class MultiplayerService(MultiplayerServicer):
                                    None)
                 self._resources.update(removals=[request.resource_id])
             success = True
-        except ResourceLockedException:
+        except ResourceLockedError:
             success = False
 
         self.logger.debug(f'{request.player_id} attempts del {request.resource_id} (Successs: {success})')

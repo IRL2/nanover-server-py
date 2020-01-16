@@ -15,7 +15,7 @@ import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
 from narupa.core import NarupaStubClient
 from narupa.core.protobuf_utilities import object_to_value, struct_to_dict
 from narupa.core.request_queues import SingleItemQueue
-from narupa.multiplayer.change_buffers import yield_interval
+from narupa.core.change_buffers import yield_interval
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerStub
 

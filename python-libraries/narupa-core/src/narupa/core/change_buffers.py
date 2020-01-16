@@ -193,7 +193,7 @@ class DictionaryChangeBuffer:
                 self._any_changes.wait()
             changes, removals = self._pending_changes, self._pending_removals
             self._pending_changes, self._pending_removals = dict(), set()
-            return changes, removals
+            return DictionaryChange(changes, removals)
 
     def subscribe_changes(self, interval: float = 0) \
             -> Iterator[DictionaryChange]:

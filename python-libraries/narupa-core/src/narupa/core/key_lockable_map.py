@@ -11,7 +11,7 @@ import time
 from threading import RLock
 
 
-class ResourceLockedException(Exception):
+class ResourceLockedError(Exception):
     pass
 
 
@@ -48,7 +48,7 @@ class KeyLockableMap:
     def lock_key(self, owner_id, key, duration=None):
         with self._lock:
             if not self.player_can_lock_key(owner_id, key):
-                raise ResourceLockedException
+                raise ResourceLockedError
             self._key_lock_owners[key] = owner_id
             if duration is not None:
                 self._key_lock_timeouts[key] = time.monotonic() + duration
@@ -56,7 +56,7 @@ class KeyLockableMap:
     def release_key(self, owner_id, key):
         with self._lock:
             if not self.player_can_lock_key(owner_id, key):
-                raise ResourceLockedException
+                raise ResourceLockedError
             self._remove_lock(key)
 
     def remove_owner(self, owner_id):
@@ -68,7 +68,7 @@ class KeyLockableMap:
     def set(self, owner_id, key, value):
         with self._lock:
             if not self.player_can_lock_key(owner_id, key):
-                raise ResourceLockedException
+                raise ResourceLockedError
             self._values[key] = value
 
     def set_no_replace(self, key, value):
@@ -94,7 +94,7 @@ class KeyLockableMap:
     def delete(self, owner_id, key):
         with self._lock:
             if not self.player_can_lock_key(owner_id, key):
-                raise ResourceLockedException
+                raise ResourceLockedError
             del self._values[key]
 
     def get_all(self):
