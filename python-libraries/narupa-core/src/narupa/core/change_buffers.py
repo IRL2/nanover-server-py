@@ -4,7 +4,6 @@
 Module providing utility classes used by the multiplayer service to create a
 shared key/value store between multiple clients.
 """
-from __future__ import annotations
 from contextlib import contextmanager
 from threading import Lock, Condition
 from typing import Any, Set, Dict, ContextManager, Iterator, Iterable, NamedTuple
@@ -45,7 +44,7 @@ class DictionaryChangeMultiView:
         self._views = set()
 
     @contextmanager
-    def create_view(self) -> ContextManager[DictionaryChangeBuffer]:
+    def create_view(self) -> ContextManager['DictionaryChangeBuffer']:
         """
         Returns a new DictionaryChangeBuffer that tracks changes to the
         shared dictionary, starting with the initial values.
@@ -59,7 +58,7 @@ class DictionaryChangeMultiView:
         yield view
         self.remove_view(view)
 
-    def remove_view(self, view: DictionaryChangeBuffer):
+    def remove_view(self, view: 'DictionaryChangeBuffer'):
         """
         Freeze the given change buffer and stop providing updates to it.
         """
@@ -194,7 +193,7 @@ class DictionaryChangeBuffer:
                 self._any_changes.wait()
             changes, removals = self._pending_changes, self._pending_removals
             self._pending_changes, self._pending_removals = dict(), set()
-            return changes, removals
+            return DictionaryChange(changes, removals)
 
     def subscribe_changes(self, interval: float = 0) \
             -> Iterator[DictionaryChange]:

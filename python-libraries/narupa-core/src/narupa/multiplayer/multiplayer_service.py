@@ -13,10 +13,11 @@ from narupa.core.grpc_utils import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
 )
-from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
+from narupa.core.protobuf_utilities import value_to_object
+from narupa.core.change_buffers import DictionaryChangeMultiView
 from narupa.core.key_lockable_map import (
     KeyLockableMap,
-    ResourceLockedException,
+    ResourceLockedError,
 )
 from narupa.protocol.multiplayer.multiplayer_pb2 import (
     StreamEndedResponse, Avatar, ResourceRequestResponse,
@@ -103,9 +104,7 @@ class MultiplayerService(MultiplayerServicer):
             for changes, removals in change_buffer.subscribe_changes(interval):
                 response = ResourceValuesUpdate()
                 response.resource_value_removals.extend(removals)
-                for key, value in changes.items():
-                    entry = response.resource_value_changes.get_or_create(key)
-                    entry.MergeFrom(value)
+                response.resource_value_changes.update(changes)
                 yield response
 
     def AcquireResourceLock(self,
@@ -123,7 +122,7 @@ class MultiplayerService(MultiplayerServicer):
                                     request.resource_id,
                                     duration)
             success = True
-        except ResourceLockedException:
+        except ResourceLockedError:
             success = False
         self.logger.debug(f'{request.player_id} attempts lock on {request.resource_id} (Success: {success})')
         response = ResourceRequestResponse(success=success)
@@ -139,7 +138,7 @@ class MultiplayerService(MultiplayerServicer):
         try:
             self.resources.release_key(request.player_id, request.resource_id)
             success = True
-        except ResourceLockedException:
+        except ResourceLockedError:
             success = False
         return ResourceRequestResponse(success=success)
 
@@ -151,18 +150,19 @@ class MultiplayerService(MultiplayerServicer):
         """
         Attempt to write a value in the shared key/value store.
         """
+        resource_value = value_to_object(request.resource_value)
         try:
             # TODO: single lockable+subscribable structure?
             with self._resource_write_lock:
                 self.resources.set(request.player_id,
                                    request.resource_id,
-                                   request.resource_value)
-                self._resources.update({request.resource_id: request.resource_value})
+                                   resource_value)
+                self._resources.update({request.resource_id: resource_value})
             success = True
-        except ResourceLockedException:
+        except ResourceLockedError:
             success = False
 
-        self.logger.debug(f'{request.player_id} attempts {request.resource_id}={request.resource_value} (Successs: {success})')
+        self.logger.debug(f'{request.player_id} attempts {request.resource_id}={resource_value} (Successs: {success})')
         return ResourceRequestResponse(success=success)
 
     def RemoveResourceKey(
@@ -181,7 +181,7 @@ class MultiplayerService(MultiplayerServicer):
                                    None)
                 self._resources.update(removals=[request.resource_id])
             success = True
-        except ResourceLockedException:
+        except ResourceLockedError:
             success = False
 
         self.logger.debug(f'{request.player_id} attempts del {request.resource_id} (Successs: {success})')

@@ -1,12 +1,14 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+import os
 from logging import Handler, WARNING
 
 import pytest
 from ase import units
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
+from ase.io import read
 from narupa.ase.openmm import OpenMMIMDRunner
-from narupa.ase.openmm.runner import ImdParams, CONSTRAINTS_UNSUPPORTED_MESSAGE
+from narupa.ase.openmm.runner import ImdParams, CONSTRAINTS_UNSUPPORTED_MESSAGE, LoggingParams
 from narupa.core import DEFAULT_SERVE_ADDRESS
 from narupa.essd import DiscoveryClient
 from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
@@ -16,6 +18,8 @@ from narupa.ase.openmm.calculator import OpenMMCalculator
 from narupa.ase.wall_calculator import VelocityWallCalculator
 
 from .simulation_utils import basic_simulation, serialized_simulation_path
+
+TRAJECTORY_OUTPUT_FILENAME = 'test.xyz'
 
 
 class ListLogHandler(Handler):
@@ -46,8 +50,17 @@ def params():
 
 
 @pytest.fixture()
+def logging_params(tmp_path):
+    params = LoggingParams(
+        trajectory_file=os.path.join(tmp_path, TRAJECTORY_OUTPUT_FILENAME),
+        write_interval=1,
+    )
+    return params
+
+
+@pytest.fixture()
 def runner(basic_simulation, params):
-    with OpenMMIMDRunner(basic_simulation, params=params) as runner:
+    with OpenMMIMDRunner(basic_simulation, imd_params=params) as runner:
         yield runner
 
 
@@ -63,6 +76,7 @@ def test_from_xml(serialized_simulation_path, params):
         assert runner.simulation is not None
 
 
+@pytest.mark.serial
 def test_defaults(default_runner):
     runner = default_runner
     default_params = ImdParams()
@@ -135,7 +149,7 @@ def test_no_constraint_no_warning(basic_simulation, params):
     handler = ListLogHandler()
 
     with OpenMMIMDRunner(basic_simulation, params) as runner:
-        runner.logger.addHandler(handler)
+        runner._logger.addHandler(handler)
         runner._validate_simulation()
         assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 0
 
@@ -149,7 +163,7 @@ def test_constraint_warning(basic_simulation, params):
     basic_simulation.system.addConstraint(0, 1, 1)
 
     with OpenMMIMDRunner(basic_simulation, params) as runner:
-        runner.logger.addHandler(handler)
+        runner._logger.addHandler(handler)
         runner._validate_simulation()
         assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 1
 
@@ -160,6 +174,7 @@ def test_no_discovery(basic_simulation, params):
         assert not runner.running_discovery
 
 
+@pytest.mark.serial
 def test_discovery(basic_simulation, params):
     with OpenMMIMDRunner(basic_simulation, params) as runner:
         assert runner.running_discovery
@@ -167,6 +182,7 @@ def test_discovery(basic_simulation, params):
         assert len(runner.app_server.discovery.services) == 1
 
 
+@pytest.mark.serial
 def test_discovery_with_client(basic_simulation, params):
     with OpenMMIMDRunner(basic_simulation, params) as runner:
         assert runner.running_discovery
@@ -181,3 +197,35 @@ def test_discovery_with_client(basic_simulation, params):
                 assert len(server.services) == 3
                 for port in server.services.values():
                     assert port == runner.app_server.port
+
+
+def test_logging(basic_simulation, params, logging_params):
+    with OpenMMIMDRunner(basic_simulation, params, logging_params) as runner:
+        runner.run(1)
+
+    trajectory_file = runner.logging_info.trajectory_path
+    assert os.path.exists(trajectory_file)
+    assert runner.logging_info.base_trajectory_path == logging_params.trajectory_file
+
+    atom_images = read(trajectory_file, index=':')
+    assert len(atom_images) == 2
+
+
+def test_no_logging(basic_simulation, params, logging_params):
+    with OpenMMIMDRunner(basic_simulation, params) as runner:
+        assert runner.logging_info is None
+
+
+def test_logging_rate(basic_simulation, params, logging_params):
+    logging_params.write_interval = 10
+    expected_frames = 3
+
+    with OpenMMIMDRunner(basic_simulation, params, logging_params) as runner:
+        runner.run(expected_frames * logging_params.write_interval)
+
+    trajectory_file = runner.logging_info.trajectory_path
+    assert os.path.exists(trajectory_file)
+
+    atom_images = read(trajectory_file, index=':')
+    # always get one more frame as it dumps out the initial frame
+    assert len(atom_images) == expected_frames + 1

@@ -1,0 +1,270 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+
+"""
+Interactive molecular dynamics server for use with an ASE molecular dynamics simulation.
+"""
+import logging
+from concurrent import futures
+from threading import RLock
+from typing import Optional, Callable
+
+import numpy as np
+from ase import Atoms, units
+from ase.calculators.calculator import Calculator
+from ase.md import Langevin
+from ase.md.md import MolecularDynamics
+from narupa.app import NarupaImdClient
+from narupa.imd.imd_server import ImdServer
+from narupa.trajectory import FrameServer
+from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY
+
+from narupa.ase.converter import EV_TO_KJMOL
+from narupa.ase.frame_server import send_ase_frame
+from narupa.ase.imd_calculator import ImdCalculator
+from narupa.ase.trajectory_logger import TrajectoryLogger
+
+
+class ASEImdServer:
+    """
+    Interactive molecular dynamics runner for use with ASE.
+
+    :param dynamics: A prepared ASE molecular dynamics object to run, with IMD attached.
+    :param frame_interval: Interval, in steps, at which to publish frames.
+    :param frame_method: Method to use to generate frames, given the the ASE :class:`Atoms`
+        and a :class:`FrameServer`. The signature of the callback is expected to be
+        ``frame_method(ase_atoms, frame_server)``.
+
+
+    Example
+    =======
+
+    >>> from ase.calculators.emt import EMT
+    >>> from ase.lattice.cubic import FaceCenteredCubic
+    >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
+    >>> atoms.set_calculator(EMT())
+    >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
+    >>> dynamics.attach(TrajectoryLogger(atoms, 'test.xyz'), interval=10) # attach an XYZ logger.
+    >>> server = ASEImdServer(dynamics) # create the server with the molecular dynamics object.
+    >>> client = NarupaImdClient() # have a client connect to the server
+    >>> server.run(5) # run some dynamics.
+    >>> client.first_frame.particle_count # client will have received some frames!
+    32
+    >>> client.close()
+    >>> # Alternatively, use a 'with' statement to manage the context.
+    >>> server.close()
+
+    """
+
+    def __init__(self, dynamics: MolecularDynamics,
+                 frame_method: Optional[Callable] = None,
+                 frame_interval=1,
+                 address: Optional[str] = None,
+                 trajectory_port: Optional[int] = None,
+                 imd_port: Optional[int] = None,
+                 name: Optional[str] = "Narupa ASE Server",
+                 ):
+        if frame_method is None:
+            frame_method = send_ase_frame
+        self.frame_server = FrameServer(address=address, port=trajectory_port)
+        self.imd_server = ImdServer(address=address, port=imd_port)
+        self.name = name
+        self._cancel_lock = RLock()
+        self._register_commands()
+
+        self.dynamics = dynamics
+        calculator = self.dynamics.atoms.get_calculator()
+        self.imd_calculator = ImdCalculator(self.imd_server.service, calculator, dynamics=dynamics)
+        self.atoms.set_calculator(self.imd_calculator)
+        self._frame_interval = frame_interval
+        self.dynamics.attach(frame_method(self.atoms, self.frame_server), interval=frame_interval)
+
+        self.threads = futures.ThreadPoolExecutor(max_workers=1)
+        self._run_task = None
+        self._cancelled = False
+
+        self._initial_positions = self.atoms.get_positions()
+        self._initial_velocities = self.atoms.get_velocities()
+        self._initial_box = self.atoms.get_cell()
+        self.on_reset_listeners = []
+        self.logger = logging.getLogger(__name__)
+
+    @property
+    def internal_calculator(self) -> Calculator:
+        """
+        The internal calculator being used to compute internal energy and forces.
+
+        :return: ASE internal calculator.
+        """
+        return self.imd_calculator.calculator
+
+    @property
+    def atoms(self) -> Atoms:
+        """
+        The atoms in the MD system.
+
+        :return: ASE atoms.
+        """
+        return self.dynamics.atoms
+
+    @property
+    def is_running(self):
+        """
+        Whether or not the molecular dynamics is currently running on a background thread or not.
+        :return: `True`, if molecular dynamics is running, `False` otherwise.
+        """
+        # ideally we'd just check _run_task.running(), but there can be a delay between the task
+        # starting and hitting the running state.
+        return self._run_task is not None and not (self._run_task.cancelled() or self._run_task.done())
+
+    def step(self):
+        """
+        Take a single step of the simulation and stop.
+
+        This method is called whenever a client runs the step command, described in :mod:narupa.trajectory.frame_server.
+        """
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+            self.run(self._frame_interval, block=True)
+            self.cancel_run(wait=True)
+
+    def pause(self):
+        """
+        Pause the simulation, by cancelling any current run.
+
+        This method is called whenever a client runs the pause command,
+        described in :mod:narupa.trajectory.frame_server.
+        """
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+
+    def play(self):
+        """
+        Run the simulation indefinitely
+
+        Cancels any current run and then begins running the simulation on a background thread.
+
+        This method is called whenever a client runs the play command,
+        described in :mod:narupa.trajectory.frame_server.
+
+        """
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+        self.run()
+
+    def run(self, steps: Optional[int] = None,
+            block: Optional[bool] = None, reset_energy: Optional[float] = None):
+        """
+        Runs the molecular dynamics.
+
+        :param steps: If passed, will run the given number of steps, otherwise
+            will run forever on a background thread and immediately return.
+        :param block: If ``False``, run in a separate thread. By default, "block"
+            is ``None``, which means it is automatically set to ``True`` if a
+            number of steps is provided and to ``False`` otherwise.
+        :param reset_energy: Threshold of total energy in kJ/mol above which
+            the simulation is reset to its initial conditions. If a value is
+            provided, the simulation is reset if the total energy is greater
+            than this value, or if the total energy is `nan` or infinite. If
+            ``None`` is provided instead, then the simulation will not be
+            automatically reset.
+        """
+        if self.is_running:
+            raise RuntimeError("Dynamics are already running on a thread!")
+        # The default is to be blocking if a number of steps is provided, and
+        # not blocking if we run forever.
+        if block is None:
+            block = (steps is not None)
+        if steps is None:
+            steps = float('inf')
+        if block:
+            self._run(steps, reset_energy)
+        else:
+            self._run_task = self.threads.submit(self._run, steps, reset_energy)
+
+    def _run(self, steps, reset_energy):
+        remaining_steps = steps
+        while not self._cancelled and remaining_steps > 0:
+            steps_for_this_iteration = min(10, remaining_steps)
+            self.dynamics.run(steps_for_this_iteration)
+            remaining_steps -= steps_for_this_iteration
+            self._reset_if_required(reset_energy)
+        self._cancelled = False
+
+    def _reset_if_required(self, reset_energy):
+        if reset_energy is not None:
+            energy = self.dynamics.atoms.get_total_energy() * EV_TO_KJMOL
+            if not np.isfinite(energy) or energy > reset_energy:
+                self.reset()
+
+    def cancel_run(self, wait=False):
+        """
+        Cancel molecular dynamics that is running on a background thread.
+
+        :param wait: Whether to block and wait for the molecular dynamics to
+            halt before returning.
+        """
+        if self._run_task is None:
+            return
+
+        if self._cancelled:
+            return
+        self._cancelled = True
+        if wait:
+            self._run_task.result()
+            self._cancelled = False
+
+    def reset(self):
+        """
+        Reset the positions, velocities, and box to their initial values.
+
+        When this happens, the "on_reset" event is triggered and all the
+        callbacks listed in the :attr:`on_reset_listeners` are called. These
+        callbacks are called without arguments and no return value is stored.
+
+        .. note::
+
+            Only the positions, the velocities, and the simulation box are
+            reset to their initial values. If a simulation needs any other
+            state to be reset or updated, one should register a callback in
+            the :attr:`on_reset_listeners` list. The callbacks are executed
+            in the order of the list, after the positions, velocities, and box
+            are reset.
+
+            Such callbacks also allow to modify the simulation at each reset.
+            They would allow, for instance, to draw new velocities, or to
+            place molecules differently.
+
+        This method is called whenever a client runs the reset command,
+        described in :mod:`narupa.trajectory.frame_server`.
+
+        """
+        self.atoms.set_positions(self._initial_positions)
+        self.atoms.set_velocities(self._initial_velocities)
+        self.atoms.set_cell(self._initial_box)
+        self._call_on_reset()
+
+    def _call_on_reset(self):
+        for callback in self.on_reset_listeners:
+            callback()
+
+    def _register_commands(self):
+        self.frame_server.register_command(PLAY_COMMAND_KEY, self.play)
+        self.frame_server.register_command(RESET_COMMAND_KEY, self.reset)
+        self.frame_server.register_command(STEP_COMMAND_KEY, self.step)
+        self.frame_server.register_command(PAUSE_COMMAND_KEY, self.pause)
+
+    def close(self):
+        """
+        Cancels the molecular dynamics if it is running, and closes
+        the IMD and frame servers.
+        """
+        self.cancel_run()
+        self.imd_server.close()
+        self.frame_server.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

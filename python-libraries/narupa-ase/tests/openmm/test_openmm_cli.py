@@ -1,5 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+import os
+
 import pytest
 
 from .simulation_utils import basic_simulation, serialized_simulation_path
@@ -86,3 +88,30 @@ def test_walls(serialized_simulation_path, wall_argument, expected_calculator_cl
         args.append(wall_argument)
     with initialise(args) as runner:
         assert isinstance(runner._md_calculator, expected_calculator_class)
+
+
+@pytest.fixture()
+def log_path(tmp_path):
+    log_path = os.path.join(tmp_path, "test.xyz")
+    return log_path
+
+
+def test_trajectory_logging(serialized_simulation_path, log_path):
+    args = [str(serialized_simulation_path), '-o', log_path]
+    with initialise(args) as runner:
+        assert runner.logging_info
+        assert not os.path.exists(runner.logging_info.trajectory_path)
+        runner.run(1)
+        assert os.path.exists(runner.logging_info.trajectory_path)
+
+
+def test_trajectory_no_logging(serialized_simulation_path, log_path):
+    args = [str(serialized_simulation_path)]
+    with initialise(args) as runner:
+        assert runner.logging_info is None
+
+
+def test_trajectory_logging_rate(serialized_simulation_path, log_path):
+    args = [str(serialized_simulation_path), '-o', log_path, '--write-interval', '10']
+    with initialise(args) as runner:
+        assert runner.logging_info.write_interval == 10

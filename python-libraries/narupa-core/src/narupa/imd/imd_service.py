@@ -12,7 +12,7 @@ from narupa.core.grpc_utils import (
 )
 
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
+from narupa.core.change_buffers import DictionaryChangeMultiView
 from narupa.protocol.imd import (
     InteractiveMolecularDynamicsServicer,
     InteractionEndReply,

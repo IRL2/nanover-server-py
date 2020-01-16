@@ -61,9 +61,8 @@ def simple_and_overlap_frame_data():
 
 @pytest.fixture
 def frame_server():
-    frame_server = FrameServer(address='localhost', port=0)
-    yield frame_server
-    frame_server.close()
+    with FrameServer(address='localhost', port=0) as frame_server:
+        yield frame_server
 
 
 @pytest.fixture

@@ -1,8 +1,5 @@
 import pytest
-from google.protobuf.internal.well_known_types import Struct
-from google.protobuf.struct_pb2 import ListValue
 from mock import Mock
-from narupa.core.protobuf_utilities import dict_to_struct
 
 from narupa.core.command_service import CommandService
 

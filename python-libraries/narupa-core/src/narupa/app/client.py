@@ -10,7 +10,6 @@ from functools import wraps
 from typing import Iterable, Tuple, Type
 from typing import Optional, Sequence, Dict, MutableMapping
 
-from google.protobuf.struct_pb2 import Value
 from grpc import RpcError, StatusCode
 
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
@@ -357,7 +356,7 @@ class NarupaImdClient:
 
     @property
     @need_multiplayer
-    def latest_multiplayer_values(self) -> Dict[str, Value]:
+    def latest_multiplayer_values(self) -> Dict[str, object]:
         """
         The latest state of the multiplayer shared key/value store.
 
@@ -650,8 +649,7 @@ class NarupaImdClient:
 
         :param selection: The selection to update.
         """
-        struct = dict_to_struct(selection.to_dictionary())
-        self.set_shared_value(selection.selection_id, Value(struct_value=struct))
+        self.set_shared_value(selection.selection_id, selection.to_dictionary())
 
     @need_multiplayer
     def remove_selection(self, selection: RenderingSelection):
@@ -692,11 +690,11 @@ class NarupaImdClient:
         :return: The selection if it is present
         """
         value = self._multiplayer_client.resources[id]
-        return self._create_selection_from_protobuf_value(value)
+        return self._create_selection_from_dict(value)
 
-    def _create_selection_from_protobuf_value(self, value: Value) -> RenderingSelection:
+    def _create_selection_from_dict(self, value) -> RenderingSelection:
 
-        selection = RenderingSelection.from_dictionary(struct_to_dict(value.struct_value))
+        selection = RenderingSelection.from_dictionary(value)
         selection.updated.add_callback(self.update_selection)
         selection.removed.add_callback(self.remove_selection)
         return selection

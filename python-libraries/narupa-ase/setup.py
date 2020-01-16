@@ -15,7 +15,7 @@ setup(name='narupa-ase',
       package_dir={'': 'src'},
       install_requires=(
           'narupa',
-          'ase>=3.18',
+          'ase>=3.19',
       ),
       entry_points={
           'console_scripts': ['narupa-omm-ase=narupa.ase.openmm.cli:main'],

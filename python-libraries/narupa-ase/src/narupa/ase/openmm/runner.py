@@ -13,6 +13,7 @@ from attr import dataclass
 from narupa.app import NarupaImdApplication
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from narupa.core import get_requested_port_or_default, NarupaServer, DEFAULT_SERVE_ADDRESS
+from narupa.ase import TrajectoryLogger
 from narupa.essd import DiscoveryServer
 from narupa.essd.servicehub import ServiceHub
 from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
@@ -74,33 +75,94 @@ class ImdParams:
     discovery_port: int = None
 
 
+@dataclass
+class LoggingParams:
+    """
+    Class representing parameters for trajectory logging
+    """
+    trajectory_file: str = None
+    write_interval: int = 1
+
+
+class TrajectoryLoggerInfo:
+    """
+    Class giving a view into an ASE MD runners logger parameters.
+
+    :param trajectory_logger: Trajectory logger performing the logging.
+    :param params: Logging parameters.
+    """
+
+    def __init__(self, trajectory_logger: TrajectoryLogger, params: LoggingParams):
+        self._logger = trajectory_logger
+        self._params = params
+
+    @property
+    def trajectory_path(self) -> str:
+        """
+        The current trajectory path being outputted to.
+
+        :return: The current trajectory path.
+        """
+        return self._logger.current_path
+
+    @property
+    def base_trajectory_path(self):
+        """
+        The base trajectory path, without timestamps.
+
+        :return: The base trajectory path.
+        """
+        return self._logger.base_path
+
+    @property
+    def write_interval(self):
+        """
+        The interval at which log writing is occurring.
+
+        :return: The interval at which log writing is occurring, in steps.
+        """
+        return self._params.write_interval
+
+    def close(self):
+        """
+        Close the log.
+        """
+        self._logger.close()
+
+
 class OpenMMIMDRunner:
     """
     A wrapper class for running an interactive OpenMM simulation with ASE.
 
     :param simulation OpenMM simulation to run interactively.
     :param params IMD parameters to tune the server.
+    :param logging_params Parameters for logging the trajectory of the simulation.
     """
 
-    def __init__(self, simulation: Simulation, params: Optional[ImdParams] = None):
-        self.logger = logging.getLogger(__name__)
+    def __init__(self, simulation: Simulation,
+                 imd_params: Optional[ImdParams] = None,
+                 logging_params: Optional[LoggingParams] = None):
+        self._logger = logging.getLogger(__name__)
         self.simulation = simulation
         self._validate_simulation()
-        if not params:
-            params = ImdParams()
-        self._address = params.address
-        self._frame_interval = params.frame_interval
-        self._time_step = params.time_step
-        self._verbose = params.verbose
+        if not imd_params:
+            imd_params = ImdParams()
+        if not logging_params:
+            logging_params = LoggingParams()
+        self._address = imd_params.address
+        self._frame_interval = imd_params.frame_interval
+        self._time_step = imd_params.time_step
+        self._verbose = imd_params.verbose
 
-        self._initialise_calculator(simulation, walls=params.walls)
+        self._initialise_calculator(simulation, walls=imd_params.walls)
         self._initialise_dynamics()
-        self._initialise_server(params.name,
-                                params.address,
-                                params.port,
-                                params.discovery,
-                                params.discovery_port)
-        self._initialise_imd(self.app_server, self.dynamics)
+        self._initialise_server(imd_params.name,
+                                imd_params.address,
+                                imd_params.port,
+                                imd_params.discovery,
+                                imd_params.discovery_port)
+
+        self._initialise_trajectory_logging(logging_params)
 
     def _validate_simulation(self):
         """
@@ -108,21 +170,24 @@ class OpenMMIMDRunner:
         relevant warnings.
         """
         if self.simulation.system.getNumConstraints() > 0:
-            self.logger.warning(CONSTRAINTS_UNSUPPORTED_MESSAGE)
+            self._logger.warning(CONSTRAINTS_UNSUPPORTED_MESSAGE)
 
     @classmethod
-    def from_xml(cls, simulation_xml, params: Optional[ImdParams] = None):
+    def from_xml(cls, simulation_xml,
+                 params: Optional[ImdParams] = None,
+                 logging_params: Optional[LoggingParams] = None):
         """
         Initialises a :class:`OpenMMIMDRunner` from a simulation XML file
         serialised with :fun:`serializer.serialize_simulation`.
 
         :param simulation_xml: Path to XML file.
         :param params: The :class: ImdParams to run the server with.
+        :param logging_params: The :class:LoggingParams to set up trajectory logging with.
         :return: An OpenMM simulation runner.
         """
         with open(simulation_xml) as infile:
             simulation = serializer.deserialize_simulation(infile.read())
-        return OpenMMIMDRunner(simulation, params)
+        return OpenMMIMDRunner(simulation, params, logging_params)
 
     @property
     def verbose(self):
@@ -218,6 +283,8 @@ class OpenMMIMDRunner:
         Closes the connection and stops the dynamics.
         """
         self.imd.close()
+        if self.logging_info:
+            self.logging_info.close()
         self.app_server.close()
 
     def _initialise_server(self,
@@ -269,6 +336,15 @@ class OpenMMIMDRunner:
         if self.verbose:
             self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,
                                            peratom=False), interval=100)
+
+    def _initialise_trajectory_logging(self, logging_params: LoggingParams):
+        if not logging_params.trajectory_file:
+            self.logging_info = None
+            return
+        logger = TrajectoryLogger(self.atoms, logging_params.trajectory_file)
+        self.imd.on_reset_listeners.append(logger.reset)
+        self.logging_info = TrajectoryLoggerInfo(logger, logging_params)
+        self.dynamics.attach(logger, logging_params.write_interval)
 
     def __enter__(self):
         return self
