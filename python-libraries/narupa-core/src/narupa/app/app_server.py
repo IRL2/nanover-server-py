@@ -25,8 +25,16 @@ def start_default_server_and_discovery(
     :return: tuple of Narupa server and ESSD discovery.
     """
     address = address or DEFAULT_SERVE_ADDRESS
-    port = port or DEFAULT_NARUPA_PORT
-    server = NarupaServer(address=address, port=port)
+    if port is None:
+        port = DEFAULT_NARUPA_PORT
+    try:
+        server = NarupaServer(address=address, port=port)
+    except IOError:
+        if port == DEFAULT_NARUPA_PORT:
+            raise IOError(f'Could not start a server at the default port ({port}). Is another Narupa server running? '
+                          f'Use port=0 to let the OS find a free port')
+        else:
+            raise
     discovery = DiscoveryServer()
     return server, discovery
 

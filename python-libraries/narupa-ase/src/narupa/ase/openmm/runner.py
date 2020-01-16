@@ -161,6 +161,7 @@ class OpenMMIMDRunner:
                                 imd_params.port,
                                 imd_params.discovery,
                                 imd_params.discovery_port)
+        self._initialise_imd(self.app_server, self.dynamics)
 
         self._initialise_trajectory_logging(logging_params)
 
@@ -295,7 +296,8 @@ class OpenMMIMDRunner:
                            discovery_port=None):
 
         address = address or DEFAULT_SERVE_ADDRESS
-        port = port or DEFAULT_NARUPA_PORT
+        if port is None:
+            port = DEFAULT_NARUPA_PORT
         server = NarupaServer(address=address, port=port)
         if run_discovery:
             discovery = DiscoveryServer(broadcast_port=discovery_port)

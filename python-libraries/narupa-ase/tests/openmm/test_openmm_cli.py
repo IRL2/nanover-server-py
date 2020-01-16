@@ -96,8 +96,8 @@ def log_path(tmp_path):
     return log_path
 
 
-def test_trajectory_logging(serialized_simulation_path, log_path):
-    args = [str(serialized_simulation_path), '-o', log_path]
+def test_trajectory_logging(serialized_simulation_path, log_path, any_port):
+    args = [str(serialized_simulation_path), '-o', log_path] + any_port
     with initialise(args) as runner:
         assert runner.logging_info
         assert not os.path.exists(runner.logging_info.trajectory_path)
@@ -105,13 +105,13 @@ def test_trajectory_logging(serialized_simulation_path, log_path):
         assert os.path.exists(runner.logging_info.trajectory_path)
 
 
-def test_trajectory_no_logging(serialized_simulation_path, log_path):
-    args = [str(serialized_simulation_path)]
+def test_trajectory_no_logging(serialized_simulation_path, log_path, any_port):
+    args = [str(serialized_simulation_path)] + any_port
     with initialise(args) as runner:
         assert runner.logging_info is None
 
 
-def test_trajectory_logging_rate(serialized_simulation_path, log_path):
-    args = [str(serialized_simulation_path), '-o', log_path, '--write-interval', '10']
+def test_trajectory_logging_rate(serialized_simulation_path, log_path, any_port):
+    args = [str(serialized_simulation_path), '-o', log_path, '--write-interval', '10'] + any_port
     with initialise(args) as runner:
         assert runner.logging_info.write_interval == 10

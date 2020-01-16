@@ -35,7 +35,7 @@ def imd_server_atoms_client():
     atoms.set_calculator(calculator)
     dynamics = VelocityVerlet(atoms, timestep=0.5)
     with NarupaASEDynamics.basic_imd(dynamics, port=0) as server:
-        with ImdClient(port=server.port) as client:
+        with ImdClient.insecure_channel(port=server.port) as client:
             yield server, atoms, client
 
 
