@@ -33,8 +33,7 @@ def start_default_server_and_discovery(
         if port == DEFAULT_NARUPA_PORT:
             raise IOError(f'Could not start a server at the default port ({port}). Is another Narupa server running? '
                           f'Use port=0 to let the OS find a free port')
-        else:
-            raise
+        raise
     discovery = DiscoveryServer()
     return server, discovery
 

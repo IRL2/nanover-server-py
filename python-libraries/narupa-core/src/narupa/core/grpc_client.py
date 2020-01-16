@@ -1,3 +1,6 @@
+"""
+Module providing a base class for gRPC clients.
+"""
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from concurrent import futures
@@ -13,8 +16,8 @@ class GrpcClient:
     closing.
 
     :param channel: An existing :class:`grpc.Channel` to use to establish a connection.
-    :param make_channel_owner: Whether to make this client take ownership of ensuring the channel is closed upon
-    disconnection of this client.
+    :param make_channel_owner: Whether to make this client take ownership of
+     ensuring the channel is closed upon disconnection of this client.
     """
     channel: grpc.Channel
     threads: futures.ThreadPoolExecutor
@@ -28,7 +31,8 @@ class GrpcClient:
             make_channel_owner: bool = False,
             **kwargs
     ):
-        # TODO a channel could be wrapped into a more general gRPC connection, as in the C# implementation.
+        # TODO a channel could be wrapped into a more general gRPC connection,
+        #  as in the C# implementation.
         self.channel = channel
         self._channel_owner = make_channel_owner
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
@@ -57,13 +61,15 @@ class GrpcClient:
         """
         Indicates whether this client is responsible for managing the underlying channel.
 
-        :return: True if this client is responsible for managing the underlying channel, False otherwise.
+        :return: True if this client is responsible for managing the underlying channel,
+            False otherwise.
         """
         return self._channel_owner
 
     def close(self):
         """
-        Shutdown all threads and close the underlying channel if the client has been given that responsibility.
+        Shutdown all threads and close the underlying channel
+        if the client has been given that responsibility.
         """
         if self._channel_owner:
             self.channel.close()

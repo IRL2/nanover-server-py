@@ -11,21 +11,15 @@ from threading import RLock
 from typing import Optional, Callable
 
 import numpy as np
-
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
-
-from narupa.essd import DiscoveryServer
-from narupa.essd.servicehub import ServiceHub
 from narupa.app import NarupaImdClient, NarupaImdApplication
 from narupa.ase.converter import EV_TO_KJMOL
 from narupa.ase.frame_adaptor import send_ase_frame
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY
-from narupa.imd.imd_server import ImdServer
-from narupa.trajectory import FrameServer
 
 
 class NarupaASEDynamics:

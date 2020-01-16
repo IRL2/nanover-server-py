@@ -30,7 +30,9 @@ class NarupaFrameApplication(NarupaApplicationServer):
 
     """
 
-    def __init__(self, server: NarupaServer, discovery: Optional[DiscoveryServer] = None, name="Narupa Frame Server"):
+    def __init__(self, server: NarupaServer,
+                 discovery: Optional[DiscoveryServer] = None,
+                 name="Narupa Frame Server"):
         super().__init__(server, discovery, name)
         self._setup_frame_publisher()
 
@@ -41,8 +43,8 @@ class NarupaFrameApplication(NarupaApplicationServer):
     @property
     def frame_publisher(self) -> FramePublisher:
         """
-        The frame publisher attached to this application. Use it to publish frames for consumption by
-        Narupa frame clients.
+        The frame publisher attached to this application. Use it to publish
+        frames for consumption by Narupa frame clients.
 
         :return: The :class:`FramePublisher` attached to this application.
         """
@@ -51,4 +53,5 @@ class NarupaFrameApplication(NarupaApplicationServer):
 
     def _setup_frame_publisher(self):
         self._frame_publisher = FramePublisher()
-        self.add_service(FRAME_SERVICE_NAME, self._frame_publisher, add_TrajectoryServiceServicer_to_server)
+        self.add_service(FRAME_SERVICE_NAME, self._frame_publisher,
+                         add_TrajectoryServiceServicer_to_server)

@@ -11,12 +11,10 @@ from typing import Iterable, Tuple, Type
 from typing import Optional, Sequence, Dict, MutableMapping
 
 from grpc import RpcError, StatusCode
-
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from narupa.app.selection import RenderingSelection
-from narupa.core import NarupaClient, DEFAULT_CONNECT_ADDRESS
 from narupa.command import CommandInfo
-from narupa.utilities.protobuf_utilities import struct_to_dict, dict_to_struct
+from narupa.core import NarupaClient, DEFAULT_CONNECT_ADDRESS
 from narupa.essd import DiscoveryClient
 from narupa.imd import ImdClient, IMD_SERVICE_NAME
 from narupa.imd.particle_interaction import ParticleInteraction
@@ -42,8 +40,7 @@ def _update_commands(client: NarupaClient):
     except RpcError as e:
         if e._state.code == StatusCode.UNAVAILABLE:
             return {}
-        else:
-            raise e
+        raise e
 
 
 # TODO there must be a nicer decorator way to combine these:
@@ -205,8 +202,8 @@ class NarupaImdClient:
         """
         address = address or DEFAULT_CONNECT_ADDRESS
         port = port or DEFAULT_NARUPA_PORT
-        t = (address, port)
-        return cls(trajectory_address=t, imd_address=t, multiplayer_address=t)
+        url = (address, port)
+        return cls(trajectory_address=url, imd_address=url, multiplayer_address=url)
 
     @classmethod
     def connect_to_single_server_multiple_ports(cls,
@@ -352,8 +349,7 @@ class NarupaImdClient:
         """
         if len(self.frames) is 0:
             return None
-        else:
-            return self.frames[-1]
+        return self.frames[-1]
 
     @property
     @need_multiplayer
@@ -511,8 +507,7 @@ class NarupaImdClient:
             return self.run_imd_command(name, **args)
         if name in self._multiplayer_commands:
             return self.run_multiplayer_command(name, **args)
-        else:
-            raise KeyError(f"Unknown command: {name}, run update_available_commands to refresh commands.")
+        raise KeyError(f"Unknown command: {name}, run update_available_commands to refresh commands.")
 
     @need_frames
     def run_trajectory_command(self, name: str, **args) -> Dict[str, object]:
@@ -676,21 +671,21 @@ class NarupaImdClient:
 
         :return: An iterable of all the selections stored in the shared key store.
         """
-        for key, value in self._multiplayer_client.resources.items():
+        for key, _ in self._multiplayer_client.resources.items():
             if key.startswith('selection.'):
                 yield self.get_selection(key)
 
     @need_multiplayer
-    def get_selection(self, id: str) -> RenderingSelection:
+    def get_selection(self, selection_id: str) -> RenderingSelection:
         """
         Get the selection with the given selection id, throwing a KeyError if
         it is not present. For the root selection, use the root_selection
         property.
 
-        :param id: The id of the selection
+        :param selection_id: The id of the selection
         :return: The selection if it is present
         """
-        value = self._multiplayer_client.resources[id]
+        value = self._multiplayer_client.resources[selection_id]
         return self._create_selection_from_dict(value)
 
     def _create_selection_from_dict(self, value) -> RenderingSelection:
@@ -700,8 +695,8 @@ class NarupaImdClient:
         selection.removed.add_callback(self.remove_selection)
         return selection
 
-    def _create_selection_from_id_and_name(self, id: str, name: str) -> RenderingSelection:
-        selection = RenderingSelection(id, name)
+    def _create_selection_from_id_and_name(self, selection_id: str, name: str) -> RenderingSelection:
+        selection = RenderingSelection(selection_id, name)
         selection.updated.add_callback(self.update_selection)
         selection.removed.add_callback(self.remove_selection)
         return selection

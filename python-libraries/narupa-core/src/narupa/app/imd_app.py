@@ -1,19 +1,17 @@
 """
 Module providing an implementation of an Narupa iMD application, for publishing
-simulations and trajectories for consumption by clients that can be interacted with in real-time through
-biasing potentials.
+simulations and trajectories for consumption by clients that can be interacted
+with in real-time through biasing potentials.
 
 """
 from typing import Optional
 
-from narupa.app import NarupaApplicationServer, NarupaImdClient
+from narupa.app import NarupaImdClient
 from narupa.app.frame_app import NarupaFrameApplication
 from narupa.core import NarupaServer
-from narupa.essd import DiscoveryServer, DiscoveryClient
+from narupa.essd import DiscoveryServer
 from narupa.imd.imd_service import ImdService, IMD_SERVICE_NAME
 from narupa.protocol.imd import add_InteractiveMolecularDynamicsServicer_to_server
-from narupa.protocol.trajectory import add_TrajectoryServiceServicer_to_server
-from narupa.trajectory import FramePublisher, FRAME_SERVICE_NAME, FrameData
 
 
 class NarupaImdApplication(NarupaFrameApplication):
@@ -32,7 +30,9 @@ class NarupaImdApplication(NarupaFrameApplication):
 
     _imd_service: ImdService
 
-    def __init__(self, server: NarupaServer, discovery: Optional[DiscoveryServer] = None, name="Narupa iMD Server"):
+    def __init__(self, server: NarupaServer,
+                 discovery: Optional[DiscoveryServer] = None,
+                 name="Narupa iMD Server"):
         super().__init__(server, discovery, name)
         self._setup_imd()
 
@@ -53,4 +53,5 @@ class NarupaImdApplication(NarupaFrameApplication):
 
     def _setup_imd(self):
         self._imd_service = ImdService()
-        self.add_service(IMD_SERVICE_NAME, self._imd_service, add_InteractiveMolecularDynamicsServicer_to_server)
+        self.add_service(IMD_SERVICE_NAME, self._imd_service,
+                         add_InteractiveMolecularDynamicsServicer_to_server)

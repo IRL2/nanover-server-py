@@ -2,14 +2,14 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Callable, Optional, Dict, ContextManager, Set
 
-from narupa.command.command_service import CommandService, CommandRegistration
+from narupa.command import CommandService
+from narupa.command.command_service import CommandRegistration
 from narupa.core import GrpcServer
 from narupa.core.grpc_server import DEFAULT_MAX_WORKERS
 from narupa.protocol.command import add_CommandServicer_to_server
 from narupa.protocol.state import add_StateServicer_to_server
 from narupa.state.state_service import StateService
 from narupa.utilities.change_buffers import DictionaryChange
-from narupa.command import CommandService
 
 
 class NarupaServer(GrpcServer):
@@ -19,9 +19,6 @@ class NarupaServer(GrpcServer):
     """
     _command_service: CommandService
     _state_service: StateService
-
-    def __init__(self, *, address: str, port: int, max_workers=DEFAULT_MAX_WORKERS):
-        super().__init__(address=address, port=port, max_workers=max_workers)
 
     def setup_services(self):
         """
@@ -84,13 +81,17 @@ class NarupaServer(GrpcServer):
     def update_locks(
             self,
             access_token: object = None,
-            acquire: Dict[str, float] = {},
-            release: Set[str] = set(),
+            acquire: Optional[Dict[str, float]] = None,
+            release: Optional[Set[str]] = None,
     ):
         """
         Attempts to acquire and release locks on keys in the shared key/value
         store. If any of the locks cannot be acquired, none of them will be.
         """
+        if acquire is None:
+            acquire = {}
+        if release is None:
+            release = set()
         self._state_service.update_locks(access_token, acquire, release)
 
     def _setup_command_service(self):
