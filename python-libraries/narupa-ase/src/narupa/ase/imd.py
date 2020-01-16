@@ -50,7 +50,7 @@ class NarupaASEDynamics:
     >>> ase_dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
     >>> with NarupaASEDynamics.basic_imd(ase_dynamics) as sim: # run basic Narupa server
     ...
-    ...     with NarupaImdClient() as client: # connect an iMD client.
+    ...     with NarupaImdClient.autoconnect() as client: # connect an iMD client.
     ...         sim.run(10) # run some dynamics
     ...         client.first_frame.particle_count # the client will have received some MD data!
     32

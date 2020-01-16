@@ -124,6 +124,10 @@ def client_server(arbitrary_ase_server):
         yield c, arbitrary_ase_server
 
 
+def test_address(arbitrary_ase_server):
+    assert arbitrary_ase_server.address == '[::]'
+
+
 def test_reset(arbitrary_ase_server):
     arbitrary_ase_server.run(1)
     positions = arbitrary_ase_server.atoms.get_positions()

@@ -29,6 +29,17 @@ def mock_callback(default_args):
     return Mock(return_value=default_args)
 
 
+def test_is_channel_owner(client_server):
+    client, _ = client_server
+    assert client.is_channel_owner
+
+
+def test_not_channel_owner(client_server):
+    client, _ = client_server
+    with NarupaClient(channel=client.channel) as second_client:
+        assert not second_client.is_channel_owner
+
+
 def test_available_commands(client_server, default_args):
     """
     tests that the cached set of available commands matches those returned when updating.
