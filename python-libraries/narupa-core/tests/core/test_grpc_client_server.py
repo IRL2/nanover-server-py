@@ -15,7 +15,7 @@ MULTIPLY_KEY = "multiply"
 @pytest.fixture
 def client_server():
     with NarupaServer(address="localhost", port=0) as s:
-        with NarupaClient(address="localhost", port=s.port) as c:
+        with NarupaClient.insecure_channel(address="localhost", port=s.port) as c:
             yield c, s
 
 
@@ -54,7 +54,7 @@ def test_client_inits_if_no_server():
     """
     tests that the client successfully initialises, even if there is no server.
     """
-    with NarupaClient(address="localhost", port=68393):
+    with NarupaClient.insecure_channel(address="localhost", port=68393):
         pass
 
 
