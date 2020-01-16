@@ -78,8 +78,11 @@ def test_locked_content_is_unchanged(state_dictionary):
     an exclusive lock is held on the entire state.
     """
     thread_pool = ThreadPoolExecutor(max_workers=1)
+    attempted_to_meddle = False
 
     def meddle_with_state(state_dictionary):
+        nonlocal attempted_to_meddle
+        attempted_to_meddle = True
         state_dictionary.update_state(
             ACCESS_TOKEN_1,
             DictionaryChange({'hello': 50}, set()),
@@ -88,7 +91,7 @@ def test_locked_content_is_unchanged(state_dictionary):
     with state_dictionary.lock_content() as content:
         thread_pool.submit(meddle_with_state, state_dictionary)
         time.sleep(BACKGROUND_THREAD_ACTION_TIME)
-        assert content == INITIAL_STATE
+        assert attempted_to_meddle and content == INITIAL_STATE
 
 
 def test_locked_content_changes_after(state_dictionary):
@@ -97,8 +100,11 @@ def test_locked_content_changes_after(state_dictionary):
     was held on the entire state will take effect once the lock is released.
     """
     thread_pool = ThreadPoolExecutor(max_workers=1)
+    attempted_to_meddle = False
 
     def meddle_with_state(state):
+        nonlocal attempted_to_meddle
+        attempted_to_meddle = True
         state.update_state(
             ACCESS_TOKEN_1,
             DictionaryChange({'hello': 50}, set()),
@@ -107,6 +113,7 @@ def test_locked_content_changes_after(state_dictionary):
     with state_dictionary.lock_content() as content:
         thread_pool.submit(meddle_with_state, state_dictionary)
         time.sleep(BACKGROUND_THREAD_ACTION_TIME)
+        assert attempted_to_meddle and content == INITIAL_STATE
 
     time.sleep(BACKGROUND_THREAD_ACTION_TIME)
 
