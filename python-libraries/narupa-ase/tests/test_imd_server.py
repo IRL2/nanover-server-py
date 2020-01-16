@@ -113,7 +113,6 @@ def arbitrary_dynamics(dummy_atoms):
 @pytest.fixture
 def arbitrary_ase_server(arbitrary_dynamics):
     with NarupaASEDynamics.basic_imd(arbitrary_dynamics,
-                                     address='localhost',
                                      port=0,
                                      frame_method=do_nothing_producer) as ase_server:
         yield ase_server

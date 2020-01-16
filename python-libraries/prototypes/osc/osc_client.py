@@ -31,8 +31,7 @@ class OscClient:
         self.osc_client = udp_client.SimpleUDPClient(osc_address,
                                                      osc_port,
                                                      allow_broadcast=True)
-        self.narupa_client = NarupaImdClient(address=traj_address,
-                                             trajectory_port=traj_port)
+        self.narupa_client = NarupaImdClient(trajectory_address=(traj_address, traj_port))
 
     def run(self):
         for dt in yield_interval(self.send_interval):

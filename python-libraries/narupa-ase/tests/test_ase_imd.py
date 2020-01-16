@@ -6,6 +6,7 @@ import pytest
 from ase import Atoms
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
+from narupa.app import NarupaImdApplication
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
 
 from narupa.ase.imd import NarupaASEDynamics

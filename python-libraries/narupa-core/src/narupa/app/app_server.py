@@ -146,6 +146,7 @@ class NarupaApplicationServer:
         # TODO package up a service, service name and method?
         self._server.add_service(service, add_service_method=service_registration_method)
         self._service_hub.add_service(service_name, self._server.port)
+        self._services.add(service)
         if self.running_discovery:
             self._update_discovery_services()
 

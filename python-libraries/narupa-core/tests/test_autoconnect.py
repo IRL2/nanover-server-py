@@ -51,7 +51,7 @@ def discoverable_imd_server(free_port):
     """
     address = get_broadcastable_ip()
     server = NarupaServer(address=address, port=0)
-    discovery = DiscoveryServer(broadcast_port=free_port)
+    discovery = DiscoveryServer(broadcast_port=39420)
     with NarupaImdApplication(server, discovery) as app_server:
         yield app_server
 
@@ -65,7 +65,7 @@ def test_autoconnect_app_server(discoverable_imd_server):
 
     discoverable_imd_server.server.register_command("test", mock)
 
-    with NarupaImdClient.autoconnect(search_time=0.5, discovery_port=discoverable_imd_server.discovery.port) as client:
+    with NarupaImdClient.autoconnect(search_time=0.75, discovery_port=discoverable_imd_server.discovery.port) as client:
         assert len(client._channels) == 1  # expect the client to connect to each server on the same channel
         # since the command is registered only once on the server, calling it from different 'clients' will
         # actually result in the same method being called 3 times.
@@ -95,9 +95,9 @@ def test_autoconnect_separate_servers(broadcastable_servers, free_port):
     service_hub.add_service(IMD_SERVICE_NAME, imd_server.port)
     service_hub.add_service(MULTIPLAYER_SERVICE_NAME, multiplayer_server.port)
 
-    with DiscoveryServer(broadcast_port=free_port) as discovery_server:
+    with DiscoveryServer(broadcast_port=39421) as discovery_server:
         discovery_server.register_service(service_hub)
-        with NarupaImdClient.autoconnect(search_time=0.75, discovery_port=free_port) as client:
+        with NarupaImdClient.autoconnect(search_time=0.75, discovery_port=discovery_server.port) as client:
             assert len(client._channels) == 3  # expect the client to connect to each server on a separate channel
             # test servers by running a command on each.
             client.run_trajectory_command("frame")
