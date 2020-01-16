@@ -90,6 +90,7 @@ def test_locked_content_is_unchanged(state_dictionary):
 
     with state_dictionary.lock_content() as content:
         thread_pool.submit(meddle_with_state, state_dictionary)
+        # Give time for the meddling attempt to occur
         time.sleep(BACKGROUND_THREAD_ACTION_TIME)
         assert attempted_to_meddle and content == INITIAL_STATE
 
@@ -112,9 +113,11 @@ def test_locked_content_changes_after(state_dictionary):
 
     with state_dictionary.lock_content() as content:
         thread_pool.submit(meddle_with_state, state_dictionary)
+        # Give time for the meddling attempt to occur
         time.sleep(BACKGROUND_THREAD_ACTION_TIME)
         assert attempted_to_meddle and content == INITIAL_STATE
 
+    # Give time for the meddling attempt to resume and complete
     time.sleep(BACKGROUND_THREAD_ACTION_TIME)
 
     with state_dictionary.lock_content() as content:
