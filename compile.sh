@@ -42,6 +42,9 @@ python -m pip install -r ./python-libraries/narupa-core/requirements.txt ${user_
 announce "Installing python prototypes requirements"
 python -m pip install -r ./python-libraries/prototypes/requirements.txt ${user_option}
 
+announce "Installing python test requirements"
+python -m pip install -r ./python-libraries/requirements.test ${user_option}
+
 announce "Compiling proto files to python"
 python ./python-libraries/narupa-core/setup.py compile_proto
 
