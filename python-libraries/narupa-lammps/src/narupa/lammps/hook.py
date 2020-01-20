@@ -161,10 +161,10 @@ class LammpsHook:
             self.nprocs = nprocs
 
             if me == 0:
-                logging.info("MPI rank %s", me)
-                logging.info("MPI n processors %s ", nprocs)
+                logging.debug("MPI rank %s", me)
+                logging.debug("MPI n processors %s ", nprocs)
         except ImportError as err:
-            logging.info("Didn't find mpi4py %s", err)
+            logging.error("Didn't find mpi4py %s", err)
             raise Exception("Failed to load load mpi4py, please make it is installed", err)
 
         # Start frame server, must come before MPI
@@ -220,7 +220,7 @@ class LammpsHook:
         """
         Close ports to prevent blocking
         """
-        logging.info("Closing Narupa server")
+        logging.debug("Closing Narupa server")
         self.frame_server.close()
         self.imd_server.close()
 
@@ -326,9 +326,9 @@ class LammpsHook:
         :return: The replaced units from the list.
         """
         plank_value = lammps_class.extract_global("hplanck", 1)
-        logging.info("Plank value from lammps_internal %s ", plank_value)
+        logging.debug("Plank value from lammps_internal %s ", plank_value)
         plank_type = min(range(len(PLANK_VALUES)), key=lambda i: abs(PLANK_VALUES[i] - plank_value))
-        logging.info("Key detected %s", plank_type)
+        logging.debug("Key detected %s", plank_type)
         return plank_type
 
     @_try_or_except
@@ -459,7 +459,7 @@ class LammpsHook:
             self.frame_loop += 1
             if self.frame_loop == 100:
                 self.frame_loop = 0
-                logging.info("Narupa enabled calculation is running")
+                logging.info("Narupa enabled calculation is still running")
 
         self.topology_loop = False
 
