@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from narupa.lammps import LammpsHook
-from narupa.lammps import DummyLammps
+from narupa.lammps.dummylammps import DummyLammps
 from narupa.trajectory.frame_data import PARTICLE_POSITIONS, PARTICLE_ELEMENTS
 from narupa.trajectory import FrameData
 
