@@ -78,37 +78,37 @@ ELEMENT_INDEX_MASS = {
 lammpsunitconverter = NamedTuple("LammpsUnitConverter", [('type', str),('positions', float), ('forces', float)])
 LAMMPS_UNITS_CHECK = {
     # Lennard jones: Is unitless, everything is set to 1
-    0: lammpsunitconverter(Type="lj", Positions=1, Forces=1),
+    0: lammpsunitconverter(type="lj", positions=1, forces=1),
     # Real:
     # Distance: 1 angstrom- > nm (10)
     # Force:    kj/mol/angstrom -> kcal/mol/nm (4.1840 *10) (Confirmed in MDanaysis)
-    1: lammpsunitconverter(Type="real", Positions=10, Forces=41.840),
+    1: lammpsunitconverter(type="real", positions=10, forces=41.840),
     # Metal:
     # Distance: angstrom -> nm, (10)
     # Force: eV/angstrom -> kcal/mol/nm (96.485*10) (Confirmed in MDanalysis)
-    2: lammpsunitconverter(Type="metal", Positions=10, Forces=964.85),
+    2: lammpsunitconverter(type="metal", positions=10, forces=964.85),
     # SI:
     # Distance: meters ->nm (10^-9)
     # Force: Newtons q-> kcal/mol/nm (602214128999.9999)
-    3: lammpsunitconverter(Type="si", Positions=10 ** -9, Forces=602214128999.9999),
+    3: lammpsunitconverter(type="si", positions=10 ** -9, forces=602214128999.9999),
     # cgs:
     # Distance: centemters -> nm
     # Froce: dyne (1/100000 Newtons) -> kj/mol*nm
-    4: lammpsunitconverter(Type="cgs", Positions=10 ** -7, Forces=6022141.289999999),
+    4: lammpsunitconverter(type="cgs", positions=10 ** -7, forces=6022141.289999999),
     # Electron:
     # Distance: Bohr -> nm
     # Force: Hartree/Bohr (2625.50 / 0.0529117) ->  kj/mol*nm
-    5: lammpsunitconverter(Type="electron", Positions=0.05529177, Forces=49620.4053),
+    5: lammpsunitconverter(type="electron", positions=0.05529177, forces=49620.4053),
     # Mirco:
     # Distance: mircometers -> nm,
     # Force: pircogram-micrometer/microsecond^2 -> Newtons
     # (1/1000000000000 *((1/1000000)/(1/1000000)^2) ->  kj/mol*nm
-    6: lammpsunitconverter(Type="micro", Positions=1000, Forces=60221.41289999999),
+    6: lammpsunitconverter(type="micro", positions=1000, forces=60221.41289999999),
     # Nano:
     # Distance: nanometers,
     # Force: atoogram-nanometer/nanosecond^2  -> Newtons
     # (1/1e-12 *((1/1e-9)/(1/1e-9)^2) ->  kj/mol*nm
-    7: lammpsunitconverter(Type="nano", Positions=1.0, Forces=602214128.9999999)
+    7: lammpsunitconverter(type="nano", positions=1.0, forces=602214128.9999999)
 }
 # store plank values as a list so that we don't do float lookups in a dict.
 PLANK_VALUES = (
@@ -476,7 +476,6 @@ class LammpsHook:
 
         return: the lammps_class object
         """
-        #
         if lmp is None:
             print("Running without lammps, assuming interactive debugging")
             try:
@@ -521,6 +520,7 @@ class LammpsHook:
             units_type = self.units_type
             force_factor = self.force_factor
 
+
         # Extract the masses of the types, 1D float of home many
         # mass types were defined in input. Indexed from 1 not zero in lammps
         if self.topology_loop is True:
@@ -540,12 +540,13 @@ class LammpsHook:
             self.frame_server.send_frame(self.frame_index, self.frame_data)
             self.frame_index += 1
 
-        # Print every 100 cycles if python interpreter is still running
+        # Print every 100 cycles if python interpreter is still rnning
         # This helps ensure that everything in lammps is continuing to run
         if self.me == 0:
             self.frame_loop += 1
             if self.frame_loop == 100:
                 self.frame_loop = 0
+                logging.info("Narupa enabled calculation is running")
 
         self.topology_loop = False
 
