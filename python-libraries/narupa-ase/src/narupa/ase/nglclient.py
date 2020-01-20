@@ -41,6 +41,7 @@ class NGLClient(NarupaImdClient):
             self.update_callback(self.universe)
 
 
+# from https://github.com/arose/nglview/blob/e95a816161eb619de33e291e896ad24965b9f69d/nglview/adaptor.py
 @contextmanager
 def mkstemp_wrapper(*args, **kwargs):
     # NamedTemporaryFile cannot be used here because it makes it impossible
@@ -53,6 +54,7 @@ def mkstemp_wrapper(*args, **kwargs):
     os.remove(fname)
 
 
+# from https://github.com/arose/nglview/blob/e95a816161eb619de33e291e896ad24965b9f69d/nglview/adaptor.py
 def _get_structure_string(write_method, suffix='.pdb'):
     with mkstemp_wrapper(suffix=suffix) as fname:
         write_method(fname)
@@ -60,6 +62,7 @@ def _get_structure_string(write_method, suffix='.pdb'):
             return fh.read()
 
 
+# from https://github.com/arose/nglview/blob/e95a816161eb619de33e291e896ad24965b9f69d/nglview/adaptor.py
 class ASEStructure(nglview.Structure):
     def __init__(self, ase_atoms, ext='pdb', params={}):
         super().__init__()
@@ -72,20 +75,7 @@ class ASEStructure(nglview.Structure):
         return _get_structure_string(self._ase_atoms.write)
 
 
+# from https://github.com/arose/nglview/blob/e95a816161eb619de33e291e896ad24965b9f69d/nglview/show.py
 def show_ase(ase_atoms, **kwargs):
-    """
-    Examples
-    --------
-    >>> import nglview as nv
-    >>> from ase import Atom, Atoms
-    >>> dimer = Atoms([Atom('X', (0, 0, 0)),
-    ...                Atom('X', (0, 0, 1))])
-    >>> dimer.set_positions([(1, 2, 3), (4, 5, 6.2)])
-    >>> w = nv.show_ase(dimer)
-    >>> w # doctest: +SKIP
-    """
     structure = ASEStructure(ase_atoms)
     return NGLWidget(structure, **kwargs)
-
-
-nglview.adaptor._get_structure_string = _get_structure_string
