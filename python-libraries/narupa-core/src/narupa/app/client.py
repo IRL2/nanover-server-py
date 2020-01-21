@@ -120,7 +120,7 @@ class NarupaImdClient:
     which can be useful for analysis.
 
     .. python
-        # Assuming a server has been created with default address and ports.
+        # Assuming there is only one server (or set of servers) running.
         client = NarupaImdClient.autoconnect()
         # Fetch the first frame.
         first_frame = client.wait_until_first_frame(check_interval=0.5, timeout=10)
