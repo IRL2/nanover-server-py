@@ -41,10 +41,12 @@ def start_default_server_and_discovery(
 
 class NarupaApplicationServer:
     """
-    Provides a convenient Narupa server for typical applications, with local area network discovery provided by
-    ESSD, multiplayer configuration and a command service.
+    Provides a convenient Narupa server for typical applications, with local
+    area network discovery provided by ESSD, multiplayer configuration and a
+    command service.
 
-    Use this a base for building specific applications by inheriting from it and attaching additional services.
+    Use this a base for building specific applications by inheriting from it
+    and attaching additional services.
     """
 
     def __init__(self, server: NarupaServer, discovery: Optional[DiscoveryServer] = None, name="Narupa Server"):
