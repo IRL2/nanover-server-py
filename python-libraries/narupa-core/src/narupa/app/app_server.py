@@ -70,7 +70,12 @@ class NarupaApplicationServer:
         self.close()
 
     @classmethod
-    def basic_server(cls, name="Narupa Server", address: Optional[str] = None, port: Optional[int] = None):
+    def basic_server(
+            cls,
+            name="Narupa Server",
+            address: Optional[str] = None,
+            port: Optional[int] = None,
+    ):
         """
         Initialises a basic Narupa application server with default settings,
         with a default unencrypted server and ESSD discovery server for
