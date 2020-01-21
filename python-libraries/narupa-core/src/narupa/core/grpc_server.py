@@ -73,6 +73,7 @@ class GrpcServer:
     def address_and_port(self) -> Tuple[str, int]:
         """
         Gets the address and port that the server is or was provided on as a tuple.
+
         :return: The address and port that the server is or was provided on as a tuple.
         """
         return self.address, self.port
