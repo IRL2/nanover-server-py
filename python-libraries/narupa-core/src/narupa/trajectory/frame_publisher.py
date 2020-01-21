@@ -2,13 +2,13 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from queue import Queue
 from threading import Lock
-from typing import Union
+from typing import Union, Callable
 
 from narupa.utilities.request_queues import DictOfQueues, SingleItemQueue
 from narupa.utilities.timing import yield_interval
 from narupa.protocol.trajectory import (
-    TrajectoryServiceServicer, GetFrameResponse
-)
+    TrajectoryServiceServicer, GetFrameResponse,
+    add_TrajectoryServiceServicer_to_server)
 from narupa.protocol.trajectory import FrameData as RawFrameData
 from narupa.trajectory import FrameData
 
@@ -32,6 +32,8 @@ class FramePublisher(TrajectoryServiceServicer):
     _request_id_lock: Lock
 
     def __init__(self):
+        self.name: str = FRAME_SERVICE_NAME
+        self.add_to_server_method: Callable = add_TrajectoryServiceServicer_to_server
         self.frame_queues = DictOfQueues()
         self.last_frame = None
         self.last_frame_index = 0

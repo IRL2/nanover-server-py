@@ -53,5 +53,4 @@ class NarupaImdApplication(NarupaFrameApplication):
 
     def _setup_imd(self):
         self._imd_service = ImdService()
-        self.add_service(IMD_SERVICE_NAME, self._imd_service,
-                         add_InteractiveMolecularDynamicsServicer_to_server)
+        self.add_service(self._imd_service)

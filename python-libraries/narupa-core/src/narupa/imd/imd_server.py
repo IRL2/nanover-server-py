@@ -41,4 +41,4 @@ class ImdServer(NarupaServer):
         """
         super().setup_services()
         self._imd_service = ImdService()
-        add_InteractiveMolecularDynamicsServicer_to_server(self._imd_service, self.server)
+        self._imd_service.add_to_server_method(self._imd_service, self.server)

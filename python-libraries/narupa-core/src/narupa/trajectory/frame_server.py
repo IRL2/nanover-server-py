@@ -27,7 +27,7 @@ class FrameServer(NarupaServer):
     def setup_services(self):
         super().setup_services()
         self._trajectory_service = FramePublisher()
-        add_TrajectoryServiceServicer_to_server(self._trajectory_service, self.server)
+        self._trajectory_service.add_to_server_method(self._trajectory_service, self.server)
 
     def send_frame(self, frame_index: int, frame_data: FrameData):
         self._trajectory_service.send_frame(frame_index, frame_data.raw)

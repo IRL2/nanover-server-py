@@ -158,25 +158,20 @@ class NarupaApplicationServer:
             service.close()
         self._server.close()
 
-    def add_service(self, service_name, service, service_registration_method):
+    def add_service(self, service):
         """
         Adds a gRPC service to the server and broadcast it on discovery.
-        :param service_name: Name of the service.
         :param service: Service implementation
-        :param service_registration_method: Method to register service.
         """
-        # TODO this seems a bit low level, but we need a way to add services to both the server and discovery.
-        # TODO package up a service, service name and method?
-        self._server.add_service(service, add_service_method=service_registration_method)
-        self._service_hub.add_service(service_name, self._server.port)
+        self._server.add_service(service)
+        self._service_hub.add_service(service.name, self._server.port)
         self._services.add(service)
         if self.running_discovery:
             self._update_discovery_services()
 
     def _setup_multiplayer(self):
         self._multiplayer = MultiplayerService()
-        # TODO it would be great if this didn't need to know about gRPC details.
-        self.add_service(MULTIPLAYER_SERVICE_NAME, self._multiplayer, add_MultiplayerServicer_to_server)
+        self.add_service(self._multiplayer)
 
     def _update_discovery_services(self):
         try:

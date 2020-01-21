@@ -3,7 +3,7 @@
 """
 Module providing an implementation of the :class:`StateServicer`.
 """
-from typing import Iterable, Tuple, Set, Dict, ContextManager
+from typing import Iterable, Tuple, Set, Dict, ContextManager, Callable
 
 from narupa.utilities.grpc_utilities import (
     subscribe_rpc_termination,
@@ -26,7 +26,7 @@ from narupa.protocol.state import (
     UpdateLocksRequest,
     UpdateStateResponse,
     UpdateLocksResponse,
-)
+    add_StateServicer_to_server)
 from .state_dictionary import StateDictionary
 
 
@@ -37,8 +37,11 @@ class StateService(StateServicer):
     """
     _state_dictionary: StateDictionary
 
+
     def __init__(self):
         super().__init__()
+        self.name: str = "service"
+        self.add_to_server_method: Callable = add_StateServicer_to_server
         self._id = "service"
         self._state_dictionary = StateDictionary()
 

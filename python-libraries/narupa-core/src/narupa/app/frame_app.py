@@ -53,5 +53,4 @@ class NarupaFrameApplication(NarupaApplicationServer):
 
     def _setup_frame_publisher(self):
         self._frame_publisher = FramePublisher()
-        self.add_service(FRAME_SERVICE_NAME, self._frame_publisher,
-                         add_TrajectoryServiceServicer_to_server)
+        self.add_service(self._frame_publisher)

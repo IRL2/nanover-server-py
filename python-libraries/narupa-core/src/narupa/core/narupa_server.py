@@ -96,9 +96,9 @@ class NarupaServer(GrpcServer):
 
     def _setup_command_service(self):
         self._command_service = CommandService()
-        self.add_service(self._command_service, add_CommandServicer_to_server)
+        self.add_service(self._command_service)
 
 
     def _setup_state_service(self):
         self._state_service = StateService()
-        self.add_service(self._state_service, add_StateServicer_to_server)
+        self.add_service(self._state_service)

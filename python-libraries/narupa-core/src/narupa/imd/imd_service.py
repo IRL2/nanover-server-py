@@ -19,7 +19,7 @@ from narupa.protocol.imd import (
     SubscribeInteractionsRequest,
     InteractionsUpdate,
     ParticleInteraction as ParticleInteractionMessage,
-)
+    add_InteractiveMolecularDynamicsServicer_to_server)
 
 IMD_SERVICE_NAME = "imd"
 
@@ -38,6 +38,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         particle indices in an interaction are valid. If not set, it is up to
         consumers of the interactions to validate.
     """
+
+
     _interactions: DictionaryChangeMultiView
     _interaction_updated_callback: Optional[Callable[[ParticleInteraction], None]]
     velocity_reset_enabled: bool
@@ -47,6 +49,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
                  callback=None,
                  velocity_reset_enabled=False,
                  number_of_particles=None):
+        self.name: str = IMD_SERVICE_NAME
+        self.add_to_server_method: Callable = add_InteractiveMolecularDynamicsServicer_to_server
         self._interactions = DictionaryChangeMultiView()
         self._interaction_updated_callback = callback
         self.velocity_reset_enabled = velocity_reset_enabled
