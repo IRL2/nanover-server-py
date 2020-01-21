@@ -6,7 +6,7 @@ and can publish interactions.
 """
 import time
 from collections import deque, ChainMap
-from functools import wraps
+from functools import wraps, partial
 from typing import Iterable, Tuple, Type
 from typing import Optional, Sequence, Dict, MutableMapping
 
@@ -51,38 +51,20 @@ def _need_client(client, name, func, self, *args, **kwargs):
     return func(self, *args, **kwargs)
 
 
-def need_multiplayer(func):
-    """
-    Ensure that there is a multiplayer client, raising a RuntimeError if not.
-    """
-
+def _need_attribute(func, *, name: str, attr: str):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        return _need_client(self._multiplayer_client, 'multiplayer', func, self, *args, **kwargs)
+        if getattr(self, attr) is None:
+            raise RuntimeError(f'Not connected to {name} service')
+        return func(self, *args, **kwargs)
 
     return wrapper
 
 
-def need_imd(func):
-    """
-    Ensure that there is an iMD client, raising a RuntimeError if not.
-    """
-
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        return _need_client(self._imd_client, 'imd', func, self, *args, **kwargs)
-    return wrapper
-
-
-def need_frames(func):
-    """
-    Ensure that there is a trajectory client, raising a RuntimeError if not.
-    """
-
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        return _need_client(self._frame_client, 'trajectory', func, self, *args, **kwargs)
-    return wrapper
+# Use partial to specify which attribute is needed for the given decorator.
+need_frames = partial(_need_attribute, name='trajectory', attr='_frame_client')
+need_imd = partial(_need_attribute, name='imd', attr='_imd_client')
+need_multiplayer = partial(_need_attribute, name='multiplayer', attr='_multiplayer_client')
 
 
 def _search_for_first_available_frame_service(search_time=2.0,
@@ -271,8 +253,6 @@ class NarupaImdClient:
         if clear_frames:
             self._first_frame = None
             self._frames.clear()
-
-
 
     def connect_trajectory(self, address: Tuple[str, int]):
         """
