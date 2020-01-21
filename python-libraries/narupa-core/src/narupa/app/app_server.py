@@ -49,7 +49,12 @@ class NarupaApplicationServer:
     and attaching additional services.
     """
 
-    def __init__(self, server: NarupaServer, discovery: Optional[DiscoveryServer] = None, name="Narupa Server"):
+    def __init__(
+            self,
+            server: NarupaServer,
+            discovery: Optional[DiscoveryServer] = None,
+            name="Narupa Server",
+    ):
         self._server = server
         self._discovery = discovery
         self._service_hub = ServiceHub(name=name,
