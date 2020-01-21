@@ -12,8 +12,10 @@ from narupa.imd import IMD_SERVICE_NAME, ImdServer
 
 from narupa.multiplayer import MultiplayerServer, MULTIPLAYER_SERVICE_NAME
 from narupa.trajectory import FRAME_SERVICE_NAME
-from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, \
-    FrameServer
+from narupa.trajectory.frame_server import (
+    PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY,
+    FrameServer,
+)
 
 from .test_frame_server import simple_frame_data, frame_server
 from .imd.test_imd_server import imd_server, interaction
