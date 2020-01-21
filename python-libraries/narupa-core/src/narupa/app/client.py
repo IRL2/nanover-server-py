@@ -215,7 +215,6 @@ class NarupaImdClient:
         """
         Connect to a collection of Narupa servers running at the same address but potentially different ports.
 
-
         :param address: Address of the server.
         :param multiplayer_port: The port at which multiplayer is running.
         :param trajectory_port: The port at which the trajectory service is running.
