@@ -82,9 +82,12 @@ class NarupaApplicationServer:
         finding it on a local area network.
 
         :param name: Name of the server for the purposes of discovery.
-        :param address: The address at which to bind the server to. If none given, the default address of
-        :param port: Optional port on which to run the Narupa server. If none given, default port will be used.
-        :return: An instantiation of a basic Narupa server, registered with an ESSD discovery server.
+        :param address: The address at which to bind the server to. If none given,
+            the default address of
+        :param port: Optional port on which to run the Narupa server. If none given,
+            default port will be used.
+        :return: An instantiation of a basic Narupa server, registered with an
+            ESSD discovery server.
         """
         server, discovery = start_default_server_and_discovery(address=address, port=port)
         return cls(server, discovery, name)
