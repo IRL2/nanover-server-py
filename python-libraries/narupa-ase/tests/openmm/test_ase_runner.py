@@ -191,12 +191,12 @@ def test_discovery_with_client(basic_simulation, params):
         with DiscoveryClient() as client:
             servers = client.search_for_services(search_time=0.8, interval=0.01)
             assert len(servers) == 1
-            for server in servers:
-                assert server in discovery.services
-                assert server.name == runner.name
-                assert len(server.services) == 3
-                for port in server.services.values():
-                    assert port == runner.app_server.port
+            server = next(iter(servers))  # server is a set, get first and only one.
+            assert server in discovery.services
+            assert server.name == runner.name
+            assert len(server.services) == 3
+            for port in server.services.values():
+                assert port == runner.app_server.port
 
 
 def test_logging(basic_simulation, params, logging_params):
