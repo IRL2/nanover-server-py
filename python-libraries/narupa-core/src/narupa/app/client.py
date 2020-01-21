@@ -238,7 +238,7 @@ class NarupaImdClient:
         :param search_time: Time, in seconds, to search for.
         :param discovery_address: IP address to search on.
         :param discovery_port: Port upon which to listen for discovery messages.
-        :return: Instantation of an iMD client connected to whatever is available at the first
+        :return: Instantiation of an iMD client connected to whatever is available at the first
         """
         first_service = _search_for_first_available_frame_service(search_time, discovery_address, discovery_port)
         if first_service is None:
