@@ -19,7 +19,6 @@ requirements:
     - narupa-core =={{ NARUPA_BUILD_VERSION }}
     - numpy
     - mpi4py
-    - ase >=3.18.0
 
 about:
   home: https://narupa.readthedocs.io
