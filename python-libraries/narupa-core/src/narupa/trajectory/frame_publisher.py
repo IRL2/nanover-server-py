@@ -29,7 +29,7 @@ class FramePublisher(TrajectoryServiceServicer):
     _request_id_lock: Lock
 
     def __init__(self):
-        self.frame_queues = DictOfQueues()
+        self.frame_queues = DictOfQueues(queue_max_size=20)
         self.last_frame = None
         self.last_frame_index = 0
         self.last_request_id = 0
