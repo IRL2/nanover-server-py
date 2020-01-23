@@ -40,10 +40,12 @@ def test_address(serialized_simulation_path, any_port):
         assert runner.address == 'localhost'
 
 
+@pytest.mark.serial
 def test_port(serialized_simulation_path):
-    args = [str(serialized_simulation_path)] + ['-p', '62035']
+    PORT = 29070  # The port reserved for Jedi Knight: Jedi Academy (2003), so should be safe.
+    args = [str(serialized_simulation_path)] + ['-p', str(PORT)]
     with initialise(args) as runner:
-        assert runner.port == 62035
+        assert runner.port == PORT
 
 
 def test_discovery_service(serialized_simulation_path, any_port):
