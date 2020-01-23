@@ -69,14 +69,13 @@ ELEMENT_INDEX_MASS = {
     89: 39,
 }
 
-
 # Check what units are being used in LAMMPS using this dict
 # For now support converting lj and real, for full unit list
 # see https://lammps.sandia.gov/doc/units.html
 # List consists of the unit type, the conversion required to convert positions to nm, 
 # and the conversion required to convert forces to kJ/mol/nm
 
-lammpsunitconverter = NamedTuple("LammpsUnitConverter", [('type', str),('positions', float), ('forces', float)])
+lammpsunitconverter = NamedTuple("LammpsUnitConverter", [('type', str), ('positions', float), ('forces', float)])
 LAMMPS_UNITS_CHECK = {
     # Lennard jones: Is unitless, everything is set to 1
     0: lammpsunitconverter(type="lj", positions=1, forces=1),
@@ -122,6 +121,7 @@ PLANK_VALUES = (
     6.62606896e-13,
     6.62606896e-4
 )
+
 
 class LammpsHook:
     """
@@ -199,7 +199,7 @@ class LammpsHook:
         """
         Function creates an except or try for various functions to overcome the issue
         of the LAMMPS interpreter not giving error messages correctly when an error is
-        enocuntered.
+        encountered.
         :param func: function to be decorated with a try or except statement
         :return: the original function but decorated
         """
@@ -259,8 +259,16 @@ class LammpsHook:
 
         # Atom mass is indexed from 1 in lammps for some reason.
         # Create a new list rounded to the nearest mass integer
-        atom_mass_type = [round(x) for x in atom_type_mass[0:ntypes + 1]]
+        if self.units_type is "lj":
+            # Some lennard jones calculations don't allow iteration over atom_type_mass
+            # This is a workaround
+            atom_mass_type = [0]
+            for i in range(ntypes):
+                atom_mass_type.append(12+i)
+        else:
+            atom_mass_type = [round(x) for x in atom_type_mass[0:ntypes + 1]]
 
+        self.logging_mpi("atom_mass_types %s", atom_mass_type)
         # Convert to masses
         final_masses = [atom_mass_type[particle] for particle in atom_kind]
         final_masses = np.array(final_masses)
@@ -332,7 +340,7 @@ class LammpsHook:
         return plank_type
 
     @_try_or_except
-    def manipulate_lammps_internal_matrix(self, lammps_class, positions_3n, matrix_type):
+    def manipulate_lammps_internal_matrix(self, lammps_class, positions, distance_factor, matrix_type):
         """
         This groups together the routines needed to return forces to lammps,
         is has been made general in case one day we and to do velocity renormalisation
@@ -346,6 +354,10 @@ class LammpsHook:
         """
         # Collect matrix from LAMMPS
         forces = self.manipulate_lammps_array(matrix_type, lammps_class)
+
+        # Convert the positions to a 2D, 3N array for use in calculate)imd_force
+        positions_3n = np.fromiter(positions, dtype=np.float64, count=len(positions)).reshape(self.n_atoms, 3)
+        positions_3n *= distance_factor
 
         # Collect interaction vector from client on process 0
         if self.me == 0:
@@ -365,22 +377,16 @@ class LammpsHook:
         self.add_interaction_to_ctype(forces_kjmol, forces)
         self.return_array_to_lammps(matrix_type, forces, lammps_class)
 
-    def extract_positions(self, distance_factor, lammps_class):
+    def extract_positions(self, lammps_class):
         """
         Extract the particle positions and add them to the framedata.
 
-        Return: the positions_3N array for use in the force addition
+        Return: the positions array for use in the frame data
         """
 
         positions = self.manipulate_lammps_array('x', lammps_class)
-        # Copy the ctype array to numpy for processing
-        positions_3n = np.fromiter(positions, dtype=np.float64, count=len(positions)).reshape(self.n_atoms, 3)
-        positions_3n *= distance_factor
 
-        if self.me == 0:
-            # Convert positions to framedata
-            self.lammps_positions_to_frame_data(self.frame_data, positions)
-        return positions_3n
+        return positions
 
     def determine_lmp_status(self, comm, lmp):
         """
@@ -405,6 +411,51 @@ class LammpsHook:
                 raise Exception("Failed to load LAMMPS wrapper", err)
         return lammps_class
 
+    def extract_fundamental_factors(self, lammps_class):
+        """
+        Extract the fundamental unit parameters from lammps and determine the unit types from the result
+        this is only called in the first loop as the topology shouldn't change in MD simualtions after the
+        initial setup.
+
+        :param lammps_class:
+        """
+        units = self.find_unit_type(lammps_class)
+        n_atoms = lammps_class.get_natoms()
+        units_type = LAMMPS_UNITS_CHECK.get(units, None)[0]
+        distance_factor = LAMMPS_UNITS_CHECK.get(units, None)[1]
+        force_factor = LAMMPS_UNITS_CHECK.get(units, None)[2]
+        self.logging_mpi("units : %s %s %s %s", self.me, units_type, force_factor, distance_factor)
+        self.n_atoms = n_atoms
+        self.distance_factor = distance_factor
+        self.units_type = units_type
+        self.force_factor = force_factor
+        return n_atoms, distance_factor, units_type, force_factor
+
+    def collect_and_send_frame_data(self, positions):
+        """
+        Collect all the data that had been extracted from lammps and transmit it in framedata
+
+        :param positions: the flat (1D) positions arrays
+        """
+
+        self.frame_data.particle_count = self.n_atoms
+        self.frame_data.arrays[PARTICLE_ELEMENTS] = self.atom_type
+        self.lammps_positions_to_frame_data(self.frame_data, positions)
+
+        # Send frame data
+        self.frame_server.send_frame(self.frame_index, self.frame_data)
+        self.frame_index += 1
+
+    def logging_mpi(self, passed_string: str = None, *args: None, **kwargs: None):
+        """
+        Wrapper function for printing on one core only
+
+        :param passed_string: string that is to be printed
+        :param args: mutable objects passed
+        :param kwargs: immutable objects passed
+        """
+        if self.me == 0:
+            logging.debug(passed_string, *args, **kwargs)
 
     def lammps_hook(self, lmp=None, comm=None):
         """
@@ -414,47 +465,33 @@ class LammpsHook:
 
         :param lmp: LAMMPS object data, only populated when running from within LAMMPS
         """
+        # Determine if a true lammps object is available or fall back to the test routine
         lammps_class = self.determine_lmp_status(comm, lmp)
 
         if self.topology_loop is True:
-            units = self.find_unit_type(lammps_class)
-            n_atoms = lammps_class.get_natoms()
-            units_type = LAMMPS_UNITS_CHECK.get(units, None)[0]
-            distance_factor = LAMMPS_UNITS_CHECK.get(units, None)[1]
-            force_factor = LAMMPS_UNITS_CHECK.get(units, None)[2]
-            logging.debug("units : %s %s %s %s", self.me, units_type, force_factor, distance_factor)
-            self.n_atoms = n_atoms
-            self.distance_factor = distance_factor
-            self.units_type = units_type
-            self.force_factor = force_factor
+            # Collect unchanging variables in the first MD step only (the topology loop)
+            n_atoms, distance_factor, units_type, force_factor = self.extract_fundamental_factors(lammps_class)
+
+            # Collect the lammps atom types and masses for a crude topology
+            self.atom_type, self.masses = self.gather_lammps_particle_types(lammps_class)
         else:
             n_atoms = self.n_atoms
             distance_factor = self.distance_factor
             units_type = self.units_type
             force_factor = self.force_factor
 
-
-        # Extract the masses of the types, 1D float of home many
-        # mass types were defined in input. Indexed from 1 not zero in lammps
-        if self.topology_loop is True:
-            self.atom_type, self.masses = self.gather_lammps_particle_types(lammps_class)
-
-        # Extract and convert the position matrix to framedata
-        positions_3n = self.extract_positions(distance_factor, lammps_class)
+        # Extract the position matrix from lammps
+        positions = self.extract_positions(lammps_class)
 
         # Collect client data and return to lammps internal arrays
-        self.manipulate_lammps_internal_matrix(lammps_class, positions_3n, 'f')
+        self.manipulate_lammps_internal_matrix(lammps_class, positions, distance_factor, 'f')
 
         if self.me == 0:
-            self.frame_data.particle_count = self.n_atoms
-            # Convert elements from list to frame data
-            self.frame_data.arrays[PARTICLE_ELEMENTS] = self.atom_type
-            # Send frame data
-            self.frame_server.send_frame(self.frame_index, self.frame_data)
-            self.frame_index += 1
+            # Send frame data on proc 0 only as otherwise port blocking occurs
+            self.collect_and_send_frame_data(positions)
 
-        # Print every 100 cycles if python interpreter is still rnning
-        # This helps ensure that everything in lammps is continuing to run
+        # Print every 100 cycles if python interpreter is still running
+        # This helps ensure that everything in lammps is continuing to run and that the python interpreter has crashed
         if self.me == 0:
             self.frame_loop += 1
             if self.frame_loop == 100:
@@ -462,7 +499,3 @@ class LammpsHook:
                 logging.info("Narupa enabled calculation is still running")
 
         self.topology_loop = False
-
-
-
-
