@@ -43,14 +43,6 @@ def _update_commands(client: NarupaClient):
         raise e
 
 
-# TODO there must be a nicer decorator way to combine these:
-
-def _need_client(client, name, func, self, *args, **kwargs):
-    if client is None:
-        raise RuntimeError(f'Not connected to {name} service')
-    return func(self, *args, **kwargs)
-
-
 def _need_attribute(func, *, name: str, attr: str):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
