@@ -23,7 +23,7 @@ from .core.test_narupa_client_server_commands import mock_callback, default_args
 from narupa.app.client import NarupaImdClient
 import numpy as np
 
-CLIENT_WAIT_TIME = 0.5
+CLIENT_WAIT_TIME = 0.05
 
 TEST_KEY = 'test'
 TEST_VALUE = 'hi'
