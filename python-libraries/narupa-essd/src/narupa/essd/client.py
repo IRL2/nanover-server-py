@@ -5,11 +5,11 @@ A module containing a Extremely Simple Service Discovery client.
 """
 import json
 import time
-from typing import Optional
+from typing import Optional, Set
 
 import select
 
-from narupa.essd.server import BROADCAST_PORT, _connect_socket
+from narupa.essd.server import BROADCAST_PORT, configure_reusable_socket
 from narupa.essd.servicehub import ServiceHub, MAXIMUM_MESSAGE_SIZE
 
 IP_ADDRESS_ANY = "0.0.0.0"
@@ -30,7 +30,7 @@ class DiscoveryClient:
         return self._socket.getsockname()[1]
 
     def _connect(self, port):
-        self._socket = _connect_socket()
+        self._socket = configure_reusable_socket()
         self._socket.bind((self.address, port))
 
     def _check_for_messages(self, timeout):
@@ -45,7 +45,7 @@ class DiscoveryClient:
         properties = json.loads(message.decode())
         return ServiceHub(**properties)
 
-    def search_for_services(self, search_time: float = 5.0, interval=0.033):
+    def search_for_services(self, search_time: float = 5.0, interval=0.033) -> Set[ServiceHub]:
         """
         Searches for services for the given amount of time, blocking.
 

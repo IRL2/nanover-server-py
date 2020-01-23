@@ -2,7 +2,7 @@
 Module defining a Service.
 """
 import json
-from typing import Optional
+from typing import Optional, Tuple
 from uuid import uuid4
 import narupa.essd
 
@@ -175,6 +175,17 @@ class ServiceHub:
             hub = self
         return hub.message
 
+    def get_service_address(self, service_name: str) -> Optional[Tuple[str, int]]:
+        """
+        Gets the address and port of a service, if it exists.
+        :param service_name: Service name
+        :return: Tuple consisting of address and port of a service, or None if not found.
+        """
+        if service_name not in self.services:
+            return None
+        else:
+            return self.address, self.services[service_name]
+
     def __repr__(self):
         return f'{self.__class__.__name__}(**{self.properties})'
 
@@ -188,6 +199,8 @@ class ServiceHub:
         if not isinstance(other, self.__class__):
             raise TypeError(f"Cannot compare {self.__class__} with {other.__class__}")
         return hash(self) == hash(other)
+
+
 
 
 def _construct_message(payload) -> str:

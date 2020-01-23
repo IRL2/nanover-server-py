@@ -10,8 +10,10 @@ from ase import units, Atoms
 from ase.md import MDLogger, Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from attr import dataclass
+from narupa.app import NarupaImdApplication
+from narupa.app.app_server import DEFAULT_NARUPA_PORT
+from narupa.core import get_requested_port_or_default, NarupaServer, DEFAULT_SERVE_ADDRESS
 from narupa.ase import TrajectoryLogger
-from narupa.core import get_requested_port_or_default
 from narupa.essd import DiscoveryServer
 from narupa.essd.servicehub import ServiceHub
 from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
@@ -20,13 +22,13 @@ from narupa.multiplayer import MultiplayerServer
 from narupa.multiplayer.multiplayer_server import DEFAULT_PORT as MULTIPLAYER_DEFAULT_PORT
 from narupa.multiplayer.multiplayer_service import MULTIPLAYER_SERVICE_NAME
 from narupa.openmm import openmm_to_frame_data, serializer
-from narupa.trajectory.frame_publisher import TRAJECTORY_SERVICE_NAME
+from narupa.trajectory.frame_publisher import FRAME_SERVICE_NAME, FramePublisher
 from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
 from simtk.openmm.app import Simulation
 
 from narupa.ase import ase_to_frame_data
 from narupa.ase.converter import add_ase_positions_to_frame_data
-from narupa.ase.imd_server import ASEImdServer
+from narupa.ase.imd import NarupaASEDynamics
 from narupa.ase.openmm.calculator import OpenMMCalculator
 from narupa.ase.wall_calculator import VelocityWallCalculator
 
@@ -34,7 +36,7 @@ CONSTRAINTS_UNSUPPORTED_MESSAGE = (
     "The simulation contains constraints which will be ignored by this runner!")
 
 
-def openmm_ase_frame_server(ase_atoms: Atoms, frame_server):
+def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
     """
     Generates and sends frames for a simulation using an :class: OpenMMCalculator.
     """
@@ -49,7 +51,7 @@ def openmm_ase_frame_server(ase_atoms: Atoms, frame_server):
         # from then on, just send positions and state.
         else:
             frame = ase_to_frame_data(ase_atoms, topology=False)
-        frame_server.send_frame(send.frame_index, frame)
+        frame_publisher.send_frame(send.frame_index, frame)
         send.frame_index = send.frame_index + 1
 
     send.frame_index = 0
@@ -63,15 +65,12 @@ class ImdParams:
     Class representing parameters for IMD runners.
     """
     address: str = None
-    trajectory_port: int = None
-    imd_port: int = None
+    port: int = None
     frame_interval: int = 5
     time_step: float = 1.0
     verbose: bool = False
     walls: bool = False
     name: str = None
-    multiplayer: bool = True
-    multiplayer_port: int = None
     discovery: bool = True
     discovery_port: int = None
 
@@ -151,27 +150,18 @@ class OpenMMIMDRunner:
         if not logging_params:
             logging_params = LoggingParams()
         self._address = imd_params.address
-        if self._services_use_same_port(
-                trajectory_port=imd_params.trajectory_port,
-                imd_port=imd_params.imd_port,
-                multiplayer_port=imd_params.multiplayer_port
-        ):
-            raise ValueError(
-                "Trajectory serving port, IMD serving port and multiplayer serving port must be different!")
         self._frame_interval = imd_params.frame_interval
         self._time_step = imd_params.time_step
         self._verbose = imd_params.verbose
 
         self._initialise_calculator(simulation, walls=imd_params.walls)
         self._initialise_dynamics()
-        self._initialise_server(self.dynamics,
-                                imd_params.trajectory_port,
-                                imd_params.imd_port,
-                                imd_params.multiplayer,
-                                imd_params.multiplayer_port,
-                                imd_params.name,
+        self._initialise_server(imd_params.name,
+                                imd_params.address,
+                                imd_params.port,
                                 imd_params.discovery,
                                 imd_params.discovery_port)
+        self._initialise_imd(self.app_server, self.dynamics)
 
         self._initialise_trajectory_logging(logging_params)
 
@@ -235,52 +225,29 @@ class OpenMMIMDRunner:
 
         :return: The URL or IP address of the server.
         """
-        return self._address
+        return self.app_server.address
 
     @property
-    def trajectory_port(self):
+    def port(self):
         """
-        Gets the port the :class:`FrameServer` is running on.
+        Gets the port the server is running on.
 
-        :return: The port the frame service is running on.
+        :return: The server port.
         """
-        return self.imd.frame_server.port
-
-    @property
-    def imd_port(self):
-        """
-        Gets the port the :class:`ImdServer` is running on.
-
-        :return: The port the IMD server is running on.
-        """
-        return self.imd.imd_server.port
-
-    @property
-    def running_multiplayer(self):
-        return self.multiplayer is not None
-
-    @property
-    def multiplayer_port(self):
-        try:
-            return self.multiplayer.port
-        except AttributeError:
-            raise AttributeError("Multiplayer service not running")
+        return self.app_server.port
 
     @property
     def name(self):
-        return self.imd.name
+        return self.app_server.name
 
     @property
     def running_discovery(self):
-        try:
-            return self.discovery_server is not None
-        except AttributeError:
-            return False
+        return self.app_server.running_discovery
 
     @property
     def discovery_port(self):
         try:
-            return self.discovery_server.port
+            return self.app_server.discovery.port
         except AttributeError:
             raise AttributeError("Discovery service not running")
 
@@ -317,42 +284,33 @@ class OpenMMIMDRunner:
         Closes the connection and stops the dynamics.
         """
         self.imd.close()
-        if self.multiplayer is not None:
-            self.multiplayer.close()
-        if self.discovery_server is not None:
-            self.discovery_server.close()
         if self.logging_info:
             self.logging_info.close()
+        self.app_server.close()
 
-
-    def _initialise_server(self, dynamics,
-                           trajectory_port=None,
-                           imd_port=None,
-                           run_multiplayer=True,
-                           multiplayer_port=None,
+    def _initialise_server(self,
                            name=None,
+                           address=None,
+                           port=None,
                            run_discovery=True,
                            discovery_port=None):
-        # set the server to use the OpenMM frame convert for performance purposes.
-        self.imd = ASEImdServer(dynamics,
-                                frame_method=openmm_ase_frame_server,
-                                address=self.address,
-                                frame_interval=self.frame_interval,
-                                trajectory_port=trajectory_port,
-                                imd_port=imd_port,
-                                name=name,
-                                )
 
-        if run_multiplayer:
-            self.multiplayer = MultiplayerServer(address=self.address, port=multiplayer_port)
-        else:
-            self.multiplayer = None
-
+        address = address or DEFAULT_SERVE_ADDRESS
+        if port is None:
+            port = DEFAULT_NARUPA_PORT
+        server = NarupaServer(address=address, port=port)
         if run_discovery:
-            self.discovery_server = DiscoveryServer(discovery_port)
-            self._register_services(name)
+            discovery = DiscoveryServer(broadcast_port=discovery_port)
         else:
-            self.discovery_server = None
+            discovery = None
+        self.app_server = NarupaImdApplication(server, discovery, name)
+
+    def _initialise_imd(self, server, dynamics):
+        # set the server to use the OpenMM frame convert for performance purposes.
+        self.imd = NarupaASEDynamics(server,
+                                     dynamics,
+                                     frame_method=openmm_ase_frame_adaptor,
+                                     frame_interval=self.frame_interval)
 
     def _initialise_calculator(self, simulation, walls=False):
         self._openmm_calculator = OpenMMCalculator(simulation)
@@ -386,31 +344,12 @@ class OpenMMIMDRunner:
             self.logging_info = None
             return
         logger = TrajectoryLogger(self.atoms, logging_params.trajectory_file)
-        self.dynamics.attach(logger, logging_params.write_interval)
         self.imd.on_reset_listeners.append(logger.reset)
         self.logging_info = TrajectoryLoggerInfo(logger, logging_params)
-
-    @staticmethod
-    def _services_use_same_port(trajectory_port, imd_port, multiplayer_port):
-        trajectory_port = get_requested_port_or_default(trajectory_port, TRAJ_DEFAULT_PORT)
-        imd_port = get_requested_port_or_default(imd_port, IMD_DEFAULT_PORT)
-        multiplayer_port = get_requested_port_or_default(multiplayer_port, MULTIPLAYER_DEFAULT_PORT)
-        # If a port is set to 0, then GRPC will choose one available port; so
-        # 0 is always a valid value.
-        all_ports = (trajectory_port, imd_port, multiplayer_port)
-        non_zero_ports = [port for port in all_ports if port != 0]
-        return len(non_zero_ports) != len(set(non_zero_ports))
+        self.dynamics.attach(logger, logging_params.write_interval)
 
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, traceback):
         self.close()
-
-    def _register_services(self, server_name):
-        hub = ServiceHub(name=server_name, address=self.imd.frame_server.address)
-        hub.add_service(name=IMD_SERVICE_NAME, port=self.imd.imd_server.port)
-        hub.add_service(name=TRAJECTORY_SERVICE_NAME, port=self.imd.frame_server.port)
-        if self.multiplayer is not None:
-            hub.add_service(name=MULTIPLAYER_SERVICE_NAME, port=self.multiplayer.port)
-        self.discovery_server.register_service(hub)

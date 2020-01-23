@@ -37,8 +37,7 @@ class MultiplayerServer(NarupaServer):
     def setup_services(self):
         super().setup_services()
         self._multiplayer_service = MultiplayerService()
-        multiplayer_proto_grpc.add_MultiplayerServicer_to_server(
-            self._multiplayer_service, self.server)
+        self._multiplayer_service.add_to_server_method(self._multiplayer_service, self.server)
 
     def close(self):
         super().close()

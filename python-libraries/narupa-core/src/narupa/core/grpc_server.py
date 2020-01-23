@@ -6,7 +6,7 @@ Module providing a wrapper around the running of GRPC servers.
 """
 import logging
 from concurrent import futures
-from typing import Optional
+from typing import Optional, Callable, Tuple
 
 import grpc
 
@@ -70,17 +70,32 @@ class GrpcServer:
         return self._port
 
     @property
-    def address(self):
+    def address_and_port(self) -> Tuple[str, int]:
         """
-        Get the address that the service is or was provided on.
+        Gets the address and port that the server is or was provided on as a tuple.
+
+        :return: The address and port that the server is or was provided on as a tuple.
         """
-        return self._address
+        return self.address, self.port
 
     def setup_services(self):
         """
         Inheritors of this class should setup any services they run.
         """
         pass
+
+    def add_service(self, service):
+        """
+        Add a gRPC service to this server.
+
+        :param service: The gRPC service to add, must have the method to add the gRPC service as the attribute
+        add_to_server_method.
+        """
+        try:
+            service.add_to_server_method(service, self.server)
+        except AttributeError:
+            raise AttributeError("Service implementation did not have the add_to_server_method "
+                                 "as an attribute, cannot automatically add to gRPC server.")
 
     def close(self):
         """

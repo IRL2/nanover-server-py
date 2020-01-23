@@ -5,14 +5,7 @@ import pytest
 import narupa.essd
 from narupa.essd.servicehub import (ServiceHub, SERVICE_NAME_KEY, SERVICE_ADDRESS_KEY, SERVICE_SERVICES_KEY,
                                     SERVICE_ID_KEY, ESSD_VERSION_KEY)
-from narupa.essd.utils import get_broadcast_addresses
-
-
-def get_broadcastable_ip():
-    broadcast_addresses = get_broadcast_addresses()
-    if len(broadcast_addresses) == 0:
-        raise RuntimeError("No broadcastable IP addresses could be found on the system!")
-    return broadcast_addresses[0]['addr']
+from narupa.essd.utils import get_broadcastable_ip
 
 
 @pytest.fixture
@@ -99,3 +92,15 @@ def test_add_service_replacement(properties):
     hub.add_service("imd", 88888)
     properties['services'].update({"imd": 88888})
     assert hub.services == properties['services']
+
+
+def test_get_service_address(properties):
+    hub = ServiceHub(**properties)
+    hub.add_service("test", 54322)
+    assert hub.get_service_address('test') == (hub.address, 54322)
+
+
+def test_get_service_address_no_exist(properties):
+    hub = ServiceHub(**properties)
+    hub.add_service("test", 54322)
+    assert hub.get_service_address('unknown') is None

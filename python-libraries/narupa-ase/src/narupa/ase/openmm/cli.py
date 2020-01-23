@@ -43,9 +43,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         type=str, default='Narupa OpenMM ASE Server',
         help='Give a friendly name to the server.'
     )
-    parser.add_argument('-t', '--trajectory-port', type=int, default=None)
-    parser.add_argument('-i', '--imd-port', type=int, default=None)
-    parser.add_argument('-m', '--multiplayer-port', type=int, default=None)
+    parser.add_argument('-p', '--port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
     parser.add_argument(
         '-f', '--frame-interval', type=int, default=5,
@@ -73,10 +71,6 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         help='Run without the discovery service, so this server will not broadcast itself on the LAN.'
     )
     parser.add_argument(
-        '--no-multiplayer', dest='multiplayer', action='store_false', default=True,
-        help='Run without the multiplayer service.'
-    )
-    parser.add_argument(
         '--discovery-port', type=int, default=None,
         help='Port at which to run discovery service'
     )
@@ -101,15 +95,12 @@ def initialise(args=None):
     # TODO clean way to handle params?
     params = ImdParams(
         arguments.address,
-        arguments.trajectory_port,
-        arguments.imd_port,
+        arguments.port,
         arguments.frame_interval,
         arguments.time_step,
         arguments.verbose,
         arguments.walls,
         arguments.name,
-        arguments.multiplayer,
-        arguments.multiplayer_port,
         arguments.discovery,
         arguments.discovery_port
     )
@@ -135,10 +126,7 @@ def main():
             print(f'Logging frames to "{runner.logging_info.trajectory_path}"')
 
         runner.imd.on_reset_listeners.append(lambda: print('RESET! ' * 10))
-        print(f'Serving frames on port {runner.trajectory_port} and IMD on {runner.imd_port}')
-        if runner.running_multiplayer:
-            print(f'Serving multiplayer on port {runner.multiplayer_port}')
-
+        print(f'Serving on port {runner.app_server.port}, discoverable on all interfaces on port {runner.discovery_port}')
         try:
             runner.run(block=False, reset_energy=runner.cli_options['reset_energy'])
             while True:

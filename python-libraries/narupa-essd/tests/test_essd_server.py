@@ -30,6 +30,18 @@ def test_server_duplicate_service(server, service):
         server.register_service(service_2)
 
 
+def test_remove_service(server, service):
+    server.register_service(service)
+    assert service in server.services
+    server.unregister_service(service)
+    assert service not in server.services
+
+
+def test_remove_unknown_service(server, service):
+    with pytest.raises(KeyError):
+        server.unregister_service(service)
+
+
 def test_server_discovery_already_running(server):
     with pytest.raises(RuntimeError):
         server.start()

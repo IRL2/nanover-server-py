@@ -38,7 +38,7 @@ def write_trajectory_from_server(destination, *, address: str, port: int):
     :param address: Host name to connect to.
     :param port: Port to connect to on the host.
     """
-    with FrameClient(address=address, port=port) as client:
+    with FrameClient.insecure_channel(address=address, port=port) as client:
         print("Running...")
         frame_iter = client.subscribe_frames_iterate()
         frame_index, first_frame = next(frame_iter)

@@ -246,8 +246,6 @@ def _get_atoms_to_reset(cancelled_interactions) -> Set[int]:
 
 def _apply_velocities_reset(atoms, atoms_to_reset, temperature):
     atoms_to_reset = np.array(list(atoms_to_reset))
-    if len(atoms_to_reset) is 0:
-        return
 
     _reset_selection_to_boltzmann(atoms, atoms_to_reset, temperature)
     # now scale the velocities so the exact target temperature is achieved.

@@ -6,7 +6,7 @@ Module providing an implementation of a multiplayer service,.
 """
 import logging
 from threading import Lock
-from typing import Iterator
+from typing import Iterator, Callable
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
 from narupa.utilities.grpc_utilities import (
@@ -24,7 +24,7 @@ from narupa.protocol.multiplayer.multiplayer_pb2 import (
     SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse,
     SubscribePlayerAvatarsRequest, ResourceValuesUpdate,
 )
-from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer
+from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer, add_MultiplayerServicer_to_server
 
 MULTIPLAYER_SERVICE_NAME = "multiplayer"
 
@@ -33,8 +33,11 @@ class MultiplayerService(MultiplayerServicer):
     """
     Implementation of the Multiplayer service.
     """
+
     def __init__(self):
         super().__init__()
+        self.name: str = MULTIPLAYER_SERVICE_NAME
+        self.add_to_server_method: Callable = add_MultiplayerServicer_to_server
 
         self.players = {}
         self.logger = logging.getLogger(__name__)
@@ -80,10 +83,11 @@ class MultiplayerService(MultiplayerServicer):
         Accepts a stream of avatar updates.
         """
         touched_player_ids = set()
-        
+
         def clear_touched_avatars():
             for player_id in touched_player_ids:
                 self._clear_player_avatar(player_id)
+
         context.add_callback(clear_touched_avatars)
 
         for avatar in request_iterator:

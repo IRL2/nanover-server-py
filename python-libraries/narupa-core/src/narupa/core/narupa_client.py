@@ -1,19 +1,16 @@
+"""
+A module for setting up typical Narupa clients, containing a client
+that sets up a command service.
+"""
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 
-from uuid import uuid4
 from typing import Dict, Iterable, ContextManager, Union
-from narupa.core import GrpcClient
-from narupa.utilities.change_buffers import DictionaryChange
-from narupa.utilities.protobuf_utilities import (
-    dict_to_struct, struct_to_dict, deep_copy_serializable_dict,
-)
+from uuid import uuid4
+
+import grpc
 from narupa.command.command_info import CommandInfo
-from narupa.state.state_dictionary import StateDictionary
-from narupa.state.state_service import (
-    state_update_to_dictionary_change, dictionary_change_to_state_update,
-    validate_dict_is_serializable,
-)
+from narupa.core import GrpcClient
 from narupa.protocol.command import (
     CommandStub, CommandMessage, GetCommandsRequest,
 )
@@ -21,29 +18,33 @@ from narupa.protocol.state import (
     StateStub, SubscribeStateUpdatesRequest, StateUpdate, UpdateStateRequest,
     UpdateLocksRequest,
 )
-
+from narupa.state.state_dictionary import StateDictionary
+from narupa.state.state_service import (
+    state_update_to_dictionary_change, dictionary_change_to_state_update,
+    validate_dict_is_serializable,
+)
+from narupa.utilities.change_buffers import DictionaryChange
+from narupa.utilities.protobuf_utilities import (
+    dict_to_struct, struct_to_dict, deep_copy_serializable_dict,
+)
 
 DEFAULT_STATE_UPDATE_INTERVAL = 1 / 30
 
 
 class NarupaClient(GrpcClient):
     """
-    A base gRPC client for Narupa services. Automatically sets up a stub for the :class:`CommandServicer`,
-    enabling the running of arbitrary commands.
-
-    :param address: Address of server to connect to.
-    :param port: Port of server to connect to.
+    A base gRPC client for Narupa services. Automatically sets up a stub
+    for the :class:`CommandServicer`, enabling the running of arbitrary commands.
 
     """
     _command_stub: CommandStub
     _available_commands: Dict[str, CommandInfo]
-    
     _state_stub: StateStub
     _access_token: str
     _state: StateDictionary
 
-    def __init__(self, *, address: str, port: int):
-        super().__init__(address=address, port=port)
+    def __init__(self, *, channel: grpc.Channel, make_channel_owner: bool = False):
+        super().__init__(channel=channel, make_channel_owner=make_channel_owner)
         self._setup_command_stub()
         self._setup_state_stub()
 
@@ -81,7 +82,8 @@ class NarupaClient(GrpcClient):
         :return: A dictionary of all the commands on the command server, keyed by name
         """
         command_responses = self._command_stub.GetCommands(GetCommandsRequest()).commands
-        self._available_commands = {raw.name: CommandInfo.from_proto(raw) for raw in command_responses}
+        self._available_commands = {raw.name: CommandInfo.from_proto(raw)
+                                    for raw in command_responses}
         return self._available_commands
 
     def lock_state(self) -> ContextManager[Dict[str, object]]:
@@ -161,16 +163,14 @@ class NarupaClient(GrpcClient):
 
 class NarupaStubClient(NarupaClient):
     """
-    A base gRPC client for Narupa services. Automatically sets up a stub for the :class:`CommandServicer`,
-    and attaches the provided stub to the underlying gRPC channel.
+    A base gRPC client for Narupa services. Automatically sets up a stub
+    for the :class:`CommandServicer`, and attaches the provided stub to
+    the underlying gRPC channel.
 
-    :param address: Address of server to connect to.
-    :param port: Port of server to connect to.
     :param stub: gRPC stub to attach.
 
     """
 
-    def __init__(self, *, address: str,
-                 port: int, stub):
-        super().__init__(address=address, port=port)
+    def __init__(self, *, channel: grpc.Channel, stub, make_channel_owner: bool = False):
+        super().__init__(channel=channel, make_channel_owner=make_channel_owner)
         self.stub = stub(self.channel)
