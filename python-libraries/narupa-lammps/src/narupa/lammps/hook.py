@@ -334,9 +334,9 @@ class LammpsHook:
         :return: The replaced units from the list.
         """
         plank_value = lammps_class.extract_global("hplanck", 1)
-        logging.debug("Plank value from lammps_internal %s ", plank_value)
+        self.logging_mpi("Plank value from lammps_internal %s ", plank_value)
         plank_type = min(range(len(PLANK_VALUES)), key=lambda i: abs(PLANK_VALUES[i] - plank_value))
-        logging.debug("Key detected %s", plank_type)
+        self.logging_mpi("Key detected %s", plank_type)
         return plank_type
 
     @_try_or_except
@@ -347,7 +347,7 @@ class LammpsHook:
          or another type of manipulation.
 
         :param lammps_class: LAMMPS class that contains all the needed routines
-        :param positions_3n: Positon matrix needed to calcualte_imd_forces
+        :param positions_3n: Position matrix needed to calculate_imd_forces
         :param matrix_type: The matrix to eb scattered, usually f (forces),
         but could also be V (velocities)
         :return:
