@@ -67,17 +67,6 @@ need_imd = partial(_need_attribute, name='imd', attr='_imd_client')
 need_multiplayer = partial(_need_attribute, name='multiplayer', attr='_multiplayer_client')
 
 
-def _search_for_first_available_frame_service(search_time=2.0,
-                                              discovery_address: Optional[str] = None,
-                                              discovery_port: Optional[int] = None):
-    with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
-        servers = discovery_client.search_for_services(search_time)
-    for hub in servers:
-        if FRAME_SERVICE_NAME in hub.services:
-            return hub
-    return None
-
-
 class NarupaImdClient:
     """
     Interactive molecular dynamics client that receives frames, create selections,
@@ -715,3 +704,14 @@ class NarupaImdClient:
             client = client_type.insecure_channel(address=address[0], port=address[1])
             self._channels[address] = client.channel
         return client
+
+
+def _search_for_first_available_frame_service(search_time=2.0,
+                                              discovery_address: Optional[str] = None,
+                                              discovery_port: Optional[int] = None):
+    with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
+        servers = discovery_client.search_for_services(search_time)
+    for hub in servers:
+        if FRAME_SERVICE_NAME in hub.services:
+            return hub
+    return None

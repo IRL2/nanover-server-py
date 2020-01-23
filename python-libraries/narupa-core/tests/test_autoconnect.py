@@ -133,6 +133,7 @@ def test_autoconnect_separate_servers(broadcastable_servers):
             multiplayer_mock.assert_called_once()
 
 
+@pytest.mark.serial
 def test_autoconnect_no_server():
     with pytest.raises(ConnectionError), NarupaImdClient.autoconnect():
         pass
