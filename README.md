@@ -54,6 +54,12 @@ Developers will want the manual install described below.
 Running the tests is a crucial part of keeping the code base functional. To run the test of the python libraries, run:
 
     python -m pytest python-libraries
+    
+Optionally, you can run most of tests in parallel with pytest-xdist:
+    
+    pytest -m pip install pytest-xdist
+    python -m pytest python-libraries -n auto -m 'not serial'
+    python -m pytest python-libraries -n0 -m 'serial'
 
 ## Running the examples
 

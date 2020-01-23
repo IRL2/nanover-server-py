@@ -1,4 +1,6 @@
-from narupa.core.key_lockable_map import KeyLockableMap, ResourceLockedException
+from narupa.utilities.key_lockable_map import (
+    KeyLockableMap, ResourceLockedError,
+)
 import pytest
 
 
@@ -19,7 +21,7 @@ def test_delete_key_locked(key_map):
     key = "name"
     key_map.set("1", key, 2)
     key_map.lock_key("1", key)
-    with pytest.raises(ResourceLockedException):
+    with pytest.raises(ResourceLockedError):
         key_map.delete("2", key)
 
 

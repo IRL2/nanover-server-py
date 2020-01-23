@@ -1,7 +1,7 @@
 import time
+from typing import Tuple
 
 import pytest
-from google.protobuf.struct_pb2 import Struct
 from grpc import RpcError
 from mock import Mock
 
@@ -13,10 +13,10 @@ MULTIPLY_KEY = "multiply"
 
 
 @pytest.fixture
-def client_server():
-    with NarupaServer(address="localhost", port=0) as s:
-        with NarupaClient(address="localhost", port=s.port) as c:
-            yield c, s
+def client_server() -> Tuple[NarupaClient, NarupaServer]:
+    with NarupaServer(address="localhost", port=0) as server:
+        with NarupaClient(address="localhost", port=server.port) as client:
+            yield client, server
 
 
 @pytest.fixture
@@ -205,6 +205,7 @@ def test_run_command_with_positional_args(client_server):
     server.register_command(MULTIPLY_KEY, multiply_positional)
     with pytest.raises(RpcError):
         _ = client.run_command(MULTIPLY_KEY)
+
 
 def test_run_command_with_no_result(client_server):
     def method():

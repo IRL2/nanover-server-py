@@ -11,7 +11,8 @@ from typing import Optional, Sequence, Dict, MutableMapping
 
 from grpc import RpcError, StatusCode
 from narupa.app.selection import RenderingSelection
-from narupa.core import CommandInfo, NarupaClient
+from narupa.core import NarupaClient
+from narupa.command import CommandInfo
 from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.multiplayer import MultiplayerClient

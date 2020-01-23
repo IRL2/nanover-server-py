@@ -3,7 +3,9 @@
 
 import pytest
 
-from narupa.multiplayer.change_buffers import DictionaryChangeBuffer, DictionaryChangeMultiView, ObjectFrozenException
+from narupa.utilities.change_buffers import (
+    DictionaryChangeBuffer, DictionaryChangeMultiView, ObjectFrozenError,
+)
 
 
 @pytest.fixture
@@ -104,7 +106,7 @@ def test_frozen_buffer_cant_update(change_buffer):
     exception.
     """
     change_buffer.freeze()
-    with pytest.raises(ObjectFrozenException):
+    with pytest.raises(ObjectFrozenError):
         change_buffer.update({"hello": "test"})
 
 
@@ -115,7 +117,7 @@ def test_frozen_empty_buffer_cant_flush(change_buffer):
     exception.
     """
     change_buffer.freeze()
-    with pytest.raises(ObjectFrozenException):
+    with pytest.raises(ObjectFrozenError):
         change_buffer.flush_changed_blocking()
 
 
@@ -128,7 +130,7 @@ def test_frozen_buffer_update_ignored(change_buffer):
     change_buffer.freeze()
     try:
         change_buffer.update({"foo": "bar"})
-    except ObjectFrozenException:
+    except ObjectFrozenError:
         pass
     changes, removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test" and "foo" not in changes
@@ -140,7 +142,7 @@ def test_frozen_multiview_cant_update(change_multiview):
     exception.
     """
     change_multiview.freeze()
-    with pytest.raises(ObjectFrozenException):
+    with pytest.raises(ObjectFrozenError):
         change_multiview.update({"hello": "test"})
 
 
@@ -159,7 +161,7 @@ def test_frozen_multiview_view_gives_last_values_and_no_removals(change_multivie
         assert changes["hello"] == "test"
         assert "foo" not in changes
         assert not removals
-        with pytest.raises(ObjectFrozenException):
+        with pytest.raises(ObjectFrozenError):
             view.flush_changed_blocking()
 
 

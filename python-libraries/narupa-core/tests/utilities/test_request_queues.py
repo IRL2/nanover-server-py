@@ -8,7 +8,7 @@ from queue import Queue, Empty
 import pytest
 import itertools
 
-from narupa.core import request_queues
+from narupa.utilities import request_queues
 
 
 def test_one_queue_serial():

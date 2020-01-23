@@ -6,13 +6,13 @@ Module providing an implementation of an IMD service.
 from typing import Dict, Callable, Optional, Iterable
 
 import grpc
-from narupa.core.grpc_utils import (
+from narupa.utilities.grpc_utilities import (
     RpcAlreadyTerminatedError,
     subscribe_rpc_termination,
 )
+from narupa.utilities.change_buffers import DictionaryChangeMultiView
 
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.multiplayer.change_buffers import DictionaryChangeMultiView
 from narupa.protocol.imd import (
     InteractiveMolecularDynamicsServicer,
     InteractionEndReply,
