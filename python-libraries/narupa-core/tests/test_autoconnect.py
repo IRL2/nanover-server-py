@@ -16,6 +16,9 @@ from narupa.multiplayer import MultiplayerServer, MULTIPLAYER_SERVICE_NAME
 from narupa.trajectory import FrameServer, FRAME_SERVICE_NAME
 
 
+AUTOCONNECT_SEARCH_TIME = 0.75
+
+
 @pytest.fixture
 def broadcastable_servers():
     """
@@ -69,7 +72,7 @@ def test_autoconnect_app_server_default_ports(discoverable_imd_server):
 
     address = get_broadcastable_ip()
     with NarupaImdApplication.basic_server(address=address) as app_server:
-        with NarupaImdClient.autoconnect(search_time=0.75,
+        with NarupaImdClient.autoconnect(search_time=AUTOCONNECT_SEARCH_TIME,
                                          discovery_port=discoverable_imd_server.discovery.port) as client:
             assert len(client._channels) == 1  # expect the client to connect to each server on the same channel
             # since the command is registered only once on the server, calling it from different 'clients' will
@@ -89,7 +92,7 @@ def test_autoconnect_app_server(discoverable_imd_server):
 
     discoverable_imd_server.server.register_command("test", mock)
 
-    with NarupaImdClient.autoconnect(search_time=0.75, discovery_port=discoverable_imd_server.discovery.port) as client:
+    with NarupaImdClient.autoconnect(search_time=AUTOCONNECT_SEARCH_TIME, discovery_port=discoverable_imd_server.discovery.port) as client:
         assert len(client._channels) == 1  # expect the client to connect to each server on the same channel
         # since the command is registered only once on the server, calling it from different 'clients' will
         # actually result in the same method being called 3 times.
@@ -122,7 +125,7 @@ def test_autoconnect_separate_servers(broadcastable_servers):
 
     with DiscoveryServer(broadcast_port=DISCOVERY_PORT) as discovery_server:
         discovery_server.register_service(service_hub)
-        with NarupaImdClient.autoconnect(search_time=0.75, discovery_port=discovery_server.port) as client:
+        with NarupaImdClient.autoconnect(search_time=AUTOCONNECT_SEARCH_TIME, discovery_port=discovery_server.port) as client:
             assert len(client._channels) == 3  # expect the client to connect to each server on a separate channel
             # test servers by running a command on each.
             client.run_trajectory_command("frame")
@@ -137,3 +140,33 @@ def test_autoconnect_separate_servers(broadcastable_servers):
 def test_autoconnect_no_server():
     with pytest.raises(ConnectionError), NarupaImdClient.autoconnect():
         pass
+
+
+@pytest.mark.serial
+def test_autoconnect_named_server():
+    """
+    Test autoconnecting to a named server.
+    """
+    DISCOVERY_PORT = 39420
+    SERVER_NAME = "pytest baby yoda"
+    address = get_broadcastable_ip()
+    server = NarupaServer(address=address, port=0)
+    discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT)
+
+    with NarupaImdApplication(server, discovery, name=SERVER_NAME):
+        with NarupaImdClient.autoconnect(
+                search_time=AUTOCONNECT_SEARCH_TIME,
+                discovery_port=DISCOVERY_PORT,
+                name=SERVER_NAME,
+        ):
+            pass
+
+
+@pytest.mark.serial
+def test_autoconnect_no_named_server(discoverable_imd_server):
+    """
+    Test that autoconnecting to a named server that doesn't exist fails.
+    """
+    with pytest.raises(ConnectionError), NarupaImdClient.autoconnect(name="pytest adult yoda"):
+        pass
+
