@@ -1,22 +1,18 @@
 """
 Tests for application level autoconnecting between client and server.
 """
-import socket
-import time
-
 import pytest
 from mock import Mock
 from narupa.app import NarupaImdApplication, NarupaImdClient
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer, ServiceHub
-from narupa.essd.server import configure_reusable_socket
 from narupa.essd.utils import get_broadcastable_ip
 from narupa.imd import ImdServer, IMD_SERVICE_NAME
 from narupa.multiplayer import MultiplayerServer, MULTIPLAYER_SERVICE_NAME
 from narupa.trajectory import FrameServer, FRAME_SERVICE_NAME
 
-
-AUTOCONNECT_SEARCH_TIME = 0.75
+DISCOVERY_DELAY = 0.05
+AUTOCONNECT_SEARCH_TIME = DISCOVERY_DELAY * 1.5
 
 
 @pytest.fixture
@@ -42,7 +38,7 @@ def discoverable_imd_server():
     DISCOVERY_PORT = 39420
     address = get_broadcastable_ip()
     server = NarupaServer(address=address, port=0)
-    discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT)
+    discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
     with NarupaImdApplication(server, discovery) as app_server:
         yield app_server
 
@@ -55,7 +51,7 @@ def discoverable_imd_server():
     DISCOVERY_PORT = 39421
     address = get_broadcastable_ip()
     server = NarupaServer(address=address, port=0)
-    discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT)
+    discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
     with NarupaImdApplication(server, discovery) as app_server:
         yield app_server
 
@@ -123,7 +119,7 @@ def test_autoconnect_separate_servers(broadcastable_servers):
     service_hub.add_service(IMD_SERVICE_NAME, imd_server.port)
     service_hub.add_service(MULTIPLAYER_SERVICE_NAME, multiplayer_server.port)
 
-    with DiscoveryServer(broadcast_port=DISCOVERY_PORT) as discovery_server:
+    with DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY) as discovery_server:
         discovery_server.register_service(service_hub)
         with NarupaImdClient.autoconnect(search_time=AUTOCONNECT_SEARCH_TIME, discovery_port=discovery_server.port) as client:
             assert len(client._channels) == 3  # expect the client to connect to each server on a separate channel
@@ -151,7 +147,7 @@ def test_autoconnect_named_server():
     SERVER_NAME = "pytest baby yoda"
     address = get_broadcastable_ip()
     server = NarupaServer(address=address, port=0)
-    discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT)
+    discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
 
     with NarupaImdApplication(server, discovery, name=SERVER_NAME):
         with NarupaImdClient.autoconnect(
