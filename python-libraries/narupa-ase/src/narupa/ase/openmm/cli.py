@@ -14,6 +14,7 @@ import argparse
 import textwrap
 import time
 
+from narupa.app.app_server import qualified_server_name
 from narupa.ase.openmm import OpenMMIMDRunner
 from narupa.ase.openmm.runner import ImdParams, LoggingParams
 
@@ -40,7 +41,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
     parser.add_argument(
         '-n', '--name',
-        type=str, default='Narupa OpenMM ASE Server',
+        type=str, default=None,
         help='Give a friendly name to the server.'
     )
     parser.add_argument('-p', '--port', type=int, default=None)
@@ -105,6 +106,9 @@ def initialise(args=None):
         arguments.discovery_port
     )
 
+    if arguments.name is None:
+        arguments.name = qualified_server_name("Narupa OpenMM ASE Server")
+
     logging_params = LoggingParams(
         arguments.trajectory_file,
         arguments.write_interval,
@@ -126,7 +130,7 @@ def main():
             print(f'Logging frames to "{runner.logging_info.trajectory_path}"')
 
         runner.imd.on_reset_listeners.append(lambda: print('RESET! ' * 10))
-        print(f'Serving on port {runner.app_server.port}, discoverable on all interfaces on port {runner.discovery_port}')
+        print(f'Serving "{runner.name}" on port {runner.app_server.port}, discoverable on all interfaces on port {runner.discovery_port}')
         try:
             runner.run(block=False, reset_energy=runner.cli_options['reset_energy'])
             while True:
