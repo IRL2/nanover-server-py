@@ -107,7 +107,7 @@ def initialise(args=None):
     )
 
     if arguments.name is None:
-        arguments.name = qualified_server_name("Narupa iMD Server")
+        arguments.name = qualified_server_name("Narupa OpenMM ASE Server")
 
     logging_params = LoggingParams(
         arguments.trajectory_file,
