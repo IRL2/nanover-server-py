@@ -7,11 +7,11 @@ with in real-time through biasing potentials.
 from typing import Optional
 
 from narupa.app import NarupaImdClient
+from narupa.app.app_server import qualified_server_name
 from narupa.app.frame_app import NarupaFrameApplication
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer
-from narupa.imd.imd_service import ImdService, IMD_SERVICE_NAME
-from narupa.protocol.imd import add_InteractiveMolecularDynamicsServicer_to_server
+from narupa.imd.imd_service import ImdService
 
 
 class NarupaImdApplication(NarupaFrameApplication):
@@ -32,7 +32,9 @@ class NarupaImdApplication(NarupaFrameApplication):
 
     def __init__(self, server: NarupaServer,
                  discovery: Optional[DiscoveryServer] = None,
-                 name="Narupa iMD Server"):
+                 name: Optional[str] = None):
+        if name is None:
+            name = qualified_server_name("Narupa iMD Server")
         super().__init__(server, discovery, name)
         self._setup_imd()
 

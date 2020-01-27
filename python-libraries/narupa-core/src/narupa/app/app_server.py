@@ -2,6 +2,7 @@
 Module providing an out-of-the-box Narupa application server,
 with an underyling gRPC server, discovery, multiplayer and commands.
 """
+import getpass
 from typing import Tuple, Optional
 
 from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
@@ -10,6 +11,7 @@ from narupa.multiplayer.multiplayer_service import MultiplayerService, MULTIPLAY
 from narupa.protocol.multiplayer import add_MultiplayerServicer_to_server
 
 DEFAULT_NARUPA_PORT = 38801
+DEFAULT_SERVER_NAME = "Narupa Server"
 
 
 def start_default_server_and_discovery(
@@ -53,8 +55,10 @@ class NarupaApplicationServer:
             self,
             server: NarupaServer,
             discovery: Optional[DiscoveryServer] = None,
-            name="Narupa Server",
+            name: Optional[str] = None,
     ):
+        if name is None:
+            name = qualified_server_name(DEFAULT_SERVER_NAME)
         self._server = server
         self._discovery = discovery
         self._service_hub = ServiceHub(name=name,
@@ -72,7 +76,7 @@ class NarupaApplicationServer:
     @classmethod
     def basic_server(
             cls,
-            name="Narupa Server",
+            name: Optional[str] = None,
             address: Optional[str] = None,
             port: Optional[int] = None,
     ):
@@ -179,3 +183,13 @@ class NarupaApplicationServer:
         except KeyError:
             pass
         self._discovery.register_service(self._service_hub)
+
+
+def qualified_server_name(base_name: str):
+    """
+    Prefixes the given server name with identifying information of the machine
+    running it.
+    """
+    username = getpass.getuser()  # OS agnostic method that uses a few different metrics to get the username
+    return f'{username}: {base_name}'
+

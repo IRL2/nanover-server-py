@@ -14,6 +14,7 @@ import argparse
 import textwrap
 import time
 
+from narupa.app.app_server import qualified_server_name
 from narupa.ase.openmm import OpenMMIMDRunner
 from narupa.ase.openmm.runner import ImdParams, LoggingParams
 
@@ -40,7 +41,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
     parser.add_argument(
         '-n', '--name',
-        type=str, default='Narupa OpenMM ASE Server',
+        type=str, default=None,
         help='Give a friendly name to the server.'
     )
     parser.add_argument('-p', '--port', type=int, default=None)
@@ -104,6 +105,9 @@ def initialise(args=None):
         arguments.discovery,
         arguments.discovery_port
     )
+
+    if arguments.name is None:
+        arguments.name = qualified_server_name("Narupa iMD Server")
 
     logging_params = LoggingParams(
         arguments.trajectory_file,
