@@ -45,21 +45,7 @@ class DiscoveryClient:
         properties = json.loads(message.decode())
         return ServiceHub(**properties)
 
-    def search_for_services(self, search_time: float = 5.0, interval=0.033) -> Set[ServiceHub]:
-        """
-        Searches for services for the given amount of time, blocking.
-
-        :param search_time: Time, in seconds, to search for.
-        :param interval: Interval in seconds to wait between checking for new service broadcasts.
-        :return: A set of services discovered over the duration.
-
-        The returned set of services are all those that were found during searching. They may not
-        still exist by the end of the search.
-
-        """
-        return set(self.search_for_services_iterate(search_time, interval))
-
-    def search_for_services_iterate(self, search_time: float = 5.0, interval=0.033) -> Iterable[ServiceHub]:
+    def search_for_services(self, search_time: float = 5.0, interval=0.033) -> Iterable[ServiceHub]:
         """
         Searches for and yields services for the given search time.
 
