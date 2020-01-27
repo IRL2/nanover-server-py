@@ -67,12 +67,14 @@ class DiscoveryClient:
         :param interval: Interval in seconds to wait between checking for new service broadcasts.
         :return: A set of services discovered over the duration.
         """
+        services = set()
         deadline = time.monotonic() + search_time
         while time.monotonic() < deadline:
             time_before_recv = time.monotonic()
             if self._check_for_messages(timeout=search_time):
                 service = self._receive_service()
-                if service is not None:
+                if service is not None and service not in services:
+                    services.add(service)
                     yield service
             time_spent_receiving = time.monotonic() - time_before_recv
             time_remaining = interval - time_spent_receiving
