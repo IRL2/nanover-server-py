@@ -9,8 +9,7 @@ from narupa.app import NarupaApplicationServer
 from narupa.app.app_server import qualified_server_name
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer
-from narupa.protocol.trajectory import add_TrajectoryServiceServicer_to_server
-from narupa.trajectory import FramePublisher, FRAME_SERVICE_NAME, FrameData
+from narupa.trajectory import FramePublisher, FrameData
 
 
 class NarupaFrameApplication(NarupaApplicationServer):
@@ -30,12 +29,11 @@ class NarupaFrameApplication(NarupaApplicationServer):
     ...     frame_publisher.send_frame(0, example_frame)
 
     """
+    DEFAULT_SERVER_NAME: str = "Narupa Frame Server"
 
     def __init__(self, server: NarupaServer,
                  discovery: Optional[DiscoveryServer] = None,
                  name: Optional[str] = None):
-        if name is None:
-            name = qualified_server_name("Narupa Frame Server")
         super().__init__(server, discovery, name)
         self._setup_frame_publisher()
 

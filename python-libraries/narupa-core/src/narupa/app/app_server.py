@@ -11,7 +11,6 @@ from narupa.multiplayer.multiplayer_service import MultiplayerService, MULTIPLAY
 from narupa.protocol.multiplayer import add_MultiplayerServicer_to_server
 
 DEFAULT_NARUPA_PORT = 38801
-DEFAULT_SERVER_NAME = "Narupa Server"
 
 
 def start_default_server_and_discovery(
@@ -50,6 +49,7 @@ class NarupaApplicationServer:
     Use this a base for building specific applications by inheriting from it
     and attaching additional services.
     """
+    DEFAULT_SERVER_NAME: str = "Narupa Server"
 
     def __init__(
             self,
@@ -58,7 +58,7 @@ class NarupaApplicationServer:
             name: Optional[str] = None,
     ):
         if name is None:
-            name = qualified_server_name(DEFAULT_SERVER_NAME)
+            name = qualified_server_name(self.DEFAULT_SERVER_NAME)
         self._server = server
         self._discovery = discovery
         self._service_hub = ServiceHub(name=name,
