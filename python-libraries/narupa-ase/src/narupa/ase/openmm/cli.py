@@ -126,7 +126,7 @@ def main():
             print(f'Logging frames to "{runner.logging_info.trajectory_path}"')
 
         runner.imd.on_reset_listeners.append(lambda: print('RESET! ' * 10))
-        print(f'Serving on port {runner.app_server.port}, discoverable on all interfaces on port {runner.discovery_port}')
+        print(f'Serving "{runner.name}" on port {runner.app_server.port}, discoverable on all interfaces on port {runner.discovery_port}')
         try:
             runner.run(block=False, reset_energy=runner.cli_options['reset_energy'])
             while True:

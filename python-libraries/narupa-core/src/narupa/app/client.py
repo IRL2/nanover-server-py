@@ -194,16 +194,23 @@ class NarupaImdClient:
     @classmethod
     def autoconnect(cls, search_time=2.0,
                     discovery_address: Optional[str] = None,
-                    discovery_port: Optional[int] = None):
+                    discovery_port: Optional[int] = None,
+                    server_name: Optional[str] = None):
         """
         Autoconnect to the first available server discovered that at least produces frames.
         
         :param search_time: Time, in seconds, to search for.
         :param discovery_address: IP address to search on.
         :param discovery_port: Port upon which to listen for discovery messages.
+        :param server_name: If supplied, only servers with this name will be used.
         :return: Instantiation of an iMD client connected to whatever is available at the first
         """
-        first_service = _search_for_first_available_frame_service(search_time, discovery_address, discovery_port)
+
+        if server_name is not None:
+            first_service = _search_for_first_server_with_name(server_name, search_time, discovery_address, discovery_port)
+        else:
+            first_service = _search_for_first_available_frame_service(search_time, discovery_address, discovery_port)
+
         if first_service is None:
             raise ConnectionError("Could not find an iMD server")
 
@@ -698,9 +705,25 @@ class NarupaImdClient:
         return client
 
 
-def _search_for_first_available_frame_service(search_time=2.0,
-                                              discovery_address: Optional[str] = None,
-                                              discovery_port: Optional[int] = None):
+def _search_for_first_server_with_name(
+        server_name: str,
+        search_time: float = 2.0,
+        discovery_address: Optional[str] = None,
+        discovery_port: Optional[int] = None,
+):
+    with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
+        servers = discovery_client.search_for_services(search_time)
+    for hub in servers:
+        if hub.name == server_name:
+            return hub
+    return None
+
+
+def _search_for_first_available_frame_service(
+        search_time: float = 2.0,
+        discovery_address: Optional[str] = None,
+        discovery_port: Optional[int] = None,
+):
     with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
         servers = discovery_client.search_for_services(search_time)
     for hub in servers:
