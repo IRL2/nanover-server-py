@@ -3,7 +3,7 @@
 import argparse
 import textwrap
 
-from osc_client import OscClient
+from osc_client import OscClient, DEFAULT_OSC_ADDRESS
 
 
 class OscApp:
@@ -16,17 +16,19 @@ class OscApp:
         self._argument_parser = self._create_argument_parser()
         self._message_generator_setup = message_generator_setup
 
-    def _create_argument_parser(self):
+    @staticmethod
+    def _create_argument_parser():
         description = textwrap.dedent("""\
                     Connect to a narupa trajectory service, and osc server and generate outgoing
                     osc messages from incoming frame data.
                     """)
         parser = argparse.ArgumentParser(description=description)
 
+        default_host, default_port = DEFAULT_OSC_ADDRESS
         parser.add_argument('--traj-address', default=None)
-        parser.add_argument('--osc-host', default='127.0.0.1')
+        parser.add_argument('--osc-host', default=default_host)
         parser.add_argument('-n', '--server-name', type=str, default=None)
-        parser.add_argument('-o', '--osc-port', type=int, default=9000)
+        parser.add_argument('-o', '--osc-port', type=int, default=default_port)
         parser.add_argument('-i', '--send-interval', type=float, default=.01)
         parser.add_argument('-v', '--verbose', action="store_true", default=False)
         return parser
