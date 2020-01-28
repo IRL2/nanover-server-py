@@ -14,11 +14,8 @@ from osc_app import OscApp
 
 
 def build_frame_generator(osc_client):
-    multiplayer = osc_client.narupa_client._multiplayer_client
-    multiplayer.subscribe_all_value_updates(interval=1/30)
-
     def frame_to_osc_messages(frame):
-        for key, value in multiplayer.resources.items():
+        for key, value in osc_client.narupa_client._multiplayer_client.resources.items():
             yield f"/multiplayer/{key}", value.number_value
 
         if KINETIC_ENERGY in frame.values:

@@ -24,20 +24,18 @@ class OscApp:
         parser = argparse.ArgumentParser(description=description)
 
         parser.add_argument('--traj-address', default=None)
-        parser.add_argument('--osc-address', default=None)
-        parser.add_argument('-t', '--traj-port', type=int, default=None)
-        parser.add_argument('-o', '--osc-port', type=int, default=None)
+        parser.add_argument('--osc-host', default='127.0.0.1')
+        parser.add_argument('-n', '--server-name', type=str, default=None)
+        parser.add_argument('-o', '--osc-port', type=int, default=9000)
         parser.add_argument('-i', '--send-interval', type=float, default=.01)
         parser.add_argument('-v', '--verbose', action="store_true", default=False)
         return parser
 
     def _create_client(self, args):
         arguments = self._argument_parser.parse_args(args)
-        osc_client = OscClient(traj_address=arguments.traj_address,
-                               traj_port=arguments.traj_port,
-                               osc_address=arguments.osc_address,
-                               osc_port=arguments.osc_port,
-                               send_interval=arguments.send_interval,
+        osc_client = OscClient(server_name=arguments.server_name,
+                               osc_address=(arguments.osc_host, arguments.osc_port),
+                               osc_send_interval=arguments.send_interval,
                                verbose=arguments.verbose)
         return osc_client
 
