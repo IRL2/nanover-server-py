@@ -3,6 +3,7 @@
 import argparse
 import textwrap
 
+from narupa.app import NarupaImdClient
 from osc_client import OscClient, DEFAULT_OSC_ADDRESS
 
 
@@ -35,16 +36,19 @@ class OscApp:
 
     def _create_client(self, args):
         arguments = self._argument_parser.parse_args(args)
-        osc_client = OscClient(server_name=arguments.server_name,
+        osc_client = OscClient(narupa_client=NarupaImdClient.autoconnect(),
                                osc_address=(arguments.osc_host, arguments.osc_port),
                                osc_send_interval=arguments.send_interval,
                                verbose=arguments.verbose)
+        osc_client.narupa_client.join_multiplayer("osc")
         return osc_client
 
     def run(self, args=None):
         """
         Begin connection, setup, and then run until keyboard interrupt.
         """
+        server_name = args.server_name if args is not None else None
+
         with self._create_client(args) as osc_client:
             osc_client.message_generator = self._message_generator_setup(osc_client)
             print('Running...')

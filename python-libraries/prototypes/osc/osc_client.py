@@ -16,8 +16,8 @@ def null_message_generator(frame):
 class OscClient:
     def __init__(
             self,
+            narupa_client: NarupaImdClient,
             *,
-            server_name=None,
             osc_address=DEFAULT_OSC_ADDRESS,
             osc_send_interval=1/30,
             message_generator=null_message_generator,
@@ -29,8 +29,7 @@ class OscClient:
 
         host, port = osc_address
         self.osc_client = udp_client.SimpleUDPClient(host, port, allow_broadcast=True)
-        self.narupa_client = NarupaImdClient().autoconnect(name=server_name)
-        self.narupa_client.join_multiplayer("osc")
+        self.narupa_client = narupa_client
 
     def run(self):
         for dt in yield_interval(self.send_interval):
