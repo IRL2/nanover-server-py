@@ -8,8 +8,11 @@ using the python_invoke/fix command as demonstrated in the example LAMMPS inputs
 import ctypes
 import functools
 import logging
+from datetime import datetime
 from typing import List, NamedTuple
 import numpy as np
+import yappi
+import sys
 
 try:
     from lammps import lammps
@@ -122,7 +125,6 @@ PLANK_VALUES = (
     6.62606896e-4
 )
 
-
 class LammpsHook:
     """
     A class that can communicate with the LAMMPS program through
@@ -150,6 +152,7 @@ class LammpsHook:
         The MPI routines are essential to stop thread issues that cause internal
         LAMMPS crashes
         """
+        yappi.start()
         logging.basicConfig(level=logging.INFO)
         me = 0
         try:
@@ -206,13 +209,15 @@ class LammpsHook:
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            result = None
             try:
-                func(*args, **kwargs)
+                result = func(*args, **kwargs)
             except Exception as e:
                 # Note args[0] is used to get around the issue of passing self to a decorator
                 logging.info("Exception raised in calling function on proc %s ", args[0].me)
+                logging.info("Exception thrown %s ", func)
                 logging.info("Exception thrown %s ", e)
-            return func(*args, **kwargs)
+            return result
 
         return wrapper
 
@@ -289,9 +294,12 @@ class LammpsHook:
         """
 
         # Copy the ctype array to numpy for processing
-        positions = np.fromiter(data_array, dtype=np.float, count=len(data_array))
+        positions = np.ctypeslib.as_array(data_array, shape=(len(data_array),))
         # Convert to nm
         positions = np.divide(positions, self.distance_factor)
+        self.add_pos_to_framedata(frame_data, positions)
+
+    def add_pos_to_framedata(self, frame_data, positions):
         frame_data.arrays[PARTICLE_POSITIONS] = positions
 
     @property
@@ -312,11 +320,14 @@ class LammpsHook:
         # Convert units from narupa standard of  kj/mol/nm to whatever units LAMMPS is using
         # For real units types LAMMPS uses  Kcal/mole-Angstrom 4.14
         # for kj-> Kcal and 10x for nm -> Angstrom
-        interaction_forces = interaction_forces / self.force_factor
+        interaction_forces /= self.force_factor
         # Flatten array into the ctype
         scatterable_array = interaction_forces.flatten()
-        for idx, force in enumerate(scatterable_array):
-            lammps_forces[idx] += force
+        scatterable_array = np.ctypeslib.as_array(scatterable_array, shape=(self.n_atoms*3))
+        self.raw_pointer(lammps_forces, scatterable_array)
+
+    def raw_pointer(self, lammps_forces, scatterable_array):
+        lammps_forces[0:self.n_atoms * 3] += scatterable_array[0:self.n_atoms * 3]
 
     @_try_or_except
     def return_array_to_lammps(self, matrix_type: str, scatter_array, lammps_class):
@@ -356,8 +367,7 @@ class LammpsHook:
         forces = self.manipulate_lammps_array(matrix_type, lammps_class)
 
         # Convert the positions to a 2D, 3N array for use in calculate)imd_force
-        positions_3n = np.fromiter(positions, dtype=np.float64, count=len(positions)).reshape(self.n_atoms, 3)
-        positions_3n *= distance_factor
+        positions_3n = np.ctypeslib.as_array(positions, shape=(self.n_atoms*3)).reshape(self.n_atoms, 3)
 
         # Collect interaction vector from client on process 0
         if self.me == 0:
@@ -455,7 +465,7 @@ class LammpsHook:
         :param kwargs: immutable objects passed
         """
         if self.me == 0:
-            logging.debug(passed_string, *args, **kwargs)
+            logging.info(passed_string, *args, **kwargs)
 
     def lammps_hook(self, lmp=None, comm=None):
         """
@@ -465,15 +475,16 @@ class LammpsHook:
 
         :param lmp: LAMMPS object data, only populated when running from within LAMMPS
         """
-        # Determine if a true lammps object is available or fall back to the test routine
-        lammps_class = self.determine_lmp_status(comm, lmp)
 
         if self.topology_loop is True:
+            # Determine if a true lammps object is available or fall back to the test routine
+            self.lammps_class = self.determine_lmp_status(comm, lmp)
+
             # Collect unchanging variables in the first MD step only (the topology loop)
-            n_atoms, distance_factor, units_type, force_factor = self.extract_fundamental_factors(lammps_class)
+            n_atoms, distance_factor, units_type, force_factor = self.extract_fundamental_factors(self.lammps_class)
 
             # Collect the lammps atom types and masses for a crude topology
-            self.atom_type, self.masses = self.gather_lammps_particle_types(lammps_class)
+            self.atom_type, self.masses = self.gather_lammps_particle_types(self.lammps_class)
         else:
             n_atoms = self.n_atoms
             distance_factor = self.distance_factor
@@ -481,10 +492,10 @@ class LammpsHook:
             force_factor = self.force_factor
 
         # Extract the position matrix from lammps
-        positions = self.extract_positions(lammps_class)
+        positions = self.extract_positions(self.lammps_class)
 
         # Collect client data and return to lammps internal arrays
-        self.manipulate_lammps_internal_matrix(lammps_class, positions, distance_factor, 'f')
+        self.manipulate_lammps_internal_matrix(self.lammps_class, positions, distance_factor, 'f')
 
         if self.me == 0:
             # Send frame data on proc 0 only as otherwise port blocking occurs
@@ -494,8 +505,30 @@ class LammpsHook:
         # This helps ensure that everything in lammps is continuing to run and that the python interpreter has crashed
         if self.me == 0:
             self.frame_loop += 1
-            if self.frame_loop == 100:
+            if self.frame_loop == 1000:
                 self.frame_loop = 0
                 logging.info("Narupa enabled calculation is still running")
+                func_stats = yappi.get_func_stats()
+
+                if not hasattr(sys, 'argv'):
+                    sys.argv = ['']
+
+                try:
+                    func_stats.save('callgrind.out', 'CALLGRIND')
+                except Exception as e:
+                    logging.info("exception in printing %s", e)
+
+                func2 = yappi.convert2pstats(func_stats)
+                #func2.print_stats()
+                try:
+                    func2.save('lammps.pstat', 'PSTAT')
+                except Exception as e:
+                    logging.info("exception in printing %s", e)
+                #func_stats.
+                yappi.stop()
+                yappi.clear_stats()
+                logging.info("saved profiling data")
 
         self.topology_loop = False
+
+
