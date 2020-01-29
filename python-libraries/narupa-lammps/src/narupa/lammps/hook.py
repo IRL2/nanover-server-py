@@ -320,18 +320,11 @@ class LammpsHook:
         # Convert units from narupa standard of  kj/mol/nm to whatever units LAMMPS is using
         # For real units types LAMMPS uses  Kcal/mole-Angstrom 4.14
         # for kj-> Kcal and 10x for nm -> Angstrom
-        interaction_forces /= self.force_factor
         # Flatten array into the ctype
-        scatterable_array = interaction_forces.flatten()
-        scatterable_array = np.ctypeslib.as_array(scatterable_array, shape=(self.n_atoms*3))
-        self.raw_pointer(lammps_forces, scatterable_array)
-
-    def raw_pointer(self, lammps_forces, scatterable_array):
-        #lammps_forces[:] += scatterable_array[:]
-        # Generates numpy buffer from the ctype pointer, doing it this way eliminates
-        # the overhead of elementwise operations
+        interaction_forces = interaction_forces.ravel()
+        interaction_forces = np.divide(interaction_forces, self.force_factor)
         buffer = np.frombuffer(lammps_forces)
-        buffer += scatterable_array
+        buffer += interaction_forces
 
     @_try_or_except
     def return_array_to_lammps(self, matrix_type: str, scatter_array, lammps_class):
@@ -513,7 +506,7 @@ class LammpsHook:
                 self.frame_loop = 0
                 logging.info("Narupa enabled calculation is still running")
                 # func_stats = yappi.get_func_stats()
-                #
+
                 # if not hasattr(sys, 'argv'):
                 #     sys.argv = ['']
                 #
@@ -522,14 +515,6 @@ class LammpsHook:
                 # except Exception as e:
                 #     logging.info("exception in printing %s", e)
                 #
-                # func2 = yappi.convert2pstats(func_stats)
-                # #func2.print_stats()
-                # try:
-                #     func2.save('lammps.pstat', 'PSTAT')
-                # except Exception as e:
-                #     logging.info("exception in printing %s", e)
-                # #func_stats.
-                # yappi.stop()
                 # yappi.clear_stats()
                 # logging.info("saved profiling data")
 
