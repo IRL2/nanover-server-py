@@ -11,8 +11,6 @@ import logging
 from datetime import datetime
 from typing import List, NamedTuple
 import numpy as np
-import yappi
-import sys
 
 try:
     from lammps import lammps
@@ -152,7 +150,6 @@ class LammpsHook:
         The MPI routines are essential to stop thread issues that cause internal
         LAMMPS crashes
         """
-        #yappi.start()
         logging.basicConfig(level=logging.INFO)
         me = 0
         try:
@@ -505,18 +502,6 @@ class LammpsHook:
             if self.frame_loop == 1000:
                 self.frame_loop = 0
                 logging.info("Narupa enabled calculation is still running")
-                # func_stats = yappi.get_func_stats()
-
-                # if not hasattr(sys, 'argv'):
-                #     sys.argv = ['']
-                #
-                # try:
-                #     func_stats.save('callgrind.out', 'CALLGRIND')
-                # except Exception as e:
-                #     logging.info("exception in printing %s", e)
-                #
-                # yappi.clear_stats()
-                # logging.info("saved profiling data")
 
         self.topology_loop = False
 
