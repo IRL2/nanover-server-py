@@ -462,7 +462,7 @@ class LammpsHook:
         :param kwargs: immutable objects passed
         """
         if self.me == 0:
-            logging.info(passed_string, *args, **kwargs)
+            logging.debug(passed_string, *args, **kwargs)
 
     def lammps_hook(self, lmp=None, comm=None):
         """
