@@ -152,7 +152,7 @@ class LammpsHook:
         The MPI routines are essential to stop thread issues that cause internal
         LAMMPS crashes
         """
-        yappi.start()
+        #yappi.start()
         logging.basicConfig(level=logging.INFO)
         me = 0
         try:
@@ -327,7 +327,11 @@ class LammpsHook:
         self.raw_pointer(lammps_forces, scatterable_array)
 
     def raw_pointer(self, lammps_forces, scatterable_array):
-        lammps_forces[0:self.n_atoms * 3] += scatterable_array[0:self.n_atoms * 3]
+        #lammps_forces[:] += scatterable_array[:]
+        # Generates numpy buffer from the ctype pointer, doing it this way eliminates
+        # the overhead of elementwise operations
+        buffer = np.frombuffer(lammps_forces)
+        buffer += scatterable_array
 
     @_try_or_except
     def return_array_to_lammps(self, matrix_type: str, scatter_array, lammps_class):
@@ -449,7 +453,7 @@ class LammpsHook:
         """
 
         self.frame_data.particle_count = self.n_atoms
-        self.frame_data.arrays[PARTICLE_ELEMENTS] = self.atom_type
+        self.frame_data.particle_elements = self.atom_type
         self.lammps_positions_to_frame_data(self.frame_data, positions)
 
         # Send frame data
@@ -508,26 +512,26 @@ class LammpsHook:
             if self.frame_loop == 1000:
                 self.frame_loop = 0
                 logging.info("Narupa enabled calculation is still running")
-                func_stats = yappi.get_func_stats()
-
-                if not hasattr(sys, 'argv'):
-                    sys.argv = ['']
-
-                try:
-                    func_stats.save('callgrind.out', 'CALLGRIND')
-                except Exception as e:
-                    logging.info("exception in printing %s", e)
-
-                func2 = yappi.convert2pstats(func_stats)
-                #func2.print_stats()
-                try:
-                    func2.save('lammps.pstat', 'PSTAT')
-                except Exception as e:
-                    logging.info("exception in printing %s", e)
-                #func_stats.
-                yappi.stop()
-                yappi.clear_stats()
-                logging.info("saved profiling data")
+                # func_stats = yappi.get_func_stats()
+                #
+                # if not hasattr(sys, 'argv'):
+                #     sys.argv = ['']
+                #
+                # try:
+                #     func_stats.save('callgrind.out', 'CALLGRIND')
+                # except Exception as e:
+                #     logging.info("exception in printing %s", e)
+                #
+                # func2 = yappi.convert2pstats(func_stats)
+                # #func2.print_stats()
+                # try:
+                #     func2.save('lammps.pstat', 'PSTAT')
+                # except Exception as e:
+                #     logging.info("exception in printing %s", e)
+                # #func_stats.
+                # yappi.stop()
+                # yappi.clear_stats()
+                # logging.info("saved profiling data")
 
         self.topology_loop = False
 
