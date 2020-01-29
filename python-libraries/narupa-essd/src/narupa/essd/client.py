@@ -5,7 +5,7 @@ A module containing a Extremely Simple Service Discovery client.
 """
 import json
 import time
-from typing import Optional, Set
+from typing import Optional, Set, Iterable
 
 import select
 
@@ -45,16 +45,13 @@ class DiscoveryClient:
         properties = json.loads(message.decode())
         return ServiceHub(**properties)
 
-    def search_for_services(self, search_time: float = 5.0, interval=0.033) -> Set[ServiceHub]:
+    def search_for_services(self, search_time: float = 5.0, interval=0.033) -> Iterable[ServiceHub]:
         """
-        Searches for services for the given amount of time, blocking.
+        Searches for and yields services for the given search time.
 
         :param search_time: Time, in seconds, to search for.
+        :param interval: Interval in seconds to wait between checking for new service broadcasts.
         :return: A set of services discovered over the duration.
-
-        The returned set of services are all those that were found during searching. They may not
-        still exist by the end of the search.
-
         """
         services = set()
         deadline = time.monotonic() + search_time
@@ -62,13 +59,13 @@ class DiscoveryClient:
             time_before_recv = time.monotonic()
             if self._check_for_messages(timeout=search_time):
                 service = self._receive_service()
-                if service is not None:
+                if service is not None and service not in services:
                     services.add(service)
+                    yield service
             time_spent_receiving = time.monotonic() - time_before_recv
             time_remaining = interval - time_spent_receiving
             if time_remaining > 0:
                 time.sleep(time_remaining)
-        return services
 
     def close(self):
         self._socket.close()

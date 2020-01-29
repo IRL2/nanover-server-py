@@ -189,7 +189,7 @@ def test_discovery_with_client(basic_simulation, params):
         discovery = runner.app_server.discovery
         assert len(discovery.services) == 1
         with DiscoveryClient() as client:
-            servers = client.search_for_services(search_time=0.8, interval=0.01)
+            servers = set(client.search_for_services(search_time=0.8, interval=0.01))
             assert len(servers) == 1
             server = next(iter(servers))  # server is a set, get first and only one.
             assert server in discovery.services

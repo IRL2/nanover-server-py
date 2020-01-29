@@ -711,10 +711,9 @@ def _search_for_first_server_with_name(
         discovery_port: Optional[int] = None,
 ):
     with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
-        servers = discovery_client.search_for_services(search_time)
-    for hub in servers:
-        if hub.name == server_name:
-            return hub
+        for hub in discovery_client.search_for_services(search_time):
+            if hub.name == server_name:
+                return hub
     return None
 
 
@@ -724,8 +723,7 @@ def _search_for_first_available_frame_service(
         discovery_port: Optional[int] = None,
 ):
     with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
-        servers = discovery_client.search_for_services(search_time)
-    for hub in servers:
-        if FRAME_SERVICE_NAME in hub.services:
-            return hub
+        for hub in discovery_client.search_for_services(search_time):
+            if FRAME_SERVICE_NAME in hub.services:
+                return hub
     return None
