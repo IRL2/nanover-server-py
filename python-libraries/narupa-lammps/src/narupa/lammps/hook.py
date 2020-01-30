@@ -16,7 +16,9 @@ try:
 except ImportError:
     logging.info('lammps failed to import', exc_info=True)
 
-from narupa.trajectory import FrameServer, FrameData
+from narupa.app import NarupaImdClient, NarupaImdApplication
+
+from narupa.trajectory import FrameData
 from narupa.trajectory.frame_data import PARTICLE_POSITIONS
 
 # IMD related imports
@@ -143,7 +145,7 @@ class LammpsHook:
     """
     topology_loop = True
 
-    def __init__(self, traj_port: int = None, imd_port: int = None, address: str = "[::]"):
+    def __init__(self, port: int = None,  address: str = "[::]"):
         """
         Items that should be initialised on instantiation of lammpsHook class
         The MPI routines are essential to stop thread issues that cause internal
@@ -169,8 +171,9 @@ class LammpsHook:
         # Start frame server, must come before MPI
         if me == 0:
             # TODO raise exception when this fails, i.e if port is blocked
-            self.frame_server = FrameServer(address=address, port=traj_port)
-            self.imd_server = ImdServer(address=address, port=imd_port)
+            self.server_app = NarupaImdApplication.basic_server(name='LAMMPS-server', address=address, port=port)
+            self.frame_service = self.server_app.frame_publisher
+            self.imd_service = self.server_app.imd
             self.frame_index = 0
             self.frame_loop = 0
 
@@ -180,8 +183,7 @@ class LammpsHook:
                 raise Exception("Failed to load FrameData", err)
 
             logging.info("Narupa Lammpshook initialised")
-            logging.info("Trajectory Port %s ", traj_port)
-            logging.info("Interactive Port %s ", imd_port)
+            logging.info("Trajectory Port %s ", port)
 
             # Set some variables that do not change during the simulation
             self.n_atoms = None
@@ -222,8 +224,7 @@ class LammpsHook:
         Close ports to prevent blocking
         """
         logging.debug("Closing Narupa server")
-        self.frame_server.close()
-        self.imd_server.close()
+        self.server_app.close()
 
     @_try_or_except
     def manipulate_lammps_array(self, matrix_type: str, lammps_class):
@@ -304,7 +305,7 @@ class LammpsHook:
         Returns a shallow copy of the current interactions.
         This is copied from the ASE example, but reduces the abstracted degree
         """
-        return self.imd_server.service.active_interactions
+        return self.imd_service.active_interactions
 
     def add_interaction_to_ctype(self, interaction_forces: np.array, lammps_forces):
         """
@@ -446,7 +447,7 @@ class LammpsHook:
         self.lammps_positions_to_frame_data(self.frame_data, positions)
 
         # Send frame data
-        self.frame_server.send_frame(self.frame_index, self.frame_data)
+        self.frame_service.send_frame(self.frame_index, self.frame_data)
         self.frame_index += 1
 
     def logging_mpi(self, passed_string: str = None, *args: None, **kwargs: None):
