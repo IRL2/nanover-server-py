@@ -8,7 +8,6 @@ using the python_invoke/fix command as demonstrated in the example LAMMPS inputs
 import ctypes
 import functools
 import logging
-from datetime import datetime
 from typing import List, NamedTuple
 import numpy as np
 
@@ -18,7 +17,7 @@ except ImportError:
     logging.info('lammps failed to import', exc_info=True)
 
 from narupa.trajectory import FrameServer, FrameData
-from narupa.trajectory.frame_data import PARTICLE_POSITIONS, PARTICLE_ELEMENTS
+from narupa.trajectory.frame_data import PARTICLE_POSITIONS
 
 # IMD related imports
 from narupa.imd.imd_force import calculate_imd_force
