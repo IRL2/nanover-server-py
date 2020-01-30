@@ -40,14 +40,8 @@ def server_clients():
     and two Narupa clients connected to it.
     """
     server = MultiplayerServer(address='localhost', port=0)
-    client1 = NarupaImdClient(
-        multiplayer_port=server.port,
-        address=server.address
-    )
-    client2 = NarupaImdClient(
-        multiplayer_port=server.port,
-        address=server.address
-    )
+    client1 = NarupaImdClient(multiplayer_address=(server.address, server.port))
+    client2 = NarupaImdClient(multiplayer_address=(server.address, server.port))
 
     client1.join_multiplayer("player 1")
     client2.join_multiplayer("player 2")

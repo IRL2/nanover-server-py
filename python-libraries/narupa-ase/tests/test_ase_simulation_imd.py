@@ -5,8 +5,10 @@ import time
 import pytest
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
+from narupa.app import NarupaImdApplication
+from narupa.app.app_server import DEFAULT_NARUPA_PORT
 
-from narupa.ase.imd_server import ASEImdServer
+from narupa.ase.imd import NarupaASEDynamics
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.utilities.timing import delayed_generator
 from narupa.imd import ImdClient
@@ -32,8 +34,8 @@ def imd_server_atoms_client():
     calculator = LennardJones()
     atoms.set_calculator(calculator)
     dynamics = VelocityVerlet(atoms, timestep=0.5)
-    with ASEImdServer(dynamics, trajectory_port=0, imd_port=0) as server:
-        with ImdClient(port=server.imd_server.port) as client:
+    with NarupaASEDynamics.basic_imd(dynamics, port=0) as server:
+        with ImdClient.insecure_channel(port=server.port) as client:
             yield server, atoms, client
 
 

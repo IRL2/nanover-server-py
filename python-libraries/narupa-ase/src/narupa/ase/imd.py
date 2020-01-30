@@ -6,6 +6,7 @@ Interactive molecular dynamics server for use with an ASE molecular dynamics sim
 """
 import logging
 from concurrent import futures
+from contextlib import contextmanager
 from threading import RLock
 from typing import Optional, Callable
 
@@ -14,26 +15,23 @@ from ase import Atoms, units
 from ase.calculators.calculator import Calculator
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
-from narupa.app import NarupaImdClient
-from narupa.imd.imd_server import ImdServer
-from narupa.trajectory import FrameServer
+from narupa.app import NarupaImdClient, NarupaImdApplication
+from narupa.ase.converter import EV_TO_KJMOL
+from narupa.ase.frame_adaptor import send_ase_frame
+from narupa.ase.imd_calculator import ImdCalculator
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY
 
-from narupa.ase.converter import EV_TO_KJMOL
-from narupa.ase.frame_server import send_ase_frame
-from narupa.ase.imd_calculator import ImdCalculator
-from narupa.ase.trajectory_logger import TrajectoryLogger
 
-
-class ASEImdServer:
+class NarupaASEDynamics:
     """
-    Interactive molecular dynamics runner for use with ASE.
+    Interactive molecular dynamics adaptor for use with ASE.
 
+    :param narupa_imd_app: A :class:`NarupaImdApplication`  to pass frames to and receive forces from.
     :param dynamics: A prepared ASE molecular dynamics object to run, with IMD attached.
     :param frame_interval: Interval, in steps, at which to publish frames.
     :param frame_method: Method to use to generate frames, given the the ASE :class:`Atoms`
-        and a :class:`FrameServer`. The signature of the callback is expected to be
-        ``frame_method(ase_atoms, frame_server)``.
+        and a :class:`FramePublisher`. The signature of the callback is expected to be
+        ``frame_method(ase_atoms, frame_publisher)``.
 
 
     Example
@@ -43,42 +41,38 @@ class ASEImdServer:
     >>> from ase.lattice.cubic import FaceCenteredCubic
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
     >>> atoms.set_calculator(EMT())
-    >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
-    >>> dynamics.attach(TrajectoryLogger(atoms, 'test.xyz'), interval=10) # attach an XYZ logger.
-    >>> server = ASEImdServer(dynamics) # create the server with the molecular dynamics object.
-    >>> client = NarupaImdClient() # have a client connect to the server
-    >>> server.run(5) # run some dynamics.
-    >>> client.first_frame.particle_count # client will have received some frames!
+    >>> ase_dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
+    >>> with NarupaASEDynamics.basic_imd(ase_dynamics) as sim: # run basic Narupa server
+    ...
+    ...     with NarupaImdClient.autoconnect() as client: # connect an iMD client.
+    ...         sim.run(10) # run some dynamics
+    ...         client.first_frame.particle_count # the client will have received some MD data!
     32
-    >>> client.close()
-    >>> # Alternatively, use a 'with' statement to manage the context.
-    >>> server.close()
 
     """
 
-    def __init__(self, dynamics: MolecularDynamics,
+    def __init__(self,
+                 narupa_imd_app: NarupaImdApplication,
+                 dynamics: MolecularDynamics,
                  frame_method: Optional[Callable] = None,
                  frame_interval=1,
-                 address: Optional[str] = None,
-                 trajectory_port: Optional[int] = None,
-                 imd_port: Optional[int] = None,
-                 name: Optional[str] = "Narupa ASE Server",
                  ):
         if frame_method is None:
             frame_method = send_ase_frame
-        self.frame_server = FrameServer(address=address, port=trajectory_port)
-        self.imd_server = ImdServer(address=address, port=imd_port)
-        self.name = name
+
+        self._server = narupa_imd_app.server
+        self._frame_publisher = narupa_imd_app.frame_publisher
+        self._imd_service = narupa_imd_app.imd
+
         self._cancel_lock = RLock()
         self._register_commands()
 
         self.dynamics = dynamics
         calculator = self.dynamics.atoms.get_calculator()
-        self.imd_calculator = ImdCalculator(self.imd_server.service, calculator, dynamics=dynamics)
+        self.imd_calculator = ImdCalculator(self._imd_service, calculator, dynamics=dynamics)
         self.atoms.set_calculator(self.imd_calculator)
         self._frame_interval = frame_interval
-        self.dynamics.attach(frame_method(self.atoms, self.frame_server), interval=frame_interval)
-
+        self.dynamics.attach(frame_method(self.atoms, self._frame_publisher), interval=frame_interval)
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._run_task = None
         self._cancelled = False
@@ -87,7 +81,44 @@ class ASEImdServer:
         self._initial_velocities = self.atoms.get_velocities()
         self._initial_box = self.atoms.get_cell()
         self.on_reset_listeners = []
+
         self.logger = logging.getLogger(__name__)
+
+    @classmethod
+    @contextmanager
+    def basic_imd(cls, dynamics: MolecularDynamics,
+                  address: Optional[str] = None,
+                  port: Optional[int] = None,
+                  **kwargs,
+                  ):
+        """
+        Initialises basic interactive molecular dynamics running a Narupa server
+        at the given address and port.
+
+        :param dynamics: Molecular dynamics object to attach the server to.
+        :param address: Address to run the server at.
+        :param port: Port to run the server on.
+        :param kwargs: Key-word arguments to pass to the constructor of :class:~NarupaASEDynamics
+        :return: Instantiation of a :class:~NarupaASEDynamics configured with the given server parameters and dynamics.
+        """
+        with NarupaImdApplication.basic_server(address=address, port=port) as app:
+            with cls(app, dynamics, **kwargs) as imd:
+                yield imd
+
+    @property
+    def address(self) -> str:
+        """
+        The address of the Narupa server.
+        """
+        return self._server.address
+
+    @property
+    def port(self) -> str:
+        """
+        The port of the Narupa server.
+        :return:
+        """
+        return self._server.port
 
     @property
     def internal_calculator(self) -> Calculator:
@@ -249,19 +280,16 @@ class ASEImdServer:
             callback()
 
     def _register_commands(self):
-        self.frame_server.register_command(PLAY_COMMAND_KEY, self.play)
-        self.frame_server.register_command(RESET_COMMAND_KEY, self.reset)
-        self.frame_server.register_command(STEP_COMMAND_KEY, self.step)
-        self.frame_server.register_command(PAUSE_COMMAND_KEY, self.pause)
+        self._server.register_command(PLAY_COMMAND_KEY, self.play)
+        self._server.register_command(RESET_COMMAND_KEY, self.reset)
+        self._server.register_command(STEP_COMMAND_KEY, self.step)
+        self._server.register_command(PAUSE_COMMAND_KEY, self.pause)
 
     def close(self):
         """
-        Cancels the molecular dynamics if it is running, and closes
-        the IMD and frame servers.
+        Cancels the molecular dynamics if it is running.
         """
         self.cancel_run()
-        self.imd_server.close()
-        self.frame_server.close()
 
     def __enter__(self):
         return self

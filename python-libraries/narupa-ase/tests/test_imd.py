@@ -7,10 +7,9 @@ import numpy as np
 import pytest
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes, all_properties
-from ase.md import VelocityVerlet
 from ase.cell import Cell
-
-from narupa.ase.imd_server import ASEImdServer
+from ase.md import VelocityVerlet
+from narupa.ase.imd import NarupaASEDynamics
 from narupa.core import NarupaClient
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY
 
@@ -108,20 +107,20 @@ def arbitrary_dynamics(dummy_atoms):
 
 @pytest.fixture
 def arbitrary_ase_server(arbitrary_dynamics):
-    ase_server = ASEImdServer(
-        arbitrary_dynamics,
-        frame_method=do_nothing_producer,
-        trajectory_port=0, imd_port=0,
-    )
-    with ase_server:
+    with NarupaASEDynamics.basic_imd(arbitrary_dynamics,
+                                     port=0,
+                                     frame_method=do_nothing_producer) as ase_server:
         yield ase_server
 
 
 @pytest.fixture
 def client_server(arbitrary_ase_server):
-    with NarupaClient(address="localhost",
-                      port=arbitrary_ase_server.frame_server.port) as c:
+    with NarupaClient.insecure_channel(address='localhost', port=arbitrary_ase_server.port) as c:
         yield c, arbitrary_ase_server
+
+
+def test_address(arbitrary_ase_server):
+    assert arbitrary_ase_server.address == '[::]'
 
 
 def test_reset(arbitrary_ase_server):

@@ -5,11 +5,11 @@ A module containing a Extremely Simple Service Discovery client.
 """
 import json
 import time
-from typing import Optional
+from typing import Optional, Set, Iterable
 
 import select
 
-from narupa.essd.server import BROADCAST_PORT, _connect_socket
+from narupa.essd.server import BROADCAST_PORT, configure_reusable_socket
 from narupa.essd.servicehub import ServiceHub, MAXIMUM_MESSAGE_SIZE
 
 IP_ADDRESS_ANY = "0.0.0.0"
@@ -30,7 +30,7 @@ class DiscoveryClient:
         return self._socket.getsockname()[1]
 
     def _connect(self, port):
-        self._socket = _connect_socket()
+        self._socket = configure_reusable_socket()
         self._socket.bind((self.address, port))
 
     def _check_for_messages(self, timeout):
@@ -45,16 +45,13 @@ class DiscoveryClient:
         properties = json.loads(message.decode())
         return ServiceHub(**properties)
 
-    def search_for_services(self, search_time: float = 5.0, interval=0.033):
+    def search_for_services(self, search_time: float = 5.0, interval=0.033) -> Iterable[ServiceHub]:
         """
-        Searches for services for the given amount of time, blocking.
+        Searches for and yields services for the given search time.
 
         :param search_time: Time, in seconds, to search for.
+        :param interval: Interval in seconds to wait between checking for new service broadcasts.
         :return: A set of services discovered over the duration.
-
-        The returned set of services are all those that were found during searching. They may not
-        still exist by the end of the search.
-
         """
         services = set()
         deadline = time.monotonic() + search_time
@@ -62,13 +59,13 @@ class DiscoveryClient:
             time_before_recv = time.monotonic()
             if self._check_for_messages(timeout=search_time):
                 service = self._receive_service()
-                if service is not None:
+                if service is not None and service not in services:
                     services.add(service)
+                    yield service
             time_spent_receiving = time.monotonic() - time_before_recv
             time_remaining = interval - time_spent_receiving
             if time_remaining > 0:
                 time.sleep(time_remaining)
-        return services
 
     def close(self):
         self._socket.close()

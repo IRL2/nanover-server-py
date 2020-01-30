@@ -27,16 +27,18 @@ from narupa.essd.servicehub import ServiceHub
 BROADCAST_PORT = 54545
 
 
-def _connect_socket() -> socket:
+def configure_reusable_socket() -> socket:
+    """
+    Sets up a socket set up for broadcasting with reuseable address.
+
+    :return: A socket.
+    """
     # IPv4 UDP socket
     s = socket(AF_INET, SOCK_DGRAM)
     # Enable broadcasting
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     return s
-
-
-
 
 
 class DiscoveryServer:
@@ -80,6 +82,18 @@ class DiscoveryServer:
         with self._lock:
             self.services[service] = broadcast_addresses
 
+    def unregister_service(self, service: ServiceHub):
+        """
+        Removes a service from discovery.
+
+        :param service: The service to remove.
+        :raises KeyError Raised if the service has never been registered with this discovery server.
+        """
+        if service not in self.services:
+            raise KeyError(f'No service with this ID has been registered {service}')
+        with self._lock:
+            del self.services[service]
+
     @property
     def is_broadcasting(self):
         return self._broadcast_thread is not None
@@ -87,7 +101,7 @@ class DiscoveryServer:
     def start(self):
         if self._broadcast_thread is not None:
             raise RuntimeError("Discovery service already running!")
-        self._socket = _connect_socket()
+        self._socket = configure_reusable_socket()
         self._broadcast_thread = threading.Thread(target=self._broadcast, daemon=True)
         self._broadcast_thread.start()
 

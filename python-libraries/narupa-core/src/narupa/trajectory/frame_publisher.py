@@ -2,16 +2,19 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from queue import Queue
 from threading import Lock
+from typing import Union, Callable
 
 from narupa.utilities.request_queues import DictOfQueues, SingleItemQueue
 from narupa.utilities.timing import yield_interval
 from narupa.protocol.trajectory import (
-    TrajectoryServiceServicer, GetFrameResponse, FrameData,
-)
+    TrajectoryServiceServicer, GetFrameResponse,
+    add_TrajectoryServiceServicer_to_server)
+from narupa.protocol.trajectory import FrameData as RawFrameData
+from narupa.trajectory import FrameData
 
 SENTINEL = None
 
-TRAJECTORY_SERVICE_NAME = "trajectory"
+FRAME_SERVICE_NAME = "trajectory"
 
 
 class FramePublisher(TrajectoryServiceServicer):
@@ -21,7 +24,7 @@ class FramePublisher(TrajectoryServiceServicer):
     """
 
     frame_queues: DictOfQueues
-    last_frame: FrameData
+    last_frame: RawFrameData
     last_frame_index: int
     last_request_id: int
     _frame_queue_lock: Lock
@@ -29,6 +32,8 @@ class FramePublisher(TrajectoryServiceServicer):
     _request_id_lock: Lock
 
     def __init__(self):
+        self.name: str = FRAME_SERVICE_NAME
+        self.add_to_server_method: Callable = add_TrajectoryServiceServicer_to_server
         self.frame_queues = DictOfQueues()
         self.last_frame = None
         self.last_frame_index = 0
@@ -93,10 +98,13 @@ class FramePublisher(TrajectoryServiceServicer):
             if self.last_frame is not None:
                 yield GetFrameResponse(frame_index=self.last_frame_index, frame=self.last_frame)
 
-    def send_frame(self, frame_index: int, frame: FrameData):
+    def send_frame(self, frame_index: int, frame: Union[FrameData, RawFrameData]):
+        if isinstance(frame, FrameData):
+            frame = frame.raw
+
         with self._last_frame_lock:
             if self.last_frame is None:
-                self.last_frame = FrameData()
+                self.last_frame = RawFrameData()
             self.last_frame_index = frame_index
 
             for key in frame.arrays.keys():

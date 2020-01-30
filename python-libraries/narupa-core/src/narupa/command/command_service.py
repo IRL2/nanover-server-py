@@ -14,7 +14,7 @@ from narupa.utilities.protobuf_utilities import dict_to_struct
 from narupa.utilities.key_lockable_map import KeyLockableMap
 from narupa.protocol.command import (
     CommandServicer, CommandMessage, CommandReply, GetCommandsReply,
-)
+    add_CommandServicer_to_server)
 
 
 class CommandRegistration(NamedTuple):
@@ -34,8 +34,11 @@ class CommandService(CommandServicer):
     which are run as callbacks.
     """
 
+
     def __init__(self):
         super().__init__()
+        self.name: str = "command"
+        self.add_to_server_method: Callable = add_CommandServicer_to_server
         self._commands = KeyLockableMap()
         self._id = "service"
 
