@@ -166,7 +166,7 @@ class LammpsHook:
                 logging.debug("MPI n processors %s ", nprocs)
         except ImportError as err:
             logging.error("Didn't find mpi4py %s", err)
-            raise Exception("Failed to load load mpi4py, please make it is installed", err)
+            raise Exception("Failed to load load mpi4py, please make sure it is installed", err)
 
         # Start frame server, must come before MPI
         if me == 0:
