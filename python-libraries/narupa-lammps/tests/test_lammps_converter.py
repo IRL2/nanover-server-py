@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from narupa.lammps import LammpsHook
+from narupa.lammps import LammpsIMD
 from narupa.lammps.dummylammps import DummyLammps
 from narupa.trajectory.frame_data import PARTICLE_POSITIONS, PARTICLE_ELEMENTS
 from narupa.trajectory import FrameData
@@ -14,7 +14,7 @@ def simple_atom_lammps_frame():
 
 @pytest.fixture
 def lammps_hook():
-    hook = LammpsHook()
+    hook = LammpsIMD()
     yield hook
     hook.close()
 

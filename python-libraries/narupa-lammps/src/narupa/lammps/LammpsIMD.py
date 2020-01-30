@@ -124,7 +124,7 @@ PLANK_VALUES = (
     6.62606896e-4
 )
 
-class LammpsHook:
+class LammpsIMD:
     """
     A class that can communicate with the LAMMPS program through
     its python interpreter. Upon initialisation, MPI is set up along with the frame server.
