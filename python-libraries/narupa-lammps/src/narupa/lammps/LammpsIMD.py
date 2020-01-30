@@ -309,6 +309,8 @@ class LammpsIMD:
 
     def add_interaction_to_ctype(self, interaction_forces: np.array, lammps_forces):
         """
+        Adds the interaction forces to the LAMMPS array
+
         :param interaction_forces: External (user) forces
         :param lammps_forces: Internal lammps forces
         :return: Combined c_type forces
