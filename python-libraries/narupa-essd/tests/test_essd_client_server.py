@@ -4,8 +4,8 @@ import pytest
 
 from narupa.essd import DiscoveryServer
 from narupa.essd.client import DiscoveryClient
-from test_essd_server import service
-from test_essd_service import properties
+from test_essd_server import service, properties_unique_id
+from test_essd_service import properties, properties_unique_id
 
 from narupa.essd.servicehub import ServiceHub
 
