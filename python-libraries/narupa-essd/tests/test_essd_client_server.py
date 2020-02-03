@@ -85,27 +85,30 @@ def test_send_service_all_interfaces(client_server, service):
     assert service in services
 
 
-def run_with_client(service):
+def run_with_client(service, residual=None):
     with DiscoveryClient() as client:
         services = set(client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME))
         assert service in services
+        assert residual not in services
 
 
-def run_with_server(service):
+def run_with_server(service, residual=None):
     with DiscoveryServer() as server:
         server.register_service(service)
         for i in range(3):
-            run_with_client(service)
+            run_with_client(service, residual)
 
 
-@pytest.mark.serial
-def test_context_managers(service):
+def test_context_managers(service, properties_unique_id):
     """
     tests that running the server and client with context managers cleans up correctly.
     If discovery servers do not clean up cleanly, future clients will find additional servers.
     """
-    for i in range(2):
-        run_with_server(service)
+    service1 = service
+    service2 = ServiceHub(**properties_unique_id)
+
+    run_with_server(service1)
+    run_with_server(service2, service1)
 
 
 @pytest.mark.parametrize('utf_str',
