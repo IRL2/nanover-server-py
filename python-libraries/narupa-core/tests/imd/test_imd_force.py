@@ -85,7 +85,34 @@ def test_interaction_force_single(particles, single_interaction, scale):
     energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
 
     expected_energy = - EXP_3 * scale * masses[single_interaction.particles[0]]
+    expected_energy = np.clip(expected_energy,
+                              -single_interaction.max_energy, single_interaction.max_energy)
     expected_forces[1, :] = np.array([-EXP_3 * scale * masses[single_interaction.particles[0]]] * 3)
+    expected_forces[1, :] = np.clip(expected_forces[1, :], -single_interaction.max_energy,
+                                    single_interaction.max_energy)
+
+    assert np.allclose(energy, expected_energy, equal_nan=True)
+    assert np.allclose(forces, expected_forces, equal_nan=True)
+
+
+@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.infty, -np.infty, np.nan])
+def test_interaction_force_max_energy(particles, single_interaction, max_energy):
+    """
+    Tests that setting the max energy field results in the energy being clamped as expected
+    """
+
+    positions, masses = particles
+    forces = np.zeros((len(positions), 3))
+    expected_forces = np.zeros((len(positions), 3))
+    single_interaction.max_energy = max_energy
+    energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
+
+    expected_energy = - EXP_3 * masses[single_interaction.particles[0]]
+    expected_energy = np.clip(expected_energy,
+                              -single_interaction.max_energy, single_interaction.max_energy)
+    expected_forces[1, :] = np.array([-EXP_3 * masses[single_interaction.particles[0]]] * 3)
+    expected_forces[1, :] = np.clip(expected_forces[1, :], -single_interaction.max_energy,
+                                    single_interaction.max_energy)
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
@@ -109,6 +136,7 @@ def test_interaction_force_mass(particles, single_interaction, mass):
     else:
         expected_energy = - EXP_3 * mass
         expected_forces[1, :] = np.array([-EXP_3 * mass] * 3)
+
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
@@ -243,8 +271,8 @@ def test_get_com_subset(particles):
     com = get_center_of_mass_subset(positions, masses, subset)
 
     expected_com = (
-        np.sum(positions[subset] * masses[subset, None], axis=0)
-        / masses[subset].sum()
+            np.sum(positions[subset] * masses[subset, None], axis=0)
+            / masses[subset].sum()
     )
 
     assert np.allclose(com, expected_com)

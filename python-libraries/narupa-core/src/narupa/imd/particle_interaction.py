@@ -40,6 +40,7 @@ class ParticleInteraction:
     SCALE_KEY = "scale"
     MASS_WEIGHTED_KEY = "mass_weighted"
     RESET_VELOCITIES_KEY = "reset_velocities"
+    MAX_ENERGY_KEY = "max_energy"
 
     def __init__(self, player_id: str = "1",
                  interaction_id="0",
@@ -48,7 +49,8 @@ class ParticleInteraction:
                  interaction_type='gaussian',
                  scale=1,
                  mass_weighted=True,
-                 reset_velocities=False):
+                 reset_velocities=False,
+                 max_energy=20000):
         self._interaction = imd_pb2.ParticleInteraction(player_id=player_id, interaction_id=interaction_id)
         self.position = position
         self._properties = self._interaction.properties
@@ -57,6 +59,7 @@ class ParticleInteraction:
         self.mass_weighted = mass_weighted
         self.reset_velocities = reset_velocities
         self.particles = particles
+        self.max_energy = max_energy
 
     @classmethod
     def from_proto(cls, interaction_proto,
@@ -145,7 +148,7 @@ class ParticleInteraction:
         self._set_property('scale', value)
 
     @property
-    def position(self) -> Collection:
+    def position(self) -> np.array:
         """
         Gets the position of the interaction, which defaults to ``[0,0,0]``
 
@@ -154,7 +157,7 @@ class ParticleInteraction:
         return np.array(self._interaction.position)
 
     @position.setter
-    def position(self, position: Collection):
+    def position(self, position: Collection[float]):
         """
         Set the position of the interaction
 
@@ -175,13 +178,31 @@ class ParticleInteraction:
         return np.array(self._interaction.particles)
 
     @particles.setter
-    def particles(self, particles: Collection):
+    def particles(self, particles: Collection[int]):
         """
         Set the particles of the interaction.
 
         :param particles: A collection of particles. If it contains duplicates, these will be removed.
         """
         self._interaction.particles[:] = np.unique(particles)
+
+    @property
+    def max_energy(self) -> float:
+        """
+        Gets the maximum energy this interaction will be allowed to apply to the system.
+
+        :return: The maximum energy, in kJ/mol, the interaction will be allowed to apply to the system.
+        """
+        return self._get_property(self.MAX_ENERGY_KEY)
+
+    @max_energy.setter
+    def max_energy(self, value: float):
+        """
+        Sets the maximum energy this interaction will be allowed to apply to the system.
+
+        :param value: New maximum energy, in kJ/mol.
+        """
+        self._set_property(self.MAX_ENERGY_KEY, value)
 
     @property
     def mass_weighted(self) -> bool:
