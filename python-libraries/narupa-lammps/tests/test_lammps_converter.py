@@ -1,34 +1,34 @@
 import pytest
 import numpy as np
-from narupa.lammps import LammpsIMD
-from narupa.lammps.dummylammps import DummyLammps
+from narupa.lammps import LammpsImd
+from narupa.lammps.mock import MockLammps
 from narupa.trajectory.frame_data import PARTICLE_POSITIONS, PARTICLE_ELEMENTS
 from narupa.trajectory import FrameData
 
 
 @pytest.fixture
 def simple_atom_lammps_frame():
-    dummy = DummyLammps()
-    data_array = dummy.gather_atoms("x", "", "")
+    mock = MockLammps()
+    data_array = mock.gather_atoms("x", "", "")
     return data_array
 
 @pytest.fixture
 def lammps_hook():
-    hook = LammpsIMD()
+    hook = LammpsImd()
     yield hook
     hook.close()
 
 
 def test_length_lammps_atoms(simple_atom_lammps_frame, lammps_hook):
     """
-    Checks that the dimensionality of the position array is correctly returned for dummy LAMMPS
+    Checks that the dimensionality of the position array is correctly returned for mock LAMMPS
     """
 
     lammps_hook.n_atoms_in_dummy = 3
 
     frame_data = FrameData()
     lammps_hook.distance_factor = 1.0
-    lammps_hook.lammps_positions_to_frame_data(frame_data, simple_atom_lammps_frame)
+    lammps_hook._lammps_positions_to_frame_data(frame_data, simple_atom_lammps_frame)
     assert len(frame_data.raw.arrays[PARTICLE_POSITIONS].float_values.values) == 9
 
 
@@ -37,41 +37,41 @@ def test_get_atoms(lammps_hook):
     Checks that the atoms are correctly set withing Dummy_Lammps
     """
     # Instantiate classes
-    dummy = DummyLammps(3)
+    mock = MockLammps(3)
     # Check that get_atoms works
-    dummy.n_atoms_in_dummy = 3
-    assert dummy.get_natoms() == 3
+    mock.n_atoms_in_dummy = 3
+    assert mock.get_natoms() == 3
 
 
 def test_elements_lammps_atoms(lammps_hook):
     """
-    Checks that the dimensionality of the position array is correctly returned for dummy LAMMPS
+    Checks that the dimensionality of the position array is correctly returned for mock LAMMPS
     """
     # Instantiate classes
-    dummy = DummyLammps(3)
+    mock = MockLammps(3)
     # Check that get_atoms works
-    dummy.n_atoms_in_dummy = 3
+    mock.n_atoms_in_dummy = 3
     frame_data = FrameData()
-    atom_type, masses = lammps_hook.gather_lammps_particle_types(dummy)
+    atom_type, masses = lammps_hook._gather_lammps_particle_types(mock)
     frame_data.arrays[PARTICLE_ELEMENTS] = atom_type
     assert frame_data.raw.arrays[PARTICLE_ELEMENTS].index_values.values == [1, 1, 1]
 
 
 def test_forces_lammps_atoms(lammps_hook):
     """
-    Checks that the c_type conversion of forces for dummy LAMMPS
+    Checks that the c_type conversion of forces for mock LAMMPS
 
     """
     lammps_hook.force_factor = 1.0
     lammps_hook.n_atoms = 3
-    dummy = DummyLammps()
-    dummy.n_atomms_in_dummy = 3
+    mock = MockLammps()
+    mock.n_atomms_in_dummy = 3
     # Collect empty  lammps c_type array
-    data_array = lammps_hook.manipulate_lammps_array("f", dummy)
+    data_array = lammps_hook._manipulate_lammps_array("f", mock)
 
     # Set external forces as numpy array
     temp_forces = np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0])
-    lammps_hook.add_interaction_to_ctype(temp_forces, data_array)
+    lammps_hook._add_interaction_to_ctype(temp_forces, data_array)
     # Convert back to numpy for assert
     final_forces = np.ctypeslib.as_array(data_array)
     assert final_forces.all() == np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]).all()
