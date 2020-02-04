@@ -5,14 +5,14 @@ Module containing a simple test program that tests the functionality of the LAMM
 """
 
 import time
-from narupa.lammps import LammpsIMD
+from narupa.lammps import LammpsImd
 
-# Test call of the routine when running outside of lammps
+
 def main():
     """
    Test call of the LAMMPS hook routine when running outside of LAMMPS.
-    """    
-    h = LammpsIMD()
+    """
+    h = LammpsImd()
     print("Starting Trajectory Server")
     while True:
         h.lammps_hook()

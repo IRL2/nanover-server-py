@@ -1,10 +1,16 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+"""
+Module providing a mock LAMMPS object so that the Narupa LAMMPS flow can be tested
+without LAMMPS installed.
+"""
 import ctypes
 
 
-class DummyLammps:
+class MockLammps:
     """
-    A fake lammps object intended just for unit testing the lammps code
-    without having to have lammps installed on a server
+    A fake LAMMPS object intended just for unit testing the LAMMPS code
+    without having to have LAMMPS installed on a server
     """
 
     def __init__(self, n_atoms_in_dummy: int = None):
@@ -19,7 +25,7 @@ class DummyLammps:
         :param array_type: determines the type of data that should be replicated
         :param _dummy_variable: Unused here, only relevant to lammps
         :param _array_shape: Unused here, only relevant to lammps
-        :return: matrix data_array that contains all the dummy data
+        :return: matrix data_array that contains all the mock data
         """
         empty_list = []
         if array_type == "x":
@@ -38,19 +44,19 @@ class DummyLammps:
 
     def scatter_atoms(self, _array_type, _dummy_variable, _array_shape, __data_array):
         """
-        Mimics lammp_class.scatter_atoms, in the dummy case it does nothing
+        Mimics lammp_class.scatter_atoms, in the mock case it does nothing
         Note: This can't be static as it is designed to replicate the internal LAMMPS class
         """
         return None
 
     def extract_global(self, types: str, _number_type):
         """
-        Generate dummy element list for testing
+        Generate mock element list for testing
 
         replicates lammp_class.extract_global("ntypes", 0)
         :param types: LAMMPS global variable that is needed
         :param _number_type: unused
-        :return:
+        :return: Element list.
         """
         if types == "ntypes":
             dummy_element_list = 1
@@ -63,21 +69,21 @@ class DummyLammps:
 
     def get_natoms(self):
         """
-        Generate dummy element list for testing
+        Generate mock element list for testing
         """
         return self.n_atoms
 
     def extract_atom(self, types: str, _number_type):
         """
-        Generate dummy element list for testing
+        Generate mock element list for testing
         :param types: string that indicates the info that should be passed
         :param _number_type: unused parameter to indicate integer float. etc
         :return: dummy_element_list
         """
         if types == "mass":
-            # initialise dummy type
+            # initialise mock type
             dummy_element_type = ctypes.c_double * 2
-            # great array of dummy type
+            # great array of mock type
             dummy_element_list = dummy_element_type()
             # For some reason masses have a blank [0] value in LAMMPS
             dummy_element_list[0] = 0
