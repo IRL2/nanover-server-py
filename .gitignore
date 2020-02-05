@@ -38,3 +38,5 @@ csharp-libraries/EssdClientCLI/bin/
 csharp-libraries/EssdClientCLI/obj/
 
 examples/ase/.ipynb_checkpoints/
+
+examples/mdanalysis/.ipynb_checkpoints/
