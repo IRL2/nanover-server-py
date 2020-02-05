@@ -14,7 +14,7 @@ from narupa.utilities.timing import delayed_generator
 from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
 from util import co_atoms
-
+import numpy as np
 
 @pytest.fixture
 def interact_c():
@@ -24,7 +24,10 @@ def interact_c():
 
 @pytest.fixture
 def interact_both():
-    interaction = ParticleInteraction(position=[0, 1, 0], particles=[0, 1], scale=20000., interaction_type='spring')
+    interaction = ParticleInteraction(position=[0, 1, 0],
+                                      particles=[0, 1], scale=20000.,
+                                      interaction_type='spring',
+                                      max_force=np.inf)
     return interaction
 
 

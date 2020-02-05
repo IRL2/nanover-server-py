@@ -74,8 +74,10 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
     return total_energy
 
 
-def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, force_per_particle: np.ndarray,
-                              interaction, masses: np.ndarray) -> float:
+def _apply_force_to_particles(forces: np.ndarray,
+                              energy_per_particle: float,
+                              force_per_particle: np.ndarray,
+                              interaction: ParticleInteraction, masses: np.ndarray) -> float:
     """
 
     Given the array of forces, energy and force to apply to each particle, applies them, using mass weighting
@@ -97,10 +99,10 @@ def _apply_force_to_particles(forces: np.ndarray, energy_per_particle: float, fo
     # add the force for each particle, adjusted by mass and scale factor.
     force_to_apply = interaction.scale * mass[:, np.newaxis] * force_per_particle[np.newaxis, :]
     # clip the forces into maximum force range.
-    force_to_apply_clipped = np.clip(force_to_apply, -interaction.max_energy, interaction.max_energy)
+    force_to_apply_clipped = np.clip(force_to_apply, -interaction.max_force, interaction.max_force)
     # this is technically incorrect, but deriving the actual energy of a clip will involve a lot of maths
     # for what is essentially just, too much energy.
-    total_energy = np.clip(total_energy, -interaction.max_energy, interaction.max_energy)
+    total_energy = np.clip(total_energy, -interaction.max_force, interaction.max_force)
     forces[interaction.particles] += force_to_apply_clipped
     return total_energy
 

@@ -32,6 +32,10 @@ class ParticleInteraction:
     :param interaction_type: The type of interaction being used, default is
         'gaussian' for a Gaussian force.
     :param scale: The scale factor applied to the interaction, default is 1.
+    :param mass_weighted: Whether the interaction will be mass weighted or not.
+    :param reset_velocities: Whether to reset velocities after interacting.
+    :param max_force: The maximum force that will be allowed to be applied to a given atom in a given cartesian
+    direction. Helps maintain stability for unbounded potentials.
 
     """
     _interaction: imd_pb2.ParticleInteraction
@@ -40,7 +44,7 @@ class ParticleInteraction:
     SCALE_KEY = "scale"
     MASS_WEIGHTED_KEY = "mass_weighted"
     RESET_VELOCITIES_KEY = "reset_velocities"
-    MAX_ENERGY_KEY = "max_energy"
+    MAX_FORCE = "max_force"
 
     def __init__(self, player_id: str = "1",
                  interaction_id="0",
@@ -50,7 +54,7 @@ class ParticleInteraction:
                  scale=1,
                  mass_weighted=True,
                  reset_velocities=False,
-                 max_energy=20000):
+                 max_force=20000):
         self._interaction = imd_pb2.ParticleInteraction(player_id=player_id, interaction_id=interaction_id)
         self.position = position
         self._properties = self._interaction.properties
@@ -59,7 +63,7 @@ class ParticleInteraction:
         self.mass_weighted = mass_weighted
         self.reset_velocities = reset_velocities
         self.particles = particles
-        self.max_energy = max_energy
+        self.max_force = max_force
 
     @classmethod
     def from_proto(cls, interaction_proto,
@@ -187,22 +191,22 @@ class ParticleInteraction:
         self._interaction.particles[:] = np.unique(particles)
 
     @property
-    def max_energy(self) -> float:
+    def max_force(self) -> float:
         """
-        Gets the maximum energy this interaction will be allowed to apply to the system.
+        Gets the maximum force this interaction will be allowed to apply to the system.
 
-        :return: The maximum energy, in kJ/mol, the interaction will be allowed to apply to the system.
+        :return: The maximum energy, in kJ/(mol*nm), the interaction will be allowed to apply to the system.
         """
-        return self._get_property(self.MAX_ENERGY_KEY)
+        return self._get_property(self.MAX_FORCE)
 
-    @max_energy.setter
-    def max_energy(self, value: float):
+    @max_force.setter
+    def max_force(self, value: float):
         """
-        Sets the maximum energy this interaction will be allowed to apply to the system.
+        Sets the maximum force this interaction will be allowed to apply to the system.
 
-        :param value: New maximum energy, in kJ/mol.
+        :param value: New maximum force, in kJ/(mol*nm).
         """
-        self._set_property(self.MAX_ENERGY_KEY, value)
+        self._set_property(self.MAX_FORCE, value)
 
     @property
     def mass_weighted(self) -> bool:
