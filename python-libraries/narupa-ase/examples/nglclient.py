@@ -1,14 +1,10 @@
-import os
-from contextlib import contextmanager
 from io import StringIO
-from tempfile import mkstemp
 
 import nglview
 import numpy as np
 
 from narupa.app import NarupaImdClient
-from narupa.ase.converter import frame_data_to_ase
-from narupa.mdanalysis import frame_data_to_mdanalysis, mdanalysis_to_frame_data
+from narupa.mdanalysis import frame_data_to_mdanalysis
 from narupa.trajectory import FrameData
 from nglview import NGLWidget
 
@@ -26,7 +22,7 @@ class NGLClient(NarupaImdClient):
     @property
     def view(self):
         if self._view is None or self.dynamic_bonds:
-            self._view = show_framedata(self.latest_frame)
+            self._view = frame_data_to_nglwidget(self.latest_frame)
         return self._view
 
     def _on_frame_received(self, frame_index: int, frame):
@@ -50,7 +46,7 @@ class FrameDataStructure(nglview.Structure):
         return frame_data_to_pdb(self._frame)
 
 
-def show_framedata(frame, **kwargs):
+def frame_data_to_nglwidget(frame, **kwargs):
     structure = FrameDataStructure(frame)
     return NGLWidget(structure, **kwargs)
 
