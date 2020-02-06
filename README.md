@@ -7,9 +7,35 @@ This repository is maintained by the Intangible Realities Laboratory, University
 and distributed under [GPLv3](LICENSE).
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
+## Installing narupa-server with Anaconda
+
+* Install Anaconda (avoid Anaconda 2.7 as it is outdated)
+* Create a conda environment (here we call the environment "narupa"): `conda create -n narupa "python>3.6"`
+* Activate the conda environment: `conda activate narupa`
+* Install the Narupa packages: 
+
+`conda install -c irl -c omnia -c conda-forge narupa-server`
+
+Developers will want the manual install described below.
+
 ## Getting Started
 
-The [examples](examples) folder contains example scripts and notebooks for creating and serving simulations.
+### Quick Start
+
+`narupa.ase` provides a command line interface for running OpenMM simulations. For example, from the `narupa-protocol` directory:
+
+    narupa-omm-ase examples/ase/openmm_files/nanotube.xml 
+
+### Tutorials
+
+The [examples](examples) folder contains example notebooks for using Narupa. They
+are organised into the following folders: 
+
+* [ase](examples/ase) Get up and running with interactive simulations with ASE and OpenMM. 
+* [mdanalysis](examples/mdanalysis) - Visualize static structures and trajectories with MDAnalysis and Narupa. 
+* [fundamentals](examples/fundamentals) - Understand how Narupa works, so you can create your own applications.
+
+### Exploring the code  
 
 The `protocol` folder contains the definitions of the gRPC services. 
 
@@ -20,14 +46,10 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-### Setup narupa-protocol with Anaconda
+## Setting up for development 
 
-* Install Anaconda (avoid Anaconda 2.7 as it is outdated)
-* Create a conda environment (here we call the environment "narupa"): `conda create -n narupa "python>3.6"`
-* Activate the conda environment: `conda activate narupa`
-* Install the Narupa packages: `conda install -c irl -c omnia -c conda-forge narupa-server`
-
-Developers will want the manual install described below.
+The instructions below describe how to set up an development environment with narupa protocol for Windows, Linux 
+and Mac.
 
 ### Setup narupa-protocol for developers on Mac and Linux
 
@@ -62,31 +84,6 @@ Optionally, you can run most of tests in parallel with pytest-xdist:
     pytest -m pip install pytest-xdist
     python -m pytest python-libraries -n auto -m 'not serial'
     python -m pytest python-libraries -n0 -m 'serial'
-
-## Running the examples
-
-### ASE IMD Simulations 
-
-`narupa.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the `narupa-protocol` directory:
-
-    narupa-omm-ase examples/ase/nanotube.xml 
-
-The example files are distributed in the directory
-`examples/ase/` from the [git repository](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/examples/ase).
-
-
-#### Jupyter Notebooks 
-
-The [`python-libraries/narupa-ase/examples`](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/python-libraries/narupa-ase/examples) examples folder also contains several
-Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
-The [Narupa ASE documentation](python-libraries/narupa-ase/README.md) provides more details on setting up ASE simulations.
-
-### MD Analysis Trajectories
-
-`narupa.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
-trajectory. To serve the frames on port 54321, from the `narupa-protocol` directory, run
-
-    python ./examples/mdanalysis/example.py
 
 ## Citation and External Libraries
 
