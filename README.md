@@ -31,8 +31,17 @@ Developers will want the manual install described below.
 The [examples](examples) folder contains example notebooks for using Narupa. They
 are organised into the following folders: 
 
-* [ase](examples/ase) Get up and running with interactive simulations with ASE and OpenMM. 
+* [ase](examples/ase) - Get up and running with interactive simulations with ASE and OpenMM. 
+   - [Basic Example](examples/ase/basic_example.ipynb) - Toy example of an interactive simulation. 
+   - [Nanotube](examples/ase/openmm_nanotube.ipynb) - Set up an interactive nanotube simulation with OpenMM.
+   - [Neuraminidase](examples/ase/openmm_neuraminidase.ipynb) - Set up a ligand-protein binding simulation with OpenMM,
+   and experiment with Narupa visualizations. 
+   - [Graphene](examples/ase/openmm_graphene.ipynb) - Set up a graphene simulation with physics parameters
+   that can be adjusted on the fly. 
 * [mdanalysis](examples/mdanalysis) - Visualize static structures and trajectories with MDAnalysis and Narupa. 
+    - [Structure](examples/mdanalysis/mdanalysis_lsd.ipynb) - Visualize LSD bound to a receptor in Narupa.
+    - [Trajectory](examples/mdanalysis/mdanalysis_trajectory.ipynb) - Build your own trajectory viewer with MDAnalysis
+    and Narupa.
 * [fundamentals](examples/fundamentals) - Understand how Narupa works, so you can create your own applications.
 
 ### Exploring the code  
