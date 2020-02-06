@@ -40,3 +40,5 @@ csharp-libraries/EssdClientCLI/obj/
 examples/ase/.ipynb_checkpoints/
 
 examples/mdanalysis/.ipynb_checkpoints/
+
+examples/ase/neuraminidase_narupa.xml
