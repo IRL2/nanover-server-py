@@ -38,3 +38,8 @@ class CommandInfo:
         :return: Dictionary of default arguments.
         """
         return struct_to_dict(self.raw.arguments)
+
+    def __str__(self):
+        args = self.arguments
+        args_str = ', '.join(['='.join([str(name), str(value)]) for name, value in args.items()])
+        return f'\'{self.name}\':({args_str})'
