@@ -46,7 +46,7 @@ class LammpsImd:
     stand alone program and determine if it should use mock variables (manipulate_dummy_arrays)
     or ones available from within LAMMPS (manipulate_lammps_arrays).
     """
-    topology_loop = True
+    need_to_collect_topology = True
 
     def __init__(self, port: int = None, address: str = "[::]"):
         """
@@ -107,7 +107,7 @@ class LammpsImd:
         :param lmp: LAMMPS object data, only populated when running from within LAMMPS
         """
 
-        if self.topology_loop is True:
+        if self.need_to_collect_topology is True:
             # Determine if a true lammps object is available or fall back to the test routine
             self.lammps_class = self._determine_lmp_status(comm, lmp)
 
@@ -141,7 +141,7 @@ class LammpsImd:
                 self.frame_loop = 0
                 logging.info("Narupa enabled calculation is still running")
 
-        self.topology_loop = False
+        self.need_to_collect_topology = False
 
     @property
     def interactions(self) -> List[ParticleInteraction]:
