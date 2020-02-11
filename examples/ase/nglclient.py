@@ -51,7 +51,37 @@ def frame_data_to_nglwidget(frame, **kwargs):
     return NGLWidget(structure, **kwargs)
 
 
+def fill_empty_fields(universe: mda.Universe):
+    """
+    Set the PDB-specific fields with their default values.
+
+    Some topology fields are specific to PDB files and are often missing
+    from Universes. This function set these fields to their default values if
+    they are not present already.
+    """
+    defaults_per_atom = (
+        {
+            'altLocs': ' ',
+            'occupancies': 1.0,
+            'tempfactors': 0.0,
+        },
+        len(universe.atoms)
+    )
+    defaults_per_residue = (
+        {
+            'icodes': ' ',
+        },
+        len(universe.residues),
+    )
+    all_defaults = (defaults_per_atom, defaults_per_residue)
+    for source_of_defaults, n_elements in all_defaults:
+        for key, default_value in source_of_defaults.items():
+            if not hasattr(universe.atoms, key):
+                universe.add_TopologyAttr(key, [default_value] * n_elements)
+
+
 def mda_to_pdb_str(universe: mda.Universe):
+    fill_empty_fields(universe)
     with StringIO() as str_io, mda.coordinates.PDB.PDBWriter(str_io) as writer:
         writer.filename = ""  # See https://github.com/MDAnalysis/mdanalysis/issues/2512
         writer.write(universe.atoms)
