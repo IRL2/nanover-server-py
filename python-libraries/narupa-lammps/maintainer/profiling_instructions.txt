@@ -1,4 +1,4 @@
-To profile the lammpshoook we have to account for the fact that we are using the lammps python interperater
+To profile the lammpshoook we have to account for the fact that we are using the lammps python interpreter.
 
 
 inside the hooks __init__
