@@ -134,7 +134,8 @@ class LammpsImd:
             self._collect_and_send_frame_data(positions)
 
         # Print every 100 cycles if python interpreter is still running
-        # This helps ensure that everything in lammps is continuing to run and that the python interpreter has crashed
+        # This helps ensure that everything in lammps is continuing to run
+        # and that the python interpreter has not crashed
         if self.me == 0:
             self.frame_loop += 1
             if self.frame_loop == 1000:
