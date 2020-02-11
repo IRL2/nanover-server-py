@@ -1,3 +1,4 @@
+# Licensed under the GPL2. See the LAMMPS GPL2 licence in the project root for license information.
 # 3d Lennard-Jones melt
 
 units		lj
@@ -19,11 +20,11 @@ neighbor	0.3 bin
 neigh_modify	every 20 delay 0 check no
 
 python         post_force_callback here """
-from narupa.lammps import LammpsHook
+from narupa.lammps import LammpsImd
 from lammps import lammps
 from mpi4py import MPI
 comm = MPI.COMM_WORLD
-h = LammpsHook()
+h = LammpsImd()
 
 def post_force_callback(lmp,v):
   h.lammps_hook(lmp,comm)
