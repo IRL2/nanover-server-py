@@ -53,7 +53,7 @@ def frame_data_to_nglwidget(frame, **kwargs):
 
 def mda_to_pdb_str(universe: mda.Universe):
     with StringIO() as str_io, mda.coordinates.PDB.PDBWriter(str_io) as writer:
-        # See https://github.com/MDAnalysis/mdanalysis/issues/2512
+        writer.filename = ""  # See https://github.com/MDAnalysis/mdanalysis/issues/2512
         writer.write(universe.atoms)
         pdb = str_io.getvalue()
     return pdb
