@@ -37,7 +37,7 @@ with NarupaASEDynamics.basic_imd(dyn) as imd:
         imd.run(100)
 ```
 
-Full examples are given in the [examples](./examples) folder, which additionally
+Full examples are given in the [ASE examples](../../examples/ase) folder, which additionally
 contains several Jupyter notebooks that explore how Narupa can be used with OpenMM:
 
 * `narupa_ase_client_server`: A notebook showing how one can run the server for an OpenMM simulation, 
