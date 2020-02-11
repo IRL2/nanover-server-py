@@ -97,6 +97,7 @@ class LammpsImd:
             self.atom_type = None
             self.n_atoms_in_dummy = 10
             self.loop = 0
+            self.md_log_frequency = 1000
 
     def lammps_hook(self, lmp=None, comm=None):
         """
@@ -138,7 +139,7 @@ class LammpsImd:
         # and that the python interpreter has not crashed
         if self.me == 0:
             self.frame_loop += 1
-            if self.frame_loop == 1000:
+            if self.frame_loop == self.md_log_frequency:
                 self.frame_loop = 0
                 logging.info("Narupa enabled calculation is still running")
 
