@@ -5,7 +5,7 @@ inside the hooks __init__
 yappi.start()
 should be added as early as possible
 
-later inside the iself.frame loop of the main lammps_hook class the following should be addeed
+later inside the self.frame loop of the main lammps_hook class the following should be addeed
 '''
 func_stats = yappi.get_func_stats()
 
@@ -21,7 +21,7 @@ yappi.clear_stats()
 logging.info("saved profiling data")
 '''
 
-this svaes the profiling data in a callgrind format. For cleaner reports consider commenting out the try_or_except
+this saves the profiling data in a callgrind format. For cleaner reports consider commenting out the try_or_except
 wrapping decorator
 
 
