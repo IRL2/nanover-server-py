@@ -1,13 +1,14 @@
-import os
-from contextlib import contextmanager
-from tempfile import mkstemp
+from io import StringIO
 
 import nglview
 import numpy as np
 
 from narupa.app import NarupaImdClient
-from narupa.ase.converter import frame_data_to_ase
+from narupa.mdanalysis import frame_data_to_mdanalysis
+from narupa.trajectory import FrameData
 from nglview import NGLWidget
+
+import MDAnalysis as mda
 
 
 class NGLClient(NarupaImdClient):
@@ -21,15 +22,7 @@ class NGLClient(NarupaImdClient):
     @property
     def view(self):
         if self._view is None or self.dynamic_bonds:
-            atoms = frame_data_to_ase(
-                self.first_frame,
-                topology=True,
-                positions=False,
-            )
-            atoms.set_positions(
-                np.array(self.latest_frame.particle_positions) * 10
-            )
-            self._view = show_ase(atoms)
+            self._view = frame_data_to_nglwidget(self.latest_frame)
         return self._view
 
     def _on_frame_received(self, frame_index: int, frame):
@@ -41,41 +34,62 @@ class NGLClient(NarupaImdClient):
             self.update_callback(self.universe)
 
 
-# from https://github.com/arose/nglview/blob/e95a816161eb619de33e291e896ad24965b9f69d/nglview/adaptor.py
-@contextmanager
-def mkstemp_wrapper(*args, **kwargs):
-    # NamedTemporaryFile cannot be used here because it makes it impossible
-    # on Windows to the file for writing. mkstemp is a bit less restrictive
-    # in this regard.
-    fd, fname = mkstemp(*args, **kwargs)
-    yield fname
-    # On windows, the file must be closed before it can be removed.
-    os.close(fd)
-    os.remove(fname)
-
-
-# from https://github.com/arose/nglview/blob/e95a816161eb619de33e291e896ad24965b9f69d/nglview/adaptor.py
-def _get_structure_string(write_method, suffix='.pdb'):
-    with mkstemp_wrapper(suffix=suffix) as fname:
-        write_method(fname)
-        with open(fname) as fh:
-            return fh.read()
-
-
-# from https://github.com/arose/nglview/blob/e95a816161eb619de33e291e896ad24965b9f69d/nglview/adaptor.py
-class ASEStructure(nglview.Structure):
-    def __init__(self, ase_atoms, ext='pdb', params={}):
+class FrameDataStructure(nglview.Structure):
+    def __init__(self, frame, ext='pdb', params={}):
         super().__init__()
         self.path = ''
         self.ext = ext
         self.params = params
-        self._ase_atoms = ase_atoms
+        self._frame = frame
 
     def get_structure_string(self):
-        return _get_structure_string(self._ase_atoms.write)
+        return frame_data_to_pdb(self._frame)
 
 
-# from https://github.com/arose/nglview/blob/e95a816161eb619de33e291e896ad24965b9f69d/nglview/show.py
-def show_ase(ase_atoms, **kwargs):
-    structure = ASEStructure(ase_atoms)
+def frame_data_to_nglwidget(frame, **kwargs):
+    structure = FrameDataStructure(frame)
     return NGLWidget(structure, **kwargs)
+
+
+def fill_empty_fields(universe: mda.Universe):
+    """
+    Set the PDB-specific fields with their default values.
+
+    Some topology fields are specific to PDB files and are often missing
+    from Universes. This function set these fields to their default values if
+    they are not present already.
+    """
+    defaults_per_atom = (
+        {
+            'altLocs': ' ',
+            'occupancies': 1.0,
+            'tempfactors': 0.0,
+        },
+        len(universe.atoms)
+    )
+    defaults_per_residue = (
+        {
+            'icodes': ' ',
+        },
+        len(universe.residues),
+    )
+    all_defaults = (defaults_per_atom, defaults_per_residue)
+    for source_of_defaults, n_elements in all_defaults:
+        for key, default_value in source_of_defaults.items():
+            if not hasattr(universe.atoms, key):
+                universe.add_TopologyAttr(key, [default_value] * n_elements)
+
+
+def mda_to_pdb_str(universe: mda.Universe):
+    fill_empty_fields(universe)
+    with StringIO() as str_io, mda.coordinates.PDB.PDBWriter(str_io) as writer:
+        writer.filename = ""  # See https://github.com/MDAnalysis/mdanalysis/issues/2512
+        writer.write(universe.atoms)
+        pdb = str_io.getvalue()
+    return pdb
+
+
+def frame_data_to_pdb(frame: FrameData) -> str:
+    universe = frame_data_to_mdanalysis(frame)
+    pdb = mda_to_pdb_str(universe)
+    return pdb
