@@ -133,7 +133,7 @@ class LammpsImd:
             # Send frame data on proc 0 only as otherwise port blocking occurs
             self._collect_and_send_frame_data(positions)
 
-        # Print every 100 cycles if python interpreter is still running
+        # Print regularly if python interpreter is still running
         # This helps ensure that everything in lammps is continuing to run
         # and that the python interpreter has not crashed
         if self.me == 0:
