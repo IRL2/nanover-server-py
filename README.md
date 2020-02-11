@@ -9,6 +9,8 @@ See [the list of contributors](CONTRIBUTORS.md) for the individual authors of th
 
 ## Getting Started
 
+The [examples](examples) folder contains example scripts and notebooks for creating and serving simulations.
+
 The `protocol` folder contains the definitions of the gRPC services. 
 
 The `python-libraries` folder contains the library to write Narupa clients and
@@ -67,15 +69,11 @@ Optionally, you can run most of tests in parallel with pytest-xdist:
 
 `narupa.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the `narupa-protocol` directory:
 
-    narupa-omm-ase python-libraries/narupa-ase/examples/nanotube.xml 
+    narupa-omm-ase examples/ase/nanotube.xml 
 
 The example files are distributed in the directory
-`python-library/narupa-ase/examples` from the [git repository](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/python-libraries/narupa-ase/examples).
-The examples include:
+`examples/ase/` from the [git repository](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/examples/ase).
 
-* [A carbon nanotube and a methane molecule](https://gitlab.com/intangiblerealities/narupa-protocol/raw/master/python-libraries/narupa-ase/examples/nanotube.xml)
-* [A helicene molecule](https://gitlab.com/intangiblerealities/narupa-protocol/raw/master/python-libraries/narupa-ase/examples/helicene.xml)
-* [Neuraminidase and tamiflu](https://gitlab.com/intangiblerealities/narupa-protocol/raw/master/python-libraries/narupa-ase/examples/neuraminidase.xml)
 
 #### Jupyter Notebooks 
 
@@ -88,7 +86,7 @@ The [Narupa ASE documentation](python-libraries/narupa-ase/README.md) provides m
 `narupa.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
 trajectory. To serve the frames on port 54321, from the `narupa-protocol` directory, run
 
-    python ./python-libraries/narupa-mdanalysis/examples/example.py
+    python ./examples/mdanalysis/example.py
 
 ## Citation and External Libraries
 
