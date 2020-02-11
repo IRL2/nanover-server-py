@@ -117,8 +117,8 @@ def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, in
     # perform the calculation with interaction applied.
     interact_c.position = position
     with ImdClient.insecure_channel(port=imd_server.port) as imd_client:
-        imd_client.publish_interactions_async(delayed_generator([interact_c] * 20, delay=0.01))
-        time.sleep(0.05)
+        imd_client.publish_interactions_async(delayed_generator([interact_c] * 50, delay=0.01))
+        time.sleep(0.1)
         assert len(imd_calculator.interactions) == 1
         imd_calculator.calculate(properties=properties)
         results = imd_calculator.results
