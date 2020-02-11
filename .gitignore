@@ -38,3 +38,5 @@ csharp-libraries/EssdClientCLI/bin/
 csharp-libraries/EssdClientCLI/obj/
 
 python-libraries/narupa-lammps/examples/lmp
+
+python-libraries/narupa-lammps/examples/log\.lammps

@@ -178,6 +178,7 @@ class LammpsImd:
                 logging.info("Exception raised in calling function on proc %s ", args[0].me)
                 logging.info("Exception thrown %s ", func)
                 logging.info("Exception thrown %s ", e)
+                raise Exception("try_or_except caught and raised and exception")
             return result
 
         return wrapper
