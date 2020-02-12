@@ -116,7 +116,7 @@ class LammpsImd:
             n_atoms, distance_factor, units_type, force_factor = self._extract_fundamental_factors(self.lammps_class)
 
             # Collect the lammps atom types and masses for a crude topology
-            self.atom_type = self._gather_lammps_particle_types(self.lammps_class)
+            self.atom_type, self.masses = self._gather_lammps_particle_types(self.lammps_class)
         else:
             # Useful to extract these in the event of MPI issues.
             n_atoms = self.n_atoms
@@ -236,7 +236,7 @@ class LammpsImd:
         final_masses = np.array(final_masses)
         # Convert to elements
         final_elements = [ELEMENT_INDEX_MASS.get(mass, 1) for mass in final_masses]
-        return final_elements
+        return final_elements, final_masses
 
     def _lammps_positions_to_frame_data(self,
                                         frame_data: FrameData,
