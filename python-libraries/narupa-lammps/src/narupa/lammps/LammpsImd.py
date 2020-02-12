@@ -192,7 +192,8 @@ class LammpsImd:
 
         :param matrix_type: String identifying data to transmit, e.g x, v or f
         :param lammps_class: LAMMPS class that contains all the needed routines
-        type :return: 3N matrix with all the data requested
+            type.
+        :return: 3N matrix with all the data requested
         """
 
         data_array = lammps_class.gather_atoms(matrix_type, 1, 3)
