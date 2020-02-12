@@ -52,7 +52,7 @@ def test_elements_lammps_atoms(lammps_hook):
     # Check that get_atoms works
     mock.n_atoms_in_dummy = 3
     frame_data = FrameData()
-    atom_type, masses = lammps_hook._gather_lammps_particle_types(mock)
+    atom_type = lammps_hook._gather_lammps_particle_types(mock)
     frame_data.arrays[PARTICLE_ELEMENTS] = atom_type
     assert frame_data.raw.arrays[PARTICLE_ELEMENTS].index_values.values == [1, 1, 1]
 
