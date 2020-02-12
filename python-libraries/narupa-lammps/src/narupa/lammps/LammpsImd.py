@@ -268,8 +268,8 @@ class LammpsImd:
         :return: Combined c_type forces
         """
 
-        # Convert units from narupa standard of  kj/mol/nm^2 to whatever units LAMMPS is using
-        # For real units types LAMMPS uses  Kcal/mole-Angstrom^2 4.14
+        # Convert units from narupa standard of  kj/mol/nm to whatever units LAMMPS is using
+        # For real units types LAMMPS uses  Kcal/mole-Angstrom 4.14
         # for kj-> Kcal and 10x for nm -> Angstrom
         # Flatten array into the ctype
         interaction_forces = interaction_forces.ravel()
