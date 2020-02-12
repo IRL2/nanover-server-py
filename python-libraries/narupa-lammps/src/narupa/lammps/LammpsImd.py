@@ -253,7 +253,7 @@ class LammpsImd:
         # Copy the ctype array to numpy for processing
         positions = np.ctypeslib.as_array(data_array, shape=(len(data_array),))
         # Convert to nm
-        positions = positions /  self.distance_factor
+        positions = positions / self.distance_factor
         self._add_pos_to_framedata(frame_data, positions)
 
     def _add_pos_to_framedata(self, frame_data, positions):
@@ -273,7 +273,7 @@ class LammpsImd:
         # for kj-> Kcal and 10x for nm -> Angstrom
         # Flatten array into the ctype
         interaction_forces = interaction_forces.ravel()
-        interaction_forces = np.divide(interaction_forces, self.force_factor)
+        interaction_forces = interaction_forces / self.force_factor
         buffer = np.frombuffer(lammps_forces)
         buffer += interaction_forces
 
