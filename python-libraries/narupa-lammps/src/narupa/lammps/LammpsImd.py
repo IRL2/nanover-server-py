@@ -253,7 +253,7 @@ class LammpsImd:
         # Copy the ctype array to numpy for processing
         positions = np.ctypeslib.as_array(data_array, shape=(len(data_array),))
         # Convert to nm
-        positions = np.divide(positions, self.distance_factor)
+        positions = positions /  self.distance_factor
         self._add_pos_to_framedata(frame_data, positions)
 
     def _add_pos_to_framedata(self, frame_data, positions):
