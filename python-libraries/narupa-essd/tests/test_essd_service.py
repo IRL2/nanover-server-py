@@ -25,21 +25,26 @@ def properties():
     return properties
 
 
+@pytest.fixture
+def properties_unique_id(properties):
+    del properties[SERVICE_ID_KEY]
+    return properties
+
+
 def test_service_message(properties):
     service = ServiceHub(**properties)
     assert service.message == json.dumps(properties)
 
 
 def test_version(properties):
-    del properties['essd_version']
+    del properties[ESSD_VERSION_KEY]
     service = ServiceHub(**properties)
     assert service.version == narupa.essd.__version__
 
 
-def test_service_generate_uuid(properties):
-    del properties['id']
-    service = ServiceHub(**properties)
-    assert 'id' in service.properties
+def test_service_generate_uuid(properties_unique_id):
+    service = ServiceHub(**properties_unique_id)
+    assert SERVICE_ID_KEY in service.properties
 
 
 def test_service_from_json(properties):

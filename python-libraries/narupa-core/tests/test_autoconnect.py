@@ -14,6 +14,8 @@ from narupa.trajectory import FrameServer, FRAME_SERVICE_NAME
 DISCOVERY_DELAY = 0.05
 AUTOCONNECT_SEARCH_TIME = DISCOVERY_DELAY * 1.5
 
+NEVER_USED_HUB_NAME = 'pytest adult yoda'
+
 
 @pytest.fixture
 def broadcastable_servers():
@@ -133,12 +135,6 @@ def test_autoconnect_separate_servers(broadcastable_servers):
 
 
 @pytest.mark.serial
-def test_autoconnect_no_server():
-    with pytest.raises(ConnectionError), NarupaImdClient.autoconnect():
-        pass
-
-
-@pytest.mark.serial
 def test_autoconnect_named_server():
     """
     Test autoconnecting to a named server.
@@ -163,6 +159,6 @@ def test_autoconnect_no_named_server(discoverable_imd_server):
     """
     Test that autoconnecting to a named server that doesn't exist fails.
     """
-    with pytest.raises(ConnectionError), NarupaImdClient.autoconnect(name="pytest adult yoda"):
+    with pytest.raises(ConnectionError), NarupaImdClient.autoconnect(name=NEVER_USED_HUB_NAME):
         pass
 

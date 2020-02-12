@@ -6,7 +6,7 @@ import threading
 
 from osc_client import OscClient
 from narupa.trajectory import FrameServer, FrameData
-from narupa.app.client import DEFAULT_SUBSCRIPTION_INTERVAL
+from narupa.app.client import DEFAULT_SUBSCRIPTION_INTERVAL, NarupaImdClient
 
 from pythonosc import dispatcher
 from pythonosc.osc_server import ThreadingOSCUDPServer
@@ -58,10 +58,11 @@ def frame_osc_converter(frame_server, osc_server):
     of them.
     """
     osc_port = osc_server.socket.getsockname()[1]
-    with OscClient(osc_address=IPV4_LOCALHOST, osc_port=osc_port,
-                   traj_address='localhost', traj_port=frame_server.port,
+    narupa_client = NarupaImdClient(trajectory_address=('localhost', frame_server.port))
+    with OscClient(narupa_client,
+                   osc_address=(IPV4_LOCALHOST, osc_port),
                    message_generator=simple_frame_to_message,
-                   send_interval=OSC_SEND_INTERVAL) as client:
+                   osc_send_interval=OSC_SEND_INTERVAL) as client:
         threading.Thread(target=client.run, daemon=True).start()
         yield frame_server, osc_server, client
 
