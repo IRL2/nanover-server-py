@@ -185,7 +185,6 @@ class LammpsImd:
         return wrapper
 
 
-
     @_try_or_except
     def _manipulate_lammps_array(self, matrix_type: str, lammps_class):
         """
