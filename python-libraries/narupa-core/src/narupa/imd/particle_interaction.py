@@ -35,7 +35,7 @@ class ParticleInteraction:
     :param mass_weighted: Whether the interaction will be mass weighted or not.
     :param reset_velocities: Whether to reset velocities after interacting.
     :param max_force: The maximum force that will be allowed to be applied to a given atom in a given cartesian
-    direction. Helps maintain stability for unbounded potentials.
+        direction. Helps maintain stability for unbounded potentials.
 
     """
     _interaction: imd_pb2.ParticleInteraction
