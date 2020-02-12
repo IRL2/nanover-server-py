@@ -67,7 +67,7 @@ def test_forces_lammps_atoms(lammps_hook):
     mock = MockLammps()
     mock.n_atomms_in_dummy = 3
     # Collect empty  lammps c_type array
-    data_array = lammps_hook._manipulate_lammps_array("f", mock)
+    data_array = lammps_hook._gather_lammps_array("f", mock)
 
     # Set external forces as numpy array
     temp_forces = np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0])

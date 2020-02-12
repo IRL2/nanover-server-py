@@ -186,7 +186,7 @@ class LammpsImd:
 
 
     @_try_or_except
-    def _manipulate_lammps_array(self, matrix_type: str, lammps_class):
+    def _gather_lammps_array(self, matrix_type: str, lammps_class):
         """
         Gather Matrix data from all LAMMPS MPI threads
 
@@ -312,7 +312,7 @@ class LammpsImd:
         :return:
         """
         # Collect matrix from LAMMPS
-        forces = self._manipulate_lammps_array(matrix_type, lammps_class)
+        forces = self._gather_lammps_array(matrix_type, lammps_class)
 
         # Convert the positions to a 2D, 3N array for use in calculate)imd_force
         positions_3n = np.ctypeslib.as_array(positions, shape=(self.n_atoms * 3)).reshape(self.n_atoms, 3)
@@ -342,7 +342,7 @@ class LammpsImd:
         Return: the positions array for use in the frame data
         """
 
-        positions = self._manipulate_lammps_array('x', lammps_class)
+        positions = self._gather_lammps_array('x', lammps_class)
 
         return positions
 
