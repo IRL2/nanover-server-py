@@ -307,8 +307,8 @@ class LammpsImd:
 
         :param lammps_class: LAMMPS class that contains all the needed routines
         :param positions_3n: Position matrix needed to calculate_imd_forces
-        :param matrix_type: The matrix to eb scattered, usually f (forces),
-        but could also be V (velocities)
+        :param matrix_type: The matrix to be scattered, usually f (forces),
+            but could also be V (velocities)
         :return:
         """
         # Collect matrix from LAMMPS
