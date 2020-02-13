@@ -1,7 +1,9 @@
 # Narupa 2 Protocol
 
 Repository containing the gRPC protocol and python based implementations 
-of servers for Narupa 2. 
+of servers for Narupa 2, providing a framework for developing interactive molecular dynamics simulations.
+
+It is designed to be used with Narupa VR clients, e.g. [Narupa IMD](https://gitlab.com/intangiblerealities/narupa-applications/narupa-imd).
 
 This repository is maintained by the Intangible Realities Laboratory, University Of Bristol, 
 and distributed under [GPLv3](LICENSE).
@@ -28,7 +30,7 @@ Developers will want the manual install described below.
 
 ### Tutorials
 
-The [examples](examples) folder contains example notebooks for using Narupa. They
+The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with Narupa. They
 are organised into the following folders: 
 
 * [ase](examples/ase) - Get up and running with interactive simulations with ASE and OpenMM. 
@@ -43,6 +45,27 @@ are organised into the following folders:
     - [Trajectory](examples/mdanalysis/mdanalysis_trajectory.ipynb) - Build your own trajectory viewer with MDAnalysis
     and Narupa.
 * [fundamentals](examples/fundamentals) - Understand how Narupa works, so you can create your own applications.
+
+The tutorials use Jupyter notebooks, [NGLView](https://github.com/arose/nglview) for visualising trajectories, and while not strictly necessary,
+assumes you have the [Narupa IMD VR]([Narupa IMD](https://gitlab.com/intangiblerealities/narupa-applications/narupa-imd))
+application installed. These can all be installed with conda:
+
+```bash
+conda activate narupa 
+conda install jupyter 
+conda install nglview
+# On Windows only:
+conda install -c irl narupa-imd 
+```
+
+To run the notebooks, download the repository and run jupyter (with [git](https://git-scm.com/) installed):
+```bash 
+git clone https://gitlab.com/intangiblerealities/narupa-protocol.git
+cd narupa-protocol
+conda activate narupa 
+jupyter notebook 
+```
+
 
 ### Exploring the code  
 
