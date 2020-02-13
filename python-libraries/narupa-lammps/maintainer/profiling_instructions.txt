@@ -1,0 +1,28 @@
+To profile the lammpshoook we have to account for the fact that we are using the lammps python interpreter.
+
+
+inside the hooks __init__
+yappi.start()
+should be added as early as possible
+
+later inside the self.frame loop of the main lammps_hook class the following should be addeed
+'''
+func_stats = yappi.get_func_stats()
+
+if not hasattr(sys, 'argv'):
+    sys.argv = ['']
+
+try:
+    func_stats.save('callgrind.out', 'CALLGRIND')
+except Exception as e:
+    logging.info("exception in printing %s", e)
+
+yappi.clear_stats()
+logging.info("saved profiling data")
+'''
+
+this saves the profiling data in a callgrind format. For cleaner reports consider commenting out the try_or_except
+wrapping decorator
+
+
+
