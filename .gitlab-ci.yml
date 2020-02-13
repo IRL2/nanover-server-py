@@ -82,6 +82,7 @@ build_conda:
               python-libraries/narupa-openmm/conda \
               python-libraries/narupa-ase/conda \
               python-libraries/narupa-mdanalysis/conda \
+              python-libraries/narupa-lammps/conda \
               python-libraries/narupa-server/conda
         - cp -r /miniconda/conda-bld .
     artifacts:

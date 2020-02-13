@@ -44,3 +44,7 @@ examples/mdanalysis/.ipynb_checkpoints/
 examples/ase/neuraminidase_narupa.xml
 
 examples/fundamentals/.ipynb_checkpoints/
+
+examples/examples/lmp
+
+examples/examples/log\.lammps
