@@ -36,6 +36,7 @@ def test_from_proto():
     assert interaction.type == "gaussian"
     assert interaction.scale == 1
     assert interaction.mass_weighted is True
+    assert interaction.max_force == 20000
 
 
 def test_set_invalid_position(interaction):
