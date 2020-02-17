@@ -18,13 +18,27 @@ from util import co_atoms
 
 @pytest.fixture
 def interact_c():
-    interaction = ParticleInteraction(position=[0, 1, 0], particles=[0], scale=20000., interaction_type='spring')
+    interaction = ParticleInteraction(
+        player_id='test_player',
+        interaction_id='interact_c',
+        position=[0, 1, 0],
+        particles=[0],
+        scale=20000.,
+        interaction_type='spring',
+    )
     return interaction
 
 
 @pytest.fixture
 def interact_both():
-    interaction = ParticleInteraction(position=[0, 1, 0], particles=[0, 1], scale=20000., interaction_type='spring')
+    interaction = ParticleInteraction(
+        player_id='test_player',
+        interaction_id='interact_both',
+        position=[0, 1, 0],
+        particles=[0, 1],
+        scale=20000.,
+        interaction_type='spring',
+    )
     return interaction
 
 

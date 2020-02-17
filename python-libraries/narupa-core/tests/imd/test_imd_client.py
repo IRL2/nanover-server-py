@@ -146,7 +146,7 @@ def test_subscribe_own_interaction(imd_server_client, interaction):
     local_interaction_id = imd_client.start_interaction()
     imd_client.update_interaction(local_interaction_id, interaction)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 5)
-    assert local_interaction_id in imd_client.interactions
+    assert interaction.interaction_id in imd_client.interactions
 
 
 def test_subscribe_own_interaction_removed(imd_server_client, interaction):
@@ -159,11 +159,11 @@ def test_subscribe_own_interaction_removed(imd_server_client, interaction):
     local_interaction_id = imd_client.start_interaction()
     imd_client.update_interaction(local_interaction_id, interaction)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert local_interaction_id in imd_client.interactions
+    assert interaction.interaction_id in imd_client.interactions
 
     imd_client.stop_interaction(local_interaction_id)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert local_interaction_id not in imd_client.interactions
+    assert interaction.interaction_id not in imd_client.interactions
 
 
 @pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
@@ -181,7 +181,7 @@ def test_subscribe_interactions_sends_initial_immediately(
     local_interaction_id = imd_client.start_interaction()
     imd_client.update_interaction(local_interaction_id, interaction)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert local_interaction_id in imd_client.interactions
+    assert interaction.interaction_id in imd_client.interactions
 
 
 @pytest.mark.parametrize('update_interval', (.5, .2, .1))
@@ -204,8 +204,8 @@ def test_subscribe_interactions_interval(
     interaction.position = [2, 0, 0]
     imd_client.update_interaction(local_interaction_id, interaction)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert imd_client.interactions[local_interaction_id].position[0] == 1
+    assert imd_client.interactions[interaction.interaction_id].position[0] == 1
 
     imd_client.update_interaction(local_interaction_id, interaction)
     time.sleep(update_interval)
-    assert imd_client.interactions[local_interaction_id].position[0] == 2
+    assert imd_client.interactions[interaction.interaction_id].position[0] == 2

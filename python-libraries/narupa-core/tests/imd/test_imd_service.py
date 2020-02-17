@@ -10,13 +10,16 @@ from narupa.imd.particle_interaction import ParticleInteraction
 
 @pytest.fixture
 def interaction():
-    return ParticleInteraction()
+    return ParticleInteraction(player_id='test player', interaction_id='test interaction')
 
 
 def test_add_duplicate_interaction_id(interaction):
     service = ImdService()
     service.insert_interaction(interaction)
-    interaction = ParticleInteraction()
+    interaction = ParticleInteraction(
+        player_id=interaction.player_id,
+        interaction_id=interaction.interaction_id,
+    )
     service.insert_interaction(interaction)
     assert len(service.active_interactions) == 1
 
