@@ -20,7 +20,14 @@ def atoms():
 
 @pytest.fixture
 def interact_c():
-    interaction = ParticleInteraction(position=[1, 0, 0], particles=[0], scale=100., interaction_type='spring')
+    interaction = ParticleInteraction(
+        player_id='test player',
+        interaction_id='interact_c',
+        position=[1, 0, 0],
+        particles=[0],
+        scale=100.,
+        interaction_type='spring',
+    )
     return interaction
 
 
