@@ -2,8 +2,7 @@ import argparse
 import textwrap
 from narupa.essd import DiscoveryClient, ServiceHub
 
-
-LONG_TIME = 604800
+LONG_TIME = 604800  # one week
 
 
 def print_hub(hub: ServiceHub):
@@ -28,6 +27,8 @@ def main():
 
     try:
         with DiscoveryClient(arguments.address, arguments.port) as client:
+            # search for LONG_TIME because there's no indefinite search
+            # see: https://gitlab.com/intangiblerealities/narupa-protocol/issues/169
             for hub in client.search_for_services(LONG_TIME):
                 print_hub(hub)
     except KeyboardInterrupt:
