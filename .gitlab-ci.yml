@@ -15,6 +15,7 @@ release:
       - python-libraries
       - csharp-libraries/Narupa.Protocol/bin/Release
   script:
+    - conda install -c conda-forge mpi4py
     - ./compile.sh
 
 # triggers a build of the narupa documentation repo. 
@@ -53,6 +54,7 @@ test_dotnet:
   variables:
     test_path: "csharp-libraries"
   script:
+    - conda install -c conda-forge mpi4py
     - ./compile.sh
     - "cd $test_path"
     - "dotnet test"
