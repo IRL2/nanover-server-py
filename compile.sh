@@ -36,6 +36,15 @@ if [[ ! -z "${edit_option}" ]]; then
     narupa_user_option=""
 fi
 
+# mpi4py (required for narupa-lammps) needs MPI to be installed on the system.
+python -c "import mpi4py" 2>&1 > /dev/null || {
+    announce "The mpi4py library is required but cannot be found."
+    announce "If you are using conda, install mpi4py by running"
+    announce "conda install -c conda-forge mpi4py"
+    exit 1
+}
+
+
 announce "Installing python requirements"
 python -m pip install -r ./python-libraries/narupa-core/requirements.txt ${user_option}
 
@@ -65,3 +74,4 @@ python -c "import simtk" 2>&1 > /dev/null || {
 announce "Compiling proto files to C#"
 dotnet build --configuration Release csharp-libraries/Narupa.Protocol
 dotnet publish --configuration Release csharp-libraries/Narupa.Protocol
+}
