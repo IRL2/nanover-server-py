@@ -39,6 +39,8 @@ fi
 # mpi4py (required for narupa-lammps) needs MPI to be installed on the system.
 python -c "import mpi4py" 2>&1 > /dev/null || {
     announce "The mpi4py library is required but cannot be found."
+    announce "Because it requires a system library, it is not installed by this"
+    announce "script; you have to install it yourself."
     announce "If you are using conda, install mpi4py by running"
     announce "conda install -c conda-forge mpi4py"
     exit 1
