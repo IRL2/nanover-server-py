@@ -50,6 +50,7 @@ Developers will want the manual install described below.
     * Activate the conda environment: `conda activate narupa-dev`
     * Install the required conda packages: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
     * Compile the protocol and install the Narupa libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the narupa packages will be installed in edit mode (`pip install -e`) meaning that changes in the `narupa-protocol` directory will be directly reflected in your python environment.
+* The `narupa-lammps` module and its tests require MPI to be installed. Download and install Microsoft MPI from https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
 
 ## Running the tests
 

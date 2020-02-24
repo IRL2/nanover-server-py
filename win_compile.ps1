@@ -60,6 +60,13 @@ catch
     announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
 }
 
+python -c "import mpi4py"
+if ($LASTEXITCODE -ne 0)
+{
+    announce "Cannot load mpi4py. Do you have Microsoft MPI installed?"
+    announce "See https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi"
+}
+
 announce "Compiling proto files to C#"
 dotnet build --configuration Release csharp-libraries/Narupa.Protocol
 dotnet publish --configuration Release csharp-libraries/Narupa.Protocol
