@@ -11,6 +11,8 @@ from google.protobuf.struct_pb2 import Struct
 
 import narupa.protocol.imd.imd_pb2 as imd_pb2
 
+DEFAULT_MAX_FORCE = 20000
+
 
 def set_default_property(properties: Struct, key, default):
     if key not in properties:
@@ -55,7 +57,7 @@ class ParticleInteraction:
                  scale=1,
                  mass_weighted=True,
                  reset_velocities=False,
-                 max_force=20000):
+                 max_force=DEFAULT_MAX_FORCE):
         self._interaction = imd_pb2.ParticleInteraction(player_id=player_id, interaction_id=interaction_id)
         self.position = position
         self._properties = self._interaction.properties
@@ -73,7 +75,7 @@ class ParticleInteraction:
                    default_scale=1,
                    default_mass_weighted=True,
                    default_reset_velocities=False,
-                   default_max_force=20000):
+                   default_max_force=DEFAULT_MAX_FORCE):
         """
         Initialises an interaction from the protobuf representation.
 

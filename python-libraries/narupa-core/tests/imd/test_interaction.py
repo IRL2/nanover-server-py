@@ -1,7 +1,7 @@
 import narupa.protocol.imd.imd_pb2 as imd_pb2
 import numpy as np
 import pytest
-from narupa.imd.particle_interaction import ParticleInteraction
+from narupa.imd.particle_interaction import ParticleInteraction, DEFAULT_MAX_FORCE
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def test_from_proto():
     assert interaction.type == "gaussian"
     assert interaction.scale == 1
     assert interaction.mass_weighted is True
-    assert interaction.max_force == 20000
+    assert interaction.max_force == DEFAULT_MAX_FORCE
 
 
 def test_set_invalid_position(interaction):
