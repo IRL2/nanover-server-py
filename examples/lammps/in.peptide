@@ -1,3 +1,4 @@
+# Licensed under the GPL2. See the LAMMPS GPL2 licence in the project root for license information.
 # Solvated 5-mer peptide
 
 units	        real
@@ -22,12 +23,14 @@ thermo_style	multi
 thermo		50
 
 python         post_force_callback here """
+from narupa.lammps import LammpsImd
 from lammps import lammps
-from narupa.lammps import LammpsHook
-h = LammpsHook()
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
+h = LammpsImd()
 
 def post_force_callback(lmp,v):
-  h.lammps_hook(lmp)
+  h.lammps_hook(lmp,comm)
 """
 
 fix		1 all nvt temp 275.0 275.0 100.0 tchain 1
@@ -48,5 +51,5 @@ group		peptide type <= 12
 #compute		bnd all property/local btype batom1 batom2
 #dump		2 peptide local 300 dump.bond index c_bnd[1] c_bnd[2] c_bnd[3]
 
-run		3000000
+run		300000
 

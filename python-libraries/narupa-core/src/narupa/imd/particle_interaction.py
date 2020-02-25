@@ -46,8 +46,9 @@ class ParticleInteraction:
     RESET_VELOCITIES_KEY = "reset_velocities"
     MAX_FORCE_KEY = "max_force"
 
-    def __init__(self, player_id: str = "1",
-                 interaction_id="0",
+    def __init__(self,
+                 player_id: str,
+                 interaction_id: str,
                  position=(0, 0, 0),
                  particles=(),
                  interaction_type='gaussian',
@@ -66,7 +67,8 @@ class ParticleInteraction:
         self.max_force = max_force
 
     @classmethod
-    def from_proto(cls, interaction_proto,
+    def from_proto(cls,
+                   interaction_proto: imd_pb2.ParticleInteraction,
                    default_interaction_type='gaussian',
                    default_scale=1,
                    default_mass_weighted=True,
@@ -77,7 +79,10 @@ class ParticleInteraction:
 
         :param interaction_proto: The protobuf representation of the interaction.
         """
-        interaction = cls()
+        interaction = cls(
+            player_id=interaction_proto.player_id,
+            interaction_id=interaction_proto.interaction_id,
+        )
         interaction._interaction = interaction_proto
         interaction._properties = interaction_proto.properties
         set_default_property(interaction.properties, cls.TYPE_KEY, default_interaction_type)
