@@ -44,7 +44,7 @@ class ParticleInteraction:
     SCALE_KEY = "scale"
     MASS_WEIGHTED_KEY = "mass_weighted"
     RESET_VELOCITIES_KEY = "reset_velocities"
-    MAX_FORCE = "max_force"
+    MAX_FORCE_KEY = "max_force"
 
     def __init__(self, player_id: str = "1",
                  interaction_id="0",
@@ -70,7 +70,8 @@ class ParticleInteraction:
                    default_interaction_type='gaussian',
                    default_scale=1,
                    default_mass_weighted=True,
-                   default_reset_velocities=False):
+                   default_reset_velocities=False,
+                   default_max_force=20000):
         """
         Initialises an interaction from the protobuf representation.
 
@@ -83,6 +84,7 @@ class ParticleInteraction:
         set_default_property(interaction.properties, cls.MASS_WEIGHTED_KEY, default_mass_weighted)
         set_default_property(interaction.properties, cls.SCALE_KEY, default_scale)
         set_default_property(interaction.properties, cls.RESET_VELOCITIES_KEY, default_reset_velocities)
+        set_default_property(interaction.properties, cls.MAX_FORCE_KEY, default_max_force)
 
         return interaction
 
@@ -197,7 +199,7 @@ class ParticleInteraction:
 
         :return: The maximum energy, in kJ/(mol*nm), the interaction will be allowed to apply to the system.
         """
-        return self._get_property(self.MAX_FORCE)
+        return self._get_property(self.MAX_FORCE_KEY)
 
     @max_force.setter
     def max_force(self, value: float):
@@ -206,7 +208,7 @@ class ParticleInteraction:
 
         :param value: New maximum force, in kJ/(mol*nm).
         """
-        self._set_property(self.MAX_FORCE, value)
+        self._set_property(self.MAX_FORCE_KEY, value)
 
     @property
     def mass_weighted(self) -> bool:
