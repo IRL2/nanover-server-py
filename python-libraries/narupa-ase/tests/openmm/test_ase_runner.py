@@ -184,14 +184,19 @@ def test_discovery(basic_simulation, params):
 
 @pytest.mark.serial
 def test_discovery_with_client(basic_simulation, params):
+    params.name = 'ASE Test Runner'
     with OpenMMIMDRunner(basic_simulation, params) as runner:
         assert runner.running_discovery
         discovery = runner.app_server.discovery
         assert len(discovery.services) == 1
         with DiscoveryClient() as client:
+            # There may be servers running already, we only want to look at the
+            # one we created in that test. We select it by name.
             servers = set(client.search_for_services(search_time=0.8, interval=0.01))
-            assert len(servers) == 1
-            server = next(iter(servers))  # server is a set, get first and only one.
+            relevant_servers = [server for server in servers
+                                if server.name == params.name]
+            assert len(relevant_servers) == 1
+            server = relevant_servers[0]
             assert server in discovery.services
             assert server.name == runner.name
             assert len(server.services) == 3
