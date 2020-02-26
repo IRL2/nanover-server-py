@@ -32,18 +32,11 @@ def test_client_timeout(client):
     """
     Test that the search for services ends roughly on time.
     """
-    relative_tolerance = 1.3
-    # The duration of a single search iteration of client.search_for_services
-    # can take in the order of 0.5 to 1 second depending on the system. If the
-    # duration of the iteration is too close to the search time, then the total
-    # duration of the function will be around twice the requested search time.
-    # Here we need to either use a short search time but allow a large
-    # tolerance, or reduce the tolerance but use a longer time.
-    search_time = 1
+    relative_tolerance = 1.1
     before = time.monotonic()
-    list(client.search_for_services(search_time=search_time))
+    list(client.search_for_services(search_time=TEST_SEARCH_TIME))
     duration = time.monotonic() - before
-    assert duration < search_time * relative_tolerance
+    assert duration < TEST_SEARCH_TIME * relative_tolerance
 
 
 def test_send_service(client_server, service):
