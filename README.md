@@ -7,6 +7,9 @@ This repository is maintained by the Intangible Realities Laboratory, University
 and distributed under [GPLv3](LICENSE).
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
+**The Narupa iMD VR front-end can be found
+[on its own repository](https://gitlab.com/intangiblerealities/narupa-applications/narupa-imd).**
+
 ## Getting Started
 
 The [examples](examples) folder contains example scripts and notebooks for creating and serving simulations.
