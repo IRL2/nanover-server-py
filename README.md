@@ -74,7 +74,6 @@ Optionally, you can run most of tests in parallel with pytest-xdist:
 The example files are distributed in the directory
 `examples/ase/` from the [git repository](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/examples/ase).
 
-
 #### Jupyter Notebooks 
 
 The [`python-libraries/narupa-ase/examples`](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/python-libraries/narupa-ase/examples) examples folder also contains several
@@ -87,6 +86,12 @@ The [Narupa ASE documentation](python-libraries/narupa-ase/README.md) provides m
 trajectory. To serve the frames on port 54321, from the `narupa-protocol` directory, run
 
     python ./examples/mdanalysis/example.py
+
+## Troubleshooting
+
+### Autoconnect
+
+If you are having autoconnecting to servers, you can run `narupa-essd-list` to verify which local network servers are visible to your machine.
 
 ## Citation and External Libraries
 
