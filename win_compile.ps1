@@ -50,11 +50,8 @@ Get-ChildItem -Directory python-libraries/narupa-* | ForEach-Object {
     }
  }
 
-try
-{
-    python -c "import simtk" 
-}
-catch 
+python -c "import simtk"
+if ($LASTEXITCODE -ne 0)
 {
     announce "OpenMM appears to not be installed."
     announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
