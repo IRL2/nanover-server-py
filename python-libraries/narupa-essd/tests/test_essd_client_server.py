@@ -27,12 +27,16 @@ def client_server(client):
     server.close()
 
 
-@pytest.mark.timeout(TEST_SEARCH_TIME * 1.5)
+@pytest.mark.timeout(TEST_SEARCH_TIME * 2)
 def test_client_timeout(client):
     """
     Test that the search for services ends roughly on time.
     """
-    set(client.search_for_services(search_time=TEST_SEARCH_TIME))
+    relative_tolerance = 1.1
+    before = time.monotonic()
+    list(client.search_for_services(search_time=TEST_SEARCH_TIME))
+    duration = time.monotonic() - before
+    assert duration < TEST_SEARCH_TIME * relative_tolerance
 
 
 def test_send_service(client_server, service):
