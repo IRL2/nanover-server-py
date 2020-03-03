@@ -26,9 +26,17 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
 ### Setup narupa-protocol with Anaconda
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
+* Open the "Anaconda Powershell Prompt" to type the following commands.
 * Create a conda environment (here we call the environment "narupa"): `conda create -n narupa "python>3.6"`
 * Activate the conda environment: `conda activate narupa`
 * Install the Narupa packages: `conda install -c irl -c omnia -c conda-forge narupa-server`
+
+Narupa can interact with the [LAMMPS](https://lammps.sandia.gov/) simulation engine.
+If you want to use this specific feature, you need to:
+
+* install LAMMPS with python capabilities
+* install mpy4py: `conda install -c conda-forge mpi4py` on Linux and MacOS,
+  `python -m pip install mpi4py` on Windows.
 
 Developers will want the manual install described below.
 
