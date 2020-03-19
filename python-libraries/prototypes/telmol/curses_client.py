@@ -319,9 +319,6 @@ def handle_user_args(args=None) -> argparse.Namespace:
     display.
     """)
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--address', default=None)
-    parser.add_argument('--traj', '-t', type=int, default=None)
-    parser.add_argument('--imd', '-i', type=int, default=None)
     parser.add_argument('--rainbow', action="store_true")
     arguments = parser.parse_args(args)
     return arguments
@@ -330,10 +327,7 @@ def handle_user_args(args=None) -> argparse.Namespace:
 def main(stdscr):
     arguments = handle_user_args()
 
-    with NarupaImdClient(address=arguments.address,
-                         trajectory_port=arguments.traj,
-                         imd_port=arguments.imd,
-                         all_frames=False) as client:
+    with NarupaImdClient.autoconnect() as client:
         telmol = CursesFrontend(stdscr, client, override_colors=arguments.rainbow)
         telmol.run()
 
