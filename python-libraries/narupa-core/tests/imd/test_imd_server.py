@@ -127,12 +127,14 @@ def test_repeat_interactions(imd_server_client, interactions):
 
 def test_publish_identical_interactions(imd_server_client, interactions):
     """
-    Tests that publishing identical interactions at the same time throws a gRPC exception.
+    Tests that publishing interactions with a shared interaction id on two
+    different streams raises a gRPC error.
     """
     imd_server, imd_client = imd_server_client
     mock = Mock()
     imd_server.service.set_interaction_updated_callback(mock.callback)
     imd_client.publish_interactions_async(delayed_generator(interactions, delay=0.1))
+    time.sleep(0.05) # wait for async interaction to begin
     with pytest.raises(grpc.RpcError):
         imd_client.publish_interactions(delayed_generator(interactions, delay=0.15))
 
