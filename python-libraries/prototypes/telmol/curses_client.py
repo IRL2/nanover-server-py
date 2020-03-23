@@ -324,7 +324,7 @@ def handle_user_args(args=None) -> argparse.Namespace:
     display.
     """)
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--autoconnect', nargs='*')
+    parser.add_argument('--autoconnect', nargs='?', default=False)
     parser.add_argument('--hostname', default=None)
     parser.add_argument('--port', '-p', default=None)
     parser.add_argument('--rainbow', '-r', action="store_true")
@@ -335,9 +335,8 @@ def handle_user_args(args=None) -> argparse.Namespace:
 def main(stdscr):
     arguments = handle_user_args()
 
-    if arguments.autoconnect is not None:
-        name = None if not arguments.autoconnect else arguments.autoconnect[0]
-        client = NarupaImdClient.autoconnect(name=name)
+    if arguments.autoconnect is not False:
+        client = NarupaImdClient.autoconnect(name=arguments.autoconnect)
     else:
         address = (
             arguments.hostname or 'localhost',
