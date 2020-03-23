@@ -335,8 +335,6 @@ def handle_user_args(args=None) -> argparse.Namespace:
 def main(stdscr):
     arguments = handle_user_args()
 
-    print(arguments.autoconnect)
-
     if arguments.autoconnect is not None:
         name = None if not arguments.autoconnect else arguments.autoconnect[0]
         client = NarupaImdClient.autoconnect(name=name)
