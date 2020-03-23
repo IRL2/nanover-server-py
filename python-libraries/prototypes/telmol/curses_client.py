@@ -63,7 +63,10 @@ class FPSTimer:
         self._prev_checkpoint = time.monotonic()
         self.intervals.append(interval)
         self.intervals[:] = self.intervals[-self.count:]
-        self.fps = len(self.intervals) / sum(self.intervals)
+        try:
+            self.fps = len(self.intervals) / sum(self.intervals)
+        except ZeroDivisionError:
+            pass
 
 
 class FrameTimer:
@@ -321,28 +324,25 @@ def handle_user_args(args=None) -> argparse.Namespace:
     display.
     """)
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--address', default=None)
-    parser.add_argument('--rainbow', action="store_true")
+    parser.add_argument('--autoconnect', action="store_true")
+    parser.add_argument('--name', default=None)
+    parser.add_argument('--hostname', default=None)
+    parser.add_argument('--port', '-p', default=None)
+    parser.add_argument('--rainbow', '-r', action="store_true")
     arguments = parser.parse_args(args)
     return arguments
-
-
-def parse_address(address, default_port):
-    if ':' in address:
-        host, port = address.split(':')
-        port = int(port)
-    else:
-        host, port = address, default_port
-    return host, port
 
 
 def main(stdscr):
     arguments = handle_user_args()
 
-    if arguments.address is None:
-        client = NarupaImdClient.autoconnect()
+    if arguments.autoconnect:
+        client = NarupaImdClient.autoconnect(name=arguments.name)
     else:
-        address = parse_address(arguments.address, DEFAULT_NARUPA_PORT)
+        address = (
+            arguments.hostname or 'localhost',
+            int(arguments.port or DEFAULT_NARUPA_PORT),
+        )
         client = NarupaImdClient(trajectory_address=address)
 
     with client:
