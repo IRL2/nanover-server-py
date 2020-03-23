@@ -324,7 +324,7 @@ def handle_user_args(args=None) -> argparse.Namespace:
     display.
     """)
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--autoconnect', nargs='?', default=False)
+    parser.add_argument('--autoconnect', nargs='?', default=False, metavar='NAME')
     parser.add_argument('--hostname', default=None)
     parser.add_argument('--port', '-p', default=None, type=int)
     parser.add_argument('--rainbow', '-r', action="store_true")
