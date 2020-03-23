@@ -11,7 +11,7 @@ from narupa.ase.imd import NarupaASEDynamics
 from narupa.ase.imd_calculator import ImdCalculator
 from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
-from util import co_atoms
+from util import co_atoms, client_interaction
 import numpy as np
 
 @pytest.fixture
@@ -50,14 +50,6 @@ def imd_server_atoms_client():
     with NarupaASEDynamics.basic_imd(dynamics, port=0) as server:
         with ImdClient.insecure_channel(port=server.port) as client:
             yield server, atoms, client
-
-
-@contextmanager
-def client_interaction(client: ImdClient, interaction):
-    interaction_id = client.start_interaction()
-    client.update_interaction(interaction_id, interaction)
-    yield interaction_id
-    client.stop_interaction(interaction_id)
 
 
 def test_ase_imd_dynamics(imd_server_atoms_client):

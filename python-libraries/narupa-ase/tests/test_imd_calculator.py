@@ -1,8 +1,6 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 import time
-from contextlib import contextmanager
-
 import pytest
 import numpy as np
 from ase.calculators.lj import LennardJones
@@ -10,7 +8,7 @@ from narupa.ase import converter
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
 from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
-from util import co_atoms, imd_server
+from util import co_atoms, imd_server, client_interaction
 
 
 @pytest.fixture
@@ -44,14 +42,6 @@ def imd_calculator_no_atoms(imd_server):
     calculator = LennardJones()
     imd_calculator = ImdCalculator(imd_server.service, calculator)
     yield imd_calculator
-
-
-@contextmanager
-def client_interaction(client: ImdClient, interaction):
-    interaction_id = client.start_interaction()
-    client.update_interaction(interaction_id, interaction)
-    yield interaction_id
-    client.stop_interaction(interaction_id)
 
 
 def test_imd_calculator_no_interactions(imd_calculator_co):
