@@ -326,7 +326,7 @@ def handle_user_args(args=None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--autoconnect', nargs='?', default=False)
     parser.add_argument('--hostname', default=None)
-    parser.add_argument('--port', '-p', default=None)
+    parser.add_argument('--port', '-p', default=None, type=int)
     parser.add_argument('--rainbow', '-r', action="store_true")
     arguments = parser.parse_args(args)
     return arguments
@@ -340,7 +340,7 @@ def main(stdscr):
     else:
         address = (
             arguments.hostname or 'localhost',
-            int(arguments.port or DEFAULT_NARUPA_PORT),
+            arguments.port or DEFAULT_NARUPA_PORT,
         )
         client = NarupaImdClient(trajectory_address=address)
 
