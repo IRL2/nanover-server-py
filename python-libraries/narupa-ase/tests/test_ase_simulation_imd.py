@@ -1,19 +1,17 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 import time
+from contextlib import contextmanager
 
 import pytest
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
-from narupa.app import NarupaImdApplication
-from narupa.app.app_server import DEFAULT_NARUPA_PORT
 
 from narupa.ase.imd import NarupaASEDynamics
 from narupa.ase.imd_calculator import ImdCalculator
-from narupa.utilities.timing import delayed_generator
 from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
-from util import co_atoms
+from util import co_atoms, client_interaction
 import numpy as np
 
 @pytest.fixture
@@ -69,13 +67,12 @@ def test_ase_imd_dynamics_interaction(imd_server_atoms_client, interact_c):
     imd_calculator = atoms.get_calculator()
     assert isinstance(imd_calculator, ImdCalculator)
 
-    imd_client.publish_interactions_async(delayed_generator([interact_c] * 10000, delay=0.025))
-    time.sleep(0.1)
-    assert len(imd_calculator.interactions) == 1
-
-    dynamics.run(2)
-    atom = dynamics.atoms[interact_c.particles[0]]
-    assert atom.momentum[1] > 100
+    with client_interaction(imd_client, interact_c):
+        time.sleep(0.1)
+        assert len(imd_calculator.interactions) == 1
+        dynamics.run(2)
+        atom = dynamics.atoms[interact_c.particles[0]]
+        assert atom.momentum[1] > 100
 
 
 def test_ase_imd_dynamics_interaction_com(imd_server_atoms_client, interact_both):
@@ -87,13 +84,13 @@ def test_ase_imd_dynamics_interaction_com(imd_server_atoms_client, interact_both
 
     imd_calculator = atoms.get_calculator()
     assert isinstance(imd_calculator, ImdCalculator)
-    imd_client.publish_interactions_async(delayed_generator([interact_both] * 10000, delay=0.025))
-    time.sleep(0.1)
-    assert len(imd_calculator.interactions) == 1
 
-    dynamics.run(1)
-    for atom in dynamics.atoms:
-        assert atom.momentum[1] > 50
+    with client_interaction(imd_client, interact_both):
+        time.sleep(0.1)
+        assert len(imd_calculator.interactions) == 1
+        dynamics.run(1)
+        for atom in dynamics.atoms:
+            assert atom.momentum[1] > 50
 
 
 def test_ase_imd_run_forever(imd_server_atoms_client):

@@ -1,16 +1,14 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 import time
-
 import pytest
 import numpy as np
 from ase.calculators.lj import LennardJones
 from narupa.ase import converter
-from narupa.utilities.timing import delayed_generator
 from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
 from narupa.imd import ImdClient
 from narupa.imd.particle_interaction import ParticleInteraction
-from util import co_atoms, imd_server
+from util import co_atoms, imd_server, client_interaction
 
 
 @pytest.fixture
@@ -124,11 +122,11 @@ def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, in
     # perform the calculation with interaction applied.
     interact_c.position = position
     with ImdClient.insecure_channel(port=imd_server.port) as imd_client:
-        imd_client.publish_interactions_async(delayed_generator([interact_c] * 50, delay=0.01))
-        time.sleep(0.1)
-        assert len(imd_calculator.interactions) == 1
-        imd_calculator.calculate(properties=properties)
-        results = imd_calculator.results
+        with client_interaction(imd_client, interact_c):
+            time.sleep(0.1)
+            assert len(imd_calculator.interactions) == 1
+            imd_calculator.calculate(properties=properties)
+            results = imd_calculator.results
 
     # set up the expected energy and forces.
     expected_imd_energy_kjmol = interact_c.scale * imd_energy * atoms.get_masses()[0]
