@@ -336,7 +336,7 @@ def handle_user_args(args=None) -> argparse.Namespace:
 def main(stdscr):
     arguments = handle_user_args()
 
-    if arguments.autoconnect:
+    if arguments.autoconnect or arguments.name:
         client = NarupaImdClient.autoconnect(name=arguments.name)
     else:
         address = (
