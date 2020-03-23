@@ -10,6 +10,8 @@ import sys
 import textwrap
 from typing import Dict, Callable, Sequence, Any
 
+from narupa.app.app_server import DEFAULT_NARUPA_PORT
+
 try:
     import curses
 except ModuleNotFoundError:
@@ -319,15 +321,31 @@ def handle_user_args(args=None) -> argparse.Namespace:
     display.
     """)
     parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('--address', default=None)
     parser.add_argument('--rainbow', action="store_true")
     arguments = parser.parse_args(args)
     return arguments
 
 
+def parse_address(address, default_port):
+    if ':' in address:
+        host, port = address.split(':')
+        port = int(port)
+    else:
+        host, port = address, default_port
+    return host, port
+
+
 def main(stdscr):
     arguments = handle_user_args()
 
-    with NarupaImdClient.autoconnect() as client:
+    if arguments.address is None:
+        client = NarupaImdClient.autoconnect()
+    else:
+        address = parse_address(arguments.address, DEFAULT_NARUPA_PORT)
+        client = NarupaImdClient(trajectory_address=address)
+
+    with client:
         telmol = CursesFrontend(stdscr, client, override_colors=arguments.rainbow)
         telmol.run()
 
