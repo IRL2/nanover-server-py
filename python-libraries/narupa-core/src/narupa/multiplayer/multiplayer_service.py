@@ -5,8 +5,7 @@
 Module providing an implementation of a multiplayer service,.
 """
 import logging
-from threading import Lock
-from typing import Iterator, Callable, Dict, Set
+from typing import Iterator, Callable, Dict, Set, ContextManager
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
 from narupa.state.state_dictionary import StateDictionary
@@ -15,13 +14,13 @@ from narupa.utilities.grpc_utilities import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
 )
-from narupa.utilities.protobuf_utilities import value_to_object
+from narupa.utilities.protobuf_utilities import value_to_object, \
+    deep_copy_serializable_dict
 from narupa.utilities.change_buffers import (
     DictionaryChangeMultiView,
     DictionaryChange,
 )
 from narupa.utilities.key_lockable_map import (
-    KeyLockableMap,
     ResourceLockedError,
 )
 from narupa.protocol.multiplayer.multiplayer_pb2 import (
@@ -38,6 +37,8 @@ class MultiplayerService(MultiplayerServicer):
     """
     Implementation of the Multiplayer service.
     """
+    _avatars: DictionaryChangeMultiView
+    _state_dictionary: StateDictionary
 
     def __init__(self):
         super().__init__()
@@ -48,11 +49,21 @@ class MultiplayerService(MultiplayerServicer):
         self.logger = logging.getLogger(__name__)
 
         self._avatars = DictionaryChangeMultiView()
-        self._resource_write_lock = Lock()
-        self._resources = DictionaryChangeMultiView()
-        self.resources = KeyLockableMap()
-
         self._state_dictionary = StateDictionary()
+
+    def lock_state(self) -> ContextManager[Dict[str, object]]:
+        """
+        Context manager for reading the current state while delaying any changes
+        to it.
+        """
+        return self._state_dictionary.lock_content()
+
+    def copy_state(self) -> Dict[str, object]:
+        """
+        Return a deep copy of the current state.
+        """
+        with self.lock_state() as state:
+            return deep_copy_serializable_dict(state)
 
     def update_state(self, access_token: object, change: DictionaryChange):
         """
@@ -91,8 +102,6 @@ class MultiplayerService(MultiplayerServicer):
         """
         player_id = self.generate_player_id()
         self.players[player_id] = request
-        self.logger.info(f'{request.player_name} ({player_id}) has joined '
-                         f'multiplayer.')
         return CreatePlayerResponse(player_id=player_id)
 
     def SubscribePlayerAvatars(self,
@@ -194,7 +203,7 @@ class MultiplayerService(MultiplayerServicer):
         """
         Attempt to write a value in the shared key/value store.
         """
-        success = False
+        success = True
         resource_value = value_to_object(request.resource_value)
         try:
             self.update_state(
@@ -213,7 +222,7 @@ class MultiplayerService(MultiplayerServicer):
         """
         Attempt to remove a key from the shared key/value store.
         """
-        success = False
+        success = True
         try:
             self.update_state(
                 request.player_id,
@@ -233,7 +242,6 @@ class MultiplayerService(MultiplayerServicer):
 
     def close(self):
         self._avatars.freeze()
-        self._resources.freeze()
 
     def _clear_player_avatar(self, player_id: str):
         """
