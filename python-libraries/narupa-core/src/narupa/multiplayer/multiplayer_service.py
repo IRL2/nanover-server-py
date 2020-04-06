@@ -6,15 +6,20 @@ Module providing an implementation of a multiplayer service,.
 """
 import logging
 from threading import Lock
-from typing import Iterator, Callable
+from typing import Iterator, Callable, Dict, Set
 
 import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
+from narupa.state.state_dictionary import StateDictionary
+from narupa.state.state_service import validate_dict_is_serializable
 from narupa.utilities.grpc_utilities import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
 )
 from narupa.utilities.protobuf_utilities import value_to_object
-from narupa.utilities.change_buffers import DictionaryChangeMultiView
+from narupa.utilities.change_buffers import (
+    DictionaryChangeMultiView,
+    DictionaryChange,
+)
 from narupa.utilities.key_lockable_map import (
     KeyLockableMap,
     ResourceLockedError,
@@ -46,6 +51,37 @@ class MultiplayerService(MultiplayerServicer):
         self._resource_write_lock = Lock()
         self._resources = DictionaryChangeMultiView()
         self.resources = KeyLockableMap()
+
+        self._state_dictionary = StateDictionary()
+
+    def update_state(self, access_token: object, change: DictionaryChange):
+        """
+        Attempts an atomic update of the shared key/value store. If any key
+        cannot be updated, no change will be made.
+
+        :raises ResourceLockedError: if the access token cannot acquire all keys
+            for updating.
+        :raises TypeError: if the update values cannot be serialized for
+            transmission.
+        """
+        validate_dict_is_serializable(change.updates)
+        self._state_dictionary.update_state(access_token, change)
+
+    def update_locks(
+            self,
+            access_token: object,
+            acquire: Dict[str, float],
+            release: Set[str],
+    ):
+        """
+        Attempts to acquire and release locks on keys in the shared key/value
+        store. If any of the locks cannot be acquired, none of them will be.
+        Requested lock releases are carried out regardless.
+
+        :raises ResourceLockedError: if the access token cannot acquire all
+            requested keys.
+        """
+        self._state_dictionary.update_locks(access_token, acquire, release)
 
     def CreatePlayer(self,
                      request: CreatePlayerRequest,
@@ -100,7 +136,7 @@ class MultiplayerService(MultiplayerServicer):
         Provides a stream of updates to a shared key/value store.
         """
         interval = request.update_interval
-        with self._resources.create_view() as change_buffer:
+        with self._state_dictionary.get_change_buffer() as change_buffer:
             try:
                 subscribe_rpc_termination(context, change_buffer.freeze)
             except RpcAlreadyTerminatedError:
@@ -118,19 +154,19 @@ class MultiplayerService(MultiplayerServicer):
         Attempt to acquire exclusive write access to a key in the shared
         key/value store.
         """
+        success = True
         try:
             duration = request.timeout_duration
             if duration <= 0:
                 duration = None
-            self.resources.lock_key(request.player_id,
-                                    request.resource_id,
-                                    duration)
-            success = True
+            self.update_locks(
+                request.player_id,
+                {request.resource_id: duration},
+                set(),
+            )
         except ResourceLockedError:
             success = False
-        self.logger.debug(f'{request.player_id} attempts lock on {request.resource_id} (Success: {success})')
-        response = ResourceRequestResponse(success=success)
-        return response
+        return ResourceRequestResponse(success=success)
 
     def ReleaseResourceLock(self,
                             request: multiplayer_proto.ReleaseLockRequest,
@@ -139,9 +175,13 @@ class MultiplayerService(MultiplayerServicer):
         Attempt to release exclusive write access to a key in the shared
         key/value store.
         """
+        success = True
         try:
-            self.resources.release_key(request.player_id, request.resource_id)
-            success = True
+            self.update_locks(
+                request.player_id,
+                {},
+                set([request.resource_id]),
+            )
         except ResourceLockedError:
             success = False
         return ResourceRequestResponse(success=success)
@@ -154,19 +194,15 @@ class MultiplayerService(MultiplayerServicer):
         """
         Attempt to write a value in the shared key/value store.
         """
+        success = False
         resource_value = value_to_object(request.resource_value)
         try:
-            # TODO: single lockable+subscribable structure?
-            with self._resource_write_lock:
-                self.resources.set(request.player_id,
-                                   request.resource_id,
-                                   resource_value)
-                self._resources.update({request.resource_id: resource_value})
-            success = True
+            self.update_state(
+                request.player_id,
+                DictionaryChange({request.resource_id: resource_value}, []),
+            )
         except ResourceLockedError:
             success = False
-
-        self.logger.debug(f'{request.player_id} attempts {request.resource_id}={resource_value} (Successs: {success})')
         return ResourceRequestResponse(success=success)
 
     def RemoveResourceKey(
@@ -177,18 +213,14 @@ class MultiplayerService(MultiplayerServicer):
         """
         Attempt to remove a key from the shared key/value store.
         """
+        success = False
         try:
-            # TODO: single lockable+subscribable structure?
-            with self._resource_write_lock:
-                self.resources.set(request.player_id,
-                                   request.resource_id,
-                                   None)
-                self._resources.update(removals=[request.resource_id])
-            success = True
+            self.update_state(
+                request.player_id,
+                DictionaryChange({}, [request.resource_id]),
+            )
         except ResourceLockedError:
             success = False
-
-        self.logger.debug(f'{request.player_id} attempts del {request.resource_id} (Successs: {success})')
         return ResourceRequestResponse(success=success)
 
     def generate_player_id(self):
