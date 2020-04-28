@@ -5,6 +5,9 @@ from typing import Dict
 from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 from narupa.protocol.command import CommandMessage
 
+CommandArguments = Dict[str, object]
+CommandResult = Dict[str, object]
+
 
 class CommandInfo:
     """
@@ -30,7 +33,7 @@ class CommandInfo:
         return self.raw.name
 
     @property
-    def arguments(self) -> Dict[str, object]:
+    def arguments(self) -> CommandArguments:
         """
         Gets a copy of the default arguments this command accepts, as
         a dictionary.

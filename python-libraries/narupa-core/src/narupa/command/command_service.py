@@ -4,17 +4,25 @@
 Module providing an implementation of the :class:`CommandServicer`.
 
 """
+from typing import Dict, Callable, Optional
 from typing import NamedTuple
-from typing import Dict, Callable, Optional, Any
 
 import grpc
-
-from narupa.command.command_info import CommandInfo
-from narupa.utilities.protobuf_utilities import dict_to_struct
-from narupa.utilities.key_lockable_map import KeyLockableMap
+from narupa.command.command_info import (
+    CommandInfo,
+    CommandArguments,
+    CommandResult,
+)
 from narupa.protocol.command import (
-    CommandServicer, CommandMessage, CommandReply, GetCommandsReply,
-    add_CommandServicer_to_server)
+    CommandServicer,
+    CommandReply,
+    GetCommandsReply,
+    add_CommandServicer_to_server,
+)
+from narupa.utilities.key_lockable_map import KeyLockableMap
+from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
+
+CommandHandler = Callable[[CommandArguments], Optional[CommandResult]]
 
 
 class CommandRegistration(NamedTuple):
@@ -25,7 +33,7 @@ class CommandRegistration(NamedTuple):
     """
 
     info: CommandInfo
-    callback: Callable[[Dict[str, object]], Optional[Dict[str, object]]]
+    callback: CommandHandler
 
 
 class CommandService(CommandServicer):
@@ -33,7 +41,6 @@ class CommandService(CommandServicer):
     Implementation of the Command service, enabling services to register arbitrary commands
     which are run as callbacks.
     """
-
 
     def __init__(self):
         super().__init__()
@@ -52,8 +59,11 @@ class CommandService(CommandServicer):
         """
         return self._commands.get_all()
 
-    def register_command(self, name: str, callback: Callable[[Dict[str, Any]], Optional[Dict[str, Any]]],
-                         default_arguments: Optional[Dict[str, Any]] = None):
+    def register_command(
+            self, name: str,
+            callback: CommandHandler,
+            default_arguments: Optional[CommandArguments] = None,
+    ):
         """
         Registers a command with this service
 
@@ -93,7 +103,7 @@ class CommandService(CommandServicer):
                     commands_copy.values()]
         return GetCommandsReply(commands=commands)
 
-    def RunCommand(self, request, context):
+    def RunCommand(self, request, context) -> CommandReply:
         """
         GRPC method to run a command.
 
@@ -109,7 +119,7 @@ class CommandService(CommandServicer):
             context.set_details(message)
             return
         args = command.info.arguments
-        args.update(request.arguments)
+        args.update(struct_to_dict(request.arguments))
         results = command.callback(**args)
         if results is not None:
             try:
