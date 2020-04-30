@@ -386,6 +386,20 @@ def test_cant_lock_other_locked(server_client_pair):
         assert not client1.try_lock_resource("scene")
 
 
+def test_cant_release_other_lock(server_client_pair):
+    """
+    Test that attempting to release a lock you no longer hold but is now held
+    by someone else will succeed but leave the locks untouched.
+    """
+    server, client1 = server_client_pair
+    with MultiplayerClient.insecure_channel(port=server.port) as client2:
+        client1.join_multiplayer("main")
+        client2.join_multiplayer("other")
+        assert client2.try_lock_resource("scene")
+        assert client1.try_release_resource("scene")
+        assert not client1.try_lock_resource("scene")
+
+
 def test_cant_set_other_locked(server_client_pair, scene):
     """
     Test that you cannot set a resource that is locked by someone else.
