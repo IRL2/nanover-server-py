@@ -302,7 +302,7 @@ def test_set_value_updates_server_values(server_client_pair, scene):
     """
     server, client = server_client_pair
     client.try_set_resource_value("scene", scene)
-    server_scene = server._multiplayer_service.resources.get("scene")
+    server_scene = server._multiplayer_service.copy_state().get("scene")
     assert scene == server_scene
 
 
@@ -313,10 +313,10 @@ def test_remove_key_updates_server_keys(server_client_pair, scene):
     """
     server, client = server_client_pair
     client.try_set_resource_value("scene", scene)
-    server_scene = server._multiplayer_service.resources.get("scene")
+    server_scene = server._multiplayer_service.copy_state().get("scene")
     assert scene == server_scene
     client.try_remove_resource_key("scene")
-    server_scene = server._multiplayer_service.resources.get("scene")
+    server_scene = server._multiplayer_service.copy_state().get("scene")
     assert server_scene is None
 
 
@@ -380,20 +380,24 @@ def test_cant_lock_other_locked(server_client_pair):
     with MultiplayerClient.insecure_channel(port=server.port) as client2:
         client1.join_multiplayer("main")
         client2.join_multiplayer("other")
+        client1._player_id = '1'
+        client2._player_id = '2'
         client2.try_lock_resource("scene")
         assert not client1.try_lock_resource("scene")
 
 
 def test_cant_release_other_lock(server_client_pair):
     """
-    Test that you cannot release a resource that is locked by someone else.
+    Test that attempting to release a lock you no longer hold but is now held
+    by someone else will succeed but leave the locks untouched.
     """
     server, client1 = server_client_pair
     with MultiplayerClient.insecure_channel(port=server.port) as client2:
         client1.join_multiplayer("main")
         client2.join_multiplayer("other")
-        client2.try_lock_resource("scene")
-        assert not client1.try_release_resource("scene")
+        assert client2.try_lock_resource("scene")
+        assert client1.try_release_resource("scene")
+        assert not client1.try_lock_resource("scene")
 
 
 def test_cant_set_other_locked(server_client_pair, scene):
