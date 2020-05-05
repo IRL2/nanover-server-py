@@ -16,7 +16,7 @@ def dict_to_struct(dictionary: Dict[str, object]) -> Struct:
     struct = Struct()
     try:
         struct.update(dictionary)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, AttributeError):
         raise ValueError("Unable to construct serialise dictionary into a protobuf struct. "
                          "Only value types such as numbers, strings, booleans, and collections of those types"
                          "can be serialised.")
