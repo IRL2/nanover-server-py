@@ -11,7 +11,6 @@ import pytest
 
 from narupa.multiplayer.multiplayer_client import MultiplayerClient
 from narupa.multiplayer.multiplayer_server import MultiplayerServer
-from narupa.protocol.multiplayer.multiplayer_pb2 import Avatar, AvatarComponent
 
 CONNECT_WAIT_TIME = 0.01
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
@@ -32,18 +31,6 @@ def server_client_pair():
 
     with client, server:
         yield server, client
-
-
-@pytest.fixture
-def avatar():
-    """
-    Provides avatar test data.
-    """
-    components = [AvatarComponent(name="Head",
-                                  position=[0, 0, 1],
-                                  rotation=[1, 1, 1, 1])]
-    avatar = Avatar(player_id="1", components=components)
-    return avatar
 
 
 @pytest.fixture
@@ -75,169 +62,6 @@ def test_join_multiplayer_twice_same_id(server_client_pair):
     first_id = client.join_multiplayer("user", join_streams=False)
     second_id = client.join_multiplayer("user", join_streams=False)
     assert first_id == second_id
-
-
-def test_join_avatar_stream(server_client_pair):
-    """
-    Test that the avatar stream can be joined.
-    """
-    server, client = server_client_pair
-    client.join_avatar_stream()
-
-
-def test_cant_publish_avatar_without_player(server_client_pair):
-    """
-    Test that attempting to join avatar publishing without a player id fails.
-    """
-    server, client = server_client_pair
-    with pytest.raises(RuntimeError):
-        client.join_avatar_publish()
-
-
-def test_join_publish_avatar_with_player(server_client_pair):
-    """
-    Test that join avatar publish with a player id works.
-    """
-    server, client = server_client_pair
-    client.join_multiplayer(player_name="user")
-    client.join_avatar_publish()
-
-
-def test_publish_avatar_to_self(server_client_pair, avatar):
-    """
-    Test that a published avatar makes it back to yourself.
-    """
-    server, client = server_client_pair
-    player_id = client.join_multiplayer(player_name="user")
-    client.join_avatar_publish()
-    client.join_avatar_stream(ignore_self=False)
-    time.sleep(CONNECT_WAIT_TIME)
-
-    avatar.player_id = player_id
-    client.publish_avatar(avatar)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-
-    assert str(client.current_avatars[player_id]) == str(avatar)
-
-
-def test_publish_avatar_ignore_self(server_client_pair, avatar):
-    """
-    Test that a published avatar does not make it back to yourself if you are
-    ignoring yourself.
-    """
-    server, client = server_client_pair
-    player_id = client.join_multiplayer(player_name="user")
-    client.join_avatar_publish()
-    client.join_avatar_stream(ignore_self=True)
-    time.sleep(CONNECT_WAIT_TIME)
-
-    avatar.player_id = player_id
-    client.publish_avatar(avatar)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-
-    assert len(client.current_avatars) == 0
-
-
-def test_publish_avatar_multiple_transmission(server_client_pair, avatar):
-    """
-    Test that multiple different avatar publishes results in the client
-    reflecting the last published avatar.
-    """
-    server, client = server_client_pair
-    player_id = client.join_multiplayer(player_name="user")
-    client.join_avatar_publish()
-    client.join_avatar_stream(ignore_self=False)
-    time.sleep(CONNECT_WAIT_TIME)
-
-    client.publish_avatar(avatar)
-    avatar.components[0].position[:] = [0, 0, 2]
-    client.publish_avatar(avatar)
-    avatar.components[0].position[:] = [0, 0, 3]
-    client.publish_avatar(avatar)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 3)
-
-    client_avatar = client.current_avatars[player_id]
-    assert client_avatar.components[0].position == [0, 0, 3]
-
-
-@pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
-def test_subscribe_avatars_sends_initial_immediately(server_client_pair, avatar,
-                                                     update_interval):
-    """
-    Test that subscribing avatars before any have been sent will immediately
-    send the first avatar regardless of interval.
-    """
-    server, client = server_client_pair
-    player_id = client.join_multiplayer("main", join_streams=False)
-    client.join_avatar_stream(interval=update_interval, ignore_self=False)
-    client.join_avatar_publish()
-    time.sleep(CONNECT_WAIT_TIME)
-
-    client.publish_avatar(avatar)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert str(client.current_avatars[player_id]) == str(avatar)
-
-
-@pytest.mark.parametrize('update_interval', (.5, .2, .1))
-def test_subscribe_avatars_interval(server_client_pair, avatar, update_interval):
-    """
-    Test that avatars updates are sent at the requested interval.
-    """
-    server, client = server_client_pair
-    client.join_multiplayer("main", join_streams=False)
-    client.join_avatar_stream(interval=update_interval, ignore_self=False)
-    client.join_avatar_publish()
-
-    test_values = [Avatar() for i in range(2)]
-    for i, value in enumerate(test_values):
-        value.CopyFrom(avatar)
-        value.components[0].position[:] = [i, i, i]
-
-    # send the initial avatar: we expect it to be sent back immediately because
-    # there is no previous update to put an interval between.
-    # Assumes client.publish_avatar is instant.
-    time.sleep(CONNECT_WAIT_TIME)
-    client.publish_avatar(test_values[0])
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-
-    # send the avatar update: we expect it not be sent back immediately, and
-    # that the initial value still stands, since the interval has not passed.
-    # Assumes client.publish_avatar is instant.
-    client.publish_avatar(test_values[1])
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert str(client.current_avatars[client.player_id]) == str(test_values[0])
-
-    # wait the interval time: we expect the update to have arrived since the
-    # interval time has passed since the initial value was sent.
-    time.sleep(update_interval)
-    assert str(client.current_avatars[client.player_id]) == str(test_values[1])
-
-
-def test_clearing_disconnected_avatars(server_client_pair, avatar):
-    """
-    Test that disconnecting from the server clears the old avatar. Note the
-    avatar will persist but will have no components.
-    """
-    server, first_client = server_client_pair
-
-    first_player_id = first_client.join_multiplayer("first client")
-    time.sleep(CONNECT_WAIT_TIME)
-    avatar.player_id = first_player_id
-    first_client.publish_avatar(avatar)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-
-    with MultiplayerClient.insecure_channel(port=server.port) as second_client:
-        second_client.join_avatar_stream(interval=0, ignore_self=False)
-        time.sleep(CONNECT_WAIT_TIME)
-
-        first_avatar = second_client.current_avatars[first_player_id]
-        assert len(first_avatar.components) == 1
-
-        first_client.close()
-        time.sleep(CLIENT_SEND_INTERVAL * 2)
-
-        first_avatar = second_client.current_avatars[first_player_id]
-        assert len(first_avatar.components) == 0
 
 
 def test_can_lock_unlocked(server_client_pair):

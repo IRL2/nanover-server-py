@@ -5,30 +5,39 @@
 Module providing an implementation of a multiplayer service,.
 """
 import logging
-from typing import Iterator, Callable, Dict, Set, ContextManager
+from typing import Callable, Dict, Set, ContextManager
 
-import narupa.protocol.multiplayer.multiplayer_pb2 as multiplayer_proto
+from narupa.protocol.multiplayer.multiplayer_pb2 import (
+    CreatePlayerRequest,
+    CreatePlayerResponse,
+    ResourceRequestResponse,
+    SetResourceValueRequest,
+    RemoveResourceKeyRequest,
+    ResourceValuesUpdate,
+    AcquireLockRequest,
+    ReleaseLockRequest,
+)
+from narupa.protocol.multiplayer.multiplayer_pb2_grpc import (
+    MultiplayerServicer,
+    add_MultiplayerServicer_to_server,
+)
 from narupa.state.state_dictionary import StateDictionary
 from narupa.state.state_service import validate_dict_is_serializable
-from narupa.utilities.grpc_utilities import (
-    subscribe_rpc_termination,
-    RpcAlreadyTerminatedError,
-)
-from narupa.utilities.protobuf_utilities import value_to_object, \
-    deep_copy_serializable_dict
 from narupa.utilities.change_buffers import (
     DictionaryChangeMultiView,
     DictionaryChange,
 )
+from narupa.utilities.grpc_utilities import (
+    subscribe_rpc_termination,
+    RpcAlreadyTerminatedError,
+)
 from narupa.utilities.key_lockable_map import (
     ResourceLockedError,
 )
-from narupa.protocol.multiplayer.multiplayer_pb2 import (
-    StreamEndedResponse, Avatar, ResourceRequestResponse,
-    SetResourceValueRequest, CreatePlayerRequest, CreatePlayerResponse,
-    SubscribePlayerAvatarsRequest, ResourceValuesUpdate,
+from narupa.utilities.protobuf_utilities import (
+    value_to_object,
+    deep_copy_serializable_dict,
 )
-from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerServicer, add_MultiplayerServicer_to_server
 
 MULTIPLAYER_SERVICE_NAME = "multiplayer"
 
@@ -104,42 +113,6 @@ class MultiplayerService(MultiplayerServicer):
         self.players[player_id] = request
         return CreatePlayerResponse(player_id=player_id)
 
-    def SubscribePlayerAvatars(self,
-                               request: SubscribePlayerAvatarsRequest,
-                               context) -> Avatar:
-        """
-        Provides a stream of updates to player avatars.
-        """
-        interval = request.update_interval
-        with self._avatars.create_view() as change_buffer:
-            try:
-                subscribe_rpc_termination(context, change_buffer.freeze)
-            except RpcAlreadyTerminatedError:
-                return
-            for changes, removals in change_buffer.subscribe_changes(interval):
-                for player_id, avatar in changes.items():
-                    if player_id != request.ignore_player_id:
-                        yield avatar
-
-    def UpdatePlayerAvatar(self,
-                           request_iterator: Iterator,
-                           context) -> StreamEndedResponse:
-        """
-        Accepts a stream of avatar updates.
-        """
-        touched_player_ids = set()
-
-        def clear_touched_avatars():
-            for player_id in touched_player_ids:
-                self._clear_player_avatar(player_id)
-
-        context.add_callback(clear_touched_avatars)
-
-        for avatar in request_iterator:
-            touched_player_ids.add(avatar.player_id)
-            self._avatars.update({avatar.player_id: avatar})
-        return StreamEndedResponse()
-
     def SubscribeAllResourceValues(self, request, context):
         """
         Provides a stream of updates to a shared key/value store.
@@ -157,7 +130,7 @@ class MultiplayerService(MultiplayerServicer):
                 yield response
 
     def AcquireResourceLock(self,
-                            request: multiplayer_proto.AcquireLockRequest,
+                            request: AcquireLockRequest,
                             context) -> ResourceRequestResponse:
         """
         Attempt to acquire exclusive write access to a key in the shared
@@ -178,7 +151,7 @@ class MultiplayerService(MultiplayerServicer):
         return ResourceRequestResponse(success=success)
 
     def ReleaseResourceLock(self,
-                            request: multiplayer_proto.ReleaseLockRequest,
+                            request: ReleaseLockRequest,
                             context) -> ResourceRequestResponse:
         """
         Attempt to release exclusive write access to a key in the shared
@@ -216,7 +189,7 @@ class MultiplayerService(MultiplayerServicer):
 
     def RemoveResourceKey(
             self,
-            request: multiplayer_proto.RemoveResourceKeyRequest,
+            request: RemoveResourceKeyRequest,
             context,
     ) -> ResourceRequestResponse:
         """
@@ -241,11 +214,4 @@ class MultiplayerService(MultiplayerServicer):
         return str(len(self.players) + 1)
 
     def close(self):
-        self._avatars.freeze()
-
-    def _clear_player_avatar(self, player_id: str):
-        """
-        Replace a player's avatar with an empty avatar.
-        """
-        avatar = Avatar(player_id=player_id, components=[])
-        self._avatars.update({avatar.player_id: avatar})
+        pass
