@@ -67,9 +67,6 @@ class MultiplayerClient(NarupaStubClient):
         self._value_update_callbacks = set()
         self.resources = dict()
 
-    def close(self):
-        super().close()
-
     def join_multiplayer(self, player_name, join_streams=True):
         """
         Joins a multiplayer server
