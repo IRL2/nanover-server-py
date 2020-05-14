@@ -7,17 +7,11 @@ import "google/protobuf/struct.proto";
 package narupa.protocol.multiplayer;
 
 service Multiplayer {
-    // Streams updates of player avatars.
-    rpc SubscribePlayerAvatars(SubscribePlayerAvatarsRequest) returns (stream Avatar) {}
-
-    // Streams initial value and then changes of all resources.
-    rpc SubscribeAllResourceValues(SubscribeAllResourceValuesRequest) returns (stream ResourceValuesUpdate) {}
-
     // Create a new player for this multiplayer session.
     rpc CreatePlayer(CreatePlayerRequest) returns (CreatePlayerResponse) {}
 
-    // Call to provide a stream of player avatar updates.
-    rpc UpdatePlayerAvatar(stream Avatar) returns (StreamEndedResponse) {}
+    // Streams initial value and then changes of all resources.
+    rpc SubscribeAllResourceValues(SubscribeAllResourceValuesRequest) returns (stream ResourceValuesUpdate) {}
 
     // Acquire a lock for a player on a specified resource.
     rpc AcquireResourceLock(AcquireLockRequest) returns (ResourceRequestResponse) {}
@@ -33,31 +27,6 @@ service Multiplayer {
 }
 
 message StreamEndedResponse {
-}
-
-// A named object oriented in 3D space.
-message AvatarComponent {
-    // Identifier for the component type.
-    string name = 1;
-    // Position vector as x, y, z components.
-    repeated float position = 2;
-    // Rotation quaternion as x, y, z, w components.
-    repeated float rotation = 3;
-}
-
-// A collection of avatar components belonging to a particular player.
-message Avatar {
-    // ID of the player owning the avatar.
-    string player_id = 1;
-    // Set of named components comprising the avatar.
-    repeated AvatarComponent components = 2;
-}
-
-message SubscribePlayerAvatarsRequest {
-    // Interval (in Seconds) between update sends.
-    float update_interval = 1;
-    // ID of player to ignore (usually either your own ID or omitted).
-    string ignore_player_id = 2;
 }
 
 message CreatePlayerRequest {
