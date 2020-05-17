@@ -29,13 +29,15 @@ XML file from an existing instance of :class:`simtk.openmm.app.Simulation`, and
 a function :func:`deserialize_simulation` that creates an instance of simulation
 from an XML file.
 """
-
+from typing import Optional
 from io import StringIO
 from tempfile import TemporaryDirectory
 import os
 from xml.dom.minidom import getDOMImplementation, parseString
 
-from simtk.openmm import app, XmlSerializer
+from simtk.openmm import app, XmlSerializer, CustomExternalForce
+
+from .potentials import populate_imd_force
 
 ROOT_TAG = 'OpenMMSimulation'
 
@@ -74,11 +76,17 @@ def serialize_simulation(simulation: app.Simulation) -> str:
     return root.toprettyxml()
 
 
-def deserialize_simulation(xml_content: str) -> app.Simulation:
+def deserialize_simulation(
+        xml_content: str,
+        imd_force: Optional[CustomExternalForce] = None,
+) -> app.Simulation:
     """
     Create an OpenMM simulation from XML.
 
     :param xml_content: The content of an XML file as a string.
+    :param imd_force: Optionally, an imd force to populate and add to the
+        system. The force must be created by
+        :func:`narupa.openmm.potentials.create_imd_force`.
     :return: An instance of the simulation.
     """
     document = parseString(xml_content)
@@ -94,6 +102,10 @@ def deserialize_simulation(xml_content: str) -> app.Simulation:
     system_node = _get_node_and_raise_if_more_than_one(document, 'System')
     system_content = system_node.toprettyxml()
     system = XmlSerializer.deserialize(system_content)
+
+    if imd_force is not None:
+        populate_imd_force(imd_force, system)
+        system.addForce(imd_force)
 
     integrator_node = _get_node_and_raise_if_more_than_one(document, 'Integrator')
     integrator_content = integrator_node.toprettyxml()

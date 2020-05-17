@@ -11,13 +11,13 @@ For details, and if you find these functions helpful, please cite [1]_.
 """
 
 from math import exp
-from typing import Collection, Tuple, Optional
+from typing import Iterable, Tuple, Optional
 
 import numpy as np
 from narupa.imd.particle_interaction import ParticleInteraction
 
 
-def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions: Collection[ParticleInteraction],
+def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions: Iterable[ParticleInteraction],
                         periodic_box_lengths: Optional[np.ndarray] = None) -> Tuple[float, np.array]:
     """
     Reference implementation of the Narupa IMD force.
