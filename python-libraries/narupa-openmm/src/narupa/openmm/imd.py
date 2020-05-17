@@ -19,7 +19,9 @@ from simtk import unit
 
 from narupa.imd.imd_force import calculate_imd_force
 from narupa.imd.imd_service import ImdService
+from narupa.trajectory.frame_publisher import FramePublisher
 from narupa.imd.particle_interaction import ParticleInteraction
+from .converter import openmm_to_frame_data, add_openmm_state_to_frame_data
 
 NextReport = Tuple[int, bool, bool, bool, bool, bool]
 
@@ -27,13 +29,17 @@ NextReport = Tuple[int, bool, bool, bool, bool, bool]
 class NarupaImdReporter:
     def __init__(
             self,
-            report_interval: int,
+            frame_interval: int,
+            force_interval: int,
             imd_force: mm.CustomExternalForce,
             imd_service: ImdService,
+            frame_publisher: FramePublisher,
     ):
-        self.report_interval = report_interval
+        self.frame_interval = frame_interval
+        self.force_interval = force_interval
         self.imd_force = imd_force
         self.imd_service = imd_service
+        self.frame_publisher = frame_publisher
 
         # We will not know this values until the beginning of the simulation.
         self.n_particles = None
@@ -41,6 +47,7 @@ class NarupaImdReporter:
         self.positions = None
 
         self.is_force_dirty = False
+        self._frame_index = 0
 
     # The name of the method is part of the OpenMM API. It cannot be made to
     # conform PEP8.
@@ -50,7 +57,9 @@ class NarupaImdReporter:
         Called by OpenMM. Indicates when the next report is due and what type
         of data it requires.
         """
-        steps = self.report_interval - simulation.currentStep % self.report_interval
+        force_steps = self.force_interval - simulation.currentStep % self.force_interval
+        frame_steps = self.frame_interval - simulation.currentStep % self.frame_interval
+        steps = min(force_steps, frame_steps)
         # The reporter needs:
         # - the positions
         # - not the velocities
@@ -66,9 +75,19 @@ class NarupaImdReporter:
         if self.masses is None:
             self.n_particles = self.imd_force.getNumParticles()
             self.masses = self.get_masses(simulation.system)
-        positions = np.asarray(state.getPositions().value_in_unit(unit.nanometer))
-        interactions = self.imd_service.active_interactions
-        self._update_forces(positions, interactions, simulation.context)
+        if self._frame_index == 0:
+            topology = simulation.topology
+            frame_data = openmm_to_frame_data(state=None, topology=topology)
+            self.frame_publisher.send_frame(self._frame_index, frame_data)
+
+        if simulation.currentStep % self.frame_interval == 0:
+            frame_data = openmm_to_frame_data(state=state, topology=None)
+            self.frame_publisher.send_frame(self._frame_index, frame_data)
+            self._frame_index += 1
+        if simulation.currentStep % self.force_interval == 0:
+            positions = np.asarray(state.getPositions().value_in_unit(unit.nanometer))
+            interactions = self.imd_service.active_interactions
+            self._update_forces(positions, interactions, simulation.context)
 
     @staticmethod
     def get_masses(system: mm.System) -> np.ndarray:
