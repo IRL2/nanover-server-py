@@ -37,7 +37,7 @@ from xml.dom.minidom import getDOMImplementation, parseString
 
 from simtk.openmm import app, XmlSerializer, CustomExternalForce
 
-from .potentials import populate_imd_force
+from .imd import populate_imd_force
 
 ROOT_TAG = 'OpenMMSimulation'
 
