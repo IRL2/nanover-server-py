@@ -21,7 +21,7 @@ from narupa.imd.imd_force import calculate_imd_force
 from narupa.imd.imd_service import ImdService
 from narupa.trajectory.frame_publisher import FramePublisher
 from narupa.imd.particle_interaction import ParticleInteraction
-from .converter import openmm_to_frame_data, add_openmm_state_to_frame_data
+from .converter import openmm_to_frame_data
 
 NextReport = Tuple[int, bool, bool, bool, bool, bool]
 
