@@ -260,6 +260,7 @@ class NarupaImdClient:
         :param port: The port of the IMD server.
         """
         self._imd_client = self._connect_client(ImdClient, address)
+        self._imd_client.subscribe_all_state_updates()
     
     def connect_multiplayer(self, address: Tuple[str, int]):
         """
