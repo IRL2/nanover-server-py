@@ -6,11 +6,14 @@ Module providing an implementation of an IMD service.
 from typing import Dict, Callable, Optional, Iterable
 
 import grpc
+from narupa.state.state_dictionary import StateDictionary
+from narupa.state.state_service import StateService
 from narupa.utilities.grpc_utilities import (
     RpcAlreadyTerminatedError,
     subscribe_rpc_termination,
 )
-from narupa.utilities.change_buffers import DictionaryChangeMultiView
+from narupa.utilities.change_buffers import DictionaryChangeMultiView, \
+    DictionaryChange
 
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import (
@@ -39,22 +42,27 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         consumers of the interactions to validate.
     """
 
-
-    _interactions: DictionaryChangeMultiView
-    _interaction_updated_callback: Optional[Callable[[ParticleInteraction], None]]
+    _interaction_updated_callback: Optional[
+        Callable[[ParticleInteraction], None]]
     velocity_reset_enabled: bool
     number_of_particles: Optional[int]
 
-    def __init__(self,
-                 callback=None,
-                 velocity_reset_enabled=False,
-                 number_of_particles=None):
+    def __init__(
+            self,
+            state_dictionary: Optional[StateDictionary] = None,
+            callback=None,
+            velocity_reset_enabled=False,
+            number_of_particles=None,
+    ):
+        self._state_dictionary = state_dictionary or StateDictionary()
         self.name: str = IMD_SERVICE_NAME
         self.add_to_server_method: Callable = add_InteractiveMolecularDynamicsServicer_to_server
-        self._interactions = DictionaryChangeMultiView()
         self._interaction_updated_callback = callback
         self.velocity_reset_enabled = velocity_reset_enabled
         self.number_of_particles = number_of_particles
+
+    def close(self):
+        pass
 
     def PublishInteraction(self, request_iterator, context):
         """
@@ -93,7 +101,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         Provides a stream of updates to interactions.
         """
         interval = request.update_interval
-        with self._interactions.create_view() as change_buffer:
+        with self._state_dictionary.get_change_buffer() as change_buffer:
             try:
                 subscribe_rpc_termination(context, change_buffer.freeze)
             except RpcAlreadyTerminatedError:
@@ -101,20 +109,29 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             for changes, removals in change_buffer.subscribe_changes(interval):
                 yield _changes_to_interactions_update_message(changes, removals)
 
-    def close(self):
-        # TODO would this end all interactions?
-        self._interactions.freeze()
-
     def insert_interaction(self, interaction: ParticleInteraction):
-        self._interactions.update({interaction.interaction_id: interaction})
+        change = DictionaryChange(
+            updates={'interaction.'+interaction.interaction_id: interaction},
+            removals=[],
+        )
+        self._state_dictionary.update_state(None, change)
+
         if self._interaction_updated_callback is not None:
             self._interaction_updated_callback(interaction)
 
     def remove_interaction(self, interaction: ParticleInteraction):
-        self.remove_interactions_by_ids([interaction.interaction_id])
+        change = DictionaryChange(
+            updates={},
+            removals=['interaction.'+interaction.interaction_id],
+        )
+        self._state_dictionary.update_state(None, change)
 
     def remove_interactions_by_ids(self, interaction_ids: Iterable[str]):
-        self._interactions.update(removals=interaction_ids)
+        change = DictionaryChange(
+            updates={},
+            removals=['interaction.'+key for key in interaction_ids],
+        )
+        self._state_dictionary.update_state(None, change)
 
     @property
     def active_interactions(self) -> Dict[str, ParticleInteraction]:
@@ -123,9 +140,15 @@ class ImdService(InteractiveMolecularDynamicsServicer):
 
         :return: A copy of the dictionary of active interactions.
         """
-        return self._interactions.copy_content()
+        with self._state_dictionary.lock_content() as state:
+            return {
+                key: value
+                for key, value in state.items()
+                if key.startswith('interaction.')
+            }
 
-    def set_interaction_updated_callback(self, callback: Callable[[ParticleInteraction], None]):
+    def set_interaction_updated_callback(self, callback: Callable[
+        [ParticleInteraction], None]):
         """
         Sets the callback to be used whenever an interaction is received.
 
@@ -133,19 +156,24 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         self._interaction_updated_callback = callback
 
+    def _interaction_id_exists(self, interaction_id: str) -> bool:
+        with self._state_dictionary.lock_content() as content:
+            return 'interaction.'+interaction_id in content
+
     def _publish_interaction_stream(self, request_iterator):
         interactions_in_request = set()
 
         def validate_interaction_id(interaction: ParticleInteractionMessage):
             id_owned = interaction.interaction_id in interactions_in_request
-            id_exists = interaction.interaction_id in self._interactions
+            id_exists = self._interaction_id_exists(interaction.interaction_id)
             if not id_owned and id_exists:
                 raise KeyError('The given player_id and interaction_id is '
                                'already in use in another interaction.')
 
         try:
             for interaction_message in request_iterator:
-                interaction = ParticleInteraction.from_proto(interaction_message)
+                interaction = ParticleInteraction.from_proto(
+                    interaction_message)
 
                 validate_interaction_id(interaction_message)
                 self._validate_interaction(interaction)
@@ -161,7 +189,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
 
     def _validate_velocity_reset(self, interaction):
         if interaction.reset_velocities and not self.velocity_reset_enabled:
-            raise ValueError('This simulation does not support interactive velocity reset.')
+            raise ValueError(
+                'This simulation does not support interactive velocity reset.')
 
     def _validate_particle_range(self, interaction):
         if interaction.particles is None or len(interaction.particles) == 0:
@@ -180,5 +209,5 @@ def _changes_to_interactions_update_message(changes, removals):
     message = InteractionsUpdate()
     protos = [interaction.proto for interaction in changes.values()]
     message.updated_interactions.extend(protos)
-    message.removals.extend(removals)
+    message.removals.extend(interaction_id[len('interaction.'):] for interaction_id in removals)
     return message
