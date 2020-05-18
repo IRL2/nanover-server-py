@@ -6,6 +6,7 @@ Module providing an implementation of an IMD service.
 from typing import Dict, Callable, Optional, Iterable
 
 import grpc
+from narupa.imd.imd_client import _interaction_to_dict, _dict_to_interaction
 from narupa.state.state_dictionary import StateDictionary
 from narupa.state.state_service import StateService
 from narupa.utilities.grpc_utilities import (
@@ -42,8 +43,6 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         consumers of the interactions to validate.
     """
 
-    _interaction_updated_callback: Optional[
-        Callable[[ParticleInteraction], None]]
     velocity_reset_enabled: bool
     number_of_particles: Optional[int]
 
@@ -110,10 +109,9 @@ class ImdService(InteractiveMolecularDynamicsServicer):
                 yield _changes_to_interactions_update_message(changes, removals)
 
     def insert_interaction(self, interaction: ParticleInteraction):
-        change = DictionaryChange(
-            updates={'interaction.'+interaction.interaction_id: interaction},
-            removals=[],
-        )
+        key = 'interaction.'+interaction.interaction_id
+        value = _interaction_to_dict(interaction)
+        change = DictionaryChange(updates={key: value},removals=[])
         self._state_dictionary.update_state(None, change)
 
         if self._interaction_updated_callback is not None:
@@ -142,19 +140,10 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         """
         with self._state_dictionary.lock_content() as state:
             return {
-                key: value
+                key: _dict_to_interaction(value)
                 for key, value in state.items()
                 if key.startswith('interaction.')
             }
-
-    def set_interaction_updated_callback(self, callback: Callable[
-        [ParticleInteraction], None]):
-        """
-        Sets the callback to be used whenever an interaction is received.
-
-        :param callback: Method to be called, taking the received particle interaction as an argument.
-        """
-        self._interaction_updated_callback = callback
 
     def _interaction_id_exists(self, interaction_id: str) -> bool:
         with self._state_dictionary.lock_content() as content:

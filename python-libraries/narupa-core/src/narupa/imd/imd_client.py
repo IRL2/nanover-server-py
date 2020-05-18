@@ -1,19 +1,24 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 import logging
+from uuid import uuid4
 from concurrent.futures import Future
 from queue import Queue
-from typing import Iterable, Optional, Dict, Any, NamedTuple
+from typing import Iterable, Dict, Any, NamedTuple, Set
 
 import grpc
-from narupa.core import get_requested_port_or_default, NarupaStubClient
-from narupa.imd.imd_server import DEFAULT_PORT
-from narupa.imd.particle_interaction import ParticleInteraction
+from narupa.core import NarupaStubClient
+from narupa.imd.particle_interaction import (
+    ParticleInteraction,
+    DEFAULT_MAX_FORCE,
+)
 from narupa.protocol.imd import (
     InteractiveMolecularDynamicsStub,
     InteractionEndReply,
     SubscribeInteractionsRequest,
 )
+from narupa.utilities.change_buffers import DictionaryChange
+from narupa.utilities.protobuf_utilities import struct_to_dict
 
 
 class _LocalInteractionState(NamedTuple):
@@ -67,8 +72,7 @@ class ImdClient(NarupaStubClient):
     """
     stub: InteractiveMolecularDynamicsStub
     interactions: Dict[str, ParticleInteraction]
-    _next_local_interaction_id: int = 0
-    _local_interactions_states: Dict[str, _LocalInteractionState]
+    _local_interaction_ids: Set[str]
     _logger: logging.Logger
 
     def __init__(self, *,
@@ -76,7 +80,7 @@ class ImdClient(NarupaStubClient):
                  make_channel_owner: bool = False):
         super().__init__(channel=channel, stub=InteractiveMolecularDynamicsStub, make_channel_owner=make_channel_owner)
         self.interactions = {}
-        self._local_interactions_states = {}
+        self._local_interaction_ids = set()
         self._logger = logging.getLogger(__name__)
 
     def start_interaction(self) -> str:
@@ -85,52 +89,55 @@ class ImdClient(NarupaStubClient):
 
         :return: A unique identifier to be used to update the interaction.
         """
-        queue = Queue()
-        sentinel = object()
-        future = self.publish_interactions_async(queue_generator(queue, sentinel))
-        local_interaction_id = self._get_new_local_interaction_id()
-        self._local_interactions_states[local_interaction_id] = _LocalInteractionState(queue, sentinel, future)
-        return local_interaction_id
+        interaction_id = str(uuid4())
+        self._local_interaction_ids.add(interaction_id)
+        print('started', interaction_id)
+        return interaction_id
 
     def update_interaction(
             self,
-            local_interaction_id: str,
+            interaction_id: str,
             interaction: ParticleInteraction,
     ):
         """
         Updates the interaction identified with the given interaction_id on the server with
         parameters from the given interaction.
 
-        :param local_interaction_id: The unique interaction ID, created with
+        :param interaction_id: The unique interaction ID, created with
             :func:`~ImdClient.start_interaction`, that identifies the
             interaction to update.
         :param interaction: The :class: ParticleInteraction providing new
             parameters for the interaction.
 
-        :raises: ValueError, if invalid parameters are passed to the server.
         :raises: KeyError, if the given interaction ID does not exist.
         """
-        if local_interaction_id not in self._local_interactions_states:
-            raise KeyError("Attempted to update an interaction with an unknown interaction ID.")
-        queue, _, _ = self._local_interactions_states[local_interaction_id]
-        queue.put(interaction)
+        if interaction_id not in self._local_interaction_ids:
+            raise KeyError("Attempted to update an interaction with an "
+                           "unknown interaction ID.")
+        key = 'interaction.' + interaction_id
+        value = _interaction_to_dict(interaction)
+        change = DictionaryChange(updates={key: value}, removals=[])
+        result = self.attempt_update_state(change)
+        return result
 
-    def stop_interaction(self, local_interaction_id: str) -> InteractionEndReply:
+    def stop_interaction(self, interaction_id: str) -> InteractionEndReply:
         """
         Stops the interaction identified with the given interaction_id on the server.
 
-        :param local_interaction_id: The unique interaction ID, created with
+        :param interaction_id: The unique interaction ID, created with
             :func:`~ImdClient.start_interaction`, that identifies the
             interaction to stop.
 
         :raises: KeyError, if the given interaction ID does not exist.
         """
-        if local_interaction_id not in self._local_interactions_states:
-            raise KeyError("Attempted to stop an interaction with an unknown interaction ID.")
-        queue, sentinel, future = self._local_interactions_states[local_interaction_id]
-        queue.put(sentinel)
-        del self._local_interactions_states[local_interaction_id]
-        return future.result()
+        if interaction_id not in self._local_interaction_ids:
+            raise KeyError("Attempted to stop an interaction with an unknown "
+                           "interaction ID.")
+        self.attempt_update_state(DictionaryChange(
+            updates={},
+            removals=['interaction.' + interaction_id]
+        ))
+        self._local_interaction_ids.remove(interaction_id)
 
     def publish_interactions_async(self, interactions: Iterable[ParticleInteraction]) -> Future:
         """
@@ -148,14 +155,15 @@ class ImdClient(NarupaStubClient):
         :param interactions: An iterable generator or collection of interactions.
         :return: A reply indicating successful publishing of interaction.
         """
-        return self.stub.PublishInteraction(_to_proto(interactions))
+        for interaction in interactions:
+            self.update_interaction(interaction.interaction_id, interaction)
 
     def stop_all_interactions(self):
         """
         Stops all active interactions governed by this client.
         """
-        for local_interaction_id in list(self._local_interactions_states.keys()):
-            self.stop_interaction(local_interaction_id)
+        for interaction_id in list(self._local_interaction_ids):
+            self.stop_interaction(interaction_id)
 
     def subscribe_interactions(self, interval=0) -> Future:
         """
@@ -166,11 +174,6 @@ class ImdClient(NarupaStubClient):
         """
         request = SubscribeInteractionsRequest(update_interval=interval)
         return self.threads.submit(self._subscribe_interactions, request)
-
-    def _get_new_local_interaction_id(self) -> str:
-        local_interaction_id = str(self._next_local_interaction_id)
-        self._next_local_interaction_id += 1
-        return local_interaction_id
 
     def _subscribe_interactions(self, request: SubscribeInteractionsRequest):
         for update in self.stub.SubscribeInteractions(request):
@@ -190,3 +193,35 @@ class ImdClient(NarupaStubClient):
             raise e
         finally:
             super().close()
+
+
+def _interaction_to_dict(interaction: ParticleInteraction):
+    #print('i->d', interaction.properties)
+    return {
+        "interaction_id": interaction.interaction_id,
+        "position": [float(f) for f in interaction.position],
+        "particles": [int(i) for i in interaction.particles],
+        "properties": struct_to_dict(interaction.properties),
+    }
+
+
+def _dict_to_interaction(dictionary: Dict[str, object]):
+    properties: Dict[str, object] = dictionary['properties']
+    max_force = properties.get(ParticleInteraction.MAX_FORCE_KEY, DEFAULT_MAX_FORCE)
+    if max_force == 'Infinity':
+        max_force = float('inf')
+
+    #print('d->i', properties)
+
+    return ParticleInteraction(
+        player_id='',
+        interaction_id=dictionary['interaction_id'],
+        position=dictionary['position'],
+        particles=[int(i) for i in dictionary['particles']],
+
+        interaction_type=properties.get(ParticleInteraction.TYPE_KEY, 'gaussian'),
+        scale=properties.get(ParticleInteraction.SCALE_KEY, 1),
+        mass_weighted=properties.get(ParticleInteraction.MASS_WEIGHTED_KEY, True),
+        reset_velocities=properties.get(ParticleInteraction.RESET_VELOCITIES_KEY, False),
+        max_force=max_force,
+    )
