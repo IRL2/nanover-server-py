@@ -49,7 +49,6 @@ class ParticleInteraction:
     MAX_FORCE_KEY = "max_force"
 
     def __init__(self,
-                 player_id: str,
                  interaction_id: str,
                  position=(0, 0, 0),
                  particles=(),
@@ -58,7 +57,7 @@ class ParticleInteraction:
                  mass_weighted=True,
                  reset_velocities=False,
                  max_force=DEFAULT_MAX_FORCE):
-        self._interaction = imd_pb2.ParticleInteraction(player_id=player_id, interaction_id=interaction_id)
+        self._interaction = imd_pb2.ParticleInteraction(interaction_id=interaction_id)
         self.position = position
         self._properties = self._interaction.properties
         self.scale = scale
@@ -82,7 +81,6 @@ class ParticleInteraction:
         :param interaction_proto: The protobuf representation of the interaction.
         """
         interaction = cls(
-            player_id=interaction_proto.player_id,
             interaction_id=interaction_proto.interaction_id,
         )
         interaction._interaction = interaction_proto
@@ -103,15 +101,6 @@ class ParticleInteraction:
         :return: The underlying protobuf Interaction representation.
         """
         return self._interaction
-
-    @property
-    def player_id(self) -> str:
-        """
-        Gets the player ID associated with this interaction.
-
-        :return: The player ID associated with this interaction.
-        """
-        return self._interaction.player_id
 
     @property
     def interaction_id(self) -> str:

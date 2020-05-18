@@ -35,7 +35,6 @@ def single_interaction():
     position = (0, 0, 0)
     index = 1
     return ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction',
         position=position,
         particles=[index],
@@ -58,12 +57,10 @@ def test_multiple_interactions(particles):
 
     positions, masses = particles
     interaction = ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction 1',
         position=[0.5, 0.5, 0.5], particles=[0, 1],
     )
     interaction_2 = ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction 2',
         position=[1.5, 1.5, 1.5], particles=[1, 2],
     )
@@ -178,7 +175,6 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     position = np.array(position)
     selection = np.array(selection)
     interaction = ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction',
         position=position,
         particles=selection,)
@@ -218,7 +214,6 @@ def test_interaction_force_no_mass_weighting(particles, position, selection, sel
     position = np.array(position)
     selection = np.array(selection)
     interaction = ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction',
         position=position,
         particles=selection,
@@ -263,7 +258,6 @@ def test_interaction_force_default_type(particles):
     selection = [1]
     position = positions[selection[0]]
     interaction = ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction',
         position=position,
         particles=selection,

@@ -83,6 +83,8 @@ class ImdClient(NarupaStubClient):
         self._local_interaction_ids = set()
         self._logger = logging.getLogger(__name__)
 
+        self.subscribe_interactions()
+
     def start_interaction(self) -> str:
         """
         Start an interaction
@@ -119,7 +121,7 @@ class ImdClient(NarupaStubClient):
         result = self.attempt_update_state(change)
         return result
 
-    def stop_interaction(self, interaction_id: str) -> InteractionEndReply:
+    def stop_interaction(self, interaction_id: str) -> bool:
         """
         Stops the interaction identified with the given interaction_id on the server.
 
@@ -132,30 +134,12 @@ class ImdClient(NarupaStubClient):
         if interaction_id not in self._local_interaction_ids:
             raise KeyError("Attempted to stop an interaction with an unknown "
                            "interaction ID.")
-        self.attempt_update_state(DictionaryChange(
+        self._local_interaction_ids.remove(interaction_id)
+        change = DictionaryChange(
             updates={},
             removals=['interaction.' + interaction_id]
-        ))
-        self._local_interaction_ids.remove(interaction_id)
-
-    def publish_interactions_async(self, interactions: Iterable[ParticleInteraction]) -> Future:
-        """
-        Publishes the iterable of interactions on a thread.
-
-        :param interactions: An iterable generator or collection of interactions.
-        :return Future representing the state of the interaction task.
-        """
-        return self.threads.submit(self.publish_interactions, interactions)
-
-    def publish_interactions(self, interactions: Iterable[ParticleInteraction]) -> InteractionEndReply:
-        """
-        Publishes the generator of interactions on a thread.
-
-        :param interactions: An iterable generator or collection of interactions.
-        :return: A reply indicating successful publishing of interaction.
-        """
-        for interaction in interactions:
-            self.update_interaction(interaction.interaction_id, interaction)
+        )
+        return self.attempt_update_state(change)
 
     def stop_all_interactions(self):
         """
@@ -164,22 +148,23 @@ class ImdClient(NarupaStubClient):
         for interaction_id in list(self._local_interaction_ids):
             self.stop_interaction(interaction_id)
 
-    def subscribe_interactions(self, interval=0) -> Future:
+    def subscribe_interactions(self) -> Future:
         """
         Begin receiving updates known interactions.
-
-        :param interval: Minimum time (in seconds) between receiving new updates
-            for interaction changes.
         """
-        request = SubscribeInteractionsRequest(update_interval=interval)
-        return self.threads.submit(self._subscribe_interactions, request)
+        return self.threads.submit(self._subscribe_interactions)
 
-    def _subscribe_interactions(self, request: SubscribeInteractionsRequest):
-        for update in self.stub.SubscribeInteractions(request):
-            for interaction_id in update.removals:
-                removed = self.interactions.pop(interaction_id, None)
-            for interaction in update.updated_interactions:
-                self.interactions[interaction.interaction_id] = ParticleInteraction.from_proto(interaction)
+    def _subscribe_interactions(self):
+        with self._state.get_change_buffer() as change_buffer:
+            for change in change_buffer.subscribe_changes():
+                for key in change.removals:
+                    if key.startswith('interaction.'):
+                        interaction_id = key[len('interaction.'):]
+                        removed = self.interactions.pop(interaction_id, None)
+                for key, value in change.updates.items():
+                    if key.startswith('interaction.'):
+                        interaction_id = key[len('interaction.'):]
+                        self.interactions[interaction_id] = _dict_to_interaction(value)
 
     def close(self):
         """
@@ -195,12 +180,15 @@ class ImdClient(NarupaStubClient):
 
 
 def _interaction_to_dict(interaction: ParticleInteraction):
-    return {
-        "interaction_id": interaction.interaction_id,
-        "position": [float(f) for f in interaction.position],
-        "particles": [int(i) for i in interaction.particles],
-        "properties": struct_to_dict(interaction.properties),
-    }
+    try:
+        return {
+            "interaction_id": interaction.interaction_id,
+            "position": [float(f) for f in interaction.position],
+            "particles": [int(i) for i in interaction.particles],
+            "properties": struct_to_dict(interaction.properties),
+        }
+    except AttributeError as e:
+        raise TypeError from e
 
 
 def _dict_to_interaction(dictionary: Dict[str, object]):
@@ -210,7 +198,6 @@ def _dict_to_interaction(dictionary: Dict[str, object]):
         max_force = float('inf')
 
     return ParticleInteraction(
-        player_id='',
         interaction_id=dictionary['interaction_id'],
         position=dictionary['position'],
         particles=[int(i) for i in dictionary['particles']],

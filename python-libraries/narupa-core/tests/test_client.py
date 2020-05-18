@@ -128,16 +128,6 @@ def test_start_interaction(client_server, interaction):
     assert len(imd_server.service.active_interactions) == 1
 
 
-def test_receive_interaction_updates(client_server, interaction):
-    """
-    tests that starting an interaction produces expected results on the server.
-    """
-    client, frame_server, imd_server, multiplayer_server = client_server
-    client.start_interaction(interaction)
-    time.sleep(CLIENT_WAIT_TIME)
-    assert len(client.interactions) == 1
-
-
 def test_update_interaction(client_server, interaction):
     """
     tests updating an interaction produces expected results on the server.

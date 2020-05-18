@@ -196,7 +196,7 @@ def _changes_to_interactions_update_message(changes, removals):
     an interactions dictionary.
     """
     message = InteractionsUpdate()
-    protos = [interaction.proto for interaction in changes.values()]
+    protos = [_dict_to_interaction(value).proto for value in changes.values()]
     message.updated_interactions.extend(protos)
     message.removals.extend(interaction_id[len('interaction.'):] for interaction_id in removals)
     return message

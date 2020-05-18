@@ -260,8 +260,7 @@ class NarupaImdClient:
         :param port: The port of the IMD server.
         """
         self._imd_client = self._connect_client(ImdClient, address)
-        self._join_interactions()
-
+    
     def connect_multiplayer(self, address: Tuple[str, int]):
         """
         Connects the client to the given multiplayer server.
@@ -675,10 +674,6 @@ class NarupaImdClient:
                 self._on_frame_received,
                 DEFAULT_SUBSCRIPTION_INTERVAL,
             )
-
-    def _join_interactions(self):
-        self._imd_client.subscribe_interactions(
-            interval=DEFAULT_SUBSCRIPTION_INTERVAL)
 
     def _on_frame_received(self, frame_index: int, frame: FrameData):
         if self._first_frame is None:
