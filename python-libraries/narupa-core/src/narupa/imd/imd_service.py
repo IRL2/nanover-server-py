@@ -8,13 +8,11 @@ from typing import Dict, Callable, Optional, Iterable
 import grpc
 from narupa.imd.imd_client import _interaction_to_dict, _dict_to_interaction
 from narupa.state.state_dictionary import StateDictionary
-from narupa.state.state_service import StateService
 from narupa.utilities.grpc_utilities import (
     RpcAlreadyTerminatedError,
     subscribe_rpc_termination,
 )
-from narupa.utilities.change_buffers import DictionaryChangeMultiView, \
-    DictionaryChange
+from narupa.utilities.change_buffers import DictionaryChange
 
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import (
