@@ -91,7 +91,6 @@ class ImdClient(NarupaStubClient):
         """
         interaction_id = str(uuid4())
         self._local_interaction_ids.add(interaction_id)
-        print('started', interaction_id)
         return interaction_id
 
     def update_interaction(
@@ -196,7 +195,6 @@ class ImdClient(NarupaStubClient):
 
 
 def _interaction_to_dict(interaction: ParticleInteraction):
-    #print('i->d', interaction.properties)
     return {
         "interaction_id": interaction.interaction_id,
         "position": [float(f) for f in interaction.position],
@@ -210,8 +208,6 @@ def _dict_to_interaction(dictionary: Dict[str, object]):
     max_force = properties.get(ParticleInteraction.MAX_FORCE_KEY, DEFAULT_MAX_FORCE)
     if max_force == 'Infinity':
         max_force = float('inf')
-
-    #print('d->i', properties)
 
     return ParticleInteraction(
         player_id='',

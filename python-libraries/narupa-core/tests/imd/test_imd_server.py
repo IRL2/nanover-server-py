@@ -8,7 +8,6 @@ from narupa.utilities.timing import delayed_generator
 from narupa.imd.imd_client import ImdClient
 from narupa.imd.imd_server import ImdServer
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.protocol.imd import InteractionEndReply
 from narupa.protocol.imd.imd_pb2_grpc import InteractiveMolecularDynamicsStub
 from random import Random
 import concurrent.futures
