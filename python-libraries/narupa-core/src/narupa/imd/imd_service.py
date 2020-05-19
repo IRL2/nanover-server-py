@@ -184,13 +184,19 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             raise ValueError('Range of particles selected invalid.')
 
 
+def _dict_to_interaction_proto(interaction_id: str, dictionary: Dict[str, object]):
+    proto = _dict_to_interaction(dictionary).proto
+    proto.interaction_id = interaction_id
+    return proto
+
+
 def _changes_to_interactions_update_message(changes, removals):
     """
     Creates a protobuf InteractionsUpdate message from changes and removals to
     an interactions dictionary.
     """
     message = InteractionsUpdate()
-    protos = [_dict_to_interaction(value).proto for value in changes.values()]
+    protos = [_dict_to_interaction_proto(key[len('interaction.'):], interaction) for key, interaction in changes.items()]
     message.updated_interactions.extend(protos)
     message.removals.extend(interaction_id[len('interaction.'):] for interaction_id in removals)
     return message

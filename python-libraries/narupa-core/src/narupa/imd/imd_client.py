@@ -190,7 +190,7 @@ def _interaction_to_dict(interaction: ParticleInteraction):
         raise TypeError from e
 
 
-def _dict_to_interaction(dictionary: Dict[str, object]):
+def _dict_to_interaction(dictionary: Dict[str, object]) -> ParticleInteraction:
     properties: Dict[str, object] = dictionary['properties']
     max_force = properties.get(ParticleInteraction.MAX_FORCE_KEY, DEFAULT_MAX_FORCE)
     if max_force == 'Infinity':
