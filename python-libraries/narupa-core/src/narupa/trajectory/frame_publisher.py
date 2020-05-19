@@ -1,5 +1,6 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+import time
 from queue import Queue
 from threading import Lock
 from typing import Union, Callable
@@ -100,6 +101,7 @@ class FramePublisher(TrajectoryServiceServicer):
 
     def send_frame(self, frame_index: int, frame: Union[FrameData, RawFrameData]):
         if isinstance(frame, FrameData):
+            frame.timestamp = time.monotonic()
             frame = frame.raw
 
         with self._last_frame_lock:
