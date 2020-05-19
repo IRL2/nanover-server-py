@@ -32,9 +32,7 @@ def imd_server_stub(imd_server) -> Generator[Tuple[ImdServer, InteractiveMolecul
 
 @pytest.fixture
 def interaction():
-    return ParticleInteraction(
-        interaction_id='test interaction',
-    )
+    return ParticleInteraction()
 
 
 

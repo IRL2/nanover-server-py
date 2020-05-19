@@ -27,10 +27,6 @@ class ParticleInteraction:
     For convenience, the getters all copy the underlying data into numpy arrays,
     rather than the low level containers used by protobuf.
 
-    :param player_id: The player ID to be associated with the interaction.
-    :param interaction_id: The interaction ID to be associated with the
-        interaction. Typically, this identifies the VR controller, or other
-        input device.
     :param interaction_type: The type of interaction being used, default is
         'gaussian' for a Gaussian force.
     :param scale: The scale factor applied to the interaction, default is 1.
@@ -49,7 +45,6 @@ class ParticleInteraction:
     MAX_FORCE_KEY = "max_force"
 
     def __init__(self,
-                 interaction_id: str,
                  position=(0, 0, 0),
                  particles=(),
                  interaction_type='gaussian',
@@ -57,7 +52,7 @@ class ParticleInteraction:
                  mass_weighted=True,
                  reset_velocities=False,
                  max_force=DEFAULT_MAX_FORCE):
-        self._interaction = imd_pb2.ParticleInteraction(interaction_id=interaction_id)
+        self._interaction = imd_pb2.ParticleInteraction()
         self.position = position
         self._properties = self._interaction.properties
         self.scale = scale
@@ -80,9 +75,7 @@ class ParticleInteraction:
 
         :param interaction_proto: The protobuf representation of the interaction.
         """
-        interaction = cls(
-            interaction_id=interaction_proto.interaction_id,
-        )
+        interaction = cls()
         interaction._interaction = interaction_proto
         interaction._properties = interaction_proto.properties
         set_default_property(interaction.properties, cls.TYPE_KEY, default_interaction_type)
@@ -101,15 +94,6 @@ class ParticleInteraction:
         :return: The underlying protobuf Interaction representation.
         """
         return self._interaction
-
-    @property
-    def interaction_id(self) -> str:
-        """
-        Gets the interaction ID associated with this interaction.
-
-        :return: The interaction ID associated with this interaction.
-        """
-        return self._interaction.interaction_id
 
     @property
     def type(self) -> str:

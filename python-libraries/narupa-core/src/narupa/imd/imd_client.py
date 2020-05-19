@@ -182,7 +182,6 @@ class ImdClient(NarupaStubClient):
 def _interaction_to_dict(interaction: ParticleInteraction):
     try:
         return {
-            "interaction_id": interaction.interaction_id,
             "position": [float(f) for f in interaction.position],
             "particles": [int(i) for i in interaction.particles],
             "properties": struct_to_dict(interaction.properties),
@@ -198,7 +197,6 @@ def _dict_to_interaction(dictionary: Dict[str, object]):
         max_force = float('inf')
 
     return ParticleInteraction(
-        interaction_id=dictionary['interaction_id'],
         position=dictionary['position'],
         particles=[int(i) for i in dictionary['particles']],
 

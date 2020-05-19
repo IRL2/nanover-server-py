@@ -33,7 +33,7 @@ def test_update_interaction(imd_server_client):
     imd_server, imd_client = imd_server_client
     imd_client.start_interaction()
     interaction_id = imd_client.start_interaction()
-    interaction = ParticleInteraction(interaction_id)
+    interaction = ParticleInteraction()
 
     imd_client.update_interaction(interaction_id, interaction)
 
@@ -42,7 +42,7 @@ def test_update_unknown_interaction(imd_server_client):
     imd_server, imd_client = imd_server_client
     imd_client.start_interaction()
     interaction_id = imd_client.start_interaction()
-    interaction = ParticleInteraction(interaction_id)
+    interaction = ParticleInteraction()
 
     with pytest.raises(KeyError):
         imd_client.update_interaction(interaction_id + "nonsense", interaction)
@@ -73,7 +73,7 @@ def test_delete_deleted_interaction(imd_server_client):
 def test_update_deleted_interaction(imd_server_client):
     imd_server, imd_client = imd_server_client
     interaction_id = imd_client.start_interaction()
-    interaction = ParticleInteraction(interaction_id)
+    interaction = ParticleInteraction()
     imd_client.stop_interaction(interaction_id)
     with pytest.raises(KeyError):
         imd_client.update_interaction(interaction_id, interaction)
@@ -147,10 +147,10 @@ def test_subscribe_own_interaction(imd_server_client):
     imd_client.subscribe_all_state_updates(interval=0)
 
     interaction_id = imd_client.start_interaction()
-    interaction = ParticleInteraction(interaction_id)
+    interaction = ParticleInteraction()
     imd_client.update_interaction(interaction_id, interaction)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 5)
-    assert interaction.interaction_id in imd_client.interactions
+    assert interaction_id in imd_client.interactions
 
 
 def test_subscribe_own_interaction_removed(imd_server_client):
@@ -162,16 +162,16 @@ def test_subscribe_own_interaction_removed(imd_server_client):
     imd_client.subscribe_all_state_updates(interval=0)
 
     interaction_id = imd_client.start_interaction()
-    interaction = ParticleInteraction(interaction_id)
+    interaction = ParticleInteraction()
 
     imd_client.update_interaction(interaction_id, interaction)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
-    assert interaction.interaction_id in imd_client.interactions
+    assert interaction_id in imd_client.interactions
     assert imd_client.stop_interaction(interaction_id)
 
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 5)
-    assert interaction.interaction_id not in imd_client.interactions
+    assert interaction_id not in imd_client.interactions
 
 
 @pytest.mark.parametrize('update_interval', (1/10, 1/30, 1/60))
@@ -186,10 +186,10 @@ def test_subscribe_interactions_sends_initial_immediately(
     imd_server, imd_client = imd_server_client
     imd_client.subscribe_all_state_updates(interval=update_interval)
     interaction_id = imd_client.start_interaction()
-    interaction = ParticleInteraction(interaction_id)
+    interaction = ParticleInteraction()
     imd_client.update_interaction(interaction_id, interaction)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert interaction.interaction_id in imd_client.interactions
+    assert interaction_id in imd_client.interactions
 
 
 @pytest.mark.parametrize('update_interval', (.5, .2, .1))
@@ -203,7 +203,7 @@ def test_subscribe_interactions_interval(
     imd_server, imd_client = imd_server_client
     imd_client.subscribe_all_state_updates(interval=update_interval)
     interaction_id = imd_client.start_interaction()
-    interaction = ParticleInteraction(interaction_id)
+    interaction = ParticleInteraction()
 
     interaction.position = [1, 0, 0]
     imd_client.update_interaction(interaction_id, interaction)
@@ -212,8 +212,8 @@ def test_subscribe_interactions_interval(
     interaction.position = [2, 0, 0]
     imd_client.update_interaction(interaction_id, interaction)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    assert imd_client.interactions[interaction.interaction_id].position[0] == 1
+    assert imd_client.interactions[interaction_id].position[0] == 1
 
     imd_client.update_interaction(interaction_id, interaction)
     time.sleep(update_interval)
-    assert imd_client.interactions[interaction.interaction_id].position[0] == 2
+    assert imd_client.interactions[interaction_id].position[0] == 2

@@ -6,12 +6,7 @@ from narupa.imd.particle_interaction import ParticleInteraction, DEFAULT_MAX_FOR
 
 @pytest.fixture
 def interaction():
-    return ParticleInteraction(interaction_id='invalid id')
-
-
-def test_interaction_id():
-    interaction = ParticleInteraction(interaction_id="2")
-    assert interaction.interaction_id == "2"
+    return ParticleInteraction()
 
 
 def test_get_default_position(interaction):
@@ -24,9 +19,8 @@ def test_set_position(interaction):
 
 
 def test_from_proto():
-    interaction_grpc = imd_pb2.ParticleInteraction(interaction_id='0')
+    interaction_grpc = imd_pb2.ParticleInteraction()
     interaction = ParticleInteraction.from_proto(interaction_grpc)
-    assert interaction.interaction_id == "0"
     assert interaction.type == "gaussian"
     assert interaction.scale == 1
     assert interaction.mass_weighted is True
@@ -107,5 +101,4 @@ def test_set_mass(interaction):
 
 def test_get_proto(interaction):
     proto = interaction.proto
-    assert proto.interaction_id == interaction.interaction_id
     assert np.allclose(proto.position, [0, 0, 0])

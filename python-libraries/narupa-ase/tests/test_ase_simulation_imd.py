@@ -17,7 +17,6 @@ import numpy as np
 @pytest.fixture
 def interact_c():
     interaction = ParticleInteraction(
-        interaction_id='interact_c',
         position=[0, 1, 0],
         particles=[0],
         scale=20000.,
@@ -29,7 +28,6 @@ def interact_c():
 @pytest.fixture
 def interact_both():
     interaction = ParticleInteraction(
-        interaction_id='interact_both',
         position=[0, 1, 0],
         particles=[0, 1],
         scale=20000.,

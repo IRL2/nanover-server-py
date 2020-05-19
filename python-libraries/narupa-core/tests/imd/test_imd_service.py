@@ -2,31 +2,19 @@
 Unit tests of the IMD service, without any connections.
 """
 
-import pytest
-
 from narupa.imd.imd_service import ImdService
 from narupa.imd.particle_interaction import ParticleInteraction
 
 
-@pytest.fixture
-def interaction():
-    return ParticleInteraction(interaction_id='test interaction')
-
-
-def test_add_duplicate_interaction_id(interaction):
+def test_add_duplicate_interaction_id():
     service = ImdService()
-    service.insert_interaction(interaction)
-    interaction = ParticleInteraction(
-        interaction_id=interaction.interaction_id,
-    )
-    service.insert_interaction(interaction)
+    service.insert_interaction('test', ParticleInteraction())
+    service.insert_interaction('test', ParticleInteraction())
     assert len(service.active_interactions) == 1
 
 
-def test_multiple_keys(interaction):
-    interaction2 = ParticleInteraction(interaction_id="T.0")
-
+def test_multiple_keys():
     service = ImdService()
-    service.insert_interaction(interaction)
-    service.insert_interaction(interaction2)
+    service.insert_interaction('test1', ParticleInteraction())
+    service.insert_interaction('test2', ParticleInteraction())
     assert len(service.active_interactions) == 2
