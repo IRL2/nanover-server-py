@@ -12,7 +12,8 @@ from narupa.utilities.grpc_utilities import (
     RpcAlreadyTerminatedError,
     subscribe_rpc_termination,
 )
-from narupa.utilities.change_buffers import DictionaryChange
+from narupa.utilities.change_buffers import DictionaryChange, \
+    DictionaryChangeBuffer
 
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import (
@@ -44,6 +45,9 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     velocity_reset_enabled: bool
     number_of_particles: Optional[int]
 
+    _test_active_interactions: Dict[str, object]
+    _test_change_buffer: DictionaryChangeBuffer
+
     def __init__(
             self,
             state_dictionary: Optional[StateDictionary] = None,
@@ -57,6 +61,9 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         self._interaction_updated_callback = callback
         self.velocity_reset_enabled = velocity_reset_enabled
         self.number_of_particles = number_of_particles
+
+        self._test_active_interactions = {}
+        self._test_change_buffer = self._state_dictionary.get_change_buffer().__enter__()
 
     def close(self):
         pass
@@ -132,12 +139,21 @@ class ImdService(InteractiveMolecularDynamicsServicer):
 
         :return: A copy of the dictionary of active interactions.
         """
-        with self._state_dictionary.lock_content() as state:
+        try:
+            changes = self._test_change_buffer.flush_changed_non_blocking()
+            for removal in changes.removals:
+                self._test_active_interactions.pop(removal, None)
+            for key, value in changes.updates.items():
+                self._test_active_interactions[key] = value
+
             return {
                 key: _dict_to_interaction(value)
-                for key, value in state.items()
+                for key, value in self._test_active_interactions.items()
                 if key.startswith('interaction.')
             }
+        except Exception as e:
+            print(e)
+            raise e
 
     def _interaction_id_exists(self, interaction_id: str) -> bool:
         with self._state_dictionary.lock_content() as content:
