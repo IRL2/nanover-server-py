@@ -6,6 +6,7 @@ import time
 
 from grpc import RpcError, StatusCode
 from narupa.trajectory import FrameServer, FrameClient, FrameData
+from narupa.trajectory.frame_data import SERVER_TIMESTAMP
 
 SUBSCRIBE_METHODS = ('subscribe_frames_async', 'subscribe_last_frames_async')
 
@@ -141,6 +142,7 @@ def test_data_lateclient(frame_server_client_pair, simple_frame_data,
     getattr(frame_client, subscribe_method)(callback)
 
     time.sleep(0.1)
+    assert SERVER_TIMESTAMP in result.values
 
     assert result == simple_frame_data
 
@@ -162,6 +164,9 @@ def test_data_disjoint(frame_server_client_pair, simple_frame_data,
     getattr(frame_client, subscribe_method)(callback)
 
     time.sleep(0.1)
+    assert SERVER_TIMESTAMP in result.values
+    # The reference frame does not have the server timestamp
+    del result.raw.values[SERVER_TIMESTAMP]
 
     assert result == simple_and_disjoint_frame_data
 
@@ -183,6 +188,9 @@ def test_data_overlap(frame_server_client_pair, simple_frame_data,
     getattr(frame_client, subscribe_method)(callback)
 
     time.sleep(0.1)
+    assert SERVER_TIMESTAMP in result.values
+    # The reference frame does not have the server timestamp
+    del result.raw.values[SERVER_TIMESTAMP]
 
     assert result == simple_and_overlap_frame_data
 

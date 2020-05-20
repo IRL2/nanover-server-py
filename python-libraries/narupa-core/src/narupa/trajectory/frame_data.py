@@ -30,7 +30,7 @@ CHAIN_COUNT = 'chain.count'
 KINETIC_ENERGY = 'energy.kinetic'
 POTENTIAL_ENERGY = 'energy.potential'
 
-FRAME_TIMESTAMP = 'frame.server.timestamp'
+SERVER_TIMESTAMP = 'server.timestamp'
 
 # This dictionary matches the python types to the attributes of the GRPC
 # values. This is not to do type conversion (which is handled by protobuf),
@@ -201,8 +201,8 @@ class FrameData(metaclass=_FrameDataMeta):
         key=BOX_VECTORS, record_type='arrays',
         field_type='float', to_python=_n_by_3, to_raw=_flatten_2d)
 
-    timestamp = _Shortcut(
-        key=FRAME_TIMESTAMP, record_type='values',
+    server_timestamp = _Shortcut(
+        key=SERVER_TIMESTAMP, record_type='values',
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
 
     def __init__(self, raw_frame=None):

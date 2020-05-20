@@ -11,7 +11,7 @@ from narupa.protocol.trajectory import (
     TrajectoryServiceServicer, GetFrameResponse,
     add_TrajectoryServiceServicer_to_server)
 from narupa.protocol.trajectory import FrameData as RawFrameData
-from narupa.trajectory import FrameData
+from narupa.trajectory.frame_data import FrameData, SERVER_TIMESTAMP
 
 SENTINEL = None
 
@@ -100,9 +100,12 @@ class FramePublisher(TrajectoryServiceServicer):
                 yield GetFrameResponse(frame_index=self.last_frame_index, frame=self.last_frame)
 
     def send_frame(self, frame_index: int, frame: Union[FrameData, RawFrameData]):
+        now = time.monotonic()
         if isinstance(frame, FrameData):
-            frame.timestamp = time.monotonic()
+            frame.server_timestamp = now
             frame = frame.raw
+        else:
+            frame.values[SERVER_TIMESTAMP].number_value = now
 
         with self._last_frame_lock:
             if self.last_frame is None:
