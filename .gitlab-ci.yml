@@ -15,6 +15,7 @@ release:
       - python-libraries
       - csharp-libraries/Narupa.Protocol/bin/Release
   script:
+    - conda install -c conda-forge mpi4py
     - ./compile.sh
 
 # triggers a build of the narupa documentation repo. 
@@ -26,7 +27,7 @@ trigger_docs_build:
 test_python:
   stage: stage2
   before_script:
-    - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} narupa-server
+    - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py narupa-server
     - python -m pip install -r python-libraries/requirements.test
   script:
     - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial'
@@ -41,7 +42,7 @@ test_python_minimum:
   stage: stage2
   before_script:
     - export PIN_VERSIONS='python=3.6 ase=3.19.0'
-    - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} narupa-server
+    - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py narupa-server
     - python -m pip install -r python-libraries/requirements.test
   script:
     - python -m pytest python-libraries -n auto -m 'not serial'
@@ -53,6 +54,7 @@ test_dotnet:
   variables:
     test_path: "csharp-libraries"
   script:
+    - conda install -c conda-forge mpi4py
     - ./compile.sh
     - "cd $test_path"
     - "dotnet test"

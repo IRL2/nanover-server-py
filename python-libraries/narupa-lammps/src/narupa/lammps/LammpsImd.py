@@ -316,7 +316,8 @@ class LammpsImd:
 
         # Convert the positions to a 2D, 3N array for use in calculate)imd_force
         positions_3n = np.ctypeslib.as_array(positions, shape=(self.n_atoms * 3)).reshape(self.n_atoms, 3)
-
+        # Convert the positions to the narupa internal so that the forces are added in the correct position
+        positions_3n /= self.distance_factor
         # Collect interaction vector from client on process 0
         if self.me == 0:
             interactions = self.interactions
@@ -332,6 +333,8 @@ class LammpsImd:
             # Create numpy arrays with the forces to be added
             energy_kjmol, forces_kjmol = calculate_imd_force(positions_3n, self.masses, interactions.values())
 
+        # Convert the positions back so that they will render correctly.
+        positions_3n *= self.distance_factor
         self._add_interaction_to_ctype(forces_kjmol, forces)
         self._return_array_to_lammps(matrix_type, forces, lammps_class)
 

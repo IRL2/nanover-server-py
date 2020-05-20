@@ -10,6 +10,8 @@ import sys
 import textwrap
 from typing import Dict, Callable, Sequence, Any
 
+from narupa.app.app_server import DEFAULT_NARUPA_PORT
+
 try:
     import curses
 except ModuleNotFoundError:
@@ -61,7 +63,10 @@ class FPSTimer:
         self._prev_checkpoint = time.monotonic()
         self.intervals.append(interval)
         self.intervals[:] = self.intervals[-self.count:]
-        self.fps = len(self.intervals) / sum(self.intervals)
+        try:
+            self.fps = len(self.intervals) / sum(self.intervals)
+        except ZeroDivisionError:
+            pass
 
 
 class FrameTimer:
@@ -319,10 +324,10 @@ def handle_user_args(args=None) -> argparse.Namespace:
     display.
     """)
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--address', default=None)
-    parser.add_argument('--traj', '-t', type=int, default=None)
-    parser.add_argument('--imd', '-i', type=int, default=None)
-    parser.add_argument('--rainbow', action="store_true")
+    parser.add_argument('--autoconnect', nargs='?', default=False, metavar='NAME')
+    parser.add_argument('--hostname', default=None)
+    parser.add_argument('--port', '-p', default=None, type=int)
+    parser.add_argument('--rainbow', '-r', action="store_true")
     arguments = parser.parse_args(args)
     return arguments
 
@@ -330,10 +335,16 @@ def handle_user_args(args=None) -> argparse.Namespace:
 def main(stdscr):
     arguments = handle_user_args()
 
-    with NarupaImdClient(address=arguments.address,
-                         trajectory_port=arguments.traj,
-                         imd_port=arguments.imd,
-                         all_frames=False) as client:
+    if arguments.autoconnect is not False:
+        client = NarupaImdClient.autoconnect(name=arguments.autoconnect)
+    else:
+        address = (
+            arguments.hostname or 'localhost',
+            arguments.port or DEFAULT_NARUPA_PORT,
+        )
+        client = NarupaImdClient(trajectory_address=address)
+
+    with client:
         telmol = CursesFrontend(stdscr, client, override_colors=arguments.rainbow)
         telmol.run()
 

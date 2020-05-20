@@ -1,21 +1,21 @@
 import narupa.protocol.imd.imd_pb2 as imd_pb2
 import numpy as np
 import pytest
-from narupa.imd.particle_interaction import ParticleInteraction
+from narupa.imd.particle_interaction import ParticleInteraction, DEFAULT_MAX_FORCE
 
 
 @pytest.fixture
 def interaction():
-    return ParticleInteraction()
+    return ParticleInteraction(player_id='test player', interaction_id='test interaction')
 
 
 def test_player_id():
-    interaction = ParticleInteraction("2")
+    interaction = ParticleInteraction(player_id="2", interaction_id='test interaction')
     assert interaction.player_id == "2"
 
 
 def test_interaction_id():
-    interaction = ParticleInteraction(interaction_id="2")
+    interaction = ParticleInteraction(player_id='test player', interaction_id="2")
     assert interaction.interaction_id == "2"
 
 
@@ -36,6 +36,7 @@ def test_from_proto():
     assert interaction.type == "gaussian"
     assert interaction.scale == 1
     assert interaction.mass_weighted is True
+    assert interaction.max_force == DEFAULT_MAX_FORCE
 
 
 def test_set_invalid_position(interaction):
@@ -112,6 +113,6 @@ def test_set_mass(interaction):
 
 def test_get_proto(interaction):
     proto = interaction.proto
-    assert proto.player_id == "1"
-    assert proto.interaction_id == "0"
+    assert proto.player_id == interaction.player_id
+    assert proto.interaction_id == interaction.interaction_id
     assert np.allclose(proto.position, [0, 0, 0])

@@ -15,5 +15,8 @@ setup(name='narupa-essd',
       install_requires=(
           'netifaces',
       ),
+      entry_points={
+          'console_scripts': ['narupa-essd-list=narupa.essd.list_cli:main'],
+      },
       package_dir={'': 'src'},
 )

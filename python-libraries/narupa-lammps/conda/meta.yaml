@@ -18,7 +18,7 @@ requirements:
     - python >=3.6.0
     - narupa-core =={{ NARUPA_BUILD_VERSION }}
     - numpy
-    - mpi4py
+    #- mpi4py
 
 about:
   home: https://narupa.readthedocs.io

@@ -26,6 +26,7 @@ def test_port_retained_after_close(server_factory):
     assert prev_port == frame_server.port
 
 
+@pytest.mark.serial
 @pytest.mark.parametrize('server_factory', TEST_SERVERS)
 @pytest.mark.parametrize('port', TEST_PORTS)
 def test_specific_port(server_factory, port):
@@ -39,6 +40,7 @@ def test_address(server_factory):
         assert frame_server.address == 'localhost'
 
 
+@pytest.mark.serial
 @pytest.mark.parametrize('server_factory', TEST_SERVERS)
 @pytest.mark.parametrize('port', TEST_PORTS)
 def test_specific_port_in_use(server_factory, port):

@@ -33,5 +33,5 @@ def delayed_generator(iterable: Iterable, delay: float):
     :yield The items in the iterable.
     """
     for item in iterable:
-        time.sleep(delay)
         yield item
+        time.sleep(delay)

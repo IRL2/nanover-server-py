@@ -11,6 +11,8 @@ from google.protobuf.struct_pb2 import Struct
 
 import narupa.protocol.imd.imd_pb2 as imd_pb2
 
+DEFAULT_MAX_FORCE = 20000
+
 
 def set_default_property(properties: Struct, key, default):
     if key not in properties:
@@ -32,6 +34,10 @@ class ParticleInteraction:
     :param interaction_type: The type of interaction being used, default is
         'gaussian' for a Gaussian force.
     :param scale: The scale factor applied to the interaction, default is 1.
+    :param mass_weighted: Whether the interaction will be mass weighted or not.
+    :param reset_velocities: Whether to reset velocities after interacting.
+    :param max_force: The maximum force that will be allowed to be applied to a given atom in a given cartesian
+        direction. Helps maintain stability for unbounded potentials.
 
     """
     _interaction: imd_pb2.ParticleInteraction
@@ -40,15 +46,18 @@ class ParticleInteraction:
     SCALE_KEY = "scale"
     MASS_WEIGHTED_KEY = "mass_weighted"
     RESET_VELOCITIES_KEY = "reset_velocities"
+    MAX_FORCE_KEY = "max_force"
 
-    def __init__(self, player_id: str = "1",
-                 interaction_id="0",
+    def __init__(self,
+                 player_id: str,
+                 interaction_id: str,
                  position=(0, 0, 0),
                  particles=(),
                  interaction_type='gaussian',
                  scale=1,
                  mass_weighted=True,
-                 reset_velocities=False):
+                 reset_velocities=False,
+                 max_force=DEFAULT_MAX_FORCE):
         self._interaction = imd_pb2.ParticleInteraction(player_id=player_id, interaction_id=interaction_id)
         self.position = position
         self._properties = self._interaction.properties
@@ -57,25 +66,32 @@ class ParticleInteraction:
         self.mass_weighted = mass_weighted
         self.reset_velocities = reset_velocities
         self.particles = particles
+        self.max_force = max_force
 
     @classmethod
-    def from_proto(cls, interaction_proto,
+    def from_proto(cls,
+                   interaction_proto: imd_pb2.ParticleInteraction,
                    default_interaction_type='gaussian',
                    default_scale=1,
                    default_mass_weighted=True,
-                   default_reset_velocities=False):
+                   default_reset_velocities=False,
+                   default_max_force=DEFAULT_MAX_FORCE):
         """
         Initialises an interaction from the protobuf representation.
 
         :param interaction_proto: The protobuf representation of the interaction.
         """
-        interaction = cls()
+        interaction = cls(
+            player_id=interaction_proto.player_id,
+            interaction_id=interaction_proto.interaction_id,
+        )
         interaction._interaction = interaction_proto
         interaction._properties = interaction_proto.properties
         set_default_property(interaction.properties, cls.TYPE_KEY, default_interaction_type)
         set_default_property(interaction.properties, cls.MASS_WEIGHTED_KEY, default_mass_weighted)
         set_default_property(interaction.properties, cls.SCALE_KEY, default_scale)
         set_default_property(interaction.properties, cls.RESET_VELOCITIES_KEY, default_reset_velocities)
+        set_default_property(interaction.properties, cls.MAX_FORCE_KEY, default_max_force)
 
         return interaction
 
@@ -145,7 +161,7 @@ class ParticleInteraction:
         self._set_property('scale', value)
 
     @property
-    def position(self) -> Collection:
+    def position(self) -> np.array:
         """
         Gets the position of the interaction, which defaults to ``[0,0,0]``
 
@@ -154,7 +170,7 @@ class ParticleInteraction:
         return np.array(self._interaction.position)
 
     @position.setter
-    def position(self, position: Collection):
+    def position(self, position: Collection[float]):
         """
         Set the position of the interaction
 
@@ -175,13 +191,31 @@ class ParticleInteraction:
         return np.array(self._interaction.particles)
 
     @particles.setter
-    def particles(self, particles: Collection):
+    def particles(self, particles: Collection[int]):
         """
         Set the particles of the interaction.
 
         :param particles: A collection of particles. If it contains duplicates, these will be removed.
         """
         self._interaction.particles[:] = np.unique(particles)
+
+    @property
+    def max_force(self) -> float:
+        """
+        Gets the maximum force this interaction will be allowed to apply to the system.
+
+        :return: The maximum energy, in kJ/(mol*nm), the interaction will be allowed to apply to the system.
+        """
+        return self._get_property(self.MAX_FORCE_KEY)
+
+    @max_force.setter
+    def max_force(self, value: float):
+        """
+        Sets the maximum force this interaction will be allowed to apply to the system.
+
+        :param value: New maximum force, in kJ/(mol*nm).
+        """
+        self._set_property(self.MAX_FORCE_KEY, value)
 
     @property
     def mass_weighted(self) -> bool:

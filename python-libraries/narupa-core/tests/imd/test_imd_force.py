@@ -34,7 +34,12 @@ def particles():
 def single_interaction():
     position = (0, 0, 0)
     index = 1
-    return ParticleInteraction(position=position, particles=[index])
+    return ParticleInteraction(
+        player_id='test player',
+        interaction_id='test interaction',
+        position=position,
+        particles=[index],
+    )
 
 
 @pytest.fixture
@@ -52,8 +57,16 @@ def test_multiple_interactions(particles):
     """
 
     positions, masses = particles
-    interaction = ParticleInteraction(position=[0.5, 0.5, 0.5], particles=[0, 1])
-    interaction_2 = ParticleInteraction(position=[1.5, 1.5, 1.5], particles=[1, 2])
+    interaction = ParticleInteraction(
+        player_id='test player',
+        interaction_id='test interaction 1',
+        position=[0.5, 0.5, 0.5], particles=[0, 1],
+    )
+    interaction_2 = ParticleInteraction(
+        player_id='test player',
+        interaction_id='test interaction 2',
+        position=[1.5, 1.5, 1.5], particles=[1, 2],
+    )
     # set masses of atoms 0 and 2 to be the same, so things cancel out nicely.
     masses[2] = masses[0]
     single_forces = np.zeros((len(positions), 3))
@@ -85,7 +98,34 @@ def test_interaction_force_single(particles, single_interaction, scale):
     energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
 
     expected_energy = - EXP_3 * scale * masses[single_interaction.particles[0]]
+    expected_energy = np.clip(expected_energy,
+                              -single_interaction.max_force, single_interaction.max_force)
     expected_forces[1, :] = np.array([-EXP_3 * scale * masses[single_interaction.particles[0]]] * 3)
+    expected_forces[1, :] = np.clip(expected_forces[1, :], -single_interaction.max_force,
+                                    single_interaction.max_force)
+
+    assert np.allclose(energy, expected_energy, equal_nan=True)
+    assert np.allclose(forces, expected_forces, equal_nan=True)
+
+
+@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.infty, -np.infty, np.nan])
+def test_interaction_force_max_energy(particles, single_interaction, max_energy):
+    """
+    Tests that setting the max energy field results in the energy being clamped as expected
+    """
+
+    positions, masses = particles
+    forces = np.zeros((len(positions), 3))
+    expected_forces = np.zeros((len(positions), 3))
+    single_interaction.max_force = max_energy
+    energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
+
+    expected_energy = - EXP_3 * masses[single_interaction.particles[0]]
+    expected_energy = np.clip(expected_energy,
+                              -single_interaction.max_force, single_interaction.max_force)
+    expected_forces[1, :] = np.array([-EXP_3 * masses[single_interaction.particles[0]]] * 3)
+    expected_forces[1, :] = np.clip(expected_forces[1, :], -single_interaction.max_force,
+                                    single_interaction.max_force)
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
@@ -109,6 +149,7 @@ def test_interaction_force_mass(particles, single_interaction, mass):
     else:
         expected_energy = - EXP_3 * mass
         expected_forces[1, :] = np.array([-EXP_3 * mass] * 3)
+
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
@@ -136,7 +177,11 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     """
     position = np.array(position)
     selection = np.array(selection)
-    interaction = ParticleInteraction(position=position, particles=selection)
+    interaction = ParticleInteraction(
+        player_id='test player',
+        interaction_id='test interaction',
+        position=position,
+        particles=selection,)
     positions, masses = particles
     # set non uniform masses based on parameterisation
     for index, mass in zip(selection, selection_masses):
@@ -172,7 +217,13 @@ def test_interaction_force_no_mass_weighting(particles, position, selection, sel
     """
     position = np.array(position)
     selection = np.array(selection)
-    interaction = ParticleInteraction(position=position, particles=selection, mass_weighted=False)
+    interaction = ParticleInteraction(
+        player_id='test player',
+        interaction_id='test interaction',
+        position=position,
+        particles=selection,
+        mass_weighted=False,
+    )
     positions, masses = particles
     # set non uniform masses based on parameterisation
     for index, mass in zip(selection, selection_masses):
@@ -211,7 +262,12 @@ def test_interaction_force_default_type(particles):
 
     selection = [1]
     position = positions[selection[0]]
-    interaction = ParticleInteraction(position=position, particles=selection)
+    interaction = ParticleInteraction(
+        player_id='test player',
+        interaction_id='test interaction',
+        position=position,
+        particles=selection,
+    )
     interaction.type = None
     forces = np.zeros((len(positions), 3))
 
@@ -243,8 +299,8 @@ def test_get_com_subset(particles):
     com = get_center_of_mass_subset(positions, masses, subset)
 
     expected_com = (
-        np.sum(positions[subset] * masses[subset, None], axis=0)
-        / masses[subset].sum()
+            np.sum(positions[subset] * masses[subset, None], axis=0)
+            / masses[subset].sum()
     )
 
     assert np.allclose(com, expected_com)

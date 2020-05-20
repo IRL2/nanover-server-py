@@ -272,7 +272,12 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
 
     selection = [0, 1]
     selection = np.array(list(selection))
-    interaction = ParticleInteraction(particles=selection, reset_velocities=True)
+    interaction = ParticleInteraction(
+        player_id='test player',
+        interaction_id='test interaction',
+        particles=selection,
+        reset_velocities=True,
+    )
     calculator._service.insert_interaction(interaction)
     atoms.get_forces()
     calculator._service.remove_interaction(interaction)

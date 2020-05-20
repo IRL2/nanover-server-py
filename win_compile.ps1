@@ -50,14 +50,18 @@ Get-ChildItem -Directory python-libraries/narupa-* | ForEach-Object {
     }
  }
 
-try
-{
-    python -c "import simtk" 
-}
-catch 
+python -c "import simtk"
+if ($LASTEXITCODE -ne 0)
 {
     announce "OpenMM appears to not be installed."
     announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
+}
+
+python -c "import mpi4py"
+if ($LASTEXITCODE -ne 0)
+{
+    announce "Cannot load mpi4py. Do you have Microsoft MPI installed?"
+    announce "See https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi"
 }
 
 announce "Compiling proto files to C#"
