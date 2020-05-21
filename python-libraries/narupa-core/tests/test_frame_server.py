@@ -14,6 +14,12 @@ FRAME_DATA_VARIABLE_KEYS = (SERVER_TIMESTAMP, )
 
 
 def remove_keys_from_framedata(frame: FrameData, keys: Iterable[str]):
+    """
+    Remove keys from a frame. The frame is modified in-place.
+
+    :param frame: The frame to modify.
+    :param keys: The list of keys to remove.
+    """
     for key in keys:
         # TODO: Removing a key should be handled by the frame itself. See #183.
         if key in frame.values:
@@ -30,11 +36,13 @@ def assert_framedata_equal(
     """
     Raise an :exc:`AssertError` if the two frames are not equal.
 
-    One can ignore keys
-    :param left:
-    :param right:
-    :param ignore_keys:
-    :return:
+    One can ignore keys from the comparison by listing them in the `ignore_key`
+    argument.
+
+    .. warning::
+
+        The keys to ignore are removed from the frames. Both frames are modified
+        in place.
     """
     # TODO: It would be cleaner to work on copies of the frame. See #182.
     remove_keys_from_framedata(left, ignore_keys)
