@@ -1,3 +1,4 @@
+from typing import Iterable
 from contextlib import contextmanager
 from unittest.mock import Mock
 
@@ -9,6 +10,36 @@ from narupa.trajectory import FrameServer, FrameClient, FrameData
 from narupa.trajectory.frame_data import SERVER_TIMESTAMP
 
 SUBSCRIBE_METHODS = ('subscribe_frames_async', 'subscribe_last_frames_async')
+FRAME_DATA_VARIABLE_KEYS = (SERVER_TIMESTAMP, )
+
+
+def remove_keys_from_framedata(frame: FrameData, keys: Iterable[str]):
+    for key in keys:
+        # TODO: Removing a key should be handled by the frame itself. See #183.
+        if key in frame.values:
+            del frame.raw.values[key]
+        if key in frame.arrays:
+            del frame.raw.arrays[key]
+
+
+def assert_framedata_equal(
+        left: FrameData,
+        right: FrameData,
+        ignore_keys: Iterable[str] = FRAME_DATA_VARIABLE_KEYS
+):
+    """
+    Raise an :exc:`AssertError` if the two frames are not equal.
+
+    One can ignore keys
+    :param left:
+    :param right:
+    :param ignore_keys:
+    :return:
+    """
+    # TODO: It would be cleaner to work on copies of the frame. See #182.
+    remove_keys_from_framedata(left, ignore_keys)
+    remove_keys_from_framedata(right, ignore_keys)
+    assert left == right
 
 
 @pytest.fixture
@@ -124,7 +155,7 @@ def test_data_earlyclient(frame_server_client_pair, simple_frame_data,
 
     time.sleep(0.1)
 
-    assert result == simple_frame_data
+    assert_framedata_equal(result, simple_frame_data)
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
@@ -144,7 +175,7 @@ def test_data_lateclient(frame_server_client_pair, simple_frame_data,
     time.sleep(0.1)
     assert SERVER_TIMESTAMP in result.values
 
-    assert result == simple_frame_data
+    assert_framedata_equal(result, simple_frame_data)
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
@@ -165,10 +196,8 @@ def test_data_disjoint(frame_server_client_pair, simple_frame_data,
 
     time.sleep(0.1)
     assert SERVER_TIMESTAMP in result.values
-    # The reference frame does not have the server timestamp
-    del result.raw.values[SERVER_TIMESTAMP]
 
-    assert result == simple_and_disjoint_frame_data
+    assert_framedata_equal(result, simple_and_disjoint_frame_data)
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
@@ -189,10 +218,8 @@ def test_data_overlap(frame_server_client_pair, simple_frame_data,
 
     time.sleep(0.1)
     assert SERVER_TIMESTAMP in result.values
-    # The reference frame does not have the server timestamp
-    del result.raw.values[SERVER_TIMESTAMP]
 
-    assert result == simple_and_overlap_frame_data
+    assert_framedata_equal(result, simple_and_overlap_frame_data)
 
 
 @contextmanager
@@ -231,7 +258,7 @@ def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
     with raises_rpc_cancelled():
         future.result()
 
-    assert result == simple_frame_data
+    assert_framedata_equal(result, simple_frame_data)
 
 
 def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair,
