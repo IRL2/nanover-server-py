@@ -43,6 +43,9 @@ class StateService(StateServicer):
         self._id = "service"
         self._state_dictionary = StateDictionary()
 
+    def close(self):
+        self._state_dictionary.freeze()
+
     def lock_state(self) -> ContextManager[Dict[str, object]]:
         """
         Context manager for reading the current state while delaying any changes

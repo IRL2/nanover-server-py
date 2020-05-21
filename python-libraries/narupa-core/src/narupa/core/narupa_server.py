@@ -28,6 +28,10 @@ class NarupaServer(GrpcServer):
         self._setup_command_service()
         self._setup_state_service()
 
+    def close(self):
+        self._state_service.close()
+        super().close()
+
     @property
     def commands(self) -> Dict[str, CommandRegistration]:
         """

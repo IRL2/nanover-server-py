@@ -332,6 +332,8 @@ def _get_universe_constructor_params(frame: FrameData):
         in MDA_UNIVERSE_PARAMS_TO_FRAME_DATA.items()
     }
 
+    # strip unused arguments
+    params = {key: value for key, value in params.items() if value is not None}
     params['trajectory'] = True
     return params
 
