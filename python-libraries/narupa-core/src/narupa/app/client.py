@@ -15,6 +15,7 @@ from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from narupa.app.selection import RenderingSelection
 from narupa.command import CommandInfo
 from narupa.core import NarupaClient, DEFAULT_CONNECT_ADDRESS
+from narupa.core.narupa_client import DEFAULT_STATE_UPDATE_INTERVAL
 from narupa.essd import DiscoveryClient
 from narupa.imd import ImdClient, IMD_SERVICE_NAME
 from narupa.imd.particle_interaction import ParticleInteraction
@@ -327,7 +328,7 @@ class NarupaImdClient:
 
         :return: Dictionary of the current state of multiplayer shared key/value store.
         """
-        return dict(self._multiplayer_client.resources)
+        return self._multiplayer_client.copy_state()
 
     @property
     @need_frames
@@ -513,7 +514,7 @@ class NarupaImdClient:
         return self._multiplayer_client.run_command(name, **args)
 
     @need_multiplayer
-    def join_multiplayer(self, player_name):
+    def join_multiplayer(self, player_name, interval=DEFAULT_STATE_UPDATE_INTERVAL):
         """
         Joins multiplayer with the given player name.
 
@@ -523,6 +524,7 @@ class NarupaImdClient:
             multiplayer service
         """
         self._multiplayer_client.join_multiplayer(player_name)
+        self._multiplayer_client.subscribe_all_state_updates(interval)
 
     @need_multiplayer
     def set_shared_value(self, key, value) -> bool:
@@ -537,7 +539,8 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        return self._multiplayer_client.try_set_resource_value(key, value)
+        change = DictionaryChange(updates={key: value}, removals=[])
+        return self._multiplayer_client.attempt_update_state(change)
 
     @need_multiplayer
     def remove_shared_value(self, key: str) -> bool:
@@ -547,7 +550,8 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        return self._multiplayer_client.try_remove_resource_key(key)
+        change = DictionaryChange(updates={}, removals=[key])
+        return self._multiplayer_client.attempt_update_state(change)
 
     @need_multiplayer
     def get_shared_value(self, key):
@@ -560,7 +564,7 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        return self._multiplayer_client.resources[key]
+        return self._multiplayer_client.copy_state()[key]
 
     @property
     @need_multiplayer
@@ -613,11 +617,6 @@ class NarupaImdClient:
 
         :param selection: The selection to update.
         """
-        change = DictionaryChange(
-            updates={selection.selection_id: selection.to_dictionary()},
-            removes=[],
-        )
-        self._multiplayer_client.attempt_update_state(change)
         self.set_shared_value(selection.selection_id, selection.to_dictionary())
 
     @need_multiplayer
@@ -625,8 +624,6 @@ class NarupaImdClient:
         """
         Delete the given selection
         """
-        change = DictionaryChange(updates={}, removals=[selection.selection_id])
-        self._multiplayer_client.attempt_update_state(change)
         self.remove_shared_value(selection.selection_id)
 
     @need_multiplayer
@@ -700,7 +697,11 @@ class NarupaImdClient:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def _connect_client(self, client_type: Type[NarupaClient], address: Tuple[str, int]):
+    def _connect_client(
+            self,
+            client_type: Type[NarupaClient],
+            address: Tuple[str, int],
+    ):
         # TODO add support for encryption here somehow.
 
         # if there already exists a channel with the same address, reuse it, otherwise create a new insecure

@@ -9,21 +9,6 @@ package narupa.protocol.multiplayer;
 service Multiplayer {
     // Create a new player for this multiplayer session.
     rpc CreatePlayer(CreatePlayerRequest) returns (CreatePlayerResponse) {}
-
-    // Streams initial value and then changes of all resources.
-    rpc SubscribeAllResourceValues(SubscribeAllResourceValuesRequest) returns (stream ResourceValuesUpdate) {}
-
-    // Acquire a lock for a player on a specified resource.
-    rpc AcquireResourceLock(AcquireLockRequest) returns (ResourceRequestResponse) {}
-
-    // Release a player's lock on a specified resource.
-    rpc ReleaseResourceLock(ReleaseLockRequest) returns (ResourceRequestResponse) {}
-
-    // Set a resource's value.
-    rpc SetResourceValue(SetResourceValueRequest) returns (ResourceRequestResponse) {}
-
-    // Remove a resource.
-    rpc RemoveResourceKey(RemoveResourceKeyRequest) returns (ResourceRequestResponse) {}
 }
 
 message StreamEndedResponse {
@@ -37,53 +22,4 @@ message CreatePlayerRequest {
 message CreatePlayerResponse {
     // The ID assigned to the newly created player.
     string player_id = 1;
-}
-
-message AcquireLockRequest {
-    // ID of player making request.
-    string player_id = 1;
-    // Identifier of resource to be locked.
-    string resource_id = 2;
-    // Duration in seconds to keep the lock. (default indefinite lock)
-    float timeout_duration = 3;
-}
-
-message ReleaseLockRequest {
-    // ID of player making request.
-    string player_id = 1;
-    // Identifier of resource to be locked.
-    string resource_id = 2;
-}
-
-message SetResourceValueRequest {
-    // ID of player making request
-    string player_id = 1;
-    // Identifier of resource to be set.
-    string resource_id = 2;
-    // Value to set the resource to.
-    google.protobuf.Value resource_value = 3;
-}
-
-message RemoveResourceKeyRequest {
-    // ID of player making request
-    string player_id = 1;
-    // Identifier of resource to be removed.
-    string resource_id = 2;
-}
-
-message ResourceRequestResponse {
-    // Whether the request was successful.
-    bool success = 1;
-}
-
-message SubscribeAllResourceValuesRequest {
-    // Interval (in seconds) between update sends.
-    float update_interval = 1;
-}
-
-message ResourceValuesUpdate {
-    // Struct of resource address to updated resource value.
-    google.protobuf.Struct resource_value_changes = 1;
-    // Set of keys that have been removed since last update.
-    repeated string resource_value_removals = 2;
 }
