@@ -24,6 +24,8 @@ from narupa.trajectory import FrameClient, FrameData, FRAME_SERVICE_NAME
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY
 
 # Default to a low framerate to avoid build up in the frame stream
+from narupa.utilities.change_buffers import DictionaryChange
+
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
 
 # ID of the root selection
@@ -611,6 +613,11 @@ class NarupaImdClient:
 
         :param selection: The selection to update.
         """
+        change = DictionaryChange(
+            updates={selection.selection_id: selection.to_dictionary()},
+            removes=[],
+        )
+        self._multiplayer_client.attempt_update_state(change)
         self.set_shared_value(selection.selection_id, selection.to_dictionary())
 
     @need_multiplayer
@@ -618,6 +625,8 @@ class NarupaImdClient:
         """
         Delete the given selection
         """
+        change = DictionaryChange(updates={}, removals=[selection.selection_id])
+        self._multiplayer_client.attempt_update_state(change)
         self.remove_shared_value(selection.selection_id)
 
     @need_multiplayer
@@ -637,7 +646,7 @@ class NarupaImdClient:
 
         :return: An iterable of all the selections stored in the shared key store.
         """
-        for key, _ in self._multiplayer_client.resources.items():
+        for key, _ in self._multiplayer_client.copy_state().items():
             if key.startswith('selection.'):
                 yield self.get_selection(key)
 
@@ -651,7 +660,7 @@ class NarupaImdClient:
         :param selection_id: The id of the selection
         :return: The selection if it is present
         """
-        value = self._multiplayer_client.resources[selection_id]
+        value = self._multiplayer_client.copy_state()[selection_id]
         return self._create_selection_from_dict(value)
 
     def _create_selection_from_dict(self, value) -> RenderingSelection:
