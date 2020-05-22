@@ -11,9 +11,6 @@ service Multiplayer {
     rpc CreatePlayer(CreatePlayerRequest) returns (CreatePlayerResponse) {}
 }
 
-message StreamEndedResponse {
-}
-
 message CreatePlayerRequest {
     // Friendly name for the new player.
     string player_name = 1;
