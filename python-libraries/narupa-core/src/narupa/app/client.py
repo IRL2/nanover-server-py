@@ -23,10 +23,9 @@ from narupa.multiplayer import MultiplayerClient, MULTIPLAYER_SERVICE_NAME
 from narupa.protocol.imd import InteractionEndReply
 from narupa.trajectory import FrameClient, FrameData, FRAME_SERVICE_NAME
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY
-
-# Default to a low framerate to avoid build up in the frame stream
 from narupa.utilities.change_buffers import DictionaryChange
 
+# Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
 
 # ID of the root selection
