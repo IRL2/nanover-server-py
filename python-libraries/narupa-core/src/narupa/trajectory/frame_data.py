@@ -72,6 +72,10 @@ def _flatten_2d(value):
     return list(itertools.chain(*value))
 
 
+def _flatten_array(value):
+    return np.asarray(value).flatten()
+
+
 def _make_getter(shortcut):
     def wrapped(self):
         try:
@@ -154,7 +158,7 @@ class FrameData(metaclass=_FrameDataMeta):
 
     particle_positions = _Shortcut(
         key=PARTICLE_POSITIONS, record_type='arrays',
-        field_type='float', to_python=_n_by_3, to_raw=_flatten_2d)
+        field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
     particle_elements = _Shortcut(
         key=PARTICLE_ELEMENTS, record_type='arrays',
         field_type='index', to_python=_as_is, to_raw=_as_is)
