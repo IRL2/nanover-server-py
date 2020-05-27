@@ -37,6 +37,9 @@ are organised into the following folders:
     - [Trajectory](examples/mdanalysis/mdanalysis_trajectory.ipynb) - Build your own trajectory viewer with MDAnalysis
     and Narupa.
 * [fundamentals](examples/fundamentals) - Understand how Narupa works, so you can create your own applications.
+    - [Frame](examples/fundamentals/frame.ipynb) - How Narupa communicates frames of molecular simulations.
+    - [Servers](examples/fundamentals/servers.ipynb) - Setting up a Narupa server.
+    - [State & Commands](examples/fundamentals/commands_and_state.ipynb) - Synchronizing state between clients and calling commands on the server.
 
 The tutorials use Jupyter notebooks, [NGLView](https://github.com/arose/nglview) for visualising trajectories, and while not strictly necessary,
 assumes you have the [Narupa IMD VR](https://gitlab.com/intangiblerealities/narupa-applications/narupa-imd)
