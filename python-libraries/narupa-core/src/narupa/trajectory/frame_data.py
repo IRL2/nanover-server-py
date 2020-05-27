@@ -69,7 +69,7 @@ def _n_by_3(value):
 
 
 def _flatten_array(value):
-    return np.asarray(value).flatten()
+    return np.asarray(value).ravel()
 
 
 def _make_getter(shortcut):
