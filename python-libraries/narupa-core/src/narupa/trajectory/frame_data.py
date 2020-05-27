@@ -68,8 +68,8 @@ def _n_by_3(value):
     return list(value[i:i + 3] for i in range(0, len(value), 3))
 
 
-def _flatten_2d(value):
-    return list(itertools.chain(*value))
+def _flatten_array(value):
+    return np.asarray(value).ravel()
 
 
 def _make_getter(shortcut):
@@ -147,14 +147,14 @@ class FrameData(metaclass=_FrameDataMeta):
     """
     bond_pairs = _Shortcut(
         key=BOND_PAIRS, record_type='arrays',
-        field_type='index', to_python=_n_by_2, to_raw=_flatten_2d)
+        field_type='index', to_python=_n_by_2, to_raw=_flatten_array)
     bond_orders = _Shortcut(
         key=BOND_ORDERS, record_type='arrays',
         field_type='float', to_python=_as_is, to_raw=_as_is)
 
     particle_positions = _Shortcut(
         key=PARTICLE_POSITIONS, record_type='arrays',
-        field_type='float', to_python=_n_by_3, to_raw=_flatten_2d)
+        field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
     particle_elements = _Shortcut(
         key=PARTICLE_ELEMENTS, record_type='arrays',
         field_type='index', to_python=_as_is, to_raw=_as_is)
@@ -199,7 +199,7 @@ class FrameData(metaclass=_FrameDataMeta):
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
     box_vectors = _Shortcut(
         key=BOX_VECTORS, record_type='arrays',
-        field_type='float', to_python=_n_by_3, to_raw=_flatten_2d)
+        field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
 
     server_timestamp = _Shortcut(
         key=SERVER_TIMESTAMP, record_type='values',
