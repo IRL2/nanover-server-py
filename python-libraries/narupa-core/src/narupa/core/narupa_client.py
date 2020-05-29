@@ -48,6 +48,10 @@ class NarupaClient(GrpcClient):
         self._setup_command_stub()
         self._setup_state_stub()
 
+    def close(self):
+        self._state.freeze()
+        super().close()
+
     @property
     def available_commands(self) -> Dict[str, CommandInfo]:
         """
