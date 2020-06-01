@@ -11,10 +11,8 @@ from typing import Callable, Sequence
 import grpc
 import narupa.protocol.multiplayer.multiplayer_pb2_grpc as mult_proto_grpc
 from narupa.core import NarupaStubClient
-from narupa.multiplayer.multiplayer_server import DEFAULT_PORT
-from narupa.protocol.multiplayer.multiplayer_pb2 import CreatePlayerRequest
+from narupa.multiplayer.multiplayer_server import DEFAULT_PORT, CREATE_ID_KEY
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import MultiplayerStub
-from narupa.utilities.protobuf_utilities import struct_to_dict
 
 UpdateCallback = Callable[[Sequence[str]], None]
 
@@ -56,17 +54,15 @@ class MultiplayerClient(NarupaStubClient):
                          make_channel_owner=make_channel_owner)
         self._player_id = None
 
-    def join_multiplayer(self, player_name):
+    def create_player_id(self):
         """
-        Joins a multiplayer server
+        Create a unique id for identifying this client between requests.
 
-        :param player_name: The user name to use for multiplayer.
         :return: Player ID received from the multiplayer server.
         """
         if self.joined_multiplayer:
             return self._player_id
-        response = self.stub.CreatePlayer(CreatePlayerRequest(player_name=player_name), timeout=5)
-        self._player_id = response.player_id
+        self._player_id = self.run_command(CREATE_ID_KEY)
         return self._player_id
 
     @property

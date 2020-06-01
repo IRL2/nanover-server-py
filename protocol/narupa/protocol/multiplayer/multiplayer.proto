@@ -6,17 +6,4 @@ import "google/protobuf/struct.proto";
 
 package narupa.protocol.multiplayer;
 
-service Multiplayer {
-    // Create a new player for this multiplayer session.
-    rpc CreatePlayer(CreatePlayerRequest) returns (CreatePlayerResponse) {}
-}
-
-message CreatePlayerRequest {
-    // Friendly name for the new player.
-    string player_name = 1;
-}
-
-message CreatePlayerResponse {
-    // The ID assigned to the newly created player.
-    string player_id = 1;
-}
+service Multiplayer {}

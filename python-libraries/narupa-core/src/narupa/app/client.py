@@ -101,7 +101,7 @@ class NarupaImdClient:
     .. code-block::  python
 
         # Connect to the multiplayer
-        client.join_multiplayer("Selection Example")
+        client.create_player_id()
         # Create a selection called 'Selection' which selects particles with indices 0-4
         selection = client.create_selection("Selection", [0, 1, 2, 3, 4])
 
@@ -505,7 +505,7 @@ class NarupaImdClient:
         """
         Runs a command on the multiplayer service.
 
-        :param name: Name of the command to run
+        :param name: Name of the command to run.
         :param args: Dictionary of arguments to run with the command.
         :return: Results of the command, if any.
         """
@@ -513,16 +513,16 @@ class NarupaImdClient:
         return self._multiplayer_client.run_command(name, **args)
 
     @need_multiplayer
-    def join_multiplayer(self, player_name, interval=DEFAULT_STATE_UPDATE_INTERVAL):
+    def create_player_id(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
         """
-        Joins multiplayer with the given player name.
+        Obtain a unique player id and subscribe to all state updates.
 
-        :param player_name: The player name with which to be identified.
+        :param interval: Subscription interval for state updates.
 
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        self._multiplayer_client.join_multiplayer(player_name)
+        self._multiplayer_client.create_player_id()
         self._multiplayer_client.subscribe_all_state_updates(interval)
 
     @need_multiplayer

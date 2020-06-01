@@ -16,6 +16,9 @@ from narupa.multiplayer.multiplayer_service import MultiplayerService
 DEFAULT_PORT = 54323
 
 
+CREATE_ID_KEY = 'multiplayer/create_id'
+
+
 class MultiplayerServer(NarupaServer):
     """
     Server providing multiplayer synchronisation.
@@ -40,6 +43,12 @@ class MultiplayerServer(NarupaServer):
         super().setup_services()
         self._multiplayer_service = MultiplayerService()
         self._multiplayer_service.add_to_server_method(self._multiplayer_service, self.server)
+
+        def create_player_id(**kwargs):
+            id = self._multiplayer_service.generate_player_id()
+            return {'id': id}
+
+        self.register_command(CREATE_ID_KEY, create_player_id)
 
     def close(self):
         super().close()

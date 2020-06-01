@@ -7,10 +7,6 @@ Module providing an implementation of a multiplayer service,.
 import logging
 from typing import Callable
 
-from narupa.protocol.multiplayer.multiplayer_pb2 import (
-    CreatePlayerRequest,
-    CreatePlayerResponse,
-)
 from narupa.protocol.multiplayer.multiplayer_pb2_grpc import (
     MultiplayerServicer,
     add_MultiplayerServicer_to_server,
@@ -31,16 +27,6 @@ class MultiplayerService(MultiplayerServicer):
 
         self.players = {}
         self.logger = logging.getLogger(__name__)
-
-    def CreatePlayer(self,
-                     request: CreatePlayerRequest,
-                     context) -> CreatePlayerResponse:
-        """
-        Create a new unique player and return their id.
-        """
-        player_id = self.generate_player_id()
-        self.players[player_id] = request
-        return CreatePlayerResponse(player_id=player_id)
 
     def generate_player_id(self):
         """
