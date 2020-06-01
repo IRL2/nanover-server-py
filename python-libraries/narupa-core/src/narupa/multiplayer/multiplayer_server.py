@@ -11,7 +11,6 @@ from narupa.core.grpc_server import (
     get_requested_port_or_default,
 )
 from narupa.core import NarupaServer
-from narupa.multiplayer.multiplayer_service import MultiplayerService
 
 DEFAULT_PORT = 54323
 
@@ -26,7 +25,6 @@ class MultiplayerServer(NarupaServer):
     :param address: The IP or web address to run the server on.
     :param port: The port to run the server on.
     """
-    _multiplayer_service: MultiplayerService
 
     def __init__(
             self,
@@ -41,15 +39,13 @@ class MultiplayerServer(NarupaServer):
 
     def setup_services(self):
         super().setup_services()
-        self._multiplayer_service = MultiplayerService()
-        self._multiplayer_service.add_to_server_method(self._multiplayer_service, self.server)
+        next_id = 0
 
-        def create_player_id(**kwargs):
-            id = self._multiplayer_service.generate_player_id()
+        def create_player_id():
+            nonlocal next_id
+            id = next_id
+            next_id += 1
             return {'id': id}
 
         self.register_command(CREATE_ID_KEY, create_player_id)
 
-    def close(self):
-        super().close()
-        self._multiplayer_service.close()
