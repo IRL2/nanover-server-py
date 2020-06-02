@@ -270,7 +270,8 @@ def test_available_commands(client_server, mock_callback):
 
     commands = client.update_available_commands()
 
-    assert set(commands.keys()) >= {frame_str, imd_str, multiplayer_str}
+    assert len(commands) == 3
+    assert set(commands.keys()) == {frame_str, imd_str, multiplayer_str}
 
 
 def test_available_commands_frame_server_only(client_frame_server, mock_callback):

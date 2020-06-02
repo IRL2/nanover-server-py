@@ -516,7 +516,7 @@ class NarupaImdClient:
     @need_multiplayer
     def subscribe_multiplayer(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
         """
-        Obtain a unique player id and subscribe to all state updates.
+        Subscribe to all multiplayer state updates.
 
         :param interval: Subscription interval for state updates.
 
