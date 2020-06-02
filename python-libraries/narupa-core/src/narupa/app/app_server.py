@@ -7,8 +7,7 @@ from typing import Tuple, Optional
 
 from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
 from narupa.essd import DiscoveryServer, ServiceHub
-from narupa.multiplayer.multiplayer_service import MultiplayerService, MULTIPLAYER_SERVICE_NAME
-from narupa.protocol.multiplayer import add_MultiplayerServicer_to_server
+from narupa.multiplayer.multiplayer_service import MultiplayerService
 
 DEFAULT_NARUPA_PORT = 38801
 

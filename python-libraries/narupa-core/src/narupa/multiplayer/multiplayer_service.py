@@ -7,15 +7,10 @@ Module providing an implementation of a multiplayer service,.
 import logging
 from typing import Callable
 
-from narupa.protocol.multiplayer.multiplayer_pb2_grpc import (
-    MultiplayerServicer,
-    add_MultiplayerServicer_to_server,
-)
-
 MULTIPLAYER_SERVICE_NAME = "multiplayer"
 
 
-class MultiplayerService(MultiplayerServicer):
+class MultiplayerService:
     """
     Implementation of the Multiplayer service.
     """
@@ -23,7 +18,7 @@ class MultiplayerService(MultiplayerServicer):
     def __init__(self):
         super().__init__()
         self.name: str = MULTIPLAYER_SERVICE_NAME
-        self.add_to_server_method: Callable = add_MultiplayerServicer_to_server
+        self.add_to_server_method: Callable = null
 
         self.players = {}
         self.logger = logging.getLogger(__name__)
@@ -38,3 +33,7 @@ class MultiplayerService(MultiplayerServicer):
 
     def close(self):
         pass
+
+
+def null(*args, **kwargs):
+    pass
