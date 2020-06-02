@@ -21,17 +21,6 @@ class MultiplayerClient(NarupaClient):
         super().__init__(*args, **kwargs)
         self._player_id = str(uuid.uuid4())
 
-    def create_player_id(self):
-        """
-        Create a unique id for identifying this client between requests.
-
-        :return: Player ID received from the multiplayer server.
-        """
-        if self.player_id is not None:
-            return self._player_id
-        self._player_id = self.run_command(CREATE_ID_KEY)
-        return self._player_id
-
     @property
     def player_id(self):
         """
