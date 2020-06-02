@@ -4,11 +4,11 @@ Tests for application level autoconnecting between client and server.
 import pytest
 from mock import Mock
 from narupa.app import NarupaImdApplication, NarupaImdClient
+from narupa.app.app_server import MULTIPLAYER_SERVICE_NAME
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer, ServiceHub
 from narupa.essd.utils import get_broadcastable_ip
 from narupa.imd import ImdServer, IMD_SERVICE_NAME
-from narupa.multiplayer import MULTIPLAYER_SERVICE_NAME
 from narupa.trajectory import FrameServer, FRAME_SERVICE_NAME
 
 DISCOVERY_DELAY = 0.05

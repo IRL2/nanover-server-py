@@ -7,9 +7,9 @@ from typing import Tuple, Optional
 
 from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
 from narupa.essd import DiscoveryServer, ServiceHub
-from narupa.multiplayer import MULTIPLAYER_SERVICE_NAME
 
 DEFAULT_NARUPA_PORT = 38801
+MULTIPLAYER_SERVICE_NAME = "multiplayer"
 
 
 def start_default_server_and_discovery(
@@ -64,6 +64,8 @@ class NarupaApplicationServer:
                                        address=self._server.address,
                                        port=self._server.port)
         self._services = set()
+
+        # Advertise as a multiplayer service
         self._add_service_entry(MULTIPLAYER_SERVICE_NAME, self._server.port)
 
     def __enter__(self):

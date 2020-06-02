@@ -9,9 +9,10 @@ from collections import deque, ChainMap
 from functools import wraps, partial
 from typing import Iterable, Tuple, Type
 from typing import Optional, Sequence, Dict, MutableMapping
+from uuid import uuid4
 
 from grpc import RpcError, StatusCode
-from narupa.app.app_server import DEFAULT_NARUPA_PORT
+from narupa.app.app_server import DEFAULT_NARUPA_PORT, MULTIPLAYER_SERVICE_NAME
 from narupa.app.selection import RenderingSelection
 from narupa.command import CommandInfo
 from narupa.core import NarupaClient, DEFAULT_CONNECT_ADDRESS
@@ -19,7 +20,6 @@ from narupa.core.narupa_client import DEFAULT_STATE_UPDATE_INTERVAL
 from narupa.essd import DiscoveryClient
 from narupa.imd import ImdClient, IMD_SERVICE_NAME
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.multiplayer import MultiplayerClient, MULTIPLAYER_SERVICE_NAME
 from narupa.protocol.imd import InteractionEndReply
 from narupa.trajectory import FrameClient, FrameData, FRAME_SERVICE_NAME
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY
@@ -101,7 +101,7 @@ class NarupaImdClient:
     .. code-block::  python
 
         # Connect to the multiplayer
-        client.create_player_id()
+        client.subscribe_multiplayer()
         # Create a selection called 'Selection' which selects particles with indices 0-4
         selection = client.create_selection("Selection", [0, 1, 2, 3, 4])
 
@@ -127,7 +127,7 @@ class NarupaImdClient:
     """
     _frame_client: Optional[FrameClient]
     _imd_client: Optional[ImdClient]
-    _multiplayer_client: Optional[MultiplayerClient]
+    _multiplayer_client: Optional[NarupaClient]
     _frames: deque
 
     _next_selection_id: int = 0
@@ -138,6 +138,7 @@ class NarupaImdClient:
                  multiplayer_address: Tuple[str, int] = None,
                  max_frames=50,
                  all_frames=True):
+        self._player_id = str(uuid4())
 
         self._channels = {}
 
@@ -270,7 +271,7 @@ class NarupaImdClient:
 
         :param address: The address and port of the multiplayer server.
         """
-        self._multiplayer_client = self._connect_client(MultiplayerClient, address)
+        self._multiplayer_client = self._connect_client(NarupaClient, address)
 
     def connect(self, *,
                 trajectory_address: Tuple[str, int] = None,
@@ -596,7 +597,7 @@ class NarupaImdClient:
             particle_ids = set()
 
         # Give the selection an ID based upon the multiplayer player ID and an incrementing counter
-        selection_id = f'selection.{self._multiplayer_client.player_id}.{self._next_selection_id}'
+        selection_id = f'selection.{self._player_id}.{self._next_selection_id}'
         self._next_selection_id += 1
 
         # Create the selection and setup the particles that it contains
