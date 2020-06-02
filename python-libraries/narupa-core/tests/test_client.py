@@ -195,7 +195,7 @@ def test_set_multiplayer_value(client_server):
     tests that setting multiplayer value works correctly.
     """
     client, frame_server, imd_server, multiplayer_server = client_server
-    client.create_player_id()
+    client.subscribe_multiplayer()
 
     client.set_shared_value(TEST_KEY, TEST_VALUE)
     time.sleep(CLIENT_WAIT_TIME)
@@ -217,7 +217,7 @@ def test_join_multiplayer_disconnected():
     """
     with NarupaImdClient() as client:
         with pytest.raises(RuntimeError):
-            client.create_player_id()
+            client.subscribe_multiplayer()
 
 
 def test_get_shared_resources_disconnected():

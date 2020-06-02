@@ -513,7 +513,7 @@ class NarupaImdClient:
         return self._multiplayer_client.run_command(name, **args)
 
     @need_multiplayer
-    def create_player_id(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
+    def subscribe_multiplayer(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
         """
         Obtain a unique player id and subscribe to all state updates.
 
@@ -522,7 +522,6 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        self._multiplayer_client.create_player_id()
         self._multiplayer_client.subscribe_all_state_updates(interval)
 
     @need_multiplayer

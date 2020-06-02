@@ -5,9 +5,9 @@
 Reference multiplayer client implementation.
 
 """
+import uuid
 from typing import Optional
 from narupa.core import NarupaClient
-from narupa.multiplayer.multiplayer_server import DEFAULT_PORT, CREATE_ID_KEY
 
 
 class MultiplayerClient(NarupaClient):
@@ -15,8 +15,11 @@ class MultiplayerClient(NarupaClient):
     Represents a client to the multiplayer server.
 
     """
-    DEFAULT_CONNECTION_PORT = DEFAULT_PORT
     _player_id: Optional[object] = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._player_id = str(uuid.uuid4())
 
     def create_player_id(self):
         """

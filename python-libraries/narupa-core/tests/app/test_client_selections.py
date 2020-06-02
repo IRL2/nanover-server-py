@@ -43,8 +43,8 @@ def server_clients():
     client1 = NarupaImdClient(multiplayer_address=(server.address, server.port))
     client2 = NarupaImdClient(multiplayer_address=(server.address, server.port))
 
-    client1.create_player_id(interval=0)
-    client2.create_player_id(interval=0)
+    client1.subscribe_multiplayer(interval=0)
+    client2.subscribe_multiplayer(interval=0)
 
     time.sleep(0.02)
 

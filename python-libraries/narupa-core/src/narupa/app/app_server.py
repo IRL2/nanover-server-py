@@ -7,7 +7,7 @@ from typing import Tuple, Optional
 
 from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
 from narupa.essd import DiscoveryServer, ServiceHub
-from narupa.multiplayer.multiplayer_service import MultiplayerService
+from narupa.multiplayer import MULTIPLAYER_SERVICE_NAME
 
 DEFAULT_NARUPA_PORT = 38801
 
@@ -64,7 +64,7 @@ class NarupaApplicationServer:
                                        address=self._server.address,
                                        port=self._server.port)
         self._services = set()
-        self._setup_multiplayer()
+        self._add_service_entry(MULTIPLAYER_SERVICE_NAME, self._server.port)
 
     def __enter__(self):
         return self
@@ -167,14 +167,13 @@ class NarupaApplicationServer:
         :param service: Service implementation
         """
         self._server.add_service(service)
-        self._service_hub.add_service(service.name, self._server.port)
         self._services.add(service)
+        self._add_service_entry(service.name, self._server.port)
+
+    def _add_service_entry(self, name: str, port: int):
+        self._service_hub.add_service(name, port)
         if self.running_discovery:
             self._update_discovery_services()
-
-    def _setup_multiplayer(self):
-        self._multiplayer = MultiplayerService()
-        self.add_service(self._multiplayer)
 
     def _update_discovery_services(self):
         try:
