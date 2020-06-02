@@ -2,7 +2,7 @@ import time
 
 import pytest
 from narupa.app import NarupaImdClient
-from narupa.multiplayer import MultiplayerServer
+from narupa.core import NarupaServer
 
 UPDATE_TIME = 0.01
 
@@ -39,7 +39,7 @@ def server_clients():
     Provides a multiplayer server hosting on an available port on localhost,
     and two Narupa clients connected to it.
     """
-    server = MultiplayerServer(address='localhost', port=0)
+    server = NarupaServer(address='localhost', port=0)
     client1 = NarupaImdClient(multiplayer_address=(server.address, server.port))
     client2 = NarupaImdClient(multiplayer_address=(server.address, server.port))
 

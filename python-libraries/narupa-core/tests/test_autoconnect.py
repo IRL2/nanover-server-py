@@ -8,7 +8,7 @@ from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer, ServiceHub
 from narupa.essd.utils import get_broadcastable_ip
 from narupa.imd import ImdServer, IMD_SERVICE_NAME
-from narupa.multiplayer import MultiplayerServer, MULTIPLAYER_SERVICE_NAME
+from narupa.multiplayer import MULTIPLAYER_SERVICE_NAME
 from narupa.trajectory import FrameServer, FRAME_SERVICE_NAME
 
 DISCOVERY_DELAY = 0.05
@@ -28,7 +28,7 @@ def broadcastable_servers():
     address = get_broadcastable_ip()
     with FrameServer(address=address, port=0) as frame_server:
         with ImdServer(address=address, port=0) as imd_server:
-            with MultiplayerServer(address=address, port=0) as multiplayer_server:
+            with NarupaServer(address=address, port=0) as multiplayer_server:
                 yield frame_server, imd_server, multiplayer_server
 
 

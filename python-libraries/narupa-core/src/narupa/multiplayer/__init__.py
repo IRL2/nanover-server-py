@@ -4,4 +4,5 @@
 Module providing a python implementation of the Narupa multiplayer services.
 """
 from .multiplayer_client import MultiplayerClient
-from .multiplayer_server import MultiplayerServer, MULTIPLAYER_SERVICE_NAME
+MULTIPLAYER_SERVICE_NAME = "multiplayer"
+

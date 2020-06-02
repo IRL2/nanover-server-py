@@ -1,8 +1,8 @@
 import time
 import pytest
 from mock import Mock
+from narupa.core import NarupaServer
 
-from narupa.multiplayer import MultiplayerServer
 from narupa.trajectory.frame_server import (
     PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY,
 )
@@ -21,7 +21,7 @@ TEST_VALUE = 'hi'
 
 @pytest.fixture
 def multiplayer_server():
-    with MultiplayerServer(address='localhost', port=0) as server:
+    with NarupaServer(address='localhost', port=0) as server:
         yield server
 
 
