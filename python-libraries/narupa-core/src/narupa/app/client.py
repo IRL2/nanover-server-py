@@ -526,6 +526,35 @@ class NarupaImdClient:
         self._multiplayer_client.subscribe_all_state_updates(interval)
 
     @need_multiplayer
+    def attempt_update_multiplayer_state(
+            self,
+            update: DictionaryChange,
+    ) -> bool:
+        """
+        Attempt to make a single atomic change to the shared state, blocking
+        until a response is received.
+        :param update: A single change to make to the shared state that will
+            either be made in full, or ignored if some of the keys are locked
+            by another user.
+        :return: True if the server accepted our change, and False otherwise.
+        """
+        return self._multiplayer_client.attempt_update_state(update)
+
+    @need_multiplayer
+    def attempt_update_multiplayer_locks(
+            self,
+            update: Dict[str, Optional[float]],
+    ) -> bool:
+        """
+        Attempt to acquire and/or free a number of locks on the shared state.
+        :param update: A dictionary of keys to either a duration in
+            seconds to attempt to acquire or renew a lock, or None to indicate
+            the lock should be released if held.
+        :return: True if the desired locks were acquired, and False otherwise.
+        """
+        return self._multiplayer_client.attempt_update_locks(update)
+
+    @need_multiplayer
     def set_shared_value(self, key, value) -> bool:
         """
         Attempts to set the given key/value pair on the multiplayer shared value store.
@@ -539,7 +568,7 @@ class NarupaImdClient:
             multiplayer service
         """
         change = DictionaryChange(updates={key: value}, removals=[])
-        return self._multiplayer_client.attempt_update_state(change)
+        return self.attempt_update_multiplayer_state(change)
 
     @need_multiplayer
     def remove_shared_value(self, key: str) -> bool:
@@ -550,7 +579,7 @@ class NarupaImdClient:
             multiplayer service
         """
         change = DictionaryChange(updates={}, removals=[key])
-        return self._multiplayer_client.attempt_update_state(change)
+        return self.attempt_update_multiplayer_state(change)
 
     @need_multiplayer
     def get_shared_value(self, key):
