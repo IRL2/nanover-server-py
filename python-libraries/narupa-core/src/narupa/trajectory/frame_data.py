@@ -6,6 +6,7 @@ import itertools
 import numbers
 import numpy as np
 from narupa.protocol import trajectory
+from narupa.utilities.protobuf_utilities import value_to_object, object_to_value
 
 BOX_VECTORS = 'system.box.vectors'
 
@@ -345,11 +346,10 @@ class ValuesView(RecordView):
         # and the value usable by python.
         # Going through this gymnastic is necessary to get the value without
         # knowing beforehand under which type it is stored.
-        return field.ListFields()[0][1]
+        return value_to_object(field)
 
     def set(self, key, value):
-        type_attribute = PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE[type(value)]
-        setattr(self._raw_record[key], type_attribute, value)
+        self._raw_record[key].CopyFrom(object_to_value(value))
 
 
 class ArraysView(RecordView):
