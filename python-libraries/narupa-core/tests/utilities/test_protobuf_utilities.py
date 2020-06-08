@@ -79,47 +79,27 @@ def test_dict_to_struct_invalid(dictionary):
         _ = dict_to_struct(dictionary)
 
 
-@st.composite
-def grpc_value(draw, value_strategy):
-    value = draw(value_strategy)
-    return object_to_value(value), value
-
-
 MIXED_LIST_STRATEGIES = st.lists(st.one_of(st.text(), st.booleans(), st.none()), min_size=1)
 MIXED_DICT_STRATEGIES = st.dictionaries(st.text(), st.one_of(st.text(), st.booleans(), st.none()), min_size=1)
 
-
-@given(grpc_value(st.floats()))
-def test_to_and_from_value_float(protobuf_and_expected_value):
-    protobuf_value, expected_value = protobuf_and_expected_value
-    assert pytest.approx(value_to_object(protobuf_value), expected_value)
-
-
-@given(grpc_value(st.integers()))
-def test_to_and_from_value_integer(protobuf_and_expected_value):
-    protobuf_value, expected_value = protobuf_and_expected_value
-    assert pytest.approx(value_to_object(protobuf_value), expected_value)
+EXACT_VALUE_STRATEGIES = st.one_of(
+    MIXED_LIST_STRATEGIES,
+    MIXED_DICT_STRATEGIES,
+    st.text(),
+    st.booleans(),
+)
 
 
-@given(grpc_value(st.text()))
-def test_to_and_from_value_string(protobuf_and_expected_value):
-    protobuf_value, expected_value = protobuf_and_expected_value
-    assert value_to_object(protobuf_value) == expected_value
+@given(st.floats())
+def test_to_and_from_value_float(object):
+    assert pytest.approx(value_to_object(object_to_value(object)), object)
 
 
-@given(grpc_value(st.booleans()))
-def test_to_and_from_value_bool(protobuf_and_expected_value):
-    protobuf_value, expected_value = protobuf_and_expected_value
-    assert value_to_object(protobuf_value) == expected_value
+@given(st.integers(-2**32, 2**32))
+def test_to_and_from_value_integer(object):
+    assert int(value_to_object(object_to_value(object))) == object
 
 
-@given(grpc_value(MIXED_LIST_STRATEGIES))
-def test_to_and_from_value_mixed_lists(protobuf_and_expected_value):
-    protobuf_value, expected_value = protobuf_and_expected_value
-    assert value_to_object(protobuf_value) == expected_value
-
-
-@given(grpc_value(MIXED_DICT_STRATEGIES))
-def test_to_and_from_value_mixed_dicts(protobuf_and_expected_value):
-    protobuf_value, expected_value = protobuf_and_expected_value
-    assert value_to_object(protobuf_value) == expected_value
+@given(EXACT_VALUE_STRATEGIES)
+def test_to_and_from_value_exact(object):
+    assert value_to_object(object_to_value(object)) == object
