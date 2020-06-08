@@ -46,8 +46,6 @@ def server_clients():
     client1.subscribe_multiplayer(interval=0)
     client2.subscribe_multiplayer(interval=0)
 
-    time.sleep(0.02)
-
     with server, client1, client2:
         yield server, client1, client2
 
