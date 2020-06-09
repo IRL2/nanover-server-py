@@ -49,8 +49,13 @@ test_python_minimum:
     - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py narupa-server
     - python -m pip install -r python-libraries/requirements.test
   script:
-    - python -m pytest python-libraries -n auto -m 'not serial'
-    - python -m pytest python-libraries -n0 -m 'serial'
+    - python -m pytest python-libraries -n auto -m 'not serial' --junitxml=report_not_serial_minimum.xml
+    - python -m pytest python-libraries -n0 -m 'serial'' --junitxml=report_serial_minimum.xml
+  artifacts:
+    reports:
+      junit:
+        - report_not_serial_minimum.xml
+        - report_serial_minimum.xml
 
 test_dotnet:
   image: intangiblerealitieslab/dotnet-conda
