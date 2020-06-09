@@ -67,7 +67,7 @@ test_dotnet:
     - ./compile.sh
     - "cd $test_path"
     - dotnet add Narupa.Protocol.Test package JunitXml.TestLogger
-    - dotnet test --test-adapter-path:. --logger:"junit;LogFilePath=..\artifacts\{assembly}-test-result.xml;MethodFormat=Class;FailureBodyFormat=Verbose"
+    - dotnet test --logger:"junit;LogFilePath=..\artifacts\{assembly}-test-result.xml;MethodFormat=Class;FailureBodyFormat=Verbose"
   artifacts:
     reports:
       junit:
