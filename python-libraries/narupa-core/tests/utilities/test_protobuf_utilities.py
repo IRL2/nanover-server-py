@@ -5,6 +5,7 @@ import pytest
 from google.protobuf.struct_pb2 import Value
 from narupa.utilities.protobuf_utilities import dict_to_struct, object_to_value, value_to_object
 from hypothesis import strategies as st, given
+from .. import EXACT_VALUE_STRATEGIES
 
 
 def assert_value_equal(proto_value, python_value):
@@ -78,28 +79,16 @@ def test_dict_to_struct_invalid(dictionary):
     with pytest.raises(ValueError):
         _ = dict_to_struct(dictionary)
 
-
-MIXED_LIST_STRATEGIES = st.lists(st.one_of(st.text(), st.booleans(), st.none()), min_size=1)
-MIXED_DICT_STRATEGIES = st.dictionaries(st.text(), st.one_of(st.text(), st.booleans(), st.none()), min_size=1)
-
-EXACT_VALUE_STRATEGIES = st.one_of(
-    MIXED_LIST_STRATEGIES,
-    MIXED_DICT_STRATEGIES,
-    st.text(),
-    st.booleans(),
-)
-
-
 @given(st.floats())
-def test_to_and_from_value_float(object):
-    assert pytest.approx(value_to_object(object_to_value(object)), object)
+def test_to_and_from_value_float(object_):
+    assert pytest.approx(value_to_object(object_to_value(object_)), object_)
 
 
 @given(st.integers(-2**32, 2**32))
-def test_to_and_from_value_integer(object):
-    assert int(value_to_object(object_to_value(object))) == object
+def test_to_and_from_value_integer(object_):
+    assert int(value_to_object(object_to_value(object_))) == object_
 
 
 @given(EXACT_VALUE_STRATEGIES)
-def test_to_and_from_value_exact(object):
-    assert value_to_object(object_to_value(object)) == object
+def test_to_and_from_value_exact(object_):
+    assert value_to_object(object_to_value(object_)) == object_

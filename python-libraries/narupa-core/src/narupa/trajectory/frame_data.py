@@ -33,13 +33,6 @@ POTENTIAL_ENERGY = 'energy.potential'
 
 SERVER_TIMESTAMP = 'server.timestamp'
 
-# This dictionary matches the python types to the attributes of the GRPC
-# values. This is not to do type conversion (which is handled by protobuf),
-# but to figure out where to store the data.
-PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE = {
-    int: 'number_value', float: 'number_value', str: 'string_value',
-    bool: 'bool_value', np.float32: 'number_value', np.float64: 'number_value',
-}
 
 _Shortcut = namedtuple(
     '_Shortcut', ['record_type', 'key', 'field_type', 'to_python', 'to_raw']
