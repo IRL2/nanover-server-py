@@ -6,6 +6,7 @@ import itertools
 import numbers
 import numpy as np
 from narupa.protocol import trajectory
+from narupa.utilities.protobuf_utilities import value_to_object, object_to_value
 
 BOX_VECTORS = 'system.box.vectors'
 
@@ -32,13 +33,6 @@ POTENTIAL_ENERGY = 'energy.potential'
 
 SERVER_TIMESTAMP = 'server.timestamp'
 
-# This dictionary matches the python types to the attributes of the GRPC
-# values. This is not to do type conversion (which is handled by protobuf),
-# but to figure out where to store the data.
-PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE = {
-    int: 'number_value', float: 'number_value', str: 'string_value',
-    bool: 'bool_value', np.float32: 'number_value', np.float64: 'number_value',
-}
 
 _Shortcut = namedtuple(
     '_Shortcut', ['record_type', 'key', 'field_type', 'to_python', 'to_raw']
@@ -68,8 +62,8 @@ def _n_by_3(value):
     return list(value[i:i + 3] for i in range(0, len(value), 3))
 
 
-def _flatten_2d(value):
-    return list(itertools.chain(*value))
+def _flatten_array(value):
+    return np.asarray(value).ravel()
 
 
 def _make_getter(shortcut):
@@ -147,14 +141,14 @@ class FrameData(metaclass=_FrameDataMeta):
     """
     bond_pairs = _Shortcut(
         key=BOND_PAIRS, record_type='arrays',
-        field_type='index', to_python=_n_by_2, to_raw=_flatten_2d)
+        field_type='index', to_python=_n_by_2, to_raw=_flatten_array)
     bond_orders = _Shortcut(
         key=BOND_ORDERS, record_type='arrays',
         field_type='float', to_python=_as_is, to_raw=_as_is)
 
     particle_positions = _Shortcut(
         key=PARTICLE_POSITIONS, record_type='arrays',
-        field_type='float', to_python=_n_by_3, to_raw=_flatten_2d)
+        field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
     particle_elements = _Shortcut(
         key=PARTICLE_ELEMENTS, record_type='arrays',
         field_type='index', to_python=_as_is, to_raw=_as_is)
@@ -199,7 +193,7 @@ class FrameData(metaclass=_FrameDataMeta):
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
     box_vectors = _Shortcut(
         key=BOX_VECTORS, record_type='arrays',
-        field_type='float', to_python=_n_by_3, to_raw=_flatten_2d)
+        field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
 
     server_timestamp = _Shortcut(
         key=SERVER_TIMESTAMP, record_type='values',
@@ -337,19 +331,10 @@ class ValuesView(RecordView):
 
     @staticmethod
     def _convert_to_python(field):
-        # A GRPC Value is exposed as being able to contain multiple "fields",
-        # one per type. In practice, only one field is used at a given time.
-        # `ListFields` list the fields that are set. Because only one field is
-        # set at a time, we only care about the first (and only) element of the
-        # list. Each element of the list has 2 elements: the type of the field
-        # and the value usable by python.
-        # Going through this gymnastic is necessary to get the value without
-        # knowing beforehand under which type it is stored.
-        return field.ListFields()[0][1]
+        return value_to_object(field)
 
     def set(self, key, value):
-        type_attribute = PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE[type(value)]
-        setattr(self._raw_record[key], type_attribute, value)
+        self._raw_record[key].CopyFrom(object_to_value(value))
 
 
 class ArraysView(RecordView):

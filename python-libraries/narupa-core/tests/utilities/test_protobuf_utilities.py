@@ -3,7 +3,9 @@ from math import inf, nan
 
 import pytest
 from google.protobuf.struct_pb2 import Value
-from narupa.utilities.protobuf_utilities import dict_to_struct
+from narupa.utilities.protobuf_utilities import dict_to_struct, object_to_value, value_to_object
+from hypothesis import strategies as st, given
+from .. import EXACT_VALUE_STRATEGIES, MIN_INT32, MAX_INT32
 
 
 def assert_value_equal(proto_value, python_value):
@@ -76,3 +78,17 @@ def test_dict_to_struct(dictionary):
 def test_dict_to_struct_invalid(dictionary):
     with pytest.raises(ValueError):
         _ = dict_to_struct(dictionary)
+
+@given(st.floats())
+def test_to_and_from_value_float(object_):
+    assert pytest.approx(value_to_object(object_to_value(object_)), object_)
+
+
+@given(st.integers(MIN_INT32, MAX_INT32))
+def test_to_and_from_value_integer(object_):
+    assert int(value_to_object(object_to_value(object_))) == object_
+
+
+@given(EXACT_VALUE_STRATEGIES)
+def test_to_and_from_value_exact(object_):
+    assert value_to_object(object_to_value(object_)) == object_
