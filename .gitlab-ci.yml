@@ -66,6 +66,7 @@ test_dotnet:
     - conda install -c conda-forge mpi4py
     - ./compile.sh
     - "cd $test_path"
+    - dotnet add package JunitXml.TestLogger
     - dotnet test --test-adapter-path:. --logger:"junit;LogFilePath=..\artifacts\{assembly}-test-result.xml;MethodFormat=Class;FailureBodyFormat=Verbose"
   artifacts:
     reports:
