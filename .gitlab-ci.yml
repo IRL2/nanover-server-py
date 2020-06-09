@@ -30,13 +30,17 @@ test_python:
     - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py narupa-server
     - python -m pip install -r python-libraries/requirements.test
   script:
-    - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial'
-    - python -m pytest --cov=narupa --cov-append python-libraries -n0 -m 'serial'
+    - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial' --junitxml=report_not_serial.xml
+    - python -m pytest --cov=narupa --cov-append python-libraries -n0 -m 'serial' --junitxml=report_serial.xml
     - coverage html
   artifacts:
     paths:
       - htmlcov
       - csharp-libraries/Narupa.Protocol/bin/Release
+    reports:
+      junits:
+        - report_not_serial.xml
+        - report_serial.xml
 
 test_python_minimum:
   stage: stage2
