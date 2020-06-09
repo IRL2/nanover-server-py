@@ -7,6 +7,8 @@ MIN_DOUBLE = sys.float_info.min
 MAX_FLOAT32 = np.finfo(np.float32).max
 MIN_FLOAT32 = np.finfo(np.float32).min
 MAX_UINT32 = np.iinfo(np.uint32).max
+MAX_INT32 = np.iinfo(np.int32).max
+MIN_INT32 = np.iinfo(np.int32).min
 
 # This strategy generates a single value (i.e. not a container) that is valid
 # in as value in a FrameData, and that can be safely compared with "==" (i.e.
