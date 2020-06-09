@@ -38,7 +38,7 @@ test_python:
       - htmlcov
       - csharp-libraries/Narupa.Protocol/bin/Release
     reports:
-      junits:
+      junit:
         - report_not_serial.xml
         - report_serial.xml
 
