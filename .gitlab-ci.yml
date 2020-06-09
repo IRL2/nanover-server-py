@@ -50,7 +50,7 @@ test_python_minimum:
     - python -m pip install -r python-libraries/requirements.test
   script:
     - python -m pytest python-libraries -n auto -m 'not serial' --junitxml=report_not_serial_minimum.xml
-    - python -m pytest python-libraries -n0 -m 'serial'' --junitxml=report_serial_minimum.xml
+    - python -m pytest python-libraries -n0 -m 'serial' --junitxml=report_serial_minimum.xml
   artifacts:
     reports:
       junit:
