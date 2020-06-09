@@ -10,32 +10,22 @@ from hypothesis import given
 
 from narupa.protocol.trajectory import FrameData as GrpcFrameData
 from narupa.trajectory.frame_data import (
-    FrameData, RecordView, PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE,
+    FrameData, RecordView,
 )
 from narupa.trajectory import frame_data
-
-MAX_DOUBLE = sys.float_info.max
-MIN_DOUBLE = sys.float_info.min
-MAX_FLOAT32 = np.finfo(np.float32).max
-MIN_FLOAT32 = np.finfo(np.float32).min
-MAX_UINT32 = np.iinfo(np.uint32).max
-
-# This strategy generates a single value (i.e. not a container) that is valid
-# in as value in a FrameData, and that can be safely compared with "==" (i.e.
-# not numbers as ints are stored as doubles).
-EXACT_SINGLE_VALUE_STRATEGY = st.one_of(
-    st.text(), st.booleans(),
+from narupa.utilities.protobuf_utilities import object_to_value
+from .. import (
+    EXACT_SINGLE_VALUE_STRATEGY,
+    EXACT_VALUE_STRATEGIES,
+    NUMBER_SINGLE_VALUE_STRATEGY,
+    ARRAYS_STRATEGIES,
 )
-
-NUMBER_SINGLE_VALUE_STRATEGY = st.one_of(
-    st.floats(min_value=float(MIN_DOUBLE), max_value=float(MAX_DOUBLE)),
-    st.integers(min_value=int(MIN_DOUBLE), max_value=int(MAX_DOUBLE)),
-)
-
-ARRAYS_STRATEGIES = {
-    'string_values': st.lists(st.text(), min_size=1),
-    'index_values': st.lists(st.integers(min_value=0, max_value=MAX_UINT32), min_size=1),
-    'float_values': st.lists(st.floats(min_value=float(MIN_FLOAT32), max_value=float(MAX_FLOAT32)), min_size=1),
+# This dictionary matches the python types to the attributes of the GRPC
+# values. This is not to do type conversion (which is handled by protobuf),
+# but to figure out where to store the data.
+PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE = {
+    int: 'number_value', float: 'number_value', str: 'string_value',
+    bool: 'bool_value', np.float32: 'number_value', np.float64: 'number_value',
 }
 
 
@@ -68,11 +58,32 @@ def raw_frame_with_single_value(draw, value_strategy):
 
     The value in the GRPC FrameData is taken from the strategy provided as
     "value_strategy".
+
+    The function uses low level ways of assigning the value in the FrameData.
+
+    .. seealso:: raw_frame_with_rich_value
     """
     value = draw(value_strategy)
     raw = GrpcFrameData()
     attribute_value = PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE[type(value)]
     setattr(raw.values['sample.value'], attribute_value, value)
+    return raw, value
+
+
+@st.composite
+def raw_frame_with_rich_value(draw, value_strategy):
+    """
+    Strategy to generate a tuple of a gRPC FrameData with a single value and
+    the corresponding value.
+
+    On the contrary to :fun:`raw_frame_with_single_value`, the value can be a
+    container. Also, while :fun:`raw_frame_with_single_value` uses low level
+    ways of assigning the value in the protobuf object, this function uses
+    :mod:`narupa.utilities.protobuf_utilities`.
+    """
+    value = draw(value_strategy)
+    raw = GrpcFrameData()
+    raw.values['sample.value'].CopyFrom(object_to_value(value))
     return raw, value
 
 
@@ -138,9 +149,7 @@ def test_get_single_numeric_value(raw_frame_and_expectation):
     frame = FrameData(raw_frame)
     assert pytest.approx(frame.values['sample.value'], expected_value)
 
-
-@given(raw_frame_with_single_value(EXACT_SINGLE_VALUE_STRATEGY))
-def test_get_single_exact_value(raw_frame_and_expectation):
+def _test_get_single_exact_value(raw_frame_and_expectation):
     """
     We can get a value by key from a FrameData.
 
@@ -150,6 +159,27 @@ def test_get_single_exact_value(raw_frame_and_expectation):
     raw_frame, expected_value = raw_frame_and_expectation
     frame = FrameData(raw_frame)
     assert frame.values['sample.value'] == expected_value
+
+@given(raw_frame_with_single_value(EXACT_SINGLE_VALUE_STRATEGY))
+def test_get_single_exact_value(raw_frame_and_expectation):
+    """
+    We can get a value by key from a FrameData.
+
+    This test covers all non-container types that can be compared safely with
+    an equality check (i.e. not numeric).
+    """
+    _test_get_single_exact_value(raw_frame_and_expectation)
+
+
+@given(raw_frame_with_rich_value(EXACT_VALUE_STRATEGIES))
+def test_get_rich_exact_value(raw_frame_and_expectation):
+    """
+    We can get a value by key from a FrameData.
+
+    This test covers all types that can be compared safely with
+    an equality check (i.e. not numeric).
+    """
+    _test_get_single_exact_value(raw_frame_and_expectation)
 
 
 # Arguments for the @given decorator cannot be parametrized. So we wrote a
@@ -549,6 +579,7 @@ def test_set_single_value_shortcut():
     frame = DummyFrameData()
     frame.single = 'foobar'
     assert frame.raw.values['dummy.single'].string_value == 'foobar'
+
 
 def test_value_keys(simple_frame):
     expected = {'sample.number', 'sample.string', 'sample.true', 'sample.false'}
