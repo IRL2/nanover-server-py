@@ -40,7 +40,7 @@ class OscApp:
                                osc_address=(arguments.osc_host, arguments.osc_port),
                                osc_send_interval=arguments.send_interval,
                                verbose=arguments.verbose)
-        osc_client.narupa_client.join_multiplayer("osc")
+        osc_client.narupa_client.subscribe_multiplayer()
         return osc_client
 
     def run(self, args=None):

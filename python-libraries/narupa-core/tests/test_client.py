@@ -1,8 +1,8 @@
 import time
 import pytest
 from mock import Mock
+from narupa.core import NarupaServer
 
-from narupa.multiplayer import MultiplayerServer
 from narupa.trajectory.frame_server import (
     PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY,
 )
@@ -21,7 +21,7 @@ TEST_VALUE = 'hi'
 
 @pytest.fixture
 def multiplayer_server():
-    with MultiplayerServer(address='localhost', port=0) as server:
+    with NarupaServer(address='localhost', port=0) as server:
         yield server
 
 
@@ -185,7 +185,7 @@ def test_set_multiplayer_value(client_server):
     tests that setting multiplayer value works correctly.
     """
     client, frame_server, imd_server, multiplayer_server = client_server
-    client.join_multiplayer("1")
+    client.subscribe_multiplayer()
 
     client.set_shared_value(TEST_KEY, TEST_VALUE)
     time.sleep(CLIENT_WAIT_TIME)
@@ -207,7 +207,7 @@ def test_join_multiplayer_disconnected():
     """
     with NarupaImdClient() as client:
         with pytest.raises(RuntimeError):
-            client.join_multiplayer("1")
+            client.subscribe_multiplayer()
 
 
 def test_get_shared_resources_disconnected():
