@@ -73,8 +73,8 @@ class StateDictionary:
     def update_locks(
             self,
             access_token: object,
-            acquire: Dict[str, float],
-            release: Set[str],
+            acquire: Dict[str, float] = {},
+            release: Set[str] = set(),
     ):
         """
         Acquire and release locks for the given access token. If any of the

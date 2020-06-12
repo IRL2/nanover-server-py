@@ -76,8 +76,8 @@ class StateService(StateServicer):
     def update_locks(
             self,
             access_token: object,
-            acquire: Dict[str, float],
-            release: Set[str],
+            acquire: Dict[str, float] = {},
+            release: Set[str] = set(),
     ):
         """
         Attempts to acquire and release locks on keys in the shared key/value
@@ -168,16 +168,15 @@ def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
     :return: an equivalent DictionaryChange representing the key changes and
         key removals of the StateUpdate.
     """
-    changes = {}
-    removals = set()
+    change = DictionaryChange()
 
     for key, value in struct_to_dict(update.changed_keys).items():
         if value is None:
-            removals.add(key)
+            change.removals.add(key)
         else:
-            changes[key] = value
+            change.updates[key] = value
 
-    return DictionaryChange(changes, removals)
+    return change
 
 
 def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
