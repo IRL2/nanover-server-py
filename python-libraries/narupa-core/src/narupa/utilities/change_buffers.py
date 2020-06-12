@@ -6,7 +6,7 @@ shared key/value store between multiple clients.
 """
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Dict, ContextManager, Iterator, Iterable, NamedTuple
+from typing import Any, Set, Dict, ContextManager, Iterator, Iterable, NamedTuple, Optional
 
 from .timing import yield_interval
 
@@ -14,9 +14,20 @@ KeyUpdates = Dict[str, Any]
 KeyRemovals = Iterable[str]
 
 
-class DictionaryChange(NamedTuple):
+class DictionaryChange:
     updates: KeyUpdates
     removals: KeyRemovals
+
+    def __init__(
+            self,
+            updates: Optional[KeyUpdates] = None,
+            removals: Optional[KeyRemovals] = None,
+    ):
+        self.updates = updates or {}
+        self.removals = removals or set()
+
+    def __iter__(self):
+        return iter((self.updates, self.removals))
 
 
 class ObjectFrozenError(Exception):

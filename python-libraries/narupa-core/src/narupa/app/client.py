@@ -567,7 +567,7 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        change = DictionaryChange(updates={key: value}, removals=[])
+        change = DictionaryChange(updates={key: value})
         return self.attempt_update_multiplayer_state(change)
 
     @need_multiplayer
@@ -578,7 +578,7 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        change = DictionaryChange(updates={}, removals=[key])
+        change = DictionaryChange(removals=[key])
         return self.attempt_update_multiplayer_state(change)
 
     @need_multiplayer

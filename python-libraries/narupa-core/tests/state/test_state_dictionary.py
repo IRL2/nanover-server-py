@@ -21,7 +21,7 @@ INITIAL_STATE = {
 @pytest.fixture
 def state_dictionary() -> StateDictionary:
     state_dictionary = StateDictionary()
-    change = DictionaryChange(INITIAL_STATE, set())
+    change = DictionaryChange(INITIAL_STATE)
     state_dictionary.update_state(None, change)
     return state_dictionary
 
@@ -50,8 +50,8 @@ def test_partial_lock_atomic(state_dictionary):
     Test that an update attempt has no effect if the whole update cannot be
     made.
     """
-    state_dictionary.update_locks(ACCESS_TOKEN_2, {'hello': 10}, set())
-    update = DictionaryChange({'hello': 50, 'goodbye': 50}, set())
+    state_dictionary.update_locks(ACCESS_TOKEN_2, {'hello': 10})
+    update = DictionaryChange({'hello': 50, 'goodbye': 50})
 
     with pytest.raises(ResourceLockedError):
         state_dictionary.update_state(ACCESS_TOKEN_1, update)
@@ -85,7 +85,7 @@ def test_locked_content_is_unchanged(state_dictionary):
         attempted_to_meddle = True
         state_dictionary.update_state(
             ACCESS_TOKEN_1,
-            DictionaryChange({'hello': 50}, set()),
+            DictionaryChange({'hello': 50}),
         )
 
     with state_dictionary.lock_content() as content:
@@ -108,7 +108,7 @@ def test_locked_content_changes_after(state_dictionary):
         attempted_to_meddle = True
         state.update_state(
             ACCESS_TOKEN_1,
-            DictionaryChange({'hello': 50}, set()),
+            DictionaryChange({'hello': 50}),
         )
 
     with state_dictionary.lock_content() as content:
