@@ -6,15 +6,15 @@ shared key/value store.
 """
 from contextlib import contextmanager
 from threading import Lock
-from typing import ContextManager, Set, Dict
+from typing import ContextManager, Dict, Optional, Iterable
 
-from narupa.utilities.key_lockable_map import (
-    KeyLockableMap, ResourceLockedError,
-)
 from narupa.utilities.change_buffers import (
     DictionaryChangeMultiView,
     DictionaryChangeBuffer,
     DictionaryChange,
+)
+from narupa.utilities.key_lockable_map import (
+    KeyLockableMap, ResourceLockedError,
 )
 
 
@@ -73,8 +73,8 @@ class StateDictionary:
     def update_locks(
             self,
             access_token: object,
-            acquire: Dict[str, float] = {},
-            release: Set[str] = set(),
+            acquire: Optional[Dict[str, float]] = None,
+            release: Optional[Iterable[str]] = None,
     ):
         """
         Acquire and release locks for the given access token. If any of the
@@ -84,6 +84,8 @@ class StateDictionary:
         :raises ResourceLockedError: if the access token cannot acquire all
             requested keys.
         """
+        acquire = acquire or {}
+        release = release or ()
         with self._lock:
             if not self._can_token_access_keys(access_token, acquire.keys()):
                 raise ResourceLockedError
