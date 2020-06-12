@@ -11,9 +11,6 @@ from narupa.ase.openmm import OpenMMIMDRunner
 from narupa.ase.openmm.runner import ImdParams, CONSTRAINTS_UNSUPPORTED_MESSAGE, LoggingParams
 from narupa.core import DEFAULT_SERVE_ADDRESS
 from narupa.essd import DiscoveryClient
-from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJ_DEFAULT_PORT
-from narupa.imd.imd_server import DEFAULT_PORT as IMD_DEFAULT_PORT
-from narupa.multiplayer.multiplayer_server import DEFAULT_PORT as MULTIPLAYER_DEFAULT_PORT
 from narupa.ase.openmm.calculator import OpenMMCalculator
 from narupa.ase.wall_calculator import VelocityWallCalculator
 

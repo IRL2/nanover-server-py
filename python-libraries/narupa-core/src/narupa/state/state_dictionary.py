@@ -33,6 +33,9 @@ class StateDictionary:
         self._change_views = DictionaryChangeMultiView()
         self._write_locks = KeyLockableMap()
 
+    def freeze(self):
+        self._change_views.freeze()
+
     @contextmanager
     def lock_content(self) -> ContextManager[Dict[str, object]]:
         """

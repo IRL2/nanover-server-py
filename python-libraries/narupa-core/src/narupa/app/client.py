@@ -9,19 +9,21 @@ from collections import deque, ChainMap
 from functools import wraps, partial
 from typing import Iterable, Tuple, Type
 from typing import Optional, Sequence, Dict, MutableMapping
+from uuid import uuid4
 
 from grpc import RpcError, StatusCode
-from narupa.app.app_server import DEFAULT_NARUPA_PORT
+from narupa.app.app_server import DEFAULT_NARUPA_PORT, MULTIPLAYER_SERVICE_NAME
 from narupa.app.selection import RenderingSelection
 from narupa.command import CommandInfo
 from narupa.core import NarupaClient, DEFAULT_CONNECT_ADDRESS
+from narupa.core.narupa_client import DEFAULT_STATE_UPDATE_INTERVAL
 from narupa.essd import DiscoveryClient
 from narupa.imd import ImdClient, IMD_SERVICE_NAME
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.multiplayer import MultiplayerClient, MULTIPLAYER_SERVICE_NAME
 from narupa.protocol.imd import InteractionEndReply
 from narupa.trajectory import FrameClient, FrameData, FRAME_SERVICE_NAME
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY
+from narupa.utilities.change_buffers import DictionaryChange
 
 # Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
@@ -99,7 +101,7 @@ class NarupaImdClient:
     .. code-block::  python
 
         # Connect to the multiplayer
-        client.join_multiplayer("Selection Example")
+        client.subscribe_multiplayer()
         # Create a selection called 'Selection' which selects particles with indices 0-4
         selection = client.create_selection("Selection", [0, 1, 2, 3, 4])
 
@@ -125,7 +127,7 @@ class NarupaImdClient:
     """
     _frame_client: Optional[FrameClient]
     _imd_client: Optional[ImdClient]
-    _multiplayer_client: Optional[MultiplayerClient]
+    _multiplayer_client: Optional[NarupaClient]
     _frames: deque
 
     _next_selection_id: int = 0
@@ -136,6 +138,7 @@ class NarupaImdClient:
                  multiplayer_address: Tuple[str, int] = None,
                  max_frames=50,
                  all_frames=True):
+        self._player_id = str(uuid4())
 
         self._channels = {}
 
@@ -268,7 +271,7 @@ class NarupaImdClient:
 
         :param address: The address and port of the multiplayer server.
         """
-        self._multiplayer_client = self._connect_client(MultiplayerClient, address)
+        self._multiplayer_client = self._connect_client(NarupaClient, address)
 
     def connect(self, *,
                 trajectory_address: Tuple[str, int] = None,
@@ -325,7 +328,7 @@ class NarupaImdClient:
 
         :return: Dictionary of the current state of multiplayer shared key/value store.
         """
-        return dict(self._multiplayer_client.resources)
+        return self._multiplayer_client.copy_state()
 
     @property
     @need_frames
@@ -503,7 +506,7 @@ class NarupaImdClient:
         """
         Runs a command on the multiplayer service.
 
-        :param name: Name of the command to run
+        :param name: Name of the command to run.
         :param args: Dictionary of arguments to run with the command.
         :return: Results of the command, if any.
         """
@@ -511,16 +514,45 @@ class NarupaImdClient:
         return self._multiplayer_client.run_command(name, **args)
 
     @need_multiplayer
-    def join_multiplayer(self, player_name):
+    def subscribe_multiplayer(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
         """
-        Joins multiplayer with the given player name.
+        Subscribe to all multiplayer state updates.
 
-        :param player_name: The player name with which to be identified.
+        :param interval: Subscription interval for state updates.
 
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        self._multiplayer_client.join_multiplayer(player_name)
+        self._multiplayer_client.subscribe_all_state_updates(interval)
+
+    @need_multiplayer
+    def attempt_update_multiplayer_state(
+            self,
+            update: DictionaryChange,
+    ) -> bool:
+        """
+        Attempt to make a single atomic change to the shared state, blocking
+        until a response is received.
+        :param update: A single change to make to the shared state that will
+            either be made in full, or ignored if some of the keys are locked
+            by another user.
+        :return: True if the server accepted our change, and False otherwise.
+        """
+        return self._multiplayer_client.attempt_update_state(update)
+
+    @need_multiplayer
+    def attempt_update_multiplayer_locks(
+            self,
+            update: Dict[str, Optional[float]],
+    ) -> bool:
+        """
+        Attempt to acquire and/or free a number of locks on the shared state.
+        :param update: A dictionary of keys to either a duration in
+            seconds to attempt to acquire or renew a lock, or None to indicate
+            the lock should be released if held.
+        :return: True if the desired locks were acquired, and False otherwise.
+        """
+        return self._multiplayer_client.attempt_update_locks(update)
 
     @need_multiplayer
     def set_shared_value(self, key, value) -> bool:
@@ -535,7 +567,8 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        return self._multiplayer_client.try_set_resource_value(key, value)
+        change = DictionaryChange(updates={key: value}, removals=[])
+        return self.attempt_update_multiplayer_state(change)
 
     @need_multiplayer
     def remove_shared_value(self, key: str) -> bool:
@@ -545,7 +578,8 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        return self._multiplayer_client.try_remove_resource_key(key)
+        change = DictionaryChange(updates={}, removals=[key])
+        return self.attempt_update_multiplayer_state(change)
 
     @need_multiplayer
     def get_shared_value(self, key):
@@ -558,7 +592,7 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        return self._multiplayer_client.resources[key]
+        return self._multiplayer_client.copy_state()[key]
 
     @property
     @need_multiplayer
@@ -592,7 +626,7 @@ class NarupaImdClient:
             particle_ids = set()
 
         # Give the selection an ID based upon the multiplayer player ID and an incrementing counter
-        selection_id = f'selection.{self._multiplayer_client.player_id}.{self._next_selection_id}'
+        selection_id = f'selection.{self._player_id}.{self._next_selection_id}'
         self._next_selection_id += 1
 
         # Create the selection and setup the particles that it contains
@@ -637,7 +671,7 @@ class NarupaImdClient:
 
         :return: An iterable of all the selections stored in the shared key store.
         """
-        for key, _ in self._multiplayer_client.resources.items():
+        for key, _ in self._multiplayer_client.copy_state().items():
             if key.startswith('selection.'):
                 yield self.get_selection(key)
 
@@ -651,7 +685,7 @@ class NarupaImdClient:
         :param selection_id: The id of the selection
         :return: The selection if it is present
         """
-        value = self._multiplayer_client.resources[selection_id]
+        value = self._multiplayer_client.copy_state()[selection_id]
         return self._create_selection_from_dict(value)
 
     def _create_selection_from_dict(self, value) -> RenderingSelection:
@@ -691,7 +725,11 @@ class NarupaImdClient:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def _connect_client(self, client_type: Type[NarupaClient], address: Tuple[str, int]):
+    def _connect_client(
+            self,
+            client_type: Type[NarupaClient],
+            address: Tuple[str, int],
+    ):
         # TODO add support for encryption here somehow.
 
         # if there already exists a channel with the same address, reuse it, otherwise create a new insecure

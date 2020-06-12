@@ -6,7 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 import itertools
 import pytest
 
-from narupa.trajectory import FramePublisher, FrameData
+from narupa.trajectory import FramePublisher
+from narupa.trajectory.frame_data import FrameData, SERVER_TIMESTAMP
+from narupa.protocol.trajectory import FrameData as RawFrameData
 
 
 def test_user_queue():
@@ -23,7 +25,17 @@ def test_user_queue():
 def test_send_wrapped_frame_data():
     publisher = FramePublisher()
     frame = FrameData()
-    publisher.send_frame(0, frame)
+    publisher.send_frame(3, frame)
+    assert publisher.last_frame_index == 3
+    assert SERVER_TIMESTAMP in publisher.last_frame.values
+
+
+def test_send_raw_frame_data():
+    publisher = FramePublisher()
+    frame = RawFrameData()
+    publisher.send_frame(5, frame)
+    assert publisher.last_frame_index == 5
+    assert SERVER_TIMESTAMP in publisher.last_frame.values
 
 
 def test_get_new_request_id_serial():
