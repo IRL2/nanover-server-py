@@ -8,3 +8,4 @@ hypothesis
 python-osc
 # mock is required for some core tests
 mock
+typing_extensions
