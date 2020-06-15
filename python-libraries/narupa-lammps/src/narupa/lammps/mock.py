@@ -5,6 +5,7 @@ Module providing a mock LAMMPS object so that the Narupa LAMMPS flow can be test
 without LAMMPS installed.
 """
 import ctypes
+from typing import List, Union
 
 
 class MockLammps:
@@ -27,7 +28,8 @@ class MockLammps:
         :param _array_shape: Unused here, only relevant to lammps
         :return: matrix data_array that contains all the mock data
         """
-        empty_list = []
+        data_array: Union[ctypes.Array[ctypes.c_double], ctypes.Array[ctypes.c_int]]
+        empty_list: List = []
         if array_type == "x":
             data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(3 * self.n_atoms))
         elif array_type == "f":
@@ -59,7 +61,7 @@ class MockLammps:
         :return: Element list.
         """
         if types == "ntypes":
-            dummy_element_list = 1
+            dummy_element_list = 1.
         elif types == "hplanck":
             dummy_element_list = 95.306976368
         else:
