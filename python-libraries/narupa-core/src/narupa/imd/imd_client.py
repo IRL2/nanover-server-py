@@ -3,7 +3,7 @@
 import logging
 from concurrent.futures import Future
 from queue import Queue
-from typing import Iterable, Optional, Dict, Any, NamedTuple
+from typing import Iterable, Optional, Dict, Any, NamedTuple, Union
 
 import grpc
 from narupa.core import get_requested_port_or_default, NarupaStubClient
@@ -85,7 +85,7 @@ class ImdClient(NarupaStubClient):
 
         :return: A unique identifier to be used to update the interaction.
         """
-        queue = Queue()
+        queue: Queue[Union[ParticleInteraction, object]] = Queue()
         sentinel = object()
         future = self.publish_interactions_async(queue_generator(queue, sentinel))
         local_interaction_id = self._get_new_local_interaction_id()

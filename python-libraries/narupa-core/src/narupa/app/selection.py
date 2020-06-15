@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from contextlib import contextmanager
-from typing import Dict, Iterable, Set, Union, TypeVar, Optional
+from typing import Dict, Iterable, Set, Union, TypeVar, Optional, cast
 
 from narupa.utilities.event import Event
 
@@ -26,9 +26,6 @@ VELOCITY_RESET_DEFAULT = False
 RENDERER_DEFAULT = RENDERER_LIQUORICE
 SELECTED_PARTICLE_IDS_DEFAULT = None
 
-# TODO: Replace when minimum python is 3.7+
-SelectionClass = TypeVar('RenderingSelection')
-
 
 class RenderingSelection:
     """
@@ -43,17 +40,8 @@ class RenderingSelection:
     a modify(): context manager.
     """
 
-    selection_id: str
-    selection_name: str
-    selected_particle_ids: Union[Set[int], None]
-
-    interaction_method: str
-    velocity_reset: bool
-    renderer: Union[Dict, str]
-    hide: bool
-
     @classmethod
-    def from_dictionary(cls, dict: Dict) -> SelectionClass:
+    def from_dictionary(cls, dict: Dict) -> 'RenderingSelection':
         """
         Decode a dictionary into a selection.
 
@@ -122,7 +110,7 @@ class RenderingSelection:
         :param particle_ids:
         """
         if particle_ids is None:
-            self.selected_particle_ids = None
+            self.selected_particle_ids = set()
         else:
             self.selected_particle_ids = set(particle_ids)
 
@@ -189,10 +177,7 @@ class RenderingSelection:
 
     @selected_particle_ids.setter
     def selected_particle_ids(self, value: Set[int]):
-        if value is None:
-            self._selected_particle_ids = None
-        else:
-            self._selected_particle_ids = set(value)
+        self._selected_particle_ids = set(value)
 
     @property
     def updated(self) -> Event:
@@ -261,46 +246,44 @@ class RenderingSelection:
         self.read_hide_from_dictionary(dict)
 
     def read_selected_particles_from_dictionary(self, dict: Dict):
-        self.set_particles(
-            get_nested_or_default(
-                dict,
-                SELECTED_PARTICLE_IDS_DEFAULT,
-                KEY_SELECTION_SELECTED,
-                KEY_SELECTED_PARTICLE_IDS,
-            )
-        )
+        self.set_particles(cast(Iterable[int], get_nested_or_default(
+            dict,
+            SELECTED_PARTICLE_IDS_DEFAULT,
+            KEY_SELECTION_SELECTED,
+            KEY_SELECTED_PARTICLE_IDS,
+        )))
 
     def read_interaction_method_from_dictionary(self, dict: Dict):
-        self.interaction_method = get_nested_or_default(
+        self.interaction_method = cast(str, get_nested_or_default(
             dict,
             INTERACTION_METHOD_DEFAULT,
             KEY_SELECTION_PROPERTIES,
             KEY_PROPERTY_INTERACTION_METHOD,
-        )
+        ))
 
     def read_velocity_reset_from_dictionary(self, dict: Dict):
-        self.velocity_reset = get_nested_or_default(
+        self.velocity_reset = cast(bool, get_nested_or_default(
             dict,
             VELOCITY_RESET_DEFAULT,
             KEY_SELECTION_PROPERTIES,
             KEY_PROPERTY_VELOCITY_RESET,
-        )
+        ))
 
     def read_renderer_from_dictionary(self, dict: Dict):
-        self.renderer = get_nested_or_default(
+        self.renderer = cast(Union[str, Dict], get_nested_or_default(
             dict,
             RENDERER_DEFAULT,
             KEY_SELECTION_PROPERTIES,
             KEY_PROPERTY_RENDERER,
-        )
+        ))
 
     def read_hide_from_dictionary(self, dict: Dict):
-        self.hide = get_nested_or_default(
+        self.hide = cast(bool, get_nested_or_default(
             dict,
             False,
             KEY_SELECTION_PROPERTIES,
             KEY_PROPERTY_HIDE,
-        )
+        ))
 
 
 def get_nested_or_default(dict: Dict, default: object, *keys: Iterable[str]) -> object:

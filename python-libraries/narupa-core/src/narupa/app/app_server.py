@@ -3,13 +3,20 @@ Module providing an out-of-the-box Narupa application server,
 with an underyling gRPC server, discovery, multiplayer and commands.
 """
 import getpass
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Set, Callable
+from typing_extensions import Protocol
 
 from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
 from narupa.essd import DiscoveryServer, ServiceHub
 
+
 DEFAULT_NARUPA_PORT = 38801
 MULTIPLAYER_SERVICE_NAME = "multiplayer"
+
+
+class SupportsClose(Protocol):
+    def close(self) -> None:
+        ...
 
 
 def start_default_server_and_discovery(
@@ -49,6 +56,8 @@ class NarupaApplicationServer:
     and attaching additional services.
     """
     DEFAULT_SERVER_NAME: str = "Narupa Server"
+
+    _services: Set[SupportsClose]
 
     def __init__(
             self,

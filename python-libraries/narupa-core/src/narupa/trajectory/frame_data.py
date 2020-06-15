@@ -4,6 +4,8 @@ from collections import namedtuple
 from collections.abc import Set
 import itertools
 import numbers
+from typing import Dict, Optional
+
 import numpy as np
 from narupa.protocol import trajectory
 from narupa.utilities.protobuf_utilities import value_to_object, object_to_value
@@ -105,7 +107,7 @@ class _FrameDataMeta(type):
     The shortcuts are defined as a tuple of :class:`_Shortcut` named tuples
     under the :attr:`_shortcuts` class attribute.
     """
-    _shortcuts = {}
+    _shortcuts: Dict[str, _Shortcut] = {}
 
     def __init__(cls, name, bases, nmspc):
         shortcuts = {}
@@ -199,6 +201,8 @@ class FrameData(metaclass=_FrameDataMeta):
         key=SERVER_TIMESTAMP, record_type='values',
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
 
+    _shortcuts: Dict[str, _Shortcut]
+
     def __init__(self, raw_frame=None):
         if raw_frame is None:
             self._raw = trajectory.FrameData()
@@ -278,8 +282,8 @@ class RecordView:
 
     This class needs to be subclassed.
     """
-    record_name = None  # MUST be overwritten as "arrays" or "values"
-    singular = None  # MUST be overwritten as "array" or "value"
+    record_name: Optional[str] = None  # MUST be overwritten as "arrays" or "values"
+    singular: Optional[str] = None  # MUST be overwritten as "array" or "value"
 
     def __init__(self, raw):
         if self.record_name is None or self.singular is None:
