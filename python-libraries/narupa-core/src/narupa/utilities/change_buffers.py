@@ -6,8 +6,7 @@ shared key/value store between multiple clients.
 """
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Dict, ContextManager, Iterator, Iterable, \
-    NamedTuple, Optional, Generator
+from typing import Any, Set, Dict, Iterator, Iterable, Optional, Generator
 
 from .timing import yield_interval
 
