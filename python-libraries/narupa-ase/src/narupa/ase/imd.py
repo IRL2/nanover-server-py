@@ -219,7 +219,7 @@ class NarupaASEDynamics:
             self._run_task = self.threads.submit(self._run, steps, reset_energy)
 
     def _run(self, steps: Optional[int], reset_energy: Optional[float]):
-        remaining_steps = steps or float('inf')
+        remaining_steps = steps if steps is not None else float('inf')
         while not self._cancelled and remaining_steps > 0:
             steps_for_this_iteration = min(10, remaining_steps)
             self.dynamics.run(steps_for_this_iteration)
