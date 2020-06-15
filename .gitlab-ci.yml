@@ -5,7 +5,7 @@ stages:
   - deploy
 
 variables:
-  mypy_command: mypy --ignore-missing-imports .\python-libraries\narupa-core\src\narupa\ .\python-libraries\narupa-ase\src\narupa\ .\python-libraries\narupa-essd\src\narupa\ .\python-libraries\narupa-mdanalysis\src\narupa\ .\python-libraries\narupa-openmm\src\narupa\ .\python-libraries\narupa-lammps\src\narupa\ .\python-libraries\prototypes\s
+  mypy_command: mypy --ignore-missing-imports ./python-libraries/narupa-core/src/narupa/ ./python-libraries/narupa-ase/src/narupa/ ./python-libraries/narupa-essd/src/narupa/ ./python-libraries/narupa-mdanalysis/src/narupa/ ./python-libraries/narupa-openmm/src/narupa/ ./python-libraries/narupa-lammps/src/narupa/ ./python-libraries/prototypes/s
 
 release:
   image: intangiblerealitieslab/dotnet-conda
