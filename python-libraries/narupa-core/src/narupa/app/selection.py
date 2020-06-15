@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from contextlib import contextmanager
-from typing import Dict, Iterable, Set, Union, TypeVar, Optional
+from typing import Dict, Iterable, Set, Union, TypeVar, Optional, cast
 
 from narupa.utilities.event import Event
 
@@ -303,4 +303,4 @@ def get_nested_or_default(dict: Dict, default: T, *keys: Iterable[str]) -> T:
             dict = dict[key]
         except KeyError:
             return default
-    return dict
+    return cast(T, dict)

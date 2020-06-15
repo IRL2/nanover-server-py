@@ -185,7 +185,7 @@ class LammpsImd:
         return wrapper
 
 
-    @_try_or_except
+    @_try_or_except  # type: ignore
     def _gather_lammps_array(self, matrix_type: str, lammps_class):
         """
         Gather Matrix data from all LAMMPS MPI threads
@@ -277,7 +277,7 @@ class LammpsImd:
         buffer = np.frombuffer(lammps_forces)
         buffer += interaction_forces
 
-    @_try_or_except
+    @_try_or_except  # type: ignore
     def _return_array_to_lammps(self, matrix_type: str, scatter_array, lammps_class):
         """
         Routine to return arrays to lammps
@@ -298,7 +298,7 @@ class LammpsImd:
         self._log_mpi("Key detected %s", plank_type)
         return plank_type
 
-    @_try_or_except
+    @_try_or_except  # type: ignore
     def _manipulate_lammps_internal_matrix(self, lammps_class, positions, distance_factor, matrix_type):
         """
         This groups together the routines needed to return forces to lammps,
