@@ -7,7 +7,7 @@ Narupa clients.
 """
 from typing import Iterable, Optional
 
-from ase import Atoms, Atom
+from ase import Atoms, Atom  # type: ignore
 import itertools
 import numpy as np
 

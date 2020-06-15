@@ -8,7 +8,7 @@ from typing import Optional
 import ase
 import narupa.openmm.serializer as serializer
 import numpy as np
-from ase import Atoms
+from ase import Atoms  # type: ignore
 from ase.calculators.calculator import Calculator, all_changes
 from simtk.openmm import System, State
 from simtk.openmm.app import Topology, Simulation
