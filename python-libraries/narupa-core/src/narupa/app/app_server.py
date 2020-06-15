@@ -3,7 +3,7 @@ Module providing an out-of-the-box Narupa application server,
 with an underyling gRPC server, discovery, multiplayer and commands.
 """
 import getpass
-from typing import Tuple, Optional, Set, Callable
+from typing import Tuple, Optional, Set
 from typing_extensions import Protocol
 
 from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
