@@ -60,8 +60,10 @@ class MockLammps:
         :param _number_type: unused
         :return: Element list.
         """
+        dummy_element_list: Union[float, int]
+
         if types == "ntypes":
-            dummy_element_list = 1.
+            dummy_element_list = 1
         elif types == "hplanck":
             dummy_element_list = 95.306976368
         else:
