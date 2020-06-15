@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from contextlib import contextmanager
-from typing import Dict, Iterable, Set, Union, TypeVar, Optional, cast
+from typing import Dict, Iterable, Set, Union, TypeVar, Optional
 
 from narupa.utilities.event import Event
 
@@ -246,47 +246,50 @@ class RenderingSelection:
         self.read_hide_from_dictionary(dict)
 
     def read_selected_particles_from_dictionary(self, dict: Dict):
-        self.set_particles(cast(Iterable[int], get_nested_or_default(
+        self.set_particles(get_nested_or_default(
             dict,
             SELECTED_PARTICLE_IDS_DEFAULT,
             KEY_SELECTION_SELECTED,
             KEY_SELECTED_PARTICLE_IDS,
-        )))
+        ))
 
     def read_interaction_method_from_dictionary(self, dict: Dict):
-        self.interaction_method = cast(str, get_nested_or_default(
+        self.interaction_method = get_nested_or_default(
             dict,
             INTERACTION_METHOD_DEFAULT,
             KEY_SELECTION_PROPERTIES,
             KEY_PROPERTY_INTERACTION_METHOD,
-        ))
+        )
 
     def read_velocity_reset_from_dictionary(self, dict: Dict):
-        self.velocity_reset = cast(bool, get_nested_or_default(
+        self.velocity_reset = get_nested_or_default(
             dict,
             VELOCITY_RESET_DEFAULT,
             KEY_SELECTION_PROPERTIES,
             KEY_PROPERTY_VELOCITY_RESET,
-        ))
+        )
 
     def read_renderer_from_dictionary(self, dict: Dict):
-        self.renderer = cast(Union[str, Dict], get_nested_or_default(
+        self.renderer = get_nested_or_default(
             dict,
             RENDERER_DEFAULT,
             KEY_SELECTION_PROPERTIES,
             KEY_PROPERTY_RENDERER,
-        ))
+        )
 
     def read_hide_from_dictionary(self, dict: Dict):
-        self.hide = cast(bool, get_nested_or_default(
+        self.hide = get_nested_or_default(
             dict,
             False,
             KEY_SELECTION_PROPERTIES,
             KEY_PROPERTY_HIDE,
-        ))
+        )
 
 
-def get_nested_or_default(dict: Dict, default: object, *keys: Iterable[str]) -> object:
+T = TypeVar('T')
+
+
+def get_nested_or_default(dict: Dict, default: T, *keys: Iterable[str]) -> T:
     """
     Iterate down a nested dictionary by accessing subsequent keys, returning the default if at any point a key is not found.
 
