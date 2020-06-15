@@ -5,7 +5,7 @@ stages:
   - deploy
 
 variables:
-  mypy_command: mypy --ignore-missing-imports ./python-libraries/narupa-core/src/narupa/ ./python-libraries/narupa-ase/src/narupa/ ./python-libraries/narupa-essd/src/narupa/ ./python-libraries/narupa-mdanalysis/src/narupa/ ./python-libraries/narupa-openmm/src/narupa/ ./python-libraries/narupa-lammps/src/narupa/ ./python-libraries/prototypes/s
+  mypy_command: mypy --ignore-missing-imports ./python-libraries/narupa-core/src/narupa/ ./python-libraries/narupa-ase/src/narupa/ ./python-libraries/narupa-essd/src/narupa/ ./python-libraries/narupa-mdanalysis/src/narupa/ ./python-libraries/narupa-openmm/src/narupa/ ./python-libraries/narupa-lammps/src/narupa/ ./python-libraries/prototypes/src/narupa/
 
 release:
   image: intangiblerealitieslab/dotnet-conda
@@ -64,7 +64,7 @@ test_python_minimum:
 mypy_types:
   stage: stage2
   before_script:
-    - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py narupa-server
+    - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py
     - python -m pip install -r python-libraries/requirements.test
   script:
     - $mypy_command
