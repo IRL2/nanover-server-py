@@ -33,6 +33,7 @@ test_python:
     - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial' --junitxml=report_not_serial.xml
     - python -m pytest --cov=narupa --cov-append python-libraries -n0 -m 'serial' --junitxml=report_serial.xml
     - coverage html
+    - mypy --ignore-missing-imports .\python-libraries\narupa-core\src\narupa\ .\python-libraries\narupa-ase\src\narupa\ .\python-libraries\narupa-essd\src\narupa\ .\python-libraries\narupa-mdanalysis\src\narupa\ .\python-libraries\narupa-openmm\src\narupa\ .\python-libraries\narupa-lammps\src\narupa\ .\python-libraries\prototypes\
   artifacts:
     paths:
       - htmlcov
@@ -51,6 +52,7 @@ test_python_minimum:
   script:
     - python -m pytest python-libraries -n auto -m 'not serial' --junitxml=report_not_serial_minimum.xml
     - python -m pytest python-libraries -n0 -m 'serial' --junitxml=report_serial_minimum.xml
+    - mypy --ignore-missing-imports .\python-libraries\narupa-core\src\narupa\ .\python-libraries\narupa-ase\src\narupa\ .\python-libraries\narupa-essd\src\narupa\ .\python-libraries\narupa-mdanalysis\src\narupa\ .\python-libraries\narupa-openmm\src\narupa\ .\python-libraries\narupa-lammps\src\narupa\ .\python-libraries\prototypes\
   artifacts:
     reports:
       junit:
