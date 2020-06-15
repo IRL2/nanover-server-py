@@ -36,7 +36,6 @@ test_python:
     - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial' --junitxml=report_not_serial.xml
     - python -m pytest --cov=narupa --cov-append python-libraries -n0 -m 'serial' --junitxml=report_serial.xml
     - coverage html
-    - $mypy_command
 
   artifacts:
     paths:
@@ -56,12 +55,19 @@ test_python_minimum:
   script:
     - python -m pytest python-libraries -n auto -m 'not serial' --junitxml=report_not_serial_minimum.xml
     - python -m pytest python-libraries -n0 -m 'serial' --junitxml=report_serial_minimum.xml
-    - $mypy_command
   artifacts:
     reports:
       junit:
         - report_not_serial_minimum.xml
         - report_serial_minimum.xml
+
+mypy_types:
+  stage: stage2
+  before_script:
+    - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py narupa-server
+    - python -m pip install -r python-libraries/requirements.test
+  script:
+    - $mypy_command
 
 test_dotnet:
   image: intangiblerealitieslab/dotnet-conda
