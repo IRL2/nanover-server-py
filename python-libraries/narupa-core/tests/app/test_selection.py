@@ -91,20 +91,20 @@ def test_clear_selection():
     assert selection.selected_particle_ids == set()
 
 
-def test_add_selection_none():
+def test_add_selection_empty():
     selection = RenderingSelection("id", "name")
     selection.add_particles({0, 1, 2, 3})
     assert selection.selected_particle_ids == {0, 1, 2, 3}
-    selection.add_particles(None)
+    selection.add_particles(())
     assert selection.selected_particle_ids == {0, 1, 2, 3}
 
 
-def test_set_selection_none():
+def test_set_selection_empty():
     selection = RenderingSelection("id", "name")
     selection.add_particles({0, 1, 2, 3})
     assert selection.selected_particle_ids == {0, 1, 2, 3}
-    selection.set_particles(None)
-    assert selection.selected_particle_ids is None
+    selection.set_particles(())
+    assert not selection.selected_particle_ids
 
 
 def test_selection_updated():

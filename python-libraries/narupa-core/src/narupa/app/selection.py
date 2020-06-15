@@ -114,14 +114,12 @@ class RenderingSelection:
         else:
             self.selected_particle_ids = set(particle_ids)
 
-    def add_particles(self, particle_ids: Iterable[int] = None):
+    def add_particles(self, particle_ids: Iterable[int]):
         """
         Add more particles to this selection, appending the previous selection.
 
         :param particle_ids:
         """
-        if particle_ids is None:
-            particle_ids = set()
         self.selected_particle_ids.update(particle_ids)
 
     def to_dictionary(self) -> Dict:

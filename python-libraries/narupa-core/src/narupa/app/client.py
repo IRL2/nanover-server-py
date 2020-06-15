@@ -614,7 +614,7 @@ class NarupaImdClient:
             root_selection = self.get_selection(SELECTION_ROOT_ID)
         except KeyError:
             root_selection = self._create_selection_from_id_and_name(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
-        root_selection.selected_particle_ids = None
+        root_selection.selected_particle_ids = ()
         return root_selection
 
     @need_multiplayer
