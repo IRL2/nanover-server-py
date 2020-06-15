@@ -8,7 +8,7 @@ from typing import Optional
 import ase
 import narupa.openmm.serializer as serializer
 import numpy as np
-from ase import Atoms  # type: ignore
+from ase import Atoms, Atom  # type: ignore
 from ase.calculators.calculator import Calculator, all_changes
 from simtk.openmm import System, State
 from simtk.openmm.app import Topology, Simulation
@@ -96,8 +96,8 @@ class OpenMMCalculator(Calculator):
         for openmm_atom in top.atoms():
             index = openmm_atom.index
             pos = positions[index]
-            ase_atom = ase.Atom(symbol=openmm_atom.element.symbol, position=pos,
-                                mass=openmm_atom.element.mass.value_in_unit(amu))
+            ase_atom = Atom(symbol=openmm_atom.element.symbol, position=pos,
+                            mass=openmm_atom.element.mass.value_in_unit(amu))
             atoms.append(ase_atom)
 
         return atoms
