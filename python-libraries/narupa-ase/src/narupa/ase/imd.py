@@ -6,7 +6,6 @@ Interactive molecular dynamics server for use with an ASE molecular dynamics sim
 """
 import logging
 from concurrent import futures
-from concurrent.futures import Future
 from contextlib import contextmanager
 from threading import RLock
 from typing import Optional, Callable, List, Any
@@ -52,7 +51,7 @@ class NarupaASEDynamics:
 
     """
     on_reset_listeners: List[Callable[[], None]]
-    _run_task: Optional[Future[Any]]
+    _run_task: Optional[futures.Future]
 
     def __init__(self,
                  narupa_imd_app: NarupaImdApplication,
