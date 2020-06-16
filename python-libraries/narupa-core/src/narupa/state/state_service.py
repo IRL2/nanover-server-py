@@ -3,7 +3,9 @@
 """
 Module providing an implementation of the :class:`StateServicer`.
 """
-from typing import Iterable, Tuple, Set, Dict, ContextManager, Callable
+from typing import (
+    Iterable, Tuple, Set, Dict, ContextManager, Callable, Optional
+)
 from narupa.utilities.grpc_utilities import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
@@ -76,8 +78,8 @@ class StateService(StateServicer):
     def update_locks(
             self,
             access_token: object,
-            acquire: Dict[str, float],
-            release: Set[str],
+            acquire: Optional[Dict[str, float]] = None,
+            release: Optional[Set[str]] = None,
     ):
         """
         Attempts to acquire and release locks on keys in the shared key/value
@@ -168,16 +170,15 @@ def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
     :return: an equivalent DictionaryChange representing the key changes and
         key removals of the StateUpdate.
     """
-    changes = {}
-    removals = set()
+    change = DictionaryChange()
 
     for key, value in struct_to_dict(update.changed_keys).items():
         if value is None:
-            removals.add(key)
+            change.removals.add(key)
         else:
-            changes[key] = value
+            change.updates[key] = value
 
-    return DictionaryChange(changes, removals)
+    return change
 
 
 def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:

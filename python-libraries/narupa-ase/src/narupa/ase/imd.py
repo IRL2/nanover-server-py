@@ -8,10 +8,10 @@ import logging
 from concurrent import futures
 from contextlib import contextmanager
 from threading import RLock
-from typing import Optional, Callable
+from typing import Optional, Callable, List, Any
 
 import numpy as np
-from ase import Atoms, units
+from ase import Atoms, units  # type: ignore
 from ase.calculators.calculator import Calculator
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
@@ -50,6 +50,8 @@ class NarupaASEDynamics:
     32
 
     """
+    on_reset_listeners: List[Callable[[], None]]
+    _run_task: Optional[futures.Future]
 
     def __init__(self,
                  narupa_imd_app: NarupaImdApplication,
@@ -183,8 +185,12 @@ class NarupaASEDynamics:
             self.cancel_run(wait=True)
         self.run()
 
-    def run(self, steps: Optional[int] = None,
-            block: Optional[bool] = None, reset_energy: Optional[float] = None):
+    def run(
+            self,
+            steps: Optional[int] = None,
+            block: Optional[bool] = None,
+            reset_energy: Optional[float] = None,
+    ):
         """
         Runs the molecular dynamics.
 
@@ -206,15 +212,13 @@ class NarupaASEDynamics:
         # not blocking if we run forever.
         if block is None:
             block = (steps is not None)
-        if steps is None:
-            steps = float('inf')
         if block:
             self._run(steps, reset_energy)
         else:
             self._run_task = self.threads.submit(self._run, steps, reset_energy)
 
-    def _run(self, steps, reset_energy):
-        remaining_steps = steps
+    def _run(self, steps: Optional[int], reset_energy: Optional[float]):
+        remaining_steps = steps if steps is not None else float('inf')
         while not self._cancelled and remaining_steps > 0:
             steps_for_this_iteration = min(10, remaining_steps)
             self.dynamics.run(steps_for_this_iteration)

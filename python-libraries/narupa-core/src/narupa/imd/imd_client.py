@@ -3,8 +3,7 @@
 import logging
 from uuid import uuid4
 from concurrent.futures import Future
-from queue import Queue
-from typing import Iterable, Dict, Any, NamedTuple, Set
+from typing import Dict, Any, Set
 
 import grpc
 from narupa.core import NarupaStubClient
@@ -14,55 +13,9 @@ from narupa.imd.particle_interaction import (
 )
 from narupa.protocol.imd import (
     InteractiveMolecularDynamicsStub,
-    InteractionEndReply,
-    SubscribeInteractionsRequest,
 )
 from narupa.utilities.change_buffers import DictionaryChange
 from narupa.utilities.protobuf_utilities import struct_to_dict
-
-
-class _LocalInteractionState(NamedTuple):
-    """
-    Internal state for managing and publishing the client's active interactions.
-    """
-    queue: Queue
-    sentinel: Any
-    future: Future
-
-
-def queue_generator(queue: Queue, sentinel: object):
-    """
-    Produces a generator that can be used to iterate over the values submitted
-    to a queue, until the given sentinel is added to the queue. The iterator
-    will block until this sentinel is passed.
-
-    Enables one to take control of when items are passed to a streaming
-    iterator, such as that used in :func:`publish_interactions_async`.
-
-    :param queue: Queue that items will be submitted to.
-    :param sentinel: A sentinel that indicates the end of iteration. When added
-        to the queue, the generator stops.
-    :return: Yields the items in put into the queue, in the order they were put in.
-
-    >>> queue = Queue()
-    >>> sentinel = object()
-    >>> queue.put(1)
-    >>> queue.put(2)
-    >>> queue.put(sentinel)
-    >>> generator = queue_generator(queue, sentinel)
-    >>> for item in generator:
-    ...     print(item)
-    1
-    2
-
-    """
-    for val in iter(queue.get, sentinel):
-        yield val
-
-
-def _to_proto(interactions: Iterable[ParticleInteraction]):
-    for interaction in interactions:
-        yield interaction.proto
 
 
 class ImdClient(NarupaStubClient):
@@ -190,7 +143,7 @@ def _interaction_to_dict(interaction: ParticleInteraction):
         raise TypeError from e
 
 
-def _dict_to_interaction(dictionary: Dict[str, object]) -> ParticleInteraction:
+def _dict_to_interaction(dictionary: Dict[str, Any]) -> ParticleInteraction:
     properties: Dict[str, object] = dictionary['properties']
     max_force = properties.get(ParticleInteraction.MAX_FORCE_KEY, DEFAULT_MAX_FORCE)
     if max_force == 'Infinity':

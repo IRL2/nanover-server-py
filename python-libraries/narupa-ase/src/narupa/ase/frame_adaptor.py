@@ -5,7 +5,7 @@
 Methods for transmitting a simulation frame from ASE.
 """
 
-from ase import Atoms
+from ase import Atoms  # type: ignore
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.md import Langevin
 from narupa.trajectory import FrameServer, FramePublisher
@@ -33,11 +33,12 @@ def send_ase_frame(ase_atoms: Atoms, frame_publisher: FramePublisher):
     >>> dynamics.attach(send_ase_frame(atoms, frame_publisher), interval=2)
     """
 
-    def send():
-        frame = ase_to_frame_data(ase_atoms)
-        frame_publisher.send_frame(send.frame_index, frame)
-        send.frame_index = send.frame_index + 1
+    frame_index = 0
 
-    send.frame_index = 0
+    def send():
+        nonlocal frame_index
+        frame = ase_to_frame_data(ase_atoms)
+        frame_publisher.send_frame(frame_index, frame)
+        frame_index += frame_index + 1
 
     return send

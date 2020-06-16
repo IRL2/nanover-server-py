@@ -11,7 +11,7 @@ import os
 from typing import Optional
 
 import ase.io
-from ase import Atoms, units
+from ase import Atoms, units  # type: ignore
 from ase.io.formats import filetype, ioformats
 from ase.md import Langevin
 
@@ -82,6 +82,7 @@ class TrajectoryLogger:
     otherwise, the file will be reopened and appended to each frame, which will negatively impact performance.
 
     """
+    format: str
 
     def __init__(self, atoms: Atoms, filename: str, format: Optional[str] = None, timestamp=True, parallel=True,
                  **kwargs):
@@ -89,7 +90,6 @@ class TrajectoryLogger:
         self.frame_index = 0
         self.atoms = atoms
         self.base_path = filename
-        self.format = format
         self.parallel = parallel
         self._kwargs = kwargs
         self._timestamp = timestamp
@@ -98,6 +98,7 @@ class TrajectoryLogger:
 
         if format is not None:
             validate_ase_can_append_format(format)
+            self.format = format
         else:
             validate_ase_can_append_filename(filename)
             self.format = _get_format(filename)

@@ -20,7 +20,7 @@ INITIAL_STATE = {
 @pytest.fixture
 def client_server() -> Tuple[NarupaClient, NarupaServer]:
     with NarupaServer(address="localhost", port=0) as server:
-        change = DictionaryChange(INITIAL_STATE, set())
+        change = DictionaryChange(INITIAL_STATE)
         server.update_state(None, change)
         with NarupaClient.insecure_channel(address="localhost", port=server.port) as client:
             yield client, server
@@ -35,7 +35,7 @@ def test_server_cannot_set_non_basic_type(client_server):
     class UserType:
         pass
 
-    change = DictionaryChange({'hello': UserType()}, set())
+    change = DictionaryChange({'hello': UserType()})
     with pytest.raises(TypeError):
         server.update_state(None, change)
 
@@ -49,7 +49,7 @@ def test_client_cannot_set_non_basic_type(client_server):
     class UserType:
         pass
 
-    change = DictionaryChange({'hello': UserType()}, set())
+    change = DictionaryChange({'hello': UserType()})
     with pytest.raises(TypeError):
         client.attempt_update_state(change)
 
@@ -213,7 +213,7 @@ def test_subscribe_updates_interval(client_server, update_interval):
     with client.lock_state() as state:
         assert state['hello'] == INITIAL_STATE['hello']
 
-    change = DictionaryChange({'hello': 999}, set())
+    change = DictionaryChange({'hello': 999})
     client.attempt_update_state(change)
 
     time.sleep(update_interval / 2)
@@ -292,8 +292,8 @@ def test_cannot_remove_locked_key(client_server):
 
 def test_update_unlocked_repeated(client_server):
     client1, server = client_server
-    change1 = DictionaryChange({'hello': 1}, set())
-    change2 = DictionaryChange({'hello': 2}, set())
+    change1 = DictionaryChange({'hello': 1})
+    change2 = DictionaryChange({'hello': 2})
     with NarupaClient.insecure_channel(address="localhost", port=server.port) as client2:
         assert client1.attempt_update_state(change1)
         assert client2.attempt_update_state(change2)
@@ -321,7 +321,7 @@ def test_cannot_release_other_lock(client_server):
     with NarupaClient.insecure_channel(address="localhost", port=server.port) as client2:
         client2.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
         assert client1.attempt_update_locks({'hello': None})
-        change = DictionaryChange({'hello': 999}, set())
+        change = DictionaryChange({'hello': 999})
         assert not client1.attempt_update_state(change)
 
 
@@ -333,7 +333,7 @@ def test_cannot_set_other_locked(client_server):
 
     with NarupaClient.insecure_channel(address="localhost", port=server.port) as client2:
         client2.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
-        change = DictionaryChange({'hello': 999}, set())
+        change = DictionaryChange({'hello': 999})
         assert not client1.attempt_update_state(change)
 
 

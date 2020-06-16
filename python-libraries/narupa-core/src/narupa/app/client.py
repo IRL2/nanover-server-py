@@ -7,10 +7,11 @@ and can publish interactions.
 import time
 from collections import deque, ChainMap
 from functools import wraps, partial
-from typing import Iterable, Tuple, Type
+from typing import Iterable, Tuple, Type, Set
 from typing import Optional, Sequence, Dict, MutableMapping
 from uuid import uuid4
 
+import grpc
 from grpc import RpcError, StatusCode
 from narupa.app.app_server import DEFAULT_NARUPA_PORT, MULTIPLAYER_SERVICE_NAME
 from narupa.app.selection import RenderingSelection
@@ -125,12 +126,19 @@ class NarupaImdClient:
             selection.interaction_method = 'group'  # Interact with the selection as a group.
 
     """
+    _player_id: str
+    _channels: Dict[Tuple[str, int], grpc.Channel]
+
     _frame_client: Optional[FrameClient]
     _imd_client: Optional[ImdClient]
     _multiplayer_client: Optional[NarupaClient]
     _frames: deque
 
     _next_selection_id: int = 0
+
+    _trajectory_commands: Dict[str, CommandInfo]
+    _imd_commands: Dict[str, CommandInfo]
+    _multiplayer_commands: Dict[str, CommandInfo]
 
     def __init__(self, *,
                  trajectory_address: Tuple[str, int] = None,
@@ -172,12 +180,13 @@ class NarupaImdClient:
         return cls(trajectory_address=url, imd_address=url, multiplayer_address=url)
 
     @classmethod
-    def connect_to_single_server_multiple_ports(cls,
-                                                address: Optional[str] = None,
-                                                trajectory_port: Optional[int] = None,
-                                                imd_port: Optional[int] = None,
-                                                multiplayer_port: Optional[int] = None,
-                                                ):
+    def connect_to_single_server_multiple_ports(
+            cls,
+            address: str,
+            trajectory_port: int,
+            imd_port: int,
+            multiplayer_port: int,
+    ):
         """
         Connect to a collection of Narupa servers running at the same address but potentially different ports.
 
@@ -189,7 +198,6 @@ class NarupaImdClient:
         """
 
         # TODO this is a utility method for testing... a good place to put this?
-        address = address or DEFAULT_CONNECT_ADDRESS
         return cls(trajectory_address=(address, trajectory_port),
                    imd_address=(address, imd_port),
                    multiplayer_address=(address, multiplayer_port))
@@ -308,7 +316,7 @@ class NarupaImdClient:
 
         return self.first_frame
 
-    @property
+    @property  # type: ignore
     @need_frames
     def latest_frame(self) -> Optional[FrameData]:
         """
@@ -320,7 +328,7 @@ class NarupaImdClient:
             return None
         return self.frames[-1]
 
-    @property
+    @property  # type: ignore
     @need_multiplayer
     def latest_multiplayer_values(self) -> Dict[str, object]:
         """
@@ -328,9 +336,9 @@ class NarupaImdClient:
 
         :return: Dictionary of the current state of multiplayer shared key/value store.
         """
-        return self._multiplayer_client.copy_state()
+        return self._multiplayer_client.copy_state()  # type: ignore
 
-    @property
+    @property  # type: ignore
     @need_frames
     def frames(self) -> Sequence[FrameData]:
         """
@@ -341,7 +349,7 @@ class NarupaImdClient:
         """
         return list(self._frames)
 
-    @property
+    @property  # type: ignore
     @need_frames
     def first_frame(self) -> Optional[FrameData]:
         """
@@ -351,7 +359,7 @@ class NarupaImdClient:
         """
         return self._first_frame
 
-    @property
+    @property  # type: ignore
     @need_imd
     def interactions(self) -> Dict[str, ParticleInteraction]:
         """
@@ -359,7 +367,7 @@ class NarupaImdClient:
         :return: Dictionary of active interactions, keyed by interaction ID identifying who is performing the
         interactions.
         """
-        return self._imd_client.interactions
+        return self._imd_client.interactions  # type: ignore
 
     @need_imd
     def start_interaction(self, interaction: Optional[ParticleInteraction] = None) -> str:
@@ -374,7 +382,7 @@ class NarupaImdClient:
 
         :raises: ValueError, if the there is no IMD connection available.
         """
-        interaction_id = self._imd_client.start_interaction()
+        interaction_id = self._imd_client.start_interaction()  # type: ignore
         if interaction is not None:
             self.update_interaction(interaction_id, interaction)
         return interaction_id
@@ -395,7 +403,7 @@ class NarupaImdClient:
             if invalid parameters are passed to the server.
         :raises KeyError: if the given interaction ID does not exist.
         """
-        self._imd_client.update_interaction(interaction_id, interaction)
+        self._imd_client.update_interaction(interaction_id, interaction)  # type: ignore
 
     @need_imd
     def stop_interaction(self, interaction_id) -> InteractionEndReply:
@@ -415,35 +423,35 @@ class NarupaImdClient:
         :raises KeyError: if the given interaction ID does not exist.
 
         """
-        return self._imd_client.stop_interaction(interaction_id)
+        return self._imd_client.stop_interaction(interaction_id)  # type: ignore
 
     @need_frames
     def run_play(self):
         """
         Sends a request to start playing the trajectory to the trajectory service.
         """
-        self._frame_client.run_command(PLAY_COMMAND_KEY)
+        self._frame_client.run_command(PLAY_COMMAND_KEY)  # type: ignore
 
     @need_frames
     def run_step(self):
         """
         Sends a request to take one step to the trajectory service.
         """
-        self._frame_client.run_command(STEP_COMMAND_KEY)
+        self._frame_client.run_command(STEP_COMMAND_KEY)  # type: ignore
 
     @need_frames
     def run_pause(self):
         """
         Sends a request to pause the simulation to the trajectory service.
         """
-        self._frame_client.run_command(PAUSE_COMMAND_KEY)
+        self._frame_client.run_command(PAUSE_COMMAND_KEY)  # type: ignore
 
     @need_frames
     def run_reset(self):
         """
         Sends a request to reset the simulation to the trajectory service.
         """
-        self._frame_client.run_command(RESET_COMMAND_KEY)
+        self._frame_client.run_command(RESET_COMMAND_KEY)  # type: ignore
 
     def update_available_commands(self) -> MutableMapping[str, CommandInfo]:
         """
@@ -487,7 +495,7 @@ class NarupaImdClient:
         :param args: Dictionary of arguments to run with the command.
         :return: Results of the command, if any.
         """
-        return self._frame_client.run_command(name, **args)
+        return self._frame_client.run_command(name, **args)  # type: ignore
 
     @need_imd
     def run_imd_command(self, name: str, **args) -> Dict[str, object]:
@@ -499,7 +507,7 @@ class NarupaImdClient:
         :return: Results of the command, if any.
         """
 
-        return self._imd_client.run_command(name, **args)
+        return self._imd_client.run_command(name, **args)  # type: ignore
 
     @need_multiplayer
     def run_multiplayer_command(self, name: str, **args):
@@ -511,7 +519,7 @@ class NarupaImdClient:
         :return: Results of the command, if any.
         """
 
-        return self._multiplayer_client.run_command(name, **args)
+        return self._multiplayer_client.run_command(name, **args)  # type: ignore
 
     @need_multiplayer
     def subscribe_multiplayer(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
@@ -538,7 +546,7 @@ class NarupaImdClient:
             by another user.
         :return: True if the server accepted our change, and False otherwise.
         """
-        return self._multiplayer_client.attempt_update_state(update)
+        return self._multiplayer_client.attempt_update_state(update)  # type: ignore
 
     @need_multiplayer
     def attempt_update_multiplayer_locks(
@@ -552,7 +560,7 @@ class NarupaImdClient:
             the lock should be released if held.
         :return: True if the desired locks were acquired, and False otherwise.
         """
-        return self._multiplayer_client.attempt_update_locks(update)
+        return self._multiplayer_client.attempt_update_locks(update)  # type: ignore
 
     @need_multiplayer
     def set_shared_value(self, key, value) -> bool:
@@ -567,8 +575,8 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        change = DictionaryChange(updates={key: value}, removals=[])
-        return self.attempt_update_multiplayer_state(change)
+        change = DictionaryChange(updates={key: value})
+        return self.attempt_update_multiplayer_state(change)  # type: ignore
 
     @need_multiplayer
     def remove_shared_value(self, key: str) -> bool:
@@ -578,8 +586,8 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        change = DictionaryChange(updates={}, removals=[key])
-        return self.attempt_update_multiplayer_state(change)
+        change = DictionaryChange(removals=[key])
+        return self.attempt_update_multiplayer_state(change)  # type: ignore
 
     @need_multiplayer
     def get_shared_value(self, key):
@@ -592,9 +600,9 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        return self._multiplayer_client.copy_state()[key]
+        return self._multiplayer_client.copy_state()[key]  # type: ignore
 
-    @property
+    @property  # type: ignore
     @need_multiplayer
     def root_selection(self) -> RenderingSelection:
         """
@@ -606,7 +614,7 @@ class NarupaImdClient:
             root_selection = self.get_selection(SELECTION_ROOT_ID)
         except KeyError:
             root_selection = self._create_selection_from_id_and_name(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
-        root_selection.selected_particle_ids = None
+        root_selection.selected_particle_ids = ()
         return root_selection
 
     @need_multiplayer
@@ -663,7 +671,7 @@ class NarupaImdClient:
         for selection in selections:
             self.remove_selection(selection)
 
-    @property
+    @property  # type: ignore
     @need_multiplayer
     def selections(self) -> Iterable[RenderingSelection]:
         """
@@ -671,7 +679,7 @@ class NarupaImdClient:
 
         :return: An iterable of all the selections stored in the shared key store.
         """
-        for key, _ in self._multiplayer_client.copy_state().items():
+        for key, _ in self._multiplayer_client.copy_state().items():  # type: ignore
             if key.startswith('selection.'):
                 yield self.get_selection(key)
 
@@ -685,7 +693,7 @@ class NarupaImdClient:
         :param selection_id: The id of the selection
         :return: The selection if it is present
         """
-        value = self._multiplayer_client.copy_state()[selection_id]
+        value = self._multiplayer_client.copy_state()[selection_id]  # type: ignore
         return self._create_selection_from_dict(value)
 
     def _create_selection_from_dict(self, value) -> RenderingSelection:

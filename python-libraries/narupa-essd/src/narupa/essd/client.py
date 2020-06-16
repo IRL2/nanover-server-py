@@ -53,7 +53,7 @@ class DiscoveryClient:
         :param interval: Interval in seconds to wait between checking for new service broadcasts.
         :return: A set of services discovered over the duration.
         """
-        services = set()
+        services: Set[ServiceHub] = set()
         deadline = time.monotonic() + search_time
         while time.monotonic() < deadline:
             time_before_recv = time.monotonic()

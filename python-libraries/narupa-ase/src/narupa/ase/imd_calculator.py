@@ -5,10 +5,10 @@
 Provides an implementation of IMD force field in ASE.
 """
 import math
-from typing import Optional, Dict, Tuple, Set, Collection
+from typing import Optional, Dict, Set, Collection
 
 import numpy as np
-from ase import Atoms, units
+from ase import Atoms, units  # type: ignore
 from ase.calculators.calculator import Calculator, all_changes
 from ase.md.md import MolecularDynamics
 from ase.md.velocitydistribution import _maxwellboltzmanndistribution
@@ -237,7 +237,7 @@ def _get_cancelled_interactions(interactions, previous_interactions) -> Dict[obj
 
 
 def _get_atoms_to_reset(cancelled_interactions) -> Set[int]:
-    atoms_to_reset = set()
+    atoms_to_reset: Set[int] = set()
     for key, interaction in cancelled_interactions.items():
         if interaction.reset_velocities:
             atoms_to_reset = atoms_to_reset.union(interaction.particles)

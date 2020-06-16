@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from google.protobuf.internal.well_known_types import _SetStructValue, _GetStructValue
+from google.protobuf.internal.well_known_types import _SetStructValue, _GetStructValue  # type: ignore
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.struct_pb2 import Struct, Value, ListValue
 
