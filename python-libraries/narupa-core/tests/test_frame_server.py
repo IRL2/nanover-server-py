@@ -23,11 +23,6 @@ def assert_framedata_equal(
 
     One can ignore keys from the comparison by listing them in the `ignore_key`
     argument.
-
-    .. warning::
-
-        The keys to ignore are removed from the frames. Both frames are modified
-        in place.
     """
     left = left.copy()
     right = right.copy()
