@@ -13,18 +13,6 @@ SUBSCRIBE_METHODS = ('subscribe_frames_async', 'subscribe_last_frames_async')
 FRAME_DATA_VARIABLE_KEYS = (SERVER_TIMESTAMP, )
 
 
-def remove_keys_from_framedata(frame: FrameData, keys: Iterable[str]):
-    """
-    Remove keys from a frame. The frame is modified in-place.
-
-    :param frame: The frame to modify.
-    :param keys: The list of keys to remove.
-    """
-    for key in keys:
-        if hasattr(frame, key):
-            delattr(frame, key)
-
-
 def assert_framedata_equal(
         left: FrameData,
         right: FrameData,
@@ -43,8 +31,10 @@ def assert_framedata_equal(
     """
     left = left.deep_copy()
     right = right.deep_copy()
-    remove_keys_from_framedata(left, ignore_keys)
-    remove_keys_from_framedata(right, ignore_keys)
+
+    for key in ignore_keys:
+        del left[key], right[key]
+
     assert left == right
 
 

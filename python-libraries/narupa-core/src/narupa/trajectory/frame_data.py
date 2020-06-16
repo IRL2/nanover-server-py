@@ -220,12 +220,18 @@ class FrameData(metaclass=_FrameDataMeta):
     def __repr__(self):
         return repr(self.raw)
 
-    def __delattr__(self, item):
-        if item in self._shortcuts:
-            shortcut = self._shortcuts[item]
+    def __delattr__(self, attr):
+        if attr in self._shortcuts:
+            shortcut = self._shortcuts[attr]
             getattr(self, shortcut.record_type).delete(shortcut.key)
         else:
-            super().__delattr__(item)
+            super().__delattr__(attr)
+
+    def __delitem__(self, item):
+        if item in self.value_keys:
+            del self.values[item]
+        if item in self.array_keys:
+            del self.arrays[item]
 
     def deep_copy(self):
         copy = FrameData()
