@@ -609,6 +609,17 @@ def test_listing_used_shortcut():
     assert frame.used_shortcuts == {'single', }
 
 
+def test_delete_shortcut_keeps_shortcut():
+    """
+    Test that deleting a shortcut does not remove the shortcut itself.
+    """
+    frame = DummyFrameData()
+    frame.single = 'something'
+    del frame.single
+    frame.single = 'something'
+    assert frame.used_shortcuts == {'single', }
+
+
 def test_delete_shortcut_clears_field():
     """
     Test that deleting a shortcut clears the field on the grpc FrameData.
@@ -617,3 +628,19 @@ def test_delete_shortcut_clears_field():
     frame.single = 'something'
     del frame.single
     assert not frame.used_shortcuts
+
+
+@given(NUMBER_SINGLE_VALUE_STRATEGY)
+def test_del_value(value):
+    frame = FrameData()
+    frame.values['sample.new'] = value
+    del frame.values['sample.new']
+    assert 'sample.new' not in frame.raw.values
+
+
+@given(NUMBER_SINGLE_VALUE_STRATEGY)
+def test_delete_value(value):
+    frame = FrameData()
+    frame.values['sample.new'] = value
+    frame.values.delete('sample.new')
+    assert 'sample.new' not in frame.raw.values
