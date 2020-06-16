@@ -46,7 +46,7 @@ def queue_generator(queue: Queue, sentinel: object):
     :return: Yields the items in put into the queue, in the order they were put in.
 
     >>> queue = Queue()
-    >>> sentinel = object()
+    >>> sentinel = Sentinel()
     >>> queue.put(1)
     >>> queue.put(2)
     >>> queue.put(sentinel)
