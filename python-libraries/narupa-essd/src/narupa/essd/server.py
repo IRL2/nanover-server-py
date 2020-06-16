@@ -19,7 +19,7 @@ import logging
 import threading
 import time
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
-from typing import Optional
+from typing import Optional, Dict
 
 from narupa.essd.utils import get_broadcast_addresses, is_in_network, resolve_host_broadcast_address
 from narupa.essd.servicehub import ServiceHub
@@ -42,6 +42,8 @@ def configure_reusable_socket() -> socket:
 
 
 class DiscoveryServer:
+    services: Dict[str, ServiceHub]
+    _socket: socket
 
     def __init__(self, broadcast_port: Optional[int] = None, delay=0.5):
         if broadcast_port is None:
@@ -57,7 +59,6 @@ class DiscoveryServer:
         self._lock = threading.RLock()
         self._cancel = False
         self._broadcast_thread = None
-        self._socket = None
         self.start()
 
     def log_addresses(self, level=logging.DEBUG):

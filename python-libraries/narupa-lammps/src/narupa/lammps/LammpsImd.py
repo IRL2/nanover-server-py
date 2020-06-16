@@ -11,7 +11,7 @@ from typing import List, Optional
 import numpy as np
 
 try:
-    from lammps import lammps
+    from lammps import lammps  # type: ignore
 except ImportError:
     logging.info('lammps failed to import', exc_info=True)
 
@@ -404,7 +404,7 @@ class LammpsImd:
         self.frame_service.send_frame(self.frame_index, self.frame_data)
         self.frame_index += 1
 
-    def _log_mpi(self, passed_string: str = None, *args: Optional, **kwargs: Optional):
+    def _log_mpi(self, passed_string: str = None, *args, **kwargs):
         """
         Wrapper function for printing on one core only
 

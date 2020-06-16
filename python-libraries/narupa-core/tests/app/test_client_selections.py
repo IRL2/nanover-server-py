@@ -173,7 +173,7 @@ def test_root_selection_fields(server_clients):
     server, client1, client2 = server_clients
 
     selection = client1.root_selection
-    assert selection.selected_particle_ids is None
+    assert not selection.selected_particle_ids
 
 
 def test_root_selection_set_field(server_clients):

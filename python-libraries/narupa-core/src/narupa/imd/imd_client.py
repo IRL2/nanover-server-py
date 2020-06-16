@@ -3,7 +3,7 @@
 import logging
 from concurrent.futures import Future
 from queue import Queue
-from typing import Iterable, Optional, Dict, Any, NamedTuple
+from typing import Iterable, Optional, Dict, Any, NamedTuple, Union
 
 import grpc
 from narupa.core import get_requested_port_or_default, NarupaStubClient
@@ -16,16 +16,22 @@ from narupa.protocol.imd import (
 )
 
 
+class Sentinel:
+    """
+    A specific message passed as a sentinel.
+    """
+
+
 class _LocalInteractionState(NamedTuple):
     """
     Internal state for managing and publishing the client's active interactions.
     """
     queue: Queue
-    sentinel: Any
+    sentinel: Sentinel
     future: Future
 
 
-def queue_generator(queue: Queue, sentinel: object):
+def queue_generator(queue: Queue, sentinel: Sentinel):
     """
     Produces a generator that can be used to iterate over the values submitted
     to a queue, until the given sentinel is added to the queue. The iterator
@@ -40,7 +46,7 @@ def queue_generator(queue: Queue, sentinel: object):
     :return: Yields the items in put into the queue, in the order they were put in.
 
     >>> queue = Queue()
-    >>> sentinel = object()
+    >>> sentinel = Sentinel()
     >>> queue.put(1)
     >>> queue.put(2)
     >>> queue.put(sentinel)
@@ -85,8 +91,8 @@ class ImdClient(NarupaStubClient):
 
         :return: A unique identifier to be used to update the interaction.
         """
-        queue = Queue()
-        sentinel = object()
+        queue: Queue[Union[ParticleInteraction, Sentinel]] = Queue()
+        sentinel = Sentinel()
         future = self.publish_interactions_async(queue_generator(queue, sentinel))
         local_interaction_id = self._get_new_local_interaction_id()
         self._local_interactions_states[local_interaction_id] = _LocalInteractionState(queue, sentinel, future)

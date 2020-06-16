@@ -35,7 +35,7 @@ def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions:
     """
 
     forces = np.zeros((len(positions), 3))
-    total_energy = 0
+    total_energy = 0.
     for interaction in interactions:
         energy = apply_single_interaction_force(positions, masses, interaction, forces, periodic_box_lengths)
         total_energy += energy

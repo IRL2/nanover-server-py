@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from contextlib import contextmanager
-from typing import Dict, Iterable, Set, Union, TypeVar, Optional
+from typing import Dict, Iterable, Set, Union, TypeVar, Optional, cast
 
 from narupa.utilities.event import Event
 
@@ -26,9 +26,6 @@ VELOCITY_RESET_DEFAULT = False
 RENDERER_DEFAULT = RENDERER_LIQUORICE
 SELECTED_PARTICLE_IDS_DEFAULT = None
 
-# TODO: Replace when minimum python is 3.7+
-SelectionClass = TypeVar('RenderingSelection')
-
 
 class RenderingSelection:
     """
@@ -43,17 +40,8 @@ class RenderingSelection:
     a modify(): context manager.
     """
 
-    selection_id: str
-    selection_name: str
-    selected_particle_ids: Union[Set[int], None]
-
-    interaction_method: str
-    velocity_reset: bool
-    renderer: Union[Dict, str]
-    hide: bool
-
     @classmethod
-    def from_dictionary(cls, dict: Dict) -> SelectionClass:
+    def from_dictionary(cls, dict: Dict) -> 'RenderingSelection':
         """
         Decode a dictionary into a selection.
 
@@ -122,18 +110,16 @@ class RenderingSelection:
         :param particle_ids:
         """
         if particle_ids is None:
-            self.selected_particle_ids = None
+            self.selected_particle_ids = set()
         else:
             self.selected_particle_ids = set(particle_ids)
 
-    def add_particles(self, particle_ids: Iterable[int] = None):
+    def add_particles(self, particle_ids: Iterable[int]):
         """
         Add more particles to this selection, appending the previous selection.
 
         :param particle_ids:
         """
-        if particle_ids is None:
-            particle_ids = set()
         self.selected_particle_ids.update(particle_ids)
 
     def to_dictionary(self) -> Dict:
@@ -189,10 +175,7 @@ class RenderingSelection:
 
     @selected_particle_ids.setter
     def selected_particle_ids(self, value: Set[int]):
-        if value is None:
-            self._selected_particle_ids = None
-        else:
-            self._selected_particle_ids = set(value)
+        self._selected_particle_ids = set(value)
 
     @property
     def updated(self) -> Event:
@@ -261,14 +244,12 @@ class RenderingSelection:
         self.read_hide_from_dictionary(dict)
 
     def read_selected_particles_from_dictionary(self, dict: Dict):
-        self.set_particles(
-            get_nested_or_default(
-                dict,
-                SELECTED_PARTICLE_IDS_DEFAULT,
-                KEY_SELECTION_SELECTED,
-                KEY_SELECTED_PARTICLE_IDS,
-            )
-        )
+        self.set_particles(get_nested_or_default(
+            dict,
+            SELECTED_PARTICLE_IDS_DEFAULT,
+            KEY_SELECTION_SELECTED,
+            KEY_SELECTED_PARTICLE_IDS,
+        ))
 
     def read_interaction_method_from_dictionary(self, dict: Dict):
         self.interaction_method = get_nested_or_default(
@@ -303,7 +284,10 @@ class RenderingSelection:
         )
 
 
-def get_nested_or_default(dict: Dict, default: object, *keys: Iterable[str]) -> object:
+T = TypeVar('T')
+
+
+def get_nested_or_default(dict: Dict, default: T, *keys: Iterable[str]) -> T:
     """
     Iterate down a nested dictionary by accessing subsequent keys, returning the default if at any point a key is not found.
 
@@ -317,4 +301,4 @@ def get_nested_or_default(dict: Dict, default: object, *keys: Iterable[str]) -> 
             dict = dict[key]
         except KeyError:
             return default
-    return dict
+    return cast(T, dict)
