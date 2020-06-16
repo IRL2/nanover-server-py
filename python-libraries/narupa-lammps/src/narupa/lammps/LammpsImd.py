@@ -160,6 +160,7 @@ class LammpsImd:
         logging.debug("Closing Narupa server")
         self.server_app.close()
 
+    @staticmethod
     def _try_or_except(func):
         """
         Function creates an except or try for various functions to overcome the issue
@@ -170,20 +171,17 @@ class LammpsImd:
         """
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            result = None
+        def wrapper(self: LammpsImd, *args, **kwargs):
             try:
-                result = func(*args, **kwargs)
+                return func(self, *args, **kwargs)
             except Exception as e:
                 # Note args[0] is used to get around the issue of passing self to a decorator
-                logging.info("Exception raised in calling function on proc %s ", args[0].me)
+                logging.info("Exception raised in calling function on proc %s ", self.me)
                 logging.info("Exception thrown %s ", func)
                 logging.info("Exception thrown %s ", e)
                 raise
-            return result
 
         return wrapper
-
 
     @_try_or_except
     def _gather_lammps_array(self, matrix_type: str, lammps_class):
