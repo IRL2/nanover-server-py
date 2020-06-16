@@ -27,6 +27,28 @@ from narupa.lammps.mock import MockLammps
 from narupa.lammps.conversions import ELEMENT_INDEX_MASS, LAMMPS_UNITS_CHECK, PLANK_VALUES
 
 
+def _try_or_except(func):
+    """
+    Function creates an except or try for various functions to overcome the issue
+    of the LAMMPS interpreter not giving error messages correctly when an error is
+    encountered.
+    :param func: function to be decorated with a try or except statement
+    :return: the original function but decorated
+    """
+
+    @functools.wraps(func)
+    def wrapper(self: 'LammpsImd', *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except Exception as e:
+            logging.info("Exception raised in calling function on proc %s ", self.me)
+            logging.info("Exception thrown %s ", func)
+            logging.info("Exception thrown %s ", e)
+            raise
+
+    return wrapper
+
+
 class LammpsImd:
     """
     A class that can communicate with the LAMMPS program through
@@ -160,32 +182,7 @@ class LammpsImd:
         logging.debug("Closing Narupa server")
         self.server_app.close()
 
-    def _try_or_except(func):
-        """
-        Function creates an except or try for various functions to overcome the issue
-        of the LAMMPS interpreter not giving error messages correctly when an error is
-        encountered.
-        :param func: function to be decorated with a try or except statement
-        :return: the original function but decorated
-        """
-
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            result = None
-            try:
-                result = func(*args, **kwargs)
-            except Exception as e:
-                # Note args[0] is used to get around the issue of passing self to a decorator
-                logging.info("Exception raised in calling function on proc %s ", args[0].me)
-                logging.info("Exception thrown %s ", func)
-                logging.info("Exception thrown %s ", e)
-                raise
-            return result
-
-        return wrapper
-
-
-    @_try_or_except  # type: ignore
+    @_try_or_except
     def _gather_lammps_array(self, matrix_type: str, lammps_class):
         """
         Gather Matrix data from all LAMMPS MPI threads
@@ -277,7 +274,7 @@ class LammpsImd:
         buffer = np.frombuffer(lammps_forces)
         buffer += interaction_forces
 
-    @_try_or_except  # type: ignore
+    @_try_or_except
     def _return_array_to_lammps(self, matrix_type: str, scatter_array, lammps_class):
         """
         Routine to return arrays to lammps
@@ -298,7 +295,7 @@ class LammpsImd:
         self._log_mpi("Key detected %s", plank_type)
         return plank_type
 
-    @_try_or_except  # type: ignore
+    @_try_or_except
     def _manipulate_lammps_internal_matrix(self, lammps_class, positions, distance_factor, matrix_type):
         """
         This groups together the routines needed to return forces to lammps,
