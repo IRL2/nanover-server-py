@@ -160,29 +160,6 @@ class LammpsImd:
         logging.debug("Closing Narupa server")
         self.server_app.close()
 
-    @staticmethod
-    def _try_or_except(func):
-        """
-        Function creates an except or try for various functions to overcome the issue
-        of the LAMMPS interpreter not giving error messages correctly when an error is
-        encountered.
-        :param func: function to be decorated with a try or except statement
-        :return: the original function but decorated
-        """
-
-        @functools.wraps(func)
-        def wrapper(self: LammpsImd, *args, **kwargs):
-            try:
-                return func(self, *args, **kwargs)
-            except Exception as e:
-                # Note args[0] is used to get around the issue of passing self to a decorator
-                logging.info("Exception raised in calling function on proc %s ", self.me)
-                logging.info("Exception thrown %s ", func)
-                logging.info("Exception thrown %s ", e)
-                raise
-
-        return wrapper
-
     @_try_or_except
     def _gather_lammps_array(self, matrix_type: str, lammps_class):
         """
@@ -415,3 +392,25 @@ class LammpsImd:
         """
         if self.me == 0:
             logging.debug(passed_string, *args, **kwargs)
+
+
+def _try_or_except(func):
+    """
+    Function creates an except or try for various functions to overcome the issue
+    of the LAMMPS interpreter not giving error messages correctly when an error is
+    encountered.
+    :param func: function to be decorated with a try or except statement
+    :return: the original function but decorated
+    """
+
+    @functools.wraps(func)
+    def wrapper(self: LammpsImd, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except Exception as e:
+            logging.info("Exception raised in calling function on proc %s ", self.me)
+            logging.info("Exception thrown %s ", func)
+            logging.info("Exception thrown %s ", e)
+            raise
+
+    return wrapper
