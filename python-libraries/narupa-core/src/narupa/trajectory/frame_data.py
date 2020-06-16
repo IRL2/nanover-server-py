@@ -233,7 +233,7 @@ class FrameData(metaclass=_FrameDataMeta):
         if item in self.array_keys:
             del self.arrays[item]
 
-    def deep_copy(self):
+    def copy(self):
         copy = FrameData()
         for key in self.value_keys:
             copy.values.set(key, self.values[key])

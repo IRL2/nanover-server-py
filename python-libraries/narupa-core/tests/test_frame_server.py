@@ -29,8 +29,8 @@ def assert_framedata_equal(
         The keys to ignore are removed from the frames. Both frames are modified
         in place.
     """
-    left = left.deep_copy()
-    right = right.deep_copy()
+    left = left.copy()
+    right = right.copy()
 
     for key in ignore_keys:
         del left[key], right[key]
