@@ -15,13 +15,15 @@ from narupa.protocol.imd import (
     SubscribeInteractionsRequest,
 )
 
+Sentinel = Any
+
 
 class _LocalInteractionState(NamedTuple):
     """
     Internal state for managing and publishing the client's active interactions.
     """
     queue: Queue
-    sentinel: Any
+    sentinel: Sentinel
     future: Future
 
 
@@ -85,7 +87,7 @@ class ImdClient(NarupaStubClient):
 
         :return: A unique identifier to be used to update the interaction.
         """
-        queue: Queue[Union[ParticleInteraction, object]] = Queue()
+        queue: Queue[Union[ParticleInteraction, Sentinel]] = Queue()
         sentinel = object()
         future = self.publish_interactions_async(queue_generator(queue, sentinel))
         local_interaction_id = self._get_new_local_interaction_id()
