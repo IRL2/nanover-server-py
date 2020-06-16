@@ -2,7 +2,6 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from collections import namedtuple
 from collections.abc import Set
-import itertools
 import numbers
 from typing import Dict, Optional
 
@@ -227,6 +226,13 @@ class FrameData(metaclass=_FrameDataMeta):
             getattr(self, shortcut.record_type).delete(shortcut.key)
         else:
             super().__delattr__(item)
+
+    def deep_copy(self):
+        copy = FrameData()
+        for key in self.value_keys:
+            copy.values[key] = object_to_value(value_to_object(self.values[key]))
+        for key in self.array_keys:
+            copy.arrays[key] = object_to_value(value_to_object(self.arrays[key]))
 
     @property
     def raw(self) -> trajectory.FrameData:
