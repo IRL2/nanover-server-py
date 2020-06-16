@@ -644,3 +644,18 @@ def test_delete_value(value):
     frame.values['sample.new'] = value
     frame.values.delete('sample.new')
     assert 'sample.new' not in frame.raw.values
+
+
+@given(ARRAYS_STRATEGIES['string_values'])
+def test_deep_copy_doesnt_mutate_original(value):
+    """
+    Test that changes to an array in a deep copied frame don't propagate to the
+    original frame.
+    """
+    frame = FrameData()
+    frame.arrays['sample.new'] = value
+
+    copy = frame.deep_copy()
+    copy.arrays['sample.new'][0] = 'baby yoda'
+
+    assert frame.arrays['sample.new'] != 'baby yoda'

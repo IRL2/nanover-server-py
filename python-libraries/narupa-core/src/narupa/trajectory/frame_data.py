@@ -233,6 +233,7 @@ class FrameData(metaclass=_FrameDataMeta):
             copy.values[key] = object_to_value(value_to_object(self.values[key]))
         for key in self.array_keys:
             copy.arrays[key] = object_to_value(value_to_object(self.arrays[key]))
+        return copy
 
     @property
     def raw(self) -> trajectory.FrameData:
