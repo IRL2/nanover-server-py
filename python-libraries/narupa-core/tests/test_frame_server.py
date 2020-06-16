@@ -21,11 +21,8 @@ def remove_keys_from_framedata(frame: FrameData, keys: Iterable[str]):
     :param keys: The list of keys to remove.
     """
     for key in keys:
-        # TODO: Removing a key should be handled by the frame itself. See #183.
-        if key in frame.values:
-            del frame.raw.values[key]
-        if key in frame.arrays:
-            del frame.raw.arrays[key]
+        if hasattr(frame, key):
+            delattr(frame, key)
 
 
 def assert_framedata_equal(
@@ -44,7 +41,8 @@ def assert_framedata_equal(
         The keys to ignore are removed from the frames. Both frames are modified
         in place.
     """
-    # TODO: It would be cleaner to work on copies of the frame. See #182.
+    left = left.deep_copy()
+    right = right.deep_copy()
     remove_keys_from_framedata(left, ignore_keys)
     remove_keys_from_framedata(right, ignore_keys)
     assert left == right

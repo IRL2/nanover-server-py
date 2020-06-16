@@ -647,7 +647,7 @@ def test_delete_value(value):
 
 
 @given(ARRAYS_STRATEGIES['string_values'])
-def test_deep_copy_doesnt_mutate_original(value):
+def test_deep_copy_doesnt_mutate_original_array(value):
     """
     Test that changes to an array in a deep copied frame don't propagate to the
     original frame.
@@ -659,3 +659,13 @@ def test_deep_copy_doesnt_mutate_original(value):
     copy.arrays['sample.new'][0] = 'baby yoda'
 
     assert frame.arrays['sample.new'] != 'baby yoda'
+
+
+def test_deep_copy_doesnt_mutate_original_struct():
+    frame = FrameData()
+    frame.values['sample.new'] = {'hello': 42}
+
+    copy = frame.deep_copy()
+    copy.values['sample.new']['hello'] = 'baby yoda'
+
+    assert copy.values['sample.new']['hello'] == 42
