@@ -2,7 +2,6 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from collections import namedtuple
 from collections.abc import Set
-import itertools
 import numbers
 from typing import Dict, Optional
 
@@ -202,8 +201,9 @@ class FrameData(metaclass=_FrameDataMeta):
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
 
     _shortcuts: Dict[str, _Shortcut]
+    _raw: trajectory.FrameData
 
-    def __init__(self, raw_frame=None):
+    def __init__(self, raw_frame: trajectory.FrameData = None):
         if raw_frame is None:
             self._raw = trajectory.FrameData()
         else:
@@ -220,8 +220,29 @@ class FrameData(metaclass=_FrameDataMeta):
     def __repr__(self):
         return repr(self.raw)
 
+    def __delattr__(self, attr):
+        if attr in self._shortcuts:
+            shortcut = self._shortcuts[attr]
+            getattr(self, shortcut.record_type).delete(shortcut.key)
+        else:
+            super().__delattr__(attr)
+
+    def __delitem__(self, item):
+        if item in self.value_keys:
+            del self.values[item]
+        if item in self.array_keys:
+            del self.arrays[item]
+
+    def copy(self):
+        copy = FrameData()
+        for key in self.value_keys:
+            copy.values.set(key, self.values[key])
+        for key in self.array_keys:
+            copy.arrays.set(key, self.arrays[key])
+        return copy
+
     @property
-    def raw(self):
+    def raw(self) -> trajectory.FrameData:
         """
         Underlying GRPC/protobuf object.
         """
@@ -302,6 +323,9 @@ class RecordView:
     def __setitem__(self, key, value):
         self.set(key, value)
 
+    def __delitem__(self, key):
+        del self._raw_record[key]
+
     def __contains__(self, key):
         return key in self._raw_record
 
@@ -312,6 +336,9 @@ class RecordView:
 
     def set(self, key, value):
         raise NotImplementedError('Subclasses must overwrite the set method.')
+
+    def delete(self, key):
+        del self[key]
 
     @staticmethod
     def _convert_to_python(field):
