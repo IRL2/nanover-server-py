@@ -37,7 +37,7 @@ def _try_or_except(func):
     """
 
     @functools.wraps(func)
-    def wrapper(self: LammpsImd, *args, **kwargs):
+    def wrapper(self: 'LammpsImd', *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
         except Exception as e:
