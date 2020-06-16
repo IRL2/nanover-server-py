@@ -230,9 +230,9 @@ class FrameData(metaclass=_FrameDataMeta):
     def deep_copy(self):
         copy = FrameData()
         for key in self.value_keys:
-            copy.values[key] = object_to_value(value_to_object(self.values[key]))
+            copy.values.set(key, self.values[key])
         for key in self.array_keys:
-            copy.arrays[key] = object_to_value(value_to_object(self.arrays[key]))
+            copy.arrays.set(key, self.arrays[key])
         return copy
 
     @property
