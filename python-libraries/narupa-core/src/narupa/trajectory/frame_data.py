@@ -202,8 +202,9 @@ class FrameData(metaclass=_FrameDataMeta):
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
 
     _shortcuts: Dict[str, _Shortcut]
+    _raw: trajectory.FrameData
 
-    def __init__(self, raw_frame=None):
+    def __init__(self, raw_frame: trajectory.FrameData = None):
         if raw_frame is None:
             self._raw = trajectory.FrameData()
         else:
@@ -220,8 +221,15 @@ class FrameData(metaclass=_FrameDataMeta):
     def __repr__(self):
         return repr(self.raw)
 
+    def __delattr__(self, item):
+        if isinstance(self[item], _Shortcut):
+            shortcut = self[item]
+            getattr(self, shortcut.record_type).delete(shortcut.key)
+        else:
+            super().__delattr__(item)
+
     @property
-    def raw(self):
+    def raw(self) -> trajectory.FrameData:
         """
         Underlying GRPC/protobuf object.
         """
@@ -302,6 +310,9 @@ class RecordView:
     def __setitem__(self, key, value):
         self.set(key, value)
 
+    def __delitem__(self, key):
+        del self._raw_record[key]
+
     def __contains__(self, key):
         return key in self._raw_record
 
@@ -312,6 +323,9 @@ class RecordView:
 
     def set(self, key, value):
         raise NotImplementedError('Subclasses must overwrite the set method.')
+
+    def delete(self, key):
+        del self[key]
 
     @staticmethod
     def _convert_to_python(field):
