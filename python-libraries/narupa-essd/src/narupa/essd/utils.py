@@ -4,8 +4,10 @@ from typing import List, Optional, Iterable, Dict, Any
 
 import netifaces
 
+InterfaceAddresses = Dict[str, str]
 
-def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None) -> List[Dict[str, object]]:
+
+def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None) -> List[InterfaceAddresses]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces.
 
@@ -16,7 +18,7 @@ def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None) -> List[Dict[
     """
     if interfaces is None:
         interfaces = netifaces.interfaces()
-    ipv4_addrs: List[Any] = []
+    ipv4_addrs: List[InterfaceAddresses] = []
     for interface in interfaces:
         addrs = netifaces.ifaddresses(interface)
         try:
@@ -26,7 +28,7 @@ def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None) -> List[Dict[
     return ipv4_addrs
 
 
-def get_broadcast_addresses(interfaces: Optional[Iterable[str]] = None) -> List[Dict[str, object]]:
+def get_broadcast_addresses(interfaces: Optional[Iterable[str]] = None) -> List[Dict[str, str]]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces that have broadcast addresses.
 
@@ -52,7 +54,7 @@ def get_broadcast_addresses(interfaces: Optional[Iterable[str]] = None) -> List[
 
 def resolve_host_broadcast_address(
         host: str,
-        ipv4_addrs: List[Dict[str, object]] = None,
+        ipv4_addrs: List[InterfaceAddresses] = None,
 ):
     try:
         address = socket.gethostbyname(host)
@@ -63,7 +65,7 @@ def resolve_host_broadcast_address(
     return next((item for item in ipv4_addrs if item["addr"] == address and 'broadcast' in item), None)
 
 
-def is_in_network(address: str, interface_address_entry: Dict[str, object]) -> bool:
+def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> bool:
     """
     An internal mechanism for determining whether a given IP address is part of the same network as a given
     interface network as defined by their IPv4 subnet mask and broadcast address.
