@@ -31,7 +31,7 @@ class _LocalInteractionState(NamedTuple):
     future: Future
 
 
-def queue_generator(queue: Queue, sentinel: object):
+def queue_generator(queue: Queue, sentinel: Sentinel):
     """
     Produces a generator that can be used to iterate over the values submitted
     to a queue, until the given sentinel is added to the queue. The iterator
