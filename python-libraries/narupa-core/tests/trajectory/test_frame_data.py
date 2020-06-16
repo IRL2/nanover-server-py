@@ -631,6 +631,14 @@ def test_delete_shortcut_clears_field():
 
 
 @given(NUMBER_SINGLE_VALUE_STRATEGY)
+def test_del_value_from_frame(value):
+    frame = FrameData()
+    frame.values['sample.new'] = value
+    del frame['sample.new']
+    assert 'sample.new' not in frame.raw.values
+
+
+@given(NUMBER_SINGLE_VALUE_STRATEGY)
 def test_del_value(value):
     frame = FrameData()
     frame.values['sample.new'] = value
