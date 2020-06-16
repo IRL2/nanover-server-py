@@ -1,7 +1,6 @@
 # TODO: tests for containers as values
 # TODO: tests for None as value
 
-import sys
 import numpy as np
 
 import pytest
@@ -149,6 +148,7 @@ def test_get_single_numeric_value(raw_frame_and_expectation):
     frame = FrameData(raw_frame)
     assert pytest.approx(frame.values['sample.value'], expected_value)
 
+
 def _test_get_single_exact_value(raw_frame_and_expectation):
     """
     We can get a value by key from a FrameData.
@@ -159,6 +159,7 @@ def _test_get_single_exact_value(raw_frame_and_expectation):
     raw_frame, expected_value = raw_frame_and_expectation
     frame = FrameData(raw_frame)
     assert frame.values['sample.value'] == expected_value
+
 
 @given(raw_frame_with_single_value(EXACT_SINGLE_VALUE_STRATEGY))
 def test_get_single_exact_value(raw_frame_and_expectation):
@@ -606,3 +607,13 @@ def test_listing_used_shortcut():
     frame = DummyFrameData()
     frame.single = 'something'
     assert frame.used_shortcuts == {'single', }
+
+
+def test_delete_shortcut_clears_field():
+    """
+    Test that deleting a shortcut clears the field on the grpc FrameData.
+    """
+    frame = DummyFrameData()
+    frame.single = 'something'
+    del frame.single
+    assert not frame.used_shortcuts

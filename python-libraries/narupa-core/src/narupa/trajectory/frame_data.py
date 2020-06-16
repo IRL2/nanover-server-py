@@ -221,8 +221,8 @@ class FrameData(metaclass=_FrameDataMeta):
         return repr(self.raw)
 
     def __delattr__(self, item):
-        if isinstance(self[item], _Shortcut):
-            shortcut = self[item]
+        if item in self._shortcuts:
+            shortcut = self._shortcuts[item]
             getattr(self, shortcut.record_type).delete(shortcut.key)
         else:
             super().__delattr__(item)
