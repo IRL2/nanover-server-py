@@ -55,7 +55,6 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
     :return: energy in kJ/mol.
     """
 
-
     particle_count = len(interaction.particles)
 
     if particle_count > 1:
