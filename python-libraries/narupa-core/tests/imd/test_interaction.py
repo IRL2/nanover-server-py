@@ -2,6 +2,7 @@ import narupa.protocol.imd.imd_pb2 as imd_pb2
 import numpy as np
 import pytest
 from narupa.imd.particle_interaction import ParticleInteraction, DEFAULT_MAX_FORCE
+from narupa.utilities.protobuf_utilities import dict_to_struct
 
 
 @pytest.fixture
@@ -37,6 +38,25 @@ def test_from_proto():
     assert interaction.scale == 1
     assert interaction.mass_weighted is True
     assert interaction.max_force == DEFAULT_MAX_FORCE
+
+
+def test_from_proto_properties():
+    struct = dict_to_struct({
+        ParticleInteraction.TYPE_KEY: "harmonic",
+        ParticleInteraction.SCALE_KEY: 150,
+        ParticleInteraction.RESET_VELOCITIES_KEY: True,
+        ParticleInteraction.MAX_FORCE_KEY: 5000,
+        ParticleInteraction.MASS_WEIGHTED_KEY: False
+    })
+    interaction_grpc = imd_pb2.ParticleInteraction(player_id='1', interaction_id='0', properties=struct)
+    interaction = ParticleInteraction.from_proto(interaction_grpc)
+    assert interaction.player_id == "1"
+    assert interaction.interaction_id == "0"
+    assert interaction.type == "harmonic"
+    assert interaction.scale == 150
+    assert interaction.mass_weighted is False
+    assert interaction.max_force == 5000
+    assert interaction.reset_velocities is True
 
 
 def test_set_invalid_position(interaction):
@@ -103,12 +123,12 @@ def test_get_mass_unset():
 
 def test_set_reset_vels(interaction):
     interaction.reset_velocities = True
-    assert interaction.properties['reset_velocities'] is True
+    assert interaction.reset_velocities is True
 
 
 def test_set_mass(interaction):
     interaction.mass_weighted = False
-    assert interaction.properties['mass_weighted'] is False
+    assert interaction.mass_weighted is False
 
 
 def test_get_proto(interaction):

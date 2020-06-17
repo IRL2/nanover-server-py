@@ -3,13 +3,15 @@
 """
 Module providing a wrapper class around the protobuf interaction message.
 """
+import math
 from numbers import Number
-from typing import Collection
+from typing import Collection, Dict, Any
 
 import numpy as np
 from google.protobuf.struct_pb2 import Struct
 
 import narupa.protocol.imd.imd_pb2 as imd_pb2
+from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
 DEFAULT_MAX_FORCE = 20000
 
@@ -40,7 +42,6 @@ class ParticleInteraction:
         direction. Helps maintain stability for unbounded potentials.
 
     """
-    _interaction: imd_pb2.ParticleInteraction
 
     TYPE_KEY = "type"
     SCALE_KEY = "scale"
@@ -57,16 +58,18 @@ class ParticleInteraction:
                  scale=1,
                  mass_weighted=True,
                  reset_velocities=False,
-                 max_force=DEFAULT_MAX_FORCE):
-        self._interaction = imd_pb2.ParticleInteraction(player_id=player_id, interaction_id=interaction_id)
+                 max_force=DEFAULT_MAX_FORCE,
+                 **kwargs):
+        self.player_id = player_id
+        self.interaction_id = interaction_id
         self.position = position
-        self._properties = self._interaction.properties
+        self.particles = particles
         self.scale = scale
         self.type = interaction_type
         self.mass_weighted = mass_weighted
         self.reset_velocities = reset_velocities
-        self.particles = particles
         self.max_force = max_force
+        self.properties = dict(kwargs)
 
     @classmethod
     def from_proto(cls,
@@ -81,17 +84,46 @@ class ParticleInteraction:
 
         :param interaction_proto: The protobuf representation of the interaction.
         """
+
+        properties_dict = struct_to_dict(interaction_proto.properties)
+
+        type = default_interaction_type
+        if cls.TYPE_KEY in interaction_proto.properties:
+            type = properties_dict[cls.TYPE_KEY]
+            del properties_dict[cls.TYPE_KEY]
+
+        mass_weighted = default_mass_weighted
+        if cls.MASS_WEIGHTED_KEY in interaction_proto.properties:
+            mass_weighted = properties_dict[cls.MASS_WEIGHTED_KEY]
+            del properties_dict[cls.MASS_WEIGHTED_KEY]
+
+        scale = default_scale
+        if cls.SCALE_KEY in interaction_proto.properties:
+            scale = properties_dict[cls.SCALE_KEY]
+            del properties_dict[cls.SCALE_KEY]
+
+        reset_velocities = default_reset_velocities
+        if cls.RESET_VELOCITIES_KEY in interaction_proto.properties:
+            reset_velocities = properties_dict[cls.RESET_VELOCITIES_KEY]
+            del properties_dict[cls.RESET_VELOCITIES_KEY]
+
+        max_force = default_max_force
+        if cls.MAX_FORCE_KEY in interaction_proto.properties:
+            max_force = properties_dict[cls.MAX_FORCE_KEY]
+            del properties_dict[cls.MAX_FORCE_KEY]
+
         interaction = cls(
             player_id=interaction_proto.player_id,
             interaction_id=interaction_proto.interaction_id,
+            position=interaction_proto.position,
+            particles=interaction_proto.particles,
+            interaction_type=type,
+            mass_weighted=mass_weighted,
+            scale=scale,
+            reset_velocities=reset_velocities,
+            max_force=max_force,
+            **properties_dict
         )
-        interaction._interaction = interaction_proto
-        interaction._properties = interaction_proto.properties
-        set_default_property(interaction.properties, cls.TYPE_KEY, default_interaction_type)
-        set_default_property(interaction.properties, cls.MASS_WEIGHTED_KEY, default_mass_weighted)
-        set_default_property(interaction.properties, cls.SCALE_KEY, default_scale)
-        set_default_property(interaction.properties, cls.RESET_VELOCITIES_KEY, default_reset_velocities)
-        set_default_property(interaction.properties, cls.MAX_FORCE_KEY, default_max_force)
 
         return interaction
 
@@ -102,179 +134,139 @@ class ParticleInteraction:
 
         :return: The underlying protobuf Interaction representation.
         """
-        return self._interaction
+        interaction = imd_pb2.ParticleInteraction()
+        interaction.position.extend(self.position)
+        interaction.particles.extend(self.particles)
+        interaction.player_id = self.player_id
+        interaction.interaction_id = self.interaction_id
+        properties = {}
+        for key, value in self._properties.items():
+            properties[key] = value
+        properties[self.TYPE_KEY] = self.type
+        properties[self.MASS_WEIGHTED_KEY] = self.mass_weighted
+        properties[self.SCALE_KEY] = self.scale
+        properties[self.RESET_VELOCITIES_KEY] = self.reset_velocities
+        properties[self.MAX_FORCE_KEY] = self.max_force
+        for key, value in dict_to_struct(properties).items():
+            interaction.properties[key] = value
+        return interaction
 
     @property
     def player_id(self) -> str:
         """
-        Gets the player ID associated with this interaction.
-
-        :return: The player ID associated with this interaction.
+        The player ID associated with this interaction.
         """
-        return self._interaction.player_id
+        return self._player_id
+
+    @player_id.setter
+    def player_id(self, value: str):
+        self._player_id = value
 
     @property
     def interaction_id(self) -> str:
         """
-        Gets the interaction ID associated with this interaction.
-
-        :return: The interaction ID associated with this interaction.
+        The interaction ID associated with this interaction.
         """
-        return self._interaction.interaction_id
+        return self._interaction_id
+
+    @interaction_id.setter
+    def interaction_id(self, value: str):
+        self._interaction_id = value
 
     @property
     def type(self) -> str:
         """
-        Gets the type of interaction being applied, default 'gaussian'.
-
-        :return: The type of interaction being applied.
+        The type of interaction being applied, default 'gaussian'.
         """
-        return self._get_property('type')
+        return self._type
 
     @type.setter
     def type(self, value: str):
-        """
-        Sets the interaction type.
-
-        :param value: Interaction type to apply. Typically 'gaussian' or 'spring'.
-        """
-        self._set_property('type', value)
+        self._type = value
 
     @property
     def scale(self) -> float:
         """
-        Gets the scale factor of the interaction, which defaults to 1.
+        The scale factor of the interaction, which defaults to 1.
 
         Adjusting this changes the strength of the interactive force applied.
-
-        :return: The scale factor of the interaction.
         """
-        return self._get_property('scale')
+        return self._scale
 
     @scale.setter
-    def scale(self, value: Number):
-        """
-        Sets the scale factor of the interaction.
-
-        :param value: The new scale factor to set.
-        """
-        self._set_property('scale', value)
+    def scale(self, value: float):
+        self._scale = value
 
     @property
     def position(self) -> np.array:
         """
-        Gets the position of the interaction, which defaults to ``[0,0,0]``
-
-        :return: The position of the interaction, in nanometers.
+        The position of the interaction in nanometers, which defaults to ``[0,0,0]``
         """
-        return np.array(self._interaction.position)
+        return self._position
 
     @position.setter
     def position(self, position: Collection[float]):
-        """
-        Set the position of the interaction
-
-        :param position: 3 dimensional vector position of interaction, in nanometers.
-        """
+        if position is None or len(position) == 0:
+            position = [0, 0, 0]
         if len(position) != 3:
             raise ValueError(f"Tried to set an interaction position that did not have 3 points. "
                              f"It had {len(position)} points.")
-        self._interaction.position[:] = position
+        self._position = np.array(position)
 
     @property
     def particles(self) -> np.ndarray:
         """
-        Gets the list of particles this interaction applies to.
-
-        :return: The list of the indices of the particles this interaction applies to.
+        The list of particles this interaction applies to.
         """
-        return np.array(self._interaction.particles)
+        return self._particles
 
     @particles.setter
     def particles(self, particles: Collection[int]):
-        """
-        Set the particles of the interaction.
-
-        :param particles: A collection of particles. If it contains duplicates, these will be removed.
-        """
-        self._interaction.particles[:] = np.unique(particles)
+        self._particles = np.unique(particles)
 
     @property
     def max_force(self) -> float:
         """
-        Gets the maximum force this interaction will be allowed to apply to the system.
-
-        :return: The maximum energy, in kJ/(mol*nm), the interaction will be allowed to apply to the system.
+        The maximum force, in kJ/(mol*nm), this interaction will be allowed to apply to the system.
         """
-        return self._get_property(self.MAX_FORCE_KEY)
+        return self._max_force
 
     @max_force.setter
     def max_force(self, value: float):
-        """
-        Sets the maximum force this interaction will be allowed to apply to the system.
-
-        :param value: New maximum force, in kJ/(mol*nm).
-        """
-        self._set_property(self.MAX_FORCE_KEY, value)
+        if math.isnan(value):
+            value = math.inf
+        self._max_force = value
 
     @property
     def mass_weighted(self) -> bool:
         """
         Indicates whether this interaction should be mass weighted, default `True`.
-
-        :return: Whether to mass weight this interaction.
         """
-        try:
-            result = self._properties['mass_weighted']
-        except ValueError:
-            return True
-        else:
-            return result
+        return self._mass_weighted
 
     @mass_weighted.setter
     def mass_weighted(self, value: bool):
-        """
-        Sets this interaction to be mass weighted or not.
-
-        :param value: Boolean value to set.
-        """
-        self._properties['mass_weighted'] = value
+        self._mass_weighted = value
 
     @property
     def reset_velocities(self) -> bool:
         """
         Indicates whether this interaction should be reset the velocities of
         the atoms it interacts with after interaction, defaulting to False.
-
-        :return: Whether to reset velocities after this interaction.
         """
-        # TODO should we update these to set the property if it does not exist, for serialisation?
-        try:
-            result = self._properties[self.RESET_VELOCITIES_KEY]
-        except ValueError:
-            return False
-        else:
-            return result
+        return self._reset_velocities
 
     @reset_velocities.setter
-    def reset_velocities(self, value):
-        """
-        Sets this interaction to reset the velocities of the selected atoms or
-        not after the interaction is complete.
-
-        :param value: Whether to reset velocities after this interaction.
-        """
-        self._properties[self.RESET_VELOCITIES_KEY] = value
+    def reset_velocities(self, value: bool):
+        self._reset_velocities = value
 
     @property
-    def properties(self) -> Struct:
+    def properties(self) -> Dict[str, Any]:
         """
-        Gets the properties Struct field of the interaction structure.
+        Gets the other properties for this interaction
         """
         return self._properties
 
-    def _get_property(self, key):
-        return self.properties[key]
-
-    def _set_property(self, key, value):
-        self._properties[key] = value
+    @properties.setter
+    def properties(self, value: Dict[str, Any]):
+        self._properties = value

@@ -43,6 +43,18 @@ def single_interaction():
 
 
 @pytest.fixture
+def single_interaction_multiple_atoms():
+    position = (0, 0, 0)
+    return ParticleInteraction(
+        player_id='test player',
+        interaction_id='test interaction',
+        position=position,
+        particles=[1, 2, 3],
+    )
+
+
+
+@pytest.fixture
 def single_interactions():
     num_interactions = 2
     return [single_interaction(position=[i, i, i], index=i) for i in range(num_interactions)]
@@ -142,25 +154,30 @@ def test_interaction_force_mass(particles, single_interaction, mass):
     expected_forces = np.zeros((len(positions), 3))
     masses = np.array([mass] * len(masses))
     energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
-    # special cases for dividing by zero.
-    if abs(mass) == np.infty:
-        expected_energy = np.nan
-        expected_forces[1, :] = np.nan
-    else:
-        expected_energy = - EXP_3 * mass
-        expected_forces[1, :] = np.array([-EXP_3 * mass] * 3)
+
+    expected_energy = np.clip(- EXP_3 * mass, -single_interaction.max_force, single_interaction.max_force)
+    expected_forces[1, :] = np.clip(np.array([-EXP_3 * mass] * 3), -single_interaction.max_force,
+                                    single_interaction.max_force)
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
 
-def test_interaction_force_zero_mass(particles, single_interaction):
+def test_interaction_force_zero_mass_singleatom(particles, single_interaction):
+    positions, masses = particles
+    forces = np.zeros((len(positions), 3))
+    masses = np.array([0.0] * len(masses))
+
+    apply_single_interaction_force(positions, masses, single_interaction, forces)
+
+
+def test_interaction_force_zero_mass_multiatom(particles, single_interaction_multiple_atoms):
     positions, masses = particles
     forces = np.zeros((len(positions), 3))
     masses = np.array([0.0] * len(masses))
 
     with pytest.raises(ZeroDivisionError):
-        apply_single_interaction_force(positions, masses, single_interaction, forces)
+        apply_single_interaction_force(positions, masses, single_interaction_multiple_atoms, forces)
 
 
 @pytest.mark.parametrize("position, selection, selection_masses",

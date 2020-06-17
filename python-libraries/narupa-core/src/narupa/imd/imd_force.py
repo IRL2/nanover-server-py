@@ -55,20 +55,26 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
     :return: energy in kJ/mol.
     """
 
-    center = get_center_of_mass_subset(positions, masses, interaction.particles, periodic_box_lengths)
+
+    particle_count = len(interaction.particles)
+
+    if particle_count > 1:
+        center = get_center_of_mass_subset(positions, masses, interaction.particles, periodic_box_lengths)
+    else:
+        center = positions[interaction.particles[0]]
 
     # fetch the correct potential to use based on the interaction type.
     interaction_type = interaction.type if interaction.type is not None else 'gaussian'
     try:
         potential_method = INTERACTION_METHOD_MAP[interaction_type]
     except KeyError:
-        raise KeyError(f"Unknown interactive force type {interaction.type}.")
+        raise KeyError(f"Unknown interactive force type {interaction_type}.")
 
     # calculate the overall force to be applied
     energy, force = potential_method(center, interaction.position, periodic_box_lengths=periodic_box_lengths)
     # apply to appropriate force to each particle in the selection.
-    force_per_particle = force / len(interaction.particles)
-    energy_per_particle = energy / len(interaction.particles)
+    force_per_particle = force / particle_count
+    energy_per_particle = energy / particle_count
     total_energy = _apply_force_to_particles(forces, energy_per_particle,
                                              force_per_particle, interaction, masses)
     return total_energy
@@ -91,19 +97,26 @@ def _apply_force_to_particles(forces: np.ndarray,
     :return:
     """
 
+    particles = interaction.particles
+    scale = interaction.scale
+    max_force = interaction.max_force
+
     if interaction.mass_weighted:
-        mass = masses[interaction.particles]
+        mass = masses[particles]
+        total_mass = sum(mass)
     else:
-        mass = np.ones(len(interaction.particles))
-    total_energy = interaction.scale * energy_per_particle * sum(mass)
+        mass = np.ones(len(particles))
+        total_mass = len(particles)
+
+    total_energy = scale * energy_per_particle * total_mass
     # add the force for each particle, adjusted by mass and scale factor.
-    force_to_apply = interaction.scale * mass[:, np.newaxis] * force_per_particle[np.newaxis, :]
+    force_to_apply = scale * mass[:, np.newaxis] * force_per_particle[np.newaxis, :]
     # clip the forces into maximum force range.
-    force_to_apply_clipped = np.clip(force_to_apply, -interaction.max_force, interaction.max_force)
+    force_to_apply_clipped = np.core.umath.clip(force_to_apply, -max_force, max_force)
     # this is technically incorrect, but deriving the actual energy of a clip will involve a lot of maths
     # for what is essentially just, too much energy.
-    total_energy = np.clip(total_energy, -interaction.max_force, interaction.max_force)
-    forces[interaction.particles] += force_to_apply_clipped
+    total_energy = np.core.umath.clip(total_energy, -max_force, max_force)
+    forces[particles] += force_to_apply_clipped
     return total_energy
 
 
@@ -194,7 +207,7 @@ def calculate_spring_force(particle_position: np.array, interaction_position: np
     diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
     energy = k * dist_sqr
     # force is negative derivative of energy wrt to position.
-    force = - 2 * k * diff
+    force = (- 2 * k) * diff
     return energy, force
 
 
