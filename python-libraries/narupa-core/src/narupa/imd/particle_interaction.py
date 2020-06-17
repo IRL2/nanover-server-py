@@ -204,7 +204,7 @@ class ParticleInteraction:
     @position.setter
     def position(self, position: Collection[float]):
         if position is None or len(position) == 0:
-            position = [0, 0, 0]
+            position = [0., 0., 0.]
         if len(position) != 3:
             raise ValueError(f"Tried to set an interaction position that did not have 3 points. "
                              f"It had {len(position)} points.")
