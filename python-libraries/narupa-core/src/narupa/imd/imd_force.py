@@ -93,7 +93,7 @@ def _apply_force_to_particles(forces: np.ndarray,
     :param force_per_particle: Force to apply to each particle.
     :param interaction: The interaction being computed.
     :param masses: Array of N masses of the particles.
-    :return:
+    :return: The total energy applied.
     """
 
     particles = interaction.particles
