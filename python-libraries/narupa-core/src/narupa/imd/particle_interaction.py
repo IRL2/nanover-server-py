@@ -87,10 +87,7 @@ class ParticleInteraction:
 
         properties_dict = struct_to_dict(interaction_proto.properties)
 
-        type = default_interaction_type
-        if cls.TYPE_KEY in interaction_proto.properties:
-            type = properties_dict[cls.TYPE_KEY]
-            del properties_dict[cls.TYPE_KEY]
+        type = properties_dict.pop(cls.TYPE_KEY, default_interaction_type)
 
         mass_weighted = default_mass_weighted
         if cls.MASS_WEIGHTED_KEY in interaction_proto.properties:
