@@ -102,7 +102,7 @@ def _apply_force_to_particles(forces: np.ndarray,
 
     if interaction.mass_weighted:
         mass = masses[particles]
-        total_mass = sum(mass)
+        total_mass = mass.sum()
     else:
         mass = np.ones(len(particles))
         total_mass = len(particles)
