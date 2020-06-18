@@ -52,7 +52,7 @@ class ParticleInteraction:
     def __init__(self,
                  player_id: str,
                  interaction_id: str,
-                 position=(0, 0, 0),
+                 position=(0., 0., 0.),
                  particles=(),
                  interaction_type='gaussian',
                  scale=1,
@@ -203,12 +203,10 @@ class ParticleInteraction:
 
     @position.setter
     def position(self, position: Collection[float]):
-        if position is None or len(position) == 0:
-            position = [0., 0., 0.]
-        if len(position) != 3:
-            raise ValueError(f"Tried to set an interaction position that did not have 3 points. "
-                             f"It had {len(position)} points.")
-        self._position = np.array(position)
+        converted = np.array(position)
+        if len(converted) != 3:
+            raise ValueError(f"Position expected 3d vector, instead received: {position}")
+        self._position = converted
 
     @property
     def particles(self) -> np.ndarray:
