@@ -4,7 +4,7 @@
 Module providing a wrapper class around the protobuf interaction message.
 """
 import math
-from typing import Collection, Dict, Any, Iterable
+from typing import Dict, Any, Iterable
 
 import numpy as np
 from google.protobuf.struct_pb2 import Struct
@@ -215,7 +215,7 @@ class ParticleInteraction:
         return self._particles
 
     @particles.setter
-    def particles(self, particles: Collection[int]):
+    def particles(self, particles: Iterable[int]):
         self._particles = np.unique(particles)
 
     @property
