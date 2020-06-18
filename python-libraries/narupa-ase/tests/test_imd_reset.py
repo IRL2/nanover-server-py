@@ -1,5 +1,6 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+import contextlib
 import pytest
 from ase import units
 from ase.lattice.cubic import FaceCenteredCubic
@@ -54,12 +55,8 @@ def fcc_atoms():
     return atoms
 
 
-@pytest.fixture
-def imd_calculator_berendsen_dynamics():
-    """
-    Initialises an IMD calculator with berendsen NVT integrator and an FCC crystal.
-    :return: IMD Calculator fixture with berendsen dynamics.
-    """
+@contextlib.contextmanager
+def imd_calculator_berendsen_dynamics_context():
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
@@ -70,10 +67,18 @@ def imd_calculator_berendsen_dynamics():
 
 
 @pytest.fixture
+def imd_calculator_berendsen_dynamics():
+    """
+    Initialises an IMD calculator with berendsen NVT integrator and an FCC crystal.
+    """
+    with imd_calculator_berendsen_dynamics_context() as imd_calculator:
+        yield imd_calculator
+
+
+@pytest.fixture
 def imd_calculator_langevin_dynamics():
     """
     Initialises an IMD calculator with langevin NVT integrator and an FCC crystal.
-    :return:
     """
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
@@ -184,7 +189,7 @@ def random_atom_selection(draw):
     :return: Random subset of indices of FCC atoms, and the FCC atoms.
     """
     atoms = fcc_atoms()
-    selection = strategies.sets(strategies.integers(0, len(atoms) - 1), 1)
+    selection = strategies.sets(strategies.integers(0, len(atoms) - 1), min_size=1)
     return draw(selection), atoms
 
 
@@ -240,20 +245,20 @@ def inverse_selection(collection, selection):
 
 
 @given(atom_selection=random_atom_selection())
-def test_reset_velocities(atom_selection, imd_calculator_berendsen_dynamics):
-    imd_calculator = imd_calculator_berendsen_dynamics
+def test_reset_velocities(atom_selection):
     selection, _ = atom_selection
     selection = np.array(list(selection))
-    calculator, atoms, dyn = imd_calculator
-    MaxwellBoltzmannDistribution(atoms, 300)
+    with imd_calculator_berendsen_dynamics_context() as imd_calculator:
+        calculator, atoms, dyn = imd_calculator
+        MaxwellBoltzmannDistribution(atoms, 300)
 
-    not_selected = inverse_selection(atoms, selection)
-    velocities = atoms[not_selected].get_velocities()
+        not_selected = inverse_selection(atoms, selection)
+        velocities = atoms[not_selected].get_velocities()
 
-    interactions = generate_interactions(selection)
-    calculator._reset_velocities(atoms, {}, interactions)
-    assert pytest.approx(atoms[selection].get_temperature()) == calculator.reset_temperature
-    assert np.allclose(velocities, atoms[not_selected].get_velocities())
+        interactions = generate_interactions(selection)
+        calculator._reset_velocities(atoms, {}, interactions)
+        assert pytest.approx(atoms[selection].get_temperature()) == calculator.reset_temperature
+        assert np.allclose(velocities, atoms[not_selected].get_velocities())
 
 
 def test_reset_calculator(imd_calculator_berendsen_dynamics):
