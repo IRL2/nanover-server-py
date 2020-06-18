@@ -4,6 +4,7 @@ import logging
 from concurrent.futures import Future
 from queue import Queue
 from typing import Iterable, Optional, Dict, Any, NamedTuple, Union
+from uuid import uuid4
 
 import grpc
 from narupa.core import get_requested_port_or_default, NarupaStubClient
@@ -73,7 +74,6 @@ class ImdClient(NarupaStubClient):
     """
     stub: InteractiveMolecularDynamicsStub
     interactions: Dict[str, ParticleInteraction]
-    _next_local_interaction_id: int = 0
     _local_interactions_states: Dict[str, _LocalInteractionState]
     _logger: logging.Logger
 
@@ -89,53 +89,49 @@ class ImdClient(NarupaStubClient):
         """
         Start an interaction
 
-        :return: A unique identifier to be used to update the interaction.
+        :return: A unique identifier for the interaction.
         """
         queue: Queue[Union[ParticleInteraction, Sentinel]] = Queue()
         sentinel = Sentinel()
         future = self.publish_interactions_async(queue_generator(queue, sentinel))
-        local_interaction_id = self._get_new_local_interaction_id()
-        self._local_interactions_states[local_interaction_id] = _LocalInteractionState(queue, sentinel, future)
-        return local_interaction_id
+        interaction_id = str(uuid4())
+        self._local_interactions_states[interaction_id] = _LocalInteractionState(queue, sentinel, future)
+        return interaction_id
 
     def update_interaction(
             self,
-            local_interaction_id: str,
+            interaction_id: str,
             interaction: ParticleInteraction,
     ):
         """
         Updates the interaction identified with the given interaction_id on the server with
         parameters from the given interaction.
 
-        :param local_interaction_id: The unique interaction ID, created with
-            :func:`~ImdClient.start_interaction`, that identifies the
-            interaction to update.
+        :param interaction_id: The unique ID of the interaction to be updated.
         :param interaction: The :class: ParticleInteraction providing new
             parameters for the interaction.
 
         :raises: ValueError, if invalid parameters are passed to the server.
         :raises: KeyError, if the given interaction ID does not exist.
         """
-        if local_interaction_id not in self._local_interactions_states:
+        if interaction_id not in self._local_interactions_states:
             raise KeyError("Attempted to update an interaction with an unknown interaction ID.")
-        queue, _, _ = self._local_interactions_states[local_interaction_id]
+        queue, _, _ = self._local_interactions_states[interaction_id]
         queue.put(interaction)
 
-    def stop_interaction(self, local_interaction_id: str) -> InteractionEndReply:
+    def stop_interaction(self, interaction_id: str) -> InteractionEndReply:
         """
         Stops the interaction identified with the given interaction_id on the server.
 
-        :param local_interaction_id: The unique interaction ID, created with
-            :func:`~ImdClient.start_interaction`, that identifies the
-            interaction to stop.
+        :param interaction_id: The unique ID of the interaction to be stopped.
 
         :raises: KeyError, if the given interaction ID does not exist.
         """
-        if local_interaction_id not in self._local_interactions_states:
+        if interaction_id not in self._local_interactions_states:
             raise KeyError("Attempted to stop an interaction with an unknown interaction ID.")
-        queue, sentinel, future = self._local_interactions_states[local_interaction_id]
+        queue, sentinel, future = self._local_interactions_states[interaction_id]
         queue.put(sentinel)
-        del self._local_interactions_states[local_interaction_id]
+        del self._local_interactions_states[interaction_id]
         return future.result()
 
     def publish_interactions_async(self, interactions: Iterable[ParticleInteraction]) -> Future:
@@ -160,8 +156,8 @@ class ImdClient(NarupaStubClient):
         """
         Stops all active interactions governed by this client.
         """
-        for local_interaction_id in list(self._local_interactions_states.keys()):
-            self.stop_interaction(local_interaction_id)
+        for interaction_id in list(self._local_interactions_states.keys()):
+            self.stop_interaction(interaction_id)
 
     def subscribe_interactions(self, interval=0) -> Future:
         """
@@ -172,11 +168,6 @@ class ImdClient(NarupaStubClient):
         """
         request = SubscribeInteractionsRequest(update_interval=interval)
         return self.threads.submit(self._subscribe_interactions, request)
-
-    def _get_new_local_interaction_id(self) -> str:
-        local_interaction_id = str(self._next_local_interaction_id)
-        self._next_local_interaction_id += 1
-        return local_interaction_id
 
     def _subscribe_interactions(self, request: SubscribeInteractionsRequest):
         for update in self.stub.SubscribeInteractions(request):
