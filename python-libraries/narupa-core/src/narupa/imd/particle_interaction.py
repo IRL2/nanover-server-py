@@ -4,8 +4,7 @@
 Module providing a wrapper class around the protobuf interaction message.
 """
 import math
-from numbers import Number
-from typing import Collection, Dict, Any
+from typing import Collection, Dict, Any, Iterable
 
 import numpy as np
 from google.protobuf.struct_pb2 import Struct
@@ -202,7 +201,7 @@ class ParticleInteraction:
         return self._position
 
     @position.setter
-    def position(self, position: Collection[float]):
+    def position(self, position: Iterable[float]):
         converted = np.array(position)
         if len(converted) != 3:
             raise ValueError(f"Position expected 3d vector, instead received: {position}")
