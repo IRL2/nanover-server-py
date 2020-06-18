@@ -384,7 +384,7 @@ def test_get_com_subset_pbc(positions_pbc):
 def test_get_com_single():
     position = np.array([[1, 0, 0]])
     mass = np.array([20])
-    com = get_center_of_mass_subset(position, mass)
+    com = get_center_of_mass_subset(position, mass, subset=[0])
     assert np.allclose(com, position)
 
 
@@ -392,8 +392,9 @@ def test_get_com_different_array_lengths(particles):
     positions, mass = particles
     # make masses array not match positions in length.
     mass = np.array([1])
+    subset = range(positions.shape[0])
     with pytest.raises(IndexError):
-        get_center_of_mass_subset(positions, mass)
+        get_center_of_mass_subset(positions, mass, subset)
 
 
 @pytest.mark.parametrize("position, interaction_position, expected_energy, expected_force",
