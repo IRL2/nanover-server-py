@@ -241,7 +241,7 @@ def _calculate_diff_and_sqr_distance(u: np.ndarray, v: np.ndarray,
     """
     diff = u - v
     diff = _minimum_image(diff, periodic_box_lengths)
-    dist_sqr = float(np.dot(diff, diff))
+    dist_sqr = float(diff.dot(diff))
     return diff, dist_sqr
 
 
