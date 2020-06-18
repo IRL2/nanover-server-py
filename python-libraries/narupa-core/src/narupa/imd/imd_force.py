@@ -154,11 +154,10 @@ def get_center_of_mass_subset(
     subset_masses = masses[subset, np.newaxis]
     if periodic_box_lengths is not None:
         pos_subset = wrap_pbc(pos_subset, periodic_box_lengths)
-    try:
         # np.average is slow for small arrays so we use a naive implementation
-        com = (pos_subset * subset_masses).sum(axis=0) / subset_masses.sum()
-    except ZeroDivisionError as e:
-        raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!", e)
+    com = (pos_subset * subset_masses).sum(axis=0) / subset_masses.sum()
+    if np.any(np.isnan(com)):
+        raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!")
     return com
 
 
