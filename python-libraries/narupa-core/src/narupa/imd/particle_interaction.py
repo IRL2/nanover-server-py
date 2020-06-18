@@ -165,6 +165,8 @@ class ParticleInteraction:
 
     @scale.setter
     def scale(self, value: float):
+        if math.isnan(value):
+            raise ValueError("Scale cannot be nan")
         self._scale = float(value)
 
     @property
@@ -202,8 +204,8 @@ class ParticleInteraction:
     @max_force.setter
     def max_force(self, value: float):
         if math.isnan(value):
-            value = math.inf
-        self._max_force = value
+            raise ValueError("Max force cannot be nan")
+        self._max_force = float(value)
 
     @property
     def mass_weighted(self) -> bool:
