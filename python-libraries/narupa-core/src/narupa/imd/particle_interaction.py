@@ -15,11 +15,6 @@ from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 DEFAULT_MAX_FORCE = 20000
 
 
-def set_default_property(properties: Struct, key, default):
-    if key not in properties:
-        properties[key] = default
-
-
 class ParticleInteraction:
     """
     A wrapper around the protobuf representation of an interaction.

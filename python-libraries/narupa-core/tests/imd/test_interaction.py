@@ -10,6 +10,16 @@ def interaction():
     return ParticleInteraction(player_id='test player', interaction_id='test interaction')
 
 
+@pytest.fixture
+def interaction_with_properties():
+    return ParticleInteraction(
+        player_id='test player',
+        interaction_id='test interaction',
+        arbitrary_property='arbitrary value',
+        other_arbitrary_property='other arbitrary value',
+    )
+
+
 def test_player_id():
     interaction = ParticleInteraction(player_id="2", interaction_id='test interaction')
     assert interaction.player_id == "2"
@@ -146,3 +156,9 @@ def test_get_proto(interaction):
     assert proto.player_id == interaction.player_id
     assert proto.interaction_id == interaction.interaction_id
     assert np.allclose(proto.position, [0, 0, 0])
+
+
+def test_get_proto_properties(interaction_with_properties):
+    proto = interaction_with_properties.proto
+    assert proto.properties['arbitrary_property'] == 'arbitrary value'
+    assert proto.properties['other_arbitrary_property'] == 'other arbitrary value'
