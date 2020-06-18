@@ -12,12 +12,8 @@ from google.protobuf.struct_pb2 import Struct
 import narupa.protocol.imd.imd_pb2 as imd_pb2
 from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
-DEFAULT_MAX_FORCE = 20000
-
-
-def set_default_property(properties: Struct, key, default):
-    if key not in properties:
-        properties[key] = default
+DEFAULT_MAX_FORCE = 20000.0
+DEFAULT_FORCE_TYPE = "gaussian"
 
 
 class ParticleInteraction:
@@ -53,8 +49,8 @@ class ParticleInteraction:
                  interaction_id: str,
                  position=(0., 0., 0.),
                  particles=(),
-                 interaction_type='gaussian',
-                 scale=1,
+                 interaction_type=DEFAULT_FORCE_TYPE,
+                 scale=1.0,
                  mass_weighted=True,
                  reset_velocities=False,
                  max_force=DEFAULT_MAX_FORCE,
@@ -169,7 +165,7 @@ class ParticleInteraction:
 
     @scale.setter
     def scale(self, value: float):
-        self._scale = value
+        self._scale = float(value)
 
     @property
     def position(self) -> np.array:
@@ -242,3 +238,27 @@ class ParticleInteraction:
     @properties.setter
     def properties(self, value: Dict[str, Any]):
         self._properties = value
+
+    def __eq__(self, other):
+        return isinstance(other, ParticleInteraction) and np.equal(self.particles, other.particles).all() \
+            and np.isclose(self.position, other.position).all() and math.isclose(self.max_force, other.max_force) \
+            and self.mass_weighted == other.mass_weighted and math.isclose(self.scale, other.scale) \
+            and self.player_id == other.player_id and self.interaction_id == other.interaction_id \
+            and self.reset_velocities == other.reset_velocities and self.type == other.type \
+            and self.properties == other.properties
+
+    def __repr__(self):
+        str = f"<ParticleInteraction"
+        str += f" player_id:{self.player_id}"
+        str += f" interaction_id:{self.interaction_id}"
+        str += f" position:{self.position}"
+        str += f" particles:{self.particles}"
+        str += f" reset_velocities:{self.reset_velocities}"
+        str += f" scale:{self.scale}"
+        str += f" mass_weighted:{self.mass_weighted}"
+        str += f" max_force:{self.max_force}"
+        str += f" type:{self.type}"
+        str += f" other:{self.properties}"
+        str += ">"
+        return str
+
