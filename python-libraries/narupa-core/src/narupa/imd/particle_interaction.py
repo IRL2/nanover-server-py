@@ -12,7 +12,8 @@ from google.protobuf.struct_pb2 import Struct
 import narupa.protocol.imd.imd_pb2 as imd_pb2
 from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
-DEFAULT_MAX_FORCE = 20000
+DEFAULT_MAX_FORCE = 20000.0
+DEFAULT_FORCE_TYPE = "gaussian"
 
 
 class ParticleInteraction:
@@ -48,8 +49,8 @@ class ParticleInteraction:
                  interaction_id: str,
                  position=(0., 0., 0.),
                  particles=(),
-                 interaction_type='gaussian',
-                 scale=1,
+                 interaction_type=DEFAULT_FORCE_TYPE,
+                 scale=1.0,
                  mass_weighted=True,
                  reset_velocities=False,
                  max_force=DEFAULT_MAX_FORCE,
@@ -72,20 +73,19 @@ class ParticleInteraction:
 
         :param interaction_proto: The protobuf representation of the interaction.
         """
-        kwargs = struct_to_dict(interaction_proto.properties)
-
-        fields = {
-            'interaction_type': cls.TYPE_KEY,
-            'mass_weighted': cls.MASS_WEIGHTED_KEY,
-            'scale': cls.SCALE_KEY,
-            'reset_velocities': cls.RESET_VELOCITIES_KEY,
-            'max_force': cls.MAX_FORCE_KEY,
+        proto_key_to_keyword = {
+            cls.TYPE_KEY: 'interaction_type',
+            cls.MASS_WEIGHTED_KEY: 'mass_weighted',
+            cls.SCALE_KEY: 'scale',
+            cls.RESET_VELOCITIES_KEY: 'reset_velocities',
+            cls.MAX_FORCE_KEY: 'max_force',
         }
 
-        for keyword, key in fields.items():
-            if key in interaction_proto.properties and key != keyword:
-                kwargs[keyword] = kwargs[key]
-                del kwargs[key]
+        properties = struct_to_dict(interaction_proto.properties)
+        kwargs = {
+            proto_key_to_keyword.get(proto_key, proto_key): value
+            for proto_key, value in properties.items()
+        }
 
         interaction = cls(
             player_id=interaction_proto.player_id,
@@ -165,12 +165,14 @@ class ParticleInteraction:
 
     @scale.setter
     def scale(self, value: float):
-        self._scale = value
+        if math.isnan(value):
+            raise ValueError("Scale cannot be nan")
+        self._scale = float(value)
 
     @property
     def position(self) -> np.array:
         """
-        The position of the interaction in nanometers, which defaults to ``[0,0,0]``
+        The position of the interaction in nanometers, which defaults to ``[0 0 0]``
         """
         return self._position
 
@@ -202,8 +204,8 @@ class ParticleInteraction:
     @max_force.setter
     def max_force(self, value: float):
         if math.isnan(value):
-            value = math.inf
-        self._max_force = value
+            raise ValueError("Max force cannot be nan")
+        self._max_force = float(value)
 
     @property
     def mass_weighted(self) -> bool:
@@ -238,3 +240,27 @@ class ParticleInteraction:
     @properties.setter
     def properties(self, value: Dict[str, Any]):
         self._properties = value
+
+    def __eq__(self, other):
+        return isinstance(other, ParticleInteraction) and np.equal(self.particles, other.particles).all() \
+            and np.isclose(self.position, other.position).all() and math.isclose(self.max_force, other.max_force) \
+            and self.mass_weighted == other.mass_weighted and math.isclose(self.scale, other.scale) \
+            and self.player_id == other.player_id and self.interaction_id == other.interaction_id \
+            and self.reset_velocities == other.reset_velocities and self.type == other.type \
+            and self.properties == other.properties
+
+    def __repr__(self):
+        str = f"<ParticleInteraction"
+        str += f" player_id:{self.player_id}"
+        str += f" interaction_id:{self.interaction_id}"
+        str += f" position:{self.position}"
+        str += f" particles:{self.particles}"
+        str += f" reset_velocities:{self.reset_velocities}"
+        str += f" scale:{self.scale}"
+        str += f" mass_weighted:{self.mass_weighted}"
+        str += f" max_force:{self.max_force}"
+        str += f" type:{self.type}"
+        str += f" other:{self.properties}"
+        str += ">"
+        return str
+
