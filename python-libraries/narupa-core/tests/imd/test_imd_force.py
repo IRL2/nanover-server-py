@@ -97,7 +97,13 @@ def test_multiple_interactions(particles):
     assert np.allclose(forces, expected_forces)
 
 
-@pytest.mark.parametrize("scale", [-1.0, 0, 100, np.nan, np.infty, -np.infty])
+@pytest.mark.parametrize("scale", [np.nan, np.infty, -np.infty])
+def test_interaction_force_invalid_scale(particles, single_interaction, scale):
+    with pytest.raises(ValueError):
+        single_interaction.scale = scale
+
+
+@pytest.mark.parametrize("scale", [-1.0, 0, 100])
 def test_interaction_force_single(particles, single_interaction, scale):
     """
     Tests that the interaction force calculation gives the expected result on a single atom, at a particular position,
@@ -120,7 +126,13 @@ def test_interaction_force_single(particles, single_interaction, scale):
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
 
-@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.infty, -np.infty, np.nan])
+@pytest.mark.parametrize("max_force", [np.nan])
+def test_invalid_max_force(single_interaction, max_force):
+    with pytest.raises(ValueError):
+        single_interaction.max_force = max_force
+
+
+@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.infty, -np.infty])
 def test_interaction_force_max_energy(particles, single_interaction, max_energy):
     """
     Tests that setting the max energy field results in the energy being clamped as expected

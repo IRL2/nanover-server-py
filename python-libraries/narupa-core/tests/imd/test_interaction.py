@@ -176,7 +176,7 @@ def interactions(draw):
     if interaction_type is not None:
         keywords['interaction_type'] = interaction_type
 
-    scale = draw(st.one_of(st.none(), st.floats(allow_nan=False)))
+    scale = draw(st.one_of(st.none(), st.floats(allow_nan=False, allow_infinity=False)))
     if scale is not None:
         keywords['scale'] = scale
 
