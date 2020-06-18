@@ -20,7 +20,7 @@ DUMMY_ATOMS_CELL = Cell(np.array([
     [10., 0., 0.],
     [0., 11., 0.],
     [0., 0., 12.],
-], dtype=float), pbc=np.array([True] * 3))
+], dtype=float))
 OneOrTwoDArray = Union[Iterable[float], Iterable[Iterable[float]], np.ndarray]
 
 
@@ -44,8 +44,7 @@ class ArbitraryCalculator(Calculator):
             [1, 0, 0],
             [0, 2, 0],
             [0, 0, 3],
-        ], dtype=float),
-        pbc=np.array([True, True, True])
+        ], dtype=float)
     )
     request_potential_energy: float = 0
 
