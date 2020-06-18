@@ -165,8 +165,8 @@ class ParticleInteraction:
 
     @scale.setter
     def scale(self, value: float):
-        if math.isnan(value):
-            raise ValueError("Scale cannot be nan")
+        if not math.isfinite(value):
+            raise ValueError("Scale must be finite")
         self._scale = float(value)
 
     @property
