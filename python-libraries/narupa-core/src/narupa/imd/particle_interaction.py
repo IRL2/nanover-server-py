@@ -88,7 +88,7 @@ class ParticleInteraction:
         }
 
         for keyword, key in fields.items():
-            if key in interaction_proto.properties:
+            if key in interaction_proto.properties and key != keyword:
                 kwargs[keyword] = kwargs[key]
                 del kwargs[key]
 

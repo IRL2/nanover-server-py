@@ -30,7 +30,11 @@ def test_set_position(interaction):
 
 
 def test_from_proto():
-    interaction_grpc = imd_pb2.ParticleInteraction(player_id='1', interaction_id='0')
+    interaction_grpc = imd_pb2.ParticleInteraction(
+        player_id='1',
+        interaction_id='0',
+        position=(0, 0, 0),
+    )
     interaction = ParticleInteraction.from_proto(interaction_grpc)
     assert interaction.player_id == "1"
     assert interaction.interaction_id == "0"
