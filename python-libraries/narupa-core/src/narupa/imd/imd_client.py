@@ -94,7 +94,7 @@ class ImdClient(NarupaStubClient):
         queue: Queue[Union[ParticleInteraction, Sentinel]] = Queue()
         sentinel = Sentinel()
         future = self.publish_interactions_async(queue_generator(queue, sentinel))
-        interaction_id = uuid4()
+        interaction_id = str(uuid4())
         self._local_interactions_states[interaction_id] = _LocalInteractionState(queue, sentinel, future)
         return interaction_id
 
@@ -116,7 +116,6 @@ class ImdClient(NarupaStubClient):
         """
         if interaction_id not in self._local_interactions_states:
             raise KeyError("Attempted to update an interaction with an unknown interaction ID.")
-        interaction.interaction_id = interaction_id
         queue, _, _ = self._local_interactions_states[interaction_id]
         queue.put(interaction)
 
