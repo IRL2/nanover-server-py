@@ -203,3 +203,23 @@ def test_serialize_then_deserialize(interaction):
     proto = interaction.proto
     new_interaction = ParticleInteraction.from_proto(proto)
     assert new_interaction == interaction
+
+
+def test_repr(interaction_with_properties):
+    expectation = (
+        "<ParticleInteraction "
+        "player_id:test player "
+        "interaction_id:test interaction "
+        "position:[0. 0. 0.] "
+        "particles:[] "
+        "reset_velocities:False "
+        "scale:1.0 "
+        "mass_weighted:True "
+        "max_force:20000.0 "
+        "type:gaussian "
+        "other:{"
+            "'arbitrary_property': 'arbitrary value', "
+            "'other_arbitrary_property': 'other arbitrary value'"
+        "}>"
+    )
+    assert repr(interaction_with_properties) == expectation
