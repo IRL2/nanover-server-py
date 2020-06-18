@@ -11,7 +11,7 @@ For details, and if you find these functions helpful, please cite [1]_.
 """
 
 from math import exp
-from typing import Collection, Tuple, Optional
+from typing import Collection, Tuple, Optional, Iterable
 
 import numpy as np
 from narupa.imd.particle_interaction import ParticleInteraction
@@ -132,8 +132,12 @@ def wrap_pbc(positions: np.ndarray, periodic_box_lengths: np.ndarray):
     return wrapped
 
 
-def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=None,
-                              periodic_box_lengths: Optional[np.ndarray] = None) -> np.ndarray:
+def get_center_of_mass_subset(
+        positions: np.ndarray,
+        masses: np.ndarray,
+        subset: Iterable[int],
+        periodic_box_lengths: Optional[np.ndarray] = None,
+) -> np.ndarray:
     """
     Gets the center of mass of [a subset of] positions.
     If orthorhombic periodic box lengths are given, the minimal image convention is applied, wrapping the subset
@@ -146,13 +150,13 @@ def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=
         before calculating centre of mass.
     :return: The center of mass of the subset of positions.
     """
-    if subset is None:
-        subset = range(len(positions))
     pos_subset = positions[subset]
+    subset_masses = masses[subset, np.newaxis]
     if periodic_box_lengths is not None:
         pos_subset = wrap_pbc(pos_subset, periodic_box_lengths)
     try:
-        com = np.average(pos_subset, weights=masses[subset], axis=0)
+        # np.average is slow for small arrays so we use a naive implementation
+        com = (pos_subset * subset_masses).sum(axis=0) / subset_masses.sum()
     except ZeroDivisionError as e:
         raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!", e)
     return com
