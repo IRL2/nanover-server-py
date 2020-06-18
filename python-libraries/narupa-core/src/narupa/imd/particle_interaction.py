@@ -77,20 +77,19 @@ class ParticleInteraction:
 
         :param interaction_proto: The protobuf representation of the interaction.
         """
-        kwargs = struct_to_dict(interaction_proto.properties)
-
-        fields = {
-            'interaction_type': cls.TYPE_KEY,
-            'mass_weighted': cls.MASS_WEIGHTED_KEY,
-            'scale': cls.SCALE_KEY,
-            'reset_velocities': cls.RESET_VELOCITIES_KEY,
-            'max_force': cls.MAX_FORCE_KEY,
+        proto_key_to_keyword = {
+            cls.TYPE_KEY: 'interaction_type',
+            cls.MASS_WEIGHTED_KEY: 'mass_weighted',
+            cls.SCALE_KEY: 'scale',
+            cls.RESET_VELOCITIES_KEY: 'reset_velocities',
+            cls.MAX_FORCE_KEY: 'max_force',
         }
 
-        for keyword, key in fields.items():
-            if key in interaction_proto.properties and key != keyword:
-                kwargs[keyword] = kwargs[key]
-                del kwargs[key]
+        properties = struct_to_dict(interaction_proto.properties)
+        kwargs = {
+            proto_key_to_keyword.get(proto_key, proto_key): value
+            for proto_key, value in properties.items()
+        }
 
         interaction = cls(
             player_id=interaction_proto.player_id,
