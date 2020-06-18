@@ -271,33 +271,6 @@ def test_interaction_force_unknown_type(particles, single_interaction):
         apply_single_interaction_force(positions, masses, single_interaction, forces)
 
 
-def test_interaction_force_default_type(particles):
-    """
-    Tests that the gaussian force is used if no type is specified.
-    """
-    positions, masses = particles
-
-    selection = [1]
-    position = positions[selection[0]]
-    interaction = ParticleInteraction(
-        player_id='test player',
-        interaction_id='test interaction',
-        position=position,
-        particles=selection,
-    )
-    interaction.type = None
-    forces = np.zeros((len(positions), 3))
-
-    energy = apply_single_interaction_force(positions, masses, interaction, forces)
-
-    expected_forces = np.zeros((len(positions), 3))
-    # the expected energy for the gaussian potential exactly positioned on the particle.
-    expected_energy = - masses[selection[0]]
-
-    assert np.allclose(energy, expected_energy)
-    assert np.allclose(forces, expected_forces)
-
-
 def test_get_com_all(particles):
     positions, masses = particles
     subset = [i for i in range(len(positions))]
