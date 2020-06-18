@@ -48,7 +48,12 @@ def test_from_proto_properties():
         ParticleInteraction.MAX_FORCE_KEY: 5000,
         ParticleInteraction.MASS_WEIGHTED_KEY: False
     })
-    interaction_grpc = imd_pb2.ParticleInteraction(player_id='1', interaction_id='0', properties=struct)
+    interaction_grpc = imd_pb2.ParticleInteraction(
+        player_id='1',
+        interaction_id='0',
+        position=(0, 0, 0),
+        properties=struct,
+    )
     interaction = ParticleInteraction.from_proto(interaction_grpc)
     assert interaction.player_id == "1"
     assert interaction.interaction_id == "0"
@@ -117,6 +122,7 @@ def test_get_mass(interaction):
 
 def test_get_mass_unset():
     proto = imd_pb2.ParticleInteraction()
+    proto.position[:] = (0, 0, 0)
     interaction = ParticleInteraction.from_proto(proto)
     assert interaction.mass_weighted is True
 
