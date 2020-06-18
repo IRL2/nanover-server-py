@@ -63,11 +63,10 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
         center = positions[interaction.particles[0]]
 
     # fetch the correct potential to use based on the interaction type.
-    interaction_type = interaction.type if interaction.type is not None else 'gaussian'
     try:
-        potential_method = INTERACTION_METHOD_MAP[interaction_type]
+        potential_method = INTERACTION_METHOD_MAP[interaction.type]
     except KeyError:
-        raise KeyError(f"Unknown interactive force type {interaction_type}.")
+        raise KeyError(f"Unknown interactive force type {interaction.type}.")
 
     # calculate the overall force to be applied
     energy, force = potential_method(center, interaction.position, periodic_box_lengths=periodic_box_lengths)

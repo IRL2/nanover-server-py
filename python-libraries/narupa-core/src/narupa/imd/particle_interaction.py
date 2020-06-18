@@ -4,7 +4,7 @@
 Module providing a wrapper class around the protobuf interaction message.
 """
 import math
-from typing import Collection, Dict, Any, Iterable
+from typing import Dict, Any, Iterable
 
 import numpy as np
 from google.protobuf.struct_pb2 import Struct
@@ -71,54 +71,33 @@ class ParticleInteraction:
         self.properties = dict(kwargs)
 
     @classmethod
-    def from_proto(cls,
-                   interaction_proto: imd_pb2.ParticleInteraction,
-                   default_interaction_type='gaussian',
-                   default_scale=1,
-                   default_mass_weighted=True,
-                   default_reset_velocities=False,
-                   default_max_force=DEFAULT_MAX_FORCE):
+    def from_proto(cls, interaction_proto: imd_pb2.ParticleInteraction):
         """
         Initialises an interaction from the protobuf representation.
 
         :param interaction_proto: The protobuf representation of the interaction.
         """
+        kwargs = struct_to_dict(interaction_proto.properties)
 
-        properties_dict = struct_to_dict(interaction_proto.properties)
+        fields = {
+            'interaction_type': cls.TYPE_KEY,
+            'mass_weighted': cls.MASS_WEIGHTED_KEY,
+            'scale': cls.SCALE_KEY,
+            'reset_velocities': cls.RESET_VELOCITIES_KEY,
+            'max_force': cls.MAX_FORCE_KEY,
+        }
 
-        type = properties_dict.pop(cls.TYPE_KEY, default_interaction_type)
-
-        mass_weighted = default_mass_weighted
-        if cls.MASS_WEIGHTED_KEY in interaction_proto.properties:
-            mass_weighted = properties_dict[cls.MASS_WEIGHTED_KEY]
-            del properties_dict[cls.MASS_WEIGHTED_KEY]
-
-        scale = default_scale
-        if cls.SCALE_KEY in interaction_proto.properties:
-            scale = properties_dict[cls.SCALE_KEY]
-            del properties_dict[cls.SCALE_KEY]
-
-        reset_velocities = default_reset_velocities
-        if cls.RESET_VELOCITIES_KEY in interaction_proto.properties:
-            reset_velocities = properties_dict[cls.RESET_VELOCITIES_KEY]
-            del properties_dict[cls.RESET_VELOCITIES_KEY]
-
-        max_force = default_max_force
-        if cls.MAX_FORCE_KEY in interaction_proto.properties:
-            max_force = properties_dict[cls.MAX_FORCE_KEY]
-            del properties_dict[cls.MAX_FORCE_KEY]
+        for keyword, key in fields.items():
+            if key in interaction_proto.properties:
+                kwargs[keyword] = kwargs[key]
+                del kwargs[key]
 
         interaction = cls(
             player_id=interaction_proto.player_id,
             interaction_id=interaction_proto.interaction_id,
             position=interaction_proto.position,
             particles=interaction_proto.particles,
-            interaction_type=type,
-            mass_weighted=mass_weighted,
-            scale=scale,
-            reset_velocities=reset_velocities,
-            max_force=max_force,
-            **properties_dict
+            **kwargs,
         )
 
         return interaction
@@ -215,7 +194,7 @@ class ParticleInteraction:
         return self._particles
 
     @particles.setter
-    def particles(self, particles: Collection[int]):
+    def particles(self, particles: Iterable[int]):
         self._particles = np.unique(particles)
 
     @property
