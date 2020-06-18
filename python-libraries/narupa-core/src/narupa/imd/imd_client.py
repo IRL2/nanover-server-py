@@ -116,6 +116,7 @@ class ImdClient(NarupaStubClient):
         """
         if interaction_id not in self._local_interactions_states:
             raise KeyError("Attempted to update an interaction with an unknown interaction ID.")
+        interaction.interaction_id = interaction_id
         queue, _, _ = self._local_interactions_states[interaction_id]
         queue.put(interaction)
 
