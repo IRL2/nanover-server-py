@@ -242,25 +242,27 @@ class ParticleInteraction:
         self._properties = value
 
     def __eq__(self, other):
-        return isinstance(other, ParticleInteraction) and np.equal(self.particles, other.particles).all() \
-            and np.isclose(self.position, other.position).all() and math.isclose(self.max_force, other.max_force) \
-            and self.mass_weighted == other.mass_weighted and math.isclose(self.scale, other.scale) \
-            and self.player_id == other.player_id and self.interaction_id == other.interaction_id \
-            and self.reset_velocities == other.reset_velocities and self.type == other.type \
+        return (
+            isinstance(other, ParticleInteraction) and np.equal(self.particles, other.particles).all()
+            and np.isclose(self.position, other.position).all() and math.isclose(self.max_force, other.max_force)
+            and self.mass_weighted == other.mass_weighted and math.isclose(self.scale, other.scale)
+            and self.player_id == other.player_id and self.interaction_id == other.interaction_id
+            and self.reset_velocities == other.reset_velocities and self.type == other.type
             and self.properties == other.properties
+        )
 
     def __repr__(self):
-        str = f"<ParticleInteraction"
-        str += f" player_id:{self.player_id}"
-        str += f" interaction_id:{self.interaction_id}"
-        str += f" position:{self.position}"
-        str += f" particles:{self.particles}"
-        str += f" reset_velocities:{self.reset_velocities}"
-        str += f" scale:{self.scale}"
-        str += f" mass_weighted:{self.mass_weighted}"
-        str += f" max_force:{self.max_force}"
-        str += f" type:{self.type}"
-        str += f" other:{self.properties}"
-        str += ">"
-        return str
-
+        return (
+            f"<ParticleInteraction"
+            f" player_id:{self.player_id}"
+            f" interaction_id:{self.interaction_id}"
+            f" position:{self.position}"
+            f" particles:{self.particles}"
+            f" reset_velocities:{self.reset_velocities}"
+            f" scale:{self.scale}"
+            f" mass_weighted:{self.mass_weighted}"
+            f" max_force:{self.max_force}"
+            f" type:{self.type}"
+            f" other:{self.properties}"
+            ">"
+        )
