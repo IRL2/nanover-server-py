@@ -168,8 +168,8 @@ def test_interaction_force_zero_mass_singleatom(particles, single_interaction):
     forces = np.zeros((len(positions), 3))
     masses = np.array([0.0] * len(masses))
 
-    apply_single_interaction_force(positions, masses, single_interaction, forces)
-
+    energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
+    assert energy == pytest.approx(0)
 
 def test_interaction_force_zero_mass_multiatom(particles, single_interaction_multiple_atoms):
     positions, masses = particles
