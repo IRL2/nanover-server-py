@@ -175,7 +175,7 @@ class ParticleInteraction:
     @property
     def position(self) -> np.array:
         """
-        The position of the interaction in nanometers, which defaults to ``[0,0,0]``
+        The position of the interaction in nanometers, which defaults to ``[0 0 0]``
         """
         return self._position
 
