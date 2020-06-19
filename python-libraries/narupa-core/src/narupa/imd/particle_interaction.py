@@ -7,8 +7,6 @@ import math
 from typing import Dict, Any, Iterable
 
 import numpy as np
-from google.protobuf.struct_pb2 import Struct
-
 import narupa.protocol.imd.imd_pb2 as imd_pb2
 from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
@@ -24,7 +22,6 @@ class ParticleInteraction:
     For convenience, the getters all copy the underlying data into numpy arrays,
     rather than the low level containers used by protobuf.
 
-    :param player_id: The player ID to be associated with the interaction.
     :param interaction_id: The interaction ID to be associated with the
         interaction. Typically, this identifies the VR controller, or other
         input device.
@@ -45,7 +42,6 @@ class ParticleInteraction:
     MAX_FORCE_KEY = "max_force"
 
     def __init__(self,
-                 player_id: str,
                  interaction_id: str,
                  position=(0., 0., 0.),
                  particles=(),
@@ -55,7 +51,6 @@ class ParticleInteraction:
                  reset_velocities=False,
                  max_force=DEFAULT_MAX_FORCE,
                  **kwargs):
-        self.player_id = player_id
         self.interaction_id = interaction_id
         self.position = position
         self.particles = particles
@@ -88,7 +83,6 @@ class ParticleInteraction:
         }
 
         interaction = cls(
-            player_id=interaction_proto.player_id,
             interaction_id=interaction_proto.interaction_id,
             position=interaction_proto.position,
             particles=interaction_proto.particles,
@@ -107,7 +101,6 @@ class ParticleInteraction:
         interaction = imd_pb2.ParticleInteraction()
         interaction.position.extend(self.position)
         interaction.particles.extend(self.particles)
-        interaction.player_id = self.player_id
         interaction.interaction_id = self.interaction_id
         properties = {}
         for key, value in self._properties.items():
@@ -120,17 +113,6 @@ class ParticleInteraction:
         for key, value in dict_to_struct(properties).items():
             interaction.properties[key] = value
         return interaction
-
-    @property
-    def player_id(self) -> str:
-        """
-        The player ID associated with this interaction.
-        """
-        return self._player_id
-
-    @player_id.setter
-    def player_id(self, value: str):
-        self._player_id = value
 
     @property
     def interaction_id(self) -> str:
@@ -246,7 +228,6 @@ class ParticleInteraction:
             isinstance(other, ParticleInteraction) and np.equal(self.particles, other.particles).all()
             and np.isclose(self.position, other.position).all() and math.isclose(self.max_force, other.max_force)
             and self.mass_weighted == other.mass_weighted and math.isclose(self.scale, other.scale)
-            and self.player_id == other.player_id and self.interaction_id == other.interaction_id
             and self.reset_velocities == other.reset_velocities and self.type == other.type
             and self.properties == other.properties
         )
@@ -254,7 +235,6 @@ class ParticleInteraction:
     def __repr__(self):
         return (
             f"<ParticleInteraction"
-            f" player_id:{self.player_id}"
             f" interaction_id:{self.interaction_id}"
             f" position:{self.position}"
             f" particles:{self.particles}"

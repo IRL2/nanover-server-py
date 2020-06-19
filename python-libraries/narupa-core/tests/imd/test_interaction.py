@@ -1,33 +1,26 @@
 import narupa.protocol.imd.imd_pb2 as imd_pb2
-import numpy as np
 import pytest
 from narupa.imd.particle_interaction import ParticleInteraction, DEFAULT_MAX_FORCE
 from narupa.utilities.protobuf_utilities import dict_to_struct
-from hypothesis import strategies as st, given
+from hypothesis import given
 from .. import *
 
 @pytest.fixture
 def interaction():
-    return ParticleInteraction(player_id='test player', interaction_id='test interaction')
+    return ParticleInteraction(interaction_id='test interaction')
 
 
 @pytest.fixture
 def interaction_with_properties():
     return ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction',
         arbitrary_property='arbitrary value',
         other_arbitrary_property='other arbitrary value',
     )
 
 
-def test_player_id():
-    interaction = ParticleInteraction(player_id="2", interaction_id='test interaction')
-    assert interaction.player_id == "2"
-
-
 def test_interaction_id():
-    interaction = ParticleInteraction(player_id='test player', interaction_id="2")
+    interaction = ParticleInteraction(interaction_id="2")
     assert interaction.interaction_id == "2"
 
 
@@ -42,12 +35,10 @@ def test_set_position(interaction):
 
 def test_from_proto():
     interaction_grpc = imd_pb2.ParticleInteraction(
-        player_id='1',
         interaction_id='0',
         position=(0, 0, 0),
     )
     interaction = ParticleInteraction.from_proto(interaction_grpc)
-    assert interaction.player_id == "1"
     assert interaction.interaction_id == "0"
     assert interaction.type == "gaussian"
     assert interaction.scale == 1
@@ -64,13 +55,11 @@ def test_from_proto_properties():
         ParticleInteraction.MASS_WEIGHTED_KEY: False
     })
     interaction_grpc = imd_pb2.ParticleInteraction(
-        player_id='1',
         interaction_id='0',
         position=(0, 0, 0),
         properties=struct,
     )
     interaction = ParticleInteraction.from_proto(interaction_grpc)
-    assert interaction.player_id == "1"
     assert interaction.interaction_id == "0"
     assert interaction.type == "harmonic"
     assert interaction.scale == 150
@@ -154,7 +143,6 @@ def test_set_mass(interaction):
 
 def test_get_proto(interaction):
     proto = interaction.proto
-    assert proto.player_id == interaction.player_id
     assert proto.interaction_id == interaction.interaction_id
     assert np.allclose(proto.position, [0, 0, 0])
 
@@ -192,10 +180,9 @@ def interactions(draw):
     if max_force is not None:
         keywords['max_force'] = max_force
 
-    player_id = draw(st.text())
     interaction_id = draw(st.text())
 
-    return ParticleInteraction(player_id, interaction_id, position, particle_ids, **keywords)
+    return ParticleInteraction(interaction_id, position, particle_ids, **keywords)
 
 
 @given(interactions())
@@ -208,7 +195,6 @@ def test_serialize_then_deserialize(interaction):
 def test_repr(interaction_with_properties):
     expectation = (
         "<ParticleInteraction "
-        "player_id:test player "
         "interaction_id:test interaction "
         "position:[0. 0. 0.] "
         "particles:[] "

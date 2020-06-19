@@ -23,11 +23,11 @@ NUM_INTERACTIONS = 10
 
 INTERACTIONS_NO_RESET = {
     ("0", str(i)):
-        ParticleInteraction(player_id="0", interaction_id=str(i), particles=(10 * i, 10 * i + 1))
+        ParticleInteraction(interaction_id=str(i), particles=(10 * i, 10 * i + 1))
     for i in range(NUM_INTERACTIONS)}
 INTERACTIONS_RESET = {
     (str(i), "1"):
-        ParticleInteraction(player_id=str(i), interaction_id="1", reset_velocities=True, particles=(i, i + 1))
+        ParticleInteraction(interaction_id="1", reset_velocities=True, particles=(i, i + 1))
     for i in range(1, NUM_INTERACTIONS + 1)}
 
 # the set of atoms that should be reset based on atoms selected in INTERACTIONS_RESET
@@ -227,8 +227,11 @@ def generate_interactions(selection, num_interactions=1):
     for i in range(num_interactions):
         particles = [selection[idx] for idx in
                      range(i * particles_per_interaction, (i + 1) * particles_per_interaction)]
-        interaction = ParticleInteraction(player_id="0", interaction_id=str(i), particles=particles,
-                                          reset_velocities=True)
+        interaction = ParticleInteraction(
+            interaction_id=str(i),
+            particles=particles,
+            reset_velocities=True,
+        )
         interactions[("0", str(i))] = interaction
     return interactions
 
@@ -273,7 +276,6 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
     selection = [0, 1]
     selection = np.array(list(selection))
     interaction = ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction',
         particles=selection,
         reset_velocities=True,
