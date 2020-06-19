@@ -138,24 +138,18 @@ def _interaction_to_dict(interaction: ParticleInteraction):
         return {
             "position": [float(f) for f in interaction.position],
             "particles": [int(i) for i in interaction.particles],
+            "interaction_type": interaction.type,
+            "scale": interaction.scale,
+            "mass_weighted": interaction.mass_weighted,
+            "reset_velocities": interaction.reset_velocities,
             "properties": dict(**interaction.properties),
+            "max_force": interaction.max_force,
         }
     except AttributeError as e:
         raise TypeError from e
 
 
 def _dict_to_interaction(dictionary: Dict[str, Any]) -> ParticleInteraction:
-    properties: Dict[str, object] = dictionary['properties']
-    max_force = properties.get(ParticleInteraction.MAX_FORCE_KEY, DEFAULT_MAX_FORCE)
-    if max_force == 'Infinity':
-        max_force = float('inf')
-
-    return ParticleInteraction(
-        position=dictionary['position'],
-        particles=[int(i) for i in dictionary['particles']],
-        interaction_type=properties.get(ParticleInteraction.TYPE_KEY, 'gaussian'),
-        scale=properties.get(ParticleInteraction.SCALE_KEY, 1),
-        mass_weighted=properties.get(ParticleInteraction.MASS_WEIGHTED_KEY, True),
-        reset_velocities=properties.get(ParticleInteraction.RESET_VELOCITIES_KEY, False),
-        max_force=max_force,
-    )
+    kwargs = dict(**dictionary)
+    kwargs['particles'] = [int(i) for i in kwargs['particles']]
+    return ParticleInteraction(**kwargs)
