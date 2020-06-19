@@ -229,7 +229,7 @@ class ParticleInteraction:
             and np.isclose(self.position, other.position).all() and math.isclose(self.max_force, other.max_force)
             and self.mass_weighted == other.mass_weighted and math.isclose(self.scale, other.scale)
             and self.reset_velocities == other.reset_velocities and self.type == other.type
-            and self.properties == other.properties
+            and self.properties == other.properties and self.interaction_id == other.interaction_id
         )
 
     def __repr__(self):
