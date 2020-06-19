@@ -2,11 +2,21 @@ import narupa.protocol.imd.imd_pb2 as imd_pb2
 import numpy as np
 import pytest
 from narupa.imd.particle_interaction import ParticleInteraction, DEFAULT_MAX_FORCE
-
+from narupa.utilities.protobuf_utilities import dict_to_struct
+from hypothesis import strategies as st, given
+from .. import *
 
 @pytest.fixture
 def interaction():
     return ParticleInteraction()
+
+
+@pytest.fixture
+def interaction_with_properties():
+    return ParticleInteraction(
+        arbitrary_property='arbitrary value',
+        other_arbitrary_property='other arbitrary value',
+    )
 
 
 def test_get_default_position(interaction):
@@ -19,12 +29,34 @@ def test_set_position(interaction):
 
 
 def test_from_proto():
-    interaction_grpc = imd_pb2.ParticleInteraction()
+    interaction_grpc = imd_pb2.ParticleInteraction(
+        position=(0, 0, 0),
+    )
     interaction = ParticleInteraction.from_proto(interaction_grpc)
     assert interaction.type == "gaussian"
     assert interaction.scale == 1
     assert interaction.mass_weighted is True
     assert interaction.max_force == DEFAULT_MAX_FORCE
+
+
+def test_from_proto_properties():
+    struct = dict_to_struct({
+        ParticleInteraction.TYPE_KEY: "harmonic",
+        ParticleInteraction.SCALE_KEY: 150,
+        ParticleInteraction.RESET_VELOCITIES_KEY: True,
+        ParticleInteraction.MAX_FORCE_KEY: 5000,
+        ParticleInteraction.MASS_WEIGHTED_KEY: False
+    })
+    interaction_grpc = imd_pb2.ParticleInteraction(
+        position=(0, 0, 0),
+        properties=struct,
+    )
+    interaction = ParticleInteraction.from_proto(interaction_grpc)
+    assert interaction.type == "harmonic"
+    assert interaction.scale == 150
+    assert interaction.mass_weighted is False
+    assert interaction.max_force == 5000
+    assert interaction.reset_velocities is True
 
 
 def test_set_invalid_position(interaction):
@@ -85,20 +117,82 @@ def test_get_mass(interaction):
 
 def test_get_mass_unset():
     proto = imd_pb2.ParticleInteraction()
+    proto.position[:] = (0, 0, 0)
     interaction = ParticleInteraction.from_proto(proto)
     assert interaction.mass_weighted is True
 
 
 def test_set_reset_vels(interaction):
     interaction.reset_velocities = True
-    assert interaction.properties['reset_velocities'] is True
+    assert interaction.reset_velocities is True
 
 
 def test_set_mass(interaction):
     interaction.mass_weighted = False
-    assert interaction.properties['mass_weighted'] is False
+    assert interaction.mass_weighted is False
 
 
 def test_get_proto(interaction):
     proto = interaction.proto
     assert np.allclose(proto.position, [0, 0, 0])
+
+
+def test_get_proto_properties(interaction_with_properties):
+    proto = interaction_with_properties.proto
+    assert proto.properties['arbitrary_property'] == 'arbitrary value'
+    assert proto.properties['other_arbitrary_property'] == 'other arbitrary value'
+
+
+@st.composite
+def interactions(draw):
+    position = draw(st.lists(st.floats(allow_infinity=False, max_value=MAX_FLOAT32, width=32), min_size=3, max_size=3))
+    particle_ids = draw(st.lists(st.integers(min_value=0, max_value=MAX_INT32)))
+
+    keywords = draw(st.dictionaries(st.text(), EXACT_SINGLE_VALUE_STRATEGY))
+
+    interaction_type = draw(st.one_of(st.none(), st.text(), st.just('gaussian'), st.just('harmonic')))
+    if interaction_type is not None:
+        keywords['interaction_type'] = interaction_type
+
+    scale = draw(st.one_of(st.none(), st.floats(allow_nan=False, allow_infinity=False)))
+    if scale is not None:
+        keywords['scale'] = scale
+
+    reset_velocities = draw(st.one_of(st.none(), st.booleans()))
+    if reset_velocities is not None:
+        keywords['reset_velocities'] = reset_velocities
+
+    mass_weighted = draw(st.one_of(st.none(), st.booleans()))
+    if mass_weighted is not None:
+        keywords['mass_weighted'] = mass_weighted
+
+    max_force = draw(st.one_of(st.none(), st.floats(allow_nan=False)))
+    if max_force is not None:
+        keywords['max_force'] = max_force
+
+    return ParticleInteraction(position, particle_ids, **keywords)
+
+
+@given(interactions())
+def test_serialize_then_deserialize(interaction):
+    proto = interaction.proto
+    new_interaction = ParticleInteraction.from_proto(proto)
+    assert new_interaction == interaction
+
+
+def test_repr(interaction_with_properties):
+    expectation = (
+        "<ParticleInteraction "
+        "position:[0. 0. 0.] "
+        "particles:[] "
+        "reset_velocities:False "
+        "scale:1.0 "
+        "mass_weighted:True "
+        "max_force:20000.0 "
+        "type:gaussian "
+        "other:{"
+            "'arbitrary_property': 'arbitrary value', "
+            "'other_arbitrary_property': 'other arbitrary value'"
+        "}>"
+    )
+    assert repr(interaction_with_properties) == expectation

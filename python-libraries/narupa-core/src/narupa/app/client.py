@@ -393,9 +393,7 @@ class NarupaImdClient:
         Updates the interaction identified with the given interaction_id on
         the server with parameters from the given interaction.
 
-        :param interaction_id: The unique interaction ID, created with
-            :func:`~NarupaClient.start_interaction`, that identifies the
-            interaction to update.
+        :param interaction_id: The unique id of the interaction to be updated.
         :param interaction: The :class: ParticleInteraction providing new
             parameters for the interaction.
 

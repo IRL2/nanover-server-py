@@ -3,7 +3,8 @@
 import logging
 from uuid import uuid4
 from concurrent.futures import Future
-from typing import Dict, Any, Set
+from queue import Queue
+from typing import Iterable, Optional, Dict, Any, NamedTuple, Union, Set
 
 import grpc
 from narupa.core import NarupaStubClient
@@ -42,7 +43,7 @@ class ImdClient(NarupaStubClient):
         """
         Start an interaction
 
-        :return: A unique identifier to be used to update the interaction.
+        :return: A unique identifier for the interaction.
         """
         interaction_id = str(uuid4())
         self._local_interaction_ids.add(interaction_id)
@@ -137,7 +138,7 @@ def _interaction_to_dict(interaction: ParticleInteraction):
         return {
             "position": [float(f) for f in interaction.position],
             "particles": [int(i) for i in interaction.particles],
-            "properties": struct_to_dict(interaction.properties),
+            "properties": dict(**interaction.properties),
         }
     except AttributeError as e:
         raise TypeError from e
@@ -152,7 +153,6 @@ def _dict_to_interaction(dictionary: Dict[str, Any]) -> ParticleInteraction:
     return ParticleInteraction(
         position=dictionary['position'],
         particles=[int(i) for i in dictionary['particles']],
-
         interaction_type=properties.get(ParticleInteraction.TYPE_KEY, 'gaussian'),
         scale=properties.get(ParticleInteraction.SCALE_KEY, 1),
         mass_weighted=properties.get(ParticleInteraction.MASS_WEIGHTED_KEY, True),
