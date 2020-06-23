@@ -192,15 +192,6 @@ class DictionaryChangeBuffer:
             self._pending_removals.update(removals)
             self._any_changes.notify()
 
-    def flush_changed_non_blocking(self) -> DictionaryChange:
-        """
-        Return any tracked changes, if any and clear them.
-        """
-        with self._lock:
-            changes, removals = self._pending_changes, self._pending_removals
-            self._pending_changes, self._pending_removals = dict(), set()
-            return DictionaryChange(changes, removals)
-
     def flush_changed_blocking(self) -> DictionaryChange:
         """
         Wait until there are changes and then return them, clearing all
