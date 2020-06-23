@@ -3,28 +3,21 @@
 import logging
 from uuid import uuid4
 from concurrent.futures import Future
-from queue import Queue
-from typing import Iterable, Optional, Dict, Any, NamedTuple, Union, Set
+from typing import Dict, Any, Set
 
 import grpc
-from narupa.core import NarupaStubClient
+from narupa.core import NarupaClient
 from narupa.imd.particle_interaction import (
     ParticleInteraction,
-    DEFAULT_MAX_FORCE,
-)
-from narupa.protocol.imd import (
-    InteractiveMolecularDynamicsStub,
 )
 from narupa.utilities.change_buffers import DictionaryChange
-from narupa.utilities.protobuf_utilities import struct_to_dict
 
 
-class ImdClient(NarupaStubClient):
+class ImdClient(NarupaClient):
     """
     A simple IMD client, primarily for testing the IMD server.
 
     """
-    stub: InteractiveMolecularDynamicsStub
     interactions: Dict[str, ParticleInteraction]
     _local_interaction_ids: Set[str]
     _logger: logging.Logger
@@ -32,7 +25,7 @@ class ImdClient(NarupaStubClient):
     def __init__(self, *,
                  channel: grpc.Channel,
                  make_channel_owner: bool = False):
-        super().__init__(channel=channel, stub=InteractiveMolecularDynamicsStub, make_channel_owner=make_channel_owner)
+        super().__init__(channel=channel, make_channel_owner=make_channel_owner)
         self.interactions = {}
         self._local_interaction_ids = set()
         self._logger = logging.getLogger(__name__)

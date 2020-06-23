@@ -7,7 +7,7 @@ and can publish interactions.
 import time
 from collections import deque, ChainMap
 from functools import wraps, partial
-from typing import Iterable, Tuple, Type, Set
+from typing import Iterable, Tuple, Type
 from typing import Optional, Sequence, Dict, MutableMapping
 from uuid import uuid4
 
@@ -21,7 +21,6 @@ from narupa.core.narupa_client import DEFAULT_STATE_UPDATE_INTERVAL
 from narupa.essd import DiscoveryClient
 from narupa.imd import ImdClient, IMD_SERVICE_NAME
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.protocol.imd import InteractionEndReply
 from narupa.trajectory import FrameClient, FrameData, FRAME_SERVICE_NAME
 from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY
 from narupa.utilities.change_buffers import DictionaryChange
@@ -404,7 +403,7 @@ class NarupaImdClient:
         self._imd_client.update_interaction(interaction_id, interaction)  # type: ignore
 
     @need_imd
-    def stop_interaction(self, interaction_id) -> InteractionEndReply:
+    def stop_interaction(self, interaction_id) -> bool:
         """
         Stops the interaction identified with the given interaction_id on the server.
         This method blocks until the server returns a reply indicating that the
