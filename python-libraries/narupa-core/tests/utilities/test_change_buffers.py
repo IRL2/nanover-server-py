@@ -100,6 +100,16 @@ def test_change_then_removal_discards_change(change_buffer):
     assert not changes
 
 
+@pytest.mark.timeout(.01)
+def test_non_blocking_flush_immediately_returns_nothing(change_buffer):
+    """
+    Test that a nonblocking flush of an unchanged buffer immediately returns
+    empty changes.
+    """
+    changes, removals = change_buffer.flush_changed_non_blocking()
+    assert not changes and not removals
+
+
 def test_frozen_buffer_cant_update(change_buffer):
     """
     Test that attempting to update after freezing the buffer raises the correct
