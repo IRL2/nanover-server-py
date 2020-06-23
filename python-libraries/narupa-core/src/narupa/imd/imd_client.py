@@ -2,13 +2,15 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 import logging
 from uuid import uuid4
-from concurrent.futures import Future
-from typing import Dict, Any, Set
+from typing import Dict, Set
 
 import grpc
 from narupa.core import NarupaClient
-from narupa.imd.particle_interaction import (
-    ParticleInteraction,
+from narupa.imd.particle_interaction import ParticleInteraction
+from narupa.imd.imd_service import (
+    INTERACTION_PREFIX,
+    interaction_to_dict,
+    dict_to_interaction,
 )
 from narupa.utilities.change_buffers import DictionaryChange
 
@@ -18,7 +20,6 @@ class ImdClient(NarupaClient):
     A simple IMD client, primarily for testing the IMD server.
 
     """
-    interactions: Dict[str, ParticleInteraction]
     _local_interaction_ids: Set[str]
     _logger: logging.Logger
 
@@ -26,11 +27,17 @@ class ImdClient(NarupaClient):
                  channel: grpc.Channel,
                  make_channel_owner: bool = False):
         super().__init__(channel=channel, make_channel_owner=make_channel_owner)
-        self.interactions = {}
         self._local_interaction_ids = set()
         self._logger = logging.getLogger(__name__)
 
-        self.subscribe_interactions()
+    @property
+    def interactions(self) -> Dict[str, ParticleInteraction]:
+        with self.lock_state() as state:
+            return {
+                key[len(INTERACTION_PREFIX):]: dict_to_interaction(value)
+                for key, value in state.items()
+                if key.startswith(INTERACTION_PREFIX)
+            }
 
     def start_interaction(self) -> str:
         """
@@ -63,7 +70,7 @@ class ImdClient(NarupaClient):
             raise KeyError("Attempted to update an interaction with an "
                            "unknown interaction ID.")
         change = DictionaryChange(updates={
-            'interaction.' + interaction_id: _interaction_to_dict(interaction),
+            INTERACTION_PREFIX + interaction_id: interaction_to_dict(interaction),
         })
         return self.attempt_update_state(change)
 
@@ -82,7 +89,7 @@ class ImdClient(NarupaClient):
                            "interaction ID.")
         self._local_interaction_ids.remove(interaction_id)
         change = DictionaryChange(
-            removals=['interaction.' + interaction_id]
+            removals=[INTERACTION_PREFIX + interaction_id]
         )
         return self.attempt_update_state(change)
 
@@ -92,24 +99,6 @@ class ImdClient(NarupaClient):
         """
         for interaction_id in list(self._local_interaction_ids):
             self.stop_interaction(interaction_id)
-
-    def subscribe_interactions(self) -> Future:
-        """
-        Begin receiving updates known interactions.
-        """
-        return self.threads.submit(self._subscribe_interactions)
-
-    def _subscribe_interactions(self):
-        with self._state.get_change_buffer() as change_buffer:
-            for change in change_buffer.subscribe_changes():
-                for key in change.removals:
-                    if key.startswith('interaction.'):
-                        interaction_id = key[len('interaction.'):]
-                        removed = self.interactions.pop(interaction_id, None)
-                for key, value in change.updates.items():
-                    if key.startswith('interaction.'):
-                        interaction_id = key[len('interaction.'):]
-                        self.interactions[interaction_id] = _dict_to_interaction(value)
 
     def close(self):
         """
@@ -122,25 +111,3 @@ class ImdClient(NarupaClient):
             raise e
         finally:
             super().close()
-
-
-def _interaction_to_dict(interaction: ParticleInteraction):
-    try:
-        return {
-            "position": [float(f) for f in interaction.position],
-            "particles": [int(i) for i in interaction.particles],
-            "interaction_type": interaction.type,
-            "scale": interaction.scale,
-            "mass_weighted": interaction.mass_weighted,
-            "reset_velocities": interaction.reset_velocities,
-            "properties": dict(**interaction.properties),
-            "max_force": interaction.max_force,
-        }
-    except AttributeError as e:
-        raise TypeError from e
-
-
-def _dict_to_interaction(dictionary: Dict[str, Any]) -> ParticleInteraction:
-    kwargs = dict(**dictionary)
-    kwargs['particles'] = [int(i) for i in kwargs['particles']]
-    return ParticleInteraction(**kwargs)

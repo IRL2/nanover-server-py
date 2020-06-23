@@ -3,14 +3,14 @@
 """
 Module providing an implementation of an IMD service.
 """
-from typing import Dict, Optional, Iterable
+from typing import Dict, Optional, Any
 
-from narupa.imd.imd_client import _interaction_to_dict, _dict_to_interaction
 from narupa.state.state_dictionary import StateDictionary
 from narupa.utilities.change_buffers import DictionaryChange
 from narupa.imd.particle_interaction import ParticleInteraction
 
 IMD_SERVICE_NAME = "imd"
+INTERACTION_PREFIX = 'interaction.'
 
 
 class ImdService:
@@ -45,13 +45,13 @@ class ImdService:
         pass
 
     def insert_interaction(self, interaction_id: str, interaction: ParticleInteraction):
-        key = 'interaction.'+interaction_id
-        value = _interaction_to_dict(interaction)
-        change = DictionaryChange(updates={key: value})
+        change = DictionaryChange(updates={
+            INTERACTION_PREFIX + interaction_id: interaction_to_dict(interaction),
+        })
         self.state_dictionary.update_state(None, change)
 
     def remove_interaction(self, interaction_id: str):
-        change = DictionaryChange(removals=['interaction.' + interaction_id])
+        change = DictionaryChange(removals=[INTERACTION_PREFIX + interaction_id])
         self.state_dictionary.update_state(None, change)
 
     @property
@@ -63,7 +63,29 @@ class ImdService:
         """
         with self.state_dictionary.lock_content() as content:
             return {
-                key: _dict_to_interaction(value)
+                key[len(INTERACTION_PREFIX):]: dict_to_interaction(value)
                 for key, value in content.items()
-                if key.startswith('interaction.')
+                if key.startswith(INTERACTION_PREFIX)
             }
+
+
+def interaction_to_dict(interaction: ParticleInteraction):
+    try:
+        return {
+            "position": [float(f) for f in interaction.position],
+            "particles": [int(i) for i in interaction.particles],
+            "interaction_type": interaction.type,
+            "scale": interaction.scale,
+            "mass_weighted": interaction.mass_weighted,
+            "reset_velocities": interaction.reset_velocities,
+            "properties": dict(**interaction.properties),
+            "max_force": interaction.max_force,
+        }
+    except AttributeError as e:
+        raise TypeError from e
+
+
+def dict_to_interaction(dictionary: Dict[str, Any]) -> ParticleInteraction:
+    kwargs = dict(**dictionary)
+    kwargs['particles'] = [int(i) for i in kwargs['particles']]
+    return ParticleInteraction(**kwargs)
