@@ -51,7 +51,8 @@ class ImdService:
         self.state_dictionary.update_state(None, change)
 
     def remove_interaction(self, interaction_id: str):
-        self.state_dictionary.update_state(removals=['interaction.' + interaction_id])
+        change = DictionaryChange(removals=['interaction.' + interaction_id])
+        self.state_dictionary.update_state(None, change)
 
     @property
     def active_interactions(self) -> Dict[str, ParticleInteraction]:
