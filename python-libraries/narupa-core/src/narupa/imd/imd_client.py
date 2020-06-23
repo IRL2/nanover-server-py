@@ -62,11 +62,10 @@ class ImdClient(NarupaClient):
         if interaction_id not in self._local_interaction_ids:
             raise KeyError("Attempted to update an interaction with an "
                            "unknown interaction ID.")
-        key = 'interaction.' + interaction_id
-        value = _interaction_to_dict(interaction)
-        change = DictionaryChange(updates={key: value})
-        result = self.attempt_update_state(change)
-        return result
+        change = DictionaryChange(updates={
+            'interaction.' + interaction_id: _interaction_to_dict(interaction),
+        })
+        return self.attempt_update_state(change)
 
     def stop_interaction(self, interaction_id: str) -> bool:
         """
@@ -83,7 +82,6 @@ class ImdClient(NarupaClient):
                            "interaction ID.")
         self._local_interaction_ids.remove(interaction_id)
         change = DictionaryChange(
-            updates={},
             removals=['interaction.' + interaction_id]
         )
         return self.attempt_update_state(change)
