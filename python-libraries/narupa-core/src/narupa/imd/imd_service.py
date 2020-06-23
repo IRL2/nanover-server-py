@@ -47,9 +47,6 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     velocity_reset_enabled: bool
     number_of_particles: Optional[int]
 
-    _test_active_interactions: Dict[str, object]
-    _test_change_buffer: DictionaryChangeBuffer
-
     def __init__(
             self,
             state_dictionary: Optional[StateDictionary] = None,
