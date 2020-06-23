@@ -33,6 +33,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     produced by clients that can be consumed by an interactive molecular
     dynamics simulation.
 
+    :param state_dictionary: If provided, interactions will be stored in this
+        existing state dictionary instead of a newly created one.
     :param callback: A callback to be used whenever an interaction is published
         or updated.
     :param velocity_reset_enabled: Whether the dynamics this service is being
@@ -55,7 +57,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             velocity_reset_enabled=False,
             number_of_particles=None,
     ):
-        self._state_dictionary = state_dictionary or StateDictionary()
+        self._state_dictionary = state_dictionary if state_dictionary is not None else StateDictionary()
         self.name: str = IMD_SERVICE_NAME
         self.add_to_server_method: Callable = add_InteractiveMolecularDynamicsServicer_to_server
         self._interaction_updated_callback = callback
