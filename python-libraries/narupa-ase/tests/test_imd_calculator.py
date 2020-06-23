@@ -19,7 +19,6 @@ def atoms():
 @pytest.fixture
 def interact_c():
     interaction = ParticleInteraction(
-        player_id='test player',
         interaction_id='interact_c',
         position=[1, 0, 0],
         particles=[0],

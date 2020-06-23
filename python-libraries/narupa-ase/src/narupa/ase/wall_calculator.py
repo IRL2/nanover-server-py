@@ -8,14 +8,16 @@ The wall prevents a particle from flying out of the box in non-periodic system. 
 the particles bounce against the wall, preserving velocity.
 """
 
-from typing import Optional, Any
+from typing import Optional, Any, Tuple
 import numpy as np
 from ase.calculators.calculator import Calculator, all_changes
-from ase import Atoms
+from ase import Atoms  # type: ignore
 from ase.cell import Cell
 
 
 class VelocityWallCalculator(Calculator):
+    implemented_properties: Tuple[str, ...]
+
     def __init__(
             self,
             calculator: Optional[Calculator] = None,

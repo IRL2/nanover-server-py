@@ -11,7 +11,7 @@ For details, and if you find these functions helpful, please cite [1]_.
 """
 
 from math import exp
-from typing import Iterable, Tuple, Optional
+from typing import Collection, Tuple, Optional, Iterable
 
 import numpy as np
 from narupa.imd.particle_interaction import ParticleInteraction
@@ -35,7 +35,7 @@ def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions:
     """
 
     forces = np.zeros((len(positions), 3))
-    total_energy = 0
+    total_energy = 0.
     for interaction in interactions:
         energy = apply_single_interaction_force(positions, masses, interaction, forces, periodic_box_lengths)
         total_energy += energy
@@ -55,20 +55,24 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
     :return: energy in kJ/mol.
     """
 
-    center = get_center_of_mass_subset(positions, masses, interaction.particles, periodic_box_lengths)
+    particle_count = len(interaction.particles)
+
+    if particle_count > 1:
+        center = get_center_of_mass_subset(positions, masses, interaction.particles, periodic_box_lengths)
+    else:
+        center = positions[interaction.particles[0]]
 
     # fetch the correct potential to use based on the interaction type.
-    interaction_type = interaction.type if interaction.type is not None else 'gaussian'
     try:
-        potential_method = INTERACTION_METHOD_MAP[interaction_type]
+        potential_method = INTERACTION_METHOD_MAP[interaction.type]
     except KeyError:
         raise KeyError(f"Unknown interactive force type {interaction.type}.")
 
     # calculate the overall force to be applied
     energy, force = potential_method(center, interaction.position, periodic_box_lengths=periodic_box_lengths)
     # apply to appropriate force to each particle in the selection.
-    force_per_particle = force / len(interaction.particles)
-    energy_per_particle = energy / len(interaction.particles)
+    force_per_particle = force / particle_count
+    energy_per_particle = energy / particle_count
     total_energy = _apply_force_to_particles(forces, energy_per_particle,
                                              force_per_particle, interaction, masses)
     return total_energy
@@ -88,22 +92,29 @@ def _apply_force_to_particles(forces: np.ndarray,
     :param force_per_particle: Force to apply to each particle.
     :param interaction: The interaction being computed.
     :param masses: Array of N masses of the particles.
-    :return:
+    :return: The total energy applied.
     """
 
+    particles = interaction.particles
+    scale = interaction.scale
+    max_force = interaction.max_force
+
     if interaction.mass_weighted:
-        mass = masses[interaction.particles]
+        mass = masses[particles]
+        total_mass = mass.sum()
     else:
-        mass = np.ones(len(interaction.particles))
-    total_energy = interaction.scale * energy_per_particle * sum(mass)
+        mass = np.ones(len(particles))
+        total_mass = len(particles)
+
+    total_energy = scale * energy_per_particle * total_mass
     # add the force for each particle, adjusted by mass and scale factor.
-    force_to_apply = interaction.scale * mass[:, np.newaxis] * force_per_particle[np.newaxis, :]
+    force_to_apply = scale * mass[:, np.newaxis] * force_per_particle[np.newaxis, :]
     # clip the forces into maximum force range.
-    force_to_apply_clipped = np.clip(force_to_apply, -interaction.max_force, interaction.max_force)
+    force_to_apply_clipped = np.core.umath.clip(force_to_apply, -max_force, max_force)
     # this is technically incorrect, but deriving the actual energy of a clip will involve a lot of maths
     # for what is essentially just, too much energy.
-    total_energy = np.clip(total_energy, -interaction.max_force, interaction.max_force)
-    forces[interaction.particles] += force_to_apply_clipped
+    total_energy = np.core.umath.clip(total_energy, -max_force, max_force)
+    forces[particles] += force_to_apply_clipped
     return total_energy
 
 
@@ -121,8 +132,12 @@ def wrap_pbc(positions: np.ndarray, periodic_box_lengths: np.ndarray):
     return wrapped
 
 
-def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=None,
-                              periodic_box_lengths: Optional[np.ndarray] = None) -> np.ndarray:
+def get_center_of_mass_subset(
+        positions: np.ndarray,
+        masses: np.ndarray,
+        subset: Iterable[int],
+        periodic_box_lengths: Optional[np.ndarray] = None,
+) -> np.ndarray:
     """
     Gets the center of mass of [a subset of] positions.
     If orthorhombic periodic box lengths are given, the minimal image convention is applied, wrapping the subset
@@ -135,15 +150,16 @@ def get_center_of_mass_subset(positions: np.ndarray, masses: np.ndarray, subset=
         before calculating centre of mass.
     :return: The center of mass of the subset of positions.
     """
-    if subset is None:
-        subset = range(len(positions))
     pos_subset = positions[subset]
+    subset_masses = masses[subset, np.newaxis]
+    subset_total_mass = subset_masses.sum()
+    if subset_total_mass == 0:
+        # We raise before actually doing the division as we now it will fail.
+        raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!")
     if periodic_box_lengths is not None:
         pos_subset = wrap_pbc(pos_subset, periodic_box_lengths)
-    try:
-        com = np.average(pos_subset, weights=masses[subset], axis=0)
-    except ZeroDivisionError as e:
-        raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!", e)
+    # np.average is slow for small arrays so we use a naive implementation
+    com = (pos_subset * subset_masses).sum(axis=0) / subset_total_mass
     return com
 
 
@@ -194,7 +210,7 @@ def calculate_spring_force(particle_position: np.array, interaction_position: np
     diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
     energy = k * dist_sqr
     # force is negative derivative of energy wrt to position.
-    force = - 2 * k * diff
+    force = (- 2 * k) * diff
     return energy, force
 
 
@@ -225,7 +241,7 @@ def _calculate_diff_and_sqr_distance(u: np.ndarray, v: np.ndarray,
     """
     diff = u - v
     diff = _minimum_image(diff, periodic_box_lengths)
-    dist_sqr = float(np.dot(diff, diff))
+    dist_sqr = float(diff.dot(diff))
     return diff, dist_sqr
 
 

@@ -2,7 +2,7 @@ import time
 
 import pytest
 from narupa.app import NarupaImdClient
-from narupa.multiplayer import MultiplayerServer
+from narupa.core import NarupaServer
 
 UPDATE_TIME = 0.01
 
@@ -39,14 +39,12 @@ def server_clients():
     Provides a multiplayer server hosting on an available port on localhost,
     and two Narupa clients connected to it.
     """
-    server = MultiplayerServer(address='localhost', port=0)
+    server = NarupaServer(address='localhost', port=0)
     client1 = NarupaImdClient(multiplayer_address=(server.address, server.port))
     client2 = NarupaImdClient(multiplayer_address=(server.address, server.port))
 
-    client1.join_multiplayer("player 1")
-    client2.join_multiplayer("player 2")
-
-    time.sleep(0.02)
+    client1.subscribe_multiplayer(interval=0)
+    client2.subscribe_multiplayer(interval=0)
 
     with server, client1, client2:
         yield server, client1, client2
@@ -175,7 +173,7 @@ def test_root_selection_fields(server_clients):
     server, client1, client2 = server_clients
 
     selection = client1.root_selection
-    assert selection.selected_particle_ids is None
+    assert not selection.selected_particle_ids
 
 
 def test_root_selection_set_field(server_clients):

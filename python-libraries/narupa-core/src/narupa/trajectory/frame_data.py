@@ -2,10 +2,12 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from collections import namedtuple
 from collections.abc import Set
-import itertools
 import numbers
+from typing import Dict, Optional
+
 import numpy as np
 from narupa.protocol import trajectory
+from narupa.utilities.protobuf_utilities import value_to_object, object_to_value
 
 BOX_VECTORS = 'system.box.vectors'
 
@@ -32,13 +34,6 @@ POTENTIAL_ENERGY = 'energy.potential'
 
 SERVER_TIMESTAMP = 'server.timestamp'
 
-# This dictionary matches the python types to the attributes of the GRPC
-# values. This is not to do type conversion (which is handled by protobuf),
-# but to figure out where to store the data.
-PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE = {
-    int: 'number_value', float: 'number_value', str: 'string_value',
-    bool: 'bool_value', np.float32: 'number_value', np.float64: 'number_value',
-}
 
 _Shortcut = namedtuple(
     '_Shortcut', ['record_type', 'key', 'field_type', 'to_python', 'to_raw']
@@ -111,7 +106,7 @@ class _FrameDataMeta(type):
     The shortcuts are defined as a tuple of :class:`_Shortcut` named tuples
     under the :attr:`_shortcuts` class attribute.
     """
-    _shortcuts = {}
+    _shortcuts: Dict[str, _Shortcut] = {}
 
     def __init__(cls, name, bases, nmspc):
         shortcuts = {}
@@ -205,7 +200,10 @@ class FrameData(metaclass=_FrameDataMeta):
         key=SERVER_TIMESTAMP, record_type='values',
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
 
-    def __init__(self, raw_frame=None):
+    _shortcuts: Dict[str, _Shortcut]
+    _raw: trajectory.FrameData
+
+    def __init__(self, raw_frame: trajectory.FrameData = None):
         if raw_frame is None:
             self._raw = trajectory.FrameData()
         else:
@@ -222,8 +220,29 @@ class FrameData(metaclass=_FrameDataMeta):
     def __repr__(self):
         return repr(self.raw)
 
+    def __delattr__(self, attr):
+        if attr in self._shortcuts:
+            shortcut = self._shortcuts[attr]
+            getattr(self, shortcut.record_type).delete(shortcut.key)
+        else:
+            super().__delattr__(attr)
+
+    def __delitem__(self, item):
+        if item in self.value_keys:
+            del self.values[item]
+        if item in self.array_keys:
+            del self.arrays[item]
+
+    def copy(self):
+        copy = FrameData()
+        for key in self.value_keys:
+            copy.values.set(key, self.values[key])
+        for key in self.array_keys:
+            copy.arrays.set(key, self.arrays[key])
+        return copy
+
     @property
-    def raw(self):
+    def raw(self) -> trajectory.FrameData:
         """
         Underlying GRPC/protobuf object.
         """
@@ -284,8 +303,8 @@ class RecordView:
 
     This class needs to be subclassed.
     """
-    record_name = None  # MUST be overwritten as "arrays" or "values"
-    singular = None  # MUST be overwritten as "array" or "value"
+    record_name: Optional[str] = None  # MUST be overwritten as "arrays" or "values"
+    singular: Optional[str] = None  # MUST be overwritten as "array" or "value"
 
     def __init__(self, raw):
         if self.record_name is None or self.singular is None:
@@ -304,6 +323,9 @@ class RecordView:
     def __setitem__(self, key, value):
         self.set(key, value)
 
+    def __delitem__(self, key):
+        del self._raw_record[key]
+
     def __contains__(self, key):
         return key in self._raw_record
 
@@ -314,6 +336,9 @@ class RecordView:
 
     def set(self, key, value):
         raise NotImplementedError('Subclasses must overwrite the set method.')
+
+    def delete(self, key):
+        del self[key]
 
     @staticmethod
     def _convert_to_python(field):
@@ -337,19 +362,10 @@ class ValuesView(RecordView):
 
     @staticmethod
     def _convert_to_python(field):
-        # A GRPC Value is exposed as being able to contain multiple "fields",
-        # one per type. In practice, only one field is used at a given time.
-        # `ListFields` list the fields that are set. Because only one field is
-        # set at a time, we only care about the first (and only) element of the
-        # list. Each element of the list has 2 elements: the type of the field
-        # and the value usable by python.
-        # Going through this gymnastic is necessary to get the value without
-        # knowing beforehand under which type it is stored.
-        return field.ListFields()[0][1]
+        return value_to_object(field)
 
     def set(self, key, value):
-        type_attribute = PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE[type(value)]
-        setattr(self._raw_record[key], type_attribute, value)
+        self._raw_record[key].CopyFrom(object_to_value(value))
 
 
 class ArraysView(RecordView):

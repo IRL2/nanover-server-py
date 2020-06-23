@@ -4,7 +4,7 @@ from queue import Queue
 
 import grpc
 import pytest
-from narupa.imd.imd_client import queue_generator
+from narupa.imd.imd_client import queue_generator, Sentinel
 
 from .test_imd_server import imd_server_client, imd_server, interaction
 
@@ -94,7 +94,7 @@ def test_bad_interaction_type(imd_server_client):
 
 def test_queue_generator():
     queue = Queue()
-    sentinel = object()
+    sentinel = Sentinel()
     items = [x for x in range(10)]
     for i in items:
         queue.put(i)
@@ -112,7 +112,7 @@ def test_queue_generator_threaded():
     tests that running the queue generator in a thread produces the expected results.
     """
     queue = Queue()
-    sentinel = object()
+    sentinel = Sentinel()
     threads = futures.ThreadPoolExecutor(max_workers=10)
     generator = queue_generator(queue, sentinel)
     future = threads.submit(to_list, generator)

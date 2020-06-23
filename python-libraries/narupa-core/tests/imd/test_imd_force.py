@@ -35,11 +35,21 @@ def single_interaction():
     position = (0, 0, 0)
     index = 1
     return ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction',
         position=position,
         particles=[index],
     )
+
+
+@pytest.fixture
+def single_interaction_multiple_atoms():
+    position = (0, 0, 0)
+    return ParticleInteraction(
+        interaction_id='test interaction',
+        position=position,
+        particles=[1, 2, 3],
+    )
+
 
 
 @pytest.fixture
@@ -58,12 +68,10 @@ def test_multiple_interactions(particles):
 
     positions, masses = particles
     interaction = ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction 1',
         position=[0.5, 0.5, 0.5], particles=[0, 1],
     )
     interaction_2 = ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction 2',
         position=[1.5, 1.5, 1.5], particles=[1, 2],
     )
@@ -85,7 +93,13 @@ def test_multiple_interactions(particles):
     assert np.allclose(forces, expected_forces)
 
 
-@pytest.mark.parametrize("scale", [-1.0, 0, 100, np.nan, np.infty, -np.infty])
+@pytest.mark.parametrize("scale", [np.nan, np.infty, -np.infty])
+def test_interaction_force_invalid_scale(particles, single_interaction, scale):
+    with pytest.raises(ValueError):
+        single_interaction.scale = scale
+
+
+@pytest.mark.parametrize("scale", [-1.0, 0, 100])
 def test_interaction_force_single(particles, single_interaction, scale):
     """
     Tests that the interaction force calculation gives the expected result on a single atom, at a particular position,
@@ -108,7 +122,13 @@ def test_interaction_force_single(particles, single_interaction, scale):
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
 
-@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.infty, -np.infty, np.nan])
+@pytest.mark.parametrize("max_force", [np.nan])
+def test_invalid_max_force(single_interaction, max_force):
+    with pytest.raises(ValueError):
+        single_interaction.max_force = max_force
+
+
+@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.infty, -np.infty])
 def test_interaction_force_max_energy(particles, single_interaction, max_energy):
     """
     Tests that setting the max energy field results in the energy being clamped as expected
@@ -142,25 +162,30 @@ def test_interaction_force_mass(particles, single_interaction, mass):
     expected_forces = np.zeros((len(positions), 3))
     masses = np.array([mass] * len(masses))
     energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
-    # special cases for dividing by zero.
-    if abs(mass) == np.infty:
-        expected_energy = np.nan
-        expected_forces[1, :] = np.nan
-    else:
-        expected_energy = - EXP_3 * mass
-        expected_forces[1, :] = np.array([-EXP_3 * mass] * 3)
+
+    expected_energy = np.clip(- EXP_3 * mass, -single_interaction.max_force, single_interaction.max_force)
+    expected_forces[1, :] = np.clip(np.array([-EXP_3 * mass] * 3), -single_interaction.max_force,
+                                    single_interaction.max_force)
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
 
-def test_interaction_force_zero_mass(particles, single_interaction):
+def test_interaction_force_zero_mass_singleatom(particles, single_interaction):
+    positions, masses = particles
+    forces = np.zeros((len(positions), 3))
+    masses = np.array([0.0] * len(masses))
+
+    energy = apply_single_interaction_force(positions, masses, single_interaction, forces)
+    assert energy == pytest.approx(0)
+
+def test_interaction_force_zero_mass_multiatom(particles, single_interaction_multiple_atoms):
     positions, masses = particles
     forces = np.zeros((len(positions), 3))
     masses = np.array([0.0] * len(masses))
 
     with pytest.raises(ZeroDivisionError):
-        apply_single_interaction_force(positions, masses, single_interaction, forces)
+        apply_single_interaction_force(positions, masses, single_interaction_multiple_atoms, forces)
 
 
 @pytest.mark.parametrize("position, selection, selection_masses",
@@ -178,7 +203,6 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     position = np.array(position)
     selection = np.array(selection)
     interaction = ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction',
         position=position,
         particles=selection,)
@@ -218,7 +242,6 @@ def test_interaction_force_no_mass_weighting(particles, position, selection, sel
     position = np.array(position)
     selection = np.array(selection)
     interaction = ParticleInteraction(
-        player_id='test player',
         interaction_id='test interaction',
         position=position,
         particles=selection,
@@ -252,33 +275,6 @@ def test_interaction_force_unknown_type(particles, single_interaction):
 
     with pytest.raises(KeyError):
         apply_single_interaction_force(positions, masses, single_interaction, forces)
-
-
-def test_interaction_force_default_type(particles):
-    """
-    Tests that the gaussian force is used if no type is specified.
-    """
-    positions, masses = particles
-
-    selection = [1]
-    position = positions[selection[0]]
-    interaction = ParticleInteraction(
-        player_id='test player',
-        interaction_id='test interaction',
-        position=position,
-        particles=selection,
-    )
-    interaction.type = None
-    forces = np.zeros((len(positions), 3))
-
-    energy = apply_single_interaction_force(positions, masses, interaction, forces)
-
-    expected_forces = np.zeros((len(positions), 3))
-    # the expected energy for the gaussian potential exactly positioned on the particle.
-    expected_energy = - masses[selection[0]]
-
-    assert np.allclose(energy, expected_energy)
-    assert np.allclose(forces, expected_forces)
 
 
 def test_get_com_all(particles):
@@ -367,7 +363,7 @@ def test_get_com_subset_pbc(positions_pbc):
 def test_get_com_single():
     position = np.array([[1, 0, 0]])
     mass = np.array([20])
-    com = get_center_of_mass_subset(position, mass)
+    com = get_center_of_mass_subset(position, mass, subset=[0])
     assert np.allclose(com, position)
 
 
@@ -375,8 +371,9 @@ def test_get_com_different_array_lengths(particles):
     positions, mass = particles
     # make masses array not match positions in length.
     mass = np.array([1])
+    subset = range(positions.shape[0])
     with pytest.raises(IndexError):
-        get_center_of_mass_subset(positions, mass)
+        get_center_of_mass_subset(positions, mass, subset)
 
 
 @pytest.mark.parametrize("position, interaction_position, expected_energy, expected_force",

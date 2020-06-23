@@ -5,3 +5,4 @@ pytest
 aiogrpc
 numpy
 hypothesis
+typing_extensions

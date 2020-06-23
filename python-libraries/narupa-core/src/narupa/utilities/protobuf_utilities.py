@@ -1,8 +1,8 @@
-from typing import Dict
+from typing import Dict, List
 
-from google.protobuf.internal.well_known_types import _SetStructValue
+from google.protobuf.internal.well_known_types import _SetStructValue, _GetStructValue  # type: ignore
 from google.protobuf.json_format import MessageToDict
-from google.protobuf.struct_pb2 import Struct, Value
+from google.protobuf.struct_pb2 import Struct, Value, ListValue
 
 
 def dict_to_struct(dictionary: Dict[str, object]) -> Struct:
@@ -32,7 +32,17 @@ def struct_to_dict(struct: Struct) -> Dict[str, object]:
     :param struct: :class:`Struct` to convert.
     :return: A dictionary containing copies of all the items in the struct.
     """
-    return MessageToDict(struct)
+    return {key: value_to_object(value) for key, value in struct.fields.items()}
+
+
+def list_value_to_list(list: ListValue) -> List[object]:
+    """
+    Converts a protobuf :class:`ListValue` to a python dictionary.
+
+    :param list: :class:`ListValue` to convert.
+    :return: A list containing copies of all the items in the list value.
+    """
+    return [value_to_object(value) for value in list.values]
 
 
 def object_to_value(obj: object) -> Value:
@@ -52,7 +62,12 @@ def value_to_object(value: Value) -> object:
     :param value: A protobuf Value to convert.
     :return: A python object equivalent to the given protobuf Value.
     """
-    return MessageToDict(value)
+    expanded = _GetStructValue(value)
+    if isinstance(expanded, ListValue):
+        return list_value_to_list(expanded)
+    if isinstance(expanded, Struct):
+        return struct_to_dict(expanded)
+    return expanded
 
 
 def deep_copy_serializable_dict(dictionary: Dict[str, object]) -> Dict[str, object]:
