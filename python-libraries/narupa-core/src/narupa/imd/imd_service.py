@@ -36,6 +36,19 @@ class ImdService:
         self.state_dictionary = state_dictionary
         self.velocity_reset_enabled = velocity_reset_enabled
 
+        # prototype attempt at faster ImdServer.interactions
+        def on_content_updated(change: DictionaryChange, **_):
+            self._interactions.update({
+                key[len(INTERACTION_PREFIX):]: dict_to_interaction(value)
+                for key, value in change.updates.items()
+                if key.startswith(INTERACTION_PREFIX)
+            })
+            for key in change.removals:
+                self._interactions.pop(key[len(INTERACTION_PREFIX):], None)
+
+        self._interactions: Dict[str, ParticleInteraction] = {}
+        self.state_dictionary.content_updated.add_callback(on_content_updated)
+
         self.state_dictionary.update_locks(
             self,
             acquire={VELOCITY_RESET_KEY: None},
@@ -77,11 +90,7 @@ class ImdService:
 
         :return: A copy of the dictionary of active interactions.
         """
-        return {
-            key[len(INTERACTION_PREFIX):]: dict_to_interaction(value)
-            for key, value in self.state_dictionary.copy_content().items()
-            if key.startswith(INTERACTION_PREFIX)
-        }
+        return self._interactions
 
 
 def interaction_to_dict(interaction: ParticleInteraction):
