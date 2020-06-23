@@ -12,8 +12,10 @@ from narupa.utilities.grpc_utilities import (
     RpcAlreadyTerminatedError,
     subscribe_rpc_termination,
 )
-from narupa.utilities.change_buffers import DictionaryChange, \
-    DictionaryChangeBuffer
+from narupa.utilities.change_buffers import (
+    DictionaryChange,
+    DictionaryChangeBuffer,
+)
 
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.protocol.imd import (
