@@ -141,21 +141,17 @@ class ImdService(InteractiveMolecularDynamicsServicer):
 
         :return: A copy of the dictionary of active interactions.
         """
-        try:
-            changes = self._test_change_buffer.flush_changed_non_blocking()
-            for removal in changes.removals:
-                self._test_active_interactions.pop(removal, None)
-            for key, value in changes.updates.items():
-                self._test_active_interactions[key] = value
+        changes = self._test_change_buffer.flush_changed_non_blocking()
+        for removal in changes.removals:
+            self._test_active_interactions.pop(removal, None)
+        for key, value in changes.updates.items():
+            self._test_active_interactions[key] = value
 
-            return {
-                key: _dict_to_interaction(value)
-                for key, value in self._test_active_interactions.items()
-                if key.startswith('interaction.')
-            }
-        except Exception as e:
-            print(e)
-            raise e
+        return {
+            key: _dict_to_interaction(value)
+            for key, value in self._test_active_interactions.items()
+            if key.startswith('interaction.')
+        }
 
     def _interaction_id_exists(self, interaction_id: str) -> bool:
         with self._state_dictionary.lock_content() as content:
