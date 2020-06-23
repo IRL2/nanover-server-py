@@ -39,6 +39,13 @@ class StateDictionary:
     def freeze(self):
         self._change_views.freeze()
 
+    def copy_content(self):
+        """
+        Return a shallow copy of the dictionary content at this instant.
+        """
+        with self.lock_content() as content:
+            return dict(content)
+
     @contextmanager
     def lock_content(self) -> ContextManager[Dict[str, object]]:
         """

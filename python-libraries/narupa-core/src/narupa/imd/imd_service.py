@@ -77,12 +77,11 @@ class ImdService:
 
         :return: A copy of the dictionary of active interactions.
         """
-        with self.state_dictionary.lock_content() as content:
-            return {
-                key[len(INTERACTION_PREFIX):]: dict_to_interaction(value)
-                for key, value in content.items()
-                if key.startswith(INTERACTION_PREFIX)
-            }
+        return {
+            key[len(INTERACTION_PREFIX):]: dict_to_interaction(value)
+            for key, value in self.state_dictionary.copy_content().items()
+            if key.startswith(INTERACTION_PREFIX)
+        }
 
 
 def interaction_to_dict(interaction: ParticleInteraction):
