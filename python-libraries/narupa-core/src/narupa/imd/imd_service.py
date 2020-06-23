@@ -166,8 +166,8 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             id_owned = interaction.interaction_id in interactions_in_request
             id_exists = self._interaction_id_exists(interaction.interaction_id)
             if not id_owned and id_exists:
-                raise KeyError('The given player_id and interaction_id is '
-                               'already in use in another interaction.')
+                raise KeyError('The given interaction_id is already in use in '
+                               'another interaction.')
 
         try:
             for interaction_message in request_iterator:
