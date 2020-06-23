@@ -7,7 +7,6 @@ import math
 from typing import Dict, Any, Iterable
 
 import numpy as np
-
 import narupa.protocol.imd.imd_pb2 as imd_pb2
 from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
