@@ -150,7 +150,6 @@ class ImdCalculator(Calculator):
             atoms = self.atoms
         if atoms is None:
             raise ValueError('No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation.')
-        self._service.number_of_particles = len(atoms)  # update number of atoms in interaction service, for validating.
 
         forces = np.zeros((len(atoms), 3))
 

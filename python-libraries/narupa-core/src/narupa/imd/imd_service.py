@@ -3,7 +3,7 @@
 """
 Module providing an implementation of an IMD service.
 """
-from typing import Dict, Optional, Any
+from typing import Dict, Any
 
 from narupa.state.state_dictionary import StateDictionary
 from narupa.utilities.change_buffers import DictionaryChange
@@ -11,6 +11,7 @@ from narupa.imd.particle_interaction import ParticleInteraction
 
 IMD_SERVICE_NAME = "imd"
 INTERACTION_PREFIX = 'interaction.'
+VELOCITY_RESET_KEY = 'imd.velocity_reset_enabled'
 
 
 class ImdService:
@@ -27,18 +28,34 @@ class ImdService:
         consumers of the interactions to validate.
     """
 
-    velocity_reset_enabled: bool
-    number_of_particles: Optional[int]
-
     def __init__(
             self,
             state_dictionary: StateDictionary,
             velocity_reset_enabled=False,
-            number_of_particles=None,
     ):
         self.state_dictionary = state_dictionary
         self.velocity_reset_enabled = velocity_reset_enabled
-        self.number_of_particles = number_of_particles
+
+        self.state_dictionary.update_locks(
+            self,
+            acquire={VELOCITY_RESET_KEY: None},
+        )
+        self.state_dictionary.update_state(
+            self,
+            change=DictionaryChange(updates={
+                VELOCITY_RESET_KEY: velocity_reset_enabled
+            }),
+        )
+
+    @property
+    def velocity_reset_enabled(self):
+        with self.state_dictionary.lock_content() as state:
+            return state[VELOCITY_RESET_KEY]
+
+    @velocity_reset_enabled.setter
+    def velocity_reset_enabled(self, value: bool):
+        change = DictionaryChange(updates={VELOCITY_RESET_KEY: value})
+        self.state_dictionary.update_state(self, change)
 
     def close(self):
         pass

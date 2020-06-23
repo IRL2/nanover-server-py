@@ -77,7 +77,7 @@ class StateDictionary:
     def update_locks(
             self,
             access_token: object,
-            acquire: Optional[Dict[str, float]] = None,
+            acquire: Optional[Dict[str, Optional[float]]] = None,
             release: Optional[Iterable[str]] = None,
     ):
         """
