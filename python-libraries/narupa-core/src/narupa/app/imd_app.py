@@ -10,7 +10,7 @@ from narupa.app import NarupaImdClient
 from narupa.app.frame_app import NarupaFrameApplication
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer
-from narupa.imd.imd_service import ImdService
+from narupa.imd import ImdService, IMD_SERVICE_NAME
 
 
 class NarupaImdApplication(NarupaFrameApplication):
@@ -43,7 +43,6 @@ class NarupaImdApplication(NarupaFrameApplication):
 
         :return: The :class:`ImdService` attached to this application.
         """
-        # TODO could probably just expose active interactions here.
         return self._imd_service
 
     def close(self):
@@ -52,4 +51,4 @@ class NarupaImdApplication(NarupaFrameApplication):
 
     def _setup_imd(self):
         self._imd_service = ImdService(self.server._state_service.state_dictionary)
-        self.add_service(self._imd_service)
+        self._add_service_entry(IMD_SERVICE_NAME, self.server.port)

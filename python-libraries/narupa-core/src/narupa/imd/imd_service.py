@@ -3,21 +3,17 @@
 """
 Module providing an implementation of an IMD service.
 """
-from typing import Dict, Callable, Optional, Iterable
+from typing import Dict, Optional, Iterable
 
 from narupa.imd.imd_client import _interaction_to_dict, _dict_to_interaction
 from narupa.state.state_dictionary import StateDictionary
 from narupa.utilities.change_buffers import DictionaryChange
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.protocol.imd import (
-    InteractiveMolecularDynamicsServicer,
-    add_InteractiveMolecularDynamicsServicer_to_server,
-)
 
 IMD_SERVICE_NAME = "imd"
 
 
-class ImdService(InteractiveMolecularDynamicsServicer):
+class ImdService:
     """
     An implementation of an IMD service, that keeps track of interactions
     produced by clients that can be consumed by an interactive molecular
@@ -42,8 +38,6 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             number_of_particles=None,
     ):
         self.state_dictionary = state_dictionary if state_dictionary is not None else StateDictionary()
-        self.name: str = IMD_SERVICE_NAME
-        self.add_to_server_method: Callable = add_InteractiveMolecularDynamicsServicer_to_server
         self.velocity_reset_enabled = velocity_reset_enabled
         self.number_of_particles = number_of_particles
 

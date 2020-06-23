@@ -51,4 +51,3 @@ class ImdServer(NarupaServer):
         self._imd_service = ImdService(
             state_dictionary=self._state_service.state_dictionary,
         )
-        self._imd_service.add_to_server_method(self._imd_service, self.server)
