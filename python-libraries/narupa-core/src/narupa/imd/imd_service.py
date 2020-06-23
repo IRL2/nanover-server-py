@@ -37,8 +37,6 @@ class ImdService(InteractiveMolecularDynamicsServicer):
 
     :param state_dictionary: If provided, interactions will be stored in this
         existing state dictionary instead of a newly created one.
-    :param callback: A callback to be used whenever an interaction is published
-        or updated.
     :param velocity_reset_enabled: Whether the dynamics this service is being
         used in supports velocity reset.
     :param number_of_particles: If set, allows the IMD service to validate the
@@ -55,14 +53,12 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     def __init__(
             self,
             state_dictionary: Optional[StateDictionary] = None,
-            callback=None,
             velocity_reset_enabled=False,
             number_of_particles=None,
     ):
         self._state_dictionary = state_dictionary if state_dictionary is not None else StateDictionary()
         self.name: str = IMD_SERVICE_NAME
         self.add_to_server_method: Callable = add_InteractiveMolecularDynamicsServicer_to_server
-        self._interaction_updated_callback = callback
         self.velocity_reset_enabled = velocity_reset_enabled
         self.number_of_particles = number_of_particles
 
@@ -122,9 +118,6 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         value = _interaction_to_dict(interaction)
         change = DictionaryChange(updates={key: value})
         self._state_dictionary.update_state(None, change)
-
-        if self._interaction_updated_callback is not None:
-            self._interaction_updated_callback(interaction)
 
     def remove_interaction(self, interaction_id: str):
         self.remove_interactions_by_ids([interaction_id])
