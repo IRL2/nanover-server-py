@@ -19,8 +19,7 @@ class ImdService:
     produced by clients that can be consumed by an interactive molecular
     dynamics simulation.
 
-    :param state_dictionary: If provided, interactions will be stored in this
-        existing state dictionary instead of a newly created one.
+    :param state_dictionary: The state dictionary to store interactions in.
     :param velocity_reset_enabled: Whether the dynamics this service is being
         used in supports velocity reset.
     :param number_of_particles: If set, allows the IMD service to validate the
@@ -33,11 +32,11 @@ class ImdService:
 
     def __init__(
             self,
-            state_dictionary: Optional[StateDictionary] = None,
+            state_dictionary: StateDictionary,
             velocity_reset_enabled=False,
             number_of_particles=None,
     ):
-        self.state_dictionary = state_dictionary if state_dictionary is not None else StateDictionary()
+        self.state_dictionary = state_dictionary
         self.velocity_reset_enabled = velocity_reset_enabled
         self.number_of_particles = number_of_particles
 
