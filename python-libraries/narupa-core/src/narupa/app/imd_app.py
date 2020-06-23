@@ -51,5 +51,5 @@ class NarupaImdApplication(NarupaFrameApplication):
         super().close()
 
     def _setup_imd(self):
-        self._imd_service = ImdService(self.server._state_service._state_dictionary)
+        self._imd_service = ImdService(self.server._state_service.state_dictionary)
         self.add_service(self._imd_service)

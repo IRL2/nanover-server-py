@@ -13,6 +13,7 @@ from narupa.utilities.change_buffers import (
     DictionaryChangeBuffer,
     DictionaryChange,
 )
+from narupa.utilities.event import Event
 from narupa.utilities.key_lockable_map import (
     KeyLockableMap, ResourceLockedError,
 )
@@ -23,12 +24,14 @@ class StateDictionary:
     Mechanism for tracking and making changes to a shared key/value store,
     including the facility to acquire exclusive write access to values.
     """
+    content_updated: Event
 
     _lock: Lock
     _change_views: DictionaryChangeMultiView
     _write_locks: KeyLockableMap
 
     def __init__(self):
+        self.content_updated = Event()
         self._lock = Lock()
         self._change_views = DictionaryChangeMultiView()
         self._write_locks = KeyLockableMap()
@@ -69,6 +72,7 @@ class StateDictionary:
             if not self._can_token_access_keys(access_token, keys):
                 raise ResourceLockedError
             self._change_views.update(change.updates, change.removals)
+        self.content_updated.invoke(access_token=access_token, change=change)
 
     def update_locks(
             self,
