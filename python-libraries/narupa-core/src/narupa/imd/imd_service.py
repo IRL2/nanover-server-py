@@ -56,14 +56,11 @@ class ImdService(InteractiveMolecularDynamicsServicer):
             velocity_reset_enabled=False,
             number_of_particles=None,
     ):
-        self._state_dictionary = state_dictionary if state_dictionary is not None else StateDictionary()
+        self.state_dictionary = state_dictionary if state_dictionary is not None else StateDictionary()
         self.name: str = IMD_SERVICE_NAME
         self.add_to_server_method: Callable = add_InteractiveMolecularDynamicsServicer_to_server
         self.velocity_reset_enabled = velocity_reset_enabled
         self.number_of_particles = number_of_particles
-
-        self._test_active_interactions = {}
-        self._test_change_buffer = self._state_dictionary.get_change_buffer().__enter__()
 
     def close(self):
         pass
@@ -105,7 +102,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         Provides a stream of updates to interactions.
         """
         interval = request.update_interval
-        with self._state_dictionary.get_change_buffer() as change_buffer:
+        with self.state_dictionary.get_change_buffer() as change_buffer:
             try:
                 subscribe_rpc_termination(context, change_buffer.freeze)
             except RpcAlreadyTerminatedError:
@@ -117,7 +114,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         key = 'interaction.'+interaction_id
         value = _interaction_to_dict(interaction)
         change = DictionaryChange(updates={key: value})
-        self._state_dictionary.update_state(None, change)
+        self.state_dictionary.update_state(None, change)
 
     def remove_interaction(self, interaction_id: str):
         self.remove_interactions_by_ids([interaction_id])
@@ -126,7 +123,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
         change = DictionaryChange(
             removals=['interaction.'+key for key in interaction_ids],
         )
-        self._state_dictionary.update_state(None, change)
+        self.state_dictionary.update_state(None, change)
 
     @property
     def active_interactions(self) -> Dict[str, ParticleInteraction]:
@@ -135,20 +132,15 @@ class ImdService(InteractiveMolecularDynamicsServicer):
 
         :return: A copy of the dictionary of active interactions.
         """
-        changes = self._test_change_buffer.flush_changed_non_blocking()
-        for removal in changes.removals:
-            self._test_active_interactions.pop(removal, None)
-        for key, value in changes.updates.items():
-            self._test_active_interactions[key] = value
-
-        return {
-            key: _dict_to_interaction(value)
-            for key, value in self._test_active_interactions.items()
-            if key.startswith('interaction.')
-        }
+        with self.state_dictionary.lock_content() as content:
+            return {
+                key: _dict_to_interaction(value)
+                for key, value in content.items()
+                if key.startswith('interaction.')
+            }
 
     def _interaction_id_exists(self, interaction_id: str) -> bool:
-        with self._state_dictionary.lock_content() as content:
+        with self.state_dictionary.lock_content() as content:
             return 'interaction.'+interaction_id in content
 
     def _publish_interaction_stream(self, request_iterator):
