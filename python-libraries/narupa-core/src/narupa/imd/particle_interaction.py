@@ -5,10 +5,7 @@ Module providing a wrapper class around the protobuf interaction message.
 """
 import math
 from typing import Dict, Any, Iterable
-
 import numpy as np
-import narupa.protocol.imd.imd_pb2 as imd_pb2
-from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
 DEFAULT_MAX_FORCE = 20000.0
 DEFAULT_FORCE_TYPE = "gaussian"
@@ -55,57 +52,6 @@ class ParticleInteraction:
         self.reset_velocities = reset_velocities
         self.max_force = max_force
         self.properties = dict(kwargs)
-
-    @classmethod
-    def from_proto(cls, interaction_proto: imd_pb2.ParticleInteraction):
-        """
-        Initialises an interaction from the protobuf representation.
-
-        :param interaction_proto: The protobuf representation of the interaction.
-        """
-        proto_key_to_keyword = {
-            cls.TYPE_KEY: 'interaction_type',
-            cls.MASS_WEIGHTED_KEY: 'mass_weighted',
-            cls.SCALE_KEY: 'scale',
-            cls.RESET_VELOCITIES_KEY: 'reset_velocities',
-            cls.MAX_FORCE_KEY: 'max_force',
-        }
-
-        properties = struct_to_dict(interaction_proto.properties)
-        kwargs = {
-            proto_key_to_keyword.get(proto_key, proto_key): value
-            for proto_key, value in properties.items()
-        }
-
-        interaction = cls(
-            position=interaction_proto.position,
-            particles=interaction_proto.particles,
-            **kwargs,
-        )
-
-        return interaction
-
-    @property
-    def proto(self) -> imd_pb2.ParticleInteraction:
-        """
-        Gets the underlying protobuf representation.
-
-        :return: The underlying protobuf Interaction representation.
-        """
-        interaction = imd_pb2.ParticleInteraction()
-        interaction.position.extend(self.position)
-        interaction.particles.extend(self.particles)
-        properties = {}
-        for key, value in self.properties.items():
-            properties[key] = value
-        properties[self.TYPE_KEY] = self.type
-        properties[self.MASS_WEIGHTED_KEY] = self.mass_weighted
-        properties[self.SCALE_KEY] = self.scale
-        properties[self.RESET_VELOCITIES_KEY] = self.reset_velocities
-        properties[self.MAX_FORCE_KEY] = self.max_force
-        for key, value in dict_to_struct(properties).items():
-            interaction.properties[key] = value
-        return interaction
 
     @property
     def type(self) -> str:

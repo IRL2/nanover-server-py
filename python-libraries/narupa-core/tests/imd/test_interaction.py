@@ -1,9 +1,6 @@
-import narupa.protocol.imd.imd_pb2 as imd_pb2
-import numpy as np
 import pytest
-from narupa.imd.particle_interaction import ParticleInteraction, DEFAULT_MAX_FORCE
-from narupa.utilities.protobuf_utilities import dict_to_struct
-from hypothesis import strategies as st, given
+from narupa.imd.particle_interaction import ParticleInteraction
+
 from .. import *
 
 @pytest.fixture
@@ -26,37 +23,6 @@ def test_get_default_position(interaction):
 def test_set_position(interaction):
     interaction.position = [1, 1, 1]
     assert np.allclose(interaction.position, [1, 1, 1])
-
-
-def test_from_proto():
-    interaction_grpc = imd_pb2.ParticleInteraction(
-        position=(0, 0, 0),
-    )
-    interaction = ParticleInteraction.from_proto(interaction_grpc)
-    assert interaction.type == "gaussian"
-    assert interaction.scale == 1
-    assert interaction.mass_weighted is True
-    assert interaction.max_force == DEFAULT_MAX_FORCE
-
-
-def test_from_proto_properties():
-    struct = dict_to_struct({
-        ParticleInteraction.TYPE_KEY: "harmonic",
-        ParticleInteraction.SCALE_KEY: 150,
-        ParticleInteraction.RESET_VELOCITIES_KEY: True,
-        ParticleInteraction.MAX_FORCE_KEY: 5000,
-        ParticleInteraction.MASS_WEIGHTED_KEY: False
-    })
-    interaction_grpc = imd_pb2.ParticleInteraction(
-        position=(0, 0, 0),
-        properties=struct,
-    )
-    interaction = ParticleInteraction.from_proto(interaction_grpc)
-    assert interaction.type == "harmonic"
-    assert interaction.scale == 150
-    assert interaction.mass_weighted is False
-    assert interaction.max_force == 5000
-    assert interaction.reset_velocities is True
 
 
 def test_set_invalid_position(interaction):
@@ -115,13 +81,6 @@ def test_get_mass(interaction):
     assert interaction.mass_weighted is True
 
 
-def test_get_mass_unset():
-    proto = imd_pb2.ParticleInteraction()
-    proto.position[:] = (0, 0, 0)
-    interaction = ParticleInteraction.from_proto(proto)
-    assert interaction.mass_weighted is True
-
-
 def test_set_reset_vels(interaction):
     interaction.reset_velocities = True
     assert interaction.reset_velocities is True
@@ -130,17 +89,6 @@ def test_set_reset_vels(interaction):
 def test_set_mass(interaction):
     interaction.mass_weighted = False
     assert interaction.mass_weighted is False
-
-
-def test_get_proto(interaction):
-    proto = interaction.proto
-    assert np.allclose(proto.position, [0, 0, 0])
-
-
-def test_get_proto_properties(interaction_with_properties):
-    proto = interaction_with_properties.proto
-    assert proto.properties['arbitrary_property'] == 'arbitrary value'
-    assert proto.properties['other_arbitrary_property'] == 'other arbitrary value'
 
 
 @st.composite
@@ -171,13 +119,6 @@ def interactions(draw):
         keywords['max_force'] = max_force
 
     return ParticleInteraction(position, particle_ids, **keywords)
-
-
-@given(interactions())
-def test_serialize_then_deserialize(interaction):
-    proto = interaction.proto
-    new_interaction = ParticleInteraction.from_proto(proto)
-    assert new_interaction == interaction
 
 
 def test_repr(interaction_with_properties):
