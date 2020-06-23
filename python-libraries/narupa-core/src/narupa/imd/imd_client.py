@@ -71,7 +71,7 @@ class ImdClient(NarupaStubClient):
                            "unknown interaction ID.")
         key = 'interaction.' + interaction_id
         value = _interaction_to_dict(interaction)
-        change = DictionaryChange(updates={key: value}, removals=[])
+        change = DictionaryChange(updates={key: value})
         result = self.attempt_update_state(change)
         return result
 

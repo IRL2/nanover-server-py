@@ -118,7 +118,7 @@ class ImdService(InteractiveMolecularDynamicsServicer):
     def insert_interaction(self, interaction_id: str, interaction: ParticleInteraction):
         key = 'interaction.'+interaction_id
         value = _interaction_to_dict(interaction)
-        change = DictionaryChange(updates={key: value},removals=[])
+        change = DictionaryChange(updates={key: value})
         self._state_dictionary.update_state(None, change)
 
         if self._interaction_updated_callback is not None:
@@ -129,7 +129,6 @@ class ImdService(InteractiveMolecularDynamicsServicer):
 
     def remove_interactions_by_ids(self, interaction_ids: Iterable[str]):
         change = DictionaryChange(
-            updates={},
             removals=['interaction.'+key for key in interaction_ids],
         )
         self._state_dictionary.update_state(None, change)
