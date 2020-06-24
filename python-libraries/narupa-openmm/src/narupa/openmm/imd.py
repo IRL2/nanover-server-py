@@ -24,7 +24,7 @@ receives the interactions. It can be use instead of
 
     from narupa.app import NarupaImdApplication
     from narupa.openmm.serializer import deserialize_simulation
-    from narupa.openmm.imd import NarupaImdReporter
+    from narupa.openmm.imd import NarupaImdReporter, create_imd_force
 
     # Setup the Narupa application server
     # The server is accessible using autoconnect.
@@ -33,7 +33,7 @@ receives the interactions. It can be use instead of
         # Create the imd force and a simulation that includes it.
         imd_force = create_imd_force()
         with open('simulation.xml') as infile:
-            simulation = deserialize_simulation(infile, imd_force=imd_force)
+            simulation = deserialize_simulation(infile.read(), imd_force=imd_force)
 
         # Setup the reporter that does the translation between Narupa and OpenMM
         reporter = NarupaImdReporter(
@@ -98,6 +98,8 @@ class NarupaImdReporter:
         Called by OpenMM. Indicates when the next report is due and what type
         of data it requires.
         """
+        self._on_first_frame(simulation)
+
         force_steps = self.force_interval - simulation.currentStep % self.force_interval
         frame_steps = self.frame_interval - simulation.currentStep % self.frame_interval
         steps = min(force_steps, frame_steps)
@@ -113,8 +115,6 @@ class NarupaImdReporter:
         """
         Called by OpenMM.
         """
-        self._on_first_frame(simulation)
-
         if simulation.currentStep % self.frame_interval == 0:
             frame_data = openmm_to_frame_data(state=state, topology=None)
             self.frame_publisher.send_frame(self._frame_index, frame_data)
@@ -132,8 +132,9 @@ class NarupaImdReporter:
             self.n_particles = self.imd_force.getNumParticles()
             self.masses = self.get_masses(simulation.system)
         if self._frame_index == 0:
+            state = simulation.context.getState(getPositions=True)
             topology = simulation.topology
-            frame_data = openmm_to_frame_data(state=None, topology=topology)
+            frame_data = openmm_to_frame_data(state=state, topology=topology)
             self.frame_publisher.send_frame(self._frame_index, frame_data)
 
     @staticmethod

@@ -18,15 +18,11 @@ from narupa.openmm.serializer import (
 )
 from narupa.openmm.imd import create_imd_force
 
-from .simulation_utils import basic_simulation, empty_imd_force
-
-
-@pytest.fixture
-def basic_simulation_xml(basic_simulation):
-    """
-    Generate a XML serialized simulation from the basic test simulation.
-    """
-    return serialize_simulation(basic_simulation)
+from .simulation_utils import (
+    basic_simulation,
+    basic_simulation_xml,
+    empty_imd_force,
+)
 
 
 def remove_xml_tag(simulation_xml: str, tag_to_remove: str) -> str:

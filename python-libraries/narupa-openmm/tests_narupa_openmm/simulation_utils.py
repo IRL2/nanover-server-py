@@ -156,5 +156,14 @@ def serialized_simulation_path(basic_simulation, tmp_path):
 
 
 @pytest.fixture
+def basic_simulation_xml(basic_simulation):
+    """
+    Generate a XML serialized simulation from the basic test simulation.
+    """
+    xml_string = serializer.serialize_simulation(basic_simulation)
+    return xml_string
+
+
+@pytest.fixture
 def empty_imd_force():
     return narupa.openmm.imd.create_imd_force()
