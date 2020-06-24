@@ -82,7 +82,7 @@ class NarupaImdReporter:
         self.imd_service = imd_service
         self.frame_publisher = frame_publisher
 
-        # We will not know this values until the beginning of the simulation.
+        # We will not know these values until the beginning of the simulation.
         self.n_particles = None
         self.masses = None
         self.positions = None
