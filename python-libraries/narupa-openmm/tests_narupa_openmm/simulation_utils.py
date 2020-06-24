@@ -16,6 +16,7 @@ from simtk.openmm import app
 from simtk.unit import kelvin, picosecond, femtosecond, nanometer  # pylint: disable=no-name-in-module
 
 from narupa.openmm import serializer
+import narupa.openmm.imd
 
 
 BASIC_SIMULATION_BOX_VECTORS = [
@@ -152,3 +153,8 @@ def serialized_simulation_path(basic_simulation, tmp_path):
     with open(str(xml_path), 'w') as outfile:
         outfile.write(serialized_simulation)
     return xml_path
+
+
+@pytest.fixture
+def empty_imd_force():
+    return narupa.openmm.imd.create_imd_force()

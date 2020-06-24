@@ -8,12 +8,7 @@ import pytest
 from simtk import openmm as mm
 from narupa.openmm import imd
 
-from .simulation_utils import basic_system
-
-
-@pytest.fixture
-def empty_imd_force():
-    return imd.create_imd_force()
+from .simulation_utils import basic_system, empty_imd_force
 
 
 def test_create_imd_force(empty_imd_force):
