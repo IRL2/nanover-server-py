@@ -43,6 +43,28 @@ def app_simulation_and_reporter(basic_simulation_xml):
         yield app, simulation, reporter
 
 
+@pytest.fixture
+def app_simulation_and_reporter_with_interactions(app_simulation_and_reporter):
+    app, simulation, reporter = app_simulation_and_reporter
+    app.imd.insert_interaction(
+        ParticleInteraction(
+            interaction_id='0',
+            position=(2.0, 3.0, 1.0),
+            particles=(0, 1, 4),
+            interaction_type='spring',
+        )
+    )
+    app.imd.insert_interaction(
+        ParticleInteraction(
+            interaction_id='1',
+            position=(10.0, 20.0, 0.0),
+            particles=(4, 5),
+            interaction_type='spring',
+        )
+    )
+    return app, simulation, reporter
+
+
 def test_create_imd_force(empty_imd_force):
     """
     The force created has the expected parameters per particle.
@@ -184,28 +206,8 @@ class TestNarupaImdReporter:
             frames = list(publisher_queue.queue)
         assert len(frames) == (n_steps // reporter.frame_interval) + 1
 
-    def test_apply_forces(self, app_simulation_and_reporter):
-        app, simulation, reporter = app_simulation_and_reporter
-        app.imd.insert_interaction(
-            ParticleInteraction(
-                interaction_id='0',
-                position=(2.0, 3.0, 1.0),
-                particles=(0, 1, 4),
-                interaction_type='spring',
-            )
-        )
-        app.imd.insert_interaction(
-            ParticleInteraction(
-                interaction_id='1',
-                position=(10.0, 20.0, 0.0),
-                particles=(4, 5),
-                interaction_type='spring',
-            )
-        )
-
-        reporter.force_interval = 1
-        simulation.step(1)
-
+    @staticmethod
+    def assert_forces(reporter, affected_indices, unaffected_indices):
         num_particles = reporter.imd_force.getNumParticles()
         parameters = [
             reporter.imd_force.getParticleParameters(i)
@@ -214,12 +216,88 @@ class TestNarupaImdReporter:
 
         forces_affected = np.array([
             parameters[particle][1]
-            for particle in (0, 1, 4, 5)
+            for particle in affected_indices
         ])
         forces_unaffected = np.array([
             parameters[particle][1]
-            for particle in (2, 3, 6, 7)
+            for particle in unaffected_indices
         ])
         assert np.all(forces_affected != 0)
         assert np.all(forces_unaffected == 0)
 
+    def test_apply_interactions(
+            self, app_simulation_and_reporter_with_interactions):
+        """
+        Interactions are applied and the computed forces are passed to the imd
+        force object.
+        """
+        app, simulation, reporter = app_simulation_and_reporter_with_interactions
+
+        reporter.force_interval = 1
+        simulation.step(1)
+
+        self.assert_forces(
+            reporter,
+            affected_indices=(0, 1, 4, 5),
+            unaffected_indices=(2, 3, 6, 7),
+        )
+
+    def test_remove_interaction_partial(
+            self, app_simulation_and_reporter_with_interactions):
+        """
+        When an interaction is removed, the corresponding forces are reset.
+        """
+        app, simulation, reporter = app_simulation_and_reporter_with_interactions
+
+        reporter.force_interval = 1
+        simulation.step(1)
+        app.imd.remove_interactions_by_ids(['0'])
+        simulation.step(1)
+
+        self.assert_forces(
+            reporter,
+            affected_indices=(4, 5),
+            unaffected_indices=(0, 1, 2, 3, 6, 7),
+        )
+
+    def test_remove_interaction_complete(
+            self, app_simulation_and_reporter_with_interactions):
+        """
+        When all interactions are removed, all the corresponding forces are
+        reset.
+        """
+        app, simulation, reporter = app_simulation_and_reporter_with_interactions
+
+        reporter.force_interval = 1
+        simulation.step(1)
+        app.imd.remove_interactions_by_ids(['0', '1'])
+        simulation.step(1)
+
+        self.assert_forces(
+            reporter,
+            affected_indices=[],
+            unaffected_indices=(0, 1, 2, 3, 4, 5, 6, 7),
+        )
+
+    def test_interactions_interval(
+            self, app_simulation_and_reporter_with_interactions):
+        """
+        Interactions are updated when expected.
+        """
+        app, simulation, reporter = app_simulation_and_reporter_with_interactions
+
+        reporter.force_interval = 3
+        # Interactions are ignored until the first update that will happen at
+        # step 3.
+        simulation.step(3)
+        # The interactions have been picked up. At step 3. The next update will
+        # happen at step 6.
+        app.imd.remove_interactions_by_ids(['0'])
+        simulation.step(1)
+        # Since we are not at step 6 yet, the forces must account for the
+        # interaction we removed.
+        self.assert_forces(
+            reporter,
+            affected_indices=(0, 1, 4, 5),
+            unaffected_indices=(2, 3, 6, 7),
+        )
