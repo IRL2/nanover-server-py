@@ -15,7 +15,7 @@ from narupa.openmm.serializer import (
     ROOT_TAG,
 )
 
-from simulation_utils import basic_simulation
+from .simulation_utils import basic_simulation
 
 
 @pytest.fixture

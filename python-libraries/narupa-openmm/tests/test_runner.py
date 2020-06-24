@@ -13,7 +13,7 @@ import pytest
 
 from narupa.openmm import Runner
 
-from simulation_utils import (
+from .simulation_utils import (
     DoNothingReporter,
     basic_simulation,
     serialized_simulation_path,

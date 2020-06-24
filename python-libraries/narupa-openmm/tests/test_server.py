@@ -16,12 +16,12 @@ import pytest
 from narupa.trajectory.frame_server import DEFAULT_PORT as TRAJECTORY_DEFAULT_PORT
 from narupa.openmm import Server, NarupaReporter
 
-from simulation_utils import (
+from .simulation_utils import (
     DoNothingReporter,
     basic_simulation,
     serialized_simulation_path,
 )
-from test_runner import TestRunner
+from .test_runner import TestRunner
 
 
 class TestServer(TestRunner):

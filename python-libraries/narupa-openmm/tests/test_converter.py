@@ -12,7 +12,7 @@ from simtk.openmm.app.topology import Topology
 from .simulation_utils import (
     BASIC_SIMULATION_POSITIONS,
     BASIC_SIMULATION_BOX_VECTORS,
-    basic_simulation
+    basic_simulation,
 )
 
 

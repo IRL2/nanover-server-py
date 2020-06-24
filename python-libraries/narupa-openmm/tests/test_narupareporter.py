@@ -14,7 +14,7 @@ from narupa.trajectory import FrameData
 from narupa.openmm import NarupaReporter
 
 # Pylint does not detect the use of the fixture.
-from simulation_utils import basic_simulation  # pylint: disable=unused-import
+from .simulation_utils import basic_simulation  # pylint: disable=unused-import
 
 
 class MockFrameServer:
