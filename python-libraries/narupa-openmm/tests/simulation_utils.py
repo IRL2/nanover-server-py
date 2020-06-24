@@ -60,6 +60,26 @@ class DoNothingReporter:
         pass
 
 
+def build_basic_system():
+    periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
+    system = mm.System()
+    system.setDefaultPeriodicBoxVectors(*periodic_box_vector)
+    system.addParticle(mass=12)
+    system.addParticle(mass=1)
+    system.addParticle(mass=1)
+    system.addParticle(mass=1)
+    system.addParticle(mass=12)
+    system.addParticle(mass=1)
+    system.addParticle(mass=1)
+    system.addParticle(mass=1)
+    return system
+
+
+@pytest.fixture
+def basic_system():
+    return build_basic_system()
+
+
 @pytest.fixture
 def basic_simulation():
     """
@@ -94,16 +114,7 @@ def basic_simulation():
     topology.addBond(atom_c1, atom_h3)
     topology.addBond(atom_c1, atom_h4)
 
-    system = mm.System()
-    system.setDefaultPeriodicBoxVectors(*periodic_box_vector)
-    system.addParticle(mass=12)
-    system.addParticle(mass=1)
-    system.addParticle(mass=1)
-    system.addParticle(mass=1)
-    system.addParticle(mass=12)
-    system.addParticle(mass=1)
-    system.addParticle(mass=1)
-    system.addParticle(mass=1)
+    system = build_basic_system()
 
     force = mm.NonbondedForce()
     force.setNonbondedMethod(force.NoCutoff)
