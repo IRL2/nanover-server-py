@@ -8,6 +8,47 @@ The iMD is hooked to the OpenMM simulation in two places. A
 has the components of the iMD force for each atom as a per-atom parameter. A
 reporter periodically updates these parameters based on the imd service, and
 updates the simulation context.
+
+The custom force can be setup using :fun:`create_imd_force` and
+:fun:`populate_imd_force`, or using :fun:`add_imd_force_to_system` that combines
+the two previous functions. When a simulation is created using
+:fun:`narupa.openmm.serializer.deserialize_simulation`, the imd force must be
+already present, or must be added by passing it with the ``imd_force``
+parameter.
+
+The reporter is :class:`NarupaImdReporter` and both sends the frames and
+receives the interactions. It can be use instead of
+:class:`narupa.openmm.NarupaReporter` that only sends the frames.
+
+.. code:: python
+
+    from narupa.app import NarupaImdApplication
+    from narupa.openmm.serializer import deserialize_simulation
+    from narupa.openmm.imd import NarupaImdReporter
+
+    # Setup the Narupa application server
+    # The server is accessible using autoconnect.
+    with NarupaImdApplication.basic_server() as app:
+
+        # Create the imd force and a simulation that includes it.
+        imd_force = create_imd_force()
+        with open('simulation.xml') as infile:
+            simulation = deserialize_simulation(infile, imd_force=imd_force)
+
+        # Setup the reporter that does the translation between Narupa and OpenMM
+        reporter = NarupaImdReporter(
+            frame_interval=5,
+            force_interval=10,
+            imd_force=imd_force,
+            imd_service=app.imd,
+            frame_publisher=app.frame_publisher,
+        )
+        simulation.reporters.append(reporter)
+
+        # Run the simulation
+        while True:
+            simulation.run(10)
+
 """
 from typing import Tuple, Dict
 
