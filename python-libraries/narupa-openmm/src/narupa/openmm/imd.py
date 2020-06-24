@@ -72,13 +72,7 @@ class NarupaImdReporter:
         """
         Called by OpenMM.
         """
-        if self.masses is None:
-            self.n_particles = self.imd_force.getNumParticles()
-            self.masses = self.get_masses(simulation.system)
-        if self._frame_index == 0:
-            topology = simulation.topology
-            frame_data = openmm_to_frame_data(state=None, topology=topology)
-            self.frame_publisher.send_frame(self._frame_index, frame_data)
+        self._on_first_frame(simulation)
 
         if simulation.currentStep % self.frame_interval == 0:
             frame_data = openmm_to_frame_data(state=state, topology=None)
@@ -88,6 +82,18 @@ class NarupaImdReporter:
             positions = np.asarray(state.getPositions().value_in_unit(unit.nanometer))
             interactions = self.imd_service.active_interactions
             self._update_forces(positions, interactions, simulation.context)
+
+    def _on_first_frame(self, simulation: app.Simulation):
+        """
+        Do the tasks that are only relevant for the first frame.
+        """
+        if self.masses is None:
+            self.n_particles = self.imd_force.getNumParticles()
+            self.masses = self.get_masses(simulation.system)
+        if self._frame_index == 0:
+            topology = simulation.topology
+            frame_data = openmm_to_frame_data(state=None, topology=topology)
+            self.frame_publisher.send_frame(self._frame_index, frame_data)
 
     @staticmethod
     def get_masses(system: mm.System) -> np.ndarray:
