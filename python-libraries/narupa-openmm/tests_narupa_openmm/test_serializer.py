@@ -100,4 +100,3 @@ def test_imd_force(basic_simulation_xml, empty_imd_force):
     force_added.setParticleParameters(0, 0, (1.0, 2.0, 3.0))
     parameters = force_obtained.getParticleParameters(0)
     assert parameters == [0, (1.0, 2.0, 3.0)]
-

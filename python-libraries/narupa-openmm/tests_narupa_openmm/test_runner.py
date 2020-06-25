@@ -15,6 +15,7 @@ from narupa.openmm import Runner
 
 from .simulation_utils import (
     DoNothingReporter,
+    basic_simulation_with_imd_force,
     basic_simulation,
     serialized_simulation_path,
 )
@@ -32,21 +33,23 @@ class TestRunner:
     of reporters when the verbosity is set to ``True`` or ``False``.
     """
     expected_number_of_reporters_verbosity = {
-        True: 2,
-        False: 1,
+        True: 3,
+        False: 2,
     }
 
     @pytest.fixture
-    def runner(self, basic_simulation):
+    def runner(self, basic_simulation_with_imd_force):
         """
         Setup a :class:`Runner` on a basic simulation.
 
         The simulation has a reporter attached to it to assure removing a reporter
         only removes only that reporter.
         """
-        runner = Runner(basic_simulation)
+        simulation, _ = basic_simulation_with_imd_force
+        runner = Runner(simulation, port=0)
         runner.simulation.reporters.append(DoNothingReporter())
-        return runner
+        yield runner
+        runner.close()
 
     @staticmethod
     def test_class(runner):
@@ -118,6 +121,6 @@ class TestRunner:
         """
         Test that a :class:`Runner` can be built from a serialized simulation.
         """
-        runner = Runner.from_xml_input(serialized_simulation_path)
         n_atoms_in_system = 8
-        assert runner.simulation.system.getNumParticles() == n_atoms_in_system
+        with Runner.from_xml_input(serialized_simulation_path, port=0) as runner:
+            assert runner.simulation.system.getNumParticles() == n_atoms_in_system

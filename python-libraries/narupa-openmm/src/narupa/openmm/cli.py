@@ -5,7 +5,7 @@ Command line interface for narupa.openmm.
 """
 import textwrap
 import argparse
-from . import Runner, Server
+from . import Runner
 
 
 def handle_user_arguments() -> argparse.Namespace:
@@ -29,13 +29,8 @@ def handle_user_arguments() -> argparse.Namespace:
         help=('Display the step number, the potential energy in kJ/mol, '
               'and the performance in ns/day.'),
     )
-    parser.add_argument('-t', '--trajectory-port', default=None)
+    parser.add_argument('-p', '--port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
-    parser.add_argument(
-        '--no-serve',
-        dest='do_serve', action='store_false', default=True,
-        help='Do not send the trajectory over the network for Narupa.',
-    )
 
     arguments = parser.parse_args()
     return arguments
@@ -47,16 +42,12 @@ def main():
     """
     arguments = handle_user_arguments()
 
-    if arguments.do_serve:
-        simulation_runner = Server.from_xml_input(
-            input_xml=arguments.simulation_xml_path,
-            address=arguments.address,
-            port=arguments.trajectory_port,
-        )
-        print(f'Serving frames on port {simulation_runner.trajectory_port}.')
-    else:
-        simulation_runner = Runner.from_xml_input(arguments.simulation_xml_path)
-        print(f'Running without serving frames.')
+    simulation_runner = Runner.from_xml_input(
+        input_xml=arguments.simulation_xml_path,
+        address=arguments.address,
+        port=arguments.port,
+    )
+    print(f'Serving frames on port {simulation_runner.app.port}.')
 
     with simulation_runner:
         simulation_runner.verbose = arguments.verbose
