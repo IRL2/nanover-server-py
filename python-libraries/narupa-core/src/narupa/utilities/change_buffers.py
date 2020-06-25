@@ -46,7 +46,7 @@ class DictionaryChangeMultiView:
     _content: Dict[str, Any]
     _frozen: bool
     _lock: Lock
-    _views: Set
+    _views: Set['DictionaryChangeBuffer']
 
     def __init__(self):
         self._content = {}
