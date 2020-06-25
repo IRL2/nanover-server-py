@@ -19,19 +19,17 @@ from narupa.imd.particle_interaction import ParticleInteraction
 from .simulation_utils import (
     basic_system,
     basic_simulation,
-    basic_simulation_xml,
+    basic_simulation_with_imd_force,
     BASIC_SIMULATION_POSITIONS,
     empty_imd_force,
+    assert_basic_simulation_topology,
 )
 
 
 @pytest.fixture
-def app_simulation_and_reporter(basic_simulation_xml):
+def app_simulation_and_reporter(basic_simulation_with_imd_force):
+    simulation, imd_force = basic_simulation_with_imd_force
     with NarupaImdApplication.basic_server(port=0) as app:
-        imd_force = imd.create_imd_force()
-        simulation = deserialize_simulation(
-            basic_simulation_xml, imd_force=imd_force)
-
         reporter = imd.NarupaImdReporter(
             frame_interval=3,
             force_interval=4,
@@ -176,19 +174,7 @@ class TestNarupaImdReporter:
         assert len(frames) == 1
         assert frames[0].frame_index == 0
         frame = FrameData(frames[0].frame)
-        # The residue names are defined as METH1 and METH2 in the original
-        # simulation. However, we built the simulation from an XML file and
-        # therefore we used a PDB for the topology. Because the residue name
-        # is stored on 3 columns in PDB files, the residue names are truncated.
-        assert frame.residue_names == ['MET', 'MET']
-        assert frame.residue_chains == [0, 1]
-        assert frame.particle_names == ['C1', 'H2', 'H3', 'H4'] * 2
-        assert frame.particle_elements == [6, 1, 1, 1] * 2
-        assert frame.particle_residues == [0] * 4 + [1] * 4
-        assert frame.bond_pairs == [
-            [0, 1], [0, 2], [0, 3],  # First residue
-            [4, 5], [4, 6], [4, 7],  # Second residue
-        ]
+        assert_basic_simulation_topology(frame)
         assert np.allclose(frame.particle_positions, BASIC_SIMULATION_POSITIONS)
 
     @pytest.mark.parametrize('interval', (1, 2, 3, 4))

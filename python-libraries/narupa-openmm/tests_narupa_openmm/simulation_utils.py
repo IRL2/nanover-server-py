@@ -6,7 +6,7 @@ Fixtures and utilities for tests that requires OpenMM simulations.
 # Pylint does not recognize pytest fixtures, which causes some false warnings.
 # pylint: disable=unused-argument,redefined-outer-name
 import pytest
-
+from typing import Optional
 import numpy as np
 
 import simtk.openmm as mm
@@ -76,13 +76,8 @@ def build_basic_system():
     return system
 
 
-@pytest.fixture
-def basic_system():
-    return build_basic_system()
-
-
-@pytest.fixture
-def basic_simulation():
+def build_basic_simulation(
+        imd_force: Optional[mm.CustomExternalForce] = None) -> app.Simulation:
     """
     Setup a minimal OpenMM simulation with two methane molecules.
     """
@@ -116,6 +111,9 @@ def basic_simulation():
     topology.addBond(atom_c1, atom_h4)
 
     system = build_basic_system()
+    if imd_force is not None:
+        narupa.openmm.imd.populate_imd_force(imd_force, system)
+        system.addForce(imd_force)
 
     force = mm.NonbondedForce()
     force.setNonbondedMethod(force.NoCutoff)
@@ -139,8 +137,23 @@ def basic_simulation():
     simulation.context.setPeriodicBoxVectors(*periodic_box_vector)
     simulation.context.setPositions(positions * nanometer)
 
-    yield simulation
-    del simulation, integrator
+    return simulation
+
+
+@pytest.fixture
+def basic_system():
+    return build_basic_system()
+
+
+@pytest.fixture
+def basic_simulation():
+    return build_basic_simulation()
+
+
+@pytest.fixture
+def basic_simulation_with_imd_force():
+    imd_force = narupa.openmm.imd.create_imd_force()
+    return build_basic_simulation(imd_force), imd_force
 
 
 @pytest.fixture
@@ -167,3 +180,19 @@ def basic_simulation_xml(basic_simulation):
 @pytest.fixture
 def empty_imd_force():
     return narupa.openmm.imd.create_imd_force()
+
+
+def assert_basic_simulation_topology(frame):
+    """
+    Fails with an :exc:`AssertError` if the topology of the given frame does
+    not match the expectation for the basic simulation.
+    """
+    assert frame.residue_names == ['METH1', 'METH2']
+    assert frame.residue_chains == [0, 1]
+    assert frame.particle_names == ['C1', 'H2', 'H3', 'H4'] * 2
+    assert frame.particle_elements == [6, 1, 1, 1] * 2
+    assert frame.particle_residues == [0] * 4 + [1] * 4
+    assert frame.bond_pairs == [
+        [0, 1], [0, 2], [0, 3],  # First residue
+        [4, 5], [4, 6], [4, 7],  # Second residue
+    ]
