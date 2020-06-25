@@ -36,19 +36,6 @@ class ImdService:
         self.state_dictionary = state_dictionary
         self.velocity_reset_enabled = velocity_reset_enabled
 
-        # prototype attempt at faster ImdServer.interactions
-        def on_content_updated(change: DictionaryChange, **_):
-            self._interactions.update({
-                key[len(INTERACTION_PREFIX):]: dict_to_interaction(value)
-                for key, value in change.updates.items()
-                if key.startswith(INTERACTION_PREFIX)
-            })
-            for key in change.removals:
-                self._interactions.pop(key[len(INTERACTION_PREFIX):], None)
-
-        self._interactions: Dict[str, ParticleInteraction] = {}
-        self.state_dictionary.content_updated.add_callback(on_content_updated)
-
         self.state_dictionary.update_locks(
             self,
             acquire={VELOCITY_RESET_KEY: None},
@@ -74,13 +61,15 @@ class ImdService:
         pass
 
     def insert_interaction(self, interaction_id: str, interaction: ParticleInteraction):
+        assert interaction_id.startswith(INTERACTION_PREFIX)
         change = DictionaryChange(updates={
-            INTERACTION_PREFIX + interaction_id: interaction_to_dict(interaction),
+            interaction_id: interaction_to_dict(interaction),
         })
         self.state_dictionary.update_state(None, change)
 
     def remove_interaction(self, interaction_id: str):
-        change = DictionaryChange(removals=[INTERACTION_PREFIX + interaction_id])
+        assert interaction_id.startswith(INTERACTION_PREFIX)
+        change = DictionaryChange(removals=[interaction_id])
         self.state_dictionary.update_state(None, change)
 
     @property
@@ -90,7 +79,13 @@ class ImdService:
 
         :return: A copy of the dictionary of active interactions.
         """
-        return self._interactions
+        with self.state_dictionary.lock_content() as content:
+            content = dict(content)
+        return {
+            key: dict_to_interaction(value)
+            for key, value in content.items()
+            if key.startswith(INTERACTION_PREFIX)
+        }
 
 
 def interaction_to_dict(interaction: ParticleInteraction):

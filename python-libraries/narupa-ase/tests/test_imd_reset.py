@@ -280,9 +280,9 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
         particles=selection,
         reset_velocities=True,
     )
-    calculator._service.insert_interaction('test', interaction)
+    calculator._service.insert_interaction('interaction.test', interaction)
     atoms.get_forces()
-    calculator._service.remove_interaction('test')
+    calculator._service.remove_interaction('interaction.test')
     atoms.get_forces()
 
     assert pytest.approx(atoms[selection].get_temperature()) == calculator.reset_temperature

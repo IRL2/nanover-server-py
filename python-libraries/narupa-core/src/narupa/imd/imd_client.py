@@ -34,7 +34,7 @@ class ImdClient(NarupaClient):
     def interactions(self) -> Dict[str, ParticleInteraction]:
         with self.lock_state() as state:
             return {
-                key[len(INTERACTION_PREFIX):]: dict_to_interaction(value)
+                key: dict_to_interaction(value)
                 for key, value in state.items()
                 if key.startswith(INTERACTION_PREFIX)
             }
@@ -45,7 +45,7 @@ class ImdClient(NarupaClient):
 
         :return: A unique identifier for the interaction.
         """
-        interaction_id = str(uuid4())
+        interaction_id = INTERACTION_PREFIX + str(uuid4())
         self._local_interaction_ids.add(interaction_id)
         return interaction_id
 
@@ -70,7 +70,7 @@ class ImdClient(NarupaClient):
             raise KeyError("Attempted to update an interaction with an "
                            "unknown interaction ID.")
         change = DictionaryChange(updates={
-            INTERACTION_PREFIX + interaction_id: interaction_to_dict(interaction),
+            interaction_id: interaction_to_dict(interaction),
         })
         return self.attempt_update_state(change)
 
@@ -89,7 +89,7 @@ class ImdClient(NarupaClient):
                            "interaction ID.")
         self._local_interaction_ids.remove(interaction_id)
         change = DictionaryChange(
-            removals=[INTERACTION_PREFIX + interaction_id]
+            removals=[interaction_id]
         )
         return self.attempt_update_state(change)
 
