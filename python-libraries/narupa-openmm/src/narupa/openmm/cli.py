@@ -71,11 +71,12 @@ def main():
             runner._verbose_reporter._reportInterval = arguments.verbose
         runner.frame_interval = arguments.frame_interval
         runner.force_interval = arguments.force_interval
+        runner.run()
+
         try:
-            runner.run()
+            input('Press [Return] to stop.')
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
-
 
 if __name__ == '__main__':
     main()

@@ -7,14 +7,20 @@ from typing import Union, TypeVar, Type, Optional
 import sys
 import os
 import logging
-
-import numpy as np
+from concurrent import futures
+from threading import RLock
 
 from simtk.openmm import app
 
 from narupa.openmm import serializer
 from narupa.app import NarupaImdApplication
 from .imd import NarupaImdReporter, get_imd_forces_from_system, create_imd_force
+from narupa.trajectory.frame_server import (
+    PLAY_COMMAND_KEY,
+    RESET_COMMAND_KEY,
+    STEP_COMMAND_KEY,
+    PAUSE_COMMAND_KEY,
+)
 
 RunnerClass = TypeVar('RunnerClass', bound='Runner')
 
@@ -82,6 +88,13 @@ class Runner:
             frame_publisher=self.app.frame_publisher,
         )
         self.simulation.reporters.append(self.reporter)
+
+        self.threads = futures.ThreadPoolExecutor(max_workers=1)
+        self._cancel_lock = RLock()
+        self._run_task = None
+        self._cancelled = False
+
+        self._register_commands()
 
     @classmethod
     def from_xml_input(
@@ -177,16 +190,115 @@ class Runner:
         else:
             self.make_quiet()
 
-    def run(self, n_steps: float = np.inf) -> None:
+    @property
+    def is_running(self) -> bool:
         """
-        Runs the simulation for a given number of steps, by default an infinity.
+        Whether or not the molecular dynamics is currently running on a
+        background thread or not.
+        :return: `True`, if molecular dynamics is running, `False` otherwise.
+        """
+        # ideally we'd just check _run_task.running(), but there can be a delay
+        # between the task starting and hitting the running state.
+        return (
+            self._run_task is not None
+            and not (self._run_task.cancelled() or self._run_task.done())
+        )
 
-        :param n_steps: The number of steps to run. Infinity by default.
+    def run(
+            self,
+            steps: Optional[int] = None,
+            block: Optional[bool] = None,
+    ) -> None:
         """
-        self.simulation.step(n_steps)
+        Runs the molecular dynamics.
+
+        :param steps: If passed, will run the given number of steps, otherwise
+            will run forever on a background thread and immediately return.
+        :param block: If ``False``, run in a separate thread. By default, "block"
+            is ``None``, which means it is automatically set to ``True`` if a
+            number of steps is provided and to ``False`` otherwise.
+        """
+        if self.is_running:
+            raise RuntimeError("Dynamics are already running on a thread!")
+        # The default is to be blocking if a number of steps is provided, and
+        # not blocking if we run forever.
+        if block is None:
+            block = (steps is not None)
+        if block:
+            self._run(steps)
+        else:
+            self._run_task = self.threads.submit(self._run, steps)
+
+    def _run(self, steps: Optional[int]) -> None:
+        remaining_steps = steps if steps is not None else float('inf')
+        while not self._cancelled and remaining_steps > 0:
+            steps_for_this_iteration = min(10, remaining_steps)
+            self.simulation.step(steps_for_this_iteration)
+            remaining_steps -= steps_for_this_iteration
+        self._cancelled = False
+
+    def step(self):
+        """
+        Take a single step of the simulation and stop.
+
+        This method is called whenever a client runs the step command,
+        described in :mod:narupa.trajectory.frame_server.
+        """
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+            self.run(self._frame_interval, block=True)
+            self.cancel_run(wait=True)
+
+    def pause(self):
+        """
+        Pause the simulation, by cancelling any current run.
+
+        This method is called whenever a client runs the pause command,
+        described in :mod:narupa.trajectory.frame_server.
+        """
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+
+    def play(self):
+        """
+        Run the simulation indefinitely
+
+        Cancels any current run and then begins running the simulation on a background thread.
+
+        This method is called whenever a client runs the play command,
+        described in :mod:narupa.trajectory.frame_server.
+        """
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+        self.run()
+
+    def cancel_run(self, wait: bool = False) -> None:
+        """
+        Cancel molecular dynamics that is running on a background thread.
+
+        :param wait: Whether to block and wait for the molecular dynamics to
+            halt before returning.
+        """
+        if self._run_task is None:
+            return
+
+        if self._cancelled:
+            return
+        self._cancelled = True
+        if wait:
+            self._run_task.result()
+            self._cancelled = False
 
     def close(self):
+        self.cancel_run()
         self.app.close()
+
+    def _register_commands(self):
+        server = self.app.server
+        server.register_command(PLAY_COMMAND_KEY, self.play)
+        #server.register_command(RESET_COMMAND_KEY, self.reset)
+        server.register_command(STEP_COMMAND_KEY, self.step)
+        server.register_command(PAUSE_COMMAND_KEY, self.pause)
 
     def __enter__(self):
         return self
