@@ -33,6 +33,15 @@ class Runner:
 
     The verbosity can be adjusted by setting the :attr:`verbose` attribute, or
     by using the :meth:`make_verbose` and :meth:`make_quiet` methods.
+
+    :param simulation: The OpenMM simulation to run. It must have an OpenMM
+        force object compatible with iMD. This force can be added using
+        :fun:`narupa.openmm.imd.add_imd_force_to_system` or provided to
+        :fun:`narupa.openmm.serializer.deserialize_simulation` with the
+        ``imd_force`` argument.
+    :param name: A friendly name for the runner. It will be displayed by ESSD.
+    :param address: The IP address the server binds to.
+    :param port: The port the server listens to.
     """
     def __init__(
             self,
@@ -86,6 +95,10 @@ class Runner:
         Create a runner from a serialized simulation.
 
         :param input_xml: Path to an XML serialised OpenMM simulation.
+        :param name: A friendly name for the runner. It will be displayed
+            by ESSD.
+        :param address: The IP address the server binds to.
+        :param port: The port the server listens to.
         :return: An instance of the class.
 
         .. seealso::
@@ -98,7 +111,7 @@ class Runner:
         with open(str(input_xml)) as infile:
             simulation = serializer.deserialize_simulation(
                 infile.read(), imd_force=imd_force)
-        return cls(simulation)
+        return cls(simulation, name=name, address=address, port=port)
 
     def make_verbose(self) -> None:
         """
