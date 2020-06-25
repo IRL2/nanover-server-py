@@ -29,8 +29,21 @@ def handle_user_arguments() -> argparse.Namespace:
         help=('Display the step number, the potential energy in kJ/mol, '
               'and the performance in ns/day.'),
     )
+    parser.add_argument(
+        '-n', '--name',
+        type=str, default=None,
+        help='Give a friendly name to the server.',
+    )
     parser.add_argument('-p', '--port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
+    parser.add_argument(
+        '-f', '--frame-interval', type=int, default=5, metavar='STEPS',
+        help='Sends a frame every STEPS dynamics steps.',
+    )
+    parser.add_argument(
+        '-i', '--force-interval', type=int, default=10, metavar='STEPS',
+        help='Update the interactions every STEPS dynamics steps.',
+    )
 
     arguments = parser.parse_args()
     return arguments
@@ -44,6 +57,7 @@ def main():
 
     simulation_runner = Runner.from_xml_input(
         input_xml=arguments.simulation_xml_path,
+        name=arguments.name,
         address=arguments.address,
         port=arguments.port,
     )
@@ -51,6 +65,8 @@ def main():
 
     with simulation_runner:
         simulation_runner.verbose = arguments.verbose
+        simulation_runner.frame_interval = arguments.frame_interval
+        simulation_runner.force_interval = arguments.force_interval
         try:
             simulation_runner.run()
         except KeyboardInterrupt:

@@ -113,6 +113,28 @@ class Runner:
                 infile.read(), imd_force=imd_force)
         return cls(simulation, name=name, address=address, port=port)
 
+    @property
+    def frame_interval(self) -> int:
+        """
+        Send a frame every N frames.
+        """
+        return self.reporter.frame_interval
+
+    @frame_interval.setter
+    def frame_interval(self, interval: int) -> None:
+        self.reporter.frame_interval = interval
+
+    @property
+    def force_interval(self) -> int:
+        """
+        Update iMD interactions every N frames.
+        """
+        return self.reporter.force_interval
+
+    @force_interval.setter
+    def force_interval(self, interval: int) -> None:
+        self.reporter.force_interval = interval
+
     def make_verbose(self) -> None:
         """
         Attach a verbosity reporter if it is not already attached.
