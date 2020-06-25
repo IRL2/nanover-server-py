@@ -114,7 +114,7 @@ class TestRunner:
         Test that :meth:`Runner.run` runs the simulation.
         """
         assert runner.simulation.currentStep == 0
-        runner.run(n_steps=5)
+        runner.run(steps=5)
         assert runner.simulation.currentStep == 5
 
     def test_from_xml_input(self, serialized_simulation_path):
