@@ -24,8 +24,7 @@ def handle_user_arguments() -> argparse.Namespace:
         help='The simulation to run in XML format.',
     )
     parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
+        '-v', '--verbose', type=int, default=0, const=100, nargs='?',
         help=('Display the step number, the potential energy in kJ/mol, '
               'and the performance in ns/day.'),
     )
@@ -64,7 +63,9 @@ def main():
     print(f'Serving frames on port {simulation_runner.app.port}.')
 
     with simulation_runner:
-        simulation_runner.verbose = arguments.verbose
+        if arguments.verbose:
+            simulation_runner.verbose = True
+            simulation_runner._verbose_reporter._reportInterval = arguments.verbose
         simulation_runner.frame_interval = arguments.frame_interval
         simulation_runner.force_interval = arguments.force_interval
         try:
