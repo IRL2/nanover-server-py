@@ -54,22 +54,25 @@ def main():
     """
     arguments = handle_user_arguments()
 
-    simulation_runner = Runner.from_xml_input(
+    runner = Runner.from_xml_input(
         input_xml=arguments.simulation_xml_path,
         name=arguments.name,
         address=arguments.address,
         port=arguments.port,
     )
-    print(f'Serving frames on port {simulation_runner.app.port}.')
+    print(
+        f'Serving "{runner.app.name}" on port {runner.app.port}, '
+        f'discoverable on all interfaces on port {runner.app.discovery.port}'
+    )
 
-    with simulation_runner:
+    with runner:
         if arguments.verbose:
-            simulation_runner.verbose = True
-            simulation_runner._verbose_reporter._reportInterval = arguments.verbose
-        simulation_runner.frame_interval = arguments.frame_interval
-        simulation_runner.force_interval = arguments.force_interval
+            runner.verbose = True
+            runner._verbose_reporter._reportInterval = arguments.verbose
+        runner.frame_interval = arguments.frame_interval
+        runner.force_interval = arguments.force_interval
         try:
-            simulation_runner.run()
+            runner.run()
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
 
