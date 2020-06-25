@@ -246,7 +246,7 @@ class Runner:
         """
         with self._cancel_lock:
             self.cancel_run(wait=True)
-            self.run(self._frame_interval, block=True)
+            self.run(self.frame_interval, block=True)
             self.cancel_run(wait=True)
 
     def pause(self):
