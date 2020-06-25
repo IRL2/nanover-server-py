@@ -3,14 +3,17 @@
 """
 Facilities to run an OpenMM simulation.
 """
-
+from typing import Union, TypeVar, Type
 import sys
+import os
 
 import numpy as np
 
 from simtk.openmm import app
 
 from narupa.openmm import serializer
+
+RunnerClass = TypeVar('RunnerClass', bound='Runner')
 
 
 class Runner:
@@ -39,7 +42,10 @@ class Runner:
         )
 
     @classmethod
-    def from_xml_input(cls, input_xml):
+    def from_xml_input(
+            cls: Type[RunnerClass],
+            input_xml: Union[str, bytes, os.PathLike],
+    ) -> RunnerClass:
         """
         Create a runner from a serialized simulation.
 
@@ -56,7 +62,7 @@ class Runner:
             simulation = serializer.deserialize_simulation(infile.read())
         return cls(simulation)
 
-    def make_verbose(self):
+    def make_verbose(self) -> None:
         """
         Attach a verbosity reporter if it is not already attached.
 
@@ -72,7 +78,7 @@ class Runner:
         if not self.verbose:
             self.simulation.reporters.append(self._verbose_reporter)
 
-    def make_quiet(self):
+    def make_quiet(self) -> None:
         """
         Detach the verbosity reporter if it is attached.
 
@@ -82,14 +88,14 @@ class Runner:
             self.simulation.reporters.remove(self._verbose_reporter)
 
     @property
-    def verbose(self):
+    def verbose(self) -> bool:
         """
         Returns ``True`` if the verbosity reporter is attached.
         """
         return self._verbose_reporter in self.simulation.reporters
 
     @verbose.setter
-    def verbose(self, value):
+    def verbose(self, value: bool):
         """
         Sets the verbosity; attach or detach the verbosity reporter if needed.
         """
@@ -98,7 +104,7 @@ class Runner:
         else:
             self.make_quiet()
 
-    def run(self, n_steps=np.inf):
+    def run(self, n_steps: float = np.inf) -> None:
         """
         Runs the simulation for a given number of steps, by default an infinity.
 
