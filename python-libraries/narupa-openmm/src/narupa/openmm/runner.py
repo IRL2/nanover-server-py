@@ -9,6 +9,7 @@ import os
 import logging
 from concurrent import futures
 from threading import RLock
+from io import StringIO
 
 from simtk.openmm import app
 
@@ -88,6 +89,10 @@ class Runner:
             frame_publisher=self.app.frame_publisher,
         )
         self.simulation.reporters.append(self.reporter)
+
+        initial_state_fake_file = StringIO()
+        self.simulation.saveState(initial_state_fake_file)
+        self._initial_state = initial_state_fake_file.getvalue()
 
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._cancel_lock = RLock()
@@ -272,6 +277,17 @@ class Runner:
             self.cancel_run(wait=True)
         self.run()
 
+    def reset(self):
+        with self._cancel_lock:
+            was_running = self.is_running
+            self.cancel_run(wait=True)
+            initial_state_fake_file = StringIO(self._initial_state)
+            self.simulation.loadState(initial_state_fake_file)
+        if was_running:
+            self.run()
+        else:
+            self.step()
+
     def cancel_run(self, wait: bool = False) -> None:
         """
         Cancel molecular dynamics that is running on a background thread.
@@ -296,7 +312,7 @@ class Runner:
     def _register_commands(self):
         server = self.app.server
         server.register_command(PLAY_COMMAND_KEY, self.play)
-        #server.register_command(RESET_COMMAND_KEY, self.reset)
+        server.register_command(RESET_COMMAND_KEY, self.reset)
         server.register_command(STEP_COMMAND_KEY, self.step)
         server.register_command(PAUSE_COMMAND_KEY, self.pause)
 
