@@ -12,6 +12,8 @@ import numpy as np
 from simtk.openmm import app
 
 from narupa.openmm import serializer
+from narupa.app import NarupaImdApplication
+from .imd import NarupaImdReporter
 
 RunnerClass = TypeVar('RunnerClass', bound='Runner')
 

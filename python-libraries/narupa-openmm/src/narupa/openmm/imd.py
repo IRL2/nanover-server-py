@@ -50,7 +50,7 @@ receives the interactions. It can be use instead of
             simulation.run(10)
 
 """
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 
 import numpy as np
 
@@ -63,6 +63,8 @@ from narupa.imd.imd_service import ImdService
 from narupa.trajectory.frame_publisher import FramePublisher
 from narupa.imd.particle_interaction import ParticleInteraction
 from .converter import openmm_to_frame_data
+
+IMD_FORCE_EXPRESSION = '-fx * x - fy * y - fz * z'
 
 NextReport = Tuple[int, bool, bool, bool, bool, bool]
 
@@ -205,7 +207,7 @@ def create_imd_force() -> mm.CustomExternalForce:
 
     .. seealso: populate_imd_force
     """
-    force = mm.CustomExternalForce('-fx * x - fy * y - fz * z')
+    force = mm.CustomExternalForce(IMD_FORCE_EXPRESSION)
     force.addPerParticleParameter('fx')
     force.addPerParticleParameter('fy')
     force.addPerParticleParameter('fz')
@@ -239,3 +241,22 @@ def add_imd_force_to_system(system: mm.System) -> mm.CustomExternalForce:
     populate_imd_force(force, system)
     system.addForce(force)
     return force
+
+
+def get_imd_forces_from_system(
+        system: app.Simulation) -> List[mm.CustomExternalForce]:
+    """
+    Find the forces that are compatible with an imd force in a given system.
+
+    A compatible force has the expected energy expression, and contains as
+    many particles as the system.
+
+    All the compatible force objects are returned.
+    """
+    system_num_particles = system.getNumParticles()
+    return [
+        force for force in system.getForces()
+        if isinstance(force, mm.CustomExternalForce)
+        and force.getEnergyFunction() == IMD_FORCE_EXPRESSION
+        and force.getNumParticles() == system_num_particles
+    ]

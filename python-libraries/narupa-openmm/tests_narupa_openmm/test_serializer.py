@@ -9,14 +9,12 @@ Tests for :mod:`narupa.openmm.serializer`.
 from xml.dom.minidom import parseString
 import pytest
 
-import simtk.openmm as mm
-
 from narupa.openmm.serializer import (
     serialize_simulation,
     deserialize_simulation,
     ROOT_TAG,
 )
-from narupa.openmm.imd import create_imd_force
+from narupa.openmm.imd import create_imd_force, get_imd_forces_from_system
 
 from .simulation_utils import (
     basic_simulation,
@@ -94,24 +92,7 @@ def test_imd_force(basic_simulation_xml, empty_imd_force):
     """
     simulation = deserialize_simulation(basic_simulation_xml, empty_imd_force)
 
-    system = simulation.system
-    all_forces = system.getForces()
-    # The wrapper for the C++ force is recreated at some point, so what
-    # system.getForces returns is a different python object as what we
-    # inputted initially, even though it references the same force under the
-    # hood. As I do not know how to access the common reference between the
-    # wrapper objects for the same force, I have to do some gymnastic.
-    putative_imd_forces = [
-        force for force in all_forces if (
-            isinstance(force, mm.CustomExternalForce)
-            and [
-                force.getPerParticleParameterName(i)
-                for i in range(force.getNumPerParticleParameters())
-            ] == ['fx', 'fy', 'fz']
-        )
-    ]
-    # In principle, there could be more than one force that matches the above
-    # description. In practice, though, it is not the case for now.
+    putative_imd_forces = get_imd_forces_from_system(simulation.system)
     assert len(putative_imd_forces) == 1
     force_obtained = putative_imd_forces[0]
     force_added = empty_imd_force
