@@ -117,14 +117,15 @@ class NarupaImdReporter:
         """
         Called by OpenMM.
         """
+        positions = None
+        if simulation.currentStep % self.force_interval == 0:
+            interactions = self.imd_service.active_interactions
+            positions = state.getPositions(asNumpy=True)
+            self._update_forces(positions.astype(float), interactions, simulation.context)
         if simulation.currentStep % self.frame_interval == 0:
-            frame_data = openmm_to_frame_data(state=state, topology=None)
+            frame_data = openmm_to_frame_data(state=state, topology=None, positions=positions)
             self.frame_publisher.send_frame(self._frame_index, frame_data)
             self._frame_index += 1
-        if simulation.currentStep % self.force_interval == 0:
-            positions = np.asarray(state.getPositions().value_in_unit(unit.nanometer))
-            interactions = self.imd_service.active_interactions
-            self._update_forces(positions, interactions, simulation.context)
 
     def _on_first_frame(self, simulation: app.Simulation):
         """
