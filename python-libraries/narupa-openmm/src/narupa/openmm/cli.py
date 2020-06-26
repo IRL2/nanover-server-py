@@ -78,5 +78,6 @@ def main():
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
 
+
 if __name__ == '__main__':
     main()
