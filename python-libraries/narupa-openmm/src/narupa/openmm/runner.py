@@ -96,7 +96,7 @@ class Runner:
 
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._cancel_lock = RLock()
-        self._run_task = None
+        self._run_task: Optional[futures.Future[None]] = None
         self._cancelled = False
 
         self._register_commands()
