@@ -7,7 +7,6 @@ from typing import Optional
 
 from simtk.openmm import State
 from simtk.openmm.app.topology import Topology
-from simtk.unit import nanometer
 
 from narupa.trajectory import FrameData
 
@@ -20,10 +19,13 @@ def add_openmm_state_to_frame_data(data: FrameData, state: State):
     :param data: Narupa :class:`FrameData` to add state information to.
     :param state: OpenMM :class:`State` from which to extract state information.
     """
-    positions = state.getPositions()
-    box_vectors = state.getPeriodicBoxVectors()
-    data.particle_positions = positions.value_in_unit(nanometer)
-    data.box_vectors = box_vectors.value_in_unit(nanometer)
+    # Here, we count of the fact that OpenMM default length unit is the
+    # nanometer. By doing this assumption, we avoid arrays being copied during
+    # unit conversion.
+    positions = state.getPositions(asNumpy=True)
+    box_vectors = state.getPeriodicBoxVectors(asNumpy=True)
+    data.particle_positions = positions
+    data.box_vectors = box_vectors
 
 
 def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology):
