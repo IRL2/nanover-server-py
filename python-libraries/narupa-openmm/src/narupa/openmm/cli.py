@@ -66,9 +66,7 @@ def main():
     )
 
     with runner:
-        if arguments.verbose:
-            runner.verbose = True
-            runner._verbose_reporter._reportInterval = arguments.verbose
+        runner.verbosity_interval = arguments.verbose
         runner.frame_interval = arguments.frame_interval
         runner.force_interval = arguments.force_interval
         runner.run()

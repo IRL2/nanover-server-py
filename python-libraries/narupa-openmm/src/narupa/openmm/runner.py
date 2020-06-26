@@ -75,7 +75,7 @@ class Runner:
                 f'More than one force could be used as imd force '
                 f'({len(putative_imd_forces)}); taking the last one.'
             )
-        # In case there is more than one compatible fore we take the last one.
+        # In case there is more than one compatible force we take the last one.
         # The forces are in the order they have been added, so we take the last
         # one that have been added. This is the most likely to have been added
         # for the purpose of this runner, the other ones are likely leftovers
@@ -152,6 +152,20 @@ class Runner:
     @force_interval.setter
     def force_interval(self, interval: int) -> None:
         self.reporter.force_interval = interval
+
+    @property
+    def verbosity_interval(self) -> int:
+        if self.verbose:
+            return self._verbose_reporter._reportInterval
+        return 0
+
+    @verbosity_interval.setter
+    def verbosity_interval(self, interval: int) -> None:
+        if interval:
+            self._verbose_reporter._reportInterval = interval
+            self.make_verbose()
+        else:
+            self.make_quiet()
 
     def make_verbose(self) -> None:
         """
