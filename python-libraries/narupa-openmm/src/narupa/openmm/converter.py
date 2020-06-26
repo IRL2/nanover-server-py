@@ -8,7 +8,6 @@ from typing import Optional
 import numpy as np
 from simtk.openmm import State
 from simtk.openmm.app.topology import Topology
-from simtk.unit import nanometer
 
 from narupa.trajectory import FrameData
 
@@ -28,6 +27,9 @@ def add_openmm_state_to_frame_data(
         available. Otherwise, if set to ``None``, the positions will be
         extracted from the state.
     """
+    # Here, we count of the fact that OpenMM default length unit is the
+    # nanometer. By doing this assumption, we avoid arrays being copied during
+    # unit conversion.
     if positions is None:
         positions = state.getPositions(asNumpy=True)
     box_vectors = state.getPeriodicBoxVectors(asNumpy=True)
