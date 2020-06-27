@@ -76,18 +76,7 @@ def build_basic_system():
     return system
 
 
-def build_basic_simulation(
-        imd_force: Optional[mm.CustomExternalForce] = None) -> app.Simulation:
-    """
-    Setup a minimal OpenMM simulation with two methane molecules.
-    """
-    # In ths function, we define matrices and we want to align the column.
-    # We disable the pylint warning about bad spacing for the scope of the
-    # function.
-    # pylint: disable=bad-whitespace
-    periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
-    positions = np.array(BASIC_SIMULATION_POSITIONS, dtype=np.float32)
-
+def build_basic_topology() -> app.Topology:
     topology = app.Topology()
     carbon = app.Element.getBySymbol('C')
     hydrogen = app.Element.getBySymbol('H')
@@ -109,7 +98,22 @@ def build_basic_simulation(
     topology.addBond(atom_c1, atom_h2)
     topology.addBond(atom_c1, atom_h3)
     topology.addBond(atom_c1, atom_h4)
+    return topology
 
+
+def build_basic_simulation(
+        imd_force: Optional[mm.CustomExternalForce] = None) -> app.Simulation:
+    """
+    Setup a minimal OpenMM simulation with two methane molecules.
+    """
+    # In ths function, we define matrices and we want to align the column.
+    # We disable the pylint warning about bad spacing for the scope of the
+    # function.
+    # pylint: disable=bad-whitespace
+    periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
+    positions = np.array(BASIC_SIMULATION_POSITIONS, dtype=np.float32)
+
+    topology = build_basic_topology()
     system = build_basic_system()
     if imd_force is not None:
         narupa.openmm.imd.populate_imd_force(imd_force, system)

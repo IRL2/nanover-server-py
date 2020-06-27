@@ -134,7 +134,7 @@ class Runner:
     @property
     def frame_interval(self) -> int:
         """
-        Send a frame every N frames.
+        Send a frame every N steps.
         """
         return self.reporter.frame_interval
 
@@ -145,7 +145,7 @@ class Runner:
     @property
     def force_interval(self) -> int:
         """
-        Update iMD interactions every N frames.
+        Update iMD interactions every N steps.
         """
         return self.reporter.force_interval
 
@@ -155,6 +155,12 @@ class Runner:
 
     @property
     def verbosity_interval(self) -> int:
+        """
+        Display the verbosity report every N steps.
+
+        If the runner is not verbose, then the verbosity interval is 0.
+        Same wise, if this interval is set to 0, then the runner is made quiet.
+        """
         if self.verbose:
             return self._verbose_reporter._reportInterval
         return 0

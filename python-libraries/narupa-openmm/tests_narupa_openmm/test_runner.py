@@ -11,7 +11,10 @@ Tests for :mod:`narupa.openmm.runner`.
 # pylint: disable=no-self-use
 import pytest
 
+from simtk import openmm as mm
+
 from narupa.openmm import Runner
+from narupa.openmm.imd import add_imd_force_to_system
 
 from .simulation_utils import (
     DoNothingReporter,
@@ -61,6 +64,30 @@ class TestRunner:
         own fixture.
         """
         assert isinstance(runner, Runner)
+
+    def test_simulation_without_imd_force(self, basic_simulation):
+        """
+        When created on a simulation without imd force, the runner fails.
+        """
+        with pytest.raises(ValueError):
+            Runner(basic_simulation, port=0)
+
+    def test_simulation_multiple_imd_force(self, caplog, basic_simulation):
+        """
+        When created on a simulation with more than one imd force, the runner
+        issues a warning.
+        """
+        # The forces added to the system will not be accounted for when running
+        # the dynamics until the context is reset as the system is already
+        # compiled in a context. It does not matter here, as the force is still
+        # listed in the system, which is what we check.
+        system = basic_simulation.system
+        for _ in range(3):
+            add_imd_force_to_system(system)
+
+        runner = Runner(basic_simulation, port=0)
+        runner.close()
+        assert 'More than one force' in caplog.text
 
     def test_default_verbosity(self, runner):
         """
@@ -124,3 +151,49 @@ class TestRunner:
         n_atoms_in_system = 8
         with Runner.from_xml_input(serialized_simulation_path, port=0) as runner:
             assert runner.simulation.system.getNumParticles() == n_atoms_in_system
+
+    @pytest.mark.parametrize('name, target_attribute', (
+        ('frame_interval', 'frame_interval'),
+        ('force_interval', 'force_interval'),
+    ))
+    def test_interval_get(self, runner, name,  target_attribute):
+        """
+        The shortcut the the NarupaImdReporter intervals return the expected
+        values.
+        """
+        attribute = getattr(runner.reporter, target_attribute)
+        assert getattr(runner, name) == attribute
+
+    @pytest.mark.parametrize('name, target_attribute', (
+            ('frame_interval', 'frame_interval'),
+            ('force_interval', 'force_interval'),
+    ))
+    def test_interval_set(self, runner, name, target_attribute):
+        """
+        The shortcut the the NarupaImdReporter intervals set the expected
+        values.
+        """
+        setattr(runner.reporter, name, 70)
+        assert getattr(runner.reporter, name) == 70
+
+    @pytest.mark.parametrize('is_verbose, expectation', (
+            (True, 10),
+            (False, 0),
+    ))
+    def test_verbosity_interval_get(self, runner, is_verbose, expectation):
+        runner.verbose = is_verbose
+        assert runner.verbosity_interval == expectation
+
+    @pytest.mark.parametrize('is_verbose', (True, False))
+    @pytest.mark.parametrize('interval', (3, 70))
+    def test_verbosity_interval_set_non_zero(self, runner, interval, is_verbose):
+        runner.verbose = is_verbose
+        runner.verbosity_interval = interval
+        assert runner._verbose_reporter._reportInterval == interval
+        assert runner.verbose is True
+
+    @pytest.mark.parametrize('is_verbose', (True, False))
+    def test_verbosity_interval_set_zero(self, runner, is_verbose):
+        runner.verbose = is_verbose
+        runner.verbosity_interval = 0
+        assert runner.verbose is False
