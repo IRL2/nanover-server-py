@@ -368,7 +368,13 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
         except AttributeError:
             continue
         if frame_key == PARTICLE_ELEMENTS:
-            field = [ELEMENT_INDEX[guess_atom_element(name)] for name in field]
+            # When MDAnalysis guesses an element symbol, it returns it fully
+            # in upper case. We need to fix the case before we can query our
+            # table.
+            field = [
+                ELEMENT_INDEX[guess_atom_element(name).capitalize()]
+                for name in field
+            ]
         frame_data.arrays[frame_key] = field
 
 
