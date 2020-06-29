@@ -42,6 +42,7 @@ def single_atom_universe(empty_universe: Universe):
     empty_universe.atoms.positions = [[0, 0, 0]]
     return empty_universe
 
+
 @pytest.fixture()
 def metal_universe():
     """
