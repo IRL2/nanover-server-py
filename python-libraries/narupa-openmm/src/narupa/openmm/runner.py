@@ -16,6 +16,7 @@ from simtk.openmm import app
 from narupa.openmm import serializer
 from narupa.app import NarupaImdApplication
 from .imd import NarupaImdReporter, get_imd_forces_from_system, create_imd_force
+from narupa.utilities.event import Event
 from narupa.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
     RESET_COMMAND_KEY,
@@ -98,6 +99,8 @@ class Runner:
         self._cancel_lock = RLock()
         self._run_task: Optional[futures.Future[None]] = None
         self._cancelled = False
+
+        self.on_reset = Event()
 
         self._register_commands()
 
@@ -303,6 +306,7 @@ class Runner:
             self.cancel_run(wait=True)
             initial_state_fake_file = StringIO(self._initial_state)
             self.simulation.loadState(initial_state_fake_file)
+            self.on_reset.invoke()
         if was_running:
             self.run()
         else:

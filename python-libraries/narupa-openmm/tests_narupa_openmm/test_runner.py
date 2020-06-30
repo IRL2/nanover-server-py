@@ -291,12 +291,25 @@ class TestRunner:
         assert server.simulation.currentStep == step_count
 
     @pytest.mark.timeout(1)
-    def test_reset_command(self, client_server):
+    @pytest.mark.parametrize('running_before', (True, False))
+    def test_reset_command(self, client_server, running_before):
         client, server = client_server
+        server.run(10)
+        if running_before:
+            server.run()
+
+        reset = False
+
+        def on_reset():
+            nonlocal reset
+            reset = True
+
+        server.on_reset.add_callback(on_reset)
         client.run_command(RESET_COMMAND_KEY)
-        while server.is_running:
-            time.sleep(0.05)
-        assert server.simulation.currentStep == 0
+
+        while not reset:
+            continue
+        assert server.is_running == running_before
 
     @pytest.mark.timeout(1)
     def test_step_command(self, client_server):
