@@ -9,12 +9,19 @@ Tests for :mod:`narupa.openmm.runner`.
 # will not be overwritten therefore cannot be staticmethods, even if they do
 # not use self.
 # pylint: disable=no-self-use
+import time
+
 import pytest
 
-from simtk import openmm as mm
-
+from narupa.app import NarupaImdClient
 from narupa.openmm import Runner
 from narupa.openmm.imd import add_imd_force_to_system
+from narupa.trajectory.frame_server import (
+    PLAY_COMMAND_KEY,
+    PAUSE_COMMAND_KEY,
+    RESET_COMMAND_KEY,
+    STEP_COMMAND_KEY,
+)
 
 from .simulation_utils import (
     DoNothingReporter,
@@ -53,6 +60,12 @@ class TestRunner:
         runner.simulation.reporters.append(DoNothingReporter())
         yield runner
         runner.close()
+
+    @pytest.fixture
+    def client_server(self, runner):
+        server_port = runner.app.port
+        with NarupaImdClient.connect_to_single_server(port=server_port) as client:
+            yield client, runner
 
     @staticmethod
     def test_class(runner):
@@ -197,3 +210,99 @@ class TestRunner:
         runner.verbose = is_verbose
         runner.verbosity_interval = 0
         assert runner.verbose is False
+
+    def test_run_non_blocking(self, runner):
+        runner.run(100, block=False)
+        # Here we count on the context switching to the assertions before finishing
+        # the run.
+        assert runner.simulation.currentStep < 100
+        assert runner._run_task is not None
+        assert not runner._cancelled
+
+    def test_cancel_run(self, runner):
+        runner.run(block=False)
+        assert runner.is_running
+        runner.cancel_run(wait=True)
+        assert runner.is_running is False
+
+    def test_cancel_never_running(self, runner):
+        # Cancelling a non running simulation should not raise an exception.
+        runner.cancel_run()
+
+    def test_run_twice(self, runner):
+        runner.run(block=False)
+        with pytest.raises(RuntimeError):
+            runner.run(block=False)
+
+    def test_step(self, runner):
+        step_count = runner.simulation.currentStep
+        runner.step()
+        assert runner.simulation.currentStep == step_count + runner.frame_interval
+
+    def test_multiple_steps(self, runner):
+        num_steps = 10
+        runner.run(block=False)
+        runner.cancel_run(wait=True)
+        step_count = runner.simulation.currentStep
+        for i in range(num_steps):
+            runner.step()
+        assert runner.simulation.currentStep == step_count + (num_steps * runner.frame_interval)
+
+    def test_pause(self, runner):
+        runner.run(block=False)
+        runner.pause()
+        step_count = runner.simulation.currentStep
+        assert runner._run_task.done() is True
+        time.sleep(0.1)
+        assert runner.simulation.currentStep == step_count
+
+    def test_play(self, runner):
+        runner.run(block=False)
+        assert runner.is_running
+        runner.pause()
+        assert runner.is_running is False
+        runner.play()
+        assert runner.is_running
+
+    def test_play_twice(self, runner):
+        runner.play()
+        assert runner.is_running
+        runner.play()
+        assert runner.is_running
+
+    @pytest.mark.timeout(1)
+    def test_play_command(self, client_server):
+        client, server = client_server
+        assert not server.is_running
+        client.run_command(PLAY_COMMAND_KEY)
+        while True:
+            if server.is_running:
+                return
+
+    @pytest.mark.timeout(1)
+    def test_pause_command(self, client_server):
+        client, server = client_server
+        server.run()
+        client.run_command(PAUSE_COMMAND_KEY)
+        while server.is_running:
+            continue
+        step_count = server.simulation.currentStep
+        time.sleep(0.1)
+        assert server.simulation.currentStep == step_count
+
+    @pytest.mark.timeout(1)
+    def test_reset_command(self, client_server):
+        client, server = client_server
+        client.run_command(RESET_COMMAND_KEY)
+        while server.is_running:
+            time.sleep(0.05)
+        assert server.simulation.currentStep == 0
+
+    @pytest.mark.timeout(1)
+    def test_step_command(self, client_server):
+        client, server = client_server
+        step_count = server.simulation.currentStep
+        client.run_command(STEP_COMMAND_KEY)
+        time.sleep(0.1)
+        assert server.is_running is False
+        assert server.dynamics.get_number_of_steps() == step_count + 1
