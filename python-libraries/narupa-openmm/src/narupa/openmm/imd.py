@@ -90,8 +90,8 @@ class NarupaImdReporter:
         self.masses = None
         self.positions = None
 
-        self.is_force_dirty = False
-        self.previous_force_index: Set[int] = set()
+        self._is_force_dirty = False
+        self._previous_force_index: Set[int] = set()
         self._frame_index = 0
 
     # The name of the method is part of the OpenMM API. It cannot be made to
@@ -171,7 +171,7 @@ class NarupaImdReporter:
         if interactions:
             self._apply_forces(positions, interactions)
             context_needs_update = True
-        elif self.is_force_dirty:
+        elif self._is_force_dirty:
             self._reset_forces()
             context_needs_update = True
 
@@ -190,23 +190,23 @@ class NarupaImdReporter:
             positions, self.masses, interactions.values(),
         )
         affected_particles = _build_particle_interaction_index_set(interactions)
-        to_reset_particles = self.previous_force_index - affected_particles
+        to_reset_particles = self._previous_force_index - affected_particles
         for particle in affected_particles:
             force = forces_kjmol[particle]
             self.imd_force.setParticleParameters(particle, particle, force)
         for particle in to_reset_particles:
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
-        self.is_force_dirty = True
-        self.previous_force_index = affected_particles
+        self._is_force_dirty = True
+        self._previous_force_index = affected_particles
 
     def _reset_forces(self):
         """
         Set all the iMD forces to 0.
         """
-        for particle in self.previous_force_index:
+        for particle in self._previous_force_index:
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
-        self.is_force_dirty = False
-        self.previous_force_index = set()
+        self._is_force_dirty = False
+        self._previous_force_index = set()
 
 
 def _build_particle_interaction_index_set(interactions: Dict[str, ParticleInteraction]) -> Set[int]:
