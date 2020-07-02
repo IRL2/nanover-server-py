@@ -67,21 +67,21 @@ class Runner:
             potentialEnergy=True,
         )
         self.app = NarupaImdApplication.basic_server(name, address, port)
-        putative_imd_forces = get_imd_forces_from_system(simulation.system)
-        if not putative_imd_forces:
+        potential_imd_forces = get_imd_forces_from_system(simulation.system)
+        if not potential_imd_forces:
             raise ValueError(
                 'The simulation must include an appropriate force for imd.')
-        if len(putative_imd_forces) > 1:
+        if len(potential_imd_forces) > 1:
             logging.warning(
                 f'More than one force could be used as imd force '
-                f'({len(putative_imd_forces)}); taking the last one.'
+                f'({len(potential_imd_forces)}); taking the last one.'
             )
         # In case there is more than one compatible force we take the last one.
         # The forces are in the order they have been added, so we take the last
         # one that have been added. This is the most likely to have been added
         # for the purpose of this runner, the other ones are likely leftovers
         # or forces created for another purpose.
-        imd_force = putative_imd_forces[-1]
+        imd_force = potential_imd_forces[-1]
         self.reporter = NarupaImdReporter(
             frame_interval=5,
             force_interval=10,
