@@ -50,7 +50,8 @@ receives the interactions. It can be use instead of
             simulation.run(10)
 
 """
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Set
+import itertools
 
 import numpy as np
 
@@ -90,6 +91,7 @@ class NarupaImdReporter:
         self.positions = None
 
         self.is_force_dirty = False
+        self.previous_force_index: Set[int] = set()
         self._frame_index = 0
 
     # The name of the method is part of the OpenMM API. It cannot be made to
@@ -183,17 +185,34 @@ class NarupaImdReporter:
         _, forces_kjmol = calculate_imd_force(
             positions, self.masses, interactions.values(),
         )
-        for particle, force in enumerate(forces_kjmol):
+        affected_particles = _build_particle_interaction_index_set(interactions)
+        to_reset_particles = self.previous_force_index - affected_particles
+        for particle in affected_particles:
+            force = forces_kjmol[particle]
             self.imd_force.setParticleParameters(particle, particle, force)
+        for particle in to_reset_particles:
+            self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
         self.is_force_dirty = True
+        self.previous_force_index = affected_particles
 
     def _reset_forces(self):
         """
         Set all the iMD forces to 0.
         """
-        for particle in range(self.n_particles):
+        for particle in self.previous_force_index:
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
         self.is_force_dirty = False
+        self.previous_force_index = set()
+
+
+def _build_particle_interaction_index_set(interactions: Dict[str, ParticleInteraction]) -> Set[int]:
+    """
+    Get a set of the indices of the particles involved in interactions.
+    """
+    return set(map(int, itertools.chain(*(
+        interaction.particles
+        for interaction in interactions.values()
+    ))))
 
 
 def create_imd_force() -> mm.CustomExternalForce:
