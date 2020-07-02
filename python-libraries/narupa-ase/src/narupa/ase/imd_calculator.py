@@ -13,7 +13,7 @@ from ase.calculators.calculator import Calculator, all_changes
 from ase.md.md import MolecularDynamics
 from ase.md.velocitydistribution import _maxwellboltzmanndistribution
 from narupa.imd.imd_force import calculate_imd_force
-from narupa.imd.imd_service import ImdService
+from narupa.imd.imd_state import ImdStateWrapper
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.trajectory.frame_data import MissingDataError
 
@@ -41,7 +41,7 @@ class ImdCalculator(Calculator):
     
     """
 
-    def __init__(self, imd_service: ImdService,
+    def __init__(self, imd_service: ImdStateWrapper,
                  calculator: Optional[Calculator] = None,
                  atoms: Optional[Atoms] = None,
                  dynamics: Optional[MolecularDynamics] = None,

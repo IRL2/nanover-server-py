@@ -7,7 +7,7 @@ from typing import Dict, Set
 import grpc
 from narupa.core import NarupaClient
 from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.imd.imd_service import (
+from narupa.imd.imd_state import (
     INTERACTION_PREFIX,
     interaction_to_dict,
     dict_to_interaction,

@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Module providing an implementation of an IMD service.
+Module providing methods for storing ParticleInteractions in a StateDictionary.
 """
 from typing import Dict, Any
 
@@ -14,18 +14,14 @@ INTERACTION_PREFIX = 'interaction.'
 VELOCITY_RESET_KEY = 'imd.velocity_reset_enabled'
 
 
-class ImdService:
+class ImdStateWrapper:
     """
-    An implementation of an IMD service, that keeps track of interactions
-    produced by clients that can be consumed by an interactive molecular
-    dynamics simulation.
+    A wrapper around a StateDictionary that provides convenient methods for
+    accessing and modifying ParticleInteractions.
 
-    :param state_dictionary: The state dictionary to store interactions in.
+    :param state_dictionary: The state dictionary to wrap.
     :param velocity_reset_enabled: Whether the dynamics this service is being
         used in supports velocity reset.
-    :param number_of_particles: If set, allows the IMD service to validate the
-        particle indices in an interaction are valid. If not set, it is up to
-        consumers of the interactions to validate.
     """
 
     def __init__(
@@ -57,9 +53,6 @@ class ImdService:
         change = DictionaryChange(updates={VELOCITY_RESET_KEY: value})
         self.state_dictionary.update_state(self, change)
 
-    def close(self):
-        pass
-
     def insert_interaction(self, interaction_id: str, interaction: ParticleInteraction):
         assert interaction_id.startswith(INTERACTION_PREFIX)
         change = DictionaryChange(updates={
@@ -79,11 +72,9 @@ class ImdService:
 
         :return: A copy of the dictionary of active interactions.
         """
-        with self.state_dictionary.lock_content() as content:
-            content = dict(content)
         return {
             key: dict_to_interaction(value)
-            for key, value in content.items()
+            for key, value in self.state_dictionary.copy_content().items()
             if key.startswith(INTERACTION_PREFIX)
         }
 

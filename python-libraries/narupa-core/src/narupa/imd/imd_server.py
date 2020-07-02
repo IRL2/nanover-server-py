@@ -10,7 +10,7 @@ from narupa.core import (
     get_requested_port_or_default,
     DEFAULT_SERVE_ADDRESS,
 )
-from narupa.imd.imd_service import ImdService
+from narupa.imd.imd_state import ImdStateWrapper
 
 DEFAULT_PORT = 54322
 
@@ -22,7 +22,7 @@ class ImdServer(NarupaServer):
     :param: address: URL or IP address at which to run the server.
     :param: port: Port at which to run the server.
     """
-    _imd_service: ImdService
+    _imd_service: ImdStateWrapper
 
     def __init__(
             self,
@@ -36,7 +36,7 @@ class ImdServer(NarupaServer):
         super().__init__(address=address, port=port)
 
     @property
-    def service(self) -> ImdService:
+    def service(self) -> ImdStateWrapper:
         """
         Gets the IMD service implementation attached to this server.
         :return: The IMD service.
@@ -48,6 +48,6 @@ class ImdServer(NarupaServer):
         Sets up a new IMD service and attaches it to the server.
         """
         super().setup_services()
-        self._imd_service = ImdService(
+        self._imd_service = ImdStateWrapper(
             state_dictionary=self._state_service.state_dictionary,
         )
