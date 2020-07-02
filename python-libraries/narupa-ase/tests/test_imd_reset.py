@@ -1,8 +1,11 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 import contextlib
+from typing import ContextManager, Tuple
+
 import pytest
 from ase import units
+from ase.lattice.bravais import Lattice
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.calculators.lj import LennardJones
@@ -56,7 +59,7 @@ def fcc_atoms():
 
 
 @contextlib.contextmanager
-def imd_calculator_berendsen_dynamics_context():
+def imd_calculator_berendsen_dynamics_context() -> ContextManager[Tuple[ImdCalculator, Lattice, NVTBerendsen]]:
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
@@ -280,9 +283,9 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
         particles=selection,
         reset_velocities=True,
     )
-    calculator._service.insert_interaction('interaction.test', interaction)
+    calculator._imd_state.insert_interaction('interaction.test', interaction)
     atoms.get_forces()
-    calculator._service.remove_interaction('interaction.test')
+    calculator._imd_state.remove_interaction('interaction.test')
     atoms.get_forces()
 
     assert pytest.approx(atoms[selection].get_temperature()) == calculator.reset_temperature
