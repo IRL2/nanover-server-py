@@ -137,10 +137,6 @@ class DictionaryChangeMultiView:
             except ObjectFrozenError:
                 self._views.remove(view)
 
-    def __contains__(self, item):
-        with self._lock:
-            return item in self._content
-
 
 class DictionaryChangeBuffer:
     """
