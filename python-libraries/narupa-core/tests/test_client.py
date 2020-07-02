@@ -99,10 +99,10 @@ def test_close_interaction(client_server, interaction):
     client, frame_server, imd_server, multiplayer_server = client_server
     id = client.start_interaction(interaction)
     time.sleep(CLIENT_WAIT_TIME)
-    assert len(imd_server.service.active_interactions) == 1
+    assert len(imd_server.imd_state.active_interactions) == 1
     client.close()
     time.sleep(CLIENT_WAIT_TIME)
-    assert len(imd_server.service.active_interactions) == 0
+    assert len(imd_server.imd_state.active_interactions) == 0
 
 
 def test_stop_interaction(client_server, interaction):
@@ -112,10 +112,10 @@ def test_stop_interaction(client_server, interaction):
     client, frame_server, imd_server, multiplayer_server = client_server
     id = client.start_interaction(interaction)
     time.sleep(CLIENT_WAIT_TIME)
-    assert len(imd_server.service.active_interactions) == 1
+    assert len(imd_server.imd_state.active_interactions) == 1
     client.stop_interaction(id)
     time.sleep(CLIENT_WAIT_TIME)
-    assert len(imd_server.service.active_interactions) == 0
+    assert len(imd_server.imd_state.active_interactions) == 0
 
 
 def test_start_interaction(client_server, interaction):
@@ -125,7 +125,7 @@ def test_start_interaction(client_server, interaction):
     client, frame_server, imd_server, multiplayer_server = client_server
     client.start_interaction(interaction)
     time.sleep(CLIENT_WAIT_TIME)
-    assert len(imd_server.service.active_interactions) == 1
+    assert len(imd_server.imd_state.active_interactions) == 1
 
 
 def test_update_interaction(client_server, interaction):
@@ -137,8 +137,8 @@ def test_update_interaction(client_server, interaction):
     interaction.position = [2, 2, 2]
     client.update_interaction(id, interaction)
     time.sleep(CLIENT_WAIT_TIME)
-    assert len(imd_server.service.active_interactions) == 1
-    assert np.allclose(list(imd_server.service.active_interactions.values())[0].position, (2, 2, 2))
+    assert len(imd_server.imd_state.active_interactions) == 1
+    assert np.allclose(list(imd_server.imd_state.active_interactions.values())[0].position, (2, 2, 2))
 
 
 def test_no_imd(interaction):

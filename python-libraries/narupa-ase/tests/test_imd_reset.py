@@ -61,7 +61,7 @@ def imd_calculator_berendsen_dynamics_context():
     atoms = fcc_atoms()
     calculator = LennardJones()
     dynamics = NVTBerendsen(atoms, 1.0, TEST_TEMPERATURE, 1.0)
-    imd_calculator = ImdCalculator(server.service, calculator, atoms, dynamics=dynamics)
+    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, dynamics=dynamics)
     yield imd_calculator, atoms, dynamics
     server.close()
 
@@ -84,7 +84,7 @@ def imd_calculator_langevin_dynamics():
     atoms = fcc_atoms()
     calculator = LennardJones()
     dynamics = Langevin(atoms, 1.0, TEST_TEMPERATURE, 1.0)
-    imd_calculator = ImdCalculator(server.service, calculator, atoms, dynamics=dynamics)
+    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, dynamics=dynamics)
     yield imd_calculator, atoms, dynamics
     server.close()
 
@@ -137,7 +137,7 @@ def test_custom_temperature():
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(server.service, calculator, atoms, reset_scale=0.1)
+    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, reset_scale=0.1)
     imd_calculator.temperature = 100
     assert pytest.approx(imd_calculator.reset_temperature) == 0.1 * 100
 
