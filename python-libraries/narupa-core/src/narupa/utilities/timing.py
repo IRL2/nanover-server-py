@@ -4,7 +4,6 @@
 Module providing time-dependent utility methods.
 """
 import time
-from typing import Iterable
 
 
 def yield_interval(interval: float):
@@ -21,17 +20,3 @@ def yield_interval(interval: float):
         time.sleep(wait_duration)
         yield time.monotonic() - last_yield
         last_yield = time.monotonic()
-
-
-def delayed_generator(iterable: Iterable, delay: float):
-    """
-    Generate items from the given iterable, with the given delay between
-    each item.
-
-    :param iterable: Iterable object to generate items from.
-    :param delay: Delay, in seconds, between each item.
-    :yield The items in the iterable.
-    """
-    for item in iterable:
-        yield item
-        time.sleep(delay)
