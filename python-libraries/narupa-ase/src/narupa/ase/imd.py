@@ -8,7 +8,7 @@ import logging
 from concurrent import futures
 from contextlib import contextmanager
 from threading import RLock
-from typing import Optional, Callable, List, Any
+from typing import Optional, Callable, List
 
 import numpy as np
 from ase import Atoms, units  # type: ignore
@@ -26,7 +26,7 @@ class NarupaASEDynamics:
     """
     Interactive molecular dynamics adaptor for use with ASE.
 
-    :param narupa_imd_app: A :class:`NarupaImdApplication`  to pass frames to and receive forces from.
+    :param narupa_imd_app: A :class:`NarupaImdApplication` to pass frames to and read forces from.
     :param dynamics: A prepared ASE molecular dynamics object to run, with IMD attached.
     :param frame_interval: Interval, in steps, at which to publish frames.
     :param frame_method: Method to use to generate frames, given the the ASE :class:`Atoms`
@@ -64,14 +64,17 @@ class NarupaASEDynamics:
 
         self._server = narupa_imd_app.server
         self._frame_publisher = narupa_imd_app.frame_publisher
-        self._imd_service = narupa_imd_app.imd
 
         self._cancel_lock = RLock()
         self._register_commands()
 
         self.dynamics = dynamics
         calculator = self.dynamics.atoms.get_calculator()
-        self.imd_calculator = ImdCalculator(self._imd_service, calculator, dynamics=dynamics)
+        self.imd_calculator = ImdCalculator(
+            narupa_imd_app.imd,
+            calculator,
+            dynamics=dynamics,
+        )
         self.atoms.set_calculator(self.imd_calculator)
         self._frame_interval = frame_interval
         self.dynamics.attach(frame_method(self.atoms, self._frame_publisher), interval=frame_interval)
@@ -88,11 +91,13 @@ class NarupaASEDynamics:
 
     @classmethod
     @contextmanager
-    def basic_imd(cls, dynamics: MolecularDynamics,
-                  address: Optional[str] = None,
-                  port: Optional[int] = None,
-                  **kwargs,
-                  ):
+    def basic_imd(
+            cls,
+            dynamics: MolecularDynamics,
+            address: Optional[str] = None,
+            port: Optional[int] = None,
+            **kwargs,
+    ):
         """
         Initialises basic interactive molecular dynamics running a Narupa server
         at the given address and port.
