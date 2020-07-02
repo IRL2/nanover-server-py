@@ -15,7 +15,7 @@ from narupa.trajectory import FrameData
 def add_openmm_state_to_frame_data(
         data: FrameData,
         state: State,
-        positions: Optional[np.ndarray] = None
+        include_positions: bool = True,
 ) -> None:
     """
     Adds the OpenMM state information to the given :class:`FrameData`, including
@@ -23,17 +23,16 @@ def add_openmm_state_to_frame_data(
 
     :param data: Narupa :class:`FrameData` to add state information to.
     :param state: OpenMM :class:`State` from which to extract state information.
-    :param positions: Provide the positions in nanometers if they are already
-        available. Otherwise, if set to ``None``, the positions will be
-        extracted from the state.
+    :param include_positions: If ``True``, the particle positions are read from
+        the state and included in the frame.
     """
     # Here, we count of the fact that OpenMM default length unit is the
     # nanometer. By doing this assumption, we avoid arrays being copied during
     # unit conversion.
-    if positions is None:
+    if include_positions:
         positions = state.getPositions(asNumpy=True)
+        data.particle_positions = positions
     box_vectors = state.getPeriodicBoxVectors(asNumpy=True)
-    data.particle_positions = positions
     data.box_vectors = box_vectors
 
 
@@ -78,7 +77,7 @@ def openmm_to_frame_data(
         *,
         state: Optional[State] = None,
         topology: Optional[Topology] = None,
-        positions: Optional[np.ndarray] = None,
+        include_positions: bool = True,
 ) -> FrameData:
     """
     Converts the given OpenMM state and topology objects into a Narupa :class:`FrameData`.
@@ -91,16 +90,14 @@ def openmm_to_frame_data(
         state data.
     :param topology: An optional OpenMM :class:`Topology` from which to extract
         topological information.
-    :param positions: Provide the positions in nanometers if they are already
-        available. Otherwise, if set to ``None``, the positions will be
-        extracted from the state. The positions are included in the resulting
-        frame only if 'state' is not set to ``None``.
+    :param include_positions: If ``True``, the particle positions are read from
+        the state and included in the frame.
     :return: A :class:`FrameData` with the state and topology information
         provided added to it.
     """
     data = FrameData()
     if state is not None:
-        add_openmm_state_to_frame_data(data, state, positions)
+        add_openmm_state_to_frame_data(data, state, include_positions)
     if topology is not None:
         add_openmm_topology_to_frame_data(data, topology)
     return data

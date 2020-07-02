@@ -125,7 +125,11 @@ class NarupaImdReporter:
             positions = state.getPositions(asNumpy=True)
             self._update_forces(positions.astype(float), interactions, simulation.context)
         if simulation.currentStep % self.frame_interval == 0:
-            frame_data = openmm_to_frame_data(state=state, topology=None, positions=positions)
+            if positions is None:
+                positions = state.getPositions(asNumpy=True)
+            frame_data = openmm_to_frame_data(
+                state=state, topology=None, include_positions=False)
+            frame_data.particle_positions = positions
             self.frame_publisher.send_frame(self._frame_index, frame_data)
             self._frame_index += 1
 
