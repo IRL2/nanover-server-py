@@ -36,3 +36,30 @@ EXACT_VALUE_STRATEGIES = st.one_of(
     MIXED_DICT_STRATEGY,
     EXACT_SINGLE_VALUE_STRATEGY,
 )
+
+
+def keys():
+    return st.text(min_size=1)
+
+
+def serializable_primitives():
+    return st.one_of(st.text(),
+                     st.booleans(),
+                     st.none(),
+                     st.floats(min_value=float(MIN_DOUBLE), max_value=float(MAX_DOUBLE)),
+                     st.integers(min_value=int(MIN_INT32), max_value=int(MAX_INT32)))
+
+
+def serializable_dictionaries():
+    return st.dictionaries(keys(), serializable(), max_size=5)
+
+
+def serializable_lists():
+    return st.lists(serializable(), max_size=5)
+
+
+def serializable():
+    return st.recursive(serializable_primitives(),
+                        lambda s: st.one_of(st.lists(s, max_size=5),
+                                            st.dictionaries(keys(), s, max_size=5)),
+                        max_leaves=10)
