@@ -24,6 +24,6 @@ def test_multiple_keys():
 def test_velocity_reset_enabled():
     state = StateDictionary()
     imd_state = ImdStateWrapper(state)
-    imd_state.velocity_reset_enabled = True
-    assert imd_state.velocity_reset_enabled
+    imd_state.velocity_reset_available = True
+    assert imd_state.velocity_reset_available
     assert state.copy_content()[VELOCITY_RESET_KEY]

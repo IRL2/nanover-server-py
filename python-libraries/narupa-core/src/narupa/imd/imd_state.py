@@ -11,7 +11,7 @@ from narupa.imd.particle_interaction import ParticleInteraction
 
 IMD_SERVICE_NAME = "imd"
 INTERACTION_PREFIX = 'interaction.'
-VELOCITY_RESET_KEY = 'imd.velocity_reset_enabled'
+VELOCITY_RESET_KEY = 'imd.velocity_reset_available'
 
 
 class ImdStateWrapper:
@@ -20,17 +20,17 @@ class ImdStateWrapper:
     accessing and modifying ParticleInteractions.
 
     :param state_dictionary: The state dictionary to wrap.
-    :param velocity_reset_enabled: Whether the dynamics this service is being
-        used in supports velocity reset.
+    :param velocity_reset_available: Whether the dynamics this service is being
+        used in allows velocity reset.
     """
 
     def __init__(
             self,
             state_dictionary: StateDictionary,
-            velocity_reset_enabled=False,
+            velocity_reset_available=False,
     ):
         self.state_dictionary = state_dictionary
-        self.velocity_reset_enabled = velocity_reset_enabled
+        self.velocity_reset_available = velocity_reset_available
 
         self.state_dictionary.update_locks(
             self,
@@ -39,17 +39,17 @@ class ImdStateWrapper:
         self.state_dictionary.update_state(
             self,
             change=DictionaryChange(updates={
-                VELOCITY_RESET_KEY: velocity_reset_enabled
+                VELOCITY_RESET_KEY: velocity_reset_available
             }),
         )
 
     @property
-    def velocity_reset_enabled(self):
+    def velocity_reset_available(self):
         with self.state_dictionary.lock_content() as state:
             return state[VELOCITY_RESET_KEY]
 
-    @velocity_reset_enabled.setter
-    def velocity_reset_enabled(self, value: bool):
+    @velocity_reset_available.setter
+    def velocity_reset_available(self, value: bool):
         change = DictionaryChange(updates={VELOCITY_RESET_KEY: value})
         self.state_dictionary.update_state(self, change)
 

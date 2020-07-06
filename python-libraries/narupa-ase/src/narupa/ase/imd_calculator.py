@@ -203,8 +203,8 @@ class ImdCalculator(Calculator):
         try:
             temp = self.temperature
         except MissingDataError:
-            self._imd_state.velocity_reset_enabled = False
-        self._imd_state.velocity_reset_enabled = True
+            self._imd_state.velocity_reset_available = False
+        self._imd_state.velocity_reset_available = True
         self._previous_interactions = {}
 
 
