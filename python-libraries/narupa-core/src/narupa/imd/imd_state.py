@@ -92,7 +92,7 @@ def interaction_to_dict(interaction: ParticleInteraction):
         dictionary = {
             "position": [float(f) for f in interaction.position],
             "particles": [int(i) for i in interaction.particles],
-            "interaction_type": interaction.type,
+            "interaction_type": interaction.interaction_type,
             "scale": interaction.scale,
             "mass_weighted": interaction.mass_weighted,
             "reset_velocities": interaction.reset_velocities,

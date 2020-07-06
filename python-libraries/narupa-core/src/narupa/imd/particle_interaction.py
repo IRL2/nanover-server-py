@@ -47,21 +47,21 @@ class ParticleInteraction:
         self.position = position
         self.particles = particles
         self.scale = scale
-        self.type = interaction_type
+        self.interaction_type = interaction_type
         self.mass_weighted = mass_weighted
         self.reset_velocities = reset_velocities
         self.max_force = max_force
         self.properties = dict(kwargs)
 
     @property
-    def type(self) -> str:
+    def interaction_type(self) -> str:
         """
         The type of interaction being applied, default 'gaussian'.
         """
         return self._type
 
-    @type.setter
-    def type(self, value: str):
+    @interaction_type.setter
+    def interaction_type(self, value: str):
         self._type = value
 
     @property
@@ -153,11 +153,11 @@ class ParticleInteraction:
 
     def __eq__(self, other):
         return (
-            isinstance(other, ParticleInteraction) and np.equal(self.particles, other.particles).all()
-            and np.isclose(self.position, other.position).all() and math.isclose(self.max_force, other.max_force)
-            and self.mass_weighted == other.mass_weighted and math.isclose(self.scale, other.scale)
-            and self.reset_velocities == other.reset_velocities and self.type == other.type
-            and self.properties == other.properties
+                isinstance(other, ParticleInteraction) and np.equal(self.particles, other.particles).all()
+                and np.isclose(self.position, other.position).all() and math.isclose(self.max_force, other.max_force)
+                and self.mass_weighted == other.mass_weighted and math.isclose(self.scale, other.scale)
+                and self.reset_velocities == other.reset_velocities and self.interaction_type == other.interaction_type
+                and self.properties == other.properties
         )
 
     def __repr__(self):
@@ -169,7 +169,7 @@ class ParticleInteraction:
             f" scale:{self.scale}"
             f" mass_weighted:{self.mass_weighted}"
             f" max_force:{self.max_force}"
-            f" type:{self.type}"
+            f" type:{self.interaction_type}"
             f" other:{self.properties}"
             ">"
         )

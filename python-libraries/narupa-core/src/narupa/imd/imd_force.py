@@ -64,9 +64,9 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
 
     # fetch the correct potential to use based on the interaction type.
     try:
-        potential_method = INTERACTION_METHOD_MAP[interaction.type]
+        potential_method = INTERACTION_METHOD_MAP[interaction.interaction_type]
     except KeyError:
-        raise KeyError(f"Unknown interactive force type {interaction.type}.")
+        raise KeyError(f"Unknown interactive force type {interaction.interaction_type}.")
 
     # calculate the overall force to be applied
     energy, force = potential_method(center, interaction.position, periodic_box_lengths=periodic_box_lengths)

@@ -263,7 +263,7 @@ def test_interaction_force_no_mass_weighting(particles, position, selection, sel
 
 
 def test_interaction_force_unknown_type(particles, single_interaction):
-    single_interaction.type = "unknown_type"
+    single_interaction.interaction_type = "unknown_type"
     positions, masses = particles
     forces = np.zeros((len(positions), 3))
 
