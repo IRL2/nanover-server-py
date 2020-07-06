@@ -4,7 +4,7 @@
 Module providing a wrapper class around the protobuf interaction message.
 """
 import math
-from typing import Dict, Any, Iterable
+from typing import Dict, Any, Iterable, Collection
 import numpy as np
 
 DEFAULT_MAX_FORCE = 20000.0
@@ -101,8 +101,11 @@ class ParticleInteraction:
         return self._particles
 
     @particles.setter
-    def particles(self, particles: Iterable[int]):
-        self._particles = np.unique(particles)
+    def particles(self, particles: Collection[int]):
+        if len(particles) < 2:
+            self._particles = np.array(particles)
+        else:
+            self._particles = np.unique(particles)
 
     @property
     def max_force(self) -> float:
