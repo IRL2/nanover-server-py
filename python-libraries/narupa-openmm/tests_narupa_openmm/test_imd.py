@@ -34,7 +34,7 @@ def app_simulation_and_reporter(basic_simulation_with_imd_force):
             frame_interval=3,
             force_interval=4,
             imd_force=imd_force,
-            imd_service=app.imd,
+            imd_state=app.imd,
             frame_publisher=app.frame_publisher,
         )
         simulation.reporters.append(reporter)
