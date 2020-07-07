@@ -77,3 +77,4 @@ def restrain_particles(
         x0, y0, z0 = positions[index].value_in_unit(nanometer)
         force.addParticle(index, [x0, y0, z0])
     return force
+

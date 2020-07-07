@@ -5,7 +5,7 @@ Command line interface for narupa.openmm.
 """
 import textwrap
 import argparse
-from . import Runner, Server
+from . import OpenMMRunner
 
 
 def handle_user_arguments() -> argparse.Namespace:
@@ -24,17 +24,24 @@ def handle_user_arguments() -> argparse.Namespace:
         help='The simulation to run in XML format.',
     )
     parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
+        '-v', '--verbose', type=int, default=0, const=100, nargs='?',
         help=('Display the step number, the potential energy in kJ/mol, '
               'and the performance in ns/day.'),
     )
-    parser.add_argument('-t', '--trajectory-port', default=None)
+    parser.add_argument(
+        '-n', '--name',
+        type=str, default=None,
+        help='Give a friendly name to the server.',
+    )
+    parser.add_argument('-p', '--port', type=int, default=None)
     parser.add_argument('-a', '--address', default=None)
     parser.add_argument(
-        '--no-serve',
-        dest='do_serve', action='store_false', default=True,
-        help='Do not send the trajectory over the network for Narupa.',
+        '-f', '--frame-interval', type=int, default=5, metavar='STEPS',
+        help='Sends a frame every STEPS dynamics steps.',
+    )
+    parser.add_argument(
+        '-i', '--force-interval', type=int, default=10, metavar='STEPS',
+        help='Update the interactions every STEPS dynamics steps.',
     )
 
     arguments = parser.parse_args()
@@ -47,21 +54,25 @@ def main():
     """
     arguments = handle_user_arguments()
 
-    if arguments.do_serve:
-        simulation_runner = Server.from_xml_input(
-            input_xml=arguments.simulation_xml_path,
-            address=arguments.address,
-            port=arguments.trajectory_port,
-        )
-        print(f'Serving frames on port {simulation_runner.trajectory_port}.')
-    else:
-        simulation_runner = Runner.from_xml_input(arguments.simulation_xml_path)
-        print(f'Running without serving frames.')
+    runner = OpenMMRunner.from_xml_input(
+        input_xml=arguments.simulation_xml_path,
+        name=arguments.name,
+        address=arguments.address,
+        port=arguments.port,
+    )
+    print(
+        f'Serving "{runner.app.name}" on port {runner.app.port}, '
+        f'discoverable on all interfaces on port {runner.app.discovery.port}'
+    )
 
-    with simulation_runner:
-        simulation_runner.verbose = arguments.verbose
+    with runner:
+        runner.verbosity_interval = arguments.verbose
+        runner.frame_interval = arguments.frame_interval
+        runner.force_interval = arguments.force_interval
+        runner.run()
+
         try:
-            simulation_runner.run()
+            input('Press [Return] to stop.')
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
 
