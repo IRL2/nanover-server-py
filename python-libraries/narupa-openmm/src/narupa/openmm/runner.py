@@ -24,7 +24,7 @@ from narupa.trajectory.frame_server import (
     PAUSE_COMMAND_KEY,
 )
 
-RunnerClass = TypeVar('RunnerClass', bound='Runner')
+RunnerClass = TypeVar('RunnerClass', bound='OpenMMRunner')
 
 
 class OpenMMRunner:
