@@ -5,7 +5,7 @@ Command line interface for narupa.openmm.
 """
 import textwrap
 import argparse
-from . import Runner
+from . import OpenMMRunner
 
 
 def handle_user_arguments() -> argparse.Namespace:
@@ -54,7 +54,7 @@ def main():
     """
     arguments = handle_user_arguments()
 
-    runner = Runner.from_xml_input(
+    runner = OpenMMRunner.from_xml_input(
         input_xml=arguments.simulation_xml_path,
         name=arguments.name,
         address=arguments.address,

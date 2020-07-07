@@ -27,7 +27,7 @@ from narupa.trajectory.frame_server import (
 RunnerClass = TypeVar('RunnerClass', bound='Runner')
 
 
-class Runner:
+class OpenMMRunner:
     """
     Convenience class to run an OpenMM simulation.
 

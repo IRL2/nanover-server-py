@@ -14,7 +14,7 @@ import time
 import pytest
 
 from narupa.app import NarupaImdClient
-from narupa.openmm import Runner
+from narupa.openmm import OpenMMRunner
 from narupa.openmm.imd import add_imd_force_to_system
 from narupa.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
@@ -56,7 +56,7 @@ class TestRunner:
         reporter only removes only that reporter.
         """
         simulation, _ = basic_simulation_with_imd_force
-        runner = Runner(simulation, port=0)
+        runner = OpenMMRunner(simulation, port=0)
         runner.simulation.reporters.append(DoNothingReporter())
         yield runner
         runner.close()
@@ -76,14 +76,14 @@ class TestRunner:
         This assures that test classes that inherit from that class use their
         own fixture.
         """
-        assert isinstance(runner, Runner)
+        assert isinstance(runner, OpenMMRunner)
 
     def test_simulation_without_imd_force(self, basic_simulation):
         """
         When created on a simulation without imd force, the runner fails.
         """
         with pytest.raises(ValueError):
-            Runner(basic_simulation, port=0)
+            OpenMMRunner(basic_simulation, port=0)
 
     def test_simulation_multiple_imd_force(self, caplog, basic_simulation):
         """
@@ -98,7 +98,7 @@ class TestRunner:
         for _ in range(3):
             add_imd_force_to_system(system)
 
-        runner = Runner(basic_simulation, port=0)
+        runner = OpenMMRunner(basic_simulation, port=0)
         runner.close()
         assert 'More than one force' in caplog.text
 
@@ -164,7 +164,7 @@ class TestRunner:
         Test that a :class:`Runner` can be built from a serialized simulation.
         """
         n_atoms_in_system = 8
-        with Runner.from_xml_input(serialized_simulation_path, port=0) as runner:
+        with OpenMMRunner.from_xml_input(serialized_simulation_path, port=0) as runner:
             assert runner.simulation.system.getNumParticles() == n_atoms_in_system
 
     @pytest.mark.parametrize('name, target_attribute', (
