@@ -81,7 +81,8 @@ class ImdStateWrapper:
 
 def interaction_to_dict(interaction: ParticleInteraction):
     try:
-        dictionary = {
+        return {
+            **interaction.properties,
             "position": [float(f) for f in interaction.position],
             "particles": [int(i) for i in interaction.particles],
             "interaction_type": interaction.type,
@@ -90,8 +91,6 @@ def interaction_to_dict(interaction: ParticleInteraction):
             "reset_velocities": interaction.reset_velocities,
             "max_force": interaction.max_force,
         }
-        dictionary.update(interaction.properties)
-        return dictionary
     except AttributeError as e:
         raise TypeError from e
 
