@@ -9,10 +9,10 @@ from narupa.openmm import openmm_to_frame_data
 from narupa.trajectory import frame_data
 from simtk.openmm.app.element import Element
 from simtk.openmm.app.topology import Topology
-from simulation_utils import (
+from .simulation_utils import (
     BASIC_SIMULATION_POSITIONS,
     BASIC_SIMULATION_BOX_VECTORS,
-    basic_simulation
+    basic_simulation,
 )
 
 

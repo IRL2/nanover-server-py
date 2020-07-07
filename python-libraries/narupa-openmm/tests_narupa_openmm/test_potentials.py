@@ -3,7 +3,7 @@
 
 from simtk import openmm as mm
 from narupa.openmm import potentials
-from simulation_utils import basic_simulation
+from .simulation_utils import basic_simulation
 from simtk.unit import kilojoule_per_mole, nanometer
 
 

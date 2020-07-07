@@ -17,7 +17,7 @@ import numpy as np
 from narupa.imd.particle_interaction import ParticleInteraction
 
 
-def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions: Collection[ParticleInteraction],
+def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions: Iterable[ParticleInteraction],
                         periodic_box_lengths: Optional[np.ndarray] = None) -> Tuple[float, np.array]:
     """
     Reference implementation of the Narupa IMD force.
