@@ -6,9 +6,16 @@ from .. import *
 
 
 @st.composite
+def nparrays(draw,
+             elements):
+
+    return np.array(draw(elements))
+
+
+@st.composite
 def positions(draw):
-    floats = st.floats(allow_nan=False, allow_infinity=False)
-    return [draw(floats), draw(floats), draw(floats)]
+    python_list = st.lists(st.floats(allow_nan=False, allow_infinity=False), min_size=3, max_size=3)
+    return draw(st.one_of(python_list, nparrays(python_list)))
 
 
 @st.composite
