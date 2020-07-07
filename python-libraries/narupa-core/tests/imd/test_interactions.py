@@ -8,7 +8,6 @@ from .. import *
 @st.composite
 def nparrays(draw,
              elements):
-
     return np.array(draw(elements))
 
 
@@ -20,9 +19,9 @@ def positions(draw):
 
 @st.composite
 def particles(draw):
-    list = draw(st.lists(st.integers(min_value=0), max_size=5, unique=True))
-    list.sort()
-    return list
+    index_list = draw(st.lists(st.integers(min_value=0), max_size=5, unique=True))
+    index_list.sort()
+    return index_list
 
 
 @st.composite
@@ -52,21 +51,21 @@ def interaction_type(draw):
 
 @st.composite
 def interaction_dictionaries(draw):
-    dict = draw(serializable_dictionaries())
-    dict['position'] = draw(positions())
-    dict['particles'] = draw(particles())
-    dict['reset_velocities'] = draw(reset_velocities())
-    dict['mass_weighted'] = draw(mass_weighted())
-    dict['scale'] = draw(scale())
-    dict['max_force'] = draw(max_force())
-    dict['interaction_type'] = draw(interaction_type())
+    serializable_dict = draw(serializable_dictionaries())
+    serializable_dict['position'] = draw(positions())
+    serializable_dict['particles'] = draw(particles())
+    serializable_dict['reset_velocities'] = draw(reset_velocities())
+    serializable_dict['mass_weighted'] = draw(mass_weighted())
+    serializable_dict['scale'] = draw(scale())
+    serializable_dict['max_force'] = draw(max_force())
+    serializable_dict['interaction_type'] = draw(interaction_type())
 
-    return dict
+    return serializable_dict
 
 
 @st.composite
 def interactions(draw):
-    dict = draw(serializable_dictionaries())
+    serializable_dict = draw(serializable_dictionaries())
     return ParticleInteraction(position=draw(positions()),
                                particles=draw(particles()),
                                reset_velocities=draw(reset_velocities()),
@@ -74,7 +73,7 @@ def interactions(draw):
                                scale=draw(scale()),
                                max_force=draw(max_force()),
                                interaction_type=draw(interaction_type()),
-                               **dict)
+                               **serializable_dict)
 
 
 @given(interaction_dictionaries())
@@ -182,5 +181,5 @@ def test_extra(original_extra, new_extra):
 
 
 def test_set_particle_unique():
-    interaction = ParticleInteraction(particles = [0, 0, 0, 1, 2, 3, 4])
+    interaction = ParticleInteraction(particles=[0, 0, 0, 1, 2, 3, 4])
     assert np.all(interaction.particles == [0, 1, 2, 3, 4])
