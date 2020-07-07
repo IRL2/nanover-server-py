@@ -251,6 +251,7 @@ def populate_imd_force(force: mm.CustomExternalForce, system: mm.System) -> None
 
     .. seealso: create_imd_force
     """
+    # Attach all the particles to the force object, and set the imd force to 0
     for particle in range(system.getNumParticles()):
         force.addParticle(particle, (0, 0, 0))
 
