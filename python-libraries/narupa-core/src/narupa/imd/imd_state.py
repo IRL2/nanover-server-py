@@ -81,6 +81,7 @@ class ImdStateWrapper:
 
 def interaction_to_dict(interaction: ParticleInteraction):
     try:
+        # properties with the same key as the builtins will be discarded
         return {
             **interaction.properties,
             "position": [float(f) for f in interaction.position],
