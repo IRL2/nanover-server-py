@@ -45,16 +45,16 @@ def app_simulation_and_reporter(basic_simulation_with_imd_force):
 def app_simulation_and_reporter_with_interactions(app_simulation_and_reporter):
     app, simulation, reporter = app_simulation_and_reporter
     app.imd.insert_interaction(
+        'interaction.0',
         ParticleInteraction(
-            interaction_id='0',
             position=(2.0, 3.0, 1.0),
             particles=(0, 1, 4),
             interaction_type='spring',
         )
     )
     app.imd.insert_interaction(
+        'interaction.1',
         ParticleInteraction(
-            interaction_id='1',
             position=(10.0, 20.0, 0.0),
             particles=(4, 5),
             interaction_type='spring',
