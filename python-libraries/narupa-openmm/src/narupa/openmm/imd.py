@@ -60,7 +60,7 @@ from simtk.openmm import app
 from simtk import unit
 
 from narupa.imd.imd_force import calculate_imd_force
-from narupa.imd.imd_service import ImdService
+from narupa.imd import ImdStateWrapper
 from narupa.trajectory.frame_publisher import FramePublisher
 from narupa.imd.particle_interaction import ParticleInteraction
 from .converter import openmm_to_frame_data
@@ -76,13 +76,13 @@ class NarupaImdReporter:
             frame_interval: int,
             force_interval: int,
             imd_force: mm.CustomExternalForce,
-            imd_service: ImdService,
+            imd_state: ImdStateWrapper,
             frame_publisher: FramePublisher,
     ):
         self.frame_interval = frame_interval
         self.force_interval = force_interval
         self.imd_force = imd_force
-        self.imd_service = imd_service
+        self.imd_state = imd_state
         self.frame_publisher = frame_publisher
 
         # We will not know these values until the beginning of the simulation.
@@ -121,7 +121,7 @@ class NarupaImdReporter:
         """
         positions = None
         if simulation.currentStep % self.force_interval == 0:
-            interactions = self.imd_service.active_interactions
+            interactions = self.imd_state.active_interactions
             positions = state.getPositions(asNumpy=True)
             self._update_forces(positions.astype(float), interactions, simulation.context)
         if simulation.currentStep % self.frame_interval == 0:

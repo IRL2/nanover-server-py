@@ -90,6 +90,7 @@ class ImdStateWrapper:
 def interaction_to_dict(interaction: ParticleInteraction):
     try:
         # properties with the same key as the builtins will be discarded
+        # dicussion: https://gitlab.com/intangiblerealities/narupa-protocol/-/merge_requests/182#note_374156050
         return {
             **interaction.properties,
             "position": [float(f) for f in interaction.position],

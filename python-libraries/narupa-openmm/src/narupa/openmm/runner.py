@@ -86,7 +86,7 @@ class OpenMMRunner:
             frame_interval=5,
             force_interval=10,
             imd_force=imd_force,
-            imd_service=self.app.imd,
+            imd_state=self.app.imd,
             frame_publisher=self.app.frame_publisher,
         )
         self.simulation.reporters.append(self.reporter)
