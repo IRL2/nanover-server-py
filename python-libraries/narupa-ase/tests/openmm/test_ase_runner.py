@@ -76,6 +76,11 @@ def default_runner(basic_simulation):
         yield runner
 
 
+def test_deprecated_runner(basic_simulation, imd_params):
+    with pytest.deprecated_call():
+        OpenMMIMDRunner(basic_simulation, imd_params)
+
+
 def test_from_xml(serialized_simulation_path, imd_params):
     with ASEOpenMMRunner.from_xml(serialized_simulation_path,
                                   params=imd_params) as runner:

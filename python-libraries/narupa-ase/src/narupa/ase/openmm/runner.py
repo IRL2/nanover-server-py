@@ -357,6 +357,7 @@ class OpenMMIMDRunner(ASEOpenMMRunner):
     def __init__(self, *args, **kwargs):
         warnings.warn(
             'The name "OpenMMIMDRunner" is deprecated and will be removed in '
-            'a later version. Use "ASEOpenMMRunner" instead.'
+            'a later version. Use "ASEOpenMMRunner" instead.',
+            DeprecationWarning
         )
         super().__init__(*args, **kwargs)
