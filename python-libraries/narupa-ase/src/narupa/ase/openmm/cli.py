@@ -15,7 +15,7 @@ import textwrap
 import time
 
 from narupa.app.app_server import qualified_server_name
-from narupa.ase.openmm import OpenMMIMDRunner
+from narupa.ase.openmm import ASEOpenMMRunner
 from narupa.ase.openmm.runner import ImdParams, LoggingParams
 
 
@@ -113,7 +113,7 @@ def initialise(args=None):
         arguments.trajectory_file,
         arguments.write_interval,
     )
-    runner = OpenMMIMDRunner.from_xml(arguments.simulation_xml_path, params, logging_params)
+    runner = ASEOpenMMRunner.from_xml(arguments.simulation_xml_path, params, logging_params)
     # Shamefully store CLI arguments in the runner.
     runner.cli_options = {
         'reset_energy': arguments.reset_energy if arguments.auto_reset else None,
