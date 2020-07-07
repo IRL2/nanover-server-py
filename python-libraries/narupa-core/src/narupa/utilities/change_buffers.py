@@ -46,7 +46,7 @@ class DictionaryChangeMultiView:
     _content: Dict[str, Any]
     _frozen: bool
     _lock: Lock
-    _views: Set
+    _views: Set['DictionaryChangeBuffer']
 
     def __init__(self):
         self._content = {}
@@ -136,10 +136,6 @@ class DictionaryChangeMultiView:
                 view.update(updates, removals)
             except ObjectFrozenError:
                 self._views.remove(view)
-
-    def __contains__(self, item):
-        with self._lock:
-            return item in self._content
 
 
 class DictionaryChangeBuffer:

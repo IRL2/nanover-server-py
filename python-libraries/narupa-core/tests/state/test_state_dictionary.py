@@ -122,3 +122,20 @@ def test_locked_content_changes_after(state_dictionary):
 
     with state_dictionary.lock_content() as content:
         assert content['hello'] == 50
+
+
+def test_content_updated_event(state_dictionary):
+    """
+    Test that the content_updated event fires when content updates are made.
+    """
+    access_token = object()
+    change = DictionaryChange(updates={'hello': 'baby yoda'})
+
+    def callback(access_token, change):
+        callback.access_token = access_token
+        callback.change = change
+
+    state_dictionary.content_updated.add_callback(callback)
+    state_dictionary.update_state(access_token, change)
+    assert callback.access_token is access_token
+    assert callback.change is change

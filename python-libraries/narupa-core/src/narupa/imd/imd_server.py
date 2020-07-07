@@ -5,40 +5,42 @@ Module providing a server for running a :class: ImdService.
 """
 from typing import Optional
 
-from narupa.core import NarupaServer, get_requested_port_or_default, DEFAULT_SERVE_ADDRESS
-from narupa.imd.imd_service import ImdService
-from narupa.protocol.imd.imd_pb2_grpc import add_InteractiveMolecularDynamicsServicer_to_server
+from narupa.core import (
+    NarupaServer,
+    get_requested_port_or_default,
+    DEFAULT_SERVE_ADDRESS,
+)
+from narupa.imd.imd_state import ImdStateWrapper
 
 DEFAULT_PORT = 54322
 
 
 class ImdServer(NarupaServer):
     """
-    Class providing an IMD server for running a :class: ImdService.
+    Class providing a NarupaServer with an ImdStateWrapper for accessing
+    IMD-specific state.
 
     :param: address: URL or IP address at which to run the server.
     :param: port: Port at which to run the server.
     """
-    _imd_service: ImdService
 
-    def __init__(self, *, address: Optional[str]=None, port: Optional[int]=None):
+    def __init__(
+            self,
+            *,
+            address: Optional[str] = None,
+            port: Optional[int] = None,
+    ):
         if address is None:
             address = DEFAULT_SERVE_ADDRESS
         port = get_requested_port_or_default(port, DEFAULT_PORT)
+
         super().__init__(address=address, port=port)
+        self._imd_state = ImdStateWrapper(self._state_service.state_dictionary)
 
     @property
-    def service(self) -> ImdService:
+    def imd_state(self) -> ImdStateWrapper:
         """
-        Gets the IMD service implementation attached to this server.
-        :return: The IMD service.
+        An ImdStateWrapper for accessing the interaction-relevant state of this
+        server.
         """
-        return self._imd_service
-
-    def setup_services(self):
-        """
-        Sets up a new IMD service and attaches it to the server.
-        """
-        super().setup_services()
-        self._imd_service = ImdService()
-        self._imd_service.add_to_server_method(self._imd_service, self.server)
+        return self._imd_state

@@ -35,7 +35,6 @@ def single_interaction():
     position = (0, 0, 0)
     index = 1
     return ParticleInteraction(
-        interaction_id='test interaction',
         position=position,
         particles=[index],
     )
@@ -45,7 +44,6 @@ def single_interaction():
 def single_interaction_multiple_atoms():
     position = (0, 0, 0)
     return ParticleInteraction(
-        interaction_id='test interaction',
         position=position,
         particles=[1, 2, 3],
     )
@@ -68,11 +66,9 @@ def test_multiple_interactions(particles):
 
     positions, masses = particles
     interaction = ParticleInteraction(
-        interaction_id='test interaction 1',
         position=[0.5, 0.5, 0.5], particles=[0, 1],
     )
     interaction_2 = ParticleInteraction(
-        interaction_id='test interaction 2',
         position=[1.5, 1.5, 1.5], particles=[1, 2],
     )
     # set masses of atoms 0 and 2 to be the same, so things cancel out nicely.
@@ -203,7 +199,6 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     position = np.array(position)
     selection = np.array(selection)
     interaction = ParticleInteraction(
-        interaction_id='test interaction',
         position=position,
         particles=selection,)
     positions, masses = particles
@@ -242,7 +237,6 @@ def test_interaction_force_no_mass_weighting(particles, position, selection, sel
     position = np.array(position)
     selection = np.array(selection)
     interaction = ParticleInteraction(
-        interaction_id='test interaction',
         position=position,
         particles=selection,
         mass_weighted=False,

@@ -10,12 +10,11 @@ from narupa.app import NarupaImdClient
 from narupa.app.frame_app import NarupaFrameApplication
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer
-from narupa.imd.imd_service import ImdService
+from narupa.imd import ImdStateWrapper, IMD_SERVICE_NAME
 
 
 class NarupaImdApplication(NarupaFrameApplication):
     """
-
     Application-level class for implementing a Narupa iMD server, something that publishes
     :class:`FrameData` that can be consumed, e.g. simulation trajectories, and can received
     interactive forces in real-time, allowing the simulation to be biased.
@@ -27,7 +26,7 @@ class NarupaImdApplication(NarupaFrameApplication):
 
     """
     DEFAULT_SERVER_NAME: str = "Narupa iMD Server"
-    _imd_service: ImdService
+    _imd_state: ImdStateWrapper
 
     def __init__(self, server: NarupaServer,
                  discovery: Optional[DiscoveryServer] = None,
@@ -36,20 +35,15 @@ class NarupaImdApplication(NarupaFrameApplication):
         self._setup_imd()
 
     @property
-    def imd(self) -> ImdService:
+    def imd(self) -> ImdStateWrapper:
         """
         The iMD service attached to this application. Use it to access interactive forces sent
         by clients, so they can be applied to a simulation.
 
-        :return: The :class:`ImdService` attached to this application.
+        :return: An :class:`ImdStateWrapper` for tracking interactions.
         """
-        # TODO could probably just expose active interactions here.
-        return self._imd_service
-
-    def close(self):
-        self._imd_service.close()
-        super().close()
+        return self._imd_state
 
     def _setup_imd(self):
-        self._imd_service = ImdService()
-        self.add_service(self._imd_service)
+        self._imd_state = ImdStateWrapper(self.server._state_service.state_dictionary)
+        self._add_service_entry(IMD_SERVICE_NAME, self.server.port)

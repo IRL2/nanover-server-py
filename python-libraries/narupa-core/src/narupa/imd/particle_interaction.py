@@ -5,10 +5,7 @@ Module providing a wrapper class around the protobuf interaction message.
 """
 import math
 from typing import Dict, Any, Iterable
-
 import numpy as np
-import narupa.protocol.imd.imd_pb2 as imd_pb2
-from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
 DEFAULT_MAX_FORCE = 20000.0
 DEFAULT_FORCE_TYPE = "gaussian"
@@ -22,9 +19,6 @@ class ParticleInteraction:
     For convenience, the getters all copy the underlying data into numpy arrays,
     rather than the low level containers used by protobuf.
 
-    :param interaction_id: The interaction ID to be associated with the
-        interaction. Typically, this identifies the VR controller, or other
-        input device.
     :param interaction_type: The type of interaction being used, default is
         'gaussian' for a Gaussian force.
     :param scale: The scale factor applied to the interaction, default is 1.
@@ -42,7 +36,6 @@ class ParticleInteraction:
     MAX_FORCE_KEY = "max_force"
 
     def __init__(self,
-                 interaction_id: str,
                  position=(0., 0., 0.),
                  particles=(),
                  interaction_type=DEFAULT_FORCE_TYPE,
@@ -51,7 +44,6 @@ class ParticleInteraction:
                  reset_velocities=False,
                  max_force=DEFAULT_MAX_FORCE,
                  **kwargs):
-        self.interaction_id = interaction_id
         self.position = position
         self.particles = particles
         self.scale = scale
@@ -60,70 +52,6 @@ class ParticleInteraction:
         self.reset_velocities = reset_velocities
         self.max_force = max_force
         self.properties = dict(kwargs)
-
-    @classmethod
-    def from_proto(cls, interaction_proto: imd_pb2.ParticleInteraction):
-        """
-        Initialises an interaction from the protobuf representation.
-
-        :param interaction_proto: The protobuf representation of the interaction.
-        """
-        proto_key_to_keyword = {
-            cls.TYPE_KEY: 'interaction_type',
-            cls.MASS_WEIGHTED_KEY: 'mass_weighted',
-            cls.SCALE_KEY: 'scale',
-            cls.RESET_VELOCITIES_KEY: 'reset_velocities',
-            cls.MAX_FORCE_KEY: 'max_force',
-        }
-
-        properties = struct_to_dict(interaction_proto.properties)
-        kwargs = {
-            proto_key_to_keyword.get(proto_key, proto_key): value
-            for proto_key, value in properties.items()
-        }
-
-        interaction = cls(
-            interaction_id=interaction_proto.interaction_id,
-            position=interaction_proto.position,
-            particles=interaction_proto.particles,
-            **kwargs,
-        )
-
-        return interaction
-
-    @property
-    def proto(self) -> imd_pb2.ParticleInteraction:
-        """
-        Gets the underlying protobuf representation.
-
-        :return: The underlying protobuf Interaction representation.
-        """
-        interaction = imd_pb2.ParticleInteraction()
-        interaction.position.extend(self.position)
-        interaction.particles.extend(self.particles)
-        interaction.interaction_id = self.interaction_id
-        properties = {}
-        for key, value in self._properties.items():
-            properties[key] = value
-        properties[self.TYPE_KEY] = self.type
-        properties[self.MASS_WEIGHTED_KEY] = self.mass_weighted
-        properties[self.SCALE_KEY] = self.scale
-        properties[self.RESET_VELOCITIES_KEY] = self.reset_velocities
-        properties[self.MAX_FORCE_KEY] = self.max_force
-        for key, value in dict_to_struct(properties).items():
-            interaction.properties[key] = value
-        return interaction
-
-    @property
-    def interaction_id(self) -> str:
-        """
-        The interaction ID associated with this interaction.
-        """
-        return self._interaction_id
-
-    @interaction_id.setter
-    def interaction_id(self, value: str):
-        self._interaction_id = value
 
     @property
     def type(self) -> str:
@@ -229,13 +157,12 @@ class ParticleInteraction:
             and np.isclose(self.position, other.position).all() and math.isclose(self.max_force, other.max_force)
             and self.mass_weighted == other.mass_weighted and math.isclose(self.scale, other.scale)
             and self.reset_velocities == other.reset_velocities and self.type == other.type
-            and self.properties == other.properties and self.interaction_id == other.interaction_id
+            and self.properties == other.properties
         )
 
     def __repr__(self):
         return (
             f"<ParticleInteraction"
-            f" interaction_id:{self.interaction_id}"
             f" position:{self.position}"
             f" particles:{self.particles}"
             f" reset_velocities:{self.reset_velocities}"

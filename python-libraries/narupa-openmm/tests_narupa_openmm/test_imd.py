@@ -34,7 +34,7 @@ def app_simulation_and_reporter(basic_simulation_with_imd_force):
             frame_interval=3,
             force_interval=4,
             imd_force=imd_force,
-            imd_service=app.imd,
+            imd_state=app.imd,
             frame_publisher=app.frame_publisher,
         )
         simulation.reporters.append(reporter)
@@ -45,16 +45,16 @@ def app_simulation_and_reporter(basic_simulation_with_imd_force):
 def app_simulation_and_reporter_with_interactions(app_simulation_and_reporter):
     app, simulation, reporter = app_simulation_and_reporter
     app.imd.insert_interaction(
+        'interaction.0',
         ParticleInteraction(
-            interaction_id='0',
             position=(2.0, 3.0, 1.0),
             particles=(0, 1, 4),
             interaction_type='spring',
         )
     )
     app.imd.insert_interaction(
+        'interaction.1',
         ParticleInteraction(
-            interaction_id='1',
             position=(10.0, 20.0, 0.0),
             particles=(4, 5),
             interaction_type='spring',
@@ -248,7 +248,7 @@ class TestNarupaImdReporter:
 
         reporter.force_interval = 1
         simulation.step(1)
-        app.imd.remove_interactions_by_ids(['0'])
+        app.imd.remove_interaction('interaction.0')
         simulation.step(1)
 
         self.assert_forces(
@@ -267,7 +267,8 @@ class TestNarupaImdReporter:
 
         reporter.force_interval = 1
         simulation.step(1)
-        app.imd.remove_interactions_by_ids(['0', '1'])
+        app.imd.remove_interaction('interaction.0')
+        app.imd.remove_interaction('interaction.1')
         simulation.step(1)
 
         self.assert_forces(
@@ -289,7 +290,7 @@ class TestNarupaImdReporter:
         simulation.step(3)
         # The interactions have been picked up. At step 3. The next update will
         # happen at step 6.
-        app.imd.remove_interactions_by_ids(['0'])
+        app.imd.remove_interaction('interaction.0')
         simulation.step(1)
         # Since we are not at step 6 yet, the forces must account for the
         # interaction we removed.

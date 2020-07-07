@@ -98,13 +98,6 @@ class NarupaServer(GrpcServer):
             release = set()
         self._state_service.update_locks(access_token, acquire, release)
 
-    def get_change_buffer(self) -> ContextManager[DictionaryChangeBuffer]:
-        """
-        Return a DictionaryChangeBuffer that tracks changes to the shared
-        key/value store.
-        """
-        return self._state_service.get_change_buffer()
-
     def _setup_command_service(self):
         self._command_service = CommandService()
         self.add_service(self._command_service)

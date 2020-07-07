@@ -19,7 +19,6 @@ def atoms():
 @pytest.fixture
 def interact_c():
     interaction = ParticleInteraction(
-        interaction_id='interact_c',
         position=[1, 0, 0],
         particles=[0],
         scale=100.,
@@ -32,14 +31,14 @@ def interact_c():
 def imd_calculator_co(imd_server):
     atoms = co_atoms()
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(imd_server.service, calculator, atoms)
+    imd_calculator = ImdCalculator(imd_server.imd_state, calculator, atoms)
     yield imd_calculator, atoms, imd_server
 
 
 @pytest.fixture
 def imd_calculator_no_atoms(imd_server):
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(imd_server.service, calculator)
+    imd_calculator = ImdCalculator(imd_server.imd_state, calculator)
     yield imd_calculator
 
 
