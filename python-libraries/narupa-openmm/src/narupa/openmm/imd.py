@@ -213,10 +213,15 @@ def _build_particle_interaction_index_set(interactions: Dict[str, ParticleIntera
     """
     Get a set of the indices of the particles involved in interactions.
     """
-    return set(map(int, itertools.chain(*(
+    indices = (
         interaction.particles
         for interaction in interactions.values()
-    ))))
+    )
+    flatten_indices = itertools.chain(*indices)
+    # We need to convert the indices to ints otherwise they are numpy types
+    # that protobuf do not support.
+    set_of_ints = set(map(int, flatten_indices))
+    return set_of_ints
 
 
 def create_imd_force() -> mm.CustomExternalForce:
