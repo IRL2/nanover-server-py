@@ -10,11 +10,12 @@ Tests for the :class:`narupa.openmm.NarupaReporter`.
 import pytest
 
 from narupa.trajectory import FrameData
-
 from narupa.openmm import NarupaReporter
 
+from .simulation_utils import assert_basic_simulation_topology
+
 # Pylint does not detect the use of the fixture.
-from simulation_utils import basic_simulation  # pylint: disable=unused-import
+from .simulation_utils import basic_simulation  # pylint: disable=unused-import
 
 
 class MockFrameServer:
@@ -104,15 +105,7 @@ def test_report(basic_simulation):
 
     frame_index, topology = frame_server.all_sent_frames[0]
     assert frame_index == 0
-    assert topology.residue_names == ['METH1', 'METH2']
-    assert topology.residue_chains == [0, 1]
-    assert topology.particle_names == ['C1', 'H2', 'H3', 'H4'] * 2
-    assert topology.particle_elements == [6, 1, 1, 1] * 2
-    assert topology.particle_residues == [0] * 4 + [1] * 4
-    assert topology.bond_pairs == [
-        [0, 1], [0, 2], [0, 3],  # First residue
-        [4, 5], [4, 6], [4, 7],  # Second residue
-    ]
+    assert_basic_simulation_topology(topology)
 
     reporter.report(basic_simulation, state)
     assert len(frame_server.all_sent_frames) == 3

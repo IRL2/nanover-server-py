@@ -5,6 +5,7 @@ Interactive molecular dynamics runner for ASE with OpenMM.
 """
 import logging
 from typing import Optional
+import warnings
 
 from ase import units, Atoms  # type: ignore
 from ase.md import MDLogger, Langevin
@@ -125,7 +126,7 @@ class TrajectoryLoggerInfo:
         self._logger.close()
 
 
-class OpenMMIMDRunner:
+class ASEOpenMMRunner:
     """
     A wrapper class for running an interactive OpenMM simulation with ASE.
 
@@ -183,7 +184,7 @@ class OpenMMIMDRunner:
         """
         with open(simulation_xml) as infile:
             simulation = serializer.deserialize_simulation(infile.read())
-        return OpenMMIMDRunner(simulation, params, logging_params)
+        return cls(simulation, params, logging_params)
 
     @property
     def verbose(self):
@@ -348,3 +349,15 @@ class OpenMMIMDRunner:
 
     def __exit__(self, type, value, traceback):
         self.close()
+
+
+# Keep the old name of the runner available to avoid breaking scripts, but
+# deprecate it so we can remove it later.
+class OpenMMIMDRunner(ASEOpenMMRunner):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            'The name "OpenMMIMDRunner" is deprecated and will be removed in '
+            'a later version. Use "ASEOpenMMRunner" instead.',
+            DeprecationWarning
+        )
+        super().__init__(*args, **kwargs)
