@@ -3,6 +3,7 @@
 """
 Command line interface for narupa.openmm.
 """
+import time
 import textwrap
 import argparse
 from . import OpenMMRunner
@@ -72,7 +73,8 @@ def main():
         runner.run()
 
         try:
-            input('Press [Return] to stop.')
+            while True:
+                time.sleep(1)
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
 
