@@ -14,7 +14,11 @@ import time
 import pytest
 
 from narupa.app import NarupaImdClient
-from narupa.openmm import OpenMMRunner
+from narupa.openmm import (
+    OpenMMRunner,
+    SET_FRAME_INTERVAL_COMMAND_KEY, GET_FRAME_INTERVAL_COMMAND_KEY,
+    SET_FORCE_INTERVAL_COMMAND_KEY, GET_FORCE_INTERVAL_COMMAND_KEY,
+)
 from narupa.openmm.imd import add_imd_force_to_system
 from narupa.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
@@ -372,3 +376,26 @@ class TestRunner:
         time.sleep(0.1)
         assert runner.is_running is False
         assert runner.simulation.currentStep == step_count + runner.frame_interval
+
+    @pytest.mark.parametrize('target_interval', (5, 20))
+    @pytest.mark.parametrize('setter, command', (
+            ('frame_interval', GET_FRAME_INTERVAL_COMMAND_KEY),
+            ('force_interval', GET_FORCE_INTERVAL_COMMAND_KEY),
+    ))
+    def test_get_interval_command(
+            self, client_runner, target_interval, setter, command):
+        client, runner = client_runner
+        setattr(runner, setter, target_interval)
+        result = client.run_command(command)
+        assert result == {'interval': target_interval}
+
+    @pytest.mark.parametrize('target_interval', (5, 20))
+    @pytest.mark.parametrize('getter, command', (
+            ('frame_interval', SET_FRAME_INTERVAL_COMMAND_KEY),
+            ('force_interval', SET_FORCE_INTERVAL_COMMAND_KEY),
+    ))
+    def test_set_interval_command(
+            self, client_runner, target_interval, getter, command):
+        client, runner = client_runner
+        client.run_command(command, interval=target_interval)
+        assert getattr(runner, getter) == target_interval

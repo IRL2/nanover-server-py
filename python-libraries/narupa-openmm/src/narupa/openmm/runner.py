@@ -3,7 +3,7 @@
 """
 Facilities to run an OpenMM simulation.
 """
-from typing import Union, TypeVar, Type, Optional
+from typing import Union, TypeVar, Type, Optional, Dict
 import sys
 import os
 import logging
@@ -23,6 +23,11 @@ from narupa.trajectory.frame_server import (
     STEP_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
 )
+
+GET_FRAME_INTERVAL_COMMAND_KEY = 'trajectory/get-frame-interval'
+SET_FRAME_INTERVAL_COMMAND_KEY = 'trajectory/set-frame-interval'
+GET_FORCE_INTERVAL_COMMAND_KEY = 'imd/get-force-interval'
+SET_FORCE_INTERVAL_COMMAND_KEY = 'imd/set-force-interval'
 
 RunnerClass = TypeVar('RunnerClass', bound='OpenMMRunner')
 
@@ -329,6 +334,18 @@ class OpenMMRunner:
             self._run_task.result()
             self._cancelled = False
 
+    def _set_frame_interval(self, interval: int) -> None:
+        self.frame_interval = int(interval)
+
+    def _get_frame_interval(self) -> Dict[str, int]:
+        return {'interval': self.frame_interval}
+
+    def _set_force_interval(self, interval: int) -> None:
+        self.force_interval = int(interval)
+
+    def _get_force_interval(self) -> Dict[str, int]:
+        return {'interval': self.force_interval}
+
     def close(self):
         self.cancel_run()
         self.app.close()
@@ -339,6 +356,10 @@ class OpenMMRunner:
         server.register_command(RESET_COMMAND_KEY, self.reset)
         server.register_command(STEP_COMMAND_KEY, self.step)
         server.register_command(PAUSE_COMMAND_KEY, self.pause)
+        server.register_command(SET_FRAME_INTERVAL_COMMAND_KEY, self._set_frame_interval)
+        server.register_command(GET_FRAME_INTERVAL_COMMAND_KEY, self._get_frame_interval)
+        server.register_command(SET_FORCE_INTERVAL_COMMAND_KEY, self._set_force_interval)
+        server.register_command(GET_FORCE_INTERVAL_COMMAND_KEY, self._get_force_interval)
 
     def __enter__(self):
         return self
