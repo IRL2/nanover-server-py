@@ -5,6 +5,7 @@
 Methods for transmitting a simulation frame from ASE.
 """
 
+from typing import Callable
 from ase import Atoms  # type: ignore
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.md import Langevin
@@ -12,7 +13,8 @@ from narupa.trajectory import FrameServer, FramePublisher
 from narupa.ase import ase_to_frame_data
 
 
-def send_ase_frame(ase_atoms: Atoms, frame_publisher: FramePublisher):
+def send_ase_frame(
+        ase_atoms: Atoms, frame_publisher: FramePublisher) -> Callable[[], None]:
     """
     Hook to transmit the current state of an ASE Atoms as a frame.
 
@@ -28,7 +30,8 @@ def send_ase_frame(ase_atoms: Atoms, frame_publisher: FramePublisher):
     =======
 
     >>> frame_server = FrameServer(address="localhost", port=54321)
-    >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
+    >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    ...                           symbol="Cu", size=(2, 2, 2), pbc=True)
     >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300, friction=1.0)
     >>> dynamics.attach(send_ase_frame(atoms, frame_publisher), interval=2)
     """
@@ -39,6 +42,6 @@ def send_ase_frame(ase_atoms: Atoms, frame_publisher: FramePublisher):
         nonlocal frame_index
         frame = ase_to_frame_data(ase_atoms)
         frame_publisher.send_frame(frame_index, frame)
-        frame_index += frame_index + 1
+        frame_index += 1
 
     return send
