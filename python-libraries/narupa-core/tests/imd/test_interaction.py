@@ -1,22 +1,19 @@
-import narupa.protocol.imd.imd_pb2 as imd_pb2
-import numpy as np
 import pytest
-from narupa.imd.particle_interaction import ParticleInteraction, DEFAULT_MAX_FORCE
+from narupa.imd.particle_interaction import ParticleInteraction
 
+from .. import *
 
 @pytest.fixture
 def interaction():
-    return ParticleInteraction(player_id='test player', interaction_id='test interaction')
+    return ParticleInteraction()
 
 
-def test_player_id():
-    interaction = ParticleInteraction(player_id="2", interaction_id='test interaction')
-    assert interaction.player_id == "2"
-
-
-def test_interaction_id():
-    interaction = ParticleInteraction(player_id='test player', interaction_id="2")
-    assert interaction.interaction_id == "2"
+@pytest.fixture
+def interaction_with_properties():
+    return ParticleInteraction(
+        arbitrary_property='arbitrary value',
+        other_arbitrary_property='other arbitrary value',
+    )
 
 
 def test_get_default_position(interaction):
@@ -26,17 +23,6 @@ def test_get_default_position(interaction):
 def test_set_position(interaction):
     interaction.position = [1, 1, 1]
     assert np.allclose(interaction.position, [1, 1, 1])
-
-
-def test_from_proto():
-    interaction_grpc = imd_pb2.ParticleInteraction(player_id='1', interaction_id='0')
-    interaction = ParticleInteraction.from_proto(interaction_grpc)
-    assert interaction.player_id == "1"
-    assert interaction.interaction_id == "0"
-    assert interaction.type == "gaussian"
-    assert interaction.scale == 1
-    assert interaction.mass_weighted is True
-    assert interaction.max_force == DEFAULT_MAX_FORCE
 
 
 def test_set_invalid_position(interaction):
@@ -95,24 +81,59 @@ def test_get_mass(interaction):
     assert interaction.mass_weighted is True
 
 
-def test_get_mass_unset():
-    proto = imd_pb2.ParticleInteraction()
-    interaction = ParticleInteraction.from_proto(proto)
-    assert interaction.mass_weighted is True
-
-
 def test_set_reset_vels(interaction):
     interaction.reset_velocities = True
-    assert interaction.properties['reset_velocities'] is True
+    assert interaction.reset_velocities is True
 
 
 def test_set_mass(interaction):
     interaction.mass_weighted = False
-    assert interaction.properties['mass_weighted'] is False
+    assert interaction.mass_weighted is False
 
 
-def test_get_proto(interaction):
-    proto = interaction.proto
-    assert proto.player_id == interaction.player_id
-    assert proto.interaction_id == interaction.interaction_id
-    assert np.allclose(proto.position, [0, 0, 0])
+@st.composite
+def interactions(draw):
+    position = draw(st.lists(st.floats(allow_infinity=False, max_value=MAX_FLOAT32, width=32), min_size=3, max_size=3))
+    particle_ids = draw(st.lists(st.integers(min_value=0, max_value=MAX_INT32)))
+
+    keywords = draw(st.dictionaries(st.text(), EXACT_SINGLE_VALUE_STRATEGY))
+
+    interaction_type = draw(st.one_of(st.none(), st.text(), st.just('gaussian'), st.just('harmonic')))
+    if interaction_type is not None:
+        keywords['interaction_type'] = interaction_type
+
+    scale = draw(st.one_of(st.none(), st.floats(allow_nan=False, allow_infinity=False)))
+    if scale is not None:
+        keywords['scale'] = scale
+
+    reset_velocities = draw(st.one_of(st.none(), st.booleans()))
+    if reset_velocities is not None:
+        keywords['reset_velocities'] = reset_velocities
+
+    mass_weighted = draw(st.one_of(st.none(), st.booleans()))
+    if mass_weighted is not None:
+        keywords['mass_weighted'] = mass_weighted
+
+    max_force = draw(st.one_of(st.none(), st.floats(allow_nan=False)))
+    if max_force is not None:
+        keywords['max_force'] = max_force
+
+    return ParticleInteraction(position, particle_ids, **keywords)
+
+
+def test_repr(interaction_with_properties):
+    expectation = (
+        "<ParticleInteraction "
+        "position:[0. 0. 0.] "
+        "particles:[] "
+        "reset_velocities:False "
+        "scale:1.0 "
+        "mass_weighted:True "
+        "max_force:20000.0 "
+        "type:gaussian "
+        "other:{"
+            "'arbitrary_property': 'arbitrary value', "
+            "'other_arbitrary_property': 'other arbitrary value'"
+        "}>"
+    )
+    assert repr(interaction_with_properties) == expectation

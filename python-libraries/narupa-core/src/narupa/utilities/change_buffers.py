@@ -6,7 +6,7 @@ shared key/value store between multiple clients.
 """
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Dict, ContextManager, Iterator, Iterable, NamedTuple
+from typing import Any, Set, Dict, Iterator, Iterable, Optional, Generator
 
 from .timing import yield_interval
 
@@ -14,9 +14,20 @@ KeyUpdates = Dict[str, Any]
 KeyRemovals = Iterable[str]
 
 
-class DictionaryChange(NamedTuple):
+class DictionaryChange:
     updates: KeyUpdates
     removals: KeyRemovals
+
+    def __init__(
+            self,
+            updates: Optional[KeyUpdates] = None,
+            removals: Optional[KeyRemovals] = None,
+    ):
+        self.updates = updates or {}
+        self.removals = removals or set()
+
+    def __iter__(self):
+        return iter((self.updates, self.removals))
 
 
 class ObjectFrozenError(Exception):
@@ -35,7 +46,7 @@ class DictionaryChangeMultiView:
     _content: Dict[str, Any]
     _frozen: bool
     _lock: Lock
-    _views: Set
+    _views: Set['DictionaryChangeBuffer']
 
     def __init__(self):
         self._content = {}
@@ -44,7 +55,7 @@ class DictionaryChangeMultiView:
         self._views = set()
 
     @contextmanager
-    def create_view(self) -> ContextManager['DictionaryChangeBuffer']:
+    def create_view(self) -> Generator['DictionaryChangeBuffer', None, None]:
         """
         Returns a new DictionaryChangeBuffer that tracks changes to the
         shared dictionary, starting with the initial values.
@@ -125,10 +136,6 @@ class DictionaryChangeMultiView:
                 view.update(updates, removals)
             except ObjectFrozenError:
                 self._views.remove(view)
-
-    def __contains__(self, item):
-        with self._lock:
-            return item in self._content
 
 
 class DictionaryChangeBuffer:

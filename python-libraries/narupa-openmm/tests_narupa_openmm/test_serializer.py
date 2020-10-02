@@ -14,16 +14,13 @@ from narupa.openmm.serializer import (
     deserialize_simulation,
     ROOT_TAG,
 )
+from narupa.openmm.imd import create_imd_force, get_imd_forces_from_system
 
-from simulation_utils import basic_simulation
-
-
-@pytest.fixture
-def basic_simulation_xml(basic_simulation):
-    """
-    Generate a XML serialized simulation from the basic test simulation.
-    """
-    return serialize_simulation(basic_simulation)
+from .simulation_utils import (
+    basic_simulation,
+    basic_simulation_xml,
+    empty_imd_force,
+)
 
 
 def remove_xml_tag(simulation_xml: str, tag_to_remove: str) -> str:
@@ -56,11 +53,12 @@ def add_extra_xml_tag(simulation_xml: str, extra_tag: str) -> str:
     return document.toprettyxml()
 
 
-def test_serialize_runs(basic_simulation_xml):
+@pytest.mark.parametrize('imd_force', (None, create_imd_force()))
+def test_serialize_runs(basic_simulation_xml, imd_force):
     """
     Test that a serialized simulation can be deserialized and run.
     """
-    simulation = deserialize_simulation(basic_simulation_xml)
+    simulation = deserialize_simulation(basic_simulation_xml, imd_force=imd_force)
     assert simulation.currentStep == 0
     simulation.step(5)
     assert simulation.currentStep == 5
@@ -85,3 +83,20 @@ def test_duplicate_section(basic_simulation_xml, section_to_duplicate):
     broken_xml = add_extra_xml_tag(basic_simulation_xml, section_to_duplicate)
     with pytest.raises(IOError):
         deserialize_simulation(broken_xml)
+
+
+def test_imd_force(basic_simulation_xml, empty_imd_force):
+    """
+    When deserializing a simulation and passing an imd force, the force is
+    added to the system.
+    """
+    simulation = deserialize_simulation(basic_simulation_xml, empty_imd_force)
+
+    putative_imd_forces = get_imd_forces_from_system(simulation.system)
+    assert len(putative_imd_forces) == 1
+    force_obtained = putative_imd_forces[0]
+    force_added = empty_imd_force
+    # The forces are the same if by modifying one we also modify the other.
+    force_added.setParticleParameters(0, 0, (1.0, 2.0, 3.0))
+    parameters = force_obtained.getParticleParameters(0)
+    assert parameters == [0, (1.0, 2.0, 3.0)]

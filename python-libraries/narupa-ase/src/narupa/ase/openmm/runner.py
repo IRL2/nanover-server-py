@@ -5,8 +5,9 @@ Interactive molecular dynamics runner for ASE with OpenMM.
 """
 import logging
 from typing import Optional
+import warnings
 
-from ase import units, Atoms
+from ase import units, Atoms  # type: ignore
 from ase.md import MDLogger, Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from attr import dataclass
@@ -17,7 +18,7 @@ from narupa.ase import TrajectoryLogger
 from narupa.essd import DiscoveryServer
 from narupa.openmm import openmm_to_frame_data, serializer
 from narupa.trajectory.frame_publisher import FramePublisher
-from simtk.openmm.app import Simulation
+from simtk.openmm.app import Simulation, Topology
 
 from narupa.ase import ase_to_frame_data
 from narupa.ase.converter import add_ase_positions_to_frame_data
@@ -34,21 +35,23 @@ def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
     Generates and sends frames for a simulation using an :class: OpenMMCalculator.
     """
 
+    frame_index = 0
+    topology: Optional[Topology] = None
+
     def send():
+        nonlocal frame_index, topology
         # generate topology frame using OpenMM converter.
-        if send.frame_index == 0:
+        if frame_index == 0:
             imd_calculator = ase_atoms.get_calculator()
-            send.topology = imd_calculator.calculator.topology
-            frame = openmm_to_frame_data(state=None, topology=send.topology)
+            topology = imd_calculator.calculator.topology
+            frame = openmm_to_frame_data(state=None, topology=topology)
             add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
         # from then on, just send positions and state.
         else:
             frame = ase_to_frame_data(ase_atoms, topology=False)
-        frame_publisher.send_frame(send.frame_index, frame)
-        send.frame_index = send.frame_index + 1
+        frame_publisher.send_frame(frame_index, frame)
+        frame_index += 1
 
-    send.frame_index = 0
-    send.topology = None
     return send
 
 
@@ -57,15 +60,15 @@ class ImdParams:
     """
     Class representing parameters for IMD runners.
     """
-    address: str = None
-    port: int = None
+    address: Optional[str] = None
+    port: Optional[int] = None
     frame_interval: int = 5
     time_step: float = 1.0
     verbose: bool = False
     walls: bool = False
-    name: str = None
+    name: Optional[str] = None
     discovery: bool = True
-    discovery_port: int = None
+    discovery_port: Optional[int] = None
 
 
 @dataclass
@@ -73,7 +76,7 @@ class LoggingParams:
     """
     Class representing parameters for trajectory logging
     """
-    trajectory_file: str = None
+    trajectory_file: Optional[str] = None
     write_interval: int = 1
 
 
@@ -123,7 +126,7 @@ class TrajectoryLoggerInfo:
         self._logger.close()
 
 
-class OpenMMIMDRunner:
+class ASEOpenMMRunner:
     """
     A wrapper class for running an interactive OpenMM simulation with ASE.
 
@@ -181,7 +184,7 @@ class OpenMMIMDRunner:
         """
         with open(simulation_xml) as infile:
             simulation = serializer.deserialize_simulation(infile.read())
-        return OpenMMIMDRunner(simulation, params, logging_params)
+        return cls(simulation, params, logging_params)
 
     @property
     def verbose(self):
@@ -346,3 +349,15 @@ class OpenMMIMDRunner:
 
     def __exit__(self, type, value, traceback):
         self.close()
+
+
+# Keep the old name of the runner available to avoid breaking scripts, but
+# deprecate it so we can remove it later.
+class OpenMMIMDRunner(ASEOpenMMRunner):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            'The name "OpenMMIMDRunner" is deprecated and will be removed in '
+            'a later version. Use "ASEOpenMMRunner" instead.',
+            DeprecationWarning
+        )
+        super().__init__(*args, **kwargs)

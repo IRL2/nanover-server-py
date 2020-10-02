@@ -3,7 +3,9 @@
 """
 Module providing an implementation of the :class:`StateServicer`.
 """
-from typing import Iterable, Tuple, Set, Dict, ContextManager, Callable
+from typing import (
+    Iterable, Tuple, Set, Dict, ContextManager, Callable, Optional
+)
 from narupa.utilities.grpc_utilities import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
@@ -34,24 +36,24 @@ class StateService(StateServicer):
     Implementation of the State service, for tracking and making changes to a
     shared key/value store.
     """
-    _state_dictionary: StateDictionary
+    state_dictionary: StateDictionary
 
     def __init__(self):
         super().__init__()
+        self.state_dictionary = StateDictionary()
         self.name: str = "service"
         self.add_to_server_method: Callable = add_StateServicer_to_server
         self._id = "service"
-        self._state_dictionary = StateDictionary()
 
     def close(self):
-        self._state_dictionary.freeze()
+        self.state_dictionary.freeze()
 
     def lock_state(self) -> ContextManager[Dict[str, object]]:
         """
         Context manager for reading the current state while delaying any changes
         to it.
         """
-        return self._state_dictionary.lock_content()
+        return self.state_dictionary.lock_content()
 
     def copy_state(self) -> Dict[str, object]:
         """
@@ -71,13 +73,13 @@ class StateService(StateServicer):
             transmission.
         """
         validate_dict_is_serializable(change.updates)
-        self._state_dictionary.update_state(access_token, change)
+        self.state_dictionary.update_state(access_token, change)
 
     def update_locks(
             self,
             access_token: object,
-            acquire: Dict[str, float],
-            release: Set[str],
+            acquire: Optional[Dict[str, float]] = None,
+            release: Optional[Set[str]] = None,
     ):
         """
         Attempts to acquire and release locks on keys in the shared key/value
@@ -87,14 +89,14 @@ class StateService(StateServicer):
         :raises ResourceLockedError: if the access token cannot acquire all
             requested keys.
         """
-        self._state_dictionary.update_locks(access_token, acquire, release)
+        self.state_dictionary.update_locks(access_token, acquire, release)
 
     def get_change_buffer(self) -> ContextManager[DictionaryChangeBuffer]:
         """
         Return a DictionaryChangeBuffer that tracks changes to this service's
         state.
         """
-        return self._state_dictionary.get_change_buffer()
+        return self.state_dictionary.get_change_buffer()
 
     def SubscribeStateUpdates(
             self,
@@ -105,7 +107,7 @@ class StateService(StateServicer):
         Provides a stream of updates to a shared key/value store.
         """
         interval = request.update_interval
-        with self._state_dictionary.get_change_buffer() as change_buffer:
+        with self.state_dictionary.get_change_buffer() as change_buffer:
             try:
                 subscribe_rpc_termination(context, change_buffer.freeze)
             except RpcAlreadyTerminatedError:
@@ -168,16 +170,15 @@ def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
     :return: an equivalent DictionaryChange representing the key changes and
         key removals of the StateUpdate.
     """
-    changes = {}
-    removals = set()
+    change = DictionaryChange()
 
     for key, value in struct_to_dict(update.changed_keys).items():
         if value is None:
-            removals.add(key)
+            change.removals.add(key)
         else:
-            changes[key] = value
+            change.updates[key] = value
 
-    return DictionaryChange(changes, removals)
+    return change
 
 
 def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:

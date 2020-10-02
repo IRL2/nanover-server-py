@@ -1,7 +1,6 @@
 # TODO: tests for containers as values
 # TODO: tests for None as value
 
-import sys
 import numpy as np
 
 import pytest
@@ -149,6 +148,7 @@ def test_get_single_numeric_value(raw_frame_and_expectation):
     frame = FrameData(raw_frame)
     assert pytest.approx(frame.values['sample.value'], expected_value)
 
+
 def _test_get_single_exact_value(raw_frame_and_expectation):
     """
     We can get a value by key from a FrameData.
@@ -159,6 +159,7 @@ def _test_get_single_exact_value(raw_frame_and_expectation):
     raw_frame, expected_value = raw_frame_and_expectation
     frame = FrameData(raw_frame)
     assert frame.values['sample.value'] == expected_value
+
 
 @given(raw_frame_with_single_value(EXACT_SINGLE_VALUE_STRATEGY))
 def test_get_single_exact_value(raw_frame_and_expectation):
@@ -606,3 +607,73 @@ def test_listing_used_shortcut():
     frame = DummyFrameData()
     frame.single = 'something'
     assert frame.used_shortcuts == {'single', }
+
+
+def test_delete_shortcut_keeps_shortcut():
+    """
+    Test that deleting a shortcut does not remove the shortcut itself.
+    """
+    frame = DummyFrameData()
+    frame.single = 'something'
+    del frame.single
+    frame.single = 'something'
+    assert frame.used_shortcuts == {'single', }
+
+
+def test_delete_shortcut_clears_field():
+    """
+    Test that deleting a shortcut clears the field on the grpc FrameData.
+    """
+    frame = DummyFrameData()
+    frame.single = 'something'
+    del frame.single
+    assert not frame.used_shortcuts
+
+
+@given(NUMBER_SINGLE_VALUE_STRATEGY)
+def test_del_value_from_frame(value):
+    frame = FrameData()
+    frame.values['sample.new'] = value
+    del frame['sample.new']
+    assert 'sample.new' not in frame.raw.values
+
+
+@given(NUMBER_SINGLE_VALUE_STRATEGY)
+def test_del_value(value):
+    frame = FrameData()
+    frame.values['sample.new'] = value
+    del frame.values['sample.new']
+    assert 'sample.new' not in frame.raw.values
+
+
+@given(NUMBER_SINGLE_VALUE_STRATEGY)
+def test_delete_value(value):
+    frame = FrameData()
+    frame.values['sample.new'] = value
+    frame.values.delete('sample.new')
+    assert 'sample.new' not in frame.raw.values
+
+
+@given(ARRAYS_STRATEGIES['string_values'])
+def test_copy_doesnt_mutate_original_array(value):
+    """
+    Test that changes to an array in a deep copied frame don't propagate to the
+    original frame.
+    """
+    frame = FrameData()
+    frame.arrays['sample.new'] = value
+
+    copy = frame.copy()
+    copy.arrays['sample.new'][0] = 'baby yoda'
+
+    assert frame.arrays['sample.new'][0] != 'baby yoda'
+
+
+def test_copy_doesnt_mutate_original_struct():
+    frame = FrameData()
+    frame.values['sample.new'] = {'hello': 42}
+
+    copy = frame.copy()
+    copy.values['sample.new']['hello'] = 'baby yoda'
+
+    assert copy.values['sample.new']['hello'] == 42

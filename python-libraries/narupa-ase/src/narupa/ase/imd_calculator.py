@@ -5,15 +5,15 @@
 Provides an implementation of IMD force field in ASE.
 """
 import math
-from typing import Optional, Dict, Tuple, Set, Collection
+from typing import Optional, Dict, Set, Collection
 
 import numpy as np
-from ase import Atoms, units
+from ase import Atoms, units  # type: ignore
 from ase.calculators.calculator import Calculator, all_changes
 from ase.md.md import MolecularDynamics
 from ase.md.velocitydistribution import _maxwellboltzmanndistribution
 from narupa.imd.imd_force import calculate_imd_force
-from narupa.imd.imd_service import ImdService
+from narupa.imd.imd_state import ImdStateWrapper
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.trajectory.frame_data import MissingDataError
 
@@ -27,7 +27,7 @@ class ImdCalculator(Calculator):
     Given another ASE calculator to act as the internal calculator, will compute the external energy
     and forces via the IMD service, and add them to the internal force calculations.
 
-    :param imd_service: The IMD service from which to retrieve interactions to apply as interactive forces.
+    :param imd_state: A wrapper that provides access to the active interactive forces.
     :param calculator: An existing ASE calculator to perform internal energy calculation.
     :param atoms: An ASE atoms object to use.
     :param dynamics: An ASE dynamics object from which to draw the equilibrium temperature for resetting velocities
@@ -41,7 +41,7 @@ class ImdCalculator(Calculator):
     
     """
 
-    def __init__(self, imd_service: ImdService,
+    def __init__(self, imd_state: ImdStateWrapper,
                  calculator: Optional[Calculator] = None,
                  atoms: Optional[Atoms] = None,
                  dynamics: Optional[MolecularDynamics] = None,
@@ -49,7 +49,7 @@ class ImdCalculator(Calculator):
                  **kwargs):
 
         super().__init__(**kwargs)
-        self._service = imd_service
+        self._imd_state = imd_state
         self.atoms = atoms
         self._calculator = calculator
         self.implemented_properties = ('energy', 'forces', 'interactive_energy', 'interactive_forces')
@@ -124,7 +124,7 @@ class ImdCalculator(Calculator):
         Fetches a copy of the current interactions.
         """
 
-        return self._service.active_interactions
+        return self._imd_state.active_interactions
 
     def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
                   system_changes=all_changes):
@@ -150,7 +150,6 @@ class ImdCalculator(Calculator):
             atoms = self.atoms
         if atoms is None:
             raise ValueError('No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation.')
-        self._service.number_of_particles = len(atoms)  # update number of atoms in interaction service, for validating.
 
         forces = np.zeros((len(atoms), 3))
 
@@ -204,8 +203,8 @@ class ImdCalculator(Calculator):
         try:
             temp = self.temperature
         except MissingDataError:
-            self._service.velocity_reset_enabled = False
-        self._service.velocity_reset_enabled = True
+            self._imd_state.velocity_reset_available = False
+        self._imd_state.velocity_reset_available = True
         self._previous_interactions = {}
 
 
@@ -237,7 +236,7 @@ def _get_cancelled_interactions(interactions, previous_interactions) -> Dict[obj
 
 
 def _get_atoms_to_reset(cancelled_interactions) -> Set[int]:
-    atoms_to_reset = set()
+    atoms_to_reset: Set[int] = set()
     for key, interaction in cancelled_interactions.items():
         if interaction.reset_velocities:
             atoms_to_reset = atoms_to_reset.union(interaction.particles)

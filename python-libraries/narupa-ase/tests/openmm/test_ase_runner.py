@@ -7,8 +7,12 @@ import pytest
 from ase import units
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from ase.io import read
-from narupa.ase.openmm import OpenMMIMDRunner
-from narupa.ase.openmm.runner import ImdParams, CONSTRAINTS_UNSUPPORTED_MESSAGE, LoggingParams
+from narupa.ase.openmm import ASEOpenMMRunner, OpenMMIMDRunner
+from narupa.ase.openmm.runner import (
+    ImdParams,
+    CONSTRAINTS_UNSUPPORTED_MESSAGE,
+    LoggingParams,
+)
 from narupa.core import DEFAULT_SERVE_ADDRESS
 from narupa.essd import DiscoveryClient
 from narupa.ase.openmm.calculator import OpenMMCalculator
@@ -36,7 +40,7 @@ class ListLogHandler(Handler):
 
 
 @pytest.fixture()
-def params():
+def imd_params():
     """
     Test ImdParams set to use any available port, to avoid port clashes between tests.
     """
@@ -55,21 +59,31 @@ def logging_params(tmp_path):
     return params
 
 
+@pytest.fixture(params=(ASEOpenMMRunner, OpenMMIMDRunner))
+def runner_class(request):
+    return request.param
+
+
 @pytest.fixture()
-def runner(basic_simulation, params):
-    with OpenMMIMDRunner(basic_simulation, imd_params=params) as runner:
+def runner(runner_class, basic_simulation, imd_params):
+    with runner_class(basic_simulation, imd_params=imd_params) as runner:
         yield runner
 
 
 @pytest.fixture()
 def default_runner(basic_simulation):
-    with OpenMMIMDRunner(basic_simulation) as runner:
+    with ASEOpenMMRunner(basic_simulation) as runner:
         yield runner
 
 
-def test_from_xml(serialized_simulation_path, params):
-    with OpenMMIMDRunner.from_xml(serialized_simulation_path,
-                                  params=params) as runner:
+def test_deprecated_runner(basic_simulation, imd_params):
+    with pytest.deprecated_call():
+        OpenMMIMDRunner(basic_simulation, imd_params)
+
+
+def test_from_xml(serialized_simulation_path, imd_params):
+    with ASEOpenMMRunner.from_xml(serialized_simulation_path,
+                                  params=imd_params) as runner:
         assert runner.simulation is not None
 
 
@@ -101,29 +115,29 @@ def test_frames_sent(runner):
     assert runner.app_server.frame_publisher.last_frame_index > 0
 
 
-def test_verbose(basic_simulation, params):
-    params.verbose = True
-    with OpenMMIMDRunner(basic_simulation, params) as runner:
+def test_verbose(runner_class, basic_simulation, imd_params):
+    imd_params.verbose = True
+    with runner_class(basic_simulation, imd_params) as runner:
         runner.run(10)
 
 
 @pytest.mark.parametrize('interval', (1, 2, 3))
-def test_frame_interval(basic_simulation, interval, params):
+def test_frame_interval(runner_class, basic_simulation, interval, imd_params):
     """
     Test that the frame server receives frames at the correct interval of
     dynamics steps.
     """
-    params.frame_interval = interval
-    with OpenMMIMDRunner(basic_simulation, params) as runner:
+    imd_params.frame_interval = interval
+    with runner_class(basic_simulation, imd_params) as runner:
         runner.run(1)
         prev = runner.app_server.frame_publisher.last_frame_index
         runner.run(interval * 3)
         assert runner.app_server.frame_publisher.last_frame_index == prev + 3
 
 
-def test_time_step(basic_simulation, params):
-    params.time_step = 0.5
-    with OpenMMIMDRunner(basic_simulation, params) as runner:
+def test_time_step(runner_class, basic_simulation, imd_params):
+    imd_params.time_step = 0.5
+    with runner_class(basic_simulation, imd_params) as runner:
         assert runner.dynamics.dt == pytest.approx(0.5 * units.fs)
 
 
@@ -131,27 +145,33 @@ def test_time_step(basic_simulation, params):
         (False, OpenMMCalculator),
         (True, VelocityWallCalculator),
 ))
-def test_walls(basic_simulation, walls, expected_calculator_class, params):
-    params.walls = walls
+def test_walls(
+        runner_class,
+        basic_simulation,
+        walls,
+        expected_calculator_class,
+        imd_params
+):
+    imd_params.walls = walls
 
-    with OpenMMIMDRunner(basic_simulation, params) as runner:
+    with runner_class(basic_simulation, imd_params) as runner:
         assert isinstance(runner._md_calculator, expected_calculator_class)
 
 
-def test_no_constraint_no_warning(basic_simulation, params):
+def test_no_constraint_no_warning(runner_class, basic_simulation, imd_params):
     """
     Test that a system without constraints does not cause a constraint warning
     to be logged.
     """
     handler = ListLogHandler()
 
-    with OpenMMIMDRunner(basic_simulation, params) as runner:
+    with runner_class(basic_simulation, imd_params) as runner:
         runner._logger.addHandler(handler)
         runner._validate_simulation()
         assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 0
 
 
-def test_constraint_warning(basic_simulation, params):
+def test_constraint_warning(runner_class, basic_simulation, imd_params):
     """
     Test that a system with constraints causes a constraint warning to be
     logged.
@@ -159,30 +179,30 @@ def test_constraint_warning(basic_simulation, params):
     handler = ListLogHandler()
     basic_simulation.system.addConstraint(0, 1, 1)
 
-    with OpenMMIMDRunner(basic_simulation, params) as runner:
+    with runner_class(basic_simulation, imd_params) as runner:
         runner._logger.addHandler(handler)
         runner._validate_simulation()
         assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 1
 
 
-def test_no_discovery(basic_simulation, params):
-    params.discovery = False
-    with OpenMMIMDRunner(basic_simulation, params) as runner:
+def test_no_discovery(runner_class, basic_simulation, imd_params):
+    imd_params.discovery = False
+    with runner_class(basic_simulation, imd_params) as runner:
         assert not runner.running_discovery
 
 
 @pytest.mark.serial
-def test_discovery(basic_simulation, params):
-    with OpenMMIMDRunner(basic_simulation, params) as runner:
+def test_discovery(runner_class, basic_simulation, imd_params):
+    with runner_class(basic_simulation, imd_params) as runner:
         assert runner.running_discovery
         assert runner.app_server.discovery is not None
         assert len(runner.app_server.discovery.services) == 1
 
 
 @pytest.mark.serial
-def test_discovery_with_client(basic_simulation, params):
-    params.name = 'ASE Test Runner'
-    with OpenMMIMDRunner(basic_simulation, params) as runner:
+def test_discovery_with_client(runner_class, basic_simulation, imd_params):
+    imd_params.name = 'ASE Test Runner'
+    with runner_class(basic_simulation, imd_params) as runner:
         assert runner.running_discovery
         discovery = runner.app_server.discovery
         assert len(discovery.services) == 1
@@ -191,7 +211,7 @@ def test_discovery_with_client(basic_simulation, params):
             # one we created in that test. We select it by name.
             servers = set(client.search_for_services(search_time=0.8, interval=0.01))
             relevant_servers = [server for server in servers
-                                if server.name == params.name]
+                                if server.name == imd_params.name]
             assert len(relevant_servers) == 1
             server = relevant_servers[0]
             assert server in discovery.services
@@ -201,8 +221,8 @@ def test_discovery_with_client(basic_simulation, params):
                 assert port == runner.app_server.port
 
 
-def test_logging(basic_simulation, params, logging_params):
-    with OpenMMIMDRunner(basic_simulation, params, logging_params) as runner:
+def test_logging(runner_class, basic_simulation, imd_params, logging_params):
+    with runner_class(basic_simulation, imd_params, logging_params) as runner:
         runner.run(1)
 
     trajectory_file = runner.logging_info.trajectory_path
@@ -213,16 +233,16 @@ def test_logging(basic_simulation, params, logging_params):
     assert len(atom_images) == 2
 
 
-def test_no_logging(basic_simulation, params, logging_params):
-    with OpenMMIMDRunner(basic_simulation, params) as runner:
-        assert runner.logging_info is None
+def test_no_logging(runner):
+    assert runner.logging_info is None
 
 
-def test_logging_rate(basic_simulation, params, logging_params):
+def test_logging_rate(
+        runner_class, basic_simulation, imd_params, logging_params):
     logging_params.write_interval = 10
     expected_frames = 3
 
-    with OpenMMIMDRunner(basic_simulation, params, logging_params) as runner:
+    with runner_class(basic_simulation, imd_params, logging_params) as runner:
         runner.run(expected_frames * logging_params.write_interval)
 
     trajectory_file = runner.logging_info.trajectory_path

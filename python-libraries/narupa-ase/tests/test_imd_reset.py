@@ -1,7 +1,11 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
+import contextlib
+from typing import ContextManager, Tuple
+
 import pytest
 from ase import units
+from ase.lattice.bravais import Lattice
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.calculators.lj import LennardJones
@@ -23,11 +27,11 @@ NUM_INTERACTIONS = 10
 
 INTERACTIONS_NO_RESET = {
     ("0", str(i)):
-        ParticleInteraction(player_id="0", interaction_id=str(i), particles=(10 * i, 10 * i + 1))
+        ParticleInteraction(particles=(10 * i, 10 * i + 1))
     for i in range(NUM_INTERACTIONS)}
 INTERACTIONS_RESET = {
     (str(i), "1"):
-        ParticleInteraction(player_id=str(i), interaction_id="1", reset_velocities=True, particles=(i, i + 1))
+        ParticleInteraction(reset_velocities=True, particles=(i, i + 1))
     for i in range(1, NUM_INTERACTIONS + 1)}
 
 # the set of atoms that should be reset based on atoms selected in INTERACTIONS_RESET
@@ -54,32 +58,36 @@ def fcc_atoms():
     return atoms
 
 
-@pytest.fixture
-def imd_calculator_berendsen_dynamics():
-    """
-    Initialises an IMD calculator with berendsen NVT integrator and an FCC crystal.
-    :return: IMD Calculator fixture with berendsen dynamics.
-    """
+@contextlib.contextmanager
+def imd_calculator_berendsen_dynamics_context() -> ContextManager[Tuple[ImdCalculator, Lattice, NVTBerendsen]]:
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
     dynamics = NVTBerendsen(atoms, 1.0, TEST_TEMPERATURE, 1.0)
-    imd_calculator = ImdCalculator(server.service, calculator, atoms, dynamics=dynamics)
+    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, dynamics=dynamics)
     yield imd_calculator, atoms, dynamics
     server.close()
+
+
+@pytest.fixture
+def imd_calculator_berendsen_dynamics():
+    """
+    Initialises an IMD calculator with berendsen NVT integrator and an FCC crystal.
+    """
+    with imd_calculator_berendsen_dynamics_context() as imd_calculator:
+        yield imd_calculator
 
 
 @pytest.fixture
 def imd_calculator_langevin_dynamics():
     """
     Initialises an IMD calculator with langevin NVT integrator and an FCC crystal.
-    :return:
     """
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
     dynamics = Langevin(atoms, 1.0, TEST_TEMPERATURE, 1.0)
-    imd_calculator = ImdCalculator(server.service, calculator, atoms, dynamics=dynamics)
+    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, dynamics=dynamics)
     yield imd_calculator, atoms, dynamics
     server.close()
 
@@ -132,7 +140,7 @@ def test_custom_temperature():
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(server.service, calculator, atoms, reset_scale=0.1)
+    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, reset_scale=0.1)
     imd_calculator.temperature = 100
     assert pytest.approx(imd_calculator.reset_temperature) == 0.1 * 100
 
@@ -184,7 +192,7 @@ def random_atom_selection(draw):
     :return: Random subset of indices of FCC atoms, and the FCC atoms.
     """
     atoms = fcc_atoms()
-    selection = strategies.sets(strategies.integers(0, len(atoms) - 1), 1)
+    selection = strategies.sets(strategies.integers(0, len(atoms) - 1), min_size=1)
     return draw(selection), atoms
 
 
@@ -227,8 +235,7 @@ def generate_interactions(selection, num_interactions=1):
     for i in range(num_interactions):
         particles = [selection[idx] for idx in
                      range(i * particles_per_interaction, (i + 1) * particles_per_interaction)]
-        interaction = ParticleInteraction(player_id="0", interaction_id=str(i), particles=particles,
-                                          reset_velocities=True)
+        interaction = ParticleInteraction(particles=particles, reset_velocities=True)
         interactions[("0", str(i))] = interaction
     return interactions
 
@@ -240,20 +247,20 @@ def inverse_selection(collection, selection):
 
 
 @given(atom_selection=random_atom_selection())
-def test_reset_velocities(atom_selection, imd_calculator_berendsen_dynamics):
-    imd_calculator = imd_calculator_berendsen_dynamics
+def test_reset_velocities(atom_selection):
     selection, _ = atom_selection
     selection = np.array(list(selection))
-    calculator, atoms, dyn = imd_calculator
-    MaxwellBoltzmannDistribution(atoms, 300)
+    with imd_calculator_berendsen_dynamics_context() as imd_calculator:
+        calculator, atoms, dyn = imd_calculator
+        MaxwellBoltzmannDistribution(atoms, 300)
 
-    not_selected = inverse_selection(atoms, selection)
-    velocities = atoms[not_selected].get_velocities()
+        not_selected = inverse_selection(atoms, selection)
+        velocities = atoms[not_selected].get_velocities()
 
-    interactions = generate_interactions(selection)
-    calculator._reset_velocities(atoms, {}, interactions)
-    assert pytest.approx(atoms[selection].get_temperature()) == calculator.reset_temperature
-    assert np.allclose(velocities, atoms[not_selected].get_velocities())
+        interactions = generate_interactions(selection)
+        calculator._reset_velocities(atoms, {}, interactions)
+        assert pytest.approx(atoms[selection].get_temperature()) == calculator.reset_temperature
+        assert np.allclose(velocities, atoms[not_selected].get_velocities())
 
 
 def test_reset_calculator(imd_calculator_berendsen_dynamics):
@@ -273,14 +280,12 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
     selection = [0, 1]
     selection = np.array(list(selection))
     interaction = ParticleInteraction(
-        player_id='test player',
-        interaction_id='test interaction',
         particles=selection,
         reset_velocities=True,
     )
-    calculator._service.insert_interaction(interaction)
+    calculator._imd_state.insert_interaction('interaction.test', interaction)
     atoms.get_forces()
-    calculator._service.remove_interaction(interaction)
+    calculator._imd_state.remove_interaction('interaction.test')
     atoms.get_forces()
 
     assert pytest.approx(atoms[selection].get_temperature()) == calculator.reset_temperature

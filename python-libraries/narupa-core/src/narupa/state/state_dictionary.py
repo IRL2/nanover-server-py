@@ -6,15 +6,16 @@ shared key/value store.
 """
 from contextlib import contextmanager
 from threading import Lock
-from typing import ContextManager, Set, Dict
+from typing import ContextManager, Dict, Optional, Iterable
 
-from narupa.utilities.key_lockable_map import (
-    KeyLockableMap, ResourceLockedError,
-)
 from narupa.utilities.change_buffers import (
     DictionaryChangeMultiView,
     DictionaryChangeBuffer,
     DictionaryChange,
+)
+from narupa.utilities.event import Event
+from narupa.utilities.key_lockable_map import (
+    KeyLockableMap, ResourceLockedError,
 )
 
 
@@ -23,18 +24,27 @@ class StateDictionary:
     Mechanism for tracking and making changes to a shared key/value store,
     including the facility to acquire exclusive write access to values.
     """
+    content_updated: Event
 
     _lock: Lock
     _change_views: DictionaryChangeMultiView
     _write_locks: KeyLockableMap
 
     def __init__(self):
+        self.content_updated = Event()
         self._lock = Lock()
         self._change_views = DictionaryChangeMultiView()
         self._write_locks = KeyLockableMap()
 
     def freeze(self):
         self._change_views.freeze()
+
+    def copy_content(self):
+        """
+        Return a shallow copy of the dictionary content at this instant.
+        """
+        with self.lock_content() as content:
+            return dict(content)
 
     @contextmanager
     def lock_content(self) -> ContextManager[Dict[str, object]]:
@@ -69,12 +79,13 @@ class StateDictionary:
             if not self._can_token_access_keys(access_token, keys):
                 raise ResourceLockedError
             self._change_views.update(change.updates, change.removals)
+        self.content_updated.invoke(access_token=access_token, change=change)
 
     def update_locks(
             self,
             access_token: object,
-            acquire: Dict[str, float],
-            release: Set[str],
+            acquire: Optional[Dict[str, Optional[float]]] = None,
+            release: Optional[Iterable[str]] = None,
     ):
         """
         Acquire and release locks for the given access token. If any of the
@@ -84,6 +95,8 @@ class StateDictionary:
         :raises ResourceLockedError: if the access token cannot acquire all
             requested keys.
         """
+        acquire = acquire or {}
+        release = release or ()
         with self._lock:
             if not self._can_token_access_keys(access_token, acquire.keys()):
                 raise ResourceLockedError

@@ -11,6 +11,7 @@ from narupa.mdanalysis.converter import (
     ALL_MDA_ATTRIBUTES,
     mdanalysis_to_frame_data,
     frame_data_to_mdanalysis,
+    add_mda_topology_to_frame_data,
     _get_mda_attribute,
 )
 from narupa.trajectory.frame_data import (PARTICLE_ELEMENTS, MissingDataError, FrameData)
@@ -40,6 +41,17 @@ def empty_universe_no_positions():
 def single_atom_universe(empty_universe: Universe):
     empty_universe.atoms.positions = [[0, 0, 0]]
     return empty_universe
+
+
+@pytest.fixture()
+def metal_universe():
+    """
+    This universe only has atom types. These types correspond to element symbols
+    that have more than one letter.
+    """
+    universe = Universe.empty(3)
+    universe.add_TopologyAttr('types', ['NA', 'CL', 'FE'])
+    return universe
 
 
 @pytest.fixture
@@ -150,3 +162,9 @@ def test_framedata_to_mda_missing_data(frame_data_and_universe):
     assert len(new_universe.segments) == 1
     with pytest.raises(AttributeError):
         _ = new_universe.residues.resnames
+
+
+def test_multiletter_element_symbols(metal_universe):
+    frame = FrameData()
+    add_mda_topology_to_frame_data(metal_universe, frame)
+    assert frame.particle_elements == [11, 17, 26]
