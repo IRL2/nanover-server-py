@@ -178,7 +178,7 @@ class GetFrameResponseMergeQueueHack(SingleItemQueue):
     """
     def put(self, item: GetFrameResponse, **kwargs):
         with self._lock:
-            if self._has_item:
+            if self._has_item and item is not None and self._item is not None:
                 item.frame.MergeFrom(self._item.frame)
             self._item = item
             self._has_item = True
