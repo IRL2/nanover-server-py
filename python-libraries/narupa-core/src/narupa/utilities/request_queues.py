@@ -10,6 +10,8 @@ from threading import Lock, Condition
 from contextlib import contextmanager
 from time import monotonic as time
 
+from narupa.protocol.trajectory import GetFrameResponse
+
 
 class DictOfQueues:
     """
@@ -167,3 +169,17 @@ class SingleItemQueue:
             self._item = None
             self._has_item = False
             return item
+
+
+class GetFrameResponseMergeQueueHack(SingleItemQueue):
+    """
+    SingleItemQueue but specifically for GetFrameResponse items. When putting
+    a new item it will be aggregated with any existing item.
+    """
+    def put(self, item: GetFrameResponse, **kwargs):
+        with self._lock:
+            if self._has_item:
+                item.frame.MergeFrom(self._item.frame)
+            self._item = item
+            self._has_item = True
+            self.not_empty.notify()

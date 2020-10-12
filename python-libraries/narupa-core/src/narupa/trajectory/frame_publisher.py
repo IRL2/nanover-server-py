@@ -5,7 +5,8 @@ from queue import Queue
 from threading import Lock
 from typing import Union, Callable
 
-from narupa.utilities.request_queues import DictOfQueues, SingleItemQueue
+from narupa.utilities.request_queues import (
+    DictOfQueues, GetFrameResponseMergeQueueHack)
 from narupa.utilities.timing import yield_interval
 from narupa.protocol.trajectory import (
     TrajectoryServiceServicer, GetFrameResponse,
@@ -62,7 +63,7 @@ class FramePublisher(TrajectoryServiceServicer):
         """
         yield from self._subscribe_frame_base(request,
                                               context,
-                                              queue_type=SingleItemQueue)
+                                              queue_type=GetFrameResponseMergeQueueHack)
 
     def _subscribe_frame_base(self, request, context, queue_type):
         listen_for_cancellation = context.add_callback
