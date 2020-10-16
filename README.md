@@ -1,9 +1,11 @@
 # Narupa 2 Protocol
 
-Repository containing the gRPC protocol and python based implementations 
-of servers for Narupa 2. 
+Repository containing the gRPC protocol and python based implementations
+of servers for Narupa 2, providing a framework for developing interactive molecular dynamics simulations.
 
-This repository is maintained by the Intangible Realities Laboratory, University Of Bristol, 
+It is designed to be used with Narupa VR clients, e.g. [Narupa IMD](https://gitlab.com/intangiblerealities/narupa-applications/narupa-imd).
+
+This repository is maintained by the Intangible Realities Laboratory, University Of Bristol,
 and distributed under [GPLv3](LICENSE).
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
@@ -12,9 +14,57 @@ See [the list of contributors](CONTRIBUTORS.md) for the individual authors of th
 
 ## Getting Started
 
-The [examples](examples) folder contains example scripts and notebooks for creating and serving simulations.
+### Quick Start
 
-The `protocol` folder contains the definitions of the gRPC services. 
+`narupa.ase` provides a command line interface for running OpenMM simulations. For example, from the `narupa-protocol` directory:
+
+    narupa-omm-ase examples/ase/openmm_files/nanotube.xml
+
+### Tutorials
+
+The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with Narupa. They
+are organised into the following folders:
+
+* [ase](examples/ase) - Get up and running with interactive simulations with ASE and OpenMM.
+   - [Basic Example](examples/ase/basic_example.ipynb) - Toy example of an interactive simulation.
+   - [Nanotube](examples/ase/openmm_nanotube.ipynb) - Set up an interactive nanotube simulation with OpenMM.
+   - [Neuraminidase](examples/ase/openmm_neuraminidase.ipynb) - Set up a ligand-protein binding simulation with OpenMM,
+   and experiment with Narupa visualizations.
+   - [Graphene](examples/ase/openmm_graphene.ipynb) - Set up a graphene simulation with physics parameters
+   that can be adjusted on the fly.
+* [mdanalysis](examples/mdanalysis) - Visualize static structures and trajectories with MDAnalysis and Narupa.
+    - [Structure](examples/mdanalysis/mdanalysis_lsd.ipynb) - Visualize LSD bound to a receptor in Narupa.
+    - [Trajectory](examples/mdanalysis/mdanalysis_trajectory.ipynb) - Build your own trajectory viewer with MDAnalysis
+    and Narupa.
+* [fundamentals](examples/fundamentals) - Understand how Narupa works, so you can create your own applications.
+    - [Frame](examples/fundamentals/frame.ipynb) - How Narupa communicates frames of molecular simulations.
+    - [Servers](examples/fundamentals/servers.ipynb) - Setting up a Narupa server.
+    - [State & Commands](examples/fundamentals/commands_and_state.ipynb) - Synchronizing state between clients and calling commands on the server.
+
+The tutorials use Jupyter notebooks, [NGLView](https://github.com/arose/nglview) for visualising trajectories, and while not strictly necessary,
+assumes you have the [Narupa IMD VR](https://gitlab.com/intangiblerealities/narupa-applications/narupa-imd)
+application installed. These can all be installed with conda:
+
+```bash
+conda activate narupa
+conda install jupyter
+conda install nglview
+# On Windows only:
+conda install -c irl narupa-imd
+```
+
+To run the notebooks, download the repository and run jupyter (with [git](https://git-scm.com/) installed):
+```bash
+git clone https://gitlab.com/intangiblerealities/narupa-protocol.git
+cd narupa-protocol
+conda activate narupa
+jupyter notebook
+```
+
+
+### Exploring the code  
+
+The `protocol` folder contains the definitions of the gRPC services.
 
 The `python-libraries` folder contains the library to write Narupa clients and
 servers in python, as well as the services implemented in python. The
@@ -23,7 +73,7 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-### Setup narupa-protocol with Anaconda
+## Setting up for development
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Open the "Anaconda Powershell Prompt" to type the following commands.
@@ -68,25 +118,25 @@ Developers will want the manual install described below.
 Running the tests is a crucial part of keeping the code base functional. To run the test of the python libraries, run:
 
     python -m pytest python-libraries
-    
+
 Optionally, you can run most of tests in parallel with pytest-xdist:
-    
+
     pytest -m pip install pytest-xdist
     python -m pytest python-libraries -n auto -m 'not serial'
     python -m pytest python-libraries -n0 -m 'serial'
 
 ## Running the examples
 
-### ASE IMD Simulations 
+### ASE IMD Simulations
 
 `narupa.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the `narupa-protocol` directory:
 
-    narupa-omm-ase examples/ase/nanotube.xml 
+    narupa-omm-ase examples/ase/nanotube.xml
 
 The example files are distributed in the directory
 `examples/ase/` from the [git repository](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/examples/ase).
 
-#### Jupyter Notebooks 
+#### Jupyter Notebooks
 
 The [`python-libraries/narupa-ase/examples`](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/python-libraries/narupa-ase/examples) examples folder also contains several
 Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
@@ -105,9 +155,10 @@ trajectory. To serve the frames on port 54321, from the `narupa-protocol` direct
 
 If you are having autoconnecting to servers, you can run `narupa-essd-list` to verify which local network servers are visible to your machine.
 
+>>>>>>> master
 ## Citation and External Libraries
 
-If you find this project useful, please cite the following paper: 
+If you find this project useful, please cite the following paper:
 
 M. O’Connor, S.J. Bennie, H.M. Deeks, A. Jamieson-Binnie, A.J. Jones, R.J. Shannon, R. Walters, T. Mitchell, A.J. Mulholland, D.R. Glowacki, [“Interactive molecular dynamics from quantum chemistry to drug binding: an open-source multi-person virtual reality framework”](https://aip.scitation.org/doi/10.1063/1.5092590), J. Chem Phys 150, 224703 (2019)
 

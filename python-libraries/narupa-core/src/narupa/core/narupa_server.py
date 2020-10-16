@@ -15,7 +15,8 @@ from narupa.utilities.change_buffers import (
 class NarupaServer(GrpcServer):
     """
     A base for Narupa gRPC servers. Sets up a gRPC server, and automatically
-    attaches a :class:`CommandService`, enabling the running of arbitrary commands.
+    attaches a :class:`CommandService` and  :class:`StateService` enabling the running of arbitrary commands
+    and synchronisation of state.
     """
     _command_service: CommandService
     _state_service: StateService
