@@ -174,7 +174,7 @@ class SingleItemQueue:
 class GetFrameResponseAggregatingQueue(SingleItemQueue):
     """
     SingleItemQueue specifically for GetFrameResponse items. Put items will be
-    aggregated with any existing item so that there is at most on item in the
+    aggregated with any existing item so that there is at most one item in the
     queue at any time.
     """
     def put(self, item: GetFrameResponse, **kwargs):
