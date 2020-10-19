@@ -182,20 +182,18 @@ class GetFrameResponseAggregatingQueue(SingleItemQueue):
             if item is None:
                 # None is the sentinel value to indicate that the queue user
                 # should terminate, so it is safe to discard aggregated frames.
-                self._item = None
-                self._has_item = True
+                value = None
             else:
-                response = GetFrameResponse(
+                # Merge frames empty < existing < new
+                value = GetFrameResponse(
                     frame_index=item.frame_index,
                     frame=FrameData(),
                 )
-
                 if self._has_item and self._item is not None:
-                    response.frame.MergeFrom(self._item.frame)
+                    value.frame.MergeFrom(self._item.frame)
+                value.frame.MergeFrom(item.frame)
 
-                response.frame.MergeFrom(item.frame)
-
-                self._item = response
-                self._has_item = True
-                self.not_empty.notify()
+            self._item = value
+            self._has_item = True
+            self.not_empty.notify()
 
