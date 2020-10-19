@@ -274,6 +274,47 @@ def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair,
     assert first_index == 4
 
 
+def test_subscribe_latest_frames_aggregates_frames(
+        frame_server_client_pair,
+        simple_frame_data,
+):
+    """
+    Test that data that exists only in intermediate frames (those frames that
+    are never "latest" at the time of sending) is aggregated with the latest
+    frame instead of being lost.
+    """
+    frame_server, frame_client = frame_server_client_pair
+
+    frame_interval = 1 / 30
+    latest_frame = None
+
+    initial = FrameData()
+    initial.values["every.frame"] = "initial"
+    initial.values["some.frames"] = "initial"
+
+    intermediate = FrameData()
+    intermediate.values["every.frame"] = "intermediate"
+    intermediate.values["some.frames"] = "intermediate"
+
+    latest = FrameData()
+    latest.values["every.frame"] = "latest"
+
+    def callback(frame, frame_index):
+        nonlocal latest_frame
+        latest_frame = frame
+
+    frame_server.send_frame(0, initial)
+
+    future = getattr(frame_client, 'subscribe_last_frames_async')(callback)
+    time.sleep(0.01)
+
+    frame_server.send_frame(1, intermediate)
+    frame_server.send_frame(2, latest)
+
+    time.sleep(2 * frame_interval)
+    assert latest_frame.values["some.frames"] == intermediate.values["some.frames"]
+
+
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
 @pytest.mark.parametrize('frame_interval', (1/10, 1/30, 1/60))
 def test_subscribe_frames_frame_interval(frame_server_client_pair,

@@ -171,10 +171,11 @@ class SingleItemQueue:
             return item
 
 
-class GetFrameResponseMergeQueueHack(SingleItemQueue):
+class GetFrameResponseAggregatingQueue(SingleItemQueue):
     """
-    SingleItemQueue but specifically for GetFrameResponse items. When putting
-    a new item it will be aggregated with any existing item.
+    SingleItemQueue specifically for GetFrameResponse items. Put items will be
+    aggregated with any existing item so that there is at most on item in the
+    queue at any time.
     """
     def put(self, item: GetFrameResponse, **kwargs):
         with self._lock:
@@ -183,3 +184,4 @@ class GetFrameResponseMergeQueueHack(SingleItemQueue):
             self._item = item
             self._has_item = True
             self.not_empty.notify()
+
