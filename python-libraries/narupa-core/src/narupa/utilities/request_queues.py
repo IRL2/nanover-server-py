@@ -10,7 +10,7 @@ from threading import Lock, Condition
 from contextlib import contextmanager
 from time import monotonic as time
 
-from narupa.protocol.trajectory import GetFrameResponse
+from narupa.protocol.trajectory import GetFrameResponse, FrameData
 
 
 class DictOfQueues:
@@ -179,9 +179,23 @@ class GetFrameResponseAggregatingQueue(SingleItemQueue):
     """
     def put(self, item: GetFrameResponse, **kwargs):
         with self._lock:
-            if self._has_item and item is not None and self._item is not None:
-                item.frame.MergeFrom(self._item.frame)
-            self._item = item
-            self._has_item = True
-            self.not_empty.notify()
+            if item is None:
+                # None is the sentinel value to indicate that the queue user
+                # should terminate, so it is safe to discard aggregated frames.
+                self._item = None
+                self._has_item = True
+            else:
+                response = GetFrameResponse(
+                    frame_index=item.frame_index,
+                    frame=FrameData(),
+                )
+
+                if self._has_item and self._item is not None:
+                    response.frame.MergeFrom(self._item.frame)
+
+                response.frame.MergeFrom(item.frame)
+
+                self._item = response
+                self._has_item = True
+                self.not_empty.notify()
 
