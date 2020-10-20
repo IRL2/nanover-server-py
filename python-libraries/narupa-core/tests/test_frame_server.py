@@ -11,6 +11,7 @@ from narupa.trajectory.frame_data import SERVER_TIMESTAMP
 
 SUBSCRIBE_METHODS = ('subscribe_frames_async', 'subscribe_last_frames_async')
 FRAME_DATA_VARIABLE_KEYS = (SERVER_TIMESTAMP, )
+IMMEDIATE_REPLY_WAIT_TIME = 0.01
 
 
 def assert_framedata_equal(
@@ -236,13 +237,13 @@ def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
         result = frame
 
     future = getattr(frame_client, subscribe_method)(callback)
-    time.sleep(0.01)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     for i in range(5):
         time.sleep(0.1)
         frame_server.send_frame(i, simple_frame_data)
 
-    time.sleep(0.01)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
     # TODO there is no way to cancel the subscription stream...
     frame_client.close()
 
@@ -264,14 +265,61 @@ def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair,
         if first_index is None:
             first_index = frame_index
 
-    future = getattr(frame_client, 'subscribe_last_frames_async')(callback)
-    time.sleep(0.01)
+    frame_client.subscribe_last_frames_async(callback)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     for i in range(5):
         frame_server.send_frame(i, simple_frame_data)
 
     time.sleep(2 * frame_interval)
     assert first_index == 4
+
+
+def test_subscribe_latest_frames_aggregates_frames(
+        frame_server_client_pair,
+        simple_frame_data,
+):
+    """
+    Test that data that exists only in intermediate frames (those frames that
+    are never "latest" at the time of sending) is aggregated with the latest
+    frame instead of being lost.
+    """
+    frame_server, frame_client = frame_server_client_pair
+
+    frame_interval = 1 / 30
+    latest_frame = None
+    latest_index = None
+
+    initial = FrameData()
+    initial.values["every.frame"] = "initial"
+    initial.values["some.frames"] = "initial"
+
+    intermediate = FrameData()
+    intermediate.values["every.frame"] = "intermediate"
+    intermediate.values["some.frames"] = "intermediate"
+
+    latest = FrameData()
+    latest.values["every.frame"] = "latest"
+
+    def callback(frame, frame_index):
+        nonlocal latest_frame, latest_index
+        latest_frame = frame
+        latest_index = frame_index
+
+    frame_server.send_frame(0, initial)
+
+    frame_client.subscribe_last_frames_async(callback)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+
+    # add two frames at once, because of the subscription interval only one
+    # frame will be sent, and we expect it to be the aggregate of both frames
+    frame_server.send_frame(1, intermediate)
+    frame_server.send_frame(2, latest)
+
+    time.sleep(2 * frame_interval)
+    assert latest_frame.values["some.frames"] == intermediate.values["some.frames"]
+    assert latest_frame.values["every.frame"] == latest.values["every.frame"]
+    assert latest_index == 2
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
@@ -292,7 +340,7 @@ def test_subscribe_frames_frame_interval(frame_server_client_pair,
             frame_server.send_frame(frame_index + 1, simple_frame_data)
 
     future = getattr(frame_client, subscribe_method)(callback, frame_interval)
-    time.sleep(0.01)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     frame_server.send_frame(0, simple_frame_data)
 

@@ -5,7 +5,8 @@ from queue import Queue
 from threading import Lock
 from typing import Union, Callable
 
-from narupa.utilities.request_queues import DictOfQueues, SingleItemQueue
+from narupa.utilities.request_queues import (
+    DictOfQueues, GetFrameResponseAggregatingQueue)
 from narupa.utilities.timing import yield_interval
 from narupa.protocol.trajectory import (
     TrajectoryServiceServicer, GetFrameResponse,
@@ -60,9 +61,11 @@ class FramePublisher(TrajectoryServiceServicer):
         This method publishes the latest frame available at the time of
         yielding.
         """
-        yield from self._subscribe_frame_base(request,
-                                              context,
-                                              queue_type=SingleItemQueue)
+        yield from self._subscribe_frame_base(
+            request,
+            context,
+            queue_type=GetFrameResponseAggregatingQueue,
+        )
 
     def _subscribe_frame_base(self, request, context, queue_type):
         listen_for_cancellation = context.add_callback
