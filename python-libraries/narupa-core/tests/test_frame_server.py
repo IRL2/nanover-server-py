@@ -309,6 +309,8 @@ def test_subscribe_latest_frames_aggregates_frames(
     frame_client.subscribe_last_frames_async(callback)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
+    # add two frames at once, because of the subscription interval only one
+    # frame will be sent, and we expect it to be the aggregate of both frames
     frame_server.send_frame(1, intermediate)
     frame_server.send_frame(2, latest)
 
