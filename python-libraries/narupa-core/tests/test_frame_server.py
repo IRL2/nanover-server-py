@@ -314,6 +314,8 @@ def test_subscribe_latest_frames_aggregates_frames(
 
     time.sleep(2 * frame_interval)
     assert latest_frame.values["some.frames"] == intermediate.values["some.frames"]
+    assert latest_frame.values["every.frame"] == latest.values["every.frame"]
+    assert latest_frame.frame_index == 2
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
