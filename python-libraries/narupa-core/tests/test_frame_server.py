@@ -288,6 +288,7 @@ def test_subscribe_latest_frames_aggregates_frames(
 
     frame_interval = 1 / 30
     latest_frame = None
+    latest_index = None
 
     initial = FrameData()
     initial.values["every.frame"] = "initial"
@@ -301,8 +302,9 @@ def test_subscribe_latest_frames_aggregates_frames(
     latest.values["every.frame"] = "latest"
 
     def callback(frame, frame_index):
-        nonlocal latest_frame
+        nonlocal latest_frame, latest_index
         latest_frame = frame
+        latest_index = frame_index
 
     frame_server.send_frame(0, initial)
 
@@ -317,7 +319,7 @@ def test_subscribe_latest_frames_aggregates_frames(
     time.sleep(2 * frame_interval)
     assert latest_frame.values["some.frames"] == intermediate.values["some.frames"]
     assert latest_frame.values["every.frame"] == latest.values["every.frame"]
-    assert latest_frame.frame_index == 2
+    assert latest_index == 2
 
 
 @pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
