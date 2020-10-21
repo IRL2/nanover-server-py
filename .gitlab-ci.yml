@@ -1,4 +1,4 @@
-image: intangiblerealitieslab/conda-light
+image: intangiblerealitieslab/conda-light-37
 stages:
   - stage1
   - build_lammps
