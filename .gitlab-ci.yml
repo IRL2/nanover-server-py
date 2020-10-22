@@ -177,6 +177,6 @@ upload_conda:
       # Anaconda will complain if the given version of a package is already
       # there. Until we have some visioning, we force the upload.
       - anaconda  upload --user irl conda-bld/noarch/narupa-*.tar.bz2 --force
-      - anaconda  upload --user irl conda-bld-lammps-*/noarch/narupa-lammp-s*.tar.bz2 --force
+      - anaconda  upload --user irl conda-bld-lammps-*/noarch/narupa-lammps-*.tar.bz2 --force
       # Do not fail the build if we cannot logout.
       - anaconda logout || echo "Could not logout. Too bad."
