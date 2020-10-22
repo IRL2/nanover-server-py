@@ -87,6 +87,7 @@ If you want to use this specific feature, you need to:
 * install LAMMPS with python capabilities
 * install mpy4py: `conda install -c conda-forge mpi4py` on Linux and MacOS,
   `python -m pip install mpi4py` on Windows.
+* install narupa-lammps: `conda install -c irl -c conda-forge narupa-lammps`.
 
 Developers will want the manual install described below.
 

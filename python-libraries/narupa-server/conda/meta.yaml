@@ -12,7 +12,6 @@ requirements:
     - narupa-openmm =={{ NARUPA_BUILD_VERSION }}
     - narupa-ase =={{ NARUPA_BUILD_VERSION }}
     - narupa-mdanalysis =={{ NARUPA_BUILD_VERSION }}
-    - narupa-lammps =={{ NARUPA_BUILD_VERSION }}
 
 about:
   home: https://narupa.readthedocs.io
