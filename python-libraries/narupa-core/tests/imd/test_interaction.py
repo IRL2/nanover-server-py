@@ -60,12 +60,12 @@ def test_set_property_list(interaction):
 
 
 def test_get_type(interaction):
-    assert interaction.type == "gaussian"
+    assert interaction.interaction_type == "gaussian"
 
 
 def test_set_type(interaction):
-    interaction.type = "harmonic"
-    assert interaction.type == "harmonic"
+    interaction.interaction_type = "harmonic"
+    assert interaction.interaction_type == "harmonic"
 
 
 def test_get_scale(interaction):

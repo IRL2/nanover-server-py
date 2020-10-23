@@ -23,6 +23,7 @@ class ImdStateWrapper:
     :param velocity_reset_available: Whether the dynamics this service is being
         used in allows velocity reset.
     """
+    _interactions: Dict[str, ParticleInteraction]
 
     def __init__(
             self,
@@ -42,6 +43,9 @@ class ImdStateWrapper:
                 VELOCITY_RESET_KEY: velocity_reset_available
             }),
         )
+
+        self.state_dictionary.content_updated.add_callback(self._on_state_updated)
+        self._interactions = {}
 
     @property
     def velocity_reset_available(self):
@@ -72,11 +76,15 @@ class ImdStateWrapper:
 
         :return: A copy of the dictionary of active interactions.
         """
-        return {
-            key: dict_to_interaction(value)
-            for key, value in self.state_dictionary.copy_content().items()
-            if key.startswith(INTERACTION_PREFIX)
-        }
+        return self._interactions.copy()
+
+    def _on_state_updated(self, access_token, change: DictionaryChange):
+        for removed_key in change.removals:
+            if removed_key.startswith(INTERACTION_PREFIX) and removed_key in self._interactions:
+                del self._interactions[removed_key]
+        for key, value in change.updates.items():
+            if key.startswith(INTERACTION_PREFIX):
+                self._interactions[key] = dict_to_interaction(value)
 
 
 def interaction_to_dict(interaction: ParticleInteraction):
@@ -87,7 +95,7 @@ def interaction_to_dict(interaction: ParticleInteraction):
             **interaction.properties,
             "position": [float(f) for f in interaction.position],
             "particles": [int(i) for i in interaction.particles],
-            "interaction_type": interaction.type,
+            "interaction_type": interaction.interaction_type,
             "scale": interaction.scale,
             "mass_weighted": interaction.mass_weighted,
             "reset_velocities": interaction.reset_velocities,
@@ -99,5 +107,6 @@ def interaction_to_dict(interaction: ParticleInteraction):
 
 def dict_to_interaction(dictionary: Dict[str, Any]) -> ParticleInteraction:
     kwargs = dict(**dictionary)
-    kwargs['particles'] = [int(i) for i in kwargs['particles']]
+    if 'particles' in kwargs:
+        kwargs['particles'] = [int(i) for i in kwargs['particles']]
     return ParticleInteraction(**kwargs)
