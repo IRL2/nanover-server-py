@@ -8,6 +8,7 @@ import time
 from grpc import RpcError, StatusCode
 from narupa.trajectory import FrameServer, FrameClient, FrameData
 from narupa.trajectory.frame_data import SERVER_TIMESTAMP
+from numpy import average
 
 SUBSCRIBE_METHODS = ('subscribe_frames_async', 'subscribe_last_frames_async')
 FRAME_DATA_VARIABLE_KEYS = (SERVER_TIMESTAMP, )
@@ -328,12 +329,16 @@ def test_subscribe_frames_frame_interval(frame_server_client_pair,
                                          simple_frame_data,
                                          subscribe_method,
                                          frame_interval):
+    """
+    Test that when using frame subscription methods with an interval, frames are
+    sent, on average, at the specified rate.
+    """
     frame_server, frame_client = frame_server_client_pair
     subscribe_frames_async = getattr(frame_client, subscribe_method)
 
     tolerance = frame_interval * .1
-    frame_limit = 4
-    time_limit = frame_limit * frame_interval * 2
+    frame_limit = 30
+    time_limit = frame_limit * frame_interval * 1.5
     receive_times = []
 
     def callback(frame, frame_index):
@@ -347,8 +352,8 @@ def test_subscribe_frames_frame_interval(frame_server_client_pair,
 
     frame_server.send_frame(0, simple_frame_data)
 
-    time.sleep(time_limit*2)
+    time.sleep(time_limit)
     intervals = [receive_times[i+1] - receive_times[i] for i in range(frame_limit-1)]
 
-    assert abs(min(intervals) - frame_interval) < tolerance
-    assert abs(max(intervals) - frame_interval) < tolerance
+    assert abs(average(intervals) - frame_interval) < tolerance
+    assert abs(average(intervals) - frame_interval) < tolerance
