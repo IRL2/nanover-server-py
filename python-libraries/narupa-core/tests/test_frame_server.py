@@ -336,7 +336,7 @@ def test_subscribe_frames_frame_interval(frame_server_client_pair,
     frame_server, frame_client = frame_server_client_pair
     subscribe_frames_async = getattr(frame_client, subscribe_method)
 
-    tolerance = frame_interval * .1
+    tolerance = 5/1000  # 5 milliseconds
     frame_limit = 30
     time_limit = frame_limit * frame_interval * 1.5
     receive_times = []
