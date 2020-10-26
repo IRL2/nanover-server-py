@@ -329,22 +329,26 @@ def test_subscribe_frames_frame_interval(frame_server_client_pair,
                                          subscribe_method,
                                          frame_interval):
     frame_server, frame_client = frame_server_client_pair
+    subscribe_frames_async = getattr(frame_client, subscribe_method)
 
-    last_index = None
+    tolerance = frame_interval * .1
+    frame_limit = 4
+    time_limit = frame_limit * frame_interval * 2
+    receive_times = []
 
     def callback(frame, frame_index):
-        nonlocal last_index
-        last_index = frame_index
+        receive_times.append(time.monotonic())
 
-        if frame_index < 4:
+        if frame_index < frame_limit:
             frame_server.send_frame(frame_index + 1, simple_frame_data)
 
-    future = getattr(frame_client, subscribe_method)(callback, frame_interval)
+    subscribe_frames_async(callback, frame_interval)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     frame_server.send_frame(0, simple_frame_data)
 
-    time.sleep(2 * frame_interval)
-    assert last_index < 4
-    time.sleep(3 * frame_interval)
-    assert last_index == 4
+    time.sleep(time_limit*2)
+    intervals = [receive_times[i+1] - receive_times[i] for i in range(frame_limit-1)]
+
+    assert abs(min(intervals) - frame_interval) < tolerance
+    assert abs(max(intervals) - frame_interval) < tolerance
