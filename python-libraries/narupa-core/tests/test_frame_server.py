@@ -356,4 +356,3 @@ def test_subscribe_frames_frame_interval(frame_server_client_pair,
     intervals = [receive_times[i+1] - receive_times[i] for i in range(frame_limit-1)]
 
     assert abs(average(intervals) - frame_interval) < tolerance
-    assert abs(average(intervals) - frame_interval) < tolerance
