@@ -19,6 +19,7 @@ requirements:
 
   run:
     - python >=3.6.0
+    - typing-extensions
     - protobuf
     - grpcio
     - numpy
