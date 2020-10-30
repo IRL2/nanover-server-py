@@ -44,12 +44,14 @@ class GrpcServer:
         self.server = grpc.server(executor, options=grpc_options)
         self.setup_services()
         self._address = address
-        self._port = self.server.add_insecure_port(address=f"{address}:{port}")
-        self._address = address
-        if self._port == 0:
+        try:
+            self._port = self.server.add_insecure_port(address=f"{address}:{port}")
+        except RuntimeError:
             if port == 0:
                 raise IOError(f"Could not open any port.")
             raise IOError(f"Could not open on port {port}.")
+        self._address = address
+
         self.logger = logging.getLogger(__name__)
         self.logger.info(f'Running server {self.__class__.__name__} on port {self.port}')
         self.server.start()
