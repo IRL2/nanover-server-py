@@ -162,7 +162,7 @@ class NarupaImdClient:
 
         self._frames = deque(maxlen=self.max_frames)
         self._first_frame = None
-        self._current_frame = None
+        self._current_frame = FrameData()
 
         self.update_available_commands()  # initialise the set of available commands.
 
@@ -731,10 +731,7 @@ class NarupaImdClient:
         if self._first_frame is None:
             self._first_frame = frame
         self._frames.append(frame)
-        if self._current_frame is None:
-            self._current_frame = frame
-        else:
-            self._current_frame.raw.MergeFrom(frame.raw)
+        self._current_frame.raw.MergeFrom(frame.raw)
 
     def __enter__(self):
         return self
