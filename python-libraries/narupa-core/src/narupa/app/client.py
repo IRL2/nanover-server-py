@@ -132,7 +132,7 @@ class NarupaImdClient:
     _imd_client: Optional[ImdClient]
     _multiplayer_client: Optional[NarupaClient]
     _frames: deque
-    _current_frame: Optional[FrameData]
+    _current_frame: FrameData
 
     _next_selection_id: int = 0
 
@@ -331,11 +331,11 @@ class NarupaImdClient:
 
     @property  # type: ignore
     @need_frames
-    def current_frame(self) -> Optional[FrameData]:
+    def current_frame(self) -> FrameData:
         """
         The current state of the trajectory, formed by collating all received frames.
 
-        :return: :class:`FrameData`, or `None` if none has been received.
+        :return: :class:`FrameData`, which is empty if none has been received.
         """
         return self._current_frame
 
