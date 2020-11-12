@@ -145,17 +145,17 @@ def test_current_frame_is_copy(client_server):
 
     frame = client.current_frame
 
-    assert client.current_frame.arrays["indices"] == [0, 1, 3]
-    assert "string" in client.current_frame
-    assert "bool" not in client.current_frame
+    assert frame.arrays["indices"] == [0, 1, 3]
+    assert "string" in frame
+    assert "bool" not in frame
 
     frame_server.send_frame(0, second_frame)
 
     time.sleep(CLIENT_WAIT_TIME)
 
-    assert client.current_frame.arrays["indices"] == [0, 1, 3]
-    assert "string" in client.current_frame
-    assert "bool" not in client.current_frame
+    assert frame.arrays["indices"] == [0, 1, 3]
+    assert "string" in frame
+    assert "bool" not in frame
 
 
 def test_reconnect_receive(client_server, simple_frame_data):
