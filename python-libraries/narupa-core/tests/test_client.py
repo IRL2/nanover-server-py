@@ -127,6 +127,37 @@ def test_current_frame_does_merge(client_server):
     assert client.current_frame.values["string"] == first_frame.values["string"]
 
 
+def test_current_frame_is_copy(client_server):
+    client, frame_server, imd_server, multiplayer_server = client_server
+    time.sleep(CLIENT_WAIT_TIME)
+
+    first_frame = FrameData()
+    first_frame.arrays["indices"] = [0, 1, 3]
+    first_frame.values["string"] = "str"
+
+    second_frame = FrameData()
+    second_frame.arrays["indices"] = [4, 6, 8]
+    second_frame.values["bool"] = False
+
+    frame_server.send_frame(0, first_frame)
+
+    time.sleep(CLIENT_WAIT_TIME)
+
+    frame = client.current_frame
+
+    assert client.current_frame.arrays["indices"] == [0, 1, 3]
+    assert "string" in client.current_frame
+    assert "bool" not in client.current_frame
+
+    frame_server.send_frame(0, second_frame)
+
+    time.sleep(CLIENT_WAIT_TIME)
+
+    assert client.current_frame.arrays["indices"] == [0, 1, 3]
+    assert "string" in client.current_frame
+    assert "bool" not in client.current_frame
+
+
 def test_reconnect_receive(client_server, simple_frame_data):
     client, frame_server, imd_server, multiplayer_server = client_server
     frame_server.send_frame(0, simple_frame_data)
