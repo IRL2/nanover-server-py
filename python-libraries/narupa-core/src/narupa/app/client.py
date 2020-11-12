@@ -132,6 +132,7 @@ class NarupaImdClient:
     _imd_client: Optional[ImdClient]
     _multiplayer_client: Optional[NarupaClient]
     _frames: deque
+    _current_frame: FrameData
 
     _next_selection_id: int = 0
 
@@ -161,6 +162,7 @@ class NarupaImdClient:
 
         self._frames = deque(maxlen=self.max_frames)
         self._first_frame = None
+        self._current_frame = FrameData()
 
         self.update_available_commands()  # initialise the set of available commands.
 
@@ -326,6 +328,16 @@ class NarupaImdClient:
         if len(self.frames) is 0:
             return None
         return self.frames[-1]
+
+    @property  # type: ignore
+    @need_frames
+    def current_frame(self) -> FrameData:
+        """
+        The current state of the trajectory, formed by collating all received frames.
+
+        :return: :class:`FrameData`, which is empty if none has been received.
+        """
+        return self._current_frame
 
     @property  # type: ignore
     @need_multiplayer
@@ -719,6 +731,7 @@ class NarupaImdClient:
         if self._first_frame is None:
             self._first_frame = frame
         self._frames.append(frame)
+        self._current_frame.raw.MergeFrom(frame.raw)
 
     def __enter__(self):
         return self

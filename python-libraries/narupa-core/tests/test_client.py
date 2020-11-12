@@ -2,6 +2,7 @@ import time
 import pytest
 from mock import Mock
 from narupa.core import NarupaServer
+from narupa.trajectory import FrameData
 
 from narupa.trajectory.frame_server import (
     PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY,
@@ -80,6 +81,50 @@ def test_latest_frame_only(frame_server, simple_frame_data):
         assert client.first_frame is not None
         assert client.latest_frame == client.first_frame
         assert len(client.frames) < num_frames
+
+
+def test_latest_frame_does_not_merge(client_server):
+    client, frame_server, imd_server, multiplayer_server = client_server
+    time.sleep(CLIENT_WAIT_TIME)
+
+    first_frame = FrameData()
+    first_frame.arrays["indices"] = [0, 1, 3]
+    first_frame.values["string"] = "str"
+
+    second_frame = FrameData()
+    second_frame.arrays["indices"] = [4, 6, 8]
+    second_frame.values["bool"] = False
+
+    frame_server.send_frame(0, first_frame)
+    frame_server.send_frame(1, second_frame)
+
+    time.sleep(CLIENT_WAIT_TIME)
+
+    assert client.latest_frame.arrays["indices"] == second_frame.arrays["indices"]
+    assert client.latest_frame.values["bool"] == second_frame.values["bool"]
+    assert "string" not in client.latest_frame
+
+
+def test_current_frame_does_merge(client_server):
+    client, frame_server, imd_server, multiplayer_server = client_server
+    time.sleep(CLIENT_WAIT_TIME)
+
+    first_frame = FrameData()
+    first_frame.arrays["indices"] = [0, 1, 3]
+    first_frame.values["string"] = "str"
+
+    second_frame = FrameData()
+    second_frame.arrays["indices"] = [4, 6, 8]
+    second_frame.values["bool"] = False
+
+    frame_server.send_frame(0, first_frame)
+    frame_server.send_frame(1, second_frame)
+
+    time.sleep(CLIENT_WAIT_TIME)
+
+    assert client.current_frame.arrays["indices"] == second_frame.arrays["indices"]
+    assert client.current_frame.values["bool"] == second_frame.values["bool"]
+    assert client.current_frame.values["string"] == first_frame.values["string"]
 
 
 def test_reconnect_receive(client_server, simple_frame_data):
