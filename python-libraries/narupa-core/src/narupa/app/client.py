@@ -333,11 +333,11 @@ class NarupaImdClient:
     @need_frames
     def current_frame(self) -> FrameData:
         """
-        The current state of the trajectory, formed by collating all received frames.
+        A copy of the current state of the trajectory, formed by collating all received frames.
 
-        :return: :class:`FrameData`, which is empty if none has been received.
+        :return: :class:`FrameData`, which is empty if none have been received.
         """
-        return self._current_frame
+        return self._current_frame.copy()
 
     @property  # type: ignore
     @need_multiplayer
