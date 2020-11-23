@@ -1,3 +1,4 @@
+import math
 from narupa.core import NarupaServer
 from narupa.utilities.change_buffers import DictionaryChange
 
@@ -15,12 +16,16 @@ def add_multiuser_commands(server: NarupaServer):
             for key in state
             if key.startswith(MULTIUSER_AVATAR_PREFIX)
         ]
+        # generate an origin for each avatar
+        count = len(avatar_ids)
+        angles = [i * math.pi * 2 / count for i in range(count)]
+        radius = 1
         updates = {
             MULTIUSER_ORIGIN_PREFIX + avatar_id: {
-                "position": [0, 0, 0],
-                "rotation": [0, 0, 0, 1],
+                "position": [radius * math.cos(angle), 0, radius * math.sin(angle)],
+                "rotation": [0, math.sin(angle), 0, math.cos(angle)],
             }
-            for avatar_id in avatar_ids
+            for avatar_id, angle in zip(avatar_ids, angles)
         }
         server.update_state(None, DictionaryChange(updates))
 
