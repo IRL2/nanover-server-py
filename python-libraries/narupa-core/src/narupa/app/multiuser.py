@@ -1,3 +1,9 @@
+# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
+# Licensed under the GPL. See License.txt in the project root for license information.
+"""
+Module for addon server behaviour specific to the NarupaIMD multiuser
+experience.
+"""
 import math
 from narupa.core import NarupaServer
 from narupa.utilities.change_buffers import DictionaryChange
@@ -8,7 +14,16 @@ MULTIUSER_ORIGIN_PREFIX = 'user-origin.'
 
 
 def add_multiuser_commands(server: NarupaServer):
-    def radially_orient():
+    """
+    Add server commands specific to the NarupaIMD multiuser experience.
+    """
+    def radially_orient(radius=1):
+        """
+        For each avatar present, add a suggested origin to the multiuser state
+        for the corresponding user id. Distributes the origins in a circle
+        around the true origin, each facing inwards, and each displaced radially
+        by the given radius.
+        """
         # find relevant avatar ids
         state = server.copy_state()
         avatar_ids = [
@@ -19,7 +34,6 @@ def add_multiuser_commands(server: NarupaServer):
         # generate an origin for each avatar
         count = len(avatar_ids)
         angles = [i * math.pi * 2 / count for i in range(count)]
-        radius = 1
         updates = {
             MULTIUSER_ORIGIN_PREFIX + avatar_id: {
                 "position": [radius * math.cos(angle), 0, radius * math.sin(angle)],
