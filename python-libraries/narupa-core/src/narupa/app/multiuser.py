@@ -37,10 +37,19 @@ def add_multiuser_commands(server: NarupaServer):
         updates = {
             MULTIUSER_ORIGIN_PREFIX + avatar_id: {
                 "position": [radius * math.cos(angle), 0, radius * math.sin(angle)],
-                "rotation": [0, math.sin(angle), 0, math.cos(angle)],
+                "rotation": _angle_axis_quaternion_y(-angle-math.pi/2),
             }
             for avatar_id, angle in zip(avatar_ids, angles)
         }
         server.update_state(None, DictionaryChange(updates))
 
     server.register_command(RADIAL_ORIENT_COMMAND_KEY, radially_orient)
+
+
+def _angle_axis_quaternion_y(angle):
+    return [
+        0,
+        math.sin(angle * .5),
+        0,
+        math.cos(angle * .5),
+    ]
