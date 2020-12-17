@@ -15,8 +15,11 @@ from osc_app import OscApp
 
 def build_frame_generator(osc_client):
     def frame_to_osc_messages(frame):
-        for key, value in osc_client.narupa_client._multiplayer_client.resources.items():
-            yield f"/multiplayer/{key}", value.number_value
+        for key, value in osc_client.narupa_client.latest_multiplayer_values.items():
+            try:
+                yield f"/multiplayer/{key}", value.number_value
+            except AttributeError:
+                pass
 
         if KINETIC_ENERGY in frame.values:
             yield "/energy/kinetic", frame.kinetic_energy
