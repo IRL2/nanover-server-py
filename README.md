@@ -40,6 +40,7 @@ are organised into the following folders:
     - [Frame](examples/fundamentals/frame.ipynb) - How Narupa communicates frames of molecular simulations.
     - [Servers](examples/fundamentals/servers.ipynb) - Setting up a Narupa server.
     - [State & Commands](examples/fundamentals/commands_and_state.ipynb) - Synchronizing state between clients and calling commands on the server.
+    - [Selections & Visualisation](examples/fundamentals/visualisations.ipynb) - Selecting atoms and setting how to render them.
 
 The tutorials use Jupyter notebooks, [NGLView](https://github.com/arose/nglview) for visualising trajectories, and while not strictly necessary,
 assumes you have the [Narupa IMD VR](https://gitlab.com/intangiblerealities/narupa-applications/narupa-imd)
@@ -73,7 +74,9 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-## Setting up for development
+## Installation
+
+### Quick installation for a user
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Open the "Anaconda Powershell Prompt" to type the following commands.
@@ -120,7 +123,7 @@ Running the tests is a crucial part of keeping the code base functional. To run 
 
     python -m pytest python-libraries
 
-Optionally, you can run most of tests in parallel with pytest-xdist:
+Optionally, you can run most of the tests in parallel with pytest-xdist:
 
     pytest -m pip install pytest-xdist
     python -m pytest python-libraries -n auto -m 'not serial'
@@ -156,12 +159,13 @@ trajectory. To serve the frames on port 54321, from the `narupa-protocol` direct
 
 If you are having autoconnecting to servers, you can run `narupa-essd-list` to verify which local network servers are visible to your machine.
 
->>>>>>> master
 ## Citation and External Libraries
 
-If you find this project useful, please cite the following paper:
+If you find this project useful, please cite the following papers:
 
-M. O’Connor, S.J. Bennie, H.M. Deeks, A. Jamieson-Binnie, A.J. Jones, R.J. Shannon, R. Walters, T. Mitchell, A.J. Mulholland, D.R. Glowacki, [“Interactive molecular dynamics from quantum chemistry to drug binding: an open-source multi-person virtual reality framework”](https://aip.scitation.org/doi/10.1063/1.5092590), J. Chem Phys 150, 224703 (2019)
+> Jamieson-Binnie, A. D., O’Connor, M. B., Barnoud, J., Wonnacott, M. D., Bennie, S. J., & Glowacki, D. R. (2020, August 17). Narupa iMD: A VR-Enabled Multiplayer Framework for Streaming Interactive Molecular Simulations. ACM SIGGRAPH 2020 Immersive Pavilion. SIGGRAPH ’20: Special Interest Group on Computer Graphics and Interactive Techniques Conference. https://doi.org/10.1145/3388536.3407891
+
+> M. O’Connor, S.J. Bennie, H.M. Deeks, A. Jamieson-Binnie, A.J. Jones, R.J. Shannon, R. Walters, T. Mitchell, A.J. Mulholland, D.R. Glowacki, [“Interactive molecular dynamics from quantum chemistry to drug binding: an open-source multi-person virtual reality framework”](https://aip.scitation.org/doi/10.1063/1.5092590), J. Chem Phys 150, 224703 (2019)
 
 This project has been made possible by the following open source projects. We gratefully thank them for their efforts, and suggest that you use and cite them:
 
