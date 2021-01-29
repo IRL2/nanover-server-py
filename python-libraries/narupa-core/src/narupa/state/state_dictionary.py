@@ -6,7 +6,7 @@ shared key/value store.
 """
 from contextlib import contextmanager
 from threading import Lock
-from typing import ContextManager, Dict, Optional, Iterable
+from typing import ContextManager, Generator, Dict, Optional, Iterable
 
 from narupa.utilities.change_buffers import (
     DictionaryChangeMultiView,
@@ -47,7 +47,7 @@ class StateDictionary:
             return dict(content)
 
     @contextmanager
-    def lock_content(self) -> ContextManager[Dict[str, object]]:
+    def lock_content(self) -> Generator[Dict[str, object], None, None]:
         """
         Context manager for reading the current state while delaying any changes
         to it via an exclusive lock.
