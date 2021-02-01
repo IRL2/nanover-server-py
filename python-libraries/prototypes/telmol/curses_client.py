@@ -100,7 +100,7 @@ class Renderer:
         self.window = window
         self.charset = charset
         self.colors = colors
-        self.shader = shader
+        self.shader = shader  # type: ignore
         self.camera = Camera()
 
         self.positions = None
