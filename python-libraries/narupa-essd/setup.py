@@ -12,6 +12,9 @@ setup(name='narupa-essd',
       author_email='m.oconnor@bristol.ac.uk',
       url='https://gitlab.com/intangiblerealities/',
       packages=find_namespace_packages('src', include='narupa.*'),
+      package_data={
+          '': ['py.typed']
+      },
       install_requires=(
           'netifaces',
       ),

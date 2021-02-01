@@ -142,6 +142,9 @@ setup(name='narupa',
       url='https://gitlab.com/intangiblerealities/',
       packages=find_namespace_packages('src', include='narupa.*') + ['narupa.protocol'],
       package_dir={'': 'src'},
+      package_data={
+          '': ['py.typed']
+      },
       install_requires=requirements,
       cmdclass={
           'compile_proto': CompileProtoCommand,
