@@ -2,7 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 import curses
 import itertools
-from typing import Tuple, Iterable, Iterator, Callable, Sequence, Dict, Any
+from typing import Tuple, Iterable, Iterator, Callable, Sequence, Dict, Any, Protocol
 import numpy as np
 from bresenham import get_line
 
@@ -28,7 +28,15 @@ Position = Tuple[float, float, float, float]
 Fragment = Tuple[int, int, int, float]
 BondPair = Tuple[int, int]
 AtomInfo = Tuple[int, Position, int]
-Shader = Callable[[Dict, int], Iterator[Fragment]]
+
+
+# Mypy does not allow to assign to a method. Though, it is confused and thinks
+# any attribute declared as a callable is a method. This cause issues in the
+# Renreder class in curse_client.py. This is a workaround described in
+# https://github.com/python/mypy/issues/708#issuecomment-667989040
+class Shader(Protocol):
+    def __call__(self, frame: Dict, color_count: int) -> Iterator[Fragment]:
+        ...
 
 
 def iterate_frame_atoms(frame) -> Iterator[AtomInfo]:
