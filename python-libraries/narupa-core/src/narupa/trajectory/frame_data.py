@@ -140,63 +140,63 @@ class FrameData(metaclass=_FrameDataMeta):
     The set of shortcuts that contain data is available from the
     :attr:`used_shortcuts`.
     """
-    bond_pairs = _Shortcut(
+    bond_pairs: List[List[int]] = _Shortcut(
         key=BOND_PAIRS, record_type='arrays',
         field_type='index', to_python=_n_by_2, to_raw=_flatten_array)
-    bond_orders = _Shortcut(
+    bond_orders: List[float] = _Shortcut(
         key=BOND_ORDERS, record_type='arrays',
         field_type='float', to_python=_as_is, to_raw=_as_is)
 
-    particle_positions = _Shortcut(
+    particle_positions: List[List[float]] = _Shortcut(
         key=PARTICLE_POSITIONS, record_type='arrays',
         field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
-    particle_elements = _Shortcut(
+    particle_elements: List[int] = _Shortcut(
         key=PARTICLE_ELEMENTS, record_type='arrays',
         field_type='index', to_python=_as_is, to_raw=_as_is)
-    particle_types = _Shortcut(
+    particle_types: List[str] = _Shortcut(
         key=PARTICLE_TYPES, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    particle_names = _Shortcut(
+    particle_names: List[str] = _Shortcut(
         key=PARTICLE_NAMES, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    particle_residues = _Shortcut(
+    particle_residues: List[int] = _Shortcut(
         key=PARTICLE_RESIDUES, record_type='arrays',
         field_type='index', to_python=_as_is, to_raw=_as_is)
-    particle_count = _Shortcut(
+    particle_count: int = _Shortcut(
         key=PARTICLE_COUNT, record_type='values',
         field_type='number_value', to_python=_as_int, to_raw=_as_is)
 
-    residue_names = _Shortcut(
+    residue_names: List[str] = _Shortcut(
         key=RESIDUE_NAMES, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    residue_ids = _Shortcut(
+    residue_ids: List[int] = _Shortcut(
         key=RESIDUE_IDS, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    residue_chains = _Shortcut(
+    residue_chains: List[int] = _Shortcut(
         key=RESIDUE_CHAINS, record_type='arrays',
         field_type='index', to_python=_as_is, to_raw=_as_is)
-    residue_count = _Shortcut(
+    residue_count: int = _Shortcut(
         key=RESIDUE_COUNT, record_type='values',
         field_type='number_value', to_python=_as_int, to_raw=_as_is)
 
-    chain_names = _Shortcut(
+    chain_names: List[str] = _Shortcut(
         key=CHAIN_NAMES, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    chain_count = _Shortcut(
+    chain_count: int = _Shortcut(
         key=CHAIN_COUNT, record_type='values',
         field_type='number_value', to_python=_as_int, to_raw=_as_is)
 
-    kinetic_energy = _Shortcut(
+    kinetic_energy: float = _Shortcut(
         key=KINETIC_ENERGY, record_type='values',
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
-    potential_energy = _Shortcut(
+    potential_energy: float = _Shortcut(
         key=POTENTIAL_ENERGY, record_type='values',
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
-    box_vectors = _Shortcut(
+    box_vectors: List[List[float]] = _Shortcut(
         key=BOX_VECTORS, record_type='arrays',
         field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
 
-    server_timestamp = _Shortcut(
+    server_timestamp: float = _Shortcut(
         key=SERVER_TIMESTAMP, record_type='values',
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
 
