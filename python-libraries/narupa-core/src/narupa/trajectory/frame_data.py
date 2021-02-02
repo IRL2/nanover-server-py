@@ -3,7 +3,7 @@
 from collections import namedtuple
 from collections.abc import Set
 import numbers
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 import numpy as np
 from narupa.protocol import trajectory
@@ -140,63 +140,63 @@ class FrameData(metaclass=_FrameDataMeta):
     The set of shortcuts that contain data is available from the
     :attr:`used_shortcuts`.
     """
-    bond_pairs: List[List[int]] = _Shortcut(
+    bond_pairs: List[List[int]] = _Shortcut(  # type: ignore[assignment]
         key=BOND_PAIRS, record_type='arrays',
         field_type='index', to_python=_n_by_2, to_raw=_flatten_array)
-    bond_orders: List[float] = _Shortcut(
+    bond_orders: List[float] = _Shortcut(  # type: ignore[assignment]
         key=BOND_ORDERS, record_type='arrays',
         field_type='float', to_python=_as_is, to_raw=_as_is)
 
-    particle_positions: List[List[float]] = _Shortcut(
+    particle_positions: List[List[float]] = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_POSITIONS, record_type='arrays',
         field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
-    particle_elements: List[int] = _Shortcut(
+    particle_elements: List[int] = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_ELEMENTS, record_type='arrays',
         field_type='index', to_python=_as_is, to_raw=_as_is)
-    particle_types: List[str] = _Shortcut(
+    particle_types: List[str] = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_TYPES, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    particle_names: List[str] = _Shortcut(
+    particle_names: List[str] = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_NAMES, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    particle_residues: List[int] = _Shortcut(
+    particle_residues: List[int] = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_RESIDUES, record_type='arrays',
         field_type='index', to_python=_as_is, to_raw=_as_is)
-    particle_count: int = _Shortcut(
+    particle_count: int = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_COUNT, record_type='values',
         field_type='number_value', to_python=_as_int, to_raw=_as_is)
 
-    residue_names: List[str] = _Shortcut(
+    residue_names: List[str] = _Shortcut(  # type: ignore[assignment]
         key=RESIDUE_NAMES, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    residue_ids: List[int] = _Shortcut(
+    residue_ids: List[int] = _Shortcut(  # type: ignore[assignment]
         key=RESIDUE_IDS, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    residue_chains: List[int] = _Shortcut(
+    residue_chains: List[int] = _Shortcut(  # type: ignore[assignment]
         key=RESIDUE_CHAINS, record_type='arrays',
         field_type='index', to_python=_as_is, to_raw=_as_is)
-    residue_count: int = _Shortcut(
+    residue_count: int = _Shortcut(  # type: ignore[assignment]
         key=RESIDUE_COUNT, record_type='values',
         field_type='number_value', to_python=_as_int, to_raw=_as_is)
 
-    chain_names: List[str] = _Shortcut(
+    chain_names: List[str] = _Shortcut(  # type: ignore[assignment]
         key=CHAIN_NAMES, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    chain_count: int = _Shortcut(
+    chain_count: int = _Shortcut(  # type: ignore[assignment]
         key=CHAIN_COUNT, record_type='values',
         field_type='number_value', to_python=_as_int, to_raw=_as_is)
 
-    kinetic_energy: float = _Shortcut(
+    kinetic_energy: float = _Shortcut(  # type: ignore[assignment]
         key=KINETIC_ENERGY, record_type='values',
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
-    potential_energy: float = _Shortcut(
+    potential_energy: float = _Shortcut(  # type: ignore[assignment]
         key=POTENTIAL_ENERGY, record_type='values',
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
-    box_vectors: List[List[float]] = _Shortcut(
+    box_vectors: List[List[float]] = _Shortcut(  # type: ignore[assignment]
         key=BOX_VECTORS, record_type='arrays',
         field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
 
-    server_timestamp: float = _Shortcut(
+    server_timestamp: float = _Shortcut(  # type: ignore[assignment]
         key=SERVER_TIMESTAMP, record_type='values',
         field_type='number_value', to_python=_as_is, to_raw=_as_is)
 
