@@ -35,7 +35,7 @@ test_python:
   variables:
     python_version: "3.7"
   before_script:
-    - conda install -c omnia -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
+    - conda install -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
     - python -m pip install -r python-libraries/requirements.test
   script:
     - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial' --junitxml=report_not_serial.xml
@@ -57,7 +57,7 @@ test_python_minimum:
   variables:
     python_version: "3.6"
   before_script:
-    - export PIN_VERSIONS="python=$python_version ase=3.19.0"
+    - export PIN_VERSIONS="python=$python_version ase=3.19.0 openmm=7.4.0"
     - conda install -c omnia -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
     - python -m pip install -r python-libraries/requirements.test
   script:
