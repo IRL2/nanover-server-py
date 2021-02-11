@@ -38,14 +38,14 @@ ClientVarType = TypeVar('ClientVarType', bound=NarupaClient)
 
 
 def _update_commands(client: Optional[NarupaClient]):
-    try:
-        return client.update_available_commands()
-    except AttributeError:
-        return {}
-    except RpcError as e:
-        if e._state.code == StatusCode.UNAVAILABLE:
-            return {}
-        raise e
+    if isinstance(client, NarupaClient):
+        try:
+            return client.update_available_commands()
+        except RpcError as e:
+            if e._state.code == StatusCode.UNAVAILABLE:
+                return {}
+            raise e
+    return {}
 
 
 def _need_attribute(func, *, name: str, attr: str):
@@ -136,6 +136,7 @@ class NarupaImdClient:
     _multiplayer_client: Optional[NarupaClient]
     _frames: deque
     _current_frame: FrameData
+    _first_frame: Optional[FrameData]
 
     _next_selection_id: int = 0
 
@@ -754,7 +755,7 @@ class NarupaImdClient:
         if address in self._channels:
             client: ClientVarType = client_type(channel=self._channels[address], make_channel_owner=False)
         else:
-            client: ClientVarType = client_type.insecure_channel(address=address[0], port=address[1])
+            client: ClientVarType = client_type.insecure_channel(address=address[0], port=address[1])  # type: ignore[no-redef]
             self._channels[address] = client.channel
         return client
 
