@@ -63,14 +63,14 @@ class RenderingSelection:
         :param id: The unique ID of the selection.
         :param name: A user-friendly name for the selection.
         """
-        self.selection_id = id
-        self.selection_name = name
-        self.selected_particle_ids = set()
+        self._selection_id: str = id
+        self._selection_name: str = name
+        self._selected_particle_ids: Set[int] = set()
 
-        self.interaction_method = INTERACTION_METHOD_DEFAULT
-        self.velocity_reset = VELOCITY_RESET_DEFAULT
-        self.renderer = RENDERER_DEFAULT
-        self.hide = False
+        self._interaction_method: str = INTERACTION_METHOD_DEFAULT
+        self._velocity_reset: bool = VELOCITY_RESET_DEFAULT
+        self._renderer: Union[str, Dict] = RENDERER_DEFAULT
+        self._hide = False
 
         self._updated = Event()
         self._removed = Event()
