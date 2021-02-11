@@ -5,7 +5,7 @@ that sets up a command service.
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 
-from typing import Dict, Iterable, ContextManager, Union
+from typing import Dict, Iterable, ContextManager, Union, Any
 from uuid import uuid4
 
 import grpc
@@ -90,7 +90,7 @@ class NarupaClient(GrpcClient):
                                     for raw in command_responses}
         return self._available_commands
 
-    def lock_state(self) -> ContextManager[Dict[str, object]]:
+    def lock_state(self) -> ContextManager[Dict[str, Any]]:
         """
         Context manager that locks and returns the state. Any attempted state
         updates are delayed until the context is exited.
