@@ -89,7 +89,7 @@ class ImdClient(NarupaClient):
                            "interaction ID.")
         self._local_interaction_ids.remove(interaction_id)
         change = DictionaryChange(
-            removals=[interaction_id]
+            removals=set(interaction_id)
         )
         return self.attempt_update_state(change)
 
