@@ -7,7 +7,7 @@ and can publish interactions.
 import time
 from collections import deque, ChainMap
 from functools import wraps, partial
-from typing import Iterable, Tuple, Type
+from typing import Iterable, Tuple, Type, TypeVar
 from typing import Optional, Sequence, Dict, MutableMapping
 from uuid import uuid4
 
@@ -34,7 +34,10 @@ SELECTION_ROOT_ID = 'selection.root'
 SELECTION_ROOT_NAME = 'Root Selection'
 
 
-def _update_commands(client: NarupaClient):
+ClientVarType = TypeVar('ClientVarType', bound=NarupaClient)
+
+
+def _update_commands(client: Optional[NarupaClient]):
     try:
         return client.update_available_commands()
     except AttributeError:
@@ -595,7 +598,7 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        change = DictionaryChange(removals=[key])
+        change = DictionaryChange(removals=set([key]))
         return self.attempt_update_multiplayer_state(change)  # type: ignore
 
     @need_multiplayer
@@ -623,7 +626,7 @@ class NarupaImdClient:
             root_selection = self.get_selection(SELECTION_ROOT_ID)
         except KeyError:
             root_selection = self._create_selection_from_id_and_name(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
-        root_selection.selected_particle_ids = ()
+        root_selection.selected_particle_ids = set()
         return root_selection
 
     @need_multiplayer
@@ -741,17 +744,17 @@ class NarupaImdClient:
 
     def _connect_client(
             self,
-            client_type: Type[NarupaClient],
+            client_type: Type[ClientVarType],
             address: Tuple[str, int],
-    ):
+    ) -> ClientVarType:
         # TODO add support for encryption here somehow.
 
         # if there already exists a channel with the same address, reuse it, otherwise create a new insecure
         # connection.
         if address in self._channels:
-            client = client_type(channel=self._channels[address], make_channel_owner=False)
+            client: ClientVarType = client_type(channel=self._channels[address], make_channel_owner=False)
         else:
-            client = client_type.insecure_channel(address=address[0], port=address[1])
+            client: ClientVarType = client_type.insecure_channel(address=address[0], port=address[1])
             self._channels[address] = client.channel
         return client
 
