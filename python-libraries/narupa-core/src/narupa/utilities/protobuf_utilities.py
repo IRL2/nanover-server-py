@@ -1,11 +1,11 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from google.protobuf.internal.well_known_types import _SetStructValue, _GetStructValue  # type: ignore
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.struct_pb2 import Struct, Value, ListValue
 
 
-def dict_to_struct(dictionary: Dict[str, object]) -> Struct:
+def dict_to_struct(dictionary: Dict[str, Any]) -> Struct:
     """
     Converts a python dictionary to a protobuf :class:`Struct`.
     The dictionary must consist of types that can be serialised.
