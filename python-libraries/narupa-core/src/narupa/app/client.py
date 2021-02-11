@@ -38,14 +38,14 @@ ClientVarType = TypeVar('ClientVarType', bound=NarupaClient)
 
 
 def _update_commands(client: Optional[NarupaClient]):
-    if isinstance(client, NarupaClient):
-        try:
-            return client.update_available_commands()
-        except RpcError as e:
-            if e._state.code == StatusCode.UNAVAILABLE:
-                return {}
-            raise e
-    return {}
+    if client is None:
+        return {}
+    try:
+        return client.update_available_commands()
+    except RpcError as e:
+        if e._state.code == StatusCode.UNAVAILABLE:
+            return {}
+        raise e
 
 
 def _need_attribute(func, *, name: str, attr: str):
