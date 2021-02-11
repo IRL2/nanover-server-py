@@ -13,6 +13,8 @@ RADIAL_ORIENT_COMMAND_KEY = 'multiuser/radially-orient-origins'
 MULTIUSER_AVATAR_PREFIX = 'avatar.'
 MULTIUSER_ORIGIN_PREFIX = 'user-origin.'
 
+FULL_CIRCLE = math.pi * 2
+
 
 def _radially_orient_server(*, server, radius=1):
     """
@@ -30,11 +32,11 @@ def _radially_orient_server(*, server, radius=1):
     ]
     # generate an origin for each avatar
     count = len(avatar_ids)
-    angles = [i * math.pi * 2 / count for i in range(count)]
+    angles = [i * FULL_CIRCLE / count for i in range(count)]
     updates = {
         MULTIUSER_ORIGIN_PREFIX + avatar_id: {
             "position": [radius * math.cos(angle), 0, radius * math.sin(angle)],
-            "rotation": _angle_axis_quaternion_y(-angle),
+            "rotation": _angle_axis_quaternion_y(-angle-FULL_CIRCLE/4),
         }
         for avatar_id, angle in zip(avatar_ids, angles)
     }
