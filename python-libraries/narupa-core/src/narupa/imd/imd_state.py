@@ -66,7 +66,7 @@ class ImdStateWrapper:
 
     def remove_interaction(self, interaction_id: str):
         assert interaction_id.startswith(INTERACTION_PREFIX)
-        change = DictionaryChange(removals=[interaction_id])
+        change = DictionaryChange(removals=set(interaction_id))
         self.state_dictionary.update_state(None, change)
 
     @property
@@ -87,7 +87,7 @@ class ImdStateWrapper:
                 self._interactions[key] = dict_to_interaction(value)
 
 
-def interaction_to_dict(interaction: ParticleInteraction):
+def interaction_to_dict(interaction: ParticleInteraction) -> Dict[str, Any]:
     try:
         # properties with the same key as the builtins will be discarded
         # dicussion: https://gitlab.com/intangiblerealities/narupa-protocol/-/merge_requests/182#note_374156050
