@@ -1,10 +1,29 @@
-from typing import Dict, List, Iterable, Mapping, Union
+from typing import Dict, List, Iterable, Mapping, Union, Any
 
 from google.protobuf.internal.well_known_types import _SetStructValue, _GetStructValue  # type: ignore
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.struct_pb2 import Struct, Value, ListValue
 
-Serializable = Union[None, str, int, float, bool, Iterable['Serializable'], Mapping[str, 'Serializable']]
+# Mypy does not support recursive types, yet.
+# See <https://github.com/python/mypy/issues/731>.
+# This means we cannot write the type in a straight forward way such as:
+# Serializable = Union[
+#     None, str, int, float, bool,
+#     Iterable['Serializable'],
+#     Mapping[str, 'Serializable'],
+# ]
+# Instead, I separate the nested levels in their own types and fall back to Any
+# after a couple of levels. This should be OK as we barely use nesting.
+_SerializablePrimitive = Union[None, str, int, float, bool]
+_TerminalIterable = Iterable[Any]
+_TerminalMapping = Mapping[str, Any]
+_Level0Iterable = Iterable[Union[_SerializablePrimitive, _TerminalIterable, _TerminalMapping]]
+_Level0Mapping = Mapping[str, Union[_SerializablePrimitive, _TerminalIterable, _TerminalMapping]]
+Serializable = Union[
+    _SerializablePrimitive,
+    _Level0Iterable,
+    _Level0Mapping,
+]
 
 
 def dict_to_struct(dictionary: Dict[str, Serializable]) -> Struct:
