@@ -8,6 +8,7 @@ from typing import Dict, Any
 from narupa.state.state_dictionary import StateDictionary
 from narupa.utilities.change_buffers import DictionaryChange
 from narupa.imd.particle_interaction import ParticleInteraction
+from narupa.utilities.protobuf_utilities import Serializable
 
 IMD_SERVICE_NAME = "imd"
 INTERACTION_PREFIX = 'interaction.'
@@ -87,7 +88,7 @@ class ImdStateWrapper:
                 self._interactions[key] = dict_to_interaction(value)
 
 
-def interaction_to_dict(interaction: ParticleInteraction) -> Dict[str, Any]:
+def interaction_to_dict(interaction: ParticleInteraction) -> Dict[str, Serializable]:
     try:
         # properties with the same key as the builtins will be discarded
         # dicussion: https://gitlab.com/intangiblerealities/narupa-protocol/-/merge_requests/182#note_374156050

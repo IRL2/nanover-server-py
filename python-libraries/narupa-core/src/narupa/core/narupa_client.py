@@ -90,7 +90,7 @@ class NarupaClient(GrpcClient):
                                     for raw in command_responses}
         return self._available_commands
 
-    def lock_state(self) -> ContextManager[Dict[str, Any]]:
+    def lock_state(self) -> ContextManager[Dict[str, Serializable]]:
         """
         Context manager that locks and returns the state. Any attempted state
         updates are delayed until the context is exited.
