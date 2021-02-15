@@ -25,7 +25,7 @@ from narupa.state.state_service import (
 )
 from narupa.utilities.change_buffers import DictionaryChange
 from narupa.utilities.protobuf_utilities import (
-    dict_to_struct, struct_to_dict, deep_copy_serializable_dict,
+    dict_to_struct, struct_to_dict, deep_copy_serializable_dict, Serializable,
 )
 
 DEFAULT_STATE_UPDATE_INTERVAL = 1 / 30
@@ -62,7 +62,7 @@ class NarupaClient(GrpcClient):
         """
         return dict(self._available_commands)
 
-    def run_command(self, name: str, **arguments) -> Dict[str, object]:
+    def run_command(self, name: str, **arguments) -> Dict[str, Serializable]:
         """
         Runs a command on the command server.
 
@@ -97,7 +97,7 @@ class NarupaClient(GrpcClient):
         """
         return self._state.lock_content()
 
-    def copy_state(self) -> Dict[str, object]:
+    def copy_state(self) -> Dict[str, Serializable]:
         """
         Return a deep copy of the current state.
         """

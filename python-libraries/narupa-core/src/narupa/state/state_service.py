@@ -6,13 +6,14 @@ Module providing an implementation of the :class:`StateServicer`.
 from typing import (
     Iterable, Tuple, Set, Dict, ContextManager, Callable, Optional
 )
+from numbers import Real
 from narupa.utilities.grpc_utilities import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
 )
 from narupa.utilities.key_lockable_map import ResourceLockedError
 from narupa.utilities.protobuf_utilities import (
-    deep_copy_serializable_dict, struct_to_dict, dict_to_struct,
+    deep_copy_serializable_dict, struct_to_dict, dict_to_struct, Serializable,
 )
 from narupa.utilities.change_buffers import (
     DictionaryChange,
@@ -48,21 +49,21 @@ class StateService(StateServicer):
     def close(self):
         self.state_dictionary.freeze()
 
-    def lock_state(self) -> ContextManager[Dict[str, object]]:
+    def lock_state(self) -> ContextManager[Dict[str, Serializable]]:
         """
         Context manager for reading the current state while delaying any changes
         to it.
         """
         return self.state_dictionary.lock_content()
 
-    def copy_state(self) -> Dict[str, object]:
+    def copy_state(self) -> Dict[str, Serializable]:
         """
         Return a deep copy of the current state.
         """
         with self.lock_state() as state:
             return deep_copy_serializable_dict(state)
 
-    def update_state(self, access_token: object, change: DictionaryChange):
+    def update_state(self, access_token: Serializable, change: DictionaryChange):
         """
         Attempts an atomic update of the shared key/value store. If any key
         cannot be updated, no change will be made.
@@ -77,7 +78,7 @@ class StateService(StateServicer):
 
     def update_locks(
             self,
-            access_token: object,
+            access_token: Serializable,
             acquire: Optional[Dict[str, float]] = None,
             release: Optional[Set[str]] = None,
     ):
@@ -170,15 +171,16 @@ def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
     :return: an equivalent DictionaryChange representing the key changes and
         key removals of the StateUpdate.
     """
-    change = DictionaryChange()
+    removals = set()
+    updates = {}
 
     for key, value in struct_to_dict(update.changed_keys).items():
         if value is None:
-            change.removals.add(key)
+            removals.add(key)
         else:
-            change.updates[key] = value
+            updates[key] = value
 
-    return change
+    return DictionaryChange(removals=removals, updates=updates)
 
 
 def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
@@ -207,12 +209,15 @@ def locks_update_to_acquire_release(
     Convert a grpc UpdateLocksRequest to a tuple of lock times and locked keys
     to release.
     """
-    release = set()
-    acquire = {}
+    release: Set[str] = set()
+    acquire: Dict[str, float] = {}
 
     for key, duration in struct_to_dict(update.lock_keys).items():
         if duration is not None:
-            acquire[key] = duration
+            if isinstance(duration, Real):
+                acquire[key] = float(duration)
+            else:
+                raise ValueError("Lock duration must be a real number.")
         else:
             release.add(key)
 

@@ -6,12 +6,12 @@ shared key/value store between multiple clients.
 """
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Dict, Iterator, Iterable, Optional, Generator
+from typing import Any, Set, Dict, Iterator, Iterable, Optional, Generator, Mapping
 
 from .timing import yield_interval
 
-KeyUpdates = Dict[str, Any]
-KeyRemovals = Set[str]
+KeyUpdates = Mapping[str, Any]
+KeyRemovals = Iterable[str]
 
 
 class DictionaryChange:

@@ -5,7 +5,6 @@ from google.protobuf.json_format import MessageToDict
 from google.protobuf.struct_pb2 import Struct, Value, ListValue
 
 Serializable = Union[None, str, int, float, bool, Iterable['Serializable'], Mapping[str, 'Serializable']]
-Deserialized = Union[None, str, int, float, bool, List['Deserialized'], Dict[str, 'Deserialized']]
 
 
 def dict_to_struct(dictionary: Dict[str, Serializable]) -> Struct:
@@ -28,7 +27,7 @@ def dict_to_struct(dictionary: Dict[str, Serializable]) -> Struct:
     return struct
 
 
-def struct_to_dict(struct: Struct) -> Dict[str, Deserialized]:
+def struct_to_dict(struct: Struct) -> Dict[str, Serializable]:
     """
     Converts a protobuf :class:`Struct` to a python dictionary.
 
@@ -38,7 +37,7 @@ def struct_to_dict(struct: Struct) -> Dict[str, Deserialized]:
     return {key: value_to_object(value) for key, value in struct.fields.items()}
 
 
-def list_value_to_list(list: ListValue) -> List[Deserialized]:
+def list_value_to_list(list: ListValue) -> List[Serializable]:
     """
     Converts a protobuf :class:`ListValue` to a python dictionary.
 
@@ -59,7 +58,7 @@ def object_to_value(obj: Serializable) -> Value:
     return value
 
 
-def value_to_object(value: Value) -> Deserialized:
+def value_to_object(value: Value) -> Serializable:
     """
     Converts a protobuf Value into an equivalent python object.
     :param value: A protobuf Value to convert.
@@ -73,7 +72,7 @@ def value_to_object(value: Value) -> Deserialized:
     return expanded
 
 
-def deep_copy_serializable_dict(dictionary: Dict[str, Serializable]) -> Dict[str, Deserialized]:
+def deep_copy_serializable_dict(dictionary: Dict[str, Serializable]) -> Dict[str, Serializable]:
     """
     Makes a deep copy of a dictionary by converting it to a protobuf Struct and
     back. Only protobuf serializable elements will be preserved.
