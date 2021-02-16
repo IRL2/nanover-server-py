@@ -4,6 +4,8 @@ with an underyling gRPC server, discovery, multiplayer and commands.
 """
 import getpass
 from typing import Tuple, Optional, Set
+
+from narupa.app.multiuser import add_multiuser_commands
 from typing_extensions import Protocol
 
 from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
@@ -76,6 +78,8 @@ class NarupaApplicationServer:
 
         # Advertise as a multiplayer service
         self._add_service_entry(MULTIPLAYER_SERVICE_NAME, self._server.port)
+
+        add_multiuser_commands(self.server)
 
     def __enter__(self):
         return self
