@@ -6,11 +6,11 @@ shared key/value store between multiple clients.
 """
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Dict, Iterator, Iterable, Optional, Generator
+from typing import Any, Set, Dict, Iterator, Iterable, Optional, Generator, Mapping
 
 from .timing import yield_interval
 
-KeyUpdates = Dict[str, Any]
+KeyUpdates = Mapping[str, Any]
 KeyRemovals = Iterable[str]
 
 
@@ -111,7 +111,7 @@ class DictionaryChangeMultiView:
             for view in self._views:
                 view.freeze()
 
-    def copy_content(self):
+    def copy_content(self) -> Dict[str, Any]:
         """
         Return a shallow copy of the dictionary at this instant.
         """

@@ -5,7 +5,7 @@ that sets up a command service.
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 
-from typing import Dict, Iterable, ContextManager, Union
+from typing import Dict, Iterable, ContextManager, Union, Any
 from uuid import uuid4
 
 import grpc
@@ -25,7 +25,7 @@ from narupa.state.state_service import (
 )
 from narupa.utilities.change_buffers import DictionaryChange
 from narupa.utilities.protobuf_utilities import (
-    dict_to_struct, struct_to_dict, deep_copy_serializable_dict,
+    dict_to_struct, struct_to_dict, deep_copy_serializable_dict, Serializable,
 )
 
 DEFAULT_STATE_UPDATE_INTERVAL = 1 / 30
@@ -62,7 +62,7 @@ class NarupaClient(GrpcClient):
         """
         return dict(self._available_commands)
 
-    def run_command(self, name: str, **arguments) -> Dict[str, object]:
+    def run_command(self, name: str, **arguments) -> Dict[str, Serializable]:
         """
         Runs a command on the command server.
 
@@ -90,14 +90,14 @@ class NarupaClient(GrpcClient):
                                     for raw in command_responses}
         return self._available_commands
 
-    def lock_state(self) -> ContextManager[Dict[str, object]]:
+    def lock_state(self) -> ContextManager[Dict[str, Serializable]]:
         """
         Context manager that locks and returns the state. Any attempted state
         updates are delayed until the context is exited.
         """
         return self._state.lock_content()
 
-    def copy_state(self) -> Dict[str, object]:
+    def copy_state(self) -> Dict[str, Serializable]:
         """
         Return a deep copy of the current state.
         """

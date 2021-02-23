@@ -17,8 +17,12 @@ import numpy as np
 from narupa.imd.particle_interaction import ParticleInteraction
 
 
-def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions: Iterable[ParticleInteraction],
-                        periodic_box_lengths: Optional[np.ndarray] = None) -> Tuple[float, np.array]:
+def calculate_imd_force(
+        positions: np.ndarray,
+        masses: np.ndarray,
+        interactions: Iterable[ParticleInteraction],
+        periodic_box_lengths: Optional[np.ndarray] = None,
+) -> Tuple[float, np.array]:
     """
     Reference implementation of the Narupa IMD force.
 
@@ -29,12 +33,12 @@ def calculate_imd_force(positions: np.ndarray, masses: np.ndarray, interactions:
     :param positions: Array of N particle positions, in nm, with shape (N,3).
     :param masses: Array of N particle masses, in a.m.u, with shape (N,).
     :param interactions: Collection of interactions to be applied.
-    :param periodic_box_lengths: Orthorhombic periodic box lengths. If given, the minimum image convention is applied
-        to the calculation.
+    :param periodic_box_lengths: Orthorhombic periodic box lengths. If given,
+        the minimum image convention is applied to the calculation.
     :return: energy in kJ/mol, accumulated forces (in kJ/(mol*nm)) to be applied.
     """
 
-    forces = np.zeros((len(positions), 3))
+    forces = np.zeros((len(positions), 3), dtype=np.float32)
     total_energy = 0.
     for interaction in interactions:
         energy = apply_single_interaction_force(positions, masses, interaction, forces, periodic_box_lengths)
@@ -110,10 +114,10 @@ def _apply_force_to_particles(forces: np.ndarray,
     # add the force for each particle, adjusted by mass and scale factor.
     force_to_apply = scale * mass[:, np.newaxis] * force_per_particle[np.newaxis, :]
     # clip the forces into maximum force range.
-    force_to_apply_clipped = np.core.umath.clip(force_to_apply, -max_force, max_force)
+    force_to_apply_clipped = np.clip(force_to_apply, -max_force, max_force)
     # this is technically incorrect, but deriving the actual energy of a clip will involve a lot of maths
     # for what is essentially just, too much energy.
-    total_energy = np.core.umath.clip(total_energy, -max_force, max_force)
+    total_energy = np.clip(total_energy, -max_force, max_force)
     forces[particles] += force_to_apply_clipped
     return total_energy
 
