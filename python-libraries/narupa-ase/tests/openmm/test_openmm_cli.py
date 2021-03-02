@@ -7,7 +7,7 @@ import pytest
 from .simulation_utils import basic_simulation, serialized_simulation_path
 from narupa.ase.openmm.cli import initialise
 from narupa.ase.openmm.calculator import OpenMMCalculator
-from narupa.ase.wall_calculator import VelocityWallCalculator
+from narupa.ase.wall_constraint import VelocityWallConstraint
 
 
 @pytest.fixture
@@ -79,17 +79,17 @@ def test_name(serialized_simulation_path, any_port):
         assert runner.name == 'Test Server'
 
 
-@pytest.mark.parametrize('wall_argument, expected_calculator_class', (
-        ('-w', VelocityWallCalculator),
-        ('--walls', VelocityWallCalculator),
-        (None, OpenMMCalculator),
+@pytest.mark.parametrize('wall_argument, has_walls', (
+        ('-w', True),
+        ('--walls', True),
+        (None, False),
 ))
-def test_walls(serialized_simulation_path, wall_argument, expected_calculator_class, any_port):
+def test_walls(serialized_simulation_path, wall_argument, has_walls, any_port):
     args = [str(serialized_simulation_path)] + any_port
     if wall_argument is not None:
         args.append(wall_argument)
     with initialise(args) as runner:
-        assert isinstance(runner._md_calculator, expected_calculator_class)
+        assert any(isinstance(constraint, VelocityWallConstraint) for constraint in runner.atoms.constraints) == has_walls
 
 
 @pytest.fixture()

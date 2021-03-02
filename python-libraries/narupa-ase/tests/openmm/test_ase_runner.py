@@ -16,7 +16,7 @@ from narupa.ase.openmm.runner import (
 from narupa.core import DEFAULT_SERVE_ADDRESS
 from narupa.essd import DiscoveryClient
 from narupa.ase.openmm.calculator import OpenMMCalculator
-from narupa.ase.wall_calculator import VelocityWallCalculator
+from narupa.ase.wall_constraint import VelocityWallConstraint
 
 from .simulation_utils import basic_simulation, serialized_simulation_path
 
@@ -141,21 +141,20 @@ def test_time_step(runner_class, basic_simulation, imd_params):
         assert runner.dynamics.dt == pytest.approx(0.5 * units.fs)
 
 
-@pytest.mark.parametrize('walls, expected_calculator_class', (
-        (False, OpenMMCalculator),
-        (True, VelocityWallCalculator),
+@pytest.mark.parametrize('walls', (
+        False,
+        True,
 ))
 def test_walls(
         runner_class,
         basic_simulation,
         walls,
-        expected_calculator_class,
         imd_params
 ):
     imd_params.walls = walls
 
     with runner_class(basic_simulation, imd_params) as runner:
-        assert isinstance(runner._md_calculator, expected_calculator_class)
+        assert any(isinstance(constraint, VelocityWallConstraint) for constraint in runner.atoms.constraints) == walls
 
 
 def test_no_constraint_no_warning(runner_class, basic_simulation, imd_params):
