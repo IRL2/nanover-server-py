@@ -161,6 +161,7 @@ conda_lammps_37:
     <<: *conda_lammps
 
 conda_lammps_38:
+    image: intangiblerealitieslab/conda-light-38
     variables:
         python_version: "3.8"
     <<: *conda_lammps
