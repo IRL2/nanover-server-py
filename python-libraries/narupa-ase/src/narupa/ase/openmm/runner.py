@@ -24,7 +24,7 @@ from narupa.ase import ase_to_frame_data
 from narupa.ase.converter import add_ase_positions_to_frame_data
 from narupa.ase.imd import NarupaASEDynamics
 from narupa.ase.openmm.calculator import OpenMMCalculator
-from narupa.ase.wall_calculator import VelocityWallCalculator
+from narupa.ase.wall_constraint import VelocityWallConstraint
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
     "The simulation contains constraints which will be ignored by this runner!")
@@ -313,7 +313,7 @@ class ASEOpenMMRunner:
         self._md_calculator = self._openmm_calculator
         self.atoms = self._openmm_calculator.generate_atoms()
         if walls:
-            self._md_calculator = VelocityWallCalculator(self._openmm_calculator, self.atoms)
+            self.atoms.constraints.append(VelocityWallConstraint())
         self.atoms.set_calculator(self._md_calculator)
 
     def _initialise_dynamics(self):
