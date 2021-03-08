@@ -7,10 +7,10 @@ import numpy as np
 from ase import Atoms, units
 from ase.cell import Cell
 from ase.md import VelocityVerlet
-from narupa.ase import wall_calculator
+from narupa.ase.null_calculator import NullCalculator
 from narupa.ase.openmm.calculator import OpenMMCalculator
 from openmm.simulation_utils import basic_simulation
-
+from narupa.ase.wall_constraint import VelocityWallConstraint
 
 @pytest.fixture
 def walled_dynamics_and_expectations():
@@ -37,8 +37,8 @@ def walled_dynamics_and_expectations():
     cell = Cell(cell_array)
     atoms.set_cell(cell)
 
-    calculator = wall_calculator.VelocityWallCalculator(atoms=atoms)
-    atoms.set_calculator(calculator)
+    atoms.set_calculator(NullCalculator())
+    atoms.constraints.append(VelocityWallConstraint())
     dynamics = VelocityVerlet(atoms=atoms, timestep=1 * units.fs)
 
     expected_positions = np.zeros((n_steps, 3))
@@ -61,13 +61,12 @@ def walled_dynamics_and_expectations():
 
 
 @pytest.fixture
-def walled_calculator_and_atoms(basic_simulation):
-    for_walled_calculator = OpenMMCalculator(basic_simulation)
-    walled_atoms = for_walled_calculator.generate_atoms()
-    walled_calculator = wall_calculator.VelocityWallCalculator(
-        atoms=walled_atoms, calculator=for_walled_calculator)
-    walled_atoms.set_calculator(walled_calculator)
-    return walled_calculator, walled_atoms
+def walled_atoms(basic_simulation):
+    calculator = OpenMMCalculator(basic_simulation)
+    walled_atoms = calculator.generate_atoms()
+    walled_atoms.set_calculator(calculator)
+    walled_atoms.constraints.append(VelocityWallConstraint())
+    return walled_atoms
 
 
 @pytest.fixture
@@ -105,16 +104,16 @@ def test_velocity_wall(walled_dynamics_and_expectations):
 ))
 def test_validate_box(broken_cell):
     with pytest.raises(ValueError):
-        wall_calculator.VelocityWallCalculator._validate_box(broken_cell)
+        VelocityWallConstraint._validate_box(broken_cell)
 
 
-def test_chaining_calculators(walled_calculator_and_atoms, openmm_calculator_and_atoms):
+def test_chaining_calculators(walled_atoms, openmm_calculator_and_atoms):
     reference_calculator, reference_atoms = openmm_calculator_and_atoms
     velocities = np.ones((len(reference_atoms), 3)) * units.Ang / units.fs
     reference_atoms.set_velocities(velocities)
     reference_dynamics = VelocityVerlet(atoms=reference_atoms, timestep=1 * units.fs)
 
-    walled_calculator, walled_atoms = walled_calculator_and_atoms
+    walled_atoms = walled_atoms
     walled_atoms.set_velocities(velocities)
     walled_dynamics = VelocityVerlet(atoms=walled_atoms, timestep=1 * units.fs)
 
@@ -141,14 +140,3 @@ def test_chaining_calculators(walled_calculator_and_atoms, openmm_calculator_and
     # integration step, but the energy will only be affected next step.
     assert walled_atoms.get_potential_energy() == reference_atoms.get_potential_energy()
     assert walled_atoms.get_positions() != pytest.approx(reference_atoms.get_positions())
-
-
-def test_chained_existing_attributes(walled_calculator_and_atoms):
-    walled_calculator, _ = walled_calculator_and_atoms
-    assert walled_calculator.topology is walled_calculator._parent_calculator.topology
-
-
-def test_chained_missing_attributes(walled_calculator_and_atoms):
-    walled_calculator, _ = walled_calculator_and_atoms
-    with pytest.raises(AttributeError):
-        _ = walled_calculator.not_existing_attribute
