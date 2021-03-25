@@ -52,9 +52,9 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
     Calculates the energy and adds the forces to the particles of a single application of an interaction potential.
 
     :param positions: Collection of N particle position vectors, in nm.
-    :param masses: Collection on N particle masses, in a.m.u
+    :param masses: Collection on N particle masses, in a.m.u.
     :param interaction: An interaction to be applied.
-    :param forces: Array of N force vectors to accumulate computed forces into (in kJ/(mol*nm))
+    :param forces: Array of N force vectors to accumulate computed forces into (in kJ/(mol*nm)).
     :param periodic_box_lengths: Orthorhombic periodic box lengths to use to apply minimum image convention.
     :return: energy in kJ/mol.
     """
@@ -74,7 +74,7 @@ def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, in
 
     # calculate the overall force to be applied
     energy, force = potential_method(center, interaction.position, periodic_box_lengths=periodic_box_lengths)
-    # apply to appropriate force to each particle in the selection.
+    # apply the appropriate force to each particle in the selection.
     force_per_particle = force / particle_count
     energy_per_particle = energy / particle_count
     total_energy = _apply_force_to_particles(forces, energy_per_particle,
@@ -154,16 +154,16 @@ def get_center_of_mass_subset(
         before calculating centre of mass.
     :return: The center of mass of the subset of positions.
     """
-    pos_subset = positions[subset]
+    subset_positions = positions[subset]
     subset_masses = masses[subset, np.newaxis]
     subset_total_mass = subset_masses.sum()
     if subset_total_mass == 0:
-        # We raise before actually doing the division as we now it will fail.
+        # we raise before actually doing the division since we know it will fail.
         raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!")
     if periodic_box_lengths is not None:
-        pos_subset = wrap_pbc(pos_subset, periodic_box_lengths)
-    # np.average is slow for small arrays so we use a naive implementation
-    com = (pos_subset * subset_masses).sum(axis=0) / subset_total_mass
+        subset_positions = wrap_pbc(subset_positions, periodic_box_lengths)
+    # np.average is slow for small arrays so we use a naive implementation.
+    com = (subset_positions * subset_masses).sum(axis=0) / subset_total_mass
     return com
 
 
@@ -189,7 +189,7 @@ def calculate_gaussian_force(particle_position: np.ndarray, interaction_position
 
     gauss = exp(-dist_sqr / (2 * sigma_sqr))
     energy = - gauss
-    # force is negative derivative of energy wrt to position. the minus in the energy cancels with the derivative.
+    # force is negative derivative of energy wrt to position. The minus in the energy cancels with the derivative.
     force = - (diff / sigma_sqr) * gauss
     return energy, force
 
