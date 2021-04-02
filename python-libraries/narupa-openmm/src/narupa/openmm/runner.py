@@ -7,6 +7,7 @@ from typing import Union, TypeVar, Type, Optional, Dict
 import sys
 import os
 import logging
+import warnings
 from concurrent import futures
 from threading import RLock
 from io import StringIO
@@ -14,7 +15,7 @@ from io import StringIO
 from simtk.openmm import app
 
 from narupa.openmm import serializer
-from narupa.app import NarupaImdApplication
+from narupa.app import NarupaImdApplication, NarupaRunner
 from .imd import NarupaImdReporter, get_imd_forces_from_system, create_imd_force
 from narupa.utilities.event import Event
 from narupa.trajectory.frame_server import (
@@ -32,7 +33,7 @@ SET_FORCE_INTERVAL_COMMAND_KEY = 'imd/set-force-interval'
 RunnerClass = TypeVar('RunnerClass', bound='OpenMMRunner')
 
 
-class OpenMMRunner:
+class OpenMMRunner(NarupaRunner):
     """
     Convenience class to run an OpenMM simulation.
 
@@ -71,7 +72,7 @@ class OpenMMRunner:
             remainingTime=False,
             potentialEnergy=True,
         )
-        self.app = NarupaImdApplication.basic_server(name, address, port)
+        self._app_server = NarupaImdApplication.basic_server(name, address, port)
         potential_imd_forces = get_imd_forces_from_system(simulation.system)
         if not potential_imd_forces:
             raise ValueError(
@@ -91,8 +92,8 @@ class OpenMMRunner:
             frame_interval=5,
             force_interval=10,
             imd_force=imd_force,
-            imd_state=self.app.imd,
-            frame_publisher=self.app.frame_publisher,
+            imd_state=self.app_server.imd,
+            frame_publisher=self.app_server.frame_publisher,
         )
         self.simulation.reporters.append(self.reporter)
 
@@ -138,6 +139,19 @@ class OpenMMRunner:
             simulation = serializer.deserialize_simulation(
                 infile.read(), imd_force=imd_force)
         return cls(simulation, name=name, address=address, port=port)
+
+    @property
+    def app_server(self):
+        return self._app_server
+
+    @property
+    def app(self):
+        warnings.warn(
+            'The property "app" is deprecated and will be removed in '
+            'a later version. Use "app_server" instead.',
+            DeprecationWarning
+        )
+        return self.app_server
 
     @property
     def frame_interval(self) -> int:
@@ -242,15 +256,6 @@ class OpenMMRunner:
             steps: Optional[int] = None,
             block: Optional[bool] = None,
     ) -> None:
-        """
-        Runs the molecular dynamics.
-
-        :param steps: If passed, will run the given number of steps, otherwise
-            will run forever on a background thread and immediately return.
-        :param block: If ``False``, run in a separate thread. By default, "block"
-            is ``None``, which means it is automatically set to ``True`` if a
-            number of steps is provided and to ``False`` otherwise.
-        """
         if self.is_running:
             raise RuntimeError("Dynamics are already running on a thread!")
         # The default is to be blocking if a number of steps is provided, and
@@ -271,36 +276,16 @@ class OpenMMRunner:
         self._cancelled = False
 
     def step(self):
-        """
-        Take a single step of the simulation and stop.
-
-        This method is called whenever a client runs the step command,
-        described in :mod:narupa.trajectory.frame_server.
-        """
         with self._cancel_lock:
             self.cancel_run(wait=True)
             self.run(self.frame_interval, block=True)
             self.cancel_run(wait=True)
 
     def pause(self):
-        """
-        Pause the simulation, by cancelling any current run.
-
-        This method is called whenever a client runs the pause command,
-        described in :mod:narupa.trajectory.frame_server.
-        """
         with self._cancel_lock:
             self.cancel_run(wait=True)
 
     def play(self):
-        """
-        Run the simulation indefinitely
-
-        Cancels any current run and then begins running the simulation on a background thread.
-
-        This method is called whenever a client runs the play command,
-        described in :mod:narupa.trajectory.frame_server.
-        """
         with self._cancel_lock:
             self.cancel_run(wait=True)
         self.run()
@@ -348,10 +333,10 @@ class OpenMMRunner:
 
     def close(self):
         self.cancel_run()
-        self.app.close()
+        self.app_server.close()
 
     def _register_commands(self):
-        server = self.app.server
+        server = self.app_server.server
         server.register_command(PLAY_COMMAND_KEY, self.play)
         server.register_command(RESET_COMMAND_KEY, self.reset)
         server.register_command(STEP_COMMAND_KEY, self.step)
@@ -360,9 +345,3 @@ class OpenMMRunner:
         server.register_command(GET_FRAME_INTERVAL_COMMAND_KEY, self._get_frame_interval)
         server.register_command(SET_FORCE_INTERVAL_COMMAND_KEY, self._set_force_interval)
         server.register_command(GET_FORCE_INTERVAL_COMMAND_KEY, self._get_force_interval)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
