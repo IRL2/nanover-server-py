@@ -174,7 +174,7 @@ class NarupaImdClient:
                 "in a later version. Use `subscribe_to_all_frames` to "
                 "subscribe to all frames, or `subscribe_to_frames` to "
                 "subscribe with a set interval.",
-                warnings.DeprecationWarning,
+                DeprecationWarning,
             )
         self._player_id = str(uuid4())
 
