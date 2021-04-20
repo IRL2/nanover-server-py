@@ -282,6 +282,9 @@ class NarupaImdClient:
         if self._frame_client is not None:
             self._frame_client.close()
             self._frame_client = None
+            # We are not subscribed to the frames anymore.
+            self._are_framed_subscribed = False
+            self._subscribed_to_all_frames = False
         self._channels.clear()
 
         if clear_frames:
