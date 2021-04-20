@@ -793,6 +793,7 @@ class NarupaImdClient:
         if self._are_framed_subscribed:
             return
         self._subscribed_to_all_frames = True
+        self._frame_client: FrameClient  # @need_frames makes sure of that
         self._frame_client.subscribe_frames_async(self._on_frame_received)
         self._are_framed_subscribed = True
 
@@ -827,6 +828,7 @@ class NarupaImdClient:
         if self._are_framed_subscribed:
             return
         self._subscribed_to_all_frames = False
+        self._frame_client: FrameClient  # @need_frames makes sure of that
         self._frame_client.subscribe_last_frames_async(
             self._on_frame_received,
             DEFAULT_SUBSCRIPTION_INTERVAL,
