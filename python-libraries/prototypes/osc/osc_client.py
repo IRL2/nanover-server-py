@@ -30,6 +30,7 @@ class OscClient:
         host, port = osc_address
         self.osc_client = udp_client.SimpleUDPClient(host, port, allow_broadcast=True)
         self.narupa_client = narupa_client
+        self.narupa_client.subscribe_to_all_frames()
 
     def run(self):
         for dt in yield_interval(self.send_interval):
