@@ -41,7 +41,7 @@ test_python:
     - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial' --junitxml=report_not_serial.xml
     - python -m pytest --cov=narupa --cov-append python-libraries -n0 -m 'serial' --junitxml=report_serial.xml
     - coverage html
-    - coverage xml
+    - coverage xml -o coverage.xml
 
   artifacts:
     paths:
