@@ -8,7 +8,7 @@ import logging
 from concurrent import futures
 from contextlib import contextmanager
 from threading import RLock
-from typing import Optional, Callable, List
+from typing import Optional, Callable, List, Dict
 
 import numpy as np
 from ase import Atoms, units  # type: ignore
@@ -19,7 +19,15 @@ from narupa.app import NarupaImdClient, NarupaImdApplication
 from narupa.ase.converter import EV_TO_KJMOL
 from narupa.ase.frame_adaptor import send_ase_frame
 from narupa.ase.imd_calculator import ImdCalculator
-from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY
+from narupa.trajectory.frame_server import (
+    PLAY_COMMAND_KEY,
+    RESET_COMMAND_KEY,
+    STEP_COMMAND_KEY,
+    PAUSE_COMMAND_KEY,
+    GET_DYNAMICS_INTERVAL_COMMAND_KEY,
+    SET_DYNAMICS_INTERVAL_COMMAND_KEY,
+)
+from narupa.utilities.timing import VariableIntervalGenerator
 
 
 class NarupaASEDynamics:
@@ -76,6 +84,7 @@ class NarupaASEDynamics:
             dynamics=dynamics,
         )
         self.atoms.set_calculator(self.imd_calculator)
+        self._variable_interval_generator = VariableIntervalGenerator(1/30)
         self._frame_interval = frame_interval
         self.dynamics.attach(frame_method(self.atoms, self._frame_publisher), interval=frame_interval)
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
@@ -144,6 +153,14 @@ class NarupaASEDynamics:
         :return: ASE atoms.
         """
         return self.dynamics.atoms
+
+    @property
+    def dynamics_interval(self):
+        return self._variable_interval_generator.interval
+
+    @dynamics_interval.setter
+    def dynamics_interval(self, interval):
+        self._variable_interval_generator.interval = interval
 
     @property
     def is_running(self):
@@ -224,7 +241,9 @@ class NarupaASEDynamics:
 
     def _run(self, steps: Optional[int], reset_energy: Optional[float]):
         remaining_steps = steps if steps is not None else float('inf')
-        while not self._cancelled and remaining_steps > 0:
+        for _ in self._variable_interval_generator.yield_interval():
+            if self._cancelled or remaining_steps <= 0:
+                break
             steps_for_this_iteration = min(10, remaining_steps)
             self.dynamics.run(steps_for_this_iteration)
             remaining_steps -= steps_for_this_iteration
@@ -288,11 +307,19 @@ class NarupaASEDynamics:
         for callback in self.on_reset_listeners:
             callback()
 
+    def _set_dynamics_interval(self, interval: float) -> None:
+        self.dynamics_interval = float(interval)
+
+    def _get_dynamics_interval(self) -> Dict[str, float]:
+        return {'interval': self.dynamics_interval}
+
     def _register_commands(self):
         self._server.register_command(PLAY_COMMAND_KEY, self.play)
         self._server.register_command(RESET_COMMAND_KEY, self.reset)
         self._server.register_command(STEP_COMMAND_KEY, self.step)
         self._server.register_command(PAUSE_COMMAND_KEY, self.pause)
+        self._server.register_command(SET_DYNAMICS_INTERVAL_COMMAND_KEY, self._set_dynamics_interval)
+        self._server.register_command(GET_DYNAMICS_INTERVAL_COMMAND_KEY, self._get_dynamics_interval)
 
     def close(self):
         """

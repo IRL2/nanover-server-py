@@ -256,6 +256,14 @@ class ASEOpenMMRunner:
         """
         return self._dynamics
 
+    @property
+    def dynamics_interval(self):
+        return self.imd.dynamics_interval
+
+    @dynamics_interval.setter
+    def dynamics_interval(self, interval):
+        self.imd.dynamics_interval = interval
+
     def run(self, steps: Optional[int] = None,
             block: Optional[bool] = None, reset_energy: Optional[float] = None):
         """
