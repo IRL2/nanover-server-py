@@ -23,6 +23,8 @@ from narupa.trajectory.frame_server import (
     RESET_COMMAND_KEY,
     STEP_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
+    GET_DYNAMICS_INTERVAL_COMMAND_KEY,
+    SET_DYNAMICS_INTERVAL_COMMAND_KEY,
 )
 from narupa.utilities.timing import VariableIntervalGenerator
 
@@ -30,8 +32,6 @@ GET_FRAME_INTERVAL_COMMAND_KEY = 'trajectory/get-frame-interval'
 SET_FRAME_INTERVAL_COMMAND_KEY = 'trajectory/set-frame-interval'
 GET_FORCE_INTERVAL_COMMAND_KEY = 'imd/get-force-interval'
 SET_FORCE_INTERVAL_COMMAND_KEY = 'imd/set-force-interval'
-GET_DYNAMICS_INTERVAL_COMMAND_KEY = 'trajectory/get-dynamics-interval'
-SET_DYNAMICS_INTERVAL_COMMAND_KEY = 'trajectory/set-dynamics-interval'
 
 RunnerClass = TypeVar('RunnerClass', bound='OpenMMRunner')
 
@@ -288,7 +288,9 @@ class OpenMMRunner:
         for _ in self._variable_interval_generator.yield_interval():
             if self._cancelled or remaining_steps <= 0:
                 break
-            steps_for_this_iteration = min(self.frame_interval, remaining_steps)
+            # We run by chunks of 10 steps because that is what OpenMM does
+            # under the hood.
+            steps_for_this_iteration = min(10, remaining_steps)
             try:
                 self.simulation.step(steps_for_this_iteration)
             except (ValueError, openmm.OpenMMException) as err:
