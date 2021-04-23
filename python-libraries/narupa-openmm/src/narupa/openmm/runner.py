@@ -12,6 +12,7 @@ from threading import RLock
 from io import StringIO
 
 from simtk.openmm import app
+from simtk import openmm
 
 from narupa.openmm import serializer
 from narupa.app import NarupaImdApplication
@@ -23,11 +24,14 @@ from narupa.trajectory.frame_server import (
     STEP_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
 )
+from narupa.utilities.timing import VariableIntervalGenerator
 
 GET_FRAME_INTERVAL_COMMAND_KEY = 'trajectory/get-frame-interval'
 SET_FRAME_INTERVAL_COMMAND_KEY = 'trajectory/set-frame-interval'
 GET_FORCE_INTERVAL_COMMAND_KEY = 'imd/get-force-interval'
 SET_FORCE_INTERVAL_COMMAND_KEY = 'imd/set-force-interval'
+GET_DYNAMICS_INTERVAL_COMMAND_KEY = 'trajectory/get-dynamics-interval'
+SET_DYNAMICS_INTERVAL_COMMAND_KEY = 'trajectory/set-dynamics-interval'
 
 RunnerClass = TypeVar('RunnerClass', bound='OpenMMRunner')
 
@@ -43,6 +47,14 @@ class OpenMMRunner:
     Actually starting the simulation is done with the :meth:`run` method. The
     method takes an number of steps to run as an argument; by default, the
     simulation runs indefinitely.
+
+    By default, one frame is sent to clients every 5 MD steps. This rate can
+    be changed by setting the :attr:`frame_interval` attribute. By default, as
+    well, the dynamics is throttled to send 30 frames per seconds (therefore
+    running 150 MD steps per second). This rate can be changed by setting the
+    target interval between frames in seconds with the
+    :attr:`dynamics_interval` attribute. Setting the interval to 0 causes the
+    dynamics to not be throttled.
 
     The verbosity can be adjusted by setting the :attr:`verbose` attribute, or
     by using the :meth:`make_verbose` and :meth:`make_quiet` methods.
@@ -100,6 +112,7 @@ class OpenMMRunner:
         self.simulation.saveState(initial_state_fake_file)
         self._initial_state = initial_state_fake_file.getvalue()
 
+        self._variable_interval_generator = VariableIntervalGenerator(1/30)
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._cancel_lock = RLock()
         self._run_task: Optional[futures.Future[None]] = None
@@ -237,6 +250,14 @@ class OpenMMRunner:
             and not (self._run_task.cancelled() or self._run_task.done())
         )
 
+    @property
+    def dynamics_interval(self):
+        return self._variable_interval_generator.interval
+
+    @dynamics_interval.setter
+    def dynamics_interval(self, interval):
+        self._variable_interval_generator.interval = interval
+
     def run(
             self,
             steps: Optional[int] = None,
@@ -264,9 +285,20 @@ class OpenMMRunner:
 
     def _run(self, steps: Optional[int]) -> None:
         remaining_steps = steps if steps is not None else float('inf')
-        while not self._cancelled and remaining_steps > 0:
-            steps_for_this_iteration = min(10, remaining_steps)
-            self.simulation.step(steps_for_this_iteration)
+        for _ in self._variable_interval_generator.yield_interval():
+            if self._cancelled or remaining_steps <= 0:
+                break
+            steps_for_this_iteration = min(self.frame_interval, remaining_steps)
+            try:
+                self.simulation.step(steps_for_this_iteration)
+            except (ValueError, openmm.OpenMMException) as err:
+                # We want to stop running if the simulation exploded in a way
+                # that prevents OpenMM to run. Otherwise, we will be a a state
+                # where OpenMM raises an exception which would make the runner
+                # unusable. The OpenMMException is typically raised by OpenMM
+                # itself when something is NaN; the ValueError is typically
+                # raised by the StateReporter when the energy is NaN.
+                break
             remaining_steps -= steps_for_this_iteration
         self._cancelled = False
 
@@ -309,8 +341,10 @@ class OpenMMRunner:
         with self._cancel_lock:
             was_running = self.is_running
             self.cancel_run(wait=True)
+            self.simulation.context.reinitialize()
             initial_state_fake_file = StringIO(self._initial_state)
             self.simulation.loadState(initial_state_fake_file)
+            self.reporter._reset_forces()
             self.on_reset.invoke()
         if was_running:
             self.run()
@@ -346,6 +380,12 @@ class OpenMMRunner:
     def _get_force_interval(self) -> Dict[str, int]:
         return {'interval': self.force_interval}
 
+    def _set_dynamics_interval(self, interval: float) -> None:
+        self.dynamics_interval = float(interval)
+
+    def _get_dynamics_interval(self) -> Dict[str, float]:
+        return {'interval': self.dynamics_interval}
+
     def close(self):
         self.cancel_run()
         self.app.close()
@@ -360,6 +400,8 @@ class OpenMMRunner:
         server.register_command(GET_FRAME_INTERVAL_COMMAND_KEY, self._get_frame_interval)
         server.register_command(SET_FORCE_INTERVAL_COMMAND_KEY, self._set_force_interval)
         server.register_command(GET_FORCE_INTERVAL_COMMAND_KEY, self._get_force_interval)
+        server.register_command(SET_DYNAMICS_INTERVAL_COMMAND_KEY, self._set_dynamics_interval)
+        server.register_command(GET_DYNAMICS_INTERVAL_COMMAND_KEY, self._get_dynamics_interval)
 
     def __enter__(self):
         return self
