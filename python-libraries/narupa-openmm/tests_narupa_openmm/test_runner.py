@@ -10,6 +10,8 @@ Tests for :mod:`narupa.openmm.runner`.
 # not use self.
 # pylint: disable=no-self-use
 import time
+import statistics
+import math
 
 import pytest
 
@@ -25,6 +27,8 @@ from narupa.trajectory.frame_server import (
     PAUSE_COMMAND_KEY,
     RESET_COMMAND_KEY,
     STEP_COMMAND_KEY,
+    SET_DYNAMICS_INTERVAL_COMMAND_KEY,
+    GET_DYNAMICS_INTERVAL_COMMAND_KEY,
 )
 
 from .simulation_utils import (
@@ -399,3 +403,43 @@ class TestRunner:
         client, runner = client_runner
         client.run_command(command, interval=target_interval)
         assert getattr(runner, getter) == target_interval
+
+    def test_get_dynamics_interval(self, runner):
+        assert runner.dynamics_interval == runner._variable_interval_generator.interval
+
+    def test_set_dynamics_interval(self, runner):
+        value = 20.1
+        runner.dynamics_interval = value
+        assert runner._variable_interval_generator.interval == pytest.approx(value)
+
+    def test_get_dynamics_interval_command(self, client_runner):
+        client, runner = client_runner
+        result = client.run_command(GET_DYNAMICS_INTERVAL_COMMAND_KEY)
+        time.sleep(0.1)
+        assert result == {"interval": pytest.approx(runner.dynamics_interval)}
+
+    def test_set_dynamics_interval_command(self, client_runner):
+        value = 10.2
+        client, runner = client_runner
+        client.run_command(SET_DYNAMICS_INTERVAL_COMMAND_KEY, interval=value)
+        time.sleep(0.1)
+        assert runner.dynamics_interval == pytest.approx(value)
+
+    @pytest.mark.parametrize("fps", (5, 10, 30, 40))
+    @pytest.mark.parametrize("frame_interval", (1, 5, 10))
+    def test_throttling(self, client_runner, fps, frame_interval):
+        duration = 0.5
+        dynamics_interval = 1 / fps
+        client, runner = client_runner
+        runner.dynamics_interval = dynamics_interval
+        runner.frame_interval = frame_interval
+        runner.run()
+        time.sleep(duration)
+        runner.cancel_run()
+        timestamps = [frame.server_timestamp for frame in client.frames[1:]]
+        deltas = [
+            timestamps[i] - timestamps[i - 1]
+            for i in range(1, len(timestamps))
+        ]
+        print(dynamics_interval, deltas, 0.90 * dynamics_interval)
+        assert all(delta >= dynamics_interval * 0.90 for delta in deltas)
