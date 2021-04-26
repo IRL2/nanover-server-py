@@ -288,9 +288,7 @@ class OpenMMRunner:
         for _ in self._variable_interval_generator.yield_interval():
             if self._cancelled or remaining_steps <= 0:
                 break
-            # We run by chunks of 10 steps because that is what OpenMM does
-            # under the hood.
-            steps_for_this_iteration = min(10, remaining_steps)
+            steps_for_this_iteration = min(self.frame_interval, remaining_steps)
             try:
                 self.simulation.step(steps_for_this_iteration)
             except (ValueError, openmm.OpenMMException) as err:
