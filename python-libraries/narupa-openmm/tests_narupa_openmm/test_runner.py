@@ -425,7 +425,7 @@ class TestRunner:
         time.sleep(0.1)
         assert runner.dynamics_interval == pytest.approx(value)
 
-    @pytest.mark.parametrize("fps", (5, 10, 30, 40))
+    @pytest.mark.parametrize("fps", (1, 5, 10, 30))
     @pytest.mark.parametrize("frame_interval", (1, 5, 10))
     def test_throttling(self, client_runner, fps, frame_interval):
         duration = 0.5
@@ -433,13 +433,23 @@ class TestRunner:
         client, runner = client_runner
         runner.dynamics_interval = dynamics_interval
         runner.frame_interval = frame_interval
+
+        # The frame interval is only taken into account at the end of the
+        # current batch of frames. Here we produce one batch of frame and
+        # discard these frames before we actually run the test.
+        runner.run(steps=frame_interval, block=True)
+        client._frames.clear()
+
         runner.run()
         time.sleep(duration)
-        runner.cancel_run()
-        timestamps = [frame.server_timestamp for frame in client.frames[1:]]
+        runner.cancel_run(wait=True)
+
+        timestamps = [frame.server_timestamp for frame in client.frames]
         deltas = [
             timestamps[i] - timestamps[i - 1]
             for i in range(1, len(timestamps))
         ]
-        print(dynamics_interval, deltas, 0.90 * dynamics_interval)
+        # The interval is not very accurate. We only check that the observed
+        # interval is greater than the expected one and we accept some
+        # deviation.
         assert all(delta >= dynamics_interval * 0.90 for delta in deltas)
