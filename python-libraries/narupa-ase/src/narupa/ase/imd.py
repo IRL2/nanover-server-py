@@ -244,7 +244,7 @@ class NarupaASEDynamics:
         for _ in self._variable_interval_generator.yield_interval():
             if self._cancelled or remaining_steps <= 0:
                 break
-            steps_for_this_iteration = min(10, remaining_steps)
+            steps_for_this_iteration = min(self._frame_interval, remaining_steps)
             self.dynamics.run(steps_for_this_iteration)
             remaining_steps -= steps_for_this_iteration
             self._reset_if_required(reset_energy)
