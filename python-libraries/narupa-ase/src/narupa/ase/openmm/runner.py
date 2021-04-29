@@ -292,14 +292,6 @@ class ASEOpenMMRunner:
             self.logging_info.close()
         self.app_server.close()
 
-    @property
-    def dynamics_interval(self):
-        return self.imd.dynamics_interval
-
-    @dynamics_interval.setter
-    def dynamics_interval(self, interval):
-        self.imd.dynamics_interval = interval
-
     def _initialise_server(self,
                            name=None,
                            address=None,
