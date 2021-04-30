@@ -87,6 +87,11 @@ class TestRunner:
         """
         assert isinstance(runner, OpenMMRunner)
 
+    def test_app_deprecated(self, runner):
+        assert runner.app is runner.app_server
+        with pytest.deprecated_call():
+            _ = runner.app
+
     def test_simulation_without_imd_force(self, basic_simulation):
         """
         When created on a simulation without imd force, the runner fails.
