@@ -272,6 +272,14 @@ def test_set_dynamics_interval(runner):
 
 @pytest.mark.parametrize("fps", (1, 5, 10, 30))
 def test_throttling(client_runner, fps):
+    """
+    The runner uses the requested MD throttling.
+
+    Here we make sure the runner throttles the dynamics according to the
+    dynamics interval. However, we only guarantee that the target dynamics
+    interval is a minimum (the MD engine may not be able to produce frames
+    fast enough), also we accept some leeway.
+    """
     duration = 0.5
     dynamics_interval = 1 / fps
     client, runner = client_runner
