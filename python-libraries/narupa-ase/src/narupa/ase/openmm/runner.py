@@ -11,7 +11,7 @@ from ase import units, Atoms  # type: ignore
 from ase.md import MDLogger, Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from attr import dataclass
-from narupa.app import NarupaImdApplication
+from narupa.app import NarupaImdApplication, NarupaRunner
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
 from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
 from narupa.ase import TrajectoryLogger
@@ -126,7 +126,7 @@ class TrajectoryLoggerInfo:
         self._logger.close()
 
 
-class ASEOpenMMRunner:
+class ASEOpenMMRunner(NarupaRunner):
     """
     A wrapper class for running an interactive OpenMM simulation with ASE.
 
@@ -160,6 +160,26 @@ class ASEOpenMMRunner:
         self._initialise_imd(self.app_server, self.dynamics)
 
         self._initialise_trajectory_logging(logging_params)
+
+    @property
+    def app_server(self):
+        return self._app_server
+
+    @property
+    def is_running(self):
+        return self.imd.is_running
+
+    def pause(self):
+        self.imd.pause()
+
+    def play(self):
+        self.imd.play()
+
+    def reset(self):
+        self.imd.reset()
+
+    def step(self):
+        self.imd.step()
 
     def _validate_simulation(self):
         """
@@ -215,28 +235,6 @@ class ASEOpenMMRunner:
         return self._frame_interval
 
     @property
-    def address(self):
-        """
-        Gets the URL or IP address the server is running at.
-
-        :return: The URL or IP address of the server.
-        """
-        return self.app_server.address
-
-    @property
-    def port(self):
-        """
-        Gets the port the server is running on.
-
-        :return: The server port.
-        """
-        return self.app_server.port
-
-    @property
-    def name(self):
-        return self.app_server.name
-
-    @property
     def running_discovery(self):
         return self.app_server.running_discovery
 
@@ -284,9 +282,6 @@ class ASEOpenMMRunner:
         self.imd.run(steps, block=block, reset_energy=reset_energy)
 
     def close(self):
-        """
-        Closes the connection and stops the dynamics.
-        """
         self.imd.close()
         if self.logging_info:
             self.logging_info.close()
@@ -307,7 +302,7 @@ class ASEOpenMMRunner:
             discovery = DiscoveryServer(broadcast_port=discovery_port)
         else:
             discovery = None
-        self.app_server = NarupaImdApplication(server, discovery, name)
+        self._app_server = NarupaImdApplication(server, discovery, name)
 
     def _initialise_imd(self, server, dynamics):
         # set the server to use the OpenMM frame convert for performance purposes.
@@ -351,12 +346,6 @@ class ASEOpenMMRunner:
         self.imd.on_reset_listeners.append(logger.reset)
         self.logging_info = TrajectoryLoggerInfo(logger, logging_params)
         self.dynamics.attach(logger, logging_params.write_interval)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.close()
 
 
 # Keep the old name of the runner available to avoid breaking scripts, but

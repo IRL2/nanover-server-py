@@ -5,6 +5,7 @@ Module containing a basic interactive molecular dynamics client that receives fr
 and can publish interactions.
 """
 import time
+import warnings
 from collections import deque, ChainMap
 from functools import wraps, partial
 from typing import Iterable, Tuple, Type, TypeVar
@@ -58,6 +59,18 @@ def _need_attribute(func, *, name: str, attr: str):
     return wrapper
 
 
+def need_trajectory_joined(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if not self._are_framed_subscribed:
+            raise RuntimeError(
+                'You need to first subscribe to the frame using the '
+                'subscribe_to_frames or the subscribe_to_all_frames methods.'
+            )
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
 # Use partial to specify which attribute is needed for the given decorator.
 need_frames = partial(_need_attribute, name='trajectory', attr='_frame_client')
 need_imd = partial(_need_attribute, name='imd', attr='_imd_client')
@@ -73,7 +86,6 @@ class NarupaImdClient:
     :param imd_address: Address and port of the iMD service.
     :param multiplayer_address: Address and port of the multiplayer service.
     :param max_frames: Maximum number of frames to store in a buffer, if not storing all frames.
-    :param all_frames: Whether to receive all frames, or skip to the latest one.
 
     All addresses are optional, so one can, for example, just connect to a trajectory service to passively receive
     frames.
@@ -90,6 +102,8 @@ class NarupaImdClient:
     .. python
         # Assuming there is only one server (or set of servers) running.
         client = NarupaImdClient.autoconnect()
+        # Request to receive the frames from the server
+        client.subscribe_to_frames()
         # Fetch the first frame.
         first_frame = client.wait_until_first_frame(check_interval=0.5, timeout=10)
         # Print the number of particles in the frame
@@ -144,17 +158,28 @@ class NarupaImdClient:
     _imd_commands: Dict[str, CommandInfo]
     _multiplayer_commands: Dict[str, CommandInfo]
 
+    _are_framed_subscribed: bool
+    _subscribed_to_all_frames: bool
+
     def __init__(self, *,
                  trajectory_address: Tuple[str, int] = None,
                  imd_address: Tuple[str, int] = None,
                  multiplayer_address: Tuple[str, int] = None,
                  max_frames=50,
-                 all_frames=True):
+                 all_frames: Optional[bool] = None,
+        ):
+        if all_frames is not None:
+            warnings.warn(
+                "The `all_frames` argument is deprecated and will be removed "
+                "in a later version. Use `subscribe_to_all_frames` to "
+                "subscribe to all frames, or `subscribe_to_frames` to "
+                "subscribe with a set interval.",
+                DeprecationWarning,
+            )
         self._player_id = str(uuid4())
 
         self._channels = {}
 
-        self.all_frames = all_frames
         self.max_frames = max_frames
 
         self._frame_client = None
@@ -164,11 +189,17 @@ class NarupaImdClient:
                      imd_address=imd_address,
                      multiplayer_address=multiplayer_address)
 
+        self._are_framed_subscribed = False
+        self._subscribed_to_all_frames = False
         self._frames = deque(maxlen=self.max_frames)
         self._first_frame = None
         self._current_frame = FrameData()
 
         self.update_available_commands()  # initialise the set of available commands.
+
+    @property
+    def all_frames(self):
+        return self._subscribed_to_all_frames
 
     @classmethod
     def connect_to_single_server(cls, address: Optional[str] = None, port: Optional[int] = None):
@@ -251,6 +282,9 @@ class NarupaImdClient:
         if self._frame_client is not None:
             self._frame_client.close()
             self._frame_client = None
+            # We are not subscribed to the frames anymore.
+            self._are_framed_subscribed = False
+            self._subscribed_to_all_frames = False
         self._channels.clear()
 
         if clear_frames:
@@ -265,7 +299,6 @@ class NarupaImdClient:
         """
 
         self._frame_client = self._connect_client(FrameClient, address)
-        self._join_trajectory()
 
     def connect_imd(self, address: Tuple[str, int]):
         """
@@ -302,6 +335,7 @@ class NarupaImdClient:
             self.connect_multiplayer(multiplayer_address)
 
     @need_frames
+    @need_trajectory_joined
     def wait_until_first_frame(self, check_interval=0.01, timeout=1):
         """
         Wait until the first frame is received from the server.
@@ -323,6 +357,7 @@ class NarupaImdClient:
 
     @property  # type: ignore
     @need_frames
+    @need_trajectory_joined
     def latest_frame(self) -> Optional[FrameData]:
         """
         The trajectory frame most recently received, if any.
@@ -335,6 +370,7 @@ class NarupaImdClient:
 
     @property  # type: ignore
     @need_frames
+    @need_trajectory_joined
     def current_frame(self) -> FrameData:
         """
         A copy of the current state of the trajectory, formed by collating all received frames.
@@ -355,6 +391,7 @@ class NarupaImdClient:
 
     @property  # type: ignore
     @need_frames
+    @need_trajectory_joined
     def frames(self) -> Sequence[FrameData]:
         """
         The most recently received frames up to the storage limit specified
@@ -366,6 +403,7 @@ class NarupaImdClient:
 
     @property  # type: ignore
     @need_frames
+    @need_trajectory_joined
     def first_frame(self) -> Optional[FrameData]:
         """
         The first received trajectory frame, if any.
@@ -722,14 +760,83 @@ class NarupaImdClient:
         selection.removed.add_callback(self.remove_selection)
         return selection
 
-    def _join_trajectory(self):
-        if self.all_frames:
-            self._frame_client.subscribe_frames_async(self._on_frame_received)
-        else:
-            self._frame_client.subscribe_last_frames_async(
-                self._on_frame_received,
-                DEFAULT_SUBSCRIPTION_INTERVAL,
-            )
+    @property
+    def are_frames_subscribed(self):
+        """
+        Returns `True` if the client is subscribed to frames with either
+        :meth:`subscribe_to_all_frames` or :meth:`subscribe_to_frames`.
+        """
+        return self._are_framed_subscribed
+
+    @need_frames
+    def subscribe_to_all_frames(self):
+        """
+        Request all the frames from the server.
+
+        This makes the frames available with the :attr:`frames`,
+        :attr:`current_frame`, :attr:`latest_frames`, and :attr:`first_frame`
+        attributes.
+
+        All the frames produced by the frame server are sent from the time of
+        the subscription get received by the client. Note that, depending on
+        the server set up, this may not be all the frames generated by the
+        MD engine. Subscribing to all frames is usefull for some applications
+        such as saving a trajectory or analyses, however it may get behind the
+        server if the frames are not received and treated as fast as they
+        are sent.
+
+        .. warning::
+
+            A client can subscribe to frames only ones and cannot change how
+            it subscribes.
+
+        .. see-also:: subscribe_to_frames, are_frames_subscribed
+
+        """
+        if self._are_framed_subscribed:
+            return
+        self._subscribed_to_all_frames = True
+        self._frame_client: FrameClient  # @need_frames makes sure of that
+        self._frame_client.subscribe_frames_async(self._on_frame_received)
+        self._are_framed_subscribed = True
+
+    @need_frames
+    def subscribe_to_frames(self, interval: float = DEFAULT_SUBSCRIPTION_INTERVAL):
+        """
+        Request the latest frames at a given time interval.
+
+        This makes the frames available with the :attr:`frames`,
+        :attr:`current_frame`, :attr:`latest_frames`, and :attr:`first_frame`
+        attributes.
+
+        This requests for the server to send the latest available frame at a
+        given framerate expressed with the interval of time between two
+        consecutive frames. This requested interval is the a minimum interval:
+        if the frames are produced slower, then they will be sent as fast as
+        possible.
+
+        This is usefull for applications that do not need all the frames but
+        only the latest available ones.
+
+        .. warning::
+
+            A client can subscribe to frames only ones and cannot change how
+            it subscribes.
+
+        .. see-also:: subscribe_to_all_frames, are_frames_subscribed
+
+        :param interval: Minimum time, in seconds, between two consecutive
+            frames.
+        """
+        if self._are_framed_subscribed:
+            return
+        self._subscribed_to_all_frames = False
+        self._frame_client: FrameClient  # @need_frames makes sure of that
+        self._frame_client.subscribe_last_frames_async(
+            self._on_frame_received,
+            DEFAULT_SUBSCRIPTION_INTERVAL,
+        )
+        self._are_framed_subscribed = True
 
     def _on_frame_received(self, frame_index: int, frame: FrameData):
         if self._first_frame is None:
