@@ -15,6 +15,7 @@ class NGLClient(NarupaImdClient):
                  **kwargs):
         self._view = None
         super().__init__(*args, **kwargs)
+        self.subscribe_to_frames()
         self.update_callback = update_callback
         self.dynamic_bonds = dynamic_bonds
 

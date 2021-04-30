@@ -45,8 +45,28 @@ def client_frame_server(frame_server):
         yield client, frame_server
 
 
+@pytest.mark.parametrize(
+    'attribute, is_method', (
+        ('wait_until_first_frame', True),
+        ('latest_frame', False),
+        ('current_frame', False),
+        ('frames', False),
+        ('first_frame', False),
+    ),
+)
+def test_frames_not_subscribed(client_frame_server, attribute, is_method):
+    client, server = client_frame_server
+    if is_method:
+        with pytest.raises(RuntimeError):
+            getattr(client, attribute)()
+    else:
+        with pytest.raises(RuntimeError):
+            getattr(client, attribute)
+
+
 def test_receive_frames(client_server, simple_frame_data):
     client, frame_server, imd_server, multiplayer_server = client_server
+    client.subscribe_to_all_frames()
     time.sleep(CLIENT_WAIT_TIME)
     frame_server.send_frame(0, simple_frame_data)
     time.sleep(CLIENT_WAIT_TIME)
@@ -58,6 +78,7 @@ def test_receive_frames(client_server, simple_frame_data):
 
 def test_receive_multiple_frames(client_server, simple_frame_data):
     client, frame_server, imd_server, multiplayer_server = client_server
+    client.subscribe_to_all_frames()
     # wait for client to connect.
     time.sleep(CLIENT_WAIT_TIME)
     frame_server.send_frame(0, simple_frame_data)
@@ -66,25 +87,26 @@ def test_receive_multiple_frames(client_server, simple_frame_data):
     assert len(client.frames) == 2
 
 
-def test_latest_frame_only(frame_server, simple_frame_data):
+def test_latest_frame_only(client_frame_server, simple_frame_data):
     """
     Tests that running with the all_frames flag set to false, the client only receives the latest
     frame.
     """
-    trajectory_address = frame_server.address_and_port
-    with NarupaImdClient(trajectory_address=trajectory_address, all_frames=False) as client:
-        num_frames = 2
-        for i in range(num_frames):
-            frame_server.send_frame(0, simple_frame_data)
-        time.sleep(CLIENT_WAIT_TIME)
-        assert client.latest_frame is not None
-        assert client.first_frame is not None
-        assert client.latest_frame == client.first_frame
-        assert len(client.frames) < num_frames
+    client, frame_server = client_frame_server
+    client.subscribe_to_frames()
+    num_frames = 2
+    for i in range(num_frames):
+        frame_server.send_frame(0, simple_frame_data)
+    time.sleep(CLIENT_WAIT_TIME)
+    assert client.latest_frame is not None
+    assert client.first_frame is not None
+    assert client.latest_frame == client.first_frame
+    assert len(client.frames) < num_frames
 
 
 def test_latest_frame_does_not_merge(client_server):
     client, frame_server, imd_server, multiplayer_server = client_server
+    client.subscribe_to_all_frames()
     time.sleep(CLIENT_WAIT_TIME)
 
     first_frame = FrameData()
@@ -107,6 +129,7 @@ def test_latest_frame_does_not_merge(client_server):
 
 def test_current_frame_does_merge(client_server):
     client, frame_server, imd_server, multiplayer_server = client_server
+    client.subscribe_to_all_frames()
     time.sleep(CLIENT_WAIT_TIME)
 
     first_frame = FrameData()
@@ -129,6 +152,7 @@ def test_current_frame_does_merge(client_server):
 
 def test_current_frame_is_copy(client_server):
     client, frame_server, imd_server, multiplayer_server = client_server
+    client.subscribe_to_all_frames()
     time.sleep(CLIENT_WAIT_TIME)
 
     first_frame = FrameData()
@@ -160,6 +184,7 @@ def test_current_frame_is_copy(client_server):
 
 def test_reconnect_receive(client_server, simple_frame_data):
     client, frame_server, imd_server, multiplayer_server = client_server
+    client.subscribe_to_all_frames()
     frame_server.send_frame(0, simple_frame_data)
     client.close()
 
@@ -167,6 +192,7 @@ def test_reconnect_receive(client_server, simple_frame_data):
     client.connect(trajectory_address=frame_server.address_and_port,
                    imd_address=imd_server.address_and_port,
                    multiplayer_address=multiplayer_server.address_and_port)
+    client.subscribe_to_all_frames()
     time.sleep(CLIENT_WAIT_TIME)
     assert client.latest_frame is not None
 
