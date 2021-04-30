@@ -332,7 +332,6 @@ class OpenMMRunner(NarupaRunner):
             self.simulation.context.reinitialize()
             initial_state_fake_file = StringIO(self._initial_state)
             self.simulation.loadState(initial_state_fake_file)
-            self.reporter._reset_forces()
             self.on_reset.invoke()
         if was_running:
             self.run()
