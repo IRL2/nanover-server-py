@@ -26,6 +26,7 @@ from narupa.trajectory.frame_server import (
     RESET_COMMAND_KEY,
     STEP_COMMAND_KEY,
 )
+from narupa.essd import DiscoveryClient
 
 from .simulation_utils import (
     DoNothingReporter,
@@ -51,6 +52,11 @@ class TestRunner:
         False: 2,
     }
 
+    def make_runner(self, simulation, name=None):
+        runner = OpenMMRunner(simulation, port=0, name=name)
+        runner.simulation.reporters.append(DoNothingReporter())
+        return runner
+
     @pytest.fixture
     def runner(self, basic_simulation_with_imd_force):
         """
@@ -60,8 +66,7 @@ class TestRunner:
         reporter only removes only that reporter.
         """
         simulation, _ = basic_simulation_with_imd_force
-        runner = OpenMMRunner(simulation, port=0)
-        runner.simulation.reporters.append(DoNothingReporter())
+        runner = self.make_runner(simulation)
         yield runner
         runner.close()
 
@@ -105,6 +110,18 @@ class TestRunner:
         runner = OpenMMRunner(basic_simulation, port=0)
         runner.close()
         assert 'More than one force' in caplog.text
+
+    @pytest.mark.serial
+    @pytest.mark.parametrize('server_name', ("Server 1", "Server 2"))
+    def test_discovery_with_client(self, server_name, basic_simulation_with_imd_force):
+        simulation, _ = basic_simulation_with_imd_force
+        with self.make_runner(simulation, name=server_name) as runner:
+            with DiscoveryClient() as client:
+                # There may be servers running already, we only want to look at the
+                # one we created in that test. We select it by name.
+                servers = set(client.search_for_services(search_time=0.8, interval=0.01))
+                relevant_servers = [server for server in servers if server.name == server_name]
+                assert len(relevant_servers) == 1
 
     def test_default_verbosity(self, runner):
         """
