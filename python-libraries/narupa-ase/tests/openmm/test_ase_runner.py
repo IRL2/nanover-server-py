@@ -275,6 +275,7 @@ def test_throttling(client_runner, fps):
     duration = 0.5
     dynamics_interval = 1 / fps
     client, runner = client_runner
+    client.subscribe_to_all_frames()
     runner.dynamics_interval = dynamics_interval
 
     runner.run()

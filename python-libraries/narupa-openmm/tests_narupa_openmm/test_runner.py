@@ -458,9 +458,9 @@ class TestRunner:
 
         # The frame interval is only taken into account at the end of the
         # current batch of frames. Here we produce one batch of frame and
-        # discard these frames before we actually run the test.
+        # only after that subscribe to the frames.
         runner.run(steps=frame_interval, block=True)
-        client._frames.clear()
+        client.subscribe_to_all_frames()
 
         runner.run()
         time.sleep(duration)
