@@ -10,6 +10,8 @@ Tests for :mod:`narupa.openmm.runner`.
 # not use self.
 # pylint: disable=no-self-use
 import time
+import statistics
+import math
 
 import pytest
 
@@ -25,6 +27,8 @@ from narupa.trajectory.frame_server import (
     PAUSE_COMMAND_KEY,
     RESET_COMMAND_KEY,
     STEP_COMMAND_KEY,
+    SET_DYNAMICS_INTERVAL_COMMAND_KEY,
+    GET_DYNAMICS_INTERVAL_COMMAND_KEY,
 )
 from narupa.essd import DiscoveryClient
 
@@ -421,3 +425,61 @@ class TestRunner:
         client, runner = client_runner
         client.run_command(command, interval=target_interval)
         assert getattr(runner, getter) == target_interval
+
+    def test_get_dynamics_interval(self, runner):
+        assert runner.dynamics_interval == runner._variable_interval_generator.interval
+
+    def test_set_dynamics_interval(self, runner):
+        value = 20.1
+        runner.dynamics_interval = value
+        assert runner._variable_interval_generator.interval == pytest.approx(value)
+
+    def test_get_dynamics_interval_command(self, client_runner):
+        client, runner = client_runner
+        result = client.run_command(GET_DYNAMICS_INTERVAL_COMMAND_KEY)
+        time.sleep(0.1)
+        assert result == {"interval": pytest.approx(runner.dynamics_interval)}
+
+    def test_set_dynamics_interval_command(self, client_runner):
+        value = 10.2
+        client, runner = client_runner
+        client.run_command(SET_DYNAMICS_INTERVAL_COMMAND_KEY, interval=value)
+        time.sleep(0.1)
+        assert runner.dynamics_interval == pytest.approx(value)
+
+    @pytest.mark.parametrize("fps", (1, 5, 10, 30))
+    @pytest.mark.parametrize("frame_interval", (1, 5, 10))
+    def test_throttling(self, client_runner, fps, frame_interval):
+        """
+        The runner uses the requested MD throttling.
+
+        Here we make sure the runner throttles the dynamics according to the
+        dynamics interval. However, we only guarantee that the target dynamics
+        interval is a minimum (the MD engine may not be able to produce frames
+        fast enough), also we accept some leeway.
+        """
+        duration = 0.5
+        dynamics_interval = 1 / fps
+        client, runner = client_runner
+        runner.dynamics_interval = dynamics_interval
+        runner.frame_interval = frame_interval
+
+        # The frame interval is only taken into account at the end of the
+        # current batch of frames. Here we produce one batch of frame and
+        # only after that subscribe to the frames.
+        runner.run(steps=frame_interval, block=True)
+        client.subscribe_to_all_frames()
+
+        runner.run()
+        time.sleep(duration)
+        runner.cancel_run(wait=True)
+
+        timestamps = [frame.server_timestamp for frame in client.frames]
+        deltas = [
+            timestamps[i] - timestamps[i - 1]
+            for i in range(1, len(timestamps))
+        ]
+        # The interval is not very accurate. We only check that the observed
+        # interval is greater than the expected one and we accept some
+        # deviation.
+        assert all(delta >= dynamics_interval * 0.90 for delta in deltas)

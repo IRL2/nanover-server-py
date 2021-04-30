@@ -2,10 +2,12 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 import os
 from logging import Handler, WARNING
+import time
 
 import pytest
 from ase import units
 from narupa.app.app_server import DEFAULT_NARUPA_PORT
+from narupa.app import NarupaImdClient
 from ase.io import read
 from narupa.ase.openmm import ASEOpenMMRunner, OpenMMIMDRunner
 from narupa.ase.openmm.runner import (
@@ -68,6 +70,12 @@ def runner_class(request):
 def runner(runner_class, basic_simulation, imd_params):
     with runner_class(basic_simulation, imd_params=imd_params) as runner:
         yield runner
+
+
+@pytest.fixture()
+def client_runner(runner):
+    with NarupaImdClient.connect_to_single_server(port=runner.port) as client:
+        yield client, runner
 
 
 @pytest.fixture()
@@ -250,3 +258,45 @@ def test_logging_rate(
     atom_images = read(trajectory_file, index=':')
     # always get one more frame as it dumps out the initial frame
     assert len(atom_images) == expected_frames + 1
+
+
+def test_get_dynamics_interval(runner):
+    assert runner.dynamics_interval == runner.imd._variable_interval_generator.interval
+
+
+def test_set_dynamics_interval(runner):
+    value = 0.2
+    runner.dynamics_interval = value
+    assert runner.dynamics_interval == pytest.approx(value)
+
+
+@pytest.mark.parametrize("fps", (1, 5, 10, 30))
+def test_throttling(client_runner, fps):
+    """
+    The runner uses the requested MD throttling.
+
+    Here we make sure the runner throttles the dynamics according to the
+    dynamics interval. However, we only guarantee that the target dynamics
+    interval is a minimum (the MD engine may not be able to produce frames
+    fast enough), also we accept some leeway.
+    """
+    duration = 0.5
+    dynamics_interval = 1 / fps
+    client, runner = client_runner
+    client.subscribe_to_all_frames()
+    runner.dynamics_interval = dynamics_interval
+
+    runner.run()
+    time.sleep(duration)
+    runner.imd.cancel_run(wait=True)
+
+    timestamps = [frame.server_timestamp for frame in client.frames[1:]]
+    deltas = [
+        timestamps[i] - timestamps[i - 1]
+        for i in range(1, len(timestamps))
+    ]
+    print(dynamics_interval, 0.90 * dynamics_interval, deltas)
+    # The interval is not very accurate. We only check that the observed
+    # interval is greater than the expected one and we accept some
+    # deviation.
+    assert all(delta >= dynamics_interval * 0.90 for delta in deltas)
