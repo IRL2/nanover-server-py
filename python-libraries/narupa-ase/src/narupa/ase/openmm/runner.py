@@ -256,6 +256,9 @@ class ASEOpenMMRunner(NarupaRunner):
 
     @property
     def dynamics_interval(self):
+        """
+        Minimum interval, in seconds,  between frames sent to the frame publisher.
+        """
         return self.imd.dynamics_interval
 
     @dynamics_interval.setter

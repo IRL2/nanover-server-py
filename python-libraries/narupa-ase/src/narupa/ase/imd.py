@@ -156,6 +156,9 @@ class NarupaASEDynamics:
 
     @property
     def dynamics_interval(self):
+        """
+        Minimum interval, in seconds,  between frames sent to the frame publisher.
+        """
         return self._variable_interval_generator.interval
 
     @dynamics_interval.setter
