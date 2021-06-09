@@ -11,3 +11,4 @@ mock
 # type checking
 mypy
 typing_extensions
+types-protobuf
