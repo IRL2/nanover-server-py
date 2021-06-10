@@ -23,11 +23,14 @@ set -euo pipefail
 # mode. If not, they can supply the --no-edit argument.
 user_option=""
 edit_option="-e"
+with_dotnet=true
 for option in "$@"; do
     if [[ "$option" == "--user" ]]; then
         user_option="--user"
     elif [[ "$option" == "--no-edit" ]]; then
         edit_option=""
+    elif [[ "$option" == "--no-dotnet" ]]; then
+        with_dotnet=false
     fi
 done
 # We do not want to use pip with --user if we use -e.
@@ -73,6 +76,9 @@ python -c "import simtk" 2>&1 > /dev/null || {
     announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
 }
 
-announce "Compiling proto files to C#"
-dotnet build --configuration Release csharp-libraries/Narupa.Protocol
-dotnet publish --configuration Release csharp-libraries/Narupa.Protocol
+
+if [[ $with_dotnet == true ]]; then
+    announce "Compiling proto files to C#"
+    dotnet build --configuration Release csharp-libraries/Narupa.Protocol
+    dotnet publish --configuration Release csharp-libraries/Narupa.Protocol
+fi
