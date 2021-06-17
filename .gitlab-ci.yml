@@ -1,4 +1,4 @@
-image: intangiblerealitieslab/conda-light-37
+image: intangiblerealitieslab/conda-light-38
 stages:
   - stage1
   - build_lammps
@@ -31,9 +31,9 @@ trigger_docs_build:
 
 test_python:
   stage: test_python
-  image: intangiblerealitieslab/conda-light-37
+  image: intangiblerealitieslab/conda-light-38
   variables:
-    python_version: "3.7"
+    python_version: "3.8"
   before_script:
     - conda install -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
     - python -m pip install -r python-libraries/requirements.test
@@ -81,13 +81,12 @@ mypy_types:
     - $mypy_command
 
 test_dotnet:
-  image: intangiblerealitieslab/dotnet-conda
+  image: mcr.microsoft.com/dotnet/sdk:2.1
   stage: stage1
   variables:
     test_path: "csharp-libraries"
   script:
-    - conda install -c conda-forge mpi4py
-    - ./compile.sh
+    - ./compile.sh --no-python
     - "cd $test_path"
     - dotnet add Narupa.Protocol.Test package JunitXml.TestLogger
     - dotnet add Essd.Test package JunitXml.TestLogger
@@ -96,6 +95,14 @@ test_dotnet:
     reports:
       junit:
         - ./**/*test-result.xml
+
+test_compile_python:
+  image: intangiblerealitieslab/conda-light-38
+  stage: stage1
+  before_script:
+    - conda install -c conda-forge mpi4py openmm
+  script:
+    - ./compile.sh --no-dotnet
 
 build_conda:
     stage: stage1
@@ -109,7 +116,7 @@ build_conda:
         # science related packages (openmm, ase, mdanalysis)
         - conda config --env --add channels conda-forge
         - conda config --env --add channels omnia
-        - conda install python=3.7 conda-build grpcio-tools conda-verify
+        - conda install python=3.8 conda-build grpcio-tools conda-verify
         # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
         # The order of the packages is defined by their requirements.
