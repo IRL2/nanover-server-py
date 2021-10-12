@@ -7,7 +7,8 @@ from typing import Optional
 
 import numpy as np
 try:
-    from openmm import State
+    # Mypy does not find State in the C module; we ignore the error
+    from openmm import State  # type: ignore[attr-defined]
 except (ImportError, ModuleNotFoundError):
     from simtk.openmm import State
 try:
