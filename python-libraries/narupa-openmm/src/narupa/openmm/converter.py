@@ -6,8 +6,15 @@ Module providing conversion methods between Narupa and OpenMM.
 from typing import Optional
 
 import numpy as np
-from simtk.openmm import State
-from simtk.openmm.app.topology import Topology
+try:
+    # Mypy does not find State in the C module; we ignore the error
+    from openmm import State  # type: ignore[attr-defined]
+except (ImportError, ModuleNotFoundError):
+    from simtk.openmm import State
+try:
+    from openmm.app.topology import Topology
+except (ImportError, ModuleNotFoundError):
+    from simtk.openmm.app.topology import Topology
 
 from narupa.trajectory import FrameData
 
