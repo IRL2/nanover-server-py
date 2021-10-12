@@ -9,7 +9,7 @@ from ase.cell import Cell
 from ase.md import VelocityVerlet
 from narupa.ase.null_calculator import NullCalculator
 from narupa.ase.openmm.calculator import OpenMMCalculator
-from openmm.simulation_utils import basic_simulation
+from openmm_ase.simulation_utils import basic_simulation
 from narupa.ase.wall_constraint import VelocityWallConstraint
 
 @pytest.fixture

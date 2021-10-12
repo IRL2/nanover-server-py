@@ -5,7 +5,10 @@ Provide a reporter for OpenMM simulation to publish frames as a Narupa server.
 """
 from typing import Union
 
-from simtk.openmm.app.topology import Topology
+try:
+    from openmm.app.topology import Topology
+except (ImportError, ModuleNotFoundError):
+    from simtk.openmm.app.topology import Topology
 
 from .converter import openmm_to_frame_data
 
