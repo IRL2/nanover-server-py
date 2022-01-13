@@ -50,6 +50,8 @@ def serialize_simulation(simulation: app.Simulation) -> str:
     :return: A string with the content of an XML file describing the simulation.
     """
     implementation = getDOMImplementation()
+    if implementation is None:
+        raise TypeError
     document = implementation.createDocument(None, ROOT_TAG, None)
 
     # Extract the PDB
