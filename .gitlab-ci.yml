@@ -142,6 +142,7 @@ build_conda:
         # We use the number of commits in the branch to set the version number.
         - export NARUPA_BUILD_VERSION="0.1.$(git rev-list --count HEAD)"
         - export NARUPA_LICENSE_PATH="$(readlink -f LICENSE)"
+        - export MIN_PYTHON_VERSION=$min_python_version
         # Configure the environment. We need conda-forge and omnia to get the
         # science related packages (openmm, ase, mdanalysis)
         - conda config --env --add channels conda-forge
