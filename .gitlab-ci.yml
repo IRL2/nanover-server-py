@@ -6,7 +6,7 @@ stages:
   - deploy
 
 variables:
-  python_version: 3.9
+  python_version: "3.9"
   build_command: "conda build --prefix-length=100 --no-test --no-anaconda-upload "
   mypy_command: mypy --ignore-missing-imports --show-error-codes ./python-libraries/narupa-core/src/narupa/ ./python-libraries/narupa-ase/src/narupa/ ./python-libraries/narupa-essd/src/narupa/ ./python-libraries/narupa-mdanalysis/src/narupa/ ./python-libraries/narupa-openmm/src/narupa/ ./python-libraries/narupa-lammps/src/narupa/ ./python-libraries/prototypes/
 
