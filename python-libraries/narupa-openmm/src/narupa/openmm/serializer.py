@@ -10,9 +10,9 @@ optionally, an OpenMM serialized state. The resulting XML file looks like:
 ::
 
     <OpenMMSimulation>
-        <pdb>
-            // pasted content of the PDB file
-        </pdb>
+        <pdbx>
+            // pasted content of the PDBx file
+        </pdbx>
         <System ...>
             // XML content of the OpenMM serialized system
         </System>
@@ -22,18 +22,19 @@ optionally, an OpenMM serialized state. The resulting XML file looks like:
     </OpenMMSimulation>
 
 The ``System`` and ``Integrator`` tags are the roots of the serialized system
-and integrator, respectively.
+and integrator, respectively. The ``pdbx`` tag can be replaced by a ``pdb``
+one for backward compatibility.
 
 This module provides a function :func:`serialize_simulation` that generates an
 XML file from an existing instance of :class:`simtk.openmm.app.Simulation`, and
 a function :func:`deserialize_simulation` that creates an instance of simulation
 from an XML file.
 """
-from typing import Optional
+from typing import Optional, List, Tuple
 from io import StringIO
 from tempfile import TemporaryDirectory
 import os
-from xml.dom.minidom import getDOMImplementation, parseString
+from xml.dom.minidom import getDOMImplementation, parseString, Document, Element
 
 from simtk.openmm import app, XmlSerializer, CustomExternalForce
 
@@ -57,8 +58,8 @@ def serialize_simulation(simulation: app.Simulation) -> str:
     # Extract the PDB
     positions = simulation.context.getState(getPositions=True).getPositions()
     pdb_content = StringIO()
-    app.PDBFile.writeFile(simulation.topology, positions, pdb_content)
-    pdb_node = document.createElement('pdb')
+    app.PDBxFile.writeFile(simulation.topology, positions, pdb_content)
+    pdb_node = document.createElement('pdbx')
     pdb_node.appendChild(document.createTextNode(pdb_content.getvalue()))
 
     # Extract the system
@@ -93,13 +94,24 @@ def deserialize_simulation(
     """
     document = parseString(xml_content)
 
-    pdb_node = _get_node_and_raise_if_more_than_one(document, 'pdb')
-    pdb_content = StringIO(pdb_node.firstChild.nodeValue)
+    tag, pdb_node = _get_one_exclusive(document, ['pdbx', 'pdb'])
+    node = pdb_node.firstChild
+    if node is None:
+        raise IOError('No structure content.')
+    # Mypy fails on the next line with the following error:
+    # "Node" has no attribute "nodeValue"  [attr-defined]
+    # Because we know the attribute actually exists, we ignore the error.
+    pdb_content = StringIO(node.nodeValue)  # type: ignore[attr-defined]
     with TemporaryDirectory() as tmp_dir:
-        pdb_path = os.path.join(tmp_dir, 'configuration.pdb')
+        pdb_path = os.path.join(tmp_dir, f'configuration.{tag}')
         with open(str(pdb_path), 'w') as outfile:
             outfile.write(pdb_content.getvalue())
-        pdb = app.PDBFile(str(pdb_path))
+        if tag == 'pdb':
+            pdb = app.PDBFile(str(pdb_path))
+        elif tag == 'pdbx':
+            pdb = app.PDBxFile(str(pdb_path))
+        else:
+            raise IOError('Invalid structure tag: {tag}')
 
     system_node = _get_node_and_raise_if_more_than_one(document, 'System')
     system_content = system_node.toprettyxml()
@@ -122,10 +134,21 @@ def deserialize_simulation(
     return simulation
 
 
-def _get_node_and_raise_if_more_than_one(document, tag_name: str):
+def _get_node_and_raise_if_more_than_one(document: Document, tag_name: str) -> Element:
     nodes = document.getElementsByTagName(tag_name)
     if not nodes:
         raise IOError('No {} tag defined in the XML.'.format(tag_name))
     if len(nodes) != 1:
         raise IOError('More than one {} tag defined in the XML.'.format(tag_name))
     return nodes[0]
+
+
+def _get_one_exclusive(document: Document, tag_names: List[str]) -> Tuple[str, Element]:
+    content: List[Tuple[str, Element]] = []
+    for name in tag_names:
+        content.extend((name, node) for node in document.getElementsByTagName(name))
+    if not content:
+        raise IOError(f'No data for any of these tags: {tag_names}')
+    if len(content) > 1:
+        raise IOError(f'More than one of these tags defined in the XML: {tag_names}')
+    return content[0]
