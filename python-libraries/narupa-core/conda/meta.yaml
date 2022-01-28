@@ -13,12 +13,12 @@ build:
 
 requirements:
   build:
-    - python >=3.6.0
+    - python >={{ MIN_PYTHON_VERSION }}
     - setuptools
     - grpcio-tools
 
   run:
-    - python >=3.6.0
+    - python >={{ MIN_PYTHON_VERSION }}
     - typing-extensions
     - protobuf
     - grpcio

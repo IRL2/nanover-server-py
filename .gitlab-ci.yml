@@ -7,6 +7,7 @@ stages:
 
 variables:
   python_version: "3.9"
+  min_python_version: "3.7"
   build_command: "conda build --prefix-length=100 --no-test --no-anaconda-upload "
   mypy_command: mypy --ignore-missing-imports --show-error-codes ./python-libraries/narupa-core/src/narupa/ ./python-libraries/narupa-ase/src/narupa/ ./python-libraries/narupa-essd/src/narupa/ ./python-libraries/narupa-mdanalysis/src/narupa/ ./python-libraries/narupa-openmm/src/narupa/ ./python-libraries/narupa-lammps/src/narupa/ ./python-libraries/prototypes/
 
@@ -109,6 +110,7 @@ build_conda:
         # We use the number of commits in the branch to set the version number.
         - export NARUPA_BUILD_VERSION="0.1.$(git rev-list --count HEAD)"
         - export NARUPA_LICENSE_PATH="$(readlink -f LICENSE)"
+        - export MIN_PYTHON_VERSION=$min_python_version
         # Configure the environment. We need conda-forge and omnia to get the
         # science related packages (openmm, ase, mdanalysis)
         - conda config --env --add channels conda-forge
