@@ -33,7 +33,7 @@ trigger_docs_build:
 test_python:
   stage: test_python
   before_script:
-    - conda install -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
+    - mamba install -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
     - python -m pip install -r python-libraries/requirements.test
   script:
     - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial' --junitxml=report_not_serial.xml
@@ -59,7 +59,7 @@ test_python_minimum:
     python_version: "3.7"
   before_script:
     - export PIN_VERSIONS="python=$python_version ase=3.19.0 openmm=7.4.0"
-    - conda install -c omnia -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
+    - mamba install -c omnia -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
     - python -m pip install -r python-libraries/requirements.test
   script:
     - python -m pytest python-libraries -n auto -m 'not serial' --junitxml=report_not_serial_minimum.xml
@@ -73,7 +73,7 @@ test_python_minimum:
 mypy_types:
   stage: test_python
   before_script:
-    - conda install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py
+    - mamba install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py
     - python -m pip install -r python-libraries/requirements.test
   script:
     - $mypy_command
@@ -97,7 +97,7 @@ test_dotnet:
 test_compile_python:
   stage: stage1
   before_script:
-    - conda install -c conda-forge mpi4py openmm
+    - mamba install -c conda-forge mpi4py openmm
   script:
     - ./compile.sh --no-dotnet
 
@@ -113,7 +113,7 @@ build_conda:
         # science related packages (openmm, ase, mdanalysis)
         - conda config --env --add channels conda-forge
         - conda config --env --add channels omnia
-        - conda install python=$python_version conda-build grpcio-tools conda-verify
+        - mamba install python=$python_version conda-build grpcio-tools conda-verify
         # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
         # The order of the packages is defined by their requirements.
@@ -145,7 +145,7 @@ build_conda:
         - conda config --env --add channels conda-forge
         - conda config --env --add channels omnia
         - conda config --env --add channels ./conda-bld
-        - conda install python=$python_version conda-build grpcio-tools conda-verify
+        - mamba install python=$python_version conda-build grpcio-tools conda-verify
         # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
         # The order of the packages is defined by their requirements.
