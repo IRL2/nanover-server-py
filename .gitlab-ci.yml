@@ -6,6 +6,7 @@ stages:
   - deploy
 
 variables:
+  python_version: 3.9
   build_command: "conda build --prefix-length=100 --no-test --no-anaconda-upload "
   mypy_command: mypy --ignore-missing-imports --show-error-codes ./python-libraries/narupa-core/src/narupa/ ./python-libraries/narupa-ase/src/narupa/ ./python-libraries/narupa-essd/src/narupa/ ./python-libraries/narupa-mdanalysis/src/narupa/ ./python-libraries/narupa-openmm/src/narupa/ ./python-libraries/narupa-lammps/src/narupa/ ./python-libraries/prototypes/
 
@@ -31,9 +32,6 @@ trigger_docs_build:
 
 test_python:
   stage: test_python
-  image: intangiblerealitieslab/conda-light-39
-  variables:
-    python_version: "3.9"
   before_script:
     - conda install -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
     - python -m pip install -r python-libraries/requirements.test
@@ -97,7 +95,6 @@ test_dotnet:
         - ./**/*test-result.xml
 
 test_compile_python:
-  image: intangiblerealitieslab/conda-light-39
   stage: stage1
   before_script:
     - conda install -c conda-forge mpi4py openmm
@@ -116,7 +113,7 @@ build_conda:
         # science related packages (openmm, ase, mdanalysis)
         - conda config --env --add channels conda-forge
         - conda config --env --add channels omnia
-        - conda install python=3.8 conda-build grpcio-tools conda-verify
+        - conda install python=$python_version conda-build grpcio-tools conda-verify
         # Compiling the prototypes
         - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
         # The order of the packages is defined by their requirements.
