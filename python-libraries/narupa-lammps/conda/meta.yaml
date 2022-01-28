@@ -11,11 +11,11 @@ build:
 
 requirements:
   build:
-    - python >=3.6.0
+    - python >={{ MIN_PYTHON_VERSION }}
     - setuptools
 
   run:
-    - python >=3.6.0
+    - python >={{ MIN_PYTHON_VERSION }}
     - narupa-core =={{ NARUPA_BUILD_VERSION }}
     - numpy
     #- mpi4py
