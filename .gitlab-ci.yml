@@ -1,7 +1,6 @@
 image: intangiblerealitieslab/conda-light-39
 stages:
   - stage1
-  - build_lammps
   - test_python
   - deploy
 
@@ -126,55 +125,12 @@ build_conda:
               python-libraries/narupa-openmm/conda \
               python-libraries/narupa-ase/conda \
               python-libraries/narupa-mdanalysis/conda \
+              python-libraries/narupa-lammps/conda \
               python-libraries/narupa-server/conda
         - cp -r /miniconda/conda-bld .
     artifacts:
         paths:
           - conda-bld
-
-
-.job_template: &conda_lammps
-    stage: build_lammps
-    script:
-        - mkdir conda-bld-lammps-$python_version
-        # Test that the repo is sane and does not contain superfluous __init__ file
-        - bash maintainers/check_extra_init_files.sh
-        # We use the number of commits in the branch to set the version number.
-        - export NARUPA_BUILD_VERSION="0.1.$(git rev-list --count HEAD)"
-        - export NARUPA_LICENSE_PATH="$(readlink -f LICENSE)"
-        - export MIN_PYTHON_VERSION=$min_python_version
-        # Configure the environment. We need conda-forge and omnia to get the
-        # science related packages (openmm, ase, mdanalysis)
-        - conda config --env --add channels conda-forge
-        - conda config --env --add channels omnia
-        - conda config --env --add channels ./conda-bld
-        - mamba install python=$python_version conda-build grpcio-tools conda-verify
-        # Compiling the prototypes
-        - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
-        # The order of the packages is defined by their requirements.
-        - |
-            $build_command --output-folder conda-bld-lammps-$python_version python-libraries/narupa-lammps/conda
-    artifacts:
-        paths:
-          - conda-bld-lammps-$python_version
-
-conda_lammps_37:
-    image: intangiblerealitieslab/conda-light-37
-    variables:
-        python_version: "3.7"
-    <<: *conda_lammps
-
-conda_lammps_38:
-    image: intangiblerealitieslab/conda-light-38
-    variables:
-        python_version: "3.8"
-    <<: *conda_lammps
-
-conda_lammps_39:
-    image: intangiblerealitieslab/conda-light-39
-    variables:
-        python_version: "3.9"
-    <<: *conda_lammps
 
 upload_conda:
     stage: deploy
@@ -188,6 +144,5 @@ upload_conda:
       # Anaconda will complain if the given version of a package is already
       # there. Until we have some visioning, we force the upload.
       - anaconda  upload --user irl conda-bld/noarch/narupa-*.tar.bz2 --force
-      - anaconda  upload --user irl conda-bld-lammps-*/noarch/narupa-lammps-*.tar.bz2 --force
       # Do not fail the build if we cannot logout.
       - anaconda logout || echo "Could not logout. Too bad."
