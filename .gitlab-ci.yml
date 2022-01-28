@@ -137,7 +137,7 @@ upload_conda:
     only:
       - master
     script:
-      - conda -c conda-forge install anaconda
+      - conda install -c conda-forge anaconda
       # The login token may be used by a failed build already. If we are asked
       # if we want it back, we say yes. Hence the echo Y.
       - echo Y | anaconda login --username irl_bot --password $ANACONDA_PASSWORD
