@@ -33,7 +33,7 @@ test_python:
   stage: test_python
   image: intangiblerealitieslab/conda-light-39
   variables:
-    python_version: "3.8"
+    python_version: "3.9"
   before_script:
     - conda install -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
     - python -m pip install -r python-libraries/requirements.test
@@ -58,7 +58,7 @@ test_python_minimum:
   stage: test_python
   image: intangiblerealitieslab/conda-light-37
   variables:
-    python_version: "3.6"
+    python_version: "3.7"
   before_script:
     - export PIN_VERSIONS="python=$python_version ase=3.19.0 openmm=7.4.0"
     - conda install -c omnia -c conda-forge -c ./conda-bld -c ./conda-bld-lammps-$python_version ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
