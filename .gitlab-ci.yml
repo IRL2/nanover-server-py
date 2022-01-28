@@ -1,4 +1,4 @@
-image: intangiblerealitieslab/conda-light-38
+image: intangiblerealitieslab/conda-light-39
 stages:
   - stage1
   - build_lammps
@@ -31,7 +31,7 @@ trigger_docs_build:
 
 test_python:
   stage: test_python
-  image: intangiblerealitieslab/conda-light-38
+  image: intangiblerealitieslab/conda-light-39
   variables:
     python_version: "3.8"
   before_script:
@@ -56,7 +56,7 @@ test_python:
 
 test_python_minimum:
   stage: test_python
-  image: intangiblerealitieslab/conda-light-36
+  image: intangiblerealitieslab/conda-light-37
   variables:
     python_version: "3.6"
   before_script:
@@ -97,7 +97,7 @@ test_dotnet:
         - ./**/*test-result.xml
 
 test_compile_python:
-  image: intangiblerealitieslab/conda-light-38
+  image: intangiblerealitieslab/conda-light-39
   stage: stage1
   before_script:
     - conda install -c conda-forge mpi4py openmm
@@ -158,12 +158,6 @@ build_conda:
         paths:
           - conda-bld-lammps-$python_version
 
-conda_lammps_36:
-    image: intangiblerealitieslab/conda-light-36
-    variables:
-        python_version: "3.6"
-    <<: *conda_lammps
-
 conda_lammps_37:
     image: intangiblerealitieslab/conda-light-37
     variables:
@@ -174,6 +168,12 @@ conda_lammps_38:
     image: intangiblerealitieslab/conda-light-38
     variables:
         python_version: "3.8"
+    <<: *conda_lammps
+
+conda_lammps_39:
+    image: intangiblerealitieslab/conda-light-39
+    variables:
+        python_version: "3.9"
     <<: *conda_lammps
 
 upload_conda:
