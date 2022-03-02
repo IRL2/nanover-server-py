@@ -4,7 +4,9 @@
 # pylint: disable=unused-argument,redefined-outer-name
 import itertools
 
+import numpy as np
 import pytest
+from numpy.testing import assert_almost_equal
 from narupa.openmm import openmm_to_frame_data
 from narupa.trajectory import frame_data
 try:
@@ -114,9 +116,9 @@ def test_box_vectors(basic_simulation):
     expected = list(itertools.chain(BASIC_SIMULATION_BOX_VECTORS))
     state = basic_simulation.context.getState(getPositions=True)
     data = openmm_to_frame_data(state=state)
-    assert pytest.approx(
+    assert_almost_equal(
         data.raw.arrays[frame_data.BOX_VECTORS].float_values.values,
-        expected,
+        np.asarray(expected).flatten()
     )
 
 
@@ -124,9 +126,10 @@ def test_positions(basic_simulation):
     expected = BASIC_SIMULATION_POSITIONS
     state = basic_simulation.context.getState(getPositions=True)
     data = openmm_to_frame_data(state=state)
-    assert pytest.approx(
+    assert_almost_equal(
         data.raw.arrays[frame_data.PARTICLE_POSITIONS].float_values.values,
-        expected,
+        np.asarray(expected).flatten(),
+        decimal=6,
     )
 
 

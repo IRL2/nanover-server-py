@@ -14,7 +14,7 @@ def assert_value_equal(proto_value, python_value):
     or exactly equal otherwise.
     """
     if isinstance(python_value, numbers.Number):
-        assert pytest.approx(proto_value, python_value)
+        assert proto_value == pytest.approx(python_value, nan_ok=True)
     else:
         assert proto_value == python_value
 
@@ -81,7 +81,7 @@ def test_dict_to_struct_invalid(dictionary):
 
 @given(st.floats())
 def test_to_and_from_value_float(object_):
-    assert pytest.approx(value_to_object(object_to_value(object_)), object_)
+    assert value_to_object(object_to_value(object_)) == pytest.approx(object_, nan_ok=True)
 
 
 @given(st.integers(MIN_INT32, MAX_INT32))
