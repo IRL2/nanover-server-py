@@ -2,6 +2,7 @@
 # TODO: tests for None as value
 
 import numpy as np
+from numpy.testing import assert_almost_equal
 
 import pytest
 from hypothesis import strategies as st
@@ -146,7 +147,7 @@ def test_get_single_numeric_value(raw_frame_and_expectation):
     """
     raw_frame, expected_value = raw_frame_and_expectation
     frame = FrameData(raw_frame)
-    assert pytest.approx(frame.values['sample.value'], expected_value)
+    assert frame.values['sample.value'] == pytest.approx(expected_value, nan_ok=True)
 
 
 def _test_get_single_exact_value(raw_frame_and_expectation):
@@ -216,7 +217,7 @@ def test_get_float_array(raw_frame_and_expectation):
     raw_frame, expected_value = raw_frame_and_expectation
     frame = FrameData(raw_frame)
     assert all(
-        pytest.approx(actual, expected)
+        actual == pytest.approx(expected)
         for actual, expected in zip(frame.arrays['sample.array'], expected_value)
     )
 
@@ -358,7 +359,7 @@ def test_positions_shortcut_get(simple_frame):
     # pytest.approx can compare lists, but it does not support nested structures.
     # Here we compare the 2D lists row per row.
     assert all(
-        pytest.approx(positions_row, expected_row)
+        positions_row == pytest.approx(expected_row)
         for positions_row, expected_row in zip(positions, expected)
     )
 
@@ -383,9 +384,11 @@ def test_positions_shortcuts_set(value, expected):
     The "positions" shortcut can be set from a list or from a numpy array.
     """
     frame = FrameData()
-    frame.positions = value
-    assert pytest.approx(
-        frame.raw.arrays[frame_data.PARTICLE_POSITIONS].float_values.values, expected
+    frame.particle_positions = value
+    assert_almost_equal(
+        frame.raw.arrays[frame_data.PARTICLE_POSITIONS].float_values.values,
+        expected,
+        decimal=6,
     )
 
 
@@ -436,7 +439,7 @@ def test_set_new_number_value(value):
     frame.values['sample.new'] = value
     type_attribute = PYTHON_TYPES_TO_GRPC_VALUE_ATTRIBUTE[type(value)]
     assert 'sample.new' in frame.raw.values
-    assert pytest.approx(getattr(frame.raw.values['sample.new'], type_attribute), value)
+    assert getattr(frame.raw.values['sample.new'], type_attribute) == pytest.approx(value)
 
 
 @given(
@@ -449,7 +452,7 @@ def test_set_existing_value_number_to_exact(initial_value, new_value):
     """
     frame = FrameData()
     frame.values['sample.new'] = initial_value
-    assert pytest.approx(frame.values['sample.new'], initial_value)
+    assert frame.values['sample.new'] == pytest.approx(initial_value)
     frame.values['sample.new'] = new_value
     assert frame.values['sample.new'] == new_value
 
@@ -470,7 +473,7 @@ def test_set_existing_value_exact_to_number(initial_value, new_value):
     frame.values['sample.new'] = initial_value
     assert frame.values['sample.new'] == initial_value
     frame.values['sample.new'] = new_value
-    assert pytest.approx(frame.values['sample.new'], new_value)
+    assert frame.values['sample.new'] == pytest.approx(new_value)
 
 
 @given(st.one_of(
@@ -493,7 +496,7 @@ def test_set_new_float_array(value):
     """
     frame = FrameData()
     frame.arrays['sample.new'] = value
-    assert pytest.approx(frame.arrays['sample.new'], value)
+    assert frame.arrays['sample.new'] == pytest.approx(value)
 
 
 @given(
@@ -541,7 +544,7 @@ def test_set_float_array_method(value):
     """
     frame = FrameData()
     frame.set_float_array('sample.value', value)
-    assert pytest.approx(frame.arrays['sample.value'], value)
+    assert frame.arrays['sample.value'] == pytest.approx(value)
 
 
 @given(ARRAYS_STRATEGIES['index_values'])
