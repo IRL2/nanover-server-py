@@ -86,7 +86,7 @@ def imd_calculator_langevin_dynamics():
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
-    dynamics = Langevin(atoms, 1.0, TEST_TEMPERATURE, 1.0)
+    dynamics = Langevin(atoms, 1.0, friction=1.0, temperature_K=TEST_TEMPERATURE)
     imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, dynamics=dynamics)
     yield imd_calculator, atoms, dynamics
     server.close()
@@ -206,7 +206,7 @@ def test_temperature_scaling_selection(random_atom_selection, dynamics_temp, res
     atoms_to_reset, atoms = random_atom_selection
     atoms_to_reset = np.array(list(atoms_to_reset))
 
-    MaxwellBoltzmannDistribution(atoms, dynamics_temp * units.kB, force_temp=True)
+    MaxwellBoltzmannDistribution(atoms, temperature_K=dynamics_temp, force_temp=True)
     assert pytest.approx(atoms.get_temperature()) == dynamics_temp
 
     # get the velocities of the unselected atoms before resetting.
@@ -222,7 +222,7 @@ def test_temperature_scaling_selection(random_atom_selection, dynamics_temp, res
 
 def test_no_reset(imd_calculator_berendsen_dynamics):
     calculator, atoms, dyn = imd_calculator_berendsen_dynamics
-    MaxwellBoltzmannDistribution(atoms, 300)
+    MaxwellBoltzmannDistribution(atoms, temperature_K=300)
     velocities = atoms.get_velocities()
     calculator._reset_velocities(atoms, {}, INTERACTIONS_NO_RESET)
     reset_velocities = atoms.get_velocities()
@@ -241,7 +241,7 @@ def generate_interactions(selection, num_interactions=1):
 
 
 def inverse_selection(collection, selection):
-    mask = np.ones(len(collection), np.bool)
+    mask = np.ones(len(collection), bool)
     mask[selection] = 0
     return mask
 
@@ -252,7 +252,7 @@ def test_reset_velocities(atom_selection):
     selection = np.array(list(selection))
     with imd_calculator_berendsen_dynamics_context() as imd_calculator:
         calculator, atoms, dyn = imd_calculator
-        MaxwellBoltzmannDistribution(atoms, 300)
+        MaxwellBoltzmannDistribution(atoms, temperature_K=300)
 
         not_selected = inverse_selection(atoms, selection)
         velocities = atoms[not_selected].get_velocities()
@@ -271,11 +271,11 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
     imd_calculator = imd_calculator_berendsen_dynamics
 
     calculator, atoms, dyn = imd_calculator
-    atoms.set_calculator(calculator)
+    atoms.calc = calculator
 
     calculator.atoms = None
     calculator.calculate(atoms=atoms, system_changes=['numbers'])
-    MaxwellBoltzmannDistribution(atoms, 300)
+    MaxwellBoltzmannDistribution(atoms, temperature_K=300)
 
     selection = [0, 1]
     selection = np.array(list(selection))

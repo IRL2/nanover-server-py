@@ -37,7 +37,7 @@ def walled_dynamics_and_expectations():
     cell = Cell(cell_array)
     atoms.set_cell(cell)
 
-    atoms.set_calculator(NullCalculator())
+    atoms.calc = NullCalculator()
     atoms.constraints.append(VelocityWallConstraint())
     dynamics = VelocityVerlet(atoms=atoms, timestep=1 * units.fs)
 
@@ -64,7 +64,7 @@ def walled_dynamics_and_expectations():
 def walled_atoms(basic_simulation):
     calculator = OpenMMCalculator(basic_simulation)
     walled_atoms = calculator.generate_atoms()
-    walled_atoms.set_calculator(calculator)
+    walled_atoms.calc = calculator
     walled_atoms.constraints.append(VelocityWallConstraint())
     return walled_atoms
 
@@ -73,7 +73,7 @@ def walled_atoms(basic_simulation):
 def openmm_calculator_and_atoms(basic_simulation):
     reference_calculator = OpenMMCalculator(basic_simulation)
     reference_atoms = reference_calculator.generate_atoms()
-    reference_atoms.set_calculator(reference_calculator)
+    reference_atoms.calc = reference_calculator
     return reference_calculator, reference_atoms
 
 

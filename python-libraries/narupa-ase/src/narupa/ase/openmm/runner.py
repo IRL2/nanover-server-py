@@ -42,7 +42,7 @@ def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
         nonlocal frame_index, topology
         # generate topology frame using OpenMM converter.
         if frame_index == 0:
-            imd_calculator = ase_atoms.get_calculator()
+            imd_calculator = ase_atoms.calc
             topology = imd_calculator.calculator.topology
             frame = openmm_to_frame_data(state=None, topology=topology)
             add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
@@ -320,11 +320,11 @@ class ASEOpenMMRunner(NarupaRunner):
         self.atoms = self._openmm_calculator.generate_atoms()
         if walls:
             self.atoms.constraints.append(VelocityWallConstraint())
-        self.atoms.set_calculator(self._md_calculator)
+        self.atoms.calc = self._md_calculator
 
     def _initialise_dynamics(self):
         # Set the momenta corresponding to T=300K
-        MaxwellBoltzmannDistribution(self.atoms, 300 * units.kB)
+        MaxwellBoltzmannDistribution(self.atoms, temperature_K=300)
 
         # We do not remove the center of mass (fixcm=False). If the center of
         # mass translations should be removed, then the removal should be added
@@ -332,7 +332,7 @@ class ASEOpenMMRunner(NarupaRunner):
         self._dynamics = Langevin(
             atoms=self.atoms,
             timestep=self.time_step * units.fs,
-            temperature=300 * units.kB,
+            temperature_K=300,
             friction=1e-2,
             fixcm=False,
         )

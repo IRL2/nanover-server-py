@@ -29,7 +29,7 @@ from ase.md import Langevin
 from narupa.ase.imd import NarupaASEDynamics
 
 # Given some ASE atoms object appropriately set up, set up dynamics.
-dyn = Langevin(atoms, 1 * units.fs, 300, 0.1)
+dyn = Langevin(atoms, 1 * units.fs, temperature_K=300, fraction=0.1)
 
 # Set up a basic Narupa server to run the interactive dynamics.
 with NarupaASEDynamics.basic_imd(dyn) as imd:

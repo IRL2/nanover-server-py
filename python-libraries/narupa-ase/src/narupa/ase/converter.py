@@ -229,7 +229,7 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
     # get the energy directly, without performing a recalculation.
     try:
-        energy = ase_atoms.get_calculator().get_property('energy', allow_calculation=False)
+        energy = ase_atoms.calc.get_property('energy', allow_calculation=False)
     except AttributeError:
         raise AttributeError("No calculator in atoms, so energy cannot be computed")
     if energy is not None:
