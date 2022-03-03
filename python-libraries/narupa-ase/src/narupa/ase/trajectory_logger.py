@@ -62,8 +62,8 @@ class TrajectoryLogger:
     >>> from ase.calculators.emt import EMT
     >>> from ase.lattice.cubic import FaceCenteredCubic
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
-    >>> atoms.set_calculator(EMT())
-    >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
+    >>> atoms.calc = EMT()
+    >>> dynamics = Langevin(atoms, timestep=0.5, temperature_K=300, friction=1.0)
     >>> with TrajectoryLogger(atoms, 'example.xyz') as logger:
     ...     dynamics.attach(TrajectoryLogger(atoms, 'example.xyz'), interval=10) # attach an XYZ logger.
 

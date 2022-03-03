@@ -21,7 +21,7 @@ FRAMES = 10
 @pytest.fixture()
 def atoms():
     atoms = fcc_atoms()
-    atoms.set_calculator(LennardJones())
+    atoms.calc = LennardJones()
     return atoms
 
 
@@ -94,7 +94,10 @@ def test_attach_to_md(atoms, tmp_dir):
     ase_traj_file = os.path.join(tmp_dir, "test.traj")
     with Trajectory(ase_traj_file, 'w', atoms) as ase_trajectory, TrajectoryLogger(atoms, file) as logger:
         path = logger.current_path
-        md = Langevin(atoms, 0.5, 300, 0.001, trajectory=ase_trajectory)
+        md = Langevin(atoms, 0.5,
+                      temperature_K=300,
+                      friction=0.001,
+                      trajectory=ase_trajectory)
         md.attach(logger)
         md.run(FRAMES)
 

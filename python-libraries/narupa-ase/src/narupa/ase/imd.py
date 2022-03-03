@@ -48,8 +48,8 @@ class NarupaASEDynamics:
     >>> from ase.calculators.emt import EMT
     >>> from ase.lattice.cubic import FaceCenteredCubic
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
-    >>> atoms.set_calculator(EMT())
-    >>> ase_dynamics = Langevin(atoms, timestep=0.5, temperature=300 * units.kB, friction=1.0)
+    >>> atoms.calc = EMT()
+    >>> ase_dynamics = Langevin(atoms, timestep=0.5, temperature_K=300, friction=1.0)
     >>> with NarupaASEDynamics.basic_imd(ase_dynamics) as sim: # run basic Narupa server
     ...
     ...     with NarupaImdClient.autoconnect() as client: # connect an iMD client.
@@ -77,13 +77,13 @@ class NarupaASEDynamics:
         self._register_commands()
 
         self.dynamics = dynamics
-        calculator = self.dynamics.atoms.get_calculator()
+        calculator = self.dynamics.atoms.calc
         self.imd_calculator = ImdCalculator(
             narupa_imd_app.imd,
             calculator,
             dynamics=dynamics,
         )
-        self.atoms.set_calculator(self.imd_calculator)
+        self.atoms.calc = self.imd_calculator
         self._variable_interval_generator = VariableIntervalGenerator(1/30)
         self._frame_interval = frame_interval
         self.dynamics.attach(frame_method(self.atoms, self._frame_publisher), interval=frame_interval)

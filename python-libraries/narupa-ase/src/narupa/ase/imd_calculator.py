@@ -220,7 +220,7 @@ def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
             raise NotImplementedError(f'Atoms object has periodic unit cell on only some dimensions, which is not '
                                       f'supported.')
         return None
-    lengths_angles = atoms.get_cell_lengths_and_angles()
+    lengths_angles = atoms.cell.cellpar()
     lengths = np.array(lengths_angles[0:3])
     angles = np.array(lengths_angles[3:])
     if not np.allclose(angles, (90, 90, 90)):

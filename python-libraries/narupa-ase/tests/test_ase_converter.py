@@ -18,7 +18,7 @@ def atoms():
 @pytest.fixture
 def atoms_lj_calc(atoms):
     calc = LennardJones()
-    atoms.set_calculator(calc)
+    atoms.calc = calc
     return atoms
 
 

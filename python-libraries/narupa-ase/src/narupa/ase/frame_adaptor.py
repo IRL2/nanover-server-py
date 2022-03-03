@@ -32,7 +32,7 @@ def send_ase_frame(
     >>> frame_server = FrameServer(address="localhost", port=54321)
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
     ...                           symbol="Cu", size=(2, 2, 2), pbc=True)
-    >>> dynamics = Langevin(atoms, timestep=0.5, temperature=300, friction=1.0)
+    >>> dynamics = Langevin(atoms, timestep=0.5, temperature_K=300, friction=1.0)
     >>> dynamics.attach(send_ase_frame(atoms, frame_publisher), interval=2)
     """
 

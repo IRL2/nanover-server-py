@@ -41,7 +41,7 @@ def interact_both():
 def imd_server_atoms_client():
     atoms = co_atoms()
     calculator = LennardJones()
-    atoms.set_calculator(calculator)
+    atoms.calc = calculator
     dynamics = VelocityVerlet(atoms, timestep=0.5)
     with NarupaASEDynamics.basic_imd(dynamics, port=0) as server:
         with ImdClient.insecure_channel(port=server.port) as client:
@@ -60,7 +60,7 @@ def test_ase_imd_dynamics_interaction(imd_server_atoms_client, interact_c):
     """
     dynamics, atoms, imd_client = imd_server_atoms_client
 
-    imd_calculator = atoms.get_calculator()
+    imd_calculator = atoms.calc
     assert isinstance(imd_calculator, ImdCalculator)
 
     with client_interaction(imd_client, interact_c):
@@ -78,7 +78,7 @@ def test_ase_imd_dynamics_interaction_com(imd_server_atoms_client, interact_both
     """
     dynamics, atoms, imd_client = imd_server_atoms_client
 
-    imd_calculator = atoms.get_calculator()
+    imd_calculator = atoms.calc
     assert isinstance(imd_calculator, ImdCalculator)
 
     with client_interaction(imd_client, interact_both):

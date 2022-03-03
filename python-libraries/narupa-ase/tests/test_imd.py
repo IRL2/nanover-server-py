@@ -100,7 +100,7 @@ def dummy_atoms():
 def arbitrary_dynamics(dummy_atoms):
     dynamics = VelocityVerlet(dummy_atoms, timestep=1)
     calculator = ArbitraryCalculator()
-    dynamics.atoms.set_calculator(calculator)
+    dynamics.atoms.calc = calculator
     return dynamics
 
 
