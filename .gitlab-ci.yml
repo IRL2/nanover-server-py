@@ -58,7 +58,7 @@ test_python_minimum:
   variables:
     python_version: "3.7"
   before_script:
-    - export PIN_VERSIONS="python=$python_version ase=3.20.0 openmm=7.4.0"
+    - export PIN_VERSIONS="python=$python_version ase=3.20.1 openmm=7.4.0"
     - mamba install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
     - python -m pip install -r python-libraries/requirements.test
   script:
