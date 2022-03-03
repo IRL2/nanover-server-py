@@ -22,7 +22,7 @@ requirements:
     - narupa-core =={{ NARUPA_BUILD_VERSION }}
     - narupa-openmm =={{ NARUPA_BUILD_VERSION }}
     - numpy
-    - ase >=3.19.0
+    - ase >=3.20
 
 about:
   home: https://narupa.readthedocs.io
