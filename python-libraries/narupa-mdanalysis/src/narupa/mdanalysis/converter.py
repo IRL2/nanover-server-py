@@ -335,6 +335,13 @@ def _get_universe_constructor_params(frame: FrameData):
     # strip unused arguments
     params = {key: value for key, value in params.items() if value is not None}
     params['trajectory'] = True
+
+    if 'atom_resindex' not in params and 'n_atoms' in params:
+        params['atom_resindex'] = [0] * params['n_atoms']
+    if 'residue_segindex' not in params and 'atom_resindex' in params:
+        n_residues = params.get('n_residues', max(params['atom_resindex']) + 1)
+        params['residue_segindex'] = [0] * n_residues
+
     return params
 
 
