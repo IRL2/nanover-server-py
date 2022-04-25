@@ -29,12 +29,22 @@ def universe():
 
 @pytest.fixture()
 def empty_universe():
-    return Universe.empty(1, trajectory=True)
+    return Universe.empty(
+        n_atoms=1,
+        atom_resindex=[0],
+        residue_segindex=[0],
+        trajectory=True,
+    )
 
 
 @pytest.fixture()
 def empty_universe_no_positions():
-    return Universe.empty(1, trajectory=False)
+    return Universe.empty(
+        n_atoms=1,
+        atom_resindex=[0],
+        residue_segindex=[0],
+        trajectory=False,
+    )
 
 
 @pytest.fixture()
@@ -49,7 +59,11 @@ def metal_universe():
     This universe only has atom types. These types correspond to element symbols
     that have more than one letter.
     """
-    universe = Universe.empty(3)
+    universe = Universe.empty(
+        n_atoms=3,
+        atom_resindex=[0, 0, 0],
+        residue_segindex=[0],
+    )
     universe.add_TopologyAttr('types', ['NA', 'CL', 'FE'])
     return universe
 
