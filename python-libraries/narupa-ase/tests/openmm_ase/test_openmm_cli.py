@@ -99,7 +99,7 @@ def log_path(tmp_path):
 
 
 def test_trajectory_logging(serialized_simulation_path, log_path, any_port):
-    args = [str(serialized_simulation_path), '-o', log_path] + any_port
+    args = [str(serialized_simulation_path), '-o', log_path, '--platform', 'CPU'] + any_port
     with initialise(args) as runner:
         assert runner.logging_info
         assert not os.path.exists(runner.logging_info.trajectory_path)
