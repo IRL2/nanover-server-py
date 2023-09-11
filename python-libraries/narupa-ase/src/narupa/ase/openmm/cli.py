@@ -86,6 +86,10 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         help='Write a trajectory frame to file every WRITE_INTERVAL dynamics '
              'steps.',
     )
+    parser.add_argument(
+        '--platform', default=None,
+        help='Select the platform on which to run Openmm.'
+    )
     arguments = parser.parse_args(args)
     return arguments
 
@@ -103,7 +107,8 @@ def initialise(args=None):
         arguments.walls,
         arguments.name,
         arguments.discovery,
-        arguments.discovery_port
+        arguments.discovery_port,
+        arguments.platform,
     )
 
     if arguments.name is None:

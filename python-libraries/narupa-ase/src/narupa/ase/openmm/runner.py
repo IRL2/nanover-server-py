@@ -69,6 +69,7 @@ class ImdParams:
     name: Optional[str] = None
     discovery: bool = True
     discovery_port: Optional[int] = None
+    platform: Optional[str] = None
 
 
 @dataclass
@@ -203,7 +204,10 @@ class ASEOpenMMRunner(NarupaRunner):
         :return: An OpenMM simulation runner.
         """
         with open(simulation_xml) as infile:
-            simulation = serializer.deserialize_simulation(infile.read())
+            simulation = serializer.deserialize_simulation(
+                infile.read(),
+                platform_name=params.platform,
+            )
         return cls(simulation, params, logging_params)
 
     @property

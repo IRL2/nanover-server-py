@@ -130,6 +130,7 @@ class OpenMMRunner(NarupaRunner):
             name: Optional[str] = None,
             address: Optional[str] = None,
             port: Optional[int] = None,
+            platform: Optional[str] = None,
     ) -> RunnerClass:
         """
         Create a runner from a serialized simulation.
@@ -150,7 +151,7 @@ class OpenMMRunner(NarupaRunner):
         imd_force = create_imd_force()
         with open(str(input_xml)) as infile:
             simulation = serializer.deserialize_simulation(
-                infile.read(), imd_force=imd_force)
+                infile.read(), imd_force=imd_force, platform_name=platform)
         return cls(simulation, name=name, address=address, port=port)
 
     @property

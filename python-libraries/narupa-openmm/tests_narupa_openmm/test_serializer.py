@@ -113,3 +113,16 @@ def test_imd_force(basic_simulation_xml, empty_imd_force):
     force_added.setParticleParameters(0, 0, (1.0, 2.0, 3.0))
     parameters = force_obtained.getParticleParameters(0)
     assert parameters == [0, (1.0, 2.0, 3.0)]
+
+
+@pytest.mark.parametrize("platform", ("Reference", "CPU"))
+def test_platform(basic_simulation_xml, platform):
+    """
+    We can choose the platform when deserialising a simulation.
+
+    Only the "Reference" and "CPU" platforms can be expected to be available so
+    we only test these ones.
+    """
+    simulation = deserialize_simulation(basic_simulation_xml, platform_name=platform)
+    effective_platform_name = simulation.context.getPlatform().getName()
+    assert effective_platform_name == platform

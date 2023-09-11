@@ -36,7 +36,7 @@ from tempfile import TemporaryDirectory
 import os
 from xml.dom.minidom import getDOMImplementation, parseString, Document, Element
 
-from simtk.openmm import app, XmlSerializer, CustomExternalForce
+from simtk.openmm import app, XmlSerializer, CustomExternalForce, Platform
 
 from .imd import populate_imd_force
 
@@ -82,6 +82,7 @@ def serialize_simulation(simulation: app.Simulation) -> str:
 def deserialize_simulation(
         xml_content: str,
         imd_force: Optional[CustomExternalForce] = None,
+        platform_name: Optional[str] = None,
 ) -> app.Simulation:
     """
     Create an OpenMM simulation from XML.
@@ -125,10 +126,16 @@ def deserialize_simulation(
     integrator_content = integrator_node.toprettyxml()
     integrator = XmlSerializer.deserialize(integrator_content)
 
+    if platform_name is not None:
+        platform = Platform.getPlatformByName(platform_name)
+    else:
+        platform = None
+
     simulation = app.Simulation(
         topology=pdb.topology,
         system=system,
         integrator=integrator,
+        platform=platform,
     )
     simulation.context.setPositions(pdb.positions)
     return simulation
