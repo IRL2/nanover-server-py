@@ -44,6 +44,10 @@ def handle_user_arguments() -> argparse.Namespace:
         '-i', '--force-interval', type=int, default=10, metavar='STEPS',
         help='Update the interactions every STEPS dynamics steps.',
     )
+    parser.add_argument(
+        '--platform', default=None,
+        help='Select the platform on which to run Openmm.'
+    )
 
     arguments = parser.parse_args()
     return arguments
@@ -60,6 +64,7 @@ def main():
         name=arguments.name,
         address=arguments.address,
         port=arguments.port,
+        platform=arguments.platform,
     )
     print(
         f'Serving "{runner.app.name}" on port {runner.app.port}, '
