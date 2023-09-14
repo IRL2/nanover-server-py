@@ -53,16 +53,17 @@ jobs:
           # a list of the packages we want to test.
           packages=$(find python-libraries -name __init__.py \
             | sed 's/__init__.py//g' \
+            # When the directory is
+            # `python-libraries/narupa-something/src/narupa/something`, the package
+            # is what comes after the `src`.
             | awk '{split($0, a, /src/); print(a[2])}' \
             | sed 's#/#.#g' \
-            | cut -c 2- \
-            | sed 's/\.$//g' \
-            | grep -v '^$' \
-            | grep -v protocol \
-            | sed 's/^/-p /g' \
-            | grep -v '\..*\.' \
-            | tr '\n' ' ')
-          mypy --ignore-missing-imports --namespace-packages $packages
+            | cut -c 2- \ | sed 's/\.$//g' \  # Remove the dot at the beginning and the end
+            | grep -v '^$' \  # Empty lines are path that do not have an `src` directory
+            | grep -v protocol \  # narupa.protocol is generated and mypy has issues dealing with the package
+            | grep -v '\..*\.' \  # Only keep the first level, narupa.something, not narupa.something.longer
+            | tr '\n' ' ')  # Put all the packages on a single line
+          mypy --ignore-missing-imports --namespace-packages -p $packages
   csharp-tests:
     name: C# unit and integration tests
     runs-on: ubuntu-latest
