@@ -53,9 +53,6 @@ jobs:
           # a list of the packages we want to test.
           packages=$(find python-libraries -name __init__.py \
             | sed 's/__init__.py//g' \
-            # When the directory is
-            # `python-libraries/narupa-something/src/narupa/something`, the package
-            # is what comes after the `src`.
             | awk '{split($0, a, /src/); print(a[2])}' \
             | sed 's#/#.#g' \
             | cut -c 2- \ | sed 's/\.$//g' \  # Remove the dot at the beginning and the end
