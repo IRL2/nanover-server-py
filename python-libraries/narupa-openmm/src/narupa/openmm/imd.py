@@ -52,6 +52,7 @@ receives the interactions. It can be use instead of
 """
 from typing import Tuple, Dict, List, Set, Optional
 import itertools
+import traceback
 
 import numpy as np
 import numpy.typing as npt
@@ -106,6 +107,7 @@ class NarupaImdReporter:
         self._is_force_dirty = False
         self._previous_force_index: Set[int] = set()
         self._frame_index = 0
+        self._total_user_energy = 0
 
     # The name of the method is part of the OpenMM API. It cannot be made to
     # conform PEP8.
@@ -124,9 +126,9 @@ class NarupaImdReporter:
         # - the positions
         # - not the velocities
         # - not the forces
-        # - not the energies
+        # - the energies
         # - positions are unwrapped
-        return steps, True, False, False, False, True
+        return steps, True, False, False, True, True
 
     def report(self, simulation: app.Simulation, state: mm.State) -> None:
         """
@@ -136,7 +138,7 @@ class NarupaImdReporter:
         if simulation.currentStep % self.force_interval == 0:
             interactions = self.imd_state.active_interactions
             positions = state.getPositions(asNumpy=True)
-            self._update_forces(
+            self._total_user_energy = self._update_forces(
                 positions.astype(float), interactions, simulation.context
             )
         if simulation.currentStep % self.frame_interval == 0:
@@ -146,6 +148,7 @@ class NarupaImdReporter:
                 state=state, topology=None, include_positions=False
             )
             frame_data.particle_positions = positions
+            frame_data.user_energy = self._total_user_energy
             self.frame_publisher.send_frame(self._frame_index, frame_data)
             self._frame_index += 1
 
@@ -157,7 +160,7 @@ class NarupaImdReporter:
             self.n_particles = self.imd_force.getNumParticles()
             self.masses = self.get_masses(simulation.system)
         if self._frame_index == 0:
-            state = simulation.context.getState(getPositions=True)
+            state = simulation.context.getState(getPositions=True, getEnergy=True)
             topology = simulation.topology
             frame_data = openmm_to_frame_data(state=state, topology=topology)
             self.frame_publisher.send_frame(self._frame_index, frame_data)
@@ -180,14 +183,15 @@ class NarupaImdReporter:
         positions: np.ndarray,
         interactions: Dict[str, ParticleInteraction],
         context: mm.Context,
-    ) -> None:
+    ) -> float:
         """
         Get the forces to apply from the iMD service and communicate them to
         OpenMM.
         """
+        energy = 0.0
         context_needs_update = False
         if interactions:
-            self._apply_forces(positions, interactions)
+            energy = self._apply_forces(positions, interactions)
             context_needs_update = True
         elif self._is_force_dirty:
             self._reset_forces()
@@ -195,18 +199,19 @@ class NarupaImdReporter:
 
         if context_needs_update:
             self.imd_force.updateParametersInContext(context)
+        return energy
 
     def _apply_forces(
         self,
         positions: np.ndarray,
         interactions: Dict[str, ParticleInteraction],
-    ):
+    ) -> float:
         """
         Set the iMD forces based on the user interactions.
         """
         if self.masses is None:
             raise InitialisationError
-        _, forces_kjmol = calculate_imd_force(
+        energy, forces_kjmol = calculate_imd_force(
             positions,
             self.masses,
             interactions.values(),
@@ -220,6 +225,7 @@ class NarupaImdReporter:
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
         self._is_force_dirty = True
         self._previous_force_index = affected_particles
+        return energy
 
     def _reset_forces(self):
         """
