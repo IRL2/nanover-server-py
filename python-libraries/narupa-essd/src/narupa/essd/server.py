@@ -19,9 +19,9 @@ import logging
 import threading
 import time
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
-from narupa.essd.utils import get_broadcast_addresses, is_in_network, resolve_host_broadcast_address
+from narupa.essd.utils import get_broadcast_addresses, is_in_network, resolve_host_broadcast_address, InterfaceAddresses
 from narupa.essd.servicehub import ServiceHub
 
 BROADCAST_PORT = 54545
@@ -42,8 +42,9 @@ def configure_reusable_socket() -> socket:
 
 
 class DiscoveryServer:
-    services: Dict[str, ServiceHub]
+    services: Dict[ServiceHub, List[InterfaceAddresses]]
     _socket: socket
+    _broadcast_thread: Optional[threading.Thread]
 
     def __init__(self, broadcast_port: Optional[int] = None, delay=0.5):
         if broadcast_port is None:
@@ -109,7 +110,8 @@ class DiscoveryServer:
     def close(self):
         if self.is_broadcasting:
             self._cancel = True
-            self._broadcast_thread.join()
+            # `is_broadcasting` made sure `_broadcast_thread` is not None
+            self._broadcast_thread.join()  # type: ignore
             self._broadcast_thread = None
             self._cancel = False
             self._socket.close()
@@ -140,7 +142,7 @@ class DiscoveryServer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def get_broadcast_addresses_for_service(self, service):
+    def get_broadcast_addresses_for_service(self, service) -> List[InterfaceAddresses]:
         address = service.address
         if address == "[::]":
             return self.broadcast_addresses

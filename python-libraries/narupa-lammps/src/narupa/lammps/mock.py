@@ -5,7 +5,7 @@ Module providing a mock LAMMPS object so that the Narupa LAMMPS flow can be test
 without LAMMPS installed.
 """
 import ctypes
-from typing import List, Union
+from typing import List, Union, Optional
 
 
 class MockLammps:
@@ -14,7 +14,7 @@ class MockLammps:
     without having to have LAMMPS installed on a server
     """
 
-    def __init__(self, n_atoms_in_dummy: int = None):
+    def __init__(self, n_atoms_in_dummy: Optional[int] = None):
         # Set a default atom length for tests
         _DEFAULT_ATOMS = 3
         self.n_atoms = n_atoms_in_dummy if n_atoms_in_dummy is not None else _DEFAULT_ATOMS

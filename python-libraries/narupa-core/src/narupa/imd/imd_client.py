@@ -2,7 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 import logging
 from uuid import uuid4
-from typing import Dict, Set
+from typing import Dict, Set, Mapping
 
 import grpc
 from narupa.core import NarupaClient
@@ -37,6 +37,10 @@ class ImdClient(NarupaClient):
                 key: dict_to_interaction(value)
                 for key, value in state.items()
                 if key.startswith(INTERACTION_PREFIX)
+                # We can have a misformatted interactions in the shared state.
+                # Here we ignore them silently.
+                # TODO: log a warning when this happens.
+                and isinstance(value, Mapping)
             }
 
     def start_interaction(self) -> str:

@@ -5,7 +5,7 @@ that sets up a command service.
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 
-from typing import Dict, Iterable, ContextManager, Union, Any
+from typing import Dict, Iterable, ContextManager, Union, Any, Mapping
 from uuid import uuid4
 
 import grpc
@@ -139,7 +139,7 @@ class NarupaClient(GrpcClient):
 
     def attempt_update_locks(
             self,
-            lock_updates: Dict[str, Union[float, None]]
+            lock_updates: Mapping[str, Union[float, None]]
     ) -> bool:
         """
         Attempt to acquire and/or free a number of locks on the shared state.

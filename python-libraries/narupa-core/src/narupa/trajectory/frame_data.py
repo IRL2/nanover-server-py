@@ -3,9 +3,10 @@
 from collections import namedtuple
 from collections.abc import Set
 import numbers
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, TypeVar, Union
 
 import numpy as np
+import numpy.typing as npt
 from narupa.protocol import trajectory
 from narupa.utilities.protobuf_utilities import value_to_object, object_to_value
 
@@ -38,6 +39,9 @@ SERVER_TIMESTAMP = 'server.timestamp'
 _Shortcut = namedtuple(
     '_Shortcut', ['record_type', 'key', 'field_type', 'to_python', 'to_raw']
 )
+
+Array2Dfloat = Union[List[List[float]], npt.NDArray[Union[np.float32, np.float64]]]
+Array2Dint = Union[List[List[int]], npt.NDArray[Union[np.int_]]]
 
 
 class MissingDataError(KeyError):
@@ -140,14 +144,14 @@ class FrameData(metaclass=_FrameDataMeta):
     The set of shortcuts that contain data is available from the
     :attr:`used_shortcuts`.
     """
-    bond_pairs: List[List[int]] = _Shortcut(  # type: ignore[assignment]
+    bond_pairs: Array2Dint = _Shortcut(  # type: ignore[assignment]
         key=BOND_PAIRS, record_type='arrays',
         field_type='index', to_python=_n_by_2, to_raw=_flatten_array)
     bond_orders: List[float] = _Shortcut(  # type: ignore[assignment]
         key=BOND_ORDERS, record_type='arrays',
         field_type='float', to_python=_as_is, to_raw=_as_is)
 
-    particle_positions: List[List[float]] = _Shortcut(  # type: ignore[assignment]
+    particle_positions: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_POSITIONS, record_type='arrays',
         field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
     particle_elements: List[int] = _Shortcut(  # type: ignore[assignment]
@@ -169,7 +173,7 @@ class FrameData(metaclass=_FrameDataMeta):
     residue_names: List[str] = _Shortcut(  # type: ignore[assignment]
         key=RESIDUE_NAMES, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
-    residue_ids: List[int] = _Shortcut(  # type: ignore[assignment]
+    residue_ids: List[str] = _Shortcut(  # type: ignore[assignment]
         key=RESIDUE_IDS, record_type='arrays',
         field_type='string', to_python=_as_is, to_raw=_as_is)
     residue_chains: List[int] = _Shortcut(  # type: ignore[assignment]
@@ -364,7 +368,7 @@ class ValuesView(RecordView):
     def _convert_to_python(field):
         return value_to_object(field)
 
-    def set(self, key, value):
+    def set(self, key: str, value):
         self._raw_record[key].CopyFrom(object_to_value(value))
 
 
@@ -379,7 +383,7 @@ class ArraysView(RecordView):
     def _convert_to_python(field):
         return field.ListFields()[0][1].values
 
-    def set(self, key, value):
+    def set(self, key: str, value):
         try:
             reference_value = value[0]
         except IndexError:
@@ -387,7 +391,7 @@ class ArraysView(RecordView):
         except TypeError:
             raise ValueError('Value must be indexable.')
 
-        if isinstance(reference_value, numbers.Integral) and reference_value >= 0:
+        if isinstance(reference_value, numbers.Integral) and int(reference_value) >= 0:
             type_attribute = 'index_values'
         elif isinstance(reference_value, numbers.Real):
             type_attribute = 'float_values'

@@ -71,7 +71,7 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology) -> No
         residue_indices.append(atom.residue.index)
 
     for bond in topology.bonds():
-        bonds.append((bond[0].index, bond[1].index))
+        bonds.append([bond[0].index, bond[1].index])
 
     data.particle_names = atom_names
     data.particle_elements = elements

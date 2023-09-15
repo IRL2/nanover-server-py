@@ -171,7 +171,7 @@ class NarupaApplicationServer:
         Close the application server and all services.
         """
         if self.running_discovery:
-            self._discovery.close()
+            self._discovery.close()  # type: ignore
         for service in self._services:
             service.close()
         self._server.close()
@@ -192,10 +192,10 @@ class NarupaApplicationServer:
 
     def _update_discovery_services(self):
         try:
-            self._discovery.unregister_service(self._service_hub)
+            self._discovery.unregister_service(self._service_hub)  # type: ignore
         except KeyError:
             pass
-        self._discovery.register_service(self._service_hub)
+        self._discovery.register_service(self._service_hub)  # type: ignore
 
 
 def qualified_server_name(base_name: str):

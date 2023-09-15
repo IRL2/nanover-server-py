@@ -41,6 +41,8 @@ class ImdCalculator(Calculator):
     
     """
 
+    _previous_interactions: Dict[str, ParticleInteraction]
+
     def __init__(self, imd_state: ImdStateWrapper,
                  calculator: Optional[Calculator] = None,
                  atoms: Optional[Atoms] = None,

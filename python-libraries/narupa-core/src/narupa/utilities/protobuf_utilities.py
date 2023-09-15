@@ -21,12 +21,13 @@ _Level0Iterable = Iterable[Union[_SerializablePrimitive, _TerminalIterable, _Ter
 _Level0Mapping = Mapping[str, Union[_SerializablePrimitive, _TerminalIterable, _TerminalMapping]]
 Serializable = Union[
     _SerializablePrimitive,
+    _TerminalIterable,
+    _TerminalMapping,
     _Level0Iterable,
-    _Level0Mapping,
+    _Level0Mapping
 ]
 
-
-def dict_to_struct(dictionary: Dict[str, Serializable]) -> Struct:
+def dict_to_struct(dictionary: Mapping[str, Serializable]) -> Struct:
     """
     Converts a python dictionary to a protobuf :class:`Struct`.
     The dictionary must consist of types that can be serialised.
@@ -36,7 +37,7 @@ def dict_to_struct(dictionary: Dict[str, Serializable]) -> Struct:
     """
     struct = Struct()
     try:
-        struct.update(dictionary)
+        struct.update(dictionary)  # type: ignore
     except (ValueError, TypeError, AttributeError):
         raise ValueError(
             'Could not convert object into a protobuf struct. The object to '

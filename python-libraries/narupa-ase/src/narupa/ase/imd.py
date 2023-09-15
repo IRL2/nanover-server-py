@@ -321,8 +321,9 @@ class NarupaASEDynamics:
         self._server.register_command(RESET_COMMAND_KEY, self.reset)
         self._server.register_command(STEP_COMMAND_KEY, self.step)
         self._server.register_command(PAUSE_COMMAND_KEY, self.pause)
-        self._server.register_command(SET_DYNAMICS_INTERVAL_COMMAND_KEY, self._set_dynamics_interval)
-        self._server.register_command(GET_DYNAMICS_INTERVAL_COMMAND_KEY, self._get_dynamics_interval)
+        # TODO: Fix type annotations for commands with arguments
+        self._server.register_command(SET_DYNAMICS_INTERVAL_COMMAND_KEY, self._set_dynamics_interval)  # type: ignore
+        self._server.register_command(GET_DYNAMICS_INTERVAL_COMMAND_KEY, self._get_dynamics_interval)  # type: ignore
 
     def close(self):
         """

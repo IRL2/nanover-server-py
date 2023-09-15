@@ -3,7 +3,7 @@
 """
 Module providing methods for storing ParticleInteractions in a StateDictionary.
 """
-from typing import Dict, Any
+from typing import Dict, Any, Mapping
 
 from narupa.state.state_dictionary import StateDictionary
 from narupa.utilities.change_buffers import DictionaryChange
@@ -106,7 +106,7 @@ def interaction_to_dict(interaction: ParticleInteraction) -> Dict[str, Serializa
         raise TypeError from e
 
 
-def dict_to_interaction(dictionary: Dict[str, Any]) -> ParticleInteraction:
+def dict_to_interaction(dictionary: Mapping[str, Any]) -> ParticleInteraction:
     kwargs = dict(**dictionary)
     if 'particles' in kwargs:
         kwargs['particles'] = [int(i) for i in kwargs['particles']]

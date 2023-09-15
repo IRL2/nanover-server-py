@@ -1,15 +1,21 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-from typing import Callable, Optional, Dict, ContextManager, Set
+from typing import Callable, Optional, Dict, ContextManager, Set, Union
 
 from narupa.command import CommandService
-from narupa.command.command_service import CommandRegistration
+from narupa.command.command_service import CommandRegistration, CommandHandler
 from narupa.core import GrpcServer
 from narupa.state.state_service import StateService
 from narupa.utilities.change_buffers import (
     DictionaryChange,
     DictionaryChangeBuffer,
 )
+
+CommandCallable = Union[
+    Callable[[Dict], Optional[Dict]],
+    Callable[[], None],
+    Callable[[Dict], None]
+]
 
 
 class NarupaServer(GrpcServer):
@@ -42,7 +48,7 @@ class NarupaServer(GrpcServer):
         """
         return self._command_service.commands
 
-    def register_command(self, name: str, callback: Callable[[Dict], Optional[Dict]],
+    def register_command(self, name: str, callback: CommandHandler,
                          default_arguments: Optional[Dict] = None):
         """
         Registers a command with the :class:`CommandService` running on this server.
