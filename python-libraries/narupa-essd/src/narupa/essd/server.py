@@ -44,6 +44,7 @@ def configure_reusable_socket() -> socket:
 class DiscoveryServer:
     services: Dict[ServiceHub, List[InterfaceAddresses]]
     _socket: socket
+    _broadcast_thread: Optional[threading.Thread]
 
     def __init__(self, broadcast_port: Optional[int] = None, delay=0.5):
         if broadcast_port is None:
@@ -109,7 +110,8 @@ class DiscoveryServer:
     def close(self):
         if self.is_broadcasting:
             self._cancel = True
-            self._broadcast_thread.join()
+            # `is_broadcasting` made sure `_broadcast_thread` is not None
+            self._broadcast_thread.join()  # type: ignore
             self._broadcast_thread = None
             self._cancel = False
             self._socket.close()

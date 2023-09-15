@@ -368,7 +368,7 @@ class ValuesView(RecordView):
     def _convert_to_python(field):
         return value_to_object(field)
 
-    def set(self, key, value):
+    def set(self, key: str, value):
         self._raw_record[key].CopyFrom(object_to_value(value))
 
 
@@ -383,7 +383,7 @@ class ArraysView(RecordView):
     def _convert_to_python(field):
         return field.ListFields()[0][1].values
 
-    def set(self, key, value):
+    def set(self, key: str, value):
         try:
             reference_value = value[0]
         except IndexError:
@@ -391,7 +391,7 @@ class ArraysView(RecordView):
         except TypeError:
             raise ValueError('Value must be indexable.')
 
-        if isinstance(reference_value, numbers.Integral) and reference_value >= 0:
+        if isinstance(reference_value, numbers.Integral) and int(reference_value) >= 0:
             type_attribute = 'index_values'
         elif isinstance(reference_value, numbers.Real):
             type_attribute = 'float_values'

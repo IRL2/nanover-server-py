@@ -4,7 +4,7 @@
 Module providing an implementation of the :class:`CommandServicer`.
 
 """
-from typing import Dict, Callable, Optional
+from typing import Dict, Callable, Optional, Union
 from typing import NamedTuple
 
 import grpc
@@ -22,7 +22,10 @@ from narupa.protocol.command import (
 from narupa.utilities.key_lockable_map import KeyLockableMap
 from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
-CommandHandler = Callable[[CommandArguments], Optional[CommandResult]]
+CommandHandler = Union[
+    Callable[[CommandArguments], Optional[CommandResult]],
+    Callable[[], Optional[CommandResult]],
+]
 
 
 class CommandRegistration(NamedTuple):

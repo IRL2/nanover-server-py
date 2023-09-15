@@ -62,7 +62,7 @@ jobs:
             | sed 's/^/-p /g' \
             | grep -v '\..*\.' \
             | tr '\n' ' ')
-          mypy --ignore-missing-imports --namespace-packages --check-untyped-defs $packages
+          mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages
   csharp-tests:
     name: C# unit and integration tests
     runs-on: ubuntu-latest

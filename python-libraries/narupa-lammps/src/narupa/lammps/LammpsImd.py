@@ -111,11 +111,11 @@ class LammpsImd:
             logging.info("Serving on %s ", port)
 
             # Set some variables that do not change during the simulation
-            self.n_atoms = None
+            self.n_atoms: Optional[int] = None
             self.units = None
-            self.units_type = None
-            self.force_factor = None
-            self.distance_factor = None
+            self.units_type: Optional[str] = None
+            self.force_factor: Optional[float] = None
+            self.distance_factor: Optional[float] = None
             self.masses = None
             self.atom_type = None
             self.n_atoms_in_dummy = 10
@@ -312,6 +312,8 @@ class LammpsImd:
         # Collect matrix from LAMMPS
         forces = self._gather_lammps_array(matrix_type, lammps_class)
 
+        if self.n_atoms is None:
+            raise ValueError("Number of atoms undefined.")
         # Convert the positions to a 2D, 3N array for use in calculate)imd_force
         positions_3n = np.ctypeslib.as_array(positions, shape=(self.n_atoms * 3)).reshape(self.n_atoms, 3)
         # Convert the positions to the narupa internal so that the forces are added in the correct position
@@ -329,11 +331,13 @@ class LammpsImd:
 
         if matrix_type == 'f':
             # Create numpy arrays with the forces to be added
+            if self.masses is None:
+                raise ValueError
             energy_kjmol, forces_kjmol = calculate_imd_force(positions_3n, self.masses, interactions.values())
+            self._add_interaction_to_ctype(forces_kjmol, forces)
 
         # Convert the positions back so that they will render correctly.
         positions_3n *= self.distance_factor
-        self._add_interaction_to_ctype(forces_kjmol, forces)
         self._return_array_to_lammps(matrix_type, forces, lammps_class)
 
     def _extract_positions(self, lammps_class):
@@ -380,9 +384,10 @@ class LammpsImd:
         """
         units = self.find_unit_type(lammps_class)
         n_atoms = lammps_class.get_natoms()
-        units_type = LAMMPS_UNITS_CHECK.get(units, None)[0]
-        distance_factor = LAMMPS_UNITS_CHECK.get(units, None)[1]
-        force_factor = LAMMPS_UNITS_CHECK.get(units, None)[2]
+        unit_check = LAMMPS_UNITS_CHECK.get(units, None)
+        if unit_check is None:
+            raise KeyError
+        units_type, distance_factor, force_factor = unit_check
         self._log_mpi("units : %s %s %s %s", self.me, units_type, force_factor, distance_factor)
         self.n_atoms = n_atoms
         self.distance_factor = distance_factor
@@ -397,8 +402,10 @@ class LammpsImd:
         :param positions: the flat (1D) positions arrays
         """
 
-        self.frame_data.particle_count = self.n_atoms
-        self.frame_data.particle_elements = self.atom_type
+        if self.n_atoms is not None:
+            self.frame_data.particle_count = self.n_atoms
+        if self.atom_type is not None:
+            self.frame_data.particle_elements = self.atom_type
         self._lammps_positions_to_frame_data(self.frame_data, positions)
 
         # Send frame data
