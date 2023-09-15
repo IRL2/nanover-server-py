@@ -13,8 +13,8 @@ from test_imd_reset import fcc_atoms
 from ase.io import read, write, Trajectory
 import numpy as np
 
-SUPPORTED_EXTENSIONS = ['xyz']
-NONEXISTANT_EXTENSION = 'babyyoda'
+SUPPORTED_EXTENSIONS = ["xyz"]
+NONEXISTANT_EXTENSION = "babyyoda"
 FRAMES = 10
 
 
@@ -27,11 +27,13 @@ def atoms():
 
 @pytest.fixture(scope="session")
 def tmp_dir(tmpdir_factory):
-    path = tmpdir_factory.mktemp('outputs')
+    path = tmpdir_factory.mktemp("outputs")
     return path
 
 
-def check_file_images(images: List[Atoms], file, symbols=True, positions=True, cell=True):
+def check_file_images(
+    images: List[Atoms], file, symbols=True, positions=True, cell=True
+):
     """
 
     Tests that a trajectory file is consistent with a reference trajectory of ASE atom objects
@@ -42,10 +44,10 @@ def check_file_images(images: List[Atoms], file, symbols=True, positions=True, c
     :param positions: Whether to test positions
     :param cell: Whether to test unit cell
     """
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         debug = f.read()
 
-    new_images = read(file, index=':')
+    new_images = read(file, index=":")
     assert len(new_images) == len(images)
     for atoms, new_atoms in zip(images, new_images):
         assert len(atoms) == len(new_atoms)
@@ -57,7 +59,7 @@ def check_file_images(images: List[Atoms], file, symbols=True, positions=True, c
             assert np.allclose(atoms.get_cell(), new_atoms.get_cell())
 
 
-@pytest.mark.parametrize('ext', SUPPORTED_EXTENSIONS)
+@pytest.mark.parametrize("ext", SUPPORTED_EXTENSIONS)
 def test_write(atoms, tmp_dir, ext):
     file = os.path.join(tmp_dir, "atoms" + "." + ext)
 
@@ -68,7 +70,7 @@ def test_write(atoms, tmp_dir, ext):
     check_file_images([atoms], path)
 
 
-@pytest.mark.parametrize('ext', SUPPORTED_EXTENSIONS)
+@pytest.mark.parametrize("ext", SUPPORTED_EXTENSIONS)
 def test_write_multiple_frames(atoms, tmp_dir, ext):
     file = os.path.join(tmp_dir, "atoms" + "." + ext)
 
@@ -92,19 +94,20 @@ def test_attach_to_md(atoms, tmp_dir):
     file = os.path.join(tmp_dir, "atoms" + ".xyz")
 
     ase_traj_file = os.path.join(tmp_dir, "test.traj")
-    with Trajectory(ase_traj_file, 'w', atoms) as ase_trajectory, TrajectoryLogger(atoms, file) as logger:
+    with Trajectory(ase_traj_file, "w", atoms) as ase_trajectory, TrajectoryLogger(
+        atoms, file
+    ) as logger:
         path = logger.current_path
-        md = Langevin(atoms, 0.5,
-                      temperature_K=300,
-                      friction=0.001,
-                      trajectory=ase_trajectory)
+        md = Langevin(
+            atoms, 0.5, temperature_K=300, friction=0.001, trajectory=ase_trajectory
+        )
         md.attach(logger)
         md.run(FRAMES)
 
     assert os.path.exists(ase_traj_file)
     assert os.path.exists(path)
 
-    with Trajectory(ase_traj_file, 'r') as ase_trajectory_read:
+    with Trajectory(ase_traj_file, "r") as ase_trajectory_read:
         frames = [atoms for atoms in ase_trajectory_read]
 
     assert len(frames) == FRAMES + 1

@@ -7,14 +7,14 @@ from narupa.utilities.change_buffers import DictionaryChange
 from narupa.state.state_dictionary import StateDictionary
 
 
-BACKGROUND_THREAD_ACTION_TIME = .1
+BACKGROUND_THREAD_ACTION_TIME = 0.1
 
 ACCESS_TOKEN_1 = object()
 ACCESS_TOKEN_2 = object()
 
 INITIAL_STATE = {
-    'hello': 100,
-    'test': {'baby': 'yoda'},
+    "hello": 100,
+    "test": {"baby": "yoda"},
 }
 
 
@@ -38,11 +38,13 @@ def test_update_unlocked(state_dictionary):
     """
     Test that unlocked keys can be changed and removed.
     """
-    update = DictionaryChange({'hello': 50}, {'test'})
+    update = DictionaryChange({"hello": 50}, {"test"})
     state_dictionary.update_state(ACCESS_TOKEN_1, update)
 
     with state_dictionary.lock_content() as current_state:
-        assert current_state == {'hello': 50, }
+        assert current_state == {
+            "hello": 50,
+        }
 
 
 def test_partial_lock_atomic(state_dictionary):
@@ -50,8 +52,8 @@ def test_partial_lock_atomic(state_dictionary):
     Test that an update attempt has no effect if the whole update cannot be
     made.
     """
-    state_dictionary.update_locks(ACCESS_TOKEN_2, {'hello': 10})
-    update = DictionaryChange({'hello': 50, 'goodbye': 50})
+    state_dictionary.update_locks(ACCESS_TOKEN_2, {"hello": 10})
+    update = DictionaryChange({"hello": 50, "goodbye": 50})
 
     with pytest.raises(ResourceLockedError):
         state_dictionary.update_state(ACCESS_TOKEN_1, update)
@@ -65,11 +67,11 @@ def test_unheld_releases_ignored(state_dictionary):
     Test that attempting to release locks on keys which are not locked with this
     access token will not prevent the update from occurring.
     """
-    update = DictionaryChange({'hello': 50}, {'goodbye'})
+    update = DictionaryChange({"hello": 50}, {"goodbye"})
     state_dictionary.update_state(ACCESS_TOKEN_1, update)
 
     with state_dictionary.lock_content() as current_state:
-        assert current_state['hello'] == 50
+        assert current_state["hello"] == 50
 
 
 def test_locked_content_is_unchanged(state_dictionary):
@@ -85,7 +87,7 @@ def test_locked_content_is_unchanged(state_dictionary):
         attempted_to_meddle = True
         state_dictionary.update_state(
             ACCESS_TOKEN_1,
-            DictionaryChange({'hello': 50}),
+            DictionaryChange({"hello": 50}),
         )
 
     with state_dictionary.lock_content() as content:
@@ -108,7 +110,7 @@ def test_locked_content_changes_after(state_dictionary):
         attempted_to_meddle = True
         state.update_state(
             ACCESS_TOKEN_1,
-            DictionaryChange({'hello': 50}),
+            DictionaryChange({"hello": 50}),
         )
 
     with state_dictionary.lock_content() as content:
@@ -121,7 +123,7 @@ def test_locked_content_changes_after(state_dictionary):
     time.sleep(BACKGROUND_THREAD_ACTION_TIME)
 
     with state_dictionary.lock_content() as content:
-        assert content['hello'] == 50
+        assert content["hello"] == 50
 
 
 def test_content_updated_event(state_dictionary):
@@ -129,7 +131,7 @@ def test_content_updated_event(state_dictionary):
     Test that the content_updated event fires when content updates are made.
     """
     access_token = object()
-    change = DictionaryChange(updates={'hello': 'baby yoda'})
+    change = DictionaryChange(updates={"hello": "baby yoda"})
 
     def callback(access_token, change):
         callback.access_token = access_token

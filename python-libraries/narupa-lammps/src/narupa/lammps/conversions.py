@@ -50,6 +50,7 @@ ELEMENT_INDEX_MASS = {
     89: 39,
 }
 
+
 # Check what units are being used in LAMMPS using this dict
 # For now support converting lj and real, for full unit list
 # see https://lammps.sandia.gov/doc/units.html
@@ -59,6 +60,7 @@ class LammpsUnitConverter(NamedTuple):
     type: str
     positions: float
     forces: float
+
 
 # store plank values as a list so that we don't do float lookups in a dict.
 LAMMPS_UNITS_CHECK = {
@@ -75,11 +77,11 @@ LAMMPS_UNITS_CHECK = {
     # SI:
     # Distance: meters ->nm (10^-9)
     # Force: Newtons q-> kcal/mol/nm (602214128999.9999)
-    3: LammpsUnitConverter(type="si", positions=10 ** -9, forces=602214128999.9999),
+    3: LammpsUnitConverter(type="si", positions=10**-9, forces=602214128999.9999),
     # cgs:
     # Distance: centemters -> nm
     # Froce: dyne (1/100000 Newtons) -> kj/mol*nm
-    4: LammpsUnitConverter(type="cgs", positions=10 ** -7, forces=6022141.289999999),
+    4: LammpsUnitConverter(type="cgs", positions=10**-7, forces=6022141.289999999),
     # Electron:
     # Distance: Bohr -> nm
     # Force: Hartree/Bohr (2625.50 / 0.0529117) ->  kj/mol*nm
@@ -93,7 +95,7 @@ LAMMPS_UNITS_CHECK = {
     # Distance: nanometers,
     # Force: atoogram-nanometer/nanosecond^2  -> Newtons
     # (1/1e-12 *((1/1e-9)/(1/1e-9)^2) ->  kj/mol*nm
-    7: LammpsUnitConverter(type="nano", positions=1.0, forces=602214128.9999999)
+    7: LammpsUnitConverter(type="nano", positions=1.0, forces=602214128.9999999),
 }
 PLANK_VALUES = (
     1.0,
@@ -103,5 +105,5 @@ PLANK_VALUES = (
     6.62606896e-27,
     0.1519829846,
     6.62606896e-13,
-    6.62606896e-4
+    6.62606896e-4,
 )

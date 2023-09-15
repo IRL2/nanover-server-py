@@ -15,9 +15,9 @@ class RpcAlreadyTerminatedError(Exception):
 
 
 def subscribe_channel_connectivity_change(
-        channel: grpc.Channel,
-        callback: Callable[[grpc.ChannelConnectivity], None],
-        force_connection: bool = False,
+    channel: grpc.Channel,
+    callback: Callable[[grpc.ChannelConnectivity], None],
+    force_connection: bool = False,
 ):
     """
     Subscribe to channel connectivity changes with a callback that is called
@@ -30,13 +30,10 @@ def subscribe_channel_connectivity_change(
     channel.subscribe(callback, force_connection)
 
 
-def subscribe_rpc_termination(
-        context: grpc.RpcContext,
-        callback: Callable[[], None]
-):
+def subscribe_rpc_termination(context: grpc.RpcContext, callback: Callable[[], None]):
     """
     Subscribe the termination of an RPC with the given callback.
-    
+
     :raises RpcAlreadyTerminatedError: if the callback will not be used because
         termination has already occurred.
     """

@@ -5,7 +5,10 @@ from narupa.core import NarupaServer
 from narupa.trajectory import FrameData
 
 from narupa.trajectory.frame_server import (
-    PLAY_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY,
+    PLAY_COMMAND_KEY,
+    RESET_COMMAND_KEY,
+    STEP_COMMAND_KEY,
+    PAUSE_COMMAND_KEY,
 )
 
 from .test_frame_server import simple_frame_data, frame_server
@@ -16,13 +19,13 @@ import numpy as np
 
 CLIENT_WAIT_TIME = 0.05
 
-TEST_KEY = 'test'
-TEST_VALUE = 'hi'
+TEST_KEY = "test"
+TEST_VALUE = "hi"
 
 
 @pytest.fixture
 def multiplayer_server():
-    with NarupaServer(address='localhost', port=0) as server:
+    with NarupaServer(address="localhost", port=0) as server:
         yield server
 
 
@@ -32,9 +35,11 @@ def client_server(frame_server, imd_server, multiplayer_server):
     imd_address = imd_server.address_and_port
     multiplayer_address = multiplayer_server.address_and_port
 
-    with NarupaImdClient(trajectory_address=trajectory_address,
-                         imd_address=imd_address,
-                         multiplayer_address=multiplayer_address) as client:
+    with NarupaImdClient(
+        trajectory_address=trajectory_address,
+        imd_address=imd_address,
+        multiplayer_address=multiplayer_address,
+    ) as client:
         yield client, frame_server, imd_server, multiplayer_server
 
 
@@ -46,12 +51,13 @@ def client_frame_server(frame_server):
 
 
 @pytest.mark.parametrize(
-    'attribute, is_method', (
-        ('wait_until_first_frame', True),
-        ('latest_frame', False),
-        ('current_frame', False),
-        ('frames', False),
-        ('first_frame', False),
+    "attribute, is_method",
+    (
+        ("wait_until_first_frame", True),
+        ("latest_frame", False),
+        ("current_frame", False),
+        ("frames", False),
+        ("first_frame", False),
     ),
 )
 def test_frames_not_subscribed(client_frame_server, attribute, is_method):
@@ -189,9 +195,11 @@ def test_reconnect_receive(client_server, simple_frame_data):
     client.close()
 
     assert len(client._frames) == 0
-    client.connect(trajectory_address=frame_server.address_and_port,
-                   imd_address=imd_server.address_and_port,
-                   multiplayer_address=multiplayer_server.address_and_port)
+    client.connect(
+        trajectory_address=frame_server.address_and_port,
+        imd_address=imd_server.address_and_port,
+        multiplayer_address=multiplayer_server.address_and_port,
+    )
     client.subscribe_to_all_frames()
     time.sleep(CLIENT_WAIT_TIME)
     assert client.latest_frame is not None
@@ -240,7 +248,9 @@ def test_update_interaction(client_server, interaction):
     client.update_interaction(id, interaction)
     time.sleep(CLIENT_WAIT_TIME)
     assert len(imd_server.imd_state.active_interactions) == 1
-    assert np.allclose(list(imd_server.imd_state.active_interactions.values())[0].position, (2, 2, 2))
+    assert np.allclose(
+        list(imd_server.imd_state.active_interactions.values())[0].position, (2, 2, 2)
+    )
 
 
 def test_no_imd(interaction):

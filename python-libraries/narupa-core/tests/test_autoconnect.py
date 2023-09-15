@@ -14,7 +14,7 @@ from narupa.trajectory import FrameServer, FRAME_SERVICE_NAME
 DISCOVERY_DELAY = 0.05
 AUTOCONNECT_SEARCH_TIME = DISCOVERY_DELAY * 1.5
 
-NEVER_USED_HUB_NAME = 'pytest adult yoda'
+NEVER_USED_HUB_NAME = "pytest adult yoda"
 
 
 @pytest.fixture
@@ -70,9 +70,13 @@ def test_autoconnect_app_server_default_ports(discoverable_imd_server):
 
     address = get_broadcastable_ip()
     with NarupaImdApplication.basic_server(address=address) as app_server:
-        with NarupaImdClient.autoconnect(search_time=AUTOCONNECT_SEARCH_TIME,
-                                         discovery_port=discoverable_imd_server.discovery.port) as client:
-            assert len(client._channels) == 1  # expect the client to connect to each server on the same channel
+        with NarupaImdClient.autoconnect(
+            search_time=AUTOCONNECT_SEARCH_TIME,
+            discovery_port=discoverable_imd_server.discovery.port,
+        ) as client:
+            assert (
+                len(client._channels) == 1
+            )  # expect the client to connect to each server on the same channel
             # since the command is registered only once on the server, calling it from different 'clients' will
             # actually result in the same method being called 3 times.
             client.run_trajectory_command("test")
@@ -90,8 +94,13 @@ def test_autoconnect_app_server(discoverable_imd_server):
 
     discoverable_imd_server.server.register_command("test", mock)
 
-    with NarupaImdClient.autoconnect(search_time=AUTOCONNECT_SEARCH_TIME, discovery_port=discoverable_imd_server.discovery.port) as client:
-        assert len(client._channels) == 1  # expect the client to connect to each server on the same channel
+    with NarupaImdClient.autoconnect(
+        search_time=AUTOCONNECT_SEARCH_TIME,
+        discovery_port=discoverable_imd_server.discovery.port,
+    ) as client:
+        assert (
+            len(client._channels) == 1
+        )  # expect the client to connect to each server on the same channel
         # since the command is registered only once on the server, calling it from different 'clients' will
         # actually result in the same method being called 3 times.
         client.run_trajectory_command("test")
@@ -121,10 +130,16 @@ def test_autoconnect_separate_servers(broadcastable_servers):
     service_hub.add_service(IMD_SERVICE_NAME, imd_server.port)
     service_hub.add_service(MULTIPLAYER_SERVICE_NAME, multiplayer_server.port)
 
-    with DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY) as discovery_server:
+    with DiscoveryServer(
+        broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY
+    ) as discovery_server:
         discovery_server.register_service(service_hub)
-        with NarupaImdClient.autoconnect(search_time=AUTOCONNECT_SEARCH_TIME, discovery_port=discovery_server.port) as client:
-            assert len(client._channels) == 3  # expect the client to connect to each server on a separate channel
+        with NarupaImdClient.autoconnect(
+            search_time=AUTOCONNECT_SEARCH_TIME, discovery_port=discovery_server.port
+        ) as client:
+            assert (
+                len(client._channels) == 3
+            )  # expect the client to connect to each server on a separate channel
             # test servers by running a command on each.
             client.run_trajectory_command("frame")
             client.run_imd_command("imd")
@@ -147,9 +162,9 @@ def test_autoconnect_named_server():
 
     with NarupaImdApplication(server, discovery, name=SERVER_NAME):
         with NarupaImdClient.autoconnect(
-                search_time=AUTOCONNECT_SEARCH_TIME,
-                discovery_port=DISCOVERY_PORT,
-                name=SERVER_NAME,
+            search_time=AUTOCONNECT_SEARCH_TIME,
+            discovery_port=DISCOVERY_PORT,
+            name=SERVER_NAME,
         ):
             pass
 
@@ -159,6 +174,7 @@ def test_autoconnect_no_named_server(discoverable_imd_server):
     """
     Test that autoconnecting to a named server that doesn't exist fails.
     """
-    with pytest.raises(ConnectionError), NarupaImdClient.autoconnect(name=NEVER_USED_HUB_NAME):
+    with pytest.raises(ConnectionError), NarupaImdClient.autoconnect(
+        name=NEVER_USED_HUB_NAME
+    ):
         pass
-

@@ -9,16 +9,17 @@ from narupa.trajectory import FrameData
 
 
 class FrameClient(NarupaStubClient):
-    
-    def __init__(self, *,
-                 channel: grpc.Channel,
-                 make_channel_owner: bool = False):
-        super().__init__(channel=channel, stub=TrajectoryServiceStub, make_channel_owner=make_channel_owner)
+    def __init__(self, *, channel: grpc.Channel, make_channel_owner: bool = False):
+        super().__init__(
+            channel=channel,
+            stub=TrajectoryServiceStub,
+            make_channel_owner=make_channel_owner,
+        )
 
     def subscribe_frames_async(self, callback, frame_interval=0) -> Future:
-        return self.threads.submit(self.subscribe_frames_blocking,
-                                   callback,
-                                   frame_interval)
+        return self.threads.submit(
+            self.subscribe_frames_blocking, callback, frame_interval
+        )
 
     def subscribe_frames_blocking(self, callback, frame_interval=0):
         for frame_index, frame in self.subscribe_frames_iterate(frame_interval):
@@ -30,12 +31,11 @@ class FrameClient(NarupaStubClient):
             yield response.frame_index, FrameData(response.frame)
 
     def subscribe_last_frames_async(self, callback, frame_interval=0) -> Future:
-        return self.threads.submit(self.subscribe_last_frames_blocking,
-                                   callback,
-                                   frame_interval)
+        return self.threads.submit(
+            self.subscribe_last_frames_blocking, callback, frame_interval
+        )
 
     def subscribe_last_frames_blocking(self, callback, frame_interval=0):
         request = GetFrameRequest(frame_interval=frame_interval)
         for response in self.stub.SubscribeLatestFrames(request):
-            callback(frame_index=response.frame_index,
-                     frame=FrameData(response.frame))
+            callback(frame_index=response.frame_index, frame=FrameData(response.frame))

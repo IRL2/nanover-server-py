@@ -15,13 +15,15 @@ MULTIPLY_KEY = "multiply"
 @pytest.fixture
 def client_server() -> Tuple[NarupaClient, NarupaServer]:
     with NarupaServer(address="localhost", port=0) as server:
-        with NarupaClient.insecure_channel(address="localhost", port=server.port) as client:
+        with NarupaClient.insecure_channel(
+            address="localhost", port=server.port
+        ) as client:
             yield client, server
 
 
 @pytest.fixture
 def default_args():
-    return {'a': 2, 'b': [1, 3, 4], 'c': True}
+    return {"a": 2, "b": [1, 3, 4], "c": True}
 
 
 @pytest.fixture
@@ -128,7 +130,7 @@ def test_get_multiple_commands(client_server):
 def test_get_command_with_argument(client_server):
     client, server = client_server
     mock = Mock()
-    arguments = {'x': 1, 'y': 2}
+    arguments = {"x": 1, "y": 2}
     server.register_command(TEST_COMMAND_KEY, mock.callback, arguments)
     commands = client.update_available_commands()
     assert next(iter(commands.values())).arguments == arguments
@@ -152,38 +154,44 @@ def test_run_no_args(client_server, mock_callback):
 
 
 def multiply(x=2, z=1):
-    result = {'y': x * z}
+    result = {"y": x * z}
     return result
 
 
 def multiply_positional(x, z):
-    result = {'y': x * z}
+    result = {"y": x * z}
     return result
 
 
-@pytest.mark.parametrize('args, expected_result',
-                         [({'x': 8}, 8),
-                          ({'z': 2}, 8),
-                          ({'x': 4, 'z': 4}, 16),
-                          ({}, 4),
-                          ])
+@pytest.mark.parametrize(
+    "args, expected_result",
+    [
+        ({"x": 8}, 8),
+        ({"z": 2}, 8),
+        ({"x": 4, "z": 4}, 16),
+        ({}, 4),
+    ],
+)
 def test_run_command_with_args(client_server, args, expected_result):
     """
     tests that for various combinations of overriding default arguments, the expected result is returned.
     """
     client, server = client_server
-    example_params = {'x': 4, 'z': 1}
+    example_params = {"x": 4, "z": 1}
     server.register_command(MULTIPLY_KEY, multiply, example_params)
     reply = client.run_command(MULTIPLY_KEY, **args)
-    assert {'y': expected_result} == reply
+    assert {"y": expected_result} == reply
 
 
-@pytest.mark.parametrize('args, expected_result',
-                         [({'x': 8}, 8),
-                          ({'z': 2}, 4),
-                          ({'x': 4, 'z': 4}, 16),
-                          ({}, 2),
-                          ])
+@pytest.mark.parametrize(
+    "args, expected_result",
+    [
+        ({"x": 8}, 8),
+        ({"z": 2}, 4),
+        ({"x": 4, "z": 4}, 16),
+        ({}, 2),
+    ],
+)
 def test_run_command_with_args(client_server, args, expected_result):
     """
     tests that a command that takes arguments, but has no default args set upon registration, works correctly
@@ -191,13 +199,16 @@ def test_run_command_with_args(client_server, args, expected_result):
     client, server = client_server
     server.register_command(MULTIPLY_KEY, multiply)
     reply = client.run_command(MULTIPLY_KEY, **args)
-    assert {'y': expected_result} == reply
+    assert {"y": expected_result} == reply
 
 
-@pytest.mark.parametrize('args',
-                         [{'invalid_arg': 8},
-                          {'x': {'key': 'value'}},
-                          ])
+@pytest.mark.parametrize(
+    "args",
+    [
+        {"invalid_arg": 8},
+        {"x": {"key": "value"}},
+    ],
+)
 def test_run_command_with_invalid_args(client_server, args):
     """
     tests that running a command with invalid arguments raises exceptions.
@@ -241,7 +252,7 @@ def test_command_invalid_results(client_server):
     """
 
     def invalid_method():
-        result = {'y': object()}
+        result = {"y": object()}
         return result
 
     client, server = client_server

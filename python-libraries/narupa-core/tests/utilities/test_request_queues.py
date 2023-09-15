@@ -19,7 +19,7 @@ def test_one_queue_serial():
     assert not many_queues.queues
 
 
-@pytest.mark.parametrize('queue_type', (Queue, request_queues.SingleItemQueue))
+@pytest.mark.parametrize("queue_type", (Queue, request_queues.SingleItemQueue))
 def test_one_queue_type(queue_type):
     many_queues = request_queues.DictOfQueues()
     with many_queues.one_queue(0, queue_class=queue_type) as queue:
@@ -85,7 +85,9 @@ def test_iter_queues_threaded():
     for thread_index in range(max_workers):
         thread_pool.submit(
             register_and_unregister_queues,
-            many_queues, thread_index, 10,
+            many_queues,
+            thread_index,
+            10,
         )
         thread_pool.submit(iterate_over_queues, many_queues)
 
@@ -107,10 +109,10 @@ class TestSingleItemQueue:
     @pytest.mark.timeout(3)
     def test_blocking_get_timeout(self, single_item_queue):
         with pytest.raises(Empty):
-            single_item_queue.get(block=True, timeout=.5)
+            single_item_queue.get(block=True, timeout=0.5)
 
     def test_put_one_item(self, single_item_queue):
-        item = 'hello'
+        item = "hello"
         single_item_queue.put(item)
         assert single_item_queue._item is item
 
@@ -121,7 +123,6 @@ class TestSingleItemQueue:
 
     @pytest.mark.timeout(20)
     def test_put_many_item_threaded(self, single_item_queue):
-
         def put_values(thread_id, queue):
             for i in range(10):
                 time.sleep(0.01)
@@ -146,7 +147,7 @@ class TestSingleItemQueue:
             single_item_queue.get(block=False)
 
     def test_get_item(self, single_item_queue):
-        item = 'hello'
+        item = "hello"
         single_item_queue.put(item)
         retrieved = single_item_queue.get(block=False)
         assert retrieved == item
@@ -158,7 +159,7 @@ class TestSingleItemQueue:
             single_item_queue.get(block=False)
 
     @pytest.mark.timeout(20)
-    @pytest.mark.parametrize('blocking', (True, False))
+    @pytest.mark.parametrize("blocking", (True, False))
     def test_put_and_get_threaded(self, single_item_queue, blocking):
         """
         Add and get data from the SingleItemQueue from multiple threads.
@@ -172,10 +173,10 @@ class TestSingleItemQueue:
 
         def consume_data(queue, context):
             obtained_data = []
-            while context['running']:
+            while context["running"]:
                 try:
                     # timeout only applies when blocking
-                    item = queue.get(block=blocking, timeout=.5)
+                    item = queue.get(block=blocking, timeout=0.5)
                 except Empty:
                     pass
                 else:
@@ -197,7 +198,7 @@ class TestSingleItemQueue:
             for thread_id in range(number_of_producers)
         ]
 
-        context = {'running': True}
+        context = {"running": True}
         consumer_futures = [
             thread_pool.submit(consume_data, single_item_queue, context)
             for _ in range(number_of_consumers)
@@ -208,10 +209,10 @@ class TestSingleItemQueue:
             future.result()
 
         # get the result of the consumers
-        context['running'] = False
-        obtained = list(itertools.chain(*(
-            future.result() for future in consumer_futures
-        )))
+        context["running"] = False
+        obtained = list(
+            itertools.chain(*(future.result() for future in consumer_futures))
+        )
 
         assert len(obtained) == len(set(obtained))
         assert len(obtained) <= number_of_producers * number_of_records_per_producer

@@ -17,10 +17,12 @@ class VelocityWallConstraint:
         positions = atoms.get_positions()
         for dimension in range(3):
             box_max = box[dimension][dimension]
-            left = np.logical_and(positions[:, dimension] <= 0,
-                                  momenta[:, dimension] < 0)
-            right = np.logical_and(positions[:, dimension] >= box_max,
-                                   momenta[:, dimension] > 0)
+            left = np.logical_and(
+                positions[:, dimension] <= 0, momenta[:, dimension] < 0
+            )
+            right = np.logical_and(
+                positions[:, dimension] >= box_max, momenta[:, dimension] > 0
+            )
             mask = np.logical_or(left, right)
             momenta[mask, dimension] *= -1
 
@@ -36,6 +38,6 @@ class VelocityWallConstraint:
         Raise an exception if the box is not compatible with the walls.
         """
         if np.isclose(cell.volume, 0):
-            raise ValueError('The simulation box has a null volume.')
+            raise ValueError("The simulation box has a null volume.")
         if not np.allclose(cell.angles(), [90, 90, 90]):
-            raise ValueError('VelocityWall is only compatible with orthorhombic boxes.')
+            raise ValueError("VelocityWall is only compatible with orthorhombic boxes.")

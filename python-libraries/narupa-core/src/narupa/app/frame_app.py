@@ -29,11 +29,15 @@ class NarupaFrameApplication(NarupaApplicationServer):
     ...     frame_publisher.send_frame(0, example_frame)
 
     """
+
     DEFAULT_SERVER_NAME: str = "Narupa Frame Server"
 
-    def __init__(self, server: NarupaServer,
-                 discovery: Optional[DiscoveryServer] = None,
-                 name: Optional[str] = None):
+    def __init__(
+        self,
+        server: NarupaServer,
+        discovery: Optional[DiscoveryServer] = None,
+        name: Optional[str] = None,
+    ):
         super().__init__(server, discovery, name)
         self._setup_frame_publisher()
 

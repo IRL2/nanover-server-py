@@ -10,34 +10,36 @@ import numpy.typing as npt
 from narupa.protocol import trajectory
 from narupa.utilities.protobuf_utilities import value_to_object, object_to_value
 
-BOX_VECTORS = 'system.box.vectors'
+BOX_VECTORS = "system.box.vectors"
 
-BOND_PAIRS = 'bond.pairs'
-BOND_ORDERS = 'bond.orders'
+BOND_PAIRS = "bond.pairs"
+BOND_ORDERS = "bond.orders"
 
-PARTICLE_POSITIONS = 'particle.positions'
-PARTICLE_ELEMENTS = 'particle.elements'
-PARTICLE_TYPES = 'particle.types'
-PARTICLE_NAMES = 'particle.names'
-PARTICLE_RESIDUES = 'particle.residues'  # Index of the residue each particle belongs to.
-PARTICLE_COUNT = 'particle.count'
+PARTICLE_POSITIONS = "particle.positions"
+PARTICLE_ELEMENTS = "particle.elements"
+PARTICLE_TYPES = "particle.types"
+PARTICLE_NAMES = "particle.names"
+PARTICLE_RESIDUES = (
+    "particle.residues"  # Index of the residue each particle belongs to.
+)
+PARTICLE_COUNT = "particle.count"
 
-RESIDUE_NAMES = 'residue.names'
-RESIDUE_IDS = 'residue.ids'  # Index of the chain each residue belongs to.
-RESIDUE_CHAINS = 'residue.chains'
-RESIDUE_COUNT = 'residue.count'
+RESIDUE_NAMES = "residue.names"
+RESIDUE_IDS = "residue.ids"  # Index of the chain each residue belongs to.
+RESIDUE_CHAINS = "residue.chains"
+RESIDUE_COUNT = "residue.count"
 
-CHAIN_NAMES = 'chain.names'
-CHAIN_COUNT = 'chain.count'
+CHAIN_NAMES = "chain.names"
+CHAIN_COUNT = "chain.count"
 
-KINETIC_ENERGY = 'energy.kinetic'
-POTENTIAL_ENERGY = 'energy.potential'
+KINETIC_ENERGY = "energy.kinetic"
+POTENTIAL_ENERGY = "energy.potential"
 
-SERVER_TIMESTAMP = 'server.timestamp'
+SERVER_TIMESTAMP = "server.timestamp"
 
 
 _Shortcut = namedtuple(
-    '_Shortcut', ['record_type', 'key', 'field_type', 'to_python', 'to_raw']
+    "_Shortcut", ["record_type", "key", "field_type", "to_python", "to_raw"]
 )
 
 Array2Dfloat = Union[List[List[float]], npt.NDArray[Union[np.float32, np.float64]]]
@@ -48,6 +50,7 @@ class MissingDataError(KeyError):
     """
     A shortcut does not contain data to return.
     """
+
     pass
 
 
@@ -60,11 +63,11 @@ def _as_int(value):
 
 
 def _n_by_2(value):
-    return list(value[i:i + 2] for i in range(0, len(value), 2))
+    return list(value[i : i + 2] for i in range(0, len(value), 2))
 
 
 def _n_by_3(value):
-    return list(value[i:i + 3] for i in range(0, len(value), 3))
+    return list(value[i : i + 3] for i in range(0, len(value), 3))
 
 
 def _flatten_array(value):
@@ -83,8 +86,8 @@ def _make_getter(shortcut):
 
 
 def _make_setter(shortcut):
-    if shortcut.record_type == 'arrays' and shortcut.field_type is not None:
-        method_name = f'set_{shortcut.field_type}_array'
+    if shortcut.record_type == "arrays" and shortcut.field_type is not None:
+        method_name = f"set_{shortcut.field_type}_array"
 
         def wrapped(self, value):
             converted_value = shortcut.to_raw(value)
@@ -110,6 +113,7 @@ class _FrameDataMeta(type):
     The shortcuts are defined as a tuple of :class:`_Shortcut` named tuples
     under the :attr:`_shortcuts` class attribute.
     """
+
     _shortcuts: Dict[str, _Shortcut] = {}
 
     def __init__(cls, name, bases, nmspc):
@@ -144,65 +148,138 @@ class FrameData(metaclass=_FrameDataMeta):
     The set of shortcuts that contain data is available from the
     :attr:`used_shortcuts`.
     """
+
     bond_pairs: Array2Dint = _Shortcut(  # type: ignore[assignment]
-        key=BOND_PAIRS, record_type='arrays',
-        field_type='index', to_python=_n_by_2, to_raw=_flatten_array)
+        key=BOND_PAIRS,
+        record_type="arrays",
+        field_type="index",
+        to_python=_n_by_2,
+        to_raw=_flatten_array,
+    )
     bond_orders: List[float] = _Shortcut(  # type: ignore[assignment]
-        key=BOND_ORDERS, record_type='arrays',
-        field_type='float', to_python=_as_is, to_raw=_as_is)
+        key=BOND_ORDERS,
+        record_type="arrays",
+        field_type="float",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
 
     particle_positions: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
-        key=PARTICLE_POSITIONS, record_type='arrays',
-        field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
+        key=PARTICLE_POSITIONS,
+        record_type="arrays",
+        field_type="float",
+        to_python=_n_by_3,
+        to_raw=_flatten_array,
+    )
     particle_elements: List[int] = _Shortcut(  # type: ignore[assignment]
-        key=PARTICLE_ELEMENTS, record_type='arrays',
-        field_type='index', to_python=_as_is, to_raw=_as_is)
+        key=PARTICLE_ELEMENTS,
+        record_type="arrays",
+        field_type="index",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
     particle_types: List[str] = _Shortcut(  # type: ignore[assignment]
-        key=PARTICLE_TYPES, record_type='arrays',
-        field_type='string', to_python=_as_is, to_raw=_as_is)
+        key=PARTICLE_TYPES,
+        record_type="arrays",
+        field_type="string",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
     particle_names: List[str] = _Shortcut(  # type: ignore[assignment]
-        key=PARTICLE_NAMES, record_type='arrays',
-        field_type='string', to_python=_as_is, to_raw=_as_is)
+        key=PARTICLE_NAMES,
+        record_type="arrays",
+        field_type="string",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
     particle_residues: List[int] = _Shortcut(  # type: ignore[assignment]
-        key=PARTICLE_RESIDUES, record_type='arrays',
-        field_type='index', to_python=_as_is, to_raw=_as_is)
+        key=PARTICLE_RESIDUES,
+        record_type="arrays",
+        field_type="index",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
     particle_count: int = _Shortcut(  # type: ignore[assignment]
-        key=PARTICLE_COUNT, record_type='values',
-        field_type='number_value', to_python=_as_int, to_raw=_as_is)
+        key=PARTICLE_COUNT,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_int,
+        to_raw=_as_is,
+    )
 
     residue_names: List[str] = _Shortcut(  # type: ignore[assignment]
-        key=RESIDUE_NAMES, record_type='arrays',
-        field_type='string', to_python=_as_is, to_raw=_as_is)
+        key=RESIDUE_NAMES,
+        record_type="arrays",
+        field_type="string",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
     residue_ids: List[str] = _Shortcut(  # type: ignore[assignment]
-        key=RESIDUE_IDS, record_type='arrays',
-        field_type='string', to_python=_as_is, to_raw=_as_is)
+        key=RESIDUE_IDS,
+        record_type="arrays",
+        field_type="string",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
     residue_chains: List[int] = _Shortcut(  # type: ignore[assignment]
-        key=RESIDUE_CHAINS, record_type='arrays',
-        field_type='index', to_python=_as_is, to_raw=_as_is)
+        key=RESIDUE_CHAINS,
+        record_type="arrays",
+        field_type="index",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
     residue_count: int = _Shortcut(  # type: ignore[assignment]
-        key=RESIDUE_COUNT, record_type='values',
-        field_type='number_value', to_python=_as_int, to_raw=_as_is)
+        key=RESIDUE_COUNT,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_int,
+        to_raw=_as_is,
+    )
 
     chain_names: List[str] = _Shortcut(  # type: ignore[assignment]
-        key=CHAIN_NAMES, record_type='arrays',
-        field_type='string', to_python=_as_is, to_raw=_as_is)
+        key=CHAIN_NAMES,
+        record_type="arrays",
+        field_type="string",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
     chain_count: int = _Shortcut(  # type: ignore[assignment]
-        key=CHAIN_COUNT, record_type='values',
-        field_type='number_value', to_python=_as_int, to_raw=_as_is)
+        key=CHAIN_COUNT,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_int,
+        to_raw=_as_is,
+    )
 
     kinetic_energy: float = _Shortcut(  # type: ignore[assignment]
-        key=KINETIC_ENERGY, record_type='values',
-        field_type='number_value', to_python=_as_is, to_raw=_as_is)
+        key=KINETIC_ENERGY,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
     potential_energy: float = _Shortcut(  # type: ignore[assignment]
-        key=POTENTIAL_ENERGY, record_type='values',
-        field_type='number_value', to_python=_as_is, to_raw=_as_is)
+        key=POTENTIAL_ENERGY,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
     box_vectors: List[List[float]] = _Shortcut(  # type: ignore[assignment]
-        key=BOX_VECTORS, record_type='arrays',
-        field_type='float', to_python=_n_by_3, to_raw=_flatten_array)
+        key=BOX_VECTORS,
+        record_type="arrays",
+        field_type="float",
+        to_python=_n_by_3,
+        to_raw=_flatten_array,
+    )
 
     server_timestamp: float = _Shortcut(  # type: ignore[assignment]
-        key=SERVER_TIMESTAMP, record_type='values',
-        field_type='number_value', to_python=_as_is, to_raw=_as_is)
+        key=SERVER_TIMESTAMP,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
 
     _shortcuts: Dict[str, _Shortcut]
     _raw: trajectory.FrameData
@@ -296,8 +373,7 @@ class FrameData(metaclass=_FrameDataMeta):
     @property
     def used_shortcuts(self) -> Set:
         return set(
-            name for name, shortcut in self._shortcuts.items()
-            if shortcut.key in self
+            name for name, shortcut in self._shortcuts.items() if shortcut.key in self
         )
 
 
@@ -307,14 +383,15 @@ class RecordView:
 
     This class needs to be subclassed.
     """
+
     record_name: Optional[str] = None  # MUST be overwritten as "arrays" or "values"
     singular: Optional[str] = None  # MUST be overwritten as "array" or "value"
 
     def __init__(self, raw):
         if self.record_name is None or self.singular is None:
             raise NotImplementedError(
-                'FieldView must be subclassed; record_name, singular, and'
-                '_convert_to_python must be overwritten.'
+                "FieldView must be subclassed; record_name, singular, and"
+                "_convert_to_python must be overwritten."
             )
         self._raw_record = getattr(raw, self.record_name)
 
@@ -339,7 +416,7 @@ class RecordView:
         return default
 
     def set(self, key, value):
-        raise NotImplementedError('Subclasses must overwrite the set method.')
+        raise NotImplementedError("Subclasses must overwrite the set method.")
 
     def delete(self, key):
         del self[key]
@@ -351,7 +428,9 @@ class RecordView:
 
         The method needs to be adapted to the type of field that is manipulated.
         """
-        raise NotImplementedError('Subclasses must overwrite the _convert_to_python method.')
+        raise NotImplementedError(
+            "Subclasses must overwrite the _convert_to_python method."
+        )
 
     def keys(self) -> Set:
         return set(self._raw_record.keys())
@@ -361,8 +440,9 @@ class ValuesView(RecordView):
     """
     Give access to singular values from a :class:`FrameData`.
     """
-    record_name = 'values'
-    singular = 'value'
+
+    record_name = "values"
+    singular = "value"
 
     @staticmethod
     def _convert_to_python(field):
@@ -376,8 +456,9 @@ class ArraysView(RecordView):
     """
     Give access to homogeneous arrays from a :class:`FrameData`.
     """
-    record_name = 'arrays'
-    singular = 'array'
+
+    record_name = "arrays"
+    singular = "array"
 
     @staticmethod
     def _convert_to_python(field):
@@ -387,17 +468,17 @@ class ArraysView(RecordView):
         try:
             reference_value = value[0]
         except IndexError:
-            raise ValueError('Cannot decide what type to use for an empty object.')
+            raise ValueError("Cannot decide what type to use for an empty object.")
         except TypeError:
-            raise ValueError('Value must be indexable.')
+            raise ValueError("Value must be indexable.")
 
         if isinstance(reference_value, numbers.Integral) and int(reference_value) >= 0:
-            type_attribute = 'index_values'
+            type_attribute = "index_values"
         elif isinstance(reference_value, numbers.Real):
-            type_attribute = 'float_values'
+            type_attribute = "float_values"
         elif isinstance(reference_value, str):
-            type_attribute = 'string_values'
+            type_attribute = "string_values"
         else:
-            raise ValueError('Cannot decide what type to use.')
+            raise ValueError("Cannot decide what type to use.")
 
         getattr(self._raw_record[key], type_attribute).values[:] = value

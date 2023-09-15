@@ -29,8 +29,9 @@ class OpenMMCalculator(Calculator):
         generate a compatible ASE atoms object.
 
     """
+
     simulation: Simulation
-    implemented_properties = ['energy', 'forces']
+    implemented_properties = ["energy", "forces"]
 
     def __init__(self, simulation, atoms: Optional[Atoms] = None, **kwargs):
         super().__init__(**kwargs)
@@ -54,19 +55,23 @@ class OpenMMCalculator(Calculator):
             simulation = serializer.deserialize_simulation(infile.read())
         return OpenMMCalculator(simulation, atoms, **kwargs)
 
-    def calculate(self, atoms: Optional[Atoms] = None,
-                  properties=('energy', 'forces'),
-                  system_changes=all_changes):
-
+    def calculate(
+        self,
+        atoms: Optional[Atoms] = None,
+        properties=("energy", "forces"),
+        system_changes=all_changes,
+    ):
         if atoms is None:
             atoms = self.atoms
         if atoms is None:
-            raise ValueError('No ASE atoms supplied to calculator, and no ASE atoms supplied with initialisation.')
+            raise ValueError(
+                "No ASE atoms supplied to calculator, and no ASE atoms supplied with initialisation."
+            )
 
         self._set_positions(atoms.positions)
         energy, forces = self._calculate_openmm()
-        self.results['energy'] = energy
-        self.results['forces'] = forces
+        self.results["energy"] = energy
+        self.results["forces"] = forces
 
     def _calculate_openmm(self):
         state: State = self.context.getState(getEnergy=True, getForces=True)
@@ -91,13 +96,18 @@ class OpenMMCalculator(Calculator):
         atoms = Atoms()
         system: System = self.simulation.system
         self.set_periodic_bounds(atoms, system)
-        positions_openmm = self.context.getState(getPositions=True).getPositions(asNumpy=True)
+        positions_openmm = self.context.getState(getPositions=True).getPositions(
+            asNumpy=True
+        )
         positions = positions_openmm.value_in_unit(angstrom)
         for openmm_atom in top.atoms():
             index = openmm_atom.index
             pos = positions[index]
-            ase_atom = Atom(symbol=openmm_atom.element.symbol, position=pos,
-                            mass=openmm_atom.element.mass.value_in_unit(amu))
+            ase_atom = Atom(
+                symbol=openmm_atom.element.symbol,
+                position=pos,
+                mass=openmm_atom.element.mass.value_in_unit(amu),
+            )
             atoms.append(ase_atom)
 
         return atoms
@@ -117,4 +127,6 @@ class OpenMMCalculator(Calculator):
         """
         boxvectors: Quantity = system.getDefaultPeriodicBoxVectors()
         atoms.set_pbc(system.usesPeriodicBoundaryConditions())
-        atoms.set_cell(np.array([vector.value_in_unit(angstrom) for vector in boxvectors]))
+        atoms.set_cell(
+            np.array([vector.value_in_unit(angstrom) for vector in boxvectors])
+        )

@@ -66,7 +66,7 @@ from narupa.trajectory.frame_publisher import FramePublisher
 from narupa.imd.particle_interaction import ParticleInteraction
 from .converter import openmm_to_frame_data
 
-IMD_FORCE_EXPRESSION = '-fx * x - fy * y - fz * z'
+IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 
 NextReport = Tuple[int, bool, bool, bool, bool, bool]
 
@@ -85,12 +85,12 @@ class NarupaImdReporter:
     _frame_index: int
 
     def __init__(
-            self,
-            frame_interval: int,
-            force_interval: int,
-            imd_force: mm.CustomExternalForce,
-            imd_state: ImdStateWrapper,
-            frame_publisher: FramePublisher,
+        self,
+        frame_interval: int,
+        force_interval: int,
+        imd_force: mm.CustomExternalForce,
+        imd_state: ImdStateWrapper,
+        frame_publisher: FramePublisher,
     ):
         self.frame_interval = frame_interval
         self.force_interval = force_interval
@@ -136,12 +136,15 @@ class NarupaImdReporter:
         if simulation.currentStep % self.force_interval == 0:
             interactions = self.imd_state.active_interactions
             positions = state.getPositions(asNumpy=True)
-            self._update_forces(positions.astype(float), interactions, simulation.context)
+            self._update_forces(
+                positions.astype(float), interactions, simulation.context
+            )
         if simulation.currentStep % self.frame_interval == 0:
             if positions is None:
                 positions = state.getPositions(asNumpy=True)
             frame_data = openmm_to_frame_data(
-                state=state, topology=None, include_positions=False)
+                state=state, topology=None, include_positions=False
+            )
             frame_data.particle_positions = positions
             self.frame_publisher.send_frame(self._frame_index, frame_data)
             self._frame_index += 1
@@ -165,16 +168,18 @@ class NarupaImdReporter:
         Collect the mass, in Dalton, of each particle in an OpenMM system and
         return them as a numpy array.
         """
-        return np.array([
-            system.getParticleMass(particle).value_in_unit(unit.dalton)
-            for particle in range(system.getNumParticles())
-        ])
+        return np.array(
+            [
+                system.getParticleMass(particle).value_in_unit(unit.dalton)
+                for particle in range(system.getNumParticles())
+            ]
+        )
 
     def _update_forces(
-            self,
-            positions: np.ndarray,
-            interactions: Dict[str, ParticleInteraction],
-            context: mm.Context,
+        self,
+        positions: np.ndarray,
+        interactions: Dict[str, ParticleInteraction],
+        context: mm.Context,
     ) -> None:
         """
         Get the forces to apply from the iMD service and communicate them to
@@ -192,9 +197,9 @@ class NarupaImdReporter:
             self.imd_force.updateParametersInContext(context)
 
     def _apply_forces(
-            self,
-            positions: np.ndarray,
-            interactions: Dict[str, ParticleInteraction],
+        self,
+        positions: np.ndarray,
+        interactions: Dict[str, ParticleInteraction],
     ):
         """
         Set the iMD forces based on the user interactions.
@@ -202,7 +207,9 @@ class NarupaImdReporter:
         if self.masses is None:
             raise InitialisationError
         _, forces_kjmol = calculate_imd_force(
-            positions, self.masses, interactions.values(),
+            positions,
+            self.masses,
+            interactions.values(),
         )
         affected_particles = _build_particle_interaction_index_set(interactions)
         to_reset_particles = self._previous_force_index - affected_particles
@@ -234,14 +241,13 @@ class InitialisationError(Exception):
     """
 
 
-def _build_particle_interaction_index_set(interactions: Dict[str, ParticleInteraction]) -> Set[int]:
+def _build_particle_interaction_index_set(
+    interactions: Dict[str, ParticleInteraction]
+) -> Set[int]:
     """
     Get a set of the indices of the particles involved in interactions.
     """
-    indices = (
-        interaction.particles
-        for interaction in interactions.values()
-    )
+    indices = (interaction.particles for interaction in interactions.values())
     flatten_indices = itertools.chain(*indices)
     # We need to convert the indices to ints otherwise they are numpy types
     # that protobuf do not support.
@@ -262,9 +268,9 @@ def create_imd_force() -> mm.CustomExternalForce:
     .. seealso: populate_imd_force
     """
     force = mm.CustomExternalForce(IMD_FORCE_EXPRESSION)
-    force.addPerParticleParameter('fx')
-    force.addPerParticleParameter('fy')
-    force.addPerParticleParameter('fz')
+    force.addPerParticleParameter("fx")
+    force.addPerParticleParameter("fy")
+    force.addPerParticleParameter("fz")
     return force
 
 
@@ -298,8 +304,7 @@ def add_imd_force_to_system(system: mm.System) -> mm.CustomExternalForce:
     return force
 
 
-def get_imd_forces_from_system(
-        system: app.Simulation) -> List[mm.CustomExternalForce]:
+def get_imd_forces_from_system(system: app.Simulation) -> List[mm.CustomExternalForce]:
     """
     Find the forces that are compatible with an imd force in a given system.
 
@@ -310,7 +315,8 @@ def get_imd_forces_from_system(
     """
     system_num_particles = system.getNumParticles()
     return [
-        force for force in system.getForces()
+        force
+        for force in system.getForces()
         if isinstance(force, mm.CustomExternalForce)
         and force.getEnergyFunction() == IMD_FORCE_EXPRESSION
         and force.getNumParticles() == system_num_particles

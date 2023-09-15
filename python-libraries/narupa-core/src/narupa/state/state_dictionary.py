@@ -15,7 +15,8 @@ from narupa.utilities.change_buffers import (
 )
 from narupa.utilities.event import Event
 from narupa.utilities.key_lockable_map import (
-    KeyLockableMap, ResourceLockedError,
+    KeyLockableMap,
+    ResourceLockedError,
 )
 from narupa.utilities.protobuf_utilities import Serializable
 
@@ -25,6 +26,7 @@ class StateDictionary:
     Mechanism for tracking and making changes to a shared key/value store,
     including the facility to acquire exclusive write access to values.
     """
+
     content_updated: Event
 
     _lock: Lock
@@ -63,9 +65,9 @@ class StateDictionary:
         return self._change_views.create_view()
 
     def update_state(
-            self,
-            access_token: Serializable,
-            change: DictionaryChange,
+        self,
+        access_token: Serializable,
+        change: DictionaryChange,
     ):
         """
         Update the dictionary with key changes and removals, using any locks
@@ -83,10 +85,10 @@ class StateDictionary:
         self.content_updated.invoke(access_token=access_token, change=change)
 
     def update_locks(
-            self,
-            access_token: Serializable,
-            acquire: Optional[Dict[str, Optional[float]]] = None,
-            release: Optional[Iterable[str]] = None,
+        self,
+        access_token: Serializable,
+        acquire: Optional[Dict[str, Optional[float]]] = None,
+        release: Optional[Iterable[str]] = None,
     ):
         """
         Acquire and release locks for the given access token. If any of the
@@ -115,4 +117,6 @@ class StateDictionary:
         Return whether or not all keys are either unlocked or locked by the
         given access token.
         """
-        return all(self._write_locks.player_can_lock_key(access_token, key) for key in keys)
+        return all(
+            self._write_locks.player_can_lock_key(access_token, key) for key in keys
+        )

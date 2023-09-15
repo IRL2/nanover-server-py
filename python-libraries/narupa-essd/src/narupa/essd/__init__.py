@@ -29,4 +29,4 @@ The :class:`DiscoveryServer` class can be used to broadcast these service defini
 the :class:`DiscoveryClient` class, to find them by listening to messages on the specified broadcasting port. 
 
 """
-__version__ = '1.0.0'
+__version__ = "1.0.0"

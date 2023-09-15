@@ -18,9 +18,9 @@ def test_register_command(service):
 
 def test_register_command_with_args(service):
     mock = Mock()
-    service.register_command("test", mock.callback, {'a': 2})
+    service.register_command("test", mock.callback, {"a": 2})
     assert len(service.commands) == 1
-    assert service.commands['test'].info.arguments == {'a': 2}
+    assert service.commands["test"].info.arguments == {"a": 2}
 
 
 def test_register_existing_command(service):

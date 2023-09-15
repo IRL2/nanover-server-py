@@ -3,7 +3,6 @@ from typing import Optional
 
 
 class NarupaRunner(metaclass=ABCMeta):
-
     @property
     def address(self):
         """
@@ -33,9 +32,9 @@ class NarupaRunner(metaclass=ABCMeta):
 
     @abstractmethod
     def run(
-            self,
-            steps: Optional[int] = None,
-            block: Optional[bool] = None,
+        self,
+        steps: Optional[int] = None,
+        block: Optional[bool] = None,
     ) -> None:
         """
         Runs the molecular dynamics.

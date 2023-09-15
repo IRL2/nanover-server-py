@@ -12,7 +12,7 @@ from pythonosc import dispatcher
 from pythonosc.osc_server import ThreadingOSCUDPServer
 
 # See https://github.com/attwad/python-osc/issues/109
-IPV4_LOCALHOST = '127.0.0.1'
+IPV4_LOCALHOST = "127.0.0.1"
 OSC_SEND_INTERVAL = 1 / 100
 
 
@@ -34,7 +34,7 @@ def frame_server():
     """
     Provide a frame server hosting on an available port on localhost.
     """
-    with FrameServer(address='localhost', port=0) as frame_server:
+    with FrameServer(address="localhost", port=0) as frame_server:
         yield frame_server
 
 
@@ -58,11 +58,13 @@ def frame_osc_converter(frame_server, osc_server):
     of them.
     """
     osc_port = osc_server.socket.getsockname()[1]
-    narupa_client = NarupaImdClient(trajectory_address=('localhost', frame_server.port))
-    with OscClient(narupa_client,
-                   osc_address=(IPV4_LOCALHOST, osc_port),
-                   message_generator=simple_frame_to_message,
-                   osc_send_interval=OSC_SEND_INTERVAL) as client:
+    narupa_client = NarupaImdClient(trajectory_address=("localhost", frame_server.port))
+    with OscClient(
+        narupa_client,
+        osc_address=(IPV4_LOCALHOST, osc_port),
+        message_generator=simple_frame_to_message,
+        osc_send_interval=OSC_SEND_INTERVAL,
+    ) as client:
         threading.Thread(target=client.run, daemon=True).start()
         yield frame_server, osc_server, client
 

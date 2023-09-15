@@ -9,9 +9,9 @@ from functools import partial
 from narupa.core import NarupaServer
 from narupa.utilities.change_buffers import DictionaryChange
 
-RADIAL_ORIENT_COMMAND_KEY = 'multiuser/radially-orient-origins'
-MULTIUSER_AVATAR_PREFIX = 'avatar.'
-MULTIUSER_ORIGIN_PREFIX = 'user-origin.'
+RADIAL_ORIENT_COMMAND_KEY = "multiuser/radially-orient-origins"
+MULTIUSER_AVATAR_PREFIX = "avatar."
+MULTIUSER_ORIGIN_PREFIX = "user-origin."
 
 FULL_CIRCLE = math.pi * 2
 
@@ -26,7 +26,7 @@ def _radially_orient_server(*, server, radius=1):
     # find relevant avatar ids
     state = server.copy_state()
     avatar_ids = [
-        key[len(MULTIUSER_AVATAR_PREFIX):]
+        key[len(MULTIUSER_AVATAR_PREFIX) :]
         for key in state
         if key.startswith(MULTIUSER_AVATAR_PREFIX)
     ]
@@ -34,9 +34,10 @@ def _radially_orient_server(*, server, radius=1):
     count = len(avatar_ids)
     angles = [i * FULL_CIRCLE / count for i in range(count)]
     updates = {
-        MULTIUSER_ORIGIN_PREFIX + avatar_id: {
+        MULTIUSER_ORIGIN_PREFIX
+        + avatar_id: {
             "position": [radius * math.cos(angle), 0, radius * math.sin(angle)],
-            "rotation": _angle_axis_quaternion_y(-angle-FULL_CIRCLE/4),
+            "rotation": _angle_axis_quaternion_y(-angle - FULL_CIRCLE / 4),
         }
         for avatar_id, angle in zip(avatar_ids, angles)
     }
@@ -56,7 +57,7 @@ def add_multiuser_commands(server: NarupaServer):
 def _angle_axis_quaternion_y(angle):
     return [
         0,
-        math.sin(angle * .5),
+        math.sin(angle * 0.5),
         0,
-        math.cos(angle * .5),
+        math.cos(angle * 0.5),
     ]

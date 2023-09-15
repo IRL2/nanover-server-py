@@ -14,13 +14,14 @@ from narupa.imd.particle_interaction import ParticleInteraction
 from util import co_atoms, client_interaction
 import numpy as np
 
+
 @pytest.fixture
 def interact_c():
     interaction = ParticleInteraction(
         position=[0, 1, 0],
         particles=[0],
-        scale=20000.,
-        interaction_type='spring',
+        scale=20000.0,
+        interaction_type="spring",
     )
     return interaction
 
@@ -30,8 +31,8 @@ def interact_both():
     interaction = ParticleInteraction(
         position=[0, 1, 0],
         particles=[0, 1],
-        scale=20000.,
-        interaction_type='spring',
+        scale=20000.0,
+        interaction_type="spring",
         max_force=np.inf,
     )
     return interaction

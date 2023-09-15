@@ -3,24 +3,30 @@ import json
 import pytest
 
 import narupa.essd
-from narupa.essd.servicehub import (ServiceHub, SERVICE_NAME_KEY, SERVICE_ADDRESS_KEY, SERVICE_SERVICES_KEY,
-                                    SERVICE_ID_KEY, ESSD_VERSION_KEY)
+from narupa.essd.servicehub import (
+    ServiceHub,
+    SERVICE_NAME_KEY,
+    SERVICE_ADDRESS_KEY,
+    SERVICE_SERVICES_KEY,
+    SERVICE_ID_KEY,
+    ESSD_VERSION_KEY,
+)
 from narupa.essd.utils import get_broadcastable_ip
 
 
 @pytest.fixture
 def properties():
     properties = {
-        SERVICE_NAME_KEY: 'test service',
+        SERVICE_NAME_KEY: "test service",
         SERVICE_ADDRESS_KEY: get_broadcastable_ip(),
         SERVICE_SERVICES_KEY: {
             "trajectory": 54321,
             "imd": 54322,
             "multiplayer": 54323,
-            "builder": 54324
+            "builder": 54324,
         },
         ESSD_VERSION_KEY: "1.0.0",
-        SERVICE_ID_KEY: "12345"
+        SERVICE_ID_KEY: "12345",
     }
     return properties
 
@@ -66,7 +72,7 @@ def test_service_no_address(properties):
 
 
 def test_service_too_long(properties):
-    properties['some_key'] = '1' * 1024
+    properties["some_key"] = "1" * 1024
     with pytest.raises(ValueError):
         _ = ServiceHub(**properties)
 
@@ -86,26 +92,26 @@ def test_equals_object(properties):
 
 def test_add_service(properties):
     hub = ServiceHub(**properties)
-    assert hub.services == properties['services']
+    assert hub.services == properties["services"]
     hub.add_service("test", 54322)
-    properties['services'].update({"test": 54322})
-    assert hub.services == properties['services']
+    properties["services"].update({"test": 54322})
+    assert hub.services == properties["services"]
 
 
 def test_add_service_replacement(properties):
     hub = ServiceHub(**properties)
     hub.add_service("imd", 88888)
-    properties['services'].update({"imd": 88888})
-    assert hub.services == properties['services']
+    properties["services"].update({"imd": 88888})
+    assert hub.services == properties["services"]
 
 
 def test_get_service_address(properties):
     hub = ServiceHub(**properties)
     hub.add_service("test", 54322)
-    assert hub.get_service_address('test') == (hub.address, 54322)
+    assert hub.get_service_address("test") == (hub.address, 54322)
 
 
 def test_get_service_address_no_exist(properties):
     hub = ServiceHub(**properties)
     hub.add_service("test", 54322)
-    assert hub.get_service_address('unknown') is None
+    assert hub.get_service_address("unknown") is None

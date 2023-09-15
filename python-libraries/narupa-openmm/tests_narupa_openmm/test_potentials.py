@@ -15,10 +15,9 @@ def test_restraint_force_type():
 def test_restraint_force_global_parameters():
     force = potentials.restraint_force()
     global_parameters = [
-        force.getGlobalParameterName(i)
-        for i in range(force.getNumGlobalParameters())
+        force.getGlobalParameterName(i) for i in range(force.getNumGlobalParameters())
     ]
-    assert global_parameters == ['k']
+    assert global_parameters == ["k"]
 
 
 def test_restraint_force_per_particle_parameters():
@@ -27,7 +26,7 @@ def test_restraint_force_per_particle_parameters():
         force.getPerParticleParameterName(i)
         for i in range(force.getNumPerParticleParameters())
     ]
-    assert per_particle_parameters == ['x0', 'y0', 'z0']
+    assert per_particle_parameters == ["x0", "y0", "z0"]
 
 
 def test_restrain_particles(basic_simulation):
@@ -38,8 +37,7 @@ def test_restrain_particles(basic_simulation):
     )
 
     per_particle_parameters = [
-        force.getParticleParameters(i)
-        for i in range(force.getNumParticles())
+        force.getParticleParameters(i) for i in range(force.getNumParticles())
     ]
     expectation = [
         [0, tuple(positions[0].value_in_unit(nanometer))],
@@ -48,4 +46,3 @@ def test_restrain_particles(basic_simulation):
 
     assert force.getNumParticles() == 2
     assert per_particle_parameters == expectation
-

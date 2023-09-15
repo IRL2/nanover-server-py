@@ -14,7 +14,8 @@ from narupa.ase import ase_to_frame_data
 
 
 def send_ase_frame(
-        ase_atoms: Atoms, frame_publisher: FramePublisher) -> Callable[[], None]:
+    ase_atoms: Atoms, frame_publisher: FramePublisher
+) -> Callable[[], None]:
     """
     Hook to transmit the current state of an ASE Atoms as a frame.
 

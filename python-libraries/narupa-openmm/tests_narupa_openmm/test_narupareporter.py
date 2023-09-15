@@ -37,6 +37,7 @@ class MockFrameServer:
     These arguments mimic the signature of the original frame server; they are
     so far to spot changes in this signature.
     """
+
     def __init__(self, *, address: str, port: int):
         self.address = address
         self.port = port
@@ -49,22 +50,28 @@ class MockFrameServer:
         self.all_sent_frames.append((frame_index, frame_data))
 
 
-@pytest.mark.parametrize('current_step, report_interval, expected_steps', (
+@pytest.mark.parametrize(
+    "current_step, report_interval, expected_steps",
+    (
         (0, 1, 1),
         (0, 3, 3),
         (2, 3, 1),
         (3, 3, 3),
-))
+    ),
+)
 # describeNextReport is a name that is part of the OpenMM API. It does not
 # conform the naming conventions, but it cannot be changed.
 def test_describeNextReport(  # pylint: disable=invalid-name
-        basic_simulation, current_step, report_interval, expected_steps,
+    basic_simulation,
+    current_step,
+    report_interval,
+    expected_steps,
 ):
     """
     Test that the next report is well described with different report interval
     and different positions in the simulation.
     """
-    frame_server = MockFrameServer(address='dummy', port=0)
+    frame_server = MockFrameServer(address="dummy", port=0)
     reporter = NarupaReporter(
         report_interval=report_interval,
         frame_server=frame_server,
@@ -91,7 +98,7 @@ def test_report(basic_simulation):
     registering the topology. The first and the second calls are then expected
     to behave differently.
     """
-    frame_server = MockFrameServer(address='dummy', port=0)
+    frame_server = MockFrameServer(address="dummy", port=0)
     reporter = NarupaReporter(
         report_interval=1,
         frame_server=frame_server,

@@ -9,6 +9,7 @@ import pytest
 from numpy.testing import assert_almost_equal
 from narupa.openmm import openmm_to_frame_data
 from narupa.trajectory import frame_data
+
 try:
     from openmm.app.element import Element
     from openmm.app.topology import Topology
@@ -45,12 +46,20 @@ def test_topology_bonds(simple_openmm_topology):
 
 def test_topology_atom_elements(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.arrays[frame_data.PARTICLE_ELEMENTS].index_values.values == [1, 2, 3]
+    assert data.raw.arrays[frame_data.PARTICLE_ELEMENTS].index_values.values == [
+        1,
+        2,
+        3,
+    ]
 
 
 def test_topology_atom_names(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.arrays[frame_data.PARTICLE_NAMES].string_values.values == ["Atom1", "Atom2", "Atom3"]
+    assert data.raw.arrays[frame_data.PARTICLE_NAMES].string_values.values == [
+        "Atom1",
+        "Atom2",
+        "Atom3",
+    ]
 
 
 def test_topology_atom_types(simple_openmm_topology):
@@ -66,7 +75,10 @@ def test_topology_atom_types(simple_openmm_topology):
 
 def test_topology_particle_count(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.values[frame_data.PARTICLE_COUNT] == simple_openmm_topology.getNumAtoms()
+    assert (
+        data.raw.values[frame_data.PARTICLE_COUNT]
+        == simple_openmm_topology.getNumAtoms()
+    )
 
 
 def test_topology_residues(simple_openmm_topology):
@@ -118,7 +130,7 @@ def test_box_vectors(basic_simulation):
     data = openmm_to_frame_data(state=state)
     assert_almost_equal(
         data.raw.arrays[frame_data.BOX_VECTORS].float_values.values,
-        np.asarray(expected).flatten()
+        np.asarray(expected).flatten(),
     )
 
 

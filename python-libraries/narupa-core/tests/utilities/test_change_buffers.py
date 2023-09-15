@@ -4,7 +4,9 @@
 import pytest
 
 from narupa.utilities.change_buffers import (
-    DictionaryChangeBuffer, DictionaryChangeMultiView, ObjectFrozenError,
+    DictionaryChangeBuffer,
+    DictionaryChangeMultiView,
+    ObjectFrozenError,
 )
 
 

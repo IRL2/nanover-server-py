@@ -27,7 +27,8 @@ from narupa.ase.openmm.calculator import OpenMMCalculator
 from narupa.ase.wall_constraint import VelocityWallConstraint
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
-    "The simulation contains constraints which will be ignored by this runner!")
+    "The simulation contains constraints which will be ignored by this runner!"
+)
 
 
 def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
@@ -60,6 +61,7 @@ class ImdParams:
     """
     Class representing parameters for IMD runners.
     """
+
     address: Optional[str] = None
     port: Optional[int] = None
     frame_interval: int = 5
@@ -77,6 +79,7 @@ class LoggingParams:
     """
     Class representing parameters for trajectory logging
     """
+
     trajectory_file: Optional[str] = None
     write_interval: int = 1
 
@@ -136,9 +139,12 @@ class ASEOpenMMRunner(NarupaRunner):
     :param logging_params Parameters for logging the trajectory of the simulation.
     """
 
-    def __init__(self, simulation: Simulation,
-                 imd_params: Optional[ImdParams] = None,
-                 logging_params: Optional[LoggingParams] = None):
+    def __init__(
+        self,
+        simulation: Simulation,
+        imd_params: Optional[ImdParams] = None,
+        logging_params: Optional[LoggingParams] = None,
+    ):
         self._logger = logging.getLogger(__name__)
         self.simulation = simulation
         self._validate_simulation()
@@ -153,11 +159,13 @@ class ASEOpenMMRunner(NarupaRunner):
 
         self._initialise_calculator(simulation, walls=imd_params.walls)
         self._initialise_dynamics()
-        self._initialise_server(imd_params.name,
-                                imd_params.address,
-                                imd_params.port,
-                                imd_params.discovery,
-                                imd_params.discovery_port)
+        self._initialise_server(
+            imd_params.name,
+            imd_params.address,
+            imd_params.port,
+            imd_params.discovery,
+            imd_params.discovery_port,
+        )
         self._initialise_imd(self.app_server, self.dynamics)
 
         self._initialise_trajectory_logging(logging_params)
@@ -191,9 +199,12 @@ class ASEOpenMMRunner(NarupaRunner):
             self._logger.warning(CONSTRAINTS_UNSUPPORTED_MESSAGE)
 
     @classmethod
-    def from_xml(cls, simulation_xml,
-                 params: Optional[ImdParams] = None,
-                 logging_params: Optional[LoggingParams] = None):
+    def from_xml(
+        cls,
+        simulation_xml,
+        params: Optional[ImdParams] = None,
+        logging_params: Optional[LoggingParams] = None,
+    ):
         """
         Initialises a :class:`OpenMMIMDRunner` from a simulation XML file
         serialised with :fun:`serializer.serialize_simulation`.
@@ -273,8 +284,12 @@ class ASEOpenMMRunner(NarupaRunner):
     def dynamics_interval(self, interval):
         self.imd.dynamics_interval = interval
 
-    def run(self, steps: Optional[int] = None,
-            block: Optional[bool] = None, reset_energy: Optional[float] = None):
+    def run(
+        self,
+        steps: Optional[int] = None,
+        block: Optional[bool] = None,
+        reset_energy: Optional[float] = None,
+    ):
         """
         Runs the molecular dynamics.
 
@@ -298,13 +313,14 @@ class ASEOpenMMRunner(NarupaRunner):
             self.logging_info.close()
         self.app_server.close()
 
-    def _initialise_server(self,
-                           name=None,
-                           address=None,
-                           port=None,
-                           run_discovery=True,
-                           discovery_port=None):
-
+    def _initialise_server(
+        self,
+        name=None,
+        address=None,
+        port=None,
+        run_discovery=True,
+        discovery_port=None,
+    ):
         address = address or DEFAULT_SERVE_ADDRESS
         if port is None:
             port = DEFAULT_NARUPA_PORT
@@ -317,10 +333,12 @@ class ASEOpenMMRunner(NarupaRunner):
 
     def _initialise_imd(self, server, dynamics):
         # set the server to use the OpenMM frame convert for performance purposes.
-        self.imd = NarupaASEDynamics(server,
-                                     dynamics,
-                                     frame_method=openmm_ase_frame_adaptor,
-                                     frame_interval=self.frame_interval)
+        self.imd = NarupaASEDynamics(
+            server,
+            dynamics,
+            frame_method=openmm_ase_frame_adaptor,
+            frame_interval=self.frame_interval,
+        )
 
     def _initialise_calculator(self, simulation, walls=False):
         self._openmm_calculator = OpenMMCalculator(simulation)
@@ -346,8 +364,17 @@ class ASEOpenMMRunner(NarupaRunner):
         )
 
         if self.verbose:
-            self._dynamics.attach(MDLogger(self._dynamics, self.atoms, '-', header=True, stress=False,
-                                           peratom=False), interval=100)
+            self._dynamics.attach(
+                MDLogger(
+                    self._dynamics,
+                    self.atoms,
+                    "-",
+                    header=True,
+                    stress=False,
+                    peratom=False,
+                ),
+                interval=100,
+            )
 
     def _initialise_trajectory_logging(self, logging_params: LoggingParams):
         if not logging_params.trajectory_file:
@@ -366,6 +393,6 @@ class OpenMMIMDRunner(ASEOpenMMRunner):
         warnings.warn(
             'The name "OpenMMIMDRunner" is deprecated and will be removed in '
             'a later version. Use "ASEOpenMMRunner" instead.',
-            DeprecationWarning
+            DeprecationWarning,
         )
         super().__init__(*args, **kwargs)

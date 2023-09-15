@@ -11,13 +11,15 @@ def print_hub(hub: ServiceHub):
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
-    description = textwrap.dedent("""\
+    description = textwrap.dedent(
+        """\
     Run an ESSD client and print all services as they are found.
-    """)
+    """
+    )
     parser = argparse.ArgumentParser(description=description)
 
-    parser.add_argument('-p', '--port', default=None)
-    parser.add_argument('-a', '--address', default=None)
+    parser.add_argument("-p", "--port", default=None)
+    parser.add_argument("-a", "--address", default=None)
     arguments = parser.parse_args(args)
     return arguments
 
@@ -35,5 +37,5 @@ def main():
         print("Closing due to keyboard interrupt.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

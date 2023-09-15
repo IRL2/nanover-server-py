@@ -17,7 +17,9 @@ class MockLammps:
     def __init__(self, n_atoms_in_dummy: Optional[int] = None):
         # Set a default atom length for tests
         _DEFAULT_ATOMS = 3
-        self.n_atoms = n_atoms_in_dummy if n_atoms_in_dummy is not None else _DEFAULT_ATOMS
+        self.n_atoms = (
+            n_atoms_in_dummy if n_atoms_in_dummy is not None else _DEFAULT_ATOMS
+        )
 
     def gather_atoms(self, array_type: str, _dummy_variable, _array_shape):
         """
@@ -31,7 +33,9 @@ class MockLammps:
         data_array: Union[ctypes.Array[ctypes.c_double], ctypes.Array[ctypes.c_int]]
         empty_list: List = []
         if array_type == "x":
-            data_array = (ctypes.c_double * (3 * self.n_atoms))(*range(3 * self.n_atoms))
+            data_array = (ctypes.c_double * (3 * self.n_atoms))(
+                *range(3 * self.n_atoms)
+            )
         elif array_type == "f":
             data_array = (ctypes.c_double * (3 * self.n_atoms))(*empty_list)
         elif array_type == "type":
@@ -40,7 +44,7 @@ class MockLammps:
             for i in range(self.n_atoms):
                 data_array[i] = 1
         else:
-            raise Exception('Unknown array type asked for in dummyLammps.gather_atoms')
+            raise Exception("Unknown array type asked for in dummyLammps.gather_atoms")
 
         return data_array
 
@@ -67,7 +71,9 @@ class MockLammps:
         elif types == "hplanck":
             dummy_element_list = 95.306976368
         else:
-            raise Exception('Unknown array type asked for in dummyLammps.extract_global')
+            raise Exception(
+                "Unknown array type asked for in dummyLammps.extract_global"
+            )
 
         return dummy_element_list
 
@@ -93,6 +99,6 @@ class MockLammps:
             dummy_element_list[0] = 0
             dummy_element_list[1] = 1
         else:
-            raise Exception('Unknown array type asked for in dummyLammps.extract_atom')
+            raise Exception("Unknown array type asked for in dummyLammps.extract_atom")
 
         return dummy_element_list

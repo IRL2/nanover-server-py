@@ -10,15 +10,15 @@ from narupa.trajectory import FrameServer, FrameClient, FrameData
 from narupa.trajectory.frame_data import SERVER_TIMESTAMP
 from numpy import average
 
-SUBSCRIBE_METHODS = ('subscribe_frames_async', 'subscribe_last_frames_async')
-FRAME_DATA_VARIABLE_KEYS = (SERVER_TIMESTAMP, )
+SUBSCRIBE_METHODS = ("subscribe_frames_async", "subscribe_last_frames_async")
+FRAME_DATA_VARIABLE_KEYS = (SERVER_TIMESTAMP,)
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
 
 
 def assert_framedata_equal(
-        left: FrameData,
-        right: FrameData,
-        ignore_keys: Iterable[str] = FRAME_DATA_VARIABLE_KEYS
+    left: FrameData,
+    right: FrameData,
+    ignore_keys: Iterable[str] = FRAME_DATA_VARIABLE_KEYS,
 ):
     """
     Raise an :exc:`AssertError` if the two frames are not equal.
@@ -47,7 +47,7 @@ def simple_frame_data():
 @pytest.fixture
 def disjoint_frame_data():
     basic_frame_data = FrameData()
-    basic_frame_data.arrays["strings"] = ['a', 'b', 'd']
+    basic_frame_data.arrays["strings"] = ["a", "b", "d"]
     basic_frame_data.values["number"] = 16.5
     return basic_frame_data
 
@@ -55,7 +55,7 @@ def disjoint_frame_data():
 @pytest.fixture
 def overlap_frame_data():
     basic_frame_data = FrameData()
-    basic_frame_data.arrays["strings"] = ['a', 'b', 'd']
+    basic_frame_data.arrays["strings"] = ["a", "b", "d"]
     basic_frame_data.arrays["indices"] = [6, 8, 11]
     basic_frame_data.values["number"] = 16.5
     basic_frame_data.values["bool"] = True
@@ -68,7 +68,7 @@ def simple_and_disjoint_frame_data():
     basic_frame_data.arrays["indices"] = [0, 1, 3]
     basic_frame_data.values["string"] = "str"
     basic_frame_data.values["bool"] = False
-    basic_frame_data.arrays["strings"] = ['a', 'b', 'd']
+    basic_frame_data.arrays["strings"] = ["a", "b", "d"]
     basic_frame_data.values["number"] = 16.5
     return basic_frame_data
 
@@ -77,7 +77,7 @@ def simple_and_disjoint_frame_data():
 def simple_and_overlap_frame_data():
     basic_frame_data = FrameData()
     basic_frame_data.values["string"] = "str"
-    basic_frame_data.arrays["strings"] = ['a', 'b', 'd']
+    basic_frame_data.arrays["strings"] = ["a", "b", "d"]
     basic_frame_data.arrays["indices"] = [6, 8, 11]
     basic_frame_data.values["number"] = 16.5
     basic_frame_data.values["bool"] = True
@@ -86,21 +86,21 @@ def simple_and_overlap_frame_data():
 
 @pytest.fixture
 def frame_server():
-    with FrameServer(address='localhost', port=0) as frame_server:
+    with FrameServer(address="localhost", port=0) as frame_server:
         yield frame_server
 
 
 @pytest.fixture
 def frame_server_client_pair(frame_server):
-    client = FrameClient.insecure_channel(address='localhost', port=frame_server.port)
+    client = FrameClient.insecure_channel(address="localhost", port=frame_server.port)
     yield frame_server, client
     client.close()
 
 
-@pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
+@pytest.mark.parametrize("subscribe_method", SUBSCRIBE_METHODS)
 def test_blankdata_lateclient(frame_server_client_pair, subscribe_method):
     frame_server, frame_client = frame_server_client_pair
-    
+
     mock = Mock()
 
     frame_server.send_frame(0, FrameData())
@@ -112,10 +112,10 @@ def test_blankdata_lateclient(frame_server_client_pair, subscribe_method):
     mock.callback.assert_called_once()
 
 
-@pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
+@pytest.mark.parametrize("subscribe_method", SUBSCRIBE_METHODS)
 def test_blankdata_earlyclient(frame_server_client_pair, subscribe_method):
     frame_server, frame_client = frame_server_client_pair
-    
+
     mock = Mock()
 
     getattr(frame_client, subscribe_method)(mock.callback)
@@ -128,9 +128,10 @@ def test_blankdata_earlyclient(frame_server_client_pair, subscribe_method):
 
 
 # Checks the transmitted data is correct
-@pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-def test_data_earlyclient(frame_server_client_pair, simple_frame_data,
-                          subscribe_method):
+@pytest.mark.parametrize("subscribe_method", SUBSCRIBE_METHODS)
+def test_data_earlyclient(
+    frame_server_client_pair, simple_frame_data, subscribe_method
+):
     frame_server, frame_client = frame_server_client_pair
     result = None
 
@@ -151,9 +152,8 @@ def test_data_earlyclient(frame_server_client_pair, simple_frame_data,
     assert_framedata_equal(result, simple_frame_data)
 
 
-@pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-def test_data_lateclient(frame_server_client_pair, simple_frame_data,
-                         subscribe_method):
+@pytest.mark.parametrize("subscribe_method", SUBSCRIBE_METHODS)
+def test_data_lateclient(frame_server_client_pair, simple_frame_data, subscribe_method):
     frame_server, frame_client = frame_server_client_pair
     result = None
 
@@ -171,10 +171,14 @@ def test_data_lateclient(frame_server_client_pair, simple_frame_data,
     assert_framedata_equal(result, simple_frame_data)
 
 
-@pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-def test_data_disjoint(frame_server_client_pair, simple_frame_data,
-                       disjoint_frame_data, simple_and_disjoint_frame_data,
-                       subscribe_method):
+@pytest.mark.parametrize("subscribe_method", SUBSCRIBE_METHODS)
+def test_data_disjoint(
+    frame_server_client_pair,
+    simple_frame_data,
+    disjoint_frame_data,
+    simple_and_disjoint_frame_data,
+    subscribe_method,
+):
     frame_server, frame_client = frame_server_client_pair
     result = None
 
@@ -193,10 +197,14 @@ def test_data_disjoint(frame_server_client_pair, simple_frame_data,
     assert_framedata_equal(result, simple_and_disjoint_frame_data)
 
 
-@pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-def test_data_overlap(frame_server_client_pair, simple_frame_data,
-                      overlap_frame_data, simple_and_overlap_frame_data,
-                      subscribe_method):
+@pytest.mark.parametrize("subscribe_method", SUBSCRIBE_METHODS)
+def test_data_overlap(
+    frame_server_client_pair,
+    simple_frame_data,
+    overlap_frame_data,
+    simple_and_overlap_frame_data,
+    subscribe_method,
+):
     frame_server, frame_client = frame_server_client_pair
     result = None
 
@@ -227,9 +235,10 @@ def raises_rpc_cancelled():
             raise e
 
 
-@pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
-                               subscribe_method):
+@pytest.mark.parametrize("subscribe_method", SUBSCRIBE_METHODS)
+def test_slow_frame_publishing(
+    frame_server_client_pair, simple_frame_data, subscribe_method
+):
     frame_server, frame_client = frame_server_client_pair
     result = None
 
@@ -254,8 +263,9 @@ def test_slow_frame_publishing(frame_server_client_pair, simple_frame_data,
     assert_framedata_equal(result, simple_frame_data)
 
 
-def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair,
-                                                    simple_frame_data):
+def test_subscribe_latest_frames_sends_latest_frame(
+    frame_server_client_pair, simple_frame_data
+):
     frame_server, frame_client = frame_server_client_pair
 
     frame_interval = 1 / 30
@@ -277,8 +287,8 @@ def test_subscribe_latest_frames_sends_latest_frame(frame_server_client_pair,
 
 
 def test_subscribe_latest_frames_aggregates_frames(
-        frame_server_client_pair,
-        simple_frame_data,
+    frame_server_client_pair,
+    simple_frame_data,
 ):
     """
     Test that data that exists only in intermediate frames (those frames that
@@ -323,12 +333,11 @@ def test_subscribe_latest_frames_aggregates_frames(
     assert latest_index == 2
 
 
-@pytest.mark.parametrize('subscribe_method', SUBSCRIBE_METHODS)
-@pytest.mark.parametrize('frame_interval', (1/10, 1/30, 1/60))
-def test_subscribe_frames_frame_interval(frame_server_client_pair,
-                                         simple_frame_data,
-                                         subscribe_method,
-                                         frame_interval):
+@pytest.mark.parametrize("subscribe_method", SUBSCRIBE_METHODS)
+@pytest.mark.parametrize("frame_interval", (1 / 10, 1 / 30, 1 / 60))
+def test_subscribe_frames_frame_interval(
+    frame_server_client_pair, simple_frame_data, subscribe_method, frame_interval
+):
     """
     Test that when using frame subscription methods with an interval, frames are
     sent, on average, at the specified rate.
@@ -336,7 +345,7 @@ def test_subscribe_frames_frame_interval(frame_server_client_pair,
     frame_server, frame_client = frame_server_client_pair
     subscribe_frames_async = getattr(frame_client, subscribe_method)
 
-    tolerance = 5/1000  # 5 milliseconds
+    tolerance = 5 / 1000  # 5 milliseconds
     frame_limit = 30
     time_limit = frame_limit * frame_interval * 1.5
     receive_times = []
@@ -353,5 +362,7 @@ def test_subscribe_frames_frame_interval(frame_server_client_pair,
     frame_server.send_frame(0, simple_frame_data)
 
     time.sleep(time_limit)
-    intervals = [receive_times[i+1] - receive_times[i] for i in range(frame_limit-1)]
+    intervals = [
+        receive_times[i + 1] - receive_times[i] for i in range(frame_limit - 1)
+    ]
     assert abs(average(intervals) - frame_interval) < tolerance

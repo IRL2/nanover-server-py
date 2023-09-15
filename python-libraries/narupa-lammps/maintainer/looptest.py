@@ -12,7 +12,7 @@ from narupa.lammps import LammpsImd
 
 def main():
     """
-   Test call of the LAMMPS hook routine when running outside of LAMMPS.
+    Test call of the LAMMPS hook routine when running outside of LAMMPS.
     """
     h = LammpsImd()
     print("Starting Trajectory Server")
@@ -22,5 +22,5 @@ def main():
         time.sleep(1.0 / 10.0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

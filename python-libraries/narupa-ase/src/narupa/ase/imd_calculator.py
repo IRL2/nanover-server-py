@@ -38,23 +38,30 @@ class ImdCalculator(Calculator):
 
         The :class:`ImdServer` class makes use of this class, and makes
         running an interactive molecular dynamics simulation in ASE straightforward.
-    
+
     """
 
     _previous_interactions: Dict[str, ParticleInteraction]
 
-    def __init__(self, imd_state: ImdStateWrapper,
-                 calculator: Optional[Calculator] = None,
-                 atoms: Optional[Atoms] = None,
-                 dynamics: Optional[MolecularDynamics] = None,
-                 reset_scale=0.5,
-                 **kwargs):
-
+    def __init__(
+        self,
+        imd_state: ImdStateWrapper,
+        calculator: Optional[Calculator] = None,
+        atoms: Optional[Atoms] = None,
+        dynamics: Optional[MolecularDynamics] = None,
+        reset_scale=0.5,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self._imd_state = imd_state
         self.atoms = atoms
         self._calculator = calculator
-        self.implemented_properties = ('energy', 'forces', 'interactive_energy', 'interactive_forces')
+        self.implemented_properties = (
+            "energy",
+            "forces",
+            "interactive_energy",
+            "interactive_forces",
+        )
         self._dynamics = dynamics
         self.reset_scale = reset_scale
         self._custom_temperature = None
@@ -79,7 +86,8 @@ class ImdCalculator(Calculator):
         if self._dynamics is None:
             raise MissingDataError(
                 "No temperature has been set, and no molecular dynamics object has been passed to the "
-                "IMD calculator.")
+                "IMD calculator."
+            )
 
         try:
             return self._dynamics.temperature
@@ -87,8 +95,10 @@ class ImdCalculator(Calculator):
             try:
                 return self._dynamics.temp
             except AttributeError:
-                raise MissingDataError("No temperature has been set, and the molecular dynamics object does not "
-                                       "appear to set a temperature.")
+                raise MissingDataError(
+                    "No temperature has been set, and the molecular dynamics object does not "
+                    "appear to set a temperature."
+                )
 
     @temperature.setter
     def temperature(self, value):
@@ -128,8 +138,12 @@ class ImdCalculator(Calculator):
 
         return self._imd_state.active_interactions
 
-    def calculate(self, atoms: Atoms = None, properties=('energy', 'forces'),
-                  system_changes=all_changes):
+    def calculate(
+        self,
+        atoms: Atoms = None,
+        properties=("energy", "forces"),
+        system_changes=all_changes,
+    ):
         """
         Calculates the given properties of the ASE atoms. The internal molecular calculator is called first,
         and then any interactive forces currently being applied to the system are added.
@@ -151,23 +165,24 @@ class ImdCalculator(Calculator):
         if atoms is None:
             atoms = self.atoms
         if atoms is None:
-            raise ValueError('No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation.')
+            raise ValueError(
+                "No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation."
+            )
 
         forces = np.zeros((len(atoms), 3))
 
         if self.calculator is not None:
             self.calculator.calculate(atoms, properties, system_changes)
-            energy = self.calculator.results['energy']
-            forces = self.calculator.results['forces']
+            energy = self.calculator.results["energy"]
+            forces = self.calculator.results["forces"]
 
         imd_energy, imd_forces = self._calculate_imd(atoms)
-        self.results['energy'] = energy + imd_energy
-        self.results['forces'] = forces + imd_forces
-        self.results['interactive_energy'] = imd_energy
-        self.results['interactive_forces'] = imd_forces
+        self.results["energy"] = energy + imd_energy
+        self.results["forces"] = forces + imd_forces
+        self.results["interactive_energy"] = imd_energy
+        self.results["interactive_forces"] = imd_forces
 
     def _calculate_imd(self, atoms):
-
         interactions = self.interactions
 
         self._reset_velocities(atoms, interactions, self._previous_interactions)
@@ -178,8 +193,12 @@ class ImdCalculator(Calculator):
         masses = atoms.get_masses()
 
         periodic_box_lengths = get_periodic_box_lengths(atoms)
-        energy_kjmol, forces_kjmol = calculate_imd_force(positions, masses, interactions.values(),
-                                                         periodic_box_lengths=periodic_box_lengths)
+        energy_kjmol, forces_kjmol = calculate_imd_force(
+            positions,
+            masses,
+            interactions.values(),
+            periodic_box_lengths=periodic_box_lengths,
+        )
         ev_per_kjmol = converter.KJMOL_TO_EV
         # convert back to ASE units (eV and Angstroms).
         energy = energy_kjmol * ev_per_kjmol
@@ -191,8 +210,9 @@ class ImdCalculator(Calculator):
         return energy, forces
 
     def _reset_velocities(self, atoms, interactions, previous_interactions):
-
-        cancelled_interactions = _get_cancelled_interactions(interactions, previous_interactions)
+        cancelled_interactions = _get_cancelled_interactions(
+            interactions, previous_interactions
+        )
         atoms_to_reset = _get_atoms_to_reset(cancelled_interactions)
         if len(atoms_to_reset) == 0:
             return
@@ -219,19 +239,24 @@ def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
     """
     if not np.all(atoms.get_pbc()):
         if np.any(atoms.get_pbc()):
-            raise NotImplementedError(f'Atoms object has periodic unit cell on only some dimensions, which is not '
-                                      f'supported.')
+            raise NotImplementedError(
+                f"Atoms object has periodic unit cell on only some dimensions, which is not "
+                f"supported."
+            )
         return None
     lengths_angles = atoms.cell.cellpar()
     lengths = np.array(lengths_angles[0:3])
     angles = np.array(lengths_angles[3:])
     if not np.allclose(angles, (90, 90, 90)):
         raise NotImplementedError(
-            f'Atoms object has periodic unit cell that is not orthorhombic, which is not supported!')
+            f"Atoms object has periodic unit cell that is not orthorhombic, which is not supported!"
+        )
     return lengths
 
 
-def _get_cancelled_interactions(interactions, previous_interactions) -> Dict[object, ParticleInteraction]:
+def _get_cancelled_interactions(
+    interactions, previous_interactions
+) -> Dict[object, ParticleInteraction]:
     old_keys = set(previous_interactions.keys())
     cancelled_interactions = old_keys.difference(interactions.keys())
     return {key: previous_interactions[key] for key in cancelled_interactions}
@@ -253,13 +278,19 @@ def _apply_velocities_reset(atoms, atoms_to_reset, temperature):
     _scale_momentum_of_selection(atoms, atoms_to_reset, temperature)
 
 
-def _reset_selection_to_boltzmann(atoms: Atoms, selection: Collection[int], temperature: float):
+def _reset_selection_to_boltzmann(
+    atoms: Atoms, selection: Collection[int], temperature: float
+):
     # TODO importing a private function here... reimplement?
-    reset = _maxwellboltzmanndistribution(atoms[selection].get_masses(), temperature * units.kB)
+    reset = _maxwellboltzmanndistribution(
+        atoms[selection].get_masses(), temperature * units.kB
+    )
     _apply_momentum_to_selection(atoms, selection, reset)
 
 
-def _scale_momentum_of_selection(atoms: Atoms, selection: Collection[int], temperature: float):
+def _scale_momentum_of_selection(
+    atoms: Atoms, selection: Collection[int], temperature: float
+):
     scaled_selection = _get_scaled_momentum(atoms[selection], temperature)
     _apply_momentum_to_selection(atoms, selection, scaled_selection)
 

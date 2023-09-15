@@ -63,9 +63,10 @@ class CommandService(CommandServicer):
         return self._commands.get_all()
 
     def register_command(
-            self, name: str,
-            callback: CommandHandler,
-            default_arguments: Optional[CommandArguments] = None,
+        self,
+        name: str,
+        callback: CommandHandler,
+        default_arguments: Optional[CommandArguments] = None,
     ):
         """
         Registers a command with this service
@@ -79,7 +80,10 @@ class CommandService(CommandServicer):
         if default_arguments is None:
             default_arguments = {}
         try:
-            self._commands.set_no_replace(name, CommandRegistration(CommandInfo(name, **default_arguments), callback))
+            self._commands.set_no_replace(
+                name,
+                CommandRegistration(CommandInfo(name, **default_arguments), callback),
+            )
         except KeyError:
             raise ValueError(f"Command with name {name} has already been registered.")
 
@@ -102,8 +106,7 @@ class CommandService(CommandServicer):
         :return: :class:`GetCommandsReply`, detailing all the available commands.
         """
         commands_copy = self.commands
-        commands = [command.info.raw for command in
-                    commands_copy.values()]
+        commands = [command.info.raw for command in commands_copy.values()]
         return GetCommandsReply(commands=commands)
 
     def RunCommand(self, request, context) -> CommandReply:
@@ -118,7 +121,7 @@ class CommandService(CommandServicer):
         command = self._commands.get(name)
         if command is None:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            message = f'Unknown command: {command}'
+            message = f"Unknown command: {command}"
             context.set_details(message)
             return
         args = command.info.arguments
@@ -129,7 +132,7 @@ class CommandService(CommandServicer):
                 result_struct = dict_to_struct(results)
             except ValueError:
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-                message = f'Command ({name}) generated results that cannot be serialised: {results}'
+                message = f"Command ({name}) generated results that cannot be serialised: {results}"
                 context.set_details(message)
                 return
             return CommandReply(result=result_struct)

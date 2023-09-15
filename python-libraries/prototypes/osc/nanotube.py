@@ -22,7 +22,7 @@ from numpy.linalg import norm
 
 # from: https://gist.github.com/nim65s/5e9902cd67f094ce65b0
 def distance_segment_point(a, b, p):
-    """ segment line AB, point P, where each one is an array([x, y]) """
+    """segment line AB, point P, where each one is an array([x, y])"""
     if all(a == p) or all(b == p):
         return 0
     if arccos(dot((p - a) / norm(p - a), (b - a) / norm(b - a))) > pi / 2:
@@ -69,17 +69,17 @@ def build_frame_generator(osc_client):
 
     # find the methane's single carbon, knowing it to be the single neighbour of
     # all hydrogens present.
-    hydrogen_atoms = [atom for atom in atom_listing if atom['element'] == 1]
-    methane_atom = hydrogen_atoms[0]['neighbours'][0]
-    methane_index = methane_atom['index']
+    hydrogen_atoms = [atom for atom in atom_listing if atom["element"] == 1]
+    methane_atom = hydrogen_atoms[0]["neighbours"][0]
+    methane_index = methane_atom["index"]
 
     # find the nanotube "ends", defined as the terminal carbons with only two
     # neighbours instead of three. Assume two ends lie somewhere on different
     # sides of atom index 30.
-    carbons = [atom for atom in atom_listing if atom['element'] == 6]
-    ends = [atom for atom in carbons if len(atom['neighbours']) == 2]
-    front_indexes = [atom['index'] for atom in ends if atom['index'] < 30]
-    back_indexes = [atom['index'] for atom in ends if atom['index'] > 30]
+    carbons = [atom for atom in atom_listing if atom["element"] == 6]
+    ends = [atom for atom in carbons if len(atom["neighbours"]) == 2]
+    front_indexes = [atom["index"] for atom in ends if atom["index"] < 30]
+    back_indexes = [atom["index"] for atom in ends if atom["index"] > 30]
 
     def frame_to_osc_messages(frame):
         front_positions = [frame.particle_positions[index] for index in front_indexes]
@@ -88,19 +88,22 @@ def build_frame_generator(osc_client):
         back_point = centroid(*back_positions)
 
         tube_length = distance(front_point, back_point)
-        front_radiuses = [distance(front_point, position) for position in front_positions]
+        front_radiuses = [
+            distance(front_point, position) for position in front_positions
+        ]
         back_radiuses = [distance(back_point, position) for position in back_positions]
 
         max_radius = max(itertools.chain(front_radiuses, back_radiuses))
         min_radius = min(itertools.chain(front_radiuses, back_radiuses))
 
         methane_position = frame.particle_positions[methane_index]
-        methane_distance = distance_segment_point(array(front_point),
-                                                  array(back_point),
-                                                  array(methane_position))
+        methane_distance = distance_segment_point(
+            array(front_point), array(back_point), array(methane_position)
+        )
 
-        methane_to_centroid = distance(methane_position,
-                                       centroid(front_point, back_point))
+        methane_to_centroid = distance(
+            methane_position, centroid(front_point, back_point)
+        )
         methane_to_centroid_factor = inv_lerp(tube_length / 2, 0, methane_to_centroid)
 
         interiority = inv_lerp(max_radius, 0, methane_distance)
@@ -114,12 +117,12 @@ def build_frame_generator(osc_client):
         yield "/methane/interiority", interiority
         yield "/methane/centrality", centrality
 
-        if 'energy.kinetic' in frame.values:
+        if "energy.kinetic" in frame.values:
             yield "/energy/kinetic", frame.kinetic_energy
 
     return frame_to_osc_messages
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = OscApp(build_frame_generator)
     app.run()

@@ -19,17 +19,14 @@ class GrpcClient:
     :param make_channel_owner: Whether to make this client take ownership of
      ensuring the channel is closed upon disconnection of this client.
     """
+
     channel: grpc.Channel
     threads: futures.ThreadPoolExecutor
     _channel_owner: bool
     DEFAULT_CONNECTION_PORT: int = 54321
 
     def __init__(
-            self,
-            *,
-            channel: grpc.Channel,
-            make_channel_owner: bool = False,
-            **kwargs
+        self, *, channel: grpc.Channel, make_channel_owner: bool = False, **kwargs
     ):
         # TODO a channel could be wrapped into a more general gRPC connection,
         #  as in the C# implementation.
@@ -38,12 +35,9 @@ class GrpcClient:
         self.threads = futures.ThreadPoolExecutor(max_workers=10)
 
     @classmethod
-    def insecure_channel(cls,
-                         *,
-                         address: Optional[str] = None,
-                         port: Optional[int] = None,
-                         **kwargs
-                         ):
+    def insecure_channel(
+        cls, *, address: Optional[str] = None, port: Optional[int] = None, **kwargs
+    ):
         """
         Create an insecure connection at the given address and port.
 

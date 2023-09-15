@@ -12,9 +12,7 @@ from narupa.utilities.change_buffers import (
 )
 
 CommandCallable = Union[
-    Callable[[Dict], Optional[Dict]],
-    Callable[[], None],
-    Callable[[Dict], None]
+    Callable[[Dict], Optional[Dict]], Callable[[], None], Callable[[Dict], None]
 ]
 
 
@@ -24,6 +22,7 @@ class NarupaServer(GrpcServer):
     attaches a :class:`CommandService` and  :class:`StateService` enabling the running of arbitrary commands
     and synchronisation of state.
     """
+
     _command_service: CommandService
     _state_service: StateService
 
@@ -48,8 +47,12 @@ class NarupaServer(GrpcServer):
         """
         return self._command_service.commands
 
-    def register_command(self, name: str, callback: CommandHandler,
-                         default_arguments: Optional[Dict] = None):
+    def register_command(
+        self,
+        name: str,
+        callback: CommandHandler,
+        default_arguments: Optional[Dict] = None,
+    ):
         """
         Registers a command with the :class:`CommandService` running on this server.
 
@@ -90,10 +93,10 @@ class NarupaServer(GrpcServer):
         self._state_service.update_state(access_token, change)
 
     def update_locks(
-            self,
-            access_token: object = None,
-            acquire: Optional[Dict[str, float]] = None,
-            release: Optional[Set[str]] = None,
+        self,
+        access_token: object = None,
+        acquire: Optional[Dict[str, float]] = None,
+        release: Optional[Set[str]] = None,
     ):
         """
         Attempts to acquire and release locks on keys in the shared key/value

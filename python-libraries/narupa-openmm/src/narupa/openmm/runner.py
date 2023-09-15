@@ -29,12 +29,12 @@ from narupa.trajectory.frame_server import (
 )
 from narupa.utilities.timing import VariableIntervalGenerator
 
-GET_FRAME_INTERVAL_COMMAND_KEY = 'trajectory/get-frame-interval'
-SET_FRAME_INTERVAL_COMMAND_KEY = 'trajectory/set-frame-interval'
-GET_FORCE_INTERVAL_COMMAND_KEY = 'imd/get-force-interval'
-SET_FORCE_INTERVAL_COMMAND_KEY = 'imd/set-force-interval'
+GET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/get-frame-interval"
+SET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/set-frame-interval"
+GET_FORCE_INTERVAL_COMMAND_KEY = "imd/get-force-interval"
+SET_FORCE_INTERVAL_COMMAND_KEY = "imd/set-force-interval"
 
-RunnerClass = TypeVar('RunnerClass', bound='OpenMMRunner')
+RunnerClass = TypeVar("RunnerClass", bound="OpenMMRunner")
 
 
 class OpenMMRunner(NarupaRunner):
@@ -69,16 +69,18 @@ class OpenMMRunner(NarupaRunner):
     :param address: The IP address the server binds to.
     :param port: The port the server listens to.
     """
+
     def __init__(
-            self,
-            simulation: app.Simulation,
-            name: Optional[str] = None,
-            address: Optional[str] = None,
-            port: Optional[int] = None,
+        self,
+        simulation: app.Simulation,
+        name: Optional[str] = None,
+        address: Optional[str] = None,
+        port: Optional[int] = None,
     ):
         self.simulation = simulation
         self._verbose_reporter = app.StateDataReporter(
-            sys.stdout, 10,
+            sys.stdout,
+            10,
             step=True,
             speed=True,
             remainingTime=False,
@@ -88,11 +90,12 @@ class OpenMMRunner(NarupaRunner):
         potential_imd_forces = get_imd_forces_from_system(simulation.system)
         if not potential_imd_forces:
             raise ValueError(
-                'The simulation must include an appropriate force for imd.')
+                "The simulation must include an appropriate force for imd."
+            )
         if len(potential_imd_forces) > 1:
             logging.warning(
-                f'More than one force could be used as imd force '
-                f'({len(potential_imd_forces)}); taking the last one.'
+                f"More than one force could be used as imd force "
+                f"({len(potential_imd_forces)}); taking the last one."
             )
         # In case there is more than one compatible force we take the last one.
         # The forces are in the order they have been added, so we take the last
@@ -113,7 +116,7 @@ class OpenMMRunner(NarupaRunner):
         self.simulation.saveState(initial_state_fake_file)
         self._initial_state = initial_state_fake_file.getvalue()
 
-        self._variable_interval_generator = VariableIntervalGenerator(1/30)
+        self._variable_interval_generator = VariableIntervalGenerator(1 / 30)
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._cancel_lock = RLock()
         self._run_task: Optional[futures.Future[None]] = None
@@ -125,12 +128,12 @@ class OpenMMRunner(NarupaRunner):
 
     @classmethod
     def from_xml_input(
-            cls: Type[RunnerClass],
-            input_xml: Union[str, bytes, os.PathLike],
-            name: Optional[str] = None,
-            address: Optional[str] = None,
-            port: Optional[int] = None,
-            platform: Optional[str] = None,
+        cls: Type[RunnerClass],
+        input_xml: Union[str, bytes, os.PathLike],
+        name: Optional[str] = None,
+        address: Optional[str] = None,
+        port: Optional[int] = None,
+        platform: Optional[str] = None,
     ) -> RunnerClass:
         """
         Create a runner from a serialized simulation.
@@ -151,7 +154,8 @@ class OpenMMRunner(NarupaRunner):
         imd_force = create_imd_force()
         with open(str(input_xml)) as infile:
             simulation = serializer.deserialize_simulation(
-                infile.read(), imd_force=imd_force, platform_name=platform)
+                infile.read(), imd_force=imd_force, platform_name=platform
+            )
         return cls(simulation, name=name, address=address, port=port)
 
     @property
@@ -163,7 +167,7 @@ class OpenMMRunner(NarupaRunner):
         warnings.warn(
             'The property "app" is deprecated and will be removed in '
             'a later version. Use "app_server" instead.',
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.app_server
 
@@ -260,9 +264,8 @@ class OpenMMRunner(NarupaRunner):
         """
         # ideally we'd just check _run_task.running(), but there can be a delay
         # between the task starting and hitting the running state.
-        return (
-            self._run_task is not None
-            and not (self._run_task.cancelled() or self._run_task.done())
+        return self._run_task is not None and not (
+            self._run_task.cancelled() or self._run_task.done()
         )
 
     @property
@@ -277,23 +280,23 @@ class OpenMMRunner(NarupaRunner):
         self._variable_interval_generator.interval = interval
 
     def run(
-            self,
-            steps: Optional[int] = None,
-            block: Optional[bool] = None,
+        self,
+        steps: Optional[int] = None,
+        block: Optional[bool] = None,
     ) -> None:
         if self.is_running:
             raise RuntimeError("Dynamics are already running on a thread!")
         # The default is to be blocking if a number of steps is provided, and
         # not blocking if we run forever.
         if block is None:
-            block = (steps is not None)
+            block = steps is not None
         if block:
             self._run(steps)
         else:
             self._run_task = self.threads.submit(self._run, steps)
 
     def _run(self, steps: Optional[int]) -> None:
-        remaining_steps = steps if steps is not None else float('inf')
+        remaining_steps = steps if steps is not None else float("inf")
         for _ in self._variable_interval_generator.yield_interval():
             if self._cancelled or remaining_steps <= 0:
                 break
@@ -360,19 +363,19 @@ class OpenMMRunner(NarupaRunner):
         self.frame_interval = int(interval)
 
     def _get_frame_interval(self) -> Dict[str, int]:
-        return {'interval': self.frame_interval}
+        return {"interval": self.frame_interval}
 
     def _set_force_interval(self, interval: int) -> None:
         self.force_interval = int(interval)
 
     def _get_force_interval(self) -> Dict[str, int]:
-        return {'interval': self.force_interval}
+        return {"interval": self.force_interval}
 
     def _set_dynamics_interval(self, interval: float) -> None:
         self.dynamics_interval = float(interval)
 
     def _get_dynamics_interval(self) -> Dict[str, float]:
-        return {'interval': self.dynamics_interval}
+        return {"interval": self.dynamics_interval}
 
     def close(self):
         self.cancel_run()
@@ -384,9 +387,21 @@ class OpenMMRunner(NarupaRunner):
         server.register_command(RESET_COMMAND_KEY, self.reset)
         server.register_command(STEP_COMMAND_KEY, self.step)
         server.register_command(PAUSE_COMMAND_KEY, self.pause)
-        server.register_command(SET_FRAME_INTERVAL_COMMAND_KEY, self._set_frame_interval)
-        server.register_command(GET_FRAME_INTERVAL_COMMAND_KEY, self._get_frame_interval)
-        server.register_command(SET_FORCE_INTERVAL_COMMAND_KEY, self._set_force_interval)
-        server.register_command(GET_FORCE_INTERVAL_COMMAND_KEY, self._get_force_interval)
-        server.register_command(SET_DYNAMICS_INTERVAL_COMMAND_KEY, self._set_dynamics_interval)
-        server.register_command(GET_DYNAMICS_INTERVAL_COMMAND_KEY, self._get_dynamics_interval)
+        server.register_command(
+            SET_FRAME_INTERVAL_COMMAND_KEY, self._set_frame_interval
+        )
+        server.register_command(
+            GET_FRAME_INTERVAL_COMMAND_KEY, self._get_frame_interval
+        )
+        server.register_command(
+            SET_FORCE_INTERVAL_COMMAND_KEY, self._set_force_interval
+        )
+        server.register_command(
+            GET_FORCE_INTERVAL_COMMAND_KEY, self._get_force_interval
+        )
+        server.register_command(
+            SET_DYNAMICS_INTERVAL_COMMAND_KEY, self._set_dynamics_interval
+        )
+        server.register_command(
+            GET_DYNAMICS_INTERVAL_COMMAND_KEY, self._get_dynamics_interval
+        )

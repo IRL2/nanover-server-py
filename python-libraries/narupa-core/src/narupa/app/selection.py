@@ -5,21 +5,21 @@ from typing import Dict, Iterable, Set, Union, TypeVar, Optional, cast
 
 from narupa.utilities.event import Event
 
-INTERACTION_SINGLE = 'single'
-INTERACTION_GROUP = 'group'
-INTERACTION_RESTRAINT = 'restraint'
+INTERACTION_SINGLE = "single"
+INTERACTION_GROUP = "group"
+INTERACTION_RESTRAINT = "restraint"
 
-RENDERER_LIQUORICE = 'liquorice'
+RENDERER_LIQUORICE = "liquorice"
 
-KEY_SELECTION_ID = 'id'
-KEY_SELECTION_NAME = 'name'
-KEY_SELECTION_SELECTED = 'selected'
-KEY_SELECTED_PARTICLE_IDS = 'particle_ids'
-KEY_SELECTION_PROPERTIES = 'properties'
-KEY_PROPERTY_INTERACTION_METHOD = 'narupa.interaction.method'
-KEY_PROPERTY_VELOCITY_RESET = 'narupa.interaction.velocity_reset'
-KEY_PROPERTY_RENDERER = 'narupa.rendering.renderer'
-KEY_PROPERTY_HIDE = 'narupa.rendering.hide'
+KEY_SELECTION_ID = "id"
+KEY_SELECTION_NAME = "name"
+KEY_SELECTION_SELECTED = "selected"
+KEY_SELECTED_PARTICLE_IDS = "particle_ids"
+KEY_SELECTION_PROPERTIES = "properties"
+KEY_PROPERTY_INTERACTION_METHOD = "narupa.interaction.method"
+KEY_PROPERTY_VELOCITY_RESET = "narupa.interaction.velocity_reset"
+KEY_PROPERTY_RENDERER = "narupa.rendering.renderer"
+KEY_PROPERTY_HIDE = "narupa.rendering.hide"
 
 INTERACTION_METHOD_DEFAULT = INTERACTION_SINGLE
 VELOCITY_RESET_DEFAULT = False
@@ -41,7 +41,7 @@ class RenderingSelection:
     """
 
     @classmethod
-    def from_dictionary(cls, dict: Dict) -> 'RenderingSelection':
+    def from_dictionary(cls, dict: Dict) -> "RenderingSelection":
         """
         Decode a dictionary into a selection.
 
@@ -56,7 +56,7 @@ class RenderingSelection:
 
         return selection
 
-    def __init__(self, id: str, name: str = 'Unnamed Selection'):
+    def __init__(self, id: str, name: str = "Unnamed Selection"):
         """
         Create a new selection.
 
@@ -132,16 +132,16 @@ class RenderingSelection:
             KEY_SELECTION_ID: self.selection_id,
             KEY_SELECTION_NAME: self.selection_name,
             KEY_SELECTION_SELECTED: {
-                KEY_SELECTED_PARTICLE_IDS: list(self.selected_particle_ids) \
-                    if self.selected_particle_ids is not None \
-                    else None,
+                KEY_SELECTED_PARTICLE_IDS: list(self.selected_particle_ids)
+                if self.selected_particle_ids is not None
+                else None,
             },
             KEY_SELECTION_PROPERTIES: {
                 KEY_PROPERTY_INTERACTION_METHOD: self.interaction_method,
                 KEY_PROPERTY_VELOCITY_RESET: self.velocity_reset,
                 KEY_PROPERTY_RENDERER: self.renderer,
-                KEY_PROPERTY_HIDE: self.hide
-            }
+                KEY_PROPERTY_HIDE: self.hide,
+            },
         }
 
     @property
@@ -244,12 +244,14 @@ class RenderingSelection:
         self.read_hide_from_dictionary(dict)
 
     def read_selected_particles_from_dictionary(self, dict: Dict):
-        self.set_particles(get_nested_or_default(
-            dict,
-            SELECTED_PARTICLE_IDS_DEFAULT,
-            KEY_SELECTION_SELECTED,
-            KEY_SELECTED_PARTICLE_IDS,
-        ))
+        self.set_particles(
+            get_nested_or_default(
+                dict,
+                SELECTED_PARTICLE_IDS_DEFAULT,
+                KEY_SELECTION_SELECTED,
+                KEY_SELECTED_PARTICLE_IDS,
+            )
+        )
 
     def read_interaction_method_from_dictionary(self, dict: Dict):
         self.interaction_method = get_nested_or_default(
@@ -284,7 +286,7 @@ class RenderingSelection:
         )
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def get_nested_or_default(dict: Dict, default: T, *keys: Iterable[str]) -> T:

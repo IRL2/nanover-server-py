@@ -10,8 +10,8 @@ from typing import Optional, Callable, Tuple
 
 import grpc
 
-DEFAULT_SERVE_ADDRESS = '[::]'
-DEFAULT_CONNECT_ADDRESS = 'localhost'
+DEFAULT_SERVE_ADDRESS = "[::]"
+DEFAULT_CONNECT_ADDRESS = "localhost"
 
 # We expect that reserving a large number of threads should not present a
 # performance issue. Each concurrent GRPC request requires a worker, and streams
@@ -30,15 +30,15 @@ class GrpcServer:
     """
 
     def __init__(
-            self,
-            *,
-            address: str,
-            port: int,
-            max_workers=DEFAULT_MAX_WORKERS,
+        self,
+        *,
+        address: str,
+        port: int,
+        max_workers=DEFAULT_MAX_WORKERS,
     ):
         grpc_options = (
             # do not allow hosting two servers on the same port
-            ('grpc.so_reuseport', 0),
+            ("grpc.so_reuseport", 0),
         )
         executor = futures.ThreadPoolExecutor(max_workers=max_workers)
         self.server = grpc.server(executor, options=grpc_options)
@@ -53,7 +53,9 @@ class GrpcServer:
         self._address = address
 
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f'Running server {self.__class__.__name__} on port {self.port}')
+        self.logger.info(
+            f"Running server {self.__class__.__name__} on port {self.port}"
+        )
         self.server.start()
 
     @property
@@ -96,8 +98,10 @@ class GrpcServer:
         try:
             service.add_to_server_method(service, self.server)
         except AttributeError:
-            raise AttributeError("Service implementation did not have the add_to_server_method "
-                                 "as an attribute, cannot automatically add to gRPC server.")
+            raise AttributeError(
+                "Service implementation did not have the add_to_server_method "
+                "as an attribute, cannot automatically add to gRPC server."
+            )
 
     def close(self):
         """

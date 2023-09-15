@@ -3,12 +3,17 @@
 """
 Functions for extracting topology from narupa frames into per-atom dictionaries.
 """
-from narupa.trajectory.frame_data import PARTICLE_ELEMENTS, PARTICLE_RESIDUES, PARTICLE_NAMES, BOND_PAIRS
+from narupa.trajectory.frame_data import (
+    PARTICLE_ELEMENTS,
+    PARTICLE_RESIDUES,
+    PARTICLE_NAMES,
+    BOND_PAIRS,
+)
 
 ATOM_PROPERTIES = {
-    'element': PARTICLE_ELEMENTS,
-    'name': PARTICLE_NAMES,
-    'residue': PARTICLE_RESIDUES,
+    "element": PARTICLE_ELEMENTS,
+    "name": PARTICLE_NAMES,
+    "residue": PARTICLE_RESIDUES,
 }
 
 
@@ -32,7 +37,7 @@ def atom_listing_from_frame(frame):
     neighbour_map = neighbour_map_from_frame(frame)
 
     for index in range(0, atom_count):
-        atom = {'index': index, 'neighbours': neighbour_map.get(index)}
+        atom = {"index": index, "neighbours": neighbour_map.get(index)}
 
         for key, array in atom_arrays.items():
             atom[key] = array[index]
@@ -40,8 +45,8 @@ def atom_listing_from_frame(frame):
         atoms.append(atom)
 
     for atom in atoms:
-        if atom['neighbours'] is not None:
-            atom['neighbours'] = [atoms[index] for index in atom['neighbours']]
+        if atom["neighbours"] is not None:
+            atom["neighbours"] = [atoms[index] for index in atom["neighbours"]]
 
     return atoms
 

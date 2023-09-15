@@ -3,7 +3,7 @@ from narupa.utilities.event import Event
 
 def test_invoke_nocallbacks():
     event = Event()
-    event.invoke('argument')
+    event.invoke("argument")
 
 
 def test_invoke_callback():

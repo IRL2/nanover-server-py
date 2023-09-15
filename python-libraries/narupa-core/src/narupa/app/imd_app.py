@@ -25,12 +25,16 @@ class NarupaImdApplication(NarupaFrameApplication):
     {}
 
     """
+
     DEFAULT_SERVER_NAME: str = "Narupa iMD Server"
     _imd_state: ImdStateWrapper
 
-    def __init__(self, server: NarupaServer,
-                 discovery: Optional[DiscoveryServer] = None,
-                 name: Optional[str] = None):
+    def __init__(
+        self,
+        server: NarupaServer,
+        discovery: Optional[DiscoveryServer] = None,
+        name: Optional[str] = None,
+    ):
         super().__init__(server, discovery, name)
         self._setup_imd()
 

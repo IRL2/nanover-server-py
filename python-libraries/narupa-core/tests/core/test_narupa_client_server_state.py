@@ -12,8 +12,8 @@ IMMEDIATE_REPLY_WAIT_TIME = 0.01
 ARBITRARY_LOCK_DURATION = 5
 
 INITIAL_STATE = {
-    'hello': 100,
-    'test': {'baby': 'yoda'},
+    "hello": 100,
+    "test": {"baby": "yoda"},
 }
 
 
@@ -22,7 +22,9 @@ def client_server() -> Tuple[NarupaClient, NarupaServer]:
     with NarupaServer(address="localhost", port=0) as server:
         change = DictionaryChange(INITIAL_STATE)
         server.update_state(None, change)
-        with NarupaClient.insecure_channel(address="localhost", port=server.port) as client:
+        with NarupaClient.insecure_channel(
+            address="localhost", port=server.port
+        ) as client:
             yield client, server
 
 
@@ -35,7 +37,7 @@ def test_server_cannot_set_non_basic_type(client_server):
     class UserType:
         pass
 
-    change = DictionaryChange({'hello': UserType()})
+    change = DictionaryChange({"hello": UserType()})
     with pytest.raises(TypeError):
         server.update_state(None, change)
 
@@ -49,7 +51,7 @@ def test_client_cannot_set_non_basic_type(client_server):
     class UserType:
         pass
 
-    change = DictionaryChange({'hello': UserType()})
+    change = DictionaryChange({"hello": UserType()})
     with pytest.raises(TypeError):
         client.attempt_update_state(change)
 
@@ -80,7 +82,7 @@ def test_client_copy_state_is_independent(client_server):
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     copy = client.copy_state()
-    copy['test']['baby'] = 'shark'
+    copy["test"]["baby"] = "shark"
 
     with client.lock_state() as state:
         assert copy != state
@@ -106,7 +108,7 @@ def test_server_copy_state_is_independent(client_server):
     client, server = client_server
 
     copy = server.copy_state()
-    copy['test']['baby'] = 'shark'
+    copy["test"]["baby"] = "shark"
 
     with server.lock_state() as state:
         assert copy != state
@@ -142,13 +144,13 @@ def test_server_state_reflects_client_update(client_server):
     """
     client, server = client_server
 
-    change = DictionaryChange({'hello': 'goodbye'}, {'test'})
+    change = DictionaryChange({"hello": "goodbye"}, {"test"})
     client.attempt_update_state(change)
 
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     with server.lock_state() as state:
-        assert state == {'hello': 'goodbye'}
+        assert state == {"hello": "goodbye"}
 
 
 def test_client_state_reflects_own_update(client_server):
@@ -158,13 +160,13 @@ def test_client_state_reflects_own_update(client_server):
     client, server = client_server
     client.subscribe_all_state_updates(0)
 
-    change = DictionaryChange({'hello': 'goodbye'}, {'test'})
+    change = DictionaryChange({"hello": "goodbye"}, {"test"})
     client.attempt_update_state(change)
 
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     with client.lock_state() as state:
-        assert state == {'hello': 'goodbye'}
+        assert state == {"hello": "goodbye"}
 
 
 def test_client_state_reflects_other_update(client_server):
@@ -174,19 +176,20 @@ def test_client_state_reflects_other_update(client_server):
     client1, server = client_server
     client1.subscribe_all_state_updates(0)
 
-    with NarupaClient.insecure_channel(address="localhost", port=server.port) as client2:
-        change = DictionaryChange({'hello': 'goodbye'}, {'test'})
+    with NarupaClient.insecure_channel(
+        address="localhost", port=server.port
+    ) as client2:
+        change = DictionaryChange({"hello": "goodbye"}, {"test"})
         client2.attempt_update_state(change)
 
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     with client1.lock_state() as state:
-        assert state == {'hello': 'goodbye'}
+        assert state == {"hello": "goodbye"}
 
 
-@pytest.mark.parametrize('update_interval', (1 / 10, 1 / 30, 1 / 60))
-def test_subscribe_updates_sends_initial_immediately(client_server,
-                                                     update_interval):
+@pytest.mark.parametrize("update_interval", (1 / 10, 1 / 30, 1 / 60))
+def test_subscribe_updates_sends_initial_immediately(client_server, update_interval):
     """
     Test that subscribing updates before any have been sent will immediately
     send the initial values regardless of interval.
@@ -200,7 +203,7 @@ def test_subscribe_updates_sends_initial_immediately(client_server,
         assert state == INITIAL_STATE
 
 
-@pytest.mark.parametrize('update_interval', (.5, .2, .1))
+@pytest.mark.parametrize("update_interval", (0.5, 0.2, 0.1))
 def test_subscribe_updates_interval(client_server, update_interval):
     """
     Test that state updates are sent at the requested interval.
@@ -211,20 +214,20 @@ def test_subscribe_updates_interval(client_server, update_interval):
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
     with client.lock_state() as state:
-        assert state['hello'] == INITIAL_STATE['hello']
+        assert state["hello"] == INITIAL_STATE["hello"]
 
-    change = DictionaryChange({'hello': 999})
+    change = DictionaryChange({"hello": 999})
     client.attempt_update_state(change)
 
     time.sleep(update_interval / 2)
 
     with client.lock_state() as state:
-        assert state['hello'] == INITIAL_STATE['hello']
+        assert state["hello"] == INITIAL_STATE["hello"]
 
     time.sleep(update_interval / 2)
 
     with client.lock_state() as state:
-        assert state['hello'] == 999
+        assert state["hello"] == 999
 
 
 def test_can_lock_unlocked(client_server):
@@ -232,7 +235,7 @@ def test_can_lock_unlocked(client_server):
     Test that an unlocked state key can be locked.
     """
     client, server = client_server
-    assert client.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+    assert client.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
 
 
 def test_can_lock_unlocked_nonexistent(client_server):
@@ -240,7 +243,7 @@ def test_can_lock_unlocked_nonexistent(client_server):
     Test that a nonexistent unlocked state key can be locked.
     """
     client, server = client_server
-    assert client.attempt_update_locks({'goodbye': ARBITRARY_LOCK_DURATION})
+    assert client.attempt_update_locks({"goodbye": ARBITRARY_LOCK_DURATION})
 
 
 def test_can_lock_own_locked(client_server):
@@ -248,8 +251,8 @@ def test_can_lock_own_locked(client_server):
     Test that an attempt to lock a state key you have already lock succeeds.
     """
     client, server = client_server
-    client.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
-    assert client.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+    client.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
+    assert client.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
 
 
 def test_can_update_own_locked(client_server):
@@ -257,8 +260,8 @@ def test_can_update_own_locked(client_server):
     Test that you can update state keys that you locked.
     """
     client, server = client_server
-    client.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
-    change = DictionaryChange({'hello': 999}, {'test'})
+    client.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
+    change = DictionaryChange({"hello": 999}, {"test"})
     assert client.attempt_update_state(change)
 
 
@@ -267,8 +270,8 @@ def test_can_release_own_lock(client_server):
     Test that you can release your own lock.
     """
     client, server = client_server
-    client.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
-    assert client.attempt_update_locks({'hello': None})
+    client.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
+    assert client.attempt_update_locks({"hello": None})
 
 
 def test_can_update_unlocked(client_server):
@@ -276,7 +279,7 @@ def test_can_update_unlocked(client_server):
     Test that you can update state keys that are unlocked.
     """
     client, server = client_server
-    change = DictionaryChange({'hello': 999}, {'test'})
+    change = DictionaryChange({"hello": 999}, {"test"})
     assert client.attempt_update_state(change)
 
 
@@ -285,16 +288,18 @@ def test_cannot_remove_locked_key(client_server):
     Test can't remove key that is locked by another access token.
     """
     client, server = client_server
-    server.update_locks(acquire={'hello': ARBITRARY_LOCK_DURATION})
-    change = DictionaryChange({}, {'hello'})
+    server.update_locks(acquire={"hello": ARBITRARY_LOCK_DURATION})
+    change = DictionaryChange({}, {"hello"})
     assert not client.attempt_update_state(change)
 
 
 def test_update_unlocked_repeated(client_server):
     client1, server = client_server
-    change1 = DictionaryChange({'hello': 1})
-    change2 = DictionaryChange({'hello': 2})
-    with NarupaClient.insecure_channel(address="localhost", port=server.port) as client2:
+    change1 = DictionaryChange({"hello": 1})
+    change2 = DictionaryChange({"hello": 2})
+    with NarupaClient.insecure_channel(
+        address="localhost", port=server.port
+    ) as client2:
         assert client1.attempt_update_state(change1)
         assert client2.attempt_update_state(change2)
         assert client1.attempt_update_state(change1)
@@ -307,9 +312,11 @@ def test_cannot_lock_other_locked(client_server):
     """
     client1, server = client_server
 
-    with NarupaClient.insecure_channel(address="localhost", port=server.port) as client2:
-        client2.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
-        assert not client1.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
+    with NarupaClient.insecure_channel(
+        address="localhost", port=server.port
+    ) as client2:
+        client2.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
+        assert not client1.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
 
 
 def test_cannot_release_other_lock(client_server):
@@ -318,10 +325,12 @@ def test_cannot_release_other_lock(client_server):
     """
     client1, server = client_server
 
-    with NarupaClient.insecure_channel(address="localhost", port=server.port) as client2:
-        client2.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
-        assert client1.attempt_update_locks({'hello': None})
-        change = DictionaryChange({'hello': 999})
+    with NarupaClient.insecure_channel(
+        address="localhost", port=server.port
+    ) as client2:
+        client2.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
+        assert client1.attempt_update_locks({"hello": None})
+        change = DictionaryChange({"hello": 999})
         assert not client1.attempt_update_state(change)
 
 
@@ -331,13 +340,15 @@ def test_cannot_set_other_locked(client_server):
     """
     client1, server = client_server
 
-    with NarupaClient.insecure_channel(address="localhost", port=server.port) as client2:
-        client2.attempt_update_locks({'hello': ARBITRARY_LOCK_DURATION})
-        change = DictionaryChange({'hello': 999})
+    with NarupaClient.insecure_channel(
+        address="localhost", port=server.port
+    ) as client2:
+        client2.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
+        change = DictionaryChange({"hello": 999})
         assert not client1.attempt_update_state(change)
 
 
-@pytest.mark.parametrize('lock_duration', (.5, 1, 2))
+@pytest.mark.parametrize("lock_duration", (0.5, 1, 2))
 def test_lock_durations(client_server, lock_duration):
     """
     Test that locks expire roughly after the requested duration has passed.
@@ -347,14 +358,11 @@ def test_lock_durations(client_server, lock_duration):
     access_token_1 = object()
     access_token_2 = object()
 
-    server.update_locks(access_token_1, acquire={'hello': lock_duration})
+    server.update_locks(access_token_1, acquire={"hello": lock_duration})
 
-    time.sleep(lock_duration * .7)
+    time.sleep(lock_duration * 0.7)
     with pytest.raises(ResourceLockedError):
-        server.update_locks(access_token_2, acquire={'hello': lock_duration})
+        server.update_locks(access_token_2, acquire={"hello": lock_duration})
 
-    time.sleep(lock_duration * .7)
-    server.update_locks(access_token_2, acquire={'hello': lock_duration})
-
-
-
+    time.sleep(lock_duration * 0.7)
+    server.update_locks(access_token_2, acquire={"hello": lock_duration})

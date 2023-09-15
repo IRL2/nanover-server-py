@@ -20,12 +20,11 @@ class ImdClient(NarupaClient):
     A simple IMD client, primarily for testing the IMD server.
 
     """
+
     _local_interaction_ids: Set[str]
     _logger: logging.Logger
 
-    def __init__(self, *,
-                 channel: grpc.Channel,
-                 make_channel_owner: bool = False):
+    def __init__(self, *, channel: grpc.Channel, make_channel_owner: bool = False):
         super().__init__(channel=channel, make_channel_owner=make_channel_owner)
         self._local_interaction_ids = set()
         self._logger = logging.getLogger(__name__)
@@ -54,9 +53,9 @@ class ImdClient(NarupaClient):
         return interaction_id
 
     def update_interaction(
-            self,
-            interaction_id: str,
-            interaction: ParticleInteraction,
+        self,
+        interaction_id: str,
+        interaction: ParticleInteraction,
     ):
         """
         Updates the interaction identified with the given interaction_id on the server with
@@ -71,11 +70,14 @@ class ImdClient(NarupaClient):
         :raises: KeyError, if the given interaction ID does not exist.
         """
         if interaction_id not in self._local_interaction_ids:
-            raise KeyError("Attempted to update an interaction with an "
-                           "unknown interaction ID.")
-        change = DictionaryChange(updates={
-            interaction_id: interaction_to_dict(interaction),
-        })
+            raise KeyError(
+                "Attempted to update an interaction with an " "unknown interaction ID."
+            )
+        change = DictionaryChange(
+            updates={
+                interaction_id: interaction_to_dict(interaction),
+            }
+        )
         return self.attempt_update_state(change)
 
     def stop_interaction(self, interaction_id: str) -> bool:
@@ -89,12 +91,11 @@ class ImdClient(NarupaClient):
         :raises: KeyError, if the given interaction ID does not exist.
         """
         if interaction_id not in self._local_interaction_ids:
-            raise KeyError("Attempted to stop an interaction with an unknown "
-                           "interaction ID.")
+            raise KeyError(
+                "Attempted to stop an interaction with an unknown " "interaction ID."
+            )
         self._local_interaction_ids.remove(interaction_id)
-        change = DictionaryChange(
-            removals=set([interaction_id])
-        )
+        change = DictionaryChange(removals=set([interaction_id]))
         return self.attempt_update_state(change)
 
     def stop_all_interactions(self):

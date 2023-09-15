@@ -38,10 +38,12 @@ def vector_with_random_distance(draw):
     """
     # Generate random polar coordinates and convert them to euclidean
     # coordinates.
-    length = strategies.floats(min_value=0, max_value=100,
-                               allow_nan=False, allow_infinity=False)
-    angle = strategies.floats(min_value=0, max_value=2 * np.pi,
-                              allow_nan=False, allow_infinity=False)
+    length = strategies.floats(
+        min_value=0, max_value=100, allow_nan=False, allow_infinity=False
+    )
+    angle = strategies.floats(
+        min_value=0, max_value=2 * np.pi, allow_nan=False, allow_infinity=False
+    )
     distance = draw(length)
     theta = draw(angle)
     phi = draw(angle)
@@ -75,15 +77,24 @@ def points_in_periodic_box(draw):
 
     # Generate random lengths to get a periodic box.
     # box length has to be nonzero.
-    length = strategies.floats(min_value=1e-12, max_value=100,
-                               allow_nan=False, allow_infinity=False)
+    length = strategies.floats(
+        min_value=1e-12, max_value=100, allow_nan=False, allow_infinity=False
+    )
 
     periodic_box_lengths = np.array([draw(length) for x in range(3)])
 
     # pick two random points in lowest quadrant of the box.
-    lengths = np.array([strategies.floats(min_value=0, max_value=box_length * 0.5,
-                                          allow_nan=False, allow_infinity=False) for box_length in
-                        periodic_box_lengths])
+    lengths = np.array(
+        [
+            strategies.floats(
+                min_value=0,
+                max_value=box_length * 0.5,
+                allow_nan=False,
+                allow_infinity=False,
+            )
+            for box_length in periodic_box_lengths
+        ]
+    )
     point1 = np.array([draw(coord) for coord in lengths])
     point2 = np.array([draw(coord) for coord in lengths])
 
@@ -102,12 +113,52 @@ def points_in_periodic_box(draw):
 
 
 @given(points_in_periodic_box())
-@example((np.zeros((3,)), np.zeros((3,)), np.array([1, 1, 1], dtype=float), np.zeros((3,)), 0))
-@example((np.zeros((3,)), np.array([1, 1, 1]), np.array([2, 2, 2], dtype=float), np.array([-1, -1, -1]), 3))
-@example((np.zeros((3,)), np.array([3, 3, 3]), np.array([2, 2, 2], dtype=float), np.array([1, 1, 1]), 3))
-@example((np.zeros((3,)), np.array([0, 0.5, 0]), np.array([1, 1, 1], dtype=float), np.array([0, 0.5, 0]), 0.25))
+@example(
+    (
+        np.zeros((3,)),
+        np.zeros((3,)),
+        np.array([1, 1, 1], dtype=float),
+        np.zeros((3,)),
+        0,
+    )
+)
+@example(
+    (
+        np.zeros((3,)),
+        np.array([1, 1, 1]),
+        np.array([2, 2, 2], dtype=float),
+        np.array([-1, -1, -1]),
+        3,
+    )
+)
+@example(
+    (
+        np.zeros((3,)),
+        np.array([3, 3, 3]),
+        np.array([2, 2, 2], dtype=float),
+        np.array([1, 1, 1]),
+        3,
+    )
+)
+@example(
+    (
+        np.zeros((3,)),
+        np.array([0, 0.5, 0]),
+        np.array([1, 1, 1], dtype=float),
+        np.array([0, 0.5, 0]),
+        0.25,
+    )
+)
 def test_distance(vec_pbc_diff):
-    point1, point2, periodic_box_lengths, expected_diff, expected_dist_sqr = vec_pbc_diff
-    diff, dist_sqr = _calculate_diff_and_sqr_distance(point1, point2, periodic_box_lengths)
+    (
+        point1,
+        point2,
+        periodic_box_lengths,
+        expected_diff,
+        expected_dist_sqr,
+    ) = vec_pbc_diff
+    diff, dist_sqr = _calculate_diff_and_sqr_distance(
+        point1, point2, periodic_box_lengths
+    )
     assert np.allclose(dist_sqr, expected_dist_sqr, atol=1.0e-10)
     assert np.allclose(np.abs(diff), np.abs(expected_diff), atol=1.0e-10)

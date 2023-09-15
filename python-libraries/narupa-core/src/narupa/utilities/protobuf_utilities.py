@@ -17,15 +17,20 @@ from google.protobuf.struct_pb2 import Struct, Value, ListValue
 _SerializablePrimitive = Union[None, str, int, float, bool]
 _TerminalIterable = Iterable[Any]
 _TerminalMapping = Mapping[str, Any]
-_Level0Iterable = Iterable[Union[_SerializablePrimitive, _TerminalIterable, _TerminalMapping]]
-_Level0Mapping = Mapping[str, Union[_SerializablePrimitive, _TerminalIterable, _TerminalMapping]]
+_Level0Iterable = Iterable[
+    Union[_SerializablePrimitive, _TerminalIterable, _TerminalMapping]
+]
+_Level0Mapping = Mapping[
+    str, Union[_SerializablePrimitive, _TerminalIterable, _TerminalMapping]
+]
 Serializable = Union[
     _SerializablePrimitive,
     _TerminalIterable,
     _TerminalMapping,
     _Level0Iterable,
-    _Level0Mapping
+    _Level0Mapping,
 ]
+
 
 def dict_to_struct(dictionary: Mapping[str, Serializable]) -> Struct:
     """
@@ -40,9 +45,9 @@ def dict_to_struct(dictionary: Mapping[str, Serializable]) -> Struct:
         struct.update(dictionary)  # type: ignore
     except (ValueError, TypeError, AttributeError):
         raise ValueError(
-            'Could not convert object into a protobuf struct. The object to '
-            'be converted must be a dictionary with string keys containing '
-            'only numbers, strings, booleans and collections of those types. '
+            "Could not convert object into a protobuf struct. The object to "
+            "be converted must be a dictionary with string keys containing "
+            "only numbers, strings, booleans and collections of those types. "
         )
     return struct
 
@@ -92,7 +97,9 @@ def value_to_object(value: Value) -> Serializable:
     return expanded
 
 
-def deep_copy_serializable_dict(dictionary: Dict[str, Serializable]) -> Dict[str, Serializable]:
+def deep_copy_serializable_dict(
+    dictionary: Dict[str, Serializable]
+) -> Dict[str, Serializable]:
     """
     Makes a deep copy of a dictionary by converting it to a protobuf Struct and
     back. Only protobuf serializable elements will be preserved.

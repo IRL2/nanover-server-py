@@ -12,6 +12,7 @@ from narupa.ase.openmm.calculator import OpenMMCalculator
 from openmm_ase.simulation_utils import basic_simulation
 from narupa.ase.wall_constraint import VelocityWallConstraint
 
+
 @pytest.fixture
 def walled_dynamics_and_expectations():
     """
@@ -21,11 +22,11 @@ def walled_dynamics_and_expectations():
     """
     position = [1, 2, 3]
     velocity = [-0.5, 1, 3.1]
-    box = [2., 3.5, 6.]
+    box = [2.0, 3.5, 6.0]
     n_steps = 5
 
     atoms = Atoms(
-        'C',
+        "C",
         positions=[[p * units.Ang for p in position]],
         pbc=(True, True, True),
     )
@@ -49,9 +50,8 @@ def walled_dynamics_and_expectations():
         step_position = expected_positions[step - 1, :].copy()
         step_velocity = expected_velocities[step - 1, :].copy()
         step_position += step_velocity
-        inversion = (
-            ((step_position <= 0) & (step_velocity < 0))
-            | ((step_position >= box) & (step_velocity > 0))
+        inversion = ((step_position <= 0) & (step_velocity < 0)) | (
+            (step_position >= box) & (step_velocity > 0)
         )
         step_velocity[inversion] *= -1
         expected_positions[step, :] = step_position
@@ -98,10 +98,15 @@ def test_velocity_wall(walled_dynamics_and_expectations):
     assert np.allclose(velocities, expected_velocities)
 
 
-@pytest.mark.parametrize('broken_cell', (
-    Cell(np.zeros((3, 3), dtype=float)),  # Nul volume
-    Cell(np.array([[1., 1., 0.], [0., 1., 1.], [0., 0., 1.]])), # Not orthorhombic
-))
+@pytest.mark.parametrize(
+    "broken_cell",
+    (
+        Cell(np.zeros((3, 3), dtype=float)),  # Nul volume
+        Cell(
+            np.array([[1.0, 1.0, 0.0], [0.0, 1.0, 1.0], [0.0, 0.0, 1.0]])
+        ),  # Not orthorhombic
+    ),
+)
 def test_validate_box(broken_cell):
     with pytest.raises(ValueError):
         VelocityWallConstraint._validate_box(broken_cell)
@@ -130,7 +135,9 @@ def test_chaining_calculators(walled_atoms, openmm_calculator_and_atoms):
     reference_dynamics.run(7)
     walled_dynamics.run(7)
     assert walled_atoms.get_potential_energy() == reference_atoms.get_potential_energy()
-    assert walled_atoms.get_positions() == pytest.approx(reference_atoms.get_positions())
+    assert walled_atoms.get_positions() == pytest.approx(
+        reference_atoms.get_positions()
+    )
 
     # During the 7th step, the further hydrogen should have crossed the box. So,
     # at the 8th step, the wall should put it back in only in the walled system.
@@ -139,4 +146,6 @@ def test_chaining_calculators(walled_atoms, openmm_calculator_and_atoms):
     # Only the positions are different. The wall changed the velocity during the
     # integration step, but the energy will only be affected next step.
     assert walled_atoms.get_potential_energy() == reference_atoms.get_potential_energy()
-    assert walled_atoms.get_positions() != pytest.approx(reference_atoms.get_positions())
+    assert walled_atoms.get_positions() != pytest.approx(
+        reference_atoms.get_positions()
+    )

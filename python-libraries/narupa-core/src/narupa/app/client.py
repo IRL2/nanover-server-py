@@ -23,19 +23,24 @@ from narupa.essd import DiscoveryClient
 from narupa.imd import ImdClient, IMD_SERVICE_NAME
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.trajectory import FrameClient, FrameData, FRAME_SERVICE_NAME
-from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, STEP_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY
+from narupa.trajectory.frame_server import (
+    PLAY_COMMAND_KEY,
+    STEP_COMMAND_KEY,
+    PAUSE_COMMAND_KEY,
+    RESET_COMMAND_KEY,
+)
 from narupa.utilities.change_buffers import DictionaryChange
 
 # Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
 
 # ID of the root selection
-SELECTION_ROOT_ID = 'selection.root'
+SELECTION_ROOT_ID = "selection.root"
 # Name of the root selection
-SELECTION_ROOT_NAME = 'Root Selection'
+SELECTION_ROOT_NAME = "Root Selection"
 
 
-ClientVarType = TypeVar('ClientVarType', bound=NarupaClient)
+ClientVarType = TypeVar("ClientVarType", bound=NarupaClient)
 
 
 def _update_commands(client: Optional[NarupaClient]):
@@ -53,7 +58,7 @@ def _need_attribute(func, *, name: str, attr: str):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         if getattr(self, attr) is None:
-            raise RuntimeError(f'Not connected to {name} service')
+            raise RuntimeError(f"Not connected to {name} service")
         return func(self, *args, **kwargs)
 
     return wrapper
@@ -64,17 +69,20 @@ def need_trajectory_joined(func):
     def wrapper(self, *args, **kwargs):
         if not self._are_framed_subscribed:
             raise RuntimeError(
-                'You need to first subscribe to the frame using the '
-                'subscribe_to_frames or the subscribe_to_all_frames methods.'
+                "You need to first subscribe to the frame using the "
+                "subscribe_to_frames or the subscribe_to_all_frames methods."
             )
         return func(self, *args, **kwargs)
 
     return wrapper
 
+
 # Use partial to specify which attribute is needed for the given decorator.
-need_frames = partial(_need_attribute, name='trajectory', attr='_frame_client')
-need_imd = partial(_need_attribute, name='imd', attr='_imd_client')
-need_multiplayer = partial(_need_attribute, name='multiplayer', attr='_multiplayer_client')
+need_frames = partial(_need_attribute, name="trajectory", attr="_frame_client")
+need_imd = partial(_need_attribute, name="imd", attr="_imd_client")
+need_multiplayer = partial(
+    _need_attribute, name="multiplayer", attr="_multiplayer_client"
+)
 
 
 class NarupaImdClient:
@@ -142,6 +150,7 @@ class NarupaImdClient:
             selection.interaction_method = 'group'  # Interact with the selection as a group.
 
     """
+
     _player_id: str
     _channels: Dict[Tuple[str, int], grpc.Channel]
 
@@ -161,13 +170,15 @@ class NarupaImdClient:
     _are_framed_subscribed: bool
     _subscribed_to_all_frames: bool
 
-    def __init__(self, *,
-                 trajectory_address: Optional[Tuple[str, int]] = None,
-                 imd_address: Optional[Tuple[str, int]] = None,
-                 multiplayer_address: Optional[Tuple[str, int]] = None,
-                 max_frames=50,
-                 all_frames: Optional[bool] = None,
-        ):
+    def __init__(
+        self,
+        *,
+        trajectory_address: Optional[Tuple[str, int]] = None,
+        imd_address: Optional[Tuple[str, int]] = None,
+        multiplayer_address: Optional[Tuple[str, int]] = None,
+        max_frames=50,
+        all_frames: Optional[bool] = None,
+    ):
         if all_frames is not None:
             warnings.warn(
                 "The `all_frames` argument is deprecated and will be removed "
@@ -185,9 +196,11 @@ class NarupaImdClient:
         self._frame_client = None
         self._multiplayer_client = None
         self._imd_client = None
-        self.connect(trajectory_address=trajectory_address,
-                     imd_address=imd_address,
-                     multiplayer_address=multiplayer_address)
+        self.connect(
+            trajectory_address=trajectory_address,
+            imd_address=imd_address,
+            multiplayer_address=multiplayer_address,
+        )
 
         self._are_framed_subscribed = False
         self._subscribed_to_all_frames = False
@@ -202,7 +215,9 @@ class NarupaImdClient:
         return self._subscribed_to_all_frames
 
     @classmethod
-    def connect_to_single_server(cls, address: Optional[str] = None, port: Optional[int] = None):
+    def connect_to_single_server(
+        cls, address: Optional[str] = None, port: Optional[int] = None
+    ):
         """
         Connect to a single Narupa server running all services on the same port.
 
@@ -217,11 +232,11 @@ class NarupaImdClient:
 
     @classmethod
     def connect_to_single_server_multiple_ports(
-            cls,
-            address: str,
-            trajectory_port: int,
-            imd_port: int,
-            multiplayer_port: int,
+        cls,
+        address: str,
+        trajectory_port: int,
+        imd_port: int,
+        multiplayer_port: int,
     ):
         """
         Connect to a collection of Narupa servers running at the same address but potentially different ports.
@@ -234,18 +249,23 @@ class NarupaImdClient:
         """
 
         # TODO this is a utility method for testing... a good place to put this?
-        return cls(trajectory_address=(address, trajectory_port),
-                   imd_address=(address, imd_port),
-                   multiplayer_address=(address, multiplayer_port))
+        return cls(
+            trajectory_address=(address, trajectory_port),
+            imd_address=(address, imd_port),
+            multiplayer_address=(address, multiplayer_port),
+        )
 
     @classmethod
-    def autoconnect(cls, search_time=2.0,
-                    discovery_address: Optional[str] = None,
-                    discovery_port: Optional[int] = None,
-                    name: Optional[str] = None):
+    def autoconnect(
+        cls,
+        search_time=2.0,
+        discovery_address: Optional[str] = None,
+        discovery_port: Optional[int] = None,
+        name: Optional[str] = None,
+    ):
         """
         Autoconnect to the first available server discovered that at least produces frames.
-        
+
         :param search_time: Time, in seconds, to search for.
         :param discovery_address: IP address to search on.
         :param discovery_port: Port upon which to listen for discovery messages.
@@ -253,18 +273,27 @@ class NarupaImdClient:
         :return: Instantiation of an iMD client connected to whatever is available at the first
         """
         if name is not None:
-            first_service = _search_for_first_server_with_name(name, search_time, discovery_address, discovery_port)
+            first_service = _search_for_first_server_with_name(
+                name, search_time, discovery_address, discovery_port
+            )
         else:
-            first_service = _search_for_first_available_frame_service(search_time, discovery_address, discovery_port)
+            first_service = _search_for_first_available_frame_service(
+                search_time, discovery_address, discovery_port
+            )
 
         if first_service is None:
             raise ConnectionError("Could not find an iMD server")
 
         trajectory_address = first_service.get_service_address(FRAME_SERVICE_NAME)
         imd_address = first_service.get_service_address(IMD_SERVICE_NAME)
-        multiplayer_address = first_service.get_service_address(MULTIPLAYER_SERVICE_NAME)
-        return cls(trajectory_address=trajectory_address, imd_address=imd_address,
-                   multiplayer_address=multiplayer_address)
+        multiplayer_address = first_service.get_service_address(
+            MULTIPLAYER_SERVICE_NAME
+        )
+        return cls(
+            trajectory_address=trajectory_address,
+            imd_address=imd_address,
+            multiplayer_address=multiplayer_address,
+        )
 
     def close(self, clear_frames=True):
         """
@@ -310,7 +339,7 @@ class NarupaImdClient:
         """
         self._imd_client = self._connect_client(ImdClient, address)
         self._imd_client.subscribe_all_state_updates()
-    
+
     def connect_multiplayer(self, address: Tuple[str, int]):
         """
         Connects the client to the given multiplayer server.
@@ -319,11 +348,13 @@ class NarupaImdClient:
         """
         self._multiplayer_client = self._connect_client(NarupaClient, address)
 
-    def connect(self, *,
-                trajectory_address: Optional[Tuple[str, int]] = None,
-                imd_address: Optional[Tuple[str, int]] = None,
-                multiplayer_address: Optional[Tuple[str, int]] = None,
-                ):
+    def connect(
+        self,
+        *,
+        trajectory_address: Optional[Tuple[str, int]] = None,
+        imd_address: Optional[Tuple[str, int]] = None,
+        multiplayer_address: Optional[Tuple[str, int]] = None,
+    ):
         """
         Connects the client to all services for which addresses are provided.
         """
@@ -423,7 +454,9 @@ class NarupaImdClient:
         return self._imd_client.interactions  # type: ignore
 
     @need_imd
-    def start_interaction(self, interaction: Optional[ParticleInteraction] = None) -> str:
+    def start_interaction(
+        self, interaction: Optional[ParticleInteraction] = None
+    ) -> str:
         """
         Start an interaction with the IMD server.
 
@@ -518,7 +551,9 @@ class NarupaImdClient:
         self._trajectory_commands = _update_commands(self._frame_client)
         self._imd_commands = _update_commands(self._imd_client)
         self._multiplayer_commands = _update_commands(self._multiplayer_client)
-        return ChainMap(self._trajectory_commands, self._imd_commands, self._multiplayer_commands)
+        return ChainMap(
+            self._trajectory_commands, self._imd_commands, self._multiplayer_commands
+        )
 
     def run_command(self, name, **args):
         """
@@ -535,7 +570,9 @@ class NarupaImdClient:
             return self.run_imd_command(name, **args)
         if name in self._multiplayer_commands:
             return self.run_multiplayer_command(name, **args)
-        raise KeyError(f"Unknown command: {name}, run update_available_commands to refresh commands.")
+        raise KeyError(
+            f"Unknown command: {name}, run update_available_commands to refresh commands."
+        )
 
     @need_frames
     def run_trajectory_command(self, name: str, **args) -> Dict[str, object]:
@@ -587,8 +624,8 @@ class NarupaImdClient:
 
     @need_multiplayer
     def attempt_update_multiplayer_state(
-            self,
-            update: DictionaryChange,
+        self,
+        update: DictionaryChange,
     ) -> bool:
         """
         Attempt to make a single atomic change to the shared state, blocking
@@ -602,8 +639,8 @@ class NarupaImdClient:
 
     @need_multiplayer
     def attempt_update_multiplayer_locks(
-            self,
-            update: Dict[str, Optional[float]],
+        self,
+        update: Dict[str, Optional[float]],
     ) -> bool:
         """
         Attempt to acquire and/or free a number of locks on the shared state.
@@ -665,15 +702,17 @@ class NarupaImdClient:
         try:
             root_selection = self.get_selection(SELECTION_ROOT_ID)
         except KeyError:
-            root_selection = self._create_selection_from_id_and_name(SELECTION_ROOT_ID, SELECTION_ROOT_NAME)
+            root_selection = self._create_selection_from_id_and_name(
+                SELECTION_ROOT_ID, SELECTION_ROOT_NAME
+            )
         root_selection.selected_particle_ids = set()
         return root_selection
 
     @need_multiplayer
     def create_selection(
-            self,
-            name: str,
-            particle_ids: Optional[Iterable[int]] = None,
+        self,
+        name: str,
+        particle_ids: Optional[Iterable[int]] = None,
     ) -> RenderingSelection:
         """
         Create a particle selection with the given name.
@@ -686,7 +725,7 @@ class NarupaImdClient:
             particle_ids = set()
 
         # Give the selection an ID based upon the multiplayer player ID and an incrementing counter
-        selection_id = f'selection.{self._player_id}.{self._next_selection_id}'
+        selection_id = f"selection.{self._player_id}.{self._next_selection_id}"
         self._next_selection_id += 1
 
         # Create the selection and setup the particles that it contains
@@ -732,7 +771,7 @@ class NarupaImdClient:
         :return: An iterable of all the selections stored in the shared key store.
         """
         for key, _ in self._multiplayer_client.copy_state().items():  # type: ignore
-            if key.startswith('selection.'):
+            if key.startswith("selection."):
                 yield self.get_selection(key)
 
     @need_multiplayer
@@ -749,13 +788,14 @@ class NarupaImdClient:
         return self._create_selection_from_dict(value)
 
     def _create_selection_from_dict(self, value) -> RenderingSelection:
-
         selection = RenderingSelection.from_dictionary(value)
         selection.updated.add_callback(self.update_selection)
         selection.removed.add_callback(self.remove_selection)
         return selection
 
-    def _create_selection_from_id_and_name(self, selection_id: str, name: str) -> RenderingSelection:
+    def _create_selection_from_id_and_name(
+        self, selection_id: str, name: str
+    ) -> RenderingSelection:
         selection = RenderingSelection(selection_id, name)
         selection.updated.add_callback(self.update_selection)
         selection.removed.add_callback(self.remove_selection)
@@ -797,7 +837,9 @@ class NarupaImdClient:
         if self._are_framed_subscribed:
             return
         self._subscribed_to_all_frames = True
-        frame_client = cast(FrameClient, self._frame_client)  # @need_frames makes sure of that
+        frame_client = cast(
+            FrameClient, self._frame_client
+        )  # @need_frames makes sure of that
         frame_client.subscribe_frames_async(self._on_frame_received)
         self._are_framed_subscribed = True
 
@@ -832,7 +874,9 @@ class NarupaImdClient:
         if self._are_framed_subscribed:
             return
         self._subscribed_to_all_frames = False
-        frame_client = cast(FrameClient, self._frame_client)  # @need_frames makes sure of that
+        frame_client = cast(
+            FrameClient, self._frame_client
+        )  # @need_frames makes sure of that
         frame_client.subscribe_last_frames_async(
             self._on_frame_received,
             DEFAULT_SUBSCRIPTION_INTERVAL,
@@ -852,16 +896,18 @@ class NarupaImdClient:
         self.close()
 
     def _connect_client(
-            self,
-            client_type: Type[ClientVarType],
-            address: Tuple[str, int],
+        self,
+        client_type: Type[ClientVarType],
+        address: Tuple[str, int],
     ) -> ClientVarType:
         # TODO add support for encryption here somehow.
 
         # if there already exists a channel with the same address, reuse it, otherwise create a new insecure
         # connection.
         if address in self._channels:
-            client: ClientVarType = client_type(channel=self._channels[address], make_channel_owner=False)
+            client: ClientVarType = client_type(
+                channel=self._channels[address], make_channel_owner=False
+            )
         else:
             client: ClientVarType = client_type.insecure_channel(address=address[0], port=address[1])  # type: ignore[no-redef]
             self._channels[address] = client.channel
@@ -869,10 +915,10 @@ class NarupaImdClient:
 
 
 def _search_for_first_server_with_name(
-        server_name: str,
-        search_time: float = 2.0,
-        discovery_address: Optional[str] = None,
-        discovery_port: Optional[int] = None,
+    server_name: str,
+    search_time: float = 2.0,
+    discovery_address: Optional[str] = None,
+    discovery_port: Optional[int] = None,
 ):
     with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
         for hub in discovery_client.search_for_services(search_time):
@@ -882,9 +928,9 @@ def _search_for_first_server_with_name(
 
 
 def _search_for_first_available_frame_service(
-        search_time: float = 2.0,
-        discovery_address: Optional[str] = None,
-        discovery_port: Optional[int] = None,
+    search_time: float = 2.0,
+    discovery_address: Optional[str] = None,
+    discovery_port: Optional[int] = None,
 ):
     with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
         for hub in discovery_client.search_for_services(search_time):

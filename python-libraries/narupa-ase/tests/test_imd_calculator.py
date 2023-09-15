@@ -21,8 +21,8 @@ def interact_c():
     interaction = ParticleInteraction(
         position=[1, 0, 0],
         particles=[0],
-        scale=100.,
-        interaction_type='spring',
+        scale=100.0,
+        interaction_type="spring",
     )
     return interaction
 
@@ -44,15 +44,15 @@ def imd_calculator_no_atoms(imd_server):
 
 def test_imd_calculator_no_interactions(imd_calculator_co):
     imd_calculator, atoms, _ = imd_calculator_co
-    properties = ('energy', 'forces')
+    properties = ("energy", "forces")
     imd_calculator.calculator.calculate(atoms=atoms, properties=properties)
     expected_results = imd_calculator.calculator.results
     imd_calculator.calculate()
     results = imd_calculator.results
     for key in properties:
         assert np.allclose(results[key], expected_results[key])
-    assert results['interactive_energy'] == 0
-    assert np.all(results['interactive_forces'] == np.zeros((len(atoms), 3)))
+    assert results["interactive_energy"] == 0
+    assert np.all(results["interactive_forces"] == np.zeros((len(atoms), 3)))
 
 
 def test_imd_calculator_one_dimension_pbc(imd_calculator_co):
@@ -90,19 +90,24 @@ def test_imd_calculator_no_atoms(imd_calculator_no_atoms):
         imd_calculator_no_atoms.calculate()
 
 
-@pytest.mark.parametrize("position, imd_energy, imd_forces",
-                         [([1, 0, 0], 1, [2, 0, 0, 0, 0, 0]),
-                          ([3, 0, 0], 1, [-2, 0, 0, 0, 0, 0]),
-                          ([-1, 0, 0], 1, [-2, 0, 0, 0, 0, 0]),
-                          ([0, 1, 0], 1, [0, 2, 0, 0, 0, 0]),
-                          ([0, 3, 0], 1, [0, -2, 0, 0, 0, 0]),
-                          ([0, -1, 0], 1, [0, -2, 0, 0, 0, 0]),
-                          ([0, 0, 1], 1, [0, 0, 2, 0, 0, 0]),
-                          ([0, 0, 3], 1, [0, 0, -2, 0, 0, 0]),
-                          ([0, 0, -1], 1, [0, 0, -2, 0, 0, 0]),
-                          ([5, 0, 0], 1, [2, 0, 0, 0, 0, 0]),
-                          ])
-def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, interact_c):
+@pytest.mark.parametrize(
+    "position, imd_energy, imd_forces",
+    [
+        ([1, 0, 0], 1, [2, 0, 0, 0, 0, 0]),
+        ([3, 0, 0], 1, [-2, 0, 0, 0, 0, 0]),
+        ([-1, 0, 0], 1, [-2, 0, 0, 0, 0, 0]),
+        ([0, 1, 0], 1, [0, 2, 0, 0, 0, 0]),
+        ([0, 3, 0], 1, [0, -2, 0, 0, 0, 0]),
+        ([0, -1, 0], 1, [0, -2, 0, 0, 0, 0]),
+        ([0, 0, 1], 1, [0, 0, 2, 0, 0, 0]),
+        ([0, 0, 3], 1, [0, 0, -2, 0, 0, 0]),
+        ([0, 0, -1], 1, [0, 0, -2, 0, 0, 0]),
+        ([5, 0, 0], 1, [2, 0, 0, 0, 0, 0]),
+    ],
+)
+def test_one_interaction(
+    position, imd_energy, imd_forces, imd_calculator_co, interact_c
+):
     """
     tests an interaction in several different positions, including periodic boundary positions.
     """
@@ -112,10 +117,10 @@ def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, in
     imd_forces = imd_forces.reshape((2, 3))
 
     # perform the internal energy calculation.
-    properties = ('energy', 'forces', 'interactive_energy', 'interactive_forces')
+    properties = ("energy", "forces", "interactive_energy", "interactive_forces")
     imd_calculator.calculator.calculate(atoms=atoms, properties=properties)
-    internal_energy = imd_calculator.calculator.results['energy']
-    internal_forces = imd_calculator.calculator.results['forces']
+    internal_energy = imd_calculator.calculator.results["energy"]
+    internal_forces = imd_calculator.calculator.results["forces"]
 
     # perform the calculation with interaction applied.
     interact_c.position = position
@@ -129,13 +134,16 @@ def test_one_interaction(position, imd_energy, imd_forces, imd_calculator_co, in
     # set up the expected energy and forces.
     expected_imd_energy_kjmol = interact_c.scale * imd_energy * atoms.get_masses()[0]
     expected_imd_energy = expected_imd_energy_kjmol * converter.KJMOL_TO_EV
-    expected_imd_forces = interact_c.scale * atoms.get_masses()[0] * (
-            imd_forces * converter.KJMOL_TO_EV / converter.NM_TO_ANG)
+    expected_imd_forces = (
+        interact_c.scale
+        * atoms.get_masses()[0]
+        * (imd_forces * converter.KJMOL_TO_EV / converter.NM_TO_ANG)
+    )
     expected_forces = internal_forces + expected_imd_forces
     expected_energy = internal_energy + expected_imd_energy
 
-    forces = results['forces']
-    assert np.allclose(results['interactive_energy'], expected_imd_energy)
-    assert np.allclose(results['interactive_forces'], expected_imd_forces)
-    assert np.allclose(results['energy'], expected_energy)
+    forces = results["forces"]
+    assert np.allclose(results["interactive_energy"], expected_imd_energy)
+    assert np.allclose(results["interactive_forces"], expected_imd_forces)
+    assert np.allclose(results["energy"], expected_energy)
     assert np.allclose(forces, expected_forces)

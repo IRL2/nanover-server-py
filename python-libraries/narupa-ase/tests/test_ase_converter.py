@@ -44,11 +44,11 @@ def test_convert_atom_residue_count(frame):
 
 
 def test_convert_residue_ids(frame):
-    assert frame.residue_ids == ['1']
+    assert frame.residue_ids == ["1"]
 
 
 def test_convert_residue_names(frame):
-    assert frame.residue_names == ['ASE']
+    assert frame.residue_names == ["ASE"]
 
 
 def test_convert_residue_chains(frame):
@@ -56,7 +56,7 @@ def test_convert_residue_chains(frame):
 
 
 def test_convert_chain_names(frame):
-    assert frame.chain_names == ['A']
+    assert frame.chain_names == ["A"]
 
 
 def test_convert_chain_count(frame):
@@ -64,7 +64,8 @@ def test_convert_chain_count(frame):
 
 
 @pytest.mark.parametrize(
-    'shortcut', ('bond_pairs', 'particle_residues', 'residue_chains', 'chain_names'),
+    "shortcut",
+    ("bond_pairs", "particle_residues", "residue_chains", "chain_names"),
 )
 def test_frame_positions_only(atoms, shortcut):
     frame = ase_to_frame_data(atoms, positions=True, topology=False, state=False)
@@ -124,4 +125,4 @@ def test_frame_to_ase_positions(frame):
 
 def test_frame_to_ase_elements(frame):
     atoms = frame_data_to_ase(frame)
-    assert atoms.get_chemical_symbols() == ['C', 'O']
+    assert atoms.get_chemical_symbols() == ["C", "O"]

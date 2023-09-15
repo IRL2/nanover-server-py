@@ -29,6 +29,6 @@ def build_frame_generator(osc_client):
     return frame_to_osc_messages
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = OscApp(build_frame_generator)
     app.run()

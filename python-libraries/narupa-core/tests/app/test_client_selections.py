@@ -27,7 +27,7 @@ def assert_number_and_get_first_selection(client, expected_number_of_selections)
     strictly positive.
     """
     if expected_number_of_selections <= 0:
-        raise ValueError('The expected number of selections must be strictly positive.')
+        raise ValueError("The expected number of selections must be strictly positive.")
     selections = list(client.selections)
     assert len(selections) == expected_number_of_selections
     return selections[0]
@@ -39,7 +39,7 @@ def server_clients():
     Provides a multiplayer server hosting on an available port on localhost,
     and two Narupa clients connected to it.
     """
-    server = NarupaServer(address='localhost', port=0)
+    server = NarupaServer(address="localhost", port=0)
     client1 = NarupaImdClient(multiplayer_address=(server.address, server.port))
     client2 = NarupaImdClient(multiplayer_address=(server.address, server.port))
 
@@ -53,7 +53,7 @@ def server_clients():
 @pytest.fixture
 def server_clients_with_selection(server_clients):
     server, client1, client2 = server_clients
-    client1.create_selection('Selection 1', [0, 1, 2])
+    client1.create_selection("Selection 1", [0, 1, 2])
     time.sleep(UPDATE_TIME)
     yield server, client1, client2
 
@@ -61,31 +61,31 @@ def server_clients_with_selection(server_clients):
 def test_client_key_sharing(server_clients):
     server, client1, client2 = server_clients
 
-    value = 'value'
-    client1.set_shared_value('key', value)
+    value = "value"
+    client1.set_shared_value("key", value)
     time.sleep(UPDATE_TIME)
-    assert client1.get_shared_value('key') == value
+    assert client1.get_shared_value("key") == value
 
 
 def test_create_selection(server_clients):
     server, client1, client2 = server_clients
 
-    client1.create_selection('Selection 1', [0, 1, 2])
+    client1.create_selection("Selection 1", [0, 1, 2])
 
     time.sleep(UPDATE_TIME)
 
     selection = assert_number_and_get_first_selection(client2, 1)
-    assert_selections_base_equal(selection, 'Selection 1', {0, 1, 2})
+    assert_selections_base_equal(selection, "Selection 1", {0, 1, 2})
 
 
 def test_create_empty_selection(server_clients):
     server, client1, client2 = server_clients
 
-    client1.create_selection('Empty Selection')
+    client1.create_selection("Empty Selection")
 
     time.sleep(UPDATE_TIME)
     selection = assert_number_and_get_first_selection(client2, 1)
-    assert_selections_base_equal(selection, 'Empty Selection', set())
+    assert_selections_base_equal(selection, "Empty Selection", set())
 
 
 def test_update_selection(server_clients_with_selection):
@@ -98,7 +98,7 @@ def test_update_selection(server_clients_with_selection):
 
     time.sleep(UPDATE_TIME)
     selection = assert_number_and_get_first_selection(client1, 1)
-    assert_selections_base_equal(selection, 'Selection 2', {3, 4, 5})
+    assert_selections_base_equal(selection, "Selection 2", {3, 4, 5})
 
 
 def test_update_selection_with(server_clients_with_selection):
@@ -111,7 +111,7 @@ def test_update_selection_with(server_clients_with_selection):
 
     time.sleep(UPDATE_TIME)
     assert_number_and_get_first_selection(client1, 1)
-    assert_selections_base_equal(selection, 'Selection 2', {3, 4, 5})
+    assert_selections_base_equal(selection, "Selection 2", {3, 4, 5})
 
 
 def test_remove_selection(server_clients_with_selection):
@@ -137,7 +137,7 @@ def test_remove_selection_remove_method(server_clients_with_selection):
 def test_clear_selections(server_clients_with_selection):
     server, client1, client2 = server_clients_with_selection
 
-    client1.create_selection('Selection 2', [3, 4])
+    client1.create_selection("Selection 2", [3, 4])
 
     time.sleep(UPDATE_TIME)
 
@@ -160,7 +160,7 @@ def test_get_selection(server_clients_with_selection):
     time.sleep(UPDATE_TIME)
 
     selection = client2.get_selection(id_)
-    assert_selections_base_equal(selection, 'Selection 1', {0, 1, 2})
+    assert_selections_base_equal(selection, "Selection 1", {0, 1, 2})
 
 
 def test_get_selection_missing(server_clients_with_selection):
@@ -195,7 +195,7 @@ def test_remove_selection_while_in_use(server_clients_with_selection):
     with selection.modify():
         selection.selection_name = "Selection 2"
         selection_from_2 = assert_number_and_get_first_selection(client2, 1)
-        assert_selections_base_equal(selection_from_2, 'Selection 1', {0, 1, 2})
+        assert_selections_base_equal(selection_from_2, "Selection 1", {0, 1, 2})
 
         client2.clear_selections()
         time.sleep(UPDATE_TIME)
