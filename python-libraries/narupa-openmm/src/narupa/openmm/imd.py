@@ -50,10 +50,11 @@ receives the interactions. It can be use instead of
             simulation.run(10)
 
 """
-from typing import Tuple, Dict, List, Set
+from typing import Tuple, Dict, List, Set, Optional
 import itertools
 
 import numpy as np
+import numpy.typing as npt
 
 import simtk.openmm as mm
 from simtk.openmm import app
@@ -71,6 +72,18 @@ NextReport = Tuple[int, bool, bool, bool, bool, bool]
 
 
 class NarupaImdReporter:
+    frame_interval: int
+    force_interval: int
+    imd_force: mm.CustomExternalForce
+    imd_state: ImdStateWrapper
+    frame_publisher: FramePublisher
+    n_particles: Optional[int]
+    masses: Optional[npt.NDArray]
+    positions: Optional[npt.NDArray]
+    _is_force_dirty: bool
+    _previous_force_index: Set[int]
+    _frame_index: int
+
     def __init__(
             self,
             frame_interval: int,
@@ -186,6 +199,8 @@ class NarupaImdReporter:
         """
         Set the iMD forces based on the user interactions.
         """
+        if self.masses is None:
+            raise InitialisationError
         _, forces_kjmol = calculate_imd_force(
             positions, self.masses, interactions.values(),
         )
@@ -207,6 +222,16 @@ class NarupaImdReporter:
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
         self._is_force_dirty = False
         self._previous_force_index = set()
+
+
+class InitialisationError(Exception):
+    """
+    Error raised when the runner has not been initialised correctly and some
+    attribute have not been set.
+
+    This most likely means that `_on_first_frame` has not been called as
+    expected.
+    """
 
 
 def _build_particle_interaction_index_set(interactions: Dict[str, ParticleInteraction]) -> Set[int]:

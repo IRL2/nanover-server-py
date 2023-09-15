@@ -9,6 +9,7 @@ import functools
 import logging
 from typing import List, Optional
 import numpy as np
+import numpy.typing as npt
 
 try:
     from lammps import lammps  # type: ignore
@@ -70,7 +71,7 @@ class LammpsImd:
     """
     need_to_collect_topology = True
 
-    def __init__(self, port: int = None, address: str = "[::]"):
+    def __init__(self, port: Optional[int] = None, address: str = "[::]"):
         """
         Items that should be initialised on instantiation of lammpsHook class
         The MPI routines are essential to stop thread issues that cause internal
@@ -237,7 +238,7 @@ class LammpsImd:
 
     def _lammps_positions_to_frame_data(self,
                                         frame_data: FrameData,
-                                        data_array: np.array) -> FrameData:
+                                        data_array: npt.NDArray):
         """
         Convert the flat ctype.c_double data into the frame_data format. for the moment
         this assumes we are in LAMMPS real units. Its unclear at this stage if is possible
@@ -256,7 +257,7 @@ class LammpsImd:
     def _add_pos_to_framedata(self, frame_data, positions):
         frame_data.arrays[PARTICLE_POSITIONS] = positions
 
-    def _add_interaction_to_ctype(self, interaction_forces: np.array, lammps_forces):
+    def _add_interaction_to_ctype(self, interaction_forces: npt.NDArray, lammps_forces):
         """
         Adds the interaction forces to the LAMMPS array
 
@@ -404,7 +405,7 @@ class LammpsImd:
         self.frame_service.send_frame(self.frame_index, self.frame_data)
         self.frame_index += 1
 
-    def _log_mpi(self, passed_string: str = None, *args, **kwargs):
+    def _log_mpi(self, passed_string: str, *args, **kwargs):
         """
         Wrapper function for printing on one core only
 

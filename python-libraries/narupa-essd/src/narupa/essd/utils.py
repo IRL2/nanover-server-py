@@ -28,7 +28,7 @@ def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None) -> List[Inter
     return ipv4_addrs
 
 
-def get_broadcast_addresses(interfaces: Optional[Iterable[str]] = None) -> List[Dict[str, str]]:
+def get_broadcast_addresses(interfaces: Optional[Iterable[str]] = None) -> List[InterfaceAddresses]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces that have broadcast addresses.
 
@@ -54,7 +54,7 @@ def get_broadcast_addresses(interfaces: Optional[Iterable[str]] = None) -> List[
 
 def resolve_host_broadcast_address(
         host: str,
-        ipv4_addrs: List[InterfaceAddresses] = None,
+        ipv4_addrs: Optional[List[InterfaceAddresses]] = None,
 ):
     try:
         address = socket.gethostbyname(host)
@@ -88,7 +88,11 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
         broadcast_address = ipaddress.ip_address(interface_address_entry['broadcast'])
         # to network address e.g. 255.255.255.0 & 192.168.1.255 = 192.168.1.0
         network_address = ipaddress.ip_address(int(netmask) & int(broadcast_address))
-        ip_network = ipaddress.ip_network((network_address, interface_address_entry['netmask']))
+        # The doc and typing stub seem to indicate this is not a valid call of
+        # ipaddress.ip_network, but this is well tested so we accept it for the
+        # time being.
+        # TODO: Fix this line as the types seem to be incorrect.
+        ip_network = ipaddress.ip_network((network_address, interface_address_entry['netmask']))  # type: ignore
     except ValueError:
         raise ValueError(f'Given address {interface_address_entry} is not a valid IP network address.')
     except KeyError:

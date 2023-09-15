@@ -1,6 +1,13 @@
+import itertools
 import time
 import pytest
 from narupa.imd.particle_interaction import ParticleInteraction
+from narupa.imd.imd_state import (
+    INTERACTION_PREFIX,
+    interaction_to_dict,
+    dict_to_interaction,
+)
+from narupa.utilities.change_buffers import DictionaryChange
 
 from .test_imd_server import imd_server_client, imd_server, interaction
 
@@ -132,3 +139,48 @@ def test_subscribe_own_interaction_removed(imd_server_client):
 
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 5)
     assert interaction_id not in imd_client.interactions
+
+
+def test_interactions_property(imd_server_client):
+    """
+    Test that the `interactions` property returns what is expected.
+    """
+    imd_server, imd_client = imd_server_client
+
+    # The IMD server does some validation and conversion of the interactions.
+    # We want to add invalid interactions in the shared state to emulate a
+    # possible third party server or a bug in the server. So we need to remove
+    # the conversion step.
+    imd_server._state_service.state_dictionary.content_updated._callbacks = []
+
+    # There are the interactions we should get when calling the property.
+    real_interactions = {
+        f'{INTERACTION_PREFIX}.first_id': ParticleInteraction(),
+        f'{INTERACTION_PREFIX}.second_id': ParticleInteraction(),
+    }
+    # We should not get these interactions because the ID is not one of an
+    # interaction.
+    interactions_with_incompatible_id = {
+        'not.a.valid.interaction.id': ParticleInteraction(),
+    }
+    interaction_updates = DictionaryChange(updates = {
+        key: interaction_to_dict(interaction)
+        for key, interaction
+        in itertools.chain(
+            real_interactions.items(),
+            interactions_with_incompatible_id.items(),
+        )
+    })
+    imd_server.update_state(None, interaction_updates)
+
+    # These interactions have an ID matching an interaction, but the content does not match.
+    incorrect_interactions = {
+        f'{INTERACTION_PREFIX}.third_id': 'not.an.interaction',
+    }
+    interaction_updates = DictionaryChange(updates = incorrect_interactions)
+    imd_server.update_state(None, interaction_updates)
+
+    imd_client.subscribe_all_state_updates(interval=0)
+    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    print(imd_client.interactions)
+    assert imd_client.interactions.keys() == real_interactions.keys()

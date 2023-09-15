@@ -203,10 +203,14 @@ class ASEOpenMMRunner(NarupaRunner):
         :param logging_params: The :class:LoggingParams to set up trajectory logging with.
         :return: An OpenMM simulation runner.
         """
+        if params is not None:
+            platform = params.platform
+        else:
+            platform = None
         with open(simulation_xml) as infile:
             simulation = serializer.deserialize_simulation(
                 infile.read(),
-                platform_name=params.platform,
+                platform_name=platform,
             )
         return cls(simulation, params, logging_params)
 

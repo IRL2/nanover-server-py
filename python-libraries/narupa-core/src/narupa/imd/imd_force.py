@@ -14,15 +14,16 @@ from math import exp
 from typing import Collection, Tuple, Optional, Iterable
 
 import numpy as np
+import numpy.typing as npt
 from narupa.imd.particle_interaction import ParticleInteraction
 
 
 def calculate_imd_force(
-        positions: np.ndarray,
-        masses: np.ndarray,
+        positions: npt.NDArray,
+        masses: npt.NDArray,
         interactions: Iterable[ParticleInteraction],
-        periodic_box_lengths: Optional[np.ndarray] = None,
-) -> Tuple[float, np.array]:
+        periodic_box_lengths: Optional[npt.NDArray] = None,
+) -> Tuple[float, npt.NDArray]:
     """
     Reference implementation of the Narupa IMD force.
 
@@ -46,8 +47,8 @@ def calculate_imd_force(
     return total_energy, forces
 
 
-def apply_single_interaction_force(positions: np.ndarray, masses: np.ndarray, interaction, forces: np.ndarray,
-                                   periodic_box_lengths: Optional[np.array] = None) -> float:
+def apply_single_interaction_force(positions: npt.NDArray, masses: npt.NDArray, interaction, forces: npt.NDArray,
+                                   periodic_box_lengths: Optional[npt.NDArray] = None) -> float:
     """
     Calculates the energy and adds the forces to the particles of a single application of an interaction potential.
 
@@ -154,6 +155,7 @@ def get_center_of_mass_subset(
         before calculating centre of mass.
     :return: The center of mass of the subset of positions.
     """
+    subset = list(subset)
     subset_positions = positions[subset]
     subset_masses = masses[subset, np.newaxis]
     subset_total_mass = subset_masses.sum()
@@ -194,8 +196,8 @@ def calculate_gaussian_force(particle_position: np.ndarray, interaction_position
     return energy, force
 
 
-def calculate_spring_force(particle_position: np.array, interaction_position: np.array, k=1,
-                           periodic_box_lengths: Optional[np.ndarray] = None) -> Tuple[float, np.array]:
+def calculate_spring_force(particle_position: npt.NDArray, interaction_position: npt.NDArray, k=1,
+                           periodic_box_lengths: Optional[npt.NDArray] = None) -> Tuple[float, npt.NDArray]:
     """
     Computes the interactive harmonic potential (or spring) force.
 

@@ -10,6 +10,7 @@ from typing import Iterable, Optional
 from ase import Atoms, Atom  # type: ignore
 import itertools
 import numpy as np
+import numpy.typing as npt
 
 from narupa.trajectory import FrameData
 
@@ -160,7 +161,7 @@ def add_frame_data_positions_to_ase(frame_data, ase_atoms):
     ase_atoms.set_positions(np.array(frame_data.particle_positions) * NM_TO_ANG)
 
 
-def add_ase_positions_to_frame_data(data: FrameData, positions: np.array):
+def add_ase_positions_to_frame_data(data: FrameData, positions: npt.NDArray):
     """
     Adds ASE positions to the frame data, converting to nanometers.
 
@@ -196,7 +197,7 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms, gene
     frame_data.residue_names = ["ASE"]
     frame_data.residue_chains = [0]
     frame_data.residue_count = 1
-    frame_data.residue_ids =['1']
+    frame_data.residue_ids = ['1']
 
     frame_data.chain_names = ["A"]
     frame_data.chain_count = 1

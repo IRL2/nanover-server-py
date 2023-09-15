@@ -8,7 +8,7 @@ import time
 import warnings
 from collections import deque, ChainMap
 from functools import wraps, partial
-from typing import Iterable, Tuple, Type, TypeVar
+from typing import Iterable, Tuple, Type, TypeVar, cast
 from typing import Optional, Sequence, Dict, MutableMapping
 from uuid import uuid4
 
@@ -162,9 +162,9 @@ class NarupaImdClient:
     _subscribed_to_all_frames: bool
 
     def __init__(self, *,
-                 trajectory_address: Tuple[str, int] = None,
-                 imd_address: Tuple[str, int] = None,
-                 multiplayer_address: Tuple[str, int] = None,
+                 trajectory_address: Optional[Tuple[str, int]] = None,
+                 imd_address: Optional[Tuple[str, int]] = None,
+                 multiplayer_address: Optional[Tuple[str, int]] = None,
                  max_frames=50,
                  all_frames: Optional[bool] = None,
         ):
@@ -320,9 +320,9 @@ class NarupaImdClient:
         self._multiplayer_client = self._connect_client(NarupaClient, address)
 
     def connect(self, *,
-                trajectory_address: Tuple[str, int] = None,
-                imd_address: Tuple[str, int] = None,
-                multiplayer_address: Tuple[str, int] = None,
+                trajectory_address: Optional[Tuple[str, int]] = None,
+                imd_address: Optional[Tuple[str, int]] = None,
+                multiplayer_address: Optional[Tuple[str, int]] = None,
                 ):
         """
         Connects the client to all services for which addresses are provided.
@@ -831,8 +831,8 @@ class NarupaImdClient:
         if self._are_framed_subscribed:
             return
         self._subscribed_to_all_frames = False
-        self._frame_client: FrameClient  # @need_frames makes sure of that
-        self._frame_client.subscribe_last_frames_async(
+        frame_client = cast(FrameClient, self._frame_client)  # @need_frames makes sure of that
+        frame_client.subscribe_last_frames_async(
             self._on_frame_received,
             DEFAULT_SUBSCRIPTION_INTERVAL,
         )
