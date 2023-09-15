@@ -63,6 +63,28 @@ jobs:
             | grep -v '\..*\.' \
             | tr '\n' ' ')
           mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages
+  ruff:
+    name: Ruff to lint python code
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # This is necessary for the conda action. It replaces `conda init` as
+        # the shell does not load ,profile or .bashrc.
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniforge-version: latest
+      - name: Install narupa dependancies
+        run: conda install mpi4py openmm
+      - name: Install ruff
+        run: python -m pip install ruff
+      - name: Compile
+        run: ./compile.sh --no-dotnet
+      - name: Ruff
+        run: ruff ./python-libraries
   csharp-tests:
     name: C# unit and integration tests
     runs-on: ubuntu-latest
