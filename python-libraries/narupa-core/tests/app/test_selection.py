@@ -1,4 +1,5 @@
 import pytest
+
 # We import many constants from the module we test. It would be impractical to
 # import them all separately so we allow the import star for this file.
 # ruff: noqa: F405
