@@ -33,12 +33,14 @@ class NarupaASEDynamics:
     """
     Interactive molecular dynamics adaptor for use with ASE.
 
-    :param narupa_imd_app: A :class:`NarupaImdApplication` to pass frames to and read forces from.
-    :param dynamics: A prepared ASE molecular dynamics object to run, with IMD attached.
+    :param narupa_imd_app: A :class:`NarupaImdApplication` to pass frames to and
+        read forces from.
+    :param dynamics: A prepared ASE molecular dynamics object to run,
+        with IMD attached.
     :param frame_interval: Interval, in steps, at which to publish frames.
-    :param frame_method: Method to use to generate frames, given the the ASE :class:`Atoms`
-        and a :class:`FramePublisher`. The signature of the callback is expected to be
-        ``frame_method(ase_atoms, frame_publisher)``.
+    :param frame_method: Method to use to generate frames, given the the ASE
+        :class:`Atoms` and a :class:`FramePublisher`. The signature of the
+        callback is expected to be ``frame_method(ase_atoms, frame_publisher)``.
 
 
     Example

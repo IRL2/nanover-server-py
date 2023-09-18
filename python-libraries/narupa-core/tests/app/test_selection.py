@@ -1,5 +1,8 @@
 import pytest
-from narupa.app.selection import *
+# We import many constants from the module we test. It would be impractical to
+# import them all separately so we allow the import star for this file.
+# ruff: noqa: F405
+from narupa.app.selection import *  # noqa: F403
 
 
 def test_selection_defaults():

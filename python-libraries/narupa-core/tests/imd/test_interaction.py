@@ -1,8 +1,8 @@
+import numpy as np
+import hypothesis.strategies as st
 import pytest
 from narupa.imd.particle_interaction import ParticleInteraction
-
-from .. import *
-
+from .. import MAX_INT32, MAX_FLOAT32, EXACT_SINGLE_VALUE_STRATEGY
 
 @pytest.fixture
 def interaction():
