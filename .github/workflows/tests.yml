@@ -2,6 +2,45 @@ on: [push]
 name: "Tests and validation"
 
 jobs:
+  build-conda:
+    name: Build conda packages
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # This is necessary for the conda action. It replaces `conda init` as
+        # the shell does not load ,profile or .bashrc.
+        shell: bash -el {0}
+    env:
+      build_command: "conda-build --prefix-length=100 --no-test --no-anaconda-upload "
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # We need all the history to figure out the version number
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniforge-version: latest
+      - name: Set environment variables
+        run: |
+          echo NARUPA_BUILD_VERSION="0.1.$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
+          echo NARUPA_LICENSE_PATH="$(readlink -f LICENSE)" >> "$GITHUB_ENV"
+          echo MIN_PYTHON_VERSION=3.10 >> "$GITHUB_ENV"
+      - name: Test that the repo is sane and does not contain superfluous __init__ file
+        run: bash ./maintainers/check_extra_init_files.sh
+      - name: Install dependencies
+        run: conda install python conda-build grpcio-tools conda-verify
+      - name: Compiling the prototypes
+        run: python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
+      - name: Building the Conda packages
+        run: |
+          $build_command \
+            python-libraries/narupa-essd/conda \
+            python-libraries/narupa-core/conda \
+            python-libraries/narupa-openmm/conda \
+            python-libraries/narupa-ase/conda \
+            python-libraries/narupa-mdanalysis/conda \
+            python-libraries/narupa-lammps/conda \
+            python-libraries/narupa-server/conda
   python-tests:
     name: Python unit and integration tests
     runs-on: ubuntu-latest
