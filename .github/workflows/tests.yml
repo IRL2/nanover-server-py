@@ -85,6 +85,8 @@ jobs:
         run: ./compile.sh --no-dotnet
       - name: Ruff
         run: ruff ./python-libraries
+      - name: Black
+        run: black --diff --check ./python-libraries
   csharp-tests:
     name: C# unit and integration tests
     runs-on: ubuntu-latest
