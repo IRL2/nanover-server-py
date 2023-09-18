@@ -5,7 +5,6 @@ ASE calculator for use with OpenMM.
 """
 from typing import Optional
 
-import ase
 import narupa.openmm.serializer as serializer
 import numpy as np
 from ase import Atoms, Atom  # type: ignore

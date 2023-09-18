@@ -223,7 +223,7 @@ class ImdCalculator(Calculator):
 
     def _initialise_velocity_reset(self):
         try:
-            temp = self.temperature
+            pass
         except MissingDataError:
             self._imd_state.velocity_reset_available = False
         self._imd_state.velocity_reset_available = True
@@ -240,8 +240,8 @@ def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
     if not np.all(atoms.get_pbc()):
         if np.any(atoms.get_pbc()):
             raise NotImplementedError(
-                f"Atoms object has periodic unit cell on only some dimensions, which is not "
-                f"supported."
+                "Atoms object has periodic unit cell on only some dimensions, which is not "
+                "supported."
             )
         return None
     lengths_angles = atoms.cell.cellpar()
@@ -249,7 +249,7 @@ def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
     angles = np.array(lengths_angles[3:])
     if not np.allclose(angles, (90, 90, 90)):
         raise NotImplementedError(
-            f"Atoms object has periodic unit cell that is not orthorhombic, which is not supported!"
+            "Atoms object has periodic unit cell that is not orthorhombic, which is not supported!"
         )
     return lengths
 

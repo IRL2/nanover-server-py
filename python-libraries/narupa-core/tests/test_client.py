@@ -207,7 +207,7 @@ def test_reconnect_receive(client_server, simple_frame_data):
 
 def test_close_interaction(client_server, interaction):
     client, frame_server, imd_server, multiplayer_server = client_server
-    id = client.start_interaction(interaction)
+    client.start_interaction(interaction)
     time.sleep(CLIENT_WAIT_TIME)
     assert len(imd_server.imd_state.active_interactions) == 1
     client.close()

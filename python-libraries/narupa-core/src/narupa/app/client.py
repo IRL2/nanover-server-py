@@ -395,7 +395,7 @@ class NarupaImdClient:
 
         :return: :class:`FrameData`, or `None` if none has been received.
         """
-        if len(self.frames) is 0:
+        if len(self.frames) == 0:
             return None
         return self.frames[-1]
 

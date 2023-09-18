@@ -118,7 +118,7 @@ def test_mdanalysis_bonds(frame_data_and_universe):
 
 def test_empty_universe(empty_universe_no_positions):
     with pytest.raises(MissingDataError):
-        frame = mdanalysis_to_frame_data(empty_universe)
+        mdanalysis_to_frame_data(empty_universe)
 
 
 def test_single_atom_universe(single_atom_universe):

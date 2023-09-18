@@ -7,9 +7,7 @@ Methods for transmitting a simulation frame from ASE.
 
 from typing import Callable
 from ase import Atoms  # type: ignore
-from ase.lattice.cubic import FaceCenteredCubic
-from ase.md import Langevin
-from narupa.trajectory import FrameServer, FramePublisher
+from narupa.trajectory import FramePublisher
 from narupa.ase import ase_to_frame_data
 
 

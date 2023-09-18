@@ -2,7 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 import curses
 import itertools
-from typing import Tuple, Iterable, Iterator, Callable, Sequence, Dict, Any, Protocol
+from typing import Tuple, Iterable, Iterator, Sequence, Dict, Any, Protocol
 import numpy as np
 from bresenham import get_line
 

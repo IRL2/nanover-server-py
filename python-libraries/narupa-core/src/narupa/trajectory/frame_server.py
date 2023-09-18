@@ -6,7 +6,6 @@ from narupa.core import (
     get_requested_port_or_default,
     DEFAULT_SERVE_ADDRESS,
 )
-from narupa.protocol.trajectory import add_TrajectoryServiceServicer_to_server
 from .frame_data import FrameData
 from .frame_publisher import FramePublisher
 

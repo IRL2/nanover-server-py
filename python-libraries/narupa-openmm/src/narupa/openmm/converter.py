@@ -5,7 +5,6 @@ Module providing conversion methods between Narupa and OpenMM.
 """
 from typing import Optional
 
-import numpy as np
 
 try:
     # Mypy does not find State in the C module; we ignore the error

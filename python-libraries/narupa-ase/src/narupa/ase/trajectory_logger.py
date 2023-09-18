@@ -12,9 +12,8 @@ from io import TextIOWrapper
 from typing import Optional
 
 import ase.io
-from ase import Atoms, units  # type: ignore
+from ase import Atoms  # type: ignore
 from ase.io.formats import filetype, ioformats
-from ase.md import Langevin
 
 
 class UnsupportedFormatError(Exception):

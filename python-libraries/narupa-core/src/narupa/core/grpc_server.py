@@ -6,7 +6,7 @@ Module providing a wrapper around the running of GRPC servers.
 """
 import logging
 from concurrent import futures
-from typing import Optional, Callable, Tuple
+from typing import Optional, Tuple
 
 import grpc
 
@@ -48,7 +48,7 @@ class GrpcServer:
             self._port = self.server.add_insecure_port(address=f"{address}:{port}")
         except RuntimeError:
             if port == 0:
-                raise IOError(f"Could not open any port.")
+                raise IOError("Could not open any port.")
             raise IOError(f"Could not open on port {port}.")
         self._address = address
 

@@ -6,10 +6,9 @@ simulations and trajectories for consumption by clients.
 from typing import Optional
 
 from narupa.app import NarupaApplicationServer
-from narupa.app.app_server import qualified_server_name
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer
-from narupa.trajectory import FramePublisher, FrameData
+from narupa.trajectory import FramePublisher
 
 
 class NarupaFrameApplication(NarupaApplicationServer):

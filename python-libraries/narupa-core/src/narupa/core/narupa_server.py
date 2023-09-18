@@ -8,7 +8,6 @@ from narupa.core import GrpcServer
 from narupa.state.state_service import StateService
 from narupa.utilities.change_buffers import (
     DictionaryChange,
-    DictionaryChangeBuffer,
 )
 
 CommandCallable = Union[

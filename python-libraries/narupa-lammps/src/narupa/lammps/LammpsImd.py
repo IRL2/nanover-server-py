@@ -159,10 +159,7 @@ class LammpsImd:
             )
         else:
             # Useful to extract these in the event of MPI issues.
-            n_atoms = self.n_atoms
             distance_factor = self.distance_factor
-            units_type = self.units_type
-            force_factor = self.force_factor
 
         # Extract the position matrix from lammps
         positions = self._extract_positions(self.lammps_class)
@@ -238,7 +235,7 @@ class LammpsImd:
 
         # Atom mass is indexed from 1 in lammps for some reason.
         # Create a new list rounded to the nearest mass integer
-        if self.units_type is "lj":
+        if self.units_type == "lj":
             # Some lennard jones calculations don't allow iteration over atom_type_mass
             # This is a workaround
             atom_mass_type = [0]

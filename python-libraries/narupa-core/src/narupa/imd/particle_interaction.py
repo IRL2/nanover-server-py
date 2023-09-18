@@ -4,7 +4,7 @@
 Module providing a wrapper class around the protobuf interaction message.
 """
 import math
-from typing import Dict, Any, Iterable, Collection, Union
+from typing import Dict, Any, Iterable, Union
 import numpy as np
 import numpy.typing as npt
 

@@ -16,11 +16,11 @@ def test_invoke_callback():
 
     event.add_callback(callback)
 
-    assert callback.called == False
+    assert callback.called is False
 
     event.invoke()
 
-    assert callback.called == True
+    assert callback.called is True
 
 
 def test_invoke_callback_then_remove():

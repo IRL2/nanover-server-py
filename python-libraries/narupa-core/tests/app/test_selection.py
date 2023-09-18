@@ -25,7 +25,7 @@ def test_selection_dict_with_name_and_id():
 def test_selection_dict_with_no_id():
     dict = {}
     with pytest.raises(ValueError):
-        selection = RenderingSelection.from_dictionary(dict)
+        RenderingSelection.from_dictionary(dict)
 
 
 def test_selection_from_dictionary_with_interaction_method():
@@ -45,7 +45,7 @@ def test_selection_from_dictionary_with_velocity_reset():
         KEY_SELECTION_PROPERTIES: {KEY_PROPERTY_VELOCITY_RESET: True},
     }
     selection = RenderingSelection.from_dictionary(dict)
-    assert selection.velocity_reset == True
+    assert selection.velocity_reset is True
 
 
 def test_selection_from_dictionary_with_renderer():

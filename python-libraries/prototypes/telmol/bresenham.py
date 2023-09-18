@@ -15,12 +15,10 @@ def get_line(start, end):
         x2, y2 = y2, x2
 
     # Swap start and end points if necessary and store swap state
-    swapped = False
     if x1 > x2:
         x1, x2 = x2, x1
         y1, y2 = y2, y1
         z1, z2 = z2, z1
-        swapped = True
 
     # Recalculate differentials
     dx = x2 - x1

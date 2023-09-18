@@ -5,7 +5,7 @@ that sets up a command service.
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 
-from typing import Dict, Iterable, ContextManager, Union, Any, Mapping
+from typing import Dict, Iterable, ContextManager, Union, Mapping
 from uuid import uuid4
 
 import grpc

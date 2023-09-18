@@ -1983,7 +1983,6 @@ def _import_module(name, package=None, warn=True, postfix="_py", ignore="_"):
 
 if __name__ == "__main__":
     import doctest
-    import random  # noqa: used in doctests
 
     try:
         numpy.set_printoptions(suppress=True, precision=5, legacy="1.13")

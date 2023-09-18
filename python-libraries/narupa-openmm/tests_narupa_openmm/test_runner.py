@@ -127,7 +127,7 @@ class TestRunner:
     @pytest.mark.parametrize("server_name", ("Server 1", "Server 2"))
     def test_discovery_with_client(self, server_name, basic_simulation_with_imd_force):
         simulation, _ = basic_simulation_with_imd_force
-        with self.make_runner(simulation, name=server_name) as runner:
+        with self.make_runner(simulation, name=server_name):
             with DiscoveryClient() as client:
                 # There may be servers running already, we only want to look at the
                 # one we created in that test. We select it by name.

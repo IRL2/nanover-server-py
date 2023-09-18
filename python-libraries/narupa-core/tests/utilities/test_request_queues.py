@@ -14,7 +14,7 @@ from narupa.utilities import request_queues
 def test_one_queue_serial():
     many_queues = request_queues.DictOfQueues()
     assert not many_queues.queues
-    with many_queues.one_queue(0) as queue:
+    with many_queues.one_queue(0):
         assert list(many_queues.queues.keys()) == [0]
     assert not many_queues.queues
 

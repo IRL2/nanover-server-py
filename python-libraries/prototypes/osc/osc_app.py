@@ -52,7 +52,6 @@ class OscApp:
         """
         Begin connection, setup, and then run until keyboard interrupt.
         """
-        server_name = args.server_name if args is not None else None
 
         with self._create_client(args) as osc_client:
             osc_client.message_generator = self._message_generator_setup(osc_client)

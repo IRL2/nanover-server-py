@@ -197,7 +197,7 @@ def _identity(value):
 
 def _to_chemical_symbol(elements):
     try:
-        iterator = iter(elements)
+        iter(elements)
     except TypeError:
         try:
             INDEX_ELEMENT[elements]

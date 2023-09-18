@@ -11,11 +11,10 @@ from threading import RLock
 from typing import Optional, Callable, List, Dict
 
 import numpy as np
-from ase import Atoms, units  # type: ignore
+from ase import Atoms  # type: ignore
 from ase.calculators.calculator import Calculator
-from ase.md import Langevin
 from ase.md.md import MolecularDynamics
-from narupa.app import NarupaImdClient, NarupaImdApplication
+from narupa.app import NarupaImdApplication
 from narupa.ase.converter import EV_TO_KJMOL
 from narupa.ase.frame_adaptor import send_ase_frame
 from narupa.ase.imd_calculator import ImdCalculator

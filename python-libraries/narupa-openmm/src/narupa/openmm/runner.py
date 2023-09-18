@@ -303,7 +303,7 @@ class OpenMMRunner(NarupaRunner):
             steps_for_this_iteration = min(self.frame_interval, remaining_steps)
             try:
                 self.simulation.step(steps_for_this_iteration)
-            except (ValueError, openmm.OpenMMException) as err:
+            except (ValueError, openmm.OpenMMException):
                 # We want to stop running if the simulation exploded in a way
                 # that prevents OpenMM to run. Otherwise, we will be a a state
                 # where OpenMM raises an exception which would make the runner

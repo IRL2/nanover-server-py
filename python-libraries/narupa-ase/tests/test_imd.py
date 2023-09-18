@@ -107,7 +107,6 @@ def do_nothing_producer(*args, **kwrags):
 
 @pytest.fixture
 def dummy_atoms():
-    n_atoms = 4
     atoms = Atoms(positions=DUMMY_ATOMS_POSITIONS.copy())
     atoms.set_velocities(DUMMY_ATOMS_VELOCITIES.copy())
     atoms.set_cell(DUMMY_ATOMS_CELL.copy())

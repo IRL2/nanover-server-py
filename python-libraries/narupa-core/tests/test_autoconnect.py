@@ -69,7 +69,7 @@ def test_autoconnect_app_server_default_ports(discoverable_imd_server):
     discoverable_imd_server.server.register_command("test", mock)
 
     address = get_broadcastable_ip()
-    with NarupaImdApplication.basic_server(address=address) as app_server:
+    with NarupaImdApplication.basic_server(address=address):
         with NarupaImdClient.autoconnect(
             search_time=AUTOCONNECT_SEARCH_TIME,
             discovery_port=discoverable_imd_server.discovery.port,

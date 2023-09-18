@@ -3,7 +3,7 @@
 from collections import namedtuple
 from collections.abc import Set
 import numbers
-from typing import Dict, Optional, List, TypeVar, Union
+from typing import Dict, Optional, List, Union
 
 import numpy as np
 import numpy.typing as npt

@@ -6,7 +6,6 @@ with in real-time through biasing potentials.
 """
 from typing import Optional
 
-from narupa.app import NarupaImdClient
 from narupa.app.frame_app import NarupaFrameApplication
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer

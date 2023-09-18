@@ -45,7 +45,7 @@ def check_file_images(
     :param cell: Whether to test unit cell
     """
     with open(file, "r") as f:
-        debug = f.read()
+        f.read()
 
     new_images = read(file, index=":")
     assert len(new_images) == len(images)
