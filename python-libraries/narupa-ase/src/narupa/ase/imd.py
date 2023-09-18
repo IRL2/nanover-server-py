@@ -11,11 +11,10 @@ from threading import RLock
 from typing import Optional, Callable, List, Dict
 
 import numpy as np
-from ase import Atoms, units  # type: ignore
+from ase import Atoms  # type: ignore
 from ase.calculators.calculator import Calculator
-from ase.md import Langevin
 from ase.md.md import MolecularDynamics
-from narupa.app import NarupaImdClient, NarupaImdApplication
+from narupa.app import NarupaImdApplication
 from narupa.ase.converter import EV_TO_KJMOL
 from narupa.ase.frame_adaptor import send_ase_frame
 from narupa.ase.imd_calculator import ImdCalculator
@@ -34,12 +33,14 @@ class NarupaASEDynamics:
     """
     Interactive molecular dynamics adaptor for use with ASE.
 
-    :param narupa_imd_app: A :class:`NarupaImdApplication` to pass frames to and read forces from.
-    :param dynamics: A prepared ASE molecular dynamics object to run, with IMD attached.
+    :param narupa_imd_app: A :class:`NarupaImdApplication` to pass frames to and
+        read forces from.
+    :param dynamics: A prepared ASE molecular dynamics object to run,
+        with IMD attached.
     :param frame_interval: Interval, in steps, at which to publish frames.
-    :param frame_method: Method to use to generate frames, given the the ASE :class:`Atoms`
-        and a :class:`FramePublisher`. The signature of the callback is expected to be
-        ``frame_method(ase_atoms, frame_publisher)``.
+    :param frame_method: Method to use to generate frames, given the the ASE
+        :class:`Atoms` and a :class:`FramePublisher`. The signature of the
+        callback is expected to be ``frame_method(ase_atoms, frame_publisher)``.
 
 
     Example
@@ -58,15 +59,17 @@ class NarupaASEDynamics:
     32
 
     """
+
     on_reset_listeners: List[Callable[[], None]]
     _run_task: Optional[futures.Future]
 
-    def __init__(self,
-                 narupa_imd_app: NarupaImdApplication,
-                 dynamics: MolecularDynamics,
-                 frame_method: Optional[Callable] = None,
-                 frame_interval=1,
-                 ):
+    def __init__(
+        self,
+        narupa_imd_app: NarupaImdApplication,
+        dynamics: MolecularDynamics,
+        frame_method: Optional[Callable] = None,
+        frame_interval=1,
+    ):
         if frame_method is None:
             frame_method = send_ase_frame
 
@@ -84,9 +87,11 @@ class NarupaASEDynamics:
             dynamics=dynamics,
         )
         self.atoms.calc = self.imd_calculator
-        self._variable_interval_generator = VariableIntervalGenerator(1/30)
+        self._variable_interval_generator = VariableIntervalGenerator(1 / 30)
         self._frame_interval = frame_interval
-        self.dynamics.attach(frame_method(self.atoms, self._frame_publisher), interval=frame_interval)
+        self.dynamics.attach(
+            frame_method(self.atoms, self._frame_publisher), interval=frame_interval
+        )
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._run_task = None
         self._cancelled = False
@@ -101,11 +106,11 @@ class NarupaASEDynamics:
     @classmethod
     @contextmanager
     def basic_imd(
-            cls,
-            dynamics: MolecularDynamics,
-            address: Optional[str] = None,
-            port: Optional[int] = None,
-            **kwargs,
+        cls,
+        dynamics: MolecularDynamics,
+        address: Optional[str] = None,
+        port: Optional[int] = None,
+        **kwargs,
     ):
         """
         Initialises basic interactive molecular dynamics running a Narupa server
@@ -173,7 +178,9 @@ class NarupaASEDynamics:
         """
         # ideally we'd just check _run_task.running(), but there can be a delay between the task
         # starting and hitting the running state.
-        return self._run_task is not None and not (self._run_task.cancelled() or self._run_task.done())
+        return self._run_task is not None and not (
+            self._run_task.cancelled() or self._run_task.done()
+        )
 
     def step(self):
         """
@@ -211,10 +218,10 @@ class NarupaASEDynamics:
         self.run()
 
     def run(
-            self,
-            steps: Optional[int] = None,
-            block: Optional[bool] = None,
-            reset_energy: Optional[float] = None,
+        self,
+        steps: Optional[int] = None,
+        block: Optional[bool] = None,
+        reset_energy: Optional[float] = None,
     ):
         """
         Runs the molecular dynamics.
@@ -236,14 +243,14 @@ class NarupaASEDynamics:
         # The default is to be blocking if a number of steps is provided, and
         # not blocking if we run forever.
         if block is None:
-            block = (steps is not None)
+            block = steps is not None
         if block:
             self._run(steps, reset_energy)
         else:
             self._run_task = self.threads.submit(self._run, steps, reset_energy)
 
     def _run(self, steps: Optional[int], reset_energy: Optional[float]):
-        remaining_steps = steps if steps is not None else float('inf')
+        remaining_steps = steps if steps is not None else float("inf")
         for _ in self._variable_interval_generator.yield_interval():
             if self._cancelled or remaining_steps <= 0:
                 break
@@ -314,7 +321,7 @@ class NarupaASEDynamics:
         self.dynamics_interval = float(interval)
 
     def _get_dynamics_interval(self) -> Dict[str, float]:
-        return {'interval': self.dynamics_interval}
+        return {"interval": self.dynamics_interval}
 
     def _register_commands(self):
         self._server.register_command(PLAY_COMMAND_KEY, self.play)

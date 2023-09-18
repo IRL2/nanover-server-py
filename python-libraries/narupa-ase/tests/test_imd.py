@@ -11,16 +11,26 @@ from ase.cell import Cell
 from ase.md import VelocityVerlet
 from narupa.ase.imd import NarupaASEDynamics
 from narupa.core import NarupaClient
-from narupa.trajectory.frame_server import PLAY_COMMAND_KEY, PAUSE_COMMAND_KEY, RESET_COMMAND_KEY, STEP_COMMAND_KEY
+from narupa.trajectory.frame_server import (
+    PLAY_COMMAND_KEY,
+    PAUSE_COMMAND_KEY,
+    RESET_COMMAND_KEY,
+    STEP_COMMAND_KEY,
+)
 
 DUMMY_ATOMS_COUNT = 4
 DUMMY_ATOMS_POSITIONS = np.arange(DUMMY_ATOMS_COUNT * 3, dtype=float).reshape((-1, 3))
 DUMMY_ATOMS_VELOCITIES = DUMMY_ATOMS_POSITIONS[::-1]
-DUMMY_ATOMS_CELL = Cell(np.array([
-    [10., 0., 0.],
-    [0., 11., 0.],
-    [0., 0., 12.],
-], dtype=float))
+DUMMY_ATOMS_CELL = Cell(
+    np.array(
+        [
+            [10.0, 0.0, 0.0],
+            [0.0, 11.0, 0.0],
+            [0.0, 0.0, 12.0],
+        ],
+        dtype=float,
+    )
+)
 OneOrTwoDArray = Union[Iterable[float], Iterable[Iterable[float]], np.ndarray]
 
 
@@ -33,6 +43,7 @@ class ArbitraryCalculator(Calculator):
     requested positions, velocities, and forces can be expressed as values for
     all the atoms, or as the value for one atom that will be repeated.
     """
+
     # We set the defaults as class attributes. If they are overwritten for an
     # instance, then the instance will use its own version instead of the
     # class one.
@@ -40,32 +51,39 @@ class ArbitraryCalculator(Calculator):
     request_velocities: OneOrTwoDArray = np.array([0, 0, 0])
     request_forces: OneOrTwoDArray = np.array([0, 0, 0])
     request_box: Cell = Cell(
-        np.array([
-            [1, 0, 0],
-            [0, 2, 0],
-            [0, 0, 3],
-        ], dtype=float)
+        np.array(
+            [
+                [1, 0, 0],
+                [0, 2, 0],
+                [0, 0, 3],
+            ],
+            dtype=float,
+        )
     )
     request_potential_energy: float = 0
 
-    def calculate(self, atoms: Optional[Atoms] = None, properties=all_properties,
-                  system_changes=all_changes):
+    def calculate(
+        self,
+        atoms: Optional[Atoms] = None,
+        properties=all_properties,
+        system_changes=all_changes,
+    ):
         if Atoms is None:
-            raise ValueError('No atom provided to the calculator.')
+            raise ValueError("No atom provided to the calculator.")
 
-        per_atom_suffixes = ('positions', 'velocities')
+        per_atom_suffixes = ("positions", "velocities")
         for suffix in per_atom_suffixes:
-            attribute_name = f'request_{suffix}'
+            attribute_name = f"request_{suffix}"
             attribute = getattr(self, attribute_name)
             attribute = self._repeat_per_atom(atoms, attribute)
-            set_method_name = f'set_{suffix}'
+            set_method_name = f"set_{suffix}"
             set_method = getattr(atoms, set_method_name)
             set_method(attribute)
         atoms.set_cell(self.request_box)
 
         forces = self._repeat_per_atom(atoms, self.request_forces)
-        self.results['forces'] = forces
-        self.results['energy'] = self.request_potential_energy
+        self.results["forces"] = forces
+        self.results["energy"] = self.request_potential_energy
 
     @staticmethod
     def _repeat_per_atom(atoms, value: OneOrTwoDArray) -> np.ndarray:
@@ -89,7 +107,6 @@ def do_nothing_producer(*args, **kwrags):
 
 @pytest.fixture
 def dummy_atoms():
-    n_atoms = 4
     atoms = Atoms(positions=DUMMY_ATOMS_POSITIONS.copy())
     atoms.set_velocities(DUMMY_ATOMS_VELOCITIES.copy())
     atoms.set_cell(DUMMY_ATOMS_CELL.copy())
@@ -106,20 +123,22 @@ def arbitrary_dynamics(dummy_atoms):
 
 @pytest.fixture
 def arbitrary_ase_server(arbitrary_dynamics):
-    with NarupaASEDynamics.basic_imd(arbitrary_dynamics,
-                                     port=0,
-                                     frame_method=do_nothing_producer) as ase_server:
+    with NarupaASEDynamics.basic_imd(
+        arbitrary_dynamics, port=0, frame_method=do_nothing_producer
+    ) as ase_server:
         yield ase_server
 
 
 @pytest.fixture
 def client_server(arbitrary_ase_server):
-    with NarupaClient.insecure_channel(address='localhost', port=arbitrary_ase_server.port) as c:
+    with NarupaClient.insecure_channel(
+        address="localhost", port=arbitrary_ase_server.port
+    ) as c:
         yield c, arbitrary_ase_server
 
 
 def test_address(arbitrary_ase_server):
-    assert arbitrary_ase_server.address == '[::]'
+    assert arbitrary_ase_server.address == "[::]"
 
 
 def test_reset(arbitrary_ase_server):

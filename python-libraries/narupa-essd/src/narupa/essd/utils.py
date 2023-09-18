@@ -1,13 +1,15 @@
 import ipaddress
 import socket
-from typing import List, Optional, Iterable, Dict, Any
+from typing import List, Optional, Iterable, Dict
 
 import netifaces
 
 InterfaceAddresses = Dict[str, str]
 
 
-def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None) -> List[InterfaceAddresses]:
+def get_ipv4_addresses(
+    interfaces: Optional[Iterable[str]] = None,
+) -> List[InterfaceAddresses]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces.
 
@@ -28,7 +30,9 @@ def get_ipv4_addresses(interfaces: Optional[Iterable[str]] = None) -> List[Inter
     return ipv4_addrs
 
 
-def get_broadcast_addresses(interfaces: Optional[Iterable[str]] = None) -> List[InterfaceAddresses]:
+def get_broadcast_addresses(
+    interfaces: Optional[Iterable[str]] = None,
+) -> List[InterfaceAddresses]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces that have broadcast addresses.
 
@@ -49,12 +53,14 @@ def get_broadcast_addresses(interfaces: Optional[Iterable[str]] = None) -> List[
     """
 
     ipv4_addrs = get_ipv4_addresses(interfaces)
-    return [address_entry for address_entry in ipv4_addrs if 'broadcast' in address_entry]
+    return [
+        address_entry for address_entry in ipv4_addrs if "broadcast" in address_entry
+    ]
 
 
 def resolve_host_broadcast_address(
-        host: str,
-        ipv4_addrs: Optional[List[InterfaceAddresses]] = None,
+    host: str,
+    ipv4_addrs: Optional[List[InterfaceAddresses]] = None,
 ):
     try:
         address = socket.gethostbyname(host)
@@ -62,7 +68,14 @@ def resolve_host_broadcast_address(
         return None
     if ipv4_addrs is None:
         ipv4_addrs = get_ipv4_addresses()
-    return next((item for item in ipv4_addrs if item["addr"] == address and 'broadcast' in item), None)
+    return next(
+        (
+            item
+            for item in ipv4_addrs
+            if item["addr"] == address and "broadcast" in item
+        ),
+        None,
+    )
 
 
 def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> bool:
@@ -82,27 +95,33 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
     try:
         ip_address = ipaddress.ip_address(address)
     except ValueError:
-        raise ValueError(f'Given address {address} is not a valid IP address.')
+        raise ValueError(f"Given address {address} is not a valid IP address.")
     try:
-        netmask = ipaddress.ip_address(interface_address_entry['netmask'])
-        broadcast_address = ipaddress.ip_address(interface_address_entry['broadcast'])
+        netmask = ipaddress.ip_address(interface_address_entry["netmask"])
+        broadcast_address = ipaddress.ip_address(interface_address_entry["broadcast"])
         # to network address e.g. 255.255.255.0 & 192.168.1.255 = 192.168.1.0
         network_address = ipaddress.ip_address(int(netmask) & int(broadcast_address))
         # The doc and typing stub seem to indicate this is not a valid call of
         # ipaddress.ip_network, but this is well tested so we accept it for the
         # time being.
         # TODO: Fix this line as the types seem to be incorrect.
-        ip_network = ipaddress.ip_network((network_address, interface_address_entry['netmask']))  # type: ignore
+        ip_network = ipaddress.ip_network((network_address, interface_address_entry["netmask"]))  # type: ignore
     except ValueError:
-        raise ValueError(f'Given address {interface_address_entry} is not a valid IP network address.')
+        raise ValueError(
+            f"Given address {interface_address_entry} is not a valid IP network address."
+        )
     except KeyError:
-        raise KeyError(f'Given interface address dictionary did not contain either \'broadcast\' or \'netmask\' keys: '
-                       f'{interface_address_entry}')
+        raise KeyError(
+            f"Given interface address dictionary did not contain either 'broadcast' or 'netmask' keys: "
+            f"{interface_address_entry}"
+        )
     return ip_address in ip_network
 
 
 def get_broadcastable_ip():
     broadcast_addresses = get_broadcast_addresses()
     if len(broadcast_addresses) == 0:
-        raise RuntimeError("No broadcastable IP addresses could be found on the system!")
-    return broadcast_addresses[0]['addr']
+        raise RuntimeError(
+            "No broadcastable IP addresses could be found on the system!"
+        )
+    return broadcast_addresses[0]["addr"]

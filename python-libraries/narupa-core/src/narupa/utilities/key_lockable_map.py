@@ -61,7 +61,9 @@ class KeyLockableMap:
 
     def remove_owner(self, owner_id):
         with self._lock:
-            locked_keys = {key for key, owner in self._key_lock_owners.items() if owner == owner_id}
+            locked_keys = {
+                key for key, owner in self._key_lock_owners.items() if owner == owner_id
+            }
             for key in locked_keys:
                 self._remove_lock(key)
 
@@ -84,7 +86,7 @@ class KeyLockableMap:
 
         with self._lock:
             if key in self._values:
-                raise KeyError(f'Key {key} already exists.')
+                raise KeyError(f"Key {key} already exists.")
             self._values[key] = value
 
     def get(self, resource_id, default=None):

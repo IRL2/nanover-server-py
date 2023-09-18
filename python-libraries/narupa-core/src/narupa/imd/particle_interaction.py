@@ -4,7 +4,7 @@
 Module providing a wrapper class around the protobuf interaction message.
 """
 import math
-from typing import Dict, Any, Iterable, Collection, Union
+from typing import Dict, Any, Iterable, Union
 import numpy as np
 import numpy.typing as npt
 
@@ -36,15 +36,17 @@ class ParticleInteraction:
     RESET_VELOCITIES_KEY = "reset_velocities"
     MAX_FORCE_KEY = "max_force"
 
-    def __init__(self,
-                 position=(0., 0., 0.),
-                 particles=(),
-                 interaction_type=DEFAULT_FORCE_TYPE,
-                 scale=1.0,
-                 mass_weighted=True,
-                 reset_velocities=False,
-                 max_force=DEFAULT_MAX_FORCE,
-                 **kwargs):
+    def __init__(
+        self,
+        position=(0.0, 0.0, 0.0),
+        particles=(),
+        interaction_type=DEFAULT_FORCE_TYPE,
+        scale=1.0,
+        mass_weighted=True,
+        reset_velocities=False,
+        max_force=DEFAULT_MAX_FORCE,
+        **kwargs,
+    ):
         self.position = position
         self.particles = particles
         self.scale = scale
@@ -91,7 +93,9 @@ class ParticleInteraction:
     def position(self, position: Iterable[float]):
         converted = np.array(position)
         if len(converted) != 3:
-            raise ValueError(f"Position expected 3d vector, instead received: {position}")
+            raise ValueError(
+                f"Position expected 3d vector, instead received: {position}"
+            )
         self._position = converted
 
     @property
@@ -162,11 +166,15 @@ class ParticleInteraction:
 
     def __eq__(self, other):
         return (
-                isinstance(other, ParticleInteraction) and np.equal(self.particles, other.particles).all()
-                and np.isclose(self.position, other.position).all() and math.isclose(self.max_force, other.max_force)
-                and self.mass_weighted == other.mass_weighted and math.isclose(self.scale, other.scale)
-                and self.reset_velocities == other.reset_velocities and self.interaction_type == other.interaction_type
-                and self.properties == other.properties
+            isinstance(other, ParticleInteraction)
+            and np.equal(self.particles, other.particles).all()
+            and np.isclose(self.position, other.position).all()
+            and math.isclose(self.max_force, other.max_force)
+            and self.mass_weighted == other.mass_weighted
+            and math.isclose(self.scale, other.scale)
+            and self.reset_velocities == other.reset_velocities
+            and self.interaction_type == other.interaction_type
+            and self.properties == other.properties
         )
 
     def __repr__(self):

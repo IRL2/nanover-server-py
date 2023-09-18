@@ -5,7 +5,7 @@ Module providing conversion methods between Narupa and OpenMM.
 """
 from typing import Optional
 
-import numpy as np
+
 try:
     # Mypy does not find State in the C module; we ignore the error
     from openmm import State  # type: ignore[attr-defined]
@@ -20,9 +20,9 @@ from narupa.trajectory import FrameData
 
 
 def add_openmm_state_to_frame_data(
-        data: FrameData,
-        state: State,
-        include_positions: bool = True,
+    data: FrameData,
+    state: State,
+    include_positions: bool = True,
 ) -> None:
     """
     Adds the OpenMM state information to the given :class:`FrameData`, including
@@ -81,10 +81,10 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology) -> No
 
 
 def openmm_to_frame_data(
-        *,
-        state: Optional[State] = None,
-        topology: Optional[Topology] = None,
-        include_positions: bool = True,
+    *,
+    state: Optional[State] = None,
+    topology: Optional[Topology] = None,
+    include_positions: bool = True,
 ) -> FrameData:
     """
     Converts the given OpenMM state and topology objects into a Narupa :class:`FrameData`.

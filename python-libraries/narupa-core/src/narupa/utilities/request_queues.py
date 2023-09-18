@@ -37,6 +37,7 @@ class DictOfQueues:
     :attr:`DictOfQueues.lock`. The recommended way to register and unregister
     a queue is to use the :meth:`one_queue` context manager.
     """
+
     queue_max_size: int
     queues: Dict[Hashable, Queue]
     lock: Lock
@@ -74,7 +75,7 @@ class DictOfQueues:
         queue = queue_class(maxsize=self.queue_max_size)
         with self.lock:
             if request_id in self.queues:
-                raise ValueError(f'The key {request_id} is already registered.')
+                raise ValueError(f"The key {request_id} is already registered.")
             self.queues[request_id] = queue
         try:
             yield queue
@@ -177,6 +178,7 @@ class GetFrameResponseAggregatingQueue(SingleItemQueue):
     aggregated with any existing item so that there is at most one item in the
     queue at any time.
     """
+
     def put(self, item: GetFrameResponse, **kwargs):
         with self._lock:
             if item is None:
@@ -193,4 +195,3 @@ class GetFrameResponseAggregatingQueue(SingleItemQueue):
                 self._item.frame.MergeFrom(item.frame)
             self._has_item = True
             self.not_empty.notify()
-

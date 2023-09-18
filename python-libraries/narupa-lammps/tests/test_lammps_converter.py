@@ -12,6 +12,7 @@ def simple_atom_lammps_frame():
     data_array = mock.gather_atoms("x", "", "")
     return data_array
 
+
 @pytest.fixture
 def lammps_hook():
     hook = LammpsImd()
@@ -74,7 +75,10 @@ def test_forces_lammps_atoms(lammps_hook):
     lammps_hook._add_interaction_to_ctype(temp_forces, data_array)
     # Convert back to numpy for assert
     final_forces = np.ctypeslib.as_array(data_array)
-    assert final_forces.all() == np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]).all()
+    assert (
+        final_forces.all()
+        == np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]).all()
+    )
 
 
 def test_main_hook(lammps_hook):
@@ -84,6 +88,8 @@ def test_main_hook(lammps_hook):
     lammps_hook.default_atoms = 3
     lammps_hook.lammps_hook()
     # Get first three positions and convert to list floats
-    positions = lammps_hook.frame_data.raw.arrays[PARTICLE_POSITIONS].float_values.values[0:3]
+    positions = lammps_hook.frame_data.raw.arrays[
+        PARTICLE_POSITIONS
+    ].float_values.values[0:3]
     positions = [float("%.1f" % x) for x in positions]
     assert positions == [0.0, 0.1, 0.2]

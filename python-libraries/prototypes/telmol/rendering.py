@@ -2,7 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 import curses
 import itertools
-from typing import Tuple, Iterable, Iterator, Callable, Sequence, Dict, Any, Protocol
+from typing import Tuple, Iterable, Iterator, Sequence, Dict, Any, Protocol
 import numpy as np
 from bresenham import get_line
 
@@ -23,7 +23,7 @@ element_colors = {
     16: curses.COLOR_YELLOW,
 }
 
-ColorPair = Any # curses.color_pair
+ColorPair = Any  # curses.color_pair
 Position = Tuple[float, float, float, float]
 Fragment = Tuple[int, int, int, float]
 BondPair = Tuple[int, int]
@@ -40,14 +40,19 @@ class Shader(Protocol):
 
 
 def iterate_frame_atoms(frame) -> Iterator[AtomInfo]:
-    for index, position, element in zip(itertools.count(), frame['positions'], frame['elements']):
-        if index not in frame['skip_atoms']:
+    for index, position, element in zip(
+        itertools.count(), frame["positions"], frame["elements"]
+    ):
+        if index not in frame["skip_atoms"]:
             yield index, position, element
 
 
 def iterate_frame_bonds(frame) -> Iterator[BondPair]:
-    for atom_a_index, atom_b_index in frame['bonds']:
-        if atom_a_index not in frame['skip_atoms'] and atom_b_index not in frame['skip_atoms']:
+    for atom_a_index, atom_b_index in frame["bonds"]:
+        if (
+            atom_a_index not in frame["skip_atoms"]
+            and atom_b_index not in frame["skip_atoms"]
+        ):
             yield atom_a_index, atom_b_index
 
 
@@ -64,29 +69,31 @@ def atoms_to_pixels_cpk(frame, color_count) -> Iterator[Fragment]:
 def atoms_to_pixels_gradient(frame, color_count) -> Iterator[Fragment]:
     for index, position, element in iterate_frame_atoms(frame):
         x, y, z = int(position[0]), int(position[1]), position[2]
-        color_index = int((index * .1) % color_count)
+        color_index = int((index * 0.1) % color_count)
 
         yield color_index, x, y, z
 
 
 def bonds_to_pixels_gradient(frame, color_count) -> Iterator[Fragment]:
     for atom_a_index, atom_b_index in iterate_frame_bonds(frame):
-        start = frame['positions'][atom_a_index]
-        end = frame['positions'][atom_b_index]
+        start = frame["positions"][atom_a_index]
+        end = frame["positions"][atom_b_index]
 
         start = (int(start[0]), int(start[1]), start[2])
         end = (int(end[0]), int(end[1]), end[2])
 
-        color_index = int(((atom_a_index + atom_b_index) *.05) % color_count)
+        color_index = int(((atom_a_index + atom_b_index) * 0.05) % color_count)
 
         for x, y, z in get_line(start, end):
             yield color_index, x, y, z
 
 
-def render_pixels_to_window(window,
-                            charset: Sequence[str],
-                            colors: Sequence[ColorPair],
-                            pixels: Iterable[Fragment]):
+def render_pixels_to_window(
+    window,
+    charset: Sequence[str],
+    colors: Sequence[ColorPair],
+    pixels: Iterable[Fragment],
+):
     h, w = window.getmaxyx()
     depth_buffer = np.full((w, h), 0, dtype=np.float32)
     color_buffer = {}
@@ -124,7 +131,7 @@ def render_pixels_to_window(window,
     depth_buffer -= min_depth
     depth_buffer *= depth_scale
     np.rint(depth_buffer, out=depth_buffer)
-    depth_buffer.clip(0, char_count-1, out=depth_buffer)
+    depth_buffer.clip(0, char_count - 1, out=depth_buffer)
 
     character_lookup = np.array(charset)
     char_buffer = character_lookup[depth_buffer.astype(int)]
@@ -133,6 +140,4 @@ def render_pixels_to_window(window,
         window.addch(y, x, char_buffer[x, y], color)
 
 
-SHADERS = [atoms_to_pixels_cpk,
-           atoms_to_pixels_gradient,
-           bonds_to_pixels_gradient]
+SHADERS = [atoms_to_pixels_cpk, atoms_to_pixels_gradient, bonds_to_pixels_gradient]

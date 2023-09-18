@@ -11,7 +11,7 @@ For details, and if you find these functions helpful, please cite [1]_.
 """
 
 from math import exp
-from typing import Collection, Tuple, Optional, Iterable
+from typing import Tuple, Optional, Iterable
 
 import numpy as np
 import numpy.typing as npt
@@ -19,10 +19,10 @@ from narupa.imd.particle_interaction import ParticleInteraction
 
 
 def calculate_imd_force(
-        positions: npt.NDArray,
-        masses: npt.NDArray,
-        interactions: Iterable[ParticleInteraction],
-        periodic_box_lengths: Optional[npt.NDArray] = None,
+    positions: npt.NDArray,
+    masses: npt.NDArray,
+    interactions: Iterable[ParticleInteraction],
+    periodic_box_lengths: Optional[npt.NDArray] = None,
 ) -> Tuple[float, npt.NDArray]:
     """
     Reference implementation of the Narupa IMD force.
@@ -40,15 +40,22 @@ def calculate_imd_force(
     """
 
     forces = np.zeros((len(positions), 3), dtype=np.float32)
-    total_energy = 0.
+    total_energy = 0.0
     for interaction in interactions:
-        energy = apply_single_interaction_force(positions, masses, interaction, forces, periodic_box_lengths)
+        energy = apply_single_interaction_force(
+            positions, masses, interaction, forces, periodic_box_lengths
+        )
         total_energy += energy
     return total_energy, forces
 
 
-def apply_single_interaction_force(positions: npt.NDArray, masses: npt.NDArray, interaction, forces: npt.NDArray,
-                                   periodic_box_lengths: Optional[npt.NDArray] = None) -> float:
+def apply_single_interaction_force(
+    positions: npt.NDArray,
+    masses: npt.NDArray,
+    interaction,
+    forces: npt.NDArray,
+    periodic_box_lengths: Optional[npt.NDArray] = None,
+) -> float:
     """
     Calculates the energy and adds the forces to the particles of a single application of an interaction potential.
 
@@ -63,7 +70,9 @@ def apply_single_interaction_force(positions: npt.NDArray, masses: npt.NDArray, 
     particle_count = len(interaction.particles)
 
     if particle_count > 1:
-        center = get_center_of_mass_subset(positions, masses, interaction.particles, periodic_box_lengths)
+        center = get_center_of_mass_subset(
+            positions, masses, interaction.particles, periodic_box_lengths
+        )
     else:
         center = positions[interaction.particles[0]]
 
@@ -71,22 +80,30 @@ def apply_single_interaction_force(positions: npt.NDArray, masses: npt.NDArray, 
     try:
         potential_method = INTERACTION_METHOD_MAP[interaction.interaction_type]
     except KeyError:
-        raise KeyError(f"Unknown interactive force type {interaction.interaction_type}.")
+        raise KeyError(
+            f"Unknown interactive force type {interaction.interaction_type}."
+        )
 
     # calculate the overall force to be applied
-    energy, force = potential_method(center, interaction.position, periodic_box_lengths=periodic_box_lengths)
+    energy, force = potential_method(
+        center, interaction.position, periodic_box_lengths=periodic_box_lengths
+    )
     # apply the appropriate force to each particle in the selection.
     force_per_particle = force / particle_count
     energy_per_particle = energy / particle_count
-    total_energy = _apply_force_to_particles(forces, energy_per_particle,
-                                             force_per_particle, interaction, masses)
+    total_energy = _apply_force_to_particles(
+        forces, energy_per_particle, force_per_particle, interaction, masses
+    )
     return total_energy
 
 
-def _apply_force_to_particles(forces: np.ndarray,
-                              energy_per_particle: float,
-                              force_per_particle: np.ndarray,
-                              interaction: ParticleInteraction, masses: np.ndarray) -> float:
+def _apply_force_to_particles(
+    forces: np.ndarray,
+    energy_per_particle: float,
+    force_per_particle: np.ndarray,
+    interaction: ParticleInteraction,
+    masses: np.ndarray,
+) -> float:
     """
 
     Given the array of forces, energy and force to apply to each particle, applies them, using mass weighting
@@ -138,10 +155,10 @@ def wrap_pbc(positions: np.ndarray, periodic_box_lengths: np.ndarray):
 
 
 def get_center_of_mass_subset(
-        positions: np.ndarray,
-        masses: np.ndarray,
-        subset: Iterable[int],
-        periodic_box_lengths: Optional[np.ndarray] = None,
+    positions: np.ndarray,
+    masses: np.ndarray,
+    subset: Iterable[int],
+    periodic_box_lengths: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     """
     Gets the center of mass of [a subset of] positions.
@@ -161,7 +178,9 @@ def get_center_of_mass_subset(
     subset_total_mass = subset_masses.sum()
     if subset_total_mass == 0:
         # we raise before actually doing the division since we know it will fail.
-        raise ZeroDivisionError("Total mass of subset was zero, cannot compute center of mass!")
+        raise ZeroDivisionError(
+            "Total mass of subset was zero, cannot compute center of mass!"
+        )
     if periodic_box_lengths is not None:
         subset_positions = wrap_pbc(subset_positions, periodic_box_lengths)
     # np.average is slow for small arrays so we use a naive implementation.
@@ -169,8 +188,12 @@ def get_center_of_mass_subset(
     return com
 
 
-def calculate_gaussian_force(particle_position: np.ndarray, interaction_position: np.ndarray, sigma=1,
-                             periodic_box_lengths: Optional[np.ndarray] = None) -> Tuple[float, np.ndarray]:
+def calculate_gaussian_force(
+    particle_position: np.ndarray,
+    interaction_position: np.ndarray,
+    sigma=1,
+    periodic_box_lengths: Optional[np.ndarray] = None,
+) -> Tuple[float, np.ndarray]:
     """
     Computes the interactive Gaussian force.
 
@@ -190,14 +213,18 @@ def calculate_gaussian_force(particle_position: np.ndarray, interaction_position
     sigma_sqr = sigma * sigma
 
     gauss = exp(-dist_sqr / (2 * sigma_sqr))
-    energy = - gauss
+    energy = -gauss
     # force is negative derivative of energy wrt to position. The minus in the energy cancels with the derivative.
-    force = - (diff / sigma_sqr) * gauss
+    force = -(diff / sigma_sqr) * gauss
     return energy, force
 
 
-def calculate_spring_force(particle_position: npt.NDArray, interaction_position: npt.NDArray, k=1,
-                           periodic_box_lengths: Optional[npt.NDArray] = None) -> Tuple[float, npt.NDArray]:
+def calculate_spring_force(
+    particle_position: npt.NDArray,
+    interaction_position: npt.NDArray,
+    k=1,
+    periodic_box_lengths: Optional[npt.NDArray] = None,
+) -> Tuple[float, npt.NDArray]:
     """
     Computes the interactive harmonic potential (or spring) force.
 
@@ -216,11 +243,13 @@ def calculate_spring_force(particle_position: npt.NDArray, interaction_position:
     diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
     energy = k * dist_sqr
     # force is negative derivative of energy wrt to position.
-    force = (- 2 * k) * diff
+    force = (-2 * k) * diff
     return energy, force
 
 
-def _minimum_image(diff, periodic_box_lengths: Optional[np.ndarray] = None) -> np.ndarray:
+def _minimum_image(
+    diff, periodic_box_lengths: Optional[np.ndarray] = None
+) -> np.ndarray:
     """
     Gets the difference between two vectors under minimum image convention for a cubic periodic box.
     :diff The difference between two vectors.
@@ -234,8 +263,9 @@ def _minimum_image(diff, periodic_box_lengths: Optional[np.ndarray] = None) -> n
     return diff
 
 
-def _calculate_diff_and_sqr_distance(u: np.ndarray, v: np.ndarray,
-                                     periodic_box_lengths: Optional[np.ndarray] = None) -> Tuple[np.ndarray, float]:
+def _calculate_diff_and_sqr_distance(
+    u: np.ndarray, v: np.ndarray, periodic_box_lengths: Optional[np.ndarray] = None
+) -> Tuple[np.ndarray, float]:
     """
     Calculates the difference and square of the distance between two vectors.
     A utility function for computing gradients based on this distance.
@@ -251,4 +281,7 @@ def _calculate_diff_and_sqr_distance(u: np.ndarray, v: np.ndarray,
     return diff, dist_sqr
 
 
-INTERACTION_METHOD_MAP = {'gaussian': calculate_gaussian_force, 'spring': calculate_spring_force}
+INTERACTION_METHOD_MAP = {
+    "gaussian": calculate_gaussian_force,
+    "spring": calculate_spring_force,
+}

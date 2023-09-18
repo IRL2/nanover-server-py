@@ -14,7 +14,7 @@ import numpy.typing as npt
 try:
     from lammps import lammps  # type: ignore
 except ImportError:
-    logging.info('lammps failed to import', exc_info=True)
+    logging.info("lammps failed to import", exc_info=True)
 
 from narupa.app import NarupaImdApplication
 
@@ -25,7 +25,11 @@ from narupa.trajectory.frame_data import PARTICLE_POSITIONS
 from narupa.imd.imd_force import calculate_imd_force
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.lammps.mock import MockLammps
-from narupa.lammps.conversions import ELEMENT_INDEX_MASS, LAMMPS_UNITS_CHECK, PLANK_VALUES
+from narupa.lammps.conversions import (
+    ELEMENT_INDEX_MASS,
+    LAMMPS_UNITS_CHECK,
+    PLANK_VALUES,
+)
 
 
 def _try_or_except(func):
@@ -38,7 +42,7 @@ def _try_or_except(func):
     """
 
     @functools.wraps(func)
-    def wrapper(self: 'LammpsImd', *args, **kwargs):
+    def wrapper(self: "LammpsImd", *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
         except Exception as e:
@@ -69,6 +73,7 @@ class LammpsImd:
     stand alone program and determine if it should use mock variables (manipulate_dummy_arrays)
     or ones available from within LAMMPS (manipulate_lammps_arrays).
     """
+
     need_to_collect_topology = True
 
     def __init__(self, port: Optional[int] = None, address: str = "[::]"):
@@ -80,6 +85,7 @@ class LammpsImd:
         logging.basicConfig(level=logging.INFO)
         try:
             from mpi4py import MPI
+
             self.comm = MPI.COMM_WORLD
             me = MPI.COMM_WORLD.Get_rank()
             nprocs = MPI.COMM_WORLD.Get_size()
@@ -91,12 +97,16 @@ class LammpsImd:
                 logging.debug("MPI n processors %s ", nprocs)
         except ImportError as err:
             logging.error("Didn't find mpi4py %s", err)
-            raise Exception("Failed to load load mpi4py, please make sure it is installed", err)
+            raise Exception(
+                "Failed to load load mpi4py, please make sure it is installed", err
+            )
 
         # Start frame server, must come before MPI
         if me == 0:
             # TODO raise exception when this fails, i.e if port is blocked
-            self.server_app = NarupaImdApplication.basic_server(name='LAMMPS-server', address=address, port=port)
+            self.server_app = NarupaImdApplication.basic_server(
+                name="LAMMPS-server", address=address, port=port
+            )
             self.frame_service = self.server_app.frame_publisher
             self.imd_service = self.server_app.imd
             self.frame_index = 0
@@ -136,22 +146,28 @@ class LammpsImd:
             self.lammps_class = self._determine_lmp_status(comm, lmp)
 
             # Collect unchanging variables in the first MD step only (the topology loop)
-            n_atoms, distance_factor, units_type, force_factor = self._extract_fundamental_factors(self.lammps_class)
+            (
+                n_atoms,
+                distance_factor,
+                units_type,
+                force_factor,
+            ) = self._extract_fundamental_factors(self.lammps_class)
 
             # Collect the lammps atom types and masses for a crude topology
-            self.atom_type, self.masses = self._gather_lammps_particle_types(self.lammps_class)
+            self.atom_type, self.masses = self._gather_lammps_particle_types(
+                self.lammps_class
+            )
         else:
             # Useful to extract these in the event of MPI issues.
-            n_atoms = self.n_atoms
             distance_factor = self.distance_factor
-            units_type = self.units_type
-            force_factor = self.force_factor
 
         # Extract the position matrix from lammps
         positions = self._extract_positions(self.lammps_class)
 
         # Collect client data and return to lammps internal arrays
-        self._manipulate_lammps_internal_matrix(self.lammps_class, positions, distance_factor, 'f')
+        self._manipulate_lammps_internal_matrix(
+            self.lammps_class, positions, distance_factor, "f"
+        )
 
         if self.me == 0:
             # Send frame data on proc 0 only as otherwise port blocking occurs
@@ -219,14 +235,14 @@ class LammpsImd:
 
         # Atom mass is indexed from 1 in lammps for some reason.
         # Create a new list rounded to the nearest mass integer
-        if self.units_type is "lj":
+        if self.units_type == "lj":
             # Some lennard jones calculations don't allow iteration over atom_type_mass
             # This is a workaround
             atom_mass_type = [0]
             for i in range(ntypes):
                 atom_mass_type.append(12 + i)
         else:
-            atom_mass_type = [round(x) for x in atom_type_mass[0:ntypes + 1]]
+            atom_mass_type = [round(x) for x in atom_type_mass[0 : ntypes + 1]]
 
         self._log_mpi("atom_mass_types %s", atom_mass_type)
         # Convert to masses
@@ -236,16 +252,16 @@ class LammpsImd:
         final_elements = [ELEMENT_INDEX_MASS.get(mass, 1) for mass in final_masses]
         return final_elements, final_masses
 
-    def _lammps_positions_to_frame_data(self,
-                                        frame_data: FrameData,
-                                        data_array: npt.NDArray):
+    def _lammps_positions_to_frame_data(
+        self, frame_data: FrameData, data_array: npt.NDArray
+    ):
         """
-        Convert the flat ctype.c_double data into the frame_data format. for the moment
-        this assumes we are in LAMMPS real units. Its unclear at this stage if is possible
-        to automatically detect this if the case is otherwise.
-`
-        :param data_array: Data to convert
-        :param frame_data: frame data object
+                Convert the flat ctype.c_double data into the frame_data format. for the moment
+                this assumes we are in LAMMPS real units. Its unclear at this stage if is possible
+                to automatically detect this if the case is otherwise.
+        `
+                :param data_array: Data to convert
+                :param frame_data: frame data object
         """
 
         # Copy the ctype array to numpy for processing
@@ -292,12 +308,16 @@ class LammpsImd:
         """
         plank_value = lammps_class.extract_global("hplanck", 1)
         self._log_mpi("Plank value from lammps_internal %s ", plank_value)
-        plank_type = min(range(len(PLANK_VALUES)), key=lambda i: abs(PLANK_VALUES[i] - plank_value))
+        plank_type = min(
+            range(len(PLANK_VALUES)), key=lambda i: abs(PLANK_VALUES[i] - plank_value)
+        )
         self._log_mpi("Key detected %s", plank_type)
         return plank_type
 
     @_try_or_except
-    def _manipulate_lammps_internal_matrix(self, lammps_class, positions, distance_factor, matrix_type):
+    def _manipulate_lammps_internal_matrix(
+        self, lammps_class, positions, distance_factor, matrix_type
+    ):
         """
         This groups together the routines needed to return forces to lammps,
         is has been made general in case one day we and to do velocity renormalisation
@@ -315,7 +335,9 @@ class LammpsImd:
         if self.n_atoms is None:
             raise ValueError("Number of atoms undefined.")
         # Convert the positions to a 2D, 3N array for use in calculate)imd_force
-        positions_3n = np.ctypeslib.as_array(positions, shape=(self.n_atoms * 3)).reshape(self.n_atoms, 3)
+        positions_3n = np.ctypeslib.as_array(
+            positions, shape=(self.n_atoms * 3)
+        ).reshape(self.n_atoms, 3)
         # Convert the positions to the narupa internal so that the forces are added in the correct position
         positions_3n /= self.distance_factor
         # Collect interaction vector from client on process 0
@@ -329,11 +351,13 @@ class LammpsImd:
         else:
             interactions = self.comm.recv(source=0, tag=9)
 
-        if matrix_type == 'f':
+        if matrix_type == "f":
             # Create numpy arrays with the forces to be added
             if self.masses is None:
                 raise ValueError
-            energy_kjmol, forces_kjmol = calculate_imd_force(positions_3n, self.masses, interactions.values())
+            energy_kjmol, forces_kjmol = calculate_imd_force(
+                positions_3n, self.masses, interactions.values()
+            )
             self._add_interaction_to_ctype(forces_kjmol, forces)
 
         # Convert the positions back so that they will render correctly.
@@ -347,7 +371,7 @@ class LammpsImd:
         Return: the positions array for use in the frame data
         """
 
-        positions = self._gather_lammps_array('x', lammps_class)
+        positions = self._gather_lammps_array("x", lammps_class)
 
         return positions
 
@@ -388,7 +412,9 @@ class LammpsImd:
         if unit_check is None:
             raise KeyError
         units_type, distance_factor, force_factor = unit_check
-        self._log_mpi("units : %s %s %s %s", self.me, units_type, force_factor, distance_factor)
+        self._log_mpi(
+            "units : %s %s %s %s", self.me, units_type, force_factor, distance_factor
+        )
         self.n_atoms = n_atoms
         self.distance_factor = distance_factor
         self.units_type = units_type

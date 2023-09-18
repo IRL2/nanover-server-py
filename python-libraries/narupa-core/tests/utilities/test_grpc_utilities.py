@@ -15,7 +15,7 @@ class ConnectivityRecorder(NamedTuple):
 
 @pytest.fixture
 def channel():
-    with insecure_channel('localhost:0') as channel:
+    with insecure_channel("localhost:0") as channel:
         yield channel
 
 
@@ -34,8 +34,7 @@ def test_subscribe_unused_channel(channel, connectivity_recorder):
     Test that subscribing a unused channel's connectivity calls the callback
     with the default `IDLE` state.
     """
-    subscribe_channel_connectivity_change(channel,
-                                          connectivity_recorder.callback)
+    subscribe_channel_connectivity_change(channel, connectivity_recorder.callback)
     time.sleep(NOMINAL_WAIT_TIME)
     assert connectivity_recorder.history == [ChannelConnectivity.IDLE]
 
@@ -47,8 +46,7 @@ def test_subscribe_unused_channel_closed(channel, connectivity_recorder):
     tested for.
     """
     channel.close()
-    subscribe_channel_connectivity_change(channel,
-                                          connectivity_recorder.callback)
+    subscribe_channel_connectivity_change(channel, connectivity_recorder.callback)
     time.sleep(NOMINAL_WAIT_TIME)
     assert connectivity_recorder.history == []
 
@@ -60,9 +58,9 @@ def test_subscribe_unused_channel_connect(channel, connectivity_recorder):
     ends with a `TRANSIENT_FAILURE` state, potentially entering `CONNECTING`
     state between them.
     """
-    subscribe_channel_connectivity_change(channel,
-                                          connectivity_recorder.callback,
-                                          force_connection=True)
+    subscribe_channel_connectivity_change(
+        channel, connectivity_recorder.callback, force_connection=True
+    )
     time.sleep(NOMINAL_WAIT_TIME)
     assert connectivity_recorder.history[0] == ChannelConnectivity.IDLE
     assert connectivity_recorder.history[-1] == ChannelConnectivity.TRANSIENT_FAILURE

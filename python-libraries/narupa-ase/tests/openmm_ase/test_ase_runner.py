@@ -22,7 +22,7 @@ from narupa.ase.wall_constraint import VelocityWallConstraint
 
 from .simulation_utils import basic_simulation, serialized_simulation_path
 
-TRAJECTORY_OUTPUT_FILENAME = 'test.xyz'
+TRAJECTORY_OUTPUT_FILENAME = "test.xyz"
 
 
 class ListLogHandler(Handler):
@@ -38,7 +38,11 @@ class ListLogHandler(Handler):
         self.records.append(record)
 
     def count_records(self, message: str, levelno: int):
-        return sum(1 for record in self.records if record.message == message and record.levelno == levelno)
+        return sum(
+            1
+            for record in self.records
+            if record.message == message and record.levelno == levelno
+        )
 
 
 @pytest.fixture()
@@ -46,9 +50,7 @@ def imd_params():
     """
     Test ImdParams set to use any available port, to avoid port clashes between tests.
     """
-    params = ImdParams(
-        port=0
-    )
+    params = ImdParams(port=0)
     return params
 
 
@@ -90,8 +92,9 @@ def test_deprecated_runner(basic_simulation, imd_params):
 
 
 def test_from_xml(serialized_simulation_path, imd_params):
-    with ASEOpenMMRunner.from_xml(serialized_simulation_path,
-                                  params=imd_params) as runner:
+    with ASEOpenMMRunner.from_xml(
+        serialized_simulation_path, params=imd_params
+    ) as runner:
         assert runner.simulation is not None
 
 
@@ -129,7 +132,7 @@ def test_verbose(runner_class, basic_simulation, imd_params):
         runner.run(10)
 
 
-@pytest.mark.parametrize('interval', (1, 2, 3))
+@pytest.mark.parametrize("interval", (1, 2, 3))
 def test_frame_interval(runner_class, basic_simulation, interval, imd_params):
     """
     Test that the frame server receives frames at the correct interval of
@@ -149,20 +152,24 @@ def test_time_step(runner_class, basic_simulation, imd_params):
         assert runner.dynamics.dt == pytest.approx(0.5 * units.fs)
 
 
-@pytest.mark.parametrize('walls', (
+@pytest.mark.parametrize(
+    "walls",
+    (
         False,
         True,
-))
-def test_walls(
-        runner_class,
-        basic_simulation,
-        walls,
-        imd_params
-):
+    ),
+)
+def test_walls(runner_class, basic_simulation, walls, imd_params):
     imd_params.walls = walls
 
     with runner_class(basic_simulation, imd_params) as runner:
-        assert any(isinstance(constraint, VelocityWallConstraint) for constraint in runner.atoms.constraints) == walls
+        assert (
+            any(
+                isinstance(constraint, VelocityWallConstraint)
+                for constraint in runner.atoms.constraints
+            )
+            == walls
+        )
 
 
 def test_no_constraint_no_warning(runner_class, basic_simulation, imd_params):
@@ -208,7 +215,7 @@ def test_discovery(runner_class, basic_simulation, imd_params):
 
 @pytest.mark.serial
 def test_discovery_with_client(runner_class, basic_simulation, imd_params):
-    imd_params.name = 'ASE Test Runner'
+    imd_params.name = "ASE Test Runner"
     with runner_class(basic_simulation, imd_params) as runner:
         assert runner.running_discovery
         discovery = runner.app_server.discovery
@@ -217,8 +224,9 @@ def test_discovery_with_client(runner_class, basic_simulation, imd_params):
             # There may be servers running already, we only want to look at the
             # one we created in that test. We select it by name.
             servers = set(client.search_for_services(search_time=0.8, interval=0.01))
-            relevant_servers = [server for server in servers
-                                if server.name == imd_params.name]
+            relevant_servers = [
+                server for server in servers if server.name == imd_params.name
+            ]
             assert len(relevant_servers) == 1
             server = relevant_servers[0]
             assert server in discovery.services
@@ -236,7 +244,7 @@ def test_logging(runner_class, basic_simulation, imd_params, logging_params):
     assert os.path.exists(trajectory_file)
     assert runner.logging_info.base_trajectory_path == logging_params.trajectory_file
 
-    atom_images = read(trajectory_file, index=':')
+    atom_images = read(trajectory_file, index=":")
     assert len(atom_images) == 2
 
 
@@ -244,8 +252,7 @@ def test_no_logging(runner):
     assert runner.logging_info is None
 
 
-def test_logging_rate(
-        runner_class, basic_simulation, imd_params, logging_params):
+def test_logging_rate(runner_class, basic_simulation, imd_params, logging_params):
     logging_params.write_interval = 10
     expected_frames = 3
 
@@ -255,7 +262,7 @@ def test_logging_rate(
     trajectory_file = runner.logging_info.trajectory_path
     assert os.path.exists(trajectory_file)
 
-    atom_images = read(trajectory_file, index=':')
+    atom_images = read(trajectory_file, index=":")
     # always get one more frame as it dumps out the initial frame
     assert len(atom_images) == expected_frames + 1
 
@@ -291,10 +298,7 @@ def test_throttling(client_runner, fps):
     runner.imd.cancel_run(wait=True)
 
     timestamps = [frame.server_timestamp for frame in client.frames[1:]]
-    deltas = [
-        timestamps[i] - timestamps[i - 1]
-        for i in range(1, len(timestamps))
-    ]
+    deltas = [timestamps[i] - timestamps[i - 1] for i in range(1, len(timestamps))]
     print(dynamics_interval, 0.90 * dynamics_interval, deltas)
     # The interval is not very accurate. We only check that the observed
     # interval is greater than the expected one and we accept some

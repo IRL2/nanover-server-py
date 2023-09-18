@@ -19,9 +19,9 @@ class DictionaryChange:
     removals: KeyRemovals
 
     def __init__(
-            self,
-            updates: Optional[KeyUpdates] = None,
-            removals: Optional[KeyRemovals] = None,
+        self,
+        updates: Optional[KeyUpdates] = None,
+        removals: Optional[KeyRemovals] = None,
     ):
         self.updates = updates or {}
         self.removals = removals or set()
@@ -35,6 +35,7 @@ class ObjectFrozenError(Exception):
     Raised when an operation on an object cannot be performed because the
     object has been frozen.
     """
+
     pass
 
 
@@ -43,10 +44,11 @@ class DictionaryChangeMultiView:
     Provides a means to acquire multiple independent DictionaryChangeBuffers
     tracking a shared dictionary.
     """
+
     _content: Dict[str, Any]
     _frozen: bool
     _lock: Lock
-    _views: Set['DictionaryChangeBuffer']
+    _views: Set["DictionaryChangeBuffer"]
 
     def __init__(self):
         self._content = {}
@@ -55,7 +57,7 @@ class DictionaryChangeMultiView:
         self._views = set()
 
     @contextmanager
-    def create_view(self) -> Generator['DictionaryChangeBuffer', None, None]:
+    def create_view(self) -> Generator["DictionaryChangeBuffer", None, None]:
         """
         Returns a new DictionaryChangeBuffer that tracks changes to the
         shared dictionary, starting with the initial values.
@@ -69,7 +71,7 @@ class DictionaryChangeMultiView:
         yield view
         self.remove_view(view)
 
-    def remove_view(self, view: 'DictionaryChangeBuffer'):
+    def remove_view(self, view: "DictionaryChangeBuffer"):
         """
         Freeze the given change buffer and stop providing updates to it.
         """
@@ -77,8 +79,7 @@ class DictionaryChangeMultiView:
             self._views.remove(view)
             view.freeze()
 
-    def subscribe_changes(self, interval: float = 0) \
-            -> Iterator[DictionaryChange]:
+    def subscribe_changes(self, interval: float = 0) -> Iterator[DictionaryChange]:
         """
         Iterates over changes to the shared dictionary, starting with the
         initial values. Waits at least :interval: seconds between each
@@ -87,7 +88,11 @@ class DictionaryChangeMultiView:
         with self.create_view() as view:
             yield from view.subscribe_changes(interval)
 
-    def update(self, updates: Optional[KeyUpdates] = None, removals: Optional[KeyRemovals] = None):
+    def update(
+        self,
+        updates: Optional[KeyUpdates] = None,
+        removals: Optional[KeyRemovals] = None,
+    ):
         """
         Updates the shared dictionary with key values pairs from :updates: and
         key removals from :removals:.
@@ -142,6 +147,7 @@ class DictionaryChangeBuffer:
     """
     Tracks the latest values of keys that have changed between checks.
     """
+
     _frozen: bool
     _lock: Lock
     _any_changes: Condition
@@ -167,7 +173,11 @@ class DictionaryChangeBuffer:
             self._frozen = True
             self._any_changes.notify()
 
-    def update(self, updates: Optional[KeyUpdates] = None, removals: Optional[KeyRemovals] = None):
+    def update(
+        self,
+        updates: Optional[KeyUpdates] = None,
+        removals: Optional[KeyRemovals] = None,
+    ):
         """
         Update the known changes from a dictionary of keys that have changed
         to their new values or have been removed.
@@ -202,8 +212,7 @@ class DictionaryChangeBuffer:
             self._pending_changes, self._pending_removals = dict(), set()
             return DictionaryChange(changes, removals)
 
-    def subscribe_changes(self, interval: float = 0) \
-            -> Iterator[DictionaryChange]:
+    def subscribe_changes(self, interval: float = 0) -> Iterator[DictionaryChange]:
         """
         Iterates over changes to the buffer. Waits at least :interval: seconds
         between each iteration.

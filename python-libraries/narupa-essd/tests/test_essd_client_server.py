@@ -42,7 +42,11 @@ def test_client_timeout(client):
 def test_send_service(client_server, service):
     client, server = client_server
     server.register_service(service)
-    services = set(client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME))
+    services = set(
+        client.search_for_services(
+            search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
+        )
+    )
     assert service in services
 
 
@@ -50,18 +54,30 @@ def test_send_service_different_port(service):
     with DiscoveryServer(broadcast_port=8923) as server:
         with DiscoveryClient(port=8923) as client:
             server.register_service(service)
-            services = set(client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME))
+            services = set(
+                client.search_for_services(
+                    search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
+                )
+            )
             assert service in services
 
 
 def test_remove_service(client_server, service):
     client, server = client_server
     server.register_service(service)
-    services = set(client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME))
+    services = set(
+        client.search_for_services(
+            search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
+        )
+    )
     assert service in services
     server.unregister_service(service)
     time.sleep(TEST_INTERVAL_TIME)
-    services = set(client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME))
+    services = set(
+        client.search_for_services(
+            search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
+        )
+    )
     assert service not in services
 
 
@@ -73,8 +89,16 @@ def test_send_service_multiple_clients(client_server, service):
     client, server = client_server
     with DiscoveryClient(port=client.port) as second_client:
         server.register_service(service)
-        services = set(client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME))
-        second_services = set(second_client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME))
+        services = set(
+            client.search_for_services(
+                search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
+            )
+        )
+        second_services = set(
+            second_client.search_for_services(
+                search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
+            )
+        )
         assert service in services
         assert service in second_services
 
@@ -82,16 +106,24 @@ def test_send_service_multiple_clients(client_server, service):
 def test_send_service_all_interfaces(client_server, service):
     client, server = client_server
     properties = dict(service.properties)
-    properties['address'] = '[::]'
+    properties["address"] = "[::]"
     service = ServiceHub(**properties)
     server.register_service(service)
-    services = set(client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME))
+    services = set(
+        client.search_for_services(
+            search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
+        )
+    )
     assert service in services
 
 
 def run_with_client(service, residual=None):
     with DiscoveryClient() as client:
-        services = set(client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME))
+        services = set(
+            client.search_for_services(
+                search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
+            )
+        )
         assert service in services
         assert residual not in services
 
@@ -115,14 +147,21 @@ def test_context_managers(service, properties_unique_id):
     run_with_server(service2, service1)
 
 
-@pytest.mark.parametrize('utf_str',
-                         ['한국어',
-                          '😀',
-                          ])
+@pytest.mark.parametrize(
+    "utf_str",
+    [
+        "한국어",
+        "😀",
+    ],
+)
 def test_send_utf8(client_server, service, utf_str):
     client, server = client_server
-    service.properties['name'] = service.name + utf_str
+    service.properties["name"] = service.name + utf_str
     server.register_service(service)
-    services = set(client.search_for_services(search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME))
+    services = set(
+        client.search_for_services(
+            search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
+        )
+    )
     assert len(services) == 1
     assert service in services

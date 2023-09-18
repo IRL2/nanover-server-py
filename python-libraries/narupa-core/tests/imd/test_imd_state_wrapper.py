@@ -9,15 +9,15 @@ from narupa.state.state_dictionary import StateDictionary
 
 def test_add_duplicate_interaction_id():
     imd_state = ImdStateWrapper(StateDictionary())
-    imd_state.insert_interaction('interaction.test', ParticleInteraction())
-    imd_state.insert_interaction('interaction.test', ParticleInteraction())
+    imd_state.insert_interaction("interaction.test", ParticleInteraction())
+    imd_state.insert_interaction("interaction.test", ParticleInteraction())
     assert len(imd_state.active_interactions) == 1
 
 
 def test_multiple_keys():
     imd_state = ImdStateWrapper(StateDictionary())
-    imd_state.insert_interaction('interaction.test1', ParticleInteraction())
-    imd_state.insert_interaction('interaction.test2', ParticleInteraction())
+    imd_state.insert_interaction("interaction.test1", ParticleInteraction())
+    imd_state.insert_interaction("interaction.test2", ParticleInteraction())
     assert len(imd_state.active_interactions) == 2
 
 

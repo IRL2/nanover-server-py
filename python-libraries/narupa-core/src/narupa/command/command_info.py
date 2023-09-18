@@ -3,7 +3,9 @@
 from typing import Dict
 
 from narupa.utilities.protobuf_utilities import (
-    dict_to_struct, struct_to_dict, Serializable,
+    dict_to_struct,
+    struct_to_dict,
+    Serializable,
 )
 from narupa.protocol.command import CommandMessage
 
@@ -46,5 +48,7 @@ class CommandInfo:
 
     def __str__(self):
         args = self.arguments
-        args_str = ', '.join(['='.join([str(name), str(value)]) for name, value in args.items()])
-        return f'\'{self.name}\':({args_str})'
+        args_str = ", ".join(
+            ["=".join([str(name), str(value)]) for name, value in args.items()]
+        )
+        return f"'{self.name}':({args_str})"

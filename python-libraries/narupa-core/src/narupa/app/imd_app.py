@@ -6,7 +6,6 @@ with in real-time through biasing potentials.
 """
 from typing import Optional
 
-from narupa.app import NarupaImdClient
 from narupa.app.frame_app import NarupaFrameApplication
 from narupa.core import NarupaServer
 from narupa.essd import DiscoveryServer
@@ -25,12 +24,16 @@ class NarupaImdApplication(NarupaFrameApplication):
     {}
 
     """
+
     DEFAULT_SERVER_NAME: str = "Narupa iMD Server"
     _imd_state: ImdStateWrapper
 
-    def __init__(self, server: NarupaServer,
-                 discovery: Optional[DiscoveryServer] = None,
-                 name: Optional[str] = None):
+    def __init__(
+        self,
+        server: NarupaServer,
+        discovery: Optional[DiscoveryServer] = None,
+        name: Optional[str] = None,
+    ):
         super().__init__(server, discovery, name)
         self._setup_imd()
 

@@ -1,5 +1,9 @@
 import pytest
-from narupa.app.selection import *
+
+# We import many constants from the module we test. It would be impractical to
+# import them all separately so we allow the import star for this file.
+# ruff: noqa: F405
+from narupa.app.selection import *  # noqa: F403
 
 
 def test_selection_defaults():
@@ -13,10 +17,7 @@ def test_selection_defaults():
 
 
 def test_selection_dict_with_name_and_id():
-    dict = {
-        KEY_SELECTION_ID: "id",
-        KEY_SELECTION_NAME: "name"
-    }
+    dict = {KEY_SELECTION_ID: "id", KEY_SELECTION_NAME: "name"}
     selection = RenderingSelection.from_dictionary(dict)
     assert selection.selection_name == "name"
     assert selection.selection_id == "id"
@@ -28,16 +29,14 @@ def test_selection_dict_with_name_and_id():
 def test_selection_dict_with_no_id():
     dict = {}
     with pytest.raises(ValueError):
-        selection = RenderingSelection.from_dictionary(dict)
+        RenderingSelection.from_dictionary(dict)
 
 
 def test_selection_from_dictionary_with_interaction_method():
     dict = {
         KEY_SELECTION_ID: "id",
         KEY_SELECTION_NAME: "name",
-        KEY_SELECTION_PROPERTIES: {
-            KEY_PROPERTY_INTERACTION_METHOD: INTERACTION_GROUP
-        }
+        KEY_SELECTION_PROPERTIES: {KEY_PROPERTY_INTERACTION_METHOD: INTERACTION_GROUP},
     }
     selection = RenderingSelection.from_dictionary(dict)
     assert selection.interaction_method == INTERACTION_GROUP
@@ -47,21 +46,17 @@ def test_selection_from_dictionary_with_velocity_reset():
     dict = {
         KEY_SELECTION_ID: "id",
         KEY_SELECTION_NAME: "name",
-        KEY_SELECTION_PROPERTIES: {
-            KEY_PROPERTY_VELOCITY_RESET: True
-        }
+        KEY_SELECTION_PROPERTIES: {KEY_PROPERTY_VELOCITY_RESET: True},
     }
     selection = RenderingSelection.from_dictionary(dict)
-    assert selection.velocity_reset == True
+    assert selection.velocity_reset is True
 
 
 def test_selection_from_dictionary_with_renderer():
     dict = {
         KEY_SELECTION_ID: "id",
         KEY_SELECTION_NAME: "name",
-        KEY_SELECTION_PROPERTIES: {
-            KEY_PROPERTY_RENDERER: "some_renderer"
-        }
+        KEY_SELECTION_PROPERTIES: {KEY_PROPERTY_RENDERER: "some_renderer"},
     }
     selection = RenderingSelection.from_dictionary(dict)
     assert selection.renderer == "some_renderer"

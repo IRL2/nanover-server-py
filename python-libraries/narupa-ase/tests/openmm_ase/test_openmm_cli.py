@@ -12,7 +12,7 @@ from narupa.ase.wall_constraint import VelocityWallConstraint
 
 @pytest.fixture
 def any_port():
-    return ['-p', '0']
+    return ["-p", "0"]
 
 
 def test_initialise(serialized_simulation_path, any_port):
@@ -22,28 +22,33 @@ def test_initialise(serialized_simulation_path, any_port):
 
 
 def test_timestep(serialized_simulation_path, any_port):
-    args = [str(serialized_simulation_path), '-s', '0.5'] + any_port
+    args = [str(serialized_simulation_path), "-s", "0.5"] + any_port
     with initialise(args) as runner:
         assert runner.time_step == 0.5
 
 
 def test_interval(serialized_simulation_path, any_port):
-    args = [str(serialized_simulation_path), '-f', '2'] + any_port
+    args = [str(serialized_simulation_path), "-f", "2"] + any_port
     with initialise(args) as runner:
         assert runner.frame_interval == 2
 
 
 def test_address(serialized_simulation_path, any_port):
     # cannot run discovery here, as the CI servers cannot broadcast on localhost
-    args = [str(serialized_simulation_path), '-a', 'localhost', '--no-discovery'] + any_port
+    args = [
+        str(serialized_simulation_path),
+        "-a",
+        "localhost",
+        "--no-discovery",
+    ] + any_port
     with initialise(args) as runner:
-        assert runner.address == 'localhost'
+        assert runner.address == "localhost"
 
 
 @pytest.mark.serial
 def test_port(serialized_simulation_path):
     PORT = 29070  # The port reserved for Jedi Knight: Jedi Academy (2003), so should be safe.
-    args = [str(serialized_simulation_path)] + ['-p', str(PORT)]
+    args = [str(serialized_simulation_path)] + ["-p", str(PORT)]
     with initialise(args) as runner:
         assert runner.port == PORT
 
@@ -55,41 +60,50 @@ def test_discovery_service(serialized_simulation_path, any_port):
 
 
 def test_discovery_service_not_running(serialized_simulation_path, any_port):
-    args = [str(serialized_simulation_path), '--no-discovery'] + any_port
+    args = [str(serialized_simulation_path), "--no-discovery"] + any_port
     with initialise(args) as runner:
         assert runner.running_discovery is False
 
 
 def test_discovery_service_port(serialized_simulation_path, any_port):
-    args = [str(serialized_simulation_path), '--discovery-port', '88888'] + any_port
+    args = [str(serialized_simulation_path), "--discovery-port", "88888"] + any_port
     with initialise(args) as runner:
         assert runner.discovery_port == 88888
 
 
 def test_discovery_service_port_not_running(serialized_simulation_path, any_port):
-    args = [str(serialized_simulation_path), '--no-discovery'] + any_port
+    args = [str(serialized_simulation_path), "--no-discovery"] + any_port
     with initialise(args) as runner:
         with pytest.raises(AttributeError):
             _ = runner.discovery_port
 
 
 def test_name(serialized_simulation_path, any_port):
-    args = [str(serialized_simulation_path), '--name', 'Test Server'] + any_port
+    args = [str(serialized_simulation_path), "--name", "Test Server"] + any_port
     with initialise(args) as runner:
-        assert runner.name == 'Test Server'
+        assert runner.name == "Test Server"
 
 
-@pytest.mark.parametrize('wall_argument, has_walls', (
-        ('-w', True),
-        ('--walls', True),
+@pytest.mark.parametrize(
+    "wall_argument, has_walls",
+    (
+        ("-w", True),
+        ("--walls", True),
         (None, False),
-))
+    ),
+)
 def test_walls(serialized_simulation_path, wall_argument, has_walls, any_port):
     args = [str(serialized_simulation_path)] + any_port
     if wall_argument is not None:
         args.append(wall_argument)
     with initialise(args) as runner:
-        assert any(isinstance(constraint, VelocityWallConstraint) for constraint in runner.atoms.constraints) == has_walls
+        assert (
+            any(
+                isinstance(constraint, VelocityWallConstraint)
+                for constraint in runner.atoms.constraints
+            )
+            == has_walls
+        )
 
 
 @pytest.fixture()
@@ -99,7 +113,13 @@ def log_path(tmp_path):
 
 
 def test_trajectory_logging(serialized_simulation_path, log_path, any_port):
-    args = [str(serialized_simulation_path), '-o', log_path, '--platform', 'CPU'] + any_port
+    args = [
+        str(serialized_simulation_path),
+        "-o",
+        log_path,
+        "--platform",
+        "CPU",
+    ] + any_port
     with initialise(args) as runner:
         assert runner.logging_info
         assert not os.path.exists(runner.logging_info.trajectory_path)
@@ -114,6 +134,12 @@ def test_trajectory_no_logging(serialized_simulation_path, log_path, any_port):
 
 
 def test_trajectory_logging_rate(serialized_simulation_path, log_path, any_port):
-    args = [str(serialized_simulation_path), '-o', log_path, '--write-interval', '10'] + any_port
+    args = [
+        str(serialized_simulation_path),
+        "-o",
+        log_path,
+        "--write-interval",
+        "10",
+    ] + any_port
     with initialise(args) as runner:
         assert runner.logging_info.write_interval == 10

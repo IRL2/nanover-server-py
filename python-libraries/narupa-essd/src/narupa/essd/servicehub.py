@@ -187,7 +187,7 @@ class ServiceHub:
             return self.address, self.services[service_name]
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(**{self.properties})'
+        return f"{self.__class__.__name__}(**{self.properties})"
 
     def __str__(self):
         return str(self.properties)
@@ -199,8 +199,6 @@ class ServiceHub:
         if not isinstance(other, self.__class__):
             raise TypeError(f"Cannot compare {self.__class__} with {other.__class__}")
         return hash(self) == hash(other)
-
-
 
 
 def _construct_message(payload) -> str:
@@ -221,4 +219,6 @@ def _validate_service(properties):
 def _validate_message_length(properties):
     message = _construct_message(properties).encode()
     if len(message) > MAXIMUM_MESSAGE_SIZE:
-        raise ValueError(f"Service definition exceeds the maximum message size of {MAXIMUM_MESSAGE_SIZE}")
+        raise ValueError(
+            f"Service definition exceeds the maximum message size of {MAXIMUM_MESSAGE_SIZE}"
+        )

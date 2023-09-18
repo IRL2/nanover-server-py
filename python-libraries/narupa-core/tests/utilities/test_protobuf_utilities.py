@@ -3,7 +3,11 @@ from math import inf, nan
 
 import pytest
 from google.protobuf.struct_pb2 import Value
-from narupa.utilities.protobuf_utilities import dict_to_struct, object_to_value, value_to_object
+from narupa.utilities.protobuf_utilities import (
+    dict_to_struct,
+    object_to_value,
+    value_to_object,
+)
 from hypothesis import strategies as st, given
 from .. import EXACT_VALUE_STRATEGIES, MIN_INT32, MAX_INT32
 
@@ -50,38 +54,45 @@ def assert_struct_dictionary_equal(struct, dictionary):
             assert_value_equal(struct[key], dictionary[key])
 
 
-@pytest.mark.parametrize('dictionary',
-                         [
-                             {'int': 1, 'bool': True, 'list': [1.0, 2.4, 3.8], 'str': 'hello'},
-                             {'list': [True, False, True]},
-                             {'list': ['a', 'b', 'c']},
-                             {'float': 4.3},
-                             {'small': 1e-12},
-                             {'inf': inf},
-                             {'nan': nan},
-                             {},
-                             {'recursive': {'int': 5}},
-                             {'recursive_list': {'list': [5, 3, 2]}},
-                             {'different_list_types': [5, True, 'hello']},
-                             {'struct_list': [{'test': 1}, {'test': 2}, {'test': 3}]},
-                         ])
+@pytest.mark.parametrize(
+    "dictionary",
+    [
+        {"int": 1, "bool": True, "list": [1.0, 2.4, 3.8], "str": "hello"},
+        {"list": [True, False, True]},
+        {"list": ["a", "b", "c"]},
+        {"float": 4.3},
+        {"small": 1e-12},
+        {"inf": inf},
+        {"nan": nan},
+        {},
+        {"recursive": {"int": 5}},
+        {"recursive_list": {"list": [5, 3, 2]}},
+        {"different_list_types": [5, True, "hello"]},
+        {"struct_list": [{"test": 1}, {"test": 2}, {"test": 3}]},
+    ],
+)
 def test_dict_to_struct(dictionary):
     struct = dict_to_struct(dictionary)
     assert_struct_dictionary_equal(struct, dictionary)
 
 
-@pytest.mark.parametrize('dictionary',
-                         [
-                             {object(): 'test'},
-                             {'test': object()},
-                         ])
+@pytest.mark.parametrize(
+    "dictionary",
+    [
+        {object(): "test"},
+        {"test": object()},
+    ],
+)
 def test_dict_to_struct_invalid(dictionary):
     with pytest.raises(ValueError):
         _ = dict_to_struct(dictionary)
 
+
 @given(st.floats())
 def test_to_and_from_value_float(object_):
-    assert value_to_object(object_to_value(object_)) == pytest.approx(object_, nan_ok=True)
+    assert value_to_object(object_to_value(object_)) == pytest.approx(
+        object_, nan_ok=True
+    )
 
 
 @given(st.integers(MIN_INT32, MAX_INT32))

@@ -155,29 +155,30 @@ def test_interactions_property(imd_server_client):
 
     # There are the interactions we should get when calling the property.
     real_interactions = {
-        f'{INTERACTION_PREFIX}.first_id': ParticleInteraction(),
-        f'{INTERACTION_PREFIX}.second_id': ParticleInteraction(),
+        f"{INTERACTION_PREFIX}.first_id": ParticleInteraction(),
+        f"{INTERACTION_PREFIX}.second_id": ParticleInteraction(),
     }
     # We should not get these interactions because the ID is not one of an
     # interaction.
     interactions_with_incompatible_id = {
-        'not.a.valid.interaction.id': ParticleInteraction(),
+        "not.a.valid.interaction.id": ParticleInteraction(),
     }
-    interaction_updates = DictionaryChange(updates = {
-        key: interaction_to_dict(interaction)
-        for key, interaction
-        in itertools.chain(
-            real_interactions.items(),
-            interactions_with_incompatible_id.items(),
-        )
-    })
+    interaction_updates = DictionaryChange(
+        updates={
+            key: interaction_to_dict(interaction)
+            for key, interaction in itertools.chain(
+                real_interactions.items(),
+                interactions_with_incompatible_id.items(),
+            )
+        }
+    )
     imd_server.update_state(None, interaction_updates)
 
     # These interactions have an ID matching an interaction, but the content does not match.
     incorrect_interactions = {
-        f'{INTERACTION_PREFIX}.third_id': 'not.an.interaction',
+        f"{INTERACTION_PREFIX}.third_id": "not.an.interaction",
     }
-    interaction_updates = DictionaryChange(updates = incorrect_interactions)
+    interaction_updates = DictionaryChange(updates=incorrect_interactions)
     imd_server.update_state(None, interaction_updates)
 
     imd_client.subscribe_all_state_updates(interval=0)

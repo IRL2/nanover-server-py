@@ -6,11 +6,15 @@ from threading import Lock
 from typing import Union, Callable
 
 from narupa.utilities.request_queues import (
-    DictOfQueues, GetFrameResponseAggregatingQueue)
+    DictOfQueues,
+    GetFrameResponseAggregatingQueue,
+)
 from narupa.utilities.timing import yield_interval
 from narupa.protocol.trajectory import (
-    TrajectoryServiceServicer, GetFrameResponse,
-    add_TrajectoryServiceServicer_to_server)
+    TrajectoryServiceServicer,
+    GetFrameResponse,
+    add_TrajectoryServiceServicer_to_server,
+)
 from narupa.protocol.trajectory import FrameData as RawFrameData
 from narupa.trajectory.frame_data import FrameData, SERVER_TIMESTAMP
 
@@ -50,9 +54,7 @@ class FramePublisher(TrajectoryServiceServicer):
         This method publishes all the frames produced by the trajectory service,
         starting when the client subscribes.
         """
-        yield from self._subscribe_frame_base(request,
-                                              context,
-                                              queue_type=Queue)
+        yield from self._subscribe_frame_base(request, context, queue_type=Queue)
 
     def SubscribeLatestFrames(self, request, context):
         """
@@ -100,7 +102,9 @@ class FramePublisher(TrajectoryServiceServicer):
         """
         with self._last_frame_lock:
             if self.last_frame is not None:
-                yield GetFrameResponse(frame_index=self.last_frame_index, frame=self.last_frame)
+                yield GetFrameResponse(
+                    frame_index=self.last_frame_index, frame=self.last_frame
+                )
 
     def send_frame(self, frame_index: int, frame: Union[FrameData, RawFrameData]):
         now = time.monotonic()

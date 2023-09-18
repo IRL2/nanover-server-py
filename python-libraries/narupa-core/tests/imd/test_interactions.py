@@ -8,14 +8,15 @@ from .. import serializable_dictionaries
 
 
 @st.composite
-def nparrays(draw,
-             elements):
+def nparrays(draw, elements):
     return np.array(draw(elements))
 
 
 @st.composite
 def positions(draw):
-    python_list = st.lists(st.floats(allow_nan=False, allow_infinity=False), min_size=3, max_size=3)
+    python_list = st.lists(
+        st.floats(allow_nan=False, allow_infinity=False), min_size=3, max_size=3
+    )
     return draw(st.one_of(python_list, nparrays(python_list)))
 
 
@@ -48,19 +49,19 @@ def max_force(draw):
 
 @st.composite
 def interaction_type(draw):
-    return draw(st.one_of(st.just('gaussian'), st.just('spring'), st.text()))
+    return draw(st.one_of(st.just("gaussian"), st.just("spring"), st.text()))
 
 
 @st.composite
 def interaction_dictionaries(draw):
     serializable_dict = draw(serializable_dictionaries())
-    serializable_dict['position'] = draw(positions())
-    serializable_dict['particles'] = draw(particles())
-    serializable_dict['reset_velocities'] = draw(reset_velocities())
-    serializable_dict['mass_weighted'] = draw(mass_weighted())
-    serializable_dict['scale'] = draw(scale())
-    serializable_dict['max_force'] = draw(max_force())
-    serializable_dict['interaction_type'] = draw(interaction_type())
+    serializable_dict["position"] = draw(positions())
+    serializable_dict["particles"] = draw(particles())
+    serializable_dict["reset_velocities"] = draw(reset_velocities())
+    serializable_dict["mass_weighted"] = draw(mass_weighted())
+    serializable_dict["scale"] = draw(scale())
+    serializable_dict["max_force"] = draw(max_force())
+    serializable_dict["interaction_type"] = draw(interaction_type())
 
     return serializable_dict
 
@@ -68,14 +69,16 @@ def interaction_dictionaries(draw):
 @st.composite
 def interactions(draw):
     serializable_dict = draw(serializable_dictionaries())
-    return ParticleInteraction(position=draw(positions()),
-                               particles=draw(particles()),
-                               reset_velocities=draw(reset_velocities()),
-                               mass_weighted=draw(mass_weighted()),
-                               scale=draw(scale()),
-                               max_force=draw(max_force()),
-                               interaction_type=draw(interaction_type()),
-                               **serializable_dict)
+    return ParticleInteraction(
+        position=draw(positions()),
+        particles=draw(particles()),
+        reset_velocities=draw(reset_velocities()),
+        mass_weighted=draw(mass_weighted()),
+        scale=draw(scale()),
+        max_force=draw(max_force()),
+        interaction_type=draw(interaction_type()),
+        **serializable_dict
+    )
 
 
 @given(interaction_dictionaries())
@@ -91,17 +94,36 @@ def test_save_then_load(interaction):
     assert dict_to_interaction(interaction_dict) == interaction
 
 
-@given(positions(), particles(), reset_velocities(), mass_weighted(), scale(), max_force(), interaction_type(),
-       serializable_dictionaries())
-def test_constructor(position, particles, reset_velocities, mass_weighted, scale, max_force, interaction_type, extra):
-    interaction = ParticleInteraction(position=position,
-                                      particles=particles,
-                                      reset_velocities=reset_velocities,
-                                      mass_weighted=mass_weighted,
-                                      scale=scale,
-                                      max_force=max_force,
-                                      interaction_type=interaction_type,
-                                      **extra)
+@given(
+    positions(),
+    particles(),
+    reset_velocities(),
+    mass_weighted(),
+    scale(),
+    max_force(),
+    interaction_type(),
+    serializable_dictionaries(),
+)
+def test_constructor(
+    position,
+    particles,
+    reset_velocities,
+    mass_weighted,
+    scale,
+    max_force,
+    interaction_type,
+    extra,
+):
+    interaction = ParticleInteraction(
+        position=position,
+        particles=particles,
+        reset_velocities=reset_velocities,
+        mass_weighted=mass_weighted,
+        scale=scale,
+        max_force=max_force,
+        interaction_type=interaction_type,
+        **extra
+    )
     assert np.allclose(interaction.position, np.array(position))
     assert np.all(interaction.particles == np.array(particles))
     assert interaction.reset_velocities == reset_velocities

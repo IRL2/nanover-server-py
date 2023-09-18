@@ -18,8 +18,10 @@ import pytest
 from narupa.app import NarupaImdClient
 from narupa.openmm import (
     OpenMMRunner,
-    SET_FRAME_INTERVAL_COMMAND_KEY, GET_FRAME_INTERVAL_COMMAND_KEY,
-    SET_FORCE_INTERVAL_COMMAND_KEY, GET_FORCE_INTERVAL_COMMAND_KEY,
+    SET_FRAME_INTERVAL_COMMAND_KEY,
+    GET_FRAME_INTERVAL_COMMAND_KEY,
+    SET_FORCE_INTERVAL_COMMAND_KEY,
+    GET_FORCE_INTERVAL_COMMAND_KEY,
 )
 from narupa.openmm.imd import add_imd_force_to_system
 from narupa.trajectory.frame_server import (
@@ -51,6 +53,7 @@ class TestRunner:
     class attribute must be overwritten as well to reflect the default number
     of reporters when the verbosity is set to ``True`` or ``False``.
     """
+
     expected_number_of_reporters_verbosity = {
         True: 3,
         False: 2,
@@ -118,18 +121,22 @@ class TestRunner:
 
         runner = OpenMMRunner(basic_simulation, port=0)
         runner.close()
-        assert 'More than one force' in caplog.text
+        assert "More than one force" in caplog.text
 
     @pytest.mark.serial
-    @pytest.mark.parametrize('server_name', ("Server 1", "Server 2"))
+    @pytest.mark.parametrize("server_name", ("Server 1", "Server 2"))
     def test_discovery_with_client(self, server_name, basic_simulation_with_imd_force):
         simulation, _ = basic_simulation_with_imd_force
-        with self.make_runner(simulation, name=server_name) as runner:
+        with self.make_runner(simulation, name=server_name):
             with DiscoveryClient() as client:
                 # There may be servers running already, we only want to look at the
                 # one we created in that test. We select it by name.
-                servers = set(client.search_for_services(search_time=0.8, interval=0.01))
-                relevant_servers = [server for server in servers if server.name == server_name]
+                servers = set(
+                    client.search_for_services(search_time=0.8, interval=0.01)
+                )
+                relevant_servers = [
+                    server for server in servers if server.name == server_name
+                ]
                 assert len(relevant_servers) == 1
 
     def test_default_verbosity(self, runner):
@@ -138,8 +145,8 @@ class TestRunner:
         """
         assert not runner.verbose
 
-    @pytest.mark.parametrize('initial_value', (True, False))
-    @pytest.mark.parametrize('set_value_to', (True, False))
+    @pytest.mark.parametrize("initial_value", (True, False))
+    @pytest.mark.parametrize("set_value_to", (True, False))
     def test_set_verbosity_from_property(self, runner, initial_value, set_value_to):
         """
         Test that the verbosity can be set from the :attr:`Runner.verbose` property.
@@ -157,7 +164,7 @@ class TestRunner:
         expected_number = self.expected_number_of_reporters_verbosity[set_value_to]
         assert len(reporters) == expected_number
 
-    @pytest.mark.parametrize('initial_value', (True, False))
+    @pytest.mark.parametrize("initial_value", (True, False))
     def test_make_verbose(self, runner, initial_value):
         """
         Test that :meth:`Runner.make_verbose` sets the verbosity on.
@@ -169,7 +176,7 @@ class TestRunner:
         assert runner.verbose
         assert len(reporters) == self.expected_number_of_reporters_verbosity[True]
 
-    @pytest.mark.parametrize('initial_value', (True, False))
+    @pytest.mark.parametrize("initial_value", (True, False))
     def test_make_quiet(self, runner, initial_value):
         """
         Test that :meth:`Runner.make_quiet` sets the verbosity off.
@@ -197,11 +204,14 @@ class TestRunner:
         with OpenMMRunner.from_xml_input(serialized_simulation_path, port=0) as runner:
             assert runner.simulation.system.getNumParticles() == n_atoms_in_system
 
-    @pytest.mark.parametrize('name, target_attribute', (
-        ('frame_interval', 'frame_interval'),
-        ('force_interval', 'force_interval'),
-    ))
-    def test_interval_get(self, runner, name,  target_attribute):
+    @pytest.mark.parametrize(
+        "name, target_attribute",
+        (
+            ("frame_interval", "frame_interval"),
+            ("force_interval", "force_interval"),
+        ),
+    )
+    def test_interval_get(self, runner, name, target_attribute):
         """
         The shortcut the the NarupaImdReporter intervals return the expected
         values.
@@ -209,10 +219,13 @@ class TestRunner:
         attribute = getattr(runner.reporter, target_attribute)
         assert getattr(runner, name) == attribute
 
-    @pytest.mark.parametrize('name, target_attribute', (
-            ('frame_interval', 'frame_interval'),
-            ('force_interval', 'force_interval'),
-    ))
+    @pytest.mark.parametrize(
+        "name, target_attribute",
+        (
+            ("frame_interval", "frame_interval"),
+            ("force_interval", "force_interval"),
+        ),
+    )
     def test_interval_set(self, runner, name, target_attribute):
         """
         The shortcut the the NarupaImdReporter intervals set the expected
@@ -221,10 +234,13 @@ class TestRunner:
         setattr(runner.reporter, name, 70)
         assert getattr(runner.reporter, name) == 70
 
-    @pytest.mark.parametrize('is_verbose, expectation', (
+    @pytest.mark.parametrize(
+        "is_verbose, expectation",
+        (
             (True, 10),
             (False, 0),
-    ))
+        ),
+    )
     def test_verbosity_interval_get(self, runner, is_verbose, expectation):
         """
         The shortcut to get the interval for the verbosity print is correct.
@@ -232,8 +248,8 @@ class TestRunner:
         runner.verbose = is_verbose
         assert runner.verbosity_interval == expectation
 
-    @pytest.mark.parametrize('is_verbose', (True, False))
-    @pytest.mark.parametrize('interval', (3, 70))
+    @pytest.mark.parametrize("is_verbose", (True, False))
+    @pytest.mark.parametrize("interval", (3, 70))
     def test_verbosity_interval_set_non_zero(self, runner, interval, is_verbose):
         """
         Setting the verbosity interval to a non-zero value with the runner
@@ -244,7 +260,7 @@ class TestRunner:
         assert runner._verbose_reporter._reportInterval == interval
         assert runner.verbose is True
 
-    @pytest.mark.parametrize('is_verbose', (True, False))
+    @pytest.mark.parametrize("is_verbose", (True, False))
     def test_verbosity_interval_set_zero(self, runner, is_verbose):
         """
         Setting the verbosity interval to 0 with the runner shortcut alters
@@ -368,7 +384,7 @@ class TestRunner:
         assert runner.simulation.currentStep == step_count
 
     @pytest.mark.timeout(1)
-    @pytest.mark.parametrize('running_before', (True, False))
+    @pytest.mark.parametrize("running_before", (True, False))
     def test_reset_command(self, client_runner, running_before):
         """
         The reset command calls the reset method and restores the playing status.
@@ -403,25 +419,33 @@ class TestRunner:
         assert runner.is_running is False
         assert runner.simulation.currentStep == step_count + runner.frame_interval
 
-    @pytest.mark.parametrize('target_interval', (5, 20))
-    @pytest.mark.parametrize('setter, command', (
-            ('frame_interval', GET_FRAME_INTERVAL_COMMAND_KEY),
-            ('force_interval', GET_FORCE_INTERVAL_COMMAND_KEY),
-    ))
+    @pytest.mark.parametrize("target_interval", (5, 20))
+    @pytest.mark.parametrize(
+        "setter, command",
+        (
+            ("frame_interval", GET_FRAME_INTERVAL_COMMAND_KEY),
+            ("force_interval", GET_FORCE_INTERVAL_COMMAND_KEY),
+        ),
+    )
     def test_get_interval_command(
-            self, client_runner, target_interval, setter, command):
+        self, client_runner, target_interval, setter, command
+    ):
         client, runner = client_runner
         setattr(runner, setter, target_interval)
         result = client.run_command(command)
-        assert result == {'interval': target_interval}
+        assert result == {"interval": target_interval}
 
-    @pytest.mark.parametrize('target_interval', (5, 20))
-    @pytest.mark.parametrize('getter, command', (
-            ('frame_interval', SET_FRAME_INTERVAL_COMMAND_KEY),
-            ('force_interval', SET_FORCE_INTERVAL_COMMAND_KEY),
-    ))
+    @pytest.mark.parametrize("target_interval", (5, 20))
+    @pytest.mark.parametrize(
+        "getter, command",
+        (
+            ("frame_interval", SET_FRAME_INTERVAL_COMMAND_KEY),
+            ("force_interval", SET_FORCE_INTERVAL_COMMAND_KEY),
+        ),
+    )
     def test_set_interval_command(
-            self, client_runner, target_interval, getter, command):
+        self, client_runner, target_interval, getter, command
+    ):
         client, runner = client_runner
         client.run_command(command, interval=target_interval)
         assert getattr(runner, getter) == target_interval
@@ -475,10 +499,7 @@ class TestRunner:
         runner.cancel_run(wait=True)
 
         timestamps = [frame.server_timestamp for frame in client.frames]
-        deltas = [
-            timestamps[i] - timestamps[i - 1]
-            for i in range(1, len(timestamps))
-        ]
+        deltas = [timestamps[i] - timestamps[i - 1] for i in range(1, len(timestamps))]
         # The interval is not very accurate. We only check that the observed
         # interval is greater than the expected one and we accept some
         # deviation.

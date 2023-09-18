@@ -10,7 +10,7 @@ from simtk import openmm as mm
 from simtk.unit import Quantity, kilojoule_per_mole, nanometer
 
 
-DEFAULT_RESTRAINT_FORCE_CONSTANT = 100 * kilojoule_per_mole / nanometer ** 2
+DEFAULT_RESTRAINT_FORCE_CONSTANT = 100 * kilojoule_per_mole / nanometer**2
 
 
 def restraint_force(force_constant: Quantity = DEFAULT_RESTRAINT_FORCE_CONSTANT):
@@ -41,19 +41,19 @@ def restraint_force(force_constant: Quantity = DEFAULT_RESTRAINT_FORCE_CONSTANT)
         to be a :class:`Quantity`, it will be converted to kJ/(mol * nm^2).
     :return: An OpenMM force to add to the system.
     """
-    force_constant = force_constant.value_in_unit(kilojoule_per_mole / nanometer ** 2)
-    force = mm.CustomExternalForce('k * periodicdistance(x, y, z, x0, y0, z0)^2')
-    force.addGlobalParameter('k', force_constant)
-    force.addPerParticleParameter('x0')
-    force.addPerParticleParameter('y0')
-    force.addPerParticleParameter('z0')
+    force_constant = force_constant.value_in_unit(kilojoule_per_mole / nanometer**2)
+    force = mm.CustomExternalForce("k * periodicdistance(x, y, z, x0, y0, z0)^2")
+    force.addGlobalParameter("k", force_constant)
+    force.addPerParticleParameter("x0")
+    force.addPerParticleParameter("y0")
+    force.addPerParticleParameter("z0")
     return force
 
 
 def restrain_particles(
-        positions: Quantity,
-        particle_indices: Iterable[int],
-        force_constant: Quantity = DEFAULT_RESTRAINT_FORCE_CONSTANT,
+    positions: Quantity,
+    particle_indices: Iterable[int],
+    force_constant: Quantity = DEFAULT_RESTRAINT_FORCE_CONSTANT,
 ):
     """
     Generate an OpenMM force that restrains the position of the selected particles.
@@ -77,4 +77,3 @@ def restrain_particles(
         x0, y0, z0 = positions[index].value_in_unit(nanometer)
         force.addParticle(index, [x0, y0, z0])
     return force
-

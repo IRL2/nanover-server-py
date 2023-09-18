@@ -15,7 +15,9 @@ from narupa.app.app_server import DEFAULT_NARUPA_PORT
 try:
     import curses
 except ModuleNotFoundError:
-    print("Unable to import the curses module. Try `pip install windows-curses` if you are on windows.")
+    print(
+        "Unable to import the curses module. Try `pip install windows-curses` if you are on windows."
+    )
     sys.exit(1)
 
 import argparse
@@ -38,9 +40,11 @@ class Camera:
         self.scale = 5
 
     def get_matrix(self) -> np.ndarray:
-        return (scale_matrix(self.scale)
-                @ rotation_matrix(self.angle, [0, 0, 1])
-                @ rotation_matrix(self.pitch, [1, 0, 0]))
+        return (
+            scale_matrix(self.scale)
+            @ rotation_matrix(self.angle, [0, 0, 1])
+            @ rotation_matrix(self.pitch, [1, 0, 0])
+        )
 
 
 class FPSTimer:
@@ -48,6 +52,7 @@ class FPSTimer:
     Stores a number of frame intervals to compute an average frames per second
     measure.
     """
+
     intervals: Sequence[float]
     fps: float
     count: int
@@ -62,7 +67,7 @@ class FPSTimer:
         interval = time.monotonic() - self._prev_checkpoint
         self._prev_checkpoint = time.monotonic()
         self.intervals.append(interval)
-        self.intervals[:] = self.intervals[-self.count:]
+        self.intervals[:] = self.intervals[-self.count :]
         try:
             self.fps = len(self.intervals) / sum(self.intervals)
         except ZeroDivisionError:
@@ -92,11 +97,13 @@ class Renderer:
     shader: rendering.Shader
     camera: Camera
 
-    def __init__(self,
-                 window,
-                 charset: Sequence[str],
-                 colors: Sequence[rendering.ColorPair],
-                 shader: rendering.Shader):
+    def __init__(
+        self,
+        window,
+        charset: Sequence[str],
+        colors: Sequence[rendering.ColorPair],
+        shader: rendering.Shader,
+    ):
         self.window = window
         self.charset = charset
         self.colors = colors
@@ -114,24 +121,29 @@ class Renderer:
 
     def render(self):
         self.window.clear()
-        
+
         if self.positions is not None:
             self._process_frame()
 
             frame = {
-                'positions': self.positions,
-                'elements': self.elements,
-                'bonds': self.bonds,
-                'skip_atoms': set(),
+                "positions": self.positions,
+                "elements": self.elements,
+                "bonds": self.bonds,
+                "skip_atoms": set(),
             }
 
             if not self.show_hydrogens:
-                frame['skip_atoms'] = set(index for index, element in enumerate(frame['elements']) if element == 1)
+                frame["skip_atoms"] = set(
+                    index
+                    for index, element in enumerate(frame["elements"])
+                    if element == 1
+                )
 
             pixels = self.shader(frame, len(self.colors) - 1)
-            rendering.render_pixels_to_window(self.window, self.charset,
-                                              self.colors, pixels)
-        
+            rendering.render_pixels_to_window(
+                self.window, self.charset, self.colors, pixels
+            )
+
         self.window.noutrefresh()
 
     def recenter_camera(self):
@@ -142,17 +154,19 @@ class Renderer:
         if self._recenter:
             self._offset = np.median(self.positions, axis=0)
             self._recenter = False
-            
+
         self.positions -= self._offset
 
         # add w component to positions then multiply by camera matrix
-        self.positions = np.append(self.positions, np.ones((len(self.positions), 1)), axis=-1)
+        self.positions = np.append(
+            self.positions, np.ones((len(self.positions), 1)), axis=-1
+        )
         self.positions = self.positions @ self.camera.get_matrix()
 
         # move coordinate origin to window center
         h, w = self.window.getmaxyx()
-        self.positions[:, 0] += (w / 2)
-        self.positions[:, 1] += (h / 2)
+        self.positions[:, 0] += w / 2
+        self.positions[:, 1] += h / 2
 
 
 class CursesFrontend:
@@ -169,10 +183,9 @@ class CursesFrontend:
         self._fps_timer = FPSTimer(5)
 
         colors = generate_colors(override_colors=override_colors)
-        self.renderer = Renderer(stdscr,
-                                 rendering.character_sets["boxes"],
-                                 colors,
-                                 rendering.SHADERS[0])
+        self.renderer = Renderer(
+            stdscr, rendering.character_sets["boxes"], colors, rendering.SHADERS[0]
+        )
 
         self.bindings = {
             curses.KEY_LEFT: self.rotate_camera_clockwise,
@@ -197,7 +210,7 @@ class CursesFrontend:
 
         while not self.user_quit:
             self.update()
-            time.sleep(.001)
+            time.sleep(0.001)
 
     def update(self):
         self.check_input()
@@ -210,7 +223,9 @@ class CursesFrontend:
 
     def render(self):
         self.stdscr.clear()
-        self.renderer.positions = np.array(self.client.latest_frame.particle_positions, dtype=np.float32)
+        self.renderer.positions = np.array(
+            self.client.latest_frame.particle_positions, dtype=np.float32
+        )
         self.renderer.bonds = self.client.first_frame.bond_pairs
         self.renderer.elements = self.client.first_frame.particle_elements
 
@@ -243,30 +258,28 @@ class CursesFrontend:
         curses.flushinp()
 
     def rotate_camera_clockwise(self):
-        self.renderer.camera.angle += .1
+        self.renderer.camera.angle += 0.1
 
     def rotate_camera_anticlockwise(self):
-        self.renderer.camera.angle -= .1
+        self.renderer.camera.angle -= 0.1
 
     def pitch_camera_up(self):
-        self.renderer.camera.pitch += .1
+        self.renderer.camera.pitch += 0.1
 
     def pitch_camera_down(self):
-        self.renderer.camera.pitch -= .1
+        self.renderer.camera.pitch -= 0.1
 
     def zoom_camera_in(self):
-        self.renderer.camera.scale *= .9
+        self.renderer.camera.scale *= 0.9
 
     def zoom_camera_out(self):
-        self.renderer.camera.scale /= .9
+        self.renderer.camera.scale /= 0.9
 
     def cycle_shaders(self):
-        self.renderer.shader = next_in_cycle(rendering.SHADERS,
-                                             self.renderer.shader)
+        self.renderer.shader = next_in_cycle(rendering.SHADERS, self.renderer.shader)
 
     def cycle_charsets(self):
-        charset = next_in_cycle(rendering.character_sets_indexed,
-                                self.renderer.charset)
+        charset = next_in_cycle(rendering.character_sets_indexed, self.renderer.charset)
         self.renderer.charset = charset
 
     def toggle_hydrogens(self):
@@ -276,9 +289,9 @@ class CursesFrontend:
         self.user_quit = True
 
 
-def override_terminal_colors(max_colors: int,
-                             saturation: float = .5,
-                             value: float = 1):
+def override_terminal_colors(
+    max_colors: int, saturation: float = 0.5, value: float = 1
+):
     """
     Updates the terminal colors to black + a hue cycle.
     """
@@ -319,15 +332,17 @@ def handle_user_args(args=None) -> argparse.Namespace:
 
     :return: The namespace of arguments read from the command line.
     """
-    description = textwrap.dedent("""\
+    description = textwrap.dedent(
+        """\
     Connect to a Narupa trajectory server and render the atoms live in a curses 
     display.
-    """)
+    """
+    )
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--autoconnect', nargs='?', default=False, metavar='NAME')
-    parser.add_argument('--hostname', default=None)
-    parser.add_argument('--port', '-p', default=None, type=int)
-    parser.add_argument('--rainbow', '-r', action="store_true")
+    parser.add_argument("--autoconnect", nargs="?", default=False, metavar="NAME")
+    parser.add_argument("--hostname", default=None)
+    parser.add_argument("--port", "-p", default=None, type=int)
+    parser.add_argument("--rainbow", "-r", action="store_true")
     arguments = parser.parse_args(args)
     return arguments
 
@@ -339,7 +354,7 @@ def main(stdscr):
         client = NarupaImdClient.autoconnect(name=arguments.autoconnect)
     else:
         address = (
-            arguments.hostname or 'localhost',
+            arguments.hostname or "localhost",
             arguments.port or DEFAULT_NARUPA_PORT,
         )
         client = NarupaImdClient(trajectory_address=address)
@@ -349,5 +364,5 @@ def main(stdscr):
         telmol.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     curses.wrapper(main)

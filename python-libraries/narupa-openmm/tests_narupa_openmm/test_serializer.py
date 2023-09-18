@@ -53,7 +53,7 @@ def add_extra_xml_tag(simulation_xml: str, extra_tag: str) -> str:
     return document.toprettyxml()
 
 
-@pytest.mark.parametrize('imd_force', (None, create_imd_force()))
+@pytest.mark.parametrize("imd_force", (None, create_imd_force()))
 def test_serialize_runs(basic_simulation_xml, imd_force):
     """
     Test that a serialized simulation can be deserialized and run.
@@ -64,7 +64,7 @@ def test_serialize_runs(basic_simulation_xml, imd_force):
     assert simulation.currentStep == 5
 
 
-@pytest.mark.parametrize('section_missing', ('System', 'Integrator'))
+@pytest.mark.parametrize("section_missing", ("System", "Integrator"))
 def test_missing_section(basic_simulation_xml, section_missing):
     """
     Make sure that the deserialization raise an exception when a base section
@@ -75,7 +75,9 @@ def test_missing_section(basic_simulation_xml, section_missing):
         deserialize_simulation(broken_xml)
 
 
-@pytest.mark.parametrize('section_to_duplicate', ('pdbx', 'pdb', 'System', 'Integrator'))
+@pytest.mark.parametrize(
+    "section_to_duplicate", ("pdbx", "pdb", "System", "Integrator")
+)
 def test_duplicate_section(basic_simulation_xml, section_to_duplicate):
     """
     Make sure de deserialization fails if a base section appears more than once.
@@ -86,14 +88,14 @@ def test_duplicate_section(basic_simulation_xml, section_to_duplicate):
 
 
 def test_missing_structure(basic_simulation_xml):
-    broken_xml = remove_xml_tag(basic_simulation_xml, 'pdbx')
-    broken_xml = remove_xml_tag(broken_xml, 'pdb')
+    broken_xml = remove_xml_tag(basic_simulation_xml, "pdbx")
+    broken_xml = remove_xml_tag(broken_xml, "pdb")
     with pytest.raises(IOError):
         deserialize_simulation(broken_xml)
 
 
 def test_duplicate_structure(basic_simulation_xml):
-    broken_xml = add_extra_xml_tag(basic_simulation_xml, 'pdb')
+    broken_xml = add_extra_xml_tag(basic_simulation_xml, "pdb")
     with pytest.raises(IOError):
         deserialize_simulation(broken_xml)
 

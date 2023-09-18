@@ -15,38 +15,56 @@ def handle_user_arguments() -> argparse.Namespace:
 
     :return: The namespace of arguments read from the command line.
     """
-    description = textwrap.dedent("""\
+    description = textwrap.dedent(
+        """\
     Run an OpenMM simulation and send it to the network for Narupa.
-    """)
+    """
+    )
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
-        'simulation_xml_path',
-        help='The simulation to run in XML format.',
+        "simulation_xml_path",
+        help="The simulation to run in XML format.",
     )
     parser.add_argument(
-        '-v', '--verbose', type=int, default=0, const=100, nargs='?',
-        help=('Display the step number, the potential energy in kJ/mol, '
-              'and the performance in ns/day.'),
+        "-v",
+        "--verbose",
+        type=int,
+        default=0,
+        const=100,
+        nargs="?",
+        help=(
+            "Display the step number, the potential energy in kJ/mol, "
+            "and the performance in ns/day."
+        ),
     )
     parser.add_argument(
-        '-n', '--name',
-        type=str, default=None,
-        help='Give a friendly name to the server.',
+        "-n",
+        "--name",
+        type=str,
+        default=None,
+        help="Give a friendly name to the server.",
     )
-    parser.add_argument('-p', '--port', type=int, default=None)
-    parser.add_argument('-a', '--address', default=None)
+    parser.add_argument("-p", "--port", type=int, default=None)
+    parser.add_argument("-a", "--address", default=None)
     parser.add_argument(
-        '-f', '--frame-interval', type=int, default=5, metavar='STEPS',
-        help='Sends a frame every STEPS dynamics steps.',
+        "-f",
+        "--frame-interval",
+        type=int,
+        default=5,
+        metavar="STEPS",
+        help="Sends a frame every STEPS dynamics steps.",
     )
     parser.add_argument(
-        '-i', '--force-interval', type=int, default=10, metavar='STEPS',
-        help='Update the interactions every STEPS dynamics steps.',
+        "-i",
+        "--force-interval",
+        type=int,
+        default=10,
+        metavar="STEPS",
+        help="Update the interactions every STEPS dynamics steps.",
     )
     parser.add_argument(
-        '--platform', default=None,
-        help='Select the platform on which to run Openmm.'
+        "--platform", default=None, help="Select the platform on which to run Openmm."
     )
 
     arguments = parser.parse_args()
@@ -68,7 +86,7 @@ def main():
     )
     print(
         f'Serving "{runner.app.name}" on port {runner.app.port}, '
-        f'discoverable on all interfaces on port {runner.app.discovery.port}'
+        f"discoverable on all interfaces on port {runner.app.discovery.port}"
     )
 
     with runner:
@@ -84,5 +102,5 @@ def main():
             print("Closing due to keyboard interrupt.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -6,7 +6,7 @@ from pythonosc import udp_client
 
 # doesn't support both IPv4 and IPv6 at once, so we probably want IPv4
 # See https://github.com/attwad/python-osc/issues/109
-DEFAULT_OSC_ADDRESS = ('127.0.0.1', 60000)
+DEFAULT_OSC_ADDRESS = ("127.0.0.1", 60000)
 
 
 def null_message_generator(frame):
@@ -15,13 +15,13 @@ def null_message_generator(frame):
 
 class OscClient:
     def __init__(
-            self,
-            narupa_client: NarupaImdClient,
-            *,
-            osc_address=DEFAULT_OSC_ADDRESS,
-            osc_send_interval=1/30,
-            message_generator=null_message_generator,
-            verbose=False,
+        self,
+        narupa_client: NarupaImdClient,
+        *,
+        osc_address=DEFAULT_OSC_ADDRESS,
+        osc_send_interval=1 / 30,
+        message_generator=null_message_generator,
+        verbose=False,
     ):
         self.verbose = verbose
         self.message_generator = message_generator

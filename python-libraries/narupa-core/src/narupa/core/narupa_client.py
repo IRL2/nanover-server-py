@@ -5,27 +5,36 @@ that sets up a command service.
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 
-from typing import Dict, Iterable, ContextManager, Union, Any, Mapping
+from typing import Dict, Iterable, ContextManager, Union, Mapping
 from uuid import uuid4
 
 import grpc
 from narupa.command.command_info import CommandInfo
 from narupa.core import GrpcClient
 from narupa.protocol.command import (
-    CommandStub, CommandMessage, GetCommandsRequest,
+    CommandStub,
+    CommandMessage,
+    GetCommandsRequest,
 )
 from narupa.protocol.state import (
-    StateStub, SubscribeStateUpdatesRequest, StateUpdate, UpdateStateRequest,
+    StateStub,
+    SubscribeStateUpdatesRequest,
+    StateUpdate,
+    UpdateStateRequest,
     UpdateLocksRequest,
 )
 from narupa.state.state_dictionary import StateDictionary
 from narupa.state.state_service import (
-    state_update_to_dictionary_change, dictionary_change_to_state_update,
+    state_update_to_dictionary_change,
+    dictionary_change_to_state_update,
     validate_dict_is_serializable,
 )
 from narupa.utilities.change_buffers import DictionaryChange
 from narupa.utilities.protobuf_utilities import (
-    dict_to_struct, struct_to_dict, deep_copy_serializable_dict, Serializable,
+    dict_to_struct,
+    struct_to_dict,
+    deep_copy_serializable_dict,
+    Serializable,
 )
 
 DEFAULT_STATE_UPDATE_INTERVAL = 1 / 30
@@ -37,6 +46,7 @@ class NarupaClient(GrpcClient):
     for the :class:`CommandServicer`, enabling the running of arbitrary commands.
 
     """
+
     _command_stub: CommandStub
     _available_commands: Dict[str, CommandInfo]
     _state_stub: StateStub
@@ -85,9 +95,12 @@ class NarupaClient(GrpcClient):
 
         :return: A dictionary of all the commands on the command server, keyed by name
         """
-        command_responses = self._command_stub.GetCommands(GetCommandsRequest()).commands
-        self._available_commands = {raw.name: CommandInfo.from_proto(raw)
-                                    for raw in command_responses}
+        command_responses = self._command_stub.GetCommands(
+            GetCommandsRequest()
+        ).commands
+        self._available_commands = {
+            raw.name: CommandInfo.from_proto(raw) for raw in command_responses
+        }
         return self._available_commands
 
     def lock_state(self) -> ContextManager[Dict[str, Serializable]]:
@@ -111,6 +124,7 @@ class NarupaClient(GrpcClient):
         :param interval: Minimum time (in seconds) between receiving new updates
             for any and all values.
         """
+
         def process_state_updates(update_stream: Iterable[StateUpdate]):
             for update in update_stream:
                 change = state_update_to_dictionary_change(update)
@@ -138,8 +152,7 @@ class NarupaClient(GrpcClient):
         return response.success
 
     def attempt_update_locks(
-            self,
-            lock_updates: Mapping[str, Union[float, None]]
+        self, lock_updates: Mapping[str, Union[float, None]]
     ) -> bool:
         """
         Attempt to acquire and/or free a number of locks on the shared state.
@@ -175,6 +188,8 @@ class NarupaStubClient(NarupaClient):
 
     """
 
-    def __init__(self, *, channel: grpc.Channel, stub, make_channel_owner: bool = False):
+    def __init__(
+        self, *, channel: grpc.Channel, stub, make_channel_owner: bool = False
+    ):
         super().__init__(channel=channel, make_channel_owner=make_channel_owner)
         self.stub = stub(self.channel)

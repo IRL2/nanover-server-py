@@ -52,12 +52,12 @@ ATOM_RADIUS_ANG = {
 
 
 def ase_to_frame_data(
-        ase_atoms: Atoms,
-        positions: bool = True,
-        topology: bool = True,
-        state: bool = True,
-        box_vectors: bool = True,
-        generate_bonds: bool = True
+    ase_atoms: Atoms,
+    positions: bool = True,
+    topology: bool = True,
+    state: bool = True,
+    box_vectors: bool = True,
+    generate_bonds: bool = True,
 ) -> FrameData:
     """
     Constructs a Narupa frame from the state of the atoms in an ASE simulation.
@@ -100,8 +100,12 @@ def ase_to_frame_data(
     return data
 
 
-def frame_data_to_ase(frame_data: FrameData, positions: bool = True, topology: bool = True,
-                      ase_atoms: Optional[Atoms] = None) -> Atoms:
+def frame_data_to_ase(
+    frame_data: FrameData,
+    positions: bool = True,
+    topology: bool = True,
+    ase_atoms: Optional[Atoms] = None,
+) -> Atoms:
     """
     Constructs an ASE :class:`Atoms` object from a Narupa :class:`FrameData`.
 
@@ -183,7 +187,9 @@ def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     data.box_vectors = box_vectors
 
 
-def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms, generate_bonds=True):
+def add_ase_topology_to_frame_data(
+    frame_data: FrameData, ase_atoms: Atoms, generate_bonds=True
+):
     """
     Generates a topology for the current state of the atoms and adds it to the frame.
 
@@ -197,7 +203,7 @@ def add_ase_topology_to_frame_data(frame_data: FrameData, ase_atoms: Atoms, gene
     frame_data.residue_names = ["ASE"]
     frame_data.residue_chains = [0]
     frame_data.residue_count = 1
-    frame_data.residue_ids = ['1']
+    frame_data.residue_ids = ["1"]
 
     frame_data.chain_names = ["A"]
     frame_data.chain_count = 1
@@ -230,7 +236,7 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
     # get the energy directly, without performing a recalculation.
     try:
-        energy = ase_atoms.calc.get_property('energy', allow_calculation=False)
+        energy = ase_atoms.calc.get_property("energy", allow_calculation=False)
     except AttributeError:
         raise AttributeError("No calculator in atoms, so energy cannot be computed")
     if energy is not None:

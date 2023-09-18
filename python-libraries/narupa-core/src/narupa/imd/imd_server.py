@@ -25,10 +25,10 @@ class ImdServer(NarupaServer):
     """
 
     def __init__(
-            self,
-            *,
-            address: Optional[str] = None,
-            port: Optional[int] = None,
+        self,
+        *,
+        address: Optional[str] = None,
+        port: Optional[int] = None,
     ):
         if address is None:
             address = DEFAULT_SERVE_ADDRESS

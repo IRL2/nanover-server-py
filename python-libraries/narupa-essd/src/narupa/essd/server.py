@@ -21,7 +21,12 @@ import time
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
 from typing import Optional, Dict, List
 
-from narupa.essd.utils import get_broadcast_addresses, is_in_network, resolve_host_broadcast_address, InterfaceAddresses
+from narupa.essd.utils import (
+    get_broadcast_addresses,
+    is_in_network,
+    resolve_host_broadcast_address,
+    InterfaceAddresses,
+)
 from narupa.essd.servicehub import ServiceHub
 
 BROADCAST_PORT = 54545
@@ -51,8 +56,10 @@ class DiscoveryServer:
             broadcast_port = BROADCAST_PORT
         self.logger = logging.getLogger(__name__)
         self.port = broadcast_port
-        self.logger.info(f"Extremely Simple Discovery Server (ESSD) is running, "
-                         f"will broadcast services to port {self.port}")
+        self.logger.info(
+            f"Extremely Simple Discovery Server (ESSD) is running, "
+            f"will broadcast services to port {self.port}"
+        )
         self.broadcast_addresses = get_broadcast_addresses()
         self.log_addresses(level=logging.INFO)
         self.delay = delay
@@ -63,7 +70,9 @@ class DiscoveryServer:
         self.start()
 
     def log_addresses(self, level=logging.DEBUG):
-        self.logger.log(level, "ESSD: Able to broadcast on the following IPV4 addresses:")
+        self.logger.log(
+            level, "ESSD: Able to broadcast on the following IPV4 addresses:"
+        )
         for address in self.broadcast_addresses:
             self.logger.log(level, f"ESSD:   - {address}")
 
@@ -74,7 +83,9 @@ class DiscoveryServer:
         :param service: Service to register.
         """
         if service in self.services:
-            raise KeyError(f"A service with the same ID has already been registered: {service}")
+            raise KeyError(
+                f"A service with the same ID has already been registered: {service}"
+            )
         broadcast_addresses = self.get_broadcast_addresses_for_service(service)
         if len(broadcast_addresses) == 0:
             msg = f"No valid broadcast address found for service {service}, check network configuration. "
@@ -92,7 +103,7 @@ class DiscoveryServer:
         :raises KeyError Raised if the service has never been registered with this discovery server.
         """
         if service not in self.services:
-            raise KeyError(f'No service with this ID has been registered {service}')
+            raise KeyError(f"No service with this ID has been registered {service}")
         with self._lock:
             del self.services[service]
 
@@ -130,11 +141,15 @@ class DiscoveryServer:
         address = service.address
         for broadcast_address in addresses:
             if address == "[::]" or address == "localhost":
-                message = service.to_message(override_address=broadcast_address['addr'])
+                message = service.to_message(override_address=broadcast_address["addr"])
             else:
                 message = service.to_message()
-            self.logger.debug(f'Sending service {service} to {broadcast_address["broadcast"]}:{self.port}')
-            self._socket.sendto(message.encode(), (broadcast_address['broadcast'], self.port))
+            self.logger.debug(
+                f'Sending service {service} to {broadcast_address["broadcast"]}:{self.port}'
+            )
+            self._socket.sendto(
+                message.encode(), (broadcast_address["broadcast"], self.port)
+            )
 
     def __enter__(self):
         return self
@@ -151,5 +166,8 @@ class DiscoveryServer:
             if localhost_address is None:
                 raise ValueError("Cannot broadcast on localhost on this system!")
             return [localhost_address]
-        return [broadcast_address for broadcast_address in self.broadcast_addresses
-                if is_in_network(address, broadcast_address)]
+        return [
+            broadcast_address
+            for broadcast_address in self.broadcast_addresses
+            if is_in_network(address, broadcast_address)
+        ]

@@ -22,8 +22,8 @@ class SupportsClose(Protocol):
 
 
 def start_default_server_and_discovery(
-        address: Optional[str] = None,
-        port: Optional[int] = None) -> Tuple[NarupaServer, DiscoveryServer]:
+    address: Optional[str] = None, port: Optional[int] = None
+) -> Tuple[NarupaServer, DiscoveryServer]:
     """
     Utility method for creating a default Narupa server along with ESSD discovery.
 
@@ -41,8 +41,10 @@ def start_default_server_and_discovery(
         server = NarupaServer(address=address, port=port)
     except IOError:
         if port == DEFAULT_NARUPA_PORT:
-            raise IOError(f'Could not start a server at the default port ({port}). Is another Narupa server running? '
-                          f'Use port=0 to let the OS find a free port')
+            raise IOError(
+                f"Could not start a server at the default port ({port}). Is another Narupa server running? "
+                f"Use port=0 to let the OS find a free port"
+            )
         raise
     discovery = DiscoveryServer()
     return server, discovery
@@ -57,23 +59,24 @@ class NarupaApplicationServer:
     Use this a base for building specific applications by inheriting from it
     and attaching additional services.
     """
+
     DEFAULT_SERVER_NAME: str = "Narupa Server"
 
     _services: Set[SupportsClose]
 
     def __init__(
-            self,
-            server: NarupaServer,
-            discovery: Optional[DiscoveryServer] = None,
-            name: Optional[str] = None,
+        self,
+        server: NarupaServer,
+        discovery: Optional[DiscoveryServer] = None,
+        name: Optional[str] = None,
     ):
         if name is None:
             name = qualified_server_name(self.DEFAULT_SERVER_NAME)
         self._server = server
         self._discovery = discovery
-        self._service_hub = ServiceHub(name=name,
-                                       address=self._server.address,
-                                       port=self._server.port)
+        self._service_hub = ServiceHub(
+            name=name, address=self._server.address, port=self._server.port
+        )
         self._services = set()
 
         # Advertise as a multiplayer service
@@ -89,10 +92,10 @@ class NarupaApplicationServer:
 
     @classmethod
     def basic_server(
-            cls,
-            name: Optional[str] = None,
-            address: Optional[str] = None,
-            port: Optional[int] = None,
+        cls,
+        name: Optional[str] = None,
+        address: Optional[str] = None,
+        port: Optional[int] = None,
     ):
         """
         Initialises a basic Narupa application server with default settings,
@@ -107,7 +110,9 @@ class NarupaApplicationServer:
         :return: An instantiation of a basic Narupa server, registered with an
             ESSD discovery server.
         """
-        server, discovery = start_default_server_and_discovery(address=address, port=port)
+        server, discovery = start_default_server_and_discovery(
+            address=address, port=port
+        )
         return cls(server, discovery, name)
 
     @property
@@ -203,6 +208,7 @@ def qualified_server_name(base_name: str):
     Prefixes the given server name with identifying information of the machine
     running it.
     """
-    username = getpass.getuser()  # OS agnostic method that uses a few different metrics to get the username
-    return f'{username}: {base_name}'
-
+    username = (
+        getpass.getuser()
+    )  # OS agnostic method that uses a few different metrics to get the username
+    return f"{username}: {base_name}"

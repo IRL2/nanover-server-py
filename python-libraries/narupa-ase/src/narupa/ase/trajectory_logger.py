@@ -12,9 +12,8 @@ from io import TextIOWrapper
 from typing import Optional
 
 import ase.io
-from ase import Atoms, units  # type: ignore
+from ase import Atoms  # type: ignore
 from ase.io.formats import filetype, ioformats
-from ase.md import Langevin
 
 
 class UnsupportedFormatError(Exception):
@@ -83,6 +82,7 @@ class TrajectoryLogger:
     otherwise, the file will be reopened and appended to each frame, which will negatively impact performance.
 
     """
+
     format: str
     frame_index: int
     atoms: Atoms
@@ -90,9 +90,15 @@ class TrajectoryLogger:
     parallel: bool
     _file_descriptor: Optional[TextIOWrapper]
 
-    def __init__(self, atoms: Atoms, filename: str, format: Optional[str] = None, timestamp=True, parallel=True,
-                 **kwargs):
-
+    def __init__(
+        self,
+        atoms: Atoms,
+        filename: str,
+        format: Optional[str] = None,
+        timestamp=True,
+        parallel=True,
+        **kwargs,
+    ):
         self.frame_index = 0
         self.atoms = atoms
         self.base_path = filename
@@ -108,7 +114,9 @@ class TrajectoryLogger:
         else:
             validate_ase_can_append_filename(filename)
             self.format = _get_format(filename)
-        self._format_supports_file_descriptor = _ase_supports_file_descriptor(self.format)
+        self._format_supports_file_descriptor = _ase_supports_file_descriptor(
+            self.format
+        )
 
     def __enter__(self):
         return self
@@ -132,17 +140,19 @@ class TrajectoryLogger:
 
         if self._format_supports_file_descriptor:
             if not self._file_descriptor:
-                self._file_descriptor = open(self.current_path, 'w')
+                self._file_descriptor = open(self.current_path, "w")
             file = self._file_descriptor
         else:
             file = self.current_path
 
-        ase.io.write(file,
-                     self.atoms,
-                     format=self.format,
-                     parallel=self.parallel,
-                     append=False,
-                     **self._kwargs)
+        ase.io.write(
+            file,
+            self.atoms,
+            format=self.format,
+            parallel=self.parallel,
+            append=False,
+            **self._kwargs,
+        )
         self.frame_index += 1
 
     def reset(self):
@@ -179,7 +189,7 @@ class TrajectoryLogger:
 
 def _get_timestamp():
     now = datetime.datetime.now()
-    timestamp = f'{now:%Y_%m_%d__%H_%M_%S}_{int(now.microsecond / 10000):02d}'
+    timestamp = f"{now:%Y_%m_%d__%H_%M_%S}_{int(now.microsecond / 10000):02d}"
     return timestamp
 
 
@@ -188,5 +198,5 @@ def _generate_filename(path: str, add_timestamp: bool):
         return path
     split_path = os.path.splitext(path)
     timestamp = _get_timestamp()
-    new_path = f'{split_path[0]}_{timestamp}{split_path[1]}'
+    new_path = f"{split_path[0]}_{timestamp}{split_path[1]}"
     return new_path

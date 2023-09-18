@@ -13,8 +13,12 @@ from ase.md import Langevin
 from ase.md.md import MolecularDynamics
 from ase.md.nvtberendsen import NVTBerendsen
 from hypothesis import strategies, given
-from narupa.ase.imd_calculator import (ImdCalculator, _get_cancelled_interactions, _get_atoms_to_reset,
-                                       _scale_momentum_of_selection)
+from narupa.ase.imd_calculator import (
+    ImdCalculator,
+    _get_cancelled_interactions,
+    _get_atoms_to_reset,
+    _scale_momentum_of_selection,
+)
 from narupa.imd import ImdServer
 from narupa.imd.particle_interaction import ParticleInteraction
 from narupa.trajectory.frame_data import MissingDataError
@@ -26,13 +30,13 @@ from util import imd_server
 NUM_INTERACTIONS = 10
 
 INTERACTIONS_NO_RESET = {
-    ("0", str(i)):
-        ParticleInteraction(particles=(10 * i, 10 * i + 1))
-    for i in range(NUM_INTERACTIONS)}
+    ("0", str(i)): ParticleInteraction(particles=(10 * i, 10 * i + 1))
+    for i in range(NUM_INTERACTIONS)
+}
 INTERACTIONS_RESET = {
-    (str(i), "1"):
-        ParticleInteraction(reset_velocities=True, particles=(i, i + 1))
-    for i in range(1, NUM_INTERACTIONS + 1)}
+    (str(i), "1"): ParticleInteraction(reset_velocities=True, particles=(i, i + 1))
+    for i in range(1, NUM_INTERACTIONS + 1)
+}
 
 # the set of atoms that should be reset based on atoms selected in INTERACTIONS_RESET
 ATOMS_TO_RESET = set(i for i in range(1, NUM_INTERACTIONS + 2))
@@ -51,20 +55,26 @@ def fcc_atoms():
     """
     size = 2
     # Set up a crystal
-    atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-                              symbol="Cu",
-                              size=(size, size, size),
-                              pbc=True)
+    atoms = FaceCenteredCubic(
+        directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        symbol="Cu",
+        size=(size, size, size),
+        pbc=True,
+    )
     return atoms
 
 
 @contextlib.contextmanager
-def imd_calculator_berendsen_dynamics_context() -> ContextManager[Tuple[ImdCalculator, Lattice, NVTBerendsen]]:
+def imd_calculator_berendsen_dynamics_context() -> (
+    ContextManager[Tuple[ImdCalculator, Lattice, NVTBerendsen]]
+):
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
     dynamics = NVTBerendsen(atoms, 1.0, TEST_TEMPERATURE, 1.0)
-    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, dynamics=dynamics)
+    imd_calculator = ImdCalculator(
+        server.imd_state, calculator, atoms, dynamics=dynamics
+    )
     yield imd_calculator, atoms, dynamics
     server.close()
 
@@ -87,19 +97,23 @@ def imd_calculator_langevin_dynamics():
     atoms = fcc_atoms()
     calculator = LennardJones()
     dynamics = Langevin(atoms, 1.0, friction=1.0, temperature_K=TEST_TEMPERATURE)
-    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, dynamics=dynamics)
+    imd_calculator = ImdCalculator(
+        server.imd_state, calculator, atoms, dynamics=dynamics
+    )
     yield imd_calculator, atoms, dynamics
     server.close()
 
 
-@pytest.mark.parametrize("new, old, exp_cancelled",
-                         [(INTERACTIONS_NO_RESET, INTERACTIONS_RESET, INTERACTIONS_RESET),
-                          (INTERACTIONS_NO_RESET, INTERACTIONS_NO_RESET, {}),
-                          ({}, INTERACTIONS_NO_RESET, INTERACTIONS_NO_RESET),
-                          (ALL_INTERACTIONS, INTERACTIONS_NO_RESET, {}),
-                          (INTERACTIONS_RESET, ALL_INTERACTIONS, INTERACTIONS_NO_RESET)
-                          ]
-                         )
+@pytest.mark.parametrize(
+    "new, old, exp_cancelled",
+    [
+        (INTERACTIONS_NO_RESET, INTERACTIONS_RESET, INTERACTIONS_RESET),
+        (INTERACTIONS_NO_RESET, INTERACTIONS_NO_RESET, {}),
+        ({}, INTERACTIONS_NO_RESET, INTERACTIONS_NO_RESET),
+        (ALL_INTERACTIONS, INTERACTIONS_NO_RESET, {}),
+        (INTERACTIONS_RESET, ALL_INTERACTIONS, INTERACTIONS_NO_RESET),
+    ],
+)
 def test_cancelled_interactions(new, old, exp_cancelled):
     """
     Tests that the expected set of interaction keys are produced when cancelling interactions.
@@ -108,12 +122,15 @@ def test_cancelled_interactions(new, old, exp_cancelled):
     assert cancelled.keys() == exp_cancelled.keys()
 
 
-@pytest.mark.parametrize("interactions, exp_atoms",
-                         [(INTERACTIONS_NO_RESET, set()),
-                          (INTERACTIONS_RESET, ATOMS_TO_RESET),
-                          (ALL_INTERACTIONS, ATOMS_TO_RESET),
-                          ({}, set()),
-                          ])
+@pytest.mark.parametrize(
+    "interactions, exp_atoms",
+    [
+        (INTERACTIONS_NO_RESET, set()),
+        (INTERACTIONS_RESET, ATOMS_TO_RESET),
+        (ALL_INTERACTIONS, ATOMS_TO_RESET),
+        ({}, set()),
+    ],
+)
 def test_get_atoms_to_reset(interactions, exp_atoms):
     """
     Tests that the expected set of atoms to reset are produced when passing cancelled interactions.
@@ -196,8 +213,14 @@ def random_atom_selection(draw):
     return draw(selection), atoms
 
 
-@given(random_atom_selection(), strategies.floats(MIN_TEMP, MAX_TEMP), strategies.floats(MIN_TEMP, MAX_TEMP))
-def test_temperature_scaling_selection(random_atom_selection, dynamics_temp, reset_temperature):
+@given(
+    random_atom_selection(),
+    strategies.floats(MIN_TEMP, MAX_TEMP),
+    strategies.floats(MIN_TEMP, MAX_TEMP),
+)
+def test_temperature_scaling_selection(
+    random_atom_selection, dynamics_temp, reset_temperature
+):
     """
     Tests that scaling momentum in an atoms object on a selection of atoms produces the expected
     temperature on the selection, and leaves the other atoms untouched.
@@ -233,8 +256,12 @@ def generate_interactions(selection, num_interactions=1):
     particles_per_interaction = int(len(selection) / num_interactions)
     interactions = {}
     for i in range(num_interactions):
-        particles = [selection[idx] for idx in
-                     range(i * particles_per_interaction, (i + 1) * particles_per_interaction)]
+        particles = [
+            selection[idx]
+            for idx in range(
+                i * particles_per_interaction, (i + 1) * particles_per_interaction
+            )
+        ]
         interaction = ParticleInteraction(particles=particles, reset_velocities=True)
         interactions[("0", str(i))] = interaction
     return interactions
@@ -259,7 +286,10 @@ def test_reset_velocities(atom_selection):
 
         interactions = generate_interactions(selection)
         calculator._reset_velocities(atoms, {}, interactions)
-        assert pytest.approx(atoms[selection].get_temperature()) == calculator.reset_temperature
+        assert (
+            pytest.approx(atoms[selection].get_temperature())
+            == calculator.reset_temperature
+        )
         assert np.allclose(velocities, atoms[not_selected].get_velocities())
 
 
@@ -274,7 +304,7 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
     atoms.calc = calculator
 
     calculator.atoms = None
-    calculator.calculate(atoms=atoms, system_changes=['numbers'])
+    calculator.calculate(atoms=atoms, system_changes=["numbers"])
     MaxwellBoltzmannDistribution(atoms, temperature_K=300)
 
     selection = [0, 1]
@@ -283,9 +313,12 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
         particles=selection,
         reset_velocities=True,
     )
-    calculator._imd_state.insert_interaction('interaction.test', interaction)
+    calculator._imd_state.insert_interaction("interaction.test", interaction)
     atoms.get_forces()
-    calculator._imd_state.remove_interaction('interaction.test')
+    calculator._imd_state.remove_interaction("interaction.test")
     atoms.get_forces()
 
-    assert pytest.approx(atoms[selection].get_temperature()) == calculator.reset_temperature
+    assert (
+        pytest.approx(atoms[selection].get_temperature())
+        == calculator.reset_temperature
+    )

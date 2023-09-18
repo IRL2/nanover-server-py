@@ -3,9 +3,7 @@
 """
 Module providing an implementation of the :class:`StateServicer`.
 """
-from typing import (
-    Iterable, Tuple, Set, Dict, ContextManager, Callable, Optional
-)
+from typing import Iterable, Tuple, Set, Dict, ContextManager, Callable, Optional
 from numbers import Real
 from narupa.utilities.grpc_utilities import (
     subscribe_rpc_termination,
@@ -13,7 +11,10 @@ from narupa.utilities.grpc_utilities import (
 )
 from narupa.utilities.key_lockable_map import ResourceLockedError
 from narupa.utilities.protobuf_utilities import (
-    deep_copy_serializable_dict, struct_to_dict, dict_to_struct, Serializable,
+    deep_copy_serializable_dict,
+    struct_to_dict,
+    dict_to_struct,
+    Serializable,
 )
 from narupa.utilities.change_buffers import (
     DictionaryChange,
@@ -37,6 +38,7 @@ class StateService(StateServicer):
     Implementation of the State service, for tracking and making changes to a
     shared key/value store.
     """
+
     state_dictionary: StateDictionary
 
     def __init__(self):
@@ -77,10 +79,10 @@ class StateService(StateServicer):
         self.state_dictionary.update_state(access_token, change)
 
     def update_locks(
-            self,
-            access_token: Serializable,
-            acquire: Optional[Dict[str, float]] = None,
-            release: Optional[Set[str]] = None,
+        self,
+        access_token: Serializable,
+        acquire: Optional[Dict[str, float]] = None,
+        release: Optional[Set[str]] = None,
     ):
         """
         Attempts to acquire and release locks on keys in the shared key/value
@@ -100,9 +102,9 @@ class StateService(StateServicer):
         return self.state_dictionary.get_change_buffer()
 
     def SubscribeStateUpdates(
-            self,
-            request: SubscribeStateUpdatesRequest,
-            context,
+        self,
+        request: SubscribeStateUpdatesRequest,
+        context,
     ) -> Iterable[StateUpdate]:
         """
         Provides a stream of updates to a shared key/value store.
@@ -117,9 +119,9 @@ class StateService(StateServicer):
                 yield dictionary_change_to_state_update(change)
 
     def UpdateState(
-            self,
-            request: UpdateStateRequest,
-            context,
+        self,
+        request: UpdateStateRequest,
+        context,
     ) -> UpdateStateResponse:
         """
         Attempts an atomic update of the shared key/value store. If any key
@@ -134,9 +136,9 @@ class StateService(StateServicer):
         return UpdateStateResponse(success=success)
 
     def UpdateLocks(
-            self,
-            request: UpdateLocksRequest,
-            context,
+        self,
+        request: UpdateLocksRequest,
+        context,
     ) -> UpdateLocksResponse:
         """
         Attempts to acquire and release locks on keys in the shared key/value
@@ -203,7 +205,7 @@ def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
 
 
 def locks_update_to_acquire_release(
-        update: UpdateLocksRequest
+    update: UpdateLocksRequest,
 ) -> Tuple[Dict[str, float], Set[str]]:
     """
     Convert a grpc UpdateLocksRequest to a tuple of lock times and locked keys

@@ -16,7 +16,6 @@ IP_ADDRESS_ANY = "0.0.0.0"
 
 
 class DiscoveryClient:
-
     def __init__(self, address: Optional[str] = None, port: Optional[int] = None):
         if address is None:
             address = IP_ADDRESS_ANY
@@ -45,7 +44,9 @@ class DiscoveryClient:
         properties = json.loads(message.decode())
         return ServiceHub(**properties)
 
-    def search_for_services(self, search_time: float = 5.0, interval=0.033) -> Iterable[ServiceHub]:
+    def search_for_services(
+        self, search_time: float = 5.0, interval=0.033
+    ) -> Iterable[ServiceHub]:
         """
         Searches for and yields services for the given search time.
 

@@ -2,7 +2,9 @@ import time
 import numpy
 import pytest
 from narupa.app.multiuser import (
-    RADIAL_ORIENT_COMMAND_KEY, MULTIUSER_ORIGIN_PREFIX, add_multiuser_commands,
+    RADIAL_ORIENT_COMMAND_KEY,
+    MULTIUSER_ORIGIN_PREFIX,
+    add_multiuser_commands,
 )
 from narupa.utilities.change_buffers import DictionaryChange
 
@@ -10,8 +12,8 @@ from ..app.test_client_selections import server_clients
 from ..core.test_narupa_client_server_state import IMMEDIATE_REPLY_WAIT_TIME
 
 
-@pytest.mark.parametrize('avatar_count', (0, 1, 4))
-@pytest.mark.parametrize('radius', (0, 1, 5))
+@pytest.mark.parametrize("avatar_count", (0, 1, 4))
+@pytest.mark.parametrize("radius", (0, 1, 5))
 def test_radial_orient(server_clients, avatar_count, radius):
     """
     Test that the radial orientation command creates the correct number of
@@ -23,9 +25,7 @@ def test_radial_orient(server_clients, avatar_count, radius):
 
     user_ids = ["test" + str(i) for i in range(avatar_count)]
 
-    update = DictionaryChange({
-        "avatar." + id: [] for id in user_ids
-    })
+    update = DictionaryChange({"avatar." + id: [] for id in user_ids})
     client.attempt_update_multiplayer_state(update)
     client.run_command(RADIAL_ORIENT_COMMAND_KEY, radius=radius)
     time.sleep(IMMEDIATE_REPLY_WAIT_TIME)

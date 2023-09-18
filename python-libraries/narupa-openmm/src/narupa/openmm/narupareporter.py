@@ -33,6 +33,7 @@ class NarupaReporter:
     :param report_interval: Interval in frames between two reports.
     :param frame_server: Instance of a Narupa frame server.
     """
+
     _topology: Union[Topology, None]
 
     def __init__(self, *, report_interval, frame_server):
@@ -58,10 +59,8 @@ class NarupaReporter:
     def report(self, simulation, state):
         if self._frameIndex == 0:
             self._topology = simulation.topology
-            self._frameData = openmm_to_frame_data(state=None,
-                                                   topology=self._topology)
+            self._frameData = openmm_to_frame_data(state=None, topology=self._topology)
             self._frameServer.send_frame(self._frameIndex, self._frameData)
-        self._frameData = openmm_to_frame_data(state=state,
-                                               topology=None)
+        self._frameData = openmm_to_frame_data(state=state, topology=None)
         self._frameServer.send_frame(self._frameIndex, self._frameData)
         self._frameIndex += 1
