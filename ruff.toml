@@ -1,0 +1,3 @@
+[per-file-ignores]
+"test*" = ["F401", "F811"]
+"__init__.py" = ["F401"]
