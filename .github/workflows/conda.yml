@@ -52,7 +52,10 @@ jobs:
           path: ./artifacts
   test-conda:
     name: Python tests on the conda packages
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     needs: build-conda
     defaults:
       run:
@@ -69,7 +72,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: conda-packages
-      - run: ls -a ./ ./conda-bld
       - name: Install Narupa
         run: conda install -c conda-forge -c ./conda-bld mpi4py narupa-server narupa-lammps
       - name: Install tests dependancies
