@@ -43,7 +43,7 @@ jobs:
             python-libraries/narupa-server/conda
       - run: |
           mkdir artifacts
-          cp -r /usr/share/miniconda3/envs/test/conda-bld ./artifacts
+          cp -r ${CONDA_PREFIX}/conda-bld ./artifacts
           ls ./artifacts
       - name: Save the artifacts
         uses: actions/upload-artifact@v3
