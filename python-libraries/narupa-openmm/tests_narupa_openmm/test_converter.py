@@ -127,7 +127,7 @@ def test_topology_residue_chains(simple_openmm_topology):
 def test_box_vectors(basic_simulation):
     expected = list(itertools.chain(BASIC_SIMULATION_BOX_VECTORS))
     state = basic_simulation.context.getState(getPositions=True)
-    data = openmm_to_frame_data(state=state)
+    data = openmm_to_frame_data(state=state, include_energies=False)
     assert_almost_equal(
         data.raw.arrays[frame_data.BOX_VECTORS].float_values.values,
         np.asarray(expected).flatten(),
@@ -137,7 +137,7 @@ def test_box_vectors(basic_simulation):
 def test_positions(basic_simulation):
     expected = BASIC_SIMULATION_POSITIONS
     state = basic_simulation.context.getState(getPositions=True)
-    data = openmm_to_frame_data(state=state)
+    data = openmm_to_frame_data(state=state, include_energies=False)
     assert_almost_equal(
         data.raw.arrays[frame_data.PARTICLE_POSITIONS].float_values.values,
         np.asarray(expected).flatten(),

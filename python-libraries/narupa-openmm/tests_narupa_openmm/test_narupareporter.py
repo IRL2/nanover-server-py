@@ -103,7 +103,7 @@ def test_report(basic_simulation):
         report_interval=1,
         frame_server=frame_server,
     )
-    state = basic_simulation.context.getState(getPositions=True)
+    state = basic_simulation.context.getState(getPositions=True, getEnergy=True)
 
     reporter.report(basic_simulation, state)
     # The first report sends 2 messages: one with the topology and one with
