@@ -21,15 +21,12 @@ Facilities to read a Narupa trajectory recording into an MDAnalysis Universe.
 """
 import warnings
 from itertools import takewhile, chain
+from typing import NamedTuple, Type, Callable, Optional
+
+import MDAnalysis as mda
 from MDAnalysis.coordinates.base import ProtoReader
 from MDAnalysis.coordinates.timestep import Timestep
-from narupa.trajectory import FrameData
-from typing import NamedTuple, Type, Callable, Optional
-import MDAnalysis as mda
 from MDAnalysis.lib.util import openany
-from .recordings import Unpacker, iter_trajectory_recording, advance_to_first_particle_frame, advance_to_first_coordinate_frame
-from .converter import _to_chemical_symbol
-
 from MDAnalysis.core.topologyattrs import (
     Atomnames,
     Atomids,
@@ -45,13 +42,28 @@ from MDAnalysis.core.topologyattrs import (
 from MDAnalysis.core.topology import Topology
 from MDAnalysis.topology.base import TopologyReaderBase
 
+from narupa.trajectory import FrameData
 from narupa.trajectory.frame_data import (
-    PARTICLE_COUNT, RESIDUE_COUNT, CHAIN_COUNT,
-    PARTICLE_ELEMENTS, PARTICLE_NAMES, PARTICLE_RESIDUES,
-    RESIDUE_NAMES, RESIDUE_CHAINS, RESIDUE_IDS,
+    PARTICLE_COUNT,
+    RESIDUE_COUNT,
+    CHAIN_COUNT,
+    PARTICLE_ELEMENTS,
+    PARTICLE_NAMES,
+    PARTICLE_RESIDUES,
+    RESIDUE_NAMES,
+    RESIDUE_CHAINS,
+    RESIDUE_IDS,
     CHAIN_NAMES,
     MissingDataError,
 )
+
+from .recordings import (
+    Unpacker,
+    iter_trajectory_recording,
+    advance_to_first_particle_frame,
+    advance_to_first_coordinate_frame,
+)
+from .converter import _to_chemical_symbol
 
 
 class KeyConversion(NamedTuple):
@@ -61,6 +73,7 @@ class KeyConversion(NamedTuple):
 
 def _as_is(value):
     return value
+
 
 def _trimmed(value):
     return value.strip()
@@ -76,14 +89,16 @@ KEY_TO_ATTRIBUTE = {
 
 class NarupaParser(TopologyReaderBase):
     def parse(self, **kwargs):
-        with openany(self.filename, mode='rb') as infile:
+        with openany(self.filename, mode="rb") as infile:
             data = infile.read()
         unpacker = Unpacker(data)
         # We assume the full topology is in the first frame with a particle
         # count greater than 0. This will be true only most of the time.
         # TODO: implement a more reliable way to get the full topology
         try:
-            _, _, frame = next(advance_to_first_particle_frame(iter_trajectory_recording(unpacker)))
+            _, _, frame = next(
+                advance_to_first_particle_frame(iter_trajectory_recording(unpacker))
+            )
         except StopIteration:
             raise IOError("The file does not contain any frame.")
 
@@ -117,40 +132,58 @@ class NarupaParser(TopologyReaderBase):
         except MissingDataError:
             pass
         else:
-            chain_ids_per_particle = [chain_ids_per_chain[segidx[residx[atom]]] for atom in range(n_atoms)]
+            chain_ids_per_particle = [
+                chain_ids_per_chain[segidx[residx[atom]]] for atom in range(n_atoms)
+            ]
             attrs.append(ChainIDs(chain_ids_per_particle))
 
-        return Topology(n_atoms, n_residues, n_chains, attrs=attrs, atom_resindex=residx, residue_segindex=segidx)
+        return Topology(
+            n_atoms,
+            n_residues,
+            n_chains,
+            attrs=attrs,
+            atom_resindex=residx,
+            residue_segindex=segidx,
+        )
 
 
 class NarupaReader(ProtoReader):
-    units = {'time': 'ps', 'length': 'nm', 'velocity': 'nm/ps'}
+    units = {"time": "ps", "length": "nm", "velocity": "nm/ps"}
 
     def __init__(self, filename, convert_units=True, **kwargs):
         super().__init__()
         self.filename = filename
         self.convert_units = convert_units
-        with openany(filename, mode='rb') as infile:
+        with openany(filename, mode="rb") as infile:
             data = infile.read()
         unpacker = Unpacker(data)
-        recording = advance_to_first_coordinate_frame(iter_trajectory_recording(unpacker))
+        recording = advance_to_first_coordinate_frame(
+            iter_trajectory_recording(unpacker)
+        )
         try:
             _, _, first_frame = next(recording)
         except StopIteration:
             raise IOError("Empty trajectory.")
         self.n_atoms = first_frame.particle_count
 
-        non_topology_frames = takewhile(lambda frame: not has_topology(frame), map(lambda record: record[2], recording))
+        non_topology_frames = takewhile(
+            lambda frame: not has_topology(frame),
+            map(lambda record: record[2], recording),
+        )
         try:
             next(recording)
         except StopIteration:
             pass
         else:
-            warnings.warn("The simulation contains changes to the topology after the first frame. Only the frames with the initial topology are accessible in this Universe.")
+            warnings.warn(
+                "The simulation contains changes to the topology after the "
+                "first frame. Only the frames with the initial topology are "
+                "accessible in this Universe."
+            )
         self._frames = list(chain([first_frame], non_topology_frames))
         self.n_frames = len(self._frames)
         self._read_frame(0)
-    
+
     def _read_frame(self, frame):
         self._current_frame_index = frame
         try:
@@ -192,6 +225,7 @@ class NarupaReader(ProtoReader):
 
     def _reopen(self):
         self._current_frame_index = None
+
 
 def has_topology(frame: FrameData) -> bool:
     topology_keys = set(list(KEY_TO_ATTRIBUTE.keys()) + [PARTICLE_ELEMENTS])
