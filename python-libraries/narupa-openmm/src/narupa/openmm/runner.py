@@ -296,23 +296,26 @@ class OpenMMRunner(NarupaRunner):
             self._run_task = self.threads.submit(self._run, steps)
 
     def _run(self, steps: Optional[int]) -> None:
-        remaining_steps = steps if steps is not None else float("inf")
-        for _ in self._variable_interval_generator.yield_interval():
-            if self._cancelled or remaining_steps <= 0:
-                break
-            steps_for_this_iteration = min(self.frame_interval, remaining_steps)
-            try:
-                self.simulation.step(steps_for_this_iteration)
-            except (ValueError, openmm.OpenMMException):
-                # We want to stop running if the simulation exploded in a way
-                # that prevents OpenMM to run. Otherwise, we will be a a state
-                # where OpenMM raises an exception which would make the runner
-                # unusable. The OpenMMException is typically raised by OpenMM
-                # itself when something is NaN; the ValueError is typically
-                # raised by the StateReporter when the energy is NaN.
-                break
-            remaining_steps -= steps_for_this_iteration
-        self._cancelled = False
+        try:
+            remaining_steps = steps if steps is not None else float("inf")
+            for _ in self._variable_interval_generator.yield_interval():
+                if self._cancelled or remaining_steps <= 0:
+                    break
+                steps_for_this_iteration = min(self.frame_interval, remaining_steps)
+                try:
+                    self.simulation.step(steps_for_this_iteration)
+                except (ValueError, openmm.OpenMMException):
+                    # We want to stop running if the simulation exploded in a way
+                    # that prevents OpenMM to run. Otherwise, we will be a a state
+                    # where OpenMM raises an exception which would make the runner
+                    # unusable. The OpenMMException is typically raised by OpenMM
+                    # itself when something is NaN; the ValueError is typically
+                    # raised by the StateReporter when the energy is NaN.
+                    break
+                remaining_steps -= steps_for_this_iteration
+            self._cancelled = False
+        except Exception as err:
+            print(f"Error whith run: {err}")
 
     def step(self):
         with self._cancel_lock:

@@ -143,13 +143,17 @@ class NarupaImdReporter:
         if simulation.currentStep % self.frame_interval == 0:
             if positions is None:
                 positions = state.getPositions(asNumpy=True)
-            frame_data = openmm_to_frame_data(
-                state=state, topology=None, include_positions=False
-            )
-            frame_data.particle_positions = positions
-            frame_data.user_energy = self._total_user_energy
-            self.frame_publisher.send_frame(self._frame_index, frame_data)
-            self._frame_index += 1
+            try:
+                frame_data = openmm_to_frame_data(
+                    state=state, topology=None, include_positions=False
+                )
+            except Exception as err:
+                print(f"Error while building a frame: {err}")
+            else:
+                frame_data.particle_positions = positions
+                frame_data.user_energy = self._total_user_energy
+                self.frame_publisher.send_frame(self._frame_index, frame_data)
+                self._frame_index += 1
 
     def _on_first_frame(self, simulation: app.Simulation):
         """
@@ -161,8 +165,12 @@ class NarupaImdReporter:
         if self._frame_index == 0:
             state = simulation.context.getState(getPositions=True, getEnergy=True)
             topology = simulation.topology
-            frame_data = openmm_to_frame_data(state=state, topology=topology)
-            self.frame_publisher.send_frame(self._frame_index, frame_data)
+            try:
+                frame_data = openmm_to_frame_data(state=state, topology=topology)
+            except Exception as err:
+                print(f"Error with the first frame: {err}")
+            else:
+                self.frame_publisher.send_frame(self._frame_index, frame_data)
 
     @staticmethod
     def get_masses(system: mm.System) -> np.ndarray:
