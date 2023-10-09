@@ -52,7 +52,6 @@ receives the interactions. It can be use instead of
 """
 from typing import Tuple, Dict, List, Set, Optional
 import itertools
-import traceback
 
 import numpy as np
 import numpy.typing as npt
@@ -107,7 +106,7 @@ class NarupaImdReporter:
         self._is_force_dirty = False
         self._previous_force_index: Set[int] = set()
         self._frame_index = 0
-        self._total_user_energy = 0
+        self._total_user_energy = 0.0
 
     # The name of the method is part of the OpenMM API. It cannot be made to
     # conform PEP8.
