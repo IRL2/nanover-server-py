@@ -13,6 +13,7 @@ class Unpacker:
     buffer and move the cursor forward. They raise an `IndexError` if the
     buffer is too short to fullfil the request.
     """
+
     _buffer: bytes
     _cursor: int
 
@@ -32,7 +33,7 @@ class Unpacker:
         end = self._cursor + n_bytes
         if end >= len(self._buffer):
             raise IndexError("Not enough bytes left in the buffer.")
-        bytes_to_return = self._buffer[self._cursor:end]
+        bytes_to_return = self._buffer[self._cursor : end]
         self._cursor = end
         return bytes_to_return
 
@@ -41,14 +42,14 @@ class Unpacker:
         Get an unsigned 64 bits integer from the next bytes of the buffer.
         """
         buffer = self.unpack_bytes(8)
-        return int.from_bytes(buffer, 'little', signed=False)
+        return int.from_bytes(buffer, "little", signed=False)
 
     def unpack_u128(self) -> int:
         """
         Get an unsigned 128 bits integer from the next bytes of the buffer.
         """
         buffer = self.unpack_bytes(16)
-        return int.from_bytes(buffer, 'little', signed=False)
+        return int.from_bytes(buffer, "little", signed=False)
 
 
 class InvalidMagicNumber(Exception):
@@ -63,6 +64,7 @@ class UnsuportedFormatVersion(Exception):
     """
     The version of the file format is not supported by hthe parser.
     """
+
     def __init__(self, format_version: int, supported_format_versions: tuple[int]):
         self._format_version = format_version
         self._supported_format_versions = supported_format_versions
@@ -76,14 +78,13 @@ class UnsuportedFormatVersion(Exception):
 
 
 def iter_trajectory_recording(unpacker: Unpacker) -> Generator:
-    supported_format_versions = (2, )
+    supported_format_versions = (2,)
     magic_number = unpacker.unpack_u64()
     if magic_number != MAGIC_NUMBER:
         raise InvalidMagicNumber
     format_version = unpacker.unpack_u64()
     if format_version not in supported_format_versions:
-        raise UnsuportedFormatVersion(
-            format_version, supported_format_versions)
+        raise UnsuportedFormatVersion(format_version, supported_format_versions)
     while True:
         try:
             elapsed = unpacker.unpack_u128()
@@ -99,14 +100,14 @@ def iter_trajectory_recording(unpacker: Unpacker) -> Generator:
 
 
 def iter_trajectory_file(path) -> Generator:
-    with open(path, 'rb') as infile:
+    with open(path, "rb") as infile:
         data = infile.read()
     unpacker = Unpacker(data)
     yield from iter_trajectory_recording(unpacker)
 
 
 def advance_to_first_particle_frame(frames):
-    for (elapsed, frame_index, frame) in frames:
+    for elapsed, frame_index, frame in frames:
         try:
             particle_count = frame.particle_count
         except MissingDataError:
@@ -122,7 +123,7 @@ def advance_to_first_particle_frame(frames):
 
 
 def advance_to_first_coordinate_frame(frames):
-    for (elapsed, frame_index, frame) in frames:
+    for elapsed, frame_index, frame in frames:
         try:
             frame.particle_positions
         except MissingDataError:

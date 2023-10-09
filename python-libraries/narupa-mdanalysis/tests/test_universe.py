@@ -54,11 +54,22 @@ def test_n_atoms(single_topology_universe):
     assert len(single_topology_universe.atoms) == 173
 
 
-@pytest.mark.parametrize('attribute', (
-    'names', 'resnames', 'resindices', 'chainIDs', 'segids', 'elements', 'types', 'segindices', 
-))
-def test_topology_attributes(attribute, single_topology_universe, reference_topology_universe):
+@pytest.mark.parametrize(
+    "attribute",
+    (
+        "names",
+        "resnames",
+        "resindices",
+        "chainIDs",
+        "segids",
+        "elements",
+        "types",
+        "segindices",
+    ),
+)
+def test_topology_attributes(
+    attribute, single_topology_universe, reference_topology_universe
+):
     actual_attribute = getattr(single_topology_universe.atoms, attribute)
     expected_attribute = getattr(reference_topology_universe.atoms, attribute)
     assert all(actual_attribute == expected_attribute)
-
