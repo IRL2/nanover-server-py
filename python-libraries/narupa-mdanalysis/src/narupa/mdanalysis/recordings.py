@@ -83,7 +83,7 @@ def iter_trajectory_recording(unpacker: Unpacker) -> Generator:
     format_version = unpacker.unpack_u64()
     if format_version not in supported_format_versions:
         raise UnsuportedFormatVersion(
-            format_version, supported_format_version)
+            format_version, supported_format_versions)
     while True:
         try:
             elapsed = unpacker.unpack_u128()

@@ -21,20 +21,17 @@ Facilities to read a Narupa trajectory recording into an MDAnalysis Universe.
 """
 import warnings
 from itertools import takewhile, chain
-from typing import NamedTuple, Type, Callable, Optional
+from typing import NamedTuple, Type, Callable
 
-import MDAnalysis as mda
 from MDAnalysis.coordinates.base import ProtoReader
 from MDAnalysis.coordinates.timestep import Timestep
 from MDAnalysis.lib.util import openany
 from MDAnalysis.core.topologyattrs import (
     Atomnames,
-    Atomids,
     Atomtypes,
     Elements,
     Resids,
     Resnames,
-    Resnums,
     Segids,
     ChainIDs,
     TopologyAttr,
