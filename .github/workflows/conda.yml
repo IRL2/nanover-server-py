@@ -79,7 +79,7 @@ jobs:
       - name: Parallel tests
         run: python -m pytest --cov narupa python-libraries -n auto -m 'not serial'
       - name: Serial tests
-        run: python -m pytest --cov narupa python-libraries -n auto -m 'serial'
+        run: python -m pytest --cov narupa python-libraries -n 1 -m 'serial'
   publish-conda:
     name: Publish the conda packages on Anaconda cloud
     if: github.ref == 'refs/heads/main'
