@@ -11,6 +11,7 @@ from narupa.protocol import trajectory
 from narupa.utilities.protobuf_utilities import value_to_object, object_to_value
 
 BOX_VECTORS = "system.box.vectors"
+SIMULATION_TIME = "system.simulation.time"
 
 BOND_PAIRS = "bond.pairs"
 BOND_ORDERS = "bond.orders"
@@ -34,6 +35,8 @@ CHAIN_COUNT = "chain.count"
 
 KINETIC_ENERGY = "energy.kinetic"
 POTENTIAL_ENERGY = "energy.potential"
+TOTAL_ENERGY = "energy.total"
+USER_ENERGY = "energy.user.total"
 
 SERVER_TIMESTAMP = "server.timestamp"
 
@@ -265,12 +268,34 @@ class FrameData(metaclass=_FrameDataMeta):
         to_python=_as_is,
         to_raw=_as_is,
     )
+    total_energy: float = _Shortcut(  # type: ignore[assignment]
+        key=TOTAL_ENERGY,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
+    user_energy: float = _Shortcut(  # type: ignore[assignment]
+        key=USER_ENERGY,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
+
     box_vectors: List[List[float]] = _Shortcut(  # type: ignore[assignment]
         key=BOX_VECTORS,
         record_type="arrays",
         field_type="float",
         to_python=_n_by_3,
         to_raw=_flatten_array,
+    )
+    simulation_time: float = _Shortcut(  # type: ignore[assignment]
+        key=SIMULATION_TIME,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_is,
+        to_raw=_as_is,
     )
 
     server_timestamp: float = _Shortcut(  # type: ignore[assignment]

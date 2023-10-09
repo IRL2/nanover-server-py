@@ -15,7 +15,7 @@ try:
     from openmm.app.topology import Topology
 except (ImportError, ModuleNotFoundError):
     from simtk.openmm.app.topology import Topology
-
+from openmm.unit import kilojoule_per_mole, picosecond
 from narupa.trajectory import FrameData
 
 
@@ -23,6 +23,7 @@ def add_openmm_state_to_frame_data(
     data: FrameData,
     state: State,
     include_positions: bool = True,
+    include_energies: bool = True,
 ) -> None:
     """
     Adds the OpenMM state information to the given :class:`FrameData`, including
@@ -39,8 +40,17 @@ def add_openmm_state_to_frame_data(
     if include_positions:
         positions = state.getPositions(asNumpy=True)
         data.particle_positions = positions
+    if include_energies:
+        potential_energy = state.getPotentialEnergy().value_in_unit(kilojoule_per_mole)
+        kinetic_energy = state.getKineticEnergy().value_in_unit(kilojoule_per_mole)
+        total_energy = potential_energy + kinetic_energy
+        data.kinetic_energy = kinetic_energy
+        data.potential_energy = potential_energy
+        data.total_energy = total_energy
     box_vectors = state.getPeriodicBoxVectors(asNumpy=True)
     data.box_vectors = box_vectors
+    simulation_time = state.getTime().value_in_unit(picosecond)
+    data.simulation_time = simulation_time
 
 
 def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology) -> None:
@@ -85,6 +95,7 @@ def openmm_to_frame_data(
     state: Optional[State] = None,
     topology: Optional[Topology] = None,
     include_positions: bool = True,
+    include_energies: bool = True,
 ) -> FrameData:
     """
     Converts the given OpenMM state and topology objects into a Narupa :class:`FrameData`.
@@ -104,7 +115,7 @@ def openmm_to_frame_data(
     """
     data = FrameData()
     if state is not None:
-        add_openmm_state_to_frame_data(data, state, include_positions)
+        add_openmm_state_to_frame_data(data, state, include_positions, include_energies)
     if topology is not None:
         add_openmm_topology_to_frame_data(data, topology)
     return data
