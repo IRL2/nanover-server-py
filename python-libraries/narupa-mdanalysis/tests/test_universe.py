@@ -43,11 +43,11 @@ def reference_topology_universe():
 
 
 def test_n_frames(single_topology_universe):
-    assert single_topology_universe.trajectory.n_frames == 622
+    assert single_topology_universe.trajectory.n_frames == 623
 
 
 def test_n_frames_multi_topology(multi_topology_universe):
-    assert multi_topology_universe.trajectory.n_frames == 2023
+    assert multi_topology_universe.trajectory.n_frames == 2024
 
 
 def test_n_atoms(single_topology_universe):

@@ -167,19 +167,17 @@ class NarupaReader(ProtoReader):
             lambda frame: not has_topology(frame),
             map(lambda record: record[2], recording),
         )
-        try:
-            next(recording)
-        except StopIteration:
-            pass
-        else:
-            warnings.warn(
-                "The simulation contains changes to the topology after the "
-                "first frame. Only the frames with the initial topology are "
-                "accessible in this Universe."
-            )
         self._frames = list(chain([first_frame], non_topology_frames))
         self.n_frames = len(self._frames)
         self._read_frame(0)
+        reminder = list(recording)
+        if reminder:
+            warnings.warn(
+                f"The simulation contains changes to the topology after the "
+                f"first frame. Only the frames with the initial topology are "
+                f"accessible in this Universe. There are {len(reminder)} "
+                f"unread frames with a different topology."
+            )
 
     def _read_frame(self, frame):
         self._current_frame_index = frame
