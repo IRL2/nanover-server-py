@@ -20,7 +20,7 @@ Facilities to read a Narupa trajectory recording into an MDAnalysis Universe.
 
 """
 import warnings
-from itertools import takewhile, chain
+from itertools import takewhile, chain, islice
 from typing import NamedTuple, Type, Callable
 
 from MDAnalysis.coordinates.base import ProtoReader
@@ -38,6 +38,7 @@ from MDAnalysis.core.topologyattrs import (
 )
 from MDAnalysis.core.topology import Topology
 from MDAnalysis.topology.base import TopologyReaderBase
+import numpy as np
 
 from narupa.trajectory import FrameData
 from narupa.trajectory.frame_data import (
@@ -199,6 +200,7 @@ class NarupaReader(ProtoReader):
             pass
 
         ts.data.update(frame_at_index.values)
+        self._add_user_forces_to_ts(frame_at_index, ts)
 
         if self.convert_units:
             self.convert_pos_from_native(ts._pos)  # in-place !
@@ -221,7 +223,34 @@ class NarupaReader(ProtoReader):
     def _reopen(self):
         self._current_frame_index = None
 
+    def _add_user_forces_to_ts(self, frame, ts):
+        """
+        Read the user forces from the frame if they are available.
+        """
+        try:
+            indices = frame.arrays["forces.user.index"]
+            sparse = frame.arrays["forces.user.sparse"]
+        except KeyError:
+            return
+        forces = np.zeros((self.n_atoms, 3), dtype=np.float32)
+        for index, force in zip(indices, batched(sparse, n=3)):
+            forces[index, :] = force
+        ts.data['user_forces'] = forces
+
 
 def has_topology(frame: FrameData) -> bool:
     topology_keys = set(list(KEY_TO_ATTRIBUTE.keys()) + [PARTICLE_ELEMENTS])
     return bool(topology_keys.intersection(frame.array_keys))
+
+
+# Copied from the documentation of itertools. See
+# <https://docs.python.org/3/library/itertools.html#itertools.batched>. We will
+# be able to use itertools.batch when python 3.12+ will be our minimum
+# supported version.
+def batched(iterable, n):
+    # batched('ABCDEFG', 3) --> ABC DEF G
+    if n < 1:
+        raise ValueError('n must be at least one')
+    it = iter(iterable)
+    while batch := tuple(islice(it, n)):
+        yield batch
