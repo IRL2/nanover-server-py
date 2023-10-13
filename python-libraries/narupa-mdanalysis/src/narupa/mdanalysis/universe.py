@@ -235,7 +235,7 @@ class NarupaReader(ProtoReader):
         forces = np.zeros((self.n_atoms, 3), dtype=np.float32)
         for index, force in zip(indices, batched(sparse, n=3)):
             forces[index, :] = force
-        ts.data['user_forces'] = forces
+        ts.data["user_forces"] = forces
 
 
 def has_topology(frame: FrameData) -> bool:
@@ -250,7 +250,7 @@ def has_topology(frame: FrameData) -> bool:
 def batched(iterable, n):
     # batched('ABCDEFG', 3) --> ABC DEF G
     if n < 1:
-        raise ValueError('n must be at least one')
+        raise ValueError("n must be at least one")
     it = iter(iterable)
     while batch := tuple(islice(it, n)):
         yield batch

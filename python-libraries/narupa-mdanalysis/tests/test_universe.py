@@ -91,10 +91,7 @@ def test_user_forces_all_frames(user_forces_universe):
     """
     When forces are available, they are for all the frames.
     """
-    assert all(
-        "user_forces" in ts.data
-        for ts in user_forces_universe.trajectory
-    )
+    assert all("user_forces" in ts.data for ts in user_forces_universe.trajectory)
 
 
 def test_user_forces_shape(user_forces_universe):
@@ -103,8 +100,7 @@ def test_user_forces_shape(user_forces_universe):
     """
     shape = (len(user_forces_universe.atoms), 3)
     assert all(
-        ts.data["user_forces"].shape == shape
-        for ts in user_forces_universe.trajectory
+        ts.data["user_forces"].shape == shape for ts in user_forces_universe.trajectory
     )
 
 
@@ -117,7 +113,6 @@ def test_user_forces(user_forces_universe):
     """
     expected = 414
     actual = sum(
-        np.any(ts.data['user_forces'])
-        for ts in user_forces_universe.trajectory
+        np.any(ts.data["user_forces"]) for ts in user_forces_universe.trajectory
     )
     assert actual == expected
