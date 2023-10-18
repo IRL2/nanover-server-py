@@ -198,6 +198,14 @@ class NarupaReader(ProtoReader):
             ts.triclinic_dimensions = frame_at_index.box_vectors
         except MissingDataError:
             pass
+        try:
+            ts.velocities = frame_at_index.particle_velocities
+        except MissingDataError:
+            pass
+        try:
+            ts.forces = frame_at_index.particle_forces
+        except MissingDataError:
+            pass
 
         ts.data.update(frame_at_index.values)
         self._add_user_forces_to_ts(frame_at_index, ts)

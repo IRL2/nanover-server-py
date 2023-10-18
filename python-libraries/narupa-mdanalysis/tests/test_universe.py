@@ -1,5 +1,6 @@
 import os
 import pytest
+import itertools
 import numpy as np
 import MDAnalysis as mda
 from narupa.mdanalysis import NarupaParser, NarupaReader
@@ -15,6 +16,18 @@ MULTI_TOPOLOGY_TRAJ = os.path.join(
 USER_FORCES_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     "hello_force.traj",
+)
+FORCES_TRAJ = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "hello_all_forces.traj",
+)
+VELOCITIES_TRAJ = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "hello_vel.traj",
+)
+VELOCITIES_FORCES_TRAJ = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "hello_vel_force.traj",
 )
 REFERENCE_PDB = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -46,6 +59,34 @@ def user_forces_universe():
         USER_FORCES_TRAJ,
         format=NarupaReader,
         topology_format=NarupaParser,
+    )
+
+
+@pytest.fixture(
+    params=(
+        (True, True),
+        (False, False),
+        (True, False),
+        (False, True),
+    )
+)
+def feature_universe_and_features(request):
+    with_velocities, with_forces = request.param
+    possible_paths = {
+        (True, True): VELOCITIES_FORCES_TRAJ,
+        (False, False): SINGLE_TOPOLOGY_TRAJ,
+        (True, False): VELOCITIES_TRAJ,
+        (False, True): FORCES_TRAJ,
+    }
+    file_path = possible_paths[(with_velocities, with_forces)]
+    return (
+        mda.Universe(
+            file_path,
+            format=NarupaReader,
+            topology_format=NarupaParser,
+        ),
+        with_velocities,
+        with_forces,
     )
 
 
@@ -116,3 +157,39 @@ def test_user_forces(user_forces_universe):
         np.any(ts.data["user_forces"]) for ts in user_forces_universe.trajectory
     )
     assert actual == expected
+
+
+def ts_has_velocities(ts):
+    try:
+        ts.velocities
+    except mda.exceptions.NoDataError:
+        return False
+    else:
+        return True
+
+
+def ts_has_forces(ts):
+    try:
+        ts.forces
+    except mda.exceptions.NoDataError:
+        return False
+    else:
+        return True
+
+
+def test_velocities(feature_universe_and_features):
+    """
+    Velocities are optional in the recording.
+    """
+    universe, with_velocities, with_forces = feature_universe_and_features
+    all_frame_have_velocities = all(ts_has_velocities(ts) for ts in universe.trajectory)
+    assert with_velocities == all_frame_have_velocities
+
+
+def test_forces(feature_universe_and_features):
+    """
+    Forces are optional in the recording.
+    """
+    universe, with_velocities, with_forces = feature_universe_and_features
+    all_frame_have_forces = all(ts_has_forces(ts) for ts in universe.trajectory)
+    assert with_forces == all_frame_have_forces
