@@ -4,6 +4,16 @@ from narupa.lammps import LammpsImd
 from narupa.lammps.mock import MockLammps
 from narupa.trajectory.frame_data import PARTICLE_POSITIONS, PARTICLE_ELEMENTS
 from narupa.trajectory import FrameData
+import sys
+
+pytestmark = pytest.mark.skipif(
+    sys.platform == "win32",
+    reason=(
+        "These tests can break the windows test runner on github. "
+        "This is tracked in issue #33: "
+        "<https://github.com/IRL2/narupa-protocol/issues/33>."
+    ),
+)
 
 
 @pytest.fixture
