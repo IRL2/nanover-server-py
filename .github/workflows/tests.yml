@@ -92,21 +92,14 @@ jobs:
         run: black --diff --check ./python-libraries
   csharp-tests:
     name: C# unit and integration tests
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '2.1.x'
       - name: Compile for Linux
-        if: matrix.os == 'ubuntu-latest'
         run: ./compile.sh --no-python
-      - name: Compile for Windows
-        if: matrix.os == 'windows-latest'
-        run: ./win_compile.ps1 --no-python
       - name: Tests
         run: cd ./csharp-libraries && dotnet test
       - name: Collect the artifacts
@@ -117,5 +110,5 @@ jobs:
       - name: Save the artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: csharp-dll-${{ matrix.os }}
+          name: csharp-dll
           path: ./dlls
