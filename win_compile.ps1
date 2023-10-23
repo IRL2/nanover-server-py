@@ -67,3 +67,5 @@ if ($LASTEXITCODE -ne 0)
 announce "Compiling proto files to C#"
 dotnet build --configuration Release csharp-libraries/Narupa.Protocol
 dotnet publish --configuration Release csharp-libraries/Narupa.Protocol
+dotnet build --configuration Release csharp-libraries/Essd
+dotnet publish --configuration Release csharp-libraries/Essd
