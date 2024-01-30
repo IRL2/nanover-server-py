@@ -1,6 +1,6 @@
 package:
-  name: narupa-essd
-  version: {{ NARUPA_BUILD_VERSION }}
+  name: nanover-essd
+  version: {{ NANOVER_BUILD_VERSION }}
 
 source:
   path: ../
@@ -19,13 +19,13 @@ requirements:
     - netifaces
 
 about:
-  home: https://narupa.readthedocs.io
+  home: https://nanover.readthedocs.io
   license: GPL-3
-  license_file: {{ NARUPA_LICENSE_PATH }}
-  summary: Extremely Simple Service Discovery for Narupa
+  license_file: {{ NANOVER_LICENSE_PATH }}
+  summary: Extremely Simple Service Discovery for NanoVer
   description: |
-    Narupa is a framework for interactive molecular dynamics simulation in
+    NanoVer is a framework for interactive molecular dynamics simulation in
     virtual reality. This package provides a service discovery method for finding servers
     running on a local area network.
-  doc_url: https://narupa.readthedocs.io
-  dev_url: https://gitlab.com/intangiblerealities/narupa-protocol
+  doc_url: https://nanover.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/nanover-protocol

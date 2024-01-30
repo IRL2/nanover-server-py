@@ -5,7 +5,7 @@ syntax = "proto3";
 
 import "google/protobuf/struct.proto";
 
-package narupa.protocol.instance;
+package nanover.protocol.instance;
 
 message SetRepresentationRequest {
   string instance_id = 1;

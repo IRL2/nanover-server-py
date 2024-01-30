@@ -4,7 +4,7 @@
 using Google.Protobuf.WellKnownTypes;
 using JetBrains.Annotations;
 
-namespace Narupa.Protocol.Protobuf.Extensions
+namespace NanoVer.Protocol.Protobuf.Extensions
 {
     public static class StructExtensions
     {

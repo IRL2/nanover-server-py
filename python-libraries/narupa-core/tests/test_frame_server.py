@@ -6,8 +6,8 @@ import pytest
 import time
 
 from grpc import RpcError, StatusCode
-from narupa.trajectory import FrameServer, FrameClient, FrameData
-from narupa.trajectory.frame_data import SERVER_TIMESTAMP
+from nanover.trajectory import FrameServer, FrameClient, FrameData
+from nanover.trajectory.frame_data import SERVER_TIMESTAMP
 from numpy import average
 
 SUBSCRIBE_METHODS = ("subscribe_frames_async", "subscribe_last_frames_async")

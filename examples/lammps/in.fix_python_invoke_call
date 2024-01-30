@@ -22,7 +22,7 @@ neigh_modify	every 20 delay 0 check no
 
 python         post_force_callback here """
 from lammps import lammps
-from narupa.lammps import LammpsImd
+from nanover.lammps import LammpsImd
 h = LammpsImd()
 
 def post_force_callback(lmp,v):

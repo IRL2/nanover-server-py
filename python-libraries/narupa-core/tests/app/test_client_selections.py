@@ -1,8 +1,8 @@
 import time
 
 import pytest
-from narupa.app import NarupaImdClient
-from narupa.core import NarupaServer
+from nanover.app import NanoVerImdClient
+from nanover.core import NanoVerServer
 
 UPDATE_TIME = 0.01
 
@@ -37,11 +37,11 @@ def assert_number_and_get_first_selection(client, expected_number_of_selections)
 def server_clients():
     """
     Provides a multiplayer server hosting on an available port on localhost,
-    and two Narupa clients connected to it.
+    and two NanoVer clients connected to it.
     """
-    server = NarupaServer(address="localhost", port=0)
-    client1 = NarupaImdClient(multiplayer_address=(server.address, server.port))
-    client2 = NarupaImdClient(multiplayer_address=(server.address, server.port))
+    server = NanoVerServer(address="localhost", port=0)
+    client1 = NanoVerImdClient(multiplayer_address=(server.address, server.port))
+    client2 = NanoVerImdClient(multiplayer_address=(server.address, server.port))
 
     client1.subscribe_multiplayer(interval=0)
     client2.subscribe_multiplayer(interval=0)

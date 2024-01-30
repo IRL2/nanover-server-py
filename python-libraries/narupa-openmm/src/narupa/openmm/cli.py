@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Command line interface for narupa.openmm.
+Command line interface for nanover.openmm.
 """
 import time
 import textwrap
@@ -17,7 +17,7 @@ def handle_user_arguments() -> argparse.Namespace:
     """
     description = textwrap.dedent(
         """\
-    Run an OpenMM simulation and send it to the network for Narupa.
+    Run an OpenMM simulation and send it to the network for NanoVer.
     """
     )
     parser = argparse.ArgumentParser(description=description)

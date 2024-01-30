@@ -2,8 +2,8 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
 Module containing methods for converting between ASE simulations consisting of
-:class:`Atoms`  and the Narupa :class:`FrameData` object for transmission to
-Narupa clients.
+:class:`Atoms`  and the NanoVer :class:`FrameData` object for transmission to
+NanoVer clients.
 """
 from typing import Iterable, Optional
 
@@ -12,7 +12,7 @@ import itertools
 import numpy as np
 import numpy.typing as npt
 
-from narupa.trajectory import FrameData
+from nanover.trajectory import FrameData
 
 ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM
@@ -60,7 +60,7 @@ def ase_to_frame_data(
     generate_bonds: bool = True,
 ) -> FrameData:
     """
-    Constructs a Narupa frame from the state of the atoms in an ASE simulation.
+    Constructs a NanoVer frame from the state of the atoms in an ASE simulation.
 
     :param ase_atoms: The ASE atoms object representing the state of the
         simulation to send.
@@ -70,7 +70,7 @@ def ase_to_frame_data(
     :param state: Whether to add additional state information such as energies.
     :param box_vectors: Whether to add the box vectors to the frame data.
     :param generate_bonds: Whether to generate bonds for the topology.
-    :return: Narupa frame.
+    :return: NanoVer frame.
 
     :raises: AttributeError Raised if state is `True`, and `ase_atoms` has no
         calculator attached.
@@ -107,9 +107,9 @@ def frame_data_to_ase(
     ase_atoms: Optional[Atoms] = None,
 ) -> Atoms:
     """
-    Constructs an ASE :class:`Atoms` object from a Narupa :class:`FrameData`.
+    Constructs an ASE :class:`Atoms` object from a NanoVer :class:`FrameData`.
 
-    :param frame_data: The Narupa :class:`FrameData`.
+    :param frame_data: The NanoVer :class:`FrameData`.
     :param positions: Whether to add positions to the ASE atoms.
     :param topology: Whether to add topology information within the frame data
         to ASE.
@@ -117,7 +117,7 @@ def frame_data_to_ase(
         positions replaced. If the flag `topology` is set, then a new object
         will still be constructed.
     :return: ASE Atoms updated or created with the data contained in the
-        Narupa frame.
+        NanoVer frame.
 
     Example:
     ========

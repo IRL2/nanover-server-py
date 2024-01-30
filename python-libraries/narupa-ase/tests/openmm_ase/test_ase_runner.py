@@ -6,19 +6,19 @@ import time
 
 import pytest
 from ase import units
-from narupa.app.app_server import DEFAULT_NARUPA_PORT
-from narupa.app import NarupaImdClient
+from nanover.app.app_server import DEFAULT_NANOVER_PORT
+from nanover.app import NanoVerImdClient
 from ase.io import read
-from narupa.ase.openmm import ASEOpenMMRunner, OpenMMIMDRunner
-from narupa.ase.openmm.runner import (
+from nanover.ase.openmm import ASEOpenMMRunner, OpenMMIMDRunner
+from nanover.ase.openmm.runner import (
     ImdParams,
     CONSTRAINTS_UNSUPPORTED_MESSAGE,
     LoggingParams,
 )
-from narupa.core import DEFAULT_SERVE_ADDRESS
-from narupa.essd import DiscoveryClient
-from narupa.ase.openmm.calculator import OpenMMCalculator
-from narupa.ase.wall_constraint import VelocityWallConstraint
+from nanover.core import DEFAULT_SERVE_ADDRESS
+from nanover.essd import DiscoveryClient
+from nanover.ase.openmm.calculator import OpenMMCalculator
+from nanover.ase.wall_constraint import VelocityWallConstraint
 
 from .simulation_utils import basic_simulation, serialized_simulation_path
 
@@ -76,7 +76,7 @@ def runner(runner_class, basic_simulation, imd_params):
 
 @pytest.fixture()
 def client_runner(runner):
-    with NarupaImdClient.connect_to_single_server(port=runner.port) as client:
+    with NanoVerImdClient.connect_to_single_server(port=runner.port) as client:
         yield client, runner
 
 
@@ -105,7 +105,7 @@ def test_defaults(default_runner):
     assert runner.verbose == default_params.verbose
     assert runner.frame_interval == default_params.frame_interval
     assert runner.time_step == default_params.time_step
-    assert runner.port == DEFAULT_NARUPA_PORT
+    assert runner.port == DEFAULT_NANOVER_PORT
     assert runner.address == DEFAULT_SERVE_ADDRESS
 
 

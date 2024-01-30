@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Provide a reporter for OpenMM simulation to publish frames as a Narupa server.
+Provide a reporter for OpenMM simulation to publish frames as a NanoVer server.
 """
 from typing import Union
 
@@ -13,11 +13,11 @@ except (ImportError, ModuleNotFoundError):
 from .converter import openmm_to_frame_data
 
 
-class NarupaReporter:
+class NanoVerReporter:
     """
-    Outputs a series of frames from a Simulation to a narupa server.
+    Outputs a series of frames from a Simulation to a nanover server.
 
-    To use it, create a NarupaReporter, then add it to the Simulation's list
+    To use it, create a NanoVerReporter, then add it to the Simulation's list
     of reporters.
 
     Example
@@ -26,12 +26,12 @@ class NarupaReporter:
     .. code-block:: python
 
         frame_server = FrameServer(address="localhost", port=54321)
-        frame_reporter = NarupaReporter(report_interval=5,frame_server=frame_server)
+        frame_reporter = NanoVerReporter(report_interval=5,frame_server=frame_server)
         # Assume some OpenMM simulation already exists
         simulation.reporters.add(frame_reporter)
 
     :param report_interval: Interval in frames between two reports.
-    :param frame_server: Instance of a Narupa frame server.
+    :param frame_server: Instance of a NanoVer frame server.
     """
 
     _topology: Union[Topology, None]

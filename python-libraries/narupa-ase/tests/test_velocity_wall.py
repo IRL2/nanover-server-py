@@ -7,10 +7,10 @@ import numpy as np
 from ase import Atoms, units
 from ase.cell import Cell
 from ase.md import VelocityVerlet
-from narupa.ase.null_calculator import NullCalculator
-from narupa.ase.openmm.calculator import OpenMMCalculator
+from nanover.ase.null_calculator import NullCalculator
+from nanover.ase.openmm.calculator import OpenMMCalculator
 from openmm_ase.simulation_utils import basic_simulation
-from narupa.ase.wall_constraint import VelocityWallConstraint
+from nanover.ase.wall_constraint import VelocityWallConstraint
 
 
 @pytest.fixture

@@ -1,14 +1,14 @@
 """
-Unit tests for `narupa.trajectory.frame_publisher
+Unit tests for `nanover.trajectory.frame_publisher
 """
 
 from concurrent.futures import ThreadPoolExecutor
 import itertools
 import pytest
 
-from narupa.trajectory import FramePublisher
-from narupa.trajectory.frame_data import FrameData, SERVER_TIMESTAMP
-from narupa.protocol.trajectory import FrameData as RawFrameData
+from nanover.trajectory import FramePublisher
+from nanover.trajectory.frame_data import FrameData, SERVER_TIMESTAMP
+from nanover.protocol.trajectory import FrameData as RawFrameData
 
 
 def test_user_queue():

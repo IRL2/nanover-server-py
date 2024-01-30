@@ -1,5 +1,5 @@
-Narupa 2 Maintainer Tools
+NanoVer 2 Maintainer Tools
 =========================
 
-## narupa-dev-in-anaconda-powershell
-Shortcut to open Anaconda Powershell Prompt in the narupa-protocol directory with the narupa-dev environment active.
+## nanover-dev-in-anaconda-powershell
+Shortcut to open Anaconda Powershell Prompt in the nanover-protocol directory with the nanover-dev environment active.

@@ -2,7 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 
 """
-Provides a reference implementation of the IMD forces used by Narupa.
+Provides a reference implementation of the IMD forces used by NanoVer.
 
 For details, and if you find these functions helpful, please cite [1]_.
 
@@ -15,7 +15,7 @@ from typing import Tuple, Optional, Iterable
 
 import numpy as np
 import numpy.typing as npt
-from narupa.imd.particle_interaction import ParticleInteraction
+from nanover.imd.particle_interaction import ParticleInteraction
 
 
 def calculate_imd_force(
@@ -25,7 +25,7 @@ def calculate_imd_force(
     periodic_box_lengths: Optional[npt.NDArray] = None,
 ) -> Tuple[float, npt.NDArray]:
     """
-    Reference implementation of the Narupa IMD force.
+    Reference implementation of the NanoVer IMD force.
 
     Given a collection of interactions, particle positions and masses,
     computes the force to be applied to each particle for each interaction

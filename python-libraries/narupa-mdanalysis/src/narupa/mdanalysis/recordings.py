@@ -1,6 +1,6 @@
 from typing import Generator
-from narupa.protocol.trajectory import GetFrameResponse
-from narupa.trajectory import FrameData, MissingDataError
+from nanover.protocol.trajectory import GetFrameResponse
+from nanover.trajectory import FrameData, MissingDataError
 
 MAGIC_NUMBER = 6661355757386708963
 

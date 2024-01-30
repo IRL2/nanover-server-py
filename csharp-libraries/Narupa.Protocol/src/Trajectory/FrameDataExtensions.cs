@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Narupa.Protocol.Trajectory
+namespace NanoVer.Protocol.Trajectory
 {
     public static class FrameDataExtensions
     {

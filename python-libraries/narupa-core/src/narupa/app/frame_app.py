@@ -1,27 +1,27 @@
 """
-Module providing an implementation of an Narupa frame-serving application, for publishing
+Module providing an implementation of an NanoVer frame-serving application, for publishing
 simulations and trajectories for consumption by clients.
 
 """
 
 from typing import Optional
 
-from narupa.app import NarupaApplicationServer
-from narupa.core import NarupaServer
-from narupa.essd import DiscoveryServer
-from narupa.trajectory import FramePublisher
+from nanover.app import NanoVerApplicationServer
+from nanover.core import NanoVerServer
+from nanover.essd import DiscoveryServer
+from nanover.trajectory import FramePublisher
 
 
-class NarupaFrameApplication(NarupaApplicationServer):
+class NanoVerFrameApplication(NanoVerApplicationServer):
     """
 
-    Application-level class for implementing a Narupa frame server, something that publishes
+    Application-level class for implementing a NanoVer frame server, something that publishes
     :class:`FrameData` that can be consumed, e.g. simulation trajectories.
 
     Example
     =======
 
-    >>> with NarupaFrameApplication.basic_server() as app:
+    >>> with NanoVerFrameApplication.basic_server() as app:
     ...     frame_publisher = app.frame_publisher
     ...     example_frame = FrameData() # A simple frame representing two particles.
     ...     example_frame.particle_positions = [[0,0,0],[1,1,1]]
@@ -30,11 +30,11 @@ class NarupaFrameApplication(NarupaApplicationServer):
 
     """
 
-    DEFAULT_SERVER_NAME: str = "Narupa Frame Server"
+    DEFAULT_SERVER_NAME: str = "NanoVer Frame Server"
 
     def __init__(
         self,
-        server: NarupaServer,
+        server: NanoVerServer,
         discovery: Optional[DiscoveryServer] = None,
         name: Optional[str] = None,
     ):
@@ -49,7 +49,7 @@ class NarupaFrameApplication(NarupaApplicationServer):
     def frame_publisher(self) -> FramePublisher:
         """
         The frame publisher attached to this application. Use it to publish
-        frames for consumption by Narupa frame clients.
+        frames for consumption by NanoVer frame clients.
 
         :return: The :class:`FramePublisher` attached to this application.
         """

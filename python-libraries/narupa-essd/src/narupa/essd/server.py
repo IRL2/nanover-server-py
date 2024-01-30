@@ -3,14 +3,14 @@
 """
 Module providing a server for Extremely Simple Service Discovery (ESSD).
 
-Narupa servers can use this class to broadcast themselves on a local area network, using UDP.
+NanoVer servers can use this class to broadcast themselves on a local area network, using UDP.
 
 Example
 =======
 
 >>> discovery_server = DiscoveryServer(broadcast_port=54545)
 >>> # assume one has created a multiplayer server.
->>> hub = ServiceHub(name="Example Narupa Service Hub", address="[::]")
+>>> hub = ServiceHub(name="Example NanoVer Service Hub", address="[::]")
 >>> hub.add_service("multiplayer", 54323)
 >>> discovery_server.close()
 
@@ -21,13 +21,13 @@ import time
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
 from typing import Optional, Dict, List
 
-from narupa.essd.utils import (
+from nanover.essd.utils import (
     get_broadcast_addresses,
     is_in_network,
     resolve_host_broadcast_address,
     InterfaceAddresses,
 )
-from narupa.essd.servicehub import ServiceHub
+from nanover.essd.servicehub import ServiceHub
 
 BROADCAST_PORT = 54545
 

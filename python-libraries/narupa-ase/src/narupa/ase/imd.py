@@ -14,11 +14,11 @@ import numpy as np
 from ase import Atoms  # type: ignore
 from ase.calculators.calculator import Calculator
 from ase.md.md import MolecularDynamics
-from narupa.app import NarupaImdApplication
-from narupa.ase.converter import EV_TO_KJMOL
-from narupa.ase.frame_adaptor import send_ase_frame
-from narupa.ase.imd_calculator import ImdCalculator
-from narupa.trajectory.frame_server import (
+from nanover.app import NanoVerImdApplication
+from nanover.ase.converter import EV_TO_KJMOL
+from nanover.ase.frame_adaptor import send_ase_frame
+from nanover.ase.imd_calculator import ImdCalculator
+from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
     RESET_COMMAND_KEY,
     STEP_COMMAND_KEY,
@@ -26,14 +26,14 @@ from narupa.trajectory.frame_server import (
     GET_DYNAMICS_INTERVAL_COMMAND_KEY,
     SET_DYNAMICS_INTERVAL_COMMAND_KEY,
 )
-from narupa.utilities.timing import VariableIntervalGenerator
+from nanover.utilities.timing import VariableIntervalGenerator
 
 
-class NarupaASEDynamics:
+class NanoVerASEDynamics:
     """
     Interactive molecular dynamics adaptor for use with ASE.
 
-    :param narupa_imd_app: A :class:`NarupaImdApplication` to pass frames to and
+    :param nanover_imd_app: A :class:`NanoVerImdApplication` to pass frames to and
         read forces from.
     :param dynamics: A prepared ASE molecular dynamics object to run,
         with IMD attached.
@@ -51,9 +51,9 @@ class NarupaASEDynamics:
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
     >>> atoms.calc = EMT()
     >>> ase_dynamics = Langevin(atoms, timestep=0.5, temperature_K=300, friction=1.0)
-    >>> with NarupaASEDynamics.basic_imd(ase_dynamics) as sim: # run basic Narupa server
+    >>> with NanoVerASEDynamics.basic_imd(ase_dynamics) as sim: # run basic NanoVer server
     ...
-    ...     with NarupaImdClient.autoconnect() as client: # connect an iMD client.
+    ...     with NanoVerImdClient.autoconnect() as client: # connect an iMD client.
     ...         sim.run(10) # run some dynamics
     ...         client.first_frame.particle_count # the client will have received some MD data!
     32
@@ -65,7 +65,7 @@ class NarupaASEDynamics:
 
     def __init__(
         self,
-        narupa_imd_app: NarupaImdApplication,
+        nanover_imd_app: NanoVerImdApplication,
         dynamics: MolecularDynamics,
         frame_method: Optional[Callable] = None,
         frame_interval=1,
@@ -73,8 +73,8 @@ class NarupaASEDynamics:
         if frame_method is None:
             frame_method = send_ase_frame
 
-        self._server = narupa_imd_app.server
-        self._frame_publisher = narupa_imd_app.frame_publisher
+        self._server = nanover_imd_app.server
+        self._frame_publisher = nanover_imd_app.frame_publisher
 
         self._cancel_lock = RLock()
         self._register_commands()
@@ -82,7 +82,7 @@ class NarupaASEDynamics:
         self.dynamics = dynamics
         calculator = self.dynamics.atoms.calc
         self.imd_calculator = ImdCalculator(
-            narupa_imd_app.imd,
+            nanover_imd_app.imd,
             calculator,
             dynamics=dynamics,
         )
@@ -113,30 +113,30 @@ class NarupaASEDynamics:
         **kwargs,
     ):
         """
-        Initialises basic interactive molecular dynamics running a Narupa server
+        Initialises basic interactive molecular dynamics running a NanoVer server
         at the given address and port.
 
         :param dynamics: Molecular dynamics object to attach the server to.
         :param address: Address to run the server at.
         :param port: Port to run the server on.
-        :param kwargs: Key-word arguments to pass to the constructor of :class:~NarupaASEDynamics
-        :return: Instantiation of a :class:~NarupaASEDynamics configured with the given server parameters and dynamics.
+        :param kwargs: Key-word arguments to pass to the constructor of :class:~NanoVerASEDynamics
+        :return: Instantiation of a :class:~NanoVerASEDynamics configured with the given server parameters and dynamics.
         """
-        with NarupaImdApplication.basic_server(address=address, port=port) as app:
+        with NanoVerImdApplication.basic_server(address=address, port=port) as app:
             with cls(app, dynamics, **kwargs) as imd:
                 yield imd
 
     @property
     def address(self) -> str:
         """
-        The address of the Narupa server.
+        The address of the NanoVer server.
         """
         return self._server.address
 
     @property
     def port(self) -> str:
         """
-        The port of the Narupa server.
+        The port of the NanoVer server.
         :return:
         """
         return self._server.port
@@ -186,7 +186,7 @@ class NarupaASEDynamics:
         """
         Take a single step of the simulation and stop.
 
-        This method is called whenever a client runs the step command, described in :mod:narupa.trajectory.frame_server.
+        This method is called whenever a client runs the step command, described in :mod:nanover.trajectory.frame_server.
         """
         with self._cancel_lock:
             self.cancel_run(wait=True)
@@ -198,7 +198,7 @@ class NarupaASEDynamics:
         Pause the simulation, by cancelling any current run.
 
         This method is called whenever a client runs the pause command,
-        described in :mod:narupa.trajectory.frame_server.
+        described in :mod:nanover.trajectory.frame_server.
         """
         with self._cancel_lock:
             self.cancel_run(wait=True)
@@ -210,7 +210,7 @@ class NarupaASEDynamics:
         Cancels any current run and then begins running the simulation on a background thread.
 
         This method is called whenever a client runs the play command,
-        described in :mod:narupa.trajectory.frame_server.
+        described in :mod:nanover.trajectory.frame_server.
 
         """
         with self._cancel_lock:
@@ -305,7 +305,7 @@ class NarupaASEDynamics:
             place molecules differently.
 
         This method is called whenever a client runs the reset command,
-        described in :mod:`narupa.trajectory.frame_server`.
+        described in :mod:`nanover.trajectory.frame_server`.
 
         """
         self.atoms.set_positions(self._initial_positions)

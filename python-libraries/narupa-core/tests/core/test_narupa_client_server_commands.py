@@ -5,17 +5,17 @@ import pytest
 from grpc import RpcError
 from mock import Mock
 
-from narupa.core.narupa_client import NarupaClient
-from narupa.core.narupa_server import NarupaServer
+from nanover.core.nanover_client import NanoVerClient
+from nanover.core.nanover_server import NanoVerServer
 
 TEST_COMMAND_KEY = "test"
 MULTIPLY_KEY = "multiply"
 
 
 @pytest.fixture
-def client_server() -> Tuple[NarupaClient, NarupaServer]:
-    with NarupaServer(address="localhost", port=0) as server:
-        with NarupaClient.insecure_channel(
+def client_server() -> Tuple[NanoVerClient, NanoVerServer]:
+    with NanoVerServer(address="localhost", port=0) as server:
+        with NanoVerClient.insecure_channel(
             address="localhost", port=server.port
         ) as client:
             yield client, server
@@ -38,7 +38,7 @@ def test_is_channel_owner(client_server):
 
 def test_not_channel_owner(client_server):
     client, _ = client_server
-    with NarupaClient(channel=client.channel) as second_client:
+    with NanoVerClient(channel=client.channel) as second_client:
         assert not second_client.is_channel_owner
 
 
@@ -67,7 +67,7 @@ def test_client_inits_if_no_server():
     """
     tests that the client successfully initialises, even if there is no server.
     """
-    with NarupaClient.insecure_channel(address="localhost", port=68393):
+    with NanoVerClient.insecure_channel(address="localhost", port=68393):
         pass
 
 

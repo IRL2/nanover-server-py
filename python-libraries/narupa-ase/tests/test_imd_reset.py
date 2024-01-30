@@ -13,15 +13,15 @@ from ase.md import Langevin
 from ase.md.md import MolecularDynamics
 from ase.md.nvtberendsen import NVTBerendsen
 from hypothesis import strategies, given
-from narupa.ase.imd_calculator import (
+from nanover.ase.imd_calculator import (
     ImdCalculator,
     _get_cancelled_interactions,
     _get_atoms_to_reset,
     _scale_momentum_of_selection,
 )
-from narupa.imd import ImdServer
-from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.trajectory.frame_data import MissingDataError
+from nanover.imd import ImdServer
+from nanover.imd.particle_interaction import ParticleInteraction
+from nanover.trajectory.frame_data import MissingDataError
 import numpy as np
 from test_imd_calculator import imd_calculator_co
 from util import imd_server

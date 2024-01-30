@@ -90,7 +90,7 @@ def deserialize_simulation(
     :param xml_content: The content of an XML file as a string.
     :param imd_force: Optionally, an imd force to populate and add to the
         system. The force must be created by
-        :func:`narupa.openmm.potentials.create_imd_force`.
+        :func:`nanover.openmm.potentials.create_imd_force`.
     :return: An instance of the simulation.
     """
     document = parseString(xml_content)

@@ -8,7 +8,7 @@ from ase import Atoms
 from ase.calculators.lj import LennardJones
 from ase.md import Langevin
 
-from narupa.ase.trajectory_logger import TrajectoryLogger, UnsupportedFormatError
+from nanover.ase.trajectory_logger import TrajectoryLogger, UnsupportedFormatError
 from test_imd_reset import fcc_atoms
 from ase.io import read, write, Trajectory
 import numpy as np

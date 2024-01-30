@@ -2,9 +2,9 @@
 Unit tests of the IMD service, without any connections.
 """
 
-from narupa.imd.imd_state import ImdStateWrapper, VELOCITY_RESET_KEY
-from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.state.state_dictionary import StateDictionary
+from nanover.imd.imd_state import ImdStateWrapper, VELOCITY_RESET_KEY
+from nanover.imd.particle_interaction import ParticleInteraction
+from nanover.state.state_dictionary import StateDictionary
 
 
 def test_add_duplicate_interaction_id():

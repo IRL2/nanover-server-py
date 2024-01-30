@@ -1,19 +1,19 @@
 """
-Module providing an out-of-the-box Narupa application server,
+Module providing an out-of-the-box NanoVer application server,
 with an underyling gRPC server, discovery, multiplayer and commands.
 """
 
 import getpass
 from typing import Tuple, Optional, Set
 
-from narupa.app.multiuser import add_multiuser_commands
+from nanover.app.multiuser import add_multiuser_commands
 from typing_extensions import Protocol
 
-from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
-from narupa.essd import DiscoveryServer, ServiceHub
+from nanover.core import NanoVerServer, DEFAULT_SERVE_ADDRESS
+from nanover.essd import DiscoveryServer, ServiceHub
 
 
-DEFAULT_NARUPA_PORT = 38801
+DEFAULT_NANOVER_PORT = 38801
 MULTIPLAYER_SERVICE_NAME = "multiplayer"
 
 
@@ -23,26 +23,26 @@ class SupportsClose(Protocol):
 
 def start_default_server_and_discovery(
     address: Optional[str] = None, port: Optional[int] = None
-) -> Tuple[NarupaServer, DiscoveryServer]:
+) -> Tuple[NanoVerServer, DiscoveryServer]:
     """
-    Utility method for creating a default Narupa server along with ESSD discovery.
+    Utility method for creating a default NanoVer server along with ESSD discovery.
 
     :param: address: Address to run the server at. If nothing is passed, the default
         address of all interfaces will be used.
     :param: port: Port to run the server on, if nothing is passed, the default
-        Narupa port will be used. The value of zero should be passed to let the OS
+        NanoVer port will be used. The value of zero should be passed to let the OS
         pick a free port.
-    :return: tuple of Narupa server and ESSD discovery.
+    :return: tuple of NanoVer server and ESSD discovery.
     """
     address = address or DEFAULT_SERVE_ADDRESS
     if port is None:
-        port = DEFAULT_NARUPA_PORT
+        port = DEFAULT_NANOVER_PORT
     try:
-        server = NarupaServer(address=address, port=port)
+        server = NanoVerServer(address=address, port=port)
     except IOError:
-        if port == DEFAULT_NARUPA_PORT:
+        if port == DEFAULT_NANOVER_PORT:
             raise IOError(
-                f"Could not start a server at the default port ({port}). Is another Narupa server running? "
+                f"Could not start a server at the default port ({port}). Is another NanoVer server running? "
                 f"Use port=0 to let the OS find a free port"
             )
         raise
@@ -50,9 +50,9 @@ def start_default_server_and_discovery(
     return server, discovery
 
 
-class NarupaApplicationServer:
+class NanoVerApplicationServer:
     """
-    Provides a convenient Narupa server for typical applications, with local
+    Provides a convenient NanoVer server for typical applications, with local
     area network discovery provided by ESSD, multiplayer configuration and a
     command service.
 
@@ -60,13 +60,13 @@ class NarupaApplicationServer:
     and attaching additional services.
     """
 
-    DEFAULT_SERVER_NAME: str = "Narupa Server"
+    DEFAULT_SERVER_NAME: str = "NanoVer Server"
 
     _services: Set[SupportsClose]
 
     def __init__(
         self,
-        server: NarupaServer,
+        server: NanoVerServer,
         discovery: Optional[DiscoveryServer] = None,
         name: Optional[str] = None,
     ):
@@ -98,16 +98,16 @@ class NarupaApplicationServer:
         port: Optional[int] = None,
     ):
         """
-        Initialises a basic Narupa application server with default settings,
+        Initialises a basic NanoVer application server with default settings,
         with a default unencrypted server and ESSD discovery server for
         finding it on a local area network.
 
         :param name: Name of the server for the purposes of discovery.
         :param address: The address at which to bind the server to. If none given,
             the default address of
-        :param port: Optional port on which to run the Narupa server. If none given,
+        :param port: Optional port on which to run the NanoVer server. If none given,
             default port will be used.
-        :return: An instantiation of a basic Narupa server, registered with an
+        :return: An instantiation of a basic NanoVer server, registered with an
             ESSD discovery server.
         """
         server, discovery = start_default_server_and_discovery(
@@ -140,11 +140,11 @@ class NarupaApplicationServer:
         return self._server.port
 
     @property
-    def server(self) -> NarupaServer:
+    def server(self) -> NanoVerServer:
         """
-        The underlying Narupa server for this application.
+        The underlying NanoVer server for this application.
         One can use this to manage commands and services.
-        :return: The Narupa server.
+        :return: The NanoVer server.
         """
         # TODO expose command api directly?
         return self._server
@@ -163,7 +163,7 @@ class NarupaApplicationServer:
         The discovery service that can be used to allow clients to find services hosted by this application.
         :return: The discovery service, or None if no discovery has been set up.
 
-        Services added directly to the server running on this application via :fun:`NarupaApplicationServer.add_service`
+        Services added directly to the server running on this application via :fun:`NanoVerApplicationServer.add_service`
         are automatically added to this discovery service.
 
         Accessing the discovery service directly enables one to register their own server that may be running

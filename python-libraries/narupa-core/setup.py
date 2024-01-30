@@ -38,8 +38,8 @@ class CompileProtoCommand(distutils.cmd.Command):
         """
         Set the default values for the options.
         """
-        # By default, the setup.py file is in narupa-protocol/python-libraries/narupa-core,
-        # the protocol files are in narupa-protocol/protocol, which is ../../protocol relative
+        # By default, the setup.py file is in nanover-protocol/python-libraries/nanover-core,
+        # the protocol files are in nanover-protocol/protocol, which is ../../protocol relative
         # to the directory of setup.py.
         here = Path(__file__).parent
         self.proto_dir = here / "../../protocol"
@@ -96,7 +96,7 @@ def compile_protocol(proto_dir, python_dir, logger):
                 )
             )
     generated_protocol_directories = (
-        path for path in (python_dir / "narupa/protocol").glob("**/*") if path.is_dir()
+        path for path in (python_dir / "nanover/protocol").glob("**/*") if path.is_dir()
     )
     for directory in generated_protocol_directories:
         (directory / "__init__.py").touch()
@@ -144,13 +144,13 @@ with open(str(requirements_path)) as f:
     requirements = f.readlines()
 
 setup(
-    name="narupa",
+    name="nanover",
     version="1.0",
-    description="Narupa python framework",
+    description="NanoVer python framework",
     author="Intangible Realities Lab",
     author_email="m.oconnor@bristol.ac.uk",
     url="https://gitlab.com/intangiblerealities/",
-    packages=find_namespace_packages("src", include="narupa.*") + ["narupa.protocol"],
+    packages=find_namespace_packages("src", include="nanover.*") + ["nanover.protocol"],
     package_dir={"": "src"},
     package_data={"": ["py.typed"]},
     install_requires=requirements,
@@ -158,6 +158,6 @@ setup(
         "compile_proto": CompileProtoCommand,
     },
     entry_points={
-        "console_scripts": ["narupa-multiplayer=narupa.multiplayer.cli:main"],
+        "console_scripts": ["nanover-multiplayer=nanover.multiplayer.cli:main"],
     },
 )

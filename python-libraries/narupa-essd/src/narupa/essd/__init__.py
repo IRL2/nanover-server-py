@@ -1,8 +1,8 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-from narupa.essd.server import DiscoveryServer
-from narupa.essd.client import DiscoveryClient
-from narupa.essd.servicehub import ServiceHub
+from nanover.essd.server import DiscoveryServer
+from nanover.essd.client import DiscoveryClient
+from nanover.essd.servicehub import ServiceHub
 
 """
 Module providing extremely simple service discovery over UDP.
@@ -14,7 +14,7 @@ An example message is:
 
 .. code 
   {
-    "name": "Example Narupa Service Hub", 
+    "name": "Example NanoVer Service Hub", 
     "address": "localhost", 
     "id": "12345", 
     "essd_version": "1.0.0", 

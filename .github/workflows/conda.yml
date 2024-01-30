@@ -22,8 +22,8 @@ jobs:
           miniforge-version: latest
       - name: Set environment variables
         run: |
-          echo NARUPA_BUILD_VERSION="0.1.$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
-          echo NARUPA_LICENSE_PATH="$(readlink -f LICENSE)" >> "$GITHUB_ENV"
+          echo NANOVER_BUILD_VERSION="0.1.$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
+          echo NANOVER_LICENSE_PATH="$(readlink -f LICENSE)" >> "$GITHUB_ENV"
           echo MIN_PYTHON_VERSION=3.10 >> "$GITHUB_ENV"
       - name: Test that the repo is sane and does not contain superfluous __init__ file
         run: bash ./maintainers/check_extra_init_files.sh
@@ -31,17 +31,17 @@ jobs:
         # We temporarilly ignore failure here. See #31.
         run: conda install -y python conda-build grpcio-tools conda-verify || echo "Fail?"
       - name: Compiling the prototypes
-        run: python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
+        run: python python-libraries/nanover-core/setup.py compile_proto --proto-dir=protocol
       - name: Building the Conda packages
         run: |
           $build_command \
-            python-libraries/narupa-essd/conda \
-            python-libraries/narupa-core/conda \
-            python-libraries/narupa-openmm/conda \
-            python-libraries/narupa-ase/conda \
-            python-libraries/narupa-mdanalysis/conda \
-            python-libraries/narupa-lammps/conda \
-            python-libraries/narupa-server/conda
+            python-libraries/nanover-essd/conda \
+            python-libraries/nanover-core/conda \
+            python-libraries/nanover-openmm/conda \
+            python-libraries/nanover-ase/conda \
+            python-libraries/nanover-mdanalysis/conda \
+            python-libraries/nanover-lammps/conda \
+            python-libraries/nanover-server/conda
       - run: |
           mkdir artifacts
           cp -r ${CONDA_PREFIX}/conda-bld ./artifacts
@@ -73,15 +73,15 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: conda-packages
-      - name: Install Narupa
+      - name: Install NanoVer
         # We temporarilly ignore failure here. See #31.
-        run: conda install -y -c conda-forge -c ./conda-bld mpi4py narupa-server narupa-lammps || echo "Fail?"
+        run: conda install -y -c conda-forge -c ./conda-bld mpi4py nanover-server nanover-lammps || echo "Fail?"
       - name: Install tests dependancies
         run: python -m pip install -r python-libraries/requirements.test
       - name: Parallel tests
-        run: python -m pytest --cov narupa python-libraries -n auto -m 'not serial'
+        run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial'
       - name: Serial tests
-        run: python -m pytest --cov narupa python-libraries -n 1 -m 'serial'
+        run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial'
   publish-conda:
     name: Publish the conda packages on Anaconda cloud
     if: github.ref == 'refs/heads/main'
@@ -99,7 +99,7 @@ jobs:
           auto-update-conda: true
           # WARNING! On the contrary to all the other places where we install
           # conda, we install miniconda and NOT miniforge!
-          # This is because we do not need packages to RUN narupa, but packages
+          # This is because we do not need packages to RUN nanover, but packages
           # from the default (anaconda) channel to upload to anaconda.
           miniconda-version: latest
       - name: Retrieve conda packages
@@ -116,7 +116,7 @@ jobs:
       - name: Upload packages
         # Anaconda will complain if the given version of a package is already
         # there. Until we have some versioning, we force the upload.
-        run: anaconda  upload --user irl conda-bld/noarch/narupa-*.tar.bz2 --force
+        run: anaconda  upload --user irl conda-bld/noarch/nanover-*.tar.bz2 --force
       - name: Disconnect from Anaconda cloud
         #  Do not fail the build if we cannot logout.
         run: anaconda logout || echo "Could not logout. Too bad."

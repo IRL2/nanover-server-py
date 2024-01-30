@@ -1,6 +1,6 @@
 package:
-  name: narupa-core
-  version: {{ os.environ["NARUPA_BUILD_VERSION"] }}
+  name: nanover-core
+  version: {{ os.environ["NANOVER_BUILD_VERSION"] }}
 
 source:
   path: ../
@@ -9,7 +9,7 @@ build:
   noarch: python
   number: 0
   entry_points:
-    - narupa-multiplayer = narupa.multiplayer.cli:main
+    - nanover-multiplayer = nanover.multiplayer.cli:main
 
 requirements:
   build:
@@ -23,16 +23,16 @@ requirements:
     - protobuf
     - grpcio
     - numpy
-    - narupa-essd =={{ NARUPA_BUILD_VERSION }}
+    - nanover-essd =={{ NANOVER_BUILD_VERSION }}
 
 about:
-  home: https://narupa.readthedocs.io
+  home: https://nanover.readthedocs.io
   license: GPL-3
-  license_file: {{ NARUPA_LICENSE_PATH }}
-  summary: Core modules to use the Narupa python library.
+  license_file: {{ NANOVER_LICENSE_PATH }}
+  summary: Core modules to use the NanoVer python library.
   description: |
-    Narupa is a framework for interactive molecular dynamics simulation in
+    NanoVer is a framework for interactive molecular dynamics simulation in
     virtual reality. This package provides the core components to write a
     server or a client program in python.
-  doc_url: https://narupa.readthedocs.io
-  dev_url: https://gitlab.com/intangiblerealities/narupa-protocol
+  doc_url: https://nanover.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/nanover-protocol

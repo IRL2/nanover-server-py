@@ -1,13 +1,13 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Module for addon server behaviour specific to the NarupaIMD multiuser
+Module for addon server behaviour specific to the NanoVerIMD multiuser
 experience.
 """
 import math
 from functools import partial
-from narupa.core import NarupaServer
-from narupa.utilities.change_buffers import DictionaryChange
+from nanover.core import NanoVerServer
+from nanover.utilities.change_buffers import DictionaryChange
 
 RADIAL_ORIENT_COMMAND_KEY = "multiuser/radially-orient-origins"
 MULTIUSER_AVATAR_PREFIX = "avatar."
@@ -44,9 +44,9 @@ def _radially_orient_server(*, server, radius=1):
     server.update_state(None, DictionaryChange(updates))
 
 
-def add_multiuser_commands(server: NarupaServer):
+def add_multiuser_commands(server: NanoVerServer):
     """
-    Add server commands specific to the NarupaIMD multiuser experience.
+    Add server commands specific to the NanoVerIMD multiuser experience.
     """
     server.register_command(
         RADIAL_ORIENT_COMMAND_KEY,

@@ -7,7 +7,7 @@ by utilising the mocklammps class.
 """
 
 import time
-from narupa.lammps import LammpsImd
+from nanover.lammps import LammpsImd
 
 
 def main():

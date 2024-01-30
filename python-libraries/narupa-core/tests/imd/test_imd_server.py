@@ -1,9 +1,9 @@
 from typing import Generator, Tuple
 
 import pytest
-from narupa.imd.imd_client import ImdClient
-from narupa.imd.imd_server import ImdServer
-from narupa.imd.particle_interaction import ParticleInteraction
+from nanover.imd.imd_client import ImdClient
+from nanover.imd.imd_server import ImdServer
+from nanover.imd.particle_interaction import ParticleInteraction
 
 
 @pytest.fixture

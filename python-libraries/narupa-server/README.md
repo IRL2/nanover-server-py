@@ -1,6 +1,6 @@
-Narupa-server meta-package
+NanoVer-server meta-package
 ==========================
 
-Install the server side conda packages for narupa. This package does not
-install anything by itself. However, it does depend on the different narupa
+Install the server side conda packages for nanover. This package does not
+install anything by itself. However, it does depend on the different nanover
 conda packages.

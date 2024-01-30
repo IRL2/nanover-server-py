@@ -5,7 +5,7 @@ import os
 import numpy as np
 import pytest
 from MDAnalysis import Universe
-from narupa.mdanalysis.converter import (
+from nanover.mdanalysis.converter import (
     INDEX_ELEMENT,
     MDANALYSIS_COUNTS_TO_FRAME_DATA,
     ALL_MDA_ATTRIBUTES,
@@ -14,7 +14,7 @@ from narupa.mdanalysis.converter import (
     add_mda_topology_to_frame_data,
     _get_mda_attribute,
 )
-from narupa.trajectory.frame_data import PARTICLE_ELEMENTS, MissingDataError, FrameData
+from nanover.trajectory.frame_data import PARTICLE_ELEMENTS, MissingDataError, FrameData
 
 TEST_SYSTEM_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),

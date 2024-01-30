@@ -1,6 +1,6 @@
 package:
-  name: narupa-server
-  version: {{ NARUPA_BUILD_VERSION }}
+  name: nanover-server
+  version: {{ NANOVER_BUILD_VERSION }}
 
 build:
   noarch: python
@@ -8,18 +8,18 @@ build:
 
 requirements:
   run:
-    - narupa-core =={{ NARUPA_BUILD_VERSION }}
-    - narupa-openmm =={{ NARUPA_BUILD_VERSION }}
-    - narupa-ase =={{ NARUPA_BUILD_VERSION }}
-    - narupa-mdanalysis =={{ NARUPA_BUILD_VERSION }}
+    - nanover-core =={{ NANOVER_BUILD_VERSION }}
+    - nanover-openmm =={{ NANOVER_BUILD_VERSION }}
+    - nanover-ase =={{ NANOVER_BUILD_VERSION }}
+    - nanover-mdanalysis =={{ NANOVER_BUILD_VERSION }}
 
 about:
-  home: https://narupa.readthedocs.io
+  home: https://nanover.readthedocs.io
   license: GPL-3
-  license_file: {{ NARUPA_LICENSE_PATH }}
-  summary: Python servers for Narupa.
+  license_file: {{ NANOVER_LICENSE_PATH }}
+  summary: Python servers for NanoVer.
   description: |
-    Narupa is a framework for interactive molecular dynamics simulation in
+    NanoVer is a framework for interactive molecular dynamics simulation in
     virtual reality. This package cause all the python servers to be installed.
-  doc_url: https://narupa.readthedocs.io
-  dev_url: https://gitlab.com/intangiblerealities/narupa-protocol
+  doc_url: https://nanover.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/nanover-protocol

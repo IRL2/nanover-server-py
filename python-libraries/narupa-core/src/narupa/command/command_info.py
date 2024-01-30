@@ -2,12 +2,12 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Dict
 
-from narupa.utilities.protobuf_utilities import (
+from nanover.utilities.protobuf_utilities import (
     dict_to_struct,
     struct_to_dict,
     Serializable,
 )
-from narupa.protocol.command import CommandMessage
+from nanover.protocol.command import CommandMessage
 
 CommandArguments = Dict[str, Serializable]
 CommandResult = Dict[str, Serializable]

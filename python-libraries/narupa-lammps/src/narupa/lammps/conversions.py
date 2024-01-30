@@ -1,14 +1,14 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Module providing conversion utilities between Narupa and LAMMPS.
+Module providing conversion utilities between NanoVer and LAMMPS.
 """
 
 from typing import NamedTuple
 
 # LAMMPS works with arbitrary masses, so we need to convert it to a nuclear number
 # This list is a best guess for atom types, but won't work for isotopes for now.
-# see issue 82 https://gitlab.com/intangiblerealities/narupa-protocol/issues/82
+# see issue 82 https://gitlab.com/intangiblerealities/nanover-protocol/issues/82
 ELEMENT_INDEX_MASS = {
     1: 1,
     3: 1,

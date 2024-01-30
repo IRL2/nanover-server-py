@@ -3,9 +3,9 @@
 
 syntax = "proto3";
 
-import "narupa/protocol/trajectory/get_frame.proto";
+import "nanover/protocol/trajectory/get_frame.proto";
 
-package narupa.protocol.trajectory;
+package nanover.protocol.trajectory;
 
 /* A service which provides access to frames of a trajectory, which may either be precomputed or represent a live simulation. It can also be used to obtain one or more frames on demand, allowing molecules or trajectories to be generated based on requests */
 service TrajectoryService {

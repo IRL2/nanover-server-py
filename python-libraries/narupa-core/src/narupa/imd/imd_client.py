@@ -5,17 +5,17 @@ from uuid import uuid4
 from typing import Dict, Set, Mapping
 
 import grpc
-from narupa.core import NarupaClient
-from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.imd.imd_state import (
+from nanover.core import NanoVerClient
+from nanover.imd.particle_interaction import ParticleInteraction
+from nanover.imd.imd_state import (
     INTERACTION_PREFIX,
     interaction_to_dict,
     dict_to_interaction,
 )
-from narupa.utilities.change_buffers import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange
 
 
-class ImdClient(NarupaClient):
+class ImdClient(NanoVerClient):
     """
     A simple IMD client, primarily for testing the IMD server.
 

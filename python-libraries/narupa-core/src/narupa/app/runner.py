@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional
 
 
-class NarupaRunner(metaclass=ABCMeta):
+class NanoVerRunner(metaclass=ABCMeta):
     @property
     def address(self):
         """
@@ -53,7 +53,7 @@ class NarupaRunner(metaclass=ABCMeta):
         Take a single step of the simulation and stop.
 
         This method is called whenever a client runs the step command,
-        described in :mod:narupa.trajectory.frame_server.
+        described in :mod:nanover.trajectory.frame_server.
         """
         raise NotImplementedError()
 
@@ -63,7 +63,7 @@ class NarupaRunner(metaclass=ABCMeta):
         Pause the simulation, by cancelling any current run.
 
         This method is called whenever a client runs the pause command,
-        described in :mod:narupa.trajectory.frame_server.
+        described in :mod:nanover.trajectory.frame_server.
         """
         raise NotImplementedError()
 
@@ -75,7 +75,7 @@ class NarupaRunner(metaclass=ABCMeta):
         Cancels any current run and then begins running the simulation on a background thread.
 
         This method is called whenever a client runs the play command,
-        described in :mod:narupa.trajectory.frame_server.
+        described in :mod:nanover.trajectory.frame_server.
         """
         raise NotImplementedError()
 

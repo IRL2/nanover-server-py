@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Module providing conversion methods between Narupa and OpenMM.
+Module providing conversion methods between NanoVer and OpenMM.
 """
 from typing import Optional
 
@@ -16,7 +16,7 @@ try:
 except (ImportError, ModuleNotFoundError):
     from simtk.openmm.app.topology import Topology
 from openmm.unit import kilojoule_per_mole, picosecond
-from narupa.trajectory import FrameData
+from nanover.trajectory import FrameData
 
 
 def add_openmm_state_to_frame_data(
@@ -29,7 +29,7 @@ def add_openmm_state_to_frame_data(
     Adds the OpenMM state information to the given :class:`FrameData`, including
     positions and periodic box vectors.
 
-    :param data: Narupa :class:`FrameData` to add state information to.
+    :param data: NanoVer :class:`FrameData` to add state information to.
     :param state: OpenMM :class:`State` from which to extract state information.
     :param include_positions: If ``True``, the particle positions are read from
         the state and included in the frame.
@@ -98,10 +98,10 @@ def openmm_to_frame_data(
     include_energies: bool = True,
 ) -> FrameData:
     """
-    Converts the given OpenMM state and topology objects into a Narupa :class:`FrameData`.
+    Converts the given OpenMM state and topology objects into a NanoVer :class:`FrameData`.
 
     Both fields are optional. For performance reasons, it is best to construct
-    a Narupa :class:`FrameData` once with topology information, and from then
+    a NanoVer :class:`FrameData` once with topology information, and from then
     on just update the state, as that will result in less data being transmitted.
 
     :param state: An optional OpenMM :class:`State` from which to extract

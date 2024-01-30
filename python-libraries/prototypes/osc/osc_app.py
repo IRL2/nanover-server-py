@@ -3,13 +3,13 @@
 import argparse
 import textwrap
 
-from narupa.app import NarupaImdClient
+from nanover.app import NanoVerImdClient
 from osc_client import OscClient, DEFAULT_OSC_ADDRESS
 
 
 class OscApp:
     """
-    For connecting to a Narupa simulation and then uses the result of the
+    For connecting to a NanoVer simulation and then uses the result of the
     message generator setup to translate incoming trajectory frames into
     outgoing osc messages.
     """
@@ -22,7 +22,7 @@ class OscApp:
     def _create_argument_parser():
         description = textwrap.dedent(
             """\
-                    Connect to a narupa trajectory service, and osc server and generate outgoing
+                    Connect to a nanover trajectory service, and osc server and generate outgoing
                     osc messages from incoming frame data.
                     """
         )
@@ -40,12 +40,12 @@ class OscApp:
     def _create_client(self, args):
         arguments = self._argument_parser.parse_args(args)
         osc_client = OscClient(
-            narupa_client=NarupaImdClient.autoconnect(),
+            nanover_client=NanoVerImdClient.autoconnect(),
             osc_address=(arguments.osc_host, arguments.osc_port),
             osc_send_interval=arguments.send_interval,
             verbose=arguments.verbose,
         )
-        osc_client.narupa_client.subscribe_multiplayer()
+        osc_client.nanover_client.subscribe_multiplayer()
         return osc_client
 
     def run(self, args=None):

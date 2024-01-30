@@ -6,20 +6,20 @@ from distutils.core import setup
 from setuptools import find_namespace_packages
 
 setup(
-    name="narupa-openmm",
+    name="nanover-openmm",
     version="0.1.0",
-    description="OpenMM server for Narupa",
+    description="OpenMM server for NanoVer",
     author="Intangible Realities Lab",
     author_email="m.oconnor@bristol.ac.uk",
     url="https://gitlab.com/intangiblerealities/",
-    packages=find_namespace_packages("src", include="narupa.*"),
+    packages=find_namespace_packages("src", include="nanover.*"),
     package_dir={"": "src"},
     package_data={"": ["py.typed"]},
     install_requires=(
-        "narupa",
+        "nanover",
         "openmm",
     ),
     entry_points={
-        "console_scripts": ["narupa-omm-server=narupa.openmm.cli:main"],
+        "console_scripts": ["nanover-omm-server=nanover.openmm.cli:main"],
     },
 )

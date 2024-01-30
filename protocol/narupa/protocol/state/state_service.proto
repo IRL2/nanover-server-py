@@ -4,7 +4,7 @@
 syntax = "proto3";
 import "google/protobuf/struct.proto";
 
-package narupa.protocol.state;
+package nanover.protocol.state;
 
 service State {
     // Periodically received aggregated updates from last known state to latest

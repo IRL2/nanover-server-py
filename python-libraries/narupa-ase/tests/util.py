@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 import pytest
 from ase import Atoms
-from narupa.imd import ImdServer, ImdClient
+from nanover.imd import ImdServer, ImdClient
 
 
 @pytest.fixture

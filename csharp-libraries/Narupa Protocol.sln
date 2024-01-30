@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Narupa.Protocol", "Narupa.Protocol\Narupa.Protocol.csproj", "{E422C05F-D6DC-4E0C-BF31-8944C089720E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NanoVer.Protocol", "NanoVer.Protocol\NanoVer.Protocol.csproj", "{E422C05F-D6DC-4E0C-BF31-8944C089720E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Narupa.Protocol.Test", "Narupa.Protocol.Test\Narupa.Protocol.Test.csproj", "{73B1F5D7-6DA2-4E3B-B368-89978DB8AE3D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NanoVer.Protocol.Test", "NanoVer.Protocol.Test\NanoVer.Protocol.Test.csproj", "{73B1F5D7-6DA2-4E3B-B368-89978DB8AE3D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Essd", "Essd\Essd.csproj", "{09F44577-4598-4B31-B65F-9B1B28DFFB20}"
 EndProject

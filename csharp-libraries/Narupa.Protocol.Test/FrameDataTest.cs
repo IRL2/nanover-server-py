@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Narupa.Protocol.Trajectory;
+using NanoVer.Protocol.Trajectory;
 using NUnit.Framework;
 
-namespace Narupa.Protocol.Test
+namespace NanoVer.Protocol.Test
 {
     public class FrameDataTest
     {

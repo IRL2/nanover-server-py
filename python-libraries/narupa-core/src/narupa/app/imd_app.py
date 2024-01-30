@@ -1,5 +1,5 @@
 """
-Module providing an implementation of an Narupa iMD application, for publishing
+Module providing an implementation of an NanoVer iMD application, for publishing
 simulations and trajectories for consumption by clients that can be interacted
 with in real-time through biasing potentials.
 
@@ -7,31 +7,31 @@ with in real-time through biasing potentials.
 
 from typing import Optional
 
-from narupa.app.frame_app import NarupaFrameApplication
-from narupa.core import NarupaServer
-from narupa.essd import DiscoveryServer
-from narupa.imd import ImdStateWrapper, IMD_SERVICE_NAME
+from nanover.app.frame_app import NanoVerFrameApplication
+from nanover.core import NanoVerServer
+from nanover.essd import DiscoveryServer
+from nanover.imd import ImdStateWrapper, IMD_SERVICE_NAME
 
 
-class NarupaImdApplication(NarupaFrameApplication):
+class NanoVerImdApplication(NanoVerFrameApplication):
     """
-    Application-level class for implementing a Narupa iMD server, something that publishes
+    Application-level class for implementing a NanoVer iMD server, something that publishes
     :class:`FrameData` that can be consumed, e.g. simulation trajectories, and can received
     interactive forces in real-time, allowing the simulation to be biased.
 
-    >>> with NarupaImdApplication.basic_server() as app: # fire up interactive molecular dynamics
-    ...     with NarupaImdClient() as client:
+    >>> with NanoVerImdApplication.basic_server() as app: # fire up interactive molecular dynamics
+    ...     with NanoVerImdClient() as client:
     ...         client.interactions # print any active interactions (in this case, none).
     {}
 
     """
 
-    DEFAULT_SERVER_NAME: str = "Narupa iMD Server"
+    DEFAULT_SERVER_NAME: str = "NanoVer iMD Server"
     _imd_state: ImdStateWrapper
 
     def __init__(
         self,
-        server: NarupaServer,
+        server: NanoVerServer,
         discovery: Optional[DiscoveryServer] = None,
         name: Optional[str] = None,
     ):

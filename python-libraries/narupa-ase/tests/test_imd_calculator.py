@@ -4,10 +4,10 @@ import time
 import pytest
 import numpy as np
 from ase.calculators.lj import LennardJones
-from narupa.ase import converter
-from narupa.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
-from narupa.imd import ImdClient
-from narupa.imd.particle_interaction import ParticleInteraction
+from nanover.ase import converter
+from nanover.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
+from nanover.imd import ImdClient
+from nanover.imd.particle_interaction import ParticleInteraction
 from util import co_atoms, imd_server, client_interaction
 
 

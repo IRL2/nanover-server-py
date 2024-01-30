@@ -1,8 +1,8 @@
 from hypothesis import given
 import hypothesis.strategies as st
 import numpy as np
-from narupa.imd.imd_state import dict_to_interaction, interaction_to_dict
-from narupa.imd.particle_interaction import ParticleInteraction
+from nanover.imd.imd_state import dict_to_interaction, interaction_to_dict
+from nanover.imd.particle_interaction import ParticleInteraction
 
 from .. import serializable_dictionaries
 

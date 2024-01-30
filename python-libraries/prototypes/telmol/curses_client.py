@@ -1,16 +1,16 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Narupa frame client that renders atoms to a curses display in the terminal.
+NanoVer frame client that renders atoms to a curses display in the terminal.
 
-The client connects to a Narupa Frame server, and renders the frames it receives
+The client connects to a NanoVer Frame server, and renders the frames it receives
 into the terminal.
 """
 import sys
 import textwrap
 from typing import Dict, Callable, Sequence, Any
 
-from narupa.app.app_server import DEFAULT_NARUPA_PORT
+from nanover.app.app_server import DEFAULT_NANOVER_PORT
 
 try:
     import curses
@@ -27,7 +27,7 @@ import numpy as np
 import colorsys
 import time
 
-from narupa.app import NarupaImdClient
+from nanover.app import NanoVerImdClient
 
 from transformations import rotation_matrix, scale_matrix
 import rendering
@@ -170,11 +170,11 @@ class Renderer:
 
 
 class CursesFrontend:
-    client: NarupaImdClient
+    client: NanoVerImdClient
     renderer: Renderer
     bindings: Dict[int, Callable]
 
-    def __init__(self, stdscr, client: NarupaImdClient, override_colors=False):
+    def __init__(self, stdscr, client: NanoVerImdClient, override_colors=False):
         self.stdscr = stdscr
         self.client = client
         self.user_quit = False
@@ -334,7 +334,7 @@ def handle_user_args(args=None) -> argparse.Namespace:
     """
     description = textwrap.dedent(
         """\
-    Connect to a Narupa trajectory server and render the atoms live in a curses 
+    Connect to a NanoVer trajectory server and render the atoms live in a curses 
     display.
     """
     )
@@ -351,13 +351,13 @@ def main(stdscr):
     arguments = handle_user_args()
 
     if arguments.autoconnect is not False:
-        client = NarupaImdClient.autoconnect(name=arguments.autoconnect)
+        client = NanoVerImdClient.autoconnect(name=arguments.autoconnect)
     else:
         address = (
             arguments.hostname or "localhost",
-            arguments.port or DEFAULT_NARUPA_PORT,
+            arguments.port or DEFAULT_NANOVER_PORT,
         )
-        client = NarupaImdClient(trajectory_address=address)
+        client = NanoVerImdClient(trajectory_address=address)
 
     with client:
         telmol = CursesFrontend(stdscr, client, override_colors=arguments.rainbow)

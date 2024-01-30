@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Tests for :mod:`narupa.openmm.runner`.
+Tests for :mod:`nanover.openmm.runner`.
 """
 # Pylint does not recognize pytest fixtures which creates fake warnings.
 # pylint: disable=redefined-outer-name,unused-import
@@ -15,16 +15,16 @@ import math
 
 import pytest
 
-from narupa.app import NarupaImdClient
-from narupa.openmm import (
+from nanover.app import NanoVerImdClient
+from nanover.openmm import (
     OpenMMRunner,
     SET_FRAME_INTERVAL_COMMAND_KEY,
     GET_FRAME_INTERVAL_COMMAND_KEY,
     SET_FORCE_INTERVAL_COMMAND_KEY,
     GET_FORCE_INTERVAL_COMMAND_KEY,
 )
-from narupa.openmm.imd import add_imd_force_to_system
-from narupa.trajectory.frame_server import (
+from nanover.openmm.imd import add_imd_force_to_system
+from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
     RESET_COMMAND_KEY,
@@ -32,7 +32,7 @@ from narupa.trajectory.frame_server import (
     SET_DYNAMICS_INTERVAL_COMMAND_KEY,
     GET_DYNAMICS_INTERVAL_COMMAND_KEY,
 )
-from narupa.essd import DiscoveryClient
+from nanover.essd import DiscoveryClient
 
 from .simulation_utils import (
     DoNothingReporter,
@@ -80,7 +80,7 @@ class TestRunner:
     @pytest.fixture
     def client_runner(self, runner):
         runner_port = runner.app.port
-        with NarupaImdClient.connect_to_single_server(port=runner_port) as client:
+        with NanoVerImdClient.connect_to_single_server(port=runner_port) as client:
             yield client, runner
 
     @staticmethod
@@ -213,7 +213,7 @@ class TestRunner:
     )
     def test_interval_get(self, runner, name, target_attribute):
         """
-        The shortcut the the NarupaImdReporter intervals return the expected
+        The shortcut the the NanoVerImdReporter intervals return the expected
         values.
         """
         attribute = getattr(runner.reporter, target_attribute)
@@ -228,7 +228,7 @@ class TestRunner:
     )
     def test_interval_set(self, runner, name, target_attribute):
         """
-        The shortcut the the NarupaImdReporter intervals set the expected
+        The shortcut the the NanoVerImdReporter intervals set the expected
         values.
         """
         setattr(runner.reporter, name, 70)

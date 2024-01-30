@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Module providing core classes and utility functions for Narupa applications.
+Module providing core classes and utility functions for NanoVer applications.
 """
 from .grpc_server import (
     GrpcServer,
@@ -10,5 +10,5 @@ from .grpc_server import (
     DEFAULT_CONNECT_ADDRESS,
 )
 from .grpc_client import GrpcClient
-from .narupa_client import NarupaClient, NarupaStubClient
-from .narupa_server import NarupaServer
+from .nanover_client import NanoVerClient, NanoVerStubClient
+from .nanover_server import NanoVerServer

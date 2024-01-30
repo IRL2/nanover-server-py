@@ -7,8 +7,8 @@ Methods for transmitting a simulation frame from ASE.
 
 from typing import Callable
 from ase import Atoms  # type: ignore
-from narupa.trajectory import FramePublisher
-from narupa.ase import ase_to_frame_data
+from nanover.trajectory import FramePublisher
+from nanover.ase import ase_to_frame_data
 
 
 def send_ase_frame(
@@ -19,7 +19,7 @@ def send_ase_frame(
 
     :param ase_atoms: ASE :class:`Atoms`  object from which to extract frame.
     :param frame_publisher: The frame publisher on which to send the produced
-        :class:`narupa.trajectory.FrameData`.
+        :class:`nanover.trajectory.FrameData`.
 
     When attached to an ASE simulation, such as a :class:`Langevin` dynamics
     simulation, this method will be called to send the frame on the given

@@ -5,18 +5,18 @@ from queue import Queue
 from threading import Lock
 from typing import Union, Callable
 
-from narupa.utilities.request_queues import (
+from nanover.utilities.request_queues import (
     DictOfQueues,
     GetFrameResponseAggregatingQueue,
 )
-from narupa.utilities.timing import yield_interval
-from narupa.protocol.trajectory import (
+from nanover.utilities.timing import yield_interval
+from nanover.protocol.trajectory import (
     TrajectoryServiceServicer,
     GetFrameResponse,
     add_TrajectoryServiceServicer_to_server,
 )
-from narupa.protocol.trajectory import FrameData as RawFrameData
-from narupa.trajectory.frame_data import FrameData, SERVER_TIMESTAMP
+from nanover.protocol.trajectory import FrameData as RawFrameData
+from nanover.trajectory.frame_data import FrameData, SERVER_TIMESTAMP
 
 SENTINEL = None
 

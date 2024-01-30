@@ -16,7 +16,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install narupa dependancies
+      - name: Install nanover dependancies
         # We temporarilly ignore failure here. See #31.
         run: conda install -y mpi4py openmm || echo "Fail?"
       - name: Install tests dependancies
@@ -24,9 +24,9 @@ jobs:
       - name: Compile
         run: ./compile.sh --no-dotnet
       - name: Parallel tests
-        run: python -m pytest --cov narupa python-libraries -n auto -m 'not serial'
+        run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial'
       - name: Serial tests
-        run: python -m pytest --cov narupa python-libraries -n auto -m 'serial'
+        run: python -m pytest --cov nanover python-libraries -n auto -m 'serial'
   mypy:
     name: Type analysis for python
     runs-on: ubuntu-latest
@@ -41,7 +41,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install narupa dependancies
+      - name: Install nanover dependancies
         # We temporarilly ignore failure here. See #31.
         run: conda install -y mpi4py openmm || echo "Fail?"
       - name: Install tests dependancies
@@ -79,7 +79,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install narupa dependancies
+      - name: Install nanover dependancies
         # We temporarilly ignore failure here. See #31.
         run: conda install -y mpi4py openmm || echo "Fail?"
       - name: Install ruff

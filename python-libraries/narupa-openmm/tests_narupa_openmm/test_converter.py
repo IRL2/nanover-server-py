@@ -7,8 +7,8 @@ import itertools
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
-from narupa.openmm import openmm_to_frame_data
-from narupa.trajectory import frame_data
+from nanover.openmm import openmm_to_frame_data
+from nanover.trajectory import frame_data
 
 try:
     from openmm.app.element import Element

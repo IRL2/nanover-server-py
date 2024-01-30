@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Generic;
 using Google.Protobuf.WellKnownTypes;
-using Narupa.Protocol.Protobuf.Extensions;
+using NanoVer.Protocol.Protobuf.Extensions;
 using NUnit.Framework;
 
-namespace Narupa.Protocol.Test.Protobuf
+namespace NanoVer.Protocol.Test.Protobuf
 {
     public class StructExtensionsTest
     {

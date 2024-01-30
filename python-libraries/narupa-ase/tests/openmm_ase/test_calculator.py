@@ -1,8 +1,8 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 import pytest
-from narupa.ase.converter import KJMOL_TO_EV
-from narupa.ase.openmm import OpenMMCalculator
+from nanover.ase.converter import KJMOL_TO_EV
+from nanover.ase.openmm import OpenMMCalculator
 from simtk.unit import (
     kilojoules_per_mole,
     nanometer,

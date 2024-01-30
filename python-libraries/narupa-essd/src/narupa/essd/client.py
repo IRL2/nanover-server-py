@@ -9,8 +9,8 @@ from typing import Optional, Set, Iterable
 
 import select
 
-from narupa.essd.server import BROADCAST_PORT, configure_reusable_socket
-from narupa.essd.servicehub import ServiceHub, MAXIMUM_MESSAGE_SIZE
+from nanover.essd.server import BROADCAST_PORT, configure_reusable_socket
+from nanover.essd.servicehub import ServiceHub, MAXIMUM_MESSAGE_SIZE
 
 IP_ADDRESS_ANY = "0.0.0.0"
 

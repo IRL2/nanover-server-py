@@ -8,19 +8,19 @@ from typing import Dict, Callable, Optional, Union
 from typing import NamedTuple
 
 import grpc
-from narupa.command.command_info import (
+from nanover.command.command_info import (
     CommandInfo,
     CommandArguments,
     CommandResult,
 )
-from narupa.protocol.command import (
+from nanover.protocol.command import (
     CommandServicer,
     CommandReply,
     GetCommandsReply,
     add_CommandServicer_to_server,
 )
-from narupa.utilities.key_lockable_map import KeyLockableMap
-from narupa.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
+from nanover.utilities.key_lockable_map import KeyLockableMap
+from nanover.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
 CommandHandler = Union[
     Callable[[CommandArguments], Optional[CommandResult]],

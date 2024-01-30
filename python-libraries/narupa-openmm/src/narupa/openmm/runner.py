@@ -15,11 +15,11 @@ from io import StringIO
 from simtk.openmm import app
 from simtk import openmm
 
-from narupa.openmm import serializer
-from narupa.app import NarupaImdApplication, NarupaRunner
-from .imd import NarupaImdReporter, get_imd_forces_from_system, create_imd_force
-from narupa.utilities.event import Event
-from narupa.trajectory.frame_server import (
+from nanover.openmm import serializer
+from nanover.app import NanoVerImdApplication, NanoVerRunner
+from .imd import NanoVerImdReporter, get_imd_forces_from_system, create_imd_force
+from nanover.utilities.event import Event
+from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
     RESET_COMMAND_KEY,
     STEP_COMMAND_KEY,
@@ -27,7 +27,7 @@ from narupa.trajectory.frame_server import (
     GET_DYNAMICS_INTERVAL_COMMAND_KEY,
     SET_DYNAMICS_INTERVAL_COMMAND_KEY,
 )
-from narupa.utilities.timing import VariableIntervalGenerator
+from nanover.utilities.timing import VariableIntervalGenerator
 
 GET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/get-frame-interval"
 SET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/set-frame-interval"
@@ -37,7 +37,7 @@ SET_FORCE_INTERVAL_COMMAND_KEY = "imd/set-force-interval"
 RunnerClass = TypeVar("RunnerClass", bound="OpenMMRunner")
 
 
-class OpenMMRunner(NarupaRunner):
+class OpenMMRunner(NanoVerRunner):
     """
     Convenience class to run an OpenMM simulation.
 
@@ -62,8 +62,8 @@ class OpenMMRunner(NarupaRunner):
 
     :param simulation: The OpenMM simulation to run. It must have an OpenMM
         force object compatible with iMD. This force can be added using
-        :fun:`narupa.openmm.imd.add_imd_force_to_system` or provided to
-        :fun:`narupa.openmm.serializer.deserialize_simulation` with the
+        :fun:`nanover.openmm.imd.add_imd_force_to_system` or provided to
+        :fun:`nanover.openmm.serializer.deserialize_simulation` with the
         ``imd_force`` argument.
     :param name: A friendly name for the runner. It will be displayed by ESSD.
     :param address: The IP address the server binds to.
@@ -86,7 +86,7 @@ class OpenMMRunner(NarupaRunner):
             remainingTime=False,
             potentialEnergy=True,
         )
-        self._app_server = NarupaImdApplication.basic_server(name, address, port)
+        self._app_server = NanoVerImdApplication.basic_server(name, address, port)
         potential_imd_forces = get_imd_forces_from_system(simulation.system)
         if not potential_imd_forces:
             raise ValueError(
@@ -103,7 +103,7 @@ class OpenMMRunner(NarupaRunner):
         # for the purpose of this runner, the other ones are likely leftovers
         # or forces created for another purpose.
         imd_force = potential_imd_forces[-1]
-        self.reporter = NarupaImdReporter(
+        self.reporter = NanoVerImdReporter(
             frame_interval=5,
             force_interval=10,
             imd_force=imd_force,
@@ -148,7 +148,7 @@ class OpenMMRunner(NarupaRunner):
         .. seealso::
 
             The XML serialized simulation can be produced by
-            :func:`narupa.openmm.serializer.serialize_simulation`.
+            :func:`nanover.openmm.serializer.serialize_simulation`.
 
         """
         imd_force = create_imd_force()

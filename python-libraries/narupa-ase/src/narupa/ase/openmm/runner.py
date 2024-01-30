@@ -11,20 +11,20 @@ from ase import units, Atoms  # type: ignore
 from ase.md import MDLogger, Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from attr import dataclass
-from narupa.app import NarupaImdApplication, NarupaRunner
-from narupa.app.app_server import DEFAULT_NARUPA_PORT
-from narupa.core import NarupaServer, DEFAULT_SERVE_ADDRESS
-from narupa.ase import TrajectoryLogger
-from narupa.essd import DiscoveryServer
-from narupa.openmm import openmm_to_frame_data, serializer
-from narupa.trajectory.frame_publisher import FramePublisher
+from nanover.app import NanoVerImdApplication, NanoVerRunner
+from nanover.app.app_server import DEFAULT_NANOVER_PORT
+from nanover.core import NanoVerServer, DEFAULT_SERVE_ADDRESS
+from nanover.ase import TrajectoryLogger
+from nanover.essd import DiscoveryServer
+from nanover.openmm import openmm_to_frame_data, serializer
+from nanover.trajectory.frame_publisher import FramePublisher
 from simtk.openmm.app import Simulation, Topology
 
-from narupa.ase import ase_to_frame_data
-from narupa.ase.converter import add_ase_positions_to_frame_data
-from narupa.ase.imd import NarupaASEDynamics
-from narupa.ase.openmm.calculator import OpenMMCalculator
-from narupa.ase.wall_constraint import VelocityWallConstraint
+from nanover.ase import ase_to_frame_data
+from nanover.ase.converter import add_ase_positions_to_frame_data
+from nanover.ase.imd import NanoVerASEDynamics
+from nanover.ase.openmm.calculator import OpenMMCalculator
+from nanover.ase.wall_constraint import VelocityWallConstraint
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
     "The simulation contains constraints which will be ignored by this runner!"
@@ -130,7 +130,7 @@ class TrajectoryLoggerInfo:
         self._logger.close()
 
 
-class ASEOpenMMRunner(NarupaRunner):
+class ASEOpenMMRunner(NanoVerRunner):
     """
     A wrapper class for running an interactive OpenMM simulation with ASE.
 
@@ -323,17 +323,17 @@ class ASEOpenMMRunner(NarupaRunner):
     ):
         address = address or DEFAULT_SERVE_ADDRESS
         if port is None:
-            port = DEFAULT_NARUPA_PORT
-        server = NarupaServer(address=address, port=port)
+            port = DEFAULT_NANOVER_PORT
+        server = NanoVerServer(address=address, port=port)
         if run_discovery:
             discovery = DiscoveryServer(broadcast_port=discovery_port)
         else:
             discovery = None
-        self._app_server = NarupaImdApplication(server, discovery, name)
+        self._app_server = NanoVerImdApplication(server, discovery, name)
 
     def _initialise_imd(self, server, dynamics):
         # set the server to use the OpenMM frame convert for performance purposes.
-        self.imd = NarupaASEDynamics(
+        self.imd = NanoVerASEDynamics(
             server,
             dynamics,
             frame_method=openmm_ase_frame_adaptor,

@@ -1,9 +1,9 @@
 import pytest
-from narupa.core import NarupaServer
-from narupa.trajectory import FrameServer
-from narupa.imd.imd_server import ImdServer
+from nanover.core import NanoVerServer
+from nanover.trajectory import FrameServer
+from nanover.imd.imd_server import ImdServer
 
-TEST_SERVERS = (FrameServer, ImdServer, NarupaServer)
+TEST_SERVERS = (FrameServer, ImdServer, NanoVerServer)
 TEST_PORTS = (54321, 60000, 62123)
 
 

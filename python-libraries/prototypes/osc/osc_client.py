@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
-from narupa.app import NarupaImdClient
-from narupa.utilities.timing import yield_interval
+from nanover.app import NanoVerImdClient
+from nanover.utilities.timing import yield_interval
 from pythonosc import udp_client
 
 # doesn't support both IPv4 and IPv6 at once, so we probably want IPv4
@@ -16,7 +16,7 @@ def null_message_generator(frame):
 class OscClient:
     def __init__(
         self,
-        narupa_client: NarupaImdClient,
+        nanover_client: NanoVerImdClient,
         *,
         osc_address=DEFAULT_OSC_ADDRESS,
         osc_send_interval=1 / 30,
@@ -29,17 +29,17 @@ class OscClient:
 
         host, port = osc_address
         self.osc_client = udp_client.SimpleUDPClient(host, port, allow_broadcast=True)
-        self.narupa_client = narupa_client
-        self.narupa_client.subscribe_to_all_frames()
+        self.nanover_client = nanover_client
+        self.nanover_client.subscribe_to_all_frames()
 
     def run(self):
         for dt in yield_interval(self.send_interval):
-            frame = self.narupa_client.latest_frame
+            frame = self.nanover_client.latest_frame
             if frame is not None:
                 self.process_frame(frame)
 
     def close(self):
-        self.narupa_client.close()
+        self.nanover_client.close()
 
     def process_frame(self, frame):
         for address, message in self.message_generator(frame):

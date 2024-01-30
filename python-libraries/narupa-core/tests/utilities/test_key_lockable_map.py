@@ -1,4 +1,4 @@
-from narupa.utilities.key_lockable_map import (
+from nanover.utilities.key_lockable_map import (
     KeyLockableMap,
     ResourceLockedError,
 )

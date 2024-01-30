@@ -1,4 +1,4 @@
-OpenMM server for Narupa
+OpenMM server for NanoVer
 ========================
 
 This server sends over the network the frames of a running OpenMM simulation. The server can
@@ -10,19 +10,19 @@ provides a convenient and portable way to run and serve a simulation that has pr
 Running a server from python
 ----------------------------
 
-When used as a python library, `narupa-openmm` provides the
-`narupa.openmm.Server` class. This class can be used as follow:
+When used as a python library, `nanover-openmm` provides the
+`nanover.openmm.Server` class. This class can be used as follow:
 
 ```python
 import simtk.openmm as mm
 from simtk.openmm import app
 
-from narupa.openmm import Server
+from nanover.openmm import Server
 
 # Build an OpenMM simulation
 simulation = app.Simulation(...)
 
-# Setup the Narupa server
+# Setup the NanoVer server
 server = Server(simulation, address='localhost', port=8000)
 # Make the server verbose. The server is quiet by default.
 # When verbose, the server prints the number of steps run,
@@ -40,7 +40,7 @@ server.close()
 The [OpenMM documentation](http://docs.openmm.org/latest/userguide/application.html#running-simulations)
 describes different ways of setting up a simulation, including from Amber or Gromacs input files.
 
-The Narupa OpenMM package provides a way of serializing an entire simulation as a single XML file. 
+The NanoVer OpenMM package provides a way of serializing an entire simulation as a single XML file. 
 This allows one to decouple the preparation and the
 running of a simulation. See the "[Writing a XML simulation file](#writing-a-xml-simulation-file)"
 section to learn more about the file format to describe a simulation, and
@@ -57,25 +57,25 @@ In any case, the OpenMM simulation object is exposed by the server object throug
 object (such as adding a reporter, or accessing the context) can be achieved.
 Refer to the OpenMM [documentation](http://openmm.org/documentation.html) for more details.
 
-A Narupa server can also be included in an existing OpenMM workflow by adding
-a `NarupaReporter` to an existing simulation object:
+A NanoVer server can also be included in an existing OpenMM workflow by adding
+a `NanoVerReporter` to an existing simulation object:
 
 ```python
 import simtk.openmm as mm
 from simtk.openmm import app
 
-from narupa.trajectory import FrameServer
-from narupa.openmm import NarupaReporter
+from nanover.trajectory import FrameServer
+from nanover.openmm import NanoVerReporter
 
 # Create an OpenMM simulation
 simulation = app.Simulation(...)
 
-# Start a Narupa frame server
+# Start a NanoVer frame server
 frame_server = FrameServer(address='localhost', port=8000)
-# Setup a reporter to link OpenMM and Narupa
-narupa_reporter = NarupaReporter(report_interval=1, frame_server=frame_server)
-# Add the Narupa reporter to the simulation
-simulation.reporters.append(narupa_reporter)
+# Setup a reporter to link OpenMM and NanoVer
+nanover_reporter = NanoVerReporter(report_interval=1, frame_server=frame_server)
+# Add the NanoVer reporter to the simulation
+simulation.reporters.append(nanover_reporter)
 
 # Run the simulation for 1000 steps
 simulation.step(1000)
@@ -87,24 +87,24 @@ frame_server.close()
 Running a server from the command line
 --------------------------------------
 
-When `narupa-opemm` is installed, it provides the `narupa-omm-server`
+When `nanover-opemm` is installed, it provides the `nanover-omm-server`
 command in the command line. When provided with the description of an
-OpenMM simulation as an XML file, `narupa-omm-server` runs the simulation
-and serves the frame for Narupa. The host address and port can be set with
+OpenMM simulation as an XML file, `nanover-omm-server` runs the simulation
+and serves the frame for NanoVer. The host address and port can be set with
 the `--address` and the `--port` option, respectively.
 
 See the "[Writing a XML simulation file](#writing-a-xml-simulation-file)"
 section to learn more about the file format to describe a simulation, and
 how to produce such a file.
 
-Run `narupa-omm-server --help` in a terminal to read more about the options.
+Run `nanover-omm-server --help` in a terminal to read more about the options.
 
 The XML file for the neuraminidase demo can be found in the `examples` directory.
 
 Writing a XML simulation file
 -----------------------------
 
-`narupa-openmm` can use an XML file to describe a simulation. Such an XML file is
+`nanover-openmm` can use an XML file to describe a simulation. Such an XML file is
 the concatenation of a PDB file (used to get the initial coordinates and the
 topology of the system), an XML serialized OpenMM system (used to get the forces
 to apply), and an XML serialized OpenMM integrator. The file looks like:
@@ -124,4 +124,4 @@ to apply), and an XML serialized OpenMM integrator. The file looks like:
 ```
 
 XML description of simulations can be written with the
-`narupa.openmm.serializer.serialize_simulation` function.
+`nanover.openmm.serializer.serialize_simulation` function.

@@ -8,17 +8,17 @@ from contextlib import contextmanager
 from threading import Lock
 from typing import ContextManager, Generator, Dict, Optional, Iterable
 
-from narupa.utilities.change_buffers import (
+from nanover.utilities.change_buffers import (
     DictionaryChangeMultiView,
     DictionaryChangeBuffer,
     DictionaryChange,
 )
-from narupa.utilities.event import Event
-from narupa.utilities.key_lockable_map import (
+from nanover.utilities.event import Event
+from nanover.utilities.key_lockable_map import (
     KeyLockableMap,
     ResourceLockedError,
 )
-from narupa.utilities.protobuf_utilities import Serializable
+from nanover.utilities.protobuf_utilities import Serializable
 
 
 class StateDictionary:

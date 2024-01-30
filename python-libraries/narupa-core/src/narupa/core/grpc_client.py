@@ -8,7 +8,7 @@ from concurrent import futures
 from typing import Optional
 
 import grpc
-from narupa.core import DEFAULT_CONNECT_ADDRESS
+from nanover.core import DEFAULT_CONNECT_ADDRESS
 
 
 class GrpcClient:

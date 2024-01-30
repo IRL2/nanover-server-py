@@ -2,11 +2,11 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Callable, Optional, Dict, ContextManager, Set, Union
 
-from narupa.command import CommandService
-from narupa.command.command_service import CommandRegistration, CommandHandler
-from narupa.core import GrpcServer
-from narupa.state.state_service import StateService
-from narupa.utilities.change_buffers import (
+from nanover.command import CommandService
+from nanover.command.command_service import CommandRegistration, CommandHandler
+from nanover.core import GrpcServer
+from nanover.state.state_service import StateService
+from nanover.utilities.change_buffers import (
     DictionaryChange,
 )
 
@@ -15,9 +15,9 @@ CommandCallable = Union[
 ]
 
 
-class NarupaServer(GrpcServer):
+class NanoVerServer(GrpcServer):
     """
-    A base for Narupa gRPC servers. Sets up a gRPC server, and automatically
+    A base for NanoVer gRPC servers. Sets up a gRPC server, and automatically
     attaches a :class:`CommandService` and  :class:`StateService` enabling the running of arbitrary commands
     and synchronisation of state.
     """

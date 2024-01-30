@@ -3,7 +3,7 @@
 
 import pytest
 
-from narupa.utilities.change_buffers import (
+from nanover.utilities.change_buffers import (
     DictionaryChangeBuffer,
     DictionaryChangeMultiView,
     ObjectFrozenError,

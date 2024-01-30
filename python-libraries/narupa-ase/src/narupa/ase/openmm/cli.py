@@ -7,7 +7,7 @@ Run with:
 
 If the module is installed with pip, run with:
 .. code bash
-    narupa-omm-ase neuraminidase.xml
+    nanover-omm-ase neuraminidase.xml
 
 """
 
@@ -15,9 +15,9 @@ import argparse
 import textwrap
 import time
 
-from narupa.app.app_server import qualified_server_name
-from narupa.ase.openmm import ASEOpenMMRunner
-from narupa.ase.openmm.runner import ImdParams, LoggingParams
+from nanover.app.app_server import qualified_server_name
+from nanover.ase.openmm import ASEOpenMMRunner
+from nanover.ase.openmm.runner import ImdParams, LoggingParams
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -142,7 +142,7 @@ def initialise(args=None):
     )
 
     if arguments.name is None:
-        arguments.name = qualified_server_name("Narupa OpenMM ASE Server")
+        arguments.name = qualified_server_name("NanoVer OpenMM ASE Server")
 
     logging_params = LoggingParams(
         arguments.trajectory_file,

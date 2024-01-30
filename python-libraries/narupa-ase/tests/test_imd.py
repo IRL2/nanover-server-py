@@ -9,9 +9,9 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.cell import Cell
 from ase.md import VelocityVerlet
-from narupa.ase.imd import NarupaASEDynamics
-from narupa.core import NarupaClient
-from narupa.trajectory.frame_server import (
+from nanover.ase.imd import NanoVerASEDynamics
+from nanover.core import NanoVerClient
+from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
     RESET_COMMAND_KEY,
@@ -123,7 +123,7 @@ def arbitrary_dynamics(dummy_atoms):
 
 @pytest.fixture
 def arbitrary_ase_server(arbitrary_dynamics):
-    with NarupaASEDynamics.basic_imd(
+    with NanoVerASEDynamics.basic_imd(
         arbitrary_dynamics, port=0, frame_method=do_nothing_producer
     ) as ase_server:
         yield ase_server
@@ -131,7 +131,7 @@ def arbitrary_ase_server(arbitrary_dynamics):
 
 @pytest.fixture
 def client_server(arbitrary_ase_server):
-    with NarupaClient.insecure_channel(
+    with NanoVerClient.insecure_channel(
         address="localhost", port=arbitrary_ase_server.port
     ) as c:
         yield c, arbitrary_ase_server

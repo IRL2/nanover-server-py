@@ -5,22 +5,22 @@ Module providing an implementation of the :class:`StateServicer`.
 """
 from typing import Iterable, Tuple, Set, Dict, ContextManager, Callable, Optional
 from numbers import Real
-from narupa.utilities.grpc_utilities import (
+from nanover.utilities.grpc_utilities import (
     subscribe_rpc_termination,
     RpcAlreadyTerminatedError,
 )
-from narupa.utilities.key_lockable_map import ResourceLockedError
-from narupa.utilities.protobuf_utilities import (
+from nanover.utilities.key_lockable_map import ResourceLockedError
+from nanover.utilities.protobuf_utilities import (
     deep_copy_serializable_dict,
     struct_to_dict,
     dict_to_struct,
     Serializable,
 )
-from narupa.utilities.change_buffers import (
+from nanover.utilities.change_buffers import (
     DictionaryChange,
     DictionaryChangeBuffer,
 )
-from narupa.protocol.state import (
+from nanover.protocol.state import (
     StateServicer,
     StateUpdate,
     SubscribeStateUpdatesRequest,

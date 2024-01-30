@@ -3,7 +3,7 @@
 from contextlib import contextmanager
 from typing import Dict, Iterable, Set, Union, TypeVar, Optional, cast
 
-from narupa.utilities.event import Event
+from nanover.utilities.event import Event
 
 INTERACTION_SINGLE = "single"
 INTERACTION_GROUP = "group"
@@ -16,10 +16,10 @@ KEY_SELECTION_NAME = "name"
 KEY_SELECTION_SELECTED = "selected"
 KEY_SELECTED_PARTICLE_IDS = "particle_ids"
 KEY_SELECTION_PROPERTIES = "properties"
-KEY_PROPERTY_INTERACTION_METHOD = "narupa.interaction.method"
-KEY_PROPERTY_VELOCITY_RESET = "narupa.interaction.velocity_reset"
-KEY_PROPERTY_RENDERER = "narupa.rendering.renderer"
-KEY_PROPERTY_HIDE = "narupa.rendering.hide"
+KEY_PROPERTY_INTERACTION_METHOD = "nanover.interaction.method"
+KEY_PROPERTY_VELOCITY_RESET = "nanover.interaction.velocity_reset"
+KEY_PROPERTY_RENDERER = "nanover.rendering.renderer"
+KEY_PROPERTY_HIDE = "nanover.rendering.hide"
 
 INTERACTION_METHOD_DEFAULT = INTERACTION_SINGLE
 VELOCITY_RESET_DEFAULT = False
@@ -30,9 +30,9 @@ SELECTED_PARTICLE_IDS_DEFAULT = None
 class RenderingSelection:
     """
 
-    A local representation of a selection in a NarupaIMD simulation.
+    A local representation of a selection in a NanoVerIMD simulation.
 
-    Not intended to be created directly, but rather via the :class:`NarupaImdClient`, which handles
+    Not intended to be created directly, but rather via the :class:`NanoVerImdClient`, which handles
     synchronising the state of the selections with the server.
 
     Changes to this selection are only applied when a call to
@@ -196,7 +196,7 @@ class RenderingSelection:
     @property
     def interaction_method(self) -> str:
         """
-        The interaction method for Narupa iMD
+        The interaction method for NanoVer iMD
         """
         return self._interaction_method
 

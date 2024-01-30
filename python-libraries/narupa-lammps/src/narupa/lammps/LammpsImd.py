@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-LAMMPS python integration with Narupa
+LAMMPS python integration with NanoVer
 This program can be run as a standalone using mock data or from within LAMMPS
 using the python_invoke/fix command as demonstrated in the example LAMMPS inputs.
 """
@@ -16,16 +16,16 @@ try:
 except ImportError:
     logging.info("lammps failed to import", exc_info=True)
 
-from narupa.app import NarupaImdApplication
+from nanover.app import NanoVerImdApplication
 
-from narupa.trajectory import FrameData
-from narupa.trajectory.frame_data import PARTICLE_POSITIONS
+from nanover.trajectory import FrameData
+from nanover.trajectory.frame_data import PARTICLE_POSITIONS
 
 # IMD related imports
-from narupa.imd.imd_force import calculate_imd_force
-from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.lammps.mock import MockLammps
-from narupa.lammps.conversions import (
+from nanover.imd.imd_force import calculate_imd_force
+from nanover.imd.particle_interaction import ParticleInteraction
+from nanover.lammps.mock import MockLammps
+from nanover.lammps.conversions import (
     ELEMENT_INDEX_MASS,
     LAMMPS_UNITS_CHECK,
     PLANK_VALUES,
@@ -57,7 +57,7 @@ def _try_or_except(func):
 class LammpsImd:
     """
     A class that can communicate with the LAMMPS program through
-    its python interpreter. Upon initialisation, MPI is set up along with the Narupa server.
+    its python interpreter. Upon initialisation, MPI is set up along with the NanoVer server.
     The LAMMPS data is collected across all processors using GATHER and SCATTER routines
     that require mpi4py to respect the internal processor rank of LAMMPS.
 
@@ -104,7 +104,7 @@ class LammpsImd:
         # Start frame server, must come before MPI
         if me == 0:
             # TODO raise exception when this fails, i.e if port is blocked
-            self.server_app = NarupaImdApplication.basic_server(
+            self.server_app = NanoVerImdApplication.basic_server(
                 name="LAMMPS-server", address=address, port=port
             )
             self.frame_service = self.server_app.frame_publisher
@@ -117,7 +117,7 @@ class LammpsImd:
             except Exception as err:
                 raise Exception("Failed to load FrameData", err)
 
-            logging.info("Narupa Lammpshook initialised")
+            logging.info("NanoVer Lammpshook initialised")
             logging.info("Serving on %s ", port)
 
             # Set some variables that do not change during the simulation
@@ -180,7 +180,7 @@ class LammpsImd:
             self.frame_loop += 1
             if self.frame_loop == self.md_log_frequency:
                 self.frame_loop = 0
-                logging.info("Narupa enabled calculation is still running")
+                logging.info("NanoVer enabled calculation is still running")
 
         self.need_to_collect_topology = False
 
@@ -196,7 +196,7 @@ class LammpsImd:
         """
         Close ports to prevent blocking
         """
-        logging.debug("Closing Narupa server")
+        logging.debug("Closing NanoVer server")
         self.server_app.close()
 
     @_try_or_except
@@ -282,7 +282,7 @@ class LammpsImd:
         :return: Combined c_type forces
         """
 
-        # Convert units from narupa standard of  kj/mol/nm to whatever units LAMMPS is using
+        # Convert units from nanover standard of  kj/mol/nm to whatever units LAMMPS is using
         # For real units types LAMMPS uses  Kcal/mole-Angstrom 4.14
         # for kj-> Kcal and 10x for nm -> Angstrom
         # Flatten array into the ctype
@@ -338,7 +338,7 @@ class LammpsImd:
         positions_3n = np.ctypeslib.as_array(
             positions, shape=(self.n_atoms * 3)
         ).reshape(self.n_atoms, 3)
-        # Convert the positions to the narupa internal so that the forces are added in the correct position
+        # Convert the positions to the nanover internal so that the forces are added in the correct position
         positions_3n /= self.distance_factor
         # Collect interaction vector from client on process 0
         if self.me == 0:

@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Module for performing conversions between MDAnalysis universes and Narupa FrameData objects.
+Module for performing conversions between MDAnalysis universes and NanoVer FrameData objects.
 """
 import collections
 
@@ -9,8 +9,8 @@ import numpy as np
 from MDAnalysis import Universe
 from MDAnalysis.topology.guessers import guess_atom_element
 
-from narupa.trajectory import FrameData
-from narupa.trajectory.frame_data import (
+from nanover.trajectory import FrameData
+from nanover.trajectory.frame_data import (
     PARTICLE_COUNT,
     RESIDUE_COUNT,
     CHAIN_COUNT,
@@ -231,7 +231,7 @@ MDA_UNIVERSE_PARAMS_TO_FRAME_DATA = {
 
 def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> FrameData:
     """
-    Converts from an MDAnalysis universe to Narupa FrameData object.
+    Converts from an MDAnalysis universe to NanoVer FrameData object.
 
     :param u: MDAnalysis :class:`Universe`.
     :param topology: Whether to include topology.
@@ -258,9 +258,9 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
 
 def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
     """
-    Converts from a Narupa :class:`FrameData` object to an MDAnalysis universe.
+    Converts from a NanoVer :class:`FrameData` object to an MDAnalysis universe.
 
-    :param frame: Narupa :class:`FrameData` object.
+    :param frame: NanoVer :class:`FrameData` object.
     :return: MDAnalysis :class:`Universe` constructed from the given FrameData.
     """
 
@@ -293,7 +293,7 @@ def add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData):
     Adds the positions in a MDAnalysis universe to the frame data, if they exist.
 
     :param u: MDAnalysis :class:`Universe`.
-    :param frame_data: Narupa :class:`FrameData` to add to.
+    :param frame_data: NanoVer :class:`FrameData` to add to.
 
     :raises MissingDataError: if no positions exist in the universe.
     """
@@ -313,7 +313,7 @@ def add_frame_positions_to_mda(u: Universe, frame: FrameData):
     Updates the positions in an MDAnalysis :class:`Universe` with those from the given frame.
 
     :param u: MDAnalysis :class:`Universe` to set positions of.
-    :param frame: Narupa :class:`FrameData` from which to extract positions.
+    :param frame: NanoVer :class:`FrameData` from which to extract positions.
     """
     u.atoms.positions = np.array(frame.particle_positions) * 10
 
@@ -323,7 +323,7 @@ def _add_bonds_to_mda(u: Universe, frame: FrameData):
     Add bonds from a framedata object to an MDAnalysis universe.
 
     :param u: MDAnalysis :class:`Universe`.
-    :param frame: Narupa :class:`FrameData`.
+    :param frame: NanoVer :class:`FrameData`.
     """
     try:
         bonds = [(bond[0], bond[1]) for bond in frame.bond_pairs]
@@ -334,15 +334,15 @@ def _add_bonds_to_mda(u: Universe, frame: FrameData):
 
 def _get_universe_constructor_params(frame: FrameData):
     """
-    Gets the MDAnalysis universe constructor params from a Narupa frame data.
+    Gets the MDAnalysis universe constructor params from a NanoVer frame data.
 
-    :param frame: Narupa FrameData object.
+    :param frame: NanoVer FrameData object.
     :return: Dictionary of params to construct an MDAnalysis universe object.
 
     The MDAnalysis universe empty constructor takes several optional parameters
     used to define options such as number of atoms, number of residues, number
     of segments, and their identifiers. This method extracts this data from a
-    Narupa :class:`FrameData` object.
+    NanoVer :class:`FrameData` object.
     """
     params = {
         param_name: converter(_try_get_field(frame, field))
@@ -382,7 +382,7 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
     Adds all available MDAnalysis attributes from the given universe to the given frame data
 
     :param u: MDAnalysis universe.
-    :param frame_data: Narupa frame data.
+    :param frame_data: NanoVer frame data.
 
     Adds particle, residue and chain information, if available.
     """
@@ -406,7 +406,7 @@ def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
     Adds the counts of all available MDAnalysis groups from the given universe to the given frame data.
 
     :param u: MDAnalysis universe.
-    :param frame_data: Narupa frame data.
+    :param frame_data: NanoVer frame data.
 
     Adds particle counts, residue counts and chain counts, if available.
     """
@@ -423,7 +423,7 @@ def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
     Adds the bonds in a MDAnalysis universe to the frame data, if they exist.
 
     :param u: MDAnalysis universe.
-    :param frame_data: Narupa frame data.
+    :param frame_data: NanoVer frame data.
     """
     try:
         frame_data.bond_pairs = u.atoms.bonds.indices

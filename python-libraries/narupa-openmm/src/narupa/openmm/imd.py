@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Link Narupa's user forces to an OpenMM simulation.
+Link NanoVer's user forces to an OpenMM simulation.
 
 The iMD is hooked to the OpenMM simulation in two places. A
 :class:`~simtk.openmm.CustomExternalForce` needs to be added in the system; it
@@ -12,31 +12,31 @@ updates the simulation context.
 The custom force can be setup using :fun:`create_imd_force` and
 :fun:`populate_imd_force`, or using :fun:`add_imd_force_to_system` that combines
 the two previous functions. When a simulation is created using
-:fun:`narupa.openmm.serializer.deserialize_simulation`, the imd force must be
+:fun:`nanover.openmm.serializer.deserialize_simulation`, the imd force must be
 already present, or must be added by passing it with the ``imd_force``
 parameter.
 
-The reporter is :class:`NarupaImdReporter` and both sends the frames and
+The reporter is :class:`NanoVerImdReporter` and both sends the frames and
 receives the interactions. It can be use instead of
-:class:`narupa.openmm.NarupaReporter` that only sends the frames.
+:class:`nanover.openmm.NanoVerReporter` that only sends the frames.
 
 .. code:: python
 
-    from narupa.app import NarupaImdApplication
-    from narupa.openmm.serializer import deserialize_simulation
-    from narupa.openmm.imd import NarupaImdReporter, create_imd_force
+    from nanover.app import NanoVerImdApplication
+    from nanover.openmm.serializer import deserialize_simulation
+    from nanover.openmm.imd import NanoVerImdReporter, create_imd_force
 
-    # Setup the Narupa application server
+    # Setup the NanoVer application server
     # The server is accessible using autoconnect.
-    with NarupaImdApplication.basic_server() as app:
+    with NanoVerImdApplication.basic_server() as app:
 
         # Create the imd force and a simulation that includes it.
         imd_force = create_imd_force()
         with open('simulation.xml') as infile:
             simulation = deserialize_simulation(infile.read(), imd_force=imd_force)
 
-        # Setup the reporter that does the translation between Narupa and OpenMM
-        reporter = NarupaImdReporter(
+        # Setup the reporter that does the translation between NanoVer and OpenMM
+        reporter = NanoVerImdReporter(
             frame_interval=5,
             force_interval=10,
             imd_force=imd_force,
@@ -60,10 +60,10 @@ import simtk.openmm as mm
 from simtk.openmm import app
 from simtk import unit
 
-from narupa.imd.imd_force import calculate_imd_force
-from narupa.imd import ImdStateWrapper
-from narupa.trajectory.frame_publisher import FramePublisher
-from narupa.imd.particle_interaction import ParticleInteraction
+from nanover.imd.imd_force import calculate_imd_force
+from nanover.imd import ImdStateWrapper
+from nanover.trajectory.frame_publisher import FramePublisher
+from nanover.imd.particle_interaction import ParticleInteraction
 from .converter import openmm_to_frame_data
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
@@ -71,7 +71,7 @@ IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 NextReport = Tuple[int, bool, bool, bool, bool, bool]
 
 
-class NarupaImdReporter:
+class NanoVerImdReporter:
     frame_interval: int
     force_interval: int
     imd_force: mm.CustomExternalForce
@@ -307,7 +307,7 @@ def add_imd_force_to_system(system: mm.System) -> mm.CustomExternalForce:
     The force is created, populated, added to the system and returned.
 
     This is the force that is used to communicate the particle interactions from
-    Narupa by :class:`NarupaImdReporter`.
+    NanoVer by :class:`NanoVerImdReporter`.
 
     .. seealso: create_imd_force, populate_imd_force
     """

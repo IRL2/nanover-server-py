@@ -5,9 +5,9 @@ import os
 import pytest
 
 from .simulation_utils import basic_simulation, serialized_simulation_path
-from narupa.ase.openmm.cli import initialise
-from narupa.ase.openmm.calculator import OpenMMCalculator
-from narupa.ase.wall_constraint import VelocityWallConstraint
+from nanover.ase.openmm.cli import initialise
+from nanover.ase.openmm.calculator import OpenMMCalculator
+from nanover.ase.wall_constraint import VelocityWallConstraint
 
 
 @pytest.fixture

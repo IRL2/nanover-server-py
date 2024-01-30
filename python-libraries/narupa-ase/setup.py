@@ -6,20 +6,20 @@ from distutils.core import setup
 from setuptools import find_namespace_packages
 
 setup(
-    name="narupa-ase",
+    name="nanover-ase",
     version="0.1.0",
-    description="ASE integration for Narupa",
+    description="ASE integration for NanoVer",
     author="Intangible Realities Lab",
     author_email="m.oconnor@bristol.ac.uk",
     url="https://gitlab.com/intangiblerealities/",
-    packages=find_namespace_packages("src", include="narupa.*"),
+    packages=find_namespace_packages("src", include="nanover.*"),
     package_dir={"": "src"},
     package_data={"": ["py.typed"]},
     install_requires=(
-        "narupa",
+        "nanover",
         "ase>=3.21",
     ),
     entry_points={
-        "console_scripts": ["narupa-omm-ase=narupa.ase.openmm.cli:main"],
+        "console_scripts": ["nanover-omm-ase=nanover.ase.openmm.cli:main"],
     },
 )

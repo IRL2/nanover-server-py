@@ -23,7 +23,7 @@ thermo_style	multi
 thermo		50
 
 python         post_force_callback here """
-from narupa.lammps import LammpsImd
+from nanover.lammps import LammpsImd
 from lammps import lammps
 from mpi4py import MPI
 comm = MPI.COMM_WORLD

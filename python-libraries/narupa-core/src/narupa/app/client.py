@@ -14,22 +14,22 @@ from uuid import uuid4
 
 import grpc
 from grpc import RpcError, StatusCode
-from narupa.app.app_server import DEFAULT_NARUPA_PORT, MULTIPLAYER_SERVICE_NAME
-from narupa.app.selection import RenderingSelection
-from narupa.command import CommandInfo
-from narupa.core import NarupaClient, DEFAULT_CONNECT_ADDRESS
-from narupa.core.narupa_client import DEFAULT_STATE_UPDATE_INTERVAL
-from narupa.essd import DiscoveryClient
-from narupa.imd import ImdClient, IMD_SERVICE_NAME
-from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.trajectory import FrameClient, FrameData, FRAME_SERVICE_NAME
-from narupa.trajectory.frame_server import (
+from nanover.app.app_server import DEFAULT_NANOVER_PORT, MULTIPLAYER_SERVICE_NAME
+from nanover.app.selection import RenderingSelection
+from nanover.command import CommandInfo
+from nanover.core import NanoVerClient, DEFAULT_CONNECT_ADDRESS
+from nanover.core.nanover_client import DEFAULT_STATE_UPDATE_INTERVAL
+from nanover.essd import DiscoveryClient
+from nanover.imd import ImdClient, IMD_SERVICE_NAME
+from nanover.imd.particle_interaction import ParticleInteraction
+from nanover.trajectory import FrameClient, FrameData, FRAME_SERVICE_NAME
+from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
     STEP_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
     RESET_COMMAND_KEY,
 )
-from narupa.utilities.change_buffers import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange
 
 # Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
@@ -40,10 +40,10 @@ SELECTION_ROOT_ID = "selection.root"
 SELECTION_ROOT_NAME = "Root Selection"
 
 
-ClientVarType = TypeVar("ClientVarType", bound=NarupaClient)
+ClientVarType = TypeVar("ClientVarType", bound=NanoVerClient)
 
 
-def _update_commands(client: Optional[NarupaClient]):
+def _update_commands(client: Optional[NanoVerClient]):
     if client is None:
         return {}
     try:
@@ -85,7 +85,7 @@ need_multiplayer = partial(
 )
 
 
-class NarupaImdClient:
+class NanoVerImdClient:
     """
     Interactive molecular dynamics client that receives frames, create selections,
     and join the multiplayer shared state.
@@ -98,18 +98,18 @@ class NarupaImdClient:
     All addresses are optional, so one can, for example, just connect to a trajectory service to passively receive
     frames.
 
-    The :fun:`NarupaImdClient.autoconnect` and :fun:`NarupaImdClient.connect_to_single_server` methods provide
+    The :fun:`NanoVerImdClient.autoconnect` and :fun:`NanoVerImdClient.connect_to_single_server` methods provide
     shorthands for common server setups.
 
     Inspecting a Frame
     ==================
 
-    The Narupa Imd client can be used to inspect frames received from a :class:`narupa.trajectory.FrameServer`,
+    The NanoVer Imd client can be used to inspect frames received from a :class:`nanover.trajectory.FrameServer`,
     which can be useful for analysis.
 
     .. python
         # Assuming there is only one server (or set of servers) running.
-        client = NarupaImdClient.autoconnect()
+        client = NanoVerImdClient.autoconnect()
         # Request to receive the frames from the server
         client.subscribe_to_frames()
         # Fetch the first frame.
@@ -156,7 +156,7 @@ class NarupaImdClient:
 
     _frame_client: Optional[FrameClient]
     _imd_client: Optional[ImdClient]
-    _multiplayer_client: Optional[NarupaClient]
+    _multiplayer_client: Optional[NanoVerClient]
     _frames: deque
     _current_frame: FrameData
     _first_frame: Optional[FrameData]
@@ -219,14 +219,14 @@ class NarupaImdClient:
         cls, address: Optional[str] = None, port: Optional[int] = None
     ):
         """
-        Connect to a single Narupa server running all services on the same port.
+        Connect to a single NanoVer server running all services on the same port.
 
         :param address: Address of the server.
         :param port: Server port
         :return: Instantiation of a client connected to all available services on the server at the given destination.
         """
         address = address or DEFAULT_CONNECT_ADDRESS
-        port = port or DEFAULT_NARUPA_PORT
+        port = port or DEFAULT_NANOVER_PORT
         url = (address, port)
         return cls(trajectory_address=url, imd_address=url, multiplayer_address=url)
 
@@ -239,7 +239,7 @@ class NarupaImdClient:
         multiplayer_port: int,
     ):
         """
-        Connect to a collection of Narupa servers running at the same address but potentially different ports.
+        Connect to a collection of NanoVer servers running at the same address but potentially different ports.
 
         :param address: Address of the server.
         :param multiplayer_port: The port at which multiplayer is running.
@@ -346,7 +346,7 @@ class NarupaImdClient:
 
         :param address: The address and port of the multiplayer server.
         """
-        self._multiplayer_client = self._connect_client(NarupaClient, address)
+        self._multiplayer_client = self._connect_client(NanoVerClient, address)
 
     def connect(
         self,
@@ -464,7 +464,7 @@ class NarupaImdClient:
             to begin.
         :return: The unique interaction ID of this interaction, which can be
             used to update the interaction with
-            :func:`~NarupaClient.update_interaction`.
+            :func:`~NanoVerClient.update_interaction`.
 
         :raises: ValueError, if the there is no IMD connection available.
         """
@@ -497,7 +497,7 @@ class NarupaImdClient:
         interaction has stopped.
 
         :param interaction_id: The unique interaction ID, created with
-            :func:`~NarupaClient.start_interaction`, that identifies the
+            :func:`~NanoVerClient.start_interaction`, that identifies the
             interaction to stop.
         :return: An :class:`InteractionEndReply`, which is an empty message indicating
         successful termination of the interaction.
@@ -619,7 +619,7 @@ class NarupaImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        multiplayer_client = cast(NarupaClient, self._multiplayer_client)
+        multiplayer_client = cast(NanoVerClient, self._multiplayer_client)
         multiplayer_client.subscribe_all_state_updates(interval)
 
     @need_multiplayer

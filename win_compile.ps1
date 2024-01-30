@@ -14,12 +14,12 @@ $user_option = ""
 
 if ($noedit)
 {
-    announce "Installing narupa in non-edit mode."
+    announce "Installing nanover in non-edit mode."
 }
 else
 {
     $edit_option = "-e"
-    Announce "Installing narupa-protocol in edit mode."
+    Announce "Installing nanover-protocol in edit mode."
 }
 
 if ($user) 
@@ -29,7 +29,7 @@ if ($user)
 }
 
 announce "Installing python requirements"
-python -m pip install -r ./python-libraries/narupa-core/requirements.txt ${user_option}
+python -m pip install -r ./python-libraries/nanover-core/requirements.txt ${user_option}
 
 announce "Installing prototypes requirements"
 python -m pip install -r ./python-libraries/prototypes/requirements.txt ${user_option}
@@ -38,12 +38,12 @@ announce "Installing python test requirements"
 python -m pip install -r ./python-libraries/requirements.test ${user_option}
 
 announce "Compiling proto files to python"
-python ./python-libraries/narupa-core/setup.py compile_proto
+python ./python-libraries/nanover-core/setup.py compile_proto
 
 announce "Installing the python packages"
-python -m pip install ${edit_option} ${user_option} ./python-libraries/narupa-core/
+python -m pip install ${edit_option} ${user_option} ./python-libraries/nanover-core/
 
-Get-ChildItem -Directory python-libraries/narupa-* | ForEach-Object {
+Get-ChildItem -Directory python-libraries/nanover-* | ForEach-Object {
     if (Test-Path -Path "$($_.FullName)/setup.py") {
         Write-Host "$($_.FullName)"
         pip install ${edit_option} ${user_option} ""$($_.FullName)""
@@ -65,5 +65,5 @@ if ($LASTEXITCODE -ne 0)
 }
 
 announce "Compiling proto files to C#"
-dotnet build --configuration Release csharp-libraries/Narupa.Protocol
-dotnet publish --configuration Release csharp-libraries/Narupa.Protocol
+dotnet build --configuration Release csharp-libraries/NanoVer.Protocol
+dotnet publish --configuration Release csharp-libraries/NanoVer.Protocol

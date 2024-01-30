@@ -2,7 +2,7 @@ import time
 
 import pytest
 from typing import NamedTuple, Sequence, Callable
-from narupa.utilities.grpc_utilities import subscribe_channel_connectivity_change
+from nanover.utilities.grpc_utilities import subscribe_channel_connectivity_change
 from grpc import insecure_channel, ChannelConnectivity
 
 NOMINAL_WAIT_TIME = 0.01

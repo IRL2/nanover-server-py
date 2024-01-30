@@ -3,7 +3,7 @@
 """
 Fixtures and utilities for tests that requires OpenMM simulations.
 """
-# TODO: This is a duplicated file from narupa-openmm. See issue #60.
+# TODO: This is a duplicated file from nanover-openmm. See issue #60.
 
 # Pylint does not recognize pytest fixtures, which causes some false warnings.
 # pylint: disable=unused-argument,redefined-outer-name
@@ -23,7 +23,7 @@ from simtk.unit import (
     nanometer,
 )  # pylint: disable=no-name-in-module
 
-from narupa.openmm import serializer
+from nanover.openmm import serializer
 
 
 def build_basic_simulation():

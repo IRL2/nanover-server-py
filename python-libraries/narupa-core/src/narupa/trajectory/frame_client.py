@@ -3,12 +3,12 @@
 from concurrent.futures import Future
 
 import grpc
-from narupa.core import NarupaStubClient
-from narupa.protocol.trajectory import TrajectoryServiceStub, GetFrameRequest
-from narupa.trajectory import FrameData
+from nanover.core import NanoVerStubClient
+from nanover.protocol.trajectory import TrajectoryServiceStub, GetFrameRequest
+from nanover.trajectory import FrameData
 
 
-class FrameClient(NarupaStubClient):
+class FrameClient(NanoVerStubClient):
     def __init__(self, *, channel: grpc.Channel, make_channel_owner: bool = False):
         super().__init__(
             channel=channel,

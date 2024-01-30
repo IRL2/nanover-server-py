@@ -1,9 +1,9 @@
 import pytest
 import numpy as np
-from narupa.lammps import LammpsImd
-from narupa.lammps.mock import MockLammps
-from narupa.trajectory.frame_data import PARTICLE_POSITIONS, PARTICLE_ELEMENTS
-from narupa.trajectory import FrameData
+from nanover.lammps import LammpsImd
+from nanover.lammps.mock import MockLammps
+from nanover.trajectory.frame_data import PARTICLE_POSITIONS, PARTICLE_ELEMENTS
+from nanover.trajectory import FrameData
 import sys
 
 pytestmark = pytest.mark.skipif(
@@ -11,7 +11,7 @@ pytestmark = pytest.mark.skipif(
     reason=(
         "These tests can break the windows test runner on github. "
         "This is tracked in issue #33: "
-        "<https://github.com/IRL2/narupa-protocol/issues/33>."
+        "<https://github.com/IRL2/nanover-protocol/issues/33>."
     ),
 )
 

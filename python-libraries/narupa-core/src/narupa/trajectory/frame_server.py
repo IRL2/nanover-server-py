@@ -1,8 +1,8 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Optional
-from narupa.core import (
-    NarupaServer,
+from nanover.core import (
+    NanoVerServer,
     get_requested_port_or_default,
     DEFAULT_SERVE_ADDRESS,
 )
@@ -19,7 +19,7 @@ GET_DYNAMICS_INTERVAL_COMMAND_KEY = "trajectory/get-dynamics-interval"
 SET_DYNAMICS_INTERVAL_COMMAND_KEY = "trajectory/set-dynamics-interval"
 
 
-class FrameServer(NarupaServer):
+class FrameServer(NanoVerServer):
     _trajectory_service: FramePublisher
 
     def __init__(self, *, address: Optional[str] = None, port: Optional[int] = None):

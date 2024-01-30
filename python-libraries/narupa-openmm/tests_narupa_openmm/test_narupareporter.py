@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Tests for the :class:`narupa.openmm.NarupaReporter`.
+Tests for the :class:`nanover.openmm.NanoVerReporter`.
 """
 
 # The use of fixture is not recognized by pylint and leads to erroneous warnings.
@@ -9,8 +9,8 @@ Tests for the :class:`narupa.openmm.NarupaReporter`.
 
 import pytest
 
-from narupa.trajectory import FrameData
-from narupa.openmm import NarupaReporter
+from nanover.trajectory import FrameData
+from nanover.openmm import NanoVerReporter
 
 from .simulation_utils import assert_basic_simulation_topology
 
@@ -20,9 +20,9 @@ from .simulation_utils import basic_simulation  # pylint: disable=unused-import
 
 class MockFrameServer:
     """
-    Pretend to be a :class:`narupa.trajectory.FrameServer`.
+    Pretend to be a :class:`nanover.trajectory.FrameServer`.
 
-    Mocks a :class:`narupa.trajectory.FrameServer`. Instead of sending data to
+    Mocks a :class:`nanover.trajectory.FrameServer`. Instead of sending data to
     a client, this "server" only stores the frame and topologies supposed that
     should be sent.
 
@@ -72,7 +72,7 @@ def test_describeNextReport(  # pylint: disable=invalid-name
     and different positions in the simulation.
     """
     frame_server = MockFrameServer(address="dummy", port=0)
-    reporter = NarupaReporter(
+    reporter = NanoVerReporter(
         report_interval=report_interval,
         frame_server=frame_server,
     )
@@ -83,7 +83,7 @@ def test_describeNextReport(  # pylint: disable=invalid-name
     # * velocities,
     # * forces,
     # * or energies
-    # to be pulled from the context. The NarupaReported only needs the
+    # to be pulled from the context. The NanoVerReported only needs the
     # positions.
     expected_answer = (expected_steps, True, False, False, False, True)
     assert answer == expected_answer
@@ -91,7 +91,7 @@ def test_describeNextReport(  # pylint: disable=invalid-name
 
 def test_report(basic_simulation):
     """
-    Test that two consecutive calls of :meth:`NarupaReporter.report` result in
+    Test that two consecutive calls of :meth:`NanoVerReporter.report` result in
     the expected calls of the frame server.
 
     Two calls are required as the first call to the reporter is the only one
@@ -99,7 +99,7 @@ def test_report(basic_simulation):
     to behave differently.
     """
     frame_server = MockFrameServer(address="dummy", port=0)
-    reporter = NarupaReporter(
+    reporter = NanoVerReporter(
         report_interval=1,
         frame_server=frame_server,
     )

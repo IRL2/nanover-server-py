@@ -1,13 +1,13 @@
 import pytest
 
-from narupa.essd.server import DiscoveryServer
-from narupa.essd.utils import (
+from nanover.essd.server import DiscoveryServer
+from nanover.essd.utils import (
     get_ipv4_addresses,
     get_broadcast_addresses,
     is_in_network,
     resolve_host_broadcast_address,
 )
-from narupa.essd.servicehub import ServiceHub
+from nanover.essd.servicehub import ServiceHub
 import netifaces
 from test_essd_service import properties, get_broadcastable_ip, properties_unique_id
 

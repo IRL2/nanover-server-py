@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Tests for :mod:`narupa.openmm.serializer`.
+Tests for :mod:`nanover.openmm.serializer`.
 """
 
 # Pylint does not recognize pytest fixtures which creates fake warnings.
@@ -9,12 +9,12 @@ Tests for :mod:`narupa.openmm.serializer`.
 from xml.dom.minidom import parseString
 import pytest
 
-from narupa.openmm.serializer import (
+from nanover.openmm.serializer import (
     serialize_simulation,
     deserialize_simulation,
     ROOT_TAG,
 )
-from narupa.openmm.imd import create_imd_force, get_imd_forces_from_system
+from nanover.openmm.imd import create_imd_force, get_imd_forces_from_system
 
 from .simulation_utils import (
     basic_simulation,

@@ -19,7 +19,7 @@ set -euo pipefail
 # libraries, so it should be an option.
 # Running "./compile.sh --user" will pip install with the --user option.
 
-# A developer most likely want to install narupa's python packages in edit
+# A developer most likely want to install nanover's python packages in edit
 # mode. If not, they can supply the --no-edit argument.
 user_option=""
 edit_option="-e"
@@ -37,13 +37,13 @@ for option in "$@"; do
     fi
 done
 # We do not want to use pip with --user if we use -e.
-narupa_user_option=${user_option}
+nanover_user_option=${user_option}
 if [[ ! -z "${edit_option}" ]]; then
-    narupa_user_option=""
+    nanover_user_option=""
 fi
 
 if [[ $with_python == true ]]; then
-    # mpi4py (required for narupa-lammps) needs MPI to be installed on the system.
+    # mpi4py (required for nanover-lammps) needs MPI to be installed on the system.
     python -c "import mpi4py" 2>&1 > /dev/null || {
         announce "The mpi4py library is required but cannot be found."
         announce "Because it requires a system library, it is not installed by this"
@@ -55,7 +55,7 @@ if [[ $with_python == true ]]; then
 
 
     announce "Installing python requirements"
-    python -m pip install -r ./python-libraries/narupa-core/requirements.txt ${user_option}
+    python -m pip install -r ./python-libraries/nanover-core/requirements.txt ${user_option}
 
     announce "Installing python prototypes requirements"
     python -m pip install -r ./python-libraries/prototypes/requirements.txt ${user_option}
@@ -64,14 +64,14 @@ if [[ $with_python == true ]]; then
     python -m pip install -r ./python-libraries/requirements.test ${user_option}
 
     announce "Compiling proto files to python"
-    python ./python-libraries/narupa-core/setup.py compile_proto
+    python ./python-libraries/nanover-core/setup.py compile_proto
 
     announce "Installing the python packages"
-    python -m pip install ${edit_option} ${narupa_user_option} ./python-libraries/narupa-core/
+    python -m pip install ${edit_option} ${nanover_user_option} ./python-libraries/nanover-core/
 
-    for package in python-libraries/narupa-*/; do
+    for package in python-libraries/nanover-*/; do
         if [[ -f "${package}/setup.py" ]]; then
-            python -m pip install ${edit_option} ${narupa_user_option} ${package}
+            python -m pip install ${edit_option} ${nanover_user_option} ${package}
         fi
     done
 
@@ -83,6 +83,6 @@ fi
 
 if [[ $with_dotnet == true ]]; then
     announce "Compiling proto files to C#"
-    dotnet build --configuration Release csharp-libraries/Narupa.Protocol
-    dotnet publish --configuration Release csharp-libraries/Narupa.Protocol
+    dotnet build --configuration Release csharp-libraries/NanoVer.Protocol
+    dotnet publish --configuration Release csharp-libraries/NanoVer.Protocol
 fi

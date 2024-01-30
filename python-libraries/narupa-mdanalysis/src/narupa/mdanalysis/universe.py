@@ -1,18 +1,18 @@
 """
-Facilities to read a Narupa trajectory recording into an MDAnalysis Universe.
+Facilities to read a NanoVer trajectory recording into an MDAnalysis Universe.
 
 .. code:: python
     import MDAnalysis as mda
-    from narupa.mdanalysis import NarupaReader, NarupaParser
+    from nanover.mdanalysis import NanoVerReader, NanoVerParser
 
     u = mda.Universe(
         'input.traj',
-        format=NarupaReader,
-        topology_format=NarupaParser,
+        format=NanoVerReader,
+        topology_format=NanoVerParser,
     )
 
 .. note::
-    A Narupa trajectory recording can have its topology change over time. It
+    A NanoVer trajectory recording can have its topology change over time. It
     can even contain trajectories for unrelated simulations. The topology in an
     MDAnalysis Universe is constant. Only the frames corresponding to the first
     topology are read in a Universe.
@@ -40,8 +40,8 @@ from MDAnalysis.core.topology import Topology
 from MDAnalysis.topology.base import TopologyReaderBase
 import numpy as np
 
-from narupa.trajectory import FrameData
-from narupa.trajectory.frame_data import (
+from nanover.trajectory import FrameData
+from nanover.trajectory.frame_data import (
     PARTICLE_COUNT,
     RESIDUE_COUNT,
     CHAIN_COUNT,
@@ -86,7 +86,7 @@ KEY_TO_ATTRIBUTE = {
 }
 
 
-class NarupaParser(TopologyReaderBase):
+class NanoVerParser(TopologyReaderBase):
     def parse(self, **kwargs):
         with openany(self.filename, mode="rb") as infile:
             data = infile.read()
@@ -146,7 +146,7 @@ class NarupaParser(TopologyReaderBase):
         )
 
 
-class NarupaReader(ProtoReader):
+class NanoVerReader(ProtoReader):
     units = {"time": "ps", "length": "nm", "velocity": "nm/ps"}
 
     def __init__(self, filename, convert_units=True, **kwargs):
@@ -275,9 +275,9 @@ def explosion_mask(trajectory, max_displacement):
     :return: A list with one boolean per frame in the trajectory.
         The boolean is True is the frame is NOT exploding.
     :raises KeyError: if the frames in the trajectory do not have
-        a reset counter. This can be the case for narupa trajectories
+        a reset counter. This can be the case for nanover trajectories
         recorded from a server that does not keep track of resets in
-        the frames, or if the universe has not been built from a narupa
+        the frames, or if the universe has not been built from a nanover
         trajectory recording.
 
     Here is an example of how to write a trajectory that excludes the
@@ -285,12 +285,12 @@ def explosion_mask(trajectory, max_displacement):
 
     .. code:: python
         import MDAnalysis as mda
-        from narupa.mdanalysis import NarupaParser, NarupaReader, explosion_mask
+        from nanover.mdanalysis import NanoVerParser, NanoVerReader, explosion_mask
 
         u = mda.Universe(
             'hello.traj',
-            format=NarupaReader,
-            topology_format=NarupaParser,
+            format=NanoVerReader,
+            topology_format=NanoVerParser,
         )
         mask = explosion_mask(u.trajectory, 100)
         u.atoms.write('hello.pdb')

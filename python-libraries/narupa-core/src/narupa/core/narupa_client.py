@@ -1,5 +1,5 @@
 """
-A module for setting up typical Narupa clients, containing a client
+A module for setting up typical NanoVer clients, containing a client
 that sets up a command service.
 """
 
@@ -10,28 +10,28 @@ from typing import Dict, Iterable, ContextManager, Union, Mapping
 from uuid import uuid4
 
 import grpc
-from narupa.command.command_info import CommandInfo
-from narupa.core import GrpcClient
-from narupa.protocol.command import (
+from nanover.command.command_info import CommandInfo
+from nanover.core import GrpcClient
+from nanover.protocol.command import (
     CommandStub,
     CommandMessage,
     GetCommandsRequest,
 )
-from narupa.protocol.state import (
+from nanover.protocol.state import (
     StateStub,
     SubscribeStateUpdatesRequest,
     StateUpdate,
     UpdateStateRequest,
     UpdateLocksRequest,
 )
-from narupa.state.state_dictionary import StateDictionary
-from narupa.state.state_service import (
+from nanover.state.state_dictionary import StateDictionary
+from nanover.state.state_service import (
     state_update_to_dictionary_change,
     dictionary_change_to_state_update,
     validate_dict_is_serializable,
 )
-from narupa.utilities.change_buffers import DictionaryChange
-from narupa.utilities.protobuf_utilities import (
+from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.protobuf_utilities import (
     dict_to_struct,
     struct_to_dict,
     deep_copy_serializable_dict,
@@ -41,9 +41,9 @@ from narupa.utilities.protobuf_utilities import (
 DEFAULT_STATE_UPDATE_INTERVAL = 1 / 30
 
 
-class NarupaClient(GrpcClient):
+class NanoVerClient(GrpcClient):
     """
-    A base gRPC client for Narupa services. Automatically sets up a stub
+    A base gRPC client for NanoVer services. Automatically sets up a stub
     for the :class:`CommandServicer`, enabling the running of arbitrary commands.
 
     """
@@ -179,9 +179,9 @@ class NarupaClient(GrpcClient):
         self._state = StateDictionary()
 
 
-class NarupaStubClient(NarupaClient):
+class NanoVerStubClient(NanoVerClient):
     """
-    A base gRPC client for Narupa services. Automatically sets up a stub
+    A base gRPC client for NanoVer services. Automatically sets up a stub
     for the :class:`CommandServicer`, and attaches the provided stub to
     the underlying gRPC channel.
 

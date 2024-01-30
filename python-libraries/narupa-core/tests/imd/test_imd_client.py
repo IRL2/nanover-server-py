@@ -1,13 +1,13 @@
 import itertools
 import time
 import pytest
-from narupa.imd.particle_interaction import ParticleInteraction
-from narupa.imd.imd_state import (
+from nanover.imd.particle_interaction import ParticleInteraction
+from nanover.imd.imd_state import (
     INTERACTION_PREFIX,
     interaction_to_dict,
     dict_to_interaction,
 )
-from narupa.utilities.change_buffers import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange
 
 from .test_imd_server import imd_server_client, imd_server, interaction
 

@@ -1,5 +1,5 @@
 """
-Unit tests for :mod:`narupa.core.request_queues`.
+Unit tests for :mod:`nanover.core.request_queues`.
 """
 
 import time
@@ -8,7 +8,7 @@ from queue import Queue, Empty
 import pytest
 import itertools
 
-from narupa.utilities import request_queues
+from nanover.utilities import request_queues
 
 
 def test_one_queue_serial():

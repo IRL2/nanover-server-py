@@ -1,15 +1,15 @@
 import time
 import numpy
 import pytest
-from narupa.app.multiuser import (
+from nanover.app.multiuser import (
     RADIAL_ORIENT_COMMAND_KEY,
     MULTIUSER_ORIGIN_PREFIX,
     add_multiuser_commands,
 )
-from narupa.utilities.change_buffers import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange
 
 from ..app.test_client_selections import server_clients
-from ..core.test_narupa_client_server_state import IMMEDIATE_REPLY_WAIT_TIME
+from ..core.test_nanover_client_server_state import IMMEDIATE_REPLY_WAIT_TIME
 
 
 @pytest.mark.parametrize("avatar_count", (0, 1, 4))

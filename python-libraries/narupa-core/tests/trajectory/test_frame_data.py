@@ -8,13 +8,13 @@ import pytest
 from hypothesis import strategies as st
 from hypothesis import given
 
-from narupa.protocol.trajectory import FrameData as GrpcFrameData
-from narupa.trajectory.frame_data import (
+from nanover.protocol.trajectory import FrameData as GrpcFrameData
+from nanover.trajectory.frame_data import (
     FrameData,
     RecordView,
 )
-from narupa.trajectory import frame_data
-from narupa.utilities.protobuf_utilities import object_to_value
+from nanover.trajectory import frame_data
+from nanover.utilities.protobuf_utilities import object_to_value
 from .. import (
     EXACT_SINGLE_VALUE_STRATEGY,
     EXACT_VALUE_STRATEGIES,
@@ -90,7 +90,7 @@ def raw_frame_with_rich_value(draw, value_strategy):
     On the contrary to :fun:`raw_frame_with_single_value`, the value can be a
     container. Also, while :fun:`raw_frame_with_single_value` uses low level
     ways of assigning the value in the protobuf object, this function uses
-    :mod:`narupa.utilities.protobuf_utilities`.
+    :mod:`nanover.utilities.protobuf_utilities`.
     """
     value = draw(value_strategy)
     raw = GrpcFrameData()

@@ -7,8 +7,8 @@ from typing import Dict, Optional, List, Union
 
 import numpy as np
 import numpy.typing as npt
-from narupa.protocol import trajectory
-from narupa.utilities.protobuf_utilities import value_to_object, object_to_value
+from nanover.protocol import trajectory
+from nanover.utilities.protobuf_utilities import value_to_object, object_to_value
 
 BOX_VECTORS = "system.box.vectors"
 SIMULATION_TIME = "system.simulation.time"

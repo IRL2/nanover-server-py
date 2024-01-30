@@ -5,7 +5,7 @@ ASE calculator for use with OpenMM.
 """
 from typing import Optional
 
-import narupa.openmm.serializer as serializer
+import nanover.openmm.serializer as serializer
 import numpy as np
 from ase import Atoms, Atom  # type: ignore
 from ase.calculators.calculator import Calculator, all_changes
@@ -13,7 +13,7 @@ from simtk.openmm import System, State
 from simtk.openmm.app import Topology, Simulation
 from simtk.unit import angstrom, kilojoules_per_mole, kilojoule_per_mole, amu, Quantity
 
-from narupa.ase.converter import KJMOL_TO_EV
+from nanover.ase.converter import KJMOL_TO_EV
 
 
 class OpenMMCalculator(Calculator):

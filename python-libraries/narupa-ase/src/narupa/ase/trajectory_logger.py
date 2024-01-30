@@ -164,7 +164,7 @@ class TrajectoryLogger:
 
         ..note
 
-        This method is used in Narupa to produce new trajectory files whenever the
+        This method is used in NanoVer to produce new trajectory files whenever the
         simulation is reset by the user.
 
         """

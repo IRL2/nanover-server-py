@@ -1,7 +1,7 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Tests for :mod:`narupa.openmm.imd`.
+Tests for :mod:`nanover.openmm.imd`.
 """
 
 from queue import Queue
@@ -10,11 +10,11 @@ import numpy as np
 import pytest
 from simtk import openmm as mm
 from simtk.unit import nanometer
-from narupa.openmm import imd
-from narupa.app import NarupaImdApplication
-from narupa.openmm.serializer import deserialize_simulation
-from narupa.trajectory import FrameData
-from narupa.imd.particle_interaction import ParticleInteraction
+from nanover.openmm import imd
+from nanover.app import NanoVerImdApplication
+from nanover.openmm.serializer import deserialize_simulation
+from nanover.trajectory import FrameData
+from nanover.imd.particle_interaction import ParticleInteraction
 
 from .simulation_utils import (
     basic_system,
@@ -29,8 +29,8 @@ from .simulation_utils import (
 @pytest.fixture
 def app_simulation_and_reporter(basic_simulation_with_imd_force):
     simulation, imd_force = basic_simulation_with_imd_force
-    with NarupaImdApplication.basic_server(port=0) as app:
-        reporter = imd.NarupaImdReporter(
+    with NanoVerImdApplication.basic_server(port=0) as app:
+        reporter = imd.NanoVerImdReporter(
             frame_interval=3,
             force_interval=4,
             imd_force=imd_force,
@@ -134,7 +134,7 @@ def test_get_imd_forces_from_system(basic_system, number_of_forces):
     assert len(compatible_forces) == number_of_forces
 
 
-class TestNarupaImdReporter:
+class TestNanoVerImdReporter:
     # The name of the method is part of the OpenMM API. It cannot be made to
     # conform PEP8.
     # noinspection PyPep8Naming
@@ -145,7 +145,7 @@ class TestNarupaImdReporter:
         self, app_simulation_and_reporter, simulation_step, expected_step
     ):
         """
-        :meth:`NarupaImdReporter.describeNextReport` returns the expected value
+        :meth:`NanoVerImdReporter.describeNextReport` returns the expected value
         for step.
         """
         # We use a frame interval of 3 and a force interval of 4

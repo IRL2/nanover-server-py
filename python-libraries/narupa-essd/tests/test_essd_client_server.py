@@ -2,12 +2,12 @@ import time
 
 import pytest
 
-from narupa.essd import DiscoveryServer
-from narupa.essd.client import DiscoveryClient
+from nanover.essd import DiscoveryServer
+from nanover.essd.client import DiscoveryClient
 from test_essd_server import service
 from test_essd_service import properties, properties_unique_id
 
-from narupa.essd.servicehub import ServiceHub
+from nanover.essd.servicehub import ServiceHub
 
 TEST_SEARCH_TIME = 0.6
 TEST_INTERVAL_TIME = 0.001

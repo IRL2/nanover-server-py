@@ -2,14 +2,14 @@ import numpy as np
 import pytest
 from hypothesis import strategies, given
 from math import exp
-from narupa.imd.imd_force import (
+from nanover.imd.imd_force import (
     get_center_of_mass_subset,
     calculate_spring_force,
     calculate_gaussian_force,
     apply_single_interaction_force,
     calculate_imd_force,
 )
-from narupa.imd.particle_interaction import ParticleInteraction
+from nanover.imd.particle_interaction import ParticleInteraction
 
 # precomputed results of gaussian force.
 EXP_1 = exp(-1 / 2)

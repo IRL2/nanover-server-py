@@ -21,8 +21,8 @@ from simtk.unit import (
     nanometer,
 )  # pylint: disable=no-name-in-module
 
-from narupa.openmm import serializer
-import narupa.openmm.imd
+from nanover.openmm import serializer
+import nanover.openmm.imd
 
 
 BASIC_SIMULATION_BOX_VECTORS = [[50, 0, 0], [0, 50, 0], [0, 0, 50]]
@@ -122,7 +122,7 @@ def build_basic_simulation(
     topology = build_basic_topology()
     system = build_basic_system()
     if imd_force is not None:
-        narupa.openmm.imd.populate_imd_force(imd_force, system)
+        nanover.openmm.imd.populate_imd_force(imd_force, system)
         system.addForce(imd_force)
 
     force = mm.NonbondedForce()
@@ -162,7 +162,7 @@ def basic_simulation():
 
 @pytest.fixture
 def basic_simulation_with_imd_force():
-    imd_force = narupa.openmm.imd.create_imd_force()
+    imd_force = nanover.openmm.imd.create_imd_force()
     return build_basic_simulation(imd_force), imd_force
 
 
@@ -189,7 +189,7 @@ def basic_simulation_xml(basic_simulation):
 
 @pytest.fixture
 def empty_imd_force():
-    return narupa.openmm.imd.create_imd_force()
+    return nanover.openmm.imd.create_imd_force()
 
 
 def assert_basic_simulation_topology(frame):
