@@ -16,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\NanoVer.Protocol\NanoVer.Protocol.csproj" />
+      <ProjectReference Include="..\Nanover.Protocol\Nanover.Protocol.csproj" />
     </ItemGroup>
 
 </Project>

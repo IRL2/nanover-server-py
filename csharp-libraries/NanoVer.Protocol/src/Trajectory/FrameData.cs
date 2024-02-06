@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
-namespace NanoVer.Protocol.Trajectory
+namespace Nanover.Protocol.Trajectory
 {
     public partial class FrameData : IEnumerable
     {
