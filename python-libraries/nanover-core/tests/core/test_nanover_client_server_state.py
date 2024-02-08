@@ -5,8 +5,8 @@ import pytest
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.key_lockable_map import ResourceLockedError
 
-from nanover.core.nanover_client import NanoVerClient
-from nanover.core.nanover_server import NanoVerServer
+from nanover.core.nanover_client import NanoverClient
+from nanover.core.nanover_server import NanoverServer
 
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
 ARBITRARY_LOCK_DURATION = 5
@@ -18,11 +18,11 @@ INITIAL_STATE = {
 
 
 @pytest.fixture
-def client_server() -> Tuple[NanoVerClient, NanoVerServer]:
-    with NanoVerServer(address="localhost", port=0) as server:
+def client_server() -> Tuple[NanoverClient, NanoverServer]:
+    with NanoverServer(address="localhost", port=0) as server:
         change = DictionaryChange(INITIAL_STATE)
         server.update_state(None, change)
-        with NanoVerClient.insecure_channel(
+        with NanoverClient.insecure_channel(
             address="localhost", port=server.port
         ) as client:
             yield client, server
@@ -176,7 +176,7 @@ def test_client_state_reflects_other_update(client_server):
     client1, server = client_server
     client1.subscribe_all_state_updates(0)
 
-    with NanoVerClient.insecure_channel(
+    with NanoverClient.insecure_channel(
         address="localhost", port=server.port
     ) as client2:
         change = DictionaryChange({"hello": "goodbye"}, {"test"})
@@ -297,7 +297,7 @@ def test_update_unlocked_repeated(client_server):
     client1, server = client_server
     change1 = DictionaryChange({"hello": 1})
     change2 = DictionaryChange({"hello": 2})
-    with NanoVerClient.insecure_channel(
+    with NanoverClient.insecure_channel(
         address="localhost", port=server.port
     ) as client2:
         assert client1.attempt_update_state(change1)
@@ -312,7 +312,7 @@ def test_cannot_lock_other_locked(client_server):
     """
     client1, server = client_server
 
-    with NanoVerClient.insecure_channel(
+    with NanoverClient.insecure_channel(
         address="localhost", port=server.port
     ) as client2:
         client2.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
@@ -325,7 +325,7 @@ def test_cannot_release_other_lock(client_server):
     """
     client1, server = client_server
 
-    with NanoVerClient.insecure_channel(
+    with NanoverClient.insecure_channel(
         address="localhost", port=server.port
     ) as client2:
         client2.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})
@@ -340,7 +340,7 @@ def test_cannot_set_other_locked(client_server):
     """
     client1, server = client_server
 
-    with NanoVerClient.insecure_channel(
+    with NanoverClient.insecure_channel(
         address="localhost", port=server.port
     ) as client2:
         client2.attempt_update_locks({"hello": ARBITRARY_LOCK_DURATION})

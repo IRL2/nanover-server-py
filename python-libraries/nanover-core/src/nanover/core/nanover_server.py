@@ -15,7 +15,7 @@ CommandCallable = Union[
 ]
 
 
-class NanoVerServer(GrpcServer):
+class NanoverServer(GrpcServer):
     """
     A base for NanoVer gRPC servers. Sets up a gRPC server, and automatically
     attaches a :class:`CommandService` and  :class:`StateService` enabling the running of arbitrary commands

@@ -5,7 +5,7 @@ from uuid import uuid4
 from typing import Dict, Set, Mapping
 
 import grpc
-from nanover.core import NanoVerClient
+from nanover.core import NanoverClient
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.imd.imd_state import (
     INTERACTION_PREFIX,
@@ -15,7 +15,7 @@ from nanover.imd.imd_state import (
 from nanover.utilities.change_buffers import DictionaryChange
 
 
-class ImdClient(NanoVerClient):
+class ImdClient(NanoverClient):
     """
     A simple IMD client, primarily for testing the IMD server.
 

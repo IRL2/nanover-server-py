@@ -1,7 +1,7 @@
 import time
 import pytest
 from mock import Mock
-from nanover.core import NanoVerServer
+from nanover.core import NanoverServer
 from nanover.trajectory import FrameData
 
 from nanover.trajectory.frame_server import (
@@ -14,7 +14,7 @@ from nanover.trajectory.frame_server import (
 from .test_frame_server import simple_frame_data, frame_server
 from .imd.test_imd_server import imd_server, interaction
 from .core.test_nanover_client_server_commands import mock_callback, default_args
-from nanover.app.client import NanoVerImdClient
+from nanover.app.client import NanoverImdClient
 import numpy as np
 
 CLIENT_WAIT_TIME = 0.05
@@ -25,7 +25,7 @@ TEST_VALUE = "hi"
 
 @pytest.fixture
 def multiplayer_server():
-    with NanoVerServer(address="localhost", port=0) as server:
+    with NanoverServer(address="localhost", port=0) as server:
         yield server
 
 
@@ -35,7 +35,7 @@ def client_server(frame_server, imd_server, multiplayer_server):
     imd_address = imd_server.address_and_port
     multiplayer_address = multiplayer_server.address_and_port
 
-    with NanoVerImdClient(
+    with NanoverImdClient(
         trajectory_address=trajectory_address,
         imd_address=imd_address,
         multiplayer_address=multiplayer_address,
@@ -46,7 +46,7 @@ def client_server(frame_server, imd_server, multiplayer_server):
 @pytest.fixture
 def client_frame_server(frame_server):
     trajectory_address = (frame_server.address, frame_server.port)
-    with NanoVerImdClient(trajectory_address=trajectory_address) as client:
+    with NanoverImdClient(trajectory_address=trajectory_address) as client:
         yield client, frame_server
 
 
@@ -257,7 +257,7 @@ def test_no_imd(interaction):
     """
     Tests that running an interaction with no connection raises a runtime exception.
     """
-    with NanoVerImdClient() as client, pytest.raises(RuntimeError):
+    with NanoverImdClient() as client, pytest.raises(RuntimeError):
         _ = client.start_interaction(interaction)
 
 
@@ -265,7 +265,7 @@ def test_no_imd_update(interaction):
     """
     Tests that updating an interaction with no connection raises a runtime exception.
     """
-    with NanoVerImdClient() as client, pytest.raises(RuntimeError):
+    with NanoverImdClient() as client, pytest.raises(RuntimeError):
         _ = client.update_interaction("0", interaction)
 
 
@@ -273,22 +273,22 @@ def test_no_imd_cancel(interaction):
     """
     Tests that cancelling an interaction with no connection raises a runtime exception.
     """
-    with NanoVerImdClient() as client, pytest.raises(RuntimeError):
+    with NanoverImdClient() as client, pytest.raises(RuntimeError):
         _ = client.stop_interaction("0")
 
 
 def test_no_frames_get_frame():
-    with NanoVerImdClient() as client, pytest.raises(RuntimeError):
+    with NanoverImdClient() as client, pytest.raises(RuntimeError):
         _ = client.frames
 
 
 def test_no_frames_get_first_frame():
-    with NanoVerImdClient() as client, pytest.raises(RuntimeError):
+    with NanoverImdClient() as client, pytest.raises(RuntimeError):
         _ = client.first_frame
 
 
 def test_no_frames_run_frame_command():
-    with NanoVerImdClient() as client, pytest.raises(RuntimeError):
+    with NanoverImdClient() as client, pytest.raises(RuntimeError):
         _ = client.run_trajectory_command("test")
 
 
@@ -308,7 +308,7 @@ def test_set_multiplayer_value_disconnected():
     """
     tests that setting multiplayer value when not connected raises expected exception.
     """
-    with NanoVerImdClient() as client:
+    with NanoverImdClient() as client:
         with pytest.raises(RuntimeError):
             client.set_shared_value(TEST_KEY, TEST_VALUE)
 
@@ -317,7 +317,7 @@ def test_join_multiplayer_disconnected():
     """
     Tests that joining multiplayer when not connected raises expected exception.
     """
-    with NanoVerImdClient() as client:
+    with NanoverImdClient() as client:
         with pytest.raises(RuntimeError):
             client.subscribe_multiplayer()
 
@@ -326,7 +326,7 @@ def test_get_shared_resources_disconnected():
     """
     Tests that getting shared resources produces empty dictionary.
     """
-    with NanoVerImdClient() as client:
+    with NanoverImdClient() as client:
         with pytest.raises(RuntimeError):
             _ = client.latest_multiplayer_values
 

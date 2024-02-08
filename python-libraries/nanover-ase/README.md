@@ -18,7 +18,7 @@ Running a server from python
 ----------------------------
 
 The `nanover-ase` module provides the
-`nanover.ase.NanoVerASEDynamics` class. Given an ASE simulation set up with an 
+`nanover.ase.NanoverASEDynamics` class. Given an ASE simulation set up with an 
 [ASE molecular dynamics runner](https://wiki.fysik.dtu.dk/ase/ase/md.html), this class will 
 attach interactive molecular dynamics functionality and frame serving to the dynamics. 
 An example is given below, assuming an ASE Atoms object has been set up, named `atoms`:
@@ -26,13 +26,13 @@ An example is given below, assuming an ASE Atoms object has been set up, named `
 ```python
 from ase import units
 from ase.md import Langevin
-from nanover.ase.imd import NanoVerASEDynamics
+from nanover.ase.imd import NanoverASEDynamics
 
 # Given some ASE atoms object appropriately set up, set up dynamics.
 dyn = Langevin(atoms, 1 * units.fs, temperature_K=300, fraction=0.1)
 
 # Set up a basic NanoVer server to run the interactive dynamics.
-with NanoVerASEDynamics.basic_imd(dyn) as imd:
+with NanoverASEDynamics.basic_imd(dyn) as imd:
     while True:
         imd.run(100)
 ```

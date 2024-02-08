@@ -2,7 +2,7 @@
 # Licensed under the GPL. See License.txt in the project root for license information.
 from typing import Optional
 from nanover.core import (
-    NanoVerServer,
+    NanoverServer,
     get_requested_port_or_default,
     DEFAULT_SERVE_ADDRESS,
 )
@@ -19,7 +19,7 @@ GET_DYNAMICS_INTERVAL_COMMAND_KEY = "trajectory/get-dynamics-interval"
 SET_DYNAMICS_INTERVAL_COMMAND_KEY = "trajectory/set-dynamics-interval"
 
 
-class FrameServer(NanoVerServer):
+class FrameServer(NanoverServer):
     _trajectory_service: FramePublisher
 
     def __init__(self, *, address: Optional[str] = None, port: Optional[int] = None):

@@ -7,7 +7,7 @@ import time
 import pytest
 from ase import units
 from nanover.app.app_server import DEFAULT_NANOVER_PORT
-from nanover.app import NanoVerImdClient
+from nanover.app import NanoverImdClient
 from ase.io import read
 from nanover.ase.openmm import ASEOpenMMRunner, OpenMMIMDRunner
 from nanover.ase.openmm.runner import (
@@ -76,7 +76,7 @@ def runner(runner_class, basic_simulation, imd_params):
 
 @pytest.fixture()
 def client_runner(runner):
-    with NanoVerImdClient.connect_to_single_server(port=runner.port) as client:
+    with NanoverImdClient.connect_to_single_server(port=runner.port) as client:
         yield client, runner
 
 

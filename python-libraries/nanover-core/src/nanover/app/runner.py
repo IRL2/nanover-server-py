@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional
 
 
-class NanoVerRunner(metaclass=ABCMeta):
+class NanoverRunner(metaclass=ABCMeta):
     @property
     def address(self):
         """

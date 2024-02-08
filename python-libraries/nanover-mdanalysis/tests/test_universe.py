@@ -3,7 +3,7 @@ import pytest
 import itertools
 import numpy as np
 import MDAnalysis as mda
-from nanover.mdanalysis import NanoVerParser, NanoVerReader
+from nanover.mdanalysis import NanoverParser, NanoverReader
 
 SINGLE_TOPOLOGY_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -39,8 +39,8 @@ REFERENCE_PDB = os.path.join(
 def single_topology_universe():
     return mda.Universe(
         SINGLE_TOPOLOGY_TRAJ,
-        format=NanoVerReader,
-        topology_format=NanoVerParser,
+        format=NanoverReader,
+        topology_format=NanoverParser,
     )
 
 
@@ -48,8 +48,8 @@ def single_topology_universe():
 def multi_topology_universe():
     return mda.Universe(
         MULTI_TOPOLOGY_TRAJ,
-        format=NanoVerReader,
-        topology_format=NanoVerParser,
+        format=NanoverReader,
+        topology_format=NanoverParser,
     )
 
 
@@ -57,8 +57,8 @@ def multi_topology_universe():
 def user_forces_universe():
     return mda.Universe(
         USER_FORCES_TRAJ,
-        format=NanoVerReader,
-        topology_format=NanoVerParser,
+        format=NanoverReader,
+        topology_format=NanoverParser,
     )
 
 
@@ -82,8 +82,8 @@ def feature_universe_and_features(request):
     return (
         mda.Universe(
             file_path,
-            format=NanoVerReader,
-            topology_format=NanoVerParser,
+            format=NanoverReader,
+            topology_format=NanoverParser,
         ),
         with_velocities,
         with_forces,

@@ -6,7 +6,7 @@ import threading
 
 from osc_client import OscClient
 from nanover.trajectory import FrameServer, FrameData
-from nanover.app.client import DEFAULT_SUBSCRIPTION_INTERVAL, NanoVerImdClient
+from nanover.app.client import DEFAULT_SUBSCRIPTION_INTERVAL, NanoverImdClient
 
 from pythonosc import dispatcher
 from pythonosc.osc_server import ThreadingOSCUDPServer
@@ -58,7 +58,7 @@ def frame_osc_converter(frame_server, osc_server):
     of them.
     """
     osc_port = osc_server.socket.getsockname()[1]
-    nanover_client = NanoVerImdClient(trajectory_address=("localhost", frame_server.port))
+    nanover_client = NanoverImdClient(trajectory_address=("localhost", frame_server.port))
     with OscClient(
         nanover_client,
         osc_address=(IPV4_LOCALHOST, osc_port),

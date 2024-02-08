@@ -58,14 +58,14 @@ object (such as adding a reporter, or accessing the context) can be achieved.
 Refer to the OpenMM [documentation](http://openmm.org/documentation.html) for more details.
 
 A NanoVer server can also be included in an existing OpenMM workflow by adding
-a `NanoVerReporter` to an existing simulation object:
+a `NanoverReporter` to an existing simulation object:
 
 ```python
 import simtk.openmm as mm
 from simtk.openmm import app
 
 from nanover.trajectory import FrameServer
-from nanover.openmm import NanoVerReporter
+from nanover.openmm import NanoverReporter
 
 # Create an OpenMM simulation
 simulation = app.Simulation(...)
@@ -73,7 +73,7 @@ simulation = app.Simulation(...)
 # Start a NanoVer frame server
 frame_server = FrameServer(address='localhost', port=8000)
 # Setup a reporter to link OpenMM and NanoVer
-nanover_reporter = NanoVerReporter(report_interval=1, frame_server=frame_server)
+nanover_reporter = NanoverReporter(report_interval=1, frame_server=frame_server)
 # Add the NanoVer reporter to the simulation
 simulation.reporters.append(nanover_reporter)
 

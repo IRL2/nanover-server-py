@@ -10,5 +10,5 @@ from .grpc_server import (
     DEFAULT_CONNECT_ADDRESS,
 )
 from .grpc_client import GrpcClient
-from .nanover_client import NanoVerClient, NanoVerStubClient
-from .nanover_server import NanoVerServer
+from .nanover_client import NanoverClient, NanoverStubClient
+from .nanover_server import NanoverServer

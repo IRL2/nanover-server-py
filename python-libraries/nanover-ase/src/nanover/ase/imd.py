@@ -14,7 +14,7 @@ import numpy as np
 from ase import Atoms  # type: ignore
 from ase.calculators.calculator import Calculator
 from ase.md.md import MolecularDynamics
-from nanover.app import NanoVerImdApplication
+from nanover.app import NanoverImdApplication
 from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.frame_adaptor import send_ase_frame
 from nanover.ase.imd_calculator import ImdCalculator
@@ -29,11 +29,11 @@ from nanover.trajectory.frame_server import (
 from nanover.utilities.timing import VariableIntervalGenerator
 
 
-class NanoVerASEDynamics:
+class NanoverASEDynamics:
     """
     Interactive molecular dynamics adaptor for use with ASE.
 
-    :param nanover_imd_app: A :class:`NanoVerImdApplication` to pass frames to and
+    :param nanover_imd_app: A :class:`NanoverImdApplication` to pass frames to and
         read forces from.
     :param dynamics: A prepared ASE molecular dynamics object to run,
         with IMD attached.
@@ -51,9 +51,9 @@ class NanoVerASEDynamics:
     >>> atoms = FaceCenteredCubic(directions=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], symbol="Cu", size=(2, 2, 2), pbc=True)
     >>> atoms.calc = EMT()
     >>> ase_dynamics = Langevin(atoms, timestep=0.5, temperature_K=300, friction=1.0)
-    >>> with NanoVerASEDynamics.basic_imd(ase_dynamics) as sim: # run basic NanoVer server
+    >>> with NanoverASEDynamics.basic_imd(ase_dynamics) as sim: # run basic NanoVer server
     ...
-    ...     with NanoVerImdClient.autoconnect() as client: # connect an iMD client.
+    ...     with NanoverImdClient.autoconnect() as client: # connect an iMD client.
     ...         sim.run(10) # run some dynamics
     ...         client.first_frame.particle_count # the client will have received some MD data!
     32
@@ -65,7 +65,7 @@ class NanoVerASEDynamics:
 
     def __init__(
         self,
-        nanover_imd_app: NanoVerImdApplication,
+        nanover_imd_app: NanoverImdApplication,
         dynamics: MolecularDynamics,
         frame_method: Optional[Callable] = None,
         frame_interval=1,
@@ -119,10 +119,10 @@ class NanoVerASEDynamics:
         :param dynamics: Molecular dynamics object to attach the server to.
         :param address: Address to run the server at.
         :param port: Port to run the server on.
-        :param kwargs: Key-word arguments to pass to the constructor of :class:~NanoVerASEDynamics
-        :return: Instantiation of a :class:~NanoVerASEDynamics configured with the given server parameters and dynamics.
+        :param kwargs: Key-word arguments to pass to the constructor of :class:~NanoverASEDynamics
+        :return: Instantiation of a :class:~NanoverASEDynamics configured with the given server parameters and dynamics.
         """
-        with NanoVerImdApplication.basic_server(address=address, port=port) as app:
+        with NanoverImdApplication.basic_server(address=address, port=port) as app:
             with cls(app, dynamics, **kwargs) as imd:
                 yield imd
 

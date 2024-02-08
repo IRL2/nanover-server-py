@@ -1,8 +1,8 @@
 import time
 
 import pytest
-from nanover.app import NanoVerImdClient
-from nanover.core import NanoVerServer
+from nanover.app import NanoverImdClient
+from nanover.core import NanoverServer
 
 UPDATE_TIME = 0.01
 
@@ -39,9 +39,9 @@ def server_clients():
     Provides a multiplayer server hosting on an available port on localhost,
     and two NanoVer clients connected to it.
     """
-    server = NanoVerServer(address="localhost", port=0)
-    client1 = NanoVerImdClient(multiplayer_address=(server.address, server.port))
-    client2 = NanoVerImdClient(multiplayer_address=(server.address, server.port))
+    server = NanoverServer(address="localhost", port=0)
+    client1 = NanoverImdClient(multiplayer_address=(server.address, server.port))
+    client2 = NanoverImdClient(multiplayer_address=(server.address, server.port))
 
     client1.subscribe_multiplayer(interval=0)
     client2.subscribe_multiplayer(interval=0)

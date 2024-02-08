@@ -1,9 +1,9 @@
 import pytest
-from nanover.core import NanoVerServer
+from nanover.core import NanoverServer
 from nanover.trajectory import FrameServer
 from nanover.imd.imd_server import ImdServer
 
-TEST_SERVERS = (FrameServer, ImdServer, NanoVerServer)
+TEST_SERVERS = (FrameServer, ImdServer, NanoverServer)
 TEST_PORTS = (54321, 60000, 62123)
 
 

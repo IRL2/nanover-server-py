@@ -41,7 +41,7 @@ from nanover.utilities.protobuf_utilities import (
 DEFAULT_STATE_UPDATE_INTERVAL = 1 / 30
 
 
-class NanoVerClient(GrpcClient):
+class NanoverClient(GrpcClient):
     """
     A base gRPC client for NanoVer services. Automatically sets up a stub
     for the :class:`CommandServicer`, enabling the running of arbitrary commands.
@@ -179,7 +179,7 @@ class NanoVerClient(GrpcClient):
         self._state = StateDictionary()
 
 
-class NanoVerStubClient(NanoVerClient):
+class NanoverStubClient(NanoverClient):
     """
     A base gRPC client for NanoVer services. Automatically sets up a stub
     for the :class:`CommandServicer`, and attaches the provided stub to

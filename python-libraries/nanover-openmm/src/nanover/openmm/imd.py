@@ -16,19 +16,19 @@ the two previous functions. When a simulation is created using
 already present, or must be added by passing it with the ``imd_force``
 parameter.
 
-The reporter is :class:`NanoVerImdReporter` and both sends the frames and
+The reporter is :class:`NanoverImdReporter` and both sends the frames and
 receives the interactions. It can be use instead of
-:class:`nanover.openmm.NanoVerReporter` that only sends the frames.
+:class:`nanover.openmm.NanoverReporter` that only sends the frames.
 
 .. code:: python
 
-    from nanover.app import NanoVerImdApplication
+    from nanover.app import NanoverImdApplication
     from nanover.openmm.serializer import deserialize_simulation
-    from nanover.openmm.imd import NanoVerImdReporter, create_imd_force
+    from nanover.openmm.imd import NanoverImdReporter, create_imd_force
 
     # Setup the NanoVer application server
     # The server is accessible using autoconnect.
-    with NanoVerImdApplication.basic_server() as app:
+    with NanoverImdApplication.basic_server() as app:
 
         # Create the imd force and a simulation that includes it.
         imd_force = create_imd_force()
@@ -36,7 +36,7 @@ receives the interactions. It can be use instead of
             simulation = deserialize_simulation(infile.read(), imd_force=imd_force)
 
         # Setup the reporter that does the translation between NanoVer and OpenMM
-        reporter = NanoVerImdReporter(
+        reporter = NanoverImdReporter(
             frame_interval=5,
             force_interval=10,
             imd_force=imd_force,
@@ -71,7 +71,7 @@ IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 NextReport = Tuple[int, bool, bool, bool, bool, bool]
 
 
-class NanoVerImdReporter:
+class NanoverImdReporter:
     frame_interval: int
     force_interval: int
     imd_force: mm.CustomExternalForce
@@ -307,7 +307,7 @@ def add_imd_force_to_system(system: mm.System) -> mm.CustomExternalForce:
     The force is created, populated, added to the system and returned.
 
     This is the force that is used to communicate the particle interactions from
-    NanoVer by :class:`NanoVerImdReporter`.
+    NanoVer by :class:`NanoverImdReporter`.
 
     .. seealso: create_imd_force, populate_imd_force
     """

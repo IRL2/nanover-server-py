@@ -16,8 +16,8 @@ from simtk.openmm import app
 from simtk import openmm
 
 from nanover.openmm import serializer
-from nanover.app import NanoVerImdApplication, NanoVerRunner
-from .imd import NanoVerImdReporter, get_imd_forces_from_system, create_imd_force
+from nanover.app import NanoverImdApplication, NanoverRunner
+from .imd import NanoverImdReporter, get_imd_forces_from_system, create_imd_force
 from nanover.utilities.event import Event
 from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
@@ -37,7 +37,7 @@ SET_FORCE_INTERVAL_COMMAND_KEY = "imd/set-force-interval"
 RunnerClass = TypeVar("RunnerClass", bound="OpenMMRunner")
 
 
-class OpenMMRunner(NanoVerRunner):
+class OpenMMRunner(NanoverRunner):
     """
     Convenience class to run an OpenMM simulation.
 
@@ -86,7 +86,7 @@ class OpenMMRunner(NanoVerRunner):
             remainingTime=False,
             potentialEnergy=True,
         )
-        self._app_server = NanoVerImdApplication.basic_server(name, address, port)
+        self._app_server = NanoverImdApplication.basic_server(name, address, port)
         potential_imd_forces = get_imd_forces_from_system(simulation.system)
         if not potential_imd_forces:
             raise ValueError(
@@ -103,7 +103,7 @@ class OpenMMRunner(NanoVerRunner):
         # for the purpose of this runner, the other ones are likely leftovers
         # or forces created for another purpose.
         imd_force = potential_imd_forces[-1]
-        self.reporter = NanoVerImdReporter(
+        self.reporter = NanoverImdReporter(
             frame_interval=5,
             force_interval=10,
             imd_force=imd_force,

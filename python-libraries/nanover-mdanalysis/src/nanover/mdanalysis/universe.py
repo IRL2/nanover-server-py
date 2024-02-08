@@ -3,12 +3,12 @@ Facilities to read a NanoVer trajectory recording into an MDAnalysis Universe.
 
 .. code:: python
     import MDAnalysis as mda
-    from nanover.mdanalysis import NanoVerReader, NanoVerParser
+    from nanover.mdanalysis import NanoverReader, NanoverParser
 
     u = mda.Universe(
         'input.traj',
-        format=NanoVerReader,
-        topology_format=NanoVerParser,
+        format=NanoverReader,
+        topology_format=NanoverParser,
     )
 
 .. note::
@@ -86,7 +86,7 @@ KEY_TO_ATTRIBUTE = {
 }
 
 
-class NanoVerParser(TopologyReaderBase):
+class NanoverParser(TopologyReaderBase):
     def parse(self, **kwargs):
         with openany(self.filename, mode="rb") as infile:
             data = infile.read()
@@ -146,7 +146,7 @@ class NanoVerParser(TopologyReaderBase):
         )
 
 
-class NanoVerReader(ProtoReader):
+class NanoverReader(ProtoReader):
     units = {"time": "ps", "length": "nm", "velocity": "nm/ps"}
 
     def __init__(self, filename, convert_units=True, **kwargs):
@@ -285,12 +285,12 @@ def explosion_mask(trajectory, max_displacement):
 
     .. code:: python
         import MDAnalysis as mda
-        from nanover.mdanalysis import NanoVerParser, NanoVerReader, explosion_mask
+        from nanover.mdanalysis import NanoverParser, NanoverReader, explosion_mask
 
         u = mda.Universe(
             'hello.traj',
-            format=NanoVerReader,
-            topology_format=NanoVerParser,
+            format=NanoverReader,
+            topology_format=NanoverParser,
         )
         mask = explosion_mask(u.trajectory, 100)
         u.atoms.write('hello.pdb')

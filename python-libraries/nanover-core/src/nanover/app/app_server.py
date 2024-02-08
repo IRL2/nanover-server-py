@@ -9,7 +9,7 @@ from typing import Tuple, Optional, Set
 from nanover.app.multiuser import add_multiuser_commands
 from typing_extensions import Protocol
 
-from nanover.core import NanoVerServer, DEFAULT_SERVE_ADDRESS
+from nanover.core import NanoverServer, DEFAULT_SERVE_ADDRESS
 from nanover.essd import DiscoveryServer, ServiceHub
 
 
@@ -23,7 +23,7 @@ class SupportsClose(Protocol):
 
 def start_default_server_and_discovery(
     address: Optional[str] = None, port: Optional[int] = None
-) -> Tuple[NanoVerServer, DiscoveryServer]:
+) -> Tuple[NanoverServer, DiscoveryServer]:
     """
     Utility method for creating a default NanoVer server along with ESSD discovery.
 
@@ -38,7 +38,7 @@ def start_default_server_and_discovery(
     if port is None:
         port = DEFAULT_NANOVER_PORT
     try:
-        server = NanoVerServer(address=address, port=port)
+        server = NanoverServer(address=address, port=port)
     except IOError:
         if port == DEFAULT_NANOVER_PORT:
             raise IOError(
@@ -50,7 +50,7 @@ def start_default_server_and_discovery(
     return server, discovery
 
 
-class NanoVerApplicationServer:
+class NanoverApplicationServer:
     """
     Provides a convenient NanoVer server for typical applications, with local
     area network discovery provided by ESSD, multiplayer configuration and a
@@ -66,7 +66,7 @@ class NanoVerApplicationServer:
 
     def __init__(
         self,
-        server: NanoVerServer,
+        server: NanoverServer,
         discovery: Optional[DiscoveryServer] = None,
         name: Optional[str] = None,
     ):
@@ -140,7 +140,7 @@ class NanoVerApplicationServer:
         return self._server.port
 
     @property
-    def server(self) -> NanoVerServer:
+    def server(self) -> NanoverServer:
         """
         The underlying NanoVer server for this application.
         One can use this to manage commands and services.
@@ -163,7 +163,7 @@ class NanoVerApplicationServer:
         The discovery service that can be used to allow clients to find services hosted by this application.
         :return: The discovery service, or None if no discovery has been set up.
 
-        Services added directly to the server running on this application via :fun:`NanoVerApplicationServer.add_service`
+        Services added directly to the server running on this application via :fun:`NanoverApplicationServer.add_service`
         are automatically added to this discovery service.
 
         Accessing the discovery service directly enables one to register their own server that may be running

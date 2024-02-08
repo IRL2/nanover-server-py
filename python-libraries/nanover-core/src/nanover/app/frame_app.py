@@ -6,13 +6,13 @@ simulations and trajectories for consumption by clients.
 
 from typing import Optional
 
-from nanover.app import NanoVerApplicationServer
-from nanover.core import NanoVerServer
+from nanover.app import NanoverApplicationServer
+from nanover.core import NanoverServer
 from nanover.essd import DiscoveryServer
 from nanover.trajectory import FramePublisher
 
 
-class NanoVerFrameApplication(NanoVerApplicationServer):
+class NanoverFrameApplication(NanoverApplicationServer):
     """
 
     Application-level class for implementing a NanoVer frame server, something that publishes
@@ -21,7 +21,7 @@ class NanoVerFrameApplication(NanoVerApplicationServer):
     Example
     =======
 
-    >>> with NanoVerFrameApplication.basic_server() as app:
+    >>> with NanoverFrameApplication.basic_server() as app:
     ...     frame_publisher = app.frame_publisher
     ...     example_frame = FrameData() # A simple frame representing two particles.
     ...     example_frame.particle_positions = [[0,0,0],[1,1,1]]
@@ -34,7 +34,7 @@ class NanoVerFrameApplication(NanoVerApplicationServer):
 
     def __init__(
         self,
-        server: NanoVerServer,
+        server: NanoverServer,
         discovery: Optional[DiscoveryServer] = None,
         name: Optional[str] = None,
     ):

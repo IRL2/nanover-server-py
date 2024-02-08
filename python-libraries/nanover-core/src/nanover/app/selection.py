@@ -30,9 +30,9 @@ SELECTED_PARTICLE_IDS_DEFAULT = None
 class RenderingSelection:
     """
 
-    A local representation of a selection in a NanoVerIMD simulation.
+    A local representation of a selection in a NanoverIMD simulation.
 
-    Not intended to be created directly, but rather via the :class:`NanoVerImdClient`, which handles
+    Not intended to be created directly, but rather via the :class:`NanoverImdClient`, which handles
     synchronising the state of the selections with the server.
 
     Changes to this selection are only applied when a call to

@@ -7,7 +7,7 @@ import pytest
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
 
-from nanover.ase.imd import NanoVerASEDynamics
+from nanover.ase.imd import NanoverASEDynamics
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.imd import ImdClient
 from nanover.imd.particle_interaction import ParticleInteraction
@@ -44,7 +44,7 @@ def imd_server_atoms_client():
     calculator = LennardJones()
     atoms.calc = calculator
     dynamics = VelocityVerlet(atoms, timestep=0.5)
-    with NanoVerASEDynamics.basic_imd(dynamics, port=0) as server:
+    with NanoverASEDynamics.basic_imd(dynamics, port=0) as server:
         with ImdClient.insecure_channel(port=server.port) as client:
             yield server, atoms, client
 

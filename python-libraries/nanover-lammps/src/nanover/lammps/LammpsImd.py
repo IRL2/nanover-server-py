@@ -16,7 +16,7 @@ try:
 except ImportError:
     logging.info("lammps failed to import", exc_info=True)
 
-from nanover.app import NanoVerImdApplication
+from nanover.app import NanoverImdApplication
 
 from nanover.trajectory import FrameData
 from nanover.trajectory.frame_data import PARTICLE_POSITIONS
@@ -104,7 +104,7 @@ class LammpsImd:
         # Start frame server, must come before MPI
         if me == 0:
             # TODO raise exception when this fails, i.e if port is blocked
-            self.server_app = NanoVerImdApplication.basic_server(
+            self.server_app = NanoverImdApplication.basic_server(
                 name="LAMMPS-server", address=address, port=port
             )
             self.frame_service = self.server_app.frame_publisher

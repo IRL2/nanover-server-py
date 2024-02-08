@@ -15,7 +15,7 @@ import math
 
 import pytest
 
-from nanover.app import NanoVerImdClient
+from nanover.app import NanoverImdClient
 from nanover.openmm import (
     OpenMMRunner,
     SET_FRAME_INTERVAL_COMMAND_KEY,
@@ -80,7 +80,7 @@ class TestRunner:
     @pytest.fixture
     def client_runner(self, runner):
         runner_port = runner.app.port
-        with NanoVerImdClient.connect_to_single_server(port=runner_port) as client:
+        with NanoverImdClient.connect_to_single_server(port=runner_port) as client:
             yield client, runner
 
     @staticmethod
@@ -213,7 +213,7 @@ class TestRunner:
     )
     def test_interval_get(self, runner, name, target_attribute):
         """
-        The shortcut the the NanoVerImdReporter intervals return the expected
+        The shortcut the the NanoverImdReporter intervals return the expected
         values.
         """
         attribute = getattr(runner.reporter, target_attribute)
@@ -228,7 +228,7 @@ class TestRunner:
     )
     def test_interval_set(self, runner, name, target_attribute):
         """
-        The shortcut the the NanoVerImdReporter intervals set the expected
+        The shortcut the the NanoverImdReporter intervals set the expected
         values.
         """
         setattr(runner.reporter, name, 70)

@@ -7,20 +7,20 @@ with in real-time through biasing potentials.
 
 from typing import Optional
 
-from nanover.app.frame_app import NanoVerFrameApplication
-from nanover.core import NanoVerServer
+from nanover.app.frame_app import NanoverFrameApplication
+from nanover.core import NanoverServer
 from nanover.essd import DiscoveryServer
 from nanover.imd import ImdStateWrapper, IMD_SERVICE_NAME
 
 
-class NanoVerImdApplication(NanoVerFrameApplication):
+class NanoverImdApplication(NanoverFrameApplication):
     """
     Application-level class for implementing a NanoVer iMD server, something that publishes
     :class:`FrameData` that can be consumed, e.g. simulation trajectories, and can received
     interactive forces in real-time, allowing the simulation to be biased.
 
-    >>> with NanoVerImdApplication.basic_server() as app: # fire up interactive molecular dynamics
-    ...     with NanoVerImdClient() as client:
+    >>> with NanoverImdApplication.basic_server() as app: # fire up interactive molecular dynamics
+    ...     with NanoverImdClient() as client:
     ...         client.interactions # print any active interactions (in this case, none).
     {}
 
@@ -31,7 +31,7 @@ class NanoVerImdApplication(NanoVerFrameApplication):
 
     def __init__(
         self,
-        server: NanoVerServer,
+        server: NanoverServer,
         discovery: Optional[DiscoveryServer] = None,
         name: Optional[str] = None,
     ):

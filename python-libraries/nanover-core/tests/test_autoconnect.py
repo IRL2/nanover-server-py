@@ -4,9 +4,9 @@ Tests for application level autoconnecting between client and server.
 
 import pytest
 from mock import Mock
-from nanover.app import NanoVerImdApplication, NanoVerImdClient
+from nanover.app import NanoverImdApplication, NanoverImdClient
 from nanover.app.app_server import MULTIPLAYER_SERVICE_NAME
-from nanover.core import NanoVerServer
+from nanover.core import NanoverServer
 from nanover.essd import DiscoveryServer, ServiceHub
 from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ImdServer, IMD_SERVICE_NAME
@@ -29,7 +29,7 @@ def broadcastable_servers():
     address = get_broadcastable_ip()
     with FrameServer(address=address, port=0) as frame_server:
         with ImdServer(address=address, port=0) as imd_server:
-            with NanoVerServer(address=address, port=0) as multiplayer_server:
+            with NanoverServer(address=address, port=0) as multiplayer_server:
                 yield frame_server, imd_server, multiplayer_server
 
 
@@ -40,9 +40,9 @@ def discoverable_imd_server():
     """
     DISCOVERY_PORT = 39420
     address = get_broadcastable_ip()
-    server = NanoVerServer(address=address, port=0)
+    server = NanoverServer(address=address, port=0)
     discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
-    with NanoVerImdApplication(server, discovery) as app_server:
+    with NanoverImdApplication(server, discovery) as app_server:
         yield app_server
 
 
@@ -53,9 +53,9 @@ def discoverable_imd_server():
     """
     DISCOVERY_PORT = 39421
     address = get_broadcastable_ip()
-    server = NanoVerServer(address=address, port=0)
+    server = NanoverServer(address=address, port=0)
     discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
-    with NanoVerImdApplication(server, discovery) as app_server:
+    with NanoverImdApplication(server, discovery) as app_server:
         yield app_server
 
 
@@ -70,8 +70,8 @@ def test_autoconnect_app_server_default_ports(discoverable_imd_server):
     discoverable_imd_server.server.register_command("test", mock)
 
     address = get_broadcastable_ip()
-    with NanoVerImdApplication.basic_server(address=address):
-        with NanoVerImdClient.autoconnect(
+    with NanoverImdApplication.basic_server(address=address):
+        with NanoverImdClient.autoconnect(
             search_time=AUTOCONNECT_SEARCH_TIME,
             discovery_port=discoverable_imd_server.discovery.port,
         ) as client:
@@ -95,7 +95,7 @@ def test_autoconnect_app_server(discoverable_imd_server):
 
     discoverable_imd_server.server.register_command("test", mock)
 
-    with NanoVerImdClient.autoconnect(
+    with NanoverImdClient.autoconnect(
         search_time=AUTOCONNECT_SEARCH_TIME,
         discovery_port=discoverable_imd_server.discovery.port,
     ) as client:
@@ -135,7 +135,7 @@ def test_autoconnect_separate_servers(broadcastable_servers):
         broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY
     ) as discovery_server:
         discovery_server.register_service(service_hub)
-        with NanoVerImdClient.autoconnect(
+        with NanoverImdClient.autoconnect(
             search_time=AUTOCONNECT_SEARCH_TIME, discovery_port=discovery_server.port
         ) as client:
             assert (
@@ -158,11 +158,11 @@ def test_autoconnect_named_server():
     DISCOVERY_PORT = 39420
     SERVER_NAME = "pytest baby yoda"
     address = get_broadcastable_ip()
-    server = NanoVerServer(address=address, port=0)
+    server = NanoverServer(address=address, port=0)
     discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
 
-    with NanoVerImdApplication(server, discovery, name=SERVER_NAME):
-        with NanoVerImdClient.autoconnect(
+    with NanoverImdApplication(server, discovery, name=SERVER_NAME):
+        with NanoverImdClient.autoconnect(
             search_time=AUTOCONNECT_SEARCH_TIME,
             discovery_port=DISCOVERY_PORT,
             name=SERVER_NAME,
@@ -175,7 +175,7 @@ def test_autoconnect_no_named_server(discoverable_imd_server):
     """
     Test that autoconnecting to a named server that doesn't exist fails.
     """
-    with pytest.raises(ConnectionError), NanoVerImdClient.autoconnect(
+    with pytest.raises(ConnectionError), NanoverImdClient.autoconnect(
         name=NEVER_USED_HUB_NAME
     ):
         pass

@@ -17,7 +17,7 @@ from grpc import RpcError, StatusCode
 from nanover.app.app_server import DEFAULT_NANOVER_PORT, MULTIPLAYER_SERVICE_NAME
 from nanover.app.selection import RenderingSelection
 from nanover.command import CommandInfo
-from nanover.core import NanoVerClient, DEFAULT_CONNECT_ADDRESS
+from nanover.core import NanoverClient, DEFAULT_CONNECT_ADDRESS
 from nanover.core.nanover_client import DEFAULT_STATE_UPDATE_INTERVAL
 from nanover.essd import DiscoveryClient
 from nanover.imd import ImdClient, IMD_SERVICE_NAME
@@ -40,10 +40,10 @@ SELECTION_ROOT_ID = "selection.root"
 SELECTION_ROOT_NAME = "Root Selection"
 
 
-ClientVarType = TypeVar("ClientVarType", bound=NanoVerClient)
+ClientVarType = TypeVar("ClientVarType", bound=NanoverClient)
 
 
-def _update_commands(client: Optional[NanoVerClient]):
+def _update_commands(client: Optional[NanoverClient]):
     if client is None:
         return {}
     try:
@@ -85,7 +85,7 @@ need_multiplayer = partial(
 )
 
 
-class NanoVerImdClient:
+class NanoverImdClient:
     """
     Interactive molecular dynamics client that receives frames, create selections,
     and join the multiplayer shared state.
@@ -98,7 +98,7 @@ class NanoVerImdClient:
     All addresses are optional, so one can, for example, just connect to a trajectory service to passively receive
     frames.
 
-    The :fun:`NanoVerImdClient.autoconnect` and :fun:`NanoVerImdClient.connect_to_single_server` methods provide
+    The :fun:`NanoverImdClient.autoconnect` and :fun:`NanoverImdClient.connect_to_single_server` methods provide
     shorthands for common server setups.
 
     Inspecting a Frame
@@ -109,7 +109,7 @@ class NanoVerImdClient:
 
     .. python
         # Assuming there is only one server (or set of servers) running.
-        client = NanoVerImdClient.autoconnect()
+        client = NanoverImdClient.autoconnect()
         # Request to receive the frames from the server
         client.subscribe_to_frames()
         # Fetch the first frame.
@@ -156,7 +156,7 @@ class NanoVerImdClient:
 
     _frame_client: Optional[FrameClient]
     _imd_client: Optional[ImdClient]
-    _multiplayer_client: Optional[NanoVerClient]
+    _multiplayer_client: Optional[NanoverClient]
     _frames: deque
     _current_frame: FrameData
     _first_frame: Optional[FrameData]
@@ -346,7 +346,7 @@ class NanoVerImdClient:
 
         :param address: The address and port of the multiplayer server.
         """
-        self._multiplayer_client = self._connect_client(NanoVerClient, address)
+        self._multiplayer_client = self._connect_client(NanoverClient, address)
 
     def connect(
         self,
@@ -464,7 +464,7 @@ class NanoVerImdClient:
             to begin.
         :return: The unique interaction ID of this interaction, which can be
             used to update the interaction with
-            :func:`~NanoVerClient.update_interaction`.
+            :func:`~NanoverClient.update_interaction`.
 
         :raises: ValueError, if the there is no IMD connection available.
         """
@@ -497,7 +497,7 @@ class NanoVerImdClient:
         interaction has stopped.
 
         :param interaction_id: The unique interaction ID, created with
-            :func:`~NanoVerClient.start_interaction`, that identifies the
+            :func:`~NanoverClient.start_interaction`, that identifies the
             interaction to stop.
         :return: An :class:`InteractionEndReply`, which is an empty message indicating
         successful termination of the interaction.
@@ -619,7 +619,7 @@ class NanoVerImdClient:
         :raises grpc._channel._Rendezvous: When not connected to a
             multiplayer service
         """
-        multiplayer_client = cast(NanoVerClient, self._multiplayer_client)
+        multiplayer_client = cast(NanoverClient, self._multiplayer_client)
         multiplayer_client.subscribe_all_state_updates(interval)
 
     @need_multiplayer

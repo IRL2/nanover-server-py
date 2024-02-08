@@ -27,7 +27,7 @@ import numpy as np
 import colorsys
 import time
 
-from nanover.app import NanoVerImdClient
+from nanover.app import NanoverImdClient
 
 from transformations import rotation_matrix, scale_matrix
 import rendering
@@ -170,11 +170,11 @@ class Renderer:
 
 
 class CursesFrontend:
-    client: NanoVerImdClient
+    client: NanoverImdClient
     renderer: Renderer
     bindings: Dict[int, Callable]
 
-    def __init__(self, stdscr, client: NanoVerImdClient, override_colors=False):
+    def __init__(self, stdscr, client: NanoverImdClient, override_colors=False):
         self.stdscr = stdscr
         self.client = client
         self.user_quit = False
@@ -351,13 +351,13 @@ def main(stdscr):
     arguments = handle_user_args()
 
     if arguments.autoconnect is not False:
-        client = NanoVerImdClient.autoconnect(name=arguments.autoconnect)
+        client = NanoverImdClient.autoconnect(name=arguments.autoconnect)
     else:
         address = (
             arguments.hostname or "localhost",
             arguments.port or DEFAULT_NANOVER_PORT,
         )
-        client = NanoVerImdClient(trajectory_address=address)
+        client = NanoverImdClient(trajectory_address=address)
 
     with client:
         telmol = CursesFrontend(stdscr, client, override_colors=arguments.rainbow)

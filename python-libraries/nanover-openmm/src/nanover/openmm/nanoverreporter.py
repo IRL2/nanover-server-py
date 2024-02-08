@@ -13,11 +13,11 @@ except (ImportError, ModuleNotFoundError):
 from .converter import openmm_to_frame_data
 
 
-class NanoVerReporter:
+class NanoverReporter:
     """
     Outputs a series of frames from a Simulation to a nanover server.
 
-    To use it, create a NanoVerReporter, then add it to the Simulation's list
+    To use it, create a NanoverReporter, then add it to the Simulation's list
     of reporters.
 
     Example
@@ -26,7 +26,7 @@ class NanoVerReporter:
     .. code-block:: python
 
         frame_server = FrameServer(address="localhost", port=54321)
-        frame_reporter = NanoVerReporter(report_interval=5,frame_server=frame_server)
+        frame_reporter = NanoverReporter(report_interval=5,frame_server=frame_server)
         # Assume some OpenMM simulation already exists
         simulation.reporters.add(frame_reporter)
 

@@ -11,7 +11,7 @@ import pytest
 from simtk import openmm as mm
 from simtk.unit import nanometer
 from nanover.openmm import imd
-from nanover.app import NanoVerImdApplication
+from nanover.app import NanoverImdApplication
 from nanover.openmm.serializer import deserialize_simulation
 from nanover.trajectory import FrameData
 from nanover.imd.particle_interaction import ParticleInteraction
@@ -29,8 +29,8 @@ from .simulation_utils import (
 @pytest.fixture
 def app_simulation_and_reporter(basic_simulation_with_imd_force):
     simulation, imd_force = basic_simulation_with_imd_force
-    with NanoVerImdApplication.basic_server(port=0) as app:
-        reporter = imd.NanoVerImdReporter(
+    with NanoverImdApplication.basic_server(port=0) as app:
+        reporter = imd.NanoverImdReporter(
             frame_interval=3,
             force_interval=4,
             imd_force=imd_force,
@@ -134,7 +134,7 @@ def test_get_imd_forces_from_system(basic_system, number_of_forces):
     assert len(compatible_forces) == number_of_forces
 
 
-class TestNanoVerImdReporter:
+class TestNanoverImdReporter:
     # The name of the method is part of the OpenMM API. It cannot be made to
     # conform PEP8.
     # noinspection PyPep8Naming
@@ -145,7 +145,7 @@ class TestNanoVerImdReporter:
         self, app_simulation_and_reporter, simulation_step, expected_step
     ):
         """
-        :meth:`NanoVerImdReporter.describeNextReport` returns the expected value
+        :meth:`NanoverImdReporter.describeNextReport` returns the expected value
         for step.
         """
         # We use a frame interval of 3 and a force interval of 4

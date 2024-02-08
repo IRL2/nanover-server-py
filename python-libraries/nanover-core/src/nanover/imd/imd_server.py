@@ -6,7 +6,7 @@ Module providing a server for running a :class: ImdService.
 from typing import Optional
 
 from nanover.core import (
-    NanoVerServer,
+    NanoverServer,
     get_requested_port_or_default,
     DEFAULT_SERVE_ADDRESS,
 )
@@ -15,9 +15,9 @@ from nanover.imd.imd_state import ImdStateWrapper
 DEFAULT_PORT = 54322
 
 
-class ImdServer(NanoVerServer):
+class ImdServer(NanoverServer):
     """
-    Class providing a NanoVerServer with an ImdStateWrapper for accessing
+    Class providing a NanoverServer with an ImdStateWrapper for accessing
     IMD-specific state.
 
     :param: address: URL or IP address at which to run the server.

@@ -3,7 +3,7 @@
 import argparse
 import textwrap
 
-from nanover.app import NanoVerImdClient
+from nanover.app import NanoverImdClient
 from osc_client import OscClient, DEFAULT_OSC_ADDRESS
 
 
@@ -40,7 +40,7 @@ class OscApp:
     def _create_client(self, args):
         arguments = self._argument_parser.parse_args(args)
         osc_client = OscClient(
-            nanover_client=NanoVerImdClient.autoconnect(),
+            nanover_client=NanoverImdClient.autoconnect(),
             osc_address=(arguments.osc_host, arguments.osc_port),
             osc_send_interval=arguments.send_interval,
             verbose=arguments.verbose,

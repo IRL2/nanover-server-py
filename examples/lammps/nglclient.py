@@ -5,12 +5,12 @@ from tempfile import mkstemp
 import nglview
 import numpy as np
 
-from nanover.app import NanoVerImdClient
+from nanover.app import NanoverImdClient
 from nanover.ase.converter import frame_data_to_ase
 from nglview import NGLWidget
 
 
-class NGLClient(NanoVerImdClient):
+class NGLClient(NanoverImdClient):
     def __init__(self, dynamic_bonds=False, *args, update_callback=None,
                  **kwargs):
         self._view = None

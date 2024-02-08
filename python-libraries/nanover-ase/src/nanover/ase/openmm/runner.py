@@ -11,9 +11,9 @@ from ase import units, Atoms  # type: ignore
 from ase.md import MDLogger, Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from attr import dataclass
-from nanover.app import NanoVerImdApplication, NanoVerRunner
+from nanover.app import NanoverImdApplication, NanoverRunner
 from nanover.app.app_server import DEFAULT_NANOVER_PORT
-from nanover.core import NanoVerServer, DEFAULT_SERVE_ADDRESS
+from nanover.core import NanoverServer, DEFAULT_SERVE_ADDRESS
 from nanover.ase import TrajectoryLogger
 from nanover.essd import DiscoveryServer
 from nanover.openmm import openmm_to_frame_data, serializer
@@ -22,7 +22,7 @@ from simtk.openmm.app import Simulation, Topology
 
 from nanover.ase import ase_to_frame_data
 from nanover.ase.converter import add_ase_positions_to_frame_data
-from nanover.ase.imd import NanoVerASEDynamics
+from nanover.ase.imd import NanoverASEDynamics
 from nanover.ase.openmm.calculator import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
 
@@ -130,7 +130,7 @@ class TrajectoryLoggerInfo:
         self._logger.close()
 
 
-class ASEOpenMMRunner(NanoVerRunner):
+class ASEOpenMMRunner(NanoverRunner):
     """
     A wrapper class for running an interactive OpenMM simulation with ASE.
 
@@ -324,16 +324,16 @@ class ASEOpenMMRunner(NanoVerRunner):
         address = address or DEFAULT_SERVE_ADDRESS
         if port is None:
             port = DEFAULT_NANOVER_PORT
-        server = NanoVerServer(address=address, port=port)
+        server = NanoverServer(address=address, port=port)
         if run_discovery:
             discovery = DiscoveryServer(broadcast_port=discovery_port)
         else:
             discovery = None
-        self._app_server = NanoVerImdApplication(server, discovery, name)
+        self._app_server = NanoverImdApplication(server, discovery, name)
 
     def _initialise_imd(self, server, dynamics):
         # set the server to use the OpenMM frame convert for performance purposes.
-        self.imd = NanoVerASEDynamics(
+        self.imd = NanoverASEDynamics(
             server,
             dynamics,
             frame_method=openmm_ase_frame_adaptor,
