@@ -199,10 +199,7 @@ def test_elapsed(single_topology_universe):
     """
     The elapsed time is included in the TimeStep and is different for each frame.
     """
-    all_elapsed = [
-        ts.data['elapsed']
-        for ts in single_topology_universe.trajectory
-    ]
+    all_elapsed = [ts.data["elapsed"] for ts in single_topology_universe.trajectory]
     unique_elapsed = set(map(int, all_elapsed))
     assert len(unique_elapsed) == len(all_elapsed)
     assert all_elapsed  # we do not have a case with no frame

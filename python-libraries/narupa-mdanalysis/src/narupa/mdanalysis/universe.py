@@ -157,9 +157,7 @@ class NarupaReader(ProtoReader):
             data = infile.read()
         unpacker = Unpacker(data)
         recording = advance_to_first_coordinate_frame(
-           iter_trajectory_with_elpsed_integrated( 
-                iter_trajectory_recording(unpacker)
-            )
+            iter_trajectory_with_elpsed_integrated(iter_trajectory_recording(unpacker))
         )
         try:
             _, _, first_frame = next(recording)
