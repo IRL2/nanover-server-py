@@ -200,7 +200,7 @@ def test_elapsed(single_topology_universe):
     The elapsed time is included in the TimeStep and is different for each frame.
     """
     all_elapsed = [
-        ts.data('elapsed')
+        ts.data['elapsed']
         for ts in single_topology_universe.trajectory
     ]
     unique_elapsed = set(map(int, all_elapsed))
