@@ -132,9 +132,11 @@ class RenderingSelection:
             KEY_SELECTION_ID: self.selection_id,
             KEY_SELECTION_NAME: self.selection_name,
             KEY_SELECTION_SELECTED: {
-                KEY_SELECTED_PARTICLE_IDS: list(self.selected_particle_ids)
-                if self.selected_particle_ids is not None
-                else None,
+                KEY_SELECTED_PARTICLE_IDS: (
+                    list(self.selected_particle_ids)
+                    if self.selected_particle_ids is not None
+                    else None
+                ),
             },
             KEY_SELECTION_PROPERTIES: {
                 KEY_PROPERTY_INTERACTION_METHOD: self.interaction_method,

@@ -2,6 +2,7 @@
 Module providing application level wrappers, orchestrators and managers that can be used to
 easily build and deploy Narupa services.
 """
+
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 from .client import NarupaImdClient

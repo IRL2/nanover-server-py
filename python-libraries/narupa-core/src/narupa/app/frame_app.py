@@ -3,6 +3,7 @@ Module providing an implementation of an Narupa frame-serving application, for p
 simulations and trajectories for consumption by clients.
 
 """
+
 from typing import Optional
 
 from narupa.app import NarupaApplicationServer

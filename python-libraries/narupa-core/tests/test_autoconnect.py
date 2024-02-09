@@ -1,6 +1,7 @@
 """
 Tests for application level autoconnecting between client and server.
 """
+
 import pytest
 from mock import Mock
 from narupa.app import NarupaImdApplication, NarupaImdClient
