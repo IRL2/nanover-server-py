@@ -7,7 +7,6 @@ Facilities to read a Narupa trajectory recording into an MDAnalysis Universe.
 
     u = mda.Universe(
         'input.traj',
-        'input.traj',
         format=NarupaReader,
         topology_format=NarupaParser,
     )
