@@ -4,6 +4,7 @@ simulations and trajectories for consumption by clients that can be interacted
 with in real-time through biasing potentials.
 
 """
+
 from typing import Optional
 
 from narupa.app.frame_app import NarupaFrameApplication

@@ -1,8 +1,13 @@
+[lint]
 # Never enforce `E501` (line length violations).
 # Most of them will be handled by black. The others are likely in docstrings
 # were fixing them may not necessarily improve readability.
 ignore = ["E501"]
+# The directory with the python files generated from the proto files is already
+# in the gitignore and therefore should be ignored by ruff. This does not seem
+# to be the case so we exclude it explicitely.
+exclude = ["python-libraries/narupa-core/src/narupa/protocol/**"]
 
-[per-file-ignores]
+[lint.per-file-ignores]
 "test*" = ["F401", "F811"]
 "__init__.py" = ["F401"]

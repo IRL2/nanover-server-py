@@ -10,6 +10,7 @@ If the module is installed with pip, run with:
     narupa-omm-ase neuraminidase.xml
 
 """
+
 import argparse
 import textwrap
 import time

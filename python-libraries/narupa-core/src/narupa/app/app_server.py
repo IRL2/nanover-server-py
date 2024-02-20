@@ -2,6 +2,7 @@
 Module providing an out-of-the-box Narupa application server,
 with an underyling gRPC server, discovery, multiplayer and commands.
 """
+
 import getpass
 from typing import Tuple, Optional, Set
 
@@ -17,8 +18,7 @@ MULTIPLAYER_SERVICE_NAME = "multiplayer"
 
 
 class SupportsClose(Protocol):
-    def close(self) -> None:
-        ...
+    def close(self) -> None: ...
 
 
 def start_default_server_and_discovery(

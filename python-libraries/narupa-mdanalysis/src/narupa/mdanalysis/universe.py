@@ -19,6 +19,7 @@ Facilities to read a Narupa trajectory recording into an MDAnalysis Universe.
     topology are read in a Universe.
 
 """
+
 import warnings
 from itertools import takewhile, chain, islice
 from typing import NamedTuple, Type, Callable

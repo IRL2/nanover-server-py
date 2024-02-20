@@ -1,6 +1,7 @@
 """
 Module defining a Service.
 """
+
 import json
 from typing import Optional, Tuple
 from uuid import uuid4
