@@ -35,8 +35,7 @@ AtomInfo = Tuple[int, Position, int]
 # Renreder class in curse_client.py. This is a workaround described in
 # https://github.com/python/mypy/issues/708#issuecomment-667989040
 class Shader(Protocol):
-    def __call__(self, frame: Dict, color_count: int) -> Iterator[Fragment]:
-        ...
+    def __call__(self, frame: Dict, color_count: int) -> Iterator[Fragment]: ...
 
 
 def iterate_frame_atoms(frame) -> Iterator[AtomInfo]:
