@@ -18,7 +18,8 @@ MULTIPLAYER_SERVICE_NAME = "multiplayer"
 
 
 class SupportsClose(Protocol):
-    def close(self) -> None: ...
+    def close(self) -> None:
+        ...
 
 
 def start_default_server_and_discovery(

@@ -58,7 +58,9 @@ def frame_osc_converter(frame_server, osc_server):
     of them.
     """
     osc_port = osc_server.socket.getsockname()[1]
-    nanover_client = NanoverImdClient(trajectory_address=("localhost", frame_server.port))
+    nanover_client = NanoverImdClient(
+        trajectory_address=("localhost", frame_server.port)
+    )
     with OscClient(
         nanover_client,
         osc_address=(IPV4_LOCALHOST, osc_port),
