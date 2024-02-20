@@ -193,3 +193,13 @@ def test_forces(feature_universe_and_features):
     universe, with_velocities, with_forces = feature_universe_and_features
     all_frame_have_forces = all(ts_has_forces(ts) for ts in universe.trajectory)
     assert with_forces == all_frame_have_forces
+
+
+def test_elapsed(single_topology_universe):
+    """
+    The elapsed time is included in the TimeStep and is different for each frame.
+    """
+    all_elapsed = [ts.data["elapsed"] for ts in single_topology_universe.trajectory]
+    unique_elapsed = set(map(int, all_elapsed))
+    assert len(unique_elapsed) == len(all_elapsed)
+    assert all_elapsed  # we do not have a case with no frame

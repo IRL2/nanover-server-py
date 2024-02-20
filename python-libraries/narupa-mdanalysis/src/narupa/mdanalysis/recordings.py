@@ -99,6 +99,12 @@ def iter_trajectory_recording(unpacker: Unpacker) -> Generator:
         yield (elapsed, frame_index, frame)
 
 
+def iter_trajectory_with_elpsed_integrated(frames):
+    for elapsed, frame_index, frame in frames:
+        frame.values["elapsed"] = elapsed
+        yield (elapsed, frame_index, frame)
+
+
 def iter_trajectory_file(path) -> Generator:
     with open(path, "rb") as infile:
         data = infile.read()

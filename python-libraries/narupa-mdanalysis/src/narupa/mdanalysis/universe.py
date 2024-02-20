@@ -7,7 +7,6 @@ Facilities to read a Narupa trajectory recording into an MDAnalysis Universe.
 
     u = mda.Universe(
         'input.traj',
-        'input.traj',
         format=NarupaReader,
         topology_format=NarupaParser,
     )
@@ -59,6 +58,7 @@ from narupa.trajectory.frame_data import (
 from .recordings import (
     Unpacker,
     iter_trajectory_recording,
+    iter_trajectory_with_elpsed_integrated,
     advance_to_first_particle_frame,
     advance_to_first_coordinate_frame,
 )
@@ -157,7 +157,7 @@ class NarupaReader(ProtoReader):
             data = infile.read()
         unpacker = Unpacker(data)
         recording = advance_to_first_coordinate_frame(
-            iter_trajectory_recording(unpacker)
+            iter_trajectory_with_elpsed_integrated(iter_trajectory_recording(unpacker))
         )
         try:
             _, _, first_frame = next(recording)
