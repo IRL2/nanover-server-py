@@ -1,13 +1,13 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Connects to a Narupa simulation and, assuming the simulated molecules to be the
-narupa nanotube demo (nanotube with no hydrogens, single methane), computes and
+Connects to a NanoVer simulation and, assuming the simulated molecules to be the
+nanover nanotube demo (nanotube with no hydrogens, single methane), computes and
 sends over OSC interesting metrics for sonification.
 Run with:
 
 .. code bash
-    narupa-omm-ase nanotube.xml
+    nanover-omm-ase nanotube.xml
     python nanotube.py --osc-port 9000
 """
 from osc_app import OscApp

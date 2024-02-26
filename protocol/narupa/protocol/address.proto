@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-package narupa.protocol;
-
-message Address {
-  string address = 1;
-  uint32 port = 2;
-}

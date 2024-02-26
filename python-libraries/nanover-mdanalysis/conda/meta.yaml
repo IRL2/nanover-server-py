@@ -1,0 +1,33 @@
+package:
+  name: nanover-mdanalysis
+  version: {{ NANOVER_BUILD_VERSION }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  number: 0
+
+requirements:
+  build:
+    - python >={{ MIN_PYTHON_VERSION }}
+    - setuptools
+
+  run:
+    - python >={{ MIN_PYTHON_VERSION }}
+    - nanover-core =={{ NANOVER_BUILD_VERSION }}
+    - numpy
+    - mdanalysis
+
+about:
+  home: https://nanover.readthedocs.io
+  license: GPL-3
+  license_file: {{ NANOVER_LICENSE_PATH }}
+  summary: MDAnalysis binding for NanoVer.
+  description: |
+    NanoVer is a framework for interactive molecular dynamics simulation in
+    virtual reality. This package provides bindings between MDAnalysis and
+    NanoVer.
+  doc_url: https://nanover.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/nanover-protocol

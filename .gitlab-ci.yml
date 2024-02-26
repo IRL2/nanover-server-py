@@ -8,7 +8,7 @@ variables:
   python_version: "3.9"
   min_python_version: "3.7"
   build_command: "conda build --prefix-length=100 --no-test --no-anaconda-upload "
-  mypy_command: mypy --ignore-missing-imports --show-error-codes ./python-libraries/narupa-core/src/narupa/ ./python-libraries/narupa-ase/src/narupa/ ./python-libraries/narupa-essd/src/narupa/ ./python-libraries/narupa-mdanalysis/src/narupa/ ./python-libraries/narupa-openmm/src/narupa/ ./python-libraries/narupa-lammps/src/narupa/ ./python-libraries/prototypes/
+  mypy_command: mypy --ignore-missing-imports --show-error-codes ./python-libraries/nanover-core/src/nanover/ ./python-libraries/nanover-ase/src/nanover/ ./python-libraries/nanover-essd/src/nanover/ ./python-libraries/nanover-mdanalysis/src/nanover/ ./python-libraries/nanover-openmm/src/nanover/ ./python-libraries/nanover-lammps/src/nanover/ ./python-libraries/prototypes/
 
 release:
   image: intangiblerealitieslab/dotnet-conda
@@ -19,12 +19,12 @@ release:
   artifacts:
     paths:
       - python-libraries
-      - csharp-libraries/Narupa.Protocol/bin/Release
+      - csharp-libraries/NanoVer.Protocol/bin/Release
   script:
     - conda install -c conda-forge mpi4py
     - ./compile.sh
 
-# triggers a build of the narupa documentation repo. 
+# triggers a build of the nanover documentation repo. 
 trigger_docs_build:
   stage: deploy
   script:
@@ -33,18 +33,18 @@ trigger_docs_build:
 test_python:
   stage: test_python
   before_script:
-    - mamba install -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
+    - mamba install -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py nanover-server nanover-lammps
     - python -m pip install -r python-libraries/requirements.test
   script:
-    - python -m pytest --cov=narupa python-libraries -n auto -m 'not serial' --junitxml=report_not_serial.xml
-    - python -m pytest --cov=narupa --cov-append python-libraries -n0 -m 'serial' --junitxml=report_serial.xml
+    - python -m pytest --cov=nanover python-libraries -n auto -m 'not serial' --junitxml=report_not_serial.xml
+    - python -m pytest --cov=nanover --cov-append python-libraries -n0 -m 'serial' --junitxml=report_serial.xml
     - coverage html
     - coverage xml
 
   artifacts:
     paths:
       - htmlcov
-      - csharp-libraries/Narupa.Protocol/bin/Release
+      - csharp-libraries/NanoVer.Protocol/bin/Release
     reports:
       junit:
         - report_not_serial.xml
@@ -62,7 +62,7 @@ test_python_minimum:
     # mpi4py=3.1.3 seems to require. The solution is taken from
     # https://github.com/theislab/cellrank/issues/864
     - export PIN_VERSIONS="python=$python_version ase=3.21.0 openmm=7.4.0 openmpi=4.1.2"
-    - mamba install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py narupa-server narupa-lammps
+    - mamba install -c omnia -c conda-forge -c ./conda-bld ${PIN_VERSIONS} mpi4py nanover-server nanover-lammps
     - python -m pip install -r python-libraries/requirements.test
   script:
     - python -m pytest python-libraries -n auto -m 'not serial' --junitxml=report_not_serial_minimum.xml
@@ -89,7 +89,7 @@ test_dotnet:
   script:
     - ./compile.sh --no-python
     - "cd $test_path"
-    - dotnet add Narupa.Protocol.Test package JunitXml.TestLogger
+    - dotnet add NanoVer.Protocol.Test package JunitXml.TestLogger
     - dotnet add Essd.Test package JunitXml.TestLogger
     - dotnet test --logger:"junit;LogFilePath=..\artifacts\{assembly}-test-result.xml;MethodFormat=Class;FailureBodyFormat=Verbose"
   artifacts:
@@ -110,8 +110,8 @@ build_conda:
         # Test that the repo is sane and does not contain superfluous __init__ file
         - bash maintainers/check_extra_init_files.sh
         # We use the number of commits in the branch to set the version number.
-        - export NARUPA_BUILD_VERSION="0.1.$(git rev-list --count HEAD)"
-        - export NARUPA_LICENSE_PATH="$(readlink -f LICENSE)"
+        - export NANOVER_BUILD_VERSION="0.1.$(git rev-list --count HEAD)"
+        - export NANOVER_LICENSE_PATH="$(readlink -f LICENSE)"
         - export MIN_PYTHON_VERSION=$min_python_version
         # Configure the environment. We need conda-forge and omnia to get the
         # science related packages (openmm, ase, mdanalysis)
@@ -119,17 +119,17 @@ build_conda:
         - conda config --env --add channels omnia
         - mamba install python=$python_version conda-build grpcio-tools conda-verify
         # Compiling the prototypes
-        - python python-libraries/narupa-core/setup.py compile_proto --proto-dir=protocol
+        - python python-libraries/nanover-core/setup.py compile_proto --proto-dir=protocol
         # The order of the packages is defined by their requirements.
         - |
             $build_command \
-              python-libraries/narupa-essd/conda \
-              python-libraries/narupa-core/conda \
-              python-libraries/narupa-openmm/conda \
-              python-libraries/narupa-ase/conda \
-              python-libraries/narupa-mdanalysis/conda \
-              python-libraries/narupa-lammps/conda \
-              python-libraries/narupa-server/conda
+              python-libraries/nanover-essd/conda \
+              python-libraries/nanover-core/conda \
+              python-libraries/nanover-openmm/conda \
+              python-libraries/nanover-ase/conda \
+              python-libraries/nanover-mdanalysis/conda \
+              python-libraries/nanover-lammps/conda \
+              python-libraries/nanover-server/conda
         - cp -r /miniconda/conda-bld .
     artifacts:
         paths:
@@ -146,6 +146,6 @@ upload_conda:
       - echo Y | anaconda login --username irl_bot --password $ANACONDA_PASSWORD
       # Anaconda will complain if the given version of a package is already
       # there. Until we have some visioning, we force the upload.
-      - anaconda  upload --user irl conda-bld/noarch/narupa-*.tar.bz2 --force
+      - anaconda  upload --user irl conda-bld/noarch/nanover-*.tar.bz2 --force
       # Do not fail the build if we cannot logout.
       - anaconda logout || echo "Could not logout. Too bad."

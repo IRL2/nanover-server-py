@@ -1,0 +1,37 @@
+package:
+  name: nanover-ase
+  version: {{ NANOVER_BUILD_VERSION }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  number: 0
+  entry_points:
+    - nanover-omm-ase = nanover.ase.openmm.cli:main
+
+requirements:
+  build:
+    - python >={{ MIN_PYTHON_VERSION }}
+    - setuptools
+
+  run:
+    - python >={{ MIN_PYTHON_VERSION }}
+    - attrs
+    - nanover-core =={{ NANOVER_BUILD_VERSION }}
+    - nanover-openmm =={{ NANOVER_BUILD_VERSION }}
+    - numpy
+    - ase >=3.21
+
+about:
+  home: https://nanover.readthedocs.io
+  license: GPL-3
+  license_file: {{ NANOVER_LICENSE_PATH }}
+  summary: ASE bindings for NanoVer.
+  description: |
+    NanoVer is a framework for interactive molecular dynamics simulation in
+    virtual reality. This package provides ASE bindings and servers for
+    NanoVer.
+  doc_url: https://nanover.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/nanover-protocol

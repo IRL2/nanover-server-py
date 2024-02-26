@@ -1,0 +1,25 @@
+package:
+  name: nanover-server
+  version: {{ NANOVER_BUILD_VERSION }}
+
+build:
+  noarch: python
+  number: 0
+
+requirements:
+  run:
+    - nanover-core =={{ NANOVER_BUILD_VERSION }}
+    - nanover-openmm =={{ NANOVER_BUILD_VERSION }}
+    - nanover-ase =={{ NANOVER_BUILD_VERSION }}
+    - nanover-mdanalysis =={{ NANOVER_BUILD_VERSION }}
+
+about:
+  home: https://nanover.readthedocs.io
+  license: GPL-3
+  license_file: {{ NANOVER_LICENSE_PATH }}
+  summary: Python servers for NanoVer.
+  description: |
+    NanoVer is a framework for interactive molecular dynamics simulation in
+    virtual reality. This package cause all the python servers to be installed.
+  doc_url: https://nanover.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/nanover-protocol

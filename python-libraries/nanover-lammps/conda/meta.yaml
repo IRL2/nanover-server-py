@@ -1,0 +1,33 @@
+package:
+  name: nanover-lammps
+  version: {{ NANOVER_BUILD_VERSION }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  number: 0
+
+requirements:
+  build:
+    - python >={{ MIN_PYTHON_VERSION }}
+    - setuptools
+
+  run:
+    - python >={{ MIN_PYTHON_VERSION }}
+    - nanover-core =={{ NANOVER_BUILD_VERSION }}
+    - numpy
+    #- mpi4py
+
+about:
+  home: https://nanover.readthedocs.io
+  license: GPL-3
+  license_file: {{ NANOVER_LICENSE_PATH }}
+  summary: LAMMPS bindings for NanoVer.
+  description: |
+    NanoVer is a framework for interactive molecular dynamics simulation in
+    virtual reality. This package provides LAMMPS bindings and servers for
+    NanoVer.
+  doc_url: https://nanover.readthedocs.io
+  dev_url: https://gitlab.com/intangiblerealities/nanover-protocol

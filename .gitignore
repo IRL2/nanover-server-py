@@ -6,11 +6,11 @@ __pycache__
 .DS_Store
 
 # Ignore the compiled files
-python-libraries/narupa-core/src/narupa/protocol
-csharp-libraries/Narupa.Protocol/obj
-csharp-libraries/Narupa.Protocol/bin
-csharp-libraries/Narupa.Protocol.Test/obj
-csharp-libraries/Narupa.Protocol.Test/bin
+python-libraries/nanover-core/src/nanover/protocol
+csharp-libraries/NanoVer.Protocol/obj
+csharp-libraries/NanoVer.Protocol/bin
+csharp-libraries/NanoVer.Protocol.Test/obj
+csharp-libraries/NanoVer.Protocol.Test/bin
 
 # Ignore egg-info files
 *.egg-info/
@@ -24,7 +24,7 @@ htmlcov
 .hypothesis/
 *.DotSettings.user
 
-python-libraries/narupa-ase/examples/\.ipynb_checkpoints/
+python-libraries/nanover-ase/examples/\.ipynb_checkpoints/
 .mypy_cache/
 csharp-libraries/Essd.Test/bin/
 csharp-libraries/Essd.Test/obj/
@@ -41,7 +41,7 @@ examples/ase/.ipynb_checkpoints/
 
 examples/mdanalysis/.ipynb_checkpoints/
 
-examples/ase/neuraminidase_narupa.xml
+examples/ase/neuraminidase_nanover.xml
 
 examples/fundamentals/.ipynb_checkpoints/
 

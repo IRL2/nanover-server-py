@@ -8,8 +8,8 @@ u = MDAnalysis.Universe(PSF, DCD)  # always start with a Universe
 
 import time
 
-from narupa.trajectory import FrameServer
-from narupa.mdanalysis import mdanalysis_to_frame_data
+from nanover.trajectory import FrameServer
+from nanover.mdanalysis import mdanalysis_to_frame_data
 
 
 frameServer = FrameServer(address='localhost', port=54321)

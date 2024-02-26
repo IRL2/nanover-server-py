@@ -1,64 +1,64 @@
-# Narupa 2 Protocol
+# NanoVer 2 Protocol
 
 Repository containing the gRPC protocol and python based implementations
-of servers for Narupa 2, providing a framework for developing interactive molecular dynamics simulations.
+of servers for NanoVer 2, providing a framework for developing interactive molecular dynamics simulations.
 
-It is designed to be used with Narupa VR clients, e.g. [Narupa IMD](https://gitlab.com/intangiblerealities/narupa-applications/narupa-imd).
+It is designed to be used with NanoVer VR clients, e.g. [NanoVer IMD](https://gitlab.com/intangiblerealities/nanover-applications/nanover-imd).
 
 This repository is maintained by the Intangible Realities Laboratory, University Of Bristol,
 and distributed under [GPLv3](LICENSE).
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
-**The Narupa iMD VR front-end can be found
-[on its own repository](https://gitlab.com/intangiblerealities/narupa-applications/narupa-imd).**
+**The NanoVer iMD VR front-end can be found
+[on its own repository](https://gitlab.com/intangiblerealities/nanover-applications/nanover-imd).**
 
 ## Getting Started
 
 ### Quick Start
 
-`narupa.ase` provides a command line interface for running OpenMM simulations. For example, from the `narupa-protocol` directory:
+`nanover.ase` provides a command line interface for running OpenMM simulations. For example, from the `nanover-protocol` directory:
 
-    narupa-omm-ase examples/ase/openmm_files/nanotube.xml
+    nanover-omm-ase examples/ase/openmm_files/nanotube.xml
 
 ### Tutorials
 
-The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with Narupa. They
+The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with NanoVer. They
 are organised into the following folders:
 
 * [ase](examples/ase) - Get up and running with interactive simulations with ASE and OpenMM.
    - [Basic Example](examples/ase/basic_example.ipynb) - Toy example of an interactive simulation.
    - [Nanotube](examples/ase/openmm_nanotube.ipynb) - Set up an interactive nanotube simulation with OpenMM.
    - [Neuraminidase](examples/ase/openmm_neuraminidase.ipynb) - Set up a ligand-protein binding simulation with OpenMM,
-   and experiment with Narupa visualizations.
+   and experiment with NanoVer visualizations.
    - [Graphene](examples/ase/openmm_graphene.ipynb) - Set up a graphene simulation with physics parameters
    that can be adjusted on the fly.
-* [mdanalysis](examples/mdanalysis) - Visualize static structures and trajectories with MDAnalysis and Narupa.
-    - [Structure](examples/mdanalysis/mdanalysis_lsd.ipynb) - Visualize LSD bound to a receptor in Narupa.
+* [mdanalysis](examples/mdanalysis) - Visualize static structures and trajectories with MDAnalysis and NanoVer.
+    - [Structure](examples/mdanalysis/mdanalysis_lsd.ipynb) - Visualize LSD bound to a receptor in NanoVer.
     - [Trajectory](examples/mdanalysis/mdanalysis_trajectory.ipynb) - Build your own trajectory viewer with MDAnalysis
-    and Narupa.
-* [fundamentals](examples/fundamentals) - Understand how Narupa works, so you can create your own applications.
-    - [Frame](examples/fundamentals/frame.ipynb) - How Narupa communicates frames of molecular simulations.
-    - [Servers](examples/fundamentals/servers.ipynb) - Setting up a Narupa server.
+    and NanoVer.
+* [fundamentals](examples/fundamentals) - Understand how NanoVer works, so you can create your own applications.
+    - [Frame](examples/fundamentals/frame.ipynb) - How NanoVer communicates frames of molecular simulations.
+    - [Servers](examples/fundamentals/servers.ipynb) - Setting up a NanoVer server.
     - [State & Commands](examples/fundamentals/commands_and_state.ipynb) - Synchronizing state between clients and calling commands on the server.
     - [Selections & Visualisation](examples/fundamentals/visualisations.ipynb) - Selecting atoms and setting how to render them.
 
 The tutorials use Jupyter notebooks, [NGLView](https://github.com/arose/nglview) for visualising trajectories, and while not strictly necessary,
-assumes you have the [Narupa IMD VR](https://gitlab.com/intangiblerealities/narupa-applications/narupa-imd)
+assumes you have the [NanoVer IMD VR](https://gitlab.com/intangiblerealities/nanover-applications/nanover-imd)
 application installed. These can all be installed with conda:
 
 ```bash
-conda activate narupa
+conda activate nanover
 conda install jupyter
 conda install nglview
 # On Windows only:
-conda install -c irl narupa-imd
+conda install -c irl nanover-imd
 ```
 
 To run the notebooks, download the repository and run jupyter (with [git](https://git-scm.com/) installed):
 ```bash
-git clone https://gitlab.com/intangiblerealities/narupa-protocol.git
-cd narupa-protocol
-conda activate narupa
+git clone https://gitlab.com/intangiblerealities/nanover-protocol.git
+cd nanover-protocol
+conda activate nanover
 jupyter notebook
 ```
 
@@ -67,12 +67,12 @@ jupyter notebook
 
 The `protocol` folder contains the definitions of the gRPC services.
 
-The `python-libraries` folder contains the library to write Narupa clients and
+The `python-libraries` folder contains the library to write NanoVer clients and
 servers in python, as well as the services implemented in python. The
 `python-libraries/prototypes` directory contains examples and (sometimes
 unmaintained) prototypes using the python libraries.
 
-The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
+The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
 ## Installation
 
@@ -80,42 +80,42 @@ The `csharp-libraries/Narupa.Protocol` folder contains C# implementations of cli
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Open the "Anaconda Powershell Prompt" to type the following commands.
-* Create a conda environment (here we call the environment "narupa"): `conda create -n narupa "python>3.6"`
-* Activate the conda environment: `conda activate narupa`
-* Install the Narupa packages: `conda install -c irl -c omnia -c conda-forge narupa-server`
+* Create a conda environment (here we call the environment "nanover"): `conda create -n nanover "python>3.6"`
+* Activate the conda environment: `conda activate nanover`
+* Install the NanoVer packages: `conda install -c irl -c omnia -c conda-forge nanover-server`
 
-Narupa can interact with the [LAMMPS](https://lammps.sandia.gov/) simulation engine.
+NanoVer can interact with the [LAMMPS](https://lammps.sandia.gov/) simulation engine.
 If you want to use this specific feature, you need to:
 
 * install LAMMPS with python capabilities
 * install mpy4py: `conda install -c conda-forge mpi4py` on Linux and MacOS,
   `python -m pip install mpi4py` on Windows.
-* install narupa-lammps: `conda install -c irl -c conda-forge narupa-lammps`.
+* install nanover-lammps: `conda install -c irl -c conda-forge nanover-lammps`.
 
 Developers will want the manual install described below.
 
-### Setup narupa-protocol for developers on Mac and Linux
+### Setup nanover-protocol for developers on Mac and Linux
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Install dotnet
-* Clone the narupa-protocol repository
+* Clone the nanover-protocol repository
 * In a terminal, in the repository root:
-    * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev "python>3.6"`
-    * Activate the conda environment: `conda activate narupa-dev`
+    * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.6"`
+    * Activate the conda environment: `conda activate nanover-dev`
     * Install the required conda package: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase mpi4py`
-    * Compile the protocol and install the Narupa libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the narupa packages will be installed in edit mode (`pip install -e`) meaning that changes in the `narupa-protocol` directory will be directly reflected in your python environment.
+    * Compile the protocol and install the NanoVer libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
 
-### Setup narupa-protocol for developers on Windows
+### Setup nanover-protocol for developers on Windows
 
 * Install Anaconda (avoid Anaconda 2.7 as it is outdated)
 * Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
-* Clone the narupa-protocol repository
+* Clone the nanover-protocol repository
 * In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "narupa-dev"): `conda create -n narupa-dev "python>3.6"`
-    * Activate the conda environment: `conda activate narupa-dev`
+    * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.6"`
+    * Activate the conda environment: `conda activate nanover-dev`
     * Install the required conda packages: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
-    * Compile the protocol and install the Narupa libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the narupa packages will be installed in edit mode (`pip install -e`) meaning that changes in the `narupa-protocol` directory will be directly reflected in your python environment.
-* The `narupa-lammps` module and its tests require MPI to be installed. Download and install Microsoft MPI from https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
+    * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
+* The `nanover-lammps` module and its tests require MPI to be installed. Download and install Microsoft MPI from https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
 
 ## Running the tests
 
@@ -133,23 +133,23 @@ Optionally, you can run most of the tests in parallel with pytest-xdist:
 
 ### ASE IMD Simulations
 
-`narupa.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the `narupa-protocol` directory:
+`nanover.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the `nanover-protocol` directory:
 
-    narupa-omm-ase examples/ase/nanotube.xml
+    nanover-omm-ase examples/ase/nanotube.xml
 
 The example files are distributed in the directory
-`examples/ase/` from the [git repository](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/examples/ase).
+`examples/ase/` from the [git repository](https://gitlab.com/intangiblerealities/nanover-protocol/tree/master/examples/ase).
 
 #### Jupyter Notebooks
 
-The [`python-libraries/narupa-ase/examples`](https://gitlab.com/intangiblerealities/narupa-protocol/tree/master/python-libraries/narupa-ase/examples) examples folder also contains several
+The [`python-libraries/nanover-ase/examples`](https://gitlab.com/intangiblerealities/nanover-protocol/tree/master/python-libraries/nanover-ase/examples) examples folder also contains several
 Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
-The [Narupa ASE documentation](python-libraries/narupa-ase/README.md) provides more details on setting up ASE simulations.
+The [NanoVer ASE documentation](python-libraries/nanover-ase/README.md) provides more details on setting up ASE simulations.
 
 ### MD Analysis Trajectories
 
-`narupa.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
-trajectory. To serve the frames on port 54321, from the `narupa-protocol` directory, run
+`nanover.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
+trajectory. To serve the frames on port 54321, from the `nanover-protocol` directory, run
 
     python ./examples/mdanalysis/example.py
 
@@ -157,7 +157,7 @@ trajectory. To serve the frames on port 54321, from the `narupa-protocol` direct
 
 ### Autoconnect
 
-If you are having autoconnecting to servers, you can run `narupa-essd-list` to verify which local network servers are visible to your machine.
+If you are having autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
 ## Citation and External Libraries
 

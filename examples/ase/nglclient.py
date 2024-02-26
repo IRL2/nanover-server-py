@@ -3,15 +3,15 @@ from io import StringIO
 import nglview
 import numpy as np
 
-from narupa.app import NarupaImdClient
-from narupa.mdanalysis import frame_data_to_mdanalysis
-from narupa.trajectory import FrameData
+from nanover.app import NanoverImdClient
+from nanover.mdanalysis import frame_data_to_mdanalysis
+from nanover.trajectory import FrameData
 from nglview import NGLWidget
 
 import MDAnalysis as mda
 
 
-class NGLClient(NarupaImdClient):
+class NGLClient(NanoverImdClient):
     def __init__(self, dynamic_bonds=False, *args, update_callback=None,
                  **kwargs):
         self._view = None

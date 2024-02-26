@@ -1,9 +1,9 @@
 # Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
 # Licensed under the GPL. See License.txt in the project root for license information.
 """
-Functions for extracting topology from narupa frames into per-atom dictionaries.
+Functions for extracting topology from nanover frames into per-atom dictionaries.
 """
-from narupa.trajectory.frame_data import (
+from nanover.trajectory.frame_data import (
     PARTICLE_ELEMENTS,
     PARTICLE_RESIDUES,
     PARTICLE_NAMES,
@@ -54,7 +54,7 @@ def atom_listing_from_frame(frame):
 def neighbour_map_from_frame(frame):
     """
     Map out neighbour relationships of atoms from the bond information present
-    in a narupa frame.
+    in a nanover frame.
     """
     neighbour_map = {}
 
