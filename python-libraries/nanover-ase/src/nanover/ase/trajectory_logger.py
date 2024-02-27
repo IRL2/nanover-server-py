@@ -1,4 +1,3 @@
-
 """
 Module containing a trajectory logging class that can be used to output
 portable trajectory files from an ASE molecular dynamics simulation.

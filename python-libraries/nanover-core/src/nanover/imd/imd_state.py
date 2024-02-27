@@ -1,6 +1,7 @@
 """
 Module providing methods for storing ParticleInteractions in a StateDictionary.
 """
+
 from typing import Dict, Any, Mapping
 
 from nanover.state.state_dictionary import StateDictionary

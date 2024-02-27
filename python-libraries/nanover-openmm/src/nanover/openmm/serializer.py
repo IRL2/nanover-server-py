@@ -28,6 +28,7 @@ XML file from an existing instance of :class:`simtk.openmm.app.Simulation`, and
 a function :func:`deserialize_simulation` that creates an instance of simulation
 from an XML file.
 """
+
 from typing import Optional, List, Tuple
 from io import StringIO
 from tempfile import TemporaryDirectory

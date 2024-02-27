@@ -1,6 +1,7 @@
 """
 ASE calculator for use with OpenMM.
 """
+
 from typing import Optional
 
 import nanover.openmm.serializer as serializer

@@ -1,6 +1,7 @@
 """
 Module providing conversion methods between NanoVer and OpenMM.
 """
+
 from typing import Optional
 
 

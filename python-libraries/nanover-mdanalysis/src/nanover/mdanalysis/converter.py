@@ -1,6 +1,7 @@
 """
 Module for performing conversions between MDAnalysis universes and NanoVer FrameData objects.
 """
+
 import collections
 
 import numpy as np

@@ -1,4 +1,3 @@
-
 import functools
 import pytest
 import numpy as np

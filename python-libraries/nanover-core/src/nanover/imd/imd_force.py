@@ -1,4 +1,3 @@
-
 """
 Provides a reference implementation of the IMD forces used by NanoVer.
 

@@ -1,6 +1,7 @@
 """
 Fixtures and utilities for tests that requires OpenMM simulations.
 """
+
 # Pylint does not recognize pytest fixtures, which causes some false warnings.
 # pylint: disable=unused-argument,redefined-outer-name
 import pytest

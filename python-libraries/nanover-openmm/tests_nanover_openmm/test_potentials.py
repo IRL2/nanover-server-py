@@ -1,4 +1,3 @@
-
 from simtk import openmm as mm
 from nanover.openmm import potentials
 from .simulation_utils import basic_simulation

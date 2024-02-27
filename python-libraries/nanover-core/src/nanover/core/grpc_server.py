@@ -1,7 +1,7 @@
-
 """
 Module providing a wrapper around the running of GRPC servers.
 """
+
 import logging
 from concurrent import futures
 from typing import Optional, Tuple

@@ -2,6 +2,7 @@
 Module containing a basic interactive molecular dynamics client that receives frames
 and can publish interactions.
 """
+
 import time
 import warnings
 from collections import deque, ChainMap

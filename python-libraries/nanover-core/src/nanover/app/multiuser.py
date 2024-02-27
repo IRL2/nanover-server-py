@@ -2,6 +2,7 @@
 Module for addon server behaviour specific to the NanoverIMD multiuser
 experience.
 """
+
 import math
 from functools import partial
 from nanover.core import NanoverServer

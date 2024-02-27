@@ -1,6 +1,7 @@
 """
 Provide a reporter for OpenMM simulation to publish frames as a NanoVer server.
 """
+
 from typing import Union
 
 try:

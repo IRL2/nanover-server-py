@@ -13,6 +13,7 @@ Example
 >>> discovery_server.close()
 
 """
+
 import logging
 import threading
 import time

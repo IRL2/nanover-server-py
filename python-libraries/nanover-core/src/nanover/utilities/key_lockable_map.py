@@ -1,4 +1,3 @@
-
 """
 Module providing an implementation of a dictionary-like object that can be
 locked during access to provide a way for asynchronous clients to edit the

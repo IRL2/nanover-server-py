@@ -3,6 +3,7 @@ LAMMPS python integration with NanoVer
 This program can be run as a standalone using mock data or from within LAMMPS
 using the python_invoke/fix command as demonstrated in the example LAMMPS inputs.
 """
+
 import functools
 import logging
 from typing import List, Optional

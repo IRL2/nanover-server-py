@@ -1,6 +1,7 @@
 """
 Tests for :mod:`nanover.openmm.runner`.
 """
+
 # Pylint does not recognize pytest fixtures which creates fake warnings.
 # pylint: disable=redefined-outer-name,unused-import
 # Inherited test methods loose the staticmethod decorator. Test method that

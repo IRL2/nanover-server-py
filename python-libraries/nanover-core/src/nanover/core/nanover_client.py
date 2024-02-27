@@ -3,7 +3,6 @@ A module for setting up typical NanoVer clients, containing a client
 that sets up a command service.
 """
 
-
 from typing import Dict, Iterable, ContextManager, Union, Mapping
 from uuid import uuid4
 

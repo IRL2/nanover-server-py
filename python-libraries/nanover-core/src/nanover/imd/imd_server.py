@@ -1,6 +1,7 @@
 """
 Module providing a server for running a :class: ImdService.
 """
+
 from typing import Optional
 
 from nanover.core import (

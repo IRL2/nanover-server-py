@@ -1,4 +1,3 @@
-
 """
 Utilities for working with GRPC, particularly wrappers with more descriptive
 names.

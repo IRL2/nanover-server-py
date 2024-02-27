@@ -2,6 +2,7 @@
 Module providing a mock LAMMPS object so that the NanoVer LAMMPS flow can be tested
 without LAMMPS installed.
 """
+
 import ctypes
 from typing import List, Union, Optional
 

@@ -1,6 +1,7 @@
 """
 Facilities to run an OpenMM simulation.
 """
+
 from typing import Union, TypeVar, Type, Optional, Dict
 import sys
 import os

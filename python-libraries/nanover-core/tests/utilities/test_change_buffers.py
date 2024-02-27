@@ -1,4 +1,3 @@
-
 import pytest
 
 from nanover.utilities.change_buffers import (

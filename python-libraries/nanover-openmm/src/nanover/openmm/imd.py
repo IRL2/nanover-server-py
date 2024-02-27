@@ -48,6 +48,7 @@ receives the interactions. It can be use instead of
             simulation.run(10)
 
 """
+
 from typing import Tuple, Dict, List, Set, Optional
 import itertools
 

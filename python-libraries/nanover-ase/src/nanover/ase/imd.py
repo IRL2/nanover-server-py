@@ -1,7 +1,7 @@
-
 """
 Interactive molecular dynamics server for use with an ASE molecular dynamics simulation.
 """
+
 import logging
 from concurrent import futures
 from contextlib import contextmanager

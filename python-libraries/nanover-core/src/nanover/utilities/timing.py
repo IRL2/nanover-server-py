@@ -1,6 +1,7 @@
 """
 Module providing time-dependent utility methods.
 """
+
 import time
 from threading import RLock
 

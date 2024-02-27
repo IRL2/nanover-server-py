@@ -1,7 +1,7 @@
-
 """
 Provides an implementation of IMD force field in ASE.
 """
+
 import math
 from typing import Optional, Dict, Set, Collection
 

@@ -2,6 +2,7 @@
 Module providing an implementation of the :class:`CommandServicer`.
 
 """
+
 from typing import Dict, Callable, Optional, Union
 from typing import NamedTuple
 

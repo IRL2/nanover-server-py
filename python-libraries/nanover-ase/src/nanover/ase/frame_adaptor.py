@@ -1,4 +1,3 @@
-
 """
 Methods for transmitting a simulation frame from ASE.
 """

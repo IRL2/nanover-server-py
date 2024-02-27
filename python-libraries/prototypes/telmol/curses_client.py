@@ -4,6 +4,7 @@ NanoVer frame client that renders atoms to a curses display in the terminal.
 The client connects to a NanoVer Frame server, and renders the frames it receives
 into the terminal.
 """
+
 import sys
 import textwrap
 from typing import Dict, Callable, Sequence, Any

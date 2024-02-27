@@ -3,6 +3,7 @@ Module containing methods for converting between ASE simulations consisting of
 :class:`Atoms`  and the NanoVer :class:`FrameData` object for transmission to
 NanoVer clients.
 """
+
 from typing import Iterable, Optional
 
 from ase import Atoms, Atom  # type: ignore
