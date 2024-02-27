@@ -20,7 +20,7 @@ requirements:
 
 about:
   home: https://nanover.readthedocs.io
-  license: GPL-3
+  license: MIT
   license_file: {{ NANOVER_LICENSE_PATH }}
   summary: Extremely Simple Service Discovery for NanoVer
   description: |

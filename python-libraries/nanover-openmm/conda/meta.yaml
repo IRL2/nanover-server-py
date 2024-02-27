@@ -24,7 +24,7 @@ requirements:
 
 about:
   home: https://nanover.readthedocs.io
-  license: GPL-3
+  license: MIT
   license_file: {{ NANOVER_LICENSE_PATH }}
   summary: OpenMM server for NanoVer.
   description: |

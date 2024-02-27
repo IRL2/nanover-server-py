@@ -22,7 +22,7 @@ requirements:
 
 about:
   home: https://nanover.readthedocs.io
-  license: GPL-3
+  license: MIT
   license_file: {{ NANOVER_LICENSE_PATH }}
   summary: MDAnalysis binding for NanoVer.
   description: |
