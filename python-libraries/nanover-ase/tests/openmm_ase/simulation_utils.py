@@ -1,8 +1,7 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Fixtures and utilities for tests that requires OpenMM simulations.
 """
+
 # TODO: This is a duplicated file from nanover-openmm. See issue #60.
 
 # Pylint does not recognize pytest fixtures, which causes some false warnings.

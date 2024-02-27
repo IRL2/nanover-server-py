@@ -1,5 +1,3 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Connects to a NanoVer simulation and outputs osc messages for multiplayer number
 fields and some metrics from framedata.
@@ -9,6 +7,7 @@ Run with:
     nanover-omm-ase nanotube.xml
     python generic.py --osc-port 9000
 """
+
 from nanover.trajectory.frame_data import KINETIC_ENERGY, POTENTIAL_ENERGY
 from osc_app import OscApp
 

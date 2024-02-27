@@ -1,5 +1,3 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Link NanoVer's user forces to an OpenMM simulation.
 
@@ -50,6 +48,7 @@ receives the interactions. It can be use instead of
             simulation.run(10)
 
 """
+
 from typing import Tuple, Dict, List, Set, Optional
 import itertools
 

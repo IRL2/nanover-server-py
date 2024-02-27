@@ -1,5 +1,3 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 import logging
 from uuid import uuid4
 from typing import Dict, Set, Mapping

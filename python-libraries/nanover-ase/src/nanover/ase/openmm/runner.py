@@ -1,8 +1,7 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Interactive molecular dynamics runner for ASE with OpenMM.
 """
+
 import logging
 from typing import Optional
 import warnings

@@ -1,8 +1,7 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Module providing a wrapper class around the protobuf interaction message.
 """
+
 import math
 from typing import Dict, Any, Iterable, Union
 import numpy as np

@@ -1,9 +1,7 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
-
 """
 Module providing a wrapper around the running of GRPC servers.
 """
+
 import logging
 from concurrent import futures
 from typing import Optional, Tuple

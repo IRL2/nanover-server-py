@@ -1,5 +1,3 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Connects to a NanoVer simulation and, assuming the simulated molecules to be the
 nanover nanotube demo (nanotube with no hydrogens, single methane), computes and
@@ -10,6 +8,7 @@ Run with:
     nanover-omm-ase nanotube.xml
     python nanotube.py --osc-port 9000
 """
+
 from osc_app import OscApp
 
 import topology

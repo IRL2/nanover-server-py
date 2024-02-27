@@ -1,9 +1,7 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
-
 """
 Interactive molecular dynamics server for use with an ASE molecular dynamics simulation.
 """
+
 import logging
 from concurrent import futures
 from contextlib import contextmanager

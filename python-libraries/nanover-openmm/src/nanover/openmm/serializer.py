@@ -1,5 +1,3 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Serialize and deserialize OpenMM simulations to and from XML files.
 
@@ -30,6 +28,7 @@ XML file from an existing instance of :class:`simtk.openmm.app.Simulation`, and
 a function :func:`deserialize_simulation` that creates an instance of simulation
 from an XML file.
 """
+
 from typing import Optional, List, Tuple
 from io import StringIO
 from tempfile import TemporaryDirectory

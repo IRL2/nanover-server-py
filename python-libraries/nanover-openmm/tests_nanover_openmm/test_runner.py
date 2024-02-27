@@ -1,8 +1,7 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Tests for :mod:`nanover.openmm.runner`.
 """
+
 # Pylint does not recognize pytest fixtures which creates fake warnings.
 # pylint: disable=redefined-outer-name,unused-import
 # Inherited test methods loose the staticmethod decorator. Test method that

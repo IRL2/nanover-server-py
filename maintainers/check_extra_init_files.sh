@@ -1,6 +1,4 @@
 #!/bin/bash
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 
 # Test for __init__.py files at the root of the nanover python packages. NanoVer,
 # on the python side, is a namespace package (see

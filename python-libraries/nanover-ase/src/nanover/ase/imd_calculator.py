@@ -1,9 +1,7 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
-
 """
 Provides an implementation of IMD force field in ASE.
 """
+
 import math
 from typing import Optional, Dict, Set, Collection
 

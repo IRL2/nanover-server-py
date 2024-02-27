@@ -1,5 +1,3 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 from nanover.essd.server import DiscoveryServer
 from nanover.essd.client import DiscoveryClient
 from nanover.essd.servicehub import ServiceHub

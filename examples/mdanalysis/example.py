@@ -1,5 +1,3 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 import MDAnalysis
 from MDAnalysis.tests.datafiles import PSF, DCD  # test trajectory
 

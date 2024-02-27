@@ -1,8 +1,7 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Module providing methods for storing ParticleInteractions in a StateDictionary.
 """
+
 from typing import Dict, Any, Mapping
 
 from nanover.state.state_dictionary import StateDictionary

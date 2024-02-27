@@ -1,10 +1,9 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 """
 Module containing methods for converting between ASE simulations consisting of
 :class:`Atoms`  and the NanoVer :class:`FrameData` object for transmission to
 NanoVer clients.
 """
+
 from typing import Iterable, Optional
 
 from ase import Atoms, Atom  # type: ignore
