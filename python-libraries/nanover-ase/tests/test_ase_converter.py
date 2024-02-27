@@ -1,5 +1,3 @@
-# Copyright (c) Intangible Realities Lab, University Of Bristol. All rights reserved.
-# Licensed under the GPL. See License.txt in the project root for license information.
 from ase import Atoms
 from ase.calculators.lj import LennardJones
 from nanover.ase import ase_to_frame_data
