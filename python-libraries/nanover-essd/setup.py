@@ -12,7 +12,7 @@ setup(
     url="https://gitlab.com/intangiblerealities/",
     packages=find_namespace_packages("src", include="nanover.*"),
     package_data={"": ["py.typed"]},
-    install_requires=("netifaces",),
+    install_requires=("netifaces2",),
     entry_points={
         "console_scripts": ["nanover-essd-list=nanover.essd.list_cli:main"],
     },
