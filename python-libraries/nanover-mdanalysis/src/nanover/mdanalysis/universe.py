@@ -2,6 +2,7 @@
 Facilities to read a NanoVer trajectory recording into an MDAnalysis Universe.
 
 .. code:: python
+
     import MDAnalysis as mda
     from nanover.mdanalysis import NanoverReader, NanoverParser
 
@@ -96,7 +97,8 @@ class NanoverParser(TopologyReaderBase):
         # TODO: implement a more reliable way to get the full topology
         try:
             _, _, frame = next(
-                advance_to_first_particle_frame(iter_trajectory_recording(unpacker))
+                advance_to_first_particle_frame(
+                    iter_trajectory_recording(unpacker))
             )
         except StopIteration:
             raise IOError("The file does not contain any frame.")
@@ -157,7 +159,8 @@ class NanoverReader(ProtoReader):
             data = infile.read()
         unpacker = Unpacker(data)
         recording = advance_to_first_coordinate_frame(
-            iter_trajectory_with_elpsed_integrated(iter_trajectory_recording(unpacker))
+            iter_trajectory_with_elpsed_integrated(
+                iter_trajectory_recording(unpacker))
         )
         try:
             _, _, first_frame = next(recording)
@@ -284,6 +287,7 @@ def explosion_mask(trajectory, max_displacement):
     exploding frames:
 
     .. code:: python
+
         import MDAnalysis as mda
         from nanover.mdanalysis import NanoverParser, NanoverReader, explosion_mask
 

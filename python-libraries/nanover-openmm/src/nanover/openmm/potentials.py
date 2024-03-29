@@ -60,7 +60,7 @@ def restrain_particles(
     particles. The particles are restrained to their positions in the given
     position array (usually the initial positions).
 
-    See :fun:`restraint_force` for the details of the potential.
+    See :func:`restraint_force` for the details of the potential.
 
     .. seealso: restraint_force
 

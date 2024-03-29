@@ -6,6 +6,7 @@ Run with:
     python cli.py neuraminidase.xml
 
 If the module is installed with pip, run with:
+
 .. code bash
     nanover-omm-ase neuraminidase.xml
 
@@ -168,10 +169,12 @@ def main():
 
         runner.imd.on_reset_listeners.append(lambda: print("RESET! " * 10))
         print(
-            f'Serving "{runner.name}" on port {runner.app_server.port}, discoverable on all interfaces on port {runner.discovery_port}'
+            f'Serving "{runner.name}" on port {
+                runner.app_server.port}, discoverable on all interfaces on port {runner.discovery_port}'
         )
         try:
-            runner.run(block=False, reset_energy=runner.cli_options["reset_energy"])
+            runner.run(
+                block=False, reset_energy=runner.cli_options["reset_energy"])
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:

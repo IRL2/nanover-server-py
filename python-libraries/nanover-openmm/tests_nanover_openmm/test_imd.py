@@ -101,7 +101,7 @@ def test_populate_imd_force(empty_imd_force, basic_system):
 
 def test_add_imd_force_to_system_parameters(basic_system):
     """
-    The force returned by :fun:`imd.add_imd_force_to_system` has the expected
+    The force returned by :func:`imd.add_imd_force_to_system` has the expected
     per particle parameters.
     """
     force = imd.add_imd_force_to_system(basic_system)
@@ -110,7 +110,7 @@ def test_add_imd_force_to_system_parameters(basic_system):
 
 def test_add_imd_force_to_system_force_is_in_system(basic_system):
     """
-    When using :fun:`imd.add_imd_force_to_system`, the force is indeed added to
+    When using :func:`imd.add_imd_force_to_system`, the force is indeed added to
     the system.
     """
     force_added = imd.add_imd_force_to_system(basic_system)

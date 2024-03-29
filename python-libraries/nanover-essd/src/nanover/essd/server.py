@@ -83,13 +83,16 @@ class DiscoveryServer:
         """
         if service in self.services:
             raise KeyError(
-                f"A service with the same ID has already been registered: {service}"
+                f"A service with the same ID has already been registered: {
+                    service}"
             )
         broadcast_addresses = self.get_broadcast_addresses_for_service(service)
         if len(broadcast_addresses) == 0:
-            msg = f"No valid broadcast address found for service {service}, check network configuration. "
+            msg = f"No valid broadcast address found for service {
+                service}, check network configuration. "
             if len(self.broadcast_addresses) > 0:
-                msg += f"The following broadcast addresses were found on the system: {self.broadcast_addresses}"
+                msg += f"The following broadcast addresses were found on the system: {
+                    self.broadcast_addresses}"
             raise ValueError(msg)
         with self._lock:
             self.services[service] = broadcast_addresses
@@ -99,10 +102,11 @@ class DiscoveryServer:
         Removes a service from discovery.
 
         :param service: The service to remove.
-        :raises KeyError Raised if the service has never been registered with this discovery server.
+        :raises KeyError: Raised if the service has never been registered with this discovery server.
         """
         if service not in self.services:
-            raise KeyError(f"No service with this ID has been registered {service}")
+            raise KeyError(
+                f"No service with this ID has been registered {service}")
         with self._lock:
             del self.services[service]
 
@@ -114,7 +118,8 @@ class DiscoveryServer:
         if self._broadcast_thread is not None:
             raise RuntimeError("Discovery service already running!")
         self._socket = configure_reusable_socket()
-        self._broadcast_thread = threading.Thread(target=self._broadcast, daemon=True)
+        self._broadcast_thread = threading.Thread(
+            target=self._broadcast, daemon=True)
         self._broadcast_thread.start()
 
     def close(self):
@@ -140,11 +145,13 @@ class DiscoveryServer:
         address = service.address
         for broadcast_address in addresses:
             if address == "[::]" or address == "localhost":
-                message = service.to_message(override_address=broadcast_address["addr"])
+                message = service.to_message(
+                    override_address=broadcast_address["addr"])
             else:
                 message = service.to_message()
             self.logger.debug(
-                f'Sending service {service} to {broadcast_address["broadcast"]}:{self.port}'
+                f'Sending service {service} to {
+                    broadcast_address["broadcast"]}:{self.port}'
             )
             self._socket.sendto(
                 message.encode(), (broadcast_address["broadcast"], self.port)
@@ -163,7 +170,8 @@ class DiscoveryServer:
         if address == "localhost":
             localhost_address = resolve_host_broadcast_address(address)
             if localhost_address is None:
-                raise ValueError("Cannot broadcast on localhost on this system!")
+                raise ValueError(
+                    "Cannot broadcast on localhost on this system!")
             return [localhost_address]
         return [
             broadcast_address

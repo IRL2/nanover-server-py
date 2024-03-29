@@ -64,7 +64,7 @@ class NanoverClient(GrpcClient):
     def available_commands(self) -> Dict[str, CommandInfo]:
         """
         Returns a copy of the dictionary of commands available on the server,
-        as determined by previously calling :fun:`update_available_commands`.
+        as determined by previously calling :func:`update_available_commands`.
 
         :return: A dictionary of command information, keyed by the command names.
         """
@@ -136,6 +136,7 @@ class NanoverClient(GrpcClient):
         """
         Attempt to make a single atomic change to the shared state, blocking
         until a response is received.
+
         :param change: A single change to make to the shared state that will
             either be made in full, or ignored if some of the keys are locked
             by another user.
@@ -154,6 +155,7 @@ class NanoverClient(GrpcClient):
     ) -> bool:
         """
         Attempt to acquire and/or free a number of locks on the shared state.
+
         :param lock_updates: A dictionary of keys to either a duration in
             seconds to attempt to acquire or renew a lock, or None to indicate
             the lock should be released if held.

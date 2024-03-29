@@ -206,7 +206,7 @@ class ASEOpenMMRunner(NanoverRunner):
     ):
         """
         Initialises a :class:`OpenMMIMDRunner` from a simulation XML file
-        serialised with :fun:`serializer.serialize_simulation`.
+        serialised with :func:`serializer.serialize_simulation`.
 
         :param simulation_xml: Path to XML file.
         :param params: The :class: ImdParams to run the server with.

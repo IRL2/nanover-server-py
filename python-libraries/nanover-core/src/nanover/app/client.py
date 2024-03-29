@@ -97,7 +97,7 @@ class NanoverImdClient:
     All addresses are optional, so one can, for example, just connect to a trajectory service to passively receive
     frames.
 
-    The :fun:`NanoverImdClient.autoconnect` and :fun:`NanoverImdClient.connect_to_single_server` methods provide
+    The :func:`NanoverImdClient.autoconnect` and :func:`NanoverImdClient.connect_to_single_server` methods provide
     shorthands for common server setups.
 
     Inspecting a Frame
@@ -207,7 +207,8 @@ class NanoverImdClient:
         self._first_frame = None
         self._current_frame = FrameData()
 
-        self.update_available_commands()  # initialise the set of available commands.
+        # initialise the set of available commands.
+        self.update_available_commands()
 
     @property
     def all_frames(self):
@@ -283,7 +284,8 @@ class NanoverImdClient:
         if first_service is None:
             raise ConnectionError("Could not find an iMD server")
 
-        trajectory_address = first_service.get_service_address(FRAME_SERVICE_NAME)
+        trajectory_address = first_service.get_service_address(
+            FRAME_SERVICE_NAME)
         imd_address = first_service.get_service_address(IMD_SERVICE_NAME)
         multiplayer_address = first_service.get_service_address(
             MULTIPLAYER_SERVICE_NAME
@@ -486,7 +488,8 @@ class NanoverImdClient:
             if invalid parameters are passed to the server.
         :raises KeyError: if the given interaction ID does not exist.
         """
-        self._imd_client.update_interaction(interaction_id, interaction)  # type: ignore
+        self._imd_client.update_interaction(
+            interaction_id, interaction)  # type: ignore
 
     @need_imd
     def stop_interaction(self, interaction_id) -> bool:
@@ -499,12 +502,11 @@ class NanoverImdClient:
             :func:`~NanoverClient.start_interaction`, that identifies the
             interaction to stop.
         :return: An :class:`InteractionEndReply`, which is an empty message indicating
-        successful termination of the interaction.
+            successful termination of the interaction.
 
         :raises ValueError: if the there is no IMD connection available, or
             if invalid parameters are passed to the server.
         :raises KeyError: if the given interaction ID does not exist.
-
         """
         return self._imd_client.stop_interaction(interaction_id)  # type: ignore
 
@@ -570,7 +572,8 @@ class NanoverImdClient:
         if name in self._multiplayer_commands:
             return self.run_multiplayer_command(name, **args)
         raise KeyError(
-            f"Unknown command: {name}, run update_available_commands to refresh commands."
+            f"Unknown command: {
+                name}, run update_available_commands to refresh commands."
         )
 
     @need_frames
@@ -606,7 +609,8 @@ class NanoverImdClient:
         :return: Results of the command, if any.
         """
 
-        return self._multiplayer_client.run_command(name, **args)  # type: ignore
+        # type: ignore
+        return self._multiplayer_client.run_command(name, **args)
 
     @need_multiplayer
     def subscribe_multiplayer(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
@@ -629,6 +633,7 @@ class NanoverImdClient:
         """
         Attempt to make a single atomic change to the shared state, blocking
         until a response is received.
+
         :param update: A single change to make to the shared state that will
             either be made in full, or ignored if some of the keys are locked
             by another user.
@@ -643,6 +648,7 @@ class NanoverImdClient:
     ) -> bool:
         """
         Attempt to acquire and/or free a number of locks on the shared state.
+
         :param update: A dictionary of keys to either a duration in
             seconds to attempt to acquire or renew a lock, or None to indicate
             the lock should be released if held.
@@ -743,7 +749,8 @@ class NanoverImdClient:
 
         :param selection: The selection to update.
         """
-        self.set_shared_value(selection.selection_id, selection.to_dictionary())
+        self.set_shared_value(selection.selection_id,
+                              selection.to_dictionary())
 
     @need_multiplayer
     def remove_selection(self, selection: RenderingSelection):
@@ -783,7 +790,8 @@ class NanoverImdClient:
         :param selection_id: The id of the selection
         :return: The selection if it is present
         """
-        value = self._multiplayer_client.copy_state()[selection_id]  # type: ignore
+        value = self._multiplayer_client.copy_state()[
+            selection_id]  # type: ignore
         return self._create_selection_from_dict(value)
 
     def _create_selection_from_dict(self, value) -> RenderingSelection:
@@ -830,7 +838,7 @@ class NanoverImdClient:
             A client can subscribe to frames only ones and cannot change how
             it subscribes.
 
-        .. see-also:: subscribe_to_frames, are_frames_subscribed
+        .. seealso:: subscribe_to_frames, are_frames_subscribed
 
         """
         if self._are_framed_subscribed:
@@ -865,7 +873,7 @@ class NanoverImdClient:
             A client can subscribe to frames only ones and cannot change how
             it subscribes.
 
-        .. see-also:: subscribe_to_all_frames, are_frames_subscribed
+        .. seealso:: subscribe_to_all_frames, are_frames_subscribed
 
         :param interval: Minimum time, in seconds, between two consecutive
             frames.
@@ -908,7 +916,8 @@ class NanoverImdClient:
                 channel=self._channels[address], make_channel_owner=False
             )
         else:
-            client: ClientVarType = client_type.insecure_channel(address=address[0], port=address[1])  # type: ignore[no-redef]
+            client: ClientVarType = client_type.insecure_channel(
+                address=address[0], port=address[1])  # type: ignore[no-redef]
             self._channels[address] = client.channel
         return client
 

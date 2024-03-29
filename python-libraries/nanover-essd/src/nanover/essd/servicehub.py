@@ -76,7 +76,8 @@ class ServiceHub:
 
         :param json_properties: The JSON string containing the properties of the ServiceHub
         :return: An instance of :class:`ServiceHub`
-        :raises:`KeyError` if the properties do not contain required fields, name and address.
+
+        :raises`KeyError`: if the properties do not contain required fields, name and address.
         """
         properties = json.loads(json_properties)
         return cls(**properties)
@@ -198,7 +199,8 @@ class ServiceHub:
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
-            raise TypeError(f"Cannot compare {self.__class__} with {other.__class__}")
+            raise TypeError(f"Cannot compare {
+                            self.__class__} with {other.__class__}")
         return hash(self) == hash(other)
 
 
@@ -221,5 +223,6 @@ def _validate_message_length(properties):
     message = _construct_message(properties).encode()
     if len(message) > MAXIMUM_MESSAGE_SIZE:
         raise ValueError(
-            f"Service definition exceeds the maximum message size of {MAXIMUM_MESSAGE_SIZE}"
+            f"Service definition exceeds the maximum message size of {
+                MAXIMUM_MESSAGE_SIZE}"
         )
