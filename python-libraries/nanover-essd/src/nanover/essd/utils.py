@@ -99,16 +99,14 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
         raise ValueError(f"Given address {address} is not a valid IP address.")
     try:
         netmask = ipaddress.ip_address(interface_address_entry["netmask"])
-        broadcast_address = ipaddress.ip_address(
-            interface_address_entry["broadcast"])
+        broadcast_address = ipaddress.ip_address(interface_address_entry["broadcast"])
         # to network address e.g. 255.255.255.0 & 192.168.1.255 = 192.168.1.0
-        network_address = ipaddress.ip_address(
-            int(netmask) & int(broadcast_address))
+        network_address = ipaddress.ip_address(int(netmask) & int(broadcast_address))
         # The doc and typing stub seem to indicate this is not a valid call of
         # ipaddress.ip_network, but this is well tested so we accept it for the
         # time being.
         # TODO: Fix this line as the types seem to be incorrect.
-        ip_network = ipaddress.ip_network((network_address, interface_address_entry["netmask"])) # type: ignore
+        ip_network = ipaddress.ip_network((network_address, interface_address_entry["netmask"]))  # type: ignore
     except ValueError:
         raise ValueError(
             f"Given address {interface_address_entry} is not a valid IP network address."

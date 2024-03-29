@@ -284,8 +284,7 @@ class NanoverImdClient:
         if first_service is None:
             raise ConnectionError("Could not find an iMD server")
 
-        trajectory_address = first_service.get_service_address(
-            FRAME_SERVICE_NAME)
+        trajectory_address = first_service.get_service_address(FRAME_SERVICE_NAME)
         imd_address = first_service.get_service_address(IMD_SERVICE_NAME)
         multiplayer_address = first_service.get_service_address(
             MULTIPLAYER_SERVICE_NAME
@@ -746,8 +745,7 @@ class NanoverImdClient:
 
         :param selection: The selection to update.
         """
-        self.set_shared_value(selection.selection_id,
-                              selection.to_dictionary())
+        self.set_shared_value(selection.selection_id, selection.to_dictionary())
 
     @need_multiplayer
     def remove_selection(self, selection: RenderingSelection):

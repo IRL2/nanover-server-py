@@ -172,8 +172,7 @@ def main():
             f'Serving "{runner.name}" on port {runner.app_server.port}, discoverable on all interfaces on port {runner.discovery_port}'
         )
         try:
-            runner.run(
-                block=False, reset_energy=runner.cli_options["reset_energy"])
+            runner.run(block=False, reset_energy=runner.cli_options["reset_energy"])
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:

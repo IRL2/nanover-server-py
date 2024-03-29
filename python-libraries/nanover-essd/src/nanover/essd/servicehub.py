@@ -222,6 +222,5 @@ def _validate_message_length(properties):
     message = _construct_message(properties).encode()
     if len(message) > MAXIMUM_MESSAGE_SIZE:
         raise ValueError(
-            f"Service definition exceeds the maximum message size of {
-                MAXIMUM_MESSAGE_SIZE}"
+            f"Service definition exceeds the maximum message size of {MAXIMUM_MESSAGE_SIZE}"
         )
