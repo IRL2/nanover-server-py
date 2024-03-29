@@ -16,7 +16,7 @@ def get_ipv4_addresses(
     :param interfaces: Optional list of interfaces to extract addresses from. If none are provided,
         all interfaces will be used.
     :return: A list of dictionaries containing the IP address and other information for each interface,
-        as returned by :fun:`netifaces.ifaddresses`.
+        as returned by :func:`netifaces.ifaddresses`.
     """
     if interfaces is None:
         interfaces = netifaces.interfaces()
@@ -39,11 +39,12 @@ def get_broadcast_addresses(
     :param interfaces: Optional list of interfaces to extract addresses from. If none are provided,
         all interfaces will be used.
     :return: A list of dictionaries containing the IP address and other information for each interface,
-    as returned by :fun:`netifaces.ifaddresses`.
+        as returned by :func:`netifaces.ifaddresses`.
 
     In the netifaces API, the address entries are returned as dictionaries in the following format:
 
     .. code::
+
         {
           'addr': '172.23.43.33',
           'netmask': '255.255.0.0',
@@ -84,13 +85,13 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
     interface network as defined by their IPv4 subnet mask and broadcast address.
 
     :param address: An IPv4 address.
-    :param interface_address_entry: An IPv4 address entry, as produced by :fun:`netifaces.ifaddresses`. It must
+    :param interface_address_entry: An IPv4 address entry, as produced by :func:`netifaces.ifaddresses`. It must
         contain the `netmask` and `broadcast` fields, representing the subnet mask IP and the broadcast IP for the given
         interface
     :return: `True`, if the given address is in the same network as given interface address, `False` otherwise.
     :raises: ValueError: if invalid IP addresses are given for any field.
     :raises: KeyError: if the `netmask` and `broadcast` fields are not present in the interface address entry
-    argument.
+        argument.
     """
     try:
         ip_address = ipaddress.ip_address(address)

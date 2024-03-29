@@ -6,6 +6,7 @@ Run with:
     python cli.py neuraminidase.xml
 
 If the module is installed with pip, run with:
+
 .. code bash
     nanover-omm-ase neuraminidase.xml
 

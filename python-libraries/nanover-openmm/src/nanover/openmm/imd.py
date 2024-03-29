@@ -7,10 +7,10 @@ has the components of the iMD force for each atom as a per-atom parameter. A
 reporter periodically updates these parameters based on the imd service, and
 updates the simulation context.
 
-The custom force can be setup using :fun:`create_imd_force` and
-:fun:`populate_imd_force`, or using :fun:`add_imd_force_to_system` that combines
+The custom force can be setup using :func:`create_imd_force` and
+:func:`populate_imd_force`, or using :func:`add_imd_force_to_system` that combines
 the two previous functions. When a simulation is created using
-:fun:`nanover.openmm.serializer.deserialize_simulation`, the imd force must be
+:func:`nanover.openmm.serializer.deserialize_simulation`, the imd force must be
 already present, or must be added by passing it with the ``imd_force``
 parameter.
 

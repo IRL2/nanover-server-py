@@ -2,6 +2,7 @@
 Facilities to read a NanoVer trajectory recording into an MDAnalysis Universe.
 
 .. code:: python
+
     import MDAnalysis as mda
     from nanover.mdanalysis import NanoverReader, NanoverParser
 
@@ -284,6 +285,7 @@ def explosion_mask(trajectory, max_displacement):
     exploding frames:
 
     .. code:: python
+
         import MDAnalysis as mda
         from nanover.mdanalysis import NanoverParser, NanoverReader, explosion_mask
 

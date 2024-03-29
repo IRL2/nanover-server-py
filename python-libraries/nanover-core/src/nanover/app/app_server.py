@@ -163,7 +163,7 @@ class NanoverApplicationServer:
         The discovery service that can be used to allow clients to find services hosted by this application.
         :return: The discovery service, or None if no discovery has been set up.
 
-        Services added directly to the server running on this application via :fun:`NanoverApplicationServer.add_service`
+        Services added directly to the server running on this application via :func:`NanoverApplicationServer.add_service`
         are automatically added to this discovery service.
 
         Accessing the discovery service directly enables one to register their own server that may be running

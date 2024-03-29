@@ -25,6 +25,7 @@ class GrpcServer:
 
     :param address: The IP address at which to run the server.
     :param port: The port on which to run the server.
+
     """
 
     def __init__(
@@ -91,7 +92,7 @@ class GrpcServer:
         Add a gRPC service to this server.
 
         :param service: The gRPC service to add, must have the method to add the gRPC service as the attribute
-        add_to_server_method.
+            add_to_server_method.
         """
         try:
             service.add_to_server_method(service, self.server)

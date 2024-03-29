@@ -33,7 +33,8 @@ def validate_ase_can_append_format(format: str):
     """
     try:
         # TODO: when ASE fixes their typo we can do the correct check
-        if not ioformats[format].can_write:  # or not ioformats[format].can_append:
+        # or not ioformats[format].can_append:
+        if not ioformats[format].can_write:
             raise UnsupportedFormatError
     except KeyError:
         raise UnsupportedFormatError
@@ -68,16 +69,15 @@ class TrajectoryLogger:
     :param filename: Path to filename to write to.
     :param format: Format to use, as supported by ASE. If not specified, derived from filename.
     :param timestamp: Whether to append a timestamp to the file name. Use to avoid overwriting the same file if
-    dynamics is reset.
+        dynamics is reset.
     :param parallel:  Default is to write on master process only.  Set to `False` to write from all processes.
-    :param kwargs: Keyword arguments to be passed to the underlying :fun:`ase.io.write` method.
+    :param kwargs: Keyword arguments to be passed to the underlying :func:`ase.io.write` method.
 
     Note that even if an ASE format supports appending, if that file requires additional data between frames (e.g.
     headers), then the resulting output may not be valid.
 
     If ASE supports writing directly a file descriptor for the given format, then that will be used for performance,
     otherwise, the file will be reopened and appended to each frame, which will negatively impact performance.
-
     """
 
     format: str

@@ -76,7 +76,8 @@ class ServiceHub:
 
         :param json_properties: The JSON string containing the properties of the ServiceHub
         :return: An instance of :class:`ServiceHub`
-        :raises:`KeyError` if the properties do not contain required fields, name and address.
+
+        :raises`KeyError`: if the properties do not contain required fields, name and address.
         """
         properties = json.loads(json_properties)
         return cls(**properties)

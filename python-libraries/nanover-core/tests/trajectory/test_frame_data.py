@@ -87,8 +87,8 @@ def raw_frame_with_rich_value(draw, value_strategy):
     Strategy to generate a tuple of a gRPC FrameData with a single value and
     the corresponding value.
 
-    On the contrary to :fun:`raw_frame_with_single_value`, the value can be a
-    container. Also, while :fun:`raw_frame_with_single_value` uses low level
+    On the contrary to :func:`raw_frame_with_single_value`, the value can be a
+    container. Also, while :func:`raw_frame_with_single_value` uses low level
     ways of assigning the value in the protobuf object, this function uses
     :mod:`nanover.utilities.protobuf_utilities`.
     """

@@ -61,8 +61,8 @@ class OpenMMRunner(NanoverRunner):
 
     :param simulation: The OpenMM simulation to run. It must have an OpenMM
         force object compatible with iMD. This force can be added using
-        :fun:`nanover.openmm.imd.add_imd_force_to_system` or provided to
-        :fun:`nanover.openmm.serializer.deserialize_simulation` with the
+        :func:`nanover.openmm.imd.add_imd_force_to_system` or provided to
+        :func:`nanover.openmm.serializer.deserialize_simulation` with the
         ``imd_force`` argument.
     :param name: A friendly name for the runner. It will be displayed by ESSD.
     :param address: The IP address the server binds to.

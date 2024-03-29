@@ -99,7 +99,7 @@ class DiscoveryServer:
         Removes a service from discovery.
 
         :param service: The service to remove.
-        :raises KeyError Raised if the service has never been registered with this discovery server.
+        :raises KeyError: Raised if the service has never been registered with this discovery server.
         """
         if service not in self.services:
             raise KeyError(f"No service with this ID has been registered {service}")
