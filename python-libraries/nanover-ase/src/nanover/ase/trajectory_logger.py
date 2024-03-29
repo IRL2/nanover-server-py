@@ -102,8 +102,7 @@ class TrajectoryLogger:
         self.parallel = parallel
         self._kwargs = kwargs
         self._timestamp = timestamp
-        self.current_path = _generate_filename(
-            self.base_path, self.timestamping)
+        self.current_path = _generate_filename(self.base_path, self.timestamping)
         self._file_descriptor = None
 
         if format is not None:
@@ -168,8 +167,7 @@ class TrajectoryLogger:
         """
         self.frame_index = 0
         self.close()
-        self.current_path = _generate_filename(
-            self.base_path, self.timestamping)
+        self.current_path = _generate_filename(self.base_path, self.timestamping)
 
     def __call__(self):
         """

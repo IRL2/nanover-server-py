@@ -44,8 +44,7 @@ class GrpcServer:
         self.setup_services()
         self._address = address
         try:
-            self._port = self.server.add_insecure_port(
-                address=f"{address}:{port}")
+            self._port = self.server.add_insecure_port(address=f"{address}:{port}")
         except RuntimeError:
             if port == 0:
                 raise IOError("Could not open any port.")

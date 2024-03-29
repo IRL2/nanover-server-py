@@ -108,13 +108,10 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
         # ipaddress.ip_network, but this is well tested so we accept it for the
         # time being.
         # TODO: Fix this line as the types seem to be incorrect.
-        ip_network = ipaddress.ip_network(
-            # type: ignore
-            (network_address, interface_address_entry["netmask"]))
+        ip_network = ipaddress.ip_network((network_address, interface_address_entry["netmask"])) # type: ignore
     except ValueError:
         raise ValueError(
-            f"Given address {
-                interface_address_entry} is not a valid IP network address."
+            f"Given address {interface_address_entry} is not a valid IP network address."
         )
     except KeyError:
         raise KeyError(

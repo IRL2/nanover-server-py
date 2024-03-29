@@ -488,8 +488,7 @@ class NanoverImdClient:
             if invalid parameters are passed to the server.
         :raises KeyError: if the given interaction ID does not exist.
         """
-        self._imd_client.update_interaction(
-            interaction_id, interaction)  # type: ignore
+        self._imd_client.update_interaction(interaction_id, interaction)  # type: ignore
 
     @need_imd
     def stop_interaction(self, interaction_id) -> bool:
@@ -572,8 +571,7 @@ class NanoverImdClient:
         if name in self._multiplayer_commands:
             return self.run_multiplayer_command(name, **args)
         raise KeyError(
-            f"Unknown command: {
-                name}, run update_available_commands to refresh commands."
+            f"Unknown command: {name}, run update_available_commands to refresh commands."
         )
 
     @need_frames
@@ -609,8 +607,7 @@ class NanoverImdClient:
         :return: Results of the command, if any.
         """
 
-        # type: ignore
-        return self._multiplayer_client.run_command(name, **args)
+        return self._multiplayer_client.run_command(name, **args)  # type: ignore
 
     @need_multiplayer
     def subscribe_multiplayer(self, interval=DEFAULT_STATE_UPDATE_INTERVAL):
@@ -790,8 +787,7 @@ class NanoverImdClient:
         :param selection_id: The id of the selection
         :return: The selection if it is present
         """
-        value = self._multiplayer_client.copy_state()[
-            selection_id]  # type: ignore
+        value = self._multiplayer_client.copy_state()[selection_id]  # type: ignore
         return self._create_selection_from_dict(value)
 
     def _create_selection_from_dict(self, value) -> RenderingSelection:
@@ -916,8 +912,7 @@ class NanoverImdClient:
                 channel=self._channels[address], make_channel_owner=False
             )
         else:
-            client: ClientVarType = client_type.insecure_channel(
-                address=address[0], port=address[1])  # type: ignore[no-redef]
+            client: ClientVarType = client_type.insecure_channel(address=address[0], port=address[1])  # type: ignore[no-redef]
             self._channels[address] = client.channel
         return client
 

@@ -181,8 +181,7 @@ def test_no_constraint_no_warning(runner_class, basic_simulation, imd_params):
     with runner_class(basic_simulation, imd_params) as runner:
         runner._logger.addHandler(handler)
         runner._validate_simulation()
-        assert handler.count_records(
-            CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 0
+        assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 0
 
 
 def test_constraint_warning(runner_class, basic_simulation, imd_params):
@@ -196,8 +195,7 @@ def test_constraint_warning(runner_class, basic_simulation, imd_params):
     with runner_class(basic_simulation, imd_params) as runner:
         runner._logger.addHandler(handler)
         runner._validate_simulation()
-        assert handler.count_records(
-            CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 1
+        assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 1
 
 
 def test_no_discovery(runner_class, basic_simulation, imd_params):
@@ -224,8 +222,7 @@ def test_discovery_with_client(runner_class, basic_simulation, imd_params):
         with DiscoveryClient() as client:
             # There may be servers running already, we only want to look at the
             # one we created in that test. We select it by name.
-            servers = set(client.search_for_services(
-                search_time=0.8, interval=0.01))
+            servers = set(client.search_for_services(search_time=0.8, interval=0.01))
             relevant_servers = [
                 server for server in servers if server.name == imd_params.name
             ]
@@ -300,8 +297,7 @@ def test_throttling(client_runner, fps):
     runner.imd.cancel_run(wait=True)
 
     timestamps = [frame.server_timestamp for frame in client.frames[1:]]
-    deltas = [timestamps[i] - timestamps[i - 1]
-              for i in range(1, len(timestamps))]
+    deltas = [timestamps[i] - timestamps[i - 1] for i in range(1, len(timestamps))]
     print(dynamics_interval, 0.90 * dynamics_interval, deltas)
     # The interval is not very accurate. We only check that the observed
     # interval is greater than the expected one and we accept some

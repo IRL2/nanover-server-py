@@ -199,8 +199,7 @@ class ServiceHub:
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
-            raise TypeError(f"Cannot compare {
-                            self.__class__} with {other.__class__}")
+            raise TypeError(f"Cannot compare {self.__class__} with {other.__class__}")
         return hash(self) == hash(other)
 
 

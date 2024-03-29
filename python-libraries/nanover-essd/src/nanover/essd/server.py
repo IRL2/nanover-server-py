@@ -83,8 +83,7 @@ class DiscoveryServer:
         """
         if service in self.services:
             raise KeyError(
-                f"A service with the same ID has already been registered: {
-                    service}"
+                f"A service with the same ID has already been registered: {service}"
             )
         broadcast_addresses = self.get_broadcast_addresses_for_service(service)
         if len(broadcast_addresses) == 0:
