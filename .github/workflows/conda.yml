@@ -29,7 +29,7 @@ jobs:
         run: bash ./maintainers/check_extra_init_files.sh
       - name: Install dependencies
         # We temporarilly ignore failure here. See #31.
-        run: conda install -y python conda-build grpcio-tools conda-verify || echo "Fail?"
+        run: conda install -y python conda-build "grpcio-tools<1.62" conda-verify || echo "Fail?"
       - name: Compiling the prototypes
         run: python python-libraries/nanover-core/setup.py compile_proto --proto-dir=protocol
       - name: Building the Conda packages
