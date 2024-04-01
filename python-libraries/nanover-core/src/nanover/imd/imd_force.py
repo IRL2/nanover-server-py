@@ -244,6 +244,25 @@ def calculate_spring_force(
     return energy, force
 
 
+def calculate_constant_force(
+    particle_position: np.array,
+    interaction_position: np.array,
+    periodic_box_lengths: Optional[np.ndarray] = None
+) -> Tuple[float, np.array]:
+    """
+    Applies a constant force that is independent of the controller from the target entity.
+
+    :param particle_position: The position of the particle.
+    :param interaction_position: The position of the interaction.
+    :param periodic_box_lengths: Vector of periodic boundary lengths.
+    :return: The energy of the interaction, and the force to be applied to the particle.
+    """
+    distance_vector = _minimum_image(interaction_position - particle_position, periodic_box_lengths)
+    force = distance_vector / np.linalg.norm(distance_vector)
+    energy = 1
+    return energy, force
+
+
 def _minimum_image(
     diff, periodic_box_lengths: Optional[np.ndarray] = None
 ) -> np.ndarray:
@@ -281,4 +300,5 @@ def _calculate_diff_and_sqr_distance(
 INTERACTION_METHOD_MAP = {
     "gaussian": calculate_gaussian_force,
     "spring": calculate_spring_force,
+    "constant": calculate_constant_force,
 }
