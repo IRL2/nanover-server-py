@@ -76,6 +76,7 @@ class NanoverImdReporter:
     imd_force: mm.CustomExternalForce
     imd_state: ImdStateWrapper
     frame_publisher: FramePublisher
+    end: Optional[int]
     n_particles: Optional[int]
     masses: Optional[npt.NDArray]
     positions: Optional[npt.NDArray]
@@ -90,12 +91,14 @@ class NanoverImdReporter:
         imd_force: mm.CustomExternalForce,
         imd_state: ImdStateWrapper,
         frame_publisher: FramePublisher,
+        end: Optional[int] = None,
     ):
         self.frame_interval = frame_interval
         self.force_interval = force_interval
         self.imd_force = imd_force
         self.imd_state = imd_state
         self.frame_publisher = frame_publisher
+        self.end = end
 
         # We will not know these values until the beginning of the simulation.
         self.n_particles = None
@@ -144,12 +147,12 @@ class NanoverImdReporter:
                 positions = state.getPositions(asNumpy=True)
             try:
                 frame_data = openmm_to_frame_data(
-                    state=state, topology=None, include_positions=False
+                    state=state, topology=simulation.topology, include_positions=False, end=self.end
                 )
             except Exception as err:
                 print(f"Error while building a frame: {err}")
             else:
-                frame_data.particle_positions = positions
+                frame_data.particle_positions = positions[slice(None, self.end)]
                 frame_data.user_energy = self._total_user_energy
                 self.frame_publisher.send_frame(self._frame_index, frame_data)
                 self._frame_index += 1
@@ -165,7 +168,7 @@ class NanoverImdReporter:
             state = simulation.context.getState(getPositions=True, getEnergy=True)
             topology = simulation.topology
             try:
-                frame_data = openmm_to_frame_data(state=state, topology=topology)
+                frame_data = openmm_to_frame_data(state=state, topology=topology, end=self.end)
             except Exception as err:
                 print(f"Error with the first frame: {err}")
             else:

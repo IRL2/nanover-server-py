@@ -75,6 +75,7 @@ class OpenMMRunner(NanoverRunner):
         name: Optional[str] = None,
         address: Optional[str] = None,
         port: Optional[int] = None,
+        end: Optional[int] = None,
     ):
         self.simulation = simulation
         self._verbose_reporter = app.StateDataReporter(
@@ -108,6 +109,7 @@ class OpenMMRunner(NanoverRunner):
             imd_force=imd_force,
             imd_state=self.app_server.imd,
             frame_publisher=self.app_server.frame_publisher,
+            end=end,
         )
         self.simulation.reporters.append(self.reporter)
 
@@ -133,6 +135,7 @@ class OpenMMRunner(NanoverRunner):
         address: Optional[str] = None,
         port: Optional[int] = None,
         platform: Optional[str] = None,
+        end: Optional[int] = None,
     ) -> RunnerClass:
         """
         Create a runner from a serialized simulation.
@@ -155,7 +158,7 @@ class OpenMMRunner(NanoverRunner):
             simulation = serializer.deserialize_simulation(
                 infile.read(), imd_force=imd_force, platform_name=platform
             )
-        return cls(simulation, name=name, address=address, port=port)
+        return cls(simulation, name=name, address=address, port=port, end=end)
 
     @property
     def app_server(self):
