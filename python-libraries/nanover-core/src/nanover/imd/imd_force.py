@@ -8,7 +8,7 @@ For details, and if you find these functions helpful, please cite [1]_.
 """
 
 from math import exp
-from typing import Tuple, Optional, Iterable, Callable, Dict, Protocol
+from typing import Tuple, Optional, Iterable, Dict, Protocol
 
 import numpy as np
 import numpy.typing as npt
