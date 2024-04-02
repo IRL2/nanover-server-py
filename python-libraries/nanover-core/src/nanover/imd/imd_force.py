@@ -244,7 +244,7 @@ def calculate_spring_force(
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
     # The spring constant. A higher value results in a stronger force.
-    k = 2
+    k = 1
 
     r = particle_position
     g = interaction_position
