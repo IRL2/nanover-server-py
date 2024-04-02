@@ -23,7 +23,7 @@ class ForceCalculator(Protocol):
         *,
         periodic_box_lengths: Optional[npt.NDArray],
     ) -> Tuple[float, npt.NDArray]:
-        pass
+        ...
 
 
 def calculate_imd_force(
@@ -258,7 +258,7 @@ def calculate_spring_force(
 def calculate_constant_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
-    periodic_box_lengths: Optional[npt.NDArray] = None
+    periodic_box_lengths: Optional[npt.NDArray] = None,
 ) -> Tuple[float, npt.NDArray]:
     """
     Applies a constant force that is independent of the distance between the particle and the interaction site.
@@ -267,7 +267,9 @@ def calculate_constant_force(
     :param periodic_box_lengths: Vector of periodic boundary lengths.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
-    distance_vector = _minimum_image(interaction_position - particle_position, periodic_box_lengths)
+    distance_vector = _minimum_image(
+        interaction_position - particle_position, periodic_box_lengths
+    )
     force = distance_vector / np.linalg.norm(distance_vector)
     energy = 1
     return energy, force
