@@ -18,7 +18,7 @@ from nanover.imd.particle_interaction import ParticleInteraction
 class ForceCalculator(Protocol):
     def __call__(
         self,
-        positions: npt.NDArray,
+        particle_position: npt.NDArray,
         interaction_position: npt.NDArray,
         periodic_box_lengths: Optional[npt.NDArray],
     ) -> Tuple[float, npt.NDArray]: ...
