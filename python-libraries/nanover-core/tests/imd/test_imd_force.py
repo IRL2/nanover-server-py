@@ -506,8 +506,5 @@ CONSTANT_TESTS = [
 )
 def test_constant_force(position, interaction, expected_energy, expected_force):
     energy, force = calculate_constant_force(np.array(position), np.array(interaction))
-
-    print(force, expected_force)
-
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(force, expected_force, equal_nan=True)
