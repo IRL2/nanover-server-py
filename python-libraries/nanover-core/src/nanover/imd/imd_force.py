@@ -244,15 +244,15 @@ def calculate_spring_force(
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
     # The spring constant. A higher value results in a stronger force.
-    k = 1
+    k = 2
 
     r = particle_position
     g = interaction_position
 
     diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
-    energy = k * dist_sqr
+    energy = 0.5 * k * dist_sqr
     # force is negative derivative of energy wrt to position.
-    force = (-2 * k) * diff
+    force = -k * diff
     return energy, force
 
 
