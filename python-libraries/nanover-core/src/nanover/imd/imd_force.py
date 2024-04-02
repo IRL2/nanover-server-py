@@ -263,6 +263,7 @@ def calculate_constant_force(
 ) -> Tuple[float, npt.NDArray]:
     """
     Applies a constant force that is independent of the distance between the particle and the interaction site.
+    
     :param particle_position: The position of the particle.
     :param interaction_position: The position of the interaction.
     :param periodic_box_lengths: Vector of periodic boundary lengths.
