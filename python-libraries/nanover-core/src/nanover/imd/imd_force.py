@@ -198,7 +198,7 @@ def calculate_gaussian_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
     periodic_box_lengths: Optional[npt.NDArray] = None,
-) -> Tuple[float, np.ndarray]:
+) -> Tuple[float, npt.NDArray]:
     """
     Computes the interactive Gaussian force.
 
