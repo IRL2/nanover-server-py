@@ -7,7 +7,8 @@ from nanover.imd.imd_force import (
     calculate_spring_force,
     calculate_gaussian_force,
     apply_single_interaction_force,
-    calculate_imd_force, calculate_constant_force,
+    calculate_imd_force,
+    calculate_constant_force,
 )
 from nanover.imd.particle_interaction import ParticleInteraction
 
@@ -483,8 +484,10 @@ CONSTANT_TESTS = [
         position,
         interaction,
         1,
-        np.subtract(interaction, position) / np.linalg.norm(np.subtract(interaction, position)),
-    ) for (position, interaction) in [
+        np.subtract(interaction, position)
+        / np.linalg.norm(np.subtract(interaction, position)),
+    )
+    for (position, interaction) in [
         ([1, 0, 0], [0, 0, 0]),
         ([0, 0, 0], [1, 0, 0]),
         ([1, 3, 0], [1, 2, 0]),
@@ -498,7 +501,8 @@ CONSTANT_TESTS = [
 
 
 @pytest.mark.parametrize(
-    "position, interaction, expected_energy, expected_force", CONSTANT_TESTS,
+    "position, interaction, expected_energy, expected_force",
+    CONSTANT_TESTS,
 )
 def test_constant_force(position, interaction, expected_energy, expected_force):
     energy, force = calculate_constant_force(np.array(position), np.array(interaction))
