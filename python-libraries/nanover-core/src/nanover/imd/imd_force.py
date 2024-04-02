@@ -8,11 +8,22 @@ For details, and if you find these functions helpful, please cite [1]_.
 """
 
 from math import exp
-from typing import Tuple, Optional, Iterable
+from typing import Tuple, Optional, Iterable, Callable, Dict, Protocol
 
 import numpy as np
 import numpy.typing as npt
 from nanover.imd.particle_interaction import ParticleInteraction
+
+
+class ForceCalculator(Protocol):
+    def __call__(
+        self,
+        positions: npt.NDArray,
+        interaction_position: npt.NDArray,
+        *,
+        periodic_box_lengths: Optional[npt.NDArray],
+    ) -> Tuple[float, npt.NDArray]:
+        pass
 
 
 def calculate_imd_force(
@@ -296,7 +307,7 @@ def _calculate_diff_and_sqr_distance(
     return diff, dist_sqr
 
 
-INTERACTION_METHOD_MAP = {
+INTERACTION_METHOD_MAP: Dict[str, ForceCalculator] = {
     "gaussian": calculate_gaussian_force,
     "spring": calculate_spring_force,
     "constant": calculate_constant_force,
