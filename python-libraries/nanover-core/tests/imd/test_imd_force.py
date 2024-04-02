@@ -8,6 +8,7 @@ from nanover.imd.imd_force import (
     calculate_gaussian_force,
     apply_single_interaction_force,
     calculate_imd_force,
+    calculate_constant_force,
 )
 from nanover.imd.particle_interaction import ParticleInteraction
 
@@ -474,5 +475,36 @@ def test_gaussian_force(
 )
 def test_spring_force(position, interaction, expected_energy, expected_force):
     energy, force = calculate_spring_force(np.array(position), np.array(interaction))
+    assert np.allclose(energy, expected_energy, equal_nan=True)
+    assert np.allclose(force, expected_force, equal_nan=True)
+
+
+CONSTANT_TESTS = [
+    (
+        position,
+        interaction,
+        1,
+        np.subtract(interaction, position)
+        / np.linalg.norm(np.subtract(interaction, position)),
+    )
+    for (position, interaction) in [
+        ([1, 0, 0], [0, 0, 0]),
+        ([0, 0, 0], [1, 0, 0]),
+        ([1, 3, 0], [1, 2, 0]),
+        ([1, 3, 3], [1, 3, 2]),
+        (UNIT, [0, 0, 0]),
+        ([1, 1, 1], [0, 0, 0]),
+        ([1, 2, 3], [1, 2, 3]),
+        ([-1, -1, -1], [0, 0, 0]),
+    ]
+]
+
+
+@pytest.mark.parametrize(
+    "position, interaction, expected_energy, expected_force",
+    CONSTANT_TESTS,
+)
+def test_constant_force(position, interaction, expected_energy, expected_force):
+    energy, force = calculate_constant_force(np.array(position), np.array(interaction))
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(force, expected_force, equal_nan=True)

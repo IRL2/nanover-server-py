@@ -107,7 +107,13 @@ def interactions(draw):
     keywords = draw(st.dictionaries(st.text(), EXACT_SINGLE_VALUE_STRATEGY))
 
     interaction_type = draw(
-        st.one_of(st.none(), st.text(), st.just("gaussian"), st.just("harmonic"))
+        st.one_of(
+            st.none(),
+            st.text(),
+            st.just("gaussian"),
+            st.just("harmonic"),
+            st.just("constant"),
+        )
     )
     if interaction_type is not None:
         keywords["interaction_type"] = interaction_type
