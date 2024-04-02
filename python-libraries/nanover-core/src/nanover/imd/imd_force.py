@@ -245,10 +245,10 @@ def calculate_spring_force(
 
 
 def calculate_constant_force(
-    particle_position: np.array,
-    interaction_position: np.array,
-    periodic_box_lengths: Optional[np.ndarray] = None
-) -> Tuple[float, np.array]:
+    particle_position: npt.NDArray,
+    interaction_position: npt.NDArray,
+    periodic_box_lengths: Optional[npt.NDArray] = None
+) -> Tuple[float, npt.NDArray]:
     """
     Applies a constant force that is independent of the distance between the particle and the interaction site.
     :param particle_position: The position of the particle.
