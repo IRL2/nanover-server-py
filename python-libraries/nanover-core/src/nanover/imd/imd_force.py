@@ -8,11 +8,20 @@ For details, and if you find these functions helpful, please cite [1]_.
 """
 
 from math import exp
-from typing import Tuple, Optional, Iterable
+from typing import Tuple, Optional, Iterable, Dict, Protocol
 
 import numpy as np
 import numpy.typing as npt
 from nanover.imd.particle_interaction import ParticleInteraction
+
+
+class ForceCalculator(Protocol):
+    def __call__(
+        self,
+        particle_position: npt.NDArray,
+        interaction_position: npt.NDArray,
+        periodic_box_lengths: Optional[npt.NDArray],
+    ) -> Tuple[float, npt.NDArray]: ...
 
 
 def calculate_imd_force(
@@ -186,11 +195,10 @@ def get_center_of_mass_subset(
 
 
 def calculate_gaussian_force(
-    particle_position: np.ndarray,
-    interaction_position: np.ndarray,
-    sigma=1,
-    periodic_box_lengths: Optional[np.ndarray] = None,
-) -> Tuple[float, np.ndarray]:
+    particle_position: npt.NDArray,
+    interaction_position: npt.NDArray,
+    periodic_box_lengths: Optional[npt.NDArray] = None,
+) -> Tuple[float, npt.NDArray]:
     """
     Computes the interactive Gaussian force.
 
@@ -200,9 +208,11 @@ def calculate_gaussian_force(
     :param particle_position: The position of the particle.
     :param interaction_position: The position of the interaction.
     :param periodic_box_lengths: The periodic box vectors. If passed,
-    :param sigma: The width of the Gaussian. Increasing this results in a more diffuse, but longer reaching interaction.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
+    # The width of the Gaussian. Increasing this results in a more diffuse, but longer reaching interaction.
+    sigma = 1
+
     # switch to math symbols used in publications.
     r = particle_position
     g = interaction_position
@@ -219,7 +229,6 @@ def calculate_gaussian_force(
 def calculate_spring_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
-    k=2,
     periodic_box_lengths: Optional[npt.NDArray] = None,
 ) -> Tuple[float, npt.NDArray]:
     """
@@ -234,6 +243,9 @@ def calculate_spring_force(
     :param periodic_box_lengths: Vector of periodic boundary lengths.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
+    # The spring constant. A higher value results in a stronger force.
+    k = 2
+
     r = particle_position
     g = interaction_position
 
@@ -241,6 +253,27 @@ def calculate_spring_force(
     energy = 0.5 * k * dist_sqr
     # force is negative derivative of energy wrt to position.
     force = -k * diff
+    return energy, force
+
+
+def calculate_constant_force(
+    particle_position: npt.NDArray,
+    interaction_position: npt.NDArray,
+    periodic_box_lengths: Optional[npt.NDArray] = None,
+) -> Tuple[float, npt.NDArray]:
+    """
+    Applies a constant force that is independent of the distance between the particle and the interaction site.
+
+    :param particle_position: The position of the particle.
+    :param interaction_position: The position of the interaction.
+    :param periodic_box_lengths: Vector of periodic boundary lengths.
+    :return: The energy of the interaction, and the force to be applied to the particle.
+    """
+    distance_vector = _minimum_image(
+        interaction_position - particle_position, periodic_box_lengths
+    )
+    force = distance_vector / np.linalg.norm(distance_vector)
+    energy = 1
     return energy, force
 
 
@@ -278,7 +311,8 @@ def _calculate_diff_and_sqr_distance(
     return diff, dist_sqr
 
 
-INTERACTION_METHOD_MAP = {
+INTERACTION_METHOD_MAP: Dict[str, ForceCalculator] = {
     "gaussian": calculate_gaussian_force,
     "spring": calculate_spring_force,
+    "constant": calculate_constant_force,
 }
