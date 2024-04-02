@@ -22,8 +22,7 @@ class ForceCalculator(Protocol):
         interaction_position: npt.NDArray,
         *,
         periodic_box_lengths: Optional[npt.NDArray],
-    ) -> Tuple[float, npt.NDArray]:
-        ...
+    ) -> Tuple[float, npt.NDArray]: ...
 
 
 def calculate_imd_force(
