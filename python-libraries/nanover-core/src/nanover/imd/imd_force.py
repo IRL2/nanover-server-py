@@ -20,7 +20,6 @@ class ForceCalculator(Protocol):
         self,
         positions: npt.NDArray,
         interaction_position: npt.NDArray,
-        *,
         periodic_box_lengths: Optional[npt.NDArray],
     ) -> Tuple[float, npt.NDArray]: ...
 
@@ -196,10 +195,9 @@ def get_center_of_mass_subset(
 
 
 def calculate_gaussian_force(
-    particle_position: np.ndarray,
-    interaction_position: np.ndarray,
-    sigma=1,
-    periodic_box_lengths: Optional[np.ndarray] = None,
+    particle_position: npt.NDArray,
+    interaction_position: npt.NDArray,
+    periodic_box_lengths: Optional[npt.NDArray] = None,
 ) -> Tuple[float, np.ndarray]:
     """
     Computes the interactive Gaussian force.
@@ -210,9 +208,11 @@ def calculate_gaussian_force(
     :param particle_position: The position of the particle.
     :param interaction_position: The position of the interaction.
     :param periodic_box_lengths: The periodic box vectors. If passed,
-    :param sigma: The width of the Gaussian. Increasing this results in a more diffuse, but longer reaching interaction.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
+    # The width of the Gaussian. Increasing this results in a more diffuse, but longer reaching interaction.
+    sigma = 1
+
     # switch to math symbols used in publications.
     r = particle_position
     g = interaction_position
@@ -229,7 +229,6 @@ def calculate_gaussian_force(
 def calculate_spring_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
-    k=1,
     periodic_box_lengths: Optional[npt.NDArray] = None,
 ) -> Tuple[float, npt.NDArray]:
     """
@@ -244,6 +243,9 @@ def calculate_spring_force(
     :param periodic_box_lengths: Vector of periodic boundary lengths.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
+    # The spring constant. A higher value results in a stronger force.
+    k = 2
+
     r = particle_position
     g = interaction_position
 
