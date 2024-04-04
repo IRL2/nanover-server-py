@@ -885,9 +885,11 @@ class NanoverImdClient:
         self._are_framed_subscribed = True
 
     def _on_frame_received(self, frame_index: int, frame: FrameData):
-        if self._first_frame is None:
+        if self._first_frame is None or frame_index == 0:
             self._first_frame = frame
         self._frames.append(frame)
+        if frame_index == 0:
+            self._current_frame = FrameData()
         self._current_frame.raw.MergeFrom(frame.raw)
 
     def __enter__(self):
