@@ -78,7 +78,7 @@ The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of cl
 
 ### Quick installation for a user
 
-* Install Anaconda (avoid Anaconda 2.7 as it is outdated)
+* Install Anaconda
 * Open the "Anaconda Powershell Prompt" to type the following commands.
 * Create a conda environment (here we call the environment "nanover"): `conda create -n nanover "python>3.11"`
 * Activate the conda environment: `conda activate nanover`
@@ -96,7 +96,7 @@ Developers will want the manual install described below.
 
 ### Setup nanover-protocol for developers on Mac and Linux
 
-* Install Anaconda (avoid Anaconda 2.7 as it is outdated)
+* Install Anaconda
 * Install dotnet
 * Clone the nanover-protocol repository
 * In a terminal, in the repository root:
@@ -107,7 +107,7 @@ Developers will want the manual install described below.
 
 ### Setup nanover-protocol for developers on Windows
 
-* Install Anaconda (avoid Anaconda 2.7 as it is outdated)
+* Install Anaconda
 * Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
 * Clone the nanover-protocol repository
 * In the "Anaconda Powershell Prompt":
