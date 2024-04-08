@@ -737,13 +737,13 @@ def test_copy_doesnt_mutate_original_array(value):
     assert frame.arrays["sample.new"][0] != "baby yoda"
 
 
-@given(ARRAYS_STRATEGIES["string_values"])
-def test_copy_empty_array(value):
+@pytest.mark.parametrize("typed_array", [[0], [0.0], ["string"]])
+def test_copy_empty_array(typed_array):
     """
     Test deep copying a frame with an empty array is possible.
     """
     frame = FrameData()
-    frame.arrays["sample.new"] = value
+    frame.arrays["sample.new"] = typed_array
     frame.arrays["sample.new"][:] = []
     frame.copy()
 
