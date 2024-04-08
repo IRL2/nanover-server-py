@@ -24,7 +24,7 @@ jobs:
         run: |
           echo NANOVER_BUILD_VERSION="0.1.$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
           echo NANOVER_LICENSE_PATH="$(readlink -f LICENSE)" >> "$GITHUB_ENV"
-          echo MIN_PYTHON_VERSION=3.10 >> "$GITHUB_ENV"
+          echo MIN_PYTHON_VERSION=3.11 >> "$GITHUB_ENV"
       - name: Test that the repo is sane and does not contain superfluous __init__ file
         run: bash ./maintainers/check_extra_init_files.sh
       - name: Install dependencies
