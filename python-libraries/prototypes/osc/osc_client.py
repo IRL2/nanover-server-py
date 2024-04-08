@@ -32,6 +32,9 @@ class OscClient:
 
     def run(self):
         for dt in yield_interval(self.send_interval):
+            if not self.nanover_client.are_frames_subscribed:
+                break
+
             frame = self.nanover_client.latest_frame
             if frame is not None:
                 self.process_frame(frame)
