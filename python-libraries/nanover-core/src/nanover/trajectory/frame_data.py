@@ -507,7 +507,9 @@ class ArraysView(RecordView):
         try:
             reference_value = value[0]
         except IndexError:
-            raise ValueError(f"Element type cannot be determined by empty array {key}.") from None
+            raise ValueError(
+                f"Element type cannot be determined by empty array {key}."
+            ) from None
         except TypeError:
             raise ValueError(f"Value must be indexable for array {key}.") from None
 
