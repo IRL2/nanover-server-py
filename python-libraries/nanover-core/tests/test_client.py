@@ -205,9 +205,14 @@ def test_reconnect_receive(client_server, simple_frame_data):
     assert client.latest_frame is not None
 
 
-def test_frame_reset(client_server, simple_frame_data, disjoint_frame_data):
+@pytest.mark.parametrize(
+    "subscription_method", ("subscribe_to_frames", "subscribe_to_all_frames")
+)
+def test_frame_reset(
+    subscription_method, client_server, simple_frame_data, disjoint_frame_data
+):
     client, frame_server, _, _ = client_server
-    client.subscribe_to_all_frames()
+    getattr(client, subscription_method)()
     frame_server.send_frame(0, simple_frame_data)
     time.sleep(CLIENT_WAIT_TIME)
     assert "bool" in client.latest_frame.values
