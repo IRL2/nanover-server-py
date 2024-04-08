@@ -506,10 +506,10 @@ class ArraysView(RecordView):
     def set(self, key: str, value):
         try:
             reference_value = value[0]
-        except IndexError as e:
+        except IndexError:
             raise ValueError(f"Element type cannot be determined by empty array {key}.") from None
-        except TypeError as e:
-            raise ValueError(f"Value must be indexable.") from None
+        except TypeError:
+            raise ValueError(f"Value must be indexable for array {key}.") from None
 
         if isinstance(reference_value, numbers.Integral) and int(reference_value) >= 0:
             type_attribute = "index_values"
