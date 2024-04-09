@@ -511,10 +511,7 @@ def test_constant_force(position, interaction, expected_energy, expected_force):
 
 @pytest.mark.parametrize(
     "position, interaction",
-    [
-        ([0, 0, 0], [0, 0, 0]),
-        ([1, 2, 3], [1, 2, 3])
-    ],
+    [([0, 0, 0], [0, 0, 0]), ([1, 2, 3], [1, 2, 3])],
 )
 def test_constant_force_overlap(position, interaction):
     energy, force = calculate_constant_force(np.array(position), np.array(interaction))
