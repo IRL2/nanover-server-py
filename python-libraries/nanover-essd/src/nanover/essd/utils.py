@@ -3,7 +3,7 @@ import socket
 from typing import List, Optional, Iterable, Dict
 
 import netifaces
-from netifaces.defs import AddressType, Address
+from netifaces.defs import AddressType, Address, InterfaceType
 
 InterfaceAddresses = Dict[AddressType, Address]
 
@@ -25,7 +25,7 @@ def get_ipv4_addresses(
     for interface in interfaces:
         addrs = netifaces.ifaddresses(interface)
         try:
-            ipv4_addrs += addrs[netifaces.AF_INET]
+            ipv4_addrs += addrs[InterfaceType.AF_INET]
         except KeyError:
             continue
     return ipv4_addrs
