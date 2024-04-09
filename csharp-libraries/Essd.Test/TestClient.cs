@@ -87,7 +87,7 @@ namespace Essd.Test
         public async Task TestClientStartStopSearch()
         {
             var client = new Client(54548);
-            client.StartSearch();
+            _ = client.StartSearch();
             Assert.True(client.Searching);
             await client.StopSearch();
             Assert.False(client.Searching);
@@ -101,7 +101,7 @@ namespace Essd.Test
             var server = new SimpleServer(port);
             int serviceFound =0;
             client.ServiceFound += (sender, hub) => serviceFound++;
-            client.StartSearch();
+            _ = client.StartSearch();
             for (int i = 0; i < 5; i++)
             {
                 await Task.Delay(100);
@@ -137,13 +137,13 @@ namespace Essd.Test
         }
 
         [Test]
-        public async Task TestClientDoubleStartSearch()
+        public void TestClientDoubleStartSearch()
         {
             var client = new Client(54552);
-            client.StartSearch();
+            _ = client.StartSearch();
             try
             {
-                client.StartSearch();
+                _ = client.StartSearch();
             }
             catch (InvalidOperationException)
             {
@@ -153,10 +153,10 @@ namespace Essd.Test
         }
 
         [Test]
-        public async Task TestClientStartBlockingWhileSearching()
+        public void TestClientStartBlockingWhileSearching()
         {
             var client = new Client(54553);
-            client.StartSearch();
+            _ = client.StartSearch();
             try
             {
                 client.SearchForServices();
