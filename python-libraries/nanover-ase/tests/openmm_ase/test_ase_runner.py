@@ -7,7 +7,7 @@ from ase import units
 from nanover.app.app_server import DEFAULT_NANOVER_PORT
 from nanover.app import NanoverImdClient
 from ase.io import read
-from nanover.ase.openmm import ASEOpenMMRunner, OpenMMIMDRunner
+from nanover.ase.openmm import ASEOpenMMRunner
 from nanover.ase.openmm.runner import (
     ImdParams,
     CONSTRAINTS_UNSUPPORTED_MESSAGE,
@@ -61,7 +61,7 @@ def logging_params(tmp_path):
     return params
 
 
-@pytest.fixture(params=(ASEOpenMMRunner, OpenMMIMDRunner))
+@pytest.fixture(params=(ASEOpenMMRunner,))
 def runner_class(request):
     return request.param
 
@@ -82,11 +82,6 @@ def client_runner(runner):
 def default_runner(basic_simulation):
     with ASEOpenMMRunner(basic_simulation) as runner:
         yield runner
-
-
-def test_deprecated_runner(basic_simulation, imd_params):
-    with pytest.deprecated_call():
-        OpenMMIMDRunner(basic_simulation, imd_params)
 
 
 def test_from_xml(serialized_simulation_path, imd_params):

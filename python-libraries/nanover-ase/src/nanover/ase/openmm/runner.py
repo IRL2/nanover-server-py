@@ -205,7 +205,7 @@ class ASEOpenMMRunner(NanoverRunner):
         logging_params: Optional[LoggingParams] = None,
     ):
         """
-        Initialises a :class:`OpenMMIMDRunner` from a simulation XML file
+        Initialises a :class:`AseOpenMMIMDRunner` from a simulation XML file
         serialised with :func:`serializer.serialize_simulation`.
 
         :param simulation_xml: Path to XML file.
@@ -383,15 +383,3 @@ class ASEOpenMMRunner(NanoverRunner):
         self.imd.on_reset_listeners.append(logger.reset)
         self.logging_info = TrajectoryLoggerInfo(logger, logging_params)
         self.dynamics.attach(logger, logging_params.write_interval)
-
-
-# Keep the old name of the runner available to avoid breaking scripts, but
-# deprecate it so we can remove it later.
-class OpenMMIMDRunner(ASEOpenMMRunner):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            'The name "OpenMMIMDRunner" is deprecated and will be removed in '
-            'a later version. Use "ASEOpenMMRunner" instead.',
-            DeprecationWarning,
-        )
-        super().__init__(*args, **kwargs)
