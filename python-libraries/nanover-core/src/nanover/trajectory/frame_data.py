@@ -356,9 +356,9 @@ class FrameData(metaclass=_FrameDataMeta):
     def copy(self):
         copy = FrameData()
         for key in self.value_keys:
-            copy.values.set(key, self.values[key])
+            copy.raw.values[key].CopyFrom(self.raw.values[key])
         for key in self.array_keys:
-            copy.arrays.set(key, self.arrays[key])
+            copy.raw.arrays[key].CopyFrom(self.raw.arrays[key])
         return copy
 
     @property
@@ -507,9 +507,11 @@ class ArraysView(RecordView):
         try:
             reference_value = value[0]
         except IndexError:
-            raise ValueError("Cannot decide what type to use for an empty object.")
+            raise ValueError(
+                f"Element type cannot be determined by empty array {key}."
+            ) from None
         except TypeError:
-            raise ValueError("Value must be indexable.")
+            raise ValueError(f"Value must be indexable for array {key}.") from None
 
         if isinstance(reference_value, numbers.Integral) and int(reference_value) >= 0:
             type_attribute = "index_values"

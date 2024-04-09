@@ -737,6 +737,21 @@ def test_copy_doesnt_mutate_original_array(value):
     assert frame.arrays["sample.new"][0] != "baby yoda"
 
 
+# We support integer, float, and string arrays in FrameData
+TYPED_ARRAYS = [[0], [0.0], ["string"]]
+
+
+@pytest.mark.parametrize("typed_array", TYPED_ARRAYS)
+def test_copy_empty_array(typed_array):
+    """
+    Test deep copying a frame with an empty array is possible for each supported array type.
+    """
+    frame = FrameData()
+    frame.arrays["sample.new"] = typed_array
+    frame.arrays["sample.new"][:] = []
+    frame.copy()
+
+
 def test_copy_doesnt_mutate_original_struct():
     frame = FrameData()
     frame.values["sample.new"] = {"hello": 42}
