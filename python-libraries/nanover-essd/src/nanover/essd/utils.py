@@ -3,8 +3,9 @@ import socket
 from typing import List, Optional, Iterable, Dict
 
 import netifaces
+from netifaces.defs import AddressType, Address
 
-InterfaceAddresses = Dict[str, str]
+InterfaceAddresses = Dict[AddressType, Address]
 
 
 def get_ipv4_addresses(
