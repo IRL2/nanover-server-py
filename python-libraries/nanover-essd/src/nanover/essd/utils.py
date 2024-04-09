@@ -1,10 +1,18 @@
 import ipaddress
 import socket
-from typing import List, Optional, Iterable, Dict
+from typing import List, Optional, Iterable, Dict, Literal, Union
 
 import netifaces
 
-InterfaceAddresses = Dict[netifaces.defs.AddressType, netifaces.defs.Address]
+Address = str
+AddressType = Union[
+    Literal["addr"],
+    Literal["peer"],
+    Literal["mask"],
+    Literal["broadcast"],
+]
+
+InterfaceAddresses = Dict[AddressType, Address]
 
 
 def get_ipv4_addresses(
