@@ -4,7 +4,6 @@ Interactive molecular dynamics runner for ASE with OpenMM.
 
 import logging
 from typing import Optional
-import warnings
 
 from ase import units, Atoms  # type: ignore
 from ase.md import MDLogger, Langevin
