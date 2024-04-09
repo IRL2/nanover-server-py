@@ -16,7 +16,7 @@ requirements:
 
   run:
     - python >={{ MIN_PYTHON_VERSION }}
-    - netifaces
+    - netifaces2
 
 about:
   home: https://nanover.readthedocs.io
