@@ -100,7 +100,7 @@ def test_get_broadcast_addresses():
     ],
 )
 def test_is_in_network(address, netmask, broadcast_address, expected_result):
-    network_interface_addresses = {"netmask": netmask, "broadcast": broadcast_address}
+    network_interface_addresses = {"mask": netmask, "broadcast": broadcast_address}
     assert expected_result == is_in_network(address, network_interface_addresses)
 
 
@@ -114,13 +114,13 @@ def test_is_in_network(address, netmask, broadcast_address, expected_result):
     ],
 )
 def test_is_in_network_invalid_addresses(address, netmask, broadcast_address):
-    network_interface_addresses = {"netmask": netmask, "broadcast": broadcast_address}
+    network_interface_addresses = {"mask": netmask, "broadcast": broadcast_address}
     with pytest.raises(ValueError):
         _ = is_in_network(address, network_interface_addresses)
 
 
 @pytest.mark.parametrize(
-    "entry", [({"broadcast": "192.168.255.255"}), ({"netmask": "255.255.255.0"}), ({})]
+    "entry", [({"broadcast": "192.168.255.255"}), ({"mask": "255.255.255.0"}), ({})]
 )
 def test_is_in_network_missing_fields(entry):
     with pytest.raises(KeyError):

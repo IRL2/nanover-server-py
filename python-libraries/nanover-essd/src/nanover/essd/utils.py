@@ -47,7 +47,7 @@ def get_broadcast_addresses(
 
         {
           'addr': '172.23.43.33',
-          'netmask': '255.255.0.0',
+          'mask': '255.255.0.0',
           'broadcast': '172.23.255.255'
         }
 
@@ -86,11 +86,11 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
 
     :param address: An IPv4 address.
     :param interface_address_entry: An IPv4 address entry, as produced by :func:`netifaces.ifaddresses`. It must
-        contain the `netmask` and `broadcast` fields, representing the subnet mask IP and the broadcast IP for the given
+        contain the `mask` and `broadcast` fields, representing the subnet mask IP and the broadcast IP for the given
         interface
     :return: `True`, if the given address is in the same network as given interface address, `False` otherwise.
     :raises: ValueError: if invalid IP addresses are given for any field.
-    :raises: KeyError: if the `netmask` and `broadcast` fields are not present in the interface address entry
+    :raises: KeyError: if the `mask` and `broadcast` fields are not present in the interface address entry
         argument.
     """
     try:
@@ -98,7 +98,7 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
     except ValueError:
         raise ValueError(f"Given address {address} is not a valid IP address.")
     try:
-        netmask = ipaddress.ip_address(interface_address_entry["netmask"])
+        netmask = ipaddress.ip_address(interface_address_entry["mask"])
         broadcast_address = ipaddress.ip_address(interface_address_entry["broadcast"])
         # to network address e.g. 255.255.255.0 & 192.168.1.255 = 192.168.1.0
         network_address = ipaddress.ip_address(int(netmask) & int(broadcast_address))
@@ -106,14 +106,14 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
         # ipaddress.ip_network, but this is well tested so we accept it for the
         # time being.
         # TODO: Fix this line as the types seem to be incorrect.
-        ip_network = ipaddress.ip_network((network_address, interface_address_entry["netmask"]))  # type: ignore
+        ip_network = ipaddress.ip_network((network_address, interface_address_entry["mask"]))  # type: ignore
     except ValueError:
         raise ValueError(
             f"Given address {interface_address_entry} is not a valid IP network address."
         )
     except KeyError:
         raise KeyError(
-            f"Given interface address dictionary did not contain either 'broadcast' or 'netmask' keys: "
+            f"Given interface address dictionary did not contain either 'broadcast' or 'mask' keys: "
             f"{interface_address_entry}"
         )
     return ip_address in ip_network
