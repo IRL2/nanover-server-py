@@ -359,6 +359,7 @@ def main(stdscr):
         client = NanoverImdClient(trajectory_address=address)
 
     with client:
+        client.subscribe_to_frames()
         telmol = CursesFrontend(stdscr, client, override_colors=arguments.rainbow)
         telmol.run()
 
