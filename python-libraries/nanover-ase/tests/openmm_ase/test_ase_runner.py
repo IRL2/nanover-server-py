@@ -61,14 +61,9 @@ def logging_params(tmp_path):
     return params
 
 
-@pytest.fixture(params=(ASEOpenMMRunner,))
-def runner_class(request):
-    return request.param
-
-
 @pytest.fixture()
-def runner(runner_class, basic_simulation, imd_params):
-    with runner_class(basic_simulation, imd_params=imd_params) as runner:
+def runner(basic_simulation, imd_params):
+    with ASEOpenMMRunner(basic_simulation, imd_params=imd_params) as runner:
         yield runner
 
 
@@ -120,29 +115,29 @@ def test_frames_sent(runner):
     assert runner.app_server.frame_publisher.last_frame_index > 0
 
 
-def test_verbose(runner_class, basic_simulation, imd_params):
+def test_verbose(basic_simulation, imd_params):
     imd_params.verbose = True
-    with runner_class(basic_simulation, imd_params) as runner:
+    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
         runner.run(10)
 
 
 @pytest.mark.parametrize("interval", (1, 2, 3))
-def test_frame_interval(runner_class, basic_simulation, interval, imd_params):
+def test_frame_interval(basic_simulation, interval, imd_params):
     """
     Test that the frame server receives frames at the correct interval of
     dynamics steps.
     """
     imd_params.frame_interval = interval
-    with runner_class(basic_simulation, imd_params) as runner:
+    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
         runner.run(1)
         prev = runner.app_server.frame_publisher.last_frame_index
         runner.run(interval * 3)
         assert runner.app_server.frame_publisher.last_frame_index == prev + 3
 
 
-def test_time_step(runner_class, basic_simulation, imd_params):
+def test_time_step(basic_simulation, imd_params):
     imd_params.time_step = 0.5
-    with runner_class(basic_simulation, imd_params) as runner:
+    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
         assert runner.dynamics.dt == pytest.approx(0.5 * units.fs)
 
 
@@ -153,10 +148,10 @@ def test_time_step(runner_class, basic_simulation, imd_params):
         True,
     ),
 )
-def test_walls(runner_class, basic_simulation, walls, imd_params):
+def test_walls(basic_simulation, walls, imd_params):
     imd_params.walls = walls
 
-    with runner_class(basic_simulation, imd_params) as runner:
+    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
         assert (
             any(
                 isinstance(constraint, VelocityWallConstraint)
@@ -166,20 +161,20 @@ def test_walls(runner_class, basic_simulation, walls, imd_params):
         )
 
 
-def test_no_constraint_no_warning(runner_class, basic_simulation, imd_params):
+def test_no_constraint_no_warning(basic_simulation, imd_params):
     """
     Test that a system without constraints does not cause a constraint warning
     to be logged.
     """
     handler = ListLogHandler()
 
-    with runner_class(basic_simulation, imd_params) as runner:
+    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
         runner._logger.addHandler(handler)
         runner._validate_simulation()
         assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 0
 
 
-def test_constraint_warning(runner_class, basic_simulation, imd_params):
+def test_constraint_warning(basic_simulation, imd_params):
     """
     Test that a system with constraints causes a constraint warning to be
     logged.
@@ -187,30 +182,30 @@ def test_constraint_warning(runner_class, basic_simulation, imd_params):
     handler = ListLogHandler()
     basic_simulation.system.addConstraint(0, 1, 1)
 
-    with runner_class(basic_simulation, imd_params) as runner:
+    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
         runner._logger.addHandler(handler)
         runner._validate_simulation()
         assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 1
 
 
-def test_no_discovery(runner_class, basic_simulation, imd_params):
+def test_no_discovery(basic_simulation, imd_params):
     imd_params.discovery = False
-    with runner_class(basic_simulation, imd_params) as runner:
+    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
         assert not runner.running_discovery
 
 
 @pytest.mark.serial
-def test_discovery(runner_class, basic_simulation, imd_params):
-    with runner_class(basic_simulation, imd_params) as runner:
+def test_discovery(basic_simulation, imd_params):
+    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
         assert runner.running_discovery
         assert runner.app_server.discovery is not None
         assert len(runner.app_server.discovery.services) == 1
 
 
 @pytest.mark.serial
-def test_discovery_with_client(runner_class, basic_simulation, imd_params):
+def test_discovery_with_client(basic_simulation, imd_params):
     imd_params.name = "ASE Test Runner"
-    with runner_class(basic_simulation, imd_params) as runner:
+    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
         assert runner.running_discovery
         discovery = runner.app_server.discovery
         assert len(discovery.services) == 1
@@ -230,8 +225,8 @@ def test_discovery_with_client(runner_class, basic_simulation, imd_params):
                 assert port == runner.app_server.port
 
 
-def test_logging(runner_class, basic_simulation, imd_params, logging_params):
-    with runner_class(basic_simulation, imd_params, logging_params) as runner:
+def test_logging(basic_simulation, imd_params, logging_params):
+    with ASEOpenMMRunner(basic_simulation, imd_params, logging_params) as runner:
         runner.run(1)
 
     trajectory_file = runner.logging_info.trajectory_path
@@ -246,11 +241,11 @@ def test_no_logging(runner):
     assert runner.logging_info is None
 
 
-def test_logging_rate(runner_class, basic_simulation, imd_params, logging_params):
+def test_logging_rate(basic_simulation, imd_params, logging_params):
     logging_params.write_interval = 10
     expected_frames = 3
 
-    with runner_class(basic_simulation, imd_params, logging_params) as runner:
+    with ASEOpenMMRunner(basic_simulation, imd_params, logging_params) as runner:
         runner.run(expected_frames * logging_params.write_interval)
 
     trajectory_file = runner.logging_info.trajectory_path
