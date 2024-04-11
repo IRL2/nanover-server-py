@@ -106,7 +106,8 @@ def test_autoconnect_separate_servers(broadcastable_servers):
     Tests that an iMD application running on multiple separate servers on multiple ports is discoverable
     and that the client connects to it in the expected way.
     """
-    # Use unique non-default port for discovery
+    # Use unique non-default port for discovery. This avoids interference
+    # with other tests and other servers on the network.
     DISCOVERY_PORT = BROADCAST_PORT + 2
     frame_server, imd_server, multiplayer_server = broadcastable_servers
 
