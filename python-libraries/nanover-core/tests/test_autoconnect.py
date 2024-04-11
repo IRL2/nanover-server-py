@@ -39,7 +39,8 @@ def discoverable_imd_server():
     """
     Returns a discoverable iMD server on a free port, discoverable on a non-default ESSD port.
     """
-    # Use unique non-default port for discovery
+    # Use unique non-default port for discovery. This avoids interference
+    # with other tests and other servers on the network.
     DISCOVERY_PORT = BROADCAST_PORT + 1
     address = get_broadcastable_ip()
     server = NanoverServer(address=address, port=0)
