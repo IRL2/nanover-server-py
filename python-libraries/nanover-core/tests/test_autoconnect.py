@@ -8,6 +8,7 @@ from nanover.app import NanoverImdApplication, NanoverImdClient
 from nanover.app.app_server import MULTIPLAYER_SERVICE_NAME, DEFAULT_NANOVER_PORT
 from nanover.core import NanoverServer
 from nanover.essd import DiscoveryServer, ServiceHub
+from nanover.essd.server import BROADCAST_PORT
 from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ImdServer, IMD_SERVICE_NAME
 from nanover.trajectory import FrameServer, FRAME_SERVICE_NAME
@@ -36,9 +37,10 @@ def broadcastable_servers():
 @pytest.fixture
 def discoverable_imd_server():
     """
-    Returns a discoverable iMD server discoverable on the free port.
+    Returns a discoverable iMD server on a free port, discoverable on a non-default ESSD port.
     """
-    DISCOVERY_PORT = 39420
+    # Use unique non-default port for discovery
+    DISCOVERY_PORT = BROADCAST_PORT + 1
     address = get_broadcastable_ip()
     server = NanoverServer(address=address, port=0)
     discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
@@ -104,7 +106,8 @@ def test_autoconnect_separate_servers(broadcastable_servers):
     Tests that an iMD application running on multiple separate servers on multiple ports is discoverable
     and that the client connects to it in the expected way.
     """
-    DISCOVERY_PORT = 39423
+    # Use unique non-default port for discovery
+    DISCOVERY_PORT = BROADCAST_PORT + 2
     frame_server, imd_server, multiplayer_server = broadcastable_servers
 
     frame_mock = Mock(return_value={})
@@ -144,16 +147,14 @@ def test_autoconnect_named_server():
     """
     Test autoconnecting to a named server.
     """
-    DISCOVERY_PORT = 39420
     SERVER_NAME = "pytest baby yoda"
     address = get_broadcastable_ip()
     server = NanoverServer(address=address, port=0)
-    discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
+    discovery = DiscoveryServer(delay=DISCOVERY_DELAY)
 
     with NanoverImdApplication(server, discovery, name=SERVER_NAME):
         with NanoverImdClient.autoconnect(
             search_time=AUTOCONNECT_SEARCH_TIME,
-            discovery_port=DISCOVERY_PORT,
             name=SERVER_NAME,
         ):
             pass
