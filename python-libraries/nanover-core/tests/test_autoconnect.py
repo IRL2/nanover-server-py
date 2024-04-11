@@ -5,7 +5,7 @@ Tests for application level autoconnecting between client and server.
 import pytest
 from mock import Mock
 from nanover.app import NanoverImdApplication, NanoverImdClient
-from nanover.app.app_server import MULTIPLAYER_SERVICE_NAME
+from nanover.app.app_server import MULTIPLAYER_SERVICE_NAME, DEFAULT_NANOVER_PORT
 from nanover.core import NanoverServer
 from nanover.essd import DiscoveryServer, ServiceHub
 from nanover.essd.utils import get_broadcastable_ip
@@ -46,34 +46,23 @@ def discoverable_imd_server():
         yield app_server
 
 
-@pytest.fixture
-def discoverable_imd_server():
-    """
-    Returns a discoverable iMD server discoverable on the free port.
-    """
-    DISCOVERY_PORT = 39421
-    address = get_broadcastable_ip()
-    server = NanoverServer(address=address, port=0)
-    discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
-    with NanoverImdApplication(server, discovery) as app_server:
-        yield app_server
-
-
 @pytest.mark.serial
-def test_autoconnect_app_server_default_ports(discoverable_imd_server):
+def test_autoconnect_app_server_default_ports():
     """
-    Tests that an iMD application server running on one port one default port is discoverable and
+    Tests that an iMD application server running on the default ports is discoverable and
     that the client connects to it in the expected way.
     """
     mock = Mock(return_value={})
 
-    discoverable_imd_server.server.register_command("test", mock)
-
     address = get_broadcastable_ip()
-    with NanoverImdApplication.basic_server(address=address):
+    server = NanoverServer(address=address, port=DEFAULT_NANOVER_PORT)
+    discovery = DiscoveryServer(delay=DISCOVERY_DELAY)
+
+    with NanoverImdApplication(server, discovery) as app_server:
+        app_server.server.register_command("test", mock)
         with NanoverImdClient.autoconnect(
             search_time=AUTOCONNECT_SEARCH_TIME,
-            discovery_port=discoverable_imd_server.discovery.port,
+            discovery_port=app_server.discovery.port,
         ) as client:
             assert (
                 len(client._channels) == 1
