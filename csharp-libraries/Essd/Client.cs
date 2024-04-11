@@ -252,7 +252,7 @@ namespace Essd
             {
                 service = new ServiceHub(message);
             }
-            catch (JsonException e)
+            catch (JsonException)
             {
                 throw new ArgumentException("Invalid JSON string encountered.");
             }

@@ -262,7 +262,8 @@ def calculate_constant_force(
     periodic_box_lengths: Optional[npt.NDArray] = None,
 ) -> Tuple[float, npt.NDArray]:
     """
-    Applies a constant force that is independent of the distance between the particle and the interaction site.
+    Applies a constant force that is independent of the distance between the particle and the interaction site. Applies
+    no force when the two overlap.
 
     :param particle_position: The position of the particle.
     :param interaction_position: The position of the interaction.
@@ -272,8 +273,15 @@ def calculate_constant_force(
     distance_vector = _minimum_image(
         interaction_position - particle_position, periodic_box_lengths
     )
-    force = distance_vector / np.linalg.norm(distance_vector)
-    energy = 1
+    distance_magnitude = np.linalg.norm(distance_vector)
+
+    if distance_magnitude > 0:
+        force = distance_vector / distance_magnitude
+        energy = 1
+    else:
+        force = 0
+        energy = 0
+
     return energy, force
 
 
