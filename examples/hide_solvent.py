@@ -19,3 +19,4 @@ with NanoverImdClient.autoconnect() as client:
     solvent = client.create_selection("solvent", particles)
     with solvent.modify():
         solvent.hide = True
+        solvent.interaction_method = "none"
