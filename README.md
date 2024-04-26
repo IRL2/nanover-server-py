@@ -97,13 +97,17 @@ Developers will want the manual install described below.
 ### Setup nanover-protocol for developers on Mac and Linux
 
 * Install Anaconda
-* Install dotnet
 * Clone the nanover-protocol repository
 * In a terminal, in the repository root:
     * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.11"`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Install the required conda package: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase mpi4py`
-    * Compile the protocol and install the NanoVer libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
+    * Install the required conda package: `conda install -c conda-forge openmm MDAnalysis MDAnalysisTests ase mpi4py`
+    * Compile the protocol and install the NanoVer python libraries in your conda environment: `./compile.sh --no-dotnet`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit --no-dotnet` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
+
+Here, we installed only the python library. Using the `--no-dotnet` argument, we skipped building the C# libraries for NanoVer. Would you want to work on these library, you would need to:
+
+* Install dotnet 2.11. This is an old version of the framework that is not maintained anymore. However, Unity still relies on it.
+* Run the compile script: `./compile.sh --no-python` to skip installing the python libraries, or just `./compile.sh` to build the python libraries as well.
 
 ### Setup nanover-protocol for developers on Windows
 
@@ -113,7 +117,7 @@ Developers will want the manual install described below.
 * In the "Anaconda Powershell Prompt":
     * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.11"`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Install the required conda packages: `conda install -c omnia -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
+    * Install the required conda packages: `conda install -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
     * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
 * The `nanover-lammps` module and its tests require MPI to be installed. Download and install Microsoft MPI from https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
 
