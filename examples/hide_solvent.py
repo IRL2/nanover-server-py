@@ -10,21 +10,30 @@ SOLVENT_RESIDUE_NAME = "HOH"
 
 
 def get_selection_indices(frame: FrameData, query: str):
+    # use frame's topology to construct an mdanalysis universe
     universe = frame_data_to_mdanalysis(frame)
+    # query mdanalysis universe for desired atoms
     atoms = universe.select_atoms(query)
+    # convert to integer atom indices
     indices = map(int, atoms.indices)
     return indices
 
 
 with NanoverImdClient.autoconnect() as client:
+    # we need frames so we can query topology and multiplayer to set shared selections
     client.subscribe_to_frames()
     client.subscribe_multiplayer()
+
+    # wait for an initial frame in which topology will be available
     first_frame = client.wait_until_first_frame(check_interval=0.5, timeout=10)
 
     print(f"Attempting to hide residue {SOLVENT_RESIDUE_NAME} (residues in frame: {', '.join(set(first_frame.residue_names))})")
 
+    # get atom indicies matching an mdanalysis selection for the particular residue name
     solvent_indices = get_selection_indices(client.frame, f"resname {SOLVENT_RESIDUE_NAME}")
-    solvent_selection = client.create_selection("solvent", solvent_indices)
-    with solvent_selection.modify():
-        solvent_selection.hide = True
-        solvent_selection.interaction_method = "none"
+
+    # create the selection with the desired particles hidden and non-interactable
+    with client.create_selection("solvent").modify() as selection:
+        selection.set_particles(solvent_indices)
+        selection.hide = True
+        selection.interaction_method = "none"
