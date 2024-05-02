@@ -4,11 +4,7 @@ Provide a reporter for OpenMM simulation to publish frames as a NanoVer server.
 
 from typing import Union
 
-try:
-    from openmm.app.topology import Topology
-except (ImportError, ModuleNotFoundError):
-    from simtk.openmm.app.topology import Topology
-
+from openmm.app.topology import Topology
 from .converter import openmm_to_frame_data
 
 

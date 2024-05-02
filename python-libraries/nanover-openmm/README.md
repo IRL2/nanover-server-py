@@ -14,8 +14,8 @@ When used as a python library, `nanover-openmm` provides the
 `nanover.openmm.Server` class. This class can be used as follow:
 
 ```python
-import simtk.openmm as mm
-from simtk.openmm import app
+import openmm as mm
+from openmm import app
 
 from nanover.openmm import Server
 
@@ -61,8 +61,8 @@ A NanoVer server can also be included in an existing OpenMM workflow by adding
 a `NanoverReporter` to an existing simulation object:
 
 ```python
-import simtk.openmm as mm
-from simtk.openmm import app
+import openmm as mm
+from openmm import app
 
 from nanover.trajectory import FrameServer
 from nanover.openmm import NanoverReporter

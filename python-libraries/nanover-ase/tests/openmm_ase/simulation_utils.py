@@ -10,8 +10,8 @@ import pytest
 
 import numpy as np
 
-import simtk.openmm as mm
-from simtk.openmm import app
+import openmm as mm
+from openmm import app
 
 # Prefixed units in `simtk.unit` are added programmatically and are not
 # recognized by pylint and PyCharm.

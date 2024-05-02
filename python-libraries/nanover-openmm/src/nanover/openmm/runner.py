@@ -11,8 +11,9 @@ from concurrent import futures
 from threading import RLock
 from io import StringIO
 
-from simtk.openmm import app
-from simtk import openmm
+import openmm
+from openmm import app
+
 
 from nanover.openmm import serializer
 from nanover.app import NanoverImdApplication, NanoverRunner
