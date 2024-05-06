@@ -13,10 +13,4 @@ service TrajectoryService {
 
   /* Subscribe to a continuous updating source of frames. The client gets the latest available frame at the time of transmission. */
   rpc SubscribeLatestFrames (GetFrameRequest) returns (stream GetFrameResponse);
-
-  /* Request a set of frames specified in the request */
-  rpc GetFrames (GetFrameRequest) returns (stream GetFrameResponse);
-
-  /* Request a specific frame. This may be used to provider a 'molecule-on-demand' service */
-  rpc GetFrame (GetFrameRequest) returns (GetFrameResponse);
 }
