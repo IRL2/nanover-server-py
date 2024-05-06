@@ -78,7 +78,7 @@ class TestRunner:
 
     @pytest.fixture
     def client_runner(self, runner):
-        runner_port = runner.app.port
+        runner_port = runner.app_server.port
         with NanoverImdClient.connect_to_single_server(port=runner_port) as client:
             yield client, runner
 
@@ -92,11 +92,6 @@ class TestRunner:
         own fixture.
         """
         assert isinstance(runner, OpenMMRunner)
-
-    def test_app_deprecated(self, runner):
-        assert runner.app is runner.app_server
-        with pytest.deprecated_call():
-            _ = runner.app
 
     def test_simulation_without_imd_force(self, basic_simulation):
         """

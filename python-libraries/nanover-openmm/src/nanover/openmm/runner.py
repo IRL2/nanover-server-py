@@ -6,7 +6,6 @@ from typing import Union, TypeVar, Type, Optional, Dict
 import sys
 import os
 import logging
-import warnings
 from concurrent import futures
 from threading import RLock
 from io import StringIO
@@ -160,15 +159,6 @@ class OpenMMRunner(NanoverRunner):
     @property
     def app_server(self):
         return self._app_server
-
-    @property
-    def app(self):
-        warnings.warn(
-            'The property "app" is deprecated and will be removed in '
-            'a later version. Use "app_server" instead.',
-            DeprecationWarning,
-        )
-        return self.app_server
 
     @property
     def frame_interval(self) -> int:
