@@ -18,7 +18,6 @@ PARTICLE_POSITIONS = "particle.positions"
 PARTICLE_VELOCITIES = "particle.velocities"
 PARTICLE_FORCES = "particle.forces"
 PARTICLE_ELEMENTS = "particle.elements"
-PARTICLE_TYPES = "particle.types"
 PARTICLE_NAMES = "particle.names"
 PARTICLE_RESIDUES = (
     "particle.residues"  # Index of the residue each particle belongs to.
@@ -192,13 +191,6 @@ class FrameData(metaclass=_FrameDataMeta):
         key=PARTICLE_ELEMENTS,
         record_type="arrays",
         field_type="index",
-        to_python=_as_is,
-        to_raw=_as_is,
-    )
-    particle_types: List[str] = _Shortcut(  # type: ignore[assignment]
-        key=PARTICLE_TYPES,
-        record_type="arrays",
-        field_type="string",
         to_python=_as_is,
         to_raw=_as_is,
     )
