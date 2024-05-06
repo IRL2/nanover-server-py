@@ -84,8 +84,8 @@ def main():
         platform=arguments.platform,
     )
     print(
-        f'Serving "{runner.app.name}" on port {runner.app.port}, '
-        f"discoverable on all interfaces on port {runner.app.discovery.port}"
+        f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
+        f"discoverable on all interfaces on port {runner.app_server.discovery.port}"
     )
 
     with runner:
