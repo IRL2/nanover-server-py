@@ -9,6 +9,8 @@ This repository is maintained by the Intangible Realities Laboratory, University
 and distributed under the [MIT](LICENSE) license.
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
+You can read [the project's documentation](https://irl2.github.io/nanover/).
+
 **The NanoVer iMD VR front-end can be found
 [on its own repository](https://github.com/irl2/nanover-imd).**
 
