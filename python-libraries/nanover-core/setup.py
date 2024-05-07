@@ -8,6 +8,7 @@ import distutils.cmd
 import distutils.log
 from distutils.core import setup
 from setuptools import find_namespace_packages
+from importlib import resources
 
 
 class CompileProtoCommand(distutils.cmd.Command):
@@ -76,7 +77,7 @@ def compile_protocol(proto_dir, python_dir, logger):
     # the command itself; what is passed as a command does not matter, but the actual
     # arguments must start at sys.argv[1] (hence "protoc" as first argument passed
     # to the function).
-    proto_include = protoc.pkg_resources.resource_filename("grpc_tools", "_proto")
+    proto_include = resources.files("grpc_tools") / "_proto"
     with move_in_directory(proto_dir):
         for protocol_file in Path(".").glob("**/*.proto"):
             logger.announce(
