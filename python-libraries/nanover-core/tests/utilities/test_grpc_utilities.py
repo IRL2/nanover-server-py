@@ -39,6 +39,7 @@ def test_subscribe_unused_channel(channel, connectivity_recorder):
     assert connectivity_recorder.history == [ChannelConnectivity.IDLE]
 
 
+@pytest.mark.filterwarnings("ignore::pytest.PytestUnhandledThreadExceptionWarning")
 def test_subscribe_unused_channel_closed(channel, connectivity_recorder):
     """
     Test that subscribing a closed channel's connectivity does not call the
