@@ -87,7 +87,6 @@ def test_from_xml(serialized_simulation_path, imd_params):
 
 
 @pytest.mark.serial
-@pytest.mark.xfail(reason="Issue https://github.com/IRL2/nanover-protocol/issues/48")
 def test_defaults(default_runner):
     runner = default_runner
     default_params = ImdParams()
