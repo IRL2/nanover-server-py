@@ -1,5 +1,7 @@
 import itertools
 import time
+from typing import Callable
+
 import pytest
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.imd.imd_state import (
@@ -12,6 +14,14 @@ from nanover.utilities.change_buffers import DictionaryChange
 from .test_imd_server import imd_server_client, imd_server, interaction
 
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
+
+
+def assert_equal_soon(a: Callable, b: Callable, interval=0.1, timeout=1.0):
+    __tracebackhide__ = True
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and a() != b():
+        time.sleep(interval)
+    assert a() == b()
 
 
 def test_start_interaction(imd_server_client):
@@ -182,6 +192,6 @@ def test_interactions_property(imd_server_client):
     imd_server.update_state(None, interaction_updates)
 
     imd_client.subscribe_all_state_updates(interval=0)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    print(imd_client.interactions)
-    assert imd_client.interactions.keys() == real_interactions.keys()
+    assert_equal_soon(
+        lambda: imd_client.interactions.keys(), lambda: real_interactions.keys()
+    )
