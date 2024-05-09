@@ -7,27 +7,11 @@ import time
 from typing import Optional, Set, Iterable
 
 import select
-from socket import socket, AF_INET, SOCK_DGRAM
-from _socket import SO_REUSEADDR, SO_REUSEPORT, SOL_SOCKET
 
-from nanover.essd.server import BROADCAST_PORT
+from nanover.essd.server import BROADCAST_PORT, configure_reusable_socket
 from nanover.essd.servicehub import ServiceHub, MAXIMUM_MESSAGE_SIZE
 
 IP_ADDRESS_ANY = "0.0.0.0"
-
-
-def configure_reusable_socket() -> socket:
-    """
-    Sets up a socket set up for listening with reuseable address.
-
-    :return: A socket.
-    """
-    # IPv4 UDP socket
-    s = socket(AF_INET, SOCK_DGRAM)
-    # Enable reuse
-    s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    s.setsockopt(SOL_SOCKET, SO_REUSEPORT, 1)
-    return s
 
 
 class DiscoveryClient:
