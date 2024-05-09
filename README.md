@@ -125,15 +125,52 @@ Here, we installed only the python library. Using the `--no-dotnet` argument, we
 
 ## Running the tests
 
-Running the tests is a crucial part of keeping the code base functional. To run the test of the python libraries, run:
+All code changes have to pass a series of automatic tests ("the CI") that attempt to verify code quality and
+continued functionality of the project. You can run these locally to verify your changes in advance.
+
+### Unit Tests
+
+The unit tests check code functionality of the python libraries. To run them:
 
     python -m pytest python-libraries
 
 Optionally, you can run most of the tests in parallel with pytest-xdist:
 
-    pytest -m pip install pytest-xdist
+    python -m pip install pytest-xdist
     python -m pytest python-libraries -n auto -m 'not serial'
     python -m pytest python-libraries -n0 -m 'serial'
+
+### Formatting & Linting Tests
+
+The formatting and linting tests check code style, and require ruff and black:
+
+    python -m pip install ruff
+    python -m pip install black
+    python -m ruff check python-libraries
+    python -m black --diff --check python-libraries
+
+black can automatically reformat the files for you:
+
+    python -m black python-libraries
+
+### Type Checks
+
+The type checks look at the type hints in the code to make sure they are consistent and help find potential errors. 
+Because of the special setup required you will probably not be able to run this locally, but you can try:
+
+    python -m pip install mypy
+    packages=$(find python-libraries -name __init__.py \ 
+             | sed 's/__init__.py//g' \ 
+             | awk '{split($0, a, /src/); print(a[2])}' \ 
+             | sed 's#/#.#g' \ 
+             | cut -c 2- \ 
+             | sed 's/\.$//g' \ 
+             | grep -v '^$' \ 
+             | grep -v protocol \ 
+             | sed 's/^/-p /g' \ 
+             | grep -v '\..*\.' \ 
+             | tr '\n' ' ') 
+    python -m mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages 
 
 ## Running the examples
 
