@@ -8,7 +8,7 @@ from typing import Optional, Set, Iterable
 
 import select
 from socket import socket, AF_INET, SOCK_DGRAM
-from _socket import SO_REUSEADDR, SOL_SOCKET
+from _socket import SO_REUSEADDR, SO_REUSEPORT, SOL_SOCKET
 
 from nanover.essd.server import BROADCAST_PORT
 from nanover.essd.servicehub import ServiceHub, MAXIMUM_MESSAGE_SIZE
@@ -26,6 +26,7 @@ def configure_reusable_socket() -> socket:
     s = socket(AF_INET, SOCK_DGRAM)
     # Enable reuse
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    s.setsockopt(SOL_SOCKET, SO_REUSEPORT, 1)
     return s
 
 
