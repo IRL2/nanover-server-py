@@ -43,7 +43,7 @@ def configure_reusable_socket() -> socket:
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 
-    # Necessary for multiple client on Mac, but doesn't exist on Windows
+    # Necessary for multiple client on Mac, acceptable on Linux, but doesn't exist on Windows.
     try:
         from socket import SO_REUSEPORT
 
