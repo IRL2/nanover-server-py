@@ -33,10 +33,10 @@ class VariableIntervalGenerator:
 
 def yield_interval(interval: float):
     """
-    Yield at a set interval, accounting for the time spent outside of this
-    function.
+    Spend interval time between re-entering this generator and yielding again.
 
-    :param interval: Number of seconds to put between yields
+    :param interval: Number of seconds to put between re-entry and yielding
+    :yield: Number of seconds spent inside this function
     """
     last_yield = time.monotonic() - interval
     while True:
