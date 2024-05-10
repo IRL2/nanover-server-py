@@ -1,5 +1,6 @@
 import time
 
+import numpy
 import pytest
 import itertools
 
@@ -12,60 +13,40 @@ COMMON_INTERVALS = (1 / 10, 1 / 30, 1 / 60)
 
 
 @pytest.mark.parametrize("interval", COMMON_INTERVALS)
-def test_yield_interval(interval):
+@pytest.mark.parametrize("work_factor", (0.75, 0.5, 0.25, 0))
+def test_yield_interval(interval, work_factor):
     """
-    Test that yield_interval yields on average at the correct interval.
+    Test that yield_interval yields on average at the correct interval when time is spent between resuming iteration.
     """
+
+    times = []
     count = round(1 / interval)
-    times = [
-        time.monotonic() for _ in itertools.islice(yield_interval(interval), count)
-    ]
-    intervals = [times[i] - times[i - 1] for i in range(1, len(times))]
+
+    for dt in itertools.islice(yield_interval(interval), count):
+        times.append(time.monotonic())
+        time.sleep(interval * work_factor)
+
+    intervals = numpy.diff(times)
     assert average(intervals) == pytest.approx(interval, abs=TIMING_TOLERANCE)
 
 
 @pytest.mark.parametrize("interval", COMMON_INTERVALS)
-@pytest.mark.parametrize("delay", (0.5, 0.1, 0.01))
-def test_yield_interval_delays(interval, delay):
+@pytest.mark.parametrize("work_factor", (0.75, 0.5, 0.25, 0))
+def test_yield_interval_dt(interval, work_factor):
     """
-    Test that yield_interval does not yield any faster if more time is spent outside of it.
-    """
-
-    def do_delay():
-        time.sleep(delay)
-        return time.monotonic()
-
-    # try not to test for longer than 1s but do at least 3 yields
-    count = max(3, round(1 / (interval + delay)))
-    times = [do_delay() for _ in itertools.islice(yield_interval(interval), count)]
-    intervals = [times[i] - times[i - 1] for i in range(1, len(times))]
-    assert average(intervals) == pytest.approx(interval + delay, abs=TIMING_TOLERANCE)
-
-
-@pytest.mark.parametrize("interval", COMMON_INTERVALS)
-@pytest.mark.parametrize("delay", (0.5, 0.1, 0.01))
-def test_yield_interval_delays_dt(interval, delay):
-    """
-    Test that yield_interval yields only the time spent inside itself.
+    Test that yield_interval yields the actual time between yields.
     """
 
-    # try not to test for longer than 1s but do at least 3 yields
-    count = max(3, round(1 / (interval + delay)))
+    times = []
+    reported_deltas = []
+    count = round(1 / interval)
 
-    yield_times = []
-    enter_times = []
+    times.append(time.monotonic())
+    for dt in itertools.islice(yield_interval(interval), count):
+        reported_deltas.append(dt)
+        times.append(time.monotonic())
+        time.sleep(interval * work_factor)
 
-    def monitor_delay(dt):
-        yield_times.append(time.monotonic())
-        time.sleep(delay)
-        enter_times.append(time.monotonic())
-        return dt
-
-    enter_times.append(time.monotonic())
-    reported_deltas = [
-        monitor_delay(dt) for dt in itertools.islice(yield_interval(interval), count)
-    ]
-    yield_times.append(time.monotonic())
-    measured_deltas = [yield_times[i] - enter_times[i] for i in range(count)]
+    measured_deltas = numpy.diff(times)
 
     assert reported_deltas == pytest.approx(measured_deltas, abs=TIMING_TOLERANCE)

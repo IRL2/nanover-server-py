@@ -22,22 +22,30 @@ class VariableIntervalGenerator:
             self._interval = value
 
     def yield_interval(self):
+        prev_yield = time.monotonic()
         yield 0
         while True:
-            last_yield = time.monotonic()
-            time.sleep(self.interval)
-            yield time.monotonic() - last_yield
+            time_since_yield = time.monotonic() - prev_yield
+            wait_duration = max(0.0, self.interval - time_since_yield)
+            time.sleep(wait_duration)
+            next_yield = time.monotonic()
+            yield next_yield - prev_yield
+            prev_yield = next_yield
 
 
 def yield_interval(interval: float):
     """
-    Yield immediately then sleep for a specified time between each subsequent yield.
+    Yield immediately and then every interval seconds, yielding the time in seconds that passed between yields.
 
-    :param interval: Number of seconds to sleep
-    :yield: Number of seconds actually spent sleeping
+    :param interval: Number of seconds to ensure between yields
+    :yield: Number of seconds since last yielding
     """
+    prev_yield = time.monotonic()
     yield 0
     while True:
-        last_yield = time.monotonic()
-        time.sleep(interval)
-        yield time.monotonic() - last_yield
+        time_since_yield = time.monotonic() - prev_yield
+        wait_duration = max(0.0, interval - time_since_yield)
+        time.sleep(wait_duration)
+        next_yield = time.monotonic()
+        yield next_yield - prev_yield
+        prev_yield = next_yield
