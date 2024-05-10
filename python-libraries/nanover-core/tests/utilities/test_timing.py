@@ -23,7 +23,7 @@ def test_yield_interval(interval, work_factor):
     count = round(1 / interval)
 
     for dt in itertools.islice(yield_interval(interval), count):
-        times.append(time.monotonic())
+        times.append(time.perf_counter())
         time.sleep(interval * work_factor)
 
     intervals = numpy.diff(times)
@@ -41,12 +41,11 @@ def test_yield_interval_dt(interval, work_factor):
     reported_deltas = []
     count = round(1 / interval)
 
-    times.append(time.monotonic())
+    times.append(time.perf_counter())
     for dt in itertools.islice(yield_interval(interval), count):
         reported_deltas.append(dt)
-        times.append(time.monotonic())
+        times.append(time.perf_counter())
         time.sleep(interval * work_factor)
 
     measured_deltas = numpy.diff(times)
-
     assert reported_deltas == pytest.approx(measured_deltas, abs=TIMING_TOLERANCE)

@@ -295,7 +295,7 @@ class OpenMMRunner(NanoverRunner):
                     self.simulation.step(steps_for_this_iteration)
                 except (ValueError, openmm.OpenMMException):
                     # We want to stop running if the simulation exploded in a way
-                    # that prevents OpenMM to run. Otherwise, we will be a a state
+                    # that prevents OpenMM to run. Otherwise, we will be a state
                     # where OpenMM raises an exception which would make the runner
                     # unusable. The OpenMMException is typically raised by OpenMM
                     # itself when something is NaN; the ValueError is typically
@@ -304,7 +304,7 @@ class OpenMMRunner(NanoverRunner):
                 remaining_steps -= steps_for_this_iteration
             self._cancelled = False
         except Exception as err:
-            print(f"Error whith run: {err}")
+            print(f"Error with run: {err}")
 
     def step(self):
         with self._cancel_lock:
