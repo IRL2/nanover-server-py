@@ -193,5 +193,5 @@ def test_interactions_property(imd_server_client):
 
     imd_client.subscribe_all_state_updates(interval=0)
     assert_equal_soon(
-        lambda: imd_client.interactions.keys(), lambda: real_interactions.keys()
+        imd_client.interactions.keys, real_interactions.keys
     )
