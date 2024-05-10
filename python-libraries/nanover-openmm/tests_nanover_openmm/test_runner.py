@@ -498,4 +498,6 @@ class TestRunner:
         deltas = numpy.diff(timestamps[:-1])
         # The interval is not very accurate. We only check that the observed
         # interval is close on average.
-        assert numpy.average(deltas) == pytest.approx(dynamics_interval, abs=TIMING_TOLERANCE)
+        assert numpy.average(deltas) == pytest.approx(
+            dynamics_interval, abs=TIMING_TOLERANCE
+        )
