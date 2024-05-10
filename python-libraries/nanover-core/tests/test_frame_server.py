@@ -2,6 +2,7 @@ from typing import Iterable
 from contextlib import contextmanager
 from unittest.mock import Mock
 
+import numpy
 import pytest
 import time
 
@@ -363,7 +364,5 @@ def test_subscribe_frames_frame_interval(
     frame_server.send_frame(0, simple_frame_data)
 
     time.sleep(time_limit)
-    intervals = [
-        receive_times[i + 1] - receive_times[i] for i in range(frame_limit - 1)
-    ]
-    assert average(intervals) - frame_interval == pytest.approx(0, abs=TIMING_TOLERANCE)
+    intervals = numpy.diff(receive_times)
+    assert average(intervals) == pytest.approx(frame_interval, abs=TIMING_TOLERANCE)
