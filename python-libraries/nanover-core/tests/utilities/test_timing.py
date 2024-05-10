@@ -65,8 +65,7 @@ def test_yield_interval_delays_dt(interval, delay):
     reported_deltas = [
         monitor_delay(dt) for dt in itertools.islice(yield_interval(interval), count)
     ]
+    yield_times.append(time.monotonic())
     measured_deltas = [yield_times[i] - enter_times[i] for i in range(count)]
 
-    assert reported_deltas[1:] == pytest.approx(
-        measured_deltas[1:], abs=TIMING_TOLERANCE
-    )
+    assert reported_deltas == pytest.approx(measured_deltas, abs=TIMING_TOLERANCE)
