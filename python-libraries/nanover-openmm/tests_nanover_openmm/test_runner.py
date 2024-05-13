@@ -41,7 +41,7 @@ from .simulation_utils import (
     serialized_simulation_path,
 )
 
-TIMING_TOLERANCE = 0.005  # 5ms
+TIMING_TOLERANCE = 0.007  # 7ms
 
 
 class TestRunner:

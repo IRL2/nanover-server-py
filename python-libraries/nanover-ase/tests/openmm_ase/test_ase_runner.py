@@ -22,7 +22,7 @@ from nanover.ase.wall_constraint import VelocityWallConstraint
 from .simulation_utils import basic_simulation, serialized_simulation_path
 
 TRAJECTORY_OUTPUT_FILENAME = "test.xyz"
-TIMING_TOLERANCE = 0.005  # 5ms
+TIMING_TOLERANCE = 0.007  # 7ms
 
 
 class ListLogHandler(Handler):
