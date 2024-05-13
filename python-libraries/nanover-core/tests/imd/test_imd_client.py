@@ -24,6 +24,22 @@ def assert_equal_soon(a: Callable, b: Callable, interval=0.1, timeout=1.0):
     assert a() == b()
 
 
+def assert_in_soon(a: Callable, b: Callable, interval=0.1, timeout=1.0):
+    __tracebackhide__ = True
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and a() not in b():
+        time.sleep(interval)
+    assert a() in b()
+
+
+def assert_not_in_soon(a: Callable, b: Callable, interval=0.1, timeout=1.0):
+    __tracebackhide__ = True
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and a() in b():
+        time.sleep(interval)
+    assert a() not in b()
+
+
 def test_start_interaction(imd_server_client):
     """
     Test that you can start an interaction.
@@ -126,8 +142,8 @@ def test_subscribe_own_interaction(imd_server_client):
     interaction_id = imd_client.start_interaction()
     interaction = ParticleInteraction()
     imd_client.update_interaction(interaction_id, interaction)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 5)
-    assert interaction_id in imd_client.interactions
+
+    assert_in_soon(lambda: interaction_id, lambda: imd_client.interactions)
 
 
 def test_subscribe_own_interaction_removed(imd_server_client):
@@ -142,13 +158,11 @@ def test_subscribe_own_interaction_removed(imd_server_client):
     interaction = ParticleInteraction()
 
     imd_client.update_interaction(interaction_id, interaction)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
-    assert interaction_id in imd_client.interactions
+    assert_in_soon(lambda: interaction_id, lambda: imd_client.interactions)
     assert imd_client.stop_interaction(interaction_id)
 
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 5)
-    assert interaction_id not in imd_client.interactions
+    assert_not_in_soon(lambda: interaction_id, lambda: imd_client.interactions)
 
 
 def test_interactions_property(imd_server_client):
@@ -193,5 +207,5 @@ def test_interactions_property(imd_server_client):
 
     imd_client.subscribe_all_state_updates(interval=0)
     assert_equal_soon(
-        imd_client.interactions.keys, real_interactions.keys
+        lambda: imd_client.interactions.keys(), lambda: real_interactions.keys()
     )
