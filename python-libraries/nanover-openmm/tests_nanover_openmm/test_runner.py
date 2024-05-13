@@ -11,6 +11,7 @@ Tests for :mod:`nanover.openmm.runner`.
 import time
 import statistics
 import math
+import numpy
 
 import pytest
 
@@ -39,6 +40,8 @@ from .simulation_utils import (
     basic_simulation,
     serialized_simulation_path,
 )
+
+TIMING_TOLERANCE = 0.005  # 5ms
 
 
 class TestRunner:
@@ -476,7 +479,9 @@ class TestRunner:
         interval is a minimum (the MD engine may not be able to produce frames
         fast enough), also we accept some leeway.
         """
-        duration = 0.5
+        # We need at least a few frames to see intervals between
+        test_frames = 8
+
         dynamics_interval = 1 / fps
         client, runner = client_runner
         runner.dynamics_interval = dynamics_interval
@@ -487,14 +492,12 @@ class TestRunner:
         # only after that subscribe to the frames.
         runner.run(steps=frame_interval, block=True)
         client.subscribe_to_all_frames()
-
-        runner.run()
-        time.sleep(duration)
-        runner.cancel_run(wait=True)
+        runner.run(steps=test_frames * frame_interval, block=True)
 
         timestamps = [frame.server_timestamp for frame in client.frames]
-        deltas = [timestamps[i] - timestamps[i - 1] for i in range(1, len(timestamps))]
+        deltas = numpy.diff(timestamps[:-1])
         # The interval is not very accurate. We only check that the observed
-        # interval is greater than the expected one and we accept some
-        # deviation.
-        assert all(delta >= dynamics_interval * 0.90 for delta in deltas)
+        # interval is close on average.
+        assert numpy.average(deltas) == pytest.approx(
+            dynamics_interval, abs=TIMING_TOLERANCE
+        )

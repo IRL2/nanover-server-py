@@ -2,6 +2,7 @@ from typing import Iterable
 from contextlib import contextmanager
 from unittest.mock import Mock
 
+import numpy
 import pytest
 import time
 
@@ -9,6 +10,8 @@ from grpc import RpcError, StatusCode
 from nanover.trajectory import FrameServer, FrameClient, FrameData
 from nanover.trajectory.frame_data import SERVER_TIMESTAMP
 from numpy import average
+
+from .utilities.test_timing import TIMING_TOLERANCE, COMMON_INTERVALS
 
 SUBSCRIBE_METHODS = ("subscribe_frames_async", "subscribe_last_frames_async")
 FRAME_DATA_VARIABLE_KEYS = (SERVER_TIMESTAMP,)
@@ -334,7 +337,7 @@ def test_subscribe_latest_frames_aggregates_frames(
 
 
 @pytest.mark.parametrize("subscribe_method", SUBSCRIBE_METHODS)
-@pytest.mark.parametrize("frame_interval", (1 / 10, 1 / 30, 1 / 60))
+@pytest.mark.parametrize("frame_interval", COMMON_INTERVALS)
 def test_subscribe_frames_frame_interval(
     frame_server_client_pair, simple_frame_data, subscribe_method, frame_interval
 ):
@@ -345,7 +348,6 @@ def test_subscribe_frames_frame_interval(
     frame_server, frame_client = frame_server_client_pair
     subscribe_frames_async = getattr(frame_client, subscribe_method)
 
-    tolerance = 5 / 1000  # 5 milliseconds
     frame_limit = 30
     time_limit = frame_limit * frame_interval * 1.5
     receive_times = []
@@ -362,7 +364,5 @@ def test_subscribe_frames_frame_interval(
     frame_server.send_frame(0, simple_frame_data)
 
     time.sleep(time_limit)
-    intervals = [
-        receive_times[i + 1] - receive_times[i] for i in range(frame_limit - 1)
-    ]
-    assert abs(average(intervals) - frame_interval) < tolerance
+    intervals = numpy.diff(receive_times)
+    assert average(intervals) == pytest.approx(frame_interval, abs=TIMING_TOLERANCE)
