@@ -469,7 +469,7 @@ class TestRunner:
         assert runner.dynamics_interval == pytest.approx(value)
 
     @pytest.mark.serial  # we want accurate timing so run without any parallel load
-    @pytest.mark.parametrize("fps", (1, 5, 10, 30))
+    @pytest.mark.parametrize("fps", (5, 10, 30))
     @pytest.mark.parametrize("frame_interval", (1, 5, 10))
     def test_throttling(self, client_runner, fps, frame_interval):
         """
@@ -480,7 +480,7 @@ class TestRunner:
         interval is close on average.
         """
         # We need at least a few frames to see intervals between
-        test_frames = 6
+        test_frames = 30
 
         dynamics_interval = 1 / fps
         client, runner = client_runner

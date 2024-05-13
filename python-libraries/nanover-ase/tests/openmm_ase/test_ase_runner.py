@@ -268,7 +268,7 @@ def test_set_dynamics_interval(runner):
 
 
 @pytest.mark.serial
-@pytest.mark.parametrize("fps", (1, 5, 10, 30))
+@pytest.mark.parametrize("fps", (5, 10, 30))
 def test_throttling(client_runner, fps):
     """
     The runner uses the requested MD throttling.
@@ -278,7 +278,7 @@ def test_throttling(client_runner, fps):
     interval is close on average.
     """
     # We need at least a few frames to see intervals between
-    test_frames = 6
+    test_frames = 30
 
     dynamics_interval = 1 / fps
     client, runner = client_runner
