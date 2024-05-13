@@ -25,9 +25,8 @@ def simple_atom_lammps_frame():
 
 @pytest.fixture
 def lammps_hook():
-    hook = LammpsImd()
-    yield hook
-    hook.close()
+    with LammpsImd() as hook:
+        yield hook
 
 
 def test_length_lammps_atoms(simple_atom_lammps_frame, lammps_hook):
