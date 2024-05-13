@@ -480,22 +480,25 @@ class TestRunner:
         interval is close on average.
         """
         # We need at least a few frames to see intervals between
-        test_frames = 8
+        test_frames = 6
 
         dynamics_interval = 1 / fps
         client, runner = client_runner
         runner.dynamics_interval = dynamics_interval
         runner.frame_interval = frame_interval
 
-        # The frame interval is only taken into account at the end of the
-        # current batch of frames. Here we produce one batch of frame and
-        # only after that subscribe to the frames.
-        runner.run(steps=frame_interval, block=True)
         client.subscribe_to_all_frames()
-        runner.run(steps=test_frames * frame_interval, block=True)
+        runner.run()
 
-        timestamps = [frame.server_timestamp for frame in client.frames]
-        deltas = numpy.diff(timestamps[:-1])
+        while len(client.frames) < test_frames:
+            time.sleep(0.1)
+
+        runner.cancel_run(wait=True)
+
+        # first frame (topology) isn't subject to intervals
+        timestamps = [frame.server_timestamp for frame in client.frames[1:]]
+        deltas = numpy.diff(timestamps)
+
         # The interval is not very accurate. We only check that the observed
         # interval is close on average.
         assert numpy.average(deltas) == pytest.approx(

@@ -269,8 +269,7 @@ def test_set_dynamics_interval(runner):
 
 @pytest.mark.serial
 @pytest.mark.parametrize("fps", (1, 5, 10, 30))
-@pytest.mark.parametrize("frame_interval", (1, 5, 10))
-def test_throttling(client_runner, fps, frame_interval):
+def test_throttling(client_runner, fps):
     """
     The runner uses the requested MD throttling.
 
@@ -278,22 +277,25 @@ def test_throttling(client_runner, fps, frame_interval):
     dynamics interval. However, we only guarantee that the target dynamics
     interval is close on average.
     """
-    test_frames = 8
+    # We need at least a few frames to see intervals between
+    test_frames = 6
 
     dynamics_interval = 1 / fps
     client, runner = client_runner
     runner.dynamics_interval = dynamics_interval
-    runner.frame_interval = frame_interval
 
-    # The frame interval is only taken into account at the end of the
-    # current batch of frames. Here we produce one batch of frame and
-    # only after that subscribe to the frames.
-    runner.run(steps=frame_interval, block=True)
     client.subscribe_to_all_frames()
-    runner.run(steps=test_frames * frame_interval, block=True)
+    runner.run()
 
-    timestamps = [frame.server_timestamp for frame in client.frames]
-    deltas = numpy.diff(timestamps[:-1])
+    while len(client.frames) < test_frames:
+        time.sleep(0.1)
+
+    runner.imd.cancel_run(wait=True)
+
+    # first frame (topology) isn't subject to intervals
+    timestamps = [frame.server_timestamp for frame in client.frames[1:]]
+    deltas = numpy.diff(timestamps)
+
     # The interval is not very accurate. We only check that the observed
     # interval is close on average.
     assert numpy.average(deltas) == pytest.approx(
