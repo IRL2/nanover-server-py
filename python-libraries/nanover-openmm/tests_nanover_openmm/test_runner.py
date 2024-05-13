@@ -468,6 +468,7 @@ class TestRunner:
         time.sleep(0.1)
         assert runner.dynamics_interval == pytest.approx(value)
 
+    @pytest.mark.serial  # we want accurate timing so run without any parallel load
     @pytest.mark.parametrize("fps", (1, 5, 10, 30))
     @pytest.mark.parametrize("frame_interval", (1, 5, 10))
     def test_throttling(self, client_runner, fps, frame_interval):
