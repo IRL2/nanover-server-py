@@ -47,5 +47,5 @@ def sleep_precise(duration: float):
     prev_time = time.perf_counter()
     next_time = prev_time + duration
     while time.perf_counter() < next_time:
-        sleep_time = next_time - time.perf_counter()
+        sleep_time = max(next_time - time.perf_counter(), 0)
         time.sleep(sleep_time * 0.5)
