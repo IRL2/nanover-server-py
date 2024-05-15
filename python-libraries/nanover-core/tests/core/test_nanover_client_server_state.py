@@ -209,6 +209,8 @@ def test_subscribe_updates_interval(client_server, update_interval):
     """
     Test that state updates are sent at the requested interval.
     """
+    deadline = time.perf_counter() + 5
+
     client, server = client_server
     client.subscribe_all_state_updates(update_interval)
 
@@ -220,12 +222,19 @@ def test_subscribe_updates_interval(client_server, update_interval):
     change = DictionaryChange({"hello": 999})
     client.attempt_update_state(change)
 
-    sleep_precise(update_interval / 2)
+    time_before = time.perf_counter()
 
-    with client.lock_state() as state:
-        assert state["hello"] == INITIAL_STATE["hello"]
+    while time.perf_counter() < deadline:
+        with client.lock_state() as state:
+            if state["hello"] != INITIAL_STATE["hello"]:
+                break
+        time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    else:
+        raise Exception("Test timed out.")
 
-    sleep_precise(update_interval / 2)
+    time_after = time.perf_counter()
+
+    assert time_after - time_before >= update_interval
 
     with client.lock_state() as state:
         assert state["hello"] == 999
