@@ -178,7 +178,7 @@ Because of the special setup required you will probably not be able to run this 
 
 `nanover.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the `nanover-protocol` directory:
 
-    nanover-omm-ase examples/ase/nanotube.xml
+    nanover-omm-ase examples/ase/openmm_files/nanotube.xml
 
 The example files are distributed in the directory
 `examples/ase/` from the [git repository](https://gitlab.com/intangiblerealities/nanover-protocol/tree/master/examples/ase).
