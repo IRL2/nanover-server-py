@@ -1,6 +1,7 @@
 import time
 from typing import Tuple
 
+import numpy
 import pytest
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.key_lockable_map import ResourceLockedError
@@ -209,7 +210,8 @@ def test_subscribe_updates_interval(client_server, update_interval):
     """
     Test that state updates are sent at the requested interval.
     """
-    deadline = time.perf_counter() + 2
+    test_count = 8
+    deadline = time.perf_counter() + update_interval * test_count + 2
 
     client, server = client_server
     client.subscribe_all_state_updates(update_interval)
@@ -219,26 +221,26 @@ def test_subscribe_updates_interval(client_server, update_interval):
     with client.lock_state() as state:
         assert state["hello"] == INITIAL_STATE["hello"]
 
-    change = DictionaryChange({"hello": 999})
-    client.attempt_update_state(change)
+    update_times = []
 
-    time_before = time.perf_counter()
+    for i in range(test_count):
+        change = DictionaryChange({"hello": i})
+        client.attempt_update_state(change)
 
-    while time.perf_counter() < deadline:
-        with client.lock_state() as state:
-            if state["hello"] != INITIAL_STATE["hello"]:
-                break
-        time.sleep(update_interval * 0.1)
-    else:
-        raise Exception("Test timed out.")
+        time_before = time.perf_counter()
 
-    time_after = time.perf_counter()
-    update_time = time_after - time_before
+        while time.perf_counter() < deadline:
+            with client.lock_state() as state:
+                if state["hello"] == i:
+                    break
+            time.sleep(update_interval * 0.1)
+        else:
+            raise Exception("Test timed out.")
 
-    assert update_time == pytest.approx(update_interval, abs=0.01)
+        time_after = time.perf_counter()
+        update_times.append(time_after - time_before)
 
-    with client.lock_state() as state:
-        assert state["hello"] == 999
+    assert numpy.average(update_times) == pytest.approx(update_interval, abs=0.01)
 
 
 def test_can_lock_unlocked(client_server):
