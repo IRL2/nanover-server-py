@@ -233,7 +233,7 @@ def test_subscribe_updates_interval(client_server, update_interval):
             with client.lock_state() as state:
                 if state["hello"] == i:
                     break
-            time.sleep(update_interval * 0.1)
+            time.sleep(0.01)
         else:
             raise Exception("Test timed out.")
 
