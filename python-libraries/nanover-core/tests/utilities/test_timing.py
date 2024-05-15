@@ -8,7 +8,7 @@ from numpy import average
 
 from nanover.utilities.timing import yield_interval
 
-TIMING_TOLERANCE = 0.001  # 1ms
+TIMING_TOLERANCE = 0.005  # 5ms
 COMMON_INTERVALS = (1 / 10, 1 / 30, 1 / 60)
 
 

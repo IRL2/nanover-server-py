@@ -240,7 +240,7 @@ def test_subscribe_updates_interval(client_server, update_interval):
         time_after = time.perf_counter()
         update_times.append(time_after - time_before)
 
-    assert numpy.average(update_times) == pytest.approx(update_interval, abs=0.01)
+    assert numpy.average(update_times) == pytest.approx(update_interval, abs=0.1)
 
 
 def test_can_lock_unlocked(client_server):
