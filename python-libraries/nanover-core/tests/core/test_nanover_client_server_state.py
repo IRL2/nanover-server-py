@@ -209,7 +209,7 @@ def test_subscribe_updates_interval(client_server, update_interval):
     """
     Test that state updates are sent at the requested interval.
     """
-    deadline = time.perf_counter() + 5
+    deadline = time.perf_counter() + 2
 
     client, server = client_server
     client.subscribe_all_state_updates(update_interval)
@@ -228,13 +228,14 @@ def test_subscribe_updates_interval(client_server, update_interval):
         with client.lock_state() as state:
             if state["hello"] != INITIAL_STATE["hello"]:
                 break
-        time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+        time.sleep(update_interval * 0.1)
     else:
         raise Exception("Test timed out.")
 
     time_after = time.perf_counter()
+    update_time = time_after - time_before
 
-    assert time_after - time_before >= update_interval
+    assert update_time == pytest.approx(update_interval, abs=0.01)
 
     with client.lock_state() as state:
         assert state["hello"] == 999
