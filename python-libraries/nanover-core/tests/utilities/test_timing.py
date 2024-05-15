@@ -21,7 +21,7 @@ def test_yield_interval(interval, work_factor):
     """
 
     times = []
-    count = round(1 / interval)
+    count = 30
 
     for dt in itertools.islice(yield_interval(interval), count):
         prev_time = time.perf_counter()
