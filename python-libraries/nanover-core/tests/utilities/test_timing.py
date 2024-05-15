@@ -6,7 +6,7 @@ import itertools
 
 from numpy import average
 
-from nanover.utilities.timing import yield_interval
+from nanover.utilities.timing import yield_interval, sleep_precise
 
 TIMING_TOLERANCE = 0.005  # 5ms
 COMMON_INTERVALS = (1 / 10, 1 / 30, 1 / 60)
@@ -25,7 +25,7 @@ def test_yield_interval(interval, work_factor):
 
     for dt in itertools.islice(yield_interval(interval), count):
         times.append(time.perf_counter())
-        time.sleep(interval * work_factor)
+        sleep_precise(interval * work_factor)
 
     intervals = numpy.diff(times)
     assert average(intervals) == pytest.approx(interval, abs=TIMING_TOLERANCE)
@@ -46,7 +46,7 @@ def test_yield_interval_dt(interval, work_factor):
     for dt in itertools.islice(yield_interval(interval), count):
         reported_deltas.append(dt)
         times.append(time.perf_counter())
-        time.sleep(interval * work_factor)
+        sleep_precise(interval * work_factor)
 
     measured_deltas = numpy.diff(times)
     assert reported_deltas == pytest.approx(measured_deltas, abs=TIMING_TOLERANCE)
