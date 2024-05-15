@@ -71,7 +71,7 @@ def test_remove_service(client_server, service):
     )
     assert service in services
     server.unregister_service(service)
-    time.sleep(TEST_INTERVAL_TIME)
+    time.sleep(0.1)
     services = set(
         client.search_for_services(
             search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
