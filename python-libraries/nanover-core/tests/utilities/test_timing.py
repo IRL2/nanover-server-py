@@ -24,8 +24,13 @@ def test_yield_interval(interval, work_factor):
     count = round(1 / interval)
 
     for dt in itertools.islice(yield_interval(interval), count):
-        times.append(time.perf_counter())
-        sleep_precise(interval * work_factor)
+        prev_time = time.perf_counter()
+        next_time = prev_time + interval * work_factor
+
+        times.append(prev_time)
+
+        while time.perf_counter() < next_time:
+            pass
 
     intervals = numpy.diff(times)
     assert average(intervals) == pytest.approx(interval, abs=TIMING_TOLERANCE)
