@@ -6,7 +6,7 @@ from queue import Queue
 import numpy as np
 
 import pytest
-from simtk import openmm as mm
+import openmm as mm
 from simtk.unit import nanometer
 from nanover.openmm import imd
 from nanover.app import NanoverImdApplication

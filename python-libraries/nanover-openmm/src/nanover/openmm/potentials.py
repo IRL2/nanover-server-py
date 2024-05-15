@@ -4,7 +4,7 @@ be applied to OpenMM systems.
 """
 
 from typing import Iterable
-from simtk import openmm as mm
+import openmm as mm
 from simtk.unit import Quantity, kilojoule_per_mole, nanometer
 
 

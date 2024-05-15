@@ -4,16 +4,8 @@ Module providing conversion methods between NanoVer and OpenMM.
 
 from typing import Optional
 
-
-try:
-    # Mypy does not find State in the C module; we ignore the error
-    from openmm import State  # type: ignore[attr-defined]
-except (ImportError, ModuleNotFoundError):
-    from openmm import State
-try:
-    from openmm.app.topology import Topology
-except (ImportError, ModuleNotFoundError):
-    from openmm.app.topology import Topology
+from openmm import State
+from openmm.app.topology import Topology
 from openmm.unit import kilojoule_per_mole, picosecond
 from nanover.trajectory import FrameData
 

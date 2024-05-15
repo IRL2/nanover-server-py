@@ -8,12 +8,9 @@ from numpy.testing import assert_almost_equal
 from nanover.openmm import openmm_to_frame_data
 from nanover.trajectory import frame_data
 
-try:
-    from openmm.app.element import Element
-    from openmm.app.topology import Topology
-except (ImportError, ModuleNotFoundError):
-    from openmm.app.element import Element
-    from openmm.app.topology import Topology
+from openmm.app.element import Element
+from openmm.app.topology import Topology
+
 from .simulation_utils import (
     BASIC_SIMULATION_POSITIONS,
     BASIC_SIMULATION_BOX_VECTORS,
