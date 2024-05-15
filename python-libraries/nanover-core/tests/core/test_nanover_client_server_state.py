@@ -7,6 +7,7 @@ from nanover.utilities.key_lockable_map import ResourceLockedError
 
 from nanover.core.nanover_client import NanoverClient
 from nanover.core.nanover_server import NanoverServer
+from nanover.utilities.timing import sleep_precise
 
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
 ARBITRARY_LOCK_DURATION = 5
@@ -219,12 +220,12 @@ def test_subscribe_updates_interval(client_server, update_interval):
     change = DictionaryChange({"hello": 999})
     client.attempt_update_state(change)
 
-    time.sleep(update_interval / 2)
+    sleep_precise(update_interval / 2)
 
     with client.lock_state() as state:
         assert state["hello"] == INITIAL_STATE["hello"]
 
-    time.sleep(update_interval / 2)
+    sleep_precise(update_interval / 2)
 
     with client.lock_state() as state:
         assert state["hello"] == 999

@@ -41,3 +41,11 @@ def yield_interval(interval: float):
     :yield: Number of seconds since last yielding
     """
     return VariableIntervalGenerator(interval).yield_interval()
+
+
+def sleep_precise(duration: float):
+    prev_time = time.perf_counter()
+    next_time = prev_time + duration
+    while time.perf_counter() < next_time:
+        sleep_time = next_time - time.perf_counter()
+        time.sleep(sleep_time * 0.5)
