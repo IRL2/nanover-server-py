@@ -25,8 +25,12 @@ class VariableIntervalGenerator:
         target = time.perf_counter()
         prev_yield = target
         while True:
-            while time.perf_counter() < target:
-                time.sleep(max(0.0, (target - time.perf_counter()) * 0.5))
+            while True:
+                sleep_time = target - time.perf_counter()
+                if sleep_time > 0:
+                    time.sleep(sleep_time * 0.5)
+                else:
+                    break
             target += self.interval
             next_yield = time.perf_counter()
             yield next_yield - prev_yield
@@ -46,6 +50,9 @@ def yield_interval(interval: float):
 def sleep_precise(duration: float):
     prev_time = time.perf_counter()
     next_time = prev_time + duration
-    while time.perf_counter() < next_time:
-        sleep_time = max(next_time - time.perf_counter(), 0)
-        time.sleep(sleep_time * 0.5)
+    while True:
+        sleep_time = next_time - time.perf_counter()
+        if sleep_time > 0:
+            time.sleep(sleep_time * 0.5)
+        else:
+            break
