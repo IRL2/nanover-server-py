@@ -107,6 +107,8 @@ class NanoverImdReporter:
         self._frame_index = 0
         self._total_user_energy = 0.0
 
+        self._did_first_frame = False
+
     # The name of the method is part of the OpenMM API. It cannot be made to
     # conform PEP8.
     # noinspection PyPep8Naming
@@ -115,7 +117,9 @@ class NanoverImdReporter:
         Called by OpenMM. Indicates when the next report is due and what type
         of data it requires.
         """
-        self._on_first_frame(simulation)
+        if not self._did_first_frame:
+            self._did_first_frame = True
+            self._on_first_frame(simulation)
 
         force_steps = self.force_interval - simulation.currentStep % self.force_interval
         frame_steps = self.frame_interval - simulation.currentStep % self.frame_interval

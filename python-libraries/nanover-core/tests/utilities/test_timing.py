@@ -12,6 +12,7 @@ TIMING_TOLERANCE = 0.005  # 5ms
 COMMON_INTERVALS = (1 / 10, 1 / 30, 1 / 60)
 
 
+@pytest.mark.serial  # we want accurate timing so run without any parallel load
 @pytest.mark.parametrize("interval", COMMON_INTERVALS)
 @pytest.mark.parametrize("work_factor", (0.75, 0.5, 0.25, 0))
 def test_yield_interval(interval, work_factor):
