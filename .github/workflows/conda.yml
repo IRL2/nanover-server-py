@@ -28,7 +28,6 @@ jobs:
       - name: Test that the repo is sane and does not contain superfluous __init__ file
         run: bash ./maintainers/check_extra_init_files.sh
       - name: Install dependencies
-        # We temporarilly ignore failure here. See #31.
         run: conda install -y python conda-build "grpcio-tools<1.62" conda-verify
       - name: Compiling the prototypes
         run: python python-libraries/nanover-core/setup.py compile_proto --proto-dir=protocol
@@ -74,7 +73,6 @@ jobs:
         with:
           name: conda-packages
       - name: Install NanoVer
-        # We temporarilly ignore failure here. See #31.
         run: conda install -y -c conda-forge -c ./conda-bld mpi4py nanover-server nanover-lammps
       - name: Install tests dependancies
         run: python -m pip install -r python-libraries/requirements.test
@@ -107,7 +105,6 @@ jobs:
         with:
           name: conda-packages
       - name: Install Anaconda
-        # We temporarilly ignore failure here. See #31.
         run: conda install -y anaconda-client
       - name: Connect to Anaconda cloud
         # The login token may be used by a failed build already. If we are asked
