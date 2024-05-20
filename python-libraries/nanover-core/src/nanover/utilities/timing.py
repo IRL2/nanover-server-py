@@ -43,16 +43,6 @@ def yield_interval(interval: float):
     return VariableIntervalGenerator(interval).yield_interval()
 
 
-def wait_sleep(seconds: float):
-    """
-    Do nothing for a period of time using time.sleep. Imprecise but doesn't use much CPU.
-    """
-    target = time.perf_counter() + seconds
-    duration = max(target - time.perf_counter(), 0)
-    if duration > 0:
-        time.sleep(duration)
-
-
 def wait_busy(seconds: float):
     """
     Do nothing for a period of time by tightly looping. Precise but uses much CPU.
