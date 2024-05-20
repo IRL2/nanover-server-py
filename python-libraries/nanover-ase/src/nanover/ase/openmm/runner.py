@@ -140,13 +140,14 @@ class ASEOpenMMRunner(NanoverRunner):
 
     def __init__(
         self,
-        simulations: List[Simulation],
+        simulation: Simulation,
         imd_params: Optional[ImdParams] = None,
         logging_params: Optional[LoggingParams] = None,
+        simulation_list: Optional[List[Simulation]] = None,
     ):
         self._logger = logging.getLogger(__name__)
-        self.simulations = simulations
-        self.simulation = simulations[0]
+        self.simulation_list = simulation_list or [simulation]
+        self.simulation = self.simulation_list[0]
         self._validate_simulation()
         if not imd_params:
             imd_params = ImdParams()
@@ -173,15 +174,15 @@ class ASEOpenMMRunner(NanoverRunner):
         self._initialise_trajectory_logging(logging_params)
 
         def load(index):
-            self._sim_index = int(index % len(self.simulations))
-            self.simulation = self.simulations[self._sim_index]
+            self._sim_index = int(index % len(self.simulation_list))
+            self.simulation = self.simulation_list[self._sim_index]
             self._initialise_calculator(self.simulation, walls=imd_params.walls)
             self._initialise_dynamics()
             self.imd.replace_dynamics(self.dynamics)
             self.imd.play()
 
         def list_():
-            return {"simulations": [sim._name for sim in self.simulations]}
+            return {"simulations": [sim._name for sim in self.simulation_list]}
 
         self.app_server.server.register_command("playback/load", load)
         self.app_server.server.register_command("playback/list", list_)
@@ -217,6 +218,15 @@ class ASEOpenMMRunner(NanoverRunner):
     @classmethod
     def from_xml(
         cls,
+        simulation_xml: str,
+        params: Optional[ImdParams] = None,
+        logging_params: Optional[LoggingParams] = None,
+    ):
+        return cls.from_xmls([simulation_xml], params, logging_params)
+
+    @classmethod
+    def from_xmls(
+        cls,
         simulation_xmls: List[str],
         params: Optional[ImdParams] = None,
         logging_params: Optional[LoggingParams] = None,
@@ -245,7 +255,7 @@ class ASEOpenMMRunner(NanoverRunner):
                 simulation._name = Path(path).name
                 simulations.append(simulation)
 
-        return cls(simulations, params, logging_params)
+        return cls(simulations[0], params, logging_params, simulation_list=simulations)
 
     @property
     def verbose(self):
