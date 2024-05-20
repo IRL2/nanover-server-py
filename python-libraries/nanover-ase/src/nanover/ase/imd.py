@@ -94,7 +94,7 @@ class NanoverASEDynamics:
         self.on_reset_listeners = []
         self.logger = logging.getLogger(__name__)
 
-        self.replace_dynamics(dynamics)
+        self.replace_dynamics(dynamics, reset=False)
 
     @classmethod
     @contextmanager
@@ -306,8 +306,8 @@ class NanoverASEDynamics:
         self.atoms.set_cell(self._initial_box)
         self._call_on_reset()
 
-    def replace_dynamics(self, dynamics: MolecularDynamics):
-        if self.dynamics is not None:
+    def replace_dynamics(self, dynamics: MolecularDynamics, reset=True):
+        if reset:
             self.reset()
 
         with self._cancel_lock:
