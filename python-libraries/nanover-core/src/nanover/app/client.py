@@ -548,7 +548,7 @@ class NanoverImdClient:
     @need_frames
     def run_list(self) -> List[str]:
         """
-        Sends a request for the trajectory service to switch to a particular simulation.
+        Retrieves an ordered list of the available simulations for the load command.
         """
         return self._frame_client.run_command(LIST_COMMAND_KEY)["simulations"]  # type: ignore
 
