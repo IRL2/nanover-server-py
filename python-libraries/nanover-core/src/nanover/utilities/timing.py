@@ -52,17 +52,15 @@ def wait_busy(seconds: float):
         pass
 
 
-def wait_mixed(seconds: float, sleep_error=0.01):
+def wait_mixed(seconds: float):
     """
-    Do nothing for a period of time by sleeping until close to the target then using CPU time.
+    Do nothing for a period of time by using a series of short sleeps.
     """
     target = time.perf_counter() + seconds
     while True:
         now = time.perf_counter()
         duration = max(target - now, 0)
-        if duration == 0:
-            return
-        elif duration > sleep_error:
+        if duration > 0:
             time.sleep(duration * 0.5)
         else:
-            time.sleep(0)
+            break
