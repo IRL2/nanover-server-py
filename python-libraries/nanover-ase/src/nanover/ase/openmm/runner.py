@@ -171,17 +171,18 @@ class ASEOpenMMRunner(NanoverRunner):
 
         self._initialise_trajectory_logging(logging_params)
 
-        print("YEAH")
-        def flip():
-            print("DO FLIP")
-            self._sim_index = (self._sim_index + 1) % len(self.simulations)
+        def load(index):
+            self._sim_index = int(index % len(self.simulations))
             self.simulation = self.simulations[self._sim_index]
             self._initialise_calculator(self.simulation, walls=imd_params.walls)
             self._initialise_dynamics()
             self.imd.replace_dynamics(self.dynamics)
-            print("DONE FLIP", self.simulation, self._sim_index)
 
-        self.app_server.server.register_command("flip", flip)
+        def list_():
+            return {"simulations": [str(sim) for sim in self.simulations]}
+
+        self.app_server.server.register_command("playback/load", load)
+        self.app_server.server.register_command("playback/list", list_)
 
     @property
     def app_server(self):
