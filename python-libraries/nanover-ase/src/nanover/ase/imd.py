@@ -312,19 +312,23 @@ class NanoverASEDynamics:
         with self._cancel_lock:
             self.cancel_run(wait=True)
 
+        # replace dynamics and calculator
         self.dynamics = dynamics
-        calculator = self.dynamics.atoms.calc
         self.imd_calculator = ImdCalculator(
             self._imd,
-            calculator,
+            self.dynamics.atoms.calc,
             dynamics=dynamics,
         )
         self.atoms.calc = self.imd_calculator
+
+        # replace previous frame method with fresh instance
+        self.dynamics.observers.clear()
         self.dynamics.attach(
             self._frame_method(self.atoms, self._frame_publisher),
             interval=self._frame_interval,
         )
 
+        # backup initial state for resets
         self._initial_positions = self.atoms.get_positions()
         self._initial_velocities = self.atoms.get_velocities()
         self._initial_box = self.atoms.get_cell()
