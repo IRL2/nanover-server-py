@@ -29,6 +29,7 @@ from nanover.trajectory.frame_server import (
     RESET_COMMAND_KEY,
     LOAD_COMMAND_KEY,
     LIST_COMMAND_KEY,
+    NEXT_COMMAND_KEY,
 )
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -546,7 +547,7 @@ class NanoverImdClient:
         self._frame_client.run_command(LOAD_COMMAND_KEY, index=index)  # type: ignore
 
     @need_frames
-    def run_next(self, index: int):
+    def run_next(self):
         """
         Sends a request for the trajectory service to switch to the next simulation.
         """

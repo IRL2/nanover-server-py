@@ -24,14 +24,20 @@ from nanover.ase.converter import add_ase_positions_to_frame_data
 from nanover.ase.imd import NanoverASEDynamics
 from nanover.ase.openmm.calculator import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
-from nanover.trajectory.frame_server import LOAD_COMMAND_KEY, LIST_COMMAND_KEY, NEXT_COMMAND_KEY
+from nanover.trajectory.frame_server import (
+    LOAD_COMMAND_KEY,
+    LIST_COMMAND_KEY,
+    NEXT_COMMAND_KEY,
+)
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
     "The simulation contains constraints which will be ignored by this runner!"
 )
 
 
-def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
+def openmm_ase_frame_adaptor(
+    ase_atoms: Atoms, frame_publisher: FramePublisher, simulation_count=0
+):
     """
     Generates and sends frames for a simulation using an :class: OpenMMCalculator.
     """
@@ -46,6 +52,7 @@ def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
             imd_calculator = ase_atoms.calc
             topology = imd_calculator.calculator.topology
             frame = openmm_to_frame_data(state=None, topology=topology)
+            frame.simulation_count = simulation_count
             add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
         # from then on, just send positions and state.
         else:
