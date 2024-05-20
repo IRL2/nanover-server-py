@@ -40,12 +40,4 @@ def yield_interval(interval: float):
     :param interval: Number of seconds to ensure between yields
     :yield: Number of seconds since last yielding
     """
-    prev_yield = time.perf_counter()
-    yield 0
-    while True:
-        time_since_yield = time.perf_counter() - prev_yield
-        wait_duration = max(0.0, interval - time_since_yield)
-        time.sleep(wait_duration)
-        next_yield = time.perf_counter()
-        yield next_yield - prev_yield
-        prev_yield = next_yield
+    return VariableIntervalGenerator(interval).yield_interval()
