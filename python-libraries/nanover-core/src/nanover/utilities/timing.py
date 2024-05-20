@@ -26,8 +26,8 @@ class VariableIntervalGenerator:
         prev_yield = target
         yield 0
         while True:
-            wait_mixed(target - time.perf_counter())
             target += self.interval
+            wait_mixed(target - time.perf_counter())
             next_yield = time.perf_counter()
             yield next_yield - prev_yield
             prev_yield = next_yield
@@ -62,7 +62,7 @@ def wait_busy(seconds: float):
         pass
 
 
-def wait_mixed(seconds: float, sleep_error=.01):
+def wait_mixed(seconds: float, sleep_error=0.01):
     """
     Do nothing for a period of time by sleeping until close to the target then using CPU time.
     """
@@ -73,8 +73,7 @@ def wait_mixed(seconds: float, sleep_error=.01):
         if duration == 0:
             return
         elif duration > sleep_error:
-            time.sleep(duration * .5)
+            time.sleep(duration * 0.5)
         else:
             while time.perf_counter() < target:
                 pass
-
