@@ -6,7 +6,7 @@ import logging
 from concurrent import futures
 from contextlib import contextmanager
 from threading import RLock
-from typing import Optional, Callable, List, Dict
+from typing import Optional, Callable, List, Dict, Any
 
 import numpy as np
 from ase import Atoms  # type: ignore
@@ -61,6 +61,12 @@ class NanoverASEDynamics:
     on_reset_listeners: List[Callable[[], None]]
     _run_task: Optional[futures.Future]
 
+    dynamics: MolecularDynamics
+    imd_calculator: ImdCalculator
+    _initial_positions: Any
+    _initial_velocities: Any
+    _initial_box: Any
+
     def __init__(
         self,
         nanover_imd_app: NanoverImdApplication,
@@ -88,11 +94,6 @@ class NanoverASEDynamics:
         self.on_reset_listeners = []
         self.logger = logging.getLogger(__name__)
 
-        self.dynamics = None
-        self.imd_calculator = None
-        self._initial_positions = None
-        self._initial_velocities = None
-        self._initial_box = None
         self.replace_dynamics(dynamics)
 
     @classmethod
