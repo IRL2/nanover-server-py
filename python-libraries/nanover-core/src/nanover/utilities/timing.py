@@ -65,5 +65,4 @@ def wait_mixed(seconds: float, sleep_error=0.01):
         elif duration > sleep_error:
             time.sleep(duration * 0.5)
         else:
-            while time.perf_counter() < target:
-                pass
+            time.sleep(0)
