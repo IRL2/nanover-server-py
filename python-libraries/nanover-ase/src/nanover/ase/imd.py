@@ -36,7 +36,7 @@ class NanoverASEDynamics:
     :param dynamics: A prepared ASE molecular dynamics object to run,
         with IMD attached.
     :param frame_interval: Interval, in steps, at which to publish frames.
-    :param frame_method: Method to use to generate frames, given the the ASE
+    :param frame_method: Method to use to generate frames, given the ASE
         :class:`Atoms` and a :class:`FramePublisher`. The signature of the
         callback is expected to be ``frame_method(ase_atoms, frame_publisher)``.
 
@@ -79,29 +79,21 @@ class NanoverASEDynamics:
         self._cancel_lock = RLock()
         self._register_commands()
 
-        self.dynamics = dynamics
-        calculator = self.dynamics.atoms.calc
-        self.imd_calculator = ImdCalculator(
-            nanover_imd_app.imd,
-            calculator,
-            dynamics=dynamics,
-        )
-        self.atoms.calc = self.imd_calculator
         self._variable_interval_generator = VariableIntervalGenerator(1 / 30)
         self._frame_interval = frame_interval
-        self.dynamics.attach(
-            frame_method(self.atoms, self._frame_publisher), interval=frame_interval
-        )
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._run_task = None
         self._cancelled = False
 
-        self._initial_positions = self.atoms.get_positions()
-        self._initial_velocities = self.atoms.get_velocities()
-        self._initial_box = self.atoms.get_cell()
         self.on_reset_listeners = []
-
         self.logger = logging.getLogger(__name__)
+
+        self.dynamics = None
+        self.imd_calculator = None
+        self._initial_positions = None
+        self._initial_velocities = None
+        self._initial_box = None
+        self.replace_dynamics(dynamics)
 
     @classmethod
     @contextmanager
@@ -314,7 +306,8 @@ class NanoverASEDynamics:
         self._call_on_reset()
 
     def replace_dynamics(self, dynamics: MolecularDynamics):
-        self.reset()
+        if self.dynamics is not None:
+            self.reset()
 
         with self._cancel_lock:
             self.cancel_run(wait=True)
@@ -328,17 +321,13 @@ class NanoverASEDynamics:
         )
         self.atoms.calc = self.imd_calculator
         self.dynamics.attach(
-            self._frame_method(self.atoms, self._frame_publisher), interval=self._frame_interval
+            self._frame_method(self.atoms, self._frame_publisher),
+            interval=self._frame_interval,
         )
-        self._run_task = None
-        self._cancelled = False
 
         self._initial_positions = self.atoms.get_positions()
         self._initial_velocities = self.atoms.get_velocities()
         self._initial_box = self.atoms.get_cell()
-
-        self.reset()
-        self.run()
 
     def _call_on_reset(self):
         for callback in self.on_reset_listeners:

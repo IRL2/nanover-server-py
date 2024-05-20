@@ -3,6 +3,7 @@ Interactive molecular dynamics runner for ASE with OpenMM.
 """
 
 import logging
+from pathlib import Path
 from typing import Optional, List
 
 from ase import units, Atoms  # type: ignore
@@ -177,9 +178,10 @@ class ASEOpenMMRunner(NanoverRunner):
             self._initialise_calculator(self.simulation, walls=imd_params.walls)
             self._initialise_dynamics()
             self.imd.replace_dynamics(self.dynamics)
+            self.imd.play()
 
         def list_():
-            return {"simulations": [str(sim) for sim in self.simulations]}
+            return {"simulations": [sim._name for sim in self.simulations]}
 
         self.app_server.server.register_command("playback/load", load)
         self.app_server.server.register_command("playback/list", list_)
@@ -240,6 +242,7 @@ class ASEOpenMMRunner(NanoverRunner):
                     infile.read(),
                     platform_name=platform,
                 )
+                simulation._name = Path(path).name
                 simulations.append(simulation)
 
         return cls(simulations, params, logging_params)
