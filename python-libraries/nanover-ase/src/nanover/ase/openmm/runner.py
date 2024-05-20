@@ -3,7 +3,7 @@ Interactive molecular dynamics runner for ASE with OpenMM.
 """
 
 import logging
-from typing import Optional
+from typing import Optional, List
 
 from ase import units, Atoms  # type: ignore
 from ase.md import MDLogger, Langevin
@@ -132,20 +132,20 @@ class ASEOpenMMRunner(NanoverRunner):
     """
     A wrapper class for running an interactive OpenMM simulation with ASE.
 
-    :param simulation OpenMM simulation to run interactively.
+    :param simulations OpenMM simulations to run interactively.
     :param params IMD parameters to tune the server.
     :param logging_params Parameters for logging the trajectory of the simulation.
     """
 
     def __init__(
         self,
-        simulation: Simulation,
+        simulations: List[Simulation],
         imd_params: Optional[ImdParams] = None,
         logging_params: Optional[LoggingParams] = None,
-        alt_sim: Simulation = None,
     ):
         self._logger = logging.getLogger(__name__)
-        self.simulation = simulation
+        self.simulations = simulations
+        self.simulation = simulations[0]
         self._validate_simulation()
         if not imd_params:
             imd_params = ImdParams()
@@ -156,11 +156,9 @@ class ASEOpenMMRunner(NanoverRunner):
         self._time_step = imd_params.time_step
         self._verbose = imd_params.verbose
 
-        self._sims = [simulation, alt_sim]
         self._sim_index = 0
-        print(self._sims)
 
-        self._initialise_calculator(simulation, walls=imd_params.walls)
+        self._initialise_calculator(self.simulation, walls=imd_params.walls)
         self._initialise_dynamics()
         self._initialise_server(
             imd_params.name,
@@ -176,8 +174,8 @@ class ASEOpenMMRunner(NanoverRunner):
         print("YEAH")
         def flip():
             print("DO FLIP")
-            self._sim_index = (self._sim_index + 1) % 2
-            self.simulation = self._sims[self._sim_index]
+            self._sim_index = (self._sim_index + 1) % len(self.simulations)
+            self.simulation = self.simulations[self._sim_index]
             self._initialise_calculator(self.simulation, walls=imd_params.walls)
             self._initialise_dynamics()
             self.imd.replace_dynamics(self.dynamics)
@@ -216,16 +214,15 @@ class ASEOpenMMRunner(NanoverRunner):
     @classmethod
     def from_xml(
         cls,
-        simulation_xml,
+        simulation_xmls: List[str],
         params: Optional[ImdParams] = None,
         logging_params: Optional[LoggingParams] = None,
-        alt = None,
     ):
         """
         Initialises a :class:`AseOpenMMIMDRunner` from a simulation XML file
         serialised with :func:`serializer.serialize_simulation`.
 
-        :param simulation_xml: Path to XML file.
+        :param simulation_xmls: Paths to XML files.
         :param params: The :class: ImdParams to run the server with.
         :param logging_params: The :class:LoggingParams to set up trajectory logging with.
         :return: An OpenMM simulation runner.
@@ -234,18 +231,17 @@ class ASEOpenMMRunner(NanoverRunner):
             platform = params.platform
         else:
             platform = None
-        with open(simulation_xml) as infile:
-            simulation = serializer.deserialize_simulation(
-                infile.read(),
-                platform_name=platform,
-            )
-        if alt is not None:
-            with open(alt) as infile:
-                simulation2 = serializer.deserialize_simulation(
+
+        simulations = []
+        for path in simulation_xmls:
+            with open(path) as infile:
+                simulation = serializer.deserialize_simulation(
                     infile.read(),
                     platform_name=platform,
                 )
-        return cls(simulation, params, logging_params, simulation2)
+                simulations.append(simulation)
+
+        return cls(simulations, params, logging_params)
 
     @property
     def verbose(self):
