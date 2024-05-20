@@ -71,6 +71,8 @@ class NanoverASEDynamics:
         if frame_method is None:
             frame_method = send_ase_frame
 
+        self._frame_method = frame_method
+        self._imd = nanover_imd_app.imd
         self._server = nanover_imd_app.server
         self._frame_publisher = nanover_imd_app.frame_publisher
 
@@ -310,6 +312,33 @@ class NanoverASEDynamics:
         self.atoms.set_velocities(self._initial_velocities)
         self.atoms.set_cell(self._initial_box)
         self._call_on_reset()
+
+    def replace_dynamics(self, dynamics: MolecularDynamics):
+        self.reset()
+
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+
+        self.dynamics = dynamics
+        calculator = self.dynamics.atoms.calc
+        self.imd_calculator = ImdCalculator(
+            self._imd,
+            calculator,
+            dynamics=dynamics,
+        )
+        self.atoms.calc = self.imd_calculator
+        self.dynamics.attach(
+            self._frame_method(self.atoms, self._frame_publisher), interval=self._frame_interval
+        )
+        self._run_task = None
+        self._cancelled = False
+
+        self._initial_positions = self.atoms.get_positions()
+        self._initial_velocities = self.atoms.get_velocities()
+        self._initial_box = self.atoms.get_cell()
+
+        self.reset()
+        self.run()
 
     def _call_on_reset(self):
         for callback in self.on_reset_listeners:

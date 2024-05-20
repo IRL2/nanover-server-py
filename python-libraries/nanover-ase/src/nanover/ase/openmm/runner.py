@@ -142,6 +142,7 @@ class ASEOpenMMRunner(NanoverRunner):
         simulation: Simulation,
         imd_params: Optional[ImdParams] = None,
         logging_params: Optional[LoggingParams] = None,
+        alt_sim: Simulation = None,
     ):
         self._logger = logging.getLogger(__name__)
         self.simulation = simulation
@@ -155,6 +156,10 @@ class ASEOpenMMRunner(NanoverRunner):
         self._time_step = imd_params.time_step
         self._verbose = imd_params.verbose
 
+        self._sims = [simulation, alt_sim]
+        self._sim_index = 0
+        print(self._sims)
+
         self._initialise_calculator(simulation, walls=imd_params.walls)
         self._initialise_dynamics()
         self._initialise_server(
@@ -167,6 +172,18 @@ class ASEOpenMMRunner(NanoverRunner):
         self._initialise_imd(self.app_server, self.dynamics)
 
         self._initialise_trajectory_logging(logging_params)
+
+        print("YEAH")
+        def flip():
+            print("DO FLIP")
+            self._sim_index = (self._sim_index + 1) % 2
+            self.simulation = self._sims[self._sim_index]
+            self._initialise_calculator(self.simulation, walls=imd_params.walls)
+            self._initialise_dynamics()
+            self.imd.replace_dynamics(self.dynamics)
+            print("DONE FLIP", self.simulation, self._sim_index)
+
+        self.app_server.server.register_command("flip", flip)
 
     @property
     def app_server(self):
@@ -202,6 +219,7 @@ class ASEOpenMMRunner(NanoverRunner):
         simulation_xml,
         params: Optional[ImdParams] = None,
         logging_params: Optional[LoggingParams] = None,
+        alt = None,
     ):
         """
         Initialises a :class:`AseOpenMMIMDRunner` from a simulation XML file
@@ -221,7 +239,13 @@ class ASEOpenMMRunner(NanoverRunner):
                 infile.read(),
                 platform_name=platform,
             )
-        return cls(simulation, params, logging_params)
+        if alt is not None:
+            with open(alt) as infile:
+                simulation2 = serializer.deserialize_simulation(
+                    infile.read(),
+                    platform_name=platform,
+                )
+        return cls(simulation, params, logging_params, simulation2)
 
     @property
     def verbose(self):
