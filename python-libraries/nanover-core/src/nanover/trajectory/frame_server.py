@@ -15,6 +15,8 @@ STEP_COMMAND_KEY = "playback/step"
 PAUSE_COMMAND_KEY = "playback/pause"
 GET_DYNAMICS_INTERVAL_COMMAND_KEY = "trajectory/get-dynamics-interval"
 SET_DYNAMICS_INTERVAL_COMMAND_KEY = "trajectory/set-dynamics-interval"
+LIST_COMMAND_KEY = "playback/list"
+LOAD_COMMAND_KEY = "playback/load"
 
 
 class FrameServer(NanoverServer):

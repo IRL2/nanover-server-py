@@ -88,6 +88,18 @@ def test_from_xml(serialized_simulation_path, imd_params):
         assert runner.simulation is not None
 
 
+def test_from_xmls(serialized_simulation_path, imd_params):
+    with ASEOpenMMRunner.from_xmls(
+        [serialized_simulation_path], params=imd_params
+    ) as runner:
+        assert len(runner.simulation_list) > 0
+
+
+def test_list_simulations(client_runner):
+    client, runner = client_runner
+    assert len(client.run_list()) > 0
+
+
 @pytest.mark.serial
 def test_defaults(default_runner):
     runner = default_runner

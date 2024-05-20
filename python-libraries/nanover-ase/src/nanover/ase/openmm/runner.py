@@ -24,6 +24,7 @@ from nanover.ase.converter import add_ase_positions_to_frame_data
 from nanover.ase.imd import NanoverASEDynamics
 from nanover.ase.openmm.calculator import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
+from nanover.trajectory.frame_server import LOAD_COMMAND_KEY, LIST_COMMAND_KEY
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
     "The simulation contains constraints which will be ignored by this runner!"
@@ -174,8 +175,8 @@ class ASEOpenMMRunner(NanoverRunner):
 
         self._initialise_trajectory_logging(logging_params)
 
-        self.app_server.server.register_command("playback/load", self.load)
-        self.app_server.server.register_command("playback/list", self.list)
+        self.app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
+        self.app_server.server.register_command(LIST_COMMAND_KEY, self.list)
 
     @property
     def app_server(self):
@@ -206,7 +207,13 @@ class ASEOpenMMRunner(NanoverRunner):
         self.imd.play()
 
     def list(self):
-        return {"simulations": [sim._name for sim in self.simulation_list]}
+        def get_name(simulation: Simulation):
+            try:
+                return simulation._name
+            except AttributeError:
+                return "Unnamed Simulation"
+
+        return {"simulations": [get_name(sim) for sim in self.simulation_list]}
 
     def _validate_simulation(self):
         """
@@ -223,6 +230,15 @@ class ASEOpenMMRunner(NanoverRunner):
         params: Optional[ImdParams] = None,
         logging_params: Optional[LoggingParams] = None,
     ):
+        """
+        Initialises a :class:`AseOpenMMIMDRunner` from a simulation XML file
+        serialised with :func:`serializer.serialize_simulation`.
+
+        :param simulation_xml: Path to XML file.
+        :param params: The :class: ImdParams to run the server with.
+        :param logging_params: The :class:LoggingParams to set up trajectory logging with.
+        :return: An OpenMM simulation runner.
+        """
         return cls.from_xmls([simulation_xml], params, logging_params)
 
     @classmethod
@@ -233,7 +249,7 @@ class ASEOpenMMRunner(NanoverRunner):
         logging_params: Optional[LoggingParams] = None,
     ):
         """
-        Initialises a :class:`AseOpenMMIMDRunner` from a simulation XML file
+        Initialises a :class:`AseOpenMMIMDRunner` from a list of simulation XML files
         serialised with :func:`serializer.serialize_simulation`.
 
         :param simulation_xmls: Paths to XML files.
