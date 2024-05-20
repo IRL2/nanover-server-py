@@ -24,7 +24,7 @@ from nanover.ase.converter import add_ase_positions_to_frame_data
 from nanover.ase.imd import NanoverASEDynamics
 from nanover.ase.openmm.calculator import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
-from nanover.trajectory.frame_server import LOAD_COMMAND_KEY, LIST_COMMAND_KEY
+from nanover.trajectory.frame_server import LOAD_COMMAND_KEY, LIST_COMMAND_KEY, NEXT_COMMAND_KEY
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
     "The simulation contains constraints which will be ignored by this runner!"
@@ -177,6 +177,7 @@ class ASEOpenMMRunner(NanoverRunner):
 
         self.app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
         self.app_server.server.register_command(LIST_COMMAND_KEY, self.list)
+        self.app_server.server.register_command(NEXT_COMMAND_KEY, self.next)
 
     @property
     def app_server(self):
@@ -205,6 +206,9 @@ class ASEOpenMMRunner(NanoverRunner):
         self._initialise_dynamics()
         self.imd.replace_dynamics(self.dynamics)
         self.imd.play()
+
+    def next(self):
+        self.load(self._sim_index + 1)
 
     def list(self):
         def get_name(simulation: Simulation):

@@ -546,6 +546,13 @@ class NanoverImdClient:
         self._frame_client.run_command(LOAD_COMMAND_KEY, index=index)  # type: ignore
 
     @need_frames
+    def run_next(self, index: int):
+        """
+        Sends a request for the trajectory service to switch to the next simulation.
+        """
+        self._frame_client.run_command(NEXT_COMMAND_KEY)  # type: ignore
+
+    @need_frames
     def run_list(self) -> List[str]:
         """
         Retrieves an ordered list of the available simulations for the load command.

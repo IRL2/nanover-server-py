@@ -17,6 +17,7 @@ GET_DYNAMICS_INTERVAL_COMMAND_KEY = "trajectory/get-dynamics-interval"
 SET_DYNAMICS_INTERVAL_COMMAND_KEY = "trajectory/set-dynamics-interval"
 LIST_COMMAND_KEY = "playback/list"
 LOAD_COMMAND_KEY = "playback/load"
+NEXT_COMMAND_KEY = "playback/next"
 
 
 class FrameServer(NanoverServer):
