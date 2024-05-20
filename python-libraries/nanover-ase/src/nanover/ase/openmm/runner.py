@@ -159,6 +159,7 @@ class ASEOpenMMRunner(NanoverRunner):
         self._verbose = imd_params.verbose
 
         self._sim_index = 0
+        self._imd_params = imd_params
 
         self._initialise_calculator(self.simulation, walls=imd_params.walls)
         self._initialise_dynamics()
@@ -173,19 +174,8 @@ class ASEOpenMMRunner(NanoverRunner):
 
         self._initialise_trajectory_logging(logging_params)
 
-        def load(index):
-            self._sim_index = int(index % len(self.simulation_list))
-            self.simulation = self.simulation_list[self._sim_index]
-            self._initialise_calculator(self.simulation, walls=imd_params.walls)
-            self._initialise_dynamics()
-            self.imd.replace_dynamics(self.dynamics)
-            self.imd.play()
-
-        def list_():
-            return {"simulations": [sim._name for sim in self.simulation_list]}
-
-        self.app_server.server.register_command("playback/load", load)
-        self.app_server.server.register_command("playback/list", list_)
+        self.app_server.server.register_command("playback/load", self.load)
+        self.app_server.server.register_command("playback/list", self.list)
 
     @property
     def app_server(self):
@@ -206,6 +196,17 @@ class ASEOpenMMRunner(NanoverRunner):
 
     def step(self):
         self.imd.step()
+
+    def load(self, index: int):
+        self._sim_index = int(index % len(self.simulation_list))
+        self.simulation = self.simulation_list[self._sim_index]
+        self._initialise_calculator(self.simulation, walls=self._imd_params.walls)
+        self._initialise_dynamics()
+        self.imd.replace_dynamics(self.dynamics)
+        self.imd.play()
+
+    def list(self):
+        return {"simulations": [sim._name for sim in self.simulation_list]}
 
     def _validate_simulation(self):
         """

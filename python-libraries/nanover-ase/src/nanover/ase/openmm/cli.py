@@ -150,7 +150,7 @@ def initialise(args=None):
         arguments.trajectory_file,
         arguments.write_interval,
     )
-    runner = ASEOpenMMRunner.from_xml(
+    runner = ASEOpenMMRunner.from_xmls(
         arguments.simulation_xml_paths, params, logging_params
     )
     # Shamefully store CLI arguments in the runner.
