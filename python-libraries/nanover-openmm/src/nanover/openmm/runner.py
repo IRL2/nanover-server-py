@@ -9,7 +9,6 @@ import os
 import logging
 from concurrent import futures
 from threading import RLock
-from io import StringIO
 
 from openmm.app import Simulation
 from simtk.openmm import app
