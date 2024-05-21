@@ -1,6 +1,7 @@
 """
 Facilities to run an OpenMM simulation.
 """
+
 from pathlib import Path
 from typing import Union, TypeVar, Type, Optional, Dict, List
 import sys
@@ -24,7 +25,10 @@ from nanover.trajectory.frame_server import (
     STEP_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
     GET_DYNAMICS_INTERVAL_COMMAND_KEY,
-    SET_DYNAMICS_INTERVAL_COMMAND_KEY, LOAD_COMMAND_KEY, NEXT_COMMAND_KEY, LIST_COMMAND_KEY,
+    SET_DYNAMICS_INTERVAL_COMMAND_KEY,
+    LOAD_COMMAND_KEY,
+    NEXT_COMMAND_KEY,
+    LIST_COMMAND_KEY,
 )
 from nanover.utilities.timing import VariableIntervalGenerator
 
@@ -437,7 +441,7 @@ class OpenMMRunner(NanoverRunner):
 class SimulationEntry:
     reporter: Optional[NanoverImdReporter]
 
-    def __init__(self, simulation: Simulation, name = "Unnamed Simulation"):
+    def __init__(self, simulation: Simulation, name="Unnamed Simulation"):
         self.simulation = simulation
         self.name = name
         self.reporter = None
