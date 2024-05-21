@@ -110,7 +110,7 @@ class OpenMMRunner(NanoverRunner):
     @classmethod
     def from_xml_input(
         cls: Type[RunnerClass],
-        input_xml: Union[str, bytes, os.PathLike],
+        input_xml: Union[str, os.PathLike],
         name: Optional[str] = None,
         address: Optional[str] = None,
         port: Optional[int] = None,
