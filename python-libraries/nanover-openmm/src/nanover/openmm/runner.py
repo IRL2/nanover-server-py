@@ -80,7 +80,7 @@ class OpenMMRunner(NanoverRunner):
         port: Optional[int] = None,
     ):
         self.simulations = []
-        self._simulation_index = None
+        self._simulation_index = 0
         self._simulation_count = 0
 
         self._verbose_reporter = app.StateDataReporter(
@@ -137,7 +137,7 @@ class OpenMMRunner(NanoverRunner):
     @classmethod
     def from_xml_inputs(
         cls: Type[RunnerClass],
-        input_xmls: List[Union[str, bytes, os.PathLike]],
+        input_xmls: List[Union[str, os.PathLike]],
         name: Optional[str] = None,
         address: Optional[str] = None,
         port: Optional[int] = None,
