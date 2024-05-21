@@ -364,8 +364,6 @@ class OpenMMRunner(NanoverRunner):
             self._simulation_count += 1
         if was_running:
             self.run()
-        else:
-            self.step()
 
     def list(self):
         return {"simulations": [simulation.name for simulation in self.simulations]}
@@ -446,9 +444,7 @@ class SimulationEntry:
         self.name = name
         self.reporter = None
 
-        initial_state_fake_file = StringIO()
-        self.simulation.saveState(initial_state_fake_file)
-        self._initial_state = initial_state_fake_file.getvalue()
+        self._initial_state = simulation.context.createCheckpoint()
 
         potential_imd_forces = get_imd_forces_from_system(self.simulation.system)
         if not potential_imd_forces:
@@ -483,5 +479,4 @@ class SimulationEntry:
         self.simulation.reporters.append(self.reporter)
 
         self.simulation.context.reinitialize()
-        initial_state_fake_file = StringIO(self._initial_state)
-        self.simulation.loadState(initial_state_fake_file)
+        self.simulation.context.loadCheckpoint(self._initial_state)
