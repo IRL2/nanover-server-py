@@ -1,7 +1,7 @@
 """
 Facilities to run an OpenMM simulation.
 """
-
+from pathlib import Path
 from typing import Union, TypeVar, Type, Optional, Dict, List
 import sys
 import os
@@ -10,6 +10,7 @@ from concurrent import futures
 from threading import RLock
 from io import StringIO
 
+from openmm.app import Simulation
 from simtk.openmm import app
 from simtk import openmm
 
@@ -70,15 +71,18 @@ class OpenMMRunner(NanoverRunner):
 
     def __init__(
         self,
-        simulation: app.Simulation,
+        simulation: Optional[Simulation],
         name: Optional[str] = None,
         address: Optional[str] = None,
         port: Optional[int] = None,
-        simulations: List[app.Simulation] = None,
     ):
-        self.simulation_list = simulations or [simulation]
-        self._simulation_index = 0
-        self.simulation = self.simulation_list[self._simulation_index]
+        self.simulations = []
+        self._simulation_index = None
+        self._simulation_count = 0
+
+        if simulation is not None:
+            self.simulations.append(SimulationEntry(simulation))
+            self.load(0)
 
         self._verbose_reporter = app.StateDataReporter(
             sys.stdout,
@@ -90,35 +94,6 @@ class OpenMMRunner(NanoverRunner):
         )
         self._app_server = NanoverImdApplication.basic_server(name, address, port)
 
-        potential_imd_forces = get_imd_forces_from_system(simulation.system)
-        if not potential_imd_forces:
-            raise ValueError(
-                "The simulation must include an appropriate force for imd."
-            )
-        if len(potential_imd_forces) > 1:
-            logging.warning(
-                f"More than one force could be used as imd force "
-                f"({len(potential_imd_forces)}); taking the last one."
-            )
-        # In case there is more than one compatible force we take the last one.
-        # The forces are in the order they have been added, so we take the last
-        # one that have been added. This is the most likely to have been added
-        # for the purpose of this runner, the other ones are likely leftovers
-        # or forces created for another purpose.
-        imd_force = potential_imd_forces[-1]
-        self.reporter = NanoverImdReporter(
-            frame_interval=5,
-            force_interval=10,
-            imd_force=imd_force,
-            imd_state=self.app_server.imd,
-            frame_publisher=self.app_server.frame_publisher,
-        )
-        self.simulation.reporters.append(self.reporter)
-
-        initial_state_fake_file = StringIO()
-        self.simulation.saveState(initial_state_fake_file)
-        self._initial_state = initial_state_fake_file.getvalue()
-
         self._variable_interval_generator = VariableIntervalGenerator(1 / 30)
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._cancel_lock = RLock()
@@ -129,6 +104,7 @@ class OpenMMRunner(NanoverRunner):
 
         self._register_commands()
 
+    @classmethod
     def from_xml_input(
         cls: Type[RunnerClass],
         input_xml: Union[str, bytes, os.PathLike],
@@ -180,19 +156,32 @@ class OpenMMRunner(NanoverRunner):
             :func:`nanover.openmm.serializer.serialize_simulation`.
 
         """
-        simulations = []
+        runner = cls(None, name=name, address=address, port=port)
         for input_xml in input_xmls:
             imd_force = create_imd_force()
             with open(str(input_xml)) as infile:
                 simulation = serializer.deserialize_simulation(
                     infile.read(), imd_force=imd_force, platform_name=platform
                 )
-            simulations.append(simulation)
-        return cls(simulations[0], name=name, address=address, port=port, simulations=simulations)
+            runner.simulations.append(SimulationEntry(simulation, Path(input_xml).name))
+        runner.load(0)
+        return runner
 
     @property
     def app_server(self):
         return self._app_server
+
+    @property
+    def simulation_entry(self):
+        return self.simulations[self._simulation_index]
+
+    @property
+    def simulation(self):
+        return self.simulation_entry.simulation
+
+    @property
+    def reporter(self):
+        return self.simulation_entry.reporter
 
     @property
     def frame_interval(self) -> int:
@@ -356,66 +345,26 @@ class OpenMMRunner(NanoverRunner):
         self.run()
 
     def reset(self):
-        with self._cancel_lock:
-            was_running = self.is_running
-            self.cancel_run(wait=True)
-            self.simulation.context.reinitialize()
-            initial_state_fake_file = StringIO(self._initial_state)
-            self.simulation.loadState(initial_state_fake_file)
-            self.on_reset.invoke()
-        if was_running:
-            self.run()
-        else:
-            self.step()
+        self.load(self._simulation_index)
+        self.on_reset.invoke()
 
     def next(self):
         self.load(self._simulation_index + 1)
 
     def load(self, index: int):
-        was_running = self.is_running
-
-        self.pause()
-        self.reset()
-
-        self._simulation_index = index % len(self.simulation_list)
-        self.simulation = self.simulation_list[self._simulation_index]
-        initial_state_fake_file = StringIO()
-        self.simulation.saveState(initial_state_fake_file)
-        self._initial_state = initial_state_fake_file.getvalue()
-
-        potential_imd_forces = get_imd_forces_from_system(self.simulation.system)
-        if not potential_imd_forces:
-            raise ValueError(
-                "The simulation must include an appropriate force for imd."
-            )
-        if len(potential_imd_forces) > 1:
-            logging.warning(
-                f"More than one force could be used as imd force "
-                f"({len(potential_imd_forces)}); taking the last one."
-            )
-        # In case there is more than one compatible force we take the last one.
-        # The forces are in the order they have been added, so we take the last
-        # one that have been added. This is the most likely to have been added
-        # for the purpose of this runner, the other ones are likely leftovers
-        # or forces created for another purpose.
-        imd_force = potential_imd_forces[-1]
-        self.reporter = NanoverImdReporter(
-            frame_interval=5,
-            force_interval=10,
-            imd_force=imd_force,
-            imd_state=self.app_server.imd,
-            frame_publisher=self.app_server.frame_publisher,
-        )
-        self.simulation.reporters.clear()
-        self.simulation.reporters.append(self.reporter)
-
+        with self._cancel_lock:
+            was_running = self.is_running
+            self.cancel_run(wait=True)
+            self._simulation_index = index % len(self.simulations)
+            self.simulation_entry.reset(self.app_server, self._simulation_count)
+            self._simulation_count += 1
         if was_running:
             self.run()
         else:
             self.step()
 
     def list(self):
-        return {"simulations": ["Unnamed Simulation" for simulation in self.simulation_list]}
+        return {"simulations": [simulation.name for simulation in self.simulations]}
 
     def cancel_run(self, wait: bool = False) -> None:
         """
@@ -483,3 +432,51 @@ class OpenMMRunner(NanoverRunner):
         server.register_command(
             GET_DYNAMICS_INTERVAL_COMMAND_KEY, self._get_dynamics_interval
         )
+
+
+class SimulationEntry:
+    reporter: Optional[NanoverImdReporter]
+
+    def __init__(self, simulation: Simulation, name = "Unnamed Simulation"):
+        self.simulation = simulation
+        self.name = name
+        self.reporter = None
+
+        initial_state_fake_file = StringIO()
+        self.simulation.saveState(initial_state_fake_file)
+        self._initial_state = initial_state_fake_file.getvalue()
+
+    def reset(self, app_server, simulation_count):
+        potential_imd_forces = get_imd_forces_from_system(self.simulation.system)
+        if not potential_imd_forces:
+            raise ValueError(
+                "The simulation must include an appropriate force for imd."
+            )
+        if len(potential_imd_forces) > 1:
+            logging.warning(
+                f"More than one force could be used as imd force "
+                f"({len(potential_imd_forces)}); taking the last one."
+            )
+        # In case there is more than one compatible force we take the last one.
+        # The forces are in the order they have been added, so we take the last
+        # one that have been added. This is the most likely to have been added
+        # for the purpose of this runner, the other ones are likely leftovers
+        # or forces created for another purpose.
+        imd_force = potential_imd_forces[-1]
+        try:
+            self.simulation.reporters.remove(self.reporter)
+        except ValueError:
+            pass
+        self.reporter = NanoverImdReporter(
+            frame_interval=5,
+            force_interval=10,
+            imd_force=imd_force,
+            imd_state=app_server.imd,
+            frame_publisher=app_server.frame_publisher,
+            simulation_count=simulation_count,
+        )
+        self.simulation.reporters.append(self.reporter)
+
+        self.simulation.context.reinitialize()
+        initial_state_fake_file = StringIO(self._initial_state)
+        self.simulation.loadState(initial_state_fake_file)
