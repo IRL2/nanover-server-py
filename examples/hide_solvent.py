@@ -30,7 +30,7 @@ with NanoverImdClient.autoconnect() as client:
     print(f"Attempting to hide residue {SOLVENT_RESIDUE_NAME} (residues in frame: {', '.join(set(first_frame.residue_names))})")
 
     # get atom indicies matching an mdanalysis selection for the particular residue name
-    solvent_indices = get_selection_indices(client.frame, f"resname {SOLVENT_RESIDUE_NAME}")
+    solvent_indices = get_selection_indices(first_frame, f"resname {SOLVENT_RESIDUE_NAME}")
 
     # create the selection with the desired particles hidden and non-interactable
     with client.create_selection("solvent").modify() as selection:
