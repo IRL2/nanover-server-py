@@ -2,7 +2,7 @@
 Facilities to run an OpenMM simulation.
 """
 
-from typing import Union, TypeVar, Type, Optional, Dict
+from typing import Union, TypeVar, Type, Optional, Dict, List
 import sys
 import os
 import logging
@@ -23,7 +23,7 @@ from nanover.trajectory.frame_server import (
     STEP_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
     GET_DYNAMICS_INTERVAL_COMMAND_KEY,
-    SET_DYNAMICS_INTERVAL_COMMAND_KEY,
+    SET_DYNAMICS_INTERVAL_COMMAND_KEY, LOAD_COMMAND_KEY, NEXT_COMMAND_KEY, LIST_COMMAND_KEY,
 )
 from nanover.utilities.timing import VariableIntervalGenerator
 
@@ -44,7 +44,7 @@ class OpenMMRunner(NanoverRunner):
     attribute.
 
     Actually starting the simulation is done with the :meth:`run` method. The
-    method takes an number of steps to run as an argument; by default, the
+    method takes a number of steps to run as an argument; by default, the
     simulation runs indefinitely.
 
     By default, one frame is sent to clients every 5 MD steps. This rate can
@@ -74,8 +74,12 @@ class OpenMMRunner(NanoverRunner):
         name: Optional[str] = None,
         address: Optional[str] = None,
         port: Optional[int] = None,
+        simulations: List[app.Simulation] = None,
     ):
-        self.simulation = simulation
+        self.simulation_list = simulations or [simulation]
+        self._simulation_index = 0
+        self.simulation = self.simulation_list[self._simulation_index]
+
         self._verbose_reporter = app.StateDataReporter(
             sys.stdout,
             10,
@@ -85,6 +89,7 @@ class OpenMMRunner(NanoverRunner):
             potentialEnergy=True,
         )
         self._app_server = NanoverImdApplication.basic_server(name, address, port)
+
         potential_imd_forces = get_imd_forces_from_system(simulation.system)
         if not potential_imd_forces:
             raise ValueError(
@@ -124,7 +129,6 @@ class OpenMMRunner(NanoverRunner):
 
         self._register_commands()
 
-    @classmethod
     def from_xml_input(
         cls: Type[RunnerClass],
         input_xml: Union[str, bytes, os.PathLike],
@@ -149,12 +153,42 @@ class OpenMMRunner(NanoverRunner):
             :func:`nanover.openmm.serializer.serialize_simulation`.
 
         """
-        imd_force = create_imd_force()
-        with open(str(input_xml)) as infile:
-            simulation = serializer.deserialize_simulation(
-                infile.read(), imd_force=imd_force, platform_name=platform
-            )
-        return cls(simulation, name=name, address=address, port=port)
+        return cls.from_xml_inputs([input_xml], name, address, port, platform)
+
+    @classmethod
+    def from_xml_inputs(
+        cls: Type[RunnerClass],
+        input_xmls: List[Union[str, bytes, os.PathLike]],
+        name: Optional[str] = None,
+        address: Optional[str] = None,
+        port: Optional[int] = None,
+        platform: Optional[str] = None,
+    ) -> RunnerClass:
+        """
+        Create a runner from a serialized simulation.
+
+        :param input_xmls: Paths to XML serialised OpenMM simulations.
+        :param name: A friendly name for the runner. It will be displayed
+            by ESSD.
+        :param address: The IP address the server binds to.
+        :param port: The port the server listens to.
+        :return: An instance of the class.
+
+        .. seealso::
+
+            The XML serialized simulation can be produced by
+            :func:`nanover.openmm.serializer.serialize_simulation`.
+
+        """
+        simulations = []
+        for input_xml in input_xmls:
+            imd_force = create_imd_force()
+            with open(str(input_xml)) as infile:
+                simulation = serializer.deserialize_simulation(
+                    infile.read(), imd_force=imd_force, platform_name=platform
+                )
+            simulations.append(simulation)
+        return cls(simulations[0], name=name, address=address, port=port, simulations=simulations)
 
     @property
     def app_server(self):
@@ -334,6 +368,55 @@ class OpenMMRunner(NanoverRunner):
         else:
             self.step()
 
+    def next(self):
+        self.load(self._simulation_index + 1)
+
+    def load(self, index: int):
+        was_running = self.is_running
+
+        self.pause()
+        self.reset()
+
+        self._simulation_index = index % len(self.simulation_list)
+        self.simulation = self.simulation_list[self._simulation_index]
+        initial_state_fake_file = StringIO()
+        self.simulation.saveState(initial_state_fake_file)
+        self._initial_state = initial_state_fake_file.getvalue()
+
+        potential_imd_forces = get_imd_forces_from_system(self.simulation.system)
+        if not potential_imd_forces:
+            raise ValueError(
+                "The simulation must include an appropriate force for imd."
+            )
+        if len(potential_imd_forces) > 1:
+            logging.warning(
+                f"More than one force could be used as imd force "
+                f"({len(potential_imd_forces)}); taking the last one."
+            )
+        # In case there is more than one compatible force we take the last one.
+        # The forces are in the order they have been added, so we take the last
+        # one that have been added. This is the most likely to have been added
+        # for the purpose of this runner, the other ones are likely leftovers
+        # or forces created for another purpose.
+        imd_force = potential_imd_forces[-1]
+        self.reporter = NanoverImdReporter(
+            frame_interval=5,
+            force_interval=10,
+            imd_force=imd_force,
+            imd_state=self.app_server.imd,
+            frame_publisher=self.app_server.frame_publisher,
+        )
+        self.simulation.reporters.clear()
+        self.simulation.reporters.append(self.reporter)
+
+        if was_running:
+            self.run()
+        else:
+            self.step()
+
+    def list(self):
+        return {"simulations": ["Unnamed Simulation" for simulation in self.simulation_list]}
+
     def cancel_run(self, wait: bool = False) -> None:
         """
         Cancel molecular dynamics that is running on a background thread.
@@ -379,6 +462,9 @@ class OpenMMRunner(NanoverRunner):
         server.register_command(RESET_COMMAND_KEY, self.reset)
         server.register_command(STEP_COMMAND_KEY, self.step)
         server.register_command(PAUSE_COMMAND_KEY, self.pause)
+        server.register_command(LOAD_COMMAND_KEY, self.load)
+        server.register_command(LIST_COMMAND_KEY, self.list)
+        server.register_command(NEXT_COMMAND_KEY, self.next)
         server.register_command(
             SET_FRAME_INTERVAL_COMMAND_KEY, self._set_frame_interval
         )
