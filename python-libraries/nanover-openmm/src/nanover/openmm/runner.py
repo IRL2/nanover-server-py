@@ -84,10 +84,6 @@ class OpenMMRunner(NanoverRunner):
         self._simulation_index = None
         self._simulation_count = 0
 
-        if simulation is not None:
-            self.simulations.append(SimulationEntry(simulation))
-            self.load(0)
-
         self._verbose_reporter = app.StateDataReporter(
             sys.stdout,
             10,
@@ -107,6 +103,10 @@ class OpenMMRunner(NanoverRunner):
         self.on_reset = Event()
 
         self._register_commands()
+
+        if simulation is not None:
+            self.simulations.append(SimulationEntry(simulation))
+            self.load(0)
 
     @classmethod
     def from_xml_input(
@@ -450,7 +450,6 @@ class SimulationEntry:
         self.simulation.saveState(initial_state_fake_file)
         self._initial_state = initial_state_fake_file.getvalue()
 
-    def reset(self, app_server, simulation_count):
         potential_imd_forces = get_imd_forces_from_system(self.simulation.system)
         if not potential_imd_forces:
             raise ValueError(
@@ -466,7 +465,9 @@ class SimulationEntry:
         # one that have been added. This is the most likely to have been added
         # for the purpose of this runner, the other ones are likely leftovers
         # or forces created for another purpose.
-        imd_force = potential_imd_forces[-1]
+        self._imd_force = potential_imd_forces[-1]
+
+    def reset(self, app_server, simulation_count):
         try:
             self.simulation.reporters.remove(self.reporter)
         except ValueError:
@@ -474,7 +475,7 @@ class SimulationEntry:
         self.reporter = NanoverImdReporter(
             frame_interval=5,
             force_interval=10,
-            imd_force=imd_force,
+            imd_force=self._imd_force,
             imd_state=app_server.imd,
             frame_publisher=app_server.frame_publisher,
             simulation_count=simulation_count,
