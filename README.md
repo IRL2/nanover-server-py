@@ -181,7 +181,7 @@ Because of the special setup required you will probably not be able to run this 
     nanover-omm-ase examples/ase/openmm_files/nanotube.xml
 
 The example files are distributed in the directory
-`examples/ase/` from the [git repository](https://gitlab.com/intangiblerealities/nanover-protocol/tree/master/examples/ase).
+`examples/ase/` from the [git repository](https://github.com/IRL2/nanover-protocol/tree/main/examples/ase).
 
 #### Jupyter Notebooks
 
