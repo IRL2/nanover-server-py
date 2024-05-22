@@ -105,10 +105,10 @@ def test_next_simulation(client_runner):
     runner.play()
     client.subscribe_to_frames()
     client.wait_until_first_frame()
-    assert client.current_frame.simulation_count == 0
+    assert client.current_frame.simulation_counter == 0
     client.run_next()
     time.sleep(0.5)
-    assert client.current_frame.simulation_count == 1
+    assert client.current_frame.simulation_counter == 1
 
 
 @pytest.mark.serial

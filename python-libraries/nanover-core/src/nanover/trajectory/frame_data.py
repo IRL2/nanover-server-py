@@ -304,7 +304,7 @@ class FrameData(metaclass=_FrameDataMeta):
         to_python=_as_is,
         to_raw=_as_is,
     )
-    simulation_count: float = _Shortcut(  # type: ignore[assignment]
+    simulation_counter: float = _Shortcut(  # type: ignore[assignment]
         key=SIMULATION_COUNTER,
         record_type="values",
         field_type="number_value",
