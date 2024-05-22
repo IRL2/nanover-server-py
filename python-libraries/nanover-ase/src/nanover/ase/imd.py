@@ -329,7 +329,7 @@ class NanoverASEDynamics:
         self.dynamics.observers.clear()
         self.dynamics.attach(
             self._frame_method(
-                self.atoms, self._frame_publisher, self._simulation_count - 1
+                self.atoms, self._frame_publisher, self._simulation_counter - 1
             ),
             interval=self._frame_interval,
         )
