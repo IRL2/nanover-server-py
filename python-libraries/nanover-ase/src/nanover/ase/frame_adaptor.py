@@ -9,7 +9,7 @@ from nanover.ase import ase_to_frame_data
 
 
 def send_ase_frame(
-    ase_atoms: Atoms, frame_publisher: FramePublisher, simulation_count=0
+    ase_atoms: Atoms, frame_publisher: FramePublisher, simulation_counter=0
 ) -> Callable[[], None]:
     """
     Hook to transmit the current state of an ASE Atoms as a frame.
@@ -17,7 +17,7 @@ def send_ase_frame(
     :param ase_atoms: ASE :class:`Atoms`  object from which to extract frame.
     :param frame_publisher: The frame publisher on which to send the produced
         :class:`nanover.trajectory.FrameData`.
-    :param simulation_count: How many simulations ran before this one.
+    :param simulation_counter: How many simulations ran before this one.
 
     When attached to an ASE simulation, such as a :class:`Langevin` dynamics
     simulation, this method will be called to send the frame on the given
@@ -38,7 +38,7 @@ def send_ase_frame(
     def send():
         nonlocal frame_index
         frame = ase_to_frame_data(ase_atoms)
-        frame.simulation_count = simulation_count
+        frame.simulation_counter = simulation_counter
         frame_publisher.send_frame(frame_index, frame)
         frame_index += 1
 
