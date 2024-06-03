@@ -45,7 +45,7 @@ are organised into the following folders:
     - [Selections & Visualisation](examples/fundamentals/visualisations.ipynb) - Selecting atoms and setting how to render them.
 
 The tutorials use Jupyter notebooks, [NGLView](https://github.com/arose/nglview) for visualising trajectories, and while not strictly necessary,
-assumes you have the [NanoVer IMD VR](https://gitlab.com/intangiblerealities/nanover-applications/nanover-imd)
+assumes you have the [NanoVer IMD VR](https://github.com/IRL2/nanover-imd)
 application installed. These can all be installed with conda:
 
 ```bash
@@ -58,7 +58,7 @@ conda install -c irl nanover-imd
 
 To run the notebooks, download the repository and run jupyter (with [git](https://git-scm.com/) installed):
 ```bash
-git clone https://gitlab.com/intangiblerealities/nanover-protocol.git
+git clone https://github.com/IRL2/nanover-protocol.git
 cd nanover-protocol
 conda activate nanover
 jupyter notebook
@@ -176,18 +176,16 @@ Because of the special setup required you will probably not be able to run this 
 
 ### ASE IMD Simulations
 
-`nanover.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the `nanover-protocol` directory:
+`nanover.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the 
+`nanover-protocol` directory:
 
     nanover-omm-ase examples/ase/openmm_files/nanotube.xml
 
-The example files are distributed in the directory
-`examples/ase/` from the [git repository](https://gitlab.com/intangiblerealities/nanover-protocol/tree/master/examples/ase).
-
 #### Jupyter Notebooks
 
-The [`python-libraries/nanover-ase/examples`](https://gitlab.com/intangiblerealities/nanover-protocol/tree/master/python-libraries/nanover-ase/examples) examples folder also contains several
-Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
-The [NanoVer ASE documentation](python-libraries/nanover-ase/README.md) provides more details on setting up ASE simulations.
+The [`examples/ase`](examples/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
+from a notebook. The [NanoVer ASE documentation](python-libraries/nanover-ase/README.md) provides more details on setting 
+up ASE simulations.
 
 ### MD Analysis Trajectories
 
