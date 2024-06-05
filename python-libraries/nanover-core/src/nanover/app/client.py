@@ -7,7 +7,7 @@ import time
 import warnings
 from collections import deque, ChainMap
 from functools import wraps, partial
-from typing import Iterable, Tuple, Type, TypeVar, cast
+from typing import Iterable, Tuple, Type, TypeVar, cast, List
 from typing import Optional, Sequence, Dict, MutableMapping
 from uuid import uuid4
 
@@ -27,6 +27,9 @@ from nanover.trajectory.frame_server import (
     STEP_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
     RESET_COMMAND_KEY,
+    LOAD_COMMAND_KEY,
+    LIST_COMMAND_KEY,
+    NEXT_COMMAND_KEY,
 )
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -535,6 +538,27 @@ class NanoverImdClient:
         Sends a request to reset the simulation to the trajectory service.
         """
         self._frame_client.run_command(RESET_COMMAND_KEY)  # type: ignore
+
+    @need_frames
+    def run_load(self, index: int):
+        """
+        Sends a request for the trajectory service to switch to a particular simulation.
+        """
+        self._frame_client.run_command(LOAD_COMMAND_KEY, index=index)  # type: ignore
+
+    @need_frames
+    def run_next(self):
+        """
+        Sends a request for the trajectory service to switch to the next simulation.
+        """
+        self._frame_client.run_command(NEXT_COMMAND_KEY)  # type: ignore
+
+    @need_frames
+    def run_list(self) -> List[str]:
+        """
+        Retrieves an ordered list of the available simulations for the load command.
+        """
+        return self._frame_client.run_command(LIST_COMMAND_KEY)["simulations"]  # type: ignore
 
     def update_available_commands(self) -> MutableMapping[str, CommandInfo]:
         """
