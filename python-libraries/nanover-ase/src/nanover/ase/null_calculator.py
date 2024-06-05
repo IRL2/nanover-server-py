@@ -9,7 +9,7 @@ class NullCalculator(Calculator):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.implemented_properties = ("forces", "energy")
+        self.implemented_properties = ["forces", "energy"]
 
     def calculate(
         self, atoms=None, properties=("forces", "energy"), system_changes=all_changes

@@ -54,12 +54,12 @@ class ImdCalculator(Calculator):
         self._imd_state = imd_state
         self.atoms = atoms
         self._calculator = calculator
-        self.implemented_properties = (
+        self.implemented_properties = [
             "energy",
             "forces",
             "interactive_energy",
             "interactive_forces",
-        )
+        ]
         self._dynamics = dynamics
         self.reset_scale = reset_scale
         self._custom_temperature = None
@@ -120,7 +120,7 @@ class ImdCalculator(Calculator):
         return self.temperature * self.reset_scale
 
     @property
-    def calculator(self) -> Calculator:
+    def calculator(self) -> Optional[Calculator]:
         """
         The internal ASE calculator being used.
 
