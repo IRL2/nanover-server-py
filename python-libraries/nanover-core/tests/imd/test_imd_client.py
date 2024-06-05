@@ -1,5 +1,5 @@
 import itertools
-import time
+
 import pytest
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.imd.imd_state import (
@@ -7,6 +7,7 @@ from nanover.imd.imd_state import (
     interaction_to_dict,
     dict_to_interaction,
 )
+from nanover.testing import assert_in_soon, assert_not_in_soon, assert_equal_soon
 from nanover.utilities.change_buffers import DictionaryChange
 
 from .test_imd_server import imd_server_client, imd_server, interaction
@@ -116,8 +117,8 @@ def test_subscribe_own_interaction(imd_server_client):
     interaction_id = imd_client.start_interaction()
     interaction = ParticleInteraction()
     imd_client.update_interaction(interaction_id, interaction)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 5)
-    assert interaction_id in imd_client.interactions
+
+    assert_in_soon(lambda: interaction_id, lambda: imd_client.interactions)
 
 
 def test_subscribe_own_interaction_removed(imd_server_client):
@@ -132,13 +133,11 @@ def test_subscribe_own_interaction_removed(imd_server_client):
     interaction = ParticleInteraction()
 
     imd_client.update_interaction(interaction_id, interaction)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
 
-    assert interaction_id in imd_client.interactions
+    assert_in_soon(lambda: interaction_id, lambda: imd_client.interactions)
     assert imd_client.stop_interaction(interaction_id)
 
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME * 5)
-    assert interaction_id not in imd_client.interactions
+    assert_not_in_soon(lambda: interaction_id, lambda: imd_client.interactions)
 
 
 def test_interactions_property(imd_server_client):
@@ -182,6 +181,6 @@ def test_interactions_property(imd_server_client):
     imd_server.update_state(None, interaction_updates)
 
     imd_client.subscribe_all_state_updates(interval=0)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-    print(imd_client.interactions)
-    assert imd_client.interactions.keys() == real_interactions.keys()
+    assert_equal_soon(
+        lambda: imd_client.interactions.keys(), lambda: real_interactions.keys()
+    )
