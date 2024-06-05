@@ -94,7 +94,7 @@ class NanoverASEDynamics:
         self.on_reset_listeners = []
         self.logger = logging.getLogger(__name__)
 
-        self._simulation_counter = 0
+        self._simulation_counter = -1
         self.replace_dynamics(dynamics, reset=False)
 
     @classmethod
@@ -329,7 +329,7 @@ class NanoverASEDynamics:
         self.dynamics.observers.clear()
         self.dynamics.attach(
             self._frame_method(
-                self.atoms, self._frame_publisher, self._simulation_counter - 1
+                self.atoms, self._frame_publisher, self._simulation_counter
             ),
             interval=self._frame_interval,
         )
