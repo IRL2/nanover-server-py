@@ -87,7 +87,7 @@ class ImdCalculator(Calculator):
                 "IMD calculator."
             )
 
-        # TODO: do these properties ever exist?
+        # Some, but not all, dynamics define a temperature or temp attribute.
         try:
             return self._dynamics.temperature  # type: ignore
         except AttributeError:
