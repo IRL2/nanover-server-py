@@ -138,7 +138,7 @@ class ImdCalculator(Calculator):
 
     def calculate(
         self,
-        atoms: Atoms = None,
+        atoms: Optional[Atoms] = None,
         properties=("energy", "forces"),
         system_changes=all_changes,
     ):

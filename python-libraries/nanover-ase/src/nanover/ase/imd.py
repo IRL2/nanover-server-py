@@ -136,7 +136,7 @@ class NanoverASEDynamics:
         return self._server.port
 
     @property
-    def internal_calculator(self) -> Calculator:
+    def internal_calculator(self) -> Optional[Calculator]:
         """
         The internal calculator being used to compute internal energy and forces.
 
