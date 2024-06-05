@@ -87,11 +87,12 @@ class ImdCalculator(Calculator):
                 "IMD calculator."
             )
 
+        # TODO: do these properties ever exist?
         try:
-            return self._dynamics.temperature
+            return self._dynamics.temperature  # type: ignore
         except AttributeError:
             try:
-                return self._dynamics.temp
+                return self._dynamics.temp  # type: ignore
             except AttributeError:
                 raise MissingDataError(
                     "No temperature has been set, and the molecular dynamics object does not "
