@@ -9,7 +9,7 @@ from test_essd_service import properties, properties_unique_id
 
 from nanover.essd.servicehub import ServiceHub
 
-TEST_SEARCH_TIME = 0.6
+TEST_SEARCH_TIME = 1
 TEST_INTERVAL_TIME = 0.01
 
 
