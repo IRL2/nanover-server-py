@@ -10,7 +10,7 @@ from test_essd_service import properties, properties_unique_id
 from nanover.essd.servicehub import ServiceHub
 
 TEST_SEARCH_TIME = 1
-TEST_INTERVAL_TIME = 0.01
+TEST_INTERVAL_TIME = 0.1
 
 
 @pytest.fixture
@@ -144,7 +144,7 @@ def test_context_managers(service, properties_unique_id):
     service2 = ServiceHub(**properties_unique_id)
 
     run_with_server(service1)
-    time.sleep(0.1)  # give a small window for old servers to stop advertising
+    time.sleep(TEST_INTERVAL_TIME)  # give a small window for old servers to stop advertising
     run_with_server(service2, service1)
 
 
