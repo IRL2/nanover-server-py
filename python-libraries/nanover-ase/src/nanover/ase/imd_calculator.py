@@ -144,7 +144,7 @@ class ImdCalculator(Calculator):
         system_changes=all_changes,
     ):
         """
-        Calculates the given properties of the ASE atoms. The internal molecular calculator is called first,
+        Calculates the given properties of the ASE atoms. The interna l molecular calculator is called first,
         and then any interactive forces currently being applied to the system are added.
 
         Results are stored in the results dictionary, as normal.

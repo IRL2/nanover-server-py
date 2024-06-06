@@ -371,10 +371,14 @@ def test_lock_durations(client_server, lock_duration):
     access_token_2 = object()
 
     server.update_locks(access_token_1, acquire={"hello": lock_duration})
+    lock_time = time.perf_counter()
+    lock_deadline = lock_time + lock_duration
 
-    time.sleep(lock_duration * 0.7)
-    with pytest.raises(ResourceLockedError):
-        server.update_locks(access_token_2, acquire={"hello": lock_duration})
+    while time.perf_counter() <= lock_deadline:
+        with pytest.raises(ResourceLockedError):
+            server.update_locks(access_token_2, acquire={"hello": lock_duration})
+        time.sleep(0.1)
 
-    time.sleep(lock_duration * 0.7)
+    time.sleep(0.1)
+
     server.update_locks(access_token_2, acquire={"hello": lock_duration})
