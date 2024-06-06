@@ -24,7 +24,7 @@ def handle_user_arguments() -> argparse.Namespace:
     parser.add_argument(
         "simulation_xml_paths",
         nargs="+",
-        help="The simulation to run in XML format.",
+        help="The simulations to run in XML format.",
     )
     parser.add_argument(
         "-v",
