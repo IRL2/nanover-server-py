@@ -469,7 +469,7 @@ class SimulationEntry:
             pass
         self.reporter = NanoverImdReporter(
             frame_interval=5,
-            force_interval=10,
+            force_interval=5,
             imd_force=self._imd_force,
             imd_state=app_server.imd,
             frame_publisher=app_server.frame_publisher,
