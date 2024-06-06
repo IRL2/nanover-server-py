@@ -14,7 +14,7 @@ from nanover.imd import ImdServer, IMD_SERVICE_NAME
 from nanover.trajectory import FrameServer, FRAME_SERVICE_NAME
 
 DISCOVERY_DELAY = 0.05
-AUTOCONNECT_SEARCH_TIME = .5
+AUTOCONNECT_SEARCH_TIME = 0.5
 
 NEVER_USED_HUB_NAME = "pytest adult yoda"
 
