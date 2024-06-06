@@ -144,6 +144,7 @@ def test_context_managers(service, properties_unique_id):
     service2 = ServiceHub(**properties_unique_id)
 
     run_with_server(service1)
+    time.sleep(0.1)  # give a small window for old servers to stop advertising
     run_with_server(service2, service1)
 
 
