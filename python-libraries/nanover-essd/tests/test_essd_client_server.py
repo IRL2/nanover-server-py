@@ -10,7 +10,7 @@ from test_essd_service import properties, properties_unique_id
 from nanover.essd.servicehub import ServiceHub
 
 TEST_SEARCH_TIME = 0.6
-TEST_INTERVAL_TIME = 0.001
+TEST_INTERVAL_TIME = 0.01
 
 
 @pytest.fixture
