@@ -32,11 +32,11 @@ def test_client_timeout(client):
     """
     Test that the search for services ends roughly on time.
     """
-    relative_tolerance = 1.1
+    tolerance = .25
     before = time.monotonic()
     list(client.search_for_services(search_time=TEST_SEARCH_TIME))
     duration = time.monotonic() - before
-    assert duration < TEST_SEARCH_TIME * relative_tolerance
+    assert duration < TEST_SEARCH_TIME + tolerance
 
 
 def test_send_service(client_server, service):
