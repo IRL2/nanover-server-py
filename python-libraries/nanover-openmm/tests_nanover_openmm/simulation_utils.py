@@ -11,9 +11,9 @@ import numpy as np
 import openmm as mm
 from openmm import app
 
-# Prefixed units in `simtk.unit` are added programmatically and are not
+# Prefixed units in `openmm.unit` are added programmatically and are not
 # recognized by pylint and PyCharm.
-from simtk.unit import (
+from mm.unit import (
     kelvin,
     picosecond,
     femtosecond,

@@ -5,7 +5,7 @@ be applied to OpenMM systems.
 
 from typing import Iterable
 import openmm as mm
-from simtk.unit import Quantity, kilojoule_per_mole, nanometer
+from mm.unit import Quantity, kilojoule_per_mole, nanometer
 
 
 DEFAULT_RESTRAINT_FORCE_CONSTANT = 100 * kilojoule_per_mole / nanometer**2
@@ -20,7 +20,7 @@ def restraint_force(force_constant: Quantity = DEFAULT_RESTRAINT_FORCE_CONSTANT)
     force constant in kJ/(mol * nm^2), :math:`r` is the position of the atom,
     and :math:`r0` is the equilibrium position of that atom.
 
-    >>> from simtk.unit import  kilojoule_per_mole, nanometer
+    >>> from openmm.unit import  kilojoule_per_mole, nanometer
     >>> # Create the force
     >>> force_constant = 225 * kilojoule_per_mole / nanometer ** 2
     >>> force = restraint_force(force_constant)

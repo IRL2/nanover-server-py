@@ -57,7 +57,7 @@ import numpy.typing as npt
 
 import openmm as mm
 from openmm import app
-from simtk import unit
+from openmm import unit
 
 from nanover.imd.imd_force import calculate_imd_force
 from nanover.imd import ImdStateWrapper

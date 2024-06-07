@@ -7,7 +7,7 @@ import numpy as np
 
 import pytest
 import openmm as mm
-from simtk.unit import nanometer
+from mm.unit import nanometer
 from nanover.openmm import imd
 from nanover.app import NanoverImdApplication
 from nanover.openmm.serializer import deserialize_simulation

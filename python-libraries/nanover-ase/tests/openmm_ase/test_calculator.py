@@ -1,7 +1,7 @@
 import pytest
 from nanover.ase.converter import KJMOL_TO_EV
 from nanover.ase.openmm import OpenMMCalculator
-from simtk.unit import (
+from openmm.unit import (
     kilojoules_per_mole,
     nanometer,
     angstroms,
