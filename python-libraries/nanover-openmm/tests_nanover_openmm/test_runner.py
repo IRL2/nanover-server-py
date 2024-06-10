@@ -468,6 +468,30 @@ class TestRunner:
         time.sleep(0.1)
         assert runner.dynamics_interval == pytest.approx(value)
 
+    def test_list_command(self, client_runner):
+        client, runner = client_runner
+        assert len(client.run_list()) > 0
+
+    def test_load_command(self, client_runner):
+        client, runner = client_runner
+        runner.play()
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        assert client.current_frame.simulation_counter == 0
+        client.run_load(0.0)
+        time.sleep(0.5)
+        assert client.current_frame.simulation_counter == 1
+
+    def test_next_command(self, client_runner):
+        client, runner = client_runner
+        runner.play()
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        assert client.current_frame.simulation_counter == 0
+        client.run_next()
+        time.sleep(0.5)
+        assert client.current_frame.simulation_counter == 1
+
     @pytest.mark.serial  # we want accurate timing so run without any parallel load
     @pytest.mark.parametrize("fps", (5, 10, 30))
     @pytest.mark.parametrize("frame_interval", (1, 5, 10))
