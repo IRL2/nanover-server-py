@@ -3,7 +3,8 @@ Interactive molecular dynamics runner for ASE with OpenMM.
 """
 
 import logging
-from typing import Optional
+from pathlib import Path
+from typing import Optional, List
 
 from ase import units, Atoms  # type: ignore
 from ase.md import MDLogger, Langevin
@@ -23,13 +24,20 @@ from nanover.ase.converter import add_ase_positions_to_frame_data
 from nanover.ase.imd import NanoverASEDynamics
 from nanover.ase.openmm.calculator import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
+from nanover.trajectory.frame_server import (
+    LOAD_COMMAND_KEY,
+    LIST_COMMAND_KEY,
+    NEXT_COMMAND_KEY,
+)
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
     "The simulation contains constraints which will be ignored by this runner!"
 )
 
 
-def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
+def openmm_ase_frame_adaptor(
+    ase_atoms: Atoms, frame_publisher: FramePublisher, simulation_counter=0
+):
     """
     Generates and sends frames for a simulation using an :class: OpenMMCalculator.
     """
@@ -44,6 +52,7 @@ def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
             imd_calculator = ase_atoms.calc
             topology = imd_calculator.calculator.topology
             frame = openmm_to_frame_data(state=None, topology=topology)
+            frame.simulation_counter = simulation_counter
             add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
         # from then on, just send positions and state.
         else:
@@ -132,7 +141,7 @@ class ASEOpenMMRunner(NanoverRunner):
     """
     A wrapper class for running an interactive OpenMM simulation with ASE.
 
-    :param simulation OpenMM simulation to run interactively.
+    :param simulations OpenMM simulations to run interactively.
     :param params IMD parameters to tune the server.
     :param logging_params Parameters for logging the trajectory of the simulation.
     """
@@ -142,9 +151,11 @@ class ASEOpenMMRunner(NanoverRunner):
         simulation: Simulation,
         imd_params: Optional[ImdParams] = None,
         logging_params: Optional[LoggingParams] = None,
+        simulation_list: Optional[List[Simulation]] = None,
     ):
         self._logger = logging.getLogger(__name__)
-        self.simulation = simulation
+        self.simulation_list = simulation_list or [simulation]
+        self.simulation = self.simulation_list[0]
         self._validate_simulation()
         if not imd_params:
             imd_params = ImdParams()
@@ -155,7 +166,10 @@ class ASEOpenMMRunner(NanoverRunner):
         self._time_step = imd_params.time_step
         self._verbose = imd_params.verbose
 
-        self._initialise_calculator(simulation, walls=imd_params.walls)
+        self._sim_index = 0
+        self._imd_params = imd_params
+
+        self._initialise_calculator(self.simulation, walls=imd_params.walls)
         self._initialise_dynamics()
         self._initialise_server(
             imd_params.name,
@@ -167,6 +181,10 @@ class ASEOpenMMRunner(NanoverRunner):
         self._initialise_imd(self.app_server, self.dynamics)
 
         self._initialise_trajectory_logging(logging_params)
+
+        self.app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
+        self.app_server.server.register_command(LIST_COMMAND_KEY, self.list)
+        self.app_server.server.register_command(NEXT_COMMAND_KEY, self.next)
 
     @property
     def app_server(self):
@@ -188,6 +206,26 @@ class ASEOpenMMRunner(NanoverRunner):
     def step(self):
         self.imd.step()
 
+    def load(self, index: int):
+        self._sim_index = int(index % len(self.simulation_list))
+        self.simulation = self.simulation_list[self._sim_index]
+        self._initialise_calculator(self.simulation, walls=self._imd_params.walls)
+        self._initialise_dynamics()
+        self.imd.replace_dynamics(self.dynamics)
+        self.imd.play()
+
+    def next(self):
+        self.load(self._sim_index + 1)
+
+    def list(self):
+        def get_name(simulation: Simulation):
+            try:
+                return simulation._name
+            except AttributeError:
+                return "Unnamed Simulation"
+
+        return {"simulations": [get_name(sim) for sim in self.simulation_list]}
+
     def _validate_simulation(self):
         """
         Check this runner's simulation for unsupported features and issue the
@@ -199,7 +237,7 @@ class ASEOpenMMRunner(NanoverRunner):
     @classmethod
     def from_xml(
         cls,
-        simulation_xml,
+        simulation_xml: str,
         params: Optional[ImdParams] = None,
         logging_params: Optional[LoggingParams] = None,
     ):
@@ -212,16 +250,40 @@ class ASEOpenMMRunner(NanoverRunner):
         :param logging_params: The :class:LoggingParams to set up trajectory logging with.
         :return: An OpenMM simulation runner.
         """
+        return cls.from_xmls([simulation_xml], params, logging_params)
+
+    @classmethod
+    def from_xmls(
+        cls,
+        simulation_xmls: List[str],
+        params: Optional[ImdParams] = None,
+        logging_params: Optional[LoggingParams] = None,
+    ):
+        """
+        Initialises a :class:`AseOpenMMIMDRunner` from a list of simulation XML files
+        serialised with :func:`serializer.serialize_simulation`.
+
+        :param simulation_xmls: Paths to XML files.
+        :param params: The :class: ImdParams to run the server with.
+        :param logging_params: The :class:LoggingParams to set up trajectory logging with.
+        :return: An OpenMM simulation runner.
+        """
         if params is not None:
             platform = params.platform
         else:
             platform = None
-        with open(simulation_xml) as infile:
-            simulation = serializer.deserialize_simulation(
-                infile.read(),
-                platform_name=platform,
-            )
-        return cls(simulation, params, logging_params)
+
+        simulations = []
+        for path in simulation_xmls:
+            with open(path) as infile:
+                simulation = serializer.deserialize_simulation(
+                    infile.read(),
+                    platform_name=platform,
+                )
+                simulation._name = Path(path).name
+                simulations.append(simulation)
+
+        return cls(simulations[0], params, logging_params, simulation_list=simulations)
 
     @property
     def verbose(self):

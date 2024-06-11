@@ -35,8 +35,9 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
-        "simulation_xml_path",
-        help="The simulation to run in XML format.",
+        "simulation_xml_paths",
+        nargs="+",
+        help="The simulations to run in XML format.",
     )
     parser.add_argument(
         "-v",
@@ -149,8 +150,8 @@ def initialise(args=None):
         arguments.trajectory_file,
         arguments.write_interval,
     )
-    runner = ASEOpenMMRunner.from_xml(
-        arguments.simulation_xml_path, params, logging_params
+    runner = ASEOpenMMRunner.from_xmls(
+        arguments.simulation_xml_paths, params, logging_params
     )
     # Shamefully store CLI arguments in the runner.
     runner.cli_options = {

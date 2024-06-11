@@ -57,17 +57,6 @@ def test_topology_atom_names(simple_openmm_topology):
     ]
 
 
-def test_topology_atom_types(simple_openmm_topology):
-    """
-    Tests that the OpenMM converter does not produce atom types.
-    :param simple_openmm_topology: Simple OpenMM topology to test.
-    """
-
-    data = openmm_to_frame_data(topology=simple_openmm_topology)
-    with pytest.raises(KeyError):
-        _ = data.arrays[frame_data.PARTICLE_TYPES].string_values.values
-
-
 def test_topology_particle_count(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
     assert (

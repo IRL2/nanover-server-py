@@ -10,6 +10,7 @@ from nanover.utilities.protobuf_utilities import value_to_object, object_to_valu
 
 BOX_VECTORS = "system.box.vectors"
 SIMULATION_TIME = "system.simulation.time"
+SIMULATION_COUNTER = "system.simulation.counter"
 
 BOND_PAIRS = "bond.pairs"
 BOND_ORDERS = "bond.orders"
@@ -18,7 +19,6 @@ PARTICLE_POSITIONS = "particle.positions"
 PARTICLE_VELOCITIES = "particle.velocities"
 PARTICLE_FORCES = "particle.forces"
 PARTICLE_ELEMENTS = "particle.elements"
-PARTICLE_TYPES = "particle.types"
 PARTICLE_NAMES = "particle.names"
 PARTICLE_RESIDUES = (
     "particle.residues"  # Index of the residue each particle belongs to.
@@ -195,13 +195,6 @@ class FrameData(metaclass=_FrameDataMeta):
         to_python=_as_is,
         to_raw=_as_is,
     )
-    particle_types: List[str] = _Shortcut(  # type: ignore[assignment]
-        key=PARTICLE_TYPES,
-        record_type="arrays",
-        field_type="string",
-        to_python=_as_is,
-        to_raw=_as_is,
-    )
     particle_names: List[str] = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_NAMES,
         record_type="arrays",
@@ -306,6 +299,13 @@ class FrameData(metaclass=_FrameDataMeta):
     )
     simulation_time: float = _Shortcut(  # type: ignore[assignment]
         key=SIMULATION_TIME,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
+    simulation_counter: float = _Shortcut(  # type: ignore[assignment]
+        key=SIMULATION_COUNTER,
         record_type="values",
         field_type="number_value",
         to_python=_as_is,

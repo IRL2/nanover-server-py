@@ -2,6 +2,7 @@ import os
 from logging import Handler, WARNING
 import time
 
+import numpy
 import pytest
 from ase import units
 from nanover.app.app_server import DEFAULT_NANOVER_PORT
@@ -21,6 +22,7 @@ from nanover.ase.wall_constraint import VelocityWallConstraint
 from .simulation_utils import basic_simulation, serialized_simulation_path
 
 TRAJECTORY_OUTPUT_FILENAME = "test.xyz"
+TIMING_TOLERANCE = 0.007  # 7ms
 
 
 class ListLogHandler(Handler):
@@ -86,8 +88,30 @@ def test_from_xml(serialized_simulation_path, imd_params):
         assert runner.simulation is not None
 
 
+def test_from_xmls(serialized_simulation_path, imd_params):
+    with ASEOpenMMRunner.from_xmls(
+        [serialized_simulation_path], params=imd_params
+    ) as runner:
+        assert len(runner.simulation_list) > 0
+
+
+def test_list_simulations(client_runner):
+    client, runner = client_runner
+    assert len(client.run_list()) > 0
+
+
+def test_next_simulation(client_runner):
+    client, runner = client_runner
+    runner.play()
+    client.subscribe_to_frames()
+    client.wait_until_first_frame()
+    assert client.current_frame.simulation_counter == 0
+    client.run_next()
+    time.sleep(0.5)
+    assert client.current_frame.simulation_counter == 1
+
+
 @pytest.mark.serial
-@pytest.mark.xfail(reason="Issue https://github.com/IRL2/nanover-protocol/issues/48")
 def test_defaults(default_runner):
     runner = default_runner
     default_params = ImdParams()
@@ -266,30 +290,37 @@ def test_set_dynamics_interval(runner):
     assert runner.dynamics_interval == pytest.approx(value)
 
 
-@pytest.mark.parametrize("fps", (1, 5, 10, 30))
+@pytest.mark.serial
+@pytest.mark.parametrize("fps", (5, 10, 30))
 def test_throttling(client_runner, fps):
     """
     The runner uses the requested MD throttling.
 
     Here we make sure the runner throttles the dynamics according to the
     dynamics interval. However, we only guarantee that the target dynamics
-    interval is a minimum (the MD engine may not be able to produce frames
-    fast enough), also we accept some leeway.
+    interval is close on average.
     """
-    duration = 0.5
+    # We need at least a few frames to see intervals between
+    test_frames = 30
+
     dynamics_interval = 1 / fps
     client, runner = client_runner
-    client.subscribe_to_all_frames()
     runner.dynamics_interval = dynamics_interval
 
+    client.subscribe_to_all_frames()
     runner.run()
-    time.sleep(duration)
+
+    while len(client.frames) < test_frames:
+        time.sleep(0.1)
+
     runner.imd.cancel_run(wait=True)
 
+    # first frame (topology) isn't subject to intervals
     timestamps = [frame.server_timestamp for frame in client.frames[1:]]
-    deltas = [timestamps[i] - timestamps[i - 1] for i in range(1, len(timestamps))]
-    print(dynamics_interval, 0.90 * dynamics_interval, deltas)
+    deltas = numpy.diff(timestamps)
+
     # The interval is not very accurate. We only check that the observed
-    # interval is greater than the expected one and we accept some
-    # deviation.
-    assert all(delta >= dynamics_interval * 0.90 for delta in deltas)
+    # interval is close on average.
+    assert numpy.average(deltas) == pytest.approx(
+        dynamics_interval, abs=TIMING_TOLERANCE
+    )

@@ -54,12 +54,12 @@ class ImdCalculator(Calculator):
         self._imd_state = imd_state
         self.atoms = atoms
         self._calculator = calculator
-        self.implemented_properties = (
+        self.implemented_properties = [
             "energy",
             "forces",
             "interactive_energy",
             "interactive_forces",
-        )
+        ]
         self._dynamics = dynamics
         self.reset_scale = reset_scale
         self._custom_temperature = None
@@ -87,11 +87,12 @@ class ImdCalculator(Calculator):
                 "IMD calculator."
             )
 
+        # Some, but not all, dynamics define a temperature or temp attribute.
         try:
-            return self._dynamics.temperature
+            return self._dynamics.temperature  # type: ignore
         except AttributeError:
             try:
-                return self._dynamics.temp
+                return self._dynamics.temp  # type: ignore
             except AttributeError:
                 raise MissingDataError(
                     "No temperature has been set, and the molecular dynamics object does not "
@@ -120,7 +121,7 @@ class ImdCalculator(Calculator):
         return self.temperature * self.reset_scale
 
     @property
-    def calculator(self) -> Calculator:
+    def calculator(self) -> Optional[Calculator]:
         """
         The internal ASE calculator being used.
 
@@ -138,7 +139,7 @@ class ImdCalculator(Calculator):
 
     def calculate(
         self,
-        atoms: Atoms = None,
+        atoms: Optional[Atoms] = None,
         properties=("energy", "forces"),
         system_changes=all_changes,
     ):

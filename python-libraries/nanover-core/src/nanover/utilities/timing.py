@@ -22,26 +22,45 @@ class VariableIntervalGenerator:
             self._interval = value
 
     def yield_interval(self):
-        last_yield = time.monotonic() - self.interval
+        target = time.perf_counter()
+        prev_yield = target
+        yield 0
         while True:
-            time_since_yield = time.monotonic() - last_yield
-            wait_duration = max(0.0, self.interval - time_since_yield)
-            time.sleep(wait_duration)
-            yield time.monotonic() - last_yield
-            last_yield = time.monotonic()
+            target += self.interval
+            wait_mixed(target - time.perf_counter())
+            next_yield = time.perf_counter()
+            yield next_yield - prev_yield
+            prev_yield = next_yield
 
 
 def yield_interval(interval: float):
     """
-    Yield at a set interval, accounting for the time spent outside of this
-    function.
+    Yield immediately and then roughly every interval seconds, yielding the time in seconds that passed between yields.
 
-    :param interval: Number of seconds to put between yields
+    :param interval: Number of seconds to ensure between yields
+    :yield: Number of seconds since last yielding
     """
-    last_yield = time.monotonic() - interval
+    return VariableIntervalGenerator(interval).yield_interval()
+
+
+def wait_busy(seconds: float):
+    """
+    Do nothing for a period of time by tightly looping. Precise but uses much CPU.
+    """
+    target = time.perf_counter() + seconds
+    while time.perf_counter() < target:
+        pass
+
+
+def wait_mixed(seconds: float):
+    """
+    Do nothing for a period of time by using a series of short sleeps.
+    """
+    target = time.perf_counter() + seconds
     while True:
-        time_since_yield = time.monotonic() - last_yield
-        wait_duration = max(0.0, interval - time_since_yield)
-        time.sleep(wait_duration)
-        yield time.monotonic() - last_yield
-        last_yield = time.monotonic()
+        now = time.perf_counter()
+        duration = max(target - now, 0)
+        if duration > 0:
+            time.sleep(duration * 0.5)
+        else:
+            break

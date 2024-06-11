@@ -22,8 +22,9 @@ def handle_user_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
-        "simulation_xml_path",
-        help="The simulation to run in XML format.",
+        "simulation_xml_paths",
+        nargs="+",
+        help="The simulations to run in XML format.",
     )
     parser.add_argument(
         "-v",
@@ -76,16 +77,16 @@ def main():
     """
     arguments = handle_user_arguments()
 
-    runner = OpenMMRunner.from_xml_input(
-        input_xml=arguments.simulation_xml_path,
+    runner = OpenMMRunner.from_xml_inputs(
+        input_xmls=arguments.simulation_xml_paths,
         name=arguments.name,
         address=arguments.address,
         port=arguments.port,
         platform=arguments.platform,
     )
     print(
-        f'Serving "{runner.app.name}" on port {runner.app.port}, '
-        f"discoverable on all interfaces on port {runner.app.discovery.port}"
+        f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
+        f"discoverable on all interfaces on port {runner.app_server.discovery.port}"
     )
 
     with runner:

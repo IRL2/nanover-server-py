@@ -3,14 +3,16 @@
 Repository containing the gRPC protocol and python based implementations
 of servers for NanoVer 2, providing a framework for developing interactive molecular dynamics simulations.
 
-It is designed to be used with NanoVer VR clients, e.g. [NanoVer IMD](https://gitlab.com/intangiblerealities/nanover-applications/nanover-imd).
+It is designed to be used with NanoVer VR clients, e.g. [NanoVer IMD](https://github.com/irl2/nanover-imd).
 
 This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostella,
 and distributed under the [MIT](LICENSE) license.
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
+For more information please take a look at [the project's documentation](https://irl2.github.io/nanover/).
+
 **The NanoVer iMD VR front-end can be found
-[on its own repository](https://gitlab.com/intangiblerealities/nanover-applications/nanover-imd).**
+[on its own repository](https://github.com/irl2/nanover-imd).**
 
 ## Getting Started
 
@@ -43,7 +45,7 @@ are organised into the following folders:
     - [Selections & Visualisation](examples/fundamentals/visualisations.ipynb) - Selecting atoms and setting how to render them.
 
 The tutorials use Jupyter notebooks, [NGLView](https://github.com/arose/nglview) for visualising trajectories, and while not strictly necessary,
-assumes you have the [NanoVer IMD VR](https://gitlab.com/intangiblerealities/nanover-applications/nanover-imd)
+assumes you have the [NanoVer IMD VR](https://github.com/IRL2/nanover-imd)
 application installed. These can all be installed with conda:
 
 ```bash
@@ -56,7 +58,7 @@ conda install -c irl nanover-imd
 
 To run the notebooks, download the repository and run jupyter (with [git](https://git-scm.com/) installed):
 ```bash
-git clone https://gitlab.com/intangiblerealities/nanover-protocol.git
+git clone https://github.com/IRL2/nanover-protocol.git
 cd nanover-protocol
 conda activate nanover
 jupyter notebook
@@ -123,32 +125,67 @@ Here, we installed only the python library. Using the `--no-dotnet` argument, we
 
 ## Running the tests
 
-Running the tests is a crucial part of keeping the code base functional. To run the test of the python libraries, run:
+All code changes have to pass a series of automatic tests ("the CI") that attempt to verify code quality and
+continued functionality of the project. You can run these locally to verify your changes in advance.
+
+### Unit Tests
+
+The unit tests check code functionality of the python libraries. To run them:
 
     python -m pytest python-libraries
 
 Optionally, you can run most of the tests in parallel with pytest-xdist:
 
-    pytest -m pip install pytest-xdist
+    python -m pip install pytest-xdist
     python -m pytest python-libraries -n auto -m 'not serial'
     python -m pytest python-libraries -n0 -m 'serial'
+
+### Formatting & Linting Tests
+
+The formatting and linting tests check code style, and require ruff and black:
+
+    python -m pip install ruff
+    python -m pip install black
+    python -m ruff check python-libraries
+    python -m black --diff --check python-libraries
+
+black can automatically reformat the files for you:
+
+    python -m black python-libraries
+
+### Type Checks
+
+The type checks look at the type hints in the code to make sure they are consistent and help find potential errors. 
+Because of the special setup required you will probably not be able to run this locally, but you can try:
+
+    python -m pip install mypy
+    packages=$(find python-libraries -name __init__.py \ 
+             | sed 's/__init__.py//g' \ 
+             | awk '{split($0, a, /src/); print(a[2])}' \ 
+             | sed 's#/#.#g' \ 
+             | cut -c 2- \ 
+             | sed 's/\.$//g' \ 
+             | grep -v '^$' \ 
+             | grep -v protocol \ 
+             | sed 's/^/-p /g' \ 
+             | grep -v '\..*\.' \ 
+             | tr '\n' ' ') 
+    python -m mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages 
 
 ## Running the examples
 
 ### ASE IMD Simulations
 
-`nanover.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the `nanover-protocol` directory:
+`nanover.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the 
+`nanover-protocol` directory:
 
-    nanover-omm-ase examples/ase/nanotube.xml
-
-The example files are distributed in the directory
-`examples/ase/` from the [git repository](https://gitlab.com/intangiblerealities/nanover-protocol/tree/master/examples/ase).
+    nanover-omm-ase examples/ase/openmm_files/nanotube.xml
 
 #### Jupyter Notebooks
 
-The [`python-libraries/nanover-ase/examples`](https://gitlab.com/intangiblerealities/nanover-protocol/tree/master/python-libraries/nanover-ase/examples) examples folder also contains several
-Jupyter notebooks that demonstrate visualisation and interaction from a notebook.
-The [NanoVer ASE documentation](python-libraries/nanover-ase/README.md) provides more details on setting up ASE simulations.
+The [`examples/ase`](examples/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
+from a notebook. The [NanoVer ASE documentation](python-libraries/nanover-ase/README.md) provides more details on setting 
+up ASE simulations.
 
 ### MD Analysis Trajectories
 

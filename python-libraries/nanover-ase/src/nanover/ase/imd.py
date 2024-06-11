@@ -6,7 +6,7 @@ import logging
 from concurrent import futures
 from contextlib import contextmanager
 from threading import RLock
-from typing import Optional, Callable, List, Dict
+from typing import Optional, Callable, List, Dict, Any
 
 import numpy as np
 from ase import Atoms  # type: ignore
@@ -36,7 +36,7 @@ class NanoverASEDynamics:
     :param dynamics: A prepared ASE molecular dynamics object to run,
         with IMD attached.
     :param frame_interval: Interval, in steps, at which to publish frames.
-    :param frame_method: Method to use to generate frames, given the the ASE
+    :param frame_method: Method to use to generate frames, given the ASE
         :class:`Atoms` and a :class:`FramePublisher`. The signature of the
         callback is expected to be ``frame_method(ase_atoms, frame_publisher)``.
 
@@ -61,6 +61,12 @@ class NanoverASEDynamics:
     on_reset_listeners: List[Callable[[], None]]
     _run_task: Optional[futures.Future]
 
+    dynamics: MolecularDynamics
+    imd_calculator: ImdCalculator
+    _initial_positions: Any
+    _initial_velocities: Any
+    _initial_box: Any
+
     def __init__(
         self,
         nanover_imd_app: NanoverImdApplication,
@@ -71,35 +77,25 @@ class NanoverASEDynamics:
         if frame_method is None:
             frame_method = send_ase_frame
 
+        self._frame_method = frame_method
+        self._imd = nanover_imd_app.imd
         self._server = nanover_imd_app.server
         self._frame_publisher = nanover_imd_app.frame_publisher
 
         self._cancel_lock = RLock()
         self._register_commands()
 
-        self.dynamics = dynamics
-        calculator = self.dynamics.atoms.calc
-        self.imd_calculator = ImdCalculator(
-            nanover_imd_app.imd,
-            calculator,
-            dynamics=dynamics,
-        )
-        self.atoms.calc = self.imd_calculator
         self._variable_interval_generator = VariableIntervalGenerator(1 / 30)
         self._frame_interval = frame_interval
-        self.dynamics.attach(
-            frame_method(self.atoms, self._frame_publisher), interval=frame_interval
-        )
         self.threads = futures.ThreadPoolExecutor(max_workers=1)
         self._run_task = None
         self._cancelled = False
 
-        self._initial_positions = self.atoms.get_positions()
-        self._initial_velocities = self.atoms.get_velocities()
-        self._initial_box = self.atoms.get_cell()
         self.on_reset_listeners = []
-
         self.logger = logging.getLogger(__name__)
+
+        self._simulation_counter = -1
+        self.replace_dynamics(dynamics, reset=False)
 
     @classmethod
     @contextmanager
@@ -140,7 +136,7 @@ class NanoverASEDynamics:
         return self._server.port
 
     @property
-    def internal_calculator(self) -> Calculator:
+    def internal_calculator(self) -> Optional[Calculator]:
         """
         The internal calculator being used to compute internal energy and forces.
 
@@ -310,6 +306,38 @@ class NanoverASEDynamics:
         self.atoms.set_velocities(self._initial_velocities)
         self.atoms.set_cell(self._initial_box)
         self._call_on_reset()
+
+    def replace_dynamics(self, dynamics: MolecularDynamics, reset=True):
+        with self._cancel_lock:
+            self.cancel_run(wait=True)
+
+        if reset:
+            self.reset()
+
+        self._simulation_counter += 1
+
+        # replace dynamics and calculator
+        self.dynamics = dynamics
+        self.imd_calculator = ImdCalculator(
+            self._imd,
+            self.dynamics.atoms.calc,
+            dynamics=dynamics,
+        )
+        self.atoms.calc = self.imd_calculator
+
+        # replace previous frame method with fresh instance
+        self.dynamics.observers.clear()
+        self.dynamics.attach(
+            self._frame_method(
+                self.atoms, self._frame_publisher, self._simulation_counter
+            ),
+            interval=self._frame_interval,
+        )
+
+        # backup initial state for resets
+        self._initial_positions = self.atoms.get_positions()
+        self._initial_velocities = self.atoms.get_velocities()
+        self._initial_box = self.atoms.get_cell()
 
     def _call_on_reset(self):
         for callback in self.on_reset_listeners:
