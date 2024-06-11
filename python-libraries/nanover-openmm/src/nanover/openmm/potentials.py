@@ -5,7 +5,7 @@ be applied to OpenMM systems.
 
 from typing import Iterable
 import openmm as mm
-from mm.unit import Quantity, kilojoule_per_mole, nanometer
+from openmm.unit import Quantity, kilojoule_per_mole, nanometer
 
 
 DEFAULT_RESTRAINT_FORCE_CONSTANT = 100 * kilojoule_per_mole / nanometer**2

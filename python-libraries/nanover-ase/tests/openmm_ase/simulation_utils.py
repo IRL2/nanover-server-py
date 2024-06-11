@@ -15,7 +15,7 @@ from openmm import app
 
 # Prefixed units in `openmm.unit` are added programmatically and are not
 # recognized by pylint and PyCharm.
-from mm.unit import (
+from openmm.unit import (
     kelvin,
     picosecond,
     femtosecond,
