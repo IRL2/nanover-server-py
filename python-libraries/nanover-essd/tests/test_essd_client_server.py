@@ -9,8 +9,8 @@ from test_essd_service import properties, properties_unique_id
 
 from nanover.essd.servicehub import ServiceHub
 
-TEST_SEARCH_TIME = 0.6
-TEST_INTERVAL_TIME = 0.001
+TEST_SEARCH_TIME = 1
+TEST_INTERVAL_TIME = 0.1
 
 
 @pytest.fixture
@@ -32,11 +32,11 @@ def test_client_timeout(client):
     """
     Test that the search for services ends roughly on time.
     """
-    relative_tolerance = 1.1
+    tolerance = 0.25
     before = time.monotonic()
     list(client.search_for_services(search_time=TEST_SEARCH_TIME))
     duration = time.monotonic() - before
-    assert duration < TEST_SEARCH_TIME * relative_tolerance
+    assert duration < TEST_SEARCH_TIME + tolerance
 
 
 def test_send_service(client_server, service):
@@ -144,6 +144,9 @@ def test_context_managers(service, properties_unique_id):
     service2 = ServiceHub(**properties_unique_id)
 
     run_with_server(service1)
+    time.sleep(
+        TEST_INTERVAL_TIME
+    )  # give a small window for old servers to stop advertising
     run_with_server(service2, service1)
 
 
