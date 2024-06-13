@@ -1,7 +1,7 @@
-from simtk import openmm as mm
+import openmm as mm
 from nanover.openmm import potentials
 from .simulation_utils import basic_simulation
-from simtk.unit import kilojoule_per_mole, nanometer
+from openmm.unit import kilojoule_per_mole, nanometer
 
 
 def test_restraint_force_type():

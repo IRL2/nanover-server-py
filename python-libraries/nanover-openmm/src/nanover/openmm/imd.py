@@ -2,7 +2,7 @@
 Link NanoVer's user forces to an OpenMM simulation.
 
 The iMD is hooked to the OpenMM simulation in two places. A
-:class:`~simtk.openmm.CustomExternalForce` needs to be added in the system; it
+:class:`~openmm.CustomExternalForce` needs to be added in the system; it
 has the components of the iMD force for each atom as a per-atom parameter. A
 reporter periodically updates these parameters based on the imd service, and
 updates the simulation context.
@@ -55,9 +55,9 @@ import itertools
 import numpy as np
 import numpy.typing as npt
 
-import simtk.openmm as mm
-from simtk.openmm import app
-from simtk import unit
+import openmm as mm
+from openmm import app
+from openmm import unit
 
 from nanover.imd.imd_force import calculate_imd_force
 from nanover.imd import ImdStateWrapper

@@ -24,7 +24,7 @@ and integrator, respectively. The ``pdbx`` tag can be replaced by a ``pdb``
 one for backward compatibility.
 
 This module provides a function :func:`serialize_simulation` that generates an
-XML file from an existing instance of :class:`simtk.openmm.app.Simulation`, and
+XML file from an existing instance of :class:`openmm.app.Simulation`, and
 a function :func:`deserialize_simulation` that creates an instance of simulation
 from an XML file.
 """
@@ -35,7 +35,7 @@ from tempfile import TemporaryDirectory
 import os
 from xml.dom.minidom import getDOMImplementation, parseString, Document, Element
 
-from simtk.openmm import app, XmlSerializer, CustomExternalForce, Platform
+from openmm import app, XmlSerializer, CustomExternalForce, Platform
 
 from .imd import populate_imd_force
 

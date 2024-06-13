@@ -10,9 +10,9 @@ import logging
 from concurrent import futures
 from threading import RLock
 
+import openmm
+from openmm import app
 from openmm.app import Simulation
-from simtk.openmm import app
-from simtk import openmm
 
 from nanover.openmm import serializer
 from nanover.app import NanoverImdApplication, NanoverRunner

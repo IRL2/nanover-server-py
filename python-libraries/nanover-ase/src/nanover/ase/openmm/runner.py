@@ -17,7 +17,7 @@ from nanover.ase import TrajectoryLogger
 from nanover.essd import DiscoveryServer
 from nanover.openmm import openmm_to_frame_data, serializer
 from nanover.trajectory.frame_publisher import FramePublisher
-from simtk.openmm.app import Simulation, Topology
+from openmm.app import Simulation, Topology
 
 from nanover.ase import ase_to_frame_data
 from nanover.ase.converter import add_ase_positions_to_frame_data

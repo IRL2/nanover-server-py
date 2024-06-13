@@ -74,7 +74,7 @@ if [[ $with_python == true ]]; then
 		fi
 	done
 
-	python -c "import simtk" 2>&1 >/dev/null || {
+	python -c "import openmm" 2>&1 >/dev/null || {
 		announce "OpenMM is not installed."
 		announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
 	}
