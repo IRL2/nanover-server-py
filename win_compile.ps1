@@ -50,7 +50,7 @@ Get-ChildItem -Directory python-libraries/nanover-* | ForEach-Object {
     }
  }
 
-python -c "import simtk"
+python -c "import openmm"
 if ($LASTEXITCODE -ne 0)
 {
     announce "OpenMM appears to not be installed."
