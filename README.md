@@ -51,7 +51,7 @@ application installed. These can all be installed with conda:
 ```bash
 conda activate nanover
 conda install jupyter
-conda install nglview
+conda install nglview -c conda-forge
 # On Windows only:
 conda install -c irl nanover-imd
 ```
