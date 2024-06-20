@@ -40,6 +40,7 @@ jobs:
             python-libraries/nanover-ase/conda \
             python-libraries/nanover-mdanalysis/conda \
             python-libraries/nanover-lammps/conda \
+            python-libraries/nanover-omni/conda \
             python-libraries/nanover-server/conda
       - run: |
           mkdir artifacts
