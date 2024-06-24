@@ -1,8 +1,10 @@
-from typing import Generator
+from typing import Tuple, Iterable
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.trajectory import FrameData, MissingDataError
 
 MAGIC_NUMBER = 6661355757386708963
+
+FrameEntry = Tuple[int, int, FrameData]
 
 
 class Unpacker:
@@ -60,7 +62,7 @@ class InvalidMagicNumber(Exception):
     """
 
 
-class UnsuportedFormatVersion(Exception):
+class UnsupportedFormatVersion(Exception):
     """
     The version of the file format is not supported by hthe parser.
     """
@@ -77,14 +79,14 @@ class UnsuportedFormatVersion(Exception):
         )
 
 
-def iter_trajectory_recording(unpacker: Unpacker) -> Generator:
+def iter_trajectory_recording(unpacker: Unpacker):
     supported_format_versions = (2,)
     magic_number = unpacker.unpack_u64()
     if magic_number != MAGIC_NUMBER:
         raise InvalidMagicNumber
     format_version = unpacker.unpack_u64()
     if format_version not in supported_format_versions:
-        raise UnsuportedFormatVersion(format_version, supported_format_versions)
+        raise UnsupportedFormatVersion(format_version, supported_format_versions)
     while True:
         try:
             elapsed = unpacker.unpack_u128()
@@ -99,20 +101,20 @@ def iter_trajectory_recording(unpacker: Unpacker) -> Generator:
         yield (elapsed, frame_index, frame)
 
 
-def iter_trajectory_with_elpsed_integrated(frames):
+def iter_trajectory_with_elapsed_integrated(frames: Iterable[FrameEntry]):
     for elapsed, frame_index, frame in frames:
         frame.values["elapsed"] = elapsed
         yield (elapsed, frame_index, frame)
 
 
-def iter_trajectory_file(path) -> Generator:
+def iter_trajectory_file(path):
     with open(path, "rb") as infile:
         data = infile.read()
     unpacker = Unpacker(data)
     yield from iter_trajectory_recording(unpacker)
 
 
-def advance_to_first_particle_frame(frames):
+def advance_to_first_particle_frame(frames: Iterable[FrameEntry]):
     for elapsed, frame_index, frame in frames:
         try:
             particle_count = frame.particle_count
@@ -128,7 +130,7 @@ def advance_to_first_particle_frame(frames):
     yield from frames
 
 
-def advance_to_first_coordinate_frame(frames):
+def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
     for elapsed, frame_index, frame in frames:
         try:
             frame.particle_positions

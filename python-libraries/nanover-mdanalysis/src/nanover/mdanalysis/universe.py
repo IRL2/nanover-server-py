@@ -30,6 +30,7 @@ from MDAnalysis.lib.util import openany
 from MDAnalysis.core.topologyattrs import (
     Atomnames,
     Atomtypes,
+    Bonds,
     Elements,
     Resids,
     Resnames,
@@ -59,7 +60,7 @@ from nanover.trajectory.frame_data import (
 from .recordings import (
     Unpacker,
     iter_trajectory_recording,
-    iter_trajectory_with_elpsed_integrated,
+    iter_trajectory_with_elapsed_integrated,
     advance_to_first_particle_frame,
     advance_to_first_coordinate_frame,
 )
@@ -137,6 +138,13 @@ class NanoverParser(TopologyReaderBase):
             ]
             attrs.append(ChainIDs(chain_ids_per_particle))
 
+        try:
+            attrs.append(
+                Bonds(frame.bond_pairs, guessed=False, order=frame.bond_orders)
+            )
+        except MissingDataError:
+            pass
+
         return Topology(
             n_atoms,
             n_residues,
@@ -158,7 +166,7 @@ class NanoverReader(ProtoReader):
             data = infile.read()
         unpacker = Unpacker(data)
         recording = advance_to_first_coordinate_frame(
-            iter_trajectory_with_elpsed_integrated(iter_trajectory_recording(unpacker))
+            iter_trajectory_with_elapsed_integrated(iter_trajectory_recording(unpacker))
         )
         try:
             _, _, first_frame = next(recording)
