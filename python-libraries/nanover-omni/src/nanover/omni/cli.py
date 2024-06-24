@@ -5,7 +5,6 @@ Command line interface for nanover.omni.
 import time
 import textwrap
 import argparse
-from pathlib import Path
 
 from nanover.app import NanoverImdApplication
 from nanover.omni import OmniRunner

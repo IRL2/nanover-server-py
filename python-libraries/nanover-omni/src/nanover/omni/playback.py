@@ -2,13 +2,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import List, Optional
 
-from MDAnalysis import Universe
-
 from nanover.app import NanoverImdApplication
-from nanover.mdanalysis import NanoverParser, NanoverReader, mdanalysis_to_frame_data
-from nanover.mdanalysis.recordings import iter_trajectory_file
-from nanover.trajectory import FrameData, MissingDataError
-from nanover.trajectory.frame_data import SERVER_TIMESTAMP
+from nanover.mdanalysis.recordings import iter_trajectory_file, FrameEntry
 from nanover.utilities.timing import yield_interval
 
 
@@ -25,8 +20,9 @@ class PlaybackSimulation:
 
         self.app_server: Optional[NanoverImdApplication] = None
 
-        self.frames: List[FrameData] = []
+        self.frames: List[FrameEntry] = []
         self.frame_index = 0
+        self.time = 0
 
         self.threads = ThreadPoolExecutor(max_workers=1)
         self._cancelled = False
@@ -37,9 +33,16 @@ class PlaybackSimulation:
 
         self.frames = []
         self.frame_index = 0
+        self.time = 0
 
         if self.traj_path:
-            self.frames = list(frame for _, _, frame in iter_trajectory_file(self.traj_path))
+            self.frames = [
+                (elapsed / 1000000, index, frame)
+                for elapsed, index, frame in iter_trajectory_file(self.traj_path)
+            ]
+
+        if self.state_path:
+            pass
 
     def run(self):
         if self.is_running:
@@ -57,13 +60,22 @@ class PlaybackSimulation:
         self._cancelled = False
 
     def _run(self):
-        for _ in yield_interval(1/30):
+        last_time = self.frames[-1][0]
+
+        for dt in yield_interval(1 / 30):
             if self._cancelled:
                 break
 
-            frame = self.frames[self.frame_index % len(self.frames)]
-            self.app_server.frame_publisher.send_frame(self.frame_index, frame)
-            self.frame_index += 1
+            prev_time = self.time
+            next_time = prev_time + dt
+
+            for time, index, frame in self.frames:
+                if prev_time <= time < next_time:
+                    self.app_server.frame_publisher.send_frame(self.frame_index, frame)
+                    self.frame_index += 1
+
+            # loop one second after the last frame
+            self.time = next_time % (last_time + 1)
 
     @property
     def is_running(self) -> bool:
@@ -75,5 +87,5 @@ class PlaybackSimulation:
         # ideally we'd just check _run_task.running(), but there can be a delay
         # between the task starting and hitting the running state.
         return self._run_task is not None and not (
-                self._run_task.cancelled() or self._run_task.done()
+            self._run_task.cancelled() or self._run_task.done()
         )
