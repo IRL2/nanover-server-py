@@ -5,8 +5,11 @@ Command line interface for nanover.omni.
 import time
 import textwrap
 import argparse
+from pathlib import Path
 
 from nanover.app import NanoverImdApplication
+from nanover.omni import OmniRunner
+from nanover.omni.playback import PlaybackSimulation
 
 
 def handle_user_arguments() -> argparse.Namespace:
@@ -23,28 +26,28 @@ def handle_user_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
-        "openmm_xml_paths"
         "--omm",
         "--openmm",
+        dest="openmm_xml_entries",
         action="append",
         nargs=1,
         help="Simulation to run via OpenMM (XML format)",
     )
 
     parser.add_argument(
-        "ase_xml_paths"
         "--ase",
         "--ase-omm",
         "--ase-openmm",
+        dest="ase_xml_entries",
         action="append",
         nargs=1,
         help="Simulation to run via ASE OpenMM (XML format)",
     )
 
     parser.add_argument(
-        ""
         "--playback",
         "--recording",
+        dest="recording_entries",
         action="append",
         nargs="+",
         help="Recorded session to playback (one or both of .traj and .state)",
@@ -70,34 +73,35 @@ def main():
     """
     arguments = handle_user_arguments()
 
-    print(arguments)
-
     app_server = NanoverImdApplication.basic_server(
         name=arguments.name,
         address=arguments.address,
         port=arguments.port,
     )
 
-    return
+    runner = OmniRunner(app_server)
 
+    for entry in arguments.recording_entries:
+        runner.add_simulation(PlaybackSimulation(entry))
 
-    runner = OpenMMRunner.from_xml_inputs(
-        input_xmls=arguments.simulation_xml_paths,
-        name=arguments.name,
-        address=arguments.address,
-        port=arguments.port,
-        platform=arguments.platform,
-    )
+    runner.next()
+
     print(
         f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
         f"discoverable on all interfaces on port {runner.app_server.discovery.port}"
     )
 
+    list = ", ".join(
+        f'{index}: "{simulation.name}"'
+        for index, simulation in enumerate(runner.simulations)
+    )
+    print(f"Available simulations: {list}")
+
     with runner:
-        runner.verbosity_interval = arguments.verbose
-        runner.frame_interval = arguments.frame_interval
-        runner.force_interval = arguments.force_interval
-        runner.run()
+        # runner.verbosity_interval = arguments.verbose
+        # runner.frame_interval = arguments.frame_interval
+        # runner.force_interval = arguments.force_interval
+        # runner.run()
 
         try:
             while True:
