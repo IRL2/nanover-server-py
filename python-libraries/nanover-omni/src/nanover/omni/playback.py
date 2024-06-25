@@ -1,5 +1,5 @@
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from queue import Queue
 from typing import List, Optional
 
 from nanover.app import NanoverImdApplication
@@ -24,13 +24,7 @@ class PlaybackSimulation:
         self.frame_index = 0
         self.time = 0
 
-        self.threads = ThreadPoolExecutor(max_workers=1)
-        self._cancelled = False
-        self._run_task = None
-
-    def load(self, app_server: NanoverImdApplication):
-        self.app_server = app_server
-
+    def load(self):
         self.frames = []
         self.frame_index = 0
         self.time = 0
@@ -44,26 +38,13 @@ class PlaybackSimulation:
         if self.state_path:
             pass
 
-    def run(self):
-        if self.is_running:
-            raise RuntimeError("Already running on a thread!")
-        self._run_task = self.threads.submit(self._run)
+    def run(self, app_server: NanoverImdApplication, cancel: Queue):
+        self.load()
 
-    def cancel_run(self):
-        if self._run_task is None:
-            return
-
-        if self._cancelled:
-            return
-        self._cancelled = True
-        self._run_task.result()
-        self._cancelled = False
-
-    def _run(self):
         last_time = self.frames[-1][0]
 
         for dt in yield_interval(1 / 30):
-            if self._cancelled:
+            if not cancel.empty():
                 break
 
             prev_time = self.time
@@ -71,21 +52,8 @@ class PlaybackSimulation:
 
             for time, index, frame in self.frames:
                 if prev_time <= time < next_time:
-                    self.app_server.frame_publisher.send_frame(self.frame_index, frame)
+                    app_server.frame_publisher.send_frame(self.frame_index, frame)
                     self.frame_index += 1
 
             # loop one second after the last frame
             self.time = next_time % (last_time + 1)
-
-    @property
-    def is_running(self) -> bool:
-        """
-        Whether or not the molecular dynamics is currently running on a
-        background thread or not.
-        :return: `True`, if molecular dynamics is running, `False` otherwise.
-        """
-        # ideally we'd just check _run_task.running(), but there can be a delay
-        # between the task starting and hitting the running state.
-        return self._run_task is not None and not (
-            self._run_task.cancelled() or self._run_task.done()
-        )

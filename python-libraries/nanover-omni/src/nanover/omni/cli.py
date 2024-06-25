@@ -104,7 +104,8 @@ def main():
 
         try:
             while True:
-                time.sleep(1)
+                time.sleep(5)
+                runner.next()
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
 
