@@ -19,29 +19,29 @@ def handle_user_arguments() -> argparse.Namespace:
     """
     description = textwrap.dedent(
         """\
-    Run an OpenMM simulation and send it to the network for NanoVer.
+    Multi-simulation server for NanoVer
     """
     )
     parser = argparse.ArgumentParser(description=description)
 
-    parser.add_argument(
-        "--omm",
-        "--openmm",
-        dest="openmm_xml_entries",
-        action="append",
-        nargs=1,
-        help="Simulation to run via OpenMM (XML format)",
-    )
-
-    parser.add_argument(
-        "--ase",
-        "--ase-omm",
-        "--ase-openmm",
-        dest="ase_xml_entries",
-        action="append",
-        nargs=1,
-        help="Simulation to run via ASE OpenMM (XML format)",
-    )
+    # parser.add_argument(
+    #     "--omm",
+    #     "--openmm",
+    #     dest="openmm_xml_entries",
+    #     action="append",
+    #     nargs=1,
+    #     help="Simulation to run via OpenMM (XML format)",
+    # )
+    #
+    # parser.add_argument(
+    #     "--ase",
+    #     "--ase-omm",
+    #     "--ase-openmm",
+    #     dest="ase_xml_entries",
+    #     action="append",
+    #     nargs=1,
+    #     help="Simulation to run via ASE OpenMM (XML format)",
+    # )
 
     parser.add_argument(
         "--playback",
@@ -104,8 +104,7 @@ def main():
 
         try:
             while True:
-                time.sleep(5)
-                runner.next()
+                time.sleep(1)
         except KeyboardInterrupt:
             print("Closing due to keyboard interrupt.")
 
