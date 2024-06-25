@@ -1,5 +1,7 @@
 from typing import Tuple, Iterable
 from nanover.protocol.trajectory import GetFrameResponse
+from nanover.protocol.state import StateUpdate
+from nanover.state.state_service import state_update_to_dictionary_change
 from nanover.trajectory import FrameData, MissingDataError
 
 MAGIC_NUMBER = 6661355757386708963
@@ -143,3 +145,31 @@ def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
 
     yield (elapsed, frame_index, frame)
     yield from frames
+
+
+def iter_state_recording(unpacker: Unpacker):
+    supported_format_versions = (2,)
+    magic_number = unpacker.unpack_u64()
+    if magic_number != MAGIC_NUMBER:
+        raise InvalidMagicNumber
+    format_version = unpacker.unpack_u64()
+    if format_version not in supported_format_versions:
+        raise UnsupportedFormatVersion(format_version, supported_format_versions)
+    while True:
+        try:
+            elapsed = unpacker.unpack_u128()
+            record_size = unpacker.unpack_u64()
+            buffer = unpacker.unpack_bytes(record_size)
+        except IndexError:
+            break
+        state_update = StateUpdate()
+        state_update.ParseFromString(buffer)
+        dictionary_change = state_update_to_dictionary_change(state_update)
+        yield (elapsed, dictionary_change)
+
+
+def iter_state_file(path):
+    with open(path, "rb") as infile:
+        data = infile.read()
+    unpacker = Unpacker(data)
+    yield from iter_state_recording(unpacker)
