@@ -57,7 +57,7 @@ from nanover.trajectory.frame_data import (
     MissingDataError,
 )
 
-from .recordings import (
+from nanover.recording.parsing import (
     Unpacker,
     iter_trajectory_recording,
     iter_trajectory_with_elapsed_integrated,
