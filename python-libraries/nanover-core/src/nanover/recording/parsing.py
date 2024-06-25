@@ -81,7 +81,7 @@ class UnsupportedFormatVersion(Exception):
         )
 
 
-def iter_trajectory_recording(unpacker: Unpacker):
+def iter_recording_buffers(unpacker: Unpacker):
     supported_format_versions = (2,)
     magic_number = unpacker.unpack_u64()
     if magic_number != MAGIC_NUMBER:
@@ -96,6 +96,11 @@ def iter_trajectory_recording(unpacker: Unpacker):
             buffer = unpacker.unpack_bytes(record_size)
         except IndexError:
             break
+        yield elapsed, buffer
+
+
+def iter_trajectory_recording(unpacker: Unpacker):
+    for elapsed, buffer in iter_recording_buffers(unpacker):
         get_frame_response = GetFrameResponse()
         get_frame_response.ParseFromString(buffer)
         frame_index = get_frame_response.frame_index
@@ -148,20 +153,7 @@ def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
 
 
 def iter_state_recording(unpacker: Unpacker):
-    supported_format_versions = (2,)
-    magic_number = unpacker.unpack_u64()
-    if magic_number != MAGIC_NUMBER:
-        raise InvalidMagicNumber
-    format_version = unpacker.unpack_u64()
-    if format_version not in supported_format_versions:
-        raise UnsupportedFormatVersion(format_version, supported_format_versions)
-    while True:
-        try:
-            elapsed = unpacker.unpack_u128()
-            record_size = unpacker.unpack_u64()
-            buffer = unpacker.unpack_bytes(record_size)
-        except IndexError:
-            break
+    for elapsed, buffer in iter_recording_buffers(unpacker):
         state_update = StateUpdate()
         state_update.ParseFromString(buffer)
         dictionary_change = state_update_to_dictionary_change(state_update)
