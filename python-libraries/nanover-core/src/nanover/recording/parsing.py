@@ -128,4 +128,3 @@ def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
 
     yield (elapsed, frame_index, frame)
     yield from frames
-
