@@ -1,4 +1,4 @@
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, Future
 from queue import Queue
 from typing import Protocol, List, Optional
 
@@ -34,7 +34,7 @@ class OmniRunner:
 
         self._threads = ThreadPoolExecutor(max_workers=1)
         self._cancel: Optional[Queue] = None
-        self._run_task = None
+        self._run_task: Optional[Future] = None
 
     def close(self):
         self.cancel_run()
