@@ -59,12 +59,11 @@ class ASEOpenMMSimulation:
             fixcm=False,
         )
 
-        imd_calculator = ImdCalculator(
+        atoms.calc = ImdCalculator(
             app_server.imd,
             dynamics.atoms.calc,
             dynamics=dynamics,
         )
-        atoms.calc = imd_calculator
 
         # replace previous frame method with fresh instance
         dynamics.attach(
