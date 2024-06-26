@@ -8,6 +8,7 @@ import argparse
 
 from nanover.app import NanoverImdApplication
 from nanover.omni import OmniRunner
+from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
 
 
@@ -24,15 +25,15 @@ def handle_user_arguments() -> argparse.Namespace:
     )
     parser = argparse.ArgumentParser(description=description)
 
-    # parser.add_argument(
-    #     "--omm",
-    #     "--openmm",
-    #     dest="openmm_xml_entries",
-    #     action="append",
-    #     nargs=1,
-    #     help="Simulation to run via OpenMM (XML format)",
-    # )
-    #
+    parser.add_argument(
+        "--omm",
+        "--openmm",
+        dest="openmm_xml_entries",
+        action="append",
+        nargs=1,
+        help="Simulation to run via OpenMM (XML format)",
+    )
+
     # parser.add_argument(
     #     "--ase",
     #     "--ase-omm",
@@ -82,6 +83,9 @@ def main():
 
     for entry in arguments.recording_entries:
         runner.add_simulation(PlaybackSimulation(entry))
+
+    for path, in arguments.openmm_xml_entries:
+        runner.add_simulation(OpenMMSimulation(path))
 
     runner.next()
 

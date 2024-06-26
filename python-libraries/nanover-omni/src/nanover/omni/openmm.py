@@ -6,7 +6,7 @@ import openmm
 
 from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer
-from nanover.openmm.imd import create_imd_force
+from nanover.openmm.imd import create_imd_force, NanoverImdReporter
 from nanover.utilities.timing import VariableIntervalGenerator
 
 
@@ -31,6 +31,17 @@ class OpenMMSimulation:
             simulation = serializer.deserialize_simulation(
                 infile.read(), imd_force=imd_force, platform_name=platform
             )
+
+        simulation_counter = 0
+        reporter = NanoverImdReporter(
+            frame_interval=5,
+            force_interval=5,
+            imd_force=imd_force,
+            imd_state=app_server.imd,
+            frame_publisher=app_server.frame_publisher,
+            simulation_counter=simulation_counter,
+        )
+        simulation.reporters.append(reporter)
 
         steps: Optional[int] = None
         remaining_steps = steps if steps is not None else float("inf")

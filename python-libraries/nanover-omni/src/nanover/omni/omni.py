@@ -13,9 +13,6 @@ from nanover.trajectory.frame_server import (
 class Simulation(Protocol):
     name: str
 
-    def load(self):
-        pass
-
     def run(self, app_server: NanoverImdApplication, cancel: Queue):
         pass
 
