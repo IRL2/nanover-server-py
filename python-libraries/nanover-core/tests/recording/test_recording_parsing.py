@@ -2,7 +2,11 @@ from pathlib import Path
 
 import pytest
 
-from nanover.recording.parsing import iter_trajectory_file, iter_state_file, iter_recording_buffers
+from nanover.recording.parsing import (
+    iter_trajectory_file,
+    iter_state_file,
+    iter_recording_buffers,
+)
 from nanover.recording.unpacker import Unpacker
 
 EXAMPLES_PATH = Path(__file__).parent

@@ -10,6 +10,12 @@ class Unpacker:
     _buffer: bytes
     _cursor: int
 
+    @classmethod
+    def from_path(cls, path: str):
+        with open(path, "rb") as infile:
+            data = infile.read()
+        return cls(data)
+
     def __init__(self, data: bytes):
         self._buffer = data
         self._cursor = 0

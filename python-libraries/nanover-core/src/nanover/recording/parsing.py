@@ -16,10 +16,7 @@ def iter_trajectory_file(path):
 
     :param path: Path of recording file to read from.
     """
-    with open(path, "rb") as infile:
-        data = infile.read()
-    unpacker = Unpacker(data)
-    yield from iter_trajectory_recording(unpacker)
+    yield from iter_trajectory_recording(Unpacker.from_path(path))
 
 
 def iter_state_file(path):
@@ -28,10 +25,7 @@ def iter_state_file(path):
 
     :param path: Path of recording file to read from.
     """
-    with open(path, "rb") as infile:
-        data = infile.read()
-    unpacker = Unpacker(data)
-    yield from iter_state_recording(unpacker)
+    yield from iter_state_recording(Unpacker.from_path(path))
 
 
 class InvalidMagicNumber(Exception):
@@ -44,7 +38,7 @@ class InvalidMagicNumber(Exception):
 
 class UnsupportedFormatVersion(Exception):
     """
-    The version of the file format is not supported by hthe parser.
+    The version of the file format is not supported by the parser.
     """
 
     def __init__(self, format_version: int, supported_format_versions: tuple[int]):
@@ -91,6 +85,14 @@ def iter_trajectory_recording(unpacker: Unpacker):
         yield (elapsed, frame_index, frame)
 
 
+def iter_state_recording(unpacker: Unpacker):
+    for elapsed, buffer in iter_recording_buffers(unpacker):
+        state_update = StateUpdate()
+        state_update.ParseFromString(buffer)
+        dictionary_change = state_update_to_dictionary_change(state_update)
+        yield (elapsed, dictionary_change)
+
+
 def iter_trajectory_with_elapsed_integrated(frames: Iterable[FrameEntry]):
     for elapsed, frame_index, frame in frames:
         frame.values["elapsed"] = elapsed
@@ -127,10 +129,3 @@ def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
     yield (elapsed, frame_index, frame)
     yield from frames
 
-
-def iter_state_recording(unpacker: Unpacker):
-    for elapsed, buffer in iter_recording_buffers(unpacker):
-        state_update = StateUpdate()
-        state_update.ParseFromString(buffer)
-        dictionary_change = state_update_to_dictionary_change(state_update)
-        yield (elapsed, dictionary_change)
