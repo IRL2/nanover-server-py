@@ -69,13 +69,13 @@ class OmniRunner:
         )
 
     def cancel_run(self):
-        if self._cancel is None:
-            return
+        if self._cancel is not None:
+            self._cancel.put("cancel")
+            self._cancel = None
 
-        self._cancel.put("cancel")
-        self._cancel = None
-        self._run_task.result()
-        self._run_task = None
+        if self._run_task is not None:
+            self._run_task.result()
+            self._run_task = None
 
     @property
     def is_running(self) -> bool:
