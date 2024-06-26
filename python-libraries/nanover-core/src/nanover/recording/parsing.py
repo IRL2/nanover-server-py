@@ -1,6 +1,7 @@
 from typing import Tuple, Iterable
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
+from nanover.recording.unpacker import Unpacker
 from nanover.state.state_service import state_update_to_dictionary_change
 from nanover.trajectory import FrameData, MissingDataError
 
@@ -9,51 +10,28 @@ MAGIC_NUMBER = 6661355757386708963
 FrameEntry = Tuple[int, int, FrameData]
 
 
-class Unpacker:
+def iter_trajectory_file(path):
     """
-    Unpack data representations from a buffer of bytes.
+    Iterate over all frame updates in a recording file.
 
-    The unpacking methods return the requested value from the next bytes of the
-    buffer and move the cursor forward. They raise an `IndexError` if the
-    buffer is too short to fulfill the request.
+    :param path: Path of recording file to read from.
     """
+    with open(path, "rb") as infile:
+        data = infile.read()
+    unpacker = Unpacker(data)
+    yield from iter_trajectory_recording(unpacker)
 
-    _buffer: bytes
-    _cursor: int
 
-    def __init__(self, data: bytes):
-        self._buffer = data
-        self._cursor = 0
+def iter_state_file(path):
+    """
+    Iterate over all state updates in a recording file.
 
-    def unpack_bytes(self, n_bytes: int) -> bytes:
-        """
-        Get the next `n_bytes` bytes from the buffer.
-
-        The method raises a `ValueError` if the requested number of bytes is
-        negative.
-        """
-        if n_bytes < 0:
-            raise ValueError("Cannot unpack a negative number of bytes.")
-        end = self._cursor + n_bytes
-        if end >= len(self._buffer):
-            raise IndexError("Not enough bytes left in the buffer.")
-        bytes_to_return = self._buffer[self._cursor : end]
-        self._cursor = end
-        return bytes_to_return
-
-    def unpack_u64(self) -> int:
-        """
-        Get an unsigned 64 bits integer from the next bytes of the buffer.
-        """
-        buffer = self.unpack_bytes(8)
-        return int.from_bytes(buffer, "little", signed=False)
-
-    def unpack_u128(self) -> int:
-        """
-        Get an unsigned 128 bits integer from the next bytes of the buffer.
-        """
-        buffer = self.unpack_bytes(16)
-        return int.from_bytes(buffer, "little", signed=False)
+    :param path: Path of recording file to read from.
+    """
+    with open(path, "rb") as infile:
+        data = infile.read()
+    unpacker = Unpacker(data)
+    yield from iter_state_recording(unpacker)
 
 
 class InvalidMagicNumber(Exception):
@@ -82,6 +60,11 @@ class UnsupportedFormatVersion(Exception):
 
 
 def iter_recording_buffers(unpacker: Unpacker):
+    """
+    Iterate over elements of a recording, yielding pairs of a timestamp in microseconds and a buffer of bytes.
+
+    :param unpacker: The unpacker providing bytes of the recording.
+    """
     supported_format_versions = (2,)
     magic_number = unpacker.unpack_u64()
     if magic_number != MAGIC_NUMBER:
@@ -112,13 +95,6 @@ def iter_trajectory_with_elapsed_integrated(frames: Iterable[FrameEntry]):
     for elapsed, frame_index, frame in frames:
         frame.values["elapsed"] = elapsed
         yield (elapsed, frame_index, frame)
-
-
-def iter_trajectory_file(path):
-    with open(path, "rb") as infile:
-        data = infile.read()
-    unpacker = Unpacker(data)
-    yield from iter_trajectory_recording(unpacker)
 
 
 def advance_to_first_particle_frame(frames: Iterable[FrameEntry]):
@@ -158,10 +134,3 @@ def iter_state_recording(unpacker: Unpacker):
         state_update.ParseFromString(buffer)
         dictionary_change = state_update_to_dictionary_change(state_update)
         yield (elapsed, dictionary_change)
-
-
-def iter_state_file(path):
-    with open(path, "rb") as infile:
-        data = infile.read()
-    unpacker = Unpacker(data)
-    yield from iter_state_recording(unpacker)

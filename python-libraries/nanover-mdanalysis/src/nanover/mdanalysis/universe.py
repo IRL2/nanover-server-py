@@ -58,12 +58,12 @@ from nanover.trajectory.frame_data import (
 )
 
 from nanover.recording.parsing import (
-    Unpacker,
     iter_trajectory_recording,
     iter_trajectory_with_elapsed_integrated,
     advance_to_first_particle_frame,
     advance_to_first_coordinate_frame,
 )
+from ..recording.unpacker import Unpacker
 from .converter import _to_chemical_symbol
 
 
