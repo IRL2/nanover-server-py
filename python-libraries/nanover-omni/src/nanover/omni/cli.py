@@ -9,6 +9,7 @@ import argparse
 from nanover.app import NanoverImdApplication
 from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
+from nanover.omni.ase_omm import ASEOpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
 
 
@@ -31,18 +32,20 @@ def handle_user_arguments() -> argparse.Namespace:
         dest="openmm_xml_entries",
         action="append",
         nargs=1,
+        default=[],
         help="Simulation to run via OpenMM (XML format)",
     )
 
-    # parser.add_argument(
-    #     "--ase",
-    #     "--ase-omm",
-    #     "--ase-openmm",
-    #     dest="ase_xml_entries",
-    #     action="append",
-    #     nargs=1,
-    #     help="Simulation to run via ASE OpenMM (XML format)",
-    # )
+    parser.add_argument(
+        "--ase",
+        "--ase-omm",
+        "--ase-openmm",
+        dest="ase_xml_entries",
+        action="append",
+        nargs=1,
+        default=[],
+        help="Simulation to run via ASE OpenMM (XML format)",
+    )
 
     parser.add_argument(
         "--playback",
@@ -81,13 +84,14 @@ def main():
 
     runner = OmniRunner(app_server)
 
-    for entry in arguments.recording_entries:
-        runner.add_simulation(PlaybackSimulation(entry))
+    for paths in arguments.recording_entries:
+        runner.add_simulation(PlaybackSimulation(paths))
 
-    for path, in arguments.openmm_xml_entries:
+    for (path,) in arguments.openmm_xml_entries:
         runner.add_simulation(OpenMMSimulation(path))
 
-    runner.next()
+    for (path,) in arguments.ase_xml_entries:
+        runner.add_simulation(ASEOpenMMSimulation(path))
 
     print(
         f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
@@ -101,11 +105,7 @@ def main():
     print(f"Available simulations: {list}")
 
     with runner:
-        # runner.verbosity_interval = arguments.verbose
-        # runner.frame_interval = arguments.frame_interval
-        # runner.force_interval = arguments.force_interval
-        # runner.run()
-
+        runner.next()
         try:
             while True:
                 time.sleep(1)
