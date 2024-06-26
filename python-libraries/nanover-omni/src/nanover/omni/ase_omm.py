@@ -7,10 +7,9 @@ from ase.md import Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 
 from nanover.app import NanoverImdApplication
-from nanover.ase import NanoverASEDynamics, send_ase_frame
+from nanover.ase import send_ase_frame
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
-from nanover.ase.openmm.runner import openmm_ase_frame_adaptor
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.openmm import serializer
 from nanover.utilities.timing import VariableIntervalGenerator
@@ -69,9 +68,7 @@ class ASEOpenMMSimulation:
 
         # replace previous frame method with fresh instance
         dynamics.attach(
-            send_ase_frame(
-                atoms, app_server.frame_publisher, simulation_counter
-            ),
+            send_ase_frame(atoms, app_server.frame_publisher, simulation_counter),
             interval=self.frame_interval,
         )
 
@@ -83,4 +80,4 @@ class ASEOpenMMSimulation:
             steps_for_this_iteration = min(self.frame_interval, remaining_steps)
             dynamics.run(steps_for_this_iteration)
             remaining_steps -= steps_for_this_iteration
-            #self._reset_if_required(reset_energy)
+            # self._reset_if_required(reset_energy)
