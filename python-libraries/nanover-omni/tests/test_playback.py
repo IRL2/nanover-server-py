@@ -65,7 +65,10 @@ def test_advance_seconds_emits_intermediate(example_playback):
     """
     with patch.object(example_playback, "emit", autospec=True) as emit:
         for _ in range(5):
-            entries = example_playback.entries[example_playback.next_entry_index:example_playback.next_entry_index+5]
+            entries = example_playback.entries[
+                example_playback.next_entry_index : example_playback.next_entry_index
+                + 5
+            ]
             calls = [call(frame=frame, update=update) for _, frame, update in entries]
 
             emit.reset_mock()
