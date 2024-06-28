@@ -1,10 +1,13 @@
+from dataclasses import dataclass
 from pathlib import Path
 from queue import Queue
-from typing import Optional
+from typing import Optional, Any
 
-from ase import units
+from ase import units, Atoms
 from ase.md import Langevin
+from ase.md.md import MolecularDynamics
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
+from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
 from nanover.ase import send_ase_frame
@@ -13,6 +16,13 @@ from nanover.ase.openmm import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.openmm import serializer
 from nanover.utilities.timing import VariableIntervalGenerator
+
+
+@dataclass
+class InitialState:
+    positions: Any
+    velocities: Any
+    cell: Any
 
 
 class ASEOpenMMSimulation:
@@ -24,59 +34,79 @@ class ASEOpenMMSimulation:
 
         self._variable_interval_generator = VariableIntervalGenerator(1 / 30)
 
-        self.frame_index = 0
-
+        self.paused = False
         self.frame_interval = 5
 
-    def run(self, app_server: NanoverImdApplication, cancel: Queue):
+        self.atoms: Optional[Atoms] = None
+        self.dynamics: Optional[MolecularDynamics] = None
+        self.simulation: Optional[Simulation] = None
+        self.checkpoint: Optional[InitialState] = None
+
+    def load(self):
         platform = None
-        simulation_counter = 0
+        walls = False
         time_step = 1
 
         with open(str(self.xml_path)) as infile:
-            simulation = serializer.deserialize_simulation(
+            self.simulation = serializer.deserialize_simulation(
                 infile.read(), platform_name=platform
             )
 
-        walls = False
-        openmm_calculator = OpenMMCalculator(simulation)
-        atoms = openmm_calculator.generate_atoms()
+        openmm_calculator = OpenMMCalculator(self.simulation)
+        self.atoms = openmm_calculator.generate_atoms()
         if walls:
-            atoms.constraints.append(VelocityWallConstraint())
-        atoms.calc = openmm_calculator
+            self.atoms.constraints.append(VelocityWallConstraint())
+        self.atoms.calc = openmm_calculator
 
         # Set the momenta corresponding to T=300K
-        MaxwellBoltzmannDistribution(atoms, temperature_K=300)
+        MaxwellBoltzmannDistribution(self.atoms, temperature_K=300)
 
         # We do not remove the center of mass (fixcm=False). If the center of
         # mass translations should be removed, then the removal should be added
         # to the OpenMM system.
-        dynamics = Langevin(
-            atoms=atoms,
+        self.dynamics = Langevin(
+            atoms=self.atoms,
             timestep=time_step * units.fs,
             temperature_K=300,
             friction=1e-2,
             fixcm=False,
         )
 
-        atoms.calc = ImdCalculator(
-            app_server.imd,
-            dynamics.atoms.calc,
-            dynamics=dynamics,
+        self.atoms.calc = ImdCalculator(
+            self.app_server.imd,
+            self.dynamics.atoms.calc,
+            dynamics=self.dynamics,
         )
 
+        self.checkpoint = InitialState(
+            positions=self.atoms.get_positions(),
+            velocities=self.atoms.get_velocities(),
+            cell=self.atoms.get_cell(),
+        )
+
+    def reset(self, simulation_counter=0):
         # replace previous frame method with fresh instance
-        dynamics.attach(
-            send_ase_frame(atoms, app_server.frame_publisher, simulation_counter),
+        self.dynamics.observers.clear()
+        self.dynamics.attach(
+            send_ase_frame(self.atoms, self.app_server.frame_publisher, simulation_counter),
             interval=self.frame_interval,
         )
 
-        steps: Optional[int] = None
-        remaining_steps = steps if steps is not None else float("inf")
+        self.atoms.set_positions(self.checkpoint.positions)
+        self.atoms.set_velocities(self.checkpoint.velocities)
+        self.atoms.set_cell(self.checkpoint.cell)
+
+    def run(self, app_server: NanoverImdApplication, cancel: Queue):
+        self.app_server = app_server
+
+        self.load()
+        self.reset()
+
         for _ in self._variable_interval_generator.yield_interval():
-            if not cancel.empty() or remaining_steps <= 0:
+            if not cancel.empty():
                 break
-            steps_for_this_iteration = min(self.frame_interval, remaining_steps)
-            dynamics.run(steps_for_this_iteration)
-            remaining_steps -= steps_for_this_iteration
-            # self._reset_if_required(reset_energy)
+            if not self.paused:
+                self.advance_to_next_report()
+
+    def advance_to_next_report(self):
+        self.dynamics.run(self.frame_interval)

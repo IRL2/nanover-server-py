@@ -53,6 +53,7 @@ def handle_user_arguments() -> argparse.Namespace:
         dest="recording_entries",
         action="append",
         nargs="+",
+        default=[],
         help="Recorded session to playback (one or both of .traj and .state)",
     )
 

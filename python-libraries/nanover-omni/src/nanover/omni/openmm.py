@@ -1,8 +1,8 @@
 from pathlib import Path
 from queue import Queue
-from typing import Optional
+from typing import Optional, Any
 
-import openmm
+from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer
@@ -19,44 +19,62 @@ class OpenMMSimulation:
 
         self._variable_interval_generator = VariableIntervalGenerator(1 / 30)
 
-        self.frame_index = 0
-
         self.frame_interval = 5
+        self.force_interval = 5
 
-    def run(self, app_server: NanoverImdApplication, cancel: Queue):
+        self.paused = False
+
+        self.imd_force = create_imd_force()
+        self.simulation: Optional[Simulation] = None
+        self.checkpoint: Optional[Any] = None
+        self.reporter: Optional[NanoverImdReporter] = None
+
+    def load(self):
         platform = None
 
         with open(str(self.xml_path)) as infile:
-            imd_force = create_imd_force()
-            simulation = serializer.deserialize_simulation(
-                infile.read(), imd_force=imd_force, platform_name=platform
+            self.simulation = serializer.deserialize_simulation(
+                infile.read(), imd_force=self.imd_force, platform_name=platform
             )
 
-        simulation_counter = 0
-        reporter = NanoverImdReporter(
-            frame_interval=5,
-            force_interval=5,
-            imd_force=imd_force,
-            imd_state=app_server.imd,
-            frame_publisher=app_server.frame_publisher,
+        self.checkpoint = self.simulation.context.createCheckpoint()
+
+    def unload(self):
+        self.simulation = None
+        self.checkpoint = None
+
+    def reset(self, simulation_counter=0):
+        assert self.simulation is not None and self.checkpoint is not None
+
+        self.simulation.context.loadCheckpoint(self.checkpoint)
+
+        try:
+            self.simulation.reporters.remove(self.reporter)
+        except ValueError:
+            pass
+
+        self.reporter = NanoverImdReporter(
+            frame_interval=self.frame_interval,
+            force_interval=self.force_interval,
+            imd_force=self.imd_force,
+            imd_state=self.app_server.imd,
+            frame_publisher=self.app_server.frame_publisher,
             simulation_counter=simulation_counter,
         )
-        simulation.reporters.append(reporter)
+        self.simulation.reporters.append(self.reporter)
 
-        steps: Optional[int] = None
-        remaining_steps = steps if steps is not None else float("inf")
+    def run(self, app_server: NanoverImdApplication, cancel: Queue):
+        self.app_server = app_server
+
+        self.load()
+        self.reset()
+
         for _ in self._variable_interval_generator.yield_interval():
-            if not cancel.empty() or remaining_steps <= 0:
+            if not cancel.empty():
                 break
-            steps_for_this_iteration = min(self.frame_interval, remaining_steps)
-            try:
-                simulation.step(steps_for_this_iteration)
-            except (ValueError, openmm.OpenMMException):
-                # We want to stop running if the simulation exploded in a way
-                # that prevents OpenMM to run. Otherwise, we will be a state
-                # where OpenMM raises an exception which would make the runner
-                # unusable. The OpenMMException is typically raised by OpenMM
-                # itself when something is NaN; the ValueError is typically
-                # raised by the StateReporter when the energy is NaN.
-                break
-            remaining_steps -= steps_for_this_iteration
+            if not self.paused:
+                self.advance_to_next_report()
+
+    def advance_to_next_report(self):
+        assert self.simulation is not None
+        self.simulation.step(self.frame_interval)
