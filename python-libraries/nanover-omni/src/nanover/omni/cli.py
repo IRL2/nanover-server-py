@@ -85,7 +85,7 @@ def main():
     runner = OmniRunner(app_server)
 
     for paths in arguments.recording_entries:
-        runner.add_simulation(PlaybackSimulation(paths))
+        runner.add_simulation(PlaybackSimulation.from_paths(paths))
 
     for (path,) in arguments.openmm_xml_entries:
         runner.add_simulation(OpenMMSimulation(path))

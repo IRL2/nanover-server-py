@@ -1,70 +1,109 @@
 from pathlib import Path
 from queue import Queue
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Iterable
 
 from nanover.app import NanoverImdApplication
-from nanover.recording.parsing import FrameEntry, iter_trajectory_file, iter_state_file
+from nanover.recording.parsing import (
+    FrameEntry,
+    iter_recording_files,
+)
+from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import yield_interval
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 
+Entry = Tuple[float, Optional[FrameEntry], Optional[DictionaryChange]]
+
 
 class PlaybackSimulation:
-    def __init__(self, paths: List[str]):
+    @classmethod
+    def from_paths(cls, paths: Iterable[str]):
         paths = [Path(path) for path in paths]
+        traj_path = next((path for path in paths if path.suffix == ".traj"), None)
+        state_path = next((path for path in paths if path.suffix == ".state"), None)
 
-        self.name = paths[0].stem
-
-        self.traj_path = next((path for path in paths if path.suffix == ".traj"), None)
-        self.state_path = next(
-            (path for path in paths if path.suffix == ".state"), None
+        return cls(
+            name=paths[0].stem,
+            traj=traj_path,
+            state=state_path,
         )
+
+    def __init__(
+        self, name, *, traj: Optional[str] = None, state: Optional[str] = None
+    ):
+        self.name = name
+        self.traj_path = traj
+        self.state_path = state
 
         self.app_server: Optional[NanoverImdApplication] = None
 
-        self.frames: List[FrameEntry] = []
-        self.updates: List[Tuple[int, DictionaryChange]] = []
+        self.entries: List[Entry] = []
+        self.next_entry_index = 0
         self.frame_index = 0
         self.time = 0
+
+        self.paused = False
 
     def load(self):
-        self.frames = []
-        self.frame_index = 0
-        self.time = 0
-
-        if self.traj_path:
-            self.frames = [
-                (elapsed * MICROSECONDS_TO_SECONDS, index, frame)
-                for elapsed, index, frame in iter_trajectory_file(self.traj_path)
-            ]
-
-        if self.state_path:
-            self.updates = [
-                (elapsed * MICROSECONDS_TO_SECONDS, update)
-                for elapsed, update in iter_state_file(self.state_path)
-            ]
+        entries = iter_recording_files(traj=self.traj_path, state=self.state_path)
+        self.entries = [
+            (time * MICROSECONDS_TO_SECONDS, frame, update)
+            for time, frame, update in entries
+        ]
 
     def run(self, app_server: NanoverImdApplication, cancel: Queue):
-        self.load()
+        self.app_server = app_server
 
-        last_time = max(self.frames[-1][0], self.updates[-1][0])
+        self.load()
+        self.reset()
 
         for dt in yield_interval(1 / 30):
             if not cancel.empty():
                 break
+            if not self.paused:
+                self.advance_by_seconds(dt)
 
-            prev_time = self.time
-            next_time = prev_time + dt
+    def reset(self):
+        self.next_entry_index = 0
+        self.frame_index = 0
+        self.time = 0
 
-            for time, index, frame in self.frames:
-                if prev_time <= time < next_time:
-                    app_server.frame_publisher.send_frame(self.frame_index, frame)
-                    self.frame_index += 1
+        # clear simulation
+        self.emit(frame=FrameData(), update=None)
 
-            for time, update in self.updates:
-                if prev_time <= time < next_time:
-                    app_server.server.update_state(None, update)
+    def pause(self):
+        self.paused = True
 
-            # loop one second after the last frame
-            self.time = next_time % (last_time + 1)
+    def play(self):
+        self.paused = False
+
+    def step(self):
+        self.paused = True
+        self.advance_to_next_entry()
+
+    def advance_by_seconds(self, dt: float):
+        next_time = self.time + dt
+
+        while self.entries[self.next_entry_index][0] <= next_time:
+            self.advance_to_next_entry()
+
+        # stall one second before looping to beginning
+        last_time = self.entries[-1][0]
+        self.time = next_time % (last_time + 1)
+
+    def advance_to_next_entry(self):
+        time, frame, update = self.entries[self.next_entry_index]
+        self.next_entry_index = (self.next_entry_index + 1) % len(self.entries)
+        self.time = time
+        self.emit(frame=frame, update=update)
+
+    def emit(self, *, frame: Optional[FrameData], update: Optional[DictionaryChange]):
+        if self.app_server is None:
+            return
+
+        if frame is not None:
+            self.app_server.frame_publisher.send_frame(self.frame_index, frame)
+            self.frame_index += 1
+        if update is not None:
+            self.app_server.server.update_state(None, update)
