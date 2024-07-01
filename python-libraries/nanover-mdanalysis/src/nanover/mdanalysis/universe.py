@@ -161,7 +161,9 @@ class NanoverReader(ProtoReader):
         self.convert_units = convert_units
         with openany(filename, mode="rb") as infile:
             recording = advance_to_first_coordinate_frame(
-                iter_trajectory_with_elapsed_integrated(iter_trajectory_recording(infile))
+                iter_trajectory_with_elapsed_integrated(
+                    iter_trajectory_recording(infile)
+                )
             )
             try:
                 _, _, first_frame = next(recording)
