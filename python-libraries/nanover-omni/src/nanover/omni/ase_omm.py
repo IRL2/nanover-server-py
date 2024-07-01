@@ -38,6 +38,8 @@ class ASEOpenMMSimulation:
         self.checkpoint: Optional[InitialState] = None
 
     def load(self):
+        assert self.app_server is not None
+
         platform = None
         walls = False
         time_step = 1
@@ -80,6 +82,13 @@ class ASEOpenMMSimulation:
         )
 
     def reset(self):
+        assert (
+            self.app_server is not None
+            and self.dynamics is not None
+            and self.atoms is not None
+            and self.checkpoint is not None
+        )
+
         # replace previous frame method with fresh instance
         self.dynamics.observers.clear()
         self.dynamics.attach(
@@ -98,4 +107,5 @@ class ASEOpenMMSimulation:
         self.advance_to_next_report()
 
     def advance_to_next_report(self):
+        assert self.dynamics is not None
         self.dynamics.run(self.frame_interval)

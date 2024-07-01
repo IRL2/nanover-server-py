@@ -38,7 +38,11 @@ class OpenMMSimulation:
         self.checkpoint = None
 
     def reset(self):
-        assert self.simulation is not None and self.checkpoint is not None
+        assert (
+            self.simulation is not None
+            and self.checkpoint is not None
+            and self.app_server is not None
+        )
 
         self.simulation.context.loadCheckpoint(self.checkpoint)
 
