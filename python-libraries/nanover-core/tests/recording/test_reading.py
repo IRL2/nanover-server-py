@@ -8,6 +8,9 @@ from nanover.recording.reading import (
     iter_recording_buffers,
 )
 
+from nanover.protocol.trajectory import GetFrameResponse
+from nanover.protocol.state import StateUpdate
+
 EXAMPLES_PATH = Path(__file__).parent
 RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
 RECORDING_PATH_STATE = EXAMPLES_PATH / "nanotube-example-recording.state"

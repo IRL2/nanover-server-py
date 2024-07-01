@@ -2,6 +2,8 @@ import random
 from io import BytesIO
 from itertools import zip_longest
 
+import pytest
+
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
 from nanover.recording.reading import iter_recording_entries
@@ -9,6 +11,23 @@ from nanover.recording.writing import write_header, write_entry, record_entries
 from nanover.state.state_service import dictionary_change_to_state_update
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
+from .test_reading import RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
+
+
+STREAM_FILE_PAIRS = (
+    (RECORDING_PATH_STATE, GetFrameResponse),
+    (RECORDING_PATH_STATE, StateUpdate),
+)
+
+
+def random_frame_message():
+    return GetFrameResponse(
+        frame_index=random.randint(0, 1000), frame=random_frame().raw
+    )
+
+
+def random_state_message():
+    return dictionary_change_to_state_update(random_change())
 
 
 def random_frame():
@@ -34,14 +53,22 @@ def random_change():
     )
 
 
-def test_reads_written_frames():
+@pytest.mark.parametrize(
+    "test",
+    (
+        (RECORDING_PATH_TRAJ, GetFrameResponse, random_frame_message),
+        (RECORDING_PATH_STATE, StateUpdate, random_state_message),
+    ),
+)
+def test_reads_written_messages(test):
     """
-    Test that a written sequence of frames is read back the same.
+    Test that a written sequence of messages is read back the same.
     """
+    path, message_type, random_message = test
     entries = [
         (
             i * 100000 + random.randint(0, 50000),
-            GetFrameResponse(frame_index=i, frame=random_frame().raw),
+            random_message(),
         )
         for i in range(1000)
     ]
@@ -51,28 +78,5 @@ def test_reads_written_frames():
 
         io.seek(0)
 
-        for a, b in zip_longest(entries, iter_recording_entries(io, GetFrameResponse)):
-            assert a == b
-
-
-def test_reads_written_updates():
-    """
-    Test that a written sequence of updates is read back the same.
-    """
-    entries = [
-        (
-            i * 100000 + random.randint(0, 50000),
-            dictionary_change_to_state_update(random_change()),
-        )
-        for i in range(1000)
-    ]
-
-    with BytesIO() as io:
-        write_header(io)
-        for timestamp, message in entries:
-            write_entry(io, timestamp, message)
-
-        io.seek(0)
-
-        for a, b in zip_longest(entries, iter_recording_entries(io, StateUpdate)):
+        for a, b in zip_longest(entries, iter_recording_entries(io, message_type)):
             assert a == b
