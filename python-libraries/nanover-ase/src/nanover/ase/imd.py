@@ -94,7 +94,6 @@ class NanoverASEDynamics:
         self.on_reset_listeners = []
         self.logger = logging.getLogger(__name__)
 
-        self._simulation_counter = -1
         self.replace_dynamics(dynamics, reset=False)
 
     @classmethod
@@ -314,8 +313,6 @@ class NanoverASEDynamics:
         if reset:
             self.reset()
 
-        self._simulation_counter += 1
-
         # replace dynamics and calculator
         self.dynamics = dynamics
         self.imd_calculator = ImdCalculator(
@@ -328,9 +325,7 @@ class NanoverASEDynamics:
         # replace previous frame method with fresh instance
         self.dynamics.observers.clear()
         self.dynamics.attach(
-            self._frame_method(
-                self.atoms, self._frame_publisher, self._simulation_counter
-            ),
+            self._frame_method(self.atoms, self._frame_publisher),
             interval=self._frame_interval,
         )
 

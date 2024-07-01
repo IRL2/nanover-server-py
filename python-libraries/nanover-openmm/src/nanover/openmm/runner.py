@@ -473,7 +473,6 @@ class SimulationEntry:
             imd_force=self._imd_force,
             imd_state=app_server.imd,
             frame_publisher=app_server.frame_publisher,
-            simulation_counter=simulation_counter,
         )
         self.simulation.reporters.append(self.reporter)
 

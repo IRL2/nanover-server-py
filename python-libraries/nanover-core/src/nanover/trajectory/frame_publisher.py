@@ -14,7 +14,11 @@ from nanover.protocol.trajectory import (
     add_TrajectoryServiceServicer_to_server,
 )
 from nanover.protocol.trajectory import FrameData as RawFrameData
-from nanover.trajectory.frame_data import FrameData, SERVER_TIMESTAMP, SIMULATION_COUNTER
+from nanover.trajectory.frame_data import (
+    FrameData,
+    SERVER_TIMESTAMP,
+    SIMULATION_COUNTER,
+)
 
 SENTINEL = None
 
