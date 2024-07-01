@@ -18,7 +18,7 @@ from nanover.utilities.timing import VariableIntervalGenerator
 
 class Simulation(Protocol):
     name: str
-    app_server: NanoverImdApplication
+    app_server: Optional[NanoverImdApplication]
 
     def load(self): ...
     def reset(self): ...
