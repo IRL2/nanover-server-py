@@ -52,12 +52,11 @@ def random_change():
     )
 
 
-@pytest.mark.parametrize("pair", MESSAGE_TYPE_FACTORY_PAIRS)
-def test_reads_written_messages(pair):
+@pytest.mark.parametrize("message_type,random_message", MESSAGE_TYPE_FACTORY_PAIRS)
+def test_reads_written_messages(message_type, random_message):
     """
     Test that a written sequence of messages is read back the same.
     """
-    message_type, random_message = pair
     entries = [
         (
             i * 100000 + random.randint(0, 50000),
