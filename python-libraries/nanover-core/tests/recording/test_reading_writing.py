@@ -11,13 +11,6 @@ from nanover.recording.writing import write_header, write_entry, record_entries
 from nanover.state.state_service import dictionary_change_to_state_update
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
-from .test_reading import RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
-
-
-STREAM_FILE_PAIRS = (
-    (RECORDING_PATH_STATE, GetFrameResponse),
-    (RECORDING_PATH_STATE, StateUpdate),
-)
 
 
 def random_frame_message():
@@ -28,6 +21,12 @@ def random_frame_message():
 
 def random_state_message():
     return dictionary_change_to_state_update(random_change())
+
+
+MESSAGE_TYPE_FACTORY_PAIRS = (
+    (GetFrameResponse, random_frame_message),
+    (StateUpdate, random_state_message),
+)
 
 
 def random_frame():
@@ -53,18 +52,12 @@ def random_change():
     )
 
 
-@pytest.mark.parametrize(
-    "test",
-    (
-        (RECORDING_PATH_TRAJ, GetFrameResponse, random_frame_message),
-        (RECORDING_PATH_STATE, StateUpdate, random_state_message),
-    ),
-)
-def test_reads_written_messages(test):
+@pytest.mark.parametrize("pair", MESSAGE_TYPE_FACTORY_PAIRS)
+def test_reads_written_messages(pair):
     """
     Test that a written sequence of messages is read back the same.
     """
-    path, message_type, random_message = test
+    message_type, random_message = pair
     entries = [
         (
             i * 100000 + random.randint(0, 50000),
