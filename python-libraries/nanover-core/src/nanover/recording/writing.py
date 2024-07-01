@@ -28,13 +28,13 @@ def record_messages(io: BinaryIO, messages, start_time: Optional[int] = None):
     def timestamp():
         return int((perf_counter_ns() - start_time) / 1000)
 
-    entries = (timestamp(), message for message in messages)
+    entries = ((timestamp(), message) for message in messages)
     record_entries(io, entries)
 
 
 def record_entries(io: BinaryIO, entries):
     write_header(io)
-    for (timestamp, message) in entries:
+    for timestamp, message in entries:
         write_entry(io, timestamp, message)
 
 
