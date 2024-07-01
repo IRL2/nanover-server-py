@@ -7,7 +7,7 @@ import pytest
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
 from nanover.recording.reading import iter_recording_entries
-from nanover.recording.writing import write_header, write_entry, record_entries
+from nanover.recording.writing import record_entries
 from nanover.state.state_service import dictionary_change_to_state_update
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
