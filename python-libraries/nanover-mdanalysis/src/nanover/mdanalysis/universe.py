@@ -57,7 +57,7 @@ from nanover.trajectory.frame_data import (
     MissingDataError,
 )
 
-from nanover.recording.parsing import (
+from nanover.recording.reading import (
     iter_trajectory_recording,
     iter_trajectory_with_elapsed_integrated,
     advance_to_first_particle_frame,

@@ -1,7 +1,6 @@
-from typing import Tuple, Iterable
+from typing import Tuple, Iterable, BinaryIO, Protocol, Callable, TypeVar
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
-from nanover.recording.unpacker import Unpacker
 from nanover.state.state_service import state_update_to_dictionary_change
 from nanover.trajectory import FrameData, MissingDataError
 
@@ -16,7 +15,8 @@ def iter_trajectory_file(path):
 
     :param path: Path of recording file to read from.
     """
-    yield from iter_trajectory_recording(Unpacker.from_path(path))
+    with open(path, "rb") as infile:
+        yield from iter_trajectory_recording(infile)
 
 
 def iter_state_file(path):
@@ -25,7 +25,8 @@ def iter_state_file(path):
 
     :param path: Path of recording file to read from.
     """
-    yield from iter_state_recording(Unpacker.from_path(path))
+    with open(path, "rb") as infile:
+        yield from iter_state_recording(infile)
 
 
 class InvalidMagicNumber(Exception):
@@ -53,42 +54,55 @@ class UnsupportedFormatVersion(Exception):
         )
 
 
-def iter_recording_buffers(unpacker: Unpacker):
+class Parseable(Protocol):
+    def ParseFromString(self, _: bytes) -> bytes: ...
+
+
+TMessage = TypeVar("TMessage", bound=Parseable)
+
+
+def iter_recording_entries(
+    io: BinaryIO, message_type: Callable[[], TMessage]
+) -> TMessage:
+    for elapsed, buffer in iter_recording_buffers(io):
+        instance = message_type()
+        instance.ParseFromString(buffer)
+        yield elapsed, instance
+
+
+def iter_recording_buffers(io: BinaryIO):
     """
     Iterate over elements of a recording, yielding pairs of a timestamp in microseconds and a buffer of bytes.
 
-    :param unpacker: The unpacker providing bytes of the recording.
+    :param io: Stream of bytes to read.
     """
     supported_format_versions = (2,)
-    magic_number = unpacker.unpack_u64()
+
+    magic_number = read_u64(io)
     if magic_number != MAGIC_NUMBER:
         raise InvalidMagicNumber
-    format_version = unpacker.unpack_u64()
+    format_version = read_u64(io)
     if format_version not in supported_format_versions:
         raise UnsupportedFormatVersion(format_version, supported_format_versions)
     while True:
         try:
-            elapsed = unpacker.unpack_u128()
-            record_size = unpacker.unpack_u64()
-            buffer = unpacker.unpack_bytes(record_size)
-        except IndexError:
+            elapsed = read_u128(io)
+            record_size = read_u64(io)
+            buffer = io.read(record_size)
+        except EOFError:
             break
         yield elapsed, buffer
 
 
-def iter_trajectory_recording(unpacker: Unpacker):
-    for elapsed, buffer in iter_recording_buffers(unpacker):
-        get_frame_response = GetFrameResponse()
-        get_frame_response.ParseFromString(buffer)
+def iter_trajectory_recording(io: BinaryIO):
+    for elapsed, get_frame_response in iter_recording_entries(io, GetFrameResponse):
         frame_index = get_frame_response.frame_index
         frame = FrameData(get_frame_response.frame)
         yield (elapsed, frame_index, frame)
 
 
-def iter_state_recording(unpacker: Unpacker):
-    for elapsed, buffer in iter_recording_buffers(unpacker):
-        state_update = StateUpdate()
-        state_update.ParseFromString(buffer)
+def iter_state_recording(io: BinaryIO):
+    for elapsed, state_update in iter_recording_entries(io, StateUpdate):
         dictionary_change = state_update_to_dictionary_change(state_update)
         yield (elapsed, dictionary_change)
 
@@ -128,3 +142,18 @@ def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
 
     yield (elapsed, frame_index, frame)
     yield from frames
+
+
+def read_u64(io: BinaryIO):
+    return int.from_bytes(read(io, 8), "little", signed=False)
+
+
+def read_u128(io: BinaryIO):
+    return int.from_bytes(read(io, 16), "little", signed=False)
+
+
+def read(io: BinaryIO, count: int):
+    buffer = io.read(count)
+    if len(buffer) < count:
+        raise EOFError
+    return buffer
