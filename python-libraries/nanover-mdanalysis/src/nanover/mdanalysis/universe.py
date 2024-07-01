@@ -63,7 +63,6 @@ from nanover.recording.reading import (
     advance_to_first_particle_frame,
     advance_to_first_coordinate_frame,
 )
-from ..recording.unpacker import Unpacker
 from .converter import _to_chemical_symbol
 
 
@@ -91,68 +90,66 @@ KEY_TO_ATTRIBUTE = {
 class NanoverParser(TopologyReaderBase):
     def parse(self, **kwargs):
         with openany(self.filename, mode="rb") as infile:
-            data = infile.read()
-        unpacker = Unpacker(data)
-        # We assume the full topology is in the first frame with a particle
-        # count greater than 0. This will be true only most of the time.
-        # TODO: implement a more reliable way to get the full topology
-        try:
-            _, _, frame = next(
-                advance_to_first_particle_frame(iter_trajectory_recording(unpacker))
-            )
-        except StopIteration:
-            raise IOError("The file does not contain any frame.")
-
-        attrs = []
-        for frame_key, (attribute, converter) in KEY_TO_ATTRIBUTE.items():
+            # We assume the full topology is in the first frame with a particle
+            # count greater than 0. This will be true only most of the time.
+            # TODO: implement a more reliable way to get the full topology
             try:
-                values = frame.arrays[frame_key]
+                _, _, frame = next(
+                    advance_to_first_particle_frame(iter_trajectory_recording(infile))
+                )
+            except StopIteration:
+                raise IOError("The file does not contain any frame.")
+
+            attrs = []
+            for frame_key, (attribute, converter) in KEY_TO_ATTRIBUTE.items():
+                try:
+                    values = frame.arrays[frame_key]
+                except MissingDataError:
+                    pass
+                else:
+                    attrs.append(attribute([converter(value) for value in values]))
+
+            try:
+                elements = frame.arrays[PARTICLE_ELEMENTS]
             except MissingDataError:
                 pass
             else:
-                attrs.append(attribute([converter(value) for value in values]))
+                converted_elements = _to_chemical_symbol(elements)
+                attrs.append(Atomtypes(converted_elements))
+                attrs.append(Elements(converted_elements))
 
-        try:
-            elements = frame.arrays[PARTICLE_ELEMENTS]
-        except MissingDataError:
-            pass
-        else:
-            converted_elements = _to_chemical_symbol(elements)
-            attrs.append(Atomtypes(converted_elements))
-            attrs.append(Elements(converted_elements))
+            # TODO: generate these values if they are not part of the FrameData
+            residx = frame.arrays[PARTICLE_RESIDUES]
+            segidx = frame.arrays[RESIDUE_CHAINS]
+            n_atoms = int(frame.values[PARTICLE_COUNT])
+            n_residues = int(frame.values[RESIDUE_COUNT])
+            n_chains = int(frame.values[CHAIN_COUNT])
 
-        # TODO: generate these values if they are not part of the FrameData
-        residx = frame.arrays[PARTICLE_RESIDUES]
-        segidx = frame.arrays[RESIDUE_CHAINS]
-        n_atoms = int(frame.values[PARTICLE_COUNT])
-        n_residues = int(frame.values[RESIDUE_COUNT])
-        n_chains = int(frame.values[CHAIN_COUNT])
+            try:
+                chain_ids_per_chain = frame.arrays[CHAIN_NAMES]
+            except MissingDataError:
+                pass
+            else:
+                chain_ids_per_particle = [
+                    chain_ids_per_chain[segidx[residx[atom]]] for atom in range(n_atoms)
+                ]
+                attrs.append(ChainIDs(chain_ids_per_particle))
 
-        try:
-            chain_ids_per_chain = frame.arrays[CHAIN_NAMES]
-        except MissingDataError:
-            pass
-        else:
-            chain_ids_per_particle = [
-                chain_ids_per_chain[segidx[residx[atom]]] for atom in range(n_atoms)
-            ]
-            attrs.append(ChainIDs(chain_ids_per_particle))
+            try:
+                attrs.append(
+                    Bonds(frame.bond_pairs, guessed=False, order=frame.bond_orders)
+                )
+            except MissingDataError:
+                pass
 
-        try:
-            attrs.append(
-                Bonds(frame.bond_pairs, guessed=False, order=frame.bond_orders)
+            return Topology(
+                n_atoms,
+                n_residues,
+                n_chains,
+                attrs=attrs,
+                atom_resindex=residx,
+                residue_segindex=segidx,
             )
-        except MissingDataError:
-            pass
-
-        return Topology(
-            n_atoms,
-            n_residues,
-            n_chains,
-            attrs=attrs,
-            atom_resindex=residx,
-            residue_segindex=segidx,
-        )
 
 
 class NanoverReader(ProtoReader):
@@ -163,32 +160,30 @@ class NanoverReader(ProtoReader):
         self.filename = filename
         self.convert_units = convert_units
         with openany(filename, mode="rb") as infile:
-            data = infile.read()
-        unpacker = Unpacker(data)
-        recording = advance_to_first_coordinate_frame(
-            iter_trajectory_with_elapsed_integrated(iter_trajectory_recording(unpacker))
-        )
-        try:
-            _, _, first_frame = next(recording)
-        except StopIteration:
-            raise IOError("Empty trajectory.")
-        self.n_atoms = first_frame.particle_count
-
-        non_topology_frames = takewhile(
-            lambda frame: not has_topology(frame),
-            map(lambda record: record[2], recording),
-        )
-        self._frames = list(chain([first_frame], non_topology_frames))
-        self.n_frames = len(self._frames)
-        self._read_frame(0)
-        reminder = list(recording)
-        if reminder:
-            warnings.warn(
-                f"The simulation contains changes to the topology after the "
-                f"first frame. Only the frames with the initial topology are "
-                f"accessible in this Universe. There are {len(reminder)} "
-                f"unread frames with a different topology."
+            recording = advance_to_first_coordinate_frame(
+                iter_trajectory_with_elapsed_integrated(iter_trajectory_recording(infile))
             )
+            try:
+                _, _, first_frame = next(recording)
+            except StopIteration:
+                raise IOError("Empty trajectory.")
+            self.n_atoms = first_frame.particle_count
+
+            non_topology_frames = takewhile(
+                lambda frame: not has_topology(frame),
+                map(lambda record: record[2], recording),
+            )
+            self._frames = list(chain([first_frame], non_topology_frames))
+            self.n_frames = len(self._frames)
+            self._read_frame(0)
+            reminder = list(recording)
+            if reminder:
+                warnings.warn(
+                    f"The simulation contains changes to the topology after the "
+                    f"first frame. Only the frames with the initial topology are "
+                    f"accessible in this Universe. There are {len(reminder)} "
+                    f"unread frames with a different topology."
+                )
 
     def _read_frame(self, frame):
         self._current_frame_index = frame
