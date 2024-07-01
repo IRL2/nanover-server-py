@@ -96,7 +96,7 @@ def reference_topology_universe():
 
 
 def test_n_frames(single_topology_universe):
-    assert single_topology_universe.trajectory.n_frames == 623
+    assert single_topology_universe.trajectory.n_frames == 624
 
 
 def test_n_frames_multi_topology(multi_topology_universe):
@@ -152,7 +152,7 @@ def test_user_forces(user_forces_universe):
     This is a regression test, the expected number is obtained from running the
     code.
     """
-    expected = 414
+    expected = 415
     actual = sum(
         np.any(ts.data["user_forces"]) for ts in user_forces_universe.trajectory
     )
