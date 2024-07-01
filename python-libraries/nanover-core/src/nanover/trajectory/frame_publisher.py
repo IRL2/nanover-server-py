@@ -14,7 +14,7 @@ from nanover.protocol.trajectory import (
     add_TrajectoryServiceServicer_to_server,
 )
 from nanover.protocol.trajectory import FrameData as RawFrameData
-from nanover.trajectory.frame_data import FrameData, SERVER_TIMESTAMP
+from nanover.trajectory.frame_data import FrameData, SERVER_TIMESTAMP, SIMULATION_COUNTER
 
 SENTINEL = None
 
@@ -42,6 +42,7 @@ class FramePublisher(TrajectoryServiceServicer):
         self.last_frame = None
         self.last_frame_index = 0
         self.last_request_id = 0
+        self.simulation_counter = 0
         self._last_frame_lock = Lock()
         self._request_id_lock = Lock()
 
@@ -111,6 +112,10 @@ class FramePublisher(TrajectoryServiceServicer):
             frame = frame.raw
         else:
             frame.values[SERVER_TIMESTAMP].number_value = now
+
+        if frame_index == 0:
+            frame.values[SIMULATION_COUNTER].number_value = self.simulation_counter
+            self.simulation_counter += 1
 
         with self._last_frame_lock:
             if self.last_frame is None:

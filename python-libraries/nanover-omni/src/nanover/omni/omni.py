@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor, Future
-from queue import Queue
+from contextlib import suppress
+from queue import Queue, Empty
 from typing import Protocol, List, Optional
 
 from nanover.app import NanoverImdApplication
@@ -7,14 +8,21 @@ from nanover.trajectory.frame_server import (
     LOAD_COMMAND_KEY,
     LIST_COMMAND_KEY,
     NEXT_COMMAND_KEY,
+    RESET_COMMAND_KEY,
+    PAUSE_COMMAND_KEY,
+    PLAY_COMMAND_KEY,
+    STEP_COMMAND_KEY,
 )
+from nanover.utilities.timing import VariableIntervalGenerator
 
 
 class Simulation(Protocol):
     name: str
 
-    def run(self, app_server: NanoverImdApplication, cancel: Queue):
-        pass
+    def load(self): ...
+    def reset(self): ...
+    def advance_by_one_step(self): ...
+    def advance_by_seconds(self, dt: float): ...
 
 
 class OmniRunner:
@@ -23,18 +31,23 @@ class OmniRunner:
 
         self.simulations: List[Simulation] = []
         self._simulation_index = 0
-        self._simulation_counter = 0
+        self._simulation_counter = -1
 
         app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
         app_server.server.register_command(NEXT_COMMAND_KEY, self.next)
         app_server.server.register_command(LIST_COMMAND_KEY, self.list)
 
+        app_server.server.register_command(RESET_COMMAND_KEY, self.reset)
+        app_server.server.register_command(PAUSE_COMMAND_KEY, self.pause)
+        app_server.server.register_command(PLAY_COMMAND_KEY, self.play)
+        app_server.server.register_command(STEP_COMMAND_KEY, self.step)
+
         self._threads = ThreadPoolExecutor(max_workers=1)
-        self._cancel: Optional[Queue] = None
+        self._runner: Optional[InternalRunner] = None
         self._run_task: Optional[Future] = None
 
     def close(self):
-        self.cancel_run()
+        self._cancel_run()
         self.app_server.close()
 
     @property
@@ -49,9 +62,10 @@ class OmniRunner:
         self.simulations.append(simulation)
 
     def load(self, index: int):
-        self.cancel_run()
+        self._cancel_run()
         self._simulation_index = int(index) % len(self.simulations)
-        self.run()
+        self._simulation_counter += 1
+        self._start_run()
 
     def next(self):
         self.load(self._simulation_index + 1)
@@ -59,34 +73,81 @@ class OmniRunner:
     def list(self):
         return {"simulations": [simulation.name for simulation in self.simulations]}
 
-    def run(self):
-        if self.is_running:
+    def reset(self):
+        assert self._runner is not None
+        self._simulation_counter += 1
+        self._runner.signals.put("reset")
+
+    def pause(self):
+        assert self._runner is not None
+        self._runner.signals.put("pause")
+
+    def play(self):
+        assert self._runner is not None
+        self._runner.signals.put("play")
+
+    def step(self):
+        assert self._runner is not None
+        self._runner.signals.put("step")
+
+    def _start_run(self):
+        if self._run_task is not None:
             raise RuntimeError("Already running on a thread!")
 
-        self._cancel = Queue()
-        self._run_task = self._threads.submit(
-            self.simulation.run, self.app_server, self._cancel
-        )
+        self._runner = InternalRunner(self.simulation, self.app_server)
+        self._run_task = self._threads.submit(self._runner.run)
 
-    def cancel_run(self):
-        if self._cancel is not None:
-            self._cancel.put("cancel")
-            self._cancel = None
+    def _cancel_run(self):
+        if self._runner is not None:
+            self._runner.signals.put("cancel")
+            self._runner = None
 
         if self._run_task is not None:
             self._run_task.result()
             self._run_task = None
 
-    @property
-    def is_running(self) -> bool:
-        # ideally we'd just check _run_task.running(), but there can be a delay
-        # between the task starting and hitting the running state.
-        return self._run_task is not None and (
-            self._run_task.cancelled() or self._run_task.done()
-        )
-
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+
+class InternalRunner:
+    def __init__(self, simulation: Simulation, app_server: NanoverImdApplication):
+        self.simulation = simulation
+        self.simulation.app_server = app_server
+
+        self.signals = Queue()
+        self.cancelled = False
+        self.paused = False
+
+        self.variable_interval_generator = VariableIntervalGenerator(1 / 30)
+
+    def run(self):
+        self.simulation.load()
+        self.simulation.reset()
+
+        for dt in self.variable_interval_generator.yield_interval():
+            self.handle_signals()
+
+            if self.cancelled:
+                break
+            if not self.paused:
+                self.simulation.advance_by_seconds(dt)
+
+    def handle_signals(self):
+        with suppress(Empty):
+            while signal := self.signals.get_nowait():
+                match signal:
+                    case "pause":
+                        self.paused = True
+                    case "play":
+                        self.paused = False
+                    case "step":
+                        self.paused = True
+                        self.simulation.advance_by_one_step()
+                    case "reset":
+                        self.simulation.reset()
+                    case "cancel":
+                        self.cancelled = True

@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from pathlib import Path
-from queue import Queue
 from typing import Optional, Any
 
 from ase import units, Atoms
@@ -15,7 +14,6 @@ from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.openmm import serializer
-from nanover.utilities.timing import VariableIntervalGenerator
 
 
 @dataclass
@@ -32,9 +30,6 @@ class ASEOpenMMSimulation:
         self.xml_path = path
         self.app_server: Optional[NanoverImdApplication] = None
 
-        self._variable_interval_generator = VariableIntervalGenerator(1 / 30)
-
-        self.paused = False
         self.frame_interval = 5
 
         self.atoms: Optional[Atoms] = None
@@ -84,12 +79,12 @@ class ASEOpenMMSimulation:
             cell=self.atoms.get_cell(),
         )
 
-    def reset(self, simulation_counter=0):
+    def reset(self):
         # replace previous frame method with fresh instance
         self.dynamics.observers.clear()
         self.dynamics.attach(
             send_ase_frame(
-                self.atoms, self.app_server.frame_publisher, simulation_counter
+                self.atoms, self.app_server.frame_publisher
             ),
             interval=self.frame_interval,
         )
@@ -98,17 +93,11 @@ class ASEOpenMMSimulation:
         self.atoms.set_velocities(self.checkpoint.velocities)
         self.atoms.set_cell(self.checkpoint.cell)
 
-    def run(self, app_server: NanoverImdApplication, cancel: Queue):
-        self.app_server = app_server
+    def advance_by_one_step(self):
+        self.advance_to_next_report()
 
-        self.load()
-        self.reset()
-
-        for _ in self._variable_interval_generator.yield_interval():
-            if not cancel.empty():
-                break
-            if not self.paused:
-                self.advance_to_next_report()
+    def advance_by_seconds(self, dt: float):
+        self.advance_to_next_report()
 
     def advance_to_next_report(self):
         self.dynamics.run(self.frame_interval)

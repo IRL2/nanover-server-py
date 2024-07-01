@@ -28,40 +28,42 @@ def handle_user_arguments() -> argparse.Namespace:
 
     parser.add_argument(
         "--omm",
-        "--openmm",
         dest="openmm_xml_entries",
         action="append",
-        nargs=1,
         default=[],
+        metavar="PATH",
         help="Simulation to run via OpenMM (XML format)",
     )
 
     parser.add_argument(
-        "--ase",
         "--ase-omm",
-        "--ase-openmm",
         dest="ase_xml_entries",
         action="append",
-        nargs=1,
         default=[],
+        metavar="PATH",
         help="Simulation to run via ASE OpenMM (XML format)",
     )
 
     parser.add_argument(
         "--playback",
-        "--recording",
         dest="recording_entries",
         action="append",
         nargs="+",
         default=[],
+        metavar="PATH",
         help="Recorded session to playback (one or both of .traj and .state)",
+    )
+
+    parser.add_argument(
+        "--record",
+        dest="record_to_path",
+        metavar="PATH",
+        help="Filename to record trajectory and state updates to.",
     )
 
     parser.add_argument(
         "-n",
         "--name",
-        type=str,
-        default=None,
         help="Give a friendly name to the server.",
     )
     parser.add_argument("-p", "--port", type=int, default=None)
@@ -71,10 +73,7 @@ def handle_user_arguments() -> argparse.Namespace:
     return arguments
 
 
-def main():
-    """
-    Entry point for the command line.
-    """
+def initialise():
     arguments = handle_user_arguments()
 
     app_server = NanoverImdApplication.basic_server(
@@ -88,25 +87,38 @@ def main():
     for paths in arguments.recording_entries:
         runner.add_simulation(PlaybackSimulation.from_paths(paths))
 
-    for (path,) in arguments.openmm_xml_entries:
+    for path in arguments.openmm_xml_entries:
         runner.add_simulation(OpenMMSimulation(path))
 
-    for (path,) in arguments.ase_xml_entries:
+    for path in arguments.ase_xml_entries:
         runner.add_simulation(ASEOpenMMSimulation(path))
 
-    print(
-        f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
-        f"discoverable on all interfaces on port {runner.app_server.discovery.port}"
-    )
+    if arguments.record_to_path is not None:
+        traj_path = f"{arguments.record_to_path}.traj"
+        state_path = f"{arguments.record_to_path}.state"
+        print(f"TODO: record to {traj_path} & {state_path}")
 
-    list = ", ".join(
-        f'{index}: "{simulation.name}"'
-        for index, simulation in enumerate(runner.simulations)
-    )
-    print(f"Available simulations: {list}")
+    return runner
 
-    with runner:
-        runner.next()
+
+def main():
+    """
+    Entry point for the command line.
+    """
+    with initialise() as runner:
+        print(
+            f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
+            f"discoverable on all interfaces on port {runner.app_server.discovery.port}"
+        )
+
+        list = "\n".join(
+            f'{index}: "{simulation.name}"'
+            for index, simulation in enumerate(runner.simulations)
+        )
+        print(f"Available simulations:\n{list}")
+
+        if len(runner.simulations) > 0:
+            runner.next()
         try:
             while True:
                 time.sleep(1)

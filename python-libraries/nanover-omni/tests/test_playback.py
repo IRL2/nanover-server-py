@@ -39,7 +39,7 @@ def test_reset_clears_frame(example_playback):
 def test_step_gives_exactly_one_emit(example_playback):
     with patch.object(example_playback, "emit", autospec=True) as emit:
         for i in range(1, 100):
-            example_playback.step()
+            example_playback.advance_by_one_step()
             assert emit.call_count == i
 
 
@@ -51,9 +51,9 @@ def test_step_loops(example_playback):
     example_playback.next_entry_index = len(example_playback.entries) - 1
 
     with patch.object(example_playback, "emit", autospec=True) as emit:
-        example_playback.step()
+        example_playback.advance_by_one_step()
         emit.reset_mock()
-        example_playback.step()
+        example_playback.advance_by_one_step()
 
     assert example_playback.next_entry_index == 1
     emit.assert_called_once_with(frame=first_frame, update=first_update)

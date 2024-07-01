@@ -1,5 +1,5 @@
+from os import PathLike
 from pathlib import Path
-from queue import Queue
 from typing import List, Optional, Tuple, Iterable
 
 from nanover.app import NanoverImdApplication
@@ -9,7 +9,6 @@ from nanover.recording.parsing import (
 )
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.utilities.timing import yield_interval
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 
@@ -18,7 +17,7 @@ Entry = Tuple[float, Optional[FrameEntry], Optional[DictionaryChange]]
 
 class PlaybackSimulation:
     @classmethod
-    def from_paths(cls, paths: Iterable[str]):
+    def from_paths(cls, paths: Iterable[PathLike[str]]):
         paths = [Path(path) for path in paths]
         traj_path = next((path for path in paths if path.suffix == ".traj"), None)
         state_path = next((path for path in paths if path.suffix == ".state"), None)
@@ -30,7 +29,11 @@ class PlaybackSimulation:
         )
 
     def __init__(
-        self, name, *, traj: Optional[str] = None, state: Optional[str] = None
+        self,
+        name,
+        *,
+        traj: Optional[PathLike[str]] = None,
+        state: Optional[PathLike[str]] = None
     ):
         self.name = name
         self.traj_path = traj
@@ -52,18 +55,6 @@ class PlaybackSimulation:
             for time, frame, update in entries
         ]
 
-    def run(self, app_server: NanoverImdApplication, cancel: Queue):
-        self.app_server = app_server
-
-        self.load()
-        self.reset()
-
-        for dt in yield_interval(1 / 30):
-            if not cancel.empty():
-                break
-            if not self.paused:
-                self.advance_by_seconds(dt)
-
     def reset(self):
         self.next_entry_index = 0
         self.frame_index = 0
@@ -72,14 +63,7 @@ class PlaybackSimulation:
         # clear simulation
         self.emit(frame=FrameData(), update=None)
 
-    def pause(self):
-        self.paused = True
-
-    def play(self):
-        self.paused = False
-
-    def step(self):
-        self.paused = True
+    def advance_by_one_step(self):
         self.advance_to_next_entry()
 
     def advance_by_seconds(self, dt: float):
