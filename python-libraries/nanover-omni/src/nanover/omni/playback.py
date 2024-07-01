@@ -5,11 +5,11 @@ from typing import List, Optional, Tuple, Iterable
 from nanover.app import NanoverImdApplication
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.recording.reading import FrameEntry, iter_recording_files
+from nanover.recording.reading import iter_recording_files
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 
-Entry = Tuple[float, Optional[FrameEntry], Optional[DictionaryChange]]
+Entry = Tuple[float, Optional[FrameData], Optional[DictionaryChange]]
 
 
 class PlaybackSimulation:

@@ -1,5 +1,14 @@
 from os import PathLike
-from typing import Tuple, Iterable, BinaryIO, Protocol, Callable, TypeVar, Optional, Iterator
+from typing import (
+    Tuple,
+    Iterable,
+    BinaryIO,
+    Protocol,
+    Callable,
+    TypeVar,
+    Optional,
+    Iterator,
+)
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
 from nanover.state.state_service import state_update_to_dictionary_change
@@ -18,8 +27,12 @@ def iter_recording_files(
     Iterate one or both of trajectory and state recording files, yield a timestamp and one or both of frame and update
     that occurred at that instant.
     """
-    frames: Iterator[Tuple[int, int, FrameData]] = iter([]) if traj is None else iter_trajectory_file(traj)
-    updates: Iterator[Tuple[int, StateUpdate]] = iter([]) if state is None else iter_state_file(state)
+    frames: Iterator[Tuple[int, int, FrameData]] = (
+        iter([]) if traj is None else iter_trajectory_file(traj)
+    )
+    updates: Iterator[Tuple[int, StateUpdate]] = (
+        iter([]) if state is None else iter_state_file(state)
+    )
 
     next_frame = next(frames, None)
     next_update = next(updates, None)
