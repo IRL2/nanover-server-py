@@ -83,9 +83,7 @@ class ASEOpenMMSimulation:
         # replace previous frame method with fresh instance
         self.dynamics.observers.clear()
         self.dynamics.attach(
-            send_ase_frame(
-                self.atoms, self.app_server.frame_publisher
-            ),
+            send_ase_frame(self.atoms, self.app_server.frame_publisher),
             interval=self.frame_interval,
         )
 

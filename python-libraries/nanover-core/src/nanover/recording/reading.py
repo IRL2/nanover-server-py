@@ -1,4 +1,4 @@
-from typing import Tuple, Iterable, BinaryIO, Protocol, Callable, TypeVar
+from typing import Tuple, Iterable, BinaryIO, Protocol, Callable, TypeVar, Optional
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
 from nanover.state.state_service import state_update_to_dictionary_change
@@ -7,6 +7,32 @@ from nanover.trajectory import FrameData, MissingDataError
 MAGIC_NUMBER = 6661355757386708963
 
 FrameEntry = Tuple[int, int, FrameData]
+
+
+def iter_recording_files(*, traj: Optional[str] = None, state: Optional[str] = None):
+    """
+    Iterate one or both of trajectory and state recording files, yield a timestamp and one or both of frame and update
+    that occurred at that instant.
+    """
+    frames = iter([]) if traj is None else iter_trajectory_file(traj)
+    updates = iter([]) if state is None else iter_state_file(state)
+
+    next_frame = next(frames, None)
+    next_update = next(updates, None)
+
+    while next_frame is not None and next_update is not None:
+        frame = None
+        update = None
+
+        time = min(next_frame[0], next_update[0])
+        if next_frame is not None and next_frame[0] == time:
+            frame = next_frame[2]
+            next_frame = next(frames, None)
+        if next_update is not None and next_update[0] == time:
+            update = next_update[1]
+            next_update = next(updates, None)
+
+        yield time, frame, update
 
 
 def iter_trajectory_file(path):
