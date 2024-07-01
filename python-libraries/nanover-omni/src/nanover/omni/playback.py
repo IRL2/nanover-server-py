@@ -41,7 +41,7 @@ class PlaybackSimulation:
         self.entries: List[Entry] = []
         self.next_entry_index = 0
         self.frame_index = 0
-        self.time = 0
+        self.time = 0.0
 
         self.paused = False
 
@@ -55,7 +55,7 @@ class PlaybackSimulation:
     def reset(self):
         self.next_entry_index = 0
         self.frame_index = 0
-        self.time = 0
+        self.time = 0.0
 
         # clear simulation
         self.emit(frame=FrameData(), update=None)

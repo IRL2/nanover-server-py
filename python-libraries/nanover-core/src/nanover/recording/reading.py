@@ -1,3 +1,4 @@
+from os import PathLike
 from typing import Tuple, Iterable, BinaryIO, Protocol, Callable, TypeVar, Optional
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
@@ -9,7 +10,9 @@ MAGIC_NUMBER = 6661355757386708963
 FrameEntry = Tuple[int, int, FrameData]
 
 
-def iter_recording_files(*, traj: Optional[str] = None, state: Optional[str] = None):
+def iter_recording_files(
+    *, traj: Optional[PathLike[str]] = None, state: Optional[PathLike[str]] = None
+):
     """
     Iterate one or both of trajectory and state recording files, yield a timestamp and one or both of frame and update
     that occurred at that instant.

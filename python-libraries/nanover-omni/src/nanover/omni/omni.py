@@ -118,7 +118,7 @@ class InternalRunner:
         self.simulation = simulation
         self.simulation.app_server = app_server
 
-        self.signals = Queue()
+        self.signals: Queue[str] = Queue()
         self.cancelled = False
         self.paused = False
 

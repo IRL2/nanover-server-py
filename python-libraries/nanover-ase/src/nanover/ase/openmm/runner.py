@@ -35,9 +35,7 @@ CONSTRAINTS_UNSUPPORTED_MESSAGE = (
 )
 
 
-def openmm_ase_frame_adaptor(
-    ase_atoms: Atoms, frame_publisher: FramePublisher
-):
+def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
     """
     Generates and sends frames for a simulation using an :class: OpenMMCalculator.
     """
