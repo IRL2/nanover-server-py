@@ -13,7 +13,7 @@ RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
 RECORDING_PATH_STATE = EXAMPLES_PATH / "nanotube-example-recording.state"
 
 
-def test_parse_traj():
+def test_n_frames():
     """
     Test an example recording has the expected number of frames.
     """
@@ -21,7 +21,7 @@ def test_parse_traj():
     assert len(frames) == 930
 
 
-def test_parse_state():
+def test_n_updates():
     """
     Test an example recording has the expected number of updates.
     """

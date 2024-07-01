@@ -5,7 +5,7 @@ from itertools import zip_longest
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
 from nanover.recording.reading import iter_recording_entries
-from nanover.recording.writing import write_header, write_entry
+from nanover.recording.writing import write_header, write_entry, record_entries
 from nanover.state.state_service import dictionary_change_to_state_update
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
@@ -35,6 +35,9 @@ def random_change():
 
 
 def test_reads_written_frames():
+    """
+    Test that a written sequence of frames is read back the same.
+    """
     entries = [
         (
             i * 100000 + random.randint(0, 50000),
@@ -44,9 +47,7 @@ def test_reads_written_frames():
     ]
 
     with BytesIO() as io:
-        write_header(io)
-        for timestamp, message in entries:
-            write_entry(io, timestamp, message)
+        record_entries(io, entries)
 
         io.seek(0)
 
@@ -55,6 +56,9 @@ def test_reads_written_frames():
 
 
 def test_reads_written_updates():
+    """
+    Test that a written sequence of updates is read back the same.
+    """
     entries = [
         (
             i * 100000 + random.randint(0, 50000),
