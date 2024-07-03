@@ -1,4 +1,3 @@
-import time
 from concurrent.futures import ThreadPoolExecutor
 
 import grpc
