@@ -1,8 +1,6 @@
 import time
 from unittest.mock import mock_open, patch
 
-import pytest
-
 from nanover.omni.cli import initialise
 from common import ARGON_XML_PATH, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
 
