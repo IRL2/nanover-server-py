@@ -38,8 +38,6 @@ class ASEOpenMMSimulation:
         self.checkpoint: Optional[InitialState] = None
 
     def load(self):
-        assert self.app_server is not None
-
         platform = None
         walls = False
         time_step = 1
