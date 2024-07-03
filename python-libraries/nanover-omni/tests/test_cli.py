@@ -10,7 +10,7 @@ def test_record_opens_files():
     """
     Test that the expected files are opened for writing during recording.
     """
-    with initialise(["--record", "test"]):
+    with initialise(["--record", "test", "--port", "0"]):
         pass
 
     open.assert_any_call("test.traj", "wb")
