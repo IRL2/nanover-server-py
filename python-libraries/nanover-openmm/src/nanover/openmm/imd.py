@@ -49,7 +49,7 @@ receives the interactions. It can be use instead of
 
 """
 
-from typing import Tuple, Dict, List, Set, Optional, NamedTuple
+from typing import Dict, List, Set, Optional, NamedTuple
 import itertools
 
 import numpy as np
