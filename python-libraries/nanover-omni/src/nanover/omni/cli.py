@@ -77,13 +77,11 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
 def initialise(args=None):
     arguments = handle_user_arguments(args)
 
-    app_server = NanoverImdApplication.basic_server(
+    runner = OmniRunner.with_basic_server(
         name=arguments.name,
         address=arguments.address,
         port=arguments.port,
     )
-
-    runner = OmniRunner(app_server)
 
     for paths in arguments.recording_entries:
         runner.add_simulation(PlaybackSimulation.from_paths(paths))
@@ -100,7 +98,7 @@ def initialise(args=None):
         print(f"Recording to {traj_path} & {state_path}")
 
         record_from_server(
-            f"localhost:{app_server.port}",
+            f"localhost:{runner.app_server.port}",
             traj_path,
             state_path,
         )

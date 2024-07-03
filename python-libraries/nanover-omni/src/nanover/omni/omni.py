@@ -26,6 +26,16 @@ class Simulation(Protocol):
 
 
 class OmniRunner:
+    @classmethod
+    def with_basic_server(
+        cls,
+        name: Optional[str] = None,
+        address: Optional[str] = None,
+        port: Optional[str] = None,
+    ):
+        app_server = NanoverImdApplication.basic_server(name, address, port)
+        return cls(app_server)
+
     def __init__(self, app_server: NanoverImdApplication):
         self._app_server = app_server
 
