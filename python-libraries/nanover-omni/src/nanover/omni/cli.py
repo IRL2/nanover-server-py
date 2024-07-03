@@ -11,6 +11,7 @@ from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.ase_omm import ASEOpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
+from nanover.omni.record import record_from_server
 
 
 def handle_user_arguments() -> argparse.Namespace:
@@ -96,7 +97,13 @@ def initialise():
     if arguments.record_to_path is not None:
         traj_path = f"{arguments.record_to_path}.traj"
         state_path = f"{arguments.record_to_path}.state"
-        print(f"TODO: record to {traj_path} & {state_path}")
+        print(f"Recording to {traj_path} & {state_path}")
+
+        record_from_server(
+            f"localhost:{app_server.port}",
+            traj_path,
+            state_path,
+        )
 
     return runner
 
