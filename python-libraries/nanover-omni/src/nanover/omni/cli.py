@@ -6,7 +6,6 @@ import time
 import textwrap
 import argparse
 
-from nanover.app import NanoverImdApplication
 from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.ase_omm import ASEOpenMMSimulation
