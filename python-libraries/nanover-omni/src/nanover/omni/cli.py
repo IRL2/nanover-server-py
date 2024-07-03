@@ -14,7 +14,7 @@ from nanover.omni.playback import PlaybackSimulation
 from nanover.omni.record import record_from_server
 
 
-def handle_user_arguments() -> argparse.Namespace:
+def handle_user_arguments(args=None) -> argparse.Namespace:
     """
     Parse the arguments from the command line.
 
@@ -70,12 +70,12 @@ def handle_user_arguments() -> argparse.Namespace:
     parser.add_argument("-p", "--port", type=int, default=None)
     parser.add_argument("-a", "--address", default=None)
 
-    arguments = parser.parse_args()
+    arguments = parser.parse_args(args)
     return arguments
 
 
-def initialise():
-    arguments = handle_user_arguments()
+def initialise(args=None):
+    arguments = handle_user_arguments(args)
 
     app_server = NanoverImdApplication.basic_server(
         name=arguments.name,
