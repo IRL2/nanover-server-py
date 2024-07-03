@@ -131,8 +131,8 @@ class NanoverImdReporter:
         # - not the velocities
         # - not the forces
         # - the energies
-        # - positions are unwrapped
-        return steps, True, False, False, True, True
+        # - positions are not wrapped
+        return steps, True, False, False, True, False
 
     def report(self, simulation: app.Simulation, state: mm.State) -> None:
         """
