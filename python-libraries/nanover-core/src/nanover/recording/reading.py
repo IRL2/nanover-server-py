@@ -61,9 +61,7 @@ class Parseable(Protocol):
 TMessage = TypeVar("TMessage", bound=Parseable)
 
 
-def iter_recording_entries(
-    io: BinaryIO, message_type: Callable[[], TMessage]
-):
+def iter_recording_entries(io: BinaryIO, message_type: Callable[[], TMessage]):
     for elapsed, buffer in iter_recording_buffers(io):
         instance = message_type()
         instance.ParseFromString(buffer)
