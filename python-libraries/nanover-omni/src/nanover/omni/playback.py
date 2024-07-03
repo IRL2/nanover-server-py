@@ -52,7 +52,8 @@ class PlaybackSimulation:
             for time, frame, update in entries
         ]
 
-    def reset(self):
+    def reset(self, app_server: NanoverImdApplication):
+        self.app_server = app_server
         self.next_entry_index = 0
         self.frame_index = 0
         self.time = 0.0

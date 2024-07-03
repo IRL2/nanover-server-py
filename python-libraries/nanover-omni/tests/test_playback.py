@@ -6,30 +6,27 @@ import pytest
 from nanover.omni.playback import PlaybackSimulation
 from nanover.trajectory import FrameData
 
-
-EXAMPLES_PATH = Path(__file__).parent
-RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
-RECORDING_PATH_STATE = EXAMPLES_PATH / "nanotube-example-recording.state"
+from common import app_server, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
 
 
 @pytest.fixture
-def example_playback():
+def example_playback(app_server):
     sim = PlaybackSimulation(
         "nanotube-example-recording",
         traj=RECORDING_PATH_TRAJ,
         state=RECORDING_PATH_STATE,
     )
     sim.load()
-    sim.reset()
+    sim.reset(app_server)
     yield sim
 
 
-def test_reset_clears_frame(example_playback):
+def test_reset_clears_frame(example_playback, app_server):
     """
     Test that resetting the simulation emits an empty frame.
     """
     with patch.object(example_playback, "emit", autospec=True) as emit:
-        example_playback.reset()
+        example_playback.reset(app_server)
 
     # reset frame empty data on frame index 0 -- frame index seems to be a very confused concept..
     assert example_playback.frame_index == 0

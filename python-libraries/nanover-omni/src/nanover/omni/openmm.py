@@ -27,6 +27,7 @@ class OpenMMSimulation:
         platform = None
 
         with open(str(self.xml_path)) as infile:
+            self.imd_force = create_imd_force()
             self.simulation = serializer.deserialize_simulation(
                 infile.read(), imd_force=self.imd_force, platform_name=platform
             )
@@ -37,13 +38,10 @@ class OpenMMSimulation:
         self.simulation = None
         self.checkpoint = None
 
-    def reset(self):
-        assert (
-            self.simulation is not None
-            and self.checkpoint is not None
-            and self.app_server is not None
-        )
+    def reset(self, app_server: NanoverImdApplication):
+        assert self.simulation is not None and self.checkpoint is not None
 
+        self.app_server = app_server
         self.simulation.context.loadCheckpoint(self.checkpoint)
 
         try:

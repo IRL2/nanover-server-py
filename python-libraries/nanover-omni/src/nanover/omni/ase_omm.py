@@ -69,24 +69,24 @@ class ASEOpenMMSimulation:
             fixcm=False,
         )
 
-        self.atoms.calc = ImdCalculator(
-            self.app_server.imd,
-            self.dynamics.atoms.calc,
-            dynamics=self.dynamics,
-        )
-
         self.checkpoint = InitialState(
             positions=self.atoms.get_positions(),
             velocities=self.atoms.get_velocities(),
             cell=self.atoms.get_cell(),
         )
 
-    def reset(self):
+    def reset(self, app_server: NanoverImdApplication):
         assert (
-            self.app_server is not None
-            and self.dynamics is not None
+            self.dynamics is not None
             and self.atoms is not None
             and self.checkpoint is not None
+        )
+
+        self.app_server = app_server
+        self.atoms.calc = ImdCalculator(
+            self.app_server.imd,
+            self.dynamics.atoms.calc,
+            dynamics=self.dynamics,
         )
 
         # replace previous frame method with fresh instance

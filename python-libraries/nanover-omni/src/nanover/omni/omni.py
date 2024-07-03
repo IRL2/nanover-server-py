@@ -18,10 +18,9 @@ from nanover.utilities.timing import VariableIntervalGenerator
 
 class Simulation(Protocol):
     name: str
-    app_server: Optional[NanoverImdApplication]
 
     def load(self): ...
-    def reset(self): ...
+    def reset(self, app_server: NanoverImdApplication): ...
     def advance_by_one_step(self): ...
     def advance_by_seconds(self, dt: float): ...
 
@@ -117,7 +116,7 @@ class OmniRunner:
 class InternalRunner:
     def __init__(self, simulation: Simulation, app_server: NanoverImdApplication):
         self.simulation = simulation
-        self.simulation.app_server = app_server
+        self.app_server = app_server
 
         self.signals: Queue[str] = Queue()
         self.cancelled = False
@@ -127,7 +126,7 @@ class InternalRunner:
 
     def run(self):
         self.simulation.load()
-        self.simulation.reset()
+        self.simulation.reset(self.app_server)
 
         for dt in self.variable_interval_generator.yield_interval():
             self.handle_signals()
@@ -149,6 +148,6 @@ class InternalRunner:
                         self.paused = True
                         self.simulation.advance_by_one_step()
                     case "reset":
-                        self.simulation.reset()
+                        self.simulation.reset(self.app_server)
                     case "cancel":
                         self.cancelled = True
