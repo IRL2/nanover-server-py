@@ -1,3 +1,4 @@
+from contextlib import suppress
 from os import PathLike
 from pathlib import Path
 from typing import List, Optional, Tuple, Iterable
@@ -6,6 +7,7 @@ from nanover.app import NanoverImdApplication
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.recording.reading import iter_recording_files
+from nanover.utilities.key_lockable_map import ResourceLockedError
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 
@@ -67,16 +69,18 @@ class PlaybackSimulation:
     def advance_by_seconds(self, dt: float):
         next_time = self.time + dt
 
-        while self.entries[self.next_entry_index][0] <= next_time:
-            self.advance_to_next_entry()
-
-        # stall one second before looping to beginning
-        last_time = self.entries[-1][0]
-        self.time = next_time % (last_time + 1)
+        try:
+            while self.entries[self.next_entry_index][0] <= next_time:
+                self.advance_to_next_entry()
+        except IndexError:
+            self.next_entry_index = 0
+            self.time = 0
+        else:
+            self.time = next_time
 
     def advance_to_next_entry(self):
         time, frame, update = self.entries[self.next_entry_index]
-        self.next_entry_index = (self.next_entry_index + 1) % len(self.entries)
+        self.next_entry_index = self.next_entry_index + 1
         self.time = time
         self.emit(frame=frame, update=update)
 
@@ -88,4 +92,5 @@ class PlaybackSimulation:
             self.app_server.frame_publisher.send_frame(self.frame_index, frame)
             self.frame_index += 1
         if update is not None:
-            self.app_server.server.update_state(None, update)
+            with suppress(ResourceLockedError):
+                self.app_server.server.update_state(None, update)
