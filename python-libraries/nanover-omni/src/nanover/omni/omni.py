@@ -31,7 +31,7 @@ class OmniRunner:
         cls,
         name: Optional[str] = None,
         address: Optional[str] = None,
-        port: Optional[str] = None,
+        port: Optional[int] = None,
     ):
         app_server = NanoverImdApplication.basic_server(name, address, port)
         return cls(app_server)
