@@ -64,7 +64,12 @@ class PlaybackSimulation:
         self.emit(frame=FrameData(), update=None)
 
     def advance_by_one_step(self):
-        self.advance_to_next_entry()
+        try:
+            self.advance_to_next_entry()
+        except IndexError:
+            self.next_entry_index = 0
+            self.time = 0
+            self.advance_to_next_entry()
 
     def advance_by_seconds(self, dt: float):
         next_time = self.time + dt
