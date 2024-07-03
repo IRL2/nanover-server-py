@@ -151,7 +151,7 @@ class TestNanoverImdReporter:
         # step frame:     3 2 1 3 2 1 3
         # step forces:    4 3 2 1 4 3 2
         # step to return: 3 2 1 2 2 1 2
-        expectation = (expected_step, True, False, False, True, True)
+        expectation = (expected_step, True, False, False, True, False)
         _, simulation, reporter = app_simulation_and_reporter
         reporter.frame_interval = 3
         reporter.force_interval = 4

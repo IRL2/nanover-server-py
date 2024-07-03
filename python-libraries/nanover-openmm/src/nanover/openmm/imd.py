@@ -49,7 +49,7 @@ receives the interactions. It can be use instead of
 
 """
 
-from typing import Tuple, Dict, List, Set, Optional
+from typing import Tuple, Dict, List, Set, Optional, NamedTuple
 import itertools
 
 import numpy as np
@@ -67,7 +67,14 @@ from .converter import openmm_to_frame_data
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 
-NextReport = Tuple[int, bool, bool, bool, bool, bool]
+
+class NextReport(NamedTuple):
+    steps: int
+    include_positions: bool
+    include_velocities: bool
+    include_forces: bool
+    include_energies: bool
+    wrap_positions: bool
 
 
 class NanoverImdReporter:
@@ -126,13 +133,15 @@ class NanoverImdReporter:
         force_steps = self.force_interval - simulation.currentStep % self.force_interval
         frame_steps = self.frame_interval - simulation.currentStep % self.frame_interval
         steps = min(force_steps, frame_steps)
-        # The reporter needs:
-        # - the positions
-        # - not the velocities
-        # - not the forces
-        # - the energies
-        # - positions are not wrapped
-        return steps, True, False, False, True, False
+
+        return NextReport(
+            steps=steps,
+            include_positions=True,
+            include_velocities=False,
+            include_forces=False,
+            include_energies=True,
+            wrap_positions=False,
+        )
 
     def report(self, simulation: app.Simulation, state: mm.State) -> None:
         """
