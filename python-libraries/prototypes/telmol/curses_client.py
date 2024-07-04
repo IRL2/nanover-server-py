@@ -10,6 +10,7 @@ import textwrap
 from typing import Dict, Callable, Sequence, Any
 
 from nanover.app.app_server import DEFAULT_NANOVER_PORT
+from nanover.trajectory import MissingDataError
 
 try:
     import curses
@@ -118,6 +119,11 @@ class Renderer:
         self._offset = (0, 0, 0)
         self._recenter = True
 
+    def clear(self):
+        self.positions = None
+        self.elements = None
+        self.bonds = None
+
     def render(self):
         self.window.clear()
 
@@ -214,21 +220,23 @@ class CursesFrontend:
     def update(self):
         self.check_input()
 
-        if not self.client.first_frame:
-            return
-
         if self._render_timer.check():
             self.render()
 
     def render(self):
         self.stdscr.clear()
-        self.renderer.positions = np.array(
-            self.client.latest_frame.particle_positions, dtype=np.float32
-        )
-        self.renderer.bonds = self.client.first_frame.bond_pairs
-        self.renderer.elements = self.client.first_frame.particle_elements
+
+        try:
+            self.renderer.positions = np.array(
+                self.client.current_frame.particle_positions, dtype=np.float32
+            )
+            self.renderer.bonds = self.client.current_frame.bond_pairs
+            self.renderer.elements = self.client.current_frame.particle_elements
+        except MissingDataError:
+            self.renderer.clear()
 
         self.renderer.render()
+
         self.show_controls()
 
         self._fps_timer.checkpoint()
