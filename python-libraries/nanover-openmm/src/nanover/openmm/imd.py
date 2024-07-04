@@ -49,7 +49,7 @@ receives the interactions. It can be use instead of
 
 """
 
-from typing import Dict, List, Set, Optional, NamedTuple
+from typing import Dict, List, Set, Optional, NamedTuple, Tuple
 import itertools
 
 import numpy as np
@@ -114,6 +114,7 @@ class NanoverImdReporter:
         self._previous_force_index: Set[int] = set()
         self._frame_index = 0
         self._total_user_energy = 0.0
+        self._user_forces = np.zeros(self.positions)
 
         self._did_first_frame = False
         self._simulation_counter = simulation_counter
@@ -156,7 +157,7 @@ class NanoverImdReporter:
         if simulation.currentStep % self.force_interval == 0:
             interactions = self.imd_state.active_interactions
             positions = state.getPositions(asNumpy=True)
-            self._total_user_energy = self._update_forces(
+            self._total_user_energy, self._user_forces = self._update_forces(
                 positions.astype(float), interactions, simulation.context
             )
         if simulation.currentStep % self.frame_interval == 0:
@@ -171,6 +172,7 @@ class NanoverImdReporter:
             else:
                 frame_data.particle_positions = positions
                 frame_data.user_energy = self._total_user_energy
+                frame_data.user_forces = self._user_forces
                 self.frame_publisher.send_frame(self._frame_index, frame_data)
                 self._frame_index += 1
 
@@ -213,15 +215,16 @@ class NanoverImdReporter:
         positions: np.ndarray,
         interactions: Dict[str, ParticleInteraction],
         context: mm.Context,
-    ) -> float:
+    ) -> Tuple[float, npt.NDArray]:
         """
         Get the forces to apply from the iMD service and communicate them to
         OpenMM.
         """
         energy = 0.0
+        forces_kjmol = np.zeros(positions.shape)
         context_needs_update = False
         if interactions:
-            energy = self._apply_forces(positions, interactions)
+            energy, forces_kjmol = self._apply_forces(positions, interactions)
             context_needs_update = True
         elif self._is_force_dirty:
             self._reset_forces()
@@ -229,13 +232,13 @@ class NanoverImdReporter:
 
         if context_needs_update:
             self.imd_force.updateParametersInContext(context)
-        return energy
+        return energy, forces_kjmol
 
     def _apply_forces(
         self,
         positions: np.ndarray,
         interactions: Dict[str, ParticleInteraction],
-    ) -> float:
+    ) -> Tuple[float, npt.NDArray]:
         """
         Set the iMD forces based on the user interactions.
         """
@@ -255,7 +258,7 @@ class NanoverImdReporter:
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
         self._is_force_dirty = True
         self._previous_force_index = affected_particles
-        return energy
+        return energy, forces_kjmol
 
     def _reset_forces(self):
         """
