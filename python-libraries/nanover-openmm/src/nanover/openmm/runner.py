@@ -359,8 +359,7 @@ class OpenMMRunner(NanoverRunner):
             was_running = self.is_running
             self.cancel_run(wait=True)
             self._simulation_index = int(index % len(self.simulations))
-            self.simulation_entry.reset(self.app_server, self._simulation_counter)
-            self._simulation_counter += 1
+            self.simulation_entry.reset(self.app_server)
         if was_running:
             self.run()
 
@@ -462,7 +461,7 @@ class SimulationEntry:
         # or forces created for another purpose.
         self._imd_force = potential_imd_forces[-1]
 
-    def reset(self, app_server, simulation_counter):
+    def reset(self, app_server):
         try:
             self.simulation.reporters.remove(self.reporter)
         except ValueError:
