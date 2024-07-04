@@ -57,8 +57,11 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     parser.add_argument(
         "--record",
         dest="record_to_path",
+        nargs="?",
         metavar="PATH",
-        help="Filename to record trajectory and state updates to.",
+        help="Record trajectory and state to files.",
+        default=None,
+        const="",
     )
 
     parser.add_argument(
@@ -92,8 +95,12 @@ def initialise(args=None):
         runner.add_simulation(ASEOpenMMSimulation(path))
 
     if arguments.record_to_path is not None:
-        traj_path = f"{arguments.record_to_path}.traj"
-        state_path = f"{arguments.record_to_path}.state"
+        stem = arguments.record_to_path
+        if stem == "":
+            stem = f"omni-recording-{time.strftime("%Y-%m-%d-%H%M-%S", time.gmtime())}"
+
+        traj_path = f"{stem}.traj"
+        state_path = f"{stem}.state"
         print(f"Recording to {traj_path} & {state_path}")
 
         record_from_server(
