@@ -328,9 +328,7 @@ class NanoverASEDynamics:
         # replace previous frame method with fresh instance
         self.dynamics.observers.clear()
         self.dynamics.attach(
-            self._frame_method(
-                self.atoms, self._frame_publisher, self._simulation_counter
-            ),
+            self._frame_method(self.atoms, self._frame_publisher),
             interval=self._frame_interval,
         )
 
