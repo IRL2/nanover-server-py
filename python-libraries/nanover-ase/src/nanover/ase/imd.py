@@ -94,7 +94,6 @@ class NanoverASEDynamics:
         self.on_reset_listeners = []
         self.logger = logging.getLogger(__name__)
 
-        self._simulation_counter = -1
         self.replace_dynamics(dynamics, reset=False)
 
     @classmethod
@@ -313,8 +312,6 @@ class NanoverASEDynamics:
 
         if reset:
             self.reset()
-
-        self._simulation_counter += 1
 
         # replace dynamics and calculator
         self.dynamics = dynamics
