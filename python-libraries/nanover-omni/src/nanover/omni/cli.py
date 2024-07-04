@@ -101,15 +101,15 @@ def initialise_runner(arguments: argparse.Namespace):
                     f"omni-recording-{time.strftime("%Y-%m-%d-%H%M-%S", time.gmtime())}"
                 )
 
-                traj_path = f"{stem}.traj"
-                state_path = f"{stem}.state"
-                print(f"Recording to {traj_path} & {state_path}")
+            traj_path = f"{stem}.traj"
+            state_path = f"{stem}.state"
+            print(f"Recording to {traj_path} & {state_path}")
 
-                record_from_server(
-                    f"localhost:{runner.app_server.port}",
-                    traj_path,
-                    state_path,
-                )
+            record_from_server(
+                f"localhost:{runner.app_server.port}",
+                traj_path,
+                state_path,
+            )
 
         yield runner
 
