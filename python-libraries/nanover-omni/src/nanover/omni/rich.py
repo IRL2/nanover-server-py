@@ -1,7 +1,7 @@
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical, Grid
+from textual.containers import Horizontal, Vertical, Grid
 from textual.reactive import reactive
-from textual.widgets import Button, Footer, Header, Label, RadioSet, RadioButton, Select
+from textual.widgets import Button, Label, RadioSet
 
 from nanover.omni import OmniRunner
 
@@ -22,7 +22,7 @@ class OmniTextualApp(App):
 
     def update(self):
         running = self.omni.simulation is not None
-        paused = self.omni._runner.paused
+        paused = self.omni.paused
 
         name = "None" if not running else self.omni.simulation.name
         self.query_one("#status", Label).update(f"Running: {name}")
