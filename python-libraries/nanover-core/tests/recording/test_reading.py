@@ -6,6 +6,7 @@ from nanover.recording.reading import (
     iter_trajectory_file,
     iter_state_file,
     iter_recording_buffers,
+    iter_recording_files,
 )
 
 from nanover.protocol.trajectory import GetFrameResponse
@@ -16,20 +17,30 @@ RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
 RECORDING_PATH_STATE = EXAMPLES_PATH / "nanotube-example-recording.state"
 
 
-def test_n_frames():
+@pytest.mark.parametrize("path,count", ((RECORDING_PATH_TRAJ, 930),))
+def test_n_frames(path, count):
     """
     Test an example recording has the expected number of frames.
     """
-    frames = list(iter_trajectory_file(RECORDING_PATH_TRAJ))
-    assert len(frames) == 930
+    frames = list(iter_trajectory_file(path))
+    assert len(frames) == count
 
 
-def test_n_updates():
+@pytest.mark.parametrize("path,count", ((RECORDING_PATH_STATE, 685),))
+def test_n_updates(path, count):
     """
     Test an example recording has the expected number of updates.
     """
-    updates = list(iter_state_file(RECORDING_PATH_STATE))
-    assert len(updates) == 685
+    updates = list(iter_state_file(path))
+    assert len(updates) == count
+
+
+@pytest.mark.parametrize(
+    "traj_path,state_path,count", ((RECORDING_PATH_TRAJ, RECORDING_PATH_STATE, 1578),)
+)
+def test_n_entries(traj_path, state_path, count):
+    entries = list(iter_recording_files(traj=traj_path, state=state_path))
+    assert len(entries) == count
 
 
 @pytest.mark.parametrize("path", (RECORDING_PATH_TRAJ, RECORDING_PATH_STATE))

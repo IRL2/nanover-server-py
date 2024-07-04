@@ -1,12 +1,56 @@
-from typing import Tuple, Iterable, BinaryIO, Protocol, Callable, TypeVar
+from os import PathLike
+from typing import (
+    Tuple,
+    Iterable,
+    BinaryIO,
+    Protocol,
+    Callable,
+    TypeVar,
+    Optional,
+    Iterator,
+)
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
 from nanover.state.state_service import state_update_to_dictionary_change
 from nanover.trajectory import FrameData, MissingDataError
+from nanover.utilities.change_buffers import DictionaryChange
 
 MAGIC_NUMBER = 6661355757386708963
 
 FrameEntry = Tuple[int, int, FrameData]
+
+
+def iter_recording_files(
+    *, traj: Optional[PathLike[str]] = None, state: Optional[PathLike[str]] = None
+):
+    """
+    Iterate one or both of trajectory and state recording files, yield a timestamp and one or both of frame and update
+    that occurred at that instant. Frame index is included in frame data under the key "index".
+    """
+    frames: Iterator[Tuple[int, int, FrameData]] = (
+        iter([]) if traj is None else iter_trajectory_file(traj)
+    )
+    updates: Iterator[Tuple[int, StateUpdate]] = (
+        iter([]) if state is None else iter_state_file(state)
+    )
+
+    next_frame = next(frames, None)
+    next_update = next(updates, None)
+
+    while next_frame is not None and next_update is not None:
+        frame: Optional[FrameData] = None
+        update: Optional[DictionaryChange] = None
+
+        time = min(next_frame[0], next_update[0])
+        if next_frame is not None and next_frame[0] == time:
+            _, index, frame = next_frame
+            frame.values["index"] = index
+            next_frame = next(frames, None)
+        if next_update is not None and next_update[0] == time:
+            _, update = next_update
+            next_update = next(updates, None)
+
+        yield time, frame, update
 
 
 def iter_trajectory_file(path):
@@ -94,7 +138,7 @@ def iter_recording_buffers(io: BinaryIO):
 
 def iter_trajectory_recording(io: BinaryIO):
     for elapsed, get_frame_response in iter_recording_entries(io, GetFrameResponse):
-        frame_index = get_frame_response.frame_index
+        frame_index: int = get_frame_response.frame_index
         frame = FrameData(get_frame_response.frame)
         yield (elapsed, frame_index, frame)
 
