@@ -25,7 +25,7 @@ def iter_recording_files(
 ):
     """
     Iterate one or both of trajectory and state recording files, yield a timestamp and one or both of frame and update
-    that occurred at that instant.
+    that occurred at that instant. Frame index is included in frame data under the key "index".
     """
     frames: Iterator[Tuple[int, int, FrameData]] = (
         iter([]) if traj is None else iter_trajectory_file(traj)
@@ -43,10 +43,11 @@ def iter_recording_files(
 
         time = min(next_frame[0], next_update[0])
         if next_frame is not None and next_frame[0] == time:
-            frame = next_frame[2]
+            _, index, frame = next_frame
+            frame.values["index"] = index
             next_frame = next(frames, None)
         if next_update is not None and next_update[0] == time:
-            update = next_update[1]
+            _, update = next_update
             next_update = next(updates, None)
 
         yield time, frame, update
