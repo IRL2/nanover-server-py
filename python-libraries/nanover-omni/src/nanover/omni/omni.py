@@ -68,6 +68,10 @@ class OmniRunner:
     def simulation(self):
         return self.simulations[self._simulation_index]
 
+    @property
+    def paused(self):
+        return self._runner.paused if self._runner is not None else None
+
     def add_simulation(self, simulation: Simulation):
         self.simulations.append(simulation)
 
