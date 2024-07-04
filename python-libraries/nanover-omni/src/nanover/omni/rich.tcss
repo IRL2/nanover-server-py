@@ -1,0 +1,22 @@
+Screen, Vertical, Horizontal {
+    align: center middle;
+}
+
+#status {
+    align: center middle;
+}
+
+#simulations {
+    align: center middle;
+
+    layout: grid;
+    grid-size: 3;
+}
+
+#controls {
+    align: center middle;
+}
+
+Button {
+    background: orange;
+}

@@ -5,6 +5,7 @@ Command line interface for nanover.omni.
 import time
 import textwrap
 import argparse
+from contextlib import contextmanager
 
 from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
@@ -71,70 +72,83 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
     parser.add_argument("-p", "--port", type=int, default=None)
     parser.add_argument("-a", "--address", default=None)
+    parser.add_argument("--rich", default=False, action="store_true")
 
     arguments = parser.parse_args(args)
     return arguments
 
 
-def initialise(args=None):
-    arguments = handle_user_arguments(args)
-
-    runner = OmniRunner.with_basic_server(
+@contextmanager
+def initialise_runner(arguments: argparse.Namespace):
+    with OmniRunner.with_basic_server(
         name=arguments.name,
         address=arguments.address,
         port=arguments.port,
-    )
+    ) as runner:
+        for paths in arguments.recording_entries:
+            runner.add_simulation(PlaybackSimulation.from_paths(paths))
 
-    for paths in arguments.recording_entries:
-        runner.add_simulation(PlaybackSimulation.from_paths(paths))
+        for path in arguments.openmm_xml_entries:
+            runner.add_simulation(OpenMMSimulation(path))
 
-    for path in arguments.openmm_xml_entries:
-        runner.add_simulation(OpenMMSimulation(path))
+        for path in arguments.ase_xml_entries:
+            runner.add_simulation(ASEOpenMMSimulation(path))
 
-    for path in arguments.ase_xml_entries:
-        runner.add_simulation(ASEOpenMMSimulation(path))
+        if arguments.record_to_path is not None:
+            stem = arguments.record_to_path
+            if stem == "":
+                stem = (
+                    f"omni-recording-{time.strftime("%Y-%m-%d-%H%M-%S", time.gmtime())}"
+                )
 
-    if arguments.record_to_path is not None:
-        stem = arguments.record_to_path
-        if stem == "":
-            stem = f"omni-recording-{time.strftime("%Y-%m-%d-%H%M-%S", time.gmtime())}"
+                traj_path = f"{stem}.traj"
+                state_path = f"{stem}.state"
+                print(f"Recording to {traj_path} & {state_path}")
 
-        traj_path = f"{stem}.traj"
-        state_path = f"{stem}.state"
-        print(f"Recording to {traj_path} & {state_path}")
+                record_from_server(
+                    f"localhost:{runner.app_server.port}",
+                    traj_path,
+                    state_path,
+                )
 
-        record_from_server(
-            f"localhost:{runner.app_server.port}",
-            traj_path,
-            state_path,
-        )
-
-    return runner
+        yield runner
 
 
 def main():
     """
     Entry point for the command line.
     """
-    with initialise() as runner:
-        print(
-            f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
-            f"discoverable on all interfaces on port {runner.app_server.discovery.port}"
-        )
+    arguments = handle_user_arguments()
 
-        list = "\n".join(
-            f'{index}: "{simulation.name}"'
-            for index, simulation in enumerate(runner.simulations)
-        )
-        print(f"Available simulations:\n{list}")
-
+    with initialise_runner(arguments) as runner:
         if len(runner.simulations) > 0:
             runner.next()
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("Closing due to keyboard interrupt.")
+
+        if arguments.rich:
+            try:
+                from nanover.omni.rich import OmniTextualApp
+            except ImportError as error:
+                print(f"Error: {error.msg}\nTry `pip install textual`")
+            else:
+                app = OmniTextualApp(runner)
+                app.run()
+        else:
+            print(
+                f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
+                f"discoverable on all interfaces on port {runner.app_server.discovery.port}"
+            )
+
+            list = "\n".join(
+                f'{index}: "{simulation.name}"'
+                for index, simulation in enumerate(runner.simulations)
+            )
+            print(f"Available simulations:\n{list}")
+
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                print("Closing due to keyboard interrupt.")
 
 
 if __name__ == "__main__":

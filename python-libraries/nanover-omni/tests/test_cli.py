@@ -1,7 +1,7 @@
 import time
 from unittest.mock import mock_open, patch
 
-from nanover.omni.cli import initialise
+from nanover.omni.cli import initialise_runner
 from common import ARGON_XML_PATH, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
 
 
@@ -10,7 +10,7 @@ def test_record_opens_files():
     """
     Test that the expected files are opened for writing during recording.
     """
-    with initialise(["--record", "test", "--port", "0"]):
+    with initialise_runner(["--record", "test", "--port", "0"]):
         pass
 
     open.assert_any_call("test.traj", "wb")
@@ -21,7 +21,7 @@ def test_cycle_multiple_sims():
     """
     Test that multiple sims can be given and cycled through.
     """
-    with initialise(
+    with initialise_runner(
         [
             "--port",
             "0",

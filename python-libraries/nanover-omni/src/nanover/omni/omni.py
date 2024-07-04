@@ -57,8 +57,8 @@ class OmniRunner:
         self._run_task: Optional[Future] = None
 
     def close(self):
-        self._cancel_run()
         self.app_server.close()
+        self._cancel_run()
 
     @property
     def app_server(self):
