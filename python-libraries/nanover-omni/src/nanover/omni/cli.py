@@ -7,6 +7,7 @@ import textwrap
 import argparse
 from contextlib import contextmanager
 from glob import glob
+from typing import Iterable
 
 from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
@@ -32,6 +33,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         "--omm",
         dest="openmm_xml_entries",
         action="append",
+        nargs="+",
         default=[],
         metavar="PATH",
         help="Simulation to run via OpenMM (XML format)",
@@ -41,6 +43,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         "--ase-omm",
         dest="ase_xml_entries",
         action="append",
+        nargs="+",
         default=[],
         metavar="PATH",
         help="Simulation to run via ASE OpenMM (XML format)",
@@ -79,6 +82,13 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     return arguments
 
 
+def get_all_paths(path_sets: Iterable[Iterable[str]]):
+    for paths in path_sets:
+        for pattern in paths:
+            for path in glob(pattern, recursive=True):
+                yield path
+
+
 @contextmanager
 def initialise_runner(arguments: argparse.Namespace):
     with OmniRunner.with_basic_server(
@@ -89,13 +99,11 @@ def initialise_runner(arguments: argparse.Namespace):
         for paths in arguments.recording_entries:
             runner.add_simulation(PlaybackSimulation.from_paths(paths))
 
-        for path in arguments.openmm_xml_entries:
-            for path in glob(path, recursive=True):
-                runner.add_simulation(OpenMMSimulation(path))
+        for path in get_all_paths(arguments.openmm_xml_entries):
+            runner.add_simulation(OpenMMSimulation(path))
 
-        for path in arguments.ase_xml_entries:
-            for path in glob(path, recursive=True):
-                runner.add_simulation(ASEOpenMMSimulation(path))
+        for path in get_all_paths(arguments.ase_xml_entries):
+            runner.add_simulation(ASEOpenMMSimulation(path))
 
         if arguments.record_to_path is not None:
             stem = arguments.record_to_path
