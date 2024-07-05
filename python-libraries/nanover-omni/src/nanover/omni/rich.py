@@ -26,9 +26,12 @@ class OmniTextualApp(App):
 
         name = "None" if not running else self.omni.simulation.name
         self.query_one("#status Label", Label).update(f"Running: {name}")
-        self.query_one("#controls").disabled = not running
         self.query_one("#play", Button).disabled = not paused
         self.query_one("#pause", Button).disabled = paused
+
+        for button in self.query("#controls Button"):
+            button.disabled = not running
+        self.query_one("#quit").disabled = False
 
     async def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:

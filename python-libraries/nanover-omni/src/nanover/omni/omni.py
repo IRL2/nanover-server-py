@@ -66,7 +66,10 @@ class OmniRunner:
 
     @property
     def simulation(self):
-        return self.simulations[self._simulation_index]
+        try:
+            return self.simulations[self._simulation_index]
+        except IndexError:
+            return None
 
     @property
     def paused(self):
