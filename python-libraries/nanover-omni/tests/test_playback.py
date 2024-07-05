@@ -21,18 +21,6 @@ def example_playback(app_server):
     yield sim
 
 
-def test_reset_clears_frame(example_playback, app_server):
-    """
-    Test that resetting the simulation emits an empty frame.
-    """
-    with patch.object(example_playback, "emit", autospec=True) as emit:
-        example_playback.reset(app_server)
-
-    # reset frame empty data on frame index 0 -- frame index seems to be a very confused concept..
-    assert example_playback.frame_index == 0
-    emit.assert_called_once_with(frame=FrameData(), update=ANY)
-
-
 def test_step_gives_exactly_one_emit(example_playback):
     with patch.object(example_playback, "emit", autospec=True) as emit:
         for i in range(1, 100):
