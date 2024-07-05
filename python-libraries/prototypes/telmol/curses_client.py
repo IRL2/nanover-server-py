@@ -235,6 +235,7 @@ class CursesFrontend:
         except MissingDataError:
             self.renderer.clear()
 
+        self.renderer.recenter_camera()
         self.renderer.render()
 
         self.show_controls()
