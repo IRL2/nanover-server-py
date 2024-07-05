@@ -90,11 +90,11 @@ def initialise_runner(arguments: argparse.Namespace):
             runner.add_simulation(PlaybackSimulation.from_paths(paths))
 
         for path in arguments.openmm_xml_entries:
-            for path in glob(path):
+            for path in glob(path, recursive=True):
                 runner.add_simulation(OpenMMSimulation(path))
 
         for path in arguments.ase_xml_entries:
-            for path in glob(path):
+            for path in glob(path, recursive=True):
                 runner.add_simulation(ASEOpenMMSimulation(path))
 
         if arguments.record_to_path is not None:
