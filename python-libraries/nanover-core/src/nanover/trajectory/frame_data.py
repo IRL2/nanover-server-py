@@ -18,7 +18,6 @@ BOND_ORDERS = "bond.orders"
 PARTICLE_POSITIONS = "particle.positions"
 PARTICLE_VELOCITIES = "particle.velocities"
 PARTICLE_FORCES = "particle.forces"
-USER_FORCES = "forces.user"
 PARTICLE_ELEMENTS = "particle.elements"
 PARTICLE_NAMES = "particle.names"
 PARTICLE_RESIDUES = (
@@ -38,6 +37,9 @@ KINETIC_ENERGY = "energy.kinetic"
 POTENTIAL_ENERGY = "energy.potential"
 TOTAL_ENERGY = "energy.total"
 USER_ENERGY = "energy.user.total"
+
+SPARSE_USER_FORCES = "forces.user.sparse"
+SPARSE_USER_INDEX = "forces.user.index"
 
 SERVER_TIMESTAMP = "server.timestamp"
 
@@ -189,13 +191,6 @@ class FrameData(metaclass=_FrameDataMeta):
         to_python=_n_by_3,
         to_raw=_flatten_array,
     )
-    user_forces: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
-        key=USER_FORCES,
-        record_type="arrays",
-        field_type="float",
-        to_python=_n_by_3,
-        to_raw=_flatten_array,
-    )
     particle_elements: List[int] = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_ELEMENTS,
         record_type="arrays",
@@ -296,6 +291,20 @@ class FrameData(metaclass=_FrameDataMeta):
         field_type="number_value",
         to_python=_as_is,
         to_raw=_as_is,
+    )
+    sparse_user_forces: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
+        key=SPARSE_USER_FORCES,
+        record_type="arrays",
+        field_type="float",
+        to_python=_n_by_3,
+        to_raw=_flatten_array,
+    )
+    sparse_user_index: float = _Shortcut(  # type: ignore[assignment]
+        key=SPARSE_USER_INDEX,
+        record_type="arrays",
+        field_type="float",
+        to_python=_n_by_3,
+        to_raw=_flatten_array,
     )
 
     box_vectors: List[List[float]] = _Shortcut(  # type: ignore[assignment]

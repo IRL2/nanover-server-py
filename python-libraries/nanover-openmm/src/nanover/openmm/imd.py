@@ -172,7 +172,9 @@ class NanoverImdReporter:
             else:
                 frame_data.particle_positions = positions
                 frame_data.user_energy = self._total_user_energy
-                frame_data.user_forces = self._user_forces
+                sparse_indices, sparse_forces = get_sparse_forces(self._user_forces)
+                frame_data.sparse_user_forces = sparse_forces
+                frame_data.sparse_user_index = sparse_indices
                 self.frame_publisher.send_frame(self._frame_index, frame_data)
                 self._frame_index += 1
 
@@ -360,3 +362,14 @@ def get_imd_forces_from_system(system: app.Simulation) -> List[mm.CustomExternal
         and force.getEnergyFunction() == IMD_FORCE_EXPRESSION
         and force.getNumParticles() == system_num_particles
     ]
+
+
+def get_sparse_forces(forces: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray]:
+    sparse_indices = np.unique(np.nonzero(forces)[0])
+    sparse_forces = np.zeros((sparse_indices.shape[0], 3))
+
+    for index in sparse_indices:
+        sparse_forces[index, :] = forces[index]
+
+    return sparse_indices, sparse_forces
+
