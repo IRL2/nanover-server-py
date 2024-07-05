@@ -36,7 +36,7 @@ def test_n_updates(path, count):
 
 
 @pytest.mark.parametrize(
-    "traj_path,state_path,count", ((RECORDING_PATH_TRAJ, RECORDING_PATH_STATE, 1578),)
+    "traj_path,state_path,count", ((RECORDING_PATH_TRAJ, RECORDING_PATH_STATE, 1615),)
 )
 def test_n_entries(traj_path, state_path, count):
     entries = list(iter_recording_files(traj=traj_path, state=state_path))
