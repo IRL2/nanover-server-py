@@ -1,3 +1,4 @@
+import math
 from os import PathLike
 from typing import (
     Tuple,
@@ -37,16 +38,19 @@ def iter_recording_files(
     next_frame = next(frames, None)
     next_update = next(updates, None)
 
-    while next_frame is not None and next_update is not None:
+    def get_time(entry):
+        return math.inf if entry is None else entry[0]
+
+    while next_frame is not None or next_update is not None:
         frame: Optional[FrameData] = None
         update: Optional[DictionaryChange] = None
 
-        time = min(next_frame[0], next_update[0])
-        if next_frame is not None and next_frame[0] == time:
+        time = min(get_time(next_frame), get_time(next_update))
+        if next_frame is not None and get_time(next_frame) == time:
             _, index, frame = next_frame
             frame.values["index"] = index
             next_frame = next(frames, None)
-        if next_update is not None and next_update[0] == time:
+        if next_update is not None and get_time(next_update) == time:
             _, update = next_update
             next_update = next(updates, None)
 
