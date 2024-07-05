@@ -1,5 +1,5 @@
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Vertical, Grid
+from textual.containers import Horizontal, Vertical, Grid, Container, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Button, Label, RadioSet
 
@@ -25,14 +25,10 @@ class OmniTextualApp(App):
         paused = self.omni.paused
 
         name = "None" if not running else self.omni.simulation.name
-        self.query_one("#status", Label).update(f"Running: {name}")
+        self.query_one("#status Label", Label).update(f"Running: {name}")
         self.query_one("#controls").disabled = not running
         self.query_one("#play", Button).disabled = not paused
         self.query_one("#pause", Button).disabled = paused
-
-    def on_radio_set_changed(self, event: RadioSet.Changed):
-        self.omni.load(int(event.pressed.id[1:]))
-        self.simulation = self.omni.simulation
 
     async def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
@@ -51,15 +47,15 @@ class OmniTextualApp(App):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="container"):
-            with Vertical():
-                yield Label(id="status")
-            with Grid(id="simulations"):
+            with Vertical(id="status"):
+                yield Label()
+            with VerticalScroll(id="simulations"):
                 for i, simulation in enumerate(self.omni.simulations):
-                    yield Button(f'Load "{simulation.name}"', id=f"_{i}")
+                    yield Button(f'{simulation.name}', id=f"_{i}")
             with Horizontal(id="controls"):
-                yield Button("Play", id="play")
-                yield Button("Pause", id="pause")
-                yield Button("Step", id="step")
-                yield Button("Reset", id="reset")
-            with Horizontal():
-                yield Button("Quit", id="quit")
+                with Horizontal():
+                    yield Button("Play", id="play")
+                    yield Button("Pause", id="pause")
+                    yield Button("Step", id="step")
+                    yield Button("Reset", id="reset")
+                    yield Button("Quit", id="quit")

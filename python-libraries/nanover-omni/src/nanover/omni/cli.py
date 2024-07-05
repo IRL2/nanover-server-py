@@ -6,6 +6,7 @@ import time
 import textwrap
 import argparse
 from contextlib import contextmanager
+from glob import glob
 
 from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
@@ -89,10 +90,12 @@ def initialise_runner(arguments: argparse.Namespace):
             runner.add_simulation(PlaybackSimulation.from_paths(paths))
 
         for path in arguments.openmm_xml_entries:
-            runner.add_simulation(OpenMMSimulation(path))
+            for path in glob(path):
+                runner.add_simulation(OpenMMSimulation(path))
 
         for path in arguments.ase_xml_entries:
-            runner.add_simulation(ASEOpenMMSimulation(path))
+            for path in glob(path):
+                runner.add_simulation(ASEOpenMMSimulation(path))
 
         if arguments.record_to_path is not None:
             stem = arguments.record_to_path
