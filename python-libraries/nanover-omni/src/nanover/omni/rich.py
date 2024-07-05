@@ -1,7 +1,7 @@
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Vertical, Grid, Container, VerticalScroll
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.reactive import reactive
-from textual.widgets import Button, Label, RadioSet
+from textual.widgets import Button, Label
 
 from nanover.omni import OmniRunner
 
@@ -54,7 +54,7 @@ class OmniTextualApp(App):
                 yield Label()
             with VerticalScroll(id="simulations"):
                 for i, simulation in enumerate(self.omni.simulations):
-                    yield Button(f'{simulation.name}', id=f"_{i}")
+                    yield Button(f"{simulation.name}", id=f"_{i}")
             with Horizontal(id="controls"):
                 with Horizontal():
                     yield Button("Play", id="play")
