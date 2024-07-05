@@ -372,4 +372,3 @@ def get_sparse_forces(forces: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray]:
         sparse_forces[index, :] = forces[index]
 
     return sparse_indices, sparse_forces
-
