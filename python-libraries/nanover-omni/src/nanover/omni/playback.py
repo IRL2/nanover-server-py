@@ -42,7 +42,6 @@ class PlaybackSimulation:
 
         self.entries: List[Entry] = []
         self.next_entry_index = 0
-        self.frame_index = 0
         self.time = 0.0
 
         self.paused = False
@@ -57,7 +56,6 @@ class PlaybackSimulation:
     def reset(self, app_server: NanoverImdApplication):
         self.app_server = app_server
         self.next_entry_index = 0
-        self.frame_index = 0
         self.time = 0.0
 
         # clear simulation
@@ -94,8 +92,8 @@ class PlaybackSimulation:
             return
 
         if frame is not None:
-            self.app_server.frame_publisher.send_frame(self.frame_index, frame)
-            self.frame_index += 1
+            index = 0 if "index" not in frame.values else int(frame.values["index"])
+            self.app_server.frame_publisher.send_frame(index, frame)
         if update is not None:
             with suppress(ResourceLockedError):
                 self.app_server.server.update_state(None, update)
