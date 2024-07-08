@@ -297,6 +297,7 @@ def add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData):
     :raises MissingDataError: if no positions exist in the universe.
     """
     try:
+        # convert from angstroms (mdanalysis) to nanometes (nanover)
         frame_data.particle_positions = u.atoms.positions * 0.1
     except AttributeError:
         raise MissingDataError("MDAnalysis universe has no positions.")
@@ -314,6 +315,7 @@ def add_frame_positions_to_mda(u: Universe, frame: FrameData):
     :param u: MDAnalysis :class:`Universe` to set positions of.
     :param frame: NanoVer :class:`FrameData` from which to extract positions.
     """
+    # convert from nanometers (nanover) to angstroms (mdanalysis)
     u.atoms.positions = np.array(frame.particle_positions) * 10
 
 
