@@ -1,4 +1,6 @@
 import os
+import warnings
+
 import pytest
 import itertools
 import numpy as np
@@ -46,11 +48,12 @@ def single_topology_universe():
 
 @pytest.fixture
 def multi_topology_universe():
-    return mda.Universe(
-        MULTI_TOPOLOGY_TRAJ,
-        format=NanoverReader,
-        topology_format=NanoverParser,
-    )
+    with warnings.catch_warnings(action="ignore", category=UserWarning):
+        return mda.Universe(
+            MULTI_TOPOLOGY_TRAJ,
+            format=NanoverReader,
+            topology_format=NanoverParser,
+        )
 
 
 @pytest.fixture

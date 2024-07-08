@@ -26,7 +26,7 @@ requirements:
     - nanover-essd =={{ NANOVER_BUILD_VERSION }}
 
 about:
-  home: https://nanover.readthedocs.io
+  home: {{ NANOVER_DOC_URL }}
   license: MIT
   license_file: {{ NANOVER_LICENSE_PATH }}
   summary: Core modules to use the NanoVer python library.
@@ -34,5 +34,5 @@ about:
     NanoVer is a framework for interactive molecular dynamics simulation in
     virtual reality. This package provides the core components to write a
     server or a client program in python.
-  doc_url: https://nanover.readthedocs.io
-  dev_url: https://gitlab.com/intangiblerealities/nanover-protocol
+  doc_url: {{ NANOVER_DOC_URL }}
+  dev_url: {{ NANOVER_REPO_URL }}
