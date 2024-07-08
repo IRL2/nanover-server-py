@@ -96,6 +96,12 @@ If you want to use this specific feature, you need to:
 
 Developers will want the manual install described below.
 
+#### Updating ####
+
+* Run `conda list ^nanover-server` to determine the currently installed version
+* Run `conda install nanover-server` to attempt to update to latest version
+* If you can't seem to update to the latest version, run `python --version` to check your python version is at least as recent as in these installation instructions. If it isn't you will need to create a new conda environment with a newer version of python.
+
 ### Setup nanover-protocol for developers on Mac and Linux
 
 * Install Anaconda
