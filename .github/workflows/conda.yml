@@ -22,6 +22,8 @@ jobs:
           miniforge-version: latest
       - name: Set environment variables
         run: |
+          echo NANOVER_DOC_URL="https://irl2.github.io/nanover/" >> "$GITHUB_ENV"
+          echo NANOVER_REPO_URL="https://github.com/IRL2/nanover-protocol" >> "$GITHUB_ENV"
           echo NANOVER_BUILD_VERSION="0.1.$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
           echo NANOVER_LICENSE_PATH="$(readlink -f LICENSE)" >> "$GITHUB_ENV"
           echo MIN_PYTHON_VERSION=3.11 >> "$GITHUB_ENV"
