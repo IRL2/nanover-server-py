@@ -25,12 +25,12 @@ requirements:
     - nanover-mdanalysis =={{ NANOVER_BUILD_VERSION }}
 
 about:
-  home: https://nanover.readthedocs.io
+  home: {{ NANOVER_DOC_URL }}
   license: MIT
   license_file: {{ NANOVER_LICENSE_PATH }}
   summary: Omni server for NanoVer.
   description: |
     NanoVer is a framework for interactive molecular dynamics simulation is
-    virtual reality. This package provides the OpenMM server for NanoVer.
-  doc_url: https://nanover.readthedocs.io
-  dev_url: https://gitlab.com/intangiblerealities/nanover-protocol
+    virtual reality. This package provides a multipurpose server for NanoVer.
+  doc_url: {{ NANOVER_DOC_URL }}
+  dev_url: {{ NANOVER_REPO_URL }}
