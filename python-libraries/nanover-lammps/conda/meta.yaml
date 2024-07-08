@@ -21,7 +21,7 @@ requirements:
     #- mpi4py
 
 about:
-  home: https://nanover.readthedocs.io
+  home: {{ NANOVER_DOC_URL }}
   license: MIT
   license_file: {{ NANOVER_LICENSE_PATH }}
   summary: LAMMPS bindings for NanoVer.
@@ -29,5 +29,5 @@ about:
     NanoVer is a framework for interactive molecular dynamics simulation in
     virtual reality. This package provides LAMMPS bindings and servers for
     NanoVer.
-  doc_url: https://nanover.readthedocs.io
-  dev_url: https://gitlab.com/intangiblerealities/nanover-protocol
+  doc_url: {{ NANOVER_DOC_URL }}
+  dev_url: {{ NANOVER_REPO_URL }}
