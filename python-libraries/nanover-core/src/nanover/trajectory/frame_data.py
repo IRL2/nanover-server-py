@@ -38,8 +38,8 @@ POTENTIAL_ENERGY = "energy.potential"
 TOTAL_ENERGY = "energy.total"
 USER_ENERGY = "energy.user.total"
 
-SPARSE_USER_FORCES = "forces.user.sparse"
-SPARSE_USER_INDEX = "forces.user.index"
+USER_FORCES_SPARSE = "forces.user.sparse"
+USER_FORCES_INDEX = "forces.user.index"
 
 SERVER_TIMESTAMP = "server.timestamp"
 
@@ -293,14 +293,14 @@ class FrameData(metaclass=_FrameDataMeta):
         to_raw=_as_is,
     )
     sparse_user_forces: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
-        key=SPARSE_USER_FORCES,
+        key=USER_FORCES_SPARSE,
         record_type="arrays",
         field_type="float",
         to_python=_n_by_3,
         to_raw=_flatten_array,
     )
     sparse_user_index: List[float] = _Shortcut(  # type: ignore[assignment]
-        key=SPARSE_USER_INDEX,
+        key=USER_FORCES_INDEX,
         record_type="arrays",
         field_type="float",
         to_python=_n_by_3,
