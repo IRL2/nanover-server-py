@@ -114,7 +114,7 @@ class NanoverImdReporter:
         self._previous_force_index: Set[int] = set()
         self._frame_index = 0
         self._total_user_energy = 0.0
-        self._user_forces: Optional[npt.NDArray] = None
+        self._user_forces: npt.NDArray = np.empty(0)
 
         self._did_first_frame = False
         self._simulation_counter = simulation_counter
