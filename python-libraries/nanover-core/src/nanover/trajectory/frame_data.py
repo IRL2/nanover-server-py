@@ -299,7 +299,7 @@ class FrameData(metaclass=_FrameDataMeta):
         to_python=_n_by_3,
         to_raw=_flatten_array,
     )
-    sparse_user_index: float = _Shortcut(  # type: ignore[assignment]
+    sparse_user_index: List[float] = _Shortcut(  # type: ignore[assignment]
         key=SPARSE_USER_INDEX,
         record_type="arrays",
         field_type="float",
