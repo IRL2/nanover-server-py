@@ -41,7 +41,6 @@ class OmniRunner:
 
         self.simulations: List[Simulation] = []
         self._simulation_index = 0
-        self._simulation_counter = -1
 
         app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
         app_server.server.register_command(NEXT_COMMAND_KEY, self.next)
@@ -81,7 +80,6 @@ class OmniRunner:
     def load(self, index: int):
         self._cancel_run()
         self._simulation_index = int(index) % len(self.simulations)
-        self._simulation_counter += 1
         self._start_run()
 
     def next(self):
@@ -92,7 +90,6 @@ class OmniRunner:
 
     def reset(self):
         assert self._runner is not None
-        self._simulation_counter += 1
         self._runner.signals.put("reset")
 
     def pause(self):
