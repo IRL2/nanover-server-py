@@ -368,7 +368,7 @@ def get_sparse_forces(forces: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray]:
     sparse_indices = np.unique(np.nonzero(forces)[0])
     sparse_forces = np.zeros((sparse_indices.shape[0], 3))
 
-    for index in sparse_indices:
-        sparse_forces[index, :] = forces[index]
+    for index in range(sparse_indices.shape[0]):
+        sparse_forces[index, :] = forces[sparse_indices[index]]
 
     return sparse_indices, sparse_forces
