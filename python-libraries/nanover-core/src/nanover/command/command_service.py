@@ -22,7 +22,7 @@ from nanover.utilities.key_lockable_map import KeyLockableMap
 from nanover.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
 CommandHandler = Union[
-    Callable[[CommandArguments], Optional[CommandResult]],
+    Callable[..., Optional[CommandResult]],
     Callable[[], Optional[CommandResult]],
 ]
 

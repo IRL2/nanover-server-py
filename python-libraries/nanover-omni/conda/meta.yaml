@@ -1,26 +1,36 @@
 package:
-  name: nanover-server
+  name: nanover-omni
   version: {{ NANOVER_BUILD_VERSION }}
+
+source:
+  path: ../
 
 build:
   noarch: python
   number: 0
+  entry_points:
+    - nanover-omni = nanover.openmm.cli:main
 
 requirements:
+  build:
+    - python >={{ MIN_PYTHON_VERSION }}
+    - setuptools
+
   run:
+    - python >={{ MIN_PYTHON_VERSION }}
     - nanover-core =={{ NANOVER_BUILD_VERSION }}
     - nanover-openmm =={{ NANOVER_BUILD_VERSION }}
     - nanover-ase =={{ NANOVER_BUILD_VERSION }}
+    - nanover-lammps =={{ NANOVER_BUILD_VERSION }}
     - nanover-mdanalysis =={{ NANOVER_BUILD_VERSION }}
-    - nanover-omni =={{ NANOVER_BUILD_VERSION }}
 
 about:
   home: {{ NANOVER_DOC_URL }}
   license: MIT
   license_file: {{ NANOVER_LICENSE_PATH }}
-  summary: Python servers for NanoVer.
+  summary: Omni server for NanoVer.
   description: |
-    NanoVer is a framework for interactive molecular dynamics simulation in
-    virtual reality. This package cause all the python servers to be installed.
+    NanoVer is a framework for interactive molecular dynamics simulation is
+    virtual reality. This package provides a multipurpose server for NanoVer.
   doc_url: {{ NANOVER_DOC_URL }}
   dev_url: {{ NANOVER_REPO_URL }}
