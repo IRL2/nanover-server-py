@@ -50,6 +50,7 @@ _Shortcut = namedtuple(
 
 Array2Dfloat = Union[List[List[float]], npt.NDArray[Union[np.float32, np.float64]]]
 Array2Dint = Union[List[List[int]], npt.NDArray[Union[np.int_]]]
+Array1Dint = Union[List[int], npt.NDArray[np.int_]]
 
 
 class MissingDataError(KeyError):
@@ -299,12 +300,12 @@ class FrameData(metaclass=_FrameDataMeta):
         to_python=_n_by_3,
         to_raw=_flatten_array,
     )
-    sparse_user_index: List[float] = _Shortcut(  # type: ignore[assignment]
+    sparse_user_index: Array1Dint = _Shortcut(  # type: ignore[assignment]
         key=USER_FORCES_INDEX,
         record_type="arrays",
-        field_type="float",
-        to_python=_n_by_3,
-        to_raw=_flatten_array,
+        field_type="index",
+        to_python=_as_is,
+        to_raw=_as_is,
     )
 
     box_vectors: List[List[float]] = _Shortcut(  # type: ignore[assignment]
