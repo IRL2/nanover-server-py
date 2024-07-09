@@ -64,7 +64,7 @@ class PlaybackSimulation:
             self.advance_to_next_entry()
         except IndexError:
             self.next_entry_index = 0
-            self.time = 0
+            self.time = 0.0
             self.advance_to_next_entry()
 
     def advance_by_seconds(self, dt: float):
@@ -75,7 +75,7 @@ class PlaybackSimulation:
                 self.advance_to_next_entry()
         except IndexError:
             self.next_entry_index = 0
-            self.time = 0
+            self.time = 0.0
         else:
             self.time = next_time
 
