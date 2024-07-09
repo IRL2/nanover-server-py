@@ -59,7 +59,7 @@ def handle_user_arguments() -> argparse.Namespace:
         "-i",
         "--force-interval",
         type=int,
-        default=10,
+        default=5,
         metavar="STEPS",
         help="Update the interactions every STEPS dynamics steps.",
     )
