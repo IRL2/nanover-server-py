@@ -7,11 +7,11 @@ from nanover.protocol.trajectory import TrajectoryServiceStub, GetFrameRequest
 from nanover.recording.writing import record_messages
 
 
-def record_from_server(address, state_file, trajectory_file):
+def record_from_server(address, trajectory_file, state_file):
     channel = grpc.insecure_channel(address)
     executor = ThreadPoolExecutor(max_workers=2)
-    executor.submit(record_state, trajectory_file, channel)
-    executor.submit(record_trajectory, state_file, channel)
+    executor.submit(record_trajectory, trajectory_file, channel)
+    executor.submit(record_state, state_file, channel)
     return executor
 
 
