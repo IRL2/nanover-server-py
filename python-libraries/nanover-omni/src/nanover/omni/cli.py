@@ -63,10 +63,10 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         "--record",
         dest="record_to_path",
         nargs="?",
-        metavar="PATH",
-        help="Record trajectory and state to files.",
         default=None,
         const="",
+        metavar="PATH",
+        help="Record trajectory and state to files.",
     )
 
     parser.add_argument(
