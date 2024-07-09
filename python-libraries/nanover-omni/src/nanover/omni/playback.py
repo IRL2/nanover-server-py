@@ -44,8 +44,6 @@ class PlaybackSimulation:
         self.next_entry_index = 0
         self.time = 0.0
 
-        self.paused = False
-
     def load(self):
         entries = iter_recording_files(traj=self.traj_path, state=self.state_path)
         self.entries = [
