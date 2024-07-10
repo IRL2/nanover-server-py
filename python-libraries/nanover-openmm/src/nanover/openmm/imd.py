@@ -173,8 +173,8 @@ class NanoverImdReporter:
                 frame_data.particle_positions = positions
                 frame_data.user_energy = self._total_user_energy
                 sparse_indices, sparse_forces = get_sparse_forces(self._user_forces)
-                frame_data.sparse_user_forces = sparse_forces
-                frame_data.sparse_user_index = sparse_indices
+                frame_data.user_forces_sparse = sparse_forces
+                frame_data.user_forces_index = sparse_indices
                 self.frame_publisher.send_frame(self._frame_index, frame_data)
                 self._frame_index += 1
 

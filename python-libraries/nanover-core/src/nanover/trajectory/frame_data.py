@@ -293,14 +293,14 @@ class FrameData(metaclass=_FrameDataMeta):
         to_python=_as_is,
         to_raw=_as_is,
     )
-    sparse_user_forces: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
+    user_forces_sparse: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
         key=USER_FORCES_SPARSE,
         record_type="arrays",
         field_type="float",
         to_python=_n_by_3,
         to_raw=_flatten_array,
     )
-    sparse_user_index: Array1Dint = _Shortcut(  # type: ignore[assignment]
+    user_forces_index: Array1Dint = _Shortcut(  # type: ignore[assignment]
         key=USER_FORCES_INDEX,
         record_type="arrays",
         field_type="index",

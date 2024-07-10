@@ -201,7 +201,7 @@ class TestNanoverImdReporter:
         # frame 2: forces from frame 1?
         frame = FrameData(frames[2].frame)
 
-        assert set(frame.sparse_user_index) == {0, 1, 4, 5}
+        assert set(frame.user_forces_index) == {0, 1, 4, 5}
 
     @pytest.mark.parametrize("interval", (1, 2, 3, 4))
     def test_send_frame_frequency(self, app_simulation_and_reporter, interval):
