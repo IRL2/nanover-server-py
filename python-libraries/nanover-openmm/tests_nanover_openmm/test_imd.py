@@ -185,6 +185,24 @@ class TestNanoverImdReporter:
         assert_basic_simulation_topology(frame)
         assert np.allclose(frame.particle_positions, BASIC_SIMULATION_POSITIONS)
 
+    def test_report_frame_forces(self, app_simulation_and_reporter_with_interactions):
+        """
+        Test that user forces are reported within the frame.
+        """
+        app, simulation, reporter = app_simulation_and_reporter_with_interactions
+        request_id = app.frame_publisher._get_new_request_id()
+        frame_queues = app.frame_publisher.frame_queues
+        with frame_queues.one_queue(request_id, Queue) as publisher_queue:
+            simulation.step(10)
+            frames = list(publisher_queue.queue)
+
+        # frame 0: topology special case
+        # frame 1: no previous frame so no forces?
+        # frame 2: forces from frame 1?
+        frame = FrameData(frames[2].frame)
+
+        assert set(frame.sparse_user_index) == {0, 1, 4, 5}
+
     @pytest.mark.parametrize("interval", (1, 2, 3, 4))
     def test_send_frame_frequency(self, app_simulation_and_reporter, interval):
         """
