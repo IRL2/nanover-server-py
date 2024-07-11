@@ -18,9 +18,9 @@ For more information please take a look at [the project's documentation](https:/
 
 ### Quick Start
 
-`nanover.ase` provides a command line interface for running OpenMM simulations. For example, from the `nanover-protocol` directory:
+`nanover.omni` provides a command line interface for running OpenMM simulations. For example, from the `nanover-protocol` directory:
 
-    nanover-omm-ase examples/ase/openmm_files/nanotube.xml
+    nanover-omni --omm examples/ase/openmm_files/nanotube.xml
 
 ### Tutorials
 
@@ -180,14 +180,14 @@ Because of the special setup required you will probably not be able to run this 
 
 ## Running the examples
 
-### ASE IMD Simulations
+### OpenMM IMD Simulations
 
-`nanover.ase` provides a command line interface for running serialised OpenMM simulations. For example, from the 
+`nanover.omni` provides a command line interface for running serialised OpenMM simulations. For example, from the 
 `nanover-protocol` directory:
 
-    nanover-omm-ase examples/ase/openmm_files/nanotube.xml
+    nanover-omni --omm examples/ase/openmm_files/nanotube.xml
 
-#### Jupyter Notebooks
+### ASE IMD Simulations Jupyter Notebooks
 
 The [`examples/ase`](examples/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
 from a notebook. The [NanoVer ASE documentation](python-libraries/nanover-ase/README.md) provides more details on setting 
