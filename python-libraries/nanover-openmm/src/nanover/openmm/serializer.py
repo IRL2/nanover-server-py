@@ -95,17 +95,17 @@ def deserialize_simulation(
     else:
         document = parse(xml_content)
 
-    root_element = document.firstChild
-    assert root_element.nodeName == ROOT_TAG, f'XML root tag must be "{ROOT_TAG}"'
+    root_node = document.firstChild
+    assert isinstance(root_node, Element)
+    assert root_node.nodeName == ROOT_TAG, f'XML root tag must be "{ROOT_TAG}"'
 
     tag, pdb_node = _get_one_exclusive(document, ["pdbx", "pdb"])
     node = pdb_node.firstChild
     if node is None:
         raise IOError("No structure content.")
-    # Mypy fails on the next line with the following error:
-    # "Node" has no attribute "nodeValue"  [attr-defined]
-    # Because we know the attribute actually exists, we ignore the error.
-    pdb_content = StringIO(node.nodeValue)  # type: ignore[attr-defined]
+
+    assert isinstance(node, Element)
+    pdb_content = StringIO(node.nodeValue)
     if tag == "pdb":
         pdb = app.PDBFile(pdb_content)
     elif tag == "pdbx":
