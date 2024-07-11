@@ -2,9 +2,12 @@
 Command line interface for nanover.openmm.
 """
 
+import sys
 import time
 import textwrap
 import argparse
+
+from openmm.app import StateDataReporter
 
 from nanover.app import NanoverImdApplication
 from nanover.omni import OmniRunner
@@ -89,8 +92,20 @@ def main():
 
     for path in arguments.simulation_xml_paths:
         simulation = OpenMMSimulation(path)
+        simulation.platform = arguments.platform
         simulation.frame_interval = arguments.frame_interval
         simulation.force_interval = arguments.force_interval
+
+        if arguments.verbose:
+            simulation.verbose_reporter = StateDataReporter(
+                sys.stdout,
+                arguments.verbose,
+                step=True,
+                speed=True,
+                remainingTime=False,
+                potentialEnergy=True,
+            )
+
         runner.add_simulation(simulation)
 
     print(

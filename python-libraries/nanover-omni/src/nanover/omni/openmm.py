@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional, Any
 
-from openmm.app import Simulation
+from openmm.app import Simulation, StateDataReporter
 
 from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer
@@ -17,19 +17,19 @@ class OpenMMSimulation:
 
         self.frame_interval = 5
         self.force_interval = 5
+        self.platform: Optional[str] = None
 
         self.imd_force = create_imd_force()
         self.simulation: Optional[Simulation] = None
         self.checkpoint: Optional[Any] = None
         self.reporter: Optional[NanoverImdReporter] = None
+        self.verbose_reporter: Optional[StateDataReporter] = None
 
     def load(self):
-        platform = None
-
         with open(self.xml_path) as infile:
             self.imd_force = create_imd_force()
             self.simulation = serializer.deserialize_simulation(
-                infile, imd_force=self.imd_force, platform_name=platform
+                infile, imd_force=self.imd_force, platform_name=self.platform
             )
 
         self.checkpoint = self.simulation.context.createCheckpoint()
@@ -46,6 +46,8 @@ class OpenMMSimulation:
 
         try:
             self.simulation.reporters.remove(self.reporter)
+            if self.verbose_reporter is not None:
+                self.simulation.reporters.remove(self.verbose_reporter)
         except ValueError:
             pass
 
@@ -57,6 +59,8 @@ class OpenMMSimulation:
             frame_publisher=self.app_server.frame_publisher,
         )
         self.simulation.reporters.append(self.reporter)
+        if self.verbose_reporter is not None:
+            self.simulation.reporters.append(self.verbose_reporter)
 
     def advance_to_next_report(self):
         assert self.simulation is not None

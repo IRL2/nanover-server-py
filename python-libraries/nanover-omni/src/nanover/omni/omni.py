@@ -1,3 +1,4 @@
+import traceback
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
@@ -120,8 +121,8 @@ class OmniRunner:
         if self._run_task is not None:
             try:
                 self._run_task.result()
-            except Exception as e:
-                print(f"ERROR in {self.simulation.name}:", e)
+            except Exception:
+                print(f"ERROR in {self.simulation.name}:", traceback.format_exc())
             self._run_task = None
 
     def __enter__(self):
