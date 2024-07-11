@@ -31,7 +31,7 @@ from an XML file.
 
 from typing import Optional, List, Tuple, Union, TextIO
 from io import StringIO
-from xml.dom.minidom import getDOMImplementation, parseString, Document, Element, parse
+from xml.dom.minidom import getDOMImplementation, parseString, Document, Element, parse, Text
 
 from openmm import app, XmlSerializer, CustomExternalForce, Platform
 
@@ -104,7 +104,7 @@ def deserialize_simulation(
     if node is None:
         raise IOError("No structure content.")
 
-    assert isinstance(node, Element)
+    assert isinstance(node, Text)
     pdb_content = StringIO(node.nodeValue)
     if tag == "pdb":
         pdb = app.PDBFile(pdb_content)
