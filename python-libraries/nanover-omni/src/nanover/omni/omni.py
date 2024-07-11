@@ -4,6 +4,7 @@ from queue import Queue, Empty
 from typing import Protocol, List, Optional
 
 from nanover.app import NanoverImdApplication
+from nanover.trajectory import FrameData
 from nanover.trajectory.frame_server import (
     LOAD_COMMAND_KEY,
     LIST_COMMAND_KEY,
@@ -145,13 +146,17 @@ class InternalRunner:
         self.simulation.load()
         self.simulation.reset(self.app_server)
 
-        for dt in self.variable_interval_generator.yield_interval():
-            self.handle_signals()
+        try:
+            for dt in self.variable_interval_generator.yield_interval():
+                self.handle_signals()
 
-            if self.cancelled:
-                break
-            if not self.paused:
-                self.simulation.advance_by_seconds(dt)
+                if self.cancelled:
+                    break
+                if not self.paused:
+                    self.simulation.advance_by_seconds(dt)
+        except Exception:
+            self.app_server.frame_publisher.send_frame(0, FrameData())
+            raise
 
     def handle_signals(self):
         with suppress(Empty):
