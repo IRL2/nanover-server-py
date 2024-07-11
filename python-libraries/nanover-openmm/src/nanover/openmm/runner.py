@@ -162,9 +162,9 @@ class OpenMMRunner(NanoverRunner):
         runner = cls(None, name=name, address=address, port=port)
         for input_xml in input_xmls:
             imd_force = create_imd_force()
-            with open(str(input_xml)) as infile:
+            with open(input_xml) as infile:
                 simulation = serializer.deserialize_simulation(
-                    infile.read(), imd_force=imd_force, platform_name=platform
+                    infile, imd_force=imd_force, platform_name=platform
                 )
             runner.simulations.append(SimulationEntry(simulation, Path(input_xml).name))
         runner.load(0)

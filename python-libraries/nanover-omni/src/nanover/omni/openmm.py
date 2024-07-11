@@ -26,10 +26,10 @@ class OpenMMSimulation:
     def load(self):
         platform = None
 
-        with open(str(self.xml_path)) as infile:
+        with open(self.xml_path) as infile:
             self.imd_force = create_imd_force()
             self.simulation = serializer.deserialize_simulation(
-                infile.read(), imd_force=self.imd_force, platform_name=platform
+                infile, imd_force=self.imd_force, platform_name=platform
             )
 
         self.checkpoint = self.simulation.context.createCheckpoint()
