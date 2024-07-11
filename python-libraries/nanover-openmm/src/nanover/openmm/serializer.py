@@ -31,7 +31,14 @@ from an XML file.
 
 from typing import Optional, List, Tuple, Union, TextIO
 from io import StringIO
-from xml.dom.minidom import getDOMImplementation, parseString, Document, Element, parse, Text
+from xml.dom.minidom import (
+    getDOMImplementation,
+    parseString,
+    Document,
+    Element,
+    parse,
+    Text,
+)
 
 from openmm import app, XmlSerializer, CustomExternalForce, Platform
 
