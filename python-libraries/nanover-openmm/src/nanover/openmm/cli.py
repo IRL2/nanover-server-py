@@ -5,7 +5,10 @@ Command line interface for nanover.openmm.
 import time
 import textwrap
 import argparse
-from . import OpenMMRunner
+
+from nanover.app import NanoverImdApplication
+from nanover.omni import OmniRunner
+from nanover.omni.openmm import OpenMMSimulation
 
 
 def handle_user_arguments() -> argparse.Namespace:
@@ -77,23 +80,26 @@ def main():
     """
     arguments = handle_user_arguments()
 
-    runner = OpenMMRunner.from_xml_inputs(
-        input_xmls=arguments.simulation_xml_paths,
+    app_server = NanoverImdApplication.basic_server(
         name=arguments.name,
         address=arguments.address,
         port=arguments.port,
-        platform=arguments.platform,
     )
+    runner = OmniRunner(app_server)
+
+    for path in arguments.simulation_xml_paths:
+        simulation = OpenMMSimulation(path)
+        simulation.frame_interval = arguments.frame_interval
+        simulation.force_interval = arguments.force_interval
+        runner.add_simulation(simulation)
+
     print(
-        f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
-        f"discoverable on all interfaces on port {runner.app_server.discovery.port}"
+        f'Serving "{app_server.name}" on port {app_server.port}, '
+        f"discoverable on all interfaces on port {app_server.discovery.port}"
     )
 
     with runner:
-        runner.verbosity_interval = arguments.verbose
-        runner.frame_interval = arguments.frame_interval
-        runner.force_interval = arguments.force_interval
-        runner.run()
+        runner.next()
 
         try:
             while True:
