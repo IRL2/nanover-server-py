@@ -274,7 +274,7 @@ class ASEOpenMMRunner(NanoverRunner):
         for path in simulation_xmls:
             with open(path) as infile:
                 simulation = serializer.deserialize_simulation(
-                    infile.read(),
+                    infile,
                     platform_name=platform,
                 )
                 simulation._name = Path(path).name

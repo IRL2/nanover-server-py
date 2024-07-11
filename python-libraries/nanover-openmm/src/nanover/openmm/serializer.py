@@ -29,11 +29,9 @@ a function :func:`deserialize_simulation` that creates an instance of simulation
 from an XML file.
 """
 
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Union, TextIO
 from io import StringIO
-from tempfile import TemporaryDirectory
-import os
-from xml.dom.minidom import getDOMImplementation, parseString, Document, Element
+from xml.dom.minidom import getDOMImplementation, parseString, Document, Element, parse
 
 from openmm import app, XmlSerializer, CustomExternalForce, Platform
 
@@ -79,7 +77,7 @@ def serialize_simulation(simulation: app.Simulation) -> str:
 
 
 def deserialize_simulation(
-    xml_content: str,
+    xml_content: Union[str | TextIO],
     imd_force: Optional[CustomExternalForce] = None,
     platform_name: Optional[str] = None,
 ) -> app.Simulation:
@@ -92,7 +90,13 @@ def deserialize_simulation(
         :func:`nanover.openmm.potentials.create_imd_force`.
     :return: An instance of the simulation.
     """
-    document = parseString(xml_content)
+    if isinstance(xml_content, str):
+        document = parseString(xml_content)
+    else:
+        document = parse(xml_content)
+
+    root_element = document.firstChild
+    assert root_element.nodeName == ROOT_TAG, f'XML root tag must be "{ROOT_TAG}"'
 
     tag, pdb_node = _get_one_exclusive(document, ["pdbx", "pdb"])
     node = pdb_node.firstChild
@@ -102,16 +106,12 @@ def deserialize_simulation(
     # "Node" has no attribute "nodeValue"  [attr-defined]
     # Because we know the attribute actually exists, we ignore the error.
     pdb_content = StringIO(node.nodeValue)  # type: ignore[attr-defined]
-    with TemporaryDirectory() as tmp_dir:
-        pdb_path = os.path.join(tmp_dir, f"configuration.{tag}")
-        with open(str(pdb_path), "w") as outfile:
-            outfile.write(pdb_content.getvalue())
-        if tag == "pdb":
-            pdb = app.PDBFile(str(pdb_path))
-        elif tag == "pdbx":
-            pdb = app.PDBxFile(str(pdb_path))
-        else:
-            raise IOError("Invalid structure tag: {tag}")
+    if tag == "pdb":
+        pdb = app.PDBFile(pdb_content)
+    elif tag == "pdbx":
+        pdb = app.PDBxFile(pdb_content)
+    else:
+        raise IOError("Invalid structure tag: {tag}")
 
     system_node = _get_node_and_raise_if_more_than_one(document, "System")
     system_content = system_node.toprettyxml()

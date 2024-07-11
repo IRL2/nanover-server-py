@@ -117,7 +117,10 @@ class OmniRunner:
             self._runner = None
 
         if self._run_task is not None:
-            self._run_task.result()
+            try:
+                self._run_task.result()
+            except Exception as e:
+                print(f"ERROR in {self.simulation.name}:", e)
             self._run_task = None
 
     def __enter__(self):
