@@ -203,6 +203,25 @@ class TestNanoverImdReporter:
 
         assert set(frame.user_forces_index) == {0, 1, 4, 5}
 
+    def test_sparse_user_forces(self, app_simulation_and_reporter_with_interactions):
+        """
+        Test that the sparse user forces exist in the frame data when a user applies an iMD force,
+        check that the size of the array of forces is equal to the size of the array of corresponding
+        indices, and check that none of the elements of the sparse forces array are zero.
+        """
+        app, simulation, reporter = app_simulation_and_reporter_with_interactions
+        request_id = app.frame_publisher._get_new_request_id()
+        frame_queues = app.frame_publisher.frame_queues
+        with frame_queues.one_queue(request_id, Queue) as publisher_queue:
+            simulation.step(10)
+            frames = list(publisher_queue.queue)
+        frame = FrameData(frames[2].frame)
+        assert frame.user_forces_sparse
+        assert frame.user_forces_index
+        assert len(frame.user_forces_sparse) >= 1
+        assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
+        assert np.all(frame.user_forces_sparse) != 0.0
+
     @pytest.mark.parametrize("interval", (1, 2, 3, 4))
     def test_send_frame_frequency(self, app_simulation_and_reporter, interval):
         """
