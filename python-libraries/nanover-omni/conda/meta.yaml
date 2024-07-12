@@ -9,7 +9,7 @@ build:
   noarch: python
   number: 0
   entry_points:
-    - nanover-omni = nanover.openmm.cli:main
+    - nanover-omni = nanover.omni.cli:main
 
 requirements:
   build:
