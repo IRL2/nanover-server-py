@@ -7,7 +7,11 @@ from openmm.app import Simulation, StateDataReporter
 
 from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer
-from nanover.openmm.imd import create_imd_force, NanoverImdReporter, get_imd_forces_from_system
+from nanover.openmm.imd import (
+    create_imd_force,
+    NanoverImdReporter,
+    get_imd_forces_from_system,
+)
 
 
 class OpenMMSimulation:
