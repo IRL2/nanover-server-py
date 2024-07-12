@@ -42,7 +42,7 @@ class OpenMMSimulation:
         return sim
 
     @classmethod
-    def from_xml_path(cls, path: str, *, name: Optional[str] = None):
+    def from_xml_path(cls, path: PathLike[str], *, name: Optional[str] = None):
         sim = cls(name or Path(path).stem)
         sim.xml_path = path
         return sim
