@@ -31,12 +31,16 @@ class OmniRunner:
     @classmethod
     def with_basic_server(
         cls,
+        *simulations: Simulation,
         name: Optional[str] = None,
         address: Optional[str] = None,
         port: Optional[int] = None,
     ):
         app_server = NanoverImdApplication.basic_server(name, address, port)
-        return cls(app_server)
+        omni = cls(app_server)
+        for simulation in simulations:
+            omni.add_simulation(simulation)
+        return omni
 
     def __init__(self, app_server: NanoverImdApplication):
         self._app_server = app_server
