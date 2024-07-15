@@ -70,13 +70,19 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--rich",
+        action = "store_true",
+        default=False,
+        help="Provide an interactive rich interface in the terminal."
+    )
+
+    parser.add_argument(
         "-n",
         "--name",
         help="Give a friendly name to the server.",
     )
     parser.add_argument("-p", "--port", type=int, default=None)
     parser.add_argument("-a", "--address", default=None)
-    parser.add_argument("--rich", default=False, action="store_true")
 
     arguments = parser.parse_args(args)
     return arguments
