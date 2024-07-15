@@ -71,9 +71,9 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
 
     parser.add_argument(
         "--rich",
-        action = "store_true",
+        action="store_true",
         default=False,
-        help="Provide an interactive rich interface in the terminal."
+        help="Provide an interactive rich interface in the terminal.",
     )
 
     parser.add_argument(
