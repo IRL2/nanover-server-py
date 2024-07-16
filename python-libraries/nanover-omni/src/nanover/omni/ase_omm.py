@@ -143,7 +143,7 @@ class ASEOpenMMSimulation:
         assert self.dynamics is not None
         self.dynamics.run(self.frame_interval)
 
-        if self.reset_energy is not None:
+        if self.reset_energy is not None and self.app_server is not None:
             energy = self.dynamics.atoms.get_total_energy() * EV_TO_KJMOL
             if not np.isfinite(energy) or energy > self.reset_energy:
                 self.on_reset_energy_exceeded.invoke()
