@@ -13,18 +13,21 @@ def any_port():
     return ["-p", "0"]
 
 
+@pytest.mark.serial
 def test_initialise(serialized_simulation_path, any_port):
     args = [str(serialized_simulation_path)] + any_port
     with initialise(args) as runner:
         assert runner.simulation is not None
 
 
+@pytest.mark.serial
 def test_timestep(serialized_simulation_path, any_port):
     args = [str(serialized_simulation_path), "-s", "0.5"] + any_port
     with initialise(args) as runner:
         assert runner.simulation.time_step == 0.5
 
 
+@pytest.mark.serial
 def test_interval(serialized_simulation_path, any_port):
     args = [str(serialized_simulation_path), "-f", "2"] + any_port
     with initialise(args) as runner:
@@ -39,12 +42,14 @@ def test_port(serialized_simulation_path):
         assert runner.app_server.port == PORT
 
 
+@pytest.mark.serial
 def test_name(serialized_simulation_path, any_port):
     args = [str(serialized_simulation_path), "--name", "Test Server"] + any_port
     with initialise(args) as runner:
         assert runner.app_server.name == "Test Server"
 
 
+@pytest.mark.serial
 @pytest.mark.parametrize(
     "wall_argument, has_walls",
     (
