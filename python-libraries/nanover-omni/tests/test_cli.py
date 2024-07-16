@@ -1,10 +1,13 @@
 import time
 from unittest.mock import mock_open, patch
 
+import pytest
+
 from nanover.omni.cli import initialise_runner, handle_user_arguments
 from common import ARGON_XML_PATH, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
 
 
+@pytest.mark.serial
 @patch("builtins.open", mock_open())
 def test_record_opens_files():
     """
@@ -19,6 +22,7 @@ def test_record_opens_files():
     open.assert_any_call("test.state", "wb")
 
 
+@pytest.mark.serial
 def test_cycle_multiple_sims():
     """
     Test that multiple sims can be given and cycled through.
