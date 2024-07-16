@@ -106,10 +106,10 @@ def initialise_runner(arguments: argparse.Namespace):
             runner.add_simulation(PlaybackSimulation.from_paths(paths))
 
         for path in get_all_paths(arguments.openmm_xml_entries):
-            runner.add_simulation(OpenMMSimulation(path))
+            runner.add_simulation(OpenMMSimulation.from_xml_path(path))
 
         for path in get_all_paths(arguments.ase_xml_entries):
-            runner.add_simulation(ASEOpenMMSimulation(path))
+            runner.add_simulation(ASEOpenMMSimulation.from_xml_path(path))
 
         if arguments.record_to_path is not None:
             stem = arguments.record_to_path
@@ -150,22 +150,7 @@ def main():
                 app = OmniTextualApp(runner)
                 app.run()
         else:
-            print(
-                f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
-                f"discoverable on all interfaces on port {runner.app_server.discovery.port}"
-            )
-
-            list = "\n".join(
-                f'{index}: "{simulation.name}"'
-                for index, simulation in enumerate(runner.simulations)
-            )
-            print(f"Available simulations:\n{list}")
-
-            try:
-                while True:
-                    time.sleep(1)
-            except KeyboardInterrupt:
-                print("Closing due to keyboard interrupt.")
+            runner.print_basic_info_and_wait()
 
 
 if __name__ == "__main__":

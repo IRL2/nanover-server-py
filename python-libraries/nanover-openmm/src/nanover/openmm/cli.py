@@ -3,7 +3,6 @@ Command line interface for nanover.openmm.
 """
 
 import sys
-import time
 import textwrap
 import argparse
 
@@ -91,7 +90,7 @@ def main():
     runner = OmniRunner(app_server)
 
     for path in arguments.simulation_xml_paths:
-        simulation = OpenMMSimulation(path)
+        simulation = OpenMMSimulation.from_xml_path(path)
         simulation.platform = arguments.platform
         simulation.frame_interval = arguments.frame_interval
         simulation.force_interval = arguments.force_interval
@@ -108,19 +107,8 @@ def main():
 
         runner.add_simulation(simulation)
 
-    print(
-        f'Serving "{app_server.name}" on port {app_server.port}, '
-        f"discoverable on all interfaces on port {app_server.discovery.port}"
-    )
-
     with runner:
-        runner.next()
-
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("Closing due to keyboard interrupt.")
+        runner.print_basic_info_and_wait()
 
 
 if __name__ == "__main__":

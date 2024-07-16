@@ -14,11 +14,11 @@ If the module is installed with pip, run with:
 
 import argparse
 import textwrap
-import time
+from contextlib import contextmanager
 
-from nanover.app.app_server import qualified_server_name
-from nanover.ase.openmm import ASEOpenMMRunner
-from nanover.ase.openmm.runner import ImdParams, LoggingParams
+from nanover.app import NanoverImdApplication
+from nanover.omni import OmniRunner
+from nanover.omni.ase_omm import ASEOpenMMSimulation
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -92,92 +92,48 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         help="Set a wall around the box, atoms will bounce against it.",
     )
     parser.add_argument(
-        "--no-discovery",
-        dest="discovery",
-        action="store_false",
-        default=True,
-        help="Run without the discovery service, so this server will not broadcast itself on the LAN.",
-    )
-    parser.add_argument(
-        "--discovery-port",
-        type=int,
-        default=None,
-        help="Port at which to run discovery service",
-    )
-    parser.add_argument(
-        "-o",
-        "--trajectory-file",
-        type=str,
-        default=None,
-        help="Base filename for the trajectory output file. A timestamp will "
-        "be inserted between the name and file extensions. Can be any "
-        "file that ASE can output in append mode, such as XYZ.",
-    )
-    parser.add_argument(
-        "--write-interval",
-        type=int,
-        default=1,
-        help="Write a trajectory frame to file every WRITE_INTERVAL dynamics " "steps.",
-    )
-    parser.add_argument(
         "--platform", default=None, help="Select the platform on which to run Openmm."
     )
     arguments = parser.parse_args(args)
     return arguments
 
 
+@contextmanager
 def initialise(args=None):
     arguments = handle_user_arguments(args)
 
-    # TODO clean way to handle params?
-    params = ImdParams(
-        arguments.address,
-        arguments.port,
-        arguments.frame_interval,
-        arguments.time_step,
-        arguments.verbose,
-        arguments.walls,
-        arguments.name,
-        arguments.discovery,
-        arguments.discovery_port,
-        arguments.platform,
+    app_server = NanoverImdApplication.basic_server(
+        name=arguments.name,
+        address=arguments.address,
+        port=arguments.port,
     )
+    runner = OmniRunner(app_server)
 
-    if arguments.name is None:
-        arguments.name = qualified_server_name("NanoVer OpenMM ASE Server")
+    for path in arguments.simulation_xml_paths:
+        simulation = ASEOpenMMSimulation.from_xml_path(path)
+        simulation.verbose = arguments.verbose
+        simulation.platform = arguments.platform
+        simulation.frame_interval = arguments.frame_interval
+        simulation.time_step = arguments.time_step
+        simulation.use_walls = arguments.walls
+        simulation.reset_energy = (
+            arguments.reset_energy if arguments.auto_reset else None
+        )
 
-    logging_params = LoggingParams(
-        arguments.trajectory_file,
-        arguments.write_interval,
-    )
-    runner = ASEOpenMMRunner.from_xmls(
-        arguments.simulation_xml_paths, params, logging_params
-    )
-    # Shamefully store CLI arguments in the runner.
-    runner.cli_options = {
-        "reset_energy": arguments.reset_energy if arguments.auto_reset else None,
-    }
-    return runner
+        simulation.on_reset_energy_exceeded.add_callback(lambda: print("RESET! " * 10))
+
+        runner.add_simulation(simulation)
+
+    yield runner
 
 
 def main():
     """
     Entry point for the command line.
     """
-    with initialise() as runner:
-        if runner.logging_info is not None:
-            print(f'Logging frames to "{runner.logging_info.trajectory_path}"')
 
-        runner.imd.on_reset_listeners.append(lambda: print("RESET! " * 10))
-        print(
-            f'Serving "{runner.name}" on port {runner.app_server.port}, discoverable on all interfaces on port {runner.discovery_port}'
-        )
-        try:
-            runner.run(block=False, reset_energy=runner.cli_options["reset_energy"])
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("Closing due to keyboard interrupt.")
+    with initialise() as runner:
+        runner.print_basic_info_and_wait()
 
 
 if __name__ == "__main__":
