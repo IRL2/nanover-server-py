@@ -114,9 +114,8 @@ def initialise_runner(arguments: argparse.Namespace):
         if arguments.record_to_path is not None:
             stem = arguments.record_to_path
             if stem == "":
-                stem = (
-                    f"omni-recording-{time.strftime("%Y-%m-%d-%H%M-%S", time.gmtime())}"
-                )
+                timestamp = time.strftime("%Y-%m-%d-%H%M-%S", time.gmtime())
+                stem = f"omni-recording-{timestamp}"
 
             traj_path = f"{stem}.traj"
             state_path = f"{stem}.state"
