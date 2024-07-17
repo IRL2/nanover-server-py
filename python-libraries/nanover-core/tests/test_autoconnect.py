@@ -13,8 +13,8 @@ from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ImdServer, IMD_SERVICE_NAME
 from nanover.trajectory import FrameServer, FRAME_SERVICE_NAME
 
-DISCOVERY_DELAY = 0.05
-AUTOCONNECT_SEARCH_TIME = 0.5
+DISCOVERY_DELAY = 0.1
+AUTOCONNECT_SEARCH_TIME = 1
 
 NEVER_USED_HUB_NAME = "pytest adult yoda"
 
