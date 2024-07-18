@@ -11,10 +11,3 @@ def example_openmm(app_server):
     sim.load()
     sim.reset(app_server)
     yield sim
-
-
-def test_setup_sim(example_openmm):
-    """
-    Test that the simulation can actually be loaded.
-    """
-    pass

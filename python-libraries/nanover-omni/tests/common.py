@@ -1,8 +1,8 @@
 from pathlib import Path
-from unittest.mock import Mock
 
 import pytest
 
+from nanover.app import NanoverImdApplication
 
 EXAMPLES_PATH = Path(__file__).parent
 RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
@@ -12,4 +12,5 @@ ARGON_XML_PATH = EXAMPLES_PATH / "argon_simulation.xml"
 
 @pytest.fixture
 def app_server():
-    yield Mock()
+    with NanoverImdApplication.basic_server(port=0) as app_server:
+        yield app_server
