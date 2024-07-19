@@ -29,7 +29,9 @@ def multi_sim_runner(request):
 
 @pytest.fixture
 def multi_sim_client_runner(multi_sim_runner):
-    with NanoverImdClient.connect_to_single_server(port=multi_sim_runner.app_server.port) as client:
+    with NanoverImdClient.connect_to_single_server(
+        port=multi_sim_runner.app_server.port
+    ) as client:
         yield client, multi_sim_runner
 
 
@@ -56,7 +58,9 @@ def test_step_gives_exactly_one_frame(sim_fixture, request, app_server):
     sim.reset(app_server)
     sim.advance_by_one_step()
 
-    with patch.object(app_server.frame_publisher, "send_frame", autospec=True) as send_frame:
+    with patch.object(
+        app_server.frame_publisher, "send_frame", autospec=True
+    ) as send_frame:
         for i in range(1, 20):
             sim.advance_by_one_step()
             assert send_frame.call_count == i

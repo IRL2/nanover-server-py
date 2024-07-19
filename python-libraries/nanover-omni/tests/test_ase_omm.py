@@ -1,8 +1,10 @@
+import warnings
+
 import pytest
 from ase import units
 
 from nanover.ase.wall_constraint import VelocityWallConstraint
-from nanover.omni.ase_omm import ASEOpenMMSimulation
+from nanover.omni.ase_omm import ASEOpenMMSimulation, CONSTRAINTS_UNSUPPORTED_MESSAGE
 
 from common import app_server, ARGON_XML_PATH
 
@@ -20,7 +22,10 @@ def test_step_interval(example_ase_omm):
     Test that advancing by one step increments the dynamics steps by frame_interval.
     """
     for i in range(5):
-        assert example_ase_omm.dynamics.get_number_of_steps() == i * example_ase_omm.frame_interval
+        assert (
+            example_ase_omm.dynamics.get_number_of_steps()
+            == i * example_ase_omm.frame_interval
+        )
         example_ase_omm.advance_by_one_step()
 
 
@@ -59,30 +64,23 @@ def test_walls(example_ase_omm, walls):
     )
 
 
-@pytest.mark.xfail
-def test_no_constraint_no_warning(example_ase_omm):
+def test_no_constraint_no_warning(example_ase_omm, app_server):
     """
     Test that a system without constraints does not cause a constraint warning
     to be logged.
     """
-    handler = ListLogHandler()
-
-    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
-        runner._logger.addHandler(handler)
-        runner._validate_simulation()
-        assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 0
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        example_ase_omm.load()
+        example_ase_omm.reset(app_server)
 
 
-@pytest.mark.xfail
-def test_constraint_warning(example_ase_omm):
+def test_constraint_warning(example_ase_omm, app_server, recwarn):
     """
     Test that a system with constraints causes a constraint warning to be
     logged.
     """
-    handler = ListLogHandler()
-    basic_simulation.system.addConstraint(0, 1, 1)
-
-    with ASEOpenMMRunner(basic_simulation, imd_params) as runner:
-        runner._logger.addHandler(handler)
-        runner._validate_simulation()
-        assert handler.count_records(CONSTRAINTS_UNSUPPORTED_MESSAGE, WARNING) == 1
+    with pytest.warns(UserWarning, match=CONSTRAINTS_UNSUPPORTED_MESSAGE):
+        example_ase_omm.load()
+        example_ase_omm.simulation.system.addConstraint(0, 1, 1)
+        example_ase_omm.reset(app_server)

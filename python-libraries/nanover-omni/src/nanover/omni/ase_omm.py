@@ -1,3 +1,4 @@
+import warnings
 from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
@@ -18,6 +19,11 @@ from nanover.ase.openmm import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.openmm import serializer
 from nanover.utilities.event import Event
+
+
+CONSTRAINTS_UNSUPPORTED_MESSAGE = (
+    "The simulation contains constraints which will be ignored by this runner!"
+)
 
 
 @dataclass
@@ -85,12 +91,12 @@ class ASEOpenMMSimulation:
         )
 
     def reset(self, app_server: NanoverImdApplication):
-        assert (
-            self.atoms is not None
-            and self.checkpoint is not None
-        )
+        assert self.atoms is not None and self.checkpoint is not None
 
         self.app_server = app_server
+
+        if self.simulation.system.getNumConstraints() > 0:
+            warnings.warn(CONSTRAINTS_UNSUPPORTED_MESSAGE)
 
         # We do not remove the center of mass (fixcm=False). If the center of
         # mass translations should be removed, then the removal should be added

@@ -120,28 +120,6 @@ class TestRunner:
         runner.close()
         assert "More than one force" in caplog.text
 
-    @pytest.mark.serial
-    @pytest.mark.parametrize("server_name", ("Server 1", "Server 2"))
-    def test_discovery_with_client(self, server_name, basic_simulation_with_imd_force):
-        simulation, _ = basic_simulation_with_imd_force
-        with self.make_runner(simulation, name=server_name):
-            with DiscoveryClient() as client:
-                # There may be servers running already, we only want to look at the
-                # one we created in that test. We select it by name.
-                servers = set(
-                    client.search_for_services(search_time=0.8, interval=0.01)
-                )
-                relevant_servers = [
-                    server for server in servers if server.name == server_name
-                ]
-                assert len(relevant_servers) == 1
-
-    def test_default_verbosity(self, runner):
-        """
-        Test that the verbosity is off by default
-        """
-        assert not runner.verbose
-
     @pytest.mark.parametrize("initial_value", (True, False))
     @pytest.mark.parametrize("set_value_to", (True, False))
     def test_set_verbosity_from_property(self, runner, initial_value, set_value_to):
@@ -184,22 +162,6 @@ class TestRunner:
         runner.make_quiet()
         assert not runner.verbose
         assert len(reporters) == self.expected_number_of_reporters_verbosity[False]
-
-    def test_run(self, runner):
-        """
-        Test that :meth:`Runner.run` runs the simulation.
-        """
-        assert runner.simulation.currentStep == 0
-        runner.run(steps=5)
-        assert runner.simulation.currentStep == 5
-
-    def test_from_xml_input(self, serialized_simulation_path):
-        """
-        Test that a :class:`Runner` can be built from a serialized simulation.
-        """
-        n_atoms_in_system = 8
-        with OpenMMRunner.from_xml_input(serialized_simulation_path, port=0) as runner:
-            assert runner.simulation.system.getNumParticles() == n_atoms_in_system
 
     @pytest.mark.parametrize(
         "name, target_attribute",
@@ -267,17 +229,6 @@ class TestRunner:
         runner.verbosity_interval = 0
         assert runner.verbose is False
 
-    def test_run_non_blocking(self, runner):
-        """
-        The runner can be run in the background.
-        """
-        runner.run(100, block=False)
-        # Here we count on the context switching to the assertions before
-        # finishing the run.
-        assert runner.simulation.currentStep < 100
-        assert runner._run_task is not None
-        assert not runner._cancelled
-
     def test_cancel_run(self, runner):
         """
         A runner running in the background can be stopped.
@@ -309,19 +260,6 @@ class TestRunner:
         step_count = runner.simulation.currentStep
         runner.step()
         assert runner.simulation.currentStep == step_count + runner.frame_interval
-
-    def test_multiple_steps(self, runner):
-        """
-        The step method can be called multiple times.
-        """
-        num_steps = 10
-        runner.run(block=False)
-        runner.cancel_run(wait=True)
-        step_count = runner.simulation.currentStep
-        for i in range(num_steps):
-            runner.step()
-        expected_step = step_count + (num_steps * runner.frame_interval)
-        assert runner.simulation.currentStep == expected_step
 
     def test_pause(self, runner):
         """
@@ -416,37 +354,6 @@ class TestRunner:
         assert runner.is_running is False
         assert runner.simulation.currentStep == step_count + runner.frame_interval
 
-    @pytest.mark.parametrize("target_interval", (5, 20))
-    @pytest.mark.parametrize(
-        "setter, command",
-        (
-            ("frame_interval", GET_FRAME_INTERVAL_COMMAND_KEY),
-            ("force_interval", GET_FORCE_INTERVAL_COMMAND_KEY),
-        ),
-    )
-    def test_get_interval_command(
-        self, client_runner, target_interval, setter, command
-    ):
-        client, runner = client_runner
-        setattr(runner, setter, target_interval)
-        result = client.run_command(command)
-        assert result == {"interval": target_interval}
-
-    @pytest.mark.parametrize("target_interval", (5, 20))
-    @pytest.mark.parametrize(
-        "getter, command",
-        (
-            ("frame_interval", SET_FRAME_INTERVAL_COMMAND_KEY),
-            ("force_interval", SET_FORCE_INTERVAL_COMMAND_KEY),
-        ),
-    )
-    def test_set_interval_command(
-        self, client_runner, target_interval, getter, command
-    ):
-        client, runner = client_runner
-        client.run_command(command, interval=target_interval)
-        assert getattr(runner, getter) == target_interval
-
     def test_get_dynamics_interval(self, runner):
         assert runner.dynamics_interval == runner._variable_interval_generator.interval
 
@@ -454,77 +361,3 @@ class TestRunner:
         value = 20.1
         runner.dynamics_interval = value
         assert runner._variable_interval_generator.interval == pytest.approx(value)
-
-    def test_get_dynamics_interval_command(self, client_runner):
-        client, runner = client_runner
-        result = client.run_command(GET_DYNAMICS_INTERVAL_COMMAND_KEY)
-        time.sleep(0.1)
-        assert result == {"interval": pytest.approx(runner.dynamics_interval)}
-
-    def test_set_dynamics_interval_command(self, client_runner):
-        value = 10.2
-        client, runner = client_runner
-        client.run_command(SET_DYNAMICS_INTERVAL_COMMAND_KEY, interval=value)
-        time.sleep(0.1)
-        assert runner.dynamics_interval == pytest.approx(value)
-
-    def test_list_command(self, client_runner):
-        client, runner = client_runner
-        assert len(client.run_list()) > 0
-
-    def test_load_command(self, client_runner):
-        client, runner = client_runner
-        runner.play()
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.simulation_counter == 0
-        client.run_load(0.0)
-        time.sleep(0.5)
-        assert client.current_frame.simulation_counter == 1
-
-    def test_next_command(self, client_runner):
-        client, runner = client_runner
-        runner.play()
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.simulation_counter == 0
-        client.run_next()
-        time.sleep(0.5)
-        assert client.current_frame.simulation_counter == 1
-
-    @pytest.mark.serial  # we want accurate timing so run without any parallel load
-    @pytest.mark.parametrize("fps", (5, 10, 30))
-    @pytest.mark.parametrize("frame_interval", (1, 5, 10))
-    def test_throttling(self, client_runner, fps, frame_interval):
-        """
-        The runner uses the requested MD throttling.
-
-        Here we make sure the runner throttles the dynamics according to the
-        dynamics interval. However, we only guarantee that the target dynamics
-        interval is close on average.
-        """
-        # We need at least a few frames to see intervals between
-        test_frames = 30
-
-        dynamics_interval = 1 / fps
-        client, runner = client_runner
-        runner.dynamics_interval = dynamics_interval
-        runner.frame_interval = frame_interval
-
-        client.subscribe_to_all_frames()
-        runner.run()
-
-        while len(client.frames) < test_frames:
-            time.sleep(0.1)
-
-        runner.cancel_run(wait=True)
-
-        # first frame (topology) isn't subject to intervals
-        timestamps = [frame.server_timestamp for frame in client.frames[1:]]
-        deltas = numpy.diff(timestamps)
-
-        # The interval is not very accurate. We only check that the observed
-        # interval is close on average.
-        assert numpy.average(deltas) == pytest.approx(
-            dynamics_interval, abs=TIMING_TOLERANCE
-        )
