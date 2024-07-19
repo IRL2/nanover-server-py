@@ -70,13 +70,19 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--rich",
+        action="store_true",
+        default=False,
+        help="Provide an interactive rich interface in the terminal.",
+    )
+
+    parser.add_argument(
         "-n",
         "--name",
         help="Give a friendly name to the server.",
     )
     parser.add_argument("-p", "--port", type=int, default=None)
     parser.add_argument("-a", "--address", default=None)
-    parser.add_argument("--rich", default=False, action="store_true")
 
     arguments = parser.parse_args(args)
     return arguments
@@ -100,17 +106,16 @@ def initialise_runner(arguments: argparse.Namespace):
             runner.add_simulation(PlaybackSimulation.from_paths(paths))
 
         for path in get_all_paths(arguments.openmm_xml_entries):
-            runner.add_simulation(OpenMMSimulation(path))
+            runner.add_simulation(OpenMMSimulation.from_xml_path(path))
 
         for path in get_all_paths(arguments.ase_xml_entries):
-            runner.add_simulation(ASEOpenMMSimulation(path))
+            runner.add_simulation(ASEOpenMMSimulation.from_xml_path(path))
 
         if arguments.record_to_path is not None:
             stem = arguments.record_to_path
             if stem == "":
-                stem = (
-                    f"omni-recording-{time.strftime("%Y-%m-%d-%H%M-%S", time.gmtime())}"
-                )
+                timestamp = time.strftime("%Y-%m-%d-%H%M-%S", time.gmtime())
+                stem = f"omni-recording-{timestamp}"
 
             traj_path = f"{stem}.traj"
             state_path = f"{stem}.state"
@@ -144,22 +149,7 @@ def main():
                 app = OmniTextualApp(runner)
                 app.run()
         else:
-            print(
-                f'Serving "{runner.app_server.name}" on port {runner.app_server.port}, '
-                f"discoverable on all interfaces on port {runner.app_server.discovery.port}"
-            )
-
-            list = "\n".join(
-                f'{index}: "{simulation.name}"'
-                for index, simulation in enumerate(runner.simulations)
-            )
-            print(f"Available simulations:\n{list}")
-
-            try:
-                while True:
-                    time.sleep(1)
-            except KeyboardInterrupt:
-                print("Closing due to keyboard interrupt.")
+            runner.print_basic_info_and_wait()
 
 
 if __name__ == "__main__":
