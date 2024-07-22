@@ -49,7 +49,7 @@ receives the interactions. It can be use instead of
 
 """
 
-from typing import Dict, List, Set, Optional, NamedTuple
+from typing import Dict, List, Set, Optional, NamedTuple, Tuple
 import itertools
 
 import numpy as np
@@ -113,6 +113,7 @@ class NanoverImdReporter:
         self._previous_force_index: Set[int] = set()
         self._frame_index = 0
         self._total_user_energy = 0.0
+        self._user_forces: npt.NDArray = np.empty(0)
 
         self._did_first_frame = False
 
@@ -154,7 +155,7 @@ class NanoverImdReporter:
         if simulation.currentStep % self.force_interval == 0:
             interactions = self.imd_state.active_interactions
             positions = state.getPositions(asNumpy=True)
-            self._total_user_energy = self._update_forces(
+            self._total_user_energy, self._user_forces = self._update_forces(
                 positions.astype(float), interactions, simulation.context
             )
         if simulation.currentStep % self.frame_interval == 0:
@@ -169,6 +170,9 @@ class NanoverImdReporter:
             else:
                 frame_data.particle_positions = positions
                 frame_data.user_energy = self._total_user_energy
+                sparse_indices, sparse_forces = get_sparse_forces(self._user_forces)
+                frame_data.user_forces_sparse = sparse_forces
+                frame_data.user_forces_index = sparse_indices
                 self.frame_publisher.send_frame(self._frame_index, frame_data)
                 self._frame_index += 1
 
@@ -210,15 +214,16 @@ class NanoverImdReporter:
         positions: np.ndarray,
         interactions: Dict[str, ParticleInteraction],
         context: mm.Context,
-    ) -> float:
+    ) -> Tuple[float, npt.NDArray]:
         """
         Get the forces to apply from the iMD service and communicate them to
         OpenMM.
         """
         energy = 0.0
+        forces_kjmol = np.zeros(positions.shape)
         context_needs_update = False
         if interactions:
-            energy = self._apply_forces(positions, interactions)
+            energy, forces_kjmol = self._apply_forces(positions, interactions)
             context_needs_update = True
         elif self._is_force_dirty:
             self._reset_forces()
@@ -226,13 +231,13 @@ class NanoverImdReporter:
 
         if context_needs_update:
             self.imd_force.updateParametersInContext(context)
-        return energy
+        return energy, forces_kjmol
 
     def _apply_forces(
         self,
         positions: np.ndarray,
         interactions: Dict[str, ParticleInteraction],
-    ) -> float:
+    ) -> Tuple[float, npt.NDArray]:
         """
         Set the iMD forces based on the user interactions.
         """
@@ -252,7 +257,7 @@ class NanoverImdReporter:
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
         self._is_force_dirty = True
         self._previous_force_index = affected_particles
-        return energy
+        return energy, forces_kjmol
 
     def _reset_forces(self):
         """
@@ -354,3 +359,24 @@ def get_imd_forces_from_system(system: app.Simulation) -> List[mm.CustomExternal
         and force.getEnergyFunction() == IMD_FORCE_EXPRESSION
         and force.getNumParticles() == system_num_particles
     ]
+
+
+def get_sparse_forces(user_forces: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray]:
+    """
+    Takes in an array of user forces acting on the system containing N particles
+    and outputs two arrays that describe these user forces in a sparse form:
+
+    - The first contains the indices of the particles for which the user forces
+      are non-zero
+    - The second contains the non-zero user forces associated with each index
+
+    :param user_forces: Array of user forces with dimensions (N, 3)
+    :return: Array of particle indices, Array of corresponding user forces
+    """
+    sparse_indices = np.unique(np.nonzero(user_forces)[0])
+    sparse_forces = np.zeros((sparse_indices.shape[0], 3))
+
+    for index in range(sparse_indices.shape[0]):
+        sparse_forces[index, :] = user_forces[sparse_indices[index]]
+
+    return sparse_indices, sparse_forces
