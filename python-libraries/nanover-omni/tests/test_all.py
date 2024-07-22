@@ -110,15 +110,11 @@ def test_next_simulation_increments_counter(multi_sim_client_runner_without_play
         assert_equal_soon(lambda: client.current_frame.simulation_counter, lambda: i)
 
 
-# TODO: actually support this lol
 @pytest.mark.parametrize("fps", (5, 10, 30))
-def test_play_test_interval(multi_sim_client_runner_without_playback, fps):
+def test_play_step_interval(multi_sim_client_runner_without_playback, fps):
     """
-    The runner uses the requested MD throttling.
-
-    Here we make sure the runner throttles the dynamics according to the
-    dynamics interval. However, we only guarantee that the target dynamics
-    interval is close on average.
+    Test that the play step interval is respected and the sent frame frequency matches the requested interval.
+    We only guarantee that the interval is close on average.
     """
     # We need at least a few frames to see intervals between
     test_frames = 30
