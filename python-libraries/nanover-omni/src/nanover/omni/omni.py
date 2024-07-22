@@ -1,3 +1,5 @@
+import time
+import traceback
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
@@ -30,12 +32,16 @@ class OmniRunner:
     @classmethod
     def with_basic_server(
         cls,
+        *simulations: Simulation,
         name: Optional[str] = None,
         address: Optional[str] = None,
         port: Optional[int] = None,
     ):
         app_server = NanoverImdApplication.basic_server(name, address, port)
-        return cls(app_server)
+        omni = cls(app_server)
+        for simulation in simulations:
+            omni.add_simulation(simulation)
+        return omni
 
     def __init__(self, app_server: NanoverImdApplication):
         self._app_server = app_server
@@ -60,6 +66,24 @@ class OmniRunner:
         self.app_server.close()
         self._cancel_run()
 
+    def print_basic_info_and_wait(self):
+        print(
+            f'Serving "{self.app_server.name}" on port {self.app_server.port}, '
+            f"discoverable on all interfaces on port {self.app_server.discovery.port}"
+        )
+
+        list = "\n".join(
+            f'{index}: "{simulation.name}"'
+            for index, simulation in enumerate(self.simulations)
+        )
+        print(f"Available simulations:\n{list}")
+
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("Closing due to keyboard interrupt.")
+
     @property
     def app_server(self):
         return self._app_server
@@ -74,6 +98,10 @@ class OmniRunner:
     @property
     def paused(self):
         return self._runner.paused if self._runner is not None else None
+
+    @property
+    def runner(self):
+        return self._runner
 
     def add_simulation(self, simulation: Simulation):
         self.simulations.append(simulation)
@@ -120,8 +148,8 @@ class OmniRunner:
         if self._run_task is not None:
             try:
                 self._run_task.result()
-            except Exception as e:
-                print(f"ERROR in {self.simulation.name}:", e)
+            except Exception:
+                print(f"ERROR in {self.simulation.name}:", traceback.format_exc())
             self._run_task = None
 
     def __enter__(self):
@@ -141,6 +169,14 @@ class InternalRunner:
         self.paused = False
 
         self.variable_interval_generator = VariableIntervalGenerator(1 / 30)
+
+    @property
+    def play_step_interval(self):
+        return self.variable_interval_generator.interval
+
+    @play_step_interval.setter
+    def play_step_interval(self, interval: float):
+        self.variable_interval_generator.interval = interval
 
     def run(self):
         self.simulation.load()
