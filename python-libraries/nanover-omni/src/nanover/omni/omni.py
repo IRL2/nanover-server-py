@@ -99,6 +99,10 @@ class OmniRunner:
     def paused(self):
         return self._runner.paused if self._runner is not None else None
 
+    @property
+    def runner(self):
+        return self._runner
+
     def add_simulation(self, simulation: Simulation):
         self.simulations.append(simulation)
 
@@ -165,6 +169,14 @@ class InternalRunner:
         self.paused = False
 
         self.variable_interval_generator = VariableIntervalGenerator(1 / 30)
+
+    @property
+    def play_step_interval(self):
+        return self.variable_interval_generator.interval
+
+    @play_step_interval.setter
+    def play_step_interval(self, interval: float):
+        self.variable_interval_generator.interval = interval
 
     def run(self):
         self.simulation.load()

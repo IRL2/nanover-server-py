@@ -46,15 +46,15 @@ def multi_sim_client_runner(multi_sim_runner):
 
 
 @pytest.fixture
-def multi_sim_client_runner_without_playback(multi_sim_runner, request):
-    with NanoverImdClient.connect_to_single_server(
-        port=multi_sim_runner.app_server.port
-    ) as client:
-        with OmniRunner.with_basic_server(port=0) as runner:
-            for sim_fixture in SIMULATION_FIXTURES_WITHOUT_PLAYBACK:
-                simulation = request.getfixturevalue(sim_fixture)
-                simulation.name = sim_fixture
-                runner.add_simulation(simulation)
+def multi_sim_client_runner_without_playback(request):
+    with OmniRunner.with_basic_server(port=0) as runner:
+        for sim_fixture in SIMULATION_FIXTURES_WITHOUT_PLAYBACK:
+            simulation = request.getfixturevalue(sim_fixture)
+            simulation.name = sim_fixture
+            runner.add_simulation(simulation)
+        with NanoverImdClient.connect_to_single_server(
+            port=runner.app_server.port
+        ) as client:
             yield client, runner
 
 
@@ -97,8 +97,6 @@ def test_list_simulations(multi_sim_runner):
     assert sorted(names) == sorted(SIMULATION_FIXTURES)
 
 
-# TODO: why don't these increment correctly
-@pytest.mark.xfail
 def test_next_simulation_increments_counter(multi_sim_client_runner_without_playback):
     """
     Test each next command increments the simulation counter to the correct value.
@@ -113,10 +111,8 @@ def test_next_simulation_increments_counter(multi_sim_client_runner_without_play
 
 
 # TODO: actually support this lol
-@pytest.mark.xfail
-@pytest.mark.serial
 @pytest.mark.parametrize("fps", (5, 10, 30))
-def test_throttling(client_runner, fps):
+def test_play_test_interval(multi_sim_client_runner_without_playback, fps):
     """
     The runner uses the requested MD throttling.
 
@@ -127,17 +123,16 @@ def test_throttling(client_runner, fps):
     # We need at least a few frames to see intervals between
     test_frames = 30
 
-    dynamics_interval = 1 / fps
-    client, runner = client_runner
-    runner.dynamics_interval = dynamics_interval
+    play_step_interval = 1 / fps
+    client, runner = multi_sim_client_runner_without_playback
 
     client.subscribe_to_all_frames()
-    runner.run()
+    runner.next()
+    runner.runner.play_step_interval = play_step_interval
 
     while len(client.frames) < test_frames:
         time.sleep(0.1)
-
-    runner.imd.cancel_run(wait=True)
+    runner.pause()
 
     # first frame (topology) isn't subject to intervals
     timestamps = [frame.server_timestamp for frame in client.frames[1:]]
@@ -146,5 +141,5 @@ def test_throttling(client_runner, fps):
     # The interval is not very accurate. We only check that the observed
     # interval is close on average.
     assert numpy.average(deltas) == pytest.approx(
-        dynamics_interval, abs=TIMING_TOLERANCE
+        play_step_interval, abs=TIMING_TOLERANCE
     )
