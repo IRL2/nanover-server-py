@@ -38,6 +38,9 @@ POTENTIAL_ENERGY = "energy.potential"
 TOTAL_ENERGY = "energy.total"
 USER_ENERGY = "energy.user.total"
 
+USER_FORCES_SPARSE = "forces.user.sparse"
+USER_FORCES_INDEX = "forces.user.index"
+
 SERVER_TIMESTAMP = "server.timestamp"
 
 
@@ -47,6 +50,7 @@ _Shortcut = namedtuple(
 
 Array2Dfloat = Union[List[List[float]], npt.NDArray[Union[np.float32, np.float64]]]
 Array2Dint = Union[List[List[int]], npt.NDArray[Union[np.int_]]]
+Array1Dint = Union[List[int], npt.NDArray[np.int_]]
 
 
 class MissingDataError(KeyError):
@@ -286,6 +290,20 @@ class FrameData(metaclass=_FrameDataMeta):
         key=USER_ENERGY,
         record_type="values",
         field_type="number_value",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
+    user_forces_sparse: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
+        key=USER_FORCES_SPARSE,
+        record_type="arrays",
+        field_type="float",
+        to_python=_n_by_3,
+        to_raw=_flatten_array,
+    )
+    user_forces_index: Array1Dint = _Shortcut(  # type: ignore[assignment]
+        key=USER_FORCES_INDEX,
+        record_type="arrays",
+        field_type="index",
         to_python=_as_is,
         to_raw=_as_is,
     )

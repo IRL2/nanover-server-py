@@ -1,4 +1,4 @@
-import logging
+import warnings
 from os import PathLike
 from pathlib import Path
 from typing import Optional, Any
@@ -26,7 +26,7 @@ class OpenMMSimulation:
                 "The simulation must include an appropriate force for imd."
             )
         if len(potential_imd_forces) > 1:
-            logging.warning(
+            warnings.warn(
                 f"More than one force could be used as imd force "
                 f"({len(potential_imd_forces)}); taking the last one."
             )
@@ -36,6 +36,8 @@ class OpenMMSimulation:
         # for the purpose of this runner, the other ones are likely leftovers
         # or forces created for another purpose.
         sim.imd_force = potential_imd_forces[-1]
+        # TODO: can't we just always add the force ourselves and reinitialise the context?
+        # simulation.context.reinitialize(preserveState=True)
 
         sim.checkpoint = sim.simulation.context.createCheckpoint()
 

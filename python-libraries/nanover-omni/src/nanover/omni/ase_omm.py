@@ -1,3 +1,4 @@
+import warnings
 from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
@@ -18,6 +19,11 @@ from nanover.ase.openmm import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.openmm import serializer
 from nanover.utilities.event import Event
+
+
+CONSTRAINTS_UNSUPPORTED_MESSAGE = (
+    "The simulation contains constraints which will be ignored by this runner!"
+)
 
 
 @dataclass
@@ -78,6 +84,24 @@ class ASEOpenMMSimulation:
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, temperature_K=300)
 
+        self.checkpoint = InitialState(
+            positions=self.atoms.get_positions(),
+            velocities=self.atoms.get_velocities(),
+            cell=self.atoms.get_cell(),
+        )
+
+    def reset(self, app_server: NanoverImdApplication):
+        assert (
+            self.simulation is not None
+            and self.atoms is not None
+            and self.checkpoint is not None
+        )
+
+        self.app_server = app_server
+
+        if self.simulation.system.getNumConstraints() > 0:
+            warnings.warn(CONSTRAINTS_UNSUPPORTED_MESSAGE)
+
         # We do not remove the center of mass (fixcm=False). If the center of
         # mass translations should be removed, then the removal should be added
         # to the OpenMM system.
@@ -89,28 +113,12 @@ class ASEOpenMMSimulation:
             fixcm=False,
         )
 
-        self.checkpoint = InitialState(
-            positions=self.atoms.get_positions(),
-            velocities=self.atoms.get_velocities(),
-            cell=self.atoms.get_cell(),
-        )
-
-    def reset(self, app_server: NanoverImdApplication):
-        assert (
-            self.dynamics is not None
-            and self.atoms is not None
-            and self.checkpoint is not None
-        )
-
-        self.app_server = app_server
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
             self.dynamics.atoms.calc,
             dynamics=self.dynamics,
         )
 
-        # replace previous frame method with fresh instance
-        self.dynamics.observers.clear()
         self.dynamics.attach(
             send_ase_frame(self.atoms, self.app_server.frame_publisher),
             interval=self.frame_interval,
