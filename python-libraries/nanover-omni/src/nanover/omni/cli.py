@@ -2,6 +2,7 @@
 Command line interface for nanover.omni.
 """
 
+import logging
 import time
 import textwrap
 import argparse
@@ -134,6 +135,14 @@ def main():
     """
     Entry point for the command line.
     """
+    # use the nice logger formatting if available
+    try:
+        from rich.logging import RichHandler
+
+        logging.basicConfig(handlers=[RichHandler(rich_tracebacks=True)])
+    except ImportError:
+        logging.basicConfig()
+
     arguments = handle_user_arguments()
 
     with initialise_runner(arguments) as runner:

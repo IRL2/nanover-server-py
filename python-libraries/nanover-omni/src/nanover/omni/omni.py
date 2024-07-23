@@ -1,5 +1,5 @@
+import logging
 import time
-import traceback
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
@@ -61,6 +61,8 @@ class OmniRunner:
         self._threads = ThreadPoolExecutor(max_workers=1)
         self._runner: Optional[InternalRunner] = None
         self._run_task: Optional[Future] = None
+
+        self.logging = logging.getLogger(__name__)
 
     def close(self):
         self.app_server.close()
@@ -146,10 +148,8 @@ class OmniRunner:
             self._runner = None
 
         if self._run_task is not None:
-            try:
+            with suppress(Exception):
                 self._run_task.result()
-            except Exception:
-                print(f"ERROR in {self.simulation.name}:", traceback.format_exc())
             self._run_task = None
 
     def __enter__(self):
@@ -169,6 +169,7 @@ class InternalRunner:
         self.paused = False
 
         self.variable_interval_generator = VariableIntervalGenerator(1 / 30)
+        self.logger = logging.getLogger(simulation.name)
 
     @property
     def play_step_interval(self):
@@ -179,10 +180,10 @@ class InternalRunner:
         self.variable_interval_generator.interval = interval
 
     def run(self):
-        self.simulation.load()
-        self.simulation.reset(self.app_server)
-
         try:
+            self.simulation.load()
+            self.simulation.reset(self.app_server)
+
             for dt in self.variable_interval_generator.yield_interval():
                 self.handle_signals()
 
@@ -191,6 +192,7 @@ class InternalRunner:
                 if not self.paused:
                     self.simulation.advance_by_seconds(dt)
         except Exception:
+            self.logger.exception("exception in simulation")
             self.app_server.frame_publisher.send_frame(0, FrameData())
             raise
 
