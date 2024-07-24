@@ -1,4 +1,3 @@
-import warnings
 from os import PathLike
 from pathlib import Path
 from typing import Optional, Any
@@ -10,7 +9,7 @@ from nanover.openmm import serializer
 from nanover.openmm.imd import (
     create_imd_force,
     NanoverImdReporter,
-    get_imd_forces_from_system,
+    add_imd_force_to_system,
 )
 
 
@@ -18,26 +17,9 @@ class OpenMMSimulation:
     @classmethod
     def from_simulation(cls, simulation: Simulation, *, name: Optional[str] = None):
         sim = cls(name)
-
         sim.simulation = simulation
-        potential_imd_forces = get_imd_forces_from_system(sim.simulation.system)
-        if not potential_imd_forces:
-            raise ValueError(
-                "The simulation must include an appropriate force for imd."
-            )
-        if len(potential_imd_forces) > 1:
-            warnings.warn(
-                f"More than one force could be used as imd force "
-                f"({len(potential_imd_forces)}); taking the last one."
-            )
-        # In case there is more than one compatible force we take the last one.
-        # The forces are in the order they have been added, so we take the last
-        # one that have been added. This is the most likely to have been added
-        # for the purpose of this runner, the other ones are likely leftovers
-        # or forces created for another purpose.
-        sim.imd_force = potential_imd_forces[-1]
-        # TODO: can't we just always add the force ourselves and reinitialise the context?
-        # simulation.context.reinitialize(preserveState=True)
+        sim.imd_force = add_imd_force_to_system(simulation.system)
+        sim.simulation.context.reinitialize(preserveState=True)
 
         sim.checkpoint = sim.simulation.context.createCheckpoint()
 
