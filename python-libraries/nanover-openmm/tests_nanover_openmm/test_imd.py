@@ -31,6 +31,8 @@ def app_simulation_and_reporter(basic_simulation_with_imd_force):
         reporter = imd.NanoverImdReporter(
             frame_interval=3,
             force_interval=4,
+            include_velocities=False,
+            include_forces=False,
             imd_force=imd_force,
             imd_state=app.imd,
             frame_publisher=app.frame_publisher,
