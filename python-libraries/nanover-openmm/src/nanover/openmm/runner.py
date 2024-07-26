@@ -35,6 +35,10 @@ GET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/get-frame-interval"
 SET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/set-frame-interval"
 GET_FORCE_INTERVAL_COMMAND_KEY = "imd/get-force-interval"
 SET_FORCE_INTERVAL_COMMAND_KEY = "imd/set-force-interval"
+GET_INCLUDE_VELOCITIES_COMMAND_KEY = "imd/get-include-velocities"
+SET_INCLUDE_VELOCITIES_COMMAND_KEY = "imd/set-include-velocities"
+GET_INCLUDE_FORCES_COMMAND_KEY = "imd/get-include-forces"
+SET_INCLUDE_FORCES_COMMAND_KEY = "imd/set-include-forces"
 
 RunnerClass = TypeVar("RunnerClass", bound="OpenMMRunner")
 
@@ -207,6 +211,28 @@ class OpenMMRunner(NanoverRunner):
     @force_interval.setter
     def force_interval(self, interval: int) -> None:
         self.reporter.force_interval = interval
+
+    @property
+    def include_velocities(self) -> bool:
+        """
+        Optionally include the particle velocities in the frame data.
+        """
+        return self.reporter.include_velocities
+
+    @include_velocities.setter
+    def include_velocities(self, included: bool) -> None:
+        self.reporter.include_velocities = included
+
+    @property
+    def include_forces(self) -> bool:
+        """
+        Optionally include the particle forces in the frame data.
+        """
+        return self.reporter.include_forces
+
+    @include_forces.setter
+    def include_forces(self, included: bool) -> None:
+        self.reporter.include_forces = included
 
     @property
     def verbosity_interval(self) -> int:
@@ -395,6 +421,18 @@ class OpenMMRunner(NanoverRunner):
     def _get_force_interval(self) -> Dict[str, int]:
         return {"interval": self.force_interval}
 
+    def _set_include_velocities(self, included: bool) -> None:
+        self.include_velocities = bool(included)
+
+    def _get_include_velocities(self) -> Dict[str, bool]:
+        return {"included": self.include_velocities}
+
+    def _set_include_forces(self, included: bool) -> None:
+        self.include_forces = bool(included)
+
+    def _get_include_forces(self) -> Dict[str, bool]:
+        return {"included": self.include_forces}
+
     def _set_dynamics_interval(self, interval: float) -> None:
         self.dynamics_interval = float(interval)
 
@@ -425,6 +463,18 @@ class OpenMMRunner(NanoverRunner):
         )
         server.register_command(
             GET_FORCE_INTERVAL_COMMAND_KEY, self._get_force_interval
+        )
+        server.register_command(
+            SET_INCLUDE_VELOCITIES_COMMAND_KEY, self._set_include_velocities
+        )
+        server.register_command(
+            GET_INCLUDE_VELOCITIES_COMMAND_KEY, self._get_include_velocities
+        )
+        server.register_command(
+            SET_INCLUDE_FORCES_COMMAND_KEY, self._set_include_forces
+        )
+        server.register_command(
+            GET_INCLUDE_FORCES_COMMAND_KEY, self._get_include_forces
         )
         server.register_command(
             SET_DYNAMICS_INTERVAL_COMMAND_KEY, self._set_dynamics_interval
@@ -469,6 +519,8 @@ class SimulationEntry:
         self.reporter = NanoverImdReporter(
             frame_interval=5,
             force_interval=5,
+            include_velocities=False,
+            include_forces=False,
             imd_force=self._imd_force,
             imd_state=app_server.imd,
             frame_publisher=app_server.frame_publisher,
