@@ -57,6 +57,8 @@ class OpenMMSimulation:
 
         self.frame_interval = 5
         self.force_interval = 5
+        self.include_velocities = False
+        self.include_forces = False
         self.platform: Optional[str] = None
 
         self.imd_force = create_imd_force()
@@ -93,6 +95,8 @@ class OpenMMSimulation:
         self.reporter = NanoverImdReporter(
             frame_interval=self.frame_interval,
             force_interval=self.force_interval,
+            include_velocities=self.include_velocities,
+            include_forces=self.include_forces,
             imd_force=self.imd_force,
             imd_state=self.app_server.imd,
             frame_publisher=self.app_server.frame_publisher,
