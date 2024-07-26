@@ -35,10 +35,10 @@ GET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/get-frame-interval"
 SET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/set-frame-interval"
 GET_FORCE_INTERVAL_COMMAND_KEY = "imd/get-force-interval"
 SET_FORCE_INTERVAL_COMMAND_KEY = "imd/set-force-interval"
-GET_INCLUDE_VELOCITIES_COMMAND_KEY = "imd/get-include-velocities"
-SET_INCLUDE_VELOCITIES_COMMAND_KEY = "imd/set-include-velocities"
-GET_INCLUDE_FORCES_COMMAND_KEY = "imd/get-include-forces"
-SET_INCLUDE_FORCES_COMMAND_KEY = "imd/set-include-forces"
+GET_INCLUDE_VELOCITIES_COMMAND_KEY = "trajectory/get-include-velocities"
+SET_INCLUDE_VELOCITIES_COMMAND_KEY = "trajectory/set-include-velocities"
+GET_INCLUDE_FORCES_COMMAND_KEY = "trajectory/get-include-forces"
+SET_INCLUDE_FORCES_COMMAND_KEY = "trajectory/set-include-forces"
 
 RunnerClass = TypeVar("RunnerClass", bound="OpenMMRunner")
 
