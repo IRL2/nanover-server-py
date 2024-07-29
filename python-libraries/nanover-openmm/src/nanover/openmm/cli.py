@@ -66,14 +66,14 @@ def handle_user_arguments() -> argparse.Namespace:
     parser.add_argument(
         "-q",
         "--include-velocities",
-        type=bool,
+        action="store_true",
         default=False,
         help="Optionally include the particle velocities in the frame data.",
     )
     parser.add_argument(
         "-k",
         "--include-forces",
-        type=bool,
+        action="store_true",
         default=False,
         help="Optionally include the particle forces in the frame data.",
     )
