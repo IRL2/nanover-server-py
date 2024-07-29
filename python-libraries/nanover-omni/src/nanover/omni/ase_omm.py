@@ -59,6 +59,8 @@ class ASEOpenMMSimulation:
         self.reset_energy: Optional[float] = None
         self.time_step = 1
         self.frame_interval = 5
+        self.include_velocities = False
+        self.include_forces = False
         self.platform: Optional[str] = None
 
         self.atoms: Optional[Atoms] = None
@@ -120,7 +122,12 @@ class ASEOpenMMSimulation:
         )
 
         self.dynamics.attach(
-            send_ase_frame(self.atoms, self.app_server.frame_publisher),
+            send_ase_frame(
+                self.atoms,
+                self.app_server.frame_publisher,
+                include_velocities=self.include_velocities,
+                include_forces=self.include_forces,
+            ),
             interval=self.frame_interval,
         )
 

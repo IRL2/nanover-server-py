@@ -9,7 +9,10 @@ from nanover.ase import ase_to_frame_data
 
 
 def send_ase_frame(
-    ase_atoms: Atoms, frame_publisher: FramePublisher
+    ase_atoms: Atoms,
+    frame_publisher: FramePublisher,
+    include_velocities=False,
+    include_forces=False,
 ) -> Callable[[], None]:
     """
     Hook to transmit the current state of an ASE Atoms as a frame.
@@ -36,7 +39,11 @@ def send_ase_frame(
 
     def send():
         nonlocal frame_index
-        frame = ase_to_frame_data(ase_atoms)
+        frame = ase_to_frame_data(
+            ase_atoms,
+            include_velocities=include_velocities,
+            include_forces=include_forces,
+        )
         frame_publisher.send_frame(frame_index, frame)
         frame_index += 1
 

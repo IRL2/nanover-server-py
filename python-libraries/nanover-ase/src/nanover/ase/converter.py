@@ -52,11 +52,13 @@ ATOM_RADIUS_ANG = {
 
 def ase_to_frame_data(
     ase_atoms: Atoms,
-    positions: bool = True,
-    topology: bool = True,
-    state: bool = True,
-    box_vectors: bool = True,
-    generate_bonds: bool = True,
+    positions=True,
+    topology=True,
+    state=True,
+    box_vectors=True,
+    generate_bonds=True,
+    include_velocities=False,
+    include_forces=False,
 ) -> FrameData:
     """
     Constructs a NanoVer frame from the state of the atoms in an ASE simulation.
@@ -69,6 +71,8 @@ def ase_to_frame_data(
     :param state: Whether to add additional state information such as energies.
     :param box_vectors: Whether to add the box vectors to the frame data.
     :param generate_bonds: Whether to generate bonds for the topology.
+    :param include_velocities: Whether to includes per particle velocities.
+    :param include_forces: Whether to include per particle forces.
     :return: NanoVer frame.
 
     :raises: AttributeError Raised if state is `True`, and `ase_atoms` has no
@@ -96,6 +100,11 @@ def ase_to_frame_data(
         add_ase_state_to_frame_data(data, ase_atoms)
     if box_vectors:
         add_ase_box_vectors_to_frame_data(data, ase_atoms)
+    if include_velocities:
+        data.particle_velocities = ase_atoms.get_velocities()
+    if include_forces:
+        data.particle_forces = ase_atoms.get_forces()
+
     return data
 
 
