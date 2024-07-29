@@ -260,7 +260,7 @@ class TestNanoverImdReporter:
         assert np.all(frame.user_forces_sparse) != 0.0
 
     def test_sparse_user_forces_elements(
-            self, app_simulation_and_reporter_with_constant_force_interactions
+        self, app_simulation_and_reporter_with_constant_force_interactions
     ):
         """
         Test that the values of the sparse user forces are approximately as expected from the initial
