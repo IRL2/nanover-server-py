@@ -394,13 +394,17 @@ class TestNanoverImdReporter:
         next_report = reporter.describeNextReport(simulation)
         assert next_report == expectation
 
-    def test_velocities_and_forces(self, app_simulation_and_reporter_with_velocities_and_forces):
+    def test_velocities_and_forces(
+        self, app_simulation_and_reporter_with_velocities_and_forces
+    ):
         """
         Test the particle velocities and particle forces that can be optionally included
         when running OpenMM simulations. Assert that these arrays exist, have the same
         length as the particle positions array and are non-zero.
         """
-        app, simulation, reporter = app_simulation_and_reporter_with_velocities_and_forces
+        app, simulation, reporter = (
+            app_simulation_and_reporter_with_velocities_and_forces
+        )
         request_id = app.frame_publisher._get_new_request_id()
         frame_queues = app.frame_publisher.frame_queues
         with frame_queues.one_queue(request_id, Queue) as publisher_queue:
