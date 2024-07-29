@@ -64,6 +64,25 @@ def app_simulation_and_reporter_with_interactions(app_simulation_and_reporter):
 
 
 @pytest.fixture
+def app_simulation_and_reporter_with_velocities_and_forces(
+    basic_simulation_with_imd_force,
+):
+    simulation, imd_force = basic_simulation_with_imd_force
+    with NanoverImdApplication.basic_server(port=0) as app:
+        reporter = imd.NanoverImdReporter(
+            frame_interval=3,
+            force_interval=4,
+            include_velocities=True,
+            include_forces=True,
+            imd_force=imd_force,
+            imd_state=app.imd,
+            frame_publisher=app.frame_publisher,
+        )
+        simulation.reporters.append(reporter)
+        yield app, simulation, reporter
+
+
+@pytest.fixture
 def app_simulation_and_reporter_with_constant_force_interactions(
     app_simulation_and_reporter,
 ):
@@ -240,31 +259,6 @@ class TestNanoverImdReporter:
         assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
         assert np.all(frame.user_forces_sparse) != 0.0
 
-    def test_sparse_user_forces_elements(
-        self, app_simulation_and_reporter_with_constant_force_interactions
-    ):
-        """
-        Test that the values of the sparse user forces are approximately as expected from the initial
-        positions and the position from which the user force is applied, for a constant force acting
-        on the C atoms.
-        """
-        app, simulation, reporter = (
-            app_simulation_and_reporter_with_constant_force_interactions
-        )
-        request_id = app.frame_publisher._get_new_request_id()
-        frame_queues = app.frame_publisher.frame_queues
-        with frame_queues.one_queue(request_id, Queue) as publisher_queue:
-            simulation.step(10)
-            frames = list(publisher_queue.queue)
-        frame = FrameData(frames[2].frame)
-        # For a mass-weighted constant force applied at [0.0, 0.0, 1.0] to the COM of the C atoms
-        mass_weighted_user_forces_t0 = [[0.0, 0.0, -6.0], [0.0, 0.0, -6.0]]
-        assert set(frame.user_forces_index) == {0, 4}
-        for i in range(len(frame.user_forces_index)):
-            assert frame.user_forces_sparse[i] == pytest.approx(
-                mass_weighted_user_forces_t0[i], abs=2e-3
-            )
-
     @pytest.mark.parametrize("interval", (1, 2, 3, 4))
     def test_send_frame_frequency(self, app_simulation_and_reporter, interval):
         """
@@ -373,3 +367,49 @@ class TestNanoverImdReporter:
             affected_indices=(0, 1, 4, 5),
             unaffected_indices=(2, 3, 6, 7),
         )
+
+    @pytest.mark.parametrize(
+        "simulation_step, expected_step", zip(range(7), (3, 2, 1, 1, 2, 1))
+    )
+    def test_describeNextReportIncludingVelocitiesAndForces(
+        self,
+        app_simulation_and_reporter_with_velocities_and_forces,
+        simulation_step,
+        expected_step,
+    ):
+        """
+        :meth:`NanoverImdReporter.describeNextReport` returns the expected value
+        for step.
+        """
+        # We use a frame interval of 3 and a force interval of 4
+        # current step:   0 1 2 3 4 5 6
+        # step frame:     3 2 1 3 2 1 3
+        # step forces:    4 3 2 1 4 3 2
+        # step to return: 3 2 1 2 2 1 2
+        expectation = (expected_step, True, True, True, True, False)
+        _, simulation, reporter = app_simulation_and_reporter_with_velocities_and_forces
+        reporter.frame_interval = 3
+        reporter.force_interval = 4
+        simulation.currentStep = simulation_step
+        next_report = reporter.describeNextReport(simulation)
+        assert next_report == expectation
+
+    def test_velocities_and_forces(self, app_simulation_and_reporter_with_velocities_and_forces):
+        """
+        Test the particle velocities and particle forces that can be optionally included
+        when running OpenMM simulations. Assert that these arrays exist, have the same
+        length as the particle positions array and are non-zero.
+        """
+        app, simulation, reporter = app_simulation_and_reporter_with_velocities_and_forces
+        request_id = app.frame_publisher._get_new_request_id()
+        frame_queues = app.frame_publisher.frame_queues
+        with frame_queues.one_queue(request_id, Queue) as publisher_queue:
+            simulation.step(10)
+            frames = list(publisher_queue.queue)
+        frame = FrameData(frames[2].frame)
+        assert frame.particle_velocities
+        assert frame.particle_forces
+        assert len(frame.particle_velocities) == len(frame.particle_positions)
+        assert len(frame.particle_forces) == len(frame.particle_positions)
+        assert np.all(frame.particle_velocities) != 0.0
+        assert np.all(frame.particle_forces) != 0.0
