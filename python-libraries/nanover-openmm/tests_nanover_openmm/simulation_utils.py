@@ -38,6 +38,7 @@ BASIC_SIMULATION_POSITIONS = [
     [2.051, 8.240, -1.786],  # H
     [-10.685, -0.537, 6.921],  # H
 ]
+ARGON_SIMULATION_POSITION = [[0.0, 0.0, 0.0]]
 
 
 class DoNothingReporter:
@@ -209,3 +210,95 @@ def assert_basic_simulation_topology(frame):
         [4, 6],
         [4, 7],  # Second residue
     ]
+
+
+def build_single_atom_system():
+    box_vector = BASIC_SIMULATION_BOX_VECTORS
+    system = mm.System()
+    system.setDefaultPeriodicBoxVectors(*box_vector)
+    system.addParticle(mass=40)
+
+    return system
+
+
+def build_single_atom_topology() -> app.Topology:
+    topology = app.Topology()
+    argon = app.Element.getBySymbol("Ar")
+    chain = topology.addChain()
+    residue = topology.addResidue(name="ARGON", chain=chain)
+    topology.addAtom(element=argon, name="AR1", residue=residue)
+    return topology
+
+
+def build_single_atom_simulation(
+    imd_force: Optional[mm.CustomExternalForce] = None,
+) -> app.Simulation:
+    periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
+    positions = np.array(ARGON_SIMULATION_POSITION, dtype=np.float32)
+    topology = build_single_atom_topology()
+    system = build_single_atom_system()
+    if imd_force is not None:
+        nanover.openmm.imd.populate_imd_force(imd_force, system)
+        system.addForce(imd_force)
+
+    # As we are only dealing with a single atom system, it is unnecessary to
+    # add a non-bonded force.
+
+    # Use a Verlet integrator to make the dynamics predictable, avoiding the
+    # random kicks introduced by Langevin.
+    integrator = mm.VerletIntegrator(2 * femtosecond)
+
+    platform = mm.Platform.getPlatformByName("CPU")
+    simulation = app.Simulation(topology, system, integrator, platform=platform)
+    simulation.context.setPeriodicBoxVectors(*periodic_box_vector)
+    simulation.context.setPositions(positions * nanometer)
+
+    return simulation
+
+
+@pytest.fixture
+def single_atom_system():
+    return build_single_atom_system()
+
+
+@pytest.fixture
+def single_atom_simulation():
+    return build_single_atom_simulation()
+
+
+@pytest.fixture
+def single_atom_simulation_with_imd_force():
+    imd_force = nanover.openmm.imd.create_imd_force()
+    return build_single_atom_simulation(imd_force), imd_force
+
+
+@pytest.fixture
+def serialized_single_atom_simulation_path(single_atom_simulation, tmp_path):
+    """
+    Setup an XML serialized simulation for a single atom system as a temporary files.
+    """
+    serialized_simulation = serializer.serialize_simulation(single_atom_simulation)
+    xml_path = tmp_path / "system.xml"
+    with open(str(xml_path), "w") as outfile:
+        outfile.write(serialized_simulation)
+    return xml_path
+
+
+@pytest.fixture
+def single_atom_simulation_xml(single_atom_simulation):
+    """
+    Generate a XML serialized simulation from the single atom test simulation.
+    """
+    xml_string = serializer.serialize_simulation(single_atom_simulation)
+    return xml_string
+
+
+def assert_single_atom_simulation_topology(frame):
+    """
+    Fails with an :exc:`AssertError` if the topology of the given frame does
+    not match the expectation for the basic simulation.
+    """
+    assert frame.residue_names == ["ARGON"]
+    assert frame.residue_chains == [0]
+    assert frame.particle_names == ["AR1"]
+    assert frame.particle_elements == [40]
