@@ -260,6 +260,7 @@ def build_single_atom_simulation(
 
     return simulation
 
+
 @pytest.fixture
 def single_atom_system():
     return build_single_atom_system()
@@ -275,6 +276,7 @@ def single_atom_simulation_with_imd_force():
     imd_force = nanover.openmm.imd.create_imd_force()
     return build_single_atom_simulation(imd_force), imd_force
 
+
 @pytest.fixture
 def serialized_single_atom_simulation_path(single_atom_simulation, tmp_path):
     """
@@ -285,6 +287,7 @@ def serialized_single_atom_simulation_path(single_atom_simulation, tmp_path):
     with open(str(xml_path), "w") as outfile:
         outfile.write(serialized_simulation)
     return xml_path
+
 
 @pytest.fixture
 def single_atom_simulation_xml(single_atom_simulation):

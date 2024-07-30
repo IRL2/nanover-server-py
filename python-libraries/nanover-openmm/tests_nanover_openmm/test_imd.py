@@ -102,6 +102,7 @@ def app_simulation_and_reporter_with_constant_force_interactions(
     )
     return app, simulation, reporter
 
+
 @pytest.fixture
 def single_atom_app_simulation_and_reporter(single_atom_simulation_with_imd_force):
     simulation, imd_force = single_atom_simulation_with_imd_force
@@ -118,8 +119,11 @@ def single_atom_app_simulation_and_reporter(single_atom_simulation_with_imd_forc
         simulation.reporters.append(reporter)
         yield app, simulation, reporter
 
+
 @pytest.fixture
-def single_atom_app_simulation_and_reporter_with_constant_force_interaction(single_atom_app_simulation_and_reporter):
+def single_atom_app_simulation_and_reporter_with_constant_force_interaction(
+    single_atom_app_simulation_and_reporter,
+):
     app, simulation, reporter = single_atom_app_simulation_and_reporter
     app.imd.insert_interaction(
         "interaction.0",
@@ -477,7 +481,9 @@ class TestNanoverImdReporter:
         assert np.all(frame.particle_velocities) != 0.0
         assert np.all(frame.particle_forces) != 0.0
 
-    def test_velocities_and_forces_single_atom(self, single_atom_app_simulation_and_reporter_with_constant_force_interaction):
+    def test_velocities_and_forces_single_atom(
+        self, single_atom_app_simulation_and_reporter_with_constant_force_interaction
+    ):
         app, simulation, reporter = (
             single_atom_app_simulation_and_reporter_with_constant_force_interaction
         )
