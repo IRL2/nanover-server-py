@@ -497,7 +497,11 @@ class TestNanoverImdReporter:
         are as expected.
         """
         # The force is a constant force which should cause the particle to accelerate
-        # at 1 nm ps^-1
+        # at 1 nm ps^-1. Thus the expected force (along a single axis) for an argon
+        # atom with a mass of 40 amu is 40 kJ mol^-1 nm^-1. The force is applied from
+        # the frame with index 1, with a simulation step size of 2 fs and a frame and
+        # force interval of 5 simulation steps. Therefore, the expected velocity after
+        # 5 simulation steps (0.01 ps) is 0.01 nm ps^-1.
         expected_forces = [0.0, 0.0, 40.0]
         expected_velocities = [0.0, 0.0, 0.01]
         request_id = app.frame_publisher._get_new_request_id()
