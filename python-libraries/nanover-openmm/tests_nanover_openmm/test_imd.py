@@ -21,6 +21,11 @@ from .simulation_utils import (
     BASIC_SIMULATION_POSITIONS,
     empty_imd_force,
     assert_basic_simulation_topology,
+    single_atom_system,
+    single_atom_simulation,
+    single_atom_simulation_with_imd_force,
+    ARGON_SIMULATION_POSITION,
+    assert_single_atom_simulation_topology,
 )
 
 
@@ -92,6 +97,35 @@ def app_simulation_and_reporter_with_constant_force_interactions(
         ParticleInteraction(
             position=(0.0, 0.0, 1.0),
             particles=(0, 4),
+            interaction_type="constant",
+        ),
+    )
+    return app, simulation, reporter
+
+@pytest.fixture
+def single_atom_app_simulation_and_reporter(single_atom_simulation_with_imd_force):
+    simulation, imd_force = single_atom_simulation_with_imd_force
+    with NanoverImdApplication.basic_server(port=0) as app:
+        reporter = imd.NanoverImdReporter(
+            frame_interval=3,
+            force_interval=4,
+            include_velocities=True,
+            include_forces=True,
+            imd_force=imd_force,
+            imd_state=app.imd,
+            frame_publisher=app.frame_publisher,
+        )
+        simulation.reporters.append(reporter)
+        yield app, simulation, reporter
+
+@pytest.fixture
+def single_atom_app_simulation_and_reporter_with_constant_force_interaction(single_atom_app_simulation_and_reporter):
+    app, simulation, reporter = single_atom_app_simulation_and_reporter
+    app.imd.insert_interaction(
+        "interaction.0",
+        ParticleInteraction(
+            position=(0.0, 0.0, 1.0),
+            particles=[0],
             interaction_type="constant",
         ),
     )
@@ -442,3 +476,33 @@ class TestNanoverImdReporter:
         assert len(frame.particle_forces) == len(frame.particle_positions)
         assert np.all(frame.particle_velocities) != 0.0
         assert np.all(frame.particle_forces) != 0.0
+
+    def test_velocities_and_forces_single_atom(self, single_atom_app_simulation_and_reporter_with_constant_force_interaction):
+        app, simulation, reporter = (
+            single_atom_app_simulation_and_reporter_with_constant_force_interaction
+        )
+        """
+        Numerically test the optionally included velocities and forces being passed
+        from OpenMM. This test checks that the velocities and forces arrays have the
+        same length as the particle positions array, that the forces array is the 
+        same as the user forces array (which should be true for the second frame of a 
+        single atom system using the Verlet integrator with a constant force), and 
+        then numerically checks that the values of the velocities and forces arrays 
+        are as expected.
+        """
+        expected_forces = [40.0, 0.0, 0.0]
+        expected_velocities = [0.1, 0.0, 0.0]
+        request_id = app.frame_publisher._get_new_request_id()
+        frame_queues = app.frame_publisher.frame_queues
+        with frame_queues.one_queue(request_id, Queue) as publisher_queue:
+            simulation.step(10)
+            frames = list(publisher_queue.queue)
+        frame = FrameData(frames[2].frame)
+        assert frame.particle_velocities
+        assert frame.particle_forces
+        assert frame.user_forces_sparse
+        assert len(frame.particle_velocities) == len(frame.particle_positions)
+        assert len(frame.particle_forces) == len(frame.particle_positions)
+        assert np.all(frame.particle_forces) == np.all(frame.user_forces_sparse)
+        assert np.all(frame.particle_forces) == np.all(expected_forces)
+        assert np.all(frame.particle_velocities) == np.all(expected_velocities)
