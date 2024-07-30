@@ -523,4 +523,3 @@ class TestNanoverImdReporter:
             assert frame.particle_velocities[i] == pytest.approx(
                 expected_velocities, abs=1e-7
             )
-            print(frame.particle_velocities[i])
