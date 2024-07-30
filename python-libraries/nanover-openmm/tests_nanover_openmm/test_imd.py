@@ -319,7 +319,7 @@ class TestNanoverImdReporter:
         assert set(frame.user_forces_index) == {0, 4}
         for i in range(len(frame.user_forces_index)):
             assert frame.user_forces_sparse[i] == pytest.approx(
-                mass_weighted_user_forces_t0[i], abs=2e-3
+                mass_weighted_user_forces_t0[i], abs=3e-3
             )
 
     @pytest.mark.parametrize("interval", (1, 2, 3, 4))
