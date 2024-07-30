@@ -108,8 +108,8 @@ def single_atom_app_simulation_and_reporter(single_atom_simulation_with_imd_forc
     simulation, imd_force = single_atom_simulation_with_imd_force
     with NanoverImdApplication.basic_server(port=0) as app:
         reporter = imd.NanoverImdReporter(
-            frame_interval=3,
-            force_interval=4,
+            frame_interval=5,
+            force_interval=5,
             include_velocities=True,
             include_forces=True,
             imd_force=imd_force,
@@ -496,8 +496,10 @@ class TestNanoverImdReporter:
         then numerically checks that the values of the velocities and forces arrays 
         are as expected.
         """
-        expected_forces = [40.0, 0.0, 0.0]
-        expected_velocities = [0.1, 0.0, 0.0]
+        # The force is a constant force which should cause the particle to accelerate
+        # at 1 nm ps^-1
+        expected_forces = [0.0, 0.0, 40.0]
+        expected_velocities = [0.0, 0.0, 0.01]
         request_id = app.frame_publisher._get_new_request_id()
         frame_queues = app.frame_publisher.frame_queues
         with frame_queues.one_queue(request_id, Queue) as publisher_queue:
@@ -509,6 +511,12 @@ class TestNanoverImdReporter:
         assert frame.user_forces_sparse
         assert len(frame.particle_velocities) == len(frame.particle_positions)
         assert len(frame.particle_forces) == len(frame.particle_positions)
-        assert np.all(frame.particle_forces) == np.all(frame.user_forces_sparse)
-        assert np.all(frame.particle_forces) == np.all(expected_forces)
-        assert np.all(frame.particle_velocities) == np.all(expected_velocities)
+        for i in range(len(frame.particle_forces)):
+            assert frame.particle_forces[i] == pytest.approx(
+                frame.user_forces_sparse[i], abs=1e-10
+            )
+            assert frame.particle_forces[i] == pytest.approx(expected_forces, abs=1e-10)
+            assert frame.particle_velocities[i] == pytest.approx(
+                expected_velocities, abs=1e-7
+            )
+            print(frame.particle_velocities[i])
