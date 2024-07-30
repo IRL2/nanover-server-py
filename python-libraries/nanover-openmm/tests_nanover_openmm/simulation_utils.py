@@ -241,13 +241,8 @@ def build_single_atom_simulation(
         nanover.openmm.imd.populate_imd_force(imd_force, system)
         system.addForce(imd_force)
 
-    # Next we set up a non-bonded force. The parameters used are not correct, and
-    # should not be used for anything other than the single atom test case.
-
-    force = mm.NonbondedForce()
-    force.setNonbondedMethod(force.NoCutoff)
-    force.addParticle(charge=0, sigma=0.32499, epsilon=0.0)
-    system.addForce(force)
+    # As we are only dealing with a single atom system, it is unnecessary to
+    # add a non-bonded force.
 
     # Use a Verlet integrator to make the dynamics predictable, avoiding the
     # random kicks introduced by Langevin.
