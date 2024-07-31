@@ -2,6 +2,7 @@ import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
+from enum import Enum
 from queue import Queue, Empty
 from typing import Protocol, List, Optional
 
@@ -17,7 +18,6 @@ from nanover.trajectory.frame_server import (
     STEP_COMMAND_KEY,
 )
 from nanover.utilities.timing import VariableIntervalGenerator
-
 
 class Simulation(Protocol):
     name: str
@@ -62,6 +62,7 @@ class OmniRunner:
         self._runner: Optional[InternalRunner] = None
         self._run_task: Optional[Future] = None
 
+        self.failed_simulations = set()
         self.logging = logging.getLogger(__name__)
 
     def close(self):
@@ -139,7 +140,7 @@ class OmniRunner:
         if self._run_task is not None:
             raise RuntimeError("Already running on a thread!")
 
-        self._runner = InternalRunner(self.simulation, self.app_server)
+        self._runner = InternalRunner(self, self.simulation, self.app_server)
         self._run_task = self._threads.submit(self._runner.run)
 
     def _cancel_run(self):
@@ -160,7 +161,8 @@ class OmniRunner:
 
 
 class InternalRunner:
-    def __init__(self, simulation: Simulation, app_server: NanoverImdApplication):
+    def __init__(self, omni: OmniRunner, simulation: Simulation, app_server: NanoverImdApplication):
+        self.omni = omni
         self.simulation = simulation
         self.app_server = app_server
 
@@ -183,6 +185,7 @@ class InternalRunner:
         try:
             self.simulation.load()
             self.simulation.reset(self.app_server)
+            self.omni.failed_simulations.discard(self.simulation)
 
             for dt in self.variable_interval_generator.yield_interval():
                 self.handle_signals()
@@ -192,6 +195,7 @@ class InternalRunner:
                 if not self.paused:
                     self.simulation.advance_by_seconds(dt)
         except Exception:
+            self.omni.failed_simulations.add(self.simulation)
             self.logger.exception("exception in simulation")
             self.app_server.frame_publisher.send_frame(0, FrameData())
             raise
