@@ -23,7 +23,9 @@ class OmniTextualApp(App):
         failed = self.omni.simulation in self.omni.failed_simulations
 
         name = "None" if not running else self.omni.simulation.name
-        self.query_one("#status Label", Label).update(f"Running: {name}" if not failed else "Failed.")
+        self.query_one("#status Label", Label).update(
+            f"Running: {name}" if not failed else "Failed."
+        )
         self.query_one("#play", Button).disabled = not paused
         self.query_one("#pause", Button).disabled = paused
 
@@ -57,7 +59,11 @@ class OmniTextualApp(App):
             with VerticalScroll(id="simulations"):
                 for i, simulation in enumerate(self.omni.simulations):
                     failed = simulation in self.omni.failed_simulations
-                    yield Button(f"{simulation.name}", id=f"_{i}", classes="failed" if failed else None)
+                    yield Button(
+                        f"{simulation.name}",
+                        id=f"_{i}",
+                        classes="failed" if failed else None,
+                    )
             with Horizontal(id="controls"):
                 with Horizontal():
                     yield Button("Play", id="play")
