@@ -64,6 +64,20 @@ def handle_user_arguments() -> argparse.Namespace:
         help="Update the interactions every STEPS dynamics steps.",
     )
     parser.add_argument(
+        "-q",
+        "--include-velocities",
+        action="store_true",
+        default=False,
+        help="Optionally include the particle velocities in the frame data.",
+    )
+    parser.add_argument(
+        "-k",
+        "--include-forces",
+        action="store_true",
+        default=False,
+        help="Optionally include the particle forces in the frame data.",
+    )
+    parser.add_argument(
         "--platform", default=None, help="Select the platform on which to run Openmm."
     )
 
@@ -93,6 +107,8 @@ def main():
         runner.verbosity_interval = arguments.verbose
         runner.frame_interval = arguments.frame_interval
         runner.force_interval = arguments.force_interval
+        runner.include_velocities = arguments.include_velocities
+        runner.include_forces = arguments.include_forces
         runner.run()
 
         try:

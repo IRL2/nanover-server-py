@@ -78,6 +78,21 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "-q",
+        "--include-velocities",
+        action="store_true",
+        default=False,
+        help="Optionally include the particle velocities in the frame data for OMM and ASE simulations.",
+    )
+    parser.add_argument(
+        "-k",
+        "--include-forces",
+        action="store_true",
+        default=False,
+        help="Optionally include the particle forces in the frame data for OMM and ASE simulations.",
+    )
+
+    parser.add_argument(
         "-n",
         "--name",
         help="Give a friendly name to the server.",
@@ -107,10 +122,16 @@ def initialise_runner(arguments: argparse.Namespace):
             runner.add_simulation(PlaybackSimulation.from_paths(paths))
 
         for path in get_all_paths(arguments.openmm_xml_entries):
-            runner.add_simulation(OpenMMSimulation.from_xml_path(path))
+            simulation = OpenMMSimulation.from_xml_path(path)
+            simulation.include_velocities = arguments.include_velocities
+            simulation.include_forces = arguments.include_forces
+            runner.add_simulation(simulation)
 
         for path in get_all_paths(arguments.ase_xml_entries):
-            runner.add_simulation(ASEOpenMMSimulation.from_xml_path(path))
+            simulation = ASEOpenMMSimulation.from_xml_path(path)
+            simulation.include_velocities = arguments.include_velocities
+            simulation.include_forces = arguments.include_forces
+            runner.add_simulation(simulation)
 
         if arguments.record_to_path is not None:
             stem = arguments.record_to_path

@@ -1,9 +1,11 @@
+import numpy as np
 import pytest
 
+from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
 
 from common import app_server, ARGON_XML_PATH
-from nanover.openmm.imd import add_imd_force_to_system
+from nanover.openmm import serializer
 
 
 @pytest.fixture
@@ -14,31 +16,42 @@ def example_openmm(app_server):
     yield sim
 
 
-def test_simulation_without_imd_force(example_openmm):
+def test_auto_force(app_server):
     """
-    Test that creation from a simulation without imd force fails.
+    Test that interactions work if the imd force isn't added manually.
     """
-    simulation = example_openmm.simulation
-    simulation.system.removeForce(simulation.system.getNumForces() - 1)
+    with open(ARGON_XML_PATH) as infile:
+        omm_sim = serializer.deserialize_simulation(infile)
+    omni_sim = OpenMMSimulation.from_simulation(omm_sim)
+    omni_sim.load()
+    omni_sim.reset(app_server)
 
-    with pytest.raises(ValueError):
-        OpenMMSimulation.from_simulation(simulation)
+    def get_position():
+        positions = omni_sim.simulation.context.getState(
+            getPositions=True
+        ).getPositions(asNumpy=True)
+        return np.asarray(positions[0])
 
+    # add an interaction far to the right
+    prev_pos = get_position()
+    next_pos = list(prev_pos)
+    next_pos[0] += 100
 
-def test_simulation_with_multiple_imd_force(example_openmm):
-    """
-    Test that creation from a simulation with multiple imd forces fails.
-    """
-    simulation = example_openmm.simulation
+    interaction = ParticleInteraction(
+        interaction_type="constant",
+        position=next_pos,
+        particles=[0],
+        scale=10,
+    )
+    app_server.imd.insert_interaction("interaction.test", interaction)
 
-    # The forces added to the system will not be accounted for when running
-    # the dynamics until the context is reset as the system is already
-    # compiled in a context. It does not matter here, as the force is still
-    # listed in the system, which is what we check.
-    add_imd_force_to_system(simulation.system)
+    # run some simulation steps
+    for _ in range(50):
+        omni_sim.advance_by_one_step()
 
-    with pytest.warns(UserWarning, match="force"):
-        OpenMMSimulation.from_simulation(simulation)
+    # check the atom moved some way to the right
+    curr_pos = get_position()
+    assert curr_pos[0] - prev_pos[0] >= 1
 
 
 def test_step_interval(example_openmm):
