@@ -2,6 +2,7 @@
 Command line interface for nanover.omni.
 """
 
+import logging
 import time
 import textwrap
 import argparse
@@ -106,8 +107,11 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
 def get_all_paths(path_sets: Iterable[Iterable[str]]):
     for paths in path_sets:
         for pattern in paths:
-            for path in glob(pattern, recursive=True):
-                yield path
+            files = list(glob(pattern, recursive=True))
+            if files:
+                yield from files
+            else:
+                logging.warning(f'Path "{pattern}" yielded 0 files.')
 
 
 @contextmanager
@@ -155,6 +159,15 @@ def main():
     """
     Entry point for the command line.
     """
+    # use the nice logger formatting if available
+    try:
+        from rich.logging import RichHandler
+
+        logging.basicConfig(handlers=[RichHandler(rich_tracebacks=True)])
+    except ImportError:
+        logging.basicConfig()
+    logging.captureWarnings(True)
+
     arguments = handle_user_arguments()
 
     with initialise_runner(arguments) as runner:

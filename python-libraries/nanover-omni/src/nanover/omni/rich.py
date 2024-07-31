@@ -1,6 +1,5 @@
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
-from textual.reactive import reactive
 from textual.widgets import Button, Label
 
 from nanover.omni import OmniRunner
@@ -11,27 +10,32 @@ class OmniTextualApp(App):
     BINDINGS = [("q", "quit", "Quit")]
     TITLE = "NanoVer Omni Server"
 
-    simulation = reactive(None)
-
     def __init__(self, omni: OmniRunner):
         super().__init__()
         self.omni = omni
 
     def on_mount(self):
-        self.set_interval(1 / 50, self.update)
+        self.set_interval(1 / 2, self.update)
 
     def update(self):
         running = self.omni.simulation is not None
         paused = self.omni.paused
+        failed = self.omni.simulation in self.omni.failed_simulations
 
         name = "None" if not running else self.omni.simulation.name
-        self.query_one("#status Label", Label).update(f"Running: {name}")
+        self.query_one("#status Label", Label).update(
+            f"Running: {name}" if not failed else "Failed."
+        )
         self.query_one("#play", Button).disabled = not paused
         self.query_one("#pause", Button).disabled = paused
 
         for button in self.query("#controls Button"):
             button.disabled = not running
         self.query_one("#quit").disabled = False
+
+        for i, simulation in enumerate(self.omni.simulations):
+            failed = simulation in self.omni.failed_simulations
+            self.query_one(f"#_{i}").classes = "failed" if failed else ""
 
     async def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
@@ -54,7 +58,12 @@ class OmniTextualApp(App):
                 yield Label()
             with VerticalScroll(id="simulations"):
                 for i, simulation in enumerate(self.omni.simulations):
-                    yield Button(f"{simulation.name}", id=f"_{i}")
+                    failed = simulation in self.omni.failed_simulations
+                    yield Button(
+                        f"{simulation.name}",
+                        id=f"_{i}",
+                        classes="failed" if failed else None,
+                    )
             with Horizontal(id="controls"):
                 with Horizontal():
                     yield Button("Play", id="play")
