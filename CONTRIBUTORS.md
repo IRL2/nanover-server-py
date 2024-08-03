@@ -21,7 +21,3 @@ Rhoslyn Roebuck Williams (Intangible Realities Laboratory, University of Santiag
 Harry J. Stroud (Intangible Realities Laboratory, University of Santiago de Compostela, Spain)
 Rebecca Walters (Intangible Realities Laboratory, University of Bristol, UK)
 Mark Wonnacott (Intangible Realities Laboratory, University of Santiago de Compostela, Spain))
-
-## Logo 
-
-The NanoVer Protocol logo was designed by Alex Jamieson-Binnie, licensed under CC-BY-SA.
