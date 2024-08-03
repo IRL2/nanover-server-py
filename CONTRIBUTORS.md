@@ -1,7 +1,8 @@
 # Contributors 
 
 The project is maintained by the NanoVer developers at the 
-Intangible Realities Laboratory, University Of Bristol.
+Intangible Realities Laboratory at the University Of Santiago de Compostela, 
+the University of Bristol, and other contributors.
 
 The following people have made contributions to this project that are gratefully received. The repository
 history shows individual contributions.
