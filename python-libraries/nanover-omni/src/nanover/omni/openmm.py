@@ -88,6 +88,7 @@ class OpenMMSimulation:
             self.simulation.reporters.append(self.verbose_reporter)
 
     def dump_frame(self):
+        assert self.simulation is not None
         state = self.simulation.context.getState(getPositions=True, getEnergy=True)
         topology = self.simulation.topology
         frame_data = openmm_to_frame_data(state=state, topology=topology)
