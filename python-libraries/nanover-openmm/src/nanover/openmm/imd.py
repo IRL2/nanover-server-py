@@ -80,6 +80,8 @@ class NextReport(NamedTuple):
 class NanoverImdReporter:
     frame_interval: int
     force_interval: int
+    include_velocities: bool
+    include_forces: bool
     imd_force: mm.CustomExternalForce
     imd_state: ImdStateWrapper
     frame_publisher: FramePublisher
@@ -94,12 +96,16 @@ class NanoverImdReporter:
         self,
         frame_interval: int,
         force_interval: int,
+        include_velocities: bool,
+        include_forces: bool,
         imd_force: mm.CustomExternalForce,
         imd_state: ImdStateWrapper,
         frame_publisher: FramePublisher,
     ):
         self.frame_interval = frame_interval
         self.force_interval = force_interval
+        self.include_velocities = include_velocities
+        self.include_forces = include_forces
         self.imd_force = imd_force
         self.imd_state = imd_state
         self.frame_publisher = frame_publisher
@@ -136,8 +142,8 @@ class NanoverImdReporter:
         return NextReport(
             steps=steps,
             include_positions=True,
-            include_velocities=False,
-            include_forces=False,
+            include_velocities=self.include_velocities,
+            include_forces=self.include_forces,
             include_energies=True,
             wrap_positions=False,
         )
@@ -163,7 +169,11 @@ class NanoverImdReporter:
                 positions = state.getPositions(asNumpy=True)
             try:
                 frame_data = openmm_to_frame_data(
-                    state=state, topology=None, include_positions=False
+                    state=state,
+                    topology=None,
+                    include_positions=False,
+                    include_velocities=self.include_velocities,
+                    include_forces=self.include_forces,
                 )
             except Exception as err:
                 print(f"Error while building a frame: {err}")

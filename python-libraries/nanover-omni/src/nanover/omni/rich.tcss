@@ -2,6 +2,10 @@ Screen, Vertical, Horizontal {
     align: center middle;
 }
 
+Button {
+    background: orange;
+}
+
 #status {
     align: center top;
     background: gray;
@@ -37,6 +41,7 @@ Screen, Vertical, Horizontal {
     margin-left: 1;
 }
 
-Button {
-    background: orange;
+.failed {
+    background: red;
 }
+

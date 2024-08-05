@@ -1,9 +1,9 @@
+import logging
 import time
-import traceback
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
-from typing import Protocol, List, Optional
+from typing import Protocol, List, Optional, Set
 
 from nanover.app import NanoverImdApplication
 from nanover.trajectory import FrameData
@@ -61,6 +61,9 @@ class OmniRunner:
         self._threads = ThreadPoolExecutor(max_workers=1)
         self._runner: Optional[InternalRunner] = None
         self._run_task: Optional[Future] = None
+
+        self.failed_simulations: Set[Simulation] = set()
+        self.logging = logging.getLogger(__name__)
 
     def close(self):
         self.app_server.close()
@@ -137,7 +140,7 @@ class OmniRunner:
         if self._run_task is not None:
             raise RuntimeError("Already running on a thread!")
 
-        self._runner = InternalRunner(self.simulation, self.app_server)
+        self._runner = InternalRunner(self, self.simulation, self.app_server)
         self._run_task = self._threads.submit(self._runner.run)
 
     def _cancel_run(self):
@@ -146,10 +149,8 @@ class OmniRunner:
             self._runner = None
 
         if self._run_task is not None:
-            try:
+            with suppress(Exception):
                 self._run_task.result()
-            except Exception:
-                print(f"ERROR in {self.simulation.name}:", traceback.format_exc())
             self._run_task = None
 
     def __enter__(self):
@@ -160,7 +161,13 @@ class OmniRunner:
 
 
 class InternalRunner:
-    def __init__(self, simulation: Simulation, app_server: NanoverImdApplication):
+    def __init__(
+        self,
+        omni: OmniRunner,
+        simulation: Simulation,
+        app_server: NanoverImdApplication,
+    ):
+        self.omni = omni
         self.simulation = simulation
         self.app_server = app_server
 
@@ -169,6 +176,7 @@ class InternalRunner:
         self.paused = False
 
         self.variable_interval_generator = VariableIntervalGenerator(1 / 30)
+        self.logger = logging.getLogger(simulation.name)
 
     @property
     def play_step_interval(self):
@@ -179,10 +187,11 @@ class InternalRunner:
         self.variable_interval_generator.interval = interval
 
     def run(self):
-        self.simulation.load()
-        self.simulation.reset(self.app_server)
-
         try:
+            self.simulation.load()
+            self.simulation.reset(self.app_server)
+            self.omni.failed_simulations.discard(self.simulation)
+
             for dt in self.variable_interval_generator.yield_interval():
                 self.handle_signals()
 
@@ -191,6 +200,8 @@ class InternalRunner:
                 if not self.paused:
                     self.simulation.advance_by_seconds(dt)
         except Exception:
+            self.omni.failed_simulations.add(self.simulation)
+            self.logger.exception("exception in simulation")
             self.app_server.frame_publisher.send_frame(0, FrameData())
             raise
 
