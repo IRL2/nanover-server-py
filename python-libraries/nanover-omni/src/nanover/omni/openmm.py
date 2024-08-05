@@ -5,7 +5,7 @@ from typing import Optional, Any
 from openmm.app import Simulation, StateDataReporter
 
 from nanover.app import NanoverImdApplication
-from nanover.openmm import serializer
+from nanover.openmm import serializer, openmm_to_frame_data
 from nanover.openmm.imd import (
     create_imd_force,
     NanoverImdReporter,
@@ -86,6 +86,12 @@ class OpenMMSimulation:
         self.simulation.reporters.append(self.reporter)
         if self.verbose_reporter is not None:
             self.simulation.reporters.append(self.verbose_reporter)
+
+    def dump_frame(self):
+        state = self.simulation.context.getState(getPositions=True, getEnergy=True)
+        topology = self.simulation.topology
+        frame_data = openmm_to_frame_data(state=state, topology=topology)
+        return frame_data
 
     def advance_to_next_report(self):
         assert self.simulation is not None
