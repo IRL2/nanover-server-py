@@ -137,11 +137,6 @@ class NanoverImdReporter:
         """
         Called by OpenMM.
         """
-
-        if not self._did_first_frame:
-            self._did_first_frame = True
-            self._on_first_frame(simulation)
-
         positions = None
         if simulation.currentStep % self.force_interval == 0:
             positions = state.getPositions(asNumpy=True)
