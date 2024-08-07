@@ -237,8 +237,8 @@ class ImdForceManager:
         self.imd_force = imd_force
 
         self.masses: Optional[np.ndarray] = None
-        self.user_forces: Optional[np.ndarray] = np.empty(0)
-        self.total_user_energy = 0
+        self.user_forces: np.ndarray = np.empty(0)
+        self.total_user_energy = 0.0
 
         self._is_force_dirty = False
         self._previous_force_index: Set[int] = set()
