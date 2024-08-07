@@ -138,14 +138,14 @@ class NanoverImdReporter:
         """
         Called by OpenMM.
         """
-        positions = None
-        if simulation.currentStep % self.force_interval == 0:
-            positions = state.getPositions(asNumpy=True)
-            self.imd_force_manager.update_interactions(simulation, positions)
+        positions = state.getPositions(asNumpy=True)
         if simulation.currentStep % self.frame_interval == 0:
             frame_data = self.make_regular_frame(state, positions)
             self.frame_publisher.send_frame(self._frame_index, frame_data)
             self._frame_index += 1
+        if simulation.currentStep % self.force_interval == 0:
+            self.imd_force_manager.update_interactions(simulation, positions)
+
 
     def make_topology_frame(self, simulation: Simulation):
         state = simulation.context.getState(getPositions=True, getEnergy=True)
@@ -153,12 +153,7 @@ class NanoverImdReporter:
         frame_data = openmm_to_frame_data(state=state, topology=topology)
         return frame_data
 
-    def make_regular_frame(
-        self, state: State, positions: Optional[Array2Dfloat] = None
-    ):
-        if positions is None:
-            positions = state.getPositions(asNumpy=True)
-
+    def make_regular_frame(self, state: State, positions: Array2Dfloat):
         frame_data = openmm_to_frame_data(
             state=state,
             topology=None,
