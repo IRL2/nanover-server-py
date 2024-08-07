@@ -55,8 +55,7 @@ import itertools
 import numpy as np
 import numpy.typing as npt
 
-import openmm as mm
-from openmm import State, CustomExternalForce, System
+from openmm import State, CustomExternalForce, System, Context
 from openmm import unit
 from openmm.app import Simulation
 
@@ -86,9 +85,6 @@ class NanoverImdReporter:
     include_forces: bool
     imd_force: CustomExternalForce
     frame_publisher: FramePublisher
-    n_particles: Optional[int]
-    masses: Optional[npt.NDArray]
-    positions: Optional[npt.NDArray]
     _frame_index: int
 
     def __init__(
@@ -109,11 +105,6 @@ class NanoverImdReporter:
         self.frame_publisher = frame_publisher
 
         self.imd_force_manager = ImdForceManager(imd_state, imd_force)
-
-        # We will not know these values until the beginning of the simulation.
-        self.n_particles = None
-        self.masses = None
-        self.positions = None
 
         self._did_first_frame = False
 
@@ -164,13 +155,6 @@ class NanoverImdReporter:
         """
         Do the tasks that are only relevant for the first frame.
         """
-
-        if self.masses is None:
-            self.n_particles = self.imd_force.getNumParticles()
-            self.masses = self.get_masses(simulation.system)
-
-        self.imd_force_manager.update_masses(simulation.system)
-
         frame_data = self.make_topology_frame(simulation)
 
         self._frame_index = 0
@@ -208,7 +192,7 @@ class NanoverImdReporter:
         return frame_data
 
     @staticmethod
-    def get_masses(system: mm.System) -> np.ndarray:
+    def get_masses(system: System) -> np.ndarray:
         """
         Collect the mass, in Dalton, of each particle in an OpenMM system and
         return them as a numpy array.
@@ -247,7 +231,7 @@ class ImdForceManager:
 
     def update_interactions(self, simulation: Simulation, positions: np.ndarray):
         if self.masses is None:
-            self.update_masses(simulation.system)
+            self._update_masses(simulation.system)
 
         self._update_forces(
             positions.astype(float),
@@ -255,7 +239,7 @@ class ImdForceManager:
             simulation.context,
         )
 
-    def update_masses(self, system: System):
+    def _update_masses(self, system: System):
         self.masses = np.array(
             [
                 system.getParticleMass(particle).value_in_unit(unit.dalton)
@@ -267,7 +251,7 @@ class ImdForceManager:
         self,
         positions: np.ndarray,
         interactions: Dict[str, ParticleInteraction],
-        context: mm.Context,
+        context: Context,
     ) -> Tuple[float, npt.NDArray]:
         """
         Get the forces to apply from the iMD service and communicate them to
@@ -341,7 +325,7 @@ def _build_particle_interaction_index_set(
     return set_of_ints
 
 
-def create_imd_force() -> mm.CustomExternalForce:
+def create_imd_force() -> CustomExternalForce:
     """
     Returns an empty OpenMM force to communicate imd forces.
 
@@ -353,14 +337,14 @@ def create_imd_force() -> mm.CustomExternalForce:
 
     .. seealso: populate_imd_force
     """
-    force = mm.CustomExternalForce(IMD_FORCE_EXPRESSION)
+    force = CustomExternalForce(IMD_FORCE_EXPRESSION)
     force.addPerParticleParameter("fx")
     force.addPerParticleParameter("fy")
     force.addPerParticleParameter("fz")
     return force
 
 
-def populate_imd_force(force: mm.CustomExternalForce, system: mm.System) -> None:
+def populate_imd_force(force: CustomExternalForce, system: System) -> None:
     """
     Add all the particles to the iMD force.
 
@@ -373,7 +357,7 @@ def populate_imd_force(force: mm.CustomExternalForce, system: mm.System) -> None
         force.addParticle(particle, (0, 0, 0))
 
 
-def add_imd_force_to_system(system: mm.System) -> mm.CustomExternalForce:
+def add_imd_force_to_system(system: System) -> CustomExternalForce:
     """
     Generate an OpenMM force that accepts arbitrary forces per particle.
 
@@ -390,7 +374,7 @@ def add_imd_force_to_system(system: mm.System) -> mm.CustomExternalForce:
     return force
 
 
-def get_imd_forces_from_system(system: Simulation) -> List[mm.CustomExternalForce]:
+def get_imd_forces_from_system(system: Simulation) -> List[CustomExternalForce]:
     """
     Find the forces that are compatible with an imd force in a given system.
 
@@ -403,7 +387,7 @@ def get_imd_forces_from_system(system: Simulation) -> List[mm.CustomExternalForc
     return [
         force
         for force in system.getForces()
-        if isinstance(force, mm.CustomExternalForce)
+        if isinstance(force, CustomExternalForce)
         and force.getEnergyFunction() == IMD_FORCE_EXPRESSION
         and force.getNumParticles() == system_num_particles
     ]
