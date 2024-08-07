@@ -107,6 +107,7 @@ class NanoverImdReporter:
         self.imd_force_manager = ImdForceManager(imd_state, imd_force)
 
         self._did_first_frame = False
+        self._frame_index = 1
 
     # The name of the method is part of the OpenMM API. It cannot be made to
     # conform PEP8.
@@ -118,7 +119,7 @@ class NanoverImdReporter:
         """
         if not self._did_first_frame:
             self._did_first_frame = True
-            self._on_first_frame(simulation)
+            self.frame_publisher.send_frame(0, self.make_topology_frame(simulation))
 
         force_steps = self.force_interval - simulation.currentStep % self.force_interval
         frame_steps = self.frame_interval - simulation.currentStep % self.frame_interval
@@ -145,16 +146,6 @@ class NanoverImdReporter:
             frame_data = self.make_regular_frame(state, positions)
             self.frame_publisher.send_frame(self._frame_index, frame_data)
             self._frame_index += 1
-
-    def _on_first_frame(self, simulation: Simulation):
-        """
-        Do the tasks that are only relevant for the first frame.
-        """
-        frame_data = self.make_topology_frame(simulation)
-
-        self._frame_index = 0
-        self.frame_publisher.send_frame(self._frame_index, frame_data)
-        self._frame_index += 1
 
     def make_topology_frame(self, simulation: Simulation):
         state = simulation.context.getState(getPositions=True, getEnergy=True)
