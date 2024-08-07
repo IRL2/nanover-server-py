@@ -183,7 +183,6 @@ class ImdForceManager:
 
         self._is_force_dirty = False
         self._previous_force_index: Set[int] = set()
-        self._frame_index = 0
         self._total_user_energy = 0.0
 
     def update_interactions(self, simulation: Simulation, positions: np.ndarray):
