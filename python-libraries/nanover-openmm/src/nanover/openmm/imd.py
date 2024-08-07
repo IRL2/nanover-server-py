@@ -58,6 +58,7 @@ import numpy.typing as npt
 from openmm import State, CustomExternalForce, System, Context
 from openmm import unit
 from openmm.app import Simulation
+from openmm.unit import kilojoule_per_mole
 
 from nanover.imd.imd_force import calculate_imd_force
 from nanover.imd import ImdStateWrapper
@@ -67,6 +68,11 @@ from .converter import openmm_to_frame_data
 from nanover.trajectory.frame_data import Array2Dfloat, FrameData
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
+
+ALL_FORCE_GROUP_MASK = 0xFFFFFFFF
+IMD_FORCE_GROUP = 31
+IMD_FORCE_GROUP_MASK = 1 << IMD_FORCE_GROUP
+OTHER_FORCE_GROUP_MASK = ALL_FORCE_GROUP_MASK ^ IMD_FORCE_GROUP_MASK
 
 
 class NextReport(NamedTuple):
@@ -143,7 +149,7 @@ class NanoverImdReporter:
             positions = state.getPositions(asNumpy=True)
             self.imd_force_manager.update_interactions(simulation, positions)
         if simulation.currentStep % self.frame_interval == 0:
-            frame_data = self.make_regular_frame(state, positions)
+            frame_data = self.make_regular_frame(simulation, state, positions)
             self.frame_publisher.send_frame(self._frame_index, frame_data)
             self._frame_index += 1
 
@@ -154,7 +160,10 @@ class NanoverImdReporter:
         return frame_data
 
     def make_regular_frame(
-        self, state: State, positions: Optional[Array2Dfloat] = None
+        self,
+        simulation: Simulation,
+        state: State,
+        positions: Optional[Array2Dfloat] = None,
     ):
         if positions is None:
             positions = state.getPositions(asNumpy=True)
@@ -168,6 +177,14 @@ class NanoverImdReporter:
         )
         frame_data.particle_positions = positions
         self.imd_force_manager.add_to_frame_data(frame_data)
+
+        # Get the simulation state excluding the IMD force, and recalculate potential energy without it:
+        energy_no_imd = (
+            simulation.context.getState(getEnergy=True, groups=OTHER_FORCE_GROUP_MASK)
+            .getPotentialEnergy()
+            .value_in_unit(kilojoule_per_mole)
+        )
+        frame_data.potential_energy = energy_no_imd
 
         return frame_data
 
@@ -299,6 +316,7 @@ def create_imd_force() -> CustomExternalForce:
     .. seealso: populate_imd_force
     """
     force = CustomExternalForce(IMD_FORCE_EXPRESSION)
+    force.setForceGroup(IMD_FORCE_GROUP)  # Group is used to exclude the force later
     force.addPerParticleParameter("fx")
     force.addPerParticleParameter("fy")
     force.addPerParticleParameter("fz")
