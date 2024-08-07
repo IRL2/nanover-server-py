@@ -56,14 +56,16 @@ import numpy as np
 import numpy.typing as npt
 
 import openmm as mm
-from openmm import app
+from openmm import State
 from openmm import unit
+from openmm.app import Simulation
 
 from nanover.imd.imd_force import calculate_imd_force
 from nanover.imd import ImdStateWrapper
 from nanover.trajectory.frame_publisher import FramePublisher
 from nanover.imd.particle_interaction import ParticleInteraction
 from .converter import openmm_to_frame_data
+from nanover.trajectory.frame_data import Array2Dfloat
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 
@@ -126,7 +128,7 @@ class NanoverImdReporter:
     # The name of the method is part of the OpenMM API. It cannot be made to
     # conform PEP8.
     # noinspection PyPep8Naming
-    def describeNextReport(self, simulation: app.Simulation) -> NextReport:
+    def describeNextReport(self, simulation: Simulation) -> NextReport:
         """
         Called by OpenMM. Indicates when the next report is due and what type
         of data it requires.
@@ -148,7 +150,7 @@ class NanoverImdReporter:
             wrap_positions=False,
         )
 
-    def report(self, simulation: app.Simulation, state: mm.State) -> None:
+    def report(self, simulation: Simulation, state: State) -> None:
         """
         Called by OpenMM.
         """
@@ -165,46 +167,52 @@ class NanoverImdReporter:
                 positions.astype(float), interactions, simulation.context
             )
         if simulation.currentStep % self.frame_interval == 0:
-            if positions is None:
-                positions = state.getPositions(asNumpy=True)
-            try:
-                frame_data = openmm_to_frame_data(
-                    state=state,
-                    topology=None,
-                    include_positions=False,
-                    include_velocities=self.include_velocities,
-                    include_forces=self.include_forces,
-                )
-            except Exception as err:
-                print(f"Error while building a frame: {err}")
-            else:
-                frame_data.particle_positions = positions
-                frame_data.user_energy = self._total_user_energy
-                sparse_indices, sparse_forces = get_sparse_forces(self._user_forces)
-                frame_data.user_forces_sparse = sparse_forces
-                frame_data.user_forces_index = sparse_indices
-                self.frame_publisher.send_frame(self._frame_index, frame_data)
-                self._frame_index += 1
+            frame_data = self.make_regular_frame(state, positions)
+            self.frame_publisher.send_frame(self._frame_index, frame_data)
+            self._frame_index += 1
 
-    def _on_first_frame(self, simulation: app.Simulation):
+    def _on_first_frame(self, simulation: Simulation):
         """
         Do the tasks that are only relevant for the first frame.
         """
-        self._frame_index = 0
 
         if self.masses is None:
             self.n_particles = self.imd_force.getNumParticles()
             self.masses = self.get_masses(simulation.system)
 
+        frame_data = self.make_topology_frame(simulation)
+
+        self._frame_index = 0
+        self.frame_publisher.send_frame(self._frame_index, frame_data)
+        self._frame_index += 1
+
+    def make_topology_frame(self, simulation: Simulation):
         state = simulation.context.getState(getPositions=True, getEnergy=True)
         topology = simulation.topology
-        try:
-            frame_data = openmm_to_frame_data(state=state, topology=topology)
-        except Exception as err:
-            print(f"Error with the first frame: {err}")
-        else:
-            self.frame_publisher.send_frame(self._frame_index, frame_data)
-            self._frame_index += 1
+        frame_data = openmm_to_frame_data(state=state, topology=topology)
+        return frame_data
+
+    def make_regular_frame(
+        self, state: State, positions: Optional[Array2Dfloat] = None
+    ):
+        if positions is None:
+            positions = state.getPositions(asNumpy=True)
+
+        frame_data = openmm_to_frame_data(
+            state=state,
+            topology=None,
+            include_positions=False,
+            include_velocities=self.include_velocities,
+            include_forces=self.include_forces,
+        )
+
+        frame_data.particle_positions = positions
+        frame_data.user_energy = self._total_user_energy
+        sparse_indices, sparse_forces = get_sparse_forces(self._user_forces)
+        frame_data.user_forces_sparse = sparse_forces
+        frame_data.user_forces_index = sparse_indices
+
+        return frame_data
 
     @staticmethod
     def get_masses(system: mm.System) -> np.ndarray:
@@ -352,7 +360,7 @@ def add_imd_force_to_system(system: mm.System) -> mm.CustomExternalForce:
     return force
 
 
-def get_imd_forces_from_system(system: app.Simulation) -> List[mm.CustomExternalForce]:
+def get_imd_forces_from_system(system: Simulation) -> List[mm.CustomExternalForce]:
     """
     Find the forces that are compatible with an imd force in a given system.
 
