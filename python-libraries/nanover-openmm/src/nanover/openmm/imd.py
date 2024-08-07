@@ -177,19 +177,6 @@ class NanoverImdReporter:
 
         return frame_data
 
-    @staticmethod
-    def get_masses(system: System) -> np.ndarray:
-        """
-        Collect the mass, in Dalton, of each particle in an OpenMM system and
-        return them as a numpy array.
-        """
-        return np.array(
-            [
-                system.getParticleMass(particle).value_in_unit(unit.dalton)
-                for particle in range(system.getNumParticles())
-            ]
-        )
-
 
 class InitialisationError(Exception):
     """
