@@ -56,7 +56,7 @@ import numpy as np
 import numpy.typing as npt
 
 import openmm as mm
-from openmm import State
+from openmm import State, CustomExternalForce, System
 from openmm import unit
 from openmm.app import Simulation
 
@@ -84,14 +84,11 @@ class NanoverImdReporter:
     force_interval: int
     include_velocities: bool
     include_forces: bool
-    imd_force: mm.CustomExternalForce
-    imd_state: ImdStateWrapper
+    imd_force: CustomExternalForce
     frame_publisher: FramePublisher
     n_particles: Optional[int]
     masses: Optional[npt.NDArray]
     positions: Optional[npt.NDArray]
-    _is_force_dirty: bool
-    _previous_force_index: Set[int]
     _frame_index: int
 
     def __init__(
@@ -100,7 +97,7 @@ class NanoverImdReporter:
         force_interval: int,
         include_velocities: bool,
         include_forces: bool,
-        imd_force: mm.CustomExternalForce,
+        imd_force: CustomExternalForce,
         imd_state: ImdStateWrapper,
         frame_publisher: FramePublisher,
     ):
@@ -109,19 +106,14 @@ class NanoverImdReporter:
         self.include_velocities = include_velocities
         self.include_forces = include_forces
         self.imd_force = imd_force
-        self.imd_state = imd_state
         self.frame_publisher = frame_publisher
+
+        self.imd_force_manager = ImdForceManager(imd_state, imd_force)
 
         # We will not know these values until the beginning of the simulation.
         self.n_particles = None
         self.masses = None
         self.positions = None
-
-        self._is_force_dirty = False
-        self._previous_force_index: Set[int] = set()
-        self._frame_index = 0
-        self._total_user_energy = 0.0
-        self._user_forces: npt.NDArray = np.empty(0)
 
         self._did_first_frame = False
 
@@ -161,11 +153,8 @@ class NanoverImdReporter:
 
         positions = None
         if simulation.currentStep % self.force_interval == 0:
-            interactions = self.imd_state.active_interactions
             positions = state.getPositions(asNumpy=True)
-            self._total_user_energy, self._user_forces = self._update_forces(
-                positions.astype(float), interactions, simulation.context
-            )
+            self.imd_force_manager.update_interactions(simulation, positions)
         if simulation.currentStep % self.frame_interval == 0:
             frame_data = self.make_regular_frame(state, positions)
             self.frame_publisher.send_frame(self._frame_index, frame_data)
@@ -179,6 +168,8 @@ class NanoverImdReporter:
         if self.masses is None:
             self.n_particles = self.imd_force.getNumParticles()
             self.masses = self.get_masses(simulation.system)
+
+        self.imd_force_manager.update_masses(simulation.system)
 
         frame_data = self.make_topology_frame(simulation)
 
@@ -207,8 +198,10 @@ class NanoverImdReporter:
         )
 
         frame_data.particle_positions = positions
-        frame_data.user_energy = self._total_user_energy
-        sparse_indices, sparse_forces = get_sparse_forces(self._user_forces)
+        frame_data.user_energy = self.imd_force_manager.total_user_energy
+        sparse_indices, sparse_forces = get_sparse_forces(
+            self.imd_force_manager.user_forces
+        )
         frame_data.user_forces_sparse = sparse_forces
         frame_data.user_forces_index = sparse_indices
 
@@ -221,6 +214,49 @@ class NanoverImdReporter:
         return them as a numpy array.
         """
         return np.array(
+            [
+                system.getParticleMass(particle).value_in_unit(unit.dalton)
+                for particle in range(system.getNumParticles())
+            ]
+        )
+
+
+class InitialisationError(Exception):
+    """
+    Error raised when the runner has not been initialised correctly and some
+    attribute have not been set.
+
+    This most likely means that `_on_first_frame` has not been called as
+    expected.
+    """
+
+
+class ImdForceManager:
+    def __init__(self, imd_state: ImdStateWrapper, imd_force: CustomExternalForce):
+        self.imd_state = imd_state
+        self.imd_force = imd_force
+
+        self.masses: Optional[np.ndarray] = None
+        self.user_forces: Optional[np.ndarray] = np.empty(0)
+        self.total_user_energy = 0
+
+        self._is_force_dirty = False
+        self._previous_force_index: Set[int] = set()
+        self._frame_index = 0
+        self._total_user_energy = 0.0
+
+    def update_interactions(self, simulation: Simulation, positions: np.ndarray):
+        if self.masses is None:
+            self.update_masses(simulation.system)
+
+        self._update_forces(
+            positions.astype(float),
+            self.imd_state.active_interactions,
+            simulation.context,
+        )
+
+    def update_masses(self, system: System):
+        self.masses = np.array(
             [
                 system.getParticleMass(particle).value_in_unit(unit.dalton)
                 for particle in range(system.getNumParticles())
@@ -249,6 +285,10 @@ class NanoverImdReporter:
 
         if context_needs_update:
             self.imd_force.updateParametersInContext(context)
+
+        self.total_user_energy = energy
+        self.user_forces = forces_kjmol
+
         return energy, forces_kjmol
 
     def _apply_forces(
@@ -285,16 +325,6 @@ class NanoverImdReporter:
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
         self._is_force_dirty = False
         self._previous_force_index = set()
-
-
-class InitialisationError(Exception):
-    """
-    Error raised when the runner has not been initialised correctly and some
-    attribute have not been set.
-
-    This most likely means that `_on_first_frame` has not been called as
-    expected.
-    """
 
 
 def _build_particle_interaction_index_set(
