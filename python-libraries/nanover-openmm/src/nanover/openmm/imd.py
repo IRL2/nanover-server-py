@@ -64,7 +64,7 @@ from nanover.imd import ImdStateWrapper
 from nanover.trajectory.frame_publisher import FramePublisher
 from nanover.imd.particle_interaction import ParticleInteraction
 from .converter import openmm_to_frame_data
-from nanover.trajectory.frame_data import Array2Dfloat
+from nanover.trajectory.frame_data import Array2Dfloat, FrameData
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 
@@ -166,14 +166,8 @@ class NanoverImdReporter:
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
-
         frame_data.particle_positions = positions
-        frame_data.user_energy = self.imd_force_manager.total_user_energy
-        sparse_indices, sparse_forces = get_sparse_forces(
-            self.imd_force_manager.user_forces
-        )
-        frame_data.user_forces_sparse = sparse_forces
-        frame_data.user_forces_index = sparse_indices
+        self.imd_force_manager.add_to_frame_data(frame_data)
 
         return frame_data
 
@@ -201,6 +195,12 @@ class ImdForceManager:
             self.imd_state.active_interactions,
             simulation.context,
         )
+
+    def add_to_frame_data(self, frame_data: FrameData):
+        frame_data.user_energy = self.total_user_energy
+        sparse_indices, sparse_forces = get_sparse_forces(self.user_forces)
+        frame_data.user_forces_sparse = sparse_forces
+        frame_data.user_forces_index = sparse_indices
 
     def _update_masses(self, system: System):
         self.masses = np.array(
