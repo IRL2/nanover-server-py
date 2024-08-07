@@ -237,7 +237,9 @@ class TestNanoverImdReporter:
     def test_force_manager_masses(self, app_simulation_and_reporter):
         _, simulation, reporter = app_simulation_and_reporter
         simulation.step(10)
-        assert reporter.imd_force_manager.masses == pytest.approx([12, 1, 1, 1, 12, 1, 1, 1])
+        assert reporter.imd_force_manager.masses == pytest.approx(
+            [12, 1, 1, 1, 12, 1, 1, 1]
+        )
 
     def test_report_send_first_frame(self, app_simulation_and_reporter):
         """
