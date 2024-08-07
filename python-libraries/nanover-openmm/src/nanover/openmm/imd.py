@@ -178,16 +178,6 @@ class NanoverImdReporter:
         return frame_data
 
 
-class InitialisationError(Exception):
-    """
-    Error raised when the runner has not been initialised correctly and some
-    attribute have not been set.
-
-    This most likely means that `_on_first_frame` has not been called as
-    expected.
-    """
-
-
 class ImdForceManager:
     def __init__(self, imd_state: ImdStateWrapper, imd_force: CustomExternalForce):
         self.imd_state = imd_state
@@ -256,8 +246,7 @@ class ImdForceManager:
         """
         Set the iMD forces based on the user interactions.
         """
-        if self.masses is None:
-            raise InitialisationError
+        assert self.masses is not None
         energy, forces_kjmol = calculate_imd_force(
             positions,
             self.masses,
