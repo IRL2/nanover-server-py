@@ -27,7 +27,6 @@ class OpenMMSimulation:
         Construct this from an existing OpenMM simulation.
         :param simulation: An existing OpenMM Simulation
         :param name: An optional name for the simulation
-        :return:
         """
         sim = cls(name)
         sim.simulation = simulation
@@ -44,7 +43,6 @@ class OpenMMSimulation:
         Construct this from an existing NanoVer OpenMM XML file at a given path.
         :param path: Path of the NanoVer OpenMM XML file
         :param name: An optional name for the simulation
-        :return:
         """
         sim = cls(name or Path(path).stem)
         sim.xml_path = path
@@ -89,7 +87,6 @@ class OpenMMSimulation:
         Reset the simulation to its initial conditions, reset IMD interactions, and reset frames to begin with topology
         and continue.
         :param app_server: The app server hosting the frame publisher and imd state
-        :return:
         """
         assert self.simulation is not None and self.checkpoint is not None
 
@@ -119,7 +116,6 @@ class OpenMMSimulation:
     def advance_by_one_step(self):
         """
         Advance the simulation to the next point a frame should be reported, and send that frame.
-        :return:
         """
         self.advance_to_next_report()
 
