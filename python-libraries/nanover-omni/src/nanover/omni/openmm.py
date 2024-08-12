@@ -98,7 +98,11 @@ class OpenMMSimulation:
         self.advance_to_next_report()
 
     def advance_to_next_report(self):
-        assert self.simulation is not None and self.imd_force_manager is not None and self.app_server is not None
+        assert (
+            self.simulation is not None
+            and self.imd_force_manager is not None
+            and self.app_server is not None
+        )
         self.simulation.step(self.frame_interval)
 
         step = self.simulation.currentStep
