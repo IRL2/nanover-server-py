@@ -117,12 +117,12 @@ class OpenMMSimulation:
         do_imd = step % self.force_interval == 0
 
         positions = state.getPositions(asNumpy=True)
+        if do_imd:
+            self.imd_force_manager.update_interactions(self.simulation, positions)
         if do_frame:
             frame_data = self.make_regular_frame(self.simulation, state, positions)
             self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
             self.frame_index += 1
-        if do_imd:
-            self.imd_force_manager.update_interactions(self.simulation, positions)
 
     def make_topology_frame(self, simulation: Simulation):
         assert self.simulation is not None
