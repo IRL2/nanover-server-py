@@ -10,7 +10,9 @@ from nanover.openmm import serializer, openmm_to_frame_data
 from nanover.openmm.imd import (
     create_imd_force,
     NanoverImdReporter,
-    add_imd_force_to_system, ImdForceManager, OTHER_FORCE_GROUP_MASK,
+    add_imd_force_to_system,
+    ImdForceManager,
+    OTHER_FORCE_GROUP_MASK,
 )
 from nanover.protocol.state import State
 from nanover.trajectory.frame_data import Array2Dfloat
@@ -84,7 +86,9 @@ class OpenMMSimulation:
 
         self.imd_force_manager = ImdForceManager(self.app_server.imd, self.imd_force)
 
-        self.app_server.frame_publisher.send_frame(0, self.make_topology_frame(self.simulation))
+        self.app_server.frame_publisher.send_frame(
+            0, self.make_topology_frame(self.simulation)
+        )
         self.frame_index = 1
 
     def advance_by_seconds(self, dt: float):
