@@ -106,19 +106,23 @@ class OpenMMSimulation:
         self.simulation.step(self.frame_interval)
 
         step = self.simulation.currentStep
+        do_frame = step % self.frame_interval == 0
+        do_imd = step % self.force_interval == 0
+
         state = self.simulation.context.getState(
             getPositions=True,
+        )
+        positions = state.getPositions(asNumpy=True)
+
+        if do_imd:
+            self.imd_force_manager.update_interactions(self.simulation, positions)
+
+        state = self.simulation.context.getState(
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
         )
 
-        do_frame = step % self.frame_interval == 0
-        do_imd = step % self.force_interval == 0
-
-        positions = state.getPositions(asNumpy=True)
-        if do_imd:
-            self.imd_force_manager.update_interactions(self.simulation, positions)
         if do_frame:
             frame_data = self.make_regular_frame(self.simulation, state, positions)
             self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
