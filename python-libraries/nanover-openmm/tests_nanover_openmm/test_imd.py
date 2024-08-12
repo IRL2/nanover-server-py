@@ -234,14 +234,12 @@ class TestNanoverImdReporter:
         next_report = reporter.describeNextReport(simulation)
         assert next_report == expectation
 
-    def test_report_first_frame_attributes(self, app_simulation_and_reporter):
-        """
-        When reporting the first frame, the expected attributes are assigned.
-        """
+    def test_force_manager_masses(self, app_simulation_and_reporter):
         _, simulation, reporter = app_simulation_and_reporter
-        simulation.step(1)
-        assert reporter.masses == pytest.approx([12, 1, 1, 1, 12, 1, 1, 1])
-        assert reporter.n_particles == 8
+        simulation.step(10)
+        assert reporter.imd_force_manager.masses == pytest.approx(
+            [12, 1, 1, 1, 12, 1, 1, 1]
+        )
 
     def test_report_send_first_frame(self, app_simulation_and_reporter):
         """

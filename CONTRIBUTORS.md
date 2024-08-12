@@ -1,26 +1,24 @@
 # Contributors 
 
 The project is maintained by the NanoVer developers at the 
-Intangible Realities Laboratory, University Of Bristol.
+Intangible Realities Laboratory at the University Of Santiago de Compostela, 
+the University of Bristol, and other contributors.
 
 The following people have made contributions to this project that are gratefully received. The repository
 history shows individual contributions.
 
 Refer to the commit history for further details.
 
-## 2019:
-
-Jonathan Barnoud (Intangible Realities Laboratory, University of Bristol, U.K.)
-Simon Bennie (Intangible Realities Laboratory, University of Bristol, U.K.)
+Jonathan Barnoud (Intangible Realities Laboratory, University of Santiago de Compostela, Spain)
+Phil Bates (Intangible Realities Laboratory, University of Santiago de Compostela, Spain)
+Simon Bennie (Intangible Realities Laboratory, University of Bristol, UK)
 Barnali Das (Indian Institute of Technology, Kharagpur, India)
-Helen Deeks (Intangible Realities Laboratory, University of Bristol, U.K.)
-David Glowacki (Intangible Realities Laboratory, University of Bristol, U.K.)
-Alex Jamieson-Binnie (Intangible Realities Laboratory, University of Bristol, U.K.)
-Mike O'Connor (Intangible Realities Laboratory, University of Bristol, U.K.)
-Rhoslyn Roebuck Williams (Intangible Realities Laboratory, University of Bristol, U.K.)
-Rebecca Walters (Intangible Realities Laboratory, University of Bristol, U.K.)
-Mark Wonnacott (Intangible Realities Laboratory, University of Bristol, U.K.)
-
-## Logo 
-
-The NanoVer Protocol logo was designed by Alex Jamieson-Binnie, licensed under CC-BY-SA.
+Helen Deeks (Intangible Realities Laboratory, University of Bristol, UK)
+David Glowacki (Intangible Realities Laboratory, University of Santiago de Compostela, Spain)
+Alex Jamieson-Binnie (Intangible Realities Laboratory, University of Bristol, UK)
+Adam McSloy (University of Bristol, UK)
+Mike O'Connor (Intangible Realities Laboratory, University of Bristol, UK)
+Rhoslyn Roebuck Williams (Intangible Realities Laboratory, University of Santiago de Compostela, Spain)
+Harry J. Stroud (Intangible Realities Laboratory, University of Santiago de Compostela, Spain)
+Rebecca Walters (Intangible Realities Laboratory, University of Bristol, UK)
+Mark Wonnacott (Intangible Realities Laboratory, University of Santiago de Compostela, Spain)
