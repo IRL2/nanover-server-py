@@ -17,6 +17,10 @@ Entry = Tuple[float, Optional[FrameData], Optional[DictionaryChange]]
 class PlaybackSimulation:
     @classmethod
     def from_paths(cls, paths: Iterable[PathLike[str]]):
+        """
+        Construct this from one or both of trajectory and state recording file path.
+        :param paths: One or both of trajectory and state recording file path.
+        """
         paths = [Path(path) for path in paths]
         traj_path = next((path for path in paths if path.suffix == ".traj"), None)
         state_path = next((path for path in paths if path.suffix == ".state"), None)
