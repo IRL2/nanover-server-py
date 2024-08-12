@@ -8,7 +8,8 @@ from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer, openmm_to_frame_data
 from nanover.openmm.imd import (
     create_imd_force,
-    add_imd_force_to_system, ImdForceManager,
+    add_imd_force_to_system,
+    ImdForceManager,
 )
 from nanover.protocol.state import State
 from nanover.trajectory.frame_data import Array2Dfloat
@@ -50,6 +51,7 @@ class OpenMMSimulation:
         self.verbose_reporter: Optional[StateDataReporter] = None
 
         self._frame_index = 0
+        self._imd_force_manager: Optional[ImdForceManager] = None
 
     def load(self):
         if self.xml_path is None or self.simulation is not None:
@@ -64,7 +66,11 @@ class OpenMMSimulation:
         self.checkpoint = self.simulation.context.createCheckpoint()
 
     def reset(self, app_server: NanoverImdApplication):
-        assert self.simulation is not None and self.checkpoint is not None
+        assert (
+            self.simulation is not None
+            and self.checkpoint is not None
+            and self._imd_force_manager is not None
+        )
 
         self.app_server = app_server
         self.simulation.context.loadCheckpoint(self.checkpoint)
@@ -82,24 +88,6 @@ class OpenMMSimulation:
         frame = self.make_topology_frame(self.simulation)
         self.app_server.frame_publisher.send_frame(0, frame)
         self._frame_index = 1
-
-    def make_report(self):
-        assert self._imd_force_manager is not None
-        assert self.simulation is not None
-
-        state = self.simulation.context.getState(
-            getPositions=True,
-            getVelocities=self.include_velocities,
-            getForces=self.include_forces,
-            getEnergy=True,
-        )
-        positions = state.getPositions(asNumpy=True)
-        if self.simulation.currentStep % self.frame_interval == 0:
-            frame_data = self.make_regular_frame(state, positions)
-            self.app_server.frame_publisher.send_frame(self._frame_index, frame_data)
-            self._frame_index += 1
-        if self.simulation.currentStep % self.force_interval == 0:
-            self._imd_force_manager.update_interactions(self.simulation, positions)
 
     def make_topology_frame(self, simulation: Simulation):
         state = simulation.context.getState(getPositions=True, getEnergy=True)
@@ -121,9 +109,26 @@ class OpenMMSimulation:
         return frame_data
 
     def advance_to_next_report(self):
-        assert self.simulation is not None
+        assert (
+            self._imd_force_manager is not None
+            and self.simulation is not None
+            and self._imd_force_manager is not None
+        )
         self.simulation.step(self.frame_interval)
-        self.make_report()
+
+        state = self.simulation.context.getState(
+            getPositions=True,
+            getVelocities=self.include_velocities,
+            getForces=self.include_forces,
+            getEnergy=True,
+        )
+        positions = state.getPositions(asNumpy=True)
+        if self.simulation.currentStep % self.frame_interval == 0:
+            frame_data = self.make_regular_frame(state, positions)
+            self.app_server.frame_publisher.send_frame(self._frame_index, frame_data)
+            self._frame_index += 1
+        if self.simulation.currentStep % self.force_interval == 0:
+            self._imd_force_manager.update_interactions(self.simulation, positions)
 
     def advance_by_seconds(self, dt: float):
         self.advance_to_next_report()
