@@ -9,7 +9,6 @@ from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer, openmm_to_frame_data
 from nanover.openmm.imd import (
     create_imd_force,
-    NanoverImdReporter,
     add_imd_force_to_system,
     ImdForceManager,
     OTHER_FORCE_GROUP_MASK,
@@ -65,7 +64,6 @@ class OpenMMSimulation:
         self.imd_force = create_imd_force()
         self.simulation: Optional[Simulation] = None
         self.checkpoint: Optional[Any] = None
-        self.reporter: Optional[NanoverImdReporter] = None
         self.verbose_reporter: Optional[StateDataReporter] = None
 
         self.frame_index = 0
