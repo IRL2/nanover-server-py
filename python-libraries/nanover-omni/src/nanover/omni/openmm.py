@@ -98,7 +98,7 @@ class OpenMMSimulation:
         self.advance_to_next_report()
 
     def advance_to_next_report(self):
-        assert self.simulation is not None
+        assert self.simulation is not None and self.imd_force_manager is not None and self.app_server is not None
         self.simulation.step(self.frame_interval)
 
         step = self.simulation.currentStep
@@ -121,6 +121,8 @@ class OpenMMSimulation:
             self.imd_force_manager.update_interactions(self.simulation, positions)
 
     def make_topology_frame(self, simulation: Simulation):
+        assert self.simulation is not None
+
         state = simulation.context.getState(getPositions=True, getEnergy=True)
         topology = simulation.topology
         frame_data = openmm_to_frame_data(state=state, topology=topology)
@@ -132,6 +134,8 @@ class OpenMMSimulation:
         state: State,
         positions: Array2Dfloat,
     ):
+        assert self.simulation is not None and self.imd_force_manager is not None
+
         frame_data = openmm_to_frame_data(
             state=state,
             topology=None,
