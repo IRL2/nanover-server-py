@@ -146,7 +146,6 @@ class NanoverImdReporter:
         if simulation.currentStep % self.force_interval == 0:
             self.imd_force_manager.update_interactions(simulation, positions)
 
-
     def make_topology_frame(self, simulation: Simulation):
         state = simulation.context.getState(getPositions=True, getEnergy=True)
         topology = simulation.topology

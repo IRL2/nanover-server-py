@@ -5,12 +5,13 @@ from typing import Optional, Any
 from openmm.app import Simulation, StateDataReporter
 
 from nanover.app import NanoverImdApplication
-from nanover.openmm import serializer
+from nanover.openmm import serializer, openmm_to_frame_data
 from nanover.openmm.imd import (
     create_imd_force,
-    NanoverImdReporter,
-    add_imd_force_to_system,
+    add_imd_force_to_system, ImdForceManager,
 )
+from nanover.protocol.state import State
+from nanover.trajectory.frame_data import Array2Dfloat
 
 
 class OpenMMSimulation:
@@ -46,8 +47,9 @@ class OpenMMSimulation:
         self.imd_force = create_imd_force()
         self.simulation: Optional[Simulation] = None
         self.checkpoint: Optional[Any] = None
-        self.reporter: Optional[NanoverImdReporter] = None
         self.verbose_reporter: Optional[StateDataReporter] = None
+
+        self._frame_index = 0
 
     def load(self):
         if self.xml_path is None or self.simulation is not None:
@@ -68,28 +70,60 @@ class OpenMMSimulation:
         self.simulation.context.loadCheckpoint(self.checkpoint)
 
         try:
-            self.simulation.reporters.remove(self.reporter)
             if self.verbose_reporter is not None:
                 self.simulation.reporters.remove(self.verbose_reporter)
         except ValueError:
             pass
 
-        self.reporter = NanoverImdReporter(
-            frame_interval=self.frame_interval,
-            force_interval=self.force_interval,
-            include_velocities=self.include_velocities,
-            include_forces=self.include_forces,
-            imd_force=self.imd_force,
-            imd_state=self.app_server.imd,
-            frame_publisher=self.app_server.frame_publisher,
-        )
-        self.simulation.reporters.append(self.reporter)
         if self.verbose_reporter is not None:
             self.simulation.reporters.append(self.verbose_reporter)
+
+        self._imd_force_manager = ImdForceManager(self.app_server.imd, self.imd_force)
+        frame = self.make_topology_frame(self.simulation)
+        self.app_server.frame_publisher.send_frame(0, frame)
+        self._frame_index = 1
+
+    def make_report(self):
+        assert self._imd_force_manager is not None
+        assert self.simulation is not None
+
+        state = self.simulation.context.getState(
+            getPositions=True,
+            getVelocities=self.include_velocities,
+            getForces=self.include_forces,
+            getEnergy=True,
+        )
+        positions = state.getPositions(asNumpy=True)
+        if self.simulation.currentStep % self.frame_interval == 0:
+            frame_data = self.make_regular_frame(state, positions)
+            self.app_server.frame_publisher.send_frame(self._frame_index, frame_data)
+            self._frame_index += 1
+        if self.simulation.currentStep % self.force_interval == 0:
+            self._imd_force_manager.update_interactions(self.simulation, positions)
+
+    def make_topology_frame(self, simulation: Simulation):
+        state = simulation.context.getState(getPositions=True, getEnergy=True)
+        topology = simulation.topology
+        frame_data = openmm_to_frame_data(state=state, topology=topology)
+        return frame_data
+
+    def make_regular_frame(self, state: State, positions: Array2Dfloat):
+        frame_data = openmm_to_frame_data(
+            state=state,
+            topology=None,
+            include_positions=False,
+            include_velocities=self.include_velocities,
+            include_forces=self.include_forces,
+        )
+        frame_data.particle_positions = positions
+        self._imd_force_manager.add_to_frame_data(frame_data)
+
+        return frame_data
 
     def advance_to_next_report(self):
         assert self.simulation is not None
         self.simulation.step(self.frame_interval)
+        self.make_report()
 
     def advance_by_seconds(self, dt: float):
         self.advance_to_next_report()
