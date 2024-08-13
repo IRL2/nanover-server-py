@@ -43,7 +43,7 @@ class ASEOpenMMSimulation:
         """
         Construct this from an existing ASE OpenMM simulation.
         :param simulation: An existing ASE OpenMM Simulation
-        :param name: An optional name for the simulation
+        :param name: An optional name for the simulation instead of default
         """
         sim = cls(name)
         sim.simulation = simulation
@@ -54,7 +54,7 @@ class ASEOpenMMSimulation:
         """
         Construct this from an existing NanoVer OpenMM XML file at a given path.
         :param path: Path of the NanoVer OpenMM XML file
-        :param name: An optional name for the simulation
+        :param name: An optional name for the simulation instead of filename
         """
         sim = cls(name or Path(path).stem)
         sim.xml_path = path
