@@ -86,8 +86,8 @@ class OpenMMSimulation:
 
     def reset(self, app_server: NanoverImdApplication):
         """
-        Reset the simulation to its initial conditions, reset IMD interactions, and reset frames to begin with topology
-        and continue.
+        Reset the simulation to its initial conditions, reset IMD interactions, and reset frame stream to begin with
+        topology and continue.
         :param app_server: The app server hosting the frame publisher and imd state
         """
         assert self.simulation is not None and self.checkpoint is not None
