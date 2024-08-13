@@ -243,6 +243,8 @@ class InternalRunner:
                 if self.cancelled:
                     break
                 if not self.is_paused:
+                    # for recording playback we want to know real time elapsed, for live simulations it is typically
+                    # ignored and stepped one frame per invocation
                     self.simulation.advance_by_seconds(dt)
         except Exception:
             self.omni.failed_simulations.add(self.simulation)
