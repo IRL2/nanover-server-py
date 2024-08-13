@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Optional, Any
 
 from openmm.app import Simulation, StateDataReporter
-from openmm.unit import kilojoule_per_mole
 
 from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer, openmm_to_frame_data
