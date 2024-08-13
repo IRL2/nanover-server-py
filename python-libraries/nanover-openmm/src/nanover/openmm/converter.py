@@ -13,10 +13,11 @@ from nanover.trajectory import FrameData
 def add_openmm_state_to_frame_data(
     data: FrameData,
     state: State,
-    include_positions: bool = True,
-    include_energies: bool = True,
-    include_velocities: bool = False,
-    include_forces: bool = False,
+    include_positions=True,
+    include_energies=True,
+    include_velocities=False,
+    include_forces=False,
+    forces_are_system_only=False,
 ) -> None:
     """
     Adds the OpenMM state information to the given :class:`FrameData`, including
@@ -34,6 +35,8 @@ def add_openmm_state_to_frame_data(
         from the state and included in the frame.
     :param include_forces: If ``True``, the particle forces are read from the
         state and included in the frame.
+    :param forces_are_system_only: Should be ``True`` if the provided particle
+        forces exclude the IMD contribution.
     """
     # Here, we count of the fact that OpenMM default length unit is the
     # nanometer. By doing this assumption, we avoid arrays being copied during
@@ -53,7 +56,10 @@ def add_openmm_state_to_frame_data(
         data.particle_velocities = velocities
     if include_forces:
         forces = state.getForces(asNumpy=True)
-        data.particle_forces = forces
+        if forces_are_system_only:
+            data.particle_forces_system = forces
+        else:
+            data.particle_forces = forces
     box_vectors = state.getPeriodicBoxVectors(asNumpy=True)
     data.box_vectors = box_vectors
     simulation_time = state.getTime().value_in_unit(picosecond)
@@ -101,10 +107,11 @@ def openmm_to_frame_data(
     *,
     state: Optional[State] = None,
     topology: Optional[Topology] = None,
-    include_positions: bool = True,
-    include_energies: bool = True,
-    include_velocities: bool = False,
-    include_forces: bool = False,
+    include_positions=True,
+    include_energies=True,
+    include_velocities=False,
+    include_forces=False,
+    forces_are_system_only=False,
 ) -> FrameData:
     """
     Converts the given OpenMM state and topology objects into a NanoVer :class:`FrameData`.
@@ -139,6 +146,7 @@ def openmm_to_frame_data(
             include_energies,
             include_velocities,
             include_forces,
+            forces_are_system_only,
         )
     if topology is not None:
         add_openmm_topology_to_frame_data(data, topology)

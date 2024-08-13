@@ -191,6 +191,7 @@ class OpenMMSimulation:
             include_positions=positions is None,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
+            forces_are_system_only=True,
         )
 
         # add any provided positions

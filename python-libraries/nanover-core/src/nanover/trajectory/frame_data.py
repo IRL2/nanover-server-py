@@ -18,6 +18,7 @@ BOND_ORDERS = "bond.orders"
 PARTICLE_POSITIONS = "particle.positions"
 PARTICLE_VELOCITIES = "particle.velocities"
 PARTICLE_FORCES = "particle.forces"
+PARTICLE_FORCES_SYSTEM = "particle.forces.system"
 PARTICLE_ELEMENTS = "particle.elements"
 PARTICLE_NAMES = "particle.names"
 PARTICLE_RESIDUES = (
@@ -187,6 +188,13 @@ class FrameData(metaclass=_FrameDataMeta):
     )
     particle_forces: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_FORCES,
+        record_type="arrays",
+        field_type="float",
+        to_python=_n_by_3,
+        to_raw=_flatten_array,
+    )
+    particle_forces_system: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
+        key=PARTICLE_FORCES_SYSTEM,
         record_type="arrays",
         field_type="float",
         to_python=_n_by_3,
