@@ -35,7 +35,6 @@ CHAIN_COUNT = "chain.count"
 
 KINETIC_ENERGY = "energy.kinetic"
 POTENTIAL_ENERGY = "energy.potential"
-TOTAL_ENERGY = "energy.total"
 USER_ENERGY = "energy.user.total"
 
 USER_FORCES_SPARSE = "forces.user.sparse"
@@ -274,13 +273,6 @@ class FrameData(metaclass=_FrameDataMeta):
     )
     potential_energy: float = _Shortcut(  # type: ignore[assignment]
         key=POTENTIAL_ENERGY,
-        record_type="values",
-        field_type="number_value",
-        to_python=_as_is,
-        to_raw=_as_is,
-    )
-    total_energy: float = _Shortcut(  # type: ignore[assignment]
-        key=TOTAL_ENERGY,
         record_type="values",
         field_type="number_value",
         to_python=_as_is,
