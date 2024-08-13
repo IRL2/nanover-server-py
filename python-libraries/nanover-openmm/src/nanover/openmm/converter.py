@@ -27,9 +27,7 @@ def add_openmm_state_to_frame_data(
     :param include_positions: If ``True``, the particle positions are read from
         the state and included in the frame.
     :param include_energies: If ``True``, the kinetic and potential energies
-        are read from the state, the total energy is calculated as the sum of
-        these energies, and the kinetic, potential and total energies are
-        included in the frame.
+        are read from the state and included in the frame.
     :param include_velocities: If ``True``, the particle velocities are read
         from the state and included in the frame.
     :param include_forces: If ``True``, the particle forces are read from the
@@ -44,10 +42,8 @@ def add_openmm_state_to_frame_data(
     if include_energies:
         potential_energy = state.getPotentialEnergy().value_in_unit(kilojoule_per_mole)
         kinetic_energy = state.getKineticEnergy().value_in_unit(kilojoule_per_mole)
-        total_energy = potential_energy + kinetic_energy
         data.kinetic_energy = kinetic_energy
         data.potential_energy = potential_energy
-        data.total_energy = total_energy
     if include_velocities:
         velocities = state.getVelocities(asNumpy=True)
         data.particle_velocities = velocities
@@ -120,9 +116,7 @@ def openmm_to_frame_data(
     :param include_positions: If ``True``, the particle positions are read from
         the state and included in the frame.
     :param include_energies: If ``True``, the kinetic and potential energies
-        are read from the state, the total energy is calculated as the sum of
-        these energies, and the kinetic, potential and total energies are
-        included in the frame.
+        are read from the state and included in the frame.
     :param include_velocities: If ``True``, the particle velocities are read
         from the state and included in the frame.
     :param include_forces: If ``True``, the particle forces are read from the
