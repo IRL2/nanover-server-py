@@ -180,7 +180,9 @@ class NanoverImdReporter:
 
         # Get the simulation state excluding the IMD force, and recalculate potential energy without it:
         energy_no_imd = (
-            simulation.context.getState(getEnergy=True, groups=NON_IMD_FORCES_GROUP_MASK)
+            simulation.context.getState(
+                getEnergy=True, groups=NON_IMD_FORCES_GROUP_MASK
+            )
             .getPotentialEnergy()
             .value_in_unit(kilojoule_per_mole)
         )
