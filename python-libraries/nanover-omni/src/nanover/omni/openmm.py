@@ -182,6 +182,7 @@ class OpenMMSimulation:
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
+            groups=OTHER_FORCE_GROUP_MASK,
         )
 
         # generate frame based on basic omm state
@@ -199,15 +200,5 @@ class OpenMMSimulation:
 
         # add imd force information
         self.imd_force_manager.add_to_frame_data(frame_data)
-
-        # get the simulation state excluding the IMD force, and recalculate potential energy without it:
-        energy_no_imd = (
-            self.simulation.context.getState(
-                getEnergy=True, groups=OTHER_FORCE_GROUP_MASK
-            )
-            .getPotentialEnergy()
-            .value_in_unit(kilojoule_per_mole)
-        )
-        frame_data.potential_energy = energy_no_imd
 
         return frame_data
