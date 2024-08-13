@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Optional, Any
 
 from openmm.app import Simulation, StateDataReporter
-from openmm.unit import kilojoule_per_mole
 
 from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer, openmm_to_frame_data
@@ -11,7 +10,7 @@ from nanover.openmm.imd import (
     create_imd_force,
     add_imd_force_to_system,
     ImdForceManager,
-    OTHER_FORCE_GROUP_MASK,
+    NON_IMD_FORCES_GROUP_MASK,
 )
 from nanover.trajectory.frame_data import Array2Dfloat
 
@@ -182,6 +181,7 @@ class OpenMMSimulation:
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
+            groups=NON_IMD_FORCES_GROUP_MASK,
         )
 
         # generate frame based on basic omm state
@@ -191,6 +191,7 @@ class OpenMMSimulation:
             include_positions=positions is None,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
+            state_excludes_imd=True,
         )
 
         # add any provided positions
@@ -199,15 +200,5 @@ class OpenMMSimulation:
 
         # add imd force information
         self.imd_force_manager.add_to_frame_data(frame_data)
-
-        # get the simulation state excluding the IMD force, and recalculate potential energy without it:
-        energy_no_imd = (
-            self.simulation.context.getState(
-                getEnergy=True, groups=OTHER_FORCE_GROUP_MASK
-            )
-            .getPotentialEnergy()
-            .value_in_unit(kilojoule_per_mole)
-        )
-        frame_data.potential_energy = energy_no_imd
 
         return frame_data

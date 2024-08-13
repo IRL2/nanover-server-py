@@ -69,10 +69,10 @@ from nanover.trajectory.frame_data import Array2Dfloat, FrameData
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 
-ALL_FORCE_GROUP_MASK = 0xFFFFFFFF
-IMD_FORCE_GROUP = 31
-IMD_FORCE_GROUP_MASK = 1 << IMD_FORCE_GROUP
-OTHER_FORCE_GROUP_MASK = ALL_FORCE_GROUP_MASK ^ IMD_FORCE_GROUP_MASK
+ALL_FORCES_GROUP_MASK = 0xFFFFFFFF
+IMD_FORCES_GROUP = 31
+IMD_FORCES_GROUP_MASK = 1 << IMD_FORCES_GROUP
+NON_IMD_FORCES_GROUP_MASK = ALL_FORCES_GROUP_MASK ^ IMD_FORCES_GROUP_MASK
 
 
 class NextReport(NamedTuple):
@@ -180,7 +180,9 @@ class NanoverImdReporter:
 
         # Get the simulation state excluding the IMD force, and recalculate potential energy without it:
         energy_no_imd = (
-            simulation.context.getState(getEnergy=True, groups=OTHER_FORCE_GROUP_MASK)
+            simulation.context.getState(
+                getEnergy=True, groups=NON_IMD_FORCES_GROUP_MASK
+            )
             .getPotentialEnergy()
             .value_in_unit(kilojoule_per_mole)
         )
@@ -316,7 +318,7 @@ def create_imd_force() -> CustomExternalForce:
     .. seealso: populate_imd_force
     """
     force = CustomExternalForce(IMD_FORCE_EXPRESSION)
-    force.setForceGroup(IMD_FORCE_GROUP)  # Group is used to exclude the force later
+    force.setForceGroup(IMD_FORCES_GROUP)  # Group is used to exclude the force later
     force.addPerParticleParameter("fx")
     force.addPerParticleParameter("fy")
     force.addPerParticleParameter("fz")
