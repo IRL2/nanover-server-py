@@ -210,7 +210,7 @@ class NanoverReader(ProtoReader):
         except MissingDataError:
             pass
         try:
-            ts.forces = frame_at_index.particle_forces
+            ts.forces = frame_at_index.particle_forces_system
         except MissingDataError:
             pass
 
