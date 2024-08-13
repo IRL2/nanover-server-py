@@ -25,8 +25,7 @@ class OpenMMSimulation:
         """
         Construct this from an existing OpenMM simulation.
         :param simulation: An existing OpenMM Simulation
-        :param name: An optional name for the simulation
-        :return:
+        :param name: An optional name for the simulation instead of default
         """
         sim = cls(name)
         sim.simulation = simulation
@@ -42,10 +41,11 @@ class OpenMMSimulation:
         """
         Construct this from an existing NanoVer OpenMM XML file at a given path.
         :param path: Path of the NanoVer OpenMM XML file
-        :param name: An optional name for the simulation
-        :return:
+        :param name: An optional name for the simulation instead of filename
         """
-        sim = cls(name or Path(path).stem)
+        if name is None:
+            name = Path(path).stem
+        sim = cls(name)
         sim.xml_path = path
         return sim
 
@@ -85,10 +85,9 @@ class OpenMMSimulation:
 
     def reset(self, app_server: NanoverImdApplication):
         """
-        Reset the simulation to its initial conditions, reset IMD interactions, and reset frames to begin with topology
-        and continue.
+        Reset the simulation to its initial conditions, reset IMD interactions, and reset frame stream to begin with
+        topology and continue.
         :param app_server: The app server hosting the frame publisher and imd state
-        :return:
         """
         assert self.simulation is not None and self.checkpoint is not None
 
@@ -110,15 +109,14 @@ class OpenMMSimulation:
 
     def advance_by_seconds(self, dt: float):
         """
-        Advance the simulation playback by some seconds. This time is ignored and the next frame is generated and sent.
-        :param dt: Time to advance playback by
+        Advance playback time by some seconds, and advance the simulation to the next frame output.
+        :param dt: Time to advance playback by in seconds (ignored)
         """
         self.advance_to_next_report()
 
     def advance_by_one_step(self):
         """
         Advance the simulation to the next point a frame should be reported, and send that frame.
-        :return:
         """
         self.advance_to_next_report()
 

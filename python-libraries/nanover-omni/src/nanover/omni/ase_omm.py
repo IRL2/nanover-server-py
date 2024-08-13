@@ -34,14 +34,28 @@ class InitialState:
 
 
 class ASEOpenMMSimulation:
+    """
+    A wrapper for ASE OpenMM simulations so they can be run inside the OmniRunner.
+    """
+
     @classmethod
     def from_simulation(cls, simulation: Simulation, *, name: Optional[str] = None):
+        """
+        Construct this from an existing ASE OpenMM simulation.
+        :param simulation: An existing ASE OpenMM Simulation
+        :param name: An optional name for the simulation instead of default
+        """
         sim = cls(name)
         sim.simulation = simulation
         return sim
 
     @classmethod
     def from_xml_path(cls, path: PathLike[str], *, name: Optional[str] = None):
+        """
+        Construct this from an existing NanoVer OpenMM XML file at a given path.
+        :param path: Path of the NanoVer OpenMM XML file
+        :param name: An optional name for the simulation instead of filename
+        """
         sim = cls(name or Path(path).stem)
         sim.xml_path = path
         return sim
@@ -69,6 +83,9 @@ class ASEOpenMMSimulation:
         self.checkpoint: Optional[InitialState] = None
 
     def load(self):
+        """
+        Load and set up the simulation if it isn't done already.
+        """
         if self.simulation is None and self.xml_path is not None:
             with open(self.xml_path) as infile:
                 self.simulation = serializer.deserialize_simulation(
@@ -93,6 +110,11 @@ class ASEOpenMMSimulation:
         )
 
     def reset(self, app_server: NanoverImdApplication):
+        """
+        Reset the simulation to its initial conditions, reset IMD interactions, and reset frame stream to begin with
+        topology and continue.
+        :param app_server: The app server hosting the frame publisher and imd state
+        """
         assert (
             self.simulation is not None
             and self.atoms is not None
@@ -149,12 +171,22 @@ class ASEOpenMMSimulation:
         self.atoms.set_cell(self.checkpoint.cell)
 
     def advance_by_one_step(self):
+        """
+        Advance the simulation to the next point a frame should be reported, and send that frame.
+        """
         self.advance_to_next_report()
 
     def advance_by_seconds(self, dt: float):
+        """
+        Advance playback time by some seconds, and advance the simulation to the next frame output.
+        :param dt: Time to advance playback by in seconds (ignored)
+        """
         self.advance_to_next_report()
 
     def advance_to_next_report(self):
+        """
+        Step the simulation to the next point a frame should be reported.
+        """
         assert self.dynamics is not None
         self.dynamics.run(self.frame_interval)
 
