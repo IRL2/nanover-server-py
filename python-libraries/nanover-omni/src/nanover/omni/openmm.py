@@ -10,7 +10,7 @@ from nanover.openmm.imd import (
     create_imd_force,
     add_imd_force_to_system,
     ImdForceManager,
-    OTHER_FORCE_GROUP_MASK,
+    NON_IMD_FORCES_GROUP_MASK,
 )
 from nanover.trajectory.frame_data import Array2Dfloat
 
@@ -181,7 +181,7 @@ class OpenMMSimulation:
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
-            groups=OTHER_FORCE_GROUP_MASK,
+            groups=NON_IMD_FORCES_GROUP_MASK,
         )
 
         # generate frame based on basic omm state
