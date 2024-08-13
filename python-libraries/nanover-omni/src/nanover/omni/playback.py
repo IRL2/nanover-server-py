@@ -84,7 +84,7 @@ class PlaybackSimulation:
     def advance_by_seconds(self, dt: float):
         """
         Advance the playback by some seconds, emitting any intermediate frames and state updates.
-        :param dt: Time to advance playback by
+        :param dt: Time to advance playback by in seconds
         """
         next_time = self.time + dt
 

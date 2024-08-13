@@ -44,7 +44,9 @@ class OpenMMSimulation:
         :param path: Path of the NanoVer OpenMM XML file
         :param name: An optional name for the simulation
         """
-        sim = cls(name or Path(path).stem)
+        if name is None:
+            name = Path(path).stem
+        sim = cls(name)
         sim.xml_path = path
         return sim
 
@@ -109,7 +111,7 @@ class OpenMMSimulation:
     def advance_by_seconds(self, dt: float):
         """
         Advance the simulation playback by some seconds. This time is ignored and the next frame is generated and sent.
-        :param dt: Time to advance playback by
+        :param dt: Time to advance playback by in seconds
         """
         self.advance_to_next_report()
 

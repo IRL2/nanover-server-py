@@ -179,7 +179,7 @@ class ASEOpenMMSimulation:
     def advance_by_seconds(self, dt: float):
         """
         Advance the simulation playback by some seconds. This time is ignored and the next frame is generated and sent.
-        :param dt: Time to advance playback by
+        :param dt: Time to advance playback by in seconds
         """
         self.advance_to_next_report()
 

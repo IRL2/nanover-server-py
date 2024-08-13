@@ -143,7 +143,7 @@ class OmniRunner:
 
     def next(self):
         """
-        Switch to the next simulation in the list of available simulations.
+        Switch to the next simulation in the list of available simulations, looping after the last.
         """
         self.load(self._simulation_index + 1)
 
@@ -155,28 +155,28 @@ class OmniRunner:
 
     def reset(self):
         """
-        Reset the currently active simulation to its initial state.
+        Reset the currently-active simulation to its initial state.
         """
         assert self._runner is not None
         self._runner.signals.put("reset")
 
     def pause(self):
         """
-        Pause the currently active simulation.
+        Pause the currently-active simulation.
         """
         assert self._runner is not None
         self._runner.signals.put("pause")
 
     def play(self):
         """
-        Unpause the currently active simulation.
+        Unpause the currently-active simulation.
         """
         assert self._runner is not None
         self._runner.signals.put("play")
 
     def step(self):
         """
-        Step to the next frame in the currently active simulation.
+        Step to the next frame in the currently-active simulation.
         """
         assert self._runner is not None
         self._runner.signals.put("step")
