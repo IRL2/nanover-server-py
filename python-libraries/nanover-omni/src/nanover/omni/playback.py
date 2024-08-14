@@ -45,7 +45,7 @@ class PlaybackSimulation:
         self.app_server: Optional[NanoverImdApplication] = None
 
         self.entries: List[Entry] = []
-        self.changed_keys: Set[str] = {}
+        self.changed_keys: Set[str] = set()
         self.next_entry_index = 0
         self.time = 0.0
 
