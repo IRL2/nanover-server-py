@@ -83,6 +83,7 @@ class PlaybackSimulation:
         """
         Advance playback to the next point a frame or update should be reported, and report it.
         """
+        assert self.app_server is not None
         try:
             self.advance_to_next_entry()
         except IndexError:
@@ -94,6 +95,7 @@ class PlaybackSimulation:
         Advance the playback by some seconds, emitting any intermediate frames and state updates.
         :param dt: Time to advance playback by in seconds
         """
+        assert self.app_server is not None
         next_time = self.time + dt
 
         try:
