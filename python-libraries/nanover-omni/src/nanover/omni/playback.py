@@ -1,7 +1,7 @@
 from contextlib import suppress
 from os import PathLike
 from pathlib import Path
-from typing import List, Optional, Tuple, Iterable
+from typing import List, Optional, Tuple, Iterable, Set
 
 from nanover.app import NanoverImdApplication
 from nanover.trajectory import FrameData
@@ -45,7 +45,7 @@ class PlaybackSimulation:
         self.app_server: Optional[NanoverImdApplication] = None
 
         self.entries: List[Entry] = []
-        self.changed_keys = {}
+        self.changed_keys: Set[str] = {}
         self.next_entry_index = 0
         self.time = 0.0
 
