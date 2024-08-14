@@ -45,6 +45,7 @@ class PlaybackSimulation:
         self.app_server: Optional[NanoverImdApplication] = None
 
         self.entries: List[Entry] = []
+        self.changed_keys = {}
         self.next_entry_index = 0
         self.time = 0.0
 
@@ -57,6 +58,12 @@ class PlaybackSimulation:
             (time * MICROSECONDS_TO_SECONDS, frame, update)
             for time, frame, update in entries
         ]
+        self.changed_keys = {
+            key
+            for _, _, update in self.entries
+            if update is not None
+            for key in update.updates.keys()
+        }
 
     def reset(self, app_server: NanoverImdApplication):
         """
@@ -68,7 +75,9 @@ class PlaybackSimulation:
         self.time = 0.0
 
         # clear simulation
-        self.emit(frame=FrameData(), update=None)
+        self.emit(
+            frame=FrameData(), update=DictionaryChange(removals=self.changed_keys)
+        )
 
     def advance_by_one_step(self):
         """
@@ -77,8 +86,7 @@ class PlaybackSimulation:
         try:
             self.advance_to_next_entry()
         except IndexError:
-            self.next_entry_index = 0
-            self.time = 0.0
+            self.reset(self.app_server)
             self.advance_to_next_entry()
 
     def advance_by_seconds(self, dt: float):
@@ -92,8 +100,7 @@ class PlaybackSimulation:
             while self.entries[self.next_entry_index][0] <= next_time:
                 self.advance_to_next_entry()
         except IndexError:
-            self.next_entry_index = 0
-            self.time = 0.0
+            self.reset(self.app_server)
         else:
             self.time = next_time
 
@@ -116,3 +123,7 @@ class PlaybackSimulation:
         if update is not None:
             with suppress(ResourceLockedError):
                 self.app_server.server.update_state(None, update)
+
+
+def _gather_changed_keys(updates: Iterable[DictionaryChange]):
+    pass
