@@ -28,11 +28,11 @@ The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org
 are organised into the following folders:
 
 * [ase](examples/ase) - Get up and running with interactive simulations with ASE and OpenMM.
-   - [Basic Example](examples/ase/basic_example.ipynb) - Toy example of an interactive simulation.
-   - [Nanotube](examples/ase/openmm_nanotube.ipynb) - Set up an interactive nanotube simulation with OpenMM.
-   - [Neuraminidase](examples/ase/openmm_neuraminidase.ipynb) - Set up a ligand-protein binding simulation with OpenMM,
+   - [Basic Example](examples/ase/ase_basic_example.ipynb) - Toy example of an interactive simulation.
+   - [Nanotube](examples/ase/ase_openmm_nanotube.ipynb) - Set up an interactive nanotube simulation with OpenMM.
+   - [Neuraminidase](examples/ase/ase_openmm_neuraminidase.ipynb) - Set up a ligand-protein binding simulation with OpenMM,
    and experiment with NanoVer visualizations.
-   - [Graphene](examples/ase/openmm_graphene.ipynb) - Set up a graphene simulation with physics parameters
+   - [Graphene](examples/ase/ase_openmm_graphene.ipynb) - Set up a graphene simulation with physics parameters
    that can be adjusted on the fly.
 * [mdanalysis](examples/mdanalysis) - Visualize static structures and trajectories with MDAnalysis and NanoVer.
     - [Structure](examples/mdanalysis/mdanalysis_lsd.ipynb) - Visualize LSD bound to a receptor in NanoVer.
