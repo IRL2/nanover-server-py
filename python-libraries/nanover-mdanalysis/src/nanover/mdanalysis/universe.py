@@ -153,7 +153,7 @@ class NanoverParser(TopologyReaderBase):
 
 
 class NanoverReader(ProtoReader):
-    units = {"time": "ps", "length": "nm", "velocity": "nm/ps"}
+    units = {"time": "ps", "length": "nm", "velocity": "nm/ps", "force": "kJ/(mol*nm)"}
 
     def __init__(self, filename, convert_units=True, **kwargs):
         super().__init__()
@@ -227,6 +227,9 @@ class NanoverReader(ProtoReader):
             if ts.has_velocities:
                 # converts nm/ps to A/ps units
                 self.convert_velocities_from_native(ts._velocities)
+            if ts.has_forces:
+                # converts kJ/(mol*nm) to kJ/(mol*A)
+                self.convert_forces_from_native(ts._forces)
 
         self.ts = ts
         return ts
@@ -243,7 +246,8 @@ class NanoverReader(ProtoReader):
 
     def _add_user_forces_to_ts(self, frame, ts):
         """
-        Read the user forces from the frame if they are available.
+        Read the user forces from the frame if they are available and
+        converts them to the correct units.
         """
         try:
             indices = frame.arrays["forces.user.index"]
@@ -253,6 +257,8 @@ class NanoverReader(ProtoReader):
         forces = np.zeros((self.n_atoms, 3), dtype=np.float32)
         for index, force in zip(indices, batched(sparse, n=3)):
             forces[index, :] = force
+        if self.convert_units:
+            self.convert_forces_from_native(forces)
         ts.data["user_forces"] = forces
 
 
