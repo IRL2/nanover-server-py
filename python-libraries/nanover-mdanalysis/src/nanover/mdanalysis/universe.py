@@ -247,7 +247,7 @@ class NanoverReader(ProtoReader):
     def _add_user_forces_to_ts(self, frame, ts):
         """
         Read the user forces from the frame if they are available and
-        converts them to the correct units.
+        converts them to the units used by MDAnalysis if required.
         """
         try:
             indices = frame.arrays["forces.user.index"]
