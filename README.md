@@ -22,6 +22,9 @@ For more information please take a look at [the project's documentation](https:/
 
     nanover-omni --omm examples/ase/openmm_files/nanotube.xml
 
+Learn more about running a NanoVer server 
+[here](https://irl2.github.io/nanover-docs/tutorials/fundamentals.html#running-a-server) in our documentation.
+
 ### Tutorials
 
 The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with NanoVer. 
