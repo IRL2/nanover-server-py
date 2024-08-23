@@ -24,45 +24,9 @@ For more information please take a look at [the project's documentation](https:/
 
 ### Tutorials
 
-The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with NanoVer. They
-are organised into the following folders:
-
-* [ase](examples/ase) - Get up and running with interactive simulations with ASE and OpenMM.
-   - [Basic Example](examples/ase/basic_example.ipynb) - Toy example of an interactive simulation.
-   - [Nanotube](examples/ase/openmm_nanotube.ipynb) - Set up an interactive nanotube simulation with OpenMM.
-   - [Neuraminidase](examples/ase/openmm_neuraminidase.ipynb) - Set up a ligand-protein binding simulation with OpenMM,
-   and experiment with NanoVer visualizations.
-   - [Graphene](examples/ase/openmm_graphene.ipynb) - Set up a graphene simulation with physics parameters
-   that can be adjusted on the fly.
-* [mdanalysis](examples/mdanalysis) - Visualize static structures and trajectories with MDAnalysis and NanoVer.
-    - [Structure](examples/mdanalysis/mdanalysis_lsd.ipynb) - Visualize LSD bound to a receptor in NanoVer.
-    - [Trajectory](examples/mdanalysis/mdanalysis_trajectory.ipynb) - Build your own trajectory viewer with MDAnalysis
-    and NanoVer.
-* [fundamentals](examples/fundamentals) - Understand how NanoVer works, so you can create your own applications.
-    - [Frame](examples/fundamentals/frame.ipynb) - How NanoVer communicates frames of molecular simulations.
-    - [Servers](examples/fundamentals/servers.ipynb) - Setting up a NanoVer server.
-    - [State & Commands](examples/fundamentals/commands_and_state.ipynb) - Synchronizing state between clients and calling commands on the server.
-    - [Selections & Visualisation](examples/fundamentals/visualisations.ipynb) - Selecting atoms and setting how to render them.
-
-The tutorials use Jupyter notebooks, [NGLView](https://github.com/arose/nglview) for visualising trajectories, and while not strictly necessary,
-assumes you have the [NanoVer IMD VR](https://github.com/IRL2/nanover-imd)
-application installed. These can all be installed with conda:
-
-```bash
-conda activate nanover
-conda install jupyter
-conda install nglview -c conda-forge
-# On Windows only:
-conda install -c irl nanover-imd
-```
-
-To run the notebooks, download the repository and run jupyter (with [git](https://git-scm.com/) installed):
-```bash
-git clone https://github.com/IRL2/nanover-protocol.git
-cd nanover-protocol
-conda activate nanover
-jupyter notebook
-```
+The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with NanoVer. 
+Please head to the [Tutorials](https://irl2.github.io/nanover-docs/tutorials) page of the 
+[project's documentation](https://irl2.github.io/nanover-docs) for more information!
 
 
 ### Exploring the code  
