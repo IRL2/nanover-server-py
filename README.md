@@ -43,9 +43,7 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-## Installation
-
-### User installation
+## User Installation
 
 Check out the [Installaion & Getting Started](https://irl2.github.io/nanover-docs/installation) 
 age in our documentation for detailed instructions on installing NanoVer.
@@ -57,9 +55,9 @@ age in our documentation for detailed instructions on installing NanoVer.
 * If you can't seem to update to the latest version, run `python --version` to check your python version is at least as recent as in these installation instructions. If it isn't you will need to create a new conda environment with a newer version of python.
 
 
-### Developer installation
+## Developer installation
 
-#### Windows
+### Windows
 
 * Install Anaconda
 * Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
@@ -71,7 +69,7 @@ age in our documentation for detailed instructions on installing NanoVer.
     * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
 * The `nanover-lammps` module and its tests require MPI to be installed. Download and install Microsoft MPI from https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
 
-#### Mac and Linux
+### Mac and Linux
 
 * Install Anaconda
 * Clone the nanover-protocol repository
@@ -87,12 +85,12 @@ Here, we installed only the python library. Using the `--no-dotnet` argument, we
 * Run the compile script: `./compile.sh --no-python` to skip installing the python libraries, or just `./compile.sh` to build the python libraries as well.
 
 
-## Running the tests
+### Running the tests
 
 All code changes have to pass a series of automatic tests ("the CI") that attempt to verify code quality and
 continued functionality of the project. You can run these locally to verify your changes in advance.
 
-### Unit Tests
+#### Unit Tests
 
 The unit tests check code functionality of the python libraries. To run them:
 
@@ -104,7 +102,7 @@ Optionally, you can run most of the tests in parallel with pytest-xdist:
     python -m pytest python-libraries -n auto -m 'not serial'
     python -m pytest python-libraries -n0 -m 'serial'
 
-### Formatting & Linting Tests
+#### Formatting & Linting Tests
 
 The formatting and linting tests check code style, and require ruff and black:
 
@@ -117,7 +115,7 @@ black can automatically reformat the files for you:
 
     python -m black python-libraries
 
-### Type Checks
+#### Type Checks
 
 The type checks look at the type hints in the code to make sure they are consistent and help find potential errors. 
 Because of the special setup required you will probably not be able to run this locally, but you can try:
@@ -136,22 +134,22 @@ Because of the special setup required you will probably not be able to run this 
              | tr '\n' ' ') 
     python -m mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages 
 
-## Running the examples
+### Running the examples
 
-### OpenMM IMD Simulations
+#### OpenMM IMD Simulations
 
 `nanover.omni` provides a command line interface for running serialised OpenMM simulations. For example, from the 
 `nanover-protocol` directory:
 
     nanover-omni --omm examples/ase/openmm_files/nanotube.xml
 
-### ASE IMD Simulations Jupyter Notebooks
+#### ASE IMD Simulations Jupyter Notebooks
 
 The [`examples/ase`](examples/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
 from a notebook. The [NanoVer ASE documentation](python-libraries/nanover-ase/README.md) provides more details on setting 
 up ASE simulations.
 
-### MD Analysis Trajectories
+#### MD Analysis Trajectories
 
 `nanover.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
 trajectory. To serve the frames on port 54321, from the `nanover-protocol` directory, run
