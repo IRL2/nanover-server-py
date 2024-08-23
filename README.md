@@ -62,7 +62,6 @@ age in our documentation for detailed instructions on installing NanoVer.
 * Run `conda install nanover-server` to attempt to update to latest version
 * If you can't seem to update to the latest version, run `python --version` to check your python version is at least as recent as in these installation instructions. If it isn't you will need to create a new conda environment with a newer version of python.
 
-
 ## Developer installation
 
 ### Windows
@@ -143,6 +142,12 @@ Because of the special setup required you will probably not be able to run this 
     python -m mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages 
 
 ### Running the examples
+
+The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 
+Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials) or
+[how to run a NanoVer server](https://irl2.github.io/nanover-docs/tutorials/fundamentals.html#running-a-server) in this
+[project's documentation](https://irl2.github.io/nanover-docs).
+
 
 #### OpenMM IMD Simulations
 
