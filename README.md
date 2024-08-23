@@ -11,9 +11,19 @@ See [the list of contributors](CONTRIBUTORS.md) for the individual authors of th
 
 For more information please take a look at [the project's documentation](https://irl2.github.io/nanover-docs/#).
 
-## Getting Started
+## Contents
 
-### Quick Start
+1. [Getting started](#Getting-started)
+2. [User installation](#User-installation)
+3. [Developer installation](#Developer-installation)
+4. [Troubleshooting](#Troubleshooting)
+5. [Citation and external libraries](#Citation-and-external-libraries)
+
+----
+
+## Getting started
+
+### Quick start
 
 `nanover.omni` provides a command line interface for running OpenMM simulations. For example, from the `nanover-protocol` directory:
 
@@ -40,7 +50,7 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-## User Installation
+## User installation
 
 Check out the [Installation & Getting Started](https://irl2.github.io/nanover-docs/installation) 
 age in our documentation for detailed instructions on installing NanoVer.
@@ -159,7 +169,7 @@ trajectory. To serve the frames on port 54321, from the `nanover-protocol` direc
 
 If you are having autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
-## Citation and External Libraries
+## Citation and external libraries
 
 If you find this project useful, please cite the following papers:
 
