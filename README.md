@@ -45,23 +45,10 @@ The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of cl
 
 ## Installation
 
-### Quick installation for a user
+### User installation
 
-* Install Anaconda
-* Open the "Anaconda Powershell Prompt" to type the following commands.
-* Create a conda environment (here we call the environment "nanover"): `conda create -n nanover "python>3.11"`
-* Activate the conda environment: `conda activate nanover`
-* Install the NanoVer packages: `conda install -c irl -c omnia -c conda-forge nanover-server`
-
-NanoVer can interact with the [LAMMPS](https://lammps.sandia.gov/) simulation engine.
-If you want to use this specific feature, you need to:
-
-* install LAMMPS with python capabilities
-* install mpy4py: `conda install -c conda-forge mpi4py` on Linux and MacOS,
-  `python -m pip install mpi4py` on Windows.
-* install nanover-lammps: `conda install -c irl -c conda-forge nanover-lammps`.
-
-Developers will want the manual install described below.
+Check out the [Installaion & Getting Started](https://irl2.github.io/nanover-docs/installation) 
+age in our documentation for detailed instructions on installing NanoVer.
 
 #### Updating ####
 
@@ -69,7 +56,22 @@ Developers will want the manual install described below.
 * Run `conda install nanover-server` to attempt to update to latest version
 * If you can't seem to update to the latest version, run `python --version` to check your python version is at least as recent as in these installation instructions. If it isn't you will need to create a new conda environment with a newer version of python.
 
-### Setup nanover-protocol for developers on Mac and Linux
+
+### Developer installation
+
+#### Windows
+
+* Install Anaconda
+* Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
+* Clone the nanover-protocol repository
+* In the "Anaconda Powershell Prompt":
+    * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.11"`
+    * Activate the conda environment: `conda activate nanover-dev`
+    * Install the required conda packages: `conda install -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
+    * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
+* The `nanover-lammps` module and its tests require MPI to be installed. Download and install Microsoft MPI from https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
+
+#### Mac and Linux
 
 * Install Anaconda
 * Clone the nanover-protocol repository
@@ -84,17 +86,6 @@ Here, we installed only the python library. Using the `--no-dotnet` argument, we
 * Install dotnet 2.11. This is an old version of the framework that is not maintained anymore. However, Unity still relies on it.
 * Run the compile script: `./compile.sh --no-python` to skip installing the python libraries, or just `./compile.sh` to build the python libraries as well.
 
-### Setup nanover-protocol for developers on Windows
-
-* Install Anaconda
-* Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
-* Clone the nanover-protocol repository
-* In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.11"`
-    * Activate the conda environment: `conda activate nanover-dev`
-    * Install the required conda packages: `conda install -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
-    * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
-* The `nanover-lammps` module and its tests require MPI to be installed. Download and install Microsoft MPI from https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
 
 ## Running the tests
 
