@@ -12,8 +12,7 @@ import MDAnalysis as mda
 
 
 class NGLClient(NanoverImdClient):
-    def __init__(self, dynamic_bonds=False, *args, update_callback=None,
-                 **kwargs):
+    def __init__(self, dynamic_bonds=False, *args, update_callback=None, **kwargs):
         self._view = None
         super().__init__(*args, **kwargs)
         self.subscribe_to_frames()
@@ -36,9 +35,9 @@ class NGLClient(NanoverImdClient):
 
 
 class FrameDataStructure(nglview.Structure):
-    def __init__(self, frame, ext='pdb', params={}):
+    def __init__(self, frame, ext="pdb", params={}):
         super().__init__()
-        self.path = ''
+        self.path = ""
         self.ext = ext
         self.params = params
         self._frame = frame
@@ -62,15 +61,15 @@ def fill_empty_fields(universe: mda.Universe):
     """
     defaults_per_atom = (
         {
-            'altLocs': ' ',
-            'occupancies': 1.0,
-            'tempfactors': 0.0,
+            "altLocs": " ",
+            "occupancies": 1.0,
+            "tempfactors": 0.0,
         },
-        len(universe.atoms)
+        len(universe.atoms),
     )
     defaults_per_residue = (
         {
-            'icodes': ' ',
+            "icodes": " ",
         },
         len(universe.residues),
     )
