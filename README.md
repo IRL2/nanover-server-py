@@ -5,7 +5,7 @@ of servers for NanoVer 2, providing a framework for developing interactive molec
 
 It is designed to be used with NanoVer VR clients, e.g. [NanoVer IMD](https://github.com/irl2/nanover-imd).
 
-This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostella,
+This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostela,
 and distributed under the [MIT](LICENSE) license.
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
@@ -45,7 +45,7 @@ The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of cl
 
 ## User Installation
 
-Check out the [Installaion & Getting Started](https://irl2.github.io/nanover-docs/installation) 
+Check out the [Installation & Getting Started](https://irl2.github.io/nanover-docs/installation) 
 age in our documentation for detailed instructions on installing NanoVer.
 
 #### Updating ####
