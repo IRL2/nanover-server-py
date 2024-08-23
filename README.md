@@ -3,7 +3,8 @@
 Repository containing the gRPC protocol and python based implementations
 of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
 
-It is designed to be used with **NanoVer VR clients**, e.g. [NanoVer IMD](https://github.com/irl2/nanover-imd).
+This software is designed to be used with **NanoVer VR clients**, 
+e.g. [NanoVer IMD](https://github.com/irl2/nanover-imd).
 
 This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostela,
 and distributed under the [MIT](LICENSE) license.
