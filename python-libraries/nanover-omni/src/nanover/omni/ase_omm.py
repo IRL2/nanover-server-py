@@ -80,6 +80,7 @@ class ASEOpenMMSimulation:
         self.atoms: Optional[Atoms] = None
         self.dynamics: Optional[MolecularDynamics] = None
         self.simulation: Optional[Simulation] = None
+        self.openmm_calculator: Optional[OpenMMCalculator] = None
         self.checkpoint: Optional[InitialState] = None
 
     def load(self):
@@ -94,11 +95,11 @@ class ASEOpenMMSimulation:
 
         assert self.simulation is not None
 
-        openmm_calculator = OpenMMCalculator(self.simulation)
-        self.atoms = openmm_calculator.generate_atoms()
+        self.openmm_calculator = OpenMMCalculator(self.simulation)
+        self.atoms = self.openmm_calculator.generate_atoms()
         if self.use_walls:
             self.atoms.constraints.append(VelocityWallConstraint())
-        self.atoms.calc = openmm_calculator
+        self.atoms.calc = self.openmm_calculator
 
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, temperature_K=300)
@@ -119,6 +120,7 @@ class ASEOpenMMSimulation:
             self.simulation is not None
             and self.atoms is not None
             and self.checkpoint is not None
+            and self.openmm_calculator is not None
         )
 
         self.app_server = app_server
@@ -139,7 +141,7 @@ class ASEOpenMMSimulation:
 
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
-            self.dynamics.atoms.calc,
+            self.openmm_calculator,
             dynamics=self.dynamics,
         )
 
