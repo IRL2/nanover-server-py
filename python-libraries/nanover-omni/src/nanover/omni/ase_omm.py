@@ -12,10 +12,10 @@ from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
-from nanover.ase import send_ase_frame
 from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
+from nanover.ase.openmm.runner import openmm_ase_frame_adaptor
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.openmm import serializer
 from nanover.utilities.event import Event
@@ -144,7 +144,7 @@ class ASEOpenMMSimulation:
         )
 
         self.dynamics.attach(
-            send_ase_frame(
+            openmm_ase_frame_adaptor(
                 self.atoms,
                 self.app_server.frame_publisher,
                 include_velocities=self.include_velocities,
