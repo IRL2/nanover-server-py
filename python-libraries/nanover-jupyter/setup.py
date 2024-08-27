@@ -5,7 +5,7 @@ from distutils.core import setup
 from setuptools import find_namespace_packages
 
 setup(
-    name="nanover-nglview",
+    name="nanover-jupyter",
     version="0.1.0",
     description="NGLView python client for NanoVer",
     author="Intangible Realities Lab",

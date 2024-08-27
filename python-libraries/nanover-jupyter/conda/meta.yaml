@@ -1,5 +1,5 @@
 package:
-  name: nanover-nglview
+  name: nanover-jupyter
   version: {{ NANOVER_BUILD_VERSION }}
 
 source:
