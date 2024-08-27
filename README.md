@@ -7,7 +7,7 @@ This software is designed to be used with **NanoVer VR clients**,
 e.g. [NanoVer IMD](https://github.com/irl2/nanover-imd).
 
 This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostela,
-and distributed under the [MIT](LICENSE) license.
+and is distributed under the [MIT](LICENSE) license.
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
 For more information please take a look at [the project's documentation](https://irl2.github.io/nanover-docs/#).
@@ -24,7 +24,11 @@ For more information please take a look at [the project's documentation](https:/
 
 ## Getting started
 
-### Quick start
+Here are some quick notes to get you started with NanoVer! 
+If you haven't installed NanoVer yet, please go to [User installation](#User-installation) or 
+[Developer installation](#Developer-installation).
+
+### Running a server via the command line
 
 `nanover.omni` provides a command line interface for running OpenMM simulations. For example, from the `nanover-protocol` directory:
 
@@ -39,7 +43,6 @@ The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org
 Please head to the [Tutorials](https://irl2.github.io/nanover-docs/tutorials) page of the 
 [project's documentation](https://irl2.github.io/nanover-docs) for more information!
 
-
 ### Exploring the code  
 
 The `protocol` folder contains the definitions of the gRPC services.
@@ -51,16 +54,19 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
+
 ## User installation
 
 Check out the [Installation & Getting Started](https://irl2.github.io/nanover-docs/installation) 
-age in our documentation for detailed instructions on installing NanoVer.
+page in our documentation for detailed instructions on installing NanoVer.
 
-#### Updating ####
+### Updating the conda package
 
-* Run `conda list ^nanover-server` to determine the currently installed version
+* Run `conda list nanover-server` to determine the currently installed version
 * Run `conda install nanover-server` to attempt to update to latest version
-* If you can't seem to update to the latest version, run `python --version` to check your python version is at least as recent as in these installation instructions. If it isn't you will need to create a new conda environment with a newer version of python.
+* If you can't seem to update to the latest version, run `python --version` to check your python version is at least 
+  as recent as in the installation instructions. 
+  If it isn't you will need to create a new conda environment with a newer version of python.
 
 ## Developer installation
 
