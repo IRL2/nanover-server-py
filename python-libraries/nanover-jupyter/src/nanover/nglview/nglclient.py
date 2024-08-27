@@ -1,3 +1,9 @@
+"""
+Provides an NGLView python client to connect to a NanoVer server in order to visualise
+the molecular system from within a Jupyter notebook (or iPython interface).
+"""
+
+
 from io import StringIO
 
 import nglview
@@ -12,6 +18,26 @@ import MDAnalysis as mda
 
 
 class NGLClient(NanoverImdClient):
+    """
+    A python client that enables visualisation of the molecular system via
+    an NGLView widget.
+
+    Example
+    =======
+
+    .. code-block:: python
+
+        from nanover.nglview import NGLClient
+        client = NGLClient.autoconnect()
+        client.view
+
+    :param dynamic_bonds: A boolean flag that dictates whether bonds should be dynamically updated
+        during the simulation.
+    :param *args: Additional arguments passed to the parent class (NanoverImdClient) constructor.
+    :param update_callback: An optional callback function executed each time a new frame is
+        received.
+    :param **kwargs: Additional arguments passed to the parent class (NanoverImdClient) constructor.
+    """
     def __init__(self, dynamic_bonds=False, *args, update_callback=None, **kwargs):
         self._view = None
         super().__init__(*args, **kwargs)
@@ -21,11 +47,18 @@ class NGLClient(NanoverImdClient):
 
     @property
     def view(self):
+        """
+        Returns an NGLView widget to visualise the molecular system.
+        """
         if self._view is None or self.dynamic_bonds:
             self._view = frame_data_to_nglwidget(self.latest_frame)
         return self._view
 
     def _on_frame_received(self, frame_index: int, frame):
+        """
+        On receiving the latest frame, defines the new coordinates of the atoms
+        in the molecular system in Angstrom for visualisation using NGLView.
+        """
         super()._on_frame_received(frame_index, frame)
         self.view.set_coordinates(
             {0: np.array(self.latest_frame.particle_positions) * 10}
