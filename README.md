@@ -17,8 +17,10 @@ For more information please take a look at [the project's documentation](https:/
 1. [Getting started](#Getting-started)
 2. [User installation](#User-installation)
 3. [Developer installation](#Developer-installation)
-4. [Troubleshooting](#Troubleshooting)
-5. [Citation and external libraries](#Citation-and-external-libraries)
+4. [Running the tests](#Running-the-tests)
+5. [Running the examples](#Running-the-examples)
+6. [Troubleshooting](#Troubleshooting)
+7. [Citation and external libraries](#Citation-and-external-libraries)
 
 ----
 
@@ -53,7 +55,6 @@ servers in python, as well as the services implemented in python. The
 unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
-
 
 ## User installation
 
@@ -97,13 +98,12 @@ Here, we installed only the python library. Using the `--no-dotnet` argument, we
 * Install dotnet 2.11. This is an old version of the framework that is not maintained anymore. However, Unity still relies on it.
 * Run the compile script: `./compile.sh --no-python` to skip installing the python libraries, or just `./compile.sh` to build the python libraries as well.
 
-
-### Running the tests
+## Running the tests
 
 All code changes have to pass a series of automatic tests ("the CI") that attempt to verify code quality and
 continued functionality of the project. You can run these locally to verify your changes in advance.
 
-#### Unit Tests
+### Unit Tests
 
 The unit tests check code functionality of the python libraries. To run them:
 
@@ -115,7 +115,7 @@ Optionally, you can run most of the tests in parallel with pytest-xdist:
     python -m pytest python-libraries -n auto -m 'not serial'
     python -m pytest python-libraries -n0 -m 'serial'
 
-#### Formatting & Linting Tests
+### Formatting & Linting Tests
 
 The formatting and linting tests check code style, and require ruff and black:
 
@@ -128,7 +128,7 @@ black can automatically reformat the files for you:
 
     python -m black python-libraries
 
-#### Type Checks
+### Type Checks
 
 The type checks look at the type hints in the code to make sure they are consistent and help find potential errors. 
 Because of the special setup required you will probably not be able to run this locally, but you can try:
@@ -147,7 +147,7 @@ Because of the special setup required you will probably not be able to run this 
              | tr '\n' ' ') 
     python -m mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages 
 
-### Running the examples
+## Running the examples
 
 The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 
 Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials) or
@@ -155,20 +155,20 @@ Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials) or
 [project's documentation](https://irl2.github.io/nanover-docs).
 
 
-#### OpenMM IMD Simulations
+### OpenMM IMD Simulations
 
 `nanover.omni` provides a command line interface for running serialised OpenMM simulations. For example, from the 
 `nanover-protocol` directory:
 
     nanover-omni --omm examples/ase/openmm_files/nanotube.xml
 
-#### ASE IMD Simulations Jupyter Notebooks
+### ASE IMD Simulations Jupyter Notebooks
 
 The [`examples/ase`](examples/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
 from a notebook. The [NanoVer ASE documentation](python-libraries/nanover-ase/README.md) provides more details on setting 
 up ASE simulations.
 
-#### MD Analysis Trajectories
+### MD Analysis Trajectories
 
 `nanover.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
 trajectory. To serve the frames on port 54321, from the `nanover-protocol` directory, run
