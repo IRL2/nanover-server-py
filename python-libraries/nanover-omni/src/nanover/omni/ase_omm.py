@@ -12,10 +12,10 @@ from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
-from nanover.ase import send_ase_frame
 from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
+from nanover.ase.openmm.runner import openmm_ase_frame_adaptor
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.openmm import serializer
 from nanover.utilities.event import Event
@@ -80,6 +80,7 @@ class ASEOpenMMSimulation:
         self.atoms: Optional[Atoms] = None
         self.dynamics: Optional[MolecularDynamics] = None
         self.simulation: Optional[Simulation] = None
+        self.openmm_calculator: Optional[OpenMMCalculator] = None
         self.checkpoint: Optional[InitialState] = None
 
     def load(self):
@@ -94,11 +95,11 @@ class ASEOpenMMSimulation:
 
         assert self.simulation is not None
 
-        openmm_calculator = OpenMMCalculator(self.simulation)
-        self.atoms = openmm_calculator.generate_atoms()
+        self.openmm_calculator = OpenMMCalculator(self.simulation)
+        self.atoms = self.openmm_calculator.generate_atoms()
         if self.use_walls:
             self.atoms.constraints.append(VelocityWallConstraint())
-        self.atoms.calc = openmm_calculator
+        self.atoms.calc = self.openmm_calculator
 
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, temperature_K=300)
@@ -119,6 +120,7 @@ class ASEOpenMMSimulation:
             self.simulation is not None
             and self.atoms is not None
             and self.checkpoint is not None
+            and self.openmm_calculator is not None
         )
 
         self.app_server = app_server
@@ -139,12 +141,12 @@ class ASEOpenMMSimulation:
 
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
-            self.dynamics.atoms.calc,
+            self.openmm_calculator,
             dynamics=self.dynamics,
         )
 
         self.dynamics.attach(
-            send_ase_frame(
+            openmm_ase_frame_adaptor(
                 self.atoms,
                 self.app_server.frame_publisher,
                 include_velocities=self.include_velocities,

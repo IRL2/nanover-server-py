@@ -35,7 +35,12 @@ CONSTRAINTS_UNSUPPORTED_MESSAGE = (
 )
 
 
-def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
+def openmm_ase_frame_adaptor(
+    ase_atoms: Atoms,
+    frame_publisher: FramePublisher,
+    include_velocities=False,
+    include_forces=False,
+):
     """
     Generates and sends frames for a simulation using an :class: OpenMMCalculator.
     """
@@ -49,7 +54,12 @@ def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
         if frame_index == 0:
             imd_calculator = ase_atoms.calc
             topology = imd_calculator.calculator.topology
-            frame = openmm_to_frame_data(state=None, topology=topology)
+            frame = openmm_to_frame_data(
+                state=None,
+                topology=topology,
+                include_velocities=include_velocities,
+                include_forces=include_forces,
+            )
             add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
         # from then on, just send positions and state.
         else:
