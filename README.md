@@ -1,69 +1,49 @@
-# NanoVer 2 Protocol
+# NanoVer Protocol
 
 Repository containing the gRPC protocol and python based implementations
-of servers for NanoVer 2, providing a framework for developing interactive molecular dynamics simulations.
+of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
 
-It is designed to be used with NanoVer VR clients, e.g. [NanoVer IMD](https://github.com/irl2/nanover-imd).
+This software is designed to be used with **NanoVer VR clients**, 
+e.g. [NanoVer IMD](https://github.com/irl2/nanover-imd).
 
-This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostella,
-and distributed under the [MIT](LICENSE) license.
+This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostela,
+and is distributed under the [MIT](LICENSE) license.
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
 For more information please take a look at [the project's documentation](https://irl2.github.io/nanover-docs/#).
 
-**The NanoVer iMD VR front-end can be found
-[on its own repository](https://github.com/irl2/nanover-imd).**
+## Contents
 
-## Getting Started
+1. [Getting started](#Getting-started)
+2. [User installation](#User-installation)
+3. [Developer installation](#Developer-installation)
+4. [Running the tests](#Running-the-tests)
+5. [Running the examples](#Running-the-examples)
+6. [Troubleshooting](#Troubleshooting)
+7. [Citation and external libraries](#Citation-and-external-libraries)
 
-### Quick Start
+----
+
+## Getting started
+
+Here are some quick notes to get you started with NanoVer! 
+If you haven't installed NanoVer yet, please go to [User installation](#User-installation) or 
+[Developer installation](#Developer-installation).
+
+### Running a server via the command line
 
 `nanover.omni` provides a command line interface for running OpenMM simulations. For example, from the `nanover-protocol` directory:
 
     nanover-omni --omm examples/ase/openmm_files/nanotube.xml
 
+Learn more about running a NanoVer server 
+[here](https://irl2.github.io/nanover-docs/tutorials/fundamentals.html#running-a-server) in our documentation.
+
 ### Tutorials
 
-The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with NanoVer. They
-are organised into the following folders:
-
-* [ase](examples/ase) - Get up and running with interactive simulations with ASE and OpenMM.
-   - [Basic Example](examples/ase/basic_example.ipynb) - Toy example of an interactive simulation.
-   - [Nanotube](examples/ase/openmm_nanotube.ipynb) - Set up an interactive nanotube simulation with OpenMM.
-   - [Neuraminidase](examples/ase/openmm_neuraminidase.ipynb) - Set up a ligand-protein binding simulation with OpenMM,
-   and experiment with NanoVer visualizations.
-   - [Graphene](examples/ase/openmm_graphene.ipynb) - Set up a graphene simulation with physics parameters
-   that can be adjusted on the fly.
-* [mdanalysis](examples/mdanalysis) - Visualize static structures and trajectories with MDAnalysis and NanoVer.
-    - [Structure](examples/mdanalysis/mdanalysis_lsd.ipynb) - Visualize LSD bound to a receptor in NanoVer.
-    - [Trajectory](examples/mdanalysis/mdanalysis_trajectory.ipynb) - Build your own trajectory viewer with MDAnalysis
-    and NanoVer.
-* [fundamentals](examples/fundamentals) - Understand how NanoVer works, so you can create your own applications.
-    - [Frame](examples/fundamentals/frame.ipynb) - How NanoVer communicates frames of molecular simulations.
-    - [Servers](examples/fundamentals/servers.ipynb) - Setting up a NanoVer server.
-    - [State & Commands](examples/fundamentals/commands_and_state.ipynb) - Synchronizing state between clients and calling commands on the server.
-    - [Selections & Visualisation](examples/fundamentals/visualisations.ipynb) - Selecting atoms and setting how to render them.
-
-The tutorials use Jupyter notebooks, [NGLView](https://github.com/arose/nglview) for visualising trajectories, and while not strictly necessary,
-assumes you have the [NanoVer IMD VR](https://github.com/IRL2/nanover-imd)
-application installed. These can all be installed with conda:
-
-```bash
-conda activate nanover
-conda install jupyter
-conda install nglview -c conda-forge
-# On Windows only:
-conda install -c irl nanover-imd
-```
-
-To run the notebooks, download the repository and run jupyter (with [git](https://git-scm.com/) installed):
-```bash
-git clone https://github.com/IRL2/nanover-protocol.git
-cd nanover-protocol
-conda activate nanover
-jupyter notebook
-```
-
+The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with NanoVer. 
+Please head to the [Tutorials](https://irl2.github.io/nanover-docs/tutorials) page of the 
+[project's documentation](https://irl2.github.io/nanover-docs) for more information!
 
 ### Exploring the code  
 
@@ -76,33 +56,34 @@ unmaintained) prototypes using the python libraries.
 
 The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
-## Installation
+## User installation
 
-### Quick installation for a user
+Check out the [Installation & Getting Started](https://irl2.github.io/nanover-docs/installation) 
+page in our documentation for detailed instructions on installing NanoVer.
+
+### Updating the conda package
+
+* Run `conda list nanover-server` to determine the currently installed version
+* Run `conda update nanover-server` to attempt to update to latest version
+* If you can't seem to update to the latest version, run `python --version` to check your python version is at least 
+  as recent as in the installation instructions. 
+  If it isn't you will need to create a new conda environment with a newer version of python.
+
+## Developer installation
+
+### Windows
 
 * Install Anaconda
-* Open the "Anaconda Powershell Prompt" to type the following commands.
-* Create a conda environment (here we call the environment "nanover"): `conda create -n nanover "python>3.11"`
-* Activate the conda environment: `conda activate nanover`
-* Install the NanoVer packages: `conda install -c irl -c omnia -c conda-forge nanover-server`
+* Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
+* Clone the nanover-protocol repository
+* In the "Anaconda Powershell Prompt":
+    * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.11"`
+    * Activate the conda environment: `conda activate nanover-dev`
+    * Install the required conda packages: `conda install -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
+    * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
+* The `nanover-lammps` module and its tests require MPI to be installed. Download and install Microsoft MPI from https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
 
-NanoVer can interact with the [LAMMPS](https://lammps.sandia.gov/) simulation engine.
-If you want to use this specific feature, you need to:
-
-* install LAMMPS with python capabilities
-* install mpy4py: `conda install -c conda-forge mpi4py` on Linux and MacOS,
-  `python -m pip install mpi4py` on Windows.
-* install nanover-lammps: `conda install -c irl -c conda-forge nanover-lammps`.
-
-Developers will want the manual install described below.
-
-#### Updating ####
-
-* Run `conda list ^nanover-server` to determine the currently installed version
-* Run `conda install nanover-server` to attempt to update to latest version
-* If you can't seem to update to the latest version, run `python --version` to check your python version is at least as recent as in these installation instructions. If it isn't you will need to create a new conda environment with a newer version of python.
-
-### Setup nanover-protocol for developers on Mac and Linux
+### Mac and Linux
 
 * Install Anaconda
 * Clone the nanover-protocol repository
@@ -116,18 +97,6 @@ Here, we installed only the python library. Using the `--no-dotnet` argument, we
 
 * Install dotnet 2.11. This is an old version of the framework that is not maintained anymore. However, Unity still relies on it.
 * Run the compile script: `./compile.sh --no-python` to skip installing the python libraries, or just `./compile.sh` to build the python libraries as well.
-
-### Setup nanover-protocol for developers on Windows
-
-* Install Anaconda
-* Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
-* Clone the nanover-protocol repository
-* In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.11"`
-    * Activate the conda environment: `conda activate nanover-dev`
-    * Install the required conda packages: `conda install -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
-    * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
-* The `nanover-lammps` module and its tests require MPI to be installed. Download and install Microsoft MPI from https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
 
 ## Running the tests
 
@@ -180,6 +149,12 @@ Because of the special setup required you will probably not be able to run this 
 
 ## Running the examples
 
+The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 
+Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials) or
+[how to run a NanoVer server](https://irl2.github.io/nanover-docs/tutorials/fundamentals.html#running-a-server) in this
+[project's documentation](https://irl2.github.io/nanover-docs).
+
+
 ### OpenMM IMD Simulations
 
 `nanover.omni` provides a command line interface for running serialised OpenMM simulations. For example, from the 
@@ -206,7 +181,7 @@ trajectory. To serve the frames on port 54321, from the `nanover-protocol` direc
 
 If you are having autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
-## Citation and External Libraries
+## Citation and external libraries
 
 If you find this project useful, please cite the following papers:
 
