@@ -34,7 +34,7 @@ class NGLClient(NanoverImdClient):
         during the simulation.
     :param *args: Additional arguments passed to the parent class (NanoverImdClient) constructor.
     :param update_callback: An optional callback function executed each time a new frame is
-        received.
+        received (CURRENTLY UNUSED).
     :param **kwargs: Additional arguments passed to the parent class (NanoverImdClient) constructor.
     """
 
@@ -63,8 +63,7 @@ class NGLClient(NanoverImdClient):
         self.view.set_coordinates(
             {0: np.array(self.latest_frame.particle_positions) * 10}
         )
-        if self.update_callback is not None:
-            self.update_callback(self.universe)
+        #TODO: Add functionality to update callback functions to allow widget customisation
 
 
 class FrameDataStructure(nglview.Structure):
