@@ -68,6 +68,18 @@ class NGLClient(NanoverImdClient):
 
 
 class FrameDataStructure(nglview.Structure):
+    """
+    Subclass of the nglview.Structure class that converts FrameData
+    objects to formatted strings that can be read by NGLView to
+    visualise the molecular system.
+
+    :param frame: The FrameData object containing the data from the
+        molecular simulation.
+    :param ext: The file extension for the structure representation
+        that is passed to NGLView, which defaults to PDB.
+    :param params: A dictionary of loading parameters that are passed
+        to NGLView (see parent class).
+    """
     def __init__(self, frame, ext="pdb", params={}):
         super().__init__()
         self.path = ""
@@ -76,10 +88,30 @@ class FrameDataStructure(nglview.Structure):
         self._frame = frame
 
     def get_structure_string(self):
+        """
+        A function that overrides the get_structure_string function of
+        the parent class to convert the frame to a PDB formatted
+        string to be read by NGLView.
+
+        :return: A PDB string of the molecular structure defined in the
+            frame.
+        """
         return frame_data_to_pdb(self._frame)
 
 
 def frame_data_to_nglwidget(frame, **kwargs):
+    """
+    Function that takes a FrameData object and outputs an NGLView
+    widget for visualisation of the molecular system described by
+    the frame.
+
+    :param frame: The FrameData object containing the data from the
+        molecular simulation.
+    :param *kwargs: Additional keyword arguments passed to the
+        NGLWidget constructor.
+    :return: An NGLView widget to visualise the molecular system
+        described by the frame.
+    """
     structure = FrameDataStructure(frame)
     return NGLWidget(structure, **kwargs)
 
@@ -91,6 +123,8 @@ def fill_empty_fields(universe: mda.Universe):
     Some topology fields are specific to PDB files and are often missing
     from Universes. This function set these fields to their default values if
     they are not present already.
+
+    :param universe: The MDAnalysis universe describing the current frame.
     """
     defaults_per_atom = (
         {
@@ -114,6 +148,13 @@ def fill_empty_fields(universe: mda.Universe):
 
 
 def mda_to_pdb_str(universe: mda.Universe):
+    """
+    Converts an MDAnalysis Universe to a PDB string.
+
+    :param universe: The MDAnalysis universe describing the current frame.
+    :return: A PDB string of the molecular structure defined in the
+        MDAnalysis universe.
+    """
     fill_empty_fields(universe)
     with StringIO() as str_io, mda.coordinates.PDB.PDBWriter(str_io) as writer:
         writer.filename = ""  # See https://github.com/MDAnalysis/mdanalysis/issues/2512
@@ -123,6 +164,15 @@ def mda_to_pdb_str(universe: mda.Universe):
 
 
 def frame_data_to_pdb(frame: FrameData) -> str:
+    """
+    Converts a FrameData object to a PDB string, by first reading the frame as
+    an MDAnalysis universe and then converting it to a PDB string.
+
+    :param frame: The FrameData object containing the data from the
+        molecular simulation.
+    :return: A PDB string of the molecular structure defined in the
+        frame.
+    """
     universe = frame_data_to_mdanalysis(frame)
     pdb = mda_to_pdb_str(universe)
     return pdb
