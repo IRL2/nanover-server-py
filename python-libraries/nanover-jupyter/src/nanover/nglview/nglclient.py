@@ -3,7 +3,6 @@ Provides an NGLView python client to connect to a NanoVer server in order to vis
 the molecular system from within a Jupyter notebook (or iPython interface).
 """
 
-
 from io import StringIO
 
 import nglview
@@ -38,6 +37,7 @@ class NGLClient(NanoverImdClient):
         received.
     :param **kwargs: Additional arguments passed to the parent class (NanoverImdClient) constructor.
     """
+
     def __init__(self, dynamic_bonds=False, *args, update_callback=None, **kwargs):
         self._view = None
         super().__init__(*args, **kwargs)
@@ -80,6 +80,7 @@ class FrameDataStructure(nglview.Structure):
     :param params: A dictionary of loading parameters that are passed
         to NGLView (see parent class).
     """
+
     def __init__(self, frame, ext="pdb", params={}):
         super().__init__()
         self.path = ""
