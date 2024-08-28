@@ -42,7 +42,7 @@ Learn more about running a NanoVer server
 ### Tutorials
 
 The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with NanoVer. 
-Please head to the [Tutorials](https://irl2.github.io/nanover-docs/tutorials) page of the 
+Please head to the [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) page of the 
 [project's documentation](https://irl2.github.io/nanover-docs) for more information!
 
 ### Exploring the code  
@@ -150,7 +150,7 @@ Because of the special setup required you will probably not be able to run this 
 ## Running the examples
 
 The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 
-Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials) or
+Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) or
 [how to run a NanoVer server](https://irl2.github.io/nanover-docs/tutorials/fundamentals.html#running-a-server) in this
 [project's documentation](https://irl2.github.io/nanover-docs).
 
