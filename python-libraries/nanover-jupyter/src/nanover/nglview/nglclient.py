@@ -63,7 +63,7 @@ class NGLClient(NanoverImdClient):
         self.view.set_coordinates(
             {0: np.array(self.latest_frame.particle_positions) * 10}
         )
-        #TODO: Add functionality to update callback functions to allow widget customisation
+        # TODO: Add functionality to update callback functions to allow widget customisation
 
 
 class FrameDataStructure(nglview.Structure):
