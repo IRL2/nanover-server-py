@@ -196,6 +196,7 @@ This project has been made possible by the following open source projects. We gr
 * [OpenMM](http://openmm.org/) (MIT, LGPLv3): GPU accelerated molecular mechanics library ([citation](https://simtk.org/plugins/publications/index.php/?group_id=161)).
 * [LAMMPS](https://lammps.sandia.gov/) (GPLv2): Molecular mechanics library ([citation](https://lammps.sandia.gov/cite.html)).
 * [MDAnalysis](https://www.mdanalysis.org/) (GPLv2): Molecular dynamics analysis library ([citations](https://www.mdanalysis.org/pages/citations/)).
+* [NGLView](https://nglviewer.org/#nglview) (MIT): IPython/Jupyter widget to interactively view structures and trajectories ([citations](http://nglviewer.org/nglview/latest/#cite)).
 * [python-osc](https://pypi.org/project/python-osc/) (Public domain) - Open sound control library.
 * [MPI4Py](https://mpi4py.readthedocs.io/en/stable/index.html) ([BSD 2-clause license](https://bitbucket.org/mpi4py/mpi4py/src/master/LICENSE.rst)): MPI library for python, used with LAMMPS ([citation](https://mpi4py.readthedocs.io/en/stable/citing.html)).
 * [Numpy](https://numpy.org/) (BSD) - Numerical computation library.
