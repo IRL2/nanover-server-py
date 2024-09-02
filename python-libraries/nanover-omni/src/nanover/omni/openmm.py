@@ -206,7 +206,7 @@ class OpenMMSimulation:
 
 
 class OpenMMSimulationWorkDone(OpenMMSimulation):
-    """
+    r"""
     A wrapper derived from the OpenMMSimulation class for running OpenMM
     simulations using the OmniRunner that calculate the work done on the
     system by the user.
