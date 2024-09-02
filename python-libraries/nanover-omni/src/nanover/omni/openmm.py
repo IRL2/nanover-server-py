@@ -280,9 +280,10 @@ class OpenMMSimulationWorkDone(OpenMMSimulation):
         # Update work done in frame data
         frame_data.user_work_done = self.work_done
 
-        # Calculate on-step contribution to work
+        # Calculate on-step contribution to work (minus sign in positions accounts
+        # for subtraction of this contribution)
         if frame_data.user_forces_sparse is not None:
-            affected_atom_positions = positions[frame_data.user_forces_index]
+            affected_atom_positions = - positions[frame_data.user_forces_index]
             self.add_contribution_to_work(frame_data.user_forces_sparse, affected_atom_positions)
 
         # send the next frame
