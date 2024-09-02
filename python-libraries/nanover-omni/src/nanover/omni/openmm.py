@@ -214,18 +214,18 @@ class OpenMMSimulationWorkDone(OpenMMSimulation):
     The expression for the work done on the system by the user is
 
     .. math::
-        W = \sum_{t = 0}^{n_{steps} - 1} \sum_{i = 1}^{N} \mathbf{F}_{i}(t)
-         \cdot (\mathbf{r}_{i}(t+1) - \mathbf{r}_{i}(t)))
+        W = \sum_{t = 1}^{n_{steps}} \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+         \cdot (\mathbf{r}_{i}(t) - \mathbf{r}_{i}(t - 1)))
 
     which can be rewritten as
 
     .. math::
-        W = \sum_{t = 0}^{n_{steps} - 1} \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t)
-         \cdot \mathbf{r}_{i}(t+1) \bigg)  - \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t)
-         \cdot \mathbf{r}_{i}(t) \bigg)
+        W = \sum_{t = 1}^{n_{steps}} \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+         \cdot \mathbf{r}_{i}(t) \bigg)  - \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+         \cdot \mathbf{r}_{i}(t - 1) \bigg)
 
     where the contribution at each value of t is separated into an
-    on-step contribution (t) and a next-step contribution (t+1). Doing so
+    previous-step contribution (t-1) and an on-step contribution (t). Doing so
     enables calculation of the work done on-the-fly without having to save
     the positions of the atoms at each time step that the user applies an
     iMD force.
@@ -265,7 +265,7 @@ class OpenMMSimulationWorkDone(OpenMMSimulation):
         )
         positions = state.getPositions(asNumpy=True)
 
-        # Calculate next-step contribution to work
+        # Calculate on-step contribution to work
         if self.prev_imd_forces is not None:
             affected_atom_positions = positions[self.prev_imd_indices]
             self.add_contribution_to_work(self.prev_imd_forces, affected_atom_positions)
@@ -279,8 +279,8 @@ class OpenMMSimulationWorkDone(OpenMMSimulation):
         # Update work done in frame data
         frame_data.user_work_done = self.work_done
 
-        # Calculate on-step contribution to work (minus sign in positions accounts
-        # for subtraction of this contribution)
+        # Calculate previous-step contribution to work for the next time step
+        # (minus sign in positions accounts for subtraction of this contribution)
         if frame_data.user_forces_sparse is not None:
             affected_atom_positions = - positions[frame_data.user_forces_index]
             self.add_contribution_to_work(frame_data.user_forces_sparse, affected_atom_positions)
@@ -289,7 +289,7 @@ class OpenMMSimulationWorkDone(OpenMMSimulation):
         self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
         self.frame_index += 1
 
-        # Update previous step forces
+        # Update previous step forces (saving them in their sparse form)
         self.prev_imd_forces = frame_data.user_forces_sparse
         self.prev_imd_indices = frame_data.user_forces_index
 
