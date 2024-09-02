@@ -234,7 +234,6 @@ class OpenMMSimulationWorkDone(OpenMMSimulation):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.work_done: int = 0
-        self.prev_work_done: int = 0
         self.prev_imd_forces: Optional[np.ndarray] = None
         self.prev_imd_indices: Optional[np.ndarray] = None
 
