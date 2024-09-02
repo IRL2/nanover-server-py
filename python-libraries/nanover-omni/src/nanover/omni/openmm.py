@@ -2,6 +2,9 @@ from os import PathLike
 from pathlib import Path
 from typing import Optional, Any
 
+import numpy as np
+import numpy.typing as npt
+
 from openmm.app import Simulation, StateDataReporter
 
 from nanover.app import NanoverImdApplication
@@ -200,3 +203,102 @@ class OpenMMSimulation:
         self.imd_force_manager.add_to_frame_data(frame_data)
 
         return frame_data
+
+
+class OpenMMSimulationWorkDone(OpenMMSimulation):
+    """
+    A wrapper derived from the OpenMMSimulation class for running OpenMM
+    simulations using the OmniRunner that calculate the work done on the
+    system by the user.
+
+    The expression for the work done on the system by the user is
+
+    .. math::
+        W = \sum_{t = 0}^{n_{steps} - 1} \sum_{i = 1}^{N} \mathbf{F}_{i}(t)
+         \cdot (\mathbf{r}_{i}(t+1) - \mathbf{r}_{i}(t)))
+
+    which can be rewritten as
+
+    .. math::
+        W = \sum_{t = 0}^{n_{steps} - 1} \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t)
+         \cdot \mathbf{r}_{i}(t+1) \bigg)  - \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t)
+         \cdot \mathbf{r}_{i}(t) \bigg)
+
+    where the contribution at each value of t is separated into an
+    on-step contribution (t) and a next-step contribution (t+1). Doing so
+    enables calculation of the work done on-the-fly without having to save
+    the positions of the atoms at each time step that the user applies an
+    iMD force.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.work_done: int = 0
+        self.prev_work_done: int = 0
+        self.prev_imd_forces: Optional[np.ndarray] = None
+        self.prev_imd_indices: Optional[np.ndarray] = None
+
+    def advance_to_next_report(self):
+        """
+        Step the simulation to the next point a frame should be reported, and send that frame.
+
+        Overwrites the method in the parent class so that the work done on the system can also
+        be calculated and added to the frame.
+        """
+        assert (
+            self.simulation is not None
+            and self.imd_force_manager is not None
+            and self.app_server is not None
+        )
+
+        # determine step count for next frame
+        steps_to_next_frame = (
+            self.frame_interval - self.simulation.currentStep % self.frame_interval
+        )
+
+        # advance the simulation
+        self.simulation.step(steps_to_next_frame)
+
+        # fetch positions early, for updating imd
+        state = self.simulation.context.getState(
+            getPositions=True,
+            enforcePeriodicBox=False,
+        )
+        positions = state.getPositions(asNumpy=True)
+
+        # Calculate next-step contribution to work
+        if self.prev_imd_forces is not None:
+            affected_atom_positions = positions[self.prev_imd_indices]
+            for atom in range(len(self.prev_imd_indices)):
+                self.work_done += np.dot(np.transpose(self.prev_imd_forces[atom]), affected_atom_positions[atom])
+
+        # update imd forces and energies
+        self.imd_force_manager.update_interactions(self.simulation, positions)
+
+        # generate the next frame with the existing (still valid) positions
+        frame_data = self.make_regular_frame(positions)
+
+        # Update work done in frame data
+        frame_data.user_work_done = self.work_done
+
+        # Calculate on-step contribution to work
+        if frame_data.user_forces_sparse is not None:
+            affected_atom_positions = positions[frame_data.user_forces_index]
+            for atom in range(len(frame_data.user_forces_index)):
+                self.work_done += np.dot(np.transpose(frame_data.user_forces_sparse[atom]), affected_atom_positions[atom])
+
+        # send the next frame
+        self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
+        self.frame_index += 1
+
+        # Update previous step forces
+        self.prev_imd_forces = frame_data.user_forces_sparse
+        self.prev_imd_indices = frame_data.user_forces_index
+
+    def add_contribution_to_work(self, forces: npt.NDArray, positions: npt.NDArray):
+        """
+        Calculate the contribution to the work done on the system by the user for a set of
+        forces and positions, and add it to the work done on the system.
+        """
+        for atom in range(len(forces)):
+            self.work_done += np.dot(np.transpose(forces[atom]), positions[atom])
