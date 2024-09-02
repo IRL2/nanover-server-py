@@ -269,8 +269,7 @@ class OpenMMSimulationWorkDone(OpenMMSimulation):
         # Calculate next-step contribution to work
         if self.prev_imd_forces is not None:
             affected_atom_positions = positions[self.prev_imd_indices]
-            for atom in range(len(self.prev_imd_indices)):
-                self.work_done += np.dot(np.transpose(self.prev_imd_forces[atom]), affected_atom_positions[atom])
+            self.add_contribution_to_work(self.prev_imd_forces, affected_atom_positions)
 
         # update imd forces and energies
         self.imd_force_manager.update_interactions(self.simulation, positions)
@@ -284,8 +283,7 @@ class OpenMMSimulationWorkDone(OpenMMSimulation):
         # Calculate on-step contribution to work
         if frame_data.user_forces_sparse is not None:
             affected_atom_positions = positions[frame_data.user_forces_index]
-            for atom in range(len(frame_data.user_forces_index)):
-                self.work_done += np.dot(np.transpose(frame_data.user_forces_sparse[atom]), affected_atom_positions[atom])
+            self.add_contribution_to_work(frame_data.user_forces_sparse, affected_atom_positions)
 
         # send the next frame
         self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
@@ -298,7 +296,8 @@ class OpenMMSimulationWorkDone(OpenMMSimulation):
     def add_contribution_to_work(self, forces: npt.NDArray, positions: npt.NDArray):
         """
         Calculate the contribution to the work done on the system by the user for a set of
-        forces and positions, and add it to the work done on the system.
+        forces and positions, and add it to the work done on the system. Only involves the
+        atoms affected by the user interaction.
         """
         for atom in range(len(forces)):
             self.work_done += np.dot(np.transpose(forces[atom]), positions[atom])
