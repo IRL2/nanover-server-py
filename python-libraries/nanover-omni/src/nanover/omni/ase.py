@@ -1,24 +1,16 @@
-import warnings
 from dataclasses import dataclass
-from os import PathLike
-from pathlib import Path
 from typing import Optional, Any, Callable
 
 import numpy as np
-from ase import units, Atoms
-from ase.md import Langevin, MDLogger
+from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
-from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
 from nanover.ase import send_ase_frame
 from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.imd_calculator import ImdCalculator
-from nanover.ase.openmm import OpenMMCalculator
 from nanover.ase.openmm.runner import openmm_ase_frame_adaptor
 from nanover.ase.wall_constraint import VelocityWallConstraint
-from nanover.openmm import serializer
 from nanover.utilities.event import Event
 
 

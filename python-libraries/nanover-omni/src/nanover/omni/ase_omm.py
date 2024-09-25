@@ -1,8 +1,7 @@
 import warnings
-from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Any, Callable
+from typing import Optional, Callable
 
 import numpy as np
 from ase import units, Atoms
