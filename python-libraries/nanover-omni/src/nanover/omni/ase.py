@@ -12,12 +12,12 @@ from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
+from nanover.ase import send_ase_frame
 from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
 from nanover.ase.openmm.runner import openmm_ase_frame_adaptor
 from nanover.ase.wall_constraint import VelocityWallConstraint
-from nanover.omni.ase import InitialState, remove_observer
 from nanover.openmm import serializer
 from nanover.utilities.event import Event
 
@@ -27,42 +27,47 @@ CONSTRAINTS_UNSUPPORTED_MESSAGE = (
 )
 
 
-class ASEOpenMMSimulation:
+@dataclass
+class InitialState:
+    positions: Any
+    velocities: Any
+    cell: Any
+
+
+class ASESimulation:
     """
-    A wrapper for ASE OpenMM simulations so they can be run inside the OmniRunner.
+    A wrapper for ASE simulations so they can be run inside the OmniRunner.
     """
 
     @classmethod
-    def from_simulation(
+    def from_dynamics(
         cls,
-        simulation: Simulation,
+        dynamics: MolecularDynamics,
         *,
         name: Optional[str] = None,
+        frame_method=send_ase_frame,
     ):
         """
-        Construct this from an existing ASE OpenMM simulation.
-        :param simulation: An existing ASE OpenMM Simulation
+        Construct this from an existing ASE dynamics.
+        :param dynamics: An existing ASE Dynamics
         :param name: An optional name for the simulation instead of default
+        :param frame_method: A
         """
         sim = cls(name)
-        sim.simulation = simulation
+        sim.dynamics = dynamics
+        sim.frame_method = frame_method
         return sim
 
-    @classmethod
-    def from_xml_path(cls, path: PathLike[str], *, name: Optional[str] = None):
-        """
-        Construct this from an existing NanoVer OpenMM XML file at a given path.
-        :param path: Path of the NanoVer OpenMM XML file
-        :param name: An optional name for the simulation instead of filename
-        """
-        sim = cls(name or Path(path).stem)
-        sim.xml_path = path
-        return sim
+    @property
+    def atoms(self):
+        try:
+            return self.dynamics.atoms
+        except AttributeError:
+            return None
 
     def __init__(self, name: Optional[str] = None):
         self.name = name or "Unnamed ASE OpenMM Simulation"
 
-        self.xml_path: Optional[PathLike[str]] = None
         self.app_server: Optional[NanoverImdApplication] = None
 
         self.on_reset_energy_exceeded = Event()
@@ -76,10 +81,7 @@ class ASEOpenMMSimulation:
         self.include_forces = False
         self.platform: Optional[str] = None
 
-        self.atoms: Optional[Atoms] = None
         self.dynamics: Optional[MolecularDynamics] = None
-        self.simulation: Optional[Simulation] = None
-        self.openmm_calculator: Optional[OpenMMCalculator] = None
         self.checkpoint: Optional[InitialState] = None
 
         self._frame_adapter: Optional[Callable] = None
@@ -88,22 +90,10 @@ class ASEOpenMMSimulation:
         """
         Load and set up the simulation if it isn't done already.
         """
-        if self.simulation is None and self.xml_path is not None:
-            with open(self.xml_path) as infile:
-                self.simulation = serializer.deserialize_simulation(
-                    infile, platform_name=self.platform
-                )
+        assert self.dynamics is not None
 
-        assert self.simulation is not None
-
-        self.openmm_calculator = OpenMMCalculator(self.simulation)
-        self.atoms = self.openmm_calculator.generate_atoms()
         if self.use_walls:
             self.atoms.constraints.append(VelocityWallConstraint())
-        self.atoms.calc = self.openmm_calculator
-
-        # Set the momenta corresponding to T=300K
-        MaxwellBoltzmannDistribution(self.atoms, temperature_K=300)
 
         self.checkpoint = InitialState(
             positions=self.atoms.get_positions(),
@@ -118,35 +108,20 @@ class ASEOpenMMSimulation:
         :param app_server: The app server hosting the frame publisher and imd state
         """
         assert (
-            self.simulation is not None
+            self.dynamics is not None
             and self.atoms is not None
             and self.checkpoint is not None
-            and self.openmm_calculator is not None
         )
 
         self.app_server = app_server
 
-        if self.simulation.system.getNumConstraints() > 0:
-            warnings.warn(CONSTRAINTS_UNSUPPORTED_MESSAGE)
-
-        if self.dynamics is None:
-            # We do not remove the center of mass (fixcm=False). If the center of
-            # mass translations should be removed, then the removal should be added
-            # to the OpenMM system.
-            self.dynamics = Langevin(
-                atoms=self.atoms,
-                timestep=self.time_step * units.fs,
-                temperature_K=300,
-                friction=1e-2,
-                fixcm=False,
-            )
-
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
-            self.openmm_calculator,
+            self.atoms.calc,
             dynamics=self.dynamics,
         )
 
+        # remove previous frame adaptor and attach new one
         if self._frame_adapter is not None:
             remove_observer(self.dynamics, self._frame_adapter)
 
@@ -171,6 +146,7 @@ class ASEOpenMMSimulation:
                 interval=100,
             )
 
+        # reset atoms to initial state
         self.atoms.set_positions(self.checkpoint.positions)
         self.atoms.set_velocities(self.checkpoint.velocities)
         self.atoms.set_cell(self.checkpoint.cell)
@@ -196,7 +172,15 @@ class ASEOpenMMSimulation:
         self.dynamics.run(self.frame_interval)
 
         if self.reset_energy is not None and self.app_server is not None:
-            energy = self.dynamics.atoms.get_total_energy() * EV_TO_KJMOL
+            energy = self.atoms.get_total_energy() * EV_TO_KJMOL
             if not np.isfinite(energy) or energy > self.reset_energy:
                 self.on_reset_energy_exceeded.invoke()
                 self.reset(self.app_server)
+
+
+def remove_observer(dynamics: MolecularDynamics, func: Callable):
+    entry = next(entry for entry in dynamics.observers if entry[0] == func)
+    try:
+        dynamics.observers.remove(entry)
+    except StopIteration:
+        pass
