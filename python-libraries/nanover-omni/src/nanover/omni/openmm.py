@@ -18,6 +18,9 @@ from nanover.trajectory.frame_data import Array2Dfloat
 class OpenMMSimulation:
     """
     A wrapper for OpenMM simulations so they can be run inside the OmniRunner.
+
+    The following attributes can be configured after construction: :attr:`frame_interval`, :attr:`include_velocities`,
+    :attr:`include_forces`
     """
 
     @classmethod
@@ -56,9 +59,13 @@ class OpenMMSimulation:
         self.app_server: Optional[NanoverImdApplication] = None
 
         self.frame_interval = 5
+        """Number of simulation steps to advance between frames."""
         self.include_velocities = False
+        """Include particle velocities in frames."""
         self.include_forces = False
-        self.platform: Optional[str] = None
+        """Include particle forces in frames."""
+        self.platform_name: Optional[str] = None
+        """Name of OpenMM platform to use at the time the system is loaded from XML."""
 
         self.imd_force = create_imd_force()
         self.simulation: Optional[Simulation] = None
@@ -78,7 +85,7 @@ class OpenMMSimulation:
         with open(self.xml_path) as infile:
             self.imd_force = create_imd_force()
             self.simulation = serializer.deserialize_simulation(
-                infile, imd_force=self.imd_force, platform_name=self.platform
+                infile, imd_force=self.imd_force, platform_name=self.platform_name
             )
 
         self.checkpoint = self.simulation.context.createCheckpoint()

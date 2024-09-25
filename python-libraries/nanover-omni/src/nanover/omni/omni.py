@@ -107,10 +107,16 @@ class OmniRunner:
 
     @property
     def app_server(self):
+        """
+        The NanoVer application server used by this runner.
+        """
         return self._app_server
 
     @property
     def simulation(self):
+        """
+        The currently selected simulation.
+        """
         try:
             return self.simulations[self._simulation_index]
         except IndexError:
@@ -118,6 +124,9 @@ class OmniRunner:
 
     @property
     def is_paused(self):
+        """
+        Is the currently selected simulation paused?
+        """
         return self._runner.is_paused if self._runner is not None else None
 
     @property
