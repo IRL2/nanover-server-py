@@ -35,7 +35,7 @@ def test_time_step(example_ase_omm, time_step, app_server):
     example_ase_omm.frame_interval = 1
     example_ase_omm.reset(app_server)
     for i in range(5):
-        assert example_ase_omm.dynamics.dt == pytest.approx(time_step * units.fs)
+        assert example_ase_omm.dynamics.get_time() == pytest.approx(time_step * units.fs * i)
         example_ase_omm.advance_by_one_step()
 
 

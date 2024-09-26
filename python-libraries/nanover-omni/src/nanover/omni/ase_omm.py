@@ -128,26 +128,22 @@ class ASEOpenMMSimulation:
         if self.simulation.system.getNumConstraints() > 0:
             warnings.warn(CONSTRAINTS_UNSUPPORTED_MESSAGE)
 
-        if self.dynamics is None:
-            # We do not remove the center of mass (fixcm=False). If the center of
-            # mass translations should be removed, then the removal should be added
-            # to the OpenMM system.
-            self.dynamics = Langevin(
-                atoms=self.atoms,
-                timestep=self.time_step * units.fs,
-                temperature_K=300,
-                friction=1e-2,
-                fixcm=False,
-            )
+        # We do not remove the center of mass (fixcm=False). If the center of
+        # mass translations should be removed, then the removal should be added
+        # to the OpenMM system.
+        self.dynamics = Langevin(
+            atoms=self.atoms,
+            timestep=self.time_step * units.fs,
+            temperature_K=300,
+            friction=1e-2,
+            fixcm=False,
+        )
 
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
             self.openmm_calculator,
             dynamics=self.dynamics,
         )
-
-        if self._frame_adapter is not None:
-            remove_observer(self.dynamics, self._frame_adapter)
 
         self._frame_adapter = openmm_ase_frame_adaptor(
             self.atoms,
