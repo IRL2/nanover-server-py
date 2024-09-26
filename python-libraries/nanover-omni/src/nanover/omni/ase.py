@@ -9,7 +9,6 @@ from nanover.app import NanoverImdApplication
 from nanover.ase import send_ase_frame
 from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.imd_calculator import ImdCalculator
-from nanover.ase.openmm.runner import openmm_ase_frame_adaptor
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.utilities.event import Event
 
