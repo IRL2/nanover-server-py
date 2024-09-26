@@ -7,6 +7,16 @@ from nanover.trajectory import FrameData
 import sys
 
 
+pytestmark = pytest.mark.skipif(
+     sys.platform == "win32",
+     reason=(
+         "These tests can break the windows test runner on github. "
+         "This is tracked in issue #33: "
+         "<https://github.com/IRL2/nanover-protocol/issues/33>."
+     ),
+)
+
+
 @pytest.fixture
 def simple_atom_lammps_frame():
     mock = MockLammps()
