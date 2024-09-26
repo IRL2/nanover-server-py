@@ -17,10 +17,13 @@ from nanover.trajectory.frame_data import Array2Dfloat
 
 class OpenMMSimulation:
     """
-    A wrapper for OpenMM simulations so they can be run inside the OmniRunner.
+    A wrapper for OpenMM simulations to run inside the OmniRunner.
 
-    The following attributes can be configured after construction: :attr:`frame_interval`, :attr:`include_velocities`,
-    :attr:`include_forces`
+    The following attributes can be configured after construction:
+    - :attr:`frame_interval`: Number of simulation steps to advance between frames.
+    - :attr:`include_velocities`: Include particle velocities in frames.
+    - :attr:`include_forces`: Include particle forces in frames.
+    - :attr:`platform_name`: Name of OpenMM platform to use when loading the system from XML.
     """
 
     @classmethod

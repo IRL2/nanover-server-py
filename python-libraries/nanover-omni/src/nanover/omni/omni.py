@@ -125,7 +125,7 @@ class OmniRunner:
     @property
     def is_paused(self):
         """
-        Is the currently selected simulation paused?
+        :return: True if the current simulation is paused, False otherwise.
         """
         return self._runner.is_paused if self._runner is not None else None
 
