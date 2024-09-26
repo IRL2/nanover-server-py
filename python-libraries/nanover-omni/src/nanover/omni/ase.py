@@ -51,10 +51,10 @@ class ASESimulation:
 
     @property
     def atoms(self):
-        try:
-            return self.dynamics.atoms
-        except AttributeError:
+        if self.dynamics is None:
             return None
+        else:
+            return self.dynamics.atoms
 
     def __init__(self, name: Optional[str] = None):
         self.name = name or "Unnamed ASE OpenMM Simulation"
