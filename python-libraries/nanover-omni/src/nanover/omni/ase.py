@@ -76,6 +76,7 @@ class ASESimulation:
         self.dynamics: Optional[MolecularDynamics] = None
         self.checkpoint: Optional[InitialState] = None
 
+        self.frame_method = send_ase_frame
         self._frame_adapter: Optional[Callable] = None
 
     def load(self):
@@ -117,7 +118,7 @@ class ASESimulation:
         if self._frame_adapter is not None:
             remove_observer(self.dynamics, self._frame_adapter)
 
-        self._frame_adapter = openmm_ase_frame_adaptor(
+        self._frame_adapter = self.frame_method(
             self.atoms,
             self.app_server.frame_publisher,
             include_velocities=self.include_velocities,
