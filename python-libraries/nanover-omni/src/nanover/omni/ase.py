@@ -10,6 +10,7 @@ from nanover.app import NanoverImdApplication
 from nanover.ase.converter import EV_TO_KJMOL, ase_atoms_to_frame_data
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
+from nanover.trajectory import FrameData
 from nanover.utilities.event import Event
 
 
@@ -21,7 +22,9 @@ class InitialState:
 
 
 class ASEAtomsToFrameData(Protocol):
-    def __call__(self, ase_atoms: Atoms, *, topology: bool = False, **kwargs) -> float: ...
+    def __call__(
+        self, ase_atoms: Atoms, *, topology: bool = False, **kwargs
+    ) -> FrameData: ...
 
 
 class ASESimulation:
