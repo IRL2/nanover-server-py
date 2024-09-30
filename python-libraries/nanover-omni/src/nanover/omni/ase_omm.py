@@ -14,10 +14,7 @@ from nanover.app import NanoverImdApplication
 from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
-from nanover.ase.openmm.runner import (
-    openmm_ase_atoms_to_regular_frame,
-    openmm_ase_atoms_to_topology_frame,
-)
+from nanover.ase.openmm.frame_adaptor import openmm_ase_atoms_to_topology_frame, openmm_ase_atoms_to_regular_frame
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.omni.ase import InitialState
 from nanover.openmm import serializer

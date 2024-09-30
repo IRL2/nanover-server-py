@@ -6,21 +6,19 @@ import logging
 from pathlib import Path
 from typing import Optional, List
 
-from ase import units, Atoms  # type: ignore
+from ase import units  # type: ignore
 from ase.md import MDLogger, Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from attr import dataclass
 from nanover.app import NanoverImdApplication, NanoverRunner
 from nanover.app.app_server import DEFAULT_NANOVER_PORT
+from nanover.ase.openmm.frame_adaptor import openmm_ase_frame_adaptor
 from nanover.core import NanoverServer, DEFAULT_SERVE_ADDRESS
 from nanover.ase import TrajectoryLogger
 from nanover.essd import DiscoveryServer
 from nanover.openmm import serializer
-from nanover.openmm.converter import add_openmm_topology_to_frame_data
-from nanover.trajectory.frame_publisher import FramePublisher
 from openmm.app import Simulation
 
-from nanover.ase import ase_to_frame_data
 from nanover.ase.imd import NanoverASEDynamics
 from nanover.ase.openmm.calculator import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
@@ -33,54 +31,6 @@ from nanover.trajectory.frame_server import (
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
     "The simulation contains constraints which will be ignored by this runner!"
 )
-
-
-def openmm_ase_frame_adaptor(
-    ase_atoms: Atoms,
-    frame_publisher: FramePublisher,
-    **kwargs,
-):
-    """
-    Generates and sends frames for a simulation using an :class: OpenMMCalculator.
-    """
-
-    frame_index = 0
-
-    def send():
-        nonlocal frame_index
-        # generate topology frame using OpenMM converter.
-        if frame_index == 0:
-            frame = openmm_ase_atoms_to_topology_frame(ase_atoms, **kwargs)
-        # from then on, just send positions and state.
-        else:
-            frame = openmm_ase_atoms_to_regular_frame(ase_atoms, **kwargs)
-        frame_publisher.send_frame(frame_index, frame)
-        frame_index += 1
-
-    return send
-
-
-def openmm_ase_atoms_to_regular_frame(
-    ase_atoms: Atoms,
-    **kwargs,
-):
-    frame = ase_to_frame_data(
-        ase_atoms,
-        topology=False,
-        **kwargs,
-    )
-    return frame
-
-
-def openmm_ase_atoms_to_topology_frame(
-    ase_atoms: Atoms,
-    **kwargs,
-):
-    imd_calculator = ase_atoms.calc
-    topology = imd_calculator.calculator.topology
-    frame = openmm_ase_atoms_to_regular_frame(ase_atoms, **kwargs)
-    add_openmm_topology_to_frame_data(frame, topology)
-    return frame
 
 
 @dataclass
