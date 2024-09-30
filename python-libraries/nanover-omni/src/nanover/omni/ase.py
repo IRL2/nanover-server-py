@@ -13,11 +13,6 @@ from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.utilities.event import Event
 
 
-CONSTRAINTS_UNSUPPORTED_MESSAGE = (
-    "The simulation contains constraints which will be ignored by this runner!"
-)
-
-
 @dataclass
 class InitialState:
     positions: Any
@@ -66,7 +61,6 @@ class ASESimulation:
         self.verbose = False
         self.use_walls = False
         self.reset_energy: Optional[float] = None
-        self.time_step = 1
         self.frame_interval = 5
         self.include_velocities = False
         self.include_forces = False
@@ -123,6 +117,7 @@ class ASESimulation:
         self.app_server.frame_publisher.send_frame(0, frame_data)
         self.frame_index = 1
 
+        # TODO: deal with this when its clear if dynamics should be reconstructed or not..
         if self.verbose:
             self.dynamics.attach(
                 MDLogger(
