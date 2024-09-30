@@ -2,7 +2,7 @@ from ase import Atoms
 
 from nanover.ase import ase_to_frame_data
 from nanover.openmm.converter import add_openmm_topology_to_frame_data
-from nanover.trajectory import FramePublisher
+from nanover.trajectory import FramePublisher, FrameData
 
 
 def openmm_ase_frame_adaptor(
@@ -31,9 +31,9 @@ def openmm_ase_frame_adaptor(
 def openmm_ase_atoms_to_frame_data(
     ase_atoms: Atoms,
     *,
-    topology=False,
+    topology: bool,
     **kwargs,
-):
+) -> FrameData:
     frame_data = ase_to_frame_data(
         ase_atoms,
         topology=False,
