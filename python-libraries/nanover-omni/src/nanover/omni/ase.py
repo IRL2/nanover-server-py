@@ -113,17 +113,12 @@ class ASESimulation:
             dynamics=self.dynamics,
         )
 
-        # remove previous frame adaptor and attach new one
-        if self._frame_adapter is not None:
-            remove_observer(self.dynamics, self._frame_adapter)
-
         self._frame_adapter = self.frame_method(
             self.atoms,
             self.app_server.frame_publisher,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
-        self.dynamics.attach(self._frame_adapter, interval=self.frame_interval)
 
         if self.verbose:
             self.dynamics.attach(
@@ -158,11 +153,23 @@ class ASESimulation:
 
     def advance_to_next_report(self):
         """
-        Step the simulation to the next point a frame should be reported.
+        Step the simulation to the next point a frame should be reported, and send that frame.
         """
         assert self.dynamics is not None
-        self.dynamics.run(self.frame_interval)
 
+        # determine step count for next frame
+        steps_to_next_frame = (
+            self.frame_interval
+            - self.dynamics.get_number_of_steps() % self.frame_interval
+        )
+
+        # advance the simulation
+        self.dynamics.run(steps_to_next_frame)
+
+        # call frame adapter to send frame
+        self._frame_adapter()
+
+        # check if excessive energy requires sim reset
         if self.reset_energy is not None and self.app_server is not None:
             energy = self.atoms.get_total_energy() * EV_TO_KJMOL
             if not np.isfinite(energy) or energy > self.reset_energy:

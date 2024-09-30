@@ -16,7 +16,7 @@ from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
 from nanover.ase.openmm.runner import openmm_ase_frame_adaptor
 from nanover.ase.wall_constraint import VelocityWallConstraint
-from nanover.omni.ase import InitialState, remove_observer
+from nanover.omni.ase import InitialState
 from nanover.openmm import serializer
 from nanover.utilities.event import Event
 
