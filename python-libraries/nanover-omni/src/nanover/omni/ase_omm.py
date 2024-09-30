@@ -3,24 +3,19 @@ from os import PathLike
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
 from ase import units, Atoms
 from ase.md import Langevin, MDLogger
-from ase.md.md import MolecularDynamics
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
-from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
 from nanover.ase.openmm.frame_adaptor import (
     openmm_ase_atoms_to_frame_data,
 )
-from nanover.ase.wall_constraint import VelocityWallConstraint
-from nanover.omni.ase import InitialState
+from nanover.omni.ase import ASESimulation
 from nanover.openmm import serializer
-from nanover.utilities.event import Event
 
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
@@ -28,7 +23,7 @@ CONSTRAINTS_UNSUPPORTED_MESSAGE = (
 )
 
 
-class ASEOpenMMSimulation:
+class ASEOpenMMSimulation(ASESimulation):
     """
     A wrapper for ASE OpenMM simulations so they can be run inside the OmniRunner.
     """
@@ -61,28 +56,17 @@ class ASEOpenMMSimulation:
         return sim
 
     def __init__(self, name: Optional[str] = None):
-        self.name = name or "Unnamed ASE OpenMM Simulation"
+        name = name or "Unnamed ASE OpenMM Simulation"
+
+        super().__init__(name or "Unnamed ASE OpenMM Simulation")
+
+        self.ase_atoms_to_frame_data = openmm_ase_atoms_to_frame_data
 
         self.xml_path: Optional[PathLike[str]] = None
-        self.app_server: Optional[NanoverImdApplication] = None
 
-        self.on_reset_energy_exceeded = Event()
-
-        self.verbose = False
-        self.use_walls = False
-        self.reset_energy: Optional[float] = None
-        self.frame_interval = 5
-        self.include_velocities = False
-        self.include_forces = False
         self.platform: Optional[str] = None
-
-        self.atoms: Optional[Atoms] = None
-        self.dynamics: Optional[MolecularDynamics] = None
         self.simulation: Optional[Simulation] = None
         self.openmm_calculator: Optional[OpenMMCalculator] = None
-        self.checkpoint: Optional[InitialState] = None
-
-        self.frame_index = 0
 
     def load(self):
         """
@@ -97,22 +81,17 @@ class ASEOpenMMSimulation:
         assert self.simulation is not None
 
         self.openmm_calculator = OpenMMCalculator(self.simulation)
-        self.atoms = self.openmm_calculator.generate_atoms()
-        if self.use_walls:
-            self.atoms.constraints.append(VelocityWallConstraint())
+        atoms = self.openmm_calculator.generate_atoms()
+
+        # we don't read this from the openmm xml
+        self.dynamics = make_default_ase_omm_dynamics(atoms)
+
         self.atoms.calc = self.openmm_calculator
 
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, temperature_K=300)
 
-        # we don't read this from the openmm xml
-        self.dynamics = make_default_ase_omm_dynamics(self.atoms)
-
-        self.checkpoint = InitialState(
-            positions=self.atoms.get_positions(),
-            velocities=self.atoms.get_velocities(),
-            cell=self.atoms.get_cell(),
-        )
+        super().load()
 
     def reset(self, app_server: NanoverImdApplication):
         """
@@ -161,74 +140,6 @@ class ASEOpenMMSimulation:
                 ),
                 interval=100,
             )
-
-    def advance_by_one_step(self):
-        """
-        Advance the simulation to the next point a frame should be reported, and send that frame.
-        """
-        self.advance_to_next_report()
-
-    def advance_by_seconds(self, dt: float):
-        """
-        Advance playback time by some seconds, and advance the simulation to the next frame output.
-        :param dt: Time to advance playback by in seconds (ignored)
-        """
-        self.advance_to_next_report()
-
-    def advance_to_next_report(self):
-        """
-        Step the simulation to the next point a frame should be reported, and send that frame.
-        """
-        assert self.dynamics is not None and self.app_server is not None
-
-        # determine step count for next frame
-        steps_to_next_frame = (
-            self.frame_interval
-            - self.dynamics.get_number_of_steps() % self.frame_interval
-        )
-
-        # advance the simulation
-        self.dynamics.run(steps_to_next_frame)
-
-        # generate the next frame
-        frame_data = self.make_regular_frame()
-
-        # send the next frame
-        self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
-        self.frame_index += 1
-
-        # check if excessive energy necessitates reset
-        if self.reset_energy is not None and self.app_server is not None:
-            energy = self.dynamics.atoms.get_total_energy() * EV_TO_KJMOL
-            if not np.isfinite(energy) or energy > self.reset_energy:
-                self.on_reset_energy_exceeded.invoke()
-                self.reset(self.app_server)
-
-    def make_topology_frame(self):
-        """
-        Make a NanoVer FrameData corresponding to the current particle positions and topology of the simulation.
-        """
-        assert self.atoms is not None
-
-        return openmm_ase_atoms_to_frame_data(
-            self.atoms,
-            topology=True,
-            include_velocities=self.include_velocities,
-            include_forces=self.include_forces,
-        )
-
-    def make_regular_frame(self):
-        """
-        Make a NanoVer FrameData corresponding to the current state of the simulation.
-        """
-        assert self.atoms is not None
-
-        return openmm_ase_atoms_to_frame_data(
-            self.atoms,
-            topology=False,
-            include_velocities=self.include_velocities,
-            include_forces=self.include_forces,
-        )
 
 
 def make_default_ase_omm_dynamics(atoms: Atoms):

@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import Optional, Any
+from typing import Optional, Any, Protocol
 
 import numpy as np
+from ase import Atoms
 from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
@@ -19,6 +20,10 @@ class InitialState:
     cell: Any
 
 
+class ASEAtomsToFrameData(Protocol):
+    def __call__(self, ase_atoms: Atoms, *, topology: bool, **kwargs) -> float: ...
+
+
 class ASESimulation:
     """
     A wrapper for ASE simulations so they can be run inside the OmniRunner.
@@ -26,15 +31,21 @@ class ASESimulation:
 
     @classmethod
     def from_ase_dynamics(
-        cls, dynamics: MolecularDynamics, *, name: Optional[str] = None
+        cls,
+        dynamics: MolecularDynamics,
+        *,
+        name: Optional[str] = None,
+        ase_atoms_to_frame_data: ASEAtomsToFrameData = ase_atoms_to_frame_data
     ):
         """
         Construct this from an existing ASE dynamics.
         :param dynamics: An existing ASE Dynamics
         :param name: An optional name for the simulation instead of default
+        :param ase_atoms_to_frame_data: An optional callback to extra frames from the system
         """
         sim = cls(name)
         sim.dynamics = dynamics
+        sim.ase_atoms_to_frame_data = ase_atoms_to_frame_data
         return sim
 
     @property
@@ -57,12 +68,12 @@ class ASESimulation:
         self.frame_interval = 5
         self.include_velocities = False
         self.include_forces = False
-        self.platform: Optional[str] = None
 
         self.dynamics: Optional[MolecularDynamics] = None
         self.checkpoint: Optional[InitialState] = None
 
         self.frame_index = 0
+        self.ase_atoms_to_frame_data = ase_atoms_to_frame_data
 
     def load(self):
         """
@@ -171,7 +182,7 @@ class ASESimulation:
         """
         assert self.atoms is not None
 
-        return ase_atoms_to_frame_data(
+        return self.ase_atoms_to_frame_data(
             self.atoms,
             topology=True,
             include_velocities=self.include_velocities,
@@ -184,7 +195,7 @@ class ASESimulation:
         """
         assert self.atoms is not None
 
-        return ase_atoms_to_frame_data(
+        return self.ase_atoms_to_frame_data(
             self.atoms,
             topology=False,
             include_velocities=self.include_velocities,
