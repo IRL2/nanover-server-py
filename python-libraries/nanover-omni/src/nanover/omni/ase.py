@@ -23,7 +23,7 @@ class InitialState:
 
 class ASEAtomsToFrameData(Protocol):
     def __call__(
-        self, ase_atoms: Atoms, *, topology: bool = False, **kwargs
+        self, ase_atoms: Atoms, *, topology: bool, **kwargs
     ) -> FrameData: ...
 
 
