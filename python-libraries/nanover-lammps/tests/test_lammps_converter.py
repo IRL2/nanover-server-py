@@ -26,7 +26,7 @@ def simple_atom_lammps_frame():
 
 @pytest.fixture
 def lammps_hook():
-    with LammpsImd() as hook:
+    with LammpsImd(port=0) as hook:
         yield hook
 
 
