@@ -21,7 +21,7 @@ class InitialState:
 
 
 class ASEAtomsToFrameData(Protocol):
-    def __call__(self, ase_atoms: Atoms, *, topology: bool, **kwargs) -> float: ...
+    def __call__(self, ase_atoms: Atoms, *, topology: bool = False, **kwargs) -> float: ...
 
 
 class ASESimulation:
