@@ -22,9 +22,7 @@ class InitialState:
 
 
 class ASEAtomsToFrameData(Protocol):
-    def __call__(
-        self, ase_atoms: Atoms, *, topology: bool, **kwargs
-    ) -> FrameData: ...
+    def __call__(self, ase_atoms: Atoms, *, topology: bool, **kwargs) -> FrameData: ...
 
 
 class ASESimulation:
@@ -49,6 +47,7 @@ class ASESimulation:
         sim = cls(name)
         sim.dynamics = dynamics
         sim.ase_atoms_to_frame_data = ase_atoms_to_frame_data
+
         return sim
 
     @property
@@ -112,6 +111,7 @@ class ASESimulation:
         self.atoms.set_velocities(self.checkpoint.velocities)
         self.atoms.set_cell(self.checkpoint.cell)
 
+        # TODO: this can't be right... nesting the calculator every reset
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
             self.atoms.calc,
