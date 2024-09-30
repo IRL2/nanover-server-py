@@ -38,36 +38,53 @@ CONSTRAINTS_UNSUPPORTED_MESSAGE = (
 def openmm_ase_frame_adaptor(
     ase_atoms: Atoms,
     frame_publisher: FramePublisher,
-    include_velocities=False,
-    include_forces=False,
+    **kwargs,
 ):
     """
     Generates and sends frames for a simulation using an :class: OpenMMCalculator.
     """
 
     frame_index = 0
-    topology: Optional[Topology] = None
 
     def send():
-        nonlocal frame_index, topology
+        nonlocal frame_index
         # generate topology frame using OpenMM converter.
         if frame_index == 0:
-            imd_calculator = ase_atoms.calc
-            topology = imd_calculator.calculator.topology
-            frame = openmm_to_frame_data(
-                state=None,
-                topology=topology,
-                include_velocities=include_velocities,
-                include_forces=include_forces,
-            )
-            add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
+            frame = openmm_ase_atoms_to_topology_frame(ase_atoms, **kwargs)
         # from then on, just send positions and state.
         else:
-            frame = ase_to_frame_data(ase_atoms, topology=False)
+            frame = openmm_ase_atoms_to_regular_frame(ase_atoms, **kwargs)
         frame_publisher.send_frame(frame_index, frame)
         frame_index += 1
 
     return send
+
+
+def openmm_ase_atoms_to_regular_frame(
+    ase_atoms: Atoms,
+    **kwargs,
+):
+    frame = ase_to_frame_data(
+        ase_atoms,
+        topology=False,
+        **kwargs,
+    )
+    return frame
+
+
+def openmm_ase_atoms_to_topology_frame(
+    ase_atoms: Atoms,
+    **kwargs,
+):
+    imd_calculator = ase_atoms.calc
+    topology = imd_calculator.calculator.topology
+    frame = openmm_to_frame_data(
+        state=None,
+        topology=topology,
+        **kwargs,
+    )
+    add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
+    return frame
 
 
 @dataclass

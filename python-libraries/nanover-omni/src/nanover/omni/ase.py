@@ -25,7 +25,7 @@ class ASESimulation:
     """
 
     @classmethod
-    def from_dynamics(cls, dynamics: MolecularDynamics, *, name: Optional[str] = None):
+    def from_ase_dynamics(cls, dynamics: MolecularDynamics, *, name: Optional[str] = None):
         """
         Construct this from an existing ASE dynamics.
         :param dynamics: An existing ASE Dynamics
@@ -169,14 +169,12 @@ class ASESimulation:
         """
         assert self.atoms is not None
 
-        frame_data = ase_to_frame_data(
+        return ase_to_frame_data(
             self.atoms,
             topology=True,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
-
-        return frame_data
 
     def make_regular_frame(self):
         """
@@ -184,11 +182,9 @@ class ASESimulation:
         """
         assert self.atoms is not None
 
-        frame_data = ase_to_frame_data(
+        return ase_to_frame_data(
             self.atoms,
             topology=False,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
-
-        return frame_data
