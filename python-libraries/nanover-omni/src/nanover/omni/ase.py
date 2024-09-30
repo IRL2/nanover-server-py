@@ -6,7 +6,6 @@ from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
 from nanover.app import NanoverImdApplication
-from nanover.ase import send_ase_frame
 from nanover.ase.converter import EV_TO_KJMOL, ase_to_frame_data
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
@@ -26,22 +25,14 @@ class ASESimulation:
     """
 
     @classmethod
-    def from_dynamics(
-        cls,
-        dynamics: MolecularDynamics,
-        *,
-        name: Optional[str] = None,
-        frame_method=send_ase_frame,
-    ):
+    def from_dynamics(cls, dynamics: MolecularDynamics, *, name: Optional[str] = None):
         """
         Construct this from an existing ASE dynamics.
         :param dynamics: An existing ASE Dynamics
         :param name: An optional name for the simulation instead of default
-        :param frame_method: A
         """
         sim = cls(name)
         sim.dynamics = dynamics
-        sim.frame_method = frame_method
         return sim
 
     @property
@@ -69,7 +60,6 @@ class ASESimulation:
         self.dynamics: Optional[MolecularDynamics] = None
         self.checkpoint: Optional[InitialState] = None
 
-        self.frame_method = send_ase_frame
         self.frame_index = 0
 
     def load(self):
