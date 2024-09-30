@@ -1,7 +1,7 @@
 import warnings
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Callable
+from typing import Optional
 
 import numpy as np
 from ase import units, Atoms
@@ -85,7 +85,6 @@ class ASEOpenMMSimulation:
         self.checkpoint: Optional[InitialState] = None
 
         self.frame_index = 0
-        self._frame_adapter: Optional[Callable] = None
 
     def load(self):
         """
@@ -223,7 +222,6 @@ class ASEOpenMMSimulation:
         imd_calculator = self.atoms.calc
         topology = imd_calculator.calculator.topology
         frame_data = openmm_to_frame_data(
-            state=None,
             topology=topology,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
@@ -238,6 +236,11 @@ class ASEOpenMMSimulation:
         """
         assert self.atoms is not None
 
-        frame_data = ase_to_frame_data(self.atoms, topology=False)
+        frame_data = ase_to_frame_data(
+            self.atoms,
+            topology=False,
+            include_velocities=self.include_velocities,
+            include_forces=self.include_forces,
+        )
 
         return frame_data

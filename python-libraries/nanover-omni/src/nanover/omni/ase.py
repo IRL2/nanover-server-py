@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Any, Callable
+from typing import Optional, Any
 
 import numpy as np
 from ase.md import MDLogger
@@ -7,7 +7,7 @@ from ase.md.md import MolecularDynamics
 
 from nanover.app import NanoverImdApplication
 from nanover.ase import send_ase_frame
-from nanover.ase.converter import EV_TO_KJMOL
+from nanover.ase.converter import EV_TO_KJMOL, ase_to_frame_data
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.utilities.event import Event
@@ -76,7 +76,7 @@ class ASESimulation:
         self.checkpoint: Optional[InitialState] = None
 
         self.frame_method = send_ase_frame
-        self._frame_adapter: Optional[Callable] = None
+        self.frame_index = 0
 
     def load(self):
         """
@@ -107,18 +107,21 @@ class ASESimulation:
 
         self.app_server = app_server
 
+        # reset atoms to initial state
+        self.atoms.set_positions(self.checkpoint.positions)
+        self.atoms.set_velocities(self.checkpoint.velocities)
+        self.atoms.set_cell(self.checkpoint.cell)
+
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
             self.atoms.calc,
             dynamics=self.dynamics,
         )
 
-        self._frame_adapter = self.frame_method(
-            self.atoms,
-            self.app_server.frame_publisher,
-            include_velocities=self.include_velocities,
-            include_forces=self.include_forces,
-        )
+        # send the initial topology frame
+        frame_data = self.make_topology_frame()
+        self.app_server.frame_publisher.send_frame(0, frame_data)
+        self.frame_index = 1
 
         if self.verbose:
             self.dynamics.attach(
@@ -132,11 +135,6 @@ class ASESimulation:
                 ),
                 interval=100,
             )
-
-        # reset atoms to initial state
-        self.atoms.set_positions(self.checkpoint.positions)
-        self.atoms.set_velocities(self.checkpoint.velocities)
-        self.atoms.set_cell(self.checkpoint.cell)
 
     def advance_by_one_step(self):
         """
@@ -155,7 +153,7 @@ class ASESimulation:
         """
         Step the simulation to the next point a frame should be reported, and send that frame.
         """
-        assert self.dynamics is not None
+        assert self.dynamics is not None and self.app_server is not None
 
         # determine step count for next frame
         steps_to_next_frame = (
@@ -166,8 +164,12 @@ class ASESimulation:
         # advance the simulation
         self.dynamics.run(steps_to_next_frame)
 
-        # call frame adapter to send frame
-        self._frame_adapter()
+        # generate the next frame
+        frame_data = self.make_regular_frame()
+
+        # send the next frame
+        self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
+        self.frame_index += 1
 
         # check if excessive energy requires sim reset
         if self.reset_energy is not None and self.app_server is not None:
@@ -176,10 +178,32 @@ class ASESimulation:
                 self.on_reset_energy_exceeded.invoke()
                 self.reset(self.app_server)
 
+    def make_topology_frame(self):
+        """
+        Make a NanoVer FrameData corresponding to the current particle positions and topology of the simulation.
+        """
+        assert self.atoms is not None
 
-def remove_observer(dynamics: MolecularDynamics, func: Callable):
-    entry = next(entry for entry in dynamics.observers if entry[0] == func)
-    try:
-        dynamics.observers.remove(entry)
-    except StopIteration:
-        pass
+        frame_data = ase_to_frame_data(
+            self.atoms,
+            topology=True,
+            include_velocities=self.include_velocities,
+            include_forces=self.include_forces,
+        )
+
+        return frame_data
+
+    def make_regular_frame(self):
+        """
+        Make a NanoVer FrameData corresponding to the current state of the simulation.
+        """
+        assert self.atoms is not None
+
+        frame_data = ase_to_frame_data(
+            self.atoms,
+            topology=False,
+            include_velocities=self.include_velocities,
+            include_forces=self.include_forces,
+        )
+
+        return frame_data
