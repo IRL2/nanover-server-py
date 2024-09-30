@@ -18,13 +18,11 @@ def openmm_ase_frame_adaptor(
 
     def send():
         nonlocal frame_index
-        # generate topology frame using OpenMM converter.
-        if frame_index == 0:
-            frame = openmm_ase_atoms_to_topology_frame(ase_atoms, **kwargs)
-        # from then on, just send positions and state.
-        else:
-            frame = openmm_ase_atoms_to_regular_frame(ase_atoms, **kwargs)
-        frame_publisher.send_frame(frame_index, frame)
+        include_topology = frame_index == 0
+        frame_data = openmm_ase_atoms_to_frame_data(
+            ase_atoms, topology=include_topology, **kwargs
+        )
+        frame_publisher.send_frame(frame_index, frame_data)
         frame_index += 1
 
     return send
@@ -42,12 +40,21 @@ def openmm_ase_atoms_to_regular_frame(
     return frame
 
 
-def openmm_ase_atoms_to_topology_frame(
+def openmm_ase_atoms_to_frame_data(
     ase_atoms: Atoms,
+    *,
+    topology=False,
     **kwargs,
 ):
-    imd_calculator = ase_atoms.calc
-    topology = imd_calculator.calculator.topology
-    frame = openmm_ase_atoms_to_regular_frame(ase_atoms, **kwargs)
-    add_openmm_topology_to_frame_data(frame, topology)
-    return frame
+    frame_data = ase_to_frame_data(
+        ase_atoms,
+        topology=False,
+        **kwargs,
+    )
+
+    if topology:
+        imd_calculator = ase_atoms.calc
+        topology = imd_calculator.calculator.topology
+        add_openmm_topology_to_frame_data(frame_data, topology)
+
+    return frame_data

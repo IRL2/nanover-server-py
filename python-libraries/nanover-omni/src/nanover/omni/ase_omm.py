@@ -14,7 +14,9 @@ from nanover.app import NanoverImdApplication
 from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
-from nanover.ase.openmm.frame_adaptor import openmm_ase_atoms_to_topology_frame, openmm_ase_atoms_to_regular_frame
+from nanover.ase.openmm.frame_adaptor import (
+    openmm_ase_atoms_to_frame_data,
+)
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.omni.ase import InitialState
 from nanover.openmm import serializer
@@ -208,8 +210,9 @@ class ASEOpenMMSimulation:
         """
         assert self.atoms is not None
 
-        return openmm_ase_atoms_to_topology_frame(
+        return openmm_ase_atoms_to_frame_data(
             self.atoms,
+            topology=True,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
@@ -220,8 +223,9 @@ class ASEOpenMMSimulation:
         """
         assert self.atoms is not None
 
-        return openmm_ase_atoms_to_regular_frame(
+        return openmm_ase_atoms_to_frame_data(
             self.atoms,
+            topology=False,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
