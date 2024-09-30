@@ -4,6 +4,8 @@ Methods for transmitting a simulation frame from ASE.
 
 from typing import Callable
 from ase import Atoms  # type: ignore
+
+from nanover.ase.converter import ase_atoms_to_topology_frame, ase_atoms_to_regular_frame
 from nanover.trajectory import FramePublisher
 from nanover.ase import ase_to_frame_data
 
@@ -39,11 +41,18 @@ def send_ase_frame(
 
     def send():
         nonlocal frame_index
-        frame = ase_to_frame_data(
-            ase_atoms,
-            include_velocities=include_velocities,
-            include_forces=include_forces,
-        )
+        if frame_index == 0:
+            frame = ase_atoms_to_topology_frame(
+                ase_atoms,
+                include_velocities=include_velocities,
+                include_forces=include_forces,
+            )
+        else:
+            frame = ase_atoms_to_regular_frame(
+                ase_atoms,
+                include_velocities=include_velocities,
+                include_forces=include_forces,
+            )
         frame_publisher.send_frame(frame_index, frame)
         frame_index += 1
 

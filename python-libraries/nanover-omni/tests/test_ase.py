@@ -10,7 +10,7 @@ from common import app_server
 
 @pytest.fixture
 def example_ase(app_server, example_dynamics):
-    sim = ASESimulation.from_dynamics(example_dynamics)
+    sim = ASESimulation.from_ase_dynamics(example_dynamics)
     sim.load()
     sim.reset(app_server)
     yield sim

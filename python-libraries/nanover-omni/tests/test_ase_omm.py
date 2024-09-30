@@ -29,18 +29,6 @@ def test_step_interval(example_ase_omm):
         example_ase_omm.advance_by_one_step()
 
 
-@pytest.mark.parametrize("time_step", (0.5, 1.0, 1.5))
-def test_time_step(example_ase_omm, time_step, app_server):
-    example_ase_omm.time_step = time_step
-    example_ase_omm.frame_interval = 1
-    example_ase_omm.reset(app_server)
-    for i in range(5):
-        assert example_ase_omm.dynamics.get_time() == pytest.approx(
-            time_step * units.fs * i
-        )
-        example_ase_omm.advance_by_one_step()
-
-
 # TODO: test it actually outputs
 def test_verbose(example_ase_omm, app_server):
     """

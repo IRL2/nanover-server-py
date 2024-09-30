@@ -11,16 +11,13 @@ from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
-from nanover.ase.converter import (
-    EV_TO_KJMOL,
-    add_ase_positions_to_frame_data,
-    ase_to_frame_data,
-)
+from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
+from nanover.ase.openmm.runner import openmm_ase_atoms_to_regular_frame, openmm_ase_atoms_to_topology_frame
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.omni.ase import InitialState
-from nanover.openmm import serializer, openmm_to_frame_data
+from nanover.openmm import serializer
 from nanover.utilities.event import Event
 
 
@@ -72,7 +69,6 @@ class ASEOpenMMSimulation:
         self.verbose = False
         self.use_walls = False
         self.reset_energy: Optional[float] = None
-        self.time_step = 1
         self.frame_interval = 5
         self.include_velocities = False
         self.include_forces = False
@@ -107,6 +103,9 @@ class ASEOpenMMSimulation:
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, temperature_K=300)
 
+        # we don't read this from the openmm xml
+        self.dynamics = make_default_ase_omm_dynamics(self.atoms)
+
         self.checkpoint = InitialState(
             positions=self.atoms.get_positions(),
             velocities=self.atoms.get_velocities(),
@@ -135,18 +134,6 @@ class ASEOpenMMSimulation:
         if self.simulation.system.getNumConstraints() > 0:
             warnings.warn(CONSTRAINTS_UNSUPPORTED_MESSAGE)
 
-        # TODO: do we really need to reconstruct the dynamics? (maybe for step count?)
-        # We do not remove the center of mass (fixcm=False). If the center of
-        # mass translations should be removed, then the removal should be added
-        # to the OpenMM system.
-        self.dynamics = Langevin(
-            atoms=self.atoms,
-            timestep=self.time_step * units.fs,
-            temperature_K=300,
-            friction=1e-2,
-            fixcm=False,
-        )
-
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
             self.openmm_calculator,
@@ -158,6 +145,7 @@ class ASEOpenMMSimulation:
         self.app_server.frame_publisher.send_frame(0, frame_data)
         self.frame_index = 1
 
+        # TODO: deal with this when its clear if dynamics should be reconstructed or not..
         if self.verbose:
             self.dynamics.attach(
                 MDLogger(
@@ -219,16 +207,11 @@ class ASEOpenMMSimulation:
         """
         assert self.atoms is not None
 
-        imd_calculator = self.atoms.calc
-        topology = imd_calculator.calculator.topology
-        frame_data = openmm_to_frame_data(
-            topology=topology,
+        return openmm_ase_atoms_to_topology_frame(
+            self.atoms,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
-        add_ase_positions_to_frame_data(frame_data, self.atoms.get_positions())
-
-        return frame_data
 
     def make_regular_frame(self):
         """
@@ -236,11 +219,24 @@ class ASEOpenMMSimulation:
         """
         assert self.atoms is not None
 
-        frame_data = ase_to_frame_data(
+        return openmm_ase_atoms_to_regular_frame(
             self.atoms,
-            topology=False,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
 
-        return frame_data
+
+def make_default_ase_omm_dynamics(atoms: Atoms):
+    # We do not remove the center of mass (fixcm=False). If the center of
+    # mass translations should be removed, then the removal should be added
+    # to the OpenMM system.
+    dynamics = Langevin(
+        atoms=atoms,
+        timestep=1 * units.fs,
+        temperature_K=300,
+        friction=1e-2,
+        fixcm=False,
+    )
+
+    return dynamics
+
