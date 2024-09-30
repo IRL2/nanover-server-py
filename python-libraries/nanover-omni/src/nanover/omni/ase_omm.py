@@ -123,6 +123,7 @@ class ASEOpenMMSimulation:
         """
         assert (
             self.simulation is not None
+            and self.dynamics is not None
             and self.atoms is not None
             and self.checkpoint is not None
             and self.openmm_calculator is not None
