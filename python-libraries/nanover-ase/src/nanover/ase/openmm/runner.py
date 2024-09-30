@@ -15,12 +15,12 @@ from nanover.app.app_server import DEFAULT_NANOVER_PORT
 from nanover.core import NanoverServer, DEFAULT_SERVE_ADDRESS
 from nanover.ase import TrajectoryLogger
 from nanover.essd import DiscoveryServer
-from nanover.openmm import openmm_to_frame_data, serializer
+from nanover.openmm import serializer
+from nanover.openmm.converter import add_openmm_topology_to_frame_data
 from nanover.trajectory.frame_publisher import FramePublisher
 from openmm.app import Simulation
 
 from nanover.ase import ase_to_frame_data
-from nanover.ase.converter import add_ase_positions_to_frame_data
 from nanover.ase.imd import NanoverASEDynamics
 from nanover.ase.openmm.calculator import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
@@ -78,12 +78,8 @@ def openmm_ase_atoms_to_topology_frame(
 ):
     imd_calculator = ase_atoms.calc
     topology = imd_calculator.calculator.topology
-    frame = openmm_to_frame_data(
-        state=None,
-        topology=topology,
-        **kwargs,
-    )
-    add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
+    frame = openmm_ase_atoms_to_regular_frame(ase_atoms, **kwargs)
+    add_openmm_topology_to_frame_data(frame, topology)
     return frame
 
 
