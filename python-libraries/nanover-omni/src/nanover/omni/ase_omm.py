@@ -11,13 +11,16 @@ from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
-from nanover.ase.converter import EV_TO_KJMOL
+from nanover.ase.converter import (
+    EV_TO_KJMOL,
+    add_ase_positions_to_frame_data,
+    ase_to_frame_data,
+)
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
-from nanover.ase.openmm.runner import openmm_ase_frame_adaptor
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.omni.ase import InitialState
-from nanover.openmm import serializer
+from nanover.openmm import serializer, openmm_to_frame_data
 from nanover.utilities.event import Event
 
 
@@ -81,6 +84,7 @@ class ASEOpenMMSimulation:
         self.openmm_calculator: Optional[OpenMMCalculator] = None
         self.checkpoint: Optional[InitialState] = None
 
+        self.frame_index = 0
         self._frame_adapter: Optional[Callable] = None
 
     def load(self):
@@ -125,9 +129,14 @@ class ASEOpenMMSimulation:
 
         self.app_server = app_server
 
+        self.atoms.set_positions(self.checkpoint.positions)
+        self.atoms.set_velocities(self.checkpoint.velocities)
+        self.atoms.set_cell(self.checkpoint.cell)
+
         if self.simulation.system.getNumConstraints() > 0:
             warnings.warn(CONSTRAINTS_UNSUPPORTED_MESSAGE)
 
+        # TODO: do we really need to reconstruct the dynamics? (maybe for step count?)
         # We do not remove the center of mass (fixcm=False). If the center of
         # mass translations should be removed, then the removal should be added
         # to the OpenMM system.
@@ -145,13 +154,10 @@ class ASEOpenMMSimulation:
             dynamics=self.dynamics,
         )
 
-        self._frame_adapter = openmm_ase_frame_adaptor(
-            self.atoms,
-            self.app_server.frame_publisher,
-            include_velocities=self.include_velocities,
-            include_forces=self.include_forces,
-        )
-        self.dynamics.attach(self._frame_adapter, interval=self.frame_interval)
+        # send the initial topology frame
+        frame_data = self.make_topology_frame()
+        self.app_server.frame_publisher.send_frame(0, frame_data)
+        self.frame_index = 1
 
         if self.verbose:
             self.dynamics.attach(
@@ -165,10 +171,6 @@ class ASEOpenMMSimulation:
                 ),
                 interval=100,
             )
-
-        self.atoms.set_positions(self.checkpoint.positions)
-        self.atoms.set_velocities(self.checkpoint.velocities)
-        self.atoms.set_cell(self.checkpoint.cell)
 
     def advance_by_one_step(self):
         """
@@ -185,13 +187,57 @@ class ASEOpenMMSimulation:
 
     def advance_to_next_report(self):
         """
-        Step the simulation to the next point a frame should be reported.
+        Step the simulation to the next point a frame should be reported, and send that frame.
         """
-        assert self.dynamics is not None
-        self.dynamics.run(self.frame_interval)
+        assert self.dynamics is not None and self.app_server is not None
 
+        # determine step count for next frame
+        steps_to_next_frame = (
+            self.frame_interval
+            - self.dynamics.get_number_of_steps() % self.frame_interval
+        )
+
+        # advance the simulation
+        self.dynamics.run(steps_to_next_frame)
+
+        # generate the next frame
+        frame_data = self.make_regular_frame()
+
+        # send the next frame
+        self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
+        self.frame_index += 1
+
+        # check if excessive energy necessitates reset
         if self.reset_energy is not None and self.app_server is not None:
             energy = self.dynamics.atoms.get_total_energy() * EV_TO_KJMOL
             if not np.isfinite(energy) or energy > self.reset_energy:
                 self.on_reset_energy_exceeded.invoke()
                 self.reset(self.app_server)
+
+    def make_topology_frame(self):
+        """
+        Make a NanoVer FrameData corresponding to the current particle positions and topology of the simulation.
+        """
+        assert self.atoms is not None
+
+        imd_calculator = self.atoms.calc
+        topology = imd_calculator.calculator.topology
+        frame_data = openmm_to_frame_data(
+            state=None,
+            topology=topology,
+            include_velocities=self.include_velocities,
+            include_forces=self.include_forces,
+        )
+        add_ase_positions_to_frame_data(frame_data, self.atoms.get_positions())
+
+        return frame_data
+
+    def make_regular_frame(self):
+        """
+        Make a NanoVer FrameData corresponding to the current state of the simulation.
+        """
+        assert self.atoms is not None
+
+        frame_data = ase_to_frame_data(self.atoms, topology=False)
+
+        return frame_data
