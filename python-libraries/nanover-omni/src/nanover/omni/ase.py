@@ -25,7 +25,9 @@ class ASESimulation:
     """
 
     @classmethod
-    def from_ase_dynamics(cls, dynamics: MolecularDynamics, *, name: Optional[str] = None):
+    def from_ase_dynamics(
+        cls, dynamics: MolecularDynamics, *, name: Optional[str] = None
+    ):
         """
         Construct this from an existing ASE dynamics.
         :param dynamics: An existing ASE Dynamics

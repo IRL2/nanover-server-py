@@ -5,9 +5,11 @@ Methods for transmitting a simulation frame from ASE.
 from typing import Callable
 from ase import Atoms  # type: ignore
 
-from nanover.ase.converter import ase_atoms_to_topology_frame, ase_atoms_to_regular_frame
+from nanover.ase.converter import (
+    ase_atoms_to_topology_frame,
+    ase_atoms_to_regular_frame,
+)
 from nanover.trajectory import FramePublisher
-from nanover.ase import ase_to_frame_data
 
 
 def send_ase_frame(
