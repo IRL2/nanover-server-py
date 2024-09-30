@@ -32,7 +32,6 @@ def test_step_interval(example_ase):
     """
     for i in range(5):
         assert (
-            example_ase.dynamics.get_number_of_steps()
-            == i * example_ase.frame_interval
+            example_ase.dynamics.get_number_of_steps() == i * example_ase.frame_interval
         )
         example_ase.advance_by_one_step()
