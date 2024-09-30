@@ -52,6 +52,7 @@ ATOM_RADIUS_ANG = {
 
 def ase_atoms_to_frame_data(
     atoms: Atoms,
+    *,
     topology=False,
     **kwargs,
 ):
