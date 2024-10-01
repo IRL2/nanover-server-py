@@ -25,14 +25,18 @@ EXAMPLE_SERVICE_PROPERTIES = {
 }
 
 
+EXAMPLE_SERVICE_PROPERTIES_WITH_ID = dict(EXAMPLE_SERVICE_PROPERTIES)
+EXAMPLE_SERVICE_PROPERTIES_WITH_ID[SERVICE_ID_KEY] = "12345"
+
+
 @pytest.fixture
 def properties():
-    return dict(EXAMPLE_SERVICE_PROPERTIES)
+    return dict(EXAMPLE_SERVICE_PROPERTIES_WITH_ID)
 
 
 @pytest.fixture
 def properties_unique_id(properties):
-    return properties
+    return dict(EXAMPLE_SERVICE_PROPERTIES)
 
 
 def test_service_message(properties):
