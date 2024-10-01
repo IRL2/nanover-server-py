@@ -5,7 +5,11 @@ import pytest
 from nanover.essd import DiscoveryServer
 from nanover.essd.client import DiscoveryClient
 from test_essd_server import service
-from test_essd_service import properties, properties_unique_id, EXAMPLE_SERVICE_PROPERTIES
+from test_essd_service import (
+    properties,
+    properties_unique_id,
+    EXAMPLE_SERVICE_PROPERTIES,
+)
 
 from nanover.essd.servicehub import ServiceHub
 
