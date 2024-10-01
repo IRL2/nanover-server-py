@@ -7,7 +7,6 @@ from pathlib import Path
 import distutils.cmd
 import distutils.log
 from distutils.core import setup
-from setuptools import find_namespace_packages
 from importlib import resources
 
 
@@ -142,20 +141,7 @@ with open(str(requirements_path)) as f:
     requirements = f.readlines()
 
 setup(
-    name="nanover",
-    version="1.0",
-    description="NanoVer python framework",
-    author="Intangible Realities Lab",
-    author_email="m.oconnor@bristol.ac.uk",
-    url="https://gitlab.com/intangiblerealities/",
-    packages=find_namespace_packages("src", include="nanover.*") + ["nanover.protocol"],
-    package_dir={"": "src"},
-    package_data={"": ["py.typed"]},
-    install_requires=requirements,
     cmdclass={
         "compile_proto": CompileProtoCommand,
-    },
-    entry_points={
-        "console_scripts": ["nanover-multiplayer=nanover.multiplayer.cli:main"],
     },
 )
