@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanover-jupyter"
+authors = [
+    {name = "Intangible Realities Lab"},
+]
+description = "Utilities for using Jupyter with NanoVer"
+requires-python = ">=3.12"
+dependencies = [
+    "nanover",
+    "MDAnalysis",
+    "numpy",
+    "nglview",
+]
+dynamic = ["version"]
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)
+namespaces = false  # to disable scanning PEP 420 namespaces (true by default)

@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanover-omni"
+authors = [
+    {name = "Intangible Realities Lab"},
+]
+description = "Multi-simulation server for NanoVer"
+requires-python = ">=3.12"
+dependencies = [
+    "nanover",
+    "openmm",
+]
+dynamic = ["version"]
+
+[project.scripts]
+nanover-omni = "nanover.omni.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)
+namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
