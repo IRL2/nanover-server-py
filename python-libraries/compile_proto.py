@@ -67,7 +67,7 @@ def compile_protocol(proto_dir, python_dir):
             protoc.main(
                 (
                     "protoc",
-                    f"--proto_path=.",
+                    "--proto_path=.",
                     f"--python_out={python_dir}",
                     f"--grpc_python_out={python_dir}",
                     str(protocol_file),
