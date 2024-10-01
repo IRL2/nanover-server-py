@@ -63,7 +63,7 @@ if [[ $with_python == true ]]; then
 	python -m pip install -r ./python-libraries/requirements.test ${user_option}
 
 	announce "Compiling proto files to python"
-	python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src/nanover/protocol
+	python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src
 
 	announce "Installing the python packages"
 	python -m pip install ${edit_option} ${nanover_user_option} ./python-libraries/nanover-core/
