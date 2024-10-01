@@ -1,4 +1,5 @@
 import json
+import uuid
 
 import pytest
 
@@ -33,7 +34,7 @@ def properties():
 
 @pytest.fixture
 def properties_unique_id(properties):
-    del properties[SERVICE_ID_KEY]
+    properties[SERVICE_ID_KEY] = str(uuid.uuid4())
     return properties
 
 
