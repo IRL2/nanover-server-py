@@ -5,7 +5,7 @@ import pytest
 from nanover.essd import DiscoveryServer
 from nanover.essd.client import DiscoveryClient
 from test_essd_server import service
-from test_essd_service import properties, properties_unique_id
+from test_essd_service import properties, properties_unique_id, EXAMPLE_SERVICE_PROPERTIES
 
 from nanover.essd.servicehub import ServiceHub
 
@@ -135,13 +135,13 @@ def run_with_server(service, residual=None):
             run_with_client(service, residual)
 
 
-def test_context_managers(service, properties_unique_id):
+def test_context_managers():
     """
     tests that running the server and client with context managers cleans up correctly.
     If discovery servers do not clean up cleanly, future clients will find additional servers.
     """
-    service1 = service
-    service2 = ServiceHub(**properties_unique_id)
+    service1 = ServiceHub(**EXAMPLE_SERVICE_PROPERTIES)
+    service2 = ServiceHub(**EXAMPLE_SERVICE_PROPERTIES)
 
     run_with_server(service1)
     time.sleep(

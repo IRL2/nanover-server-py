@@ -1,6 +1,4 @@
 import json
-import uuid
-
 import pytest
 
 import nanover.essd
@@ -14,27 +12,26 @@ from nanover.essd.servicehub import (
 )
 from nanover.essd.utils import get_broadcastable_ip
 
+EXAMPLE_SERVICE_PROPERTIES = {
+    SERVICE_NAME_KEY: "test service",
+    SERVICE_ADDRESS_KEY: get_broadcastable_ip(),
+    SERVICE_SERVICES_KEY: {
+        "trajectory": 54321,
+        "imd": 54322,
+        "multiplayer": 54323,
+        "builder": 54324,
+    },
+    ESSD_VERSION_KEY: "1.0.0",
+}
+
 
 @pytest.fixture
 def properties():
-    properties = {
-        SERVICE_NAME_KEY: "test service",
-        SERVICE_ADDRESS_KEY: get_broadcastable_ip(),
-        SERVICE_SERVICES_KEY: {
-            "trajectory": 54321,
-            "imd": 54322,
-            "multiplayer": 54323,
-            "builder": 54324,
-        },
-        ESSD_VERSION_KEY: "1.0.0",
-        SERVICE_ID_KEY: "12345",
-    }
-    return properties
+    return dict(EXAMPLE_SERVICE_PROPERTIES)
 
 
 @pytest.fixture
 def properties_unique_id(properties):
-    properties[SERVICE_ID_KEY] = str(uuid.uuid4())
     return properties
 
 
