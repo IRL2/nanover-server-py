@@ -69,7 +69,7 @@ if [[ $with_python == true ]]; then
 	python -m pip install ${edit_option} ${nanover_user_option} ./python-libraries/nanover-core/
 
 	for package in python-libraries/nanover-*/; do
-		if [[ -f "${package}/setup.py" ]]; then
+		if [[ -f "${package}/pyproject.toml" ]]; then
 			python -m pip install ${edit_option} ${nanover_user_option} ${package}
 		fi
 	done

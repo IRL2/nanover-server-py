@@ -44,7 +44,7 @@ announce "Installing the python packages"
 python -m pip install ${edit_option} ${user_option} ./python-libraries/nanover-core/
 
 Get-ChildItem -Directory python-libraries/nanover-* | ForEach-Object {
-    if (Test-Path -Path "$($_.FullName)/setup.py") {
+    if (Test-Path -Path "$($_.FullName)/pyproject.toml") {
         Write-Host "$($_.FullName)"
         pip install ${edit_option} ${user_option} ""$($_.FullName)""
     }
