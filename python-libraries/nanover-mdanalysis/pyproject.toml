@@ -18,4 +18,3 @@ dynamic = ["version"]
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
 include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)
-namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
