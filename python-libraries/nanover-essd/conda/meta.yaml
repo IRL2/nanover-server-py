@@ -8,6 +8,8 @@ source:
 build:
   noarch: python
   number: 0
+  entry_points:
+    - nanover-essd-list = nanover.essd.list_cli:main
 
 requirements:
   build:
