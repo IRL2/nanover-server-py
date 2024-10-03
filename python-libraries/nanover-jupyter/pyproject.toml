@@ -8,7 +8,7 @@ authors = [
     {name = "Intangible Realities Lab"},
 ]
 description = "Utilities for using Jupyter with NanoVer"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "nanover",
     "MDAnalysis",

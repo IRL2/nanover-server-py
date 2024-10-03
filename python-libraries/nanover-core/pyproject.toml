@@ -8,7 +8,7 @@ authors = [
     {name = "Intangible Realities Lab"},
 ]
 description = "NanoVer python framework"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "setuptools>=40.1.1",
     "grpcio>=1.63.0",

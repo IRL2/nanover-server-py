@@ -9,7 +9,7 @@ authors = [
 ]
 description = "ASE integration for NanoVer"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "nanover",
     "ase >= 3.21",
