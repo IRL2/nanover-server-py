@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanover-essd"
+authors = [
+    {name = "Intangible Realities Lab"},
+]
+description = "Extremely Simple Server Discovery, for use with NanoVer"
+requires-python = ">=3.11"
+dependencies = [
+    "netifaces",
+]
+dynamic = ["version"]
+
+[project.scripts]
+nanover-essd-list = "nanover.essd.list_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)
