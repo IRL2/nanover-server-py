@@ -142,14 +142,14 @@ class OpenMMSimulation:
         Step the simulation to the next point a frame should be reported, and send that frame.
         """
         assert (
-                self.simulation is not None
-                and self.imd_force_manager is not None
-                and self.app_server is not None
+            self.simulation is not None
+            and self.imd_force_manager is not None
+            and self.app_server is not None
         )
 
         # determine step count for next frame
         steps_to_next_frame = (
-                self.frame_interval - self.simulation.currentStep % self.frame_interval
+            self.frame_interval - self.simulation.currentStep % self.frame_interval
         )
 
         # advance the simulation
@@ -179,8 +179,10 @@ class OpenMMSimulation:
         # Calculate previous-step contribution to work for the next time step
         # (minus sign in positions accounts for subtraction of this contribution)
         if frame_data.user_forces_sparse is not None:
-            affected_atom_positions = - positions[frame_data.user_forces_index]
-            self.add_contribution_to_work(frame_data.user_forces_sparse, affected_atom_positions)
+            affected_atom_positions = -positions[frame_data.user_forces_index]
+            self.add_contribution_to_work(
+                frame_data.user_forces_sparse, affected_atom_positions
+            )
 
         # send the next frame
         self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
@@ -263,4 +265,3 @@ class OpenMMSimulation:
         """
         for atom in range(len(forces)):
             self.work_done += np.dot(np.transpose(forces[atom]), positions[atom])
-
