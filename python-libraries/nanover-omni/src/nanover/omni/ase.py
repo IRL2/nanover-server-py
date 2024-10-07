@@ -3,6 +3,7 @@ from typing import Optional, Any, Protocol
 
 import numpy as np
 from ase import Atoms
+from ase.calculators.calculator import Calculator
 from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
@@ -47,6 +48,7 @@ class ASESimulation:
         sim = cls(name)
         sim.dynamics = dynamics
         sim.ase_atoms_to_frame_data = ase_atoms_to_frame_data
+        sim.initial_calc = dynamics.atoms.calc
 
         return sim
 
@@ -73,6 +75,7 @@ class ASESimulation:
 
         self.dynamics: Optional[MolecularDynamics] = None
         self.checkpoint: Optional[InitialState] = None
+        self.initial_calc: Optional[Calculator] = None
 
         self.frame_index = 0
         self.ase_atoms_to_frame_data = ase_atoms_to_frame_data
@@ -102,6 +105,7 @@ class ASESimulation:
             self.dynamics is not None
             and self.atoms is not None
             and self.checkpoint is not None
+            and self.initial_calc is not None
         )
 
         self.app_server = app_server
@@ -111,10 +115,10 @@ class ASESimulation:
         self.atoms.set_velocities(self.checkpoint.velocities)
         self.atoms.set_cell(self.checkpoint.cell)
 
-        # TODO: this can't be right... nesting the calculator every reset
+        # setup calculator
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
-            self.atoms.calc,
+            self.initial_calc,
             dynamics=self.dynamics,
         )
 
