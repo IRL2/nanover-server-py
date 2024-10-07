@@ -71,6 +71,10 @@ class OpenMMSimulation:
         self.frame_index = 0
         self.imd_force_manager: Optional[ImdForceManager] = None
 
+        self.work_done: float = 0.0
+        self.prev_imd_forces: Optional[np.ndarray] = None
+        self.prev_imd_indices: Optional[np.ndarray] = None
+
     def load(self):
         """
         Load and set up the simulation if it isn't done already.
@@ -128,14 +132,14 @@ class OpenMMSimulation:
         Step the simulation to the next point a frame should be reported, and send that frame.
         """
         assert (
-            self.simulation is not None
-            and self.imd_force_manager is not None
-            and self.app_server is not None
+                self.simulation is not None
+                and self.imd_force_manager is not None
+                and self.app_server is not None
         )
 
         # determine step count for next frame
         steps_to_next_frame = (
-            self.frame_interval - self.simulation.currentStep % self.frame_interval
+                self.frame_interval - self.simulation.currentStep % self.frame_interval
         )
 
         # advance the simulation
@@ -148,15 +152,33 @@ class OpenMMSimulation:
         )
         positions = state.getPositions(asNumpy=True)
 
+        # Calculate on-step contribution to work
+        if self.prev_imd_forces is not None:
+            affected_atom_positions = positions[self.prev_imd_indices]
+            self.add_contribution_to_work(self.prev_imd_forces, affected_atom_positions)
+
         # update imd forces and energies
         self.imd_force_manager.update_interactions(self.simulation, positions)
 
         # generate the next frame with the existing (still valid) positions
         frame_data = self.make_regular_frame(positions)
 
+        # Update work done in frame data
+        frame_data.user_work_done = self.work_done
+
+        # Calculate previous-step contribution to work for the next time step
+        # (minus sign in positions accounts for subtraction of this contribution)
+        if frame_data.user_forces_sparse is not None:
+            affected_atom_positions = - positions[frame_data.user_forces_index]
+            self.add_contribution_to_work(frame_data.user_forces_sparse, affected_atom_positions)
+
         # send the next frame
         self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
         self.frame_index += 1
+
+        # Update previous step forces (saving them in their sparse form)
+        self.prev_imd_forces = frame_data.user_forces_sparse
+        self.prev_imd_indices = frame_data.user_forces_index
 
     def make_topology_frame(self):
         """
@@ -203,6 +225,34 @@ class OpenMMSimulation:
         self.imd_force_manager.add_to_frame_data(frame_data)
 
         return frame_data
+
+    def add_contribution_to_work(self, forces: npt.NDArray, positions: npt.NDArray):
+        r"""
+        The expression for the work done on the system by the user is
+
+        .. math::
+            W = \sum_{t = 1}^{n_{steps}} \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+             \cdot (\mathbf{r}_{i}(t) - \mathbf{r}_{i}(t - 1)))
+
+        which can be rewritten as
+
+        .. math::
+            W = \sum_{t = 1}^{n_{steps}} \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+             \cdot \mathbf{r}_{i}(t) \bigg)  - \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+             \cdot \mathbf{r}_{i}(t - 1) \bigg)
+
+        where the contribution at each value of t is separated into an
+        previous-step contribution (t-1) and an on-step contribution (t). Doing so
+        enables calculation of the work done on-the-fly without having to save
+        the positions of the atoms at each time step that the user applies an
+        iMD force.
+
+        This function calculates the contribution to the work done on the system by the user
+        for a set of forces and positions, and add it to the work done on the system. Only
+        involves the atoms affected by the user interaction.
+        """
+        for atom in range(len(forces)):
+            self.work_done += np.dot(np.transpose(forces[atom]), positions[atom])
 
 
 class OpenMMSimulationWorkDone(OpenMMSimulation):
