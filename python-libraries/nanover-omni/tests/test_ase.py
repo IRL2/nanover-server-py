@@ -41,20 +41,16 @@ def test_dynamics_interaction(example_ase):
     """
     Test that example dynamics responds to interactions.
     """
-
-    with OmniRunner.with_basic_server(example_ase, port=0) as runner:
-        runner.app_server.imd.insert_interaction(
-            "interaction.0",
-            ParticleInteraction(
-                position=(0.0, 0.0, 10.0),
-                particles=[0],
-                interaction_type="constant",
-            ),
-        )
-        runner.next()
-        runner.pause()
-        for _ in range(30):
-            example_ase.advance_by_one_step()
+    example_ase.app_server.imd.insert_interaction(
+        "interaction.0",
+        ParticleInteraction(
+            position=(0.0, 0.0, 10.0),
+            particles=[0],
+            interaction_type="constant",
+        ),
+    )
+    for _ in range(30):
+        example_ase.advance_by_one_step()
 
     positions = example_ase.atoms.get_positions()
     (x, y, z) = positions[0]
