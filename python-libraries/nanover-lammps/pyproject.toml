@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanover-lammps"
+authors = [
+    {name = "Intangible Realities Lab"},
+]
+description = "LAMMPS integration for NanoVer"
+requires-python = ">=3.11"
+dependencies = [
+    "nanover",
+    "mpi4py",
+    "numpy",
+]
+dynamic = ["version"]
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)
