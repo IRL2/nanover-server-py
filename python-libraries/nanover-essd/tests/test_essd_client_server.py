@@ -4,6 +4,7 @@ import pytest
 
 from nanover.essd import DiscoveryServer
 from nanover.essd.client import DiscoveryClient
+from nanover.testing import assert_not_in_soon, assert_in_soon
 from test_essd_server import service
 from test_essd_service import (
     properties,
@@ -67,22 +68,20 @@ def test_send_service_different_port(service):
 
 
 def test_remove_service(client_server, service):
+    """
+    Test that a removed service is no longer found by searching for services.
+    """
     client, server = client_server
+
+    def find_services():
+        services = set(client.search_for_services(search_time=1))
+        return services
+
     server.register_service(service)
-    services = set(
-        client.search_for_services(
-            search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
-        )
-    )
-    assert service in services
+    assert_in_soon(lambda: service, lambda: find_services(), timeout=5)
+
     server.unregister_service(service)
-    time.sleep(TEST_INTERVAL_TIME)
-    services = set(
-        client.search_for_services(
-            search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
-        )
-    )
-    assert service not in services
+    assert_not_in_soon(lambda: service, lambda: find_services(), timeout=5)
 
 
 def test_send_service_multiple_clients(client_server, service):
