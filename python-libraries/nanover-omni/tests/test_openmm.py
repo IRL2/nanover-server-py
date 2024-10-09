@@ -6,8 +6,7 @@ from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.app import NanoverImdApplication
 
-from common import app_server, ARGON_XML_PATH
-from nanover.openmm import serializer
+from common import app_server
 
 from openmm_simulation_utils import (
     basic_system,
@@ -32,13 +31,11 @@ def example_openmm(app_server, single_atom_simulation):
     yield sim
 
 
-def test_auto_force(app_server):
+def test_auto_force(app_server, single_atom_simulation):
     """
     Test that interactions work if the imd force isn't added manually.
     """
-    with open(ARGON_XML_PATH) as infile:
-        omm_sim = serializer.deserialize_simulation(infile)
-    omni_sim = OpenMMSimulation.from_simulation(omm_sim)
+    omni_sim = OpenMMSimulation.from_simulation(single_atom_simulation)
     omni_sim.load()
     omni_sim.reset(app_server)
 
