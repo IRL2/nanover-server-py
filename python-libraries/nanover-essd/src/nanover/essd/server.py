@@ -17,6 +17,7 @@ Example
 import logging
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, Future
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
 from typing import Optional, Dict, List
 
@@ -57,7 +58,6 @@ def configure_reusable_socket() -> socket:
 class DiscoveryServer:
     services: Dict[ServiceHub, List[InterfaceAddresses]]
     _socket: socket
-    _broadcast_thread: Optional[threading.Thread]
 
     def __init__(self, broadcast_port: Optional[int] = None, delay=0.5):
         if broadcast_port is None:
@@ -74,7 +74,10 @@ class DiscoveryServer:
         self.services = dict()
         self._lock = threading.RLock()
         self._cancel = False
-        self._broadcast_thread = None
+
+        self._threads = ThreadPoolExecutor(max_workers=1)
+        self._broadcast_task: Optional[Future] = None
+
         self.start()
 
     def log_addresses(self, level=logging.DEBUG):
@@ -117,21 +120,19 @@ class DiscoveryServer:
 
     @property
     def is_broadcasting(self):
-        return self._broadcast_thread is not None
+        return self._broadcast_task is not None
 
     def start(self):
-        if self._broadcast_thread is not None:
+        if self._broadcast_task is not None:
             raise RuntimeError("Discovery service already running!")
         self._socket = configure_reusable_socket()
-        self._broadcast_thread = threading.Thread(target=self._broadcast, daemon=True)
-        self._broadcast_thread.start()
+        self._broadcast_task = self._threads.submit(self._broadcast)
 
     def close(self):
-        if self.is_broadcasting:
+        if self._broadcast_task:
             self._cancel = True
-            # `is_broadcasting` made sure `_broadcast_thread` is not None
-            self._broadcast_thread.join()  # type: ignore
-            self._broadcast_thread = None
+            self._broadcast_task.result()
+            self._broadcast_task = None
             self._cancel = False
             self._socket.close()
 

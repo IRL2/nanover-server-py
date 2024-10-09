@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanover-openmm"
+authors = [
+    {name = "Intangible Realities Lab"},
+]
+description = "Multi-simulation server for NanoVer"
+requires-python = ">=3.11"
+dependencies = [
+    "nanover",
+    "openmm",
+]
+dynamic = ["version"]
+
+[project.scripts]
+nanover-omm-server = "nanover.openmm.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)

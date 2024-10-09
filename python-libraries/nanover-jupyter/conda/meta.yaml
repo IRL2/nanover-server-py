@@ -1,5 +1,5 @@
 package:
-  name: nanover-essd
+  name: nanover-jupyter
   version: {{ NANOVER_BUILD_VERSION }}
 
 source:
@@ -8,8 +8,6 @@ source:
 build:
   noarch: python
   number: 0
-  entry_points:
-    - nanover-essd-list = nanover.essd.list_cli:main
 
 requirements:
   build:
@@ -18,16 +16,20 @@ requirements:
 
   run:
     - python >={{ MIN_PYTHON_VERSION }}
-    - netifaces
+    - nanover-core =={{ NANOVER_BUILD_VERSION }}
+    - numpy
+    - mdanalysis
+    - nglview
 
 about:
   home: {{ NANOVER_DOC_URL }}
   license: MIT
   license_file: {{ NANOVER_LICENSE_PATH }}
-  summary: Extremely Simple Service Discovery for NanoVer
+  summary: NGLView python client for NanoVer.
   description: |
     NanoVer is a framework for interactive molecular dynamics simulation in
-    virtual reality. This package provides a service discovery method for finding servers
-    running on a local area network.
+    virtual reality. This package provides a python client that allows the
+    user to visualise the molecular system via an NGLView widget in Jupyter
+    notebooks or IPython.
   doc_url: {{ NANOVER_DOC_URL }}
   dev_url: {{ NANOVER_REPO_URL }}
