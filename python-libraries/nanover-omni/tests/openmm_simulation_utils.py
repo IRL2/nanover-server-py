@@ -169,7 +169,7 @@ def basic_simulation_with_imd_force():
 @pytest.fixture
 def serialized_simulation_path(basic_simulation, tmp_path):
     """
-    Setup an XML serialized simulation as a temporary files.
+    Setup an XML serialized simulation as a temporary file.
     """
     serialized_simulation = serializer.serialize_simulation(basic_simulation)
     xml_path = tmp_path / "system.xml"
@@ -181,7 +181,7 @@ def serialized_simulation_path(basic_simulation, tmp_path):
 @pytest.fixture
 def basic_simulation_xml(basic_simulation):
     """
-    Generate a XML serialized simulation from the basic test simulation.
+    Generate an XML serialized simulation from the basic test simulation.
     """
     xml_string = serializer.serialize_simulation(basic_simulation)
     return xml_string
@@ -275,7 +275,7 @@ def single_atom_simulation_with_imd_force():
 @pytest.fixture
 def serialized_single_atom_simulation_path(single_atom_simulation, tmp_path):
     """
-    Setup an XML serialized simulation for a single atom system as a temporary files.
+    Setup an XML serialized simulation for a single atom system as a temporary file.
     """
     serialized_simulation = serializer.serialize_simulation(single_atom_simulation)
     xml_path = tmp_path / "system.xml"
@@ -287,7 +287,7 @@ def serialized_single_atom_simulation_path(single_atom_simulation, tmp_path):
 @pytest.fixture
 def single_atom_simulation_xml(single_atom_simulation):
     """
-    Generate a XML serialized simulation from the single atom test simulation.
+    Generate an XML serialized simulation from the single atom test simulation.
     """
     xml_string = serializer.serialize_simulation(single_atom_simulation)
     return xml_string
