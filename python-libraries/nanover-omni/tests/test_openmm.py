@@ -1,16 +1,32 @@
 import numpy as np
 import pytest
 
+from nanover.openmm import imd
 from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
+from nanover.app import NanoverImdApplication
 
 from common import app_server, ARGON_XML_PATH
 from nanover.openmm import serializer
 
+from openmm_simulation_utils import (
+    basic_system,
+    basic_simulation,
+    basic_simulation_with_imd_force,
+    BASIC_SIMULATION_POSITIONS,
+    empty_imd_force,
+    assert_basic_simulation_topology,
+    single_atom_system,
+    single_atom_simulation,
+    single_atom_simulation_with_imd_force,
+    ARGON_SIMULATION_POSITION,
+    assert_single_atom_simulation_topology,
+)
+
 
 @pytest.fixture
-def example_openmm(app_server):
-    sim = OpenMMSimulation.from_xml_path(ARGON_XML_PATH)
+def example_openmm(app_server, single_atom_simulation):
+    sim = OpenMMSimulation.from_simulation(single_atom_simulation)
     sim.load()
     sim.reset(app_server)
     yield sim
