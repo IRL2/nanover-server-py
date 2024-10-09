@@ -31,6 +31,28 @@ def example_openmm(app_server, single_atom_simulation):
     yield sim
 
 
+@pytest.fixture
+def single_atom_app_and_simulation_with_constant_force(
+    app_server, single_atom_simulation
+):
+    sim = OpenMMSimulation.from_simulation(single_atom_simulation)
+    sim.load()
+    sim.reset(app_server)
+
+    # Add a constant force interaction with the force positioned far
+    # from the origin (the initial position of the atom)
+    interaction = ParticleInteraction(
+        interaction_type="constant",
+        position=(0.0, 0.0, 1000.0),
+        particles=[0],
+        scale=1,
+    )
+
+    app_server.imd.insert_interaction("interaction.test", interaction)
+
+    return app_server, sim
+
+
 def test_auto_force(app_server, single_atom_simulation):
     """
     Test that interactions work if the imd force isn't added manually.
@@ -76,3 +98,31 @@ def test_step_interval(example_openmm):
             example_openmm.simulation.currentStep == i * example_openmm.frame_interval
         )
         example_openmm.advance_by_one_step()
+
+
+def test_work_done(single_atom_app_and_simulation_with_constant_force):
+    """
+    Test that the calculated user work done on a single atom system gives the
+    expected result.
+    """
+
+    app, sim = single_atom_app_and_simulation_with_constant_force
+
+    def get_velocity():
+        velocities = sim.simulation.context.getState(
+            getVelocities=True
+        ).getVelocities(asNumpy=True)
+        return np.asarray(velocities[0])
+
+    initial_vel = get_velocity()
+
+    for _ in range(11):
+        sim.advance_to_next_report()
+        step_count = sim.simulation.currentStep
+        print("\n%s" % step_count)
+        velocity = get_velocity()
+        print(velocity)
+
+    final_vel = get_velocity()
+    print(sim.work_done)
+    assert (final_vel[2] - initial_vel[2]) > 0.
