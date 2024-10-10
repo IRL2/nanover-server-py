@@ -1,3 +1,13 @@
+# Function to check if a package is installed
+def check_and_install(package):
+    try:
+        __import__(package)
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+# Check and install gradio
+check_and_install("gradio")
+
 import gradio as gr
 
 def run_simulation(simulation_type, input_files, trajectory_files, state_file, verbosity, show_progression, server_name,
