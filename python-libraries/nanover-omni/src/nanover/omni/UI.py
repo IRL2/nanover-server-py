@@ -77,83 +77,84 @@ def stop_simulation():
     except NameError as e:
         return e
     return "Simulation stopped!"
+def create_ui():
+    with gr.Blocks(theme=gr.themes.Soft(), fill_height=True) as demo:
+        gr.Markdown("# Nanover IMD Python Server GUI")
 
-with gr.Blocks(theme=gr.themes.Soft(), fill_height=True) as demo:
-    gr.Markdown("# Nanover IMD Python Server GUI")
+        # Radio button to select simulation type
+        simulation_type = gr.Radio(["From xml", "From recording"], label="Simulation Type", value="From xml")
 
-    # Radio button to select simulation type
-    simulation_type = gr.Radio(["From xml", "From recording"], label="Simulation Type", value="From xml")
+        with gr.Row():
+            with gr.Column(visible=True) as realtime_col:
+                # File input for live simulation
+                input_files = gr.File(label="Input Files (for From xml)", file_count="multiple")
+            with gr.Column(visible=False) as playback_col:
+                # File inputs for playback simulation
+                trajectory_files = gr.File(label="Trajectory Files (for playback)", file_count="multiple")
+                state_file = gr.File(label="State File (for playback)", file_count="multiple")
 
-    with gr.Row():
-        with gr.Column(visible=True) as realtime_col:
-            # File input for live simulation
-            input_files = gr.File(label="Input Files (for From xml)", file_count="multiple")
-        with gr.Column(visible=False) as playback_col:
-            # File inputs for playback simulation
-            trajectory_files = gr.File(label="Trajectory Files (for playback)", file_count="multiple")
-            state_file = gr.File(label="State File (for playback)", file_count="multiple")
+        with gr.Row():
+            with gr.Column():
+                gr.Markdown("## Verbosity")
+                # Radio button for verbosity level
+                verbosity = gr.Radio(["Normal", "Verbose", "Super verbose"], label="Verbosity Level", value="Normal")
+                show_progression = gr.Checkbox(label="Show simulation progression")
 
-    with gr.Row():
-        with gr.Column():
-            gr.Markdown("## Verbosity")
-            # Radio button for verbosity level
-            verbosity = gr.Radio(["Normal", "Verbose", "Super verbose"], label="Verbosity Level", value="Normal")
-            show_progression = gr.Checkbox(label="Show simulation progression")
+                gr.Markdown("## Network")
+                # Textbox for server name
+                server_name = gr.Textbox(label="Server name", value="NanoVer-RS iMD Server")
+                # Number input for port
+                port = gr.Number(label="Port", value=38801)
 
-            gr.Markdown("## Network")
-            # Textbox for server name
-            server_name = gr.Textbox(label="Server name", value="NanoVer-RS iMD Server")
-            # Number input for port
-            port = gr.Number(label="Port", value=38801)
+                gr.Markdown("## Simulation")
+                # Slider for simulation FPS
+                simulation_fps = gr.Slider(1, 60, value=30, label="Simulation FPS")
+                # Number inputs for frame and force intervals
+                frame_interval = gr.Number(label="Frame interval", value=5)
+                force_interval = gr.Number(label="Force interval", value=5)
+                # Checkboxes for simulation options
+                start_paused = gr.Checkbox(label="Start simulation paused")
+                include_velocities = gr.Checkbox(label="Include the velocities in the frames")
+                include_forces = gr.Checkbox(label="Include the forces in the frames")
 
-            gr.Markdown("## Simulation")
-            # Slider for simulation FPS
-            simulation_fps = gr.Slider(1, 60, value=30, label="Simulation FPS")
-            # Number inputs for frame and force intervals
-            frame_interval = gr.Number(label="Frame interval", value=5)
-            force_interval = gr.Number(label="Force interval", value=5)
-            # Checkboxes for simulation options
-            start_paused = gr.Checkbox(label="Start simulation paused")
-            include_velocities = gr.Checkbox(label="Include the velocities in the frames")
-            include_forces = gr.Checkbox(label="Include the forces in the frames")
+            with gr.Column():
+                gr.Markdown("## Recording")
+                with gr.Group():
+                    # Checkboxes and textboxes for recording options
+                    record_stats = gr.Checkbox(label="Record statistics")
+                    stats_file = gr.Textbox(label="Statistics file")
+                    stats_fps = gr.Number(label="Statistics FPS", value=4)
+                with gr.Group():
+                    record_trajectory = gr.Checkbox(label="Record trajectory")
+                    trajectory_output_file = gr.Textbox(label="Trajectory output file", value=f"{server_name.value}.traj")
+                with gr.Group():
+                    record_shared_state = gr.Checkbox(label="Record shared state")
+                    shared_state_file = gr.Textbox(label="Shared state file", value=f"{server_name.value}.state")
 
-        with gr.Column():
-            gr.Markdown("## Recording")
-            with gr.Group():
-                # Checkboxes and textboxes for recording options
-                record_stats = gr.Checkbox(label="Record statistics")
-                stats_file = gr.Textbox(label="Statistics file")
-                stats_fps = gr.Number(label="Statistics FPS", value=4)
-            with gr.Group():
-                record_trajectory = gr.Checkbox(label="Record trajectory")
-                trajectory_output_file = gr.Textbox(label="Trajectory output file", value=f"{server_name.value}.traj")
-            with gr.Group():
-                record_shared_state = gr.Checkbox(label="Record shared state")
-                shared_state_file = gr.Textbox(label="Shared state file", value=f"{server_name.value}.state")
+        # Buttons to run and stop the simulation
+        run_button = gr.Button("Run the selected file!")
+        stop_button = gr.Button("Stop the simulation!")
+        output = gr.Textbox(label="Output")
 
-    # Buttons to run and stop the simulation
-    run_button = gr.Button("Run the selected file!")
-    stop_button = gr.Button("Stop the simulation!")
-    output = gr.Textbox(label="Output")
+        def toggle_visibility(choice):
+            # Toggle visibility of columns based on simulation type
+            return gr.update(visible=choice == "From xml"), gr.update(visible=choice == "From recording")
 
-    def toggle_visibility(choice):
-        # Toggle visibility of columns based on simulation type
-        return gr.update(visible=choice == "From xml"), gr.update(visible=choice == "From recording")
+        # Change event for simulation type radio button
+        simulation_type.change(toggle_visibility, inputs=[simulation_type], outputs=[realtime_col, playback_col])
 
-    # Change event for simulation type radio button
-    simulation_type.change(toggle_visibility, inputs=[simulation_type], outputs=[realtime_col, playback_col])
-
-    # Click events for run and stop buttons
-    run_button.click(
-        run_simulation,
-        inputs=[simulation_type, input_files, trajectory_files, state_file, verbosity, show_progression, server_name,
-                port, simulation_fps, frame_interval, force_interval, start_paused, include_velocities,
-                include_forces, record_stats, stats_file, stats_fps, record_trajectory,
-                trajectory_output_file, record_shared_state, shared_state_file],
-        outputs=output
-    )
-    stop_button.click(stop_simulation, outputs=output)
-
+        # Click events for run and stop buttons
+        run_button.click(
+            run_simulation,
+            inputs=[simulation_type, input_files, trajectory_files, state_file, verbosity, show_progression, server_name,
+                    port, simulation_fps, frame_interval, force_interval, start_paused, include_velocities,
+                    include_forces, record_stats, stats_file, stats_fps, record_trajectory,
+                    trajectory_output_file, record_shared_state, shared_state_file],
+            outputs=output
+        )
+        stop_button.click(stop_simulation, outputs=output)
+    return demo
 # Launch the Gradio interface
 if __name__ == "__main__":
-    demo.launch()
+    ui = create_ui()
+    ui.launch()
