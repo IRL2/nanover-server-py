@@ -266,4 +266,6 @@ class OpenMMSimulation:
         involves the atoms affected by the user interaction.
         """
         for atom in range(len(forces)):
-            self._work_done_intermediate += np.dot(np.transpose(forces[atom]), positions[atom])
+            self._work_done_intermediate += np.dot(
+                np.transpose(forces[atom]), positions[atom]
+            )

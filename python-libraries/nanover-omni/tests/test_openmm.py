@@ -119,8 +119,8 @@ def test_work_done_server(single_atom_app_and_simulation_with_constant_force):
         sim.advance_to_next_report()
 
     # Check that 1.01 ps have passed (and hence that force has been applied for 1 ps)
-    assert(sim.simulation.context.getTime()._value == pytest.approx(1.01, abs=10e-12))
-    assert(sim.work_done == pytest.approx(20.0, abs=0.05))
+    assert sim.simulation.context.getTime()._value == pytest.approx(1.01, abs=10e-12)
+    assert sim.work_done == pytest.approx(20.0, abs=0.05)
 
 
 def test_work_done_frame(single_atom_app_and_simulation_with_constant_force):
@@ -133,8 +133,9 @@ def test_work_done_frame(single_atom_app_and_simulation_with_constant_force):
     for _ in range(11):
         sim.advance_to_next_report()
 
-    with NanoverImdClient.connect_to_single_server(port=app.port, address="localhost") as client:
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
         client.subscribe_to_frames()
         client.wait_until_first_frame()
-        assert(client.current_frame.user_work_done == sim.work_done)
-
+        assert client.current_frame.user_work_done == sim.work_done
