@@ -1,3 +1,5 @@
+import subprocess
+import sys
 # Function to check if a package is installed
 def check_and_install(package):
     try:
