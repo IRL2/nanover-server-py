@@ -10,6 +10,7 @@ from nanover.testing import assert_equal_soon
 from test_openmm import example_openmm
 from test_ase_omm import example_ase_omm
 from test_playback import example_playback
+from openmm_simulation_utils import single_atom_simulation
 from common import app_server
 
 SIMULATION_FIXTURES = (
