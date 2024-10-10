@@ -47,6 +47,7 @@ def run_simulation(simulation_type, input_files, trajectory_files, state_file, v
     from nanover.omni.playback import PlaybackSimulation
     from nanover.omni.openmm import OpenMMSimulation
     from nanover.omni.record import record_from_server
+    imd_runner = None
     global imd_runner
 
     # Initialize simulation files list
