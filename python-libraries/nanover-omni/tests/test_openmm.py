@@ -4,7 +4,7 @@ import pytest
 from nanover.openmm import imd
 from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
-from nanover.app import NanoverImdApplication
+from nanover.app import NanoverImdApplication, NanoverImdClient
 
 from common import app_server
 
@@ -50,7 +50,7 @@ def single_atom_app_and_simulation_with_constant_force(
 
     app_server.imd.insert_interaction("interaction.test", interaction)
 
-    return app_server, sim
+    yield app_server, sim
 
 
 def test_auto_force(app_server, single_atom_simulation):
@@ -100,29 +100,41 @@ def test_step_interval(example_openmm):
         example_openmm.advance_by_one_step()
 
 
-def test_work_done(single_atom_app_and_simulation_with_constant_force):
+def test_work_done_server(single_atom_app_and_simulation_with_constant_force):
     """
     Test that the calculated user work done on a single atom system gives the
-    expected result.
+    expected numerical result within the code.
     """
+
+    # For a simulation with a frame interval of 5 simulation steps and a simulation
+    # step size of 2 fs, using a constant force to accelerate the atom at 1 nm ps-1
+    # (for Ar this is a force of 40 kJ mol-1 nm-1), after 100 steps the work done on
+    # an Argon atom should be 20.0 kJ mol-1 analytically. Allowing for numerical error,
+    # the expected value should be slightly greater than 20.0 kJ mol-1
 
     app, sim = single_atom_app_and_simulation_with_constant_force
 
-    def get_velocity():
-        velocities = sim.simulation.context.getState(
-            getVelocities=True
-        ).getVelocities(asNumpy=True)
-        return np.asarray(velocities[0])
+    # Add step to account for zeroth (topology) frame where force is not applied
+    for _ in range(101):
+        sim.advance_to_next_report()
 
-    initial_vel = get_velocity()
+    # Check that 1.01 ps have passed (and hence that force has been applied for 1 ps)
+    assert(sim.simulation.context.getTime()._value == pytest.approx(1.01, abs=10e-12))
+    assert(sim.work_done == pytest.approx(20.0, abs=0.05))
+
+
+def test_work_done_frame(single_atom_app_and_simulation_with_constant_force):
+    """
+    Test that the calculated user work done on a single atom system that appears
+    in the frame is equal to the user work done as calculated in the OpenMMSimulation.
+    """
+    app, sim = single_atom_app_and_simulation_with_constant_force
 
     for _ in range(11):
         sim.advance_to_next_report()
-        step_count = sim.simulation.currentStep
-        print("\n%s" % step_count)
-        velocity = get_velocity()
-        print(velocity)
 
-    final_vel = get_velocity()
-    print(sim.work_done)
-    assert (final_vel[2] - initial_vel[2]) > 0.
+    with NanoverImdClient.connect_to_single_server(port=app.port, address="localhost") as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        assert(client.current_frame.user_work_done == sim.work_done)
+
