@@ -82,6 +82,7 @@ class OpenMMSimulation:
         self.imd_force_manager: Optional[ImdForceManager] = None
 
         self.work_done: float = 0.0
+        self._work_done_intermediate: float = 0.0
         self.prev_imd_forces: Optional[np.ndarray] = None
         self.prev_imd_indices: Optional[np.ndarray] = None
 
@@ -174,6 +175,7 @@ class OpenMMSimulation:
         frame_data = self.make_regular_frame(positions)
 
         # Update work done in frame data
+        self.work_done = self._work_done_intermediate
         frame_data.user_work_done = self.work_done
 
         # Calculate previous-step contribution to work for the next time step
@@ -264,4 +266,4 @@ class OpenMMSimulation:
         involves the atoms affected by the user interaction.
         """
         for atom in range(len(forces)):
-            self.work_done += np.dot(np.transpose(forces[atom]), positions[atom])
+            self._work_done_intermediate += np.dot(np.transpose(forces[atom]), positions[atom])
