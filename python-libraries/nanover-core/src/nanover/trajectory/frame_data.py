@@ -40,6 +40,7 @@ USER_ENERGY = "energy.user.total"
 
 USER_FORCES_SPARSE = "forces.user.sparse"
 USER_FORCES_INDEX = "forces.user.index"
+USER_WORK_DONE = "forces.user.work_done"
 
 SERVER_TIMESTAMP = "server.timestamp"
 
@@ -304,6 +305,13 @@ class FrameData(metaclass=_FrameDataMeta):
         key=USER_FORCES_INDEX,
         record_type="arrays",
         field_type="index",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
+    user_work_done: float = _Shortcut(  # type: ignore[assignment]
+        key=USER_WORK_DONE,
+        record_type="values",
+        field_type="number_value",
         to_python=_as_is,
         to_raw=_as_is,
     )
