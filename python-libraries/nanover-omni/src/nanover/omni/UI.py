@@ -1,17 +1,5 @@
-import subprocess
-import sys
-# Function to check if a package is installed
-def check_and_install(package):
-    try:
-        __import__(package)
-    except ImportError:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-
-# Check and install gradio
-check_and_install("gradio")
-
 import gradio as gr
-
+imd_runner = None
 def run_simulation(simulation_type, input_files, trajectory_files, state_file, verbosity, show_progression, server_name,
                    port, simulation_fps, frame_interval, force_interval, start_paused, include_velocities,
                    include_forces, record_stats, stats_file, stats_fps, record_trajectory,
@@ -43,11 +31,10 @@ def run_simulation(simulation_type, input_files, trajectory_files, state_file, v
 
     :return: a string with the simulation type and settings
     '''
-    from nanover.omni import OmniRunner
-    from nanover.omni.playback import PlaybackSimulation
-    from nanover.omni.openmm import OpenMMSimulation
-    from nanover.omni.record import record_from_server
-    imd_runner = None
+    from omni import OmniRunner
+    from playback import PlaybackSimulation
+    from openmm import OpenMMSimulation
+    from .record import record_from_server
     global imd_runner
 
     # Initialize simulation files list
