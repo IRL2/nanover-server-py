@@ -34,7 +34,7 @@ def run_simulation(simulation_type, input_files, trajectory_files, state_file, v
     from omni import OmniRunner
     from playback import PlaybackSimulation
     from openmm import OpenMMSimulation
-    from .record import record_from_server
+    from record import record_from_server
     global imd_runner
 
     # Initialize simulation files list
@@ -73,7 +73,8 @@ def stop_simulation():
     global imd_runner
     try:
         # Attempt to close the simulation runner
-        imd_runner.close()
+        if imd_runner is not None:
+            imd_runner.close()
     except NameError as e:
         return e
     return "Simulation stopped!"
