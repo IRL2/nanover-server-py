@@ -53,10 +53,10 @@ def run_simulation(
 
     :return: a string with the simulation type and settings
     """
-    from omni import OmniRunner
-    from playback import PlaybackSimulation
-    from openmm import OpenMMSimulation
-    from record import record_from_server
+    from nanover.omni import OmniRunner
+    from nanover.omni.playback import PlaybackSimulation
+    from nanover.omni.openmm import OpenMMSimulation
+    from nanover.omni.record import record_from_server
 
     global imd_runner
 
