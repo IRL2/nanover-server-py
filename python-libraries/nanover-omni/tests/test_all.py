@@ -9,6 +9,7 @@ from nanover.omni.omni import Simulation, OmniRunner
 from nanover.testing import assert_equal_soon
 from test_openmm import example_openmm
 from test_ase_omm import example_ase_omm
+from test_ase import example_ase, example_dynamics
 from test_playback import example_playback
 from openmm_simulation_utils import single_atom_simulation
 from common import app_server
@@ -17,11 +18,13 @@ SIMULATION_FIXTURES = (
     "example_openmm",
     "example_playback",
     "example_ase_omm",
+    "example_ase",
 )
 
 SIMULATION_FIXTURES_WITHOUT_PLAYBACK = [
     "example_openmm",
     "example_ase_omm",
+    "example_ase",
 ]
 
 

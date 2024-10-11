@@ -1,24 +1,21 @@
 import warnings
-from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional
 
-import numpy as np
 from ase import units, Atoms
 from ase.md import Langevin, MDLogger
-from ase.md.md import MolecularDynamics
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
-from nanover.ase.converter import EV_TO_KJMOL
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.openmm import OpenMMCalculator
-from nanover.ase.openmm.runner import openmm_ase_frame_adaptor
-from nanover.ase.wall_constraint import VelocityWallConstraint
+from nanover.ase.openmm.frame_adaptor import (
+    openmm_ase_atoms_to_frame_data,
+)
+from nanover.omni.ase import ASESimulation
 from nanover.openmm import serializer
-from nanover.utilities.event import Event
 
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
@@ -26,20 +23,18 @@ CONSTRAINTS_UNSUPPORTED_MESSAGE = (
 )
 
 
-@dataclass
-class InitialState:
-    positions: Any
-    velocities: Any
-    cell: Any
-
-
-class ASEOpenMMSimulation:
+class ASEOpenMMSimulation(ASESimulation):
     """
     A wrapper for ASE OpenMM simulations so they can be run inside the OmniRunner.
     """
 
     @classmethod
-    def from_simulation(cls, simulation: Simulation, *, name: Optional[str] = None):
+    def from_simulation(
+        cls,
+        simulation: Simulation,
+        *,
+        name: Optional[str] = None,
+    ):
         """
         Construct this from an existing ASE OpenMM simulation.
         :param simulation: An existing ASE OpenMM Simulation
@@ -61,27 +56,17 @@ class ASEOpenMMSimulation:
         return sim
 
     def __init__(self, name: Optional[str] = None):
-        self.name = name or "Unnamed ASE OpenMM Simulation"
+        name = name or "Unnamed ASE OpenMM Simulation"
+
+        super().__init__(name or "Unnamed ASE OpenMM Simulation")
+
+        self.ase_atoms_to_frame_data = openmm_ase_atoms_to_frame_data
 
         self.xml_path: Optional[PathLike[str]] = None
-        self.app_server: Optional[NanoverImdApplication] = None
 
-        self.on_reset_energy_exceeded = Event()
-
-        self.verbose = False
-        self.use_walls = False
-        self.reset_energy: Optional[float] = None
-        self.time_step = 1
-        self.frame_interval = 5
-        self.include_velocities = False
-        self.include_forces = False
         self.platform: Optional[str] = None
-
-        self.atoms: Optional[Atoms] = None
-        self.dynamics: Optional[MolecularDynamics] = None
         self.simulation: Optional[Simulation] = None
         self.openmm_calculator: Optional[OpenMMCalculator] = None
-        self.checkpoint: Optional[InitialState] = None
 
     def load(self):
         """
@@ -96,19 +81,17 @@ class ASEOpenMMSimulation:
         assert self.simulation is not None
 
         self.openmm_calculator = OpenMMCalculator(self.simulation)
-        self.atoms = self.openmm_calculator.generate_atoms()
-        if self.use_walls:
-            self.atoms.constraints.append(VelocityWallConstraint())
+        atoms = self.openmm_calculator.generate_atoms()
+
+        # we don't read this from the openmm xml
+        self.dynamics = make_default_ase_omm_dynamics(atoms)
+
         self.atoms.calc = self.openmm_calculator
 
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, temperature_K=300)
 
-        self.checkpoint = InitialState(
-            positions=self.atoms.get_positions(),
-            velocities=self.atoms.get_velocities(),
-            cell=self.atoms.get_cell(),
-        )
+        super().load()
 
     def reset(self, app_server: NanoverImdApplication):
         """
@@ -118,6 +101,7 @@ class ASEOpenMMSimulation:
         """
         assert (
             self.simulation is not None
+            and self.dynamics is not None
             and self.atoms is not None
             and self.checkpoint is not None
             and self.openmm_calculator is not None
@@ -125,19 +109,12 @@ class ASEOpenMMSimulation:
 
         self.app_server = app_server
 
+        self.atoms.set_positions(self.checkpoint.positions)
+        self.atoms.set_velocities(self.checkpoint.velocities)
+        self.atoms.set_cell(self.checkpoint.cell)
+
         if self.simulation.system.getNumConstraints() > 0:
             warnings.warn(CONSTRAINTS_UNSUPPORTED_MESSAGE)
-
-        # We do not remove the center of mass (fixcm=False). If the center of
-        # mass translations should be removed, then the removal should be added
-        # to the OpenMM system.
-        self.dynamics = Langevin(
-            atoms=self.atoms,
-            timestep=self.time_step * units.fs,
-            temperature_K=300,
-            friction=1e-2,
-            fixcm=False,
-        )
 
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
@@ -145,16 +122,12 @@ class ASEOpenMMSimulation:
             dynamics=self.dynamics,
         )
 
-        self.dynamics.attach(
-            openmm_ase_frame_adaptor(
-                self.atoms,
-                self.app_server.frame_publisher,
-                include_velocities=self.include_velocities,
-                include_forces=self.include_forces,
-            ),
-            interval=self.frame_interval,
-        )
+        # send the initial topology frame
+        frame_data = self.make_topology_frame()
+        self.app_server.frame_publisher.send_frame(0, frame_data)
+        self.frame_index = 1
 
+        # TODO: deal with this when its clear if dynamics should be reconstructed or not..
         if self.verbose:
             self.dynamics.attach(
                 MDLogger(
@@ -168,32 +141,17 @@ class ASEOpenMMSimulation:
                 interval=100,
             )
 
-        self.atoms.set_positions(self.checkpoint.positions)
-        self.atoms.set_velocities(self.checkpoint.velocities)
-        self.atoms.set_cell(self.checkpoint.cell)
 
-    def advance_by_one_step(self):
-        """
-        Advance the simulation to the next point a frame should be reported, and send that frame.
-        """
-        self.advance_to_next_report()
+def make_default_ase_omm_dynamics(atoms: Atoms):
+    # We do not remove the center of mass (fixcm=False). If the center of
+    # mass translations should be removed, then the removal should be added
+    # to the OpenMM system.
+    dynamics = Langevin(
+        atoms=atoms,
+        timestep=1 * units.fs,
+        temperature_K=300,
+        friction=1e-2,
+        fixcm=False,
+    )
 
-    def advance_by_seconds(self, dt: float):
-        """
-        Advance playback time by some seconds, and advance the simulation to the next frame output.
-        :param dt: Time to advance playback by in seconds (ignored)
-        """
-        self.advance_to_next_report()
-
-    def advance_to_next_report(self):
-        """
-        Step the simulation to the next point a frame should be reported.
-        """
-        assert self.dynamics is not None
-        self.dynamics.run(self.frame_interval)
-
-        if self.reset_energy is not None and self.app_server is not None:
-            energy = self.dynamics.atoms.get_total_energy() * EV_TO_KJMOL
-            if not np.isfinite(energy) or energy > self.reset_energy:
-                self.on_reset_energy_exceeded.invoke()
-                self.reset(self.app_server)
+    return dynamics
