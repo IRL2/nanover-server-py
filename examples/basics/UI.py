@@ -242,4 +242,4 @@ def create_ui():
 # Launch the Gradio interface
 if __name__ == "__main__":
     ui = create_ui()
-    ui.launch()
+    ui.launch(inbrowser=True)
