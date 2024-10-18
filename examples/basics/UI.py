@@ -90,6 +90,7 @@ def run_simulation(
         *tuple(simulation_files + recording_playbacks), name=server_name, port=port
     )
     imd_runner.next()
+    imd_runner.runner.play_step_interval = 1 / simulation_fps
     if start_paused:
         imd_runner.pause()
     if record_trajectory or record_shared_state:
