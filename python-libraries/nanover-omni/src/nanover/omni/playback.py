@@ -17,6 +17,10 @@ Entry = Tuple[float, Optional[FrameData], Optional[DictionaryChange]]
 class PlaybackSimulation:
     @classmethod
     def from_paths(cls, paths: Iterable[PathLike[str]]):
+        """
+        Construct this from one or both of trajectory and state recording file paths.
+        :param paths: One or both of trajectory and state recording file paths.
+        """
         paths = [Path(path) for path in paths]
         traj_path = next((path for path in paths if path.suffix == ".traj"), None)
         state_path = next((path for path in paths if path.suffix == ".state"), None)
@@ -45,6 +49,9 @@ class PlaybackSimulation:
         self.time = 0.0
 
     def load(self):
+        """
+        Load and set up the simulation if it isn't done already.
+        """
         entries = iter_recording_files(traj=self.traj_path, state=self.state_path)
         self.entries = [
             (time * MICROSECONDS_TO_SECONDS, frame, update)
@@ -52,6 +59,10 @@ class PlaybackSimulation:
         ]
 
     def reset(self, app_server: NanoverImdApplication):
+        """
+        Reset the playback to its initial state.
+        :param app_server: The app server hosting the frame publisher and imd state
+        """
         self.app_server = app_server
         self.next_entry_index = 0
         self.time = 0.0
@@ -60,6 +71,9 @@ class PlaybackSimulation:
         self.emit(frame=FrameData(), update=None)
 
     def advance_by_one_step(self):
+        """
+        Advance playback to the next point a frame or update should be reported, and report it.
+        """
         try:
             self.advance_to_next_entry()
         except IndexError:
@@ -68,6 +82,10 @@ class PlaybackSimulation:
             self.advance_to_next_entry()
 
     def advance_by_seconds(self, dt: float):
+        """
+        Advance the playback by some seconds, emitting any intermediate frames and state updates.
+        :param dt: Time to advance playback by in seconds
+        """
         next_time = self.time + dt
 
         try:
@@ -80,6 +98,9 @@ class PlaybackSimulation:
             self.time = next_time
 
     def advance_to_next_entry(self):
+        """
+        Advance playback to the next point a frame or update should be reported, and report it.
+        """
         time, frame, update = self.entries[self.next_entry_index]
         self.next_entry_index = self.next_entry_index + 1
         self.time = time

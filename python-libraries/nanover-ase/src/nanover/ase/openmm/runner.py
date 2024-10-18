@@ -6,21 +6,19 @@ import logging
 from pathlib import Path
 from typing import Optional, List
 
-from ase import units, Atoms  # type: ignore
+from ase import units  # type: ignore
 from ase.md import MDLogger, Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from attr import dataclass
 from nanover.app import NanoverImdApplication, NanoverRunner
 from nanover.app.app_server import DEFAULT_NANOVER_PORT
+from nanover.ase.openmm.frame_adaptor import openmm_ase_frame_adaptor
 from nanover.core import NanoverServer, DEFAULT_SERVE_ADDRESS
 from nanover.ase import TrajectoryLogger
 from nanover.essd import DiscoveryServer
-from nanover.openmm import openmm_to_frame_data, serializer
-from nanover.trajectory.frame_publisher import FramePublisher
-from openmm.app import Simulation, Topology
+from nanover.openmm import serializer
+from openmm.app import Simulation
 
-from nanover.ase import ase_to_frame_data
-from nanover.ase.converter import add_ase_positions_to_frame_data
 from nanover.ase.imd import NanoverASEDynamics
 from nanover.ase.openmm.calculator import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
@@ -33,31 +31,6 @@ from nanover.trajectory.frame_server import (
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
     "The simulation contains constraints which will be ignored by this runner!"
 )
-
-
-def openmm_ase_frame_adaptor(ase_atoms: Atoms, frame_publisher: FramePublisher):
-    """
-    Generates and sends frames for a simulation using an :class: OpenMMCalculator.
-    """
-
-    frame_index = 0
-    topology: Optional[Topology] = None
-
-    def send():
-        nonlocal frame_index, topology
-        # generate topology frame using OpenMM converter.
-        if frame_index == 0:
-            imd_calculator = ase_atoms.calc
-            topology = imd_calculator.calculator.topology
-            frame = openmm_to_frame_data(state=None, topology=topology)
-            add_ase_positions_to_frame_data(frame, ase_atoms.get_positions())
-        # from then on, just send positions and state.
-        else:
-            frame = ase_to_frame_data(ase_atoms, topology=False)
-        frame_publisher.send_frame(frame_index, frame)
-        frame_index += 1
-
-    return send
 
 
 @dataclass

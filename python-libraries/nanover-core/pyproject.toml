@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanover"
+authors = [
+    {name = "Intangible Realities Lab"},
+]
+description = "NanoVer python framework"
+requires-python = ">=3.11"
+dependencies = [
+    "setuptools>=40.1.1",
+    "grpcio>=1.63.0",
+    "grpcio-tools>=1.63.0",
+    "pytest",
+    "aiogrpc",
+    "numpy",
+    "hypothesis",
+    "typing_extensions",
+]
+dynamic = ["version"]
+
+[project.scripts]
+nanover-multiplayer = "nanover.multiplayer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+include = ["nanover.*", "nanover.protocol"]  # package names should match these glob patterns (["*"] by default)

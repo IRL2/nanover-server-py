@@ -18,6 +18,7 @@ BOND_ORDERS = "bond.orders"
 PARTICLE_POSITIONS = "particle.positions"
 PARTICLE_VELOCITIES = "particle.velocities"
 PARTICLE_FORCES = "particle.forces"
+PARTICLE_FORCES_SYSTEM = "particle.forces.system"
 PARTICLE_ELEMENTS = "particle.elements"
 PARTICLE_NAMES = "particle.names"
 PARTICLE_RESIDUES = (
@@ -35,11 +36,11 @@ CHAIN_COUNT = "chain.count"
 
 KINETIC_ENERGY = "energy.kinetic"
 POTENTIAL_ENERGY = "energy.potential"
-TOTAL_ENERGY = "energy.total"
 USER_ENERGY = "energy.user.total"
 
 USER_FORCES_SPARSE = "forces.user.sparse"
 USER_FORCES_INDEX = "forces.user.index"
+USER_WORK_DONE = "forces.user.work_done"
 
 SERVER_TIMESTAMP = "server.timestamp"
 
@@ -192,6 +193,13 @@ class FrameData(metaclass=_FrameDataMeta):
         to_python=_n_by_3,
         to_raw=_flatten_array,
     )
+    particle_forces_system: Array2Dfloat = _Shortcut(  # type: ignore[assignment]
+        key=PARTICLE_FORCES_SYSTEM,
+        record_type="arrays",
+        field_type="float",
+        to_python=_n_by_3,
+        to_raw=_flatten_array,
+    )
     particle_elements: List[int] = _Shortcut(  # type: ignore[assignment]
         key=PARTICLE_ELEMENTS,
         record_type="arrays",
@@ -279,13 +287,6 @@ class FrameData(metaclass=_FrameDataMeta):
         to_python=_as_is,
         to_raw=_as_is,
     )
-    total_energy: float = _Shortcut(  # type: ignore[assignment]
-        key=TOTAL_ENERGY,
-        record_type="values",
-        field_type="number_value",
-        to_python=_as_is,
-        to_raw=_as_is,
-    )
     user_energy: float = _Shortcut(  # type: ignore[assignment]
         key=USER_ENERGY,
         record_type="values",
@@ -304,6 +305,13 @@ class FrameData(metaclass=_FrameDataMeta):
         key=USER_FORCES_INDEX,
         record_type="arrays",
         field_type="index",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
+    user_work_done: float = _Shortcut(  # type: ignore[assignment]
+        key=USER_WORK_DONE,
+        record_type="values",
+        field_type="number_value",
         to_python=_as_is,
         to_raw=_as_is,
     )

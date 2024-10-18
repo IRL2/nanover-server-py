@@ -13,10 +13,11 @@ from nanover.trajectory import FrameData
 def add_openmm_state_to_frame_data(
     data: FrameData,
     state: State,
-    include_positions: bool = True,
-    include_energies: bool = True,
-    include_velocities: bool = False,
-    include_forces: bool = False,
+    include_positions=True,
+    include_energies=True,
+    include_velocities=False,
+    include_forces=False,
+    state_excludes_imd=False,
 ) -> None:
     """
     Adds the OpenMM state information to the given :class:`FrameData`, including
@@ -27,13 +28,13 @@ def add_openmm_state_to_frame_data(
     :param include_positions: If ``True``, the particle positions are read from
         the state and included in the frame.
     :param include_energies: If ``True``, the kinetic and potential energies
-        are read from the state, the total energy is calculated as the sum of
-        these energies, and the kinetic, potential and total energies are
-        included in the frame.
+        are read from the state and included in the frame.
     :param include_velocities: If ``True``, the particle velocities are read
         from the state and included in the frame.
     :param include_forces: If ``True``, the particle forces are read from the
         state and included in the frame.
+    :param state_excludes_imd: Should be ``True`` if the state excludes the
+        IMD force contribution.
     """
     # Here, we count of the fact that OpenMM default length unit is the
     # nanometer. By doing this assumption, we avoid arrays being copied during
@@ -44,16 +45,17 @@ def add_openmm_state_to_frame_data(
     if include_energies:
         potential_energy = state.getPotentialEnergy().value_in_unit(kilojoule_per_mole)
         kinetic_energy = state.getKineticEnergy().value_in_unit(kilojoule_per_mole)
-        total_energy = potential_energy + kinetic_energy
         data.kinetic_energy = kinetic_energy
         data.potential_energy = potential_energy
-        data.total_energy = total_energy
     if include_velocities:
         velocities = state.getVelocities(asNumpy=True)
         data.particle_velocities = velocities
     if include_forces:
         forces = state.getForces(asNumpy=True)
-        data.particle_forces = forces
+        if state_excludes_imd:
+            data.particle_forces_system = forces
+        else:
+            data.particle_forces = forces
     box_vectors = state.getPeriodicBoxVectors(asNumpy=True)
     data.box_vectors = box_vectors
     simulation_time = state.getTime().value_in_unit(picosecond)
@@ -101,10 +103,11 @@ def openmm_to_frame_data(
     *,
     state: Optional[State] = None,
     topology: Optional[Topology] = None,
-    include_positions: bool = True,
-    include_energies: bool = True,
-    include_velocities: bool = False,
-    include_forces: bool = False,
+    include_positions=True,
+    include_energies=True,
+    include_velocities=False,
+    include_forces=False,
+    state_excludes_imd=False,
 ) -> FrameData:
     """
     Converts the given OpenMM state and topology objects into a NanoVer :class:`FrameData`.
@@ -120,9 +123,7 @@ def openmm_to_frame_data(
     :param include_positions: If ``True``, the particle positions are read from
         the state and included in the frame.
     :param include_energies: If ``True``, the kinetic and potential energies
-        are read from the state, the total energy is calculated as the sum of
-        these energies, and the kinetic, potential and total energies are
-        included in the frame.
+        are read from the state and included in the frame.
     :param include_velocities: If ``True``, the particle velocities are read
         from the state and included in the frame.
     :param include_forces: If ``True``, the particle forces are read from the
@@ -139,6 +140,7 @@ def openmm_to_frame_data(
             include_energies,
             include_velocities,
             include_forces,
+            state_excludes_imd,
         )
     if topology is not None:
         add_openmm_topology_to_frame_data(data, topology)

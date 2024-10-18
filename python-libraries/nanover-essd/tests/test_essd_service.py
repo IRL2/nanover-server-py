@@ -1,5 +1,4 @@
 import json
-
 import pytest
 
 import nanover.essd
@@ -13,28 +12,31 @@ from nanover.essd.servicehub import (
 )
 from nanover.essd.utils import get_broadcastable_ip
 
+EXAMPLE_SERVICE_PROPERTIES = {
+    SERVICE_NAME_KEY: "test service",
+    SERVICE_ADDRESS_KEY: get_broadcastable_ip(),
+    SERVICE_SERVICES_KEY: {
+        "trajectory": 54321,
+        "imd": 54322,
+        "multiplayer": 54323,
+        "builder": 54324,
+    },
+    ESSD_VERSION_KEY: "1.0.0",
+}
+
+
+EXAMPLE_SERVICE_PROPERTIES_WITH_ID = dict(EXAMPLE_SERVICE_PROPERTIES)
+EXAMPLE_SERVICE_PROPERTIES_WITH_ID[SERVICE_ID_KEY] = "12345"
+
 
 @pytest.fixture
 def properties():
-    properties = {
-        SERVICE_NAME_KEY: "test service",
-        SERVICE_ADDRESS_KEY: get_broadcastable_ip(),
-        SERVICE_SERVICES_KEY: {
-            "trajectory": 54321,
-            "imd": 54322,
-            "multiplayer": 54323,
-            "builder": 54324,
-        },
-        ESSD_VERSION_KEY: "1.0.0",
-        SERVICE_ID_KEY: "12345",
-    }
-    return properties
+    return dict(EXAMPLE_SERVICE_PROPERTIES_WITH_ID)
 
 
 @pytest.fixture
 def properties_unique_id(properties):
-    del properties[SERVICE_ID_KEY]
-    return properties
+    return dict(EXAMPLE_SERVICE_PROPERTIES)
 
 
 def test_service_message(properties):

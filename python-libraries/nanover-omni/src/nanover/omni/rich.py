@@ -19,7 +19,7 @@ class OmniTextualApp(App):
 
     def update(self):
         running = self.omni.simulation is not None
-        paused = self.omni.paused
+        paused = self.omni.is_paused
         failed = self.omni.simulation in self.omni.failed_simulations
 
         name = "None" if not running else self.omni.simulation.name

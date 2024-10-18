@@ -38,13 +38,13 @@ announce "Installing python test requirements"
 python -m pip install -r ./python-libraries/requirements.test ${user_option}
 
 announce "Compiling proto files to python"
-python ./python-libraries/nanover-core/setup.py compile_proto
+python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src
 
 announce "Installing the python packages"
 python -m pip install ${edit_option} ${user_option} ./python-libraries/nanover-core/
 
 Get-ChildItem -Directory python-libraries/nanover-* | ForEach-Object {
-    if (Test-Path -Path "$($_.FullName)/setup.py") {
+    if (Test-Path -Path "$($_.FullName)/pyproject.toml") {
         Write-Host "$($_.FullName)"
         pip install ${edit_option} ${user_option} ""$($_.FullName)""
     }
@@ -55,13 +55,6 @@ if ($LASTEXITCODE -ne 0)
 {
     announce "OpenMM appears to not be installed."
     announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
-}
-
-python -c "import mpi4py"
-if ($LASTEXITCODE -ne 0)
-{
-    announce "Cannot load mpi4py. Do you have Microsoft MPI installed?"
-    announce "See https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi"
 }
 
 announce "Compiling proto files to C#"

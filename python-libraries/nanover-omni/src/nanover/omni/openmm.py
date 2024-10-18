@@ -2,8 +2,10 @@ from os import PathLike
 from pathlib import Path
 from typing import Optional, Any
 
+import numpy as np
+import numpy.typing as npt
+
 from openmm.app import Simulation, StateDataReporter
-from openmm.unit import kilojoule_per_mole
 
 from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer, openmm_to_frame_data
@@ -11,14 +13,20 @@ from nanover.openmm.imd import (
     create_imd_force,
     add_imd_force_to_system,
     ImdForceManager,
-    OTHER_FORCE_GROUP_MASK,
+    NON_IMD_FORCES_GROUP_MASK,
 )
 from nanover.trajectory.frame_data import Array2Dfloat
 
 
 class OpenMMSimulation:
     """
-    A wrapper for OpenMM simulations so they can be run inside the OmniRunner.
+    A wrapper for OpenMM simulations to run inside the OmniRunner.
+
+    The following attributes can be configured after construction:
+    - :attr:`frame_interval`: Number of simulation steps to advance between frames.
+    - :attr:`include_velocities`: Include particle velocities in frames.
+    - :attr:`include_forces`: Include particle forces in frames.
+    - :attr:`platform_name`: Name of OpenMM platform to use when loading the system from XML.
     """
 
     @classmethod
@@ -26,8 +34,7 @@ class OpenMMSimulation:
         """
         Construct this from an existing OpenMM simulation.
         :param simulation: An existing OpenMM Simulation
-        :param name: An optional name for the simulation
-        :return:
+        :param name: An optional name for the simulation instead of default
         """
         sim = cls(name)
         sim.simulation = simulation
@@ -43,10 +50,11 @@ class OpenMMSimulation:
         """
         Construct this from an existing NanoVer OpenMM XML file at a given path.
         :param path: Path of the NanoVer OpenMM XML file
-        :param name: An optional name for the simulation
-        :return:
+        :param name: An optional name for the simulation instead of filename
         """
-        sim = cls(name or Path(path).stem)
+        if name is None:
+            name = Path(path).stem
+        sim = cls(name)
         sim.xml_path = path
         return sim
 
@@ -57,9 +65,13 @@ class OpenMMSimulation:
         self.app_server: Optional[NanoverImdApplication] = None
 
         self.frame_interval = 5
+        """Number of simulation steps to advance between frames."""
         self.include_velocities = False
+        """Include particle velocities in frames."""
         self.include_forces = False
-        self.platform: Optional[str] = None
+        """Include particle forces in frames."""
+        self.platform_name: Optional[str] = None
+        """Name of OpenMM platform to use at the time the system is loaded from XML."""
 
         self.imd_force = create_imd_force()
         self.simulation: Optional[Simulation] = None
@@ -68,6 +80,11 @@ class OpenMMSimulation:
 
         self.frame_index = 0
         self.imd_force_manager: Optional[ImdForceManager] = None
+
+        self.work_done: float = 0.0
+        self._work_done_intermediate: float = 0.0
+        self.prev_imd_forces: Optional[np.ndarray] = None
+        self.prev_imd_indices: Optional[np.ndarray] = None
 
     def load(self):
         """
@@ -79,17 +96,16 @@ class OpenMMSimulation:
         with open(self.xml_path) as infile:
             self.imd_force = create_imd_force()
             self.simulation = serializer.deserialize_simulation(
-                infile, imd_force=self.imd_force, platform_name=self.platform
+                infile, imd_force=self.imd_force, platform_name=self.platform_name
             )
 
         self.checkpoint = self.simulation.context.createCheckpoint()
 
     def reset(self, app_server: NanoverImdApplication):
         """
-        Reset the simulation to its initial conditions, reset IMD interactions, and reset frames to begin with topology
-        and continue.
+        Reset the simulation to its initial conditions, reset IMD interactions, and reset frame stream to begin with
+        topology and continue.
         :param app_server: The app server hosting the frame publisher and imd state
-        :return:
         """
         assert self.simulation is not None and self.checkpoint is not None
 
@@ -111,15 +127,14 @@ class OpenMMSimulation:
 
     def advance_by_seconds(self, dt: float):
         """
-        Advance the simulation playback by some seconds. This time is ignored and the next frame is generated and sent.
-        :param dt: Time to advance playback by
+        Advance playback time by some seconds, and advance the simulation to the next frame output.
+        :param dt: Time to advance playback by in seconds (ignored)
         """
         self.advance_to_next_report()
 
     def advance_by_one_step(self):
         """
         Advance the simulation to the next point a frame should be reported, and send that frame.
-        :return:
         """
         self.advance_to_next_report()
 
@@ -148,15 +163,36 @@ class OpenMMSimulation:
         )
         positions = state.getPositions(asNumpy=True)
 
+        # Calculate on-step contribution to work
+        if self.prev_imd_forces is not None:
+            affected_atom_positions = positions[self.prev_imd_indices]
+            self.add_contribution_to_work(self.prev_imd_forces, affected_atom_positions)
+
         # update imd forces and energies
         self.imd_force_manager.update_interactions(self.simulation, positions)
 
         # generate the next frame with the existing (still valid) positions
         frame_data = self.make_regular_frame(positions)
 
+        # Update work done in frame data
+        self.work_done = self._work_done_intermediate
+        frame_data.user_work_done = self.work_done
+
+        # Calculate previous-step contribution to work for the next time step
+        # (minus sign in positions accounts for subtraction of this contribution)
+        if frame_data.user_forces_sparse is not None:
+            affected_atom_positions = -positions[frame_data.user_forces_index]
+            self.add_contribution_to_work(
+                frame_data.user_forces_sparse, affected_atom_positions
+            )
+
         # send the next frame
         self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
         self.frame_index += 1
+
+        # Update previous step forces (saving them in their sparse form)
+        self.prev_imd_forces = frame_data.user_forces_sparse
+        self.prev_imd_indices = frame_data.user_forces_index
 
     def make_topology_frame(self):
         """
@@ -182,6 +218,7 @@ class OpenMMSimulation:
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
+            groups=NON_IMD_FORCES_GROUP_MASK,
         )
 
         # generate frame based on basic omm state
@@ -191,6 +228,7 @@ class OpenMMSimulation:
             include_positions=positions is None,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
+            state_excludes_imd=True,
         )
 
         # add any provided positions
@@ -200,14 +238,34 @@ class OpenMMSimulation:
         # add imd force information
         self.imd_force_manager.add_to_frame_data(frame_data)
 
-        # get the simulation state excluding the IMD force, and recalculate potential energy without it:
-        energy_no_imd = (
-            self.simulation.context.getState(
-                getEnergy=True, groups=OTHER_FORCE_GROUP_MASK
-            )
-            .getPotentialEnergy()
-            .value_in_unit(kilojoule_per_mole)
-        )
-        frame_data.potential_energy = energy_no_imd
-
         return frame_data
+
+    def add_contribution_to_work(self, forces: npt.NDArray, positions: npt.NDArray):
+        r"""
+        The expression for the work done on the system by the user is
+
+        .. math::
+            W = \sum_{t = 1}^{n_{steps}} \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+             \cdot (\mathbf{r}_{i}(t) - \mathbf{r}_{i}(t - 1)))
+
+        which can be rewritten as
+
+        .. math::
+            W = \sum_{t = 1}^{n_{steps}} \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+             \cdot \mathbf{r}_{i}(t) \bigg)  - \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+             \cdot \mathbf{r}_{i}(t - 1) \bigg)
+
+        where the contribution at each value of t is separated into an
+        previous-step contribution (t-1) and an on-step contribution (t). Doing so
+        enables calculation of the work done on-the-fly without having to save
+        the positions of the atoms at each time step that the user applies an
+        iMD force.
+
+        This function calculates the contribution to the work done on the system by the user
+        for a set of forces and positions, and add it to the work done on the system. Only
+        involves the atoms affected by the user interaction.
+        """
+        for atom in range(len(forces)):
+            self._work_done_intermediate += np.dot(
+                np.transpose(forces[atom]), positions[atom]
+            )

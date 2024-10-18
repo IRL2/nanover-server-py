@@ -30,6 +30,10 @@ class Simulation(Protocol):
 
 
 class OmniRunner:
+    """
+    Provides a NanoVer server that supports switching between multiple simulations.
+    """
+
     @classmethod
     def with_basic_server(
         cls,
@@ -38,6 +42,14 @@ class OmniRunner:
         address: Optional[str] = None,
         port: Optional[int] = None,
     ):
+        """
+        Construct this using a basic NanoVer server and an optional list of initial simulations.
+
+        :param simulations: List of starting simulations to make available
+        :param name: Optional server name to broadcast
+        :param address: Optional server address to use
+        :param port: Optional server port to use
+        """
         app_server = NanoverImdApplication.basic_server(name, address, port)
         omni = cls(app_server)
         for simulation in simulations:
@@ -68,10 +80,16 @@ class OmniRunner:
         self.logging = logging.getLogger(__name__)
 
     def close(self):
+        """
+        Stop simulations and shut down server.
+        """
         self.app_server.close()
         self._cancel_run()
 
     def print_basic_info_and_wait(self):
+        """
+        Print out basic runner info to the terminal and await keyboard interrupt.
+        """
         print(
             f'Serving "{self.app_server.name}" on port {self.app_server.port}, '
             f"discoverable on all interfaces on port {self.app_server.discovery.port}"
@@ -91,24 +109,37 @@ class OmniRunner:
 
     @property
     def app_server(self):
+        """
+        The NanoVer application server used by this runner.
+        """
         return self._app_server
 
     @property
     def simulation(self):
+        """
+        The currently selected simulation.
+        """
         try:
             return self.simulations[self._simulation_index]
         except IndexError:
             return None
 
     @property
-    def paused(self):
-        return self._runner.paused if self._runner is not None else None
+    def is_paused(self):
+        """
+        :return: True if the current simulation is paused, False otherwise.
+        """
+        return self._runner.is_paused if self._runner is not None else None
 
     @property
     def runner(self):
         return self._runner
 
     def add_simulation(self, simulation: Simulation):
+        """
+        Add a simulation to list of available simulations to switch between.
+        :param simulation: The simulation to add
+        """
         self.simulations.append(simulation)
 
     def set_simulation_selections(
@@ -137,30 +168,53 @@ class OmniRunner:
         self.app_server.server.update_state(None, change)
 
     def load(self, index: int):
+        """
+        Switch to the simulation at a given index.
+        :param index: Index of simulation to switch to
+        :return:
+        """
         self._cancel_run()
         self._simulation_index = int(index) % len(self.simulations)
         self._load_simulation_selections()
         self._start_run()
 
     def next(self):
+        """
+        Switch to the next simulation in the list of available simulations, looping after the last.
+        """
         self.load(self._simulation_index + 1)
 
     def list(self):
+        """
+        Get the list of available simulations.
+        """
         return {"simulations": [simulation.name for simulation in self.simulations]}
 
     def reset(self):
+        """
+        Reset the currently-active simulation to its initial state.
+        """
         assert self._runner is not None
         self._runner.signals.put("reset")
 
     def pause(self):
+        """
+        Pause the currently-active simulation.
+        """
         assert self._runner is not None
         self._runner.signals.put("pause")
 
     def play(self):
+        """
+        Unpause the currently-active simulation.
+        """
         assert self._runner is not None
         self._runner.signals.put("play")
 
     def step(self):
+        """
+        Step to the next frame in the currently-active simulation.
+        """
         assert self._runner is not None
         self._runner.signals.put("step")
 
@@ -201,7 +255,7 @@ class InternalRunner:
 
         self.signals: Queue[str] = Queue()
         self.cancelled = False
-        self.paused = False
+        self.is_paused = False
 
         self.variable_interval_generator = VariableIntervalGenerator(1 / 30)
         self.logger = logging.getLogger(simulation.name)
@@ -225,7 +279,9 @@ class InternalRunner:
 
                 if self.cancelled:
                     break
-                if not self.paused:
+                if not self.is_paused:
+                    # for recording playback we want to know real time elapsed, for live simulations it is typically
+                    # ignored and stepped one frame per invocation
                     self.simulation.advance_by_seconds(dt)
         except Exception:
             self.omni.failed_simulations.add(self.simulation)
@@ -238,11 +294,11 @@ class InternalRunner:
             while signal := self.signals.get_nowait():
                 match signal:
                     case "pause":
-                        self.paused = True
+                        self.is_paused = True
                     case "play":
-                        self.paused = False
+                        self.is_paused = False
                     case "step":
-                        self.paused = True
+                        self.is_paused = True
                         self.simulation.advance_by_one_step()
                     case "reset":
                         self.simulation.reset(self.app_server)
