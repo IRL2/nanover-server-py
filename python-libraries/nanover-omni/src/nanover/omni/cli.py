@@ -41,16 +41,6 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--ase-omm",
-        dest="ase_xml_entries",
-        action="append",
-        nargs="+",
-        default=[],
-        metavar="PATH",
-        help="Simulation to run via ASE OpenMM (XML format)",
-    )
-
-    parser.add_argument(
         "--playback",
         dest="recording_entries",
         action="append",
@@ -126,12 +116,6 @@ def initialise_runner(arguments: argparse.Namespace):
 
         for path in get_all_paths(arguments.openmm_xml_entries):
             simulation = OpenMMSimulation.from_xml_path(path)
-            simulation.include_velocities = arguments.include_velocities
-            simulation.include_forces = arguments.include_forces
-            runner.add_simulation(simulation)
-
-        for path in get_all_paths(arguments.ase_xml_entries):
-            simulation = ASEOpenMMSimulation.from_xml_path(path)
             simulation.include_velocities = arguments.include_velocities
             simulation.include_forces = arguments.include_forces
             runner.add_simulation(simulation)

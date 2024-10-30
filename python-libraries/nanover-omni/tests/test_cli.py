@@ -33,8 +33,6 @@ def test_cycle_multiple_sims():
             "0",
             "--omm",
             str(ARGON_XML_PATH),
-            "--ase-omm",
-            str(ARGON_XML_PATH),
             "--playback",
             str(RECORDING_PATH_TRAJ),
             str(RECORDING_PATH_STATE),
