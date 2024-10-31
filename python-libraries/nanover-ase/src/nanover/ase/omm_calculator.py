@@ -16,6 +16,8 @@ from nanover.ase.converter import KJMOL_TO_EV, ase_to_frame_data
 from nanover.openmm.converter import add_openmm_topology_to_frame_data
 from nanover.trajectory import FrameData
 
+from nanover.ase.imd_calculator import ImdCalculator
+
 
 class OpenMMCalculator(Calculator):
     """
@@ -145,8 +147,9 @@ def openmm_ase_atoms_to_frame_data(
     )
 
     if topology:
-        imd_calculator = ase_atoms.calc
-        topology = imd_calculator.calculator.topology
+        imd_calculator: ImdCalculator = ase_atoms.calc
+        omm_calculator: OpenMMCalculator = imd_calculator.calculator
+        topology = omm_calculator.topology
         add_openmm_topology_to_frame_data(frame_data, topology)
 
     return frame_data
