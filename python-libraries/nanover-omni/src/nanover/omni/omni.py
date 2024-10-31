@@ -3,9 +3,9 @@ import time
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
-from typing import Protocol, List, Optional, Set
+from typing import Protocol, List, Optional, Set, Dict
 
-from nanover.app import NanoverImdApplication
+from nanover.app import NanoverImdApplication, RenderingSelection
 from nanover.trajectory import FrameData
 from nanover.trajectory.frame_server import (
     LOAD_COMMAND_KEY,
@@ -16,6 +16,7 @@ from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
     STEP_COMMAND_KEY,
 )
+from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
 
 
@@ -60,6 +61,7 @@ class OmniRunner:
 
         self.simulations: List[Simulation] = []
         self._simulation_index = 0
+        self.simulation_selections: Dict[Simulation, Set[RenderingSelection]] = {}
 
         app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
         app_server.server.register_command(NEXT_COMMAND_KEY, self.next)
@@ -140,6 +142,31 @@ class OmniRunner:
         """
         self.simulations.append(simulation)
 
+    def set_simulation_selections(
+        self, simulation: Simulation, *selections: RenderingSelection
+    ):
+        existing_selections = self.simulation_selections.get(simulation) or set()
+        existing_selections.update(selections)
+        self.simulation_selections[simulation] = existing_selections
+
+    def _load_simulation_selections(self):
+        with self.app_server.server.lock_state() as state:
+            next_selections = {
+                selection.selection_id: selection.to_dictionary()
+                for selection in self.simulation_selections.get(self.simulation, [])
+            }
+            prev_selections = {
+                key
+                for key in state.keys()
+                if key.startswith("selection.")
+                if key not in next_selections
+            }
+            change = DictionaryChange(
+                updates=next_selections,
+                removals=prev_selections,
+            )
+        self.app_server.server.update_state(None, change)
+
     def load(self, index: int):
         """
         Switch to the simulation at a given index.
@@ -148,6 +175,7 @@ class OmniRunner:
         """
         self._cancel_run()
         self._simulation_index = int(index) % len(self.simulations)
+        self._load_simulation_selections()
         self._start_run()
 
     def next(self):
