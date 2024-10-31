@@ -1,18 +1,13 @@
 import warnings
-from os import PathLike
-from pathlib import Path
 from typing import Optional
 
 from ase import units, Atoms
-from ase.md import Langevin, MDLogger
+from ase.md import Langevin
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from openmm.app import Simulation
 
-from nanover.app import NanoverImdApplication
-from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.omm_calculator import OpenMMCalculator
 from nanover.omni.ase import ASESimulation
-from nanover.openmm import serializer
 
 
 CONSTRAINTS_UNSUPPORTED_MESSAGE = (
@@ -41,23 +36,10 @@ class ASEOpenMMSimulation(ASESimulation):
         sim.simulation = simulation
         return sim
 
-    @classmethod
-    def from_xml_path(cls, path: PathLike[str], *, name: Optional[str] = None):
-        """
-        Construct this from an existing NanoVer OpenMM XML file at a given path.
-        :param path: Path of the NanoVer OpenMM XML file
-        :param name: An optional name for the simulation instead of filename
-        """
-        sim = cls(name or Path(path).stem)
-        sim.xml_path = path
-        return sim
-
     def __init__(self, name: Optional[str] = None):
         name = name or "Unnamed ASE OpenMM Simulation"
 
         super().__init__(name or "Unnamed ASE OpenMM Simulation")
-
-        self.xml_path: Optional[PathLike[str]] = None
 
         self.platform: Optional[str] = None
         self.simulation: Optional[Simulation] = None
@@ -67,17 +49,13 @@ class ASEOpenMMSimulation(ASESimulation):
         """
         Load and set up the simulation if it isn't done already.
         """
-        if self.simulation is None and self.xml_path is not None:
-            with open(self.xml_path) as infile:
-                self.simulation = serializer.deserialize_simulation(
-                    infile, platform_name=self.platform
-                )
-
         assert self.simulation is not None
 
         self.openmm_calculator = OpenMMCalculator(self.simulation)
         self.ase_atoms_to_frame_data = self.openmm_calculator.make_frame_adaptor()
         atoms = self.openmm_calculator.generate_atoms()
+
+        self.initial_calc = self.openmm_calculator
 
         # we don't read this from the openmm xml
         self.dynamics = make_default_ase_omm_dynamics(atoms)
@@ -87,55 +65,10 @@ class ASEOpenMMSimulation(ASESimulation):
         # Set the momenta corresponding to T=300K
         MaxwellBoltzmannDistribution(self.atoms, temperature_K=300)
 
-        super().load()
-
-    def reset(self, app_server: NanoverImdApplication):
-        """
-        Reset the simulation to its initial conditions, reset IMD interactions, and reset frame stream to begin with
-        topology and continue.
-        :param app_server: The app server hosting the frame publisher and imd state
-        """
-        assert (
-            self.simulation is not None
-            and self.dynamics is not None
-            and self.atoms is not None
-            and self.checkpoint is not None
-            and self.openmm_calculator is not None
-        )
-
-        self.app_server = app_server
-
-        self.atoms.set_positions(self.checkpoint.positions)
-        self.atoms.set_velocities(self.checkpoint.velocities)
-        self.atoms.set_cell(self.checkpoint.cell)
-
         if self.simulation.system.getNumConstraints() > 0:
             warnings.warn(CONSTRAINTS_UNSUPPORTED_MESSAGE)
 
-        self.atoms.calc = ImdCalculator(
-            self.app_server.imd,
-            self.openmm_calculator,
-            dynamics=self.dynamics,
-        )
-
-        # send the initial topology frame
-        frame_data = self.make_topology_frame()
-        self.app_server.frame_publisher.send_frame(0, frame_data)
-        self.frame_index = 1
-
-        # TODO: deal with this when its clear if dynamics should be reconstructed or not..
-        if self.verbose:
-            self.dynamics.attach(
-                MDLogger(
-                    self.dynamics,
-                    self.atoms,
-                    "-",
-                    header=True,
-                    stress=False,
-                    peratom=False,
-                ),
-                interval=100,
-            )
+        super().load()
 
 
 def make_default_ase_omm_dynamics(atoms: Atoms):

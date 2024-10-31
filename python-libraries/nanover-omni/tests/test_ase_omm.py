@@ -7,11 +7,14 @@ from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.omni.ase_omm import ASEOpenMMSimulation, CONSTRAINTS_UNSUPPORTED_MESSAGE
 
 from common import app_server, ARGON_XML_PATH
+from nanover.openmm.serializer import deserialize_simulation
 
 
 @pytest.fixture
 def example_ase_omm(app_server):
-    sim = ASEOpenMMSimulation.from_xml_path(ARGON_XML_PATH)
+    with open(ARGON_XML_PATH, "r") as infile:
+        omm_sim = deserialize_simulation(infile)
+    sim = ASEOpenMMSimulation.from_simulation(omm_sim)
     sim.load()
     sim.reset(app_server)
     yield sim
@@ -71,6 +74,6 @@ def test_constraint_warning(example_ase_omm, app_server, recwarn):
     logged.
     """
     with pytest.warns(UserWarning, match=CONSTRAINTS_UNSUPPORTED_MESSAGE):
-        example_ase_omm.load()
         example_ase_omm.simulation.system.addConstraint(0, 1, 1)
+        example_ase_omm.load()
         example_ase_omm.reset(app_server)
