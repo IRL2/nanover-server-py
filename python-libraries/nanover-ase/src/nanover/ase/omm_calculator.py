@@ -2,7 +2,7 @@
 ASE calculator for use with OpenMM.
 """
 
-from typing import Optional
+from typing import Optional, cast
 
 import nanover.openmm.serializer as serializer
 import numpy as np
@@ -148,7 +148,9 @@ def openmm_ase_atoms_to_frame_data(
 
     if topology:
         imd_calculator: ImdCalculator = ase_atoms.calc
-        omm_calculator: OpenMMCalculator = imd_calculator.calculator
+        omm_calculator: OpenMMCalculator = cast(
+            OpenMMCalculator, imd_calculator.calculator
+        )
         topology = omm_calculator.topology
         add_openmm_topology_to_frame_data(frame_data, topology)
 
