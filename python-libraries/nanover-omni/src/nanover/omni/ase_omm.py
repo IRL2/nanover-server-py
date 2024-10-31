@@ -17,7 +17,7 @@ CONSTRAINTS_UNSUPPORTED_MESSAGE = (
 
 class ASEOpenMMSimulation(ASESimulation):
     """
-    A wrapper for ASE OpenMM simulations so they can be run inside the OmniRunner.
+    A wrapper for ASE OpenMM simulations so they can be run inside the OmniRunner with some preset default dynamics.
     """
 
     @classmethod
