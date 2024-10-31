@@ -5,7 +5,7 @@ from ase import Atoms, units
 from ase.cell import Cell
 from ase.md import VelocityVerlet
 from nanover.ase.null_calculator import NullCalculator
-from nanover.ase.openmm.calculator import OpenMMCalculator
+from nanover.ase.omm_calculator import OpenMMCalculator
 from openmm_ase.simulation_utils import basic_simulation
 from nanover.ase.wall_constraint import VelocityWallConstraint
 
