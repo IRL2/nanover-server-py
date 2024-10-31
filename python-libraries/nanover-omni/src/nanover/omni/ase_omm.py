@@ -10,7 +10,7 @@ from openmm.app import Simulation
 
 from nanover.app import NanoverImdApplication
 from nanover.ase.imd_calculator import ImdCalculator
-from nanover.ase.omm_calculator import OpenMMCalculator, openmm_ase_atoms_to_frame_data
+from nanover.ase.omm_calculator import OpenMMCalculator
 from nanover.omni.ase import ASESimulation
 from nanover.openmm import serializer
 
@@ -57,8 +57,6 @@ class ASEOpenMMSimulation(ASESimulation):
 
         super().__init__(name or "Unnamed ASE OpenMM Simulation")
 
-        self.ase_atoms_to_frame_data = openmm_ase_atoms_to_frame_data
-
         self.xml_path: Optional[PathLike[str]] = None
 
         self.platform: Optional[str] = None
@@ -78,6 +76,7 @@ class ASEOpenMMSimulation(ASESimulation):
         assert self.simulation is not None
 
         self.openmm_calculator = OpenMMCalculator(self.simulation)
+        self.ase_atoms_to_frame_data = self.openmm_calculator.make_frame_adaptor()
         atoms = self.openmm_calculator.generate_atoms()
 
         # we don't read this from the openmm xml

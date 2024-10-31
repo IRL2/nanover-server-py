@@ -114,6 +114,26 @@ class OpenMMCalculator(Calculator):
 
         return atoms
 
+    def make_frame_adaptor(self):
+        def openmm_ase_atoms_to_frame_data(
+                ase_atoms: Atoms,
+                *,
+                topology: bool,
+                **kwargs,
+        ) -> FrameData:
+            frame_data = ase_to_frame_data(
+                ase_atoms,
+                topology=False,
+                **kwargs,
+            )
+
+            if topology:
+                add_openmm_topology_to_frame_data(frame_data, self.topology)
+
+            return frame_data
+
+        return openmm_ase_atoms_to_frame_data
+
     @property
     def topology(self):
         return self.simulation.topology
@@ -132,26 +152,3 @@ class OpenMMCalculator(Calculator):
         atoms.set_cell(
             np.array([vector.value_in_unit(angstrom) for vector in boxvectors])
         )
-
-
-def openmm_ase_atoms_to_frame_data(
-    ase_atoms: Atoms,
-    *,
-    topology: bool,
-    **kwargs,
-) -> FrameData:
-    frame_data = ase_to_frame_data(
-        ase_atoms,
-        topology=False,
-        **kwargs,
-    )
-
-    if topology:
-        imd_calculator: ImdCalculator = ase_atoms.calc
-        omm_calculator: OpenMMCalculator = cast(
-            OpenMMCalculator, imd_calculator.calculator
-        )
-        topology = omm_calculator.topology
-        add_openmm_topology_to_frame_data(frame_data, topology)
-
-    return frame_data
