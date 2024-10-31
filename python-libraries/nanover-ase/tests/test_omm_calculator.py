@@ -8,7 +8,7 @@ from openmm.unit import (
 )  # pylint: disable=no-name-in-module
 import numpy as np
 
-from .simulation_utils import basic_simulation, serialized_simulation_path
+from omm_simulation_utils import basic_simulation, serialized_simulation_path
 
 
 @pytest.fixture
