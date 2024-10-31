@@ -45,7 +45,6 @@ def test_verbose(example_ase_omm, app_server):
 
 @pytest.mark.parametrize("walls", (False, True))
 def test_walls(example_ase_omm, walls):
-    example_ase_omm.simulation = None
     example_ase_omm.use_walls = walls
     example_ase_omm.load()
     assert (
