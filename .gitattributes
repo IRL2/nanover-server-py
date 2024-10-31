@@ -1,0 +1,4 @@
+*.xml linguist-vendored
+*.pdb linguist-vendored
+*.rst linguist-vendored
+*.top linguist-vendored
