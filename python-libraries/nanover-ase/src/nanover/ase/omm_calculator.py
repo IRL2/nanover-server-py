@@ -2,7 +2,7 @@
 ASE calculator for use with OpenMM.
 """
 
-from typing import Optional, cast
+from typing import Optional
 
 import nanover.openmm.serializer as serializer
 import numpy as np
@@ -15,8 +15,6 @@ from openmm.unit import angstrom, kilojoules_per_mole, kilojoule_per_mole, amu, 
 from nanover.ase.converter import KJMOL_TO_EV, ase_to_frame_data
 from nanover.openmm.converter import add_openmm_topology_to_frame_data
 from nanover.trajectory import FrameData
-
-from nanover.ase.imd_calculator import ImdCalculator
 
 
 class OpenMMCalculator(Calculator):
@@ -116,10 +114,10 @@ class OpenMMCalculator(Calculator):
 
     def make_frame_adaptor(self):
         def openmm_ase_atoms_to_frame_data(
-                ase_atoms: Atoms,
-                *,
-                topology: bool,
-                **kwargs,
+            ase_atoms: Atoms,
+            *,
+            topology: bool,
+            **kwargs,
         ) -> FrameData:
             frame_data = ase_to_frame_data(
                 ase_atoms,
