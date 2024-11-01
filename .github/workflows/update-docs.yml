@@ -1,0 +1,20 @@
+name: "Notify docs repo to update submodules"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger-submodule-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger submodule update workflow in docs
+        env:
+          DOCS_UPDATE_TOKEN: ${{ secrets.DOCS_UPDATE_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer $DOCS_UPDATE_TOKEN" \
+            https://api.github.com/repos/IRL2/nanover-docs/actions/workflows/submodules.yml/dispatches \
+            -d '{"ref":"main"}'
