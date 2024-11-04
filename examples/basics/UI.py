@@ -8,8 +8,6 @@ def run_simulation(
     input_files,
     trajectory_files,
     state_file,
-    verbosity,
-    show_progression,
     server_name,
     port,
     simulation_fps,
@@ -28,8 +26,6 @@ def run_simulation(
     :param input_files: list of input files to run as live simulation
     :param trajectory_files: list of trajectory files to run as playback simulation
     :param state_file: list of state files to run as playback simulation
-    :param verbosity: choose between "Normal", "Verbose", "Super verbose"
-    :param show_progression: show simulation progression
     :param server_name: name of the server
     :param port: port number
     :param simulation_fps: frames per second
@@ -137,15 +133,13 @@ def create_ui():
 
         with gr.Row():
             with gr.Column():
-                gr.Markdown("## Verbosity")
-                # Radio button for verbosity level
-                verbosity = gr.Radio(
-                    ["Normal", "Verbose", "Super verbose"],
-                    label="Verbosity Level",
-                    value="Normal",
+                gr.Markdown("## Network")
+                # Textbox for server name
+                server_name = gr.Textbox(
+                    label="Server name", value="NanoVer-PY-GUI iMD Server"
                 )
-                show_progression = gr.Checkbox(label="Show simulation progression")
-
+                # Number input for port
+                port = gr.Number(label="Port", value=38801)
                 gr.Markdown("## Simulation")
                 # Slider for simulation FPS
                 simulation_fps = gr.Slider(1, 60, value=30, label="Simulation FPS")
@@ -159,14 +153,6 @@ def create_ui():
                 include_forces = gr.Checkbox(label="Include the forces in the frames")
 
             with gr.Column():
-                gr.Markdown("## Network")
-                # Textbox for server name
-                server_name = gr.Textbox(
-                    label="Server name", value="NanoVer-PY-GUI iMD Server"
-                )
-                # Number input for port
-                port = gr.Number(label="Port", value=38801)
-
                 gr.Markdown("## Recording")
                 with gr.Group():
                     record_trajectory = gr.Checkbox(label="Record Session")
@@ -205,8 +191,6 @@ def create_ui():
                 input_files,
                 trajectory_files,
                 state_file,
-                verbosity,
-                show_progression,
                 server_name,
                 port,
                 simulation_fps,
