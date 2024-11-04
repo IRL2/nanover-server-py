@@ -88,7 +88,6 @@ def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
     if save_state:
         state_xml_str = XmlSerializer.serialize(
             simulation.context.getState(
-                getPositions=True,
                 getVelocities=True,
                 getParameters=True,
                 getIntegratorParameters=True,
