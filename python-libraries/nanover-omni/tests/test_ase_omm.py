@@ -9,12 +9,24 @@ from nanover.omni.ase_omm import ASEOpenMMSimulation, CONSTRAINTS_UNSUPPORTED_ME
 from common import app_server, ARGON_XML_PATH
 from nanover.openmm.serializer import deserialize_simulation
 
+from openmm_simulation_utils import (
+    basic_system,
+    basic_simulation,
+    basic_simulation_with_imd_force,
+    BASIC_SIMULATION_POSITIONS,
+    empty_imd_force,
+    assert_basic_simulation_topology,
+    single_atom_system,
+    single_atom_simulation,
+    single_atom_simulation_with_imd_force,
+    ARGON_SIMULATION_POSITION,
+    assert_single_atom_simulation_topology,
+)
+
 
 @pytest.fixture
-def example_ase_omm(app_server):
-    with open(ARGON_XML_PATH, "r") as infile:
-        omm_sim = deserialize_simulation(infile)
-    sim = ASEOpenMMSimulation.from_simulation(omm_sim)
+def example_ase_omm(app_server, single_atom_simulation):
+    sim = ASEOpenMMSimulation.from_simulation(single_atom_simulation)
     sim.load()
     sim.reset(app_server)
     yield sim

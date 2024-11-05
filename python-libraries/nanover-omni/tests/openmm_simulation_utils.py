@@ -167,18 +167,6 @@ def basic_simulation_with_imd_force():
 
 
 @pytest.fixture
-def serialized_simulation_path(basic_simulation, tmp_path):
-    """
-    Setup an XML serialized simulation as a temporary file.
-    """
-    serialized_simulation = serializer.serialize_simulation(basic_simulation)
-    xml_path = tmp_path / "system.xml"
-    with open(str(xml_path), "w") as outfile:
-        outfile.write(serialized_simulation)
-    return xml_path
-
-
-@pytest.fixture
 def basic_simulation_xml(basic_simulation):
     """
     Generate an XML serialized simulation from the basic test simulation.
