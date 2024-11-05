@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from nanover.openmm import imd
+from nanover.openmm import imd, serializer
 from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.app import NanoverImdApplication, NanoverImdClient
@@ -49,6 +49,36 @@ def single_atom_app_and_simulation_with_constant_force(
     )
 
     app_server.imd.insert_interaction("interaction.test", interaction)
+
+    yield app_server, sim
+
+
+@pytest.fixture
+def basic_system_app_and_simulation_with_constant_force(
+    app_server, basic_simulation
+):
+    sim = OpenMMSimulation.from_simulation(basic_simulation)
+    sim.load()
+    sim.reset(app_server)
+
+    # Add a constant force interaction with the force positioned far
+    # from the origin and a harmonic force sqrt(2) from the origin,
+    # acting on different atoms
+    interaction_1 = ParticleInteraction(
+        interaction_type="constant",
+        position=(0.0, 0.0, 1000.0),
+        particles=[0],
+        scale=1,
+    )
+    interaction_2 = ParticleInteraction(
+        interaction_type="spring",
+        position=(1.0, 0.0, 1.0),
+        particles=[6],
+        scale=1,
+    )
+
+    app_server.imd.insert_interaction("interaction.test1", interaction_1)
+    app_server.imd.insert_interaction("interaction.test2", interaction_2)
 
     yield app_server, sim
 
@@ -139,3 +169,32 @@ def test_work_done_frame(single_atom_app_and_simulation_with_constant_force):
         client.subscribe_to_frames()
         client.wait_until_first_frame()
         assert client.current_frame.user_work_done == sim.work_done
+
+def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_force):
+    """
+    Test that the state of the system can be serialized and deserialized correctly
+    by testing that the velocities of the simulation being serialized approximately
+    equal those of the simulation loaded after serialization/deserialization.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+
+    # Run the simulation for a few steps
+    for _ in range(11):
+        sim.advance_to_next_report()
+
+    # Get velocities of state before serialization/deserialization
+    velocities = sim.simulation.context.getState(getVelocities=True).getVelocities()
+
+    # Serialize/deserialize simulation
+    serialized_simulation = serializer.serialize_simulation(sim.simulation, save_state=True)
+    sim_2 = serializer.deserialize_simulation(serialized_simulation)
+
+    # Get velocities of state after serialization/deserialization
+    loaded_velocities = sim_2.context.getState(getVelocities=True).getVelocities()
+
+    # Assert that all components of velocities are approximately equal before and after
+    # serialization/deserialization procedure.
+    for i in range(len(velocities)):
+        assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=1e-7)
+        assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=1e-7)
+        assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=1e-7)
