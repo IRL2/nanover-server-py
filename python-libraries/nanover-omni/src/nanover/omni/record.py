@@ -2,7 +2,6 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 import grpc
-from hypothesis.extra.ghostwriter import Except
 
 from nanover.protocol.state import StateStub, SubscribeStateUpdatesRequest
 from nanover.protocol.trajectory import TrajectoryServiceStub, GetFrameRequest
@@ -56,5 +55,5 @@ def main():
     print("recording finished")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
