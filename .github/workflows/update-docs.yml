@@ -9,9 +9,16 @@ jobs:
   trigger-submodule-update:
     runs-on: ubuntu-latest
     steps:
+      - name: Create GitHub App Token
+        uses: actions/create-github-app-token@v1.11.0
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
       - name: Trigger submodule update workflow in docs
         env:
-          DOCS_UPDATE_TOKEN: ${{ secrets.DOCS_UPDATE_TOKEN }}
+          DOCS_UPDATE_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
