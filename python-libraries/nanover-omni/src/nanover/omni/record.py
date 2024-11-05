@@ -1,6 +1,8 @@
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 import grpc
+from hypothesis.extra.ghostwriter import Except
 
 from nanover.protocol.state import StateStub, SubscribeStateUpdatesRequest
 from nanover.protocol.trajectory import TrajectoryServiceStub, GetFrameRequest
@@ -19,7 +21,7 @@ def record_from_server(address, trajectory_file, state_file):
     executor = ThreadPoolExecutor(max_workers=2)
     executor.submit(record_trajectory, trajectory_file, channel)
     executor.submit(record_state, state_file, channel)
-    return executor
+    return executor, channel
 
 
 def record_trajectory(path, channel):
@@ -36,3 +38,23 @@ def record_state(path, channel):
         request = SubscribeStateUpdatesRequest()
         stream = stub.SubscribeStateUpdates(request)
         record_messages(io, stream)
+
+
+def main():
+    executor, channel = record_from_server("localhost:38801", "test.traj", "test.state")
+
+    print("recording from server, press ctrl+c to finish")
+
+    try:
+        while True:
+            time.sleep(0.01)
+    except KeyboardInterrupt:
+        pass
+
+    channel.close()
+
+    print("recording finished")
+
+
+if __name__ == '__main__':
+    main()
