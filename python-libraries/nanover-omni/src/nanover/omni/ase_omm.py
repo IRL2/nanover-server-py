@@ -52,7 +52,7 @@ class ASEOpenMMSimulation(ASESimulation):
         assert self.simulation is not None
 
         self.openmm_calculator = OpenMMCalculator(self.simulation)
-        self.ase_atoms_to_frame_data = self.openmm_calculator.make_frame_adaptor()
+        self.ase_atoms_to_frame_data = self.openmm_calculator.make_frame_converter()
         atoms = self.openmm_calculator.generate_atoms()
 
         self.initial_calc = self.openmm_calculator
