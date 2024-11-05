@@ -1,7 +1,9 @@
 name: "Notify docs repo to update submodules"
 
 on:
-  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   trigger-submodule-update:
