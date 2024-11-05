@@ -54,9 +54,7 @@ def single_atom_app_and_simulation_with_constant_force(
 
 
 @pytest.fixture
-def basic_system_app_and_simulation_with_constant_force(
-    app_server, basic_simulation
-):
+def basic_system_app_and_simulation_with_constant_force(app_server, basic_simulation):
     sim = OpenMMSimulation.from_simulation(basic_simulation)
     sim.load()
     sim.reset(app_server)
@@ -170,6 +168,7 @@ def test_work_done_frame(single_atom_app_and_simulation_with_constant_force):
         client.wait_until_first_frame()
         assert client.current_frame.user_work_done == sim.work_done
 
+
 def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_force):
     """
     Test that the state of the system can be serialized and deserialized correctly
@@ -186,7 +185,9 @@ def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_f
     velocities = sim.simulation.context.getState(getVelocities=True).getVelocities()
 
     # Serialize/deserialize simulation
-    serialized_simulation = serializer.serialize_simulation(sim.simulation, save_state=True)
+    serialized_simulation = serializer.serialize_simulation(
+        sim.simulation, save_state=True
+    )
     sim_2 = serializer.deserialize_simulation(serialized_simulation)
 
     # Get velocities of state after serialization/deserialization

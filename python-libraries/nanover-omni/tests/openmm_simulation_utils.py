@@ -171,7 +171,9 @@ def serialized_simulation_path(basic_simulation, tmp_path):
     """
     Setup an XML serialized simulation as a temporary file.
     """
-    serialized_simulation = serializer.serialize_simulation(basic_simulation, save_state=True)
+    serialized_simulation = serializer.serialize_simulation(
+        basic_simulation, save_state=True
+    )
     xml_path = tmp_path / "system.xml"
     with open(str(xml_path), "w") as outfile:
         outfile.write(serialized_simulation)
@@ -277,7 +279,9 @@ def serialized_single_atom_simulation_path(single_atom_simulation, tmp_path):
     """
     Setup an XML serialized simulation for a single atom system as a temporary file.
     """
-    serialized_simulation = serializer.serialize_simulation(single_atom_simulation, save_state=True)
+    serialized_simulation = serializer.serialize_simulation(
+        single_atom_simulation, save_state=True
+    )
     xml_path = tmp_path / "system.xml"
     with open(str(xml_path), "w") as outfile:
         outfile.write(serialized_simulation)
@@ -289,7 +293,9 @@ def single_atom_simulation_xml(single_atom_simulation):
     """
     Generate an XML serialized simulation from the single atom test simulation.
     """
-    xml_string = serializer.serialize_simulation(single_atom_simulation, save_state=True)
+    xml_string = serializer.serialize_simulation(
+        single_atom_simulation, save_state=True
+    )
     return xml_string
 
 

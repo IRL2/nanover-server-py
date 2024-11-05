@@ -22,9 +22,9 @@ optionally, an OpenMM serialized state. The resulting XML file looks like:
         </State>
     </OpenMMSimulation>
 
-The ``System`` and ``Integrator`` tags are the roots of the serialized system
-and integrator, respectively. The ``pdbx`` tag can be replaced by a ``pdb``
-one for backward compatibility.
+The ``System``, ``Integrator`` and ``State`` tags are the roots of the serialized
+system, integrator and state, respectively. The ``pdbx`` tag can be replaced by a
+ ``pdb`` one for backward compatibility.
 
 This module provides a function :func:`serialize_simulation` that generates an
 XML file from an existing instance of :class:`openmm.app.Simulation`, and
@@ -165,7 +165,7 @@ def deserialize_simulation(
 
     state_nodes = document.getElementsByTagName("State")
     if state_nodes and not ignore_state:
-        state_node, = state_nodes
+        (state_node,) = state_nodes
         state_content = state_node.toprettyxml()
         state = XmlSerializer.deserialize(state_content)
         simulation.context.setState(state)
