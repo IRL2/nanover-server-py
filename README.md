@@ -163,8 +163,7 @@ Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tuto
 ### ASE IMD Simulations Jupyter Notebooks
 
 The [`examples/ase`](examples/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
-from a notebook. The [NanoVer ASE documentation](python-libraries/nanover-ase/README.md) provides more details on setting 
-up ASE simulations.
+from a notebook.
 
 ### MD Analysis Trajectories
 

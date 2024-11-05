@@ -1,6 +1,6 @@
 import pytest
 from nanover.ase.converter import KJMOL_TO_EV
-from nanover.ase.openmm import OpenMMCalculator
+from nanover.ase.omm_calculator import OpenMMCalculator
 from openmm.unit import (
     kilojoules_per_mole,
     nanometer,
@@ -8,7 +8,7 @@ from openmm.unit import (
 )  # pylint: disable=no-name-in-module
 import numpy as np
 
-from .simulation_utils import basic_simulation, serialized_simulation_path
+from omm_simulation_utils import basic_simulation, serialized_simulation_path
 
 
 @pytest.fixture

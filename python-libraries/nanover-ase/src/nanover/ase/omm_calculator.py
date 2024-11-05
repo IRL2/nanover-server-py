@@ -12,7 +12,9 @@ from openmm import System, State
 from openmm.app import Topology, Simulation
 from openmm.unit import angstrom, kilojoules_per_mole, kilojoule_per_mole, amu, Quantity
 
-from nanover.ase.converter import KJMOL_TO_EV
+from nanover.ase.converter import KJMOL_TO_EV, ase_to_frame_data
+from nanover.openmm.converter import add_openmm_topology_to_frame_data
+from nanover.trajectory import FrameData
 
 
 class OpenMMCalculator(Calculator):
@@ -109,6 +111,31 @@ class OpenMMCalculator(Calculator):
             atoms.append(ase_atom)
 
         return atoms
+
+    def make_frame_converter(self):
+        """
+        Return a function that converts ase atoms into frame data, using the topology available from this calculator
+        instead of from the ase atoms.
+        """
+
+        def openmm_ase_atoms_to_frame_data(
+            ase_atoms: Atoms,
+            *,
+            topology: bool,
+            **kwargs,
+        ) -> FrameData:
+            frame_data = ase_to_frame_data(
+                ase_atoms,
+                topology=False,
+                **kwargs,
+            )
+
+            if topology:
+                add_openmm_topology_to_frame_data(frame_data, self.topology)
+
+            return frame_data
+
+        return openmm_ase_atoms_to_frame_data
 
     @property
     def topology(self):
