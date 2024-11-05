@@ -117,6 +117,7 @@ class OpenMMCalculator(Calculator):
         Return a function that converts ase atoms into frame data, using the topology available from this calculator
         instead of from the ase atoms.
         """
+
         def openmm_ase_atoms_to_frame_data(
             ase_atoms: Atoms,
             *,
