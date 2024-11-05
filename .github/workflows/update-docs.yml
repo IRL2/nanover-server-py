@@ -13,8 +13,8 @@ jobs:
         uses: actions/create-github-app-token@v1.11.0
         id: app-token
         with:
-          app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.PRIVATE_KEY }}
+          app-id: ${{ vars.DOCS_UPDATE_APP_ID }}
+          private-key: ${{ secrets.DOCS_UPDATE_PRIVATE_KEY }}
 
       - name: Trigger submodule update workflow in docs
         env:
