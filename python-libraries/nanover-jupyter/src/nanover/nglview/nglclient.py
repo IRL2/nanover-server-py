@@ -32,10 +32,10 @@ class NGLClient(NanoverImdClient):
 
     :param dynamic_bonds: A boolean flag that dictates whether bonds should be dynamically updated
         during the simulation.
-    :param *args: Additional arguments passed to the parent class (NanoverImdClient) constructor.
+    :param args: Additional arguments passed to the parent class (NanoverImdClient) constructor.
     :param update_callback: An optional callback function executed each time a new frame is
         received (CURRENTLY UNUSED).
-    :param **kwargs: Additional arguments passed to the parent class (NanoverImdClient) constructor.
+    :param kwargs: Additional arguments passed to the parent class (NanoverImdClient) constructor.
     """
 
     def __init__(self, dynamic_bonds=False, *args, update_callback=None, **kwargs):
