@@ -17,11 +17,14 @@ optionally, an OpenMM serialized state. The resulting XML file looks like:
         <Integrator ...>
             // XML content of the OpenMM serialized integrator
         </Integrator>
+        <State>
+            // XML content of the OpenMM serialized state
+        </State>
     </OpenMMSimulation>
 
-The ``System`` and ``Integrator`` tags are the roots of the serialized system
-and integrator, respectively. The ``pdbx`` tag can be replaced by a ``pdb``
-one for backward compatibility.
+The ``System``, ``Integrator`` and ``State`` tags are the roots of the serialized
+system, integrator and state, respectively. The ``pdbx`` tag can be replaced by a
+ ``pdb`` one for backward compatibility.
 
 This module provides a function :func:`serialize_simulation` that generates an
 XML file from an existing instance of :class:`openmm.app.Simulation`, and
@@ -47,11 +50,12 @@ from .imd import populate_imd_force
 ROOT_TAG = "OpenMMSimulation"
 
 
-def serialize_simulation(simulation: app.Simulation) -> str:
+def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
     """
     Generate an XML string from a simulation.
 
     :param simulation: The simulation to serialize.
+    :param save_state: Save the present state of the simulation too.
     :return: A string with the content of an XML file describing the simulation.
     """
     implementation = getDOMImplementation()
@@ -80,6 +84,18 @@ def serialize_simulation(simulation: app.Simulation) -> str:
     root.appendChild(system_document.documentElement)
     root.appendChild(integrator_document.documentElement)
 
+    # Extract and append the state
+    if save_state:
+        state_xml_str = XmlSerializer.serialize(
+            simulation.context.getState(
+                getVelocities=True,
+                getParameters=True,
+                getIntegratorParameters=True,
+            )
+        )
+        state_document = parseString(state_xml_str)
+        root.appendChild(state_document.documentElement)
+
     return root.toprettyxml()
 
 
@@ -87,6 +103,7 @@ def deserialize_simulation(
     xml_content: Union[str | TextIO],
     imd_force: Optional[CustomExternalForce] = None,
     platform_name: Optional[str] = None,
+    ignore_state=False,
 ) -> app.Simulation:
     """
     Create an OpenMM simulation from XML.
@@ -95,6 +112,7 @@ def deserialize_simulation(
     :param imd_force: Optionally, an imd force to populate and add to the
         system. The force must be created by
         :func:`nanover.openmm.potentials.create_imd_force`.
+    :param ignore_state: Ignore serialized state when present
     :return: An instance of the simulation.
     """
     if isinstance(xml_content, str):
@@ -144,6 +162,14 @@ def deserialize_simulation(
         platform=platform,
     )
     simulation.context.setPositions(pdb.positions)
+
+    state_nodes = document.getElementsByTagName("State")
+    if state_nodes and not ignore_state:
+        (state_node,) = state_nodes
+        state_content = state_node.toprettyxml()
+        state = XmlSerializer.deserialize(state_content)
+        simulation.context.setState(state)
+
     return simulation
 
 
