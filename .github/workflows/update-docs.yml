@@ -13,7 +13,10 @@ jobs:
         with:
           app-id: ${{ vars.DOCS_UPDATE_APP_ID }}
           private-key: ${{ secrets.DOCS_UPDATE_PRIVATE_KEY }}
-
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            nanover-protocol
+            nanover-docs
       - name: Trigger submodule update workflow in docs
         env:
           DOCS_UPDATE_TOKEN: ${{ steps.app-token.outputs.token }}
