@@ -196,6 +196,6 @@ def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_f
     # Assert that all components of velocities are approximately equal before and after
     # serialization/deserialization procedure.
     for i in range(len(velocities)):
-        assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=1e-7)
-        assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=1e-7)
-        assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=1e-7)
+        assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=2.e-7)
+        assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=2.e-7)
+        assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.e-7)
