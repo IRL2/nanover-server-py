@@ -13,43 +13,9 @@ the two previous functions. When a simulation is created using
 :func:`nanover.openmm.serializer.deserialize_simulation`, the imd force must be
 already present, or must be added by passing it with the ``imd_force``
 parameter.
-
-The reporter is :class:`NanoverImdReporter` and both sends the frames and
-receives the interactions. It can be use instead of
-:class:`nanover.openmm.NanoverReporter` that only sends the frames.
-
-.. code:: python
-
-    from nanover.app import NanoverImdApplication
-    from nanover.openmm.serializer import deserialize_simulation
-    from nanover.openmm.imd import NanoverImdReporter, create_imd_force
-
-    # Setup the NanoVer application server
-    # The server is accessible using autoconnect.
-    with NanoverImdApplication.basic_server() as app:
-
-        # Create the imd force and a simulation that includes it.
-        imd_force = create_imd_force()
-        with open('simulation.xml') as infile:
-            simulation = deserialize_simulation(infile.read(), imd_force=imd_force)
-
-        # Setup the reporter that does the translation between NanoVer and OpenMM
-        reporter = NanoverImdReporter(
-            frame_interval=5,
-            force_interval=10,
-            imd_force=imd_force,
-            imd_service=app.imd,
-            frame_publisher=app.frame_publisher,
-        )
-        simulation.reporters.append(reporter)
-
-        # Run the simulation
-        while True:
-            simulation.run(10)
-
 """
 
-from typing import Dict, List, Set, Optional, Tuple
+from typing import Dict, Set, Optional, Tuple
 import itertools
 
 import numpy as np
@@ -73,6 +39,10 @@ NON_IMD_FORCES_GROUP_MASK = ALL_FORCES_GROUP_MASK ^ IMD_FORCES_GROUP_MASK
 
 
 class ImdForceManager:
+    """
+    Manages the updating of the custom IMD force used in openmm from the NanoVer state that represents user interactions.
+    """
+
     def __init__(self, imd_state: ImdStateWrapper, imd_force: CustomExternalForce):
         self.imd_state = imd_state
         self.imd_force = imd_force
@@ -86,6 +56,11 @@ class ImdForceManager:
         self._total_user_energy = 0.0
 
     def update_interactions(self, simulation: Simulation, positions: np.ndarray):
+        """
+        Apply per particle forces according to current interactions and current particle positions.
+        :param simulation: OpenMM simulation the forces will be applied to.
+        :param positions: Current positions of atoms that forces will be applied to.
+        """
         if self.masses is None:
             self._update_masses(simulation.system)
 
@@ -96,6 +71,10 @@ class ImdForceManager:
         )
 
     def add_to_frame_data(self, frame_data: FrameData):
+        """
+        Add fields to frame data corresponding to current interaction state e.g forces, energies, etc
+        :param frame_data: Frame data object to add fields to.
+        """
         frame_data.user_energy = self.total_user_energy
         sparse_indices, sparse_forces = get_sparse_forces(self.user_forces)
         frame_data.user_forces_sparse = sparse_forces

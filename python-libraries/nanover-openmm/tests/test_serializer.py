@@ -7,6 +7,7 @@ Tests for :mod:`nanover.openmm.serializer`.
 from xml.dom.minidom import parseString
 import pytest
 
+from nanover.openmm.imd import create_imd_force
 from nanover.openmm.serializer import (
     serialize_simulation,
     deserialize_simulation,
