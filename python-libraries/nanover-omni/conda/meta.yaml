@@ -21,7 +21,6 @@ requirements:
     - nanover-core =={{ NANOVER_BUILD_VERSION }}
     - nanover-openmm =={{ NANOVER_BUILD_VERSION }}
     - nanover-ase =={{ NANOVER_BUILD_VERSION }}
-    - nanover-lammps =={{ NANOVER_BUILD_VERSION }}
     - nanover-mdanalysis =={{ NANOVER_BUILD_VERSION }}
 
 about:

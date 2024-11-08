@@ -17,7 +17,7 @@ jobs:
           auto-update-conda: true
           miniforge-version: latest
       - name: Install nanover dependancies
-        run: conda install -y mpi4py openmm
+        run: conda install -y openmm
       - name: Install tests dependancies
         run: python -m pip install -r python-libraries/requirements.test
       - name: Compile
@@ -41,7 +41,7 @@ jobs:
           auto-update-conda: true
           miniforge-version: latest
       - name: Install nanover dependancies
-        run: conda install -y mpi4py openmm
+        run: conda install -y openmm
       - name: Install tests dependancies
         run: python -m pip install -r python-libraries/requirements.test
       - name: Compile (mypy requires --no-edit)
@@ -78,7 +78,7 @@ jobs:
           auto-update-conda: true
           miniforge-version: latest
       - name: Install nanover dependancies
-        run: conda install -y mpi4py openmm
+        run: conda install -y openmm
       - name: Install ruff
         run: python -m pip install ruff black
       - name: Compile

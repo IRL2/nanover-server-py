@@ -81,16 +81,14 @@ page in our documentation for detailed instructions on installing NanoVer.
     * Activate the conda environment: `conda activate nanover-dev`
     * Install the required conda packages: `conda install -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
     * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
-* The `nanover-lammps` module and its tests require MPI to be installed. Download and install Microsoft MPI from https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
 
 ### Mac and Linux
 
 * Install Anaconda
 * Clone the nanover-protocol repository
 * In a terminal, in the repository root:
-    * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.11"`
+    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase mpi4py`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Install the required conda package: `conda install -c conda-forge openmm MDAnalysis MDAnalysisTests ase mpi4py`
     * Compile the protocol and install the NanoVer python libraries in your conda environment: `./compile.sh --no-dotnet`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit --no-dotnet` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
 
 Here, we installed only the python library. Using the `--no-dotnet` argument, we skipped building the C# libraries for NanoVer. Would you want to work on these library, you would need to:
@@ -165,8 +163,7 @@ Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tuto
 ### ASE IMD Simulations Jupyter Notebooks
 
 The [`examples/ase`](examples/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
-from a notebook. The [NanoVer ASE documentation](python-libraries/nanover-ase/README.md) provides more details on setting 
-up ASE simulations.
+from a notebook.
 
 ### MD Analysis Trajectories
 
@@ -194,11 +191,9 @@ This project has been made possible by the following open source projects. We gr
 * [gRPC](https://grpc.io/) (Apache v2) - Communication protocol.
 * [ASE](https://wiki.fysik.dtu.dk/ase/) (LGPLv3): Atomic simulation environment used for running simulations ([citation](https://iopscience.iop.org/article/10.1088/1361-648X/aa680e)).
 * [OpenMM](http://openmm.org/) (MIT, LGPLv3): GPU accelerated molecular mechanics library ([citation](https://simtk.org/plugins/publications/index.php/?group_id=161)).
-* [LAMMPS](https://lammps.sandia.gov/) (GPLv2): Molecular mechanics library ([citation](https://lammps.sandia.gov/cite.html)).
 * [MDAnalysis](https://www.mdanalysis.org/) (GPLv2): Molecular dynamics analysis library ([citations](https://www.mdanalysis.org/pages/citations/)).
 * [NGLView](https://nglviewer.org/#nglview) (MIT): IPython/Jupyter widget to interactively view structures and trajectories ([citations](http://nglviewer.org/nglview/latest/#cite)).
 * [python-osc](https://pypi.org/project/python-osc/) (Public domain) - Open sound control library.
-* [MPI4Py](https://mpi4py.readthedocs.io/en/stable/index.html) ([BSD 2-clause license](https://bitbucket.org/mpi4py/mpi4py/src/master/LICENSE.rst)): MPI library for python, used with LAMMPS ([citation](https://mpi4py.readthedocs.io/en/stable/citing.html)).
 * [Numpy](https://numpy.org/) (BSD) - Numerical computation library.
 * [Netifaces](https://pypi.org/project/netifaces/) (MIT) - Portable library for accessing network interface information.
 * [Pytest](https://docs.pytest.org/en/latest/) (MIT) - Python testing framework
