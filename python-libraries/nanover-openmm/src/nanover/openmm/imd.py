@@ -236,25 +236,6 @@ def add_imd_force_to_system(system: System) -> CustomExternalForce:
     return force
 
 
-def get_imd_forces_from_system(system: Simulation) -> List[CustomExternalForce]:
-    """
-    Find the forces that are compatible with an imd force in a given system.
-
-    A compatible force has the expected energy expression, and contains as
-    many particles as the system.
-
-    All the compatible force objects are returned.
-    """
-    system_num_particles = system.getNumParticles()
-    return [
-        force
-        for force in system.getForces()
-        if isinstance(force, CustomExternalForce)
-        and force.getEnergyFunction() == IMD_FORCE_EXPRESSION
-        and force.getNumParticles() == system_num_particles
-    ]
-
-
 def get_sparse_forces(user_forces: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray]:
     """
     Takes in an array of user forces acting on the system containing N particles

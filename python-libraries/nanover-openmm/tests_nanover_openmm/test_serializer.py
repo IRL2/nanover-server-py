@@ -12,7 +12,6 @@ from nanover.openmm.serializer import (
     deserialize_simulation,
     ROOT_TAG,
 )
-from nanover.openmm.imd import create_imd_force, get_imd_forces_from_system
 
 from .simulation_utils import (
     basic_simulation,
@@ -104,10 +103,7 @@ def test_imd_force(basic_simulation_xml, empty_imd_force):
     added to the system.
     """
     simulation = deserialize_simulation(basic_simulation_xml, empty_imd_force)
-
-    putative_imd_forces = get_imd_forces_from_system(simulation.system)
-    assert len(putative_imd_forces) == 1
-    force_obtained = putative_imd_forces[0]
+    force_obtained = simulation.system.getForces()[-1]
     force_added = empty_imd_force
     # The forces are the same if by modifying one we also modify the other.
     force_added.setParticleParameters(0, 0, (1.0, 2.0, 3.0))

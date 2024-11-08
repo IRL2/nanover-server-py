@@ -87,14 +87,3 @@ def test_add_imd_force_to_system_force_is_in_system(basic_system):
     force_added.setParticleParameters(0, 0, (1.0, 2.0, 3.0))
     parameters = force_obtained.getParticleParameters(0)
     assert parameters == [0, (1.0, 2.0, 3.0)]
-
-
-@pytest.mark.parametrize("number_of_forces", (0, 1, 2))
-def test_get_imd_forces_from_system(basic_system, number_of_forces):
-    """
-    :func:`imd.get_imd_forces_from_system` returns all the compatible forces.
-    """
-    for _ in range(number_of_forces):
-        imd.add_imd_force_to_system(basic_system)
-    compatible_forces = imd.get_imd_forces_from_system(basic_system)
-    assert len(compatible_forces) == number_of_forces
