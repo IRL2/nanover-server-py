@@ -77,9 +77,8 @@ page in our documentation for detailed instructions on installing NanoVer.
 * Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
 * Clone the nanover-protocol repository
 * In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.11"`
+    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase mpi4py`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Install the required conda packages: `conda install -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
     * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
 
 ### Mac and Linux
