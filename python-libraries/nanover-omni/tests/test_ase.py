@@ -83,15 +83,15 @@ def test_simulation_time(example_ase_app_sim):
 
     app, sim = example_ase_app_sim
 
-    # Advance simulation by 75 fs
+    # Advance simulation by 75 fs (0.075 ps)
     for _ in range(30):
         sim.advance_by_one_step()
-    time_elapsed = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
-    assert time_elapsed == 75.0 * 1e-3
+    time_elapsed_ps = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
+    assert time_elapsed_ps == 75.0 * 1e-3
 
     with NanoverImdClient.connect_to_single_server(
         port=app.port, address="localhost"
     ) as client:
         client.subscribe_to_frames()
         client.wait_until_first_frame()
-        assert client.current_frame.simulation_time == time_elapsed
+        assert client.current_frame.simulation_time == time_elapsed_ps
