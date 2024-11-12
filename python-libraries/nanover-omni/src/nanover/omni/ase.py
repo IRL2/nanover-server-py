@@ -8,7 +8,7 @@ from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
 from nanover.app import NanoverImdApplication
-from nanover.ase.converter import EV_TO_KJMOL, ase_atoms_to_frame_data
+from nanover.ase.converter import EV_TO_KJMOL, ASE_TIME_UNIT_TO_FS, ase_atoms_to_frame_data
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData
@@ -171,6 +171,9 @@ class ASESimulation:
 
         # generate the next frame
         frame_data = self.make_regular_frame()
+
+        # Add simulation time to the frame
+        frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_FS
 
         # send the next frame
         self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)

@@ -7,6 +7,7 @@ NanoVer clients.
 from typing import Iterable, Optional
 
 from ase import Atoms, Atom  # type: ignore
+from ase.units import fs as ase_units_to_fs
 import itertools
 import numpy as np
 import numpy.typing as npt
@@ -17,6 +18,8 @@ ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM
 KJMOL_TO_EV = 0.01036427
 EV_TO_KJMOL = 1.0 / KJMOL_TO_EV
+FS_TO_ASE_TIME_UNIT = ase_units_to_fs
+ASE_TIME_UNIT_TO_FS = 1.0 / FS_TO_ASE_TIME_UNIT
 
 # from https://chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_Maps/Supplemental_Modules_(Physical_and_Theoretical_Chemistry)/Chemical_Bonding/Fundamentals_of_Chemical_Bonding/Covalent_Bond_Distance%2C_Radius_and_van_der_Waals_Radius
 # TODO make a helper class with complete coverage of this stuff.
