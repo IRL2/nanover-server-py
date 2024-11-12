@@ -1,3 +1,5 @@
+import os.path
+
 import gradio as gr
 
 imd_runner = None
@@ -43,6 +45,7 @@ def run_simulation(
     from nanover.omni.playback import PlaybackSimulation
     from nanover.omni.openmm import OpenMMSimulation
     from nanover.omni.record import record_from_server
+    from os.path import basename
     global imd_runner
 
     # Initialize simulation files list
@@ -50,7 +53,7 @@ def run_simulation(
     for i in range(len(input_files)):
         if input_files[i].endswith(".xml"):
             # Create OpenMMSimulation from XML file
-            simulation = OpenMMSimulation.from_xml_path(input_files[i], name=str(i))
+            simulation = OpenMMSimulation.from_xml_path(input_files[i], name=str(basename(input_files[i])))
             simulation.frame_interval = frame_interval
             simulation.include_velocities = include_velocities
             simulation.include_forces = include_forces
@@ -92,7 +95,7 @@ def run_simulation(
                 shared_state_file,
             )
 
-    return f"Simulation started with type: {simulation_type}, settings: {locals()}"
+    return f"Simulation started with type: settings: {locals()}"
 
 
 def stop_simulation():
@@ -120,15 +123,15 @@ def create_ui():
             with gr.Column(visible=True) as realtime_col:
                 # File input for live simulation
                 input_files = gr.File(
-                    label="Input Files (for From xml)", file_count="multiple", file_types=[".xml",]
+                    label="Input Files (for From xml)", file_count="multiple"
                 )
             with gr.Column(visible=False) as playback_col:
                 # File inputs for playback simulation
                 trajectory_files = gr.File(
-                    label="Trajectory Files (for playback)", file_count="multiple", file_types=[".traj",]
+                    label="Trajectory Files (for playback)", file_count="multiple"
                 )
                 state_file = gr.File(
-                    label="State File (for playback)", file_count="multiple", file_types=[".state",]
+                    label="State File (for playback)", file_count="multiple"
                 )
 
         with gr.Row():
