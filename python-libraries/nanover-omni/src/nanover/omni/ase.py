@@ -176,9 +176,6 @@ class ASESimulation:
         # generate the next frame
         frame_data = self.make_regular_frame()
 
-        # Add simulation time to the frame
-        frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_FS
-
         # send the next frame
         self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
         self.frame_index += 1
@@ -209,9 +206,14 @@ class ASESimulation:
         """
         assert self.atoms is not None
 
-        return self.ase_atoms_to_frame_data(
+        frame_data =  self.ase_atoms_to_frame_data(
             self.atoms,
             topology=False,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
+
+        # Add simulation time to the frame
+        frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_FS
+
+        return frame_data
