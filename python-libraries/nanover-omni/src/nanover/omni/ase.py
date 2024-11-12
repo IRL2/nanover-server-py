@@ -214,6 +214,7 @@ class ASESimulation:
         )
 
         # Add simulation time to the frame
-        frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
+        if self.dynamics is not None:
+            frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
 
         return frame_data
