@@ -8,7 +8,7 @@ from nanover.imd import ParticleInteraction
 from nanover.app import NanoverImdClient
 from nanover.omni import OmniRunner
 from nanover.omni.ase import ASESimulation
-from nanover.ase.converter import ASE_TIME_UNIT_TO_FS
+from nanover.ase.converter import ASE_TIME_UNIT_TO_PS
 
 from common import app_server
 
@@ -79,15 +79,15 @@ def test_simulation_time(example_ase_app_sim):
     simulation time (in fs).
     """
     # Check consistency of unit conversion:
-    assert (1.0 / ase_units.fs) == ASE_TIME_UNIT_TO_FS
+    assert (1.0 / (1e3 * ase_units.fs)) == ASE_TIME_UNIT_TO_PS
 
     app, sim = example_ase_app_sim
 
     # Advance simulation by 75 fs
     for _ in range(30):
         sim.advance_by_one_step()
-    time_elapsed = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_FS
-    assert time_elapsed == 75.0
+    time_elapsed = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
+    assert time_elapsed == 75.0 * 1e-3
 
     with NanoverImdClient.connect_to_single_server(
         port=app.port, address="localhost"

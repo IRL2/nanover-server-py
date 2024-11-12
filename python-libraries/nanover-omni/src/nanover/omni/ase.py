@@ -10,7 +10,7 @@ from ase.md.md import MolecularDynamics
 from nanover.app import NanoverImdApplication
 from nanover.ase.converter import (
     EV_TO_KJMOL,
-    ASE_TIME_UNIT_TO_FS,
+    ASE_TIME_UNIT_TO_PS,
     ase_atoms_to_frame_data,
 )
 from nanover.ase.imd_calculator import ImdCalculator
@@ -214,6 +214,6 @@ class ASESimulation:
         )
 
         # Add simulation time to the frame
-        frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_FS
+        frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
 
         return frame_data
