@@ -206,7 +206,7 @@ class ASESimulation:
         """
         assert self.atoms is not None
 
-        frame_data =  self.ase_atoms_to_frame_data(
+        frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
             topology=False,
             include_velocities=self.include_velocities,
