@@ -76,7 +76,7 @@ def test_dynamics_interaction(example_ase):
 def test_simulation_time(example_ase_app_sim):
     """
     Test that the simulation time delivered in the frame matches the elapsed
-    simulation time (in fs).
+    simulation time (in ps).
     """
     # Check consistency of unit conversion:
     assert (1.0 / (1e3 * ase_units.fs)) == ASE_TIME_UNIT_TO_PS
