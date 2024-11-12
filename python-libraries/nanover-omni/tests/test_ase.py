@@ -89,6 +89,8 @@ def test_simulation_time(example_ase_app_sim):
     time_elapsed_ps = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
     assert time_elapsed_ps == 75.0 * 1e-3
 
+    # Check that time delivered to client is the same as the time elapsed
+    # in the simulation
     with NanoverImdClient.connect_to_single_server(
         port=app.port, address="localhost"
     ) as client:
