@@ -5,8 +5,10 @@ from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
 
 from nanover.imd import ParticleInteraction
+from nanover.app import NanoverImdClient
 from nanover.omni import OmniRunner
 from nanover.omni.ase import ASESimulation
+from nanover.ase.converter import ASE_TIME_UNIT_TO_FS
 
 from common import app_server
 
@@ -17,6 +19,14 @@ def example_ase(app_server, example_dynamics):
     sim.load()
     sim.reset(app_server)
     yield sim
+
+
+@pytest.fixture
+def example_ase_app_sim(app_server, example_dynamics):
+    sim = ASESimulation.from_ase_dynamics(example_dynamics)
+    sim.load()
+    sim.reset(app_server)
+    yield app_server, sim
 
 
 @pytest.fixture
@@ -61,3 +71,27 @@ def test_dynamics_interaction(example_ase):
     # using the velocity verlet algorithm should move the atom by 0.028125 nm
     # using s = u*t + 0.5*a*(t^2). Allow for numerical error with pytest.approx:
     assert z == pytest.approx(0.028125, abs=1e-8)
+
+
+def test_simulation_time(example_ase_app_sim):
+    """
+    Test that the simulation time delivered in the frame matches the elapsed
+    simulation time (in fs).
+    """
+    # Check consistency of unit conversion:
+    assert (1.0 / ase_units.fs) == ASE_TIME_UNIT_TO_FS
+
+    app, sim = example_ase_app_sim
+
+    # Advance simulation by 75 fs
+    for _ in range(30):
+        sim.advance_by_one_step()
+
+    time_elapsed = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_FS
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        assert client.current_frame.simulation_time == time_elapsed
