@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 from ase import units, Atoms
 import ase.units as ase_units
 from ase.calculators.lj import LennardJones
@@ -30,11 +31,73 @@ def example_ase_app_sim(app_server, example_dynamics):
 
 
 @pytest.fixture
+def example_ase_app_sim_constant_force_interaction(example_ase_app_sim):
+    app, sim = example_ase_app_sim
+
+    # Add iMD interaction
+    sim.app_server.imd.insert_interaction(
+        "interaction.0",
+        ParticleInteraction(
+            position=(1.0, 2.0, 10.0),
+            particles=[0],
+            interaction_type="constant",
+        ),
+    )
+    yield app, sim
+
+
+@pytest.fixture
 def example_dynamics():
     atoms = Atoms("Ar", positions=[(0, 0, 0)], cell=[2, 2, 2])
     atoms.calc = LennardJones()
     dynamics = VelocityVerlet(atoms, timestep=0.5 * ase_units.fs)
     yield dynamics
+
+
+@pytest.fixture
+def multiple_atom_dynamics():
+    # Generate system of multiple Argon atoms
+    atoms = Atoms(
+        ["Ar" for _ in range(10)],
+        positions=[(0, 0, i) for i in range(10)],
+        cell=[2, 2, 2],
+    )
+    atoms.calc = LennardJones()
+    dynamics = VelocityVerlet(atoms, timestep=0.5 * ase_units.fs)
+    yield dynamics
+
+
+@pytest.fixture
+def multiple_atom_ase_app_sim(app_server, multiple_atom_dynamics):
+    sim = ASESimulation.from_ase_dynamics(multiple_atom_dynamics)
+    sim.load()
+    sim.reset(app_server)
+    yield app_server, sim
+
+
+@pytest.fixture
+def multiple_atom_ase_app_sim_multiple_interactions(multiple_atom_ase_app_sim):
+    app, sim = multiple_atom_ase_app_sim
+
+    # Add iMD interactions
+    sim.app_server.imd.insert_interaction(
+        "interaction.0",
+        ParticleInteraction(
+            position=(1.0, 2.0, 10.0),
+            particles=[0, 4],
+            interaction_type="constant",
+        ),
+    )
+    sim.app_server.imd.insert_interaction(
+        "interaction.1",
+        ParticleInteraction(
+            position=(-1.0, 10.0, 2.0),
+            particles=[2, 5, 8],
+            interaction_type="spring",
+        ),
+    )
+
+    yield app, sim
 
 
 def test_step_interval(example_ase):
@@ -97,3 +160,52 @@ def test_simulation_time(example_ase_app_sim):
         client.subscribe_to_frames()
         client.wait_until_first_frame()
         assert client.current_frame.simulation_time == time_elapsed_ps
+
+
+def test_sparse_user_forces(multiple_atom_ase_app_sim_multiple_interactions):
+    """
+    Test that the sparse user forces exist in the frame data when a user applies an iMD force,
+    check that the size of the array of forces is equal to the size of the array of corresponding
+    indices, and check that none of the elements of the sparse forces array are zero.
+    """
+    app, sim = multiple_atom_ase_app_sim_multiple_interactions
+
+    # Advance simulation by 30 steps with interaction applied
+    for _ in range(30):
+        sim.advance_by_one_step()
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        frame = client.current_frame
+        assert frame.user_forces_sparse
+        assert frame.user_forces_index
+        assert len(frame.user_forces_index) == 5
+        assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
+        assert np.all(frame.user_forces_sparse) != 0.0
+
+
+def test_user_energy(example_ase_app_sim_constant_force_interaction):
+    """
+    Test that the user energy exists in the frame when a user applies a force in iMD,
+    and check that that energy equals the expected energy for the constant force
+    applied to the single atom (the user energy should be equal to the magnitude
+    of the constant force).
+    """
+    app, sim = example_ase_app_sim_constant_force_interaction
+    # Advance simulation by 30 steps with interaction applied
+    for _ in range(30):
+        sim.advance_by_one_step()
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        frame = client.current_frame
+        assert frame.user_energy
+        assert frame.user_energy == pytest.approx(
+            np.sqrt(np.sum(np.square(frame.user_forces_sparse))), abs=1e-6
+        )
