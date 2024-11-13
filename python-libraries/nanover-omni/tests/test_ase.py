@@ -1,11 +1,14 @@
 import pytest
 from ase import units, Atoms
+import ase.units as ase_units
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
 
 from nanover.imd import ParticleInteraction
+from nanover.app import NanoverImdClient
 from nanover.omni import OmniRunner
 from nanover.omni.ase import ASESimulation
+from nanover.ase.converter import ASE_TIME_UNIT_TO_PS
 
 from common import app_server
 
@@ -19,10 +22,18 @@ def example_ase(app_server, example_dynamics):
 
 
 @pytest.fixture
+def example_ase_app_sim(app_server, example_dynamics):
+    sim = ASESimulation.from_ase_dynamics(example_dynamics)
+    sim.load()
+    sim.reset(app_server)
+    yield app_server, sim
+
+
+@pytest.fixture
 def example_dynamics():
-    atoms = Atoms("C", positions=[(0, 0, 0)], cell=[2, 2, 2])
+    atoms = Atoms("Ar", positions=[(0, 0, 0)], cell=[2, 2, 2])
     atoms.calc = LennardJones()
-    dynamics = VelocityVerlet(atoms, timestep=0.5)
+    dynamics = VelocityVerlet(atoms, timestep=0.5 * ase_units.fs)
     yield dynamics
 
 
@@ -55,4 +66,34 @@ def test_dynamics_interaction(example_ase):
     positions = example_ase.atoms.get_positions()
     (x, y, z) = positions[0]
 
-    assert z > 2.5
+    # Applying a force of 1 kJ mol-1 nm-1 for
+    # t = (0.5 fs * 5 simulation steps per advance * 30 advances) = 75 fs
+    # using the velocity verlet algorithm should move the atom by 0.028125 nm
+    # using s = u*t + 0.5*a*(t^2). Allow for numerical error with pytest.approx:
+    assert z == pytest.approx(0.028125, abs=1e-8)
+
+
+def test_simulation_time(example_ase_app_sim):
+    """
+    Test that the simulation time delivered in the frame matches the elapsed
+    simulation time (in ps).
+    """
+    # Check consistency of unit conversion:
+    assert (1.0 / (1e3 * ase_units.fs)) == ASE_TIME_UNIT_TO_PS
+
+    app, sim = example_ase_app_sim
+
+    # Advance simulation by 75 fs (0.075 ps)
+    for _ in range(30):
+        sim.advance_by_one_step()
+    time_elapsed_ps = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
+    assert time_elapsed_ps == 75.0 * 1e-3
+
+    # Check that time delivered to client is the same as the time elapsed
+    # in the simulation
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        assert client.current_frame.simulation_time == time_elapsed_ps

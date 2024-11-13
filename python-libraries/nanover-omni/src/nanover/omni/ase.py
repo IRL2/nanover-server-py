@@ -8,7 +8,11 @@ from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
 from nanover.app import NanoverImdApplication
-from nanover.ase.converter import EV_TO_KJMOL, ase_atoms_to_frame_data
+from nanover.ase.converter import (
+    EV_TO_KJMOL,
+    ASE_TIME_UNIT_TO_PS,
+    ase_atoms_to_frame_data,
+)
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData
@@ -202,9 +206,15 @@ class ASESimulation:
         """
         assert self.atoms is not None
 
-        return self.ase_atoms_to_frame_data(
+        frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
             topology=False,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
+
+        # Add simulation time to the frame
+        if self.dynamics is not None:
+            frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
+
+        return frame_data
