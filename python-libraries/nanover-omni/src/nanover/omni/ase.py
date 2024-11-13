@@ -219,7 +219,9 @@ class ASESimulation:
             frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
 
         # Add user forces and energies to frame
-        user_sparse_indices, user_sparse_forces = get_sparse_forces(self.atoms.calc.total_user_forces)
+        user_sparse_indices, user_sparse_forces = get_sparse_forces(
+            self.atoms.calc.total_user_forces
+        )
         frame_data.user_forces_sparse = user_sparse_forces
         frame_data.user_forces_index = user_sparse_indices
         frame_data.user_energy = self.atoms.calc.total_user_energy
