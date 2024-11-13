@@ -10,6 +10,7 @@ from ase.md.md import MolecularDynamics
 from nanover.app import NanoverImdApplication
 from nanover.ase.converter import (
     EV_TO_KJMOL,
+    ANG_TO_NM,
     ASE_TIME_UNIT_TO_PS,
     ase_atoms_to_frame_data,
 )
@@ -219,11 +220,12 @@ class ASESimulation:
             frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
 
         # Add user forces and energies to frame
+        # (convert back from ASE internal units to NanoVer units)
         user_sparse_indices, user_sparse_forces = get_sparse_forces(
             self.atoms.calc.total_user_forces
         )
-        frame_data.user_forces_sparse = user_sparse_forces
+        frame_data.user_forces_sparse = user_sparse_forces * (EV_TO_KJMOL / ANG_TO_NM)
         frame_data.user_forces_index = user_sparse_indices
-        frame_data.user_energy = self.atoms.calc.total_user_energy
+        frame_data.user_energy = self.atoms.calc.total_user_energy * EV_TO_KJMOL
 
         return frame_data

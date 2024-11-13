@@ -200,12 +200,15 @@ class ImdCalculator(Calculator):
             interactions.values(),
             periodic_box_lengths=periodic_box_lengths,
         )
-        self.total_user_forces = forces_kjmol
-        self.total_user_energy = energy_kjmol
         ev_per_kjmol = converter.KJMOL_TO_EV
         # convert back to ASE units (eV and Angstroms).
         energy = energy_kjmol * ev_per_kjmol
         forces = forces_kjmol * ev_per_kjmol / converter.NM_TO_ANG
+
+        # Add the user energy and user forces as properties of the iMD
+        # calculator in the internal units of ASE
+        self.total_user_energy = energy
+        self.total_user_forces = forces
 
         # update previous interactions for next step.
         self._previous_interactions = dict(interactions)
