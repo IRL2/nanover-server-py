@@ -17,6 +17,7 @@ from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData
 from nanover.utilities.event import Event
+from nanover.imd.imd_force import get_sparse_forces
 
 
 @dataclass
@@ -216,5 +217,11 @@ class ASESimulation:
         # Add simulation time to the frame
         if self.dynamics is not None:
             frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
+
+        # Add user forces and energies to frame
+        user_sparse_indices, user_sparse_forces = get_sparse_forces(self.atoms.calc.total_user_forces)
+        frame_data.user_forces_sparse = user_sparse_forces
+        frame_data.user_forces_index = user_sparse_indices
+        frame_data.user_energy = self.atoms.calc.total_user_energy
 
         return frame_data
