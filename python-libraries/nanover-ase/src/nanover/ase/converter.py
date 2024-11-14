@@ -277,14 +277,19 @@ def add_user_forces_and_energy_to_frame_data(frame_data: FrameData, ase_atoms: A
     :param ase_atoms: The ASE atoms from which to extract state information.
     """
 
-    if ase_atoms.calc.get_property("interactive_energy", allow_calculation=False) is not None:
-        frame_data.user_energy = ase_atoms.calc.get_property("interactive_energy", allow_calculation=False) * EV_TO_KJMOL
+    if (
+        ase_atoms.calc.get_property("interactive_energy", allow_calculation=False)
+        is not None
+    ):
+        frame_data.user_energy = (
+            ase_atoms.calc.get_property("interactive_energy", allow_calculation=False)
+            * EV_TO_KJMOL
+        )
         user_sparse_indices, user_sparse_forces = get_sparse_forces(
             ase_atoms.calc.get_property("interactive_forces", allow_calculation=False)
         )
         frame_data.user_forces_sparse = user_sparse_forces * (EV_TO_KJMOL / ANG_TO_NM)
         frame_data.user_forces_index = user_sparse_indices
-
 
 
 def get_radius_of_element(symbol: str, default=1.0):
