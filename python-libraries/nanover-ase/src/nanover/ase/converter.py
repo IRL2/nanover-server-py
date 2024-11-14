@@ -115,7 +115,7 @@ def ase_to_frame_data(
     if include_velocities:
         data.particle_velocities = ase_atoms.get_velocities() * (ANG_TO_NM / ASE_TIME_UNIT_TO_PS)
     if include_forces:
-        data.particle_forces = ase_atoms.get_forces()
+        data.particle_forces = ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
 
     return data
 
