@@ -71,7 +71,6 @@ def ase_to_frame_data(
     generate_bonds=True,
     include_velocities=False,
     include_forces=False,
-    include_user_forces=True,
 ) -> FrameData:
     """
     Constructs a NanoVer frame from the state of the atoms in an ASE simulation.
