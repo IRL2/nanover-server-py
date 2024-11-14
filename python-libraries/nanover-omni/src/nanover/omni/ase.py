@@ -222,10 +222,10 @@ class ASESimulation:
         # Add user forces and energies to frame
         # (convert back from ASE internal units to NanoVer units)
         user_sparse_indices, user_sparse_forces = get_sparse_forces(
-            self.atoms.calc.total_user_forces
+            self.atoms.calc.results["interactive_forces"]
         )
         frame_data.user_forces_sparse = user_sparse_forces * (EV_TO_KJMOL / ANG_TO_NM)
         frame_data.user_forces_index = user_sparse_indices
-        frame_data.user_energy = self.atoms.calc.total_user_energy * EV_TO_KJMOL
+        frame_data.user_energy = self.atoms.calc.results["interactive_energy"] * EV_TO_KJMOL
 
         return frame_data

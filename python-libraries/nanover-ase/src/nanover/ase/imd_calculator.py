@@ -64,8 +64,6 @@ class ImdCalculator(Calculator):
         self.reset_scale = reset_scale
         self._custom_temperature = None
         self._initialise_velocity_reset()
-        self.total_user_forces: np.ndarray = np.empty(0)
-        self.total_user_energy = 0.0
 
     @property
     def temperature(self) -> float:
@@ -204,11 +202,6 @@ class ImdCalculator(Calculator):
         # convert back to ASE units (eV and Angstroms).
         energy = energy_kjmol * ev_per_kjmol
         forces = forces_kjmol * ev_per_kjmol / converter.NM_TO_ANG
-
-        # Add the user energy and user forces as properties of the iMD
-        # calculator in the internal units of ASE
-        self.total_user_energy = energy
-        self.total_user_forces = forces
 
         # update previous interactions for next step.
         self._previous_interactions = dict(interactions)
