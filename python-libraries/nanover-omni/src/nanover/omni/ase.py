@@ -219,14 +219,17 @@ class ASESimulation:
         if self.dynamics is not None:
             frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
 
-        # Add the user forces and user energy to the frame, converting from ASE units
-        # to NanoVer units
+        # Add the user forces and user energy to the frame (converting from ASE units
+        # to NanoVer units) and subtract the user energy from the total potential
+        # energy to separately deliver the system potential energy (i.e. the PE without
+        # the iMD interaction) and the user energy (the PE of the iMD interaction)
         frame_data.user_energy = 0.0
         if self.atoms.calc.results["interactive_energy"]:
             frame_data.user_energy = (
-                self.atoms.calc.results["interactive_energy"]
-                * EV_TO_KJMOL
+                self.atoms.calc.results["interactive_energy"] * EV_TO_KJMOL
             )
+            # Subtract the user energy from the potential energy
+            frame_data.potential_energy -= frame_data.user_energy
         user_sparse_indices, user_sparse_forces = get_sparse_forces(
             self.atoms.calc.results["interactive_forces"]
         )
