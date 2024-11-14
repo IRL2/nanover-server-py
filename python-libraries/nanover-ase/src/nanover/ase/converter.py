@@ -13,7 +13,6 @@ import numpy as np
 import numpy.typing as npt
 
 from nanover.trajectory import FrameData
-from nanover.imd.imd_force import get_sparse_forces
 
 ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM
@@ -118,8 +117,6 @@ def ase_to_frame_data(
         data.particle_velocities = ase_atoms.get_velocities()
     if include_forces:
         data.particle_forces = ase_atoms.get_forces()
-    if include_user_forces:
-        add_user_forces_and_energy_to_frame_data(data, ase_atoms)
 
     return data
 
@@ -266,31 +263,6 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     if energy is not None:
         frame_data.potential_energy = energy * EV_TO_KJMOL
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
-
-
-def add_user_forces_and_energy_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
-    """
-    Adds the sparse array of user forces (with corresponding array of atom indices)
-    and the user energy associated with the user forces to the frame.
-
-    :param frame_data: Frame data to add ASE state information to.
-    :param ase_atoms: The ASE atoms from which to extract state information.
-    """
-    # Set default user energy to zero and alter if the energy is non-zero
-    frame_data.user_energy = 0.0
-    if (
-        ase_atoms.calc.get_property("interactive_energy", allow_calculation=False)
-        is not None
-    ):
-        frame_data.user_energy = (
-            ase_atoms.calc.get_property("interactive_energy", allow_calculation=False)
-            * EV_TO_KJMOL
-        )
-    user_sparse_indices, user_sparse_forces = get_sparse_forces(
-        ase_atoms.calc.get_property("interactive_forces", allow_calculation=False)
-    )
-    frame_data.user_forces_sparse = user_sparse_forces * (EV_TO_KJMOL / ANG_TO_NM)
-    frame_data.user_forces_index = user_sparse_indices
 
 
 def get_radius_of_element(symbol: str, default=1.0):
