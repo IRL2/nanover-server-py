@@ -1,6 +1,12 @@
-import os.path
+from ase.build import molecule
 
-import gradio as gr
+try:
+    import gradio as gr
+except ModuleNotFoundError:
+    print(
+        "Unable to import the gradio module. Try `pip install gradio`."
+    )
+    sys.exit(1)
 
 imd_runner = None
 
@@ -50,20 +56,25 @@ def run_simulation(
 
     # Initialize simulation files list
     simulation_files = list()
-    for i in range(len(input_files)):
-        if input_files[i].endswith(".xml"):
-            # Create OpenMMSimulation from XML file
-            simulation = OpenMMSimulation.from_xml_path(input_files[i], name=str(basename(input_files[i])))
-            simulation.frame_interval = frame_interval
-            simulation.include_velocities = include_velocities
-            simulation.include_forces = include_forces
-            simulation_files.append(simulation)
-        else:
-            return f"Invalid file type: {input_files[i].name}"
+    if input_files is not None:
+        input_files = input_files["files"]
+        for i in range(len(input_files)):
+            if input_files[i].endswith(".xml"):
+                # Create OpenMMSimulation from XML file
+                simulation = OpenMMSimulation.from_xml_path(input_files[i], name=str(basename(input_files[i])))
+                simulation.frame_interval = frame_interval
+                simulation.include_velocities = include_velocities
+                simulation.include_forces = include_forces
+                simulation_files.append(simulation)
+            else:
+                return f"Invalid file type: {input_files[i].name}"
+    else:
+        simulation_files = []
 
     # Initialize recording playbacks list
     recording_playbacks = list()
-    trajectory_files = [] if trajectory_files is None else trajectory_files
+    trajectory_files = [] if trajectory_files is None else trajectory_files["files"]
+    state_file = [] if state_file is None else state_file["files"]
     for i in range(len(trajectory_files)):
         # Create PlaybackSimulation from trajectory and state files
         recording_playbacks.append(
@@ -74,13 +85,18 @@ def run_simulation(
             )
         )
     # Create OmniRunner with basic server
-    imd_runner = OmniRunner.with_basic_server(
-        *tuple(simulation_files + recording_playbacks), name=server_name, port=port
-    )
-    imd_runner.next()
-    imd_runner.runner.play_step_interval = 1 / simulation_fps
-    if start_paused:
-        imd_runner.pause()
+    try:
+        imd_runner = OmniRunner.with_basic_server(
+            *tuple(simulation_files + recording_playbacks), name=server_name, port=port
+        )
+        imd_runner.next()
+        imd_runner.runner.play_step_interval = 1 / simulation_fps
+        if start_paused:
+            imd_runner.pause()
+    except Exception as e:
+        imd_runner.close()
+        raise gr.Error(f"Error starting simulation: {e}")
+        return e
     if record_trajectory:
         if not trajectory_output_file or not shared_state_file:
             imd_runner.close()
@@ -105,9 +121,9 @@ def stop_simulation():
         if imd_runner is not None:
             imd_runner.close()
     except NameError as e:
+        raise gr.Error("No simulation running!")
         return e
     return "Simulation stopped!"
-
 
 def create_ui():
     from os import getcwd, path
@@ -122,16 +138,14 @@ def create_ui():
         with gr.Row():
             with gr.Column(visible=True) as realtime_col:
                 # File input for live simulation
-                input_files = gr.File(
-                    label="Input Files (for From xml)", file_count="multiple"
-                )
+                input_files = gr.MultimodalTextbox(label="Input Files (From xml)", file_count="multiple", submit_btn=False)
             with gr.Column(visible=False) as playback_col:
                 # File inputs for playback simulation
-                trajectory_files = gr.File(
-                    label="Trajectory Files (for playback)", file_count="multiple"
+                trajectory_files = gr.MultimodalTextbox(
+                    label="Trajectory Files (for playback)", file_count="multiple",submit_btn=False
                 )
-                state_file = gr.File(
-                    label="State File (for playback)", file_count="multiple"
+                state_file = gr.MultimodalTextbox(
+                    label="State File (for playback)", file_count="multiple",submit_btn=False
                 )
 
         with gr.Row():
@@ -172,7 +186,6 @@ def create_ui():
         run_button = gr.Button("Run the selected file!", variant='primary')
         stop_button = gr.Button("Stop the simulation!", variant='stop')
         output = gr.Textbox(label="Output")
-
         def toggle_visibility(choice):
             # Toggle visibility of columns based on simulation type
             return gr.update(visible=choice == "From xml"), gr.update(
