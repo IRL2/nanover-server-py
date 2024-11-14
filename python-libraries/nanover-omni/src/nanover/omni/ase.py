@@ -219,7 +219,7 @@ class ASESimulation:
         if self.dynamics is not None:
             frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
 
-        # Add the user force and user energy to the frame, converting from ASE units
+        # Add the user forces and user energy to the frame, converting from ASE units
         # to NanoVer units
         frame_data.user_energy = 0.0
         if self.atoms.calc.results["interactive_energy"]:
