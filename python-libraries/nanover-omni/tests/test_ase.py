@@ -72,6 +72,8 @@ def multiple_atom_dynamics():
 @pytest.fixture
 def multiple_atom_ase_app_sim(app_server, multiple_atom_dynamics):
     sim = ASESimulation.from_ase_dynamics(multiple_atom_dynamics)
+    sim.include_forces = True
+    sim.include_velocities = True
     sim.load()
     sim.reset(app_server)
     yield app_server, sim
@@ -268,10 +270,40 @@ def test_velocity_unit_conversion(example_ase_app_sim_constant_force_interaction
             )
 
 
-def test_force_unit_conversion(example_ase_app_sim_constant_force_interaction):
+def test_system_force_unit_conversion(multiple_atom_ase_app_sim):
     """
-    Test that the units of velocity are correctly converted to NanoVer units
-    when delivered in the frame data.
+    Test that the units of force are correctly converted to NanoVer units
+    when delivered in the frame data for the system forces.
+    """
+    app, sim = multiple_atom_ase_app_sim
+    # Advance simulation by 30 steps with interaction applied
+    for _ in range(30):
+        sim.advance_by_one_step()
+
+    # Total force equal to system force in this case, ASE atoms object stores the
+    # total forces (sum of the system forces and iMD forces)
+    particle_forces = np.array(
+        sim.atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+    ).flatten()
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        frame = client.current_frame
+        assert frame.particle_forces_system
+        particle_forces_frame = np.array(frame.particle_forces_system).flatten()
+        for f_i in range(len(particle_forces_frame)):
+            assert particle_forces[f_i] == pytest.approx(
+                particle_forces_frame[f_i], rel=1e-7
+            )
+
+
+def test_imd_force_unit_conversion(example_ase_app_sim_constant_force_interaction):
+    """
+    Test that the units of force are correctly converted to NanoVer units
+    when delivered in the frame data for the system forces.
     """
     app, sim = example_ase_app_sim_constant_force_interaction
     # Advance simulation by 30 steps with interaction applied
@@ -283,7 +315,6 @@ def test_force_unit_conversion(example_ase_app_sim_constant_force_interaction):
     particle_forces = np.array(
         sim.atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
     ).flatten()
-    print(particle_forces)
 
     with NanoverImdClient.connect_to_single_server(
         port=app.port, address="localhost"
