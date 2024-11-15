@@ -303,7 +303,7 @@ def test_system_force_unit_conversion(multiple_atom_ase_app_sim):
 def test_imd_force_unit_conversion(example_ase_app_sim_constant_force_interaction):
     """
     Test that the units of force are correctly converted to NanoVer units
-    when delivered in the frame data for the system forces.
+    when delivered in the frame data for the iMD forces.
     """
     app, sim = example_ase_app_sim_constant_force_interaction
     # Advance simulation by 30 steps with interaction applied
