@@ -9,7 +9,7 @@ from nanover.imd import ParticleInteraction
 from nanover.app import NanoverImdClient
 from nanover.omni import OmniRunner
 from nanover.omni.ase import ASESimulation
-from nanover.ase.converter import ASE_TIME_UNIT_TO_PS
+from nanover.ase.converter import ASE_TIME_UNIT_TO_PS, ANG_TO_NM, EV_TO_KJMOL
 
 from common import app_server
 
@@ -25,6 +25,8 @@ def example_ase(app_server, example_dynamics):
 @pytest.fixture
 def example_ase_app_sim(app_server, example_dynamics):
     sim = ASESimulation.from_ase_dynamics(example_dynamics)
+    sim.include_forces = True
+    sim.include_velocities = True
     sim.load()
     sim.reset(app_server)
     yield app_server, sim
@@ -70,6 +72,8 @@ def multiple_atom_dynamics():
 @pytest.fixture
 def multiple_atom_ase_app_sim(app_server, multiple_atom_dynamics):
     sim = ASESimulation.from_ase_dynamics(multiple_atom_dynamics)
+    sim.include_forces = True
+    sim.include_velocities = True
     sim.load()
     sim.reset(app_server)
     yield app_server, sim
@@ -184,7 +188,8 @@ def test_sparse_user_forces(multiple_atom_ase_app_sim_multiple_interactions):
         assert frame.user_forces_index
         assert len(frame.user_forces_index) == 5
         assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
-        assert np.all(frame.user_forces_sparse) != 0.0
+        for f_i in np.array(frame.user_forces_sparse).flatten():
+            assert f_i != 0.0
 
 
 def test_user_energy(example_ase_app_sim_constant_force_interaction):
@@ -209,3 +214,117 @@ def test_user_energy(example_ase_app_sim_constant_force_interaction):
         assert frame.user_energy == pytest.approx(
             np.sqrt(np.sum(np.square(frame.user_forces_sparse))), abs=1e-6
         )
+
+
+def test_particle_forces_system_single_atom(
+    example_ase_app_sim_constant_force_interaction,
+):
+    """
+    Test that checks that the system particle forces for a single atom system are zero
+    when an iMD force is applied to the atom.
+    """
+    app, sim = example_ase_app_sim_constant_force_interaction
+    # Advance simulation by 30 steps with interaction applied
+    for _ in range(30):
+        sim.advance_by_one_step()
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        frame = client.current_frame
+        assert frame.particle_forces_system
+        assert frame.user_forces_sparse
+        # Assert elements are approximately zero (allow for small
+        # numerical error)
+        for f_i in np.squeeze(frame.particle_forces_system):
+            assert f_i == pytest.approx(0.0, abs=5e-6)
+
+
+def test_velocity_unit_conversion(example_ase_app_sim_constant_force_interaction):
+    """
+    Test that the units of velocity are correctly converted to NanoVer units
+    when delivered in the frame data.
+    """
+    app, sim = example_ase_app_sim_constant_force_interaction
+    # Advance simulation by 30 steps with interaction applied
+    for _ in range(30):
+        sim.advance_by_one_step()
+
+    particle_velocities = np.array(
+        sim.atoms.get_velocities() * (ANG_TO_NM / ASE_TIME_UNIT_TO_PS)
+    ).flatten()
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        frame = client.current_frame
+        assert frame.particle_velocities
+        particle_velocities_frame = np.array(frame.particle_velocities).flatten()
+        for v_i in range(len(particle_velocities_frame)):
+            assert particle_velocities[v_i] == pytest.approx(
+                particle_velocities_frame[v_i], rel=1e-7
+            )
+
+
+def test_system_force_unit_conversion(multiple_atom_ase_app_sim):
+    """
+    Test that the units of force are correctly converted to NanoVer units
+    when delivered in the frame data for the system forces.
+    """
+    app, sim = multiple_atom_ase_app_sim
+    # Advance simulation by 30 steps with interaction applied
+    for _ in range(30):
+        sim.advance_by_one_step()
+
+    # Total force equal to system force in this case, ASE atoms object stores the
+    # total forces (sum of the system forces and iMD forces)
+    particle_forces = np.array(
+        sim.atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+    ).flatten()
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        frame = client.current_frame
+        assert frame.particle_forces_system
+        particle_forces_frame = np.array(frame.particle_forces_system).flatten()
+        for f_i in range(len(particle_forces_frame)):
+            assert particle_forces[f_i] == pytest.approx(
+                particle_forces_frame[f_i], rel=1e-7
+            )
+
+
+def test_imd_force_unit_conversion(example_ase_app_sim_constant_force_interaction):
+    """
+    Test that the units of force are correctly converted to NanoVer units
+    when delivered in the frame data for the iMD forces.
+    """
+    app, sim = example_ase_app_sim_constant_force_interaction
+    # Advance simulation by 30 steps with interaction applied
+    for _ in range(30):
+        sim.advance_by_one_step()
+
+    # Total force equal to iMD force in this case, ASE atoms object stores the
+    # total forces (sum of the system forces and iMD forces)
+    particle_forces = np.array(
+        sim.atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+    ).flatten()
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        frame = client.current_frame
+        assert frame.user_forces_sparse
+        particle_forces_frame = np.array(frame.user_forces_sparse).flatten()
+        for f_i in range(len(particle_forces_frame)):
+            assert particle_forces[f_i] == pytest.approx(
+                particle_forces_frame[f_i], rel=1e-7
+            )

@@ -230,6 +230,14 @@ class ASESimulation:
             )
             # Subtract the user energy from the potential energy
             frame_data.potential_energy -= frame_data.user_energy
+            # If the particle forces are included in the frame data, subtract
+            # the user forces to deliver the internal forces of the system
+            # and iMD forces separately (i.e. subtract the iMD forces from the
+            # total forces)
+            if self.include_forces:
+                frame_data.particle_forces_system -= (
+                    self.atoms.calc.results["interactive_forces"]
+                ) * (EV_TO_KJMOL / ANG_TO_NM)
         user_sparse_indices, user_sparse_forces = get_sparse_forces(
             self.atoms.calc.results["interactive_forces"]
         )
