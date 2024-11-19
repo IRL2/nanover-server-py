@@ -40,7 +40,7 @@ NON_IMD_FORCES_GROUP_MASK = ALL_FORCES_GROUP_MASK ^ IMD_FORCES_GROUP_MASK
 
 class ImdForceManager:
     """
-    Manages the updating of the custom IMD force used in openmm from the NanoVer state that represents user interactions.
+    Manages the updating of the custom IMD force used in OpenMM from the NanoVer state that represents user interactions.
     """
 
     def __init__(self, imd_state: ImdStateWrapper, imd_force: CustomExternalForce):
