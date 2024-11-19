@@ -101,9 +101,10 @@ def test_duplicate_structure(basic_simulation_xml):
 def test_imd_force(basic_simulation_xml, empty_imd_force):
     """
     When deserializing a simulation and passing an imd force, the force is
-    added to the system.
+    added in the system.
     """
     simulation = deserialize_simulation(basic_simulation_xml, empty_imd_force)
+    # The provided force is appended as the last step, so will be the last listed force
     force_obtained = simulation.system.getForces()[-1]
     force_added = empty_imd_force
     # The forces are the same if by modifying one we also modify the other.
