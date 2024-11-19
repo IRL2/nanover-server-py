@@ -65,7 +65,7 @@ def run_simulation(simulation_type, input_files, trajectory_files, state_file, s
                 trajectory_output_file,
                 shared_state_file,
             )
-        return f"Simulation started with type: settings: {locals()}"
+        return f"{imd_runner.app_server.name}: serving at {imd_runner.app_server.address}:{imd_runner.app_server.port} with simulations:{imd_runner.list()}"
     except Exception as e:
         if imd_runner:
             imd_runner.close()
