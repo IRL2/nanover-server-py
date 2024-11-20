@@ -41,12 +41,12 @@ announce "Compiling proto files to python"
 python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src
 
 announce "Installing the python packages"
-python -m pip install ${edit_option} ${user_option} ./python-libraries/nanover-core/
+python -m pip install ${edit_option} ${user_option}  (Convert-Path "./python-libraries/nanover-core/") --config-settings editable_mode=compat
 
 Get-ChildItem -Directory python-libraries/nanover-* | ForEach-Object {
     if (Test-Path -Path "$($_.FullName)/pyproject.toml") {
         Write-Host "$($_.FullName)"
-        pip install ${edit_option} ${user_option} ""$($_.FullName)""
+        pip install ${edit_option} ${user_option} ""$($_.FullName)""  --config-settings editable_mode=compat
     }
  }
 
