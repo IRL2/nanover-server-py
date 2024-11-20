@@ -14,7 +14,7 @@ from nanover.ase.converter import (
     ASE_TIME_UNIT_TO_PS,
     ase_atoms_to_frame_data,
 )
-from nanover.ase.imd_calculator import ImdCalculator
+from nanover.ase.imd_calculator import ImdCalculator, ImdForceManager
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData
 from nanover.utilities.event import Event
@@ -83,6 +83,8 @@ class ASESimulation:
         self.checkpoint: Optional[InitialState] = None
         self.initial_calc: Optional[Calculator] = None
 
+        self.imd_force_manager: Optional[ImdForceManager] = None
+
         self.frame_index = 0
         self.ase_atoms_to_frame_data = ase_atoms_to_frame_data
 
@@ -121,9 +123,13 @@ class ASESimulation:
         self.atoms.set_velocities(self.checkpoint.velocities)
         self.atoms.set_cell(self.checkpoint.cell)
 
+        # setup imd force manager
+        self.imd_force_manager = ImdForceManager(self.atoms, self.app_server.imd)
+
         # setup calculator
         self.atoms.calc = ImdCalculator(
             self.app_server.imd,
+            self.imd_force_manager,
             self.initial_calc,
             dynamics=self.dynamics,
         )
@@ -164,7 +170,11 @@ class ASESimulation:
         """
         Step the simulation to the next point a frame should be reported, and send that frame.
         """
-        assert self.dynamics is not None and self.app_server is not None
+        assert (
+            self.dynamics is not None
+            and self.app_server is not None
+            and self.imd_force_manager is not None
+        )
 
         # determine step count for next frame
         steps_to_next_frame = (
@@ -174,6 +184,9 @@ class ASESimulation:
 
         # advance the simulation
         self.dynamics.run(steps_to_next_frame)
+
+        # update imd forces and energies
+        self.imd_force_manager.update_interactions()
 
         # generate the next frame
         frame_data = self.make_regular_frame()
@@ -220,28 +233,36 @@ class ASESimulation:
             frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
 
         # Add the user forces and user energy to the frame (converting from ASE units
+        # to NanoVer units)
+        self.imd_force_manager.add_to_frame_data(frame_data)
+        if self.include_forces:
+            frame_data.particle_forces_system -= self.imd_force_manager.user_forces * (
+                EV_TO_KJMOL / ANG_TO_NM
+            )
+
+        # Add the user forces and user energy to the frame (converting from ASE units
         # to NanoVer units) and subtract the user energy from the total potential
         # energy to separately deliver the system potential energy (i.e. the PE without
         # the iMD interaction) and the user energy (the PE of the iMD interaction)
-        frame_data.user_energy = 0.0
-        if self.atoms.calc.results["interactive_energy"]:
-            frame_data.user_energy = (
-                self.atoms.calc.results["interactive_energy"] * EV_TO_KJMOL
-            )
-            # Subtract the user energy from the potential energy
-            frame_data.potential_energy -= frame_data.user_energy
-            # If the particle forces are included in the frame data, subtract
-            # the user forces to deliver the internal forces of the system
-            # and iMD forces separately (i.e. subtract the iMD forces from the
-            # total forces)
-            if self.include_forces:
-                frame_data.particle_forces_system -= (
-                    self.atoms.calc.results["interactive_forces"]
-                ) * (EV_TO_KJMOL / ANG_TO_NM)
-        user_sparse_indices, user_sparse_forces = get_sparse_forces(
-            self.atoms.calc.results["interactive_forces"]
-        )
-        frame_data.user_forces_sparse = user_sparse_forces * (EV_TO_KJMOL / ANG_TO_NM)
-        frame_data.user_forces_index = user_sparse_indices
+        # frame_data.user_energy = 0.0
+        # if self.atoms.calc.results["interactive_energy"]:
+        #     frame_data.user_energy = (
+        #         self.atoms.calc.results["interactive_energy"] * EV_TO_KJMOL
+        #     )
+        #     # Subtract the user energy from the potential energy
+        #     frame_data.potential_energy -= frame_data.user_energy
+        #     # If the particle forces are included in the frame data, subtract
+        #     # the user forces to deliver the internal forces of the system
+        #     # and iMD forces separately (i.e. subtract the iMD forces from the
+        #     # total forces)
+        #     if self.include_forces:
+        #         frame_data.particle_forces_system -= (
+        #             self.atoms.calc.results["interactive_forces"]
+        #         ) * (EV_TO_KJMOL / ANG_TO_NM)
+        # user_sparse_indices, user_sparse_forces = get_sparse_forces(
+        #     self.atoms.calc.results["interactive_forces"]
+        # )
+        # frame_data.user_forces_sparse = user_sparse_forces * (EV_TO_KJMOL / ANG_TO_NM)
+        # frame_data.user_forces_index = user_sparse_indices
 
         return frame_data

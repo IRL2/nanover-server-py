@@ -127,7 +127,7 @@ def test_dynamics_interaction(example_ase):
             interaction_type="constant",
         ),
     )
-    for _ in range(30):
+    for _ in range(31):
         example_ase.advance_by_one_step()
 
     positions = example_ase.atoms.get_positions()
@@ -136,7 +136,8 @@ def test_dynamics_interaction(example_ase):
     # Applying a force of 1 kJ mol-1 nm-1 for
     # t = (0.5 fs * 5 simulation steps per advance * 30 advances) = 75 fs
     # using the velocity verlet algorithm should move the atom by 0.028125 nm
-    # using s = u*t + 0.5*a*(t^2). Allow for numerical error with pytest.approx:
+    # using s = u*t + 0.5*a*(t^2). 31 advances performed because there are no
+    # iMD forces on the first frame. Allow for numerical error with pytest.approx:
     assert z == pytest.approx(0.028125, abs=1e-8)
 
 
