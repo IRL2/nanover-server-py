@@ -120,7 +120,9 @@ def ase_to_frame_data(
     if include_forces:
         data.particle_forces_system = ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
         if isinstance(ase_atoms.calc, ImdCalculator):
-            data.particle_forces_system -= ase_atoms.calc.results["interactive_forces"] * (EV_TO_KJMOL / ANG_TO_NM)
+            data.particle_forces_system -= ase_atoms.calc.results[
+                "interactive_forces"
+            ] * (EV_TO_KJMOL / ANG_TO_NM)
 
     return data
 
@@ -269,8 +271,10 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
         # Subtract iMD energy from total potential energy to obtain system potential energy
         if isinstance(ase_atoms.calc, ImdCalculator):
             frame_data.potential_energy -= (
-                    ase_atoms.calc.get_property("interactive_energy", allow_calculation=False)
-                    * EV_TO_KJMOL
+                ase_atoms.calc.get_property(
+                    "interactive_energy", allow_calculation=False
+                )
+                * EV_TO_KJMOL
             )
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
