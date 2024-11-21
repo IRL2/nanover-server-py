@@ -96,7 +96,7 @@ class ImdStateWrapper:
 def interaction_to_dict(interaction: ParticleInteraction) -> Dict[str, Serializable]:
     try:
         # properties with the same key as the builtins will be discarded
-        # dicussion: https://gitlab.com/intangiblerealities/nanover-protocol/-/merge_requests/182#note_374156050
+        # dicussion: https://gitlab.com/intangiblerealities/nanover-server-py/-/merge_requests/182#note_374156050
         return {
             **interaction.properties,
             "position": [float(f) for f in interaction.position],

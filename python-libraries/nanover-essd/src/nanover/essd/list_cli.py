@@ -30,7 +30,7 @@ def main():
     try:
         with DiscoveryClient(arguments.address, arguments.port) as client:
             # search for LONG_TIME because there's no indefinite search
-            # see: https://gitlab.com/intangiblerealities/nanover-protocol/issues/169
+            # see: https://gitlab.com/intangiblerealities/nanover-server-py/issues/169
             for hub in client.search_for_services(LONG_TIME):
                 print_hub(hub)
     except KeyboardInterrupt:
