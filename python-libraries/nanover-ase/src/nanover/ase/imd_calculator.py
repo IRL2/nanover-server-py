@@ -13,10 +13,96 @@ from ase.md.velocitydistribution import _maxwellboltzmanndistribution
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd.imd_state import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.openmm.imd import ImdForceManager
 from nanover.trajectory.frame_data import MissingDataError, FrameData
 
 from . import converter
+
+
+class ImdForceManager:
+    """
+    A class that calculates and stores the iMD forces and energies for
+    an ASE simulation.
+    """
+
+    def __init__(self, atoms, imd_state: ImdStateWrapper):
+        self.atoms = atoms
+        self.imd_state = imd_state
+
+        self.total_user_energy = 0.0
+        self.user_forces: np.ndarray = np.zeros(self.atoms.positions.shape)
+
+        self._previous_interactions: Dict[str, ParticleInteraction] = {}
+        self.call_reset_velocities: bool = False
+
+    def update_interactions(self):
+        """
+        Update the iMD interaction energies and forces (in ASE units)
+        """
+        self._update_forces(self.atoms)
+
+    def add_to_frame_data(self, frame_data: FrameData):
+        """
+        Add the iMD forces and energy to the frame data
+        """
+        frame_data.user_energy = self.total_user_energy * converter.EV_TO_KJMOL
+        user_sparse_indices, user_sparse_forces = get_sparse_forces(self.user_forces)
+        frame_data.user_forces_sparse = user_sparse_forces * (
+            converter.EV_TO_KJMOL / converter.ANG_TO_NM
+        )
+        frame_data.user_forces_index = user_sparse_indices
+
+    def _update_forces(self, atoms):
+        """
+        Get the forces to apply from the iMD service and communicate them
+        """
+        # Get the current interactions from the iMD service (if any)
+        interactions = self.imd_state.active_interactions
+
+        # Determine whether interactions are the same as previous, and if
+        # not call _reset_velocities in ImdCalculator
+        if interactions != self._previous_interactions:
+            self.call_reset_velocities = True
+
+        # Not sure what the line below is here for? Comment out for now?
+        # self._reset_velocities(atoms, interactions, self._previous_interactions)
+
+        # convert positions to the one true unit of distance, nanometers.
+        positions = atoms.positions * converter.ANG_TO_NM
+        energy = 0.0
+        forces = np.zeros(positions.shape)
+        # If there are iMD interactions, calculate their forces and energies
+        if interactions:
+            energy, forces = self._calculate_imd(atoms, positions, interactions)
+
+        # Store the energy and forces
+        self.total_user_energy = energy
+        self.user_forces = forces
+
+        # update previous interactions for next step.
+        self._previous_interactions = dict(interactions)
+
+    def _calculate_imd(
+        self,
+        atoms,
+        positions: np.ndarray,
+        interactions: Dict[str, ParticleInteraction],
+    ):
+        # masses are in amu, which is fine.
+        masses = atoms.get_masses()
+
+        periodic_box_lengths = get_periodic_box_lengths(atoms)
+        energy_kjmol, forces_kjmol = calculate_imd_force(
+            positions,
+            masses,
+            interactions.values(),
+            periodic_box_lengths=periodic_box_lengths,
+        )
+        ev_per_kjmol = converter.KJMOL_TO_EV
+        # convert back to ASE units (eV and Angstroms).
+        energy = energy_kjmol * ev_per_kjmol
+        forces = forces_kjmol * ev_per_kjmol / converter.NM_TO_ANG
+
+        return energy, forces
 
 
 class ImdCalculator(Calculator):
@@ -178,6 +264,12 @@ class ImdCalculator(Calculator):
             energy = self.calculator.results["energy"]
             forces = self.calculator.results["forces"]
 
+        # Reset velocities (on first pass, if desired)
+        if self._imd_force_manager.call_reset_velocities:
+            self._reset_velocities(atoms, self.interactions, self._previous_interactions)
+            self._previous_interactions = self._imd_force_manager._previous_interactions
+            self._imd_force_manager.call_reset_velocities = False
+
         imd_energy = self._imd_force_manager.total_user_energy
         imd_forces = self._imd_force_manager.user_forces
         self.results["energy"] = energy + imd_energy
@@ -231,86 +323,6 @@ class ImdCalculator(Calculator):
             self._imd_state.velocity_reset_available = False
         self._imd_state.velocity_reset_available = True
         self._previous_interactions = {}
-
-
-class ImdForceManager:
-    """
-    A class that calculates and stores the iMD forces and energies for
-    an ASE simulation.
-    """
-
-    def __init__(self, atoms, imd_state: ImdStateWrapper):
-        self.atoms = atoms
-
-        self.imd_state = imd_state
-
-        self.total_user_energy = 0.0
-        self.user_forces: np.ndarray = np.zeros(self.atoms.positions.shape)
-
-    def update_interactions(self):
-        """
-        Update the iMD interaction energies and forces (in ASE units)
-        """
-        self._update_forces(self.atoms)
-
-    def add_to_frame_data(self, frame_data: FrameData):
-        """
-        Add the iMD forces and energy to the frame data
-        """
-        frame_data.user_energy = self.total_user_energy * converter.EV_TO_KJMOL
-        user_sparse_indices, user_sparse_forces = get_sparse_forces(self.user_forces)
-        frame_data.user_forces_sparse = user_sparse_forces * (
-            converter.EV_TO_KJMOL / converter.ANG_TO_NM
-        )
-        frame_data.user_forces_index = user_sparse_indices
-
-    def _update_forces(self, atoms):
-        """
-        Get the forces to apply from the iMD service and communicate them
-        """
-        # Get the current interactions from the iMD service (if any)
-        interactions = self.imd_state.active_interactions
-
-        # Not sure what the line below is here for? Comment out for now?
-        # self._reset_velocities(atoms, interactions, self._previous_interactions)
-
-        # convert positions to the one true unit of distance, nanometers.
-        positions = atoms.positions * converter.ANG_TO_NM
-        energy = 0.0
-        forces = np.zeros(positions.shape)
-        # If there are iMD interactions, calculate their forces and energies
-        if interactions:
-            energy, forces = self._calculate_imd(atoms, positions, interactions)
-
-        # Store the energy and forces
-        self.total_user_energy = energy
-        self.user_forces = forces
-
-        # update previous interactions for next step.
-        self._previous_interactions = dict(interactions)
-
-    def _calculate_imd(
-        self,
-        atoms,
-        positions: np.ndarray,
-        interactions: Dict[str, ParticleInteraction],
-    ):
-        # masses are in amu, which is fine.
-        masses = atoms.get_masses()
-
-        periodic_box_lengths = get_periodic_box_lengths(atoms)
-        energy_kjmol, forces_kjmol = calculate_imd_force(
-            positions,
-            masses,
-            interactions.values(),
-            periodic_box_lengths=periodic_box_lengths,
-        )
-        ev_per_kjmol = converter.KJMOL_TO_EV
-        # convert back to ASE units (eV and Angstroms).
-        energy = energy_kjmol * ev_per_kjmol
-        forces = forces_kjmol * ev_per_kjmol / converter.NM_TO_ANG
-
-        return energy, forces
 
 
 def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:

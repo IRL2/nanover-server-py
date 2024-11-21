@@ -13,6 +13,7 @@ from ase.md.nvtberendsen import NVTBerendsen
 from hypothesis import strategies, given
 from nanover.ase.imd_calculator import (
     ImdCalculator,
+    ImdForceManager,
     _get_cancelled_interactions,
     _get_atoms_to_reset,
     _scale_momentum_of_selection,
@@ -69,9 +70,10 @@ def imd_calculator_berendsen_dynamics_context() -> (
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
+    imd_force_manager = ImdForceManager(atoms, server.imd_state)
     dynamics = NVTBerendsen(atoms, 1.0, TEST_TEMPERATURE, 1.0)
     imd_calculator = ImdCalculator(
-        server.imd_state, calculator, atoms, dynamics=dynamics
+        server.imd_state, imd_force_manager, calculator, atoms, dynamics=dynamics
     )
     yield imd_calculator, atoms, dynamics
     server.close()
@@ -94,9 +96,10 @@ def imd_calculator_langevin_dynamics():
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
+    imd_force_manager = ImdForceManager(atoms, server.imd_state)
     dynamics = Langevin(atoms, 1.0, friction=1.0, temperature_K=TEST_TEMPERATURE)
     imd_calculator = ImdCalculator(
-        server.imd_state, calculator, atoms, dynamics=dynamics
+        server.imd_state, imd_force_manager, calculator, atoms, dynamics=dynamics
     )
     yield imd_calculator, atoms, dynamics
     server.close()
@@ -155,7 +158,8 @@ def test_custom_temperature():
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, reset_scale=0.1)
+    imd_force_manager = ImdForceManager(atoms, server.imd_state)
+    imd_calculator = ImdCalculator(server.imd_state, imd_force_manager, calculator, atoms, reset_scale=0.1)
     imd_calculator.temperature = 100
     assert pytest.approx(imd_calculator.reset_temperature) == 0.1 * 100
 
@@ -311,9 +315,13 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
         particles=selection,
         reset_velocities=True,
     )
+    # Add interaction to calculator and update force manager
     calculator._imd_state.insert_interaction("interaction.test", interaction)
+    calculator._imd_force_manager.update_interactions()
     atoms.get_forces()
+    # Remove interaction from calculator and update force manager
     calculator._imd_state.remove_interaction("interaction.test")
+    calculator._imd_force_manager.update_interactions()
     atoms.get_forces()
 
     assert (
