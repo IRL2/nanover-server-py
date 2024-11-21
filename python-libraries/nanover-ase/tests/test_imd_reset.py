@@ -159,7 +159,9 @@ def test_custom_temperature():
     atoms = fcc_atoms()
     calculator = LennardJones()
     imd_force_manager = ImdForceManager(atoms, server.imd_state)
-    imd_calculator = ImdCalculator(server.imd_state, imd_force_manager, calculator, atoms, reset_scale=0.1)
+    imd_calculator = ImdCalculator(
+        server.imd_state, imd_force_manager, calculator, atoms, reset_scale=0.1
+    )
     imd_calculator.temperature = 100
     assert pytest.approx(imd_calculator.reset_temperature) == 0.1 * 100
 

@@ -118,6 +118,9 @@ def ase_to_frame_data(
         )
     if include_forces:
         data.particle_forces_system = ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+        data.particle_forces_system -= ase_atoms.calc.get_property(
+            "interactive_forces", allow_calculation=False
+        ) * (EV_TO_KJMOL / ANG_TO_NM)
 
     return data
 
@@ -263,6 +266,11 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
         raise AttributeError("No calculator in atoms, so energy cannot be computed")
     if energy is not None:
         frame_data.potential_energy = energy * EV_TO_KJMOL
+        # Subtract iMD energy from total potential energy to obtain system potential energy
+        frame_data.potential_energy -= (
+            ase_atoms.calc.get_property("interactive_energy", allow_calculation=False)
+            * EV_TO_KJMOL
+        )
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 

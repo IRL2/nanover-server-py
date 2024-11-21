@@ -235,34 +235,5 @@ class ASESimulation:
         # Add the user forces and user energy to the frame (converting from ASE units
         # to NanoVer units)
         self.imd_force_manager.add_to_frame_data(frame_data)
-        if self.include_forces:
-            frame_data.particle_forces_system -= self.imd_force_manager.user_forces * (
-                EV_TO_KJMOL / ANG_TO_NM
-            )
-
-        # Add the user forces and user energy to the frame (converting from ASE units
-        # to NanoVer units) and subtract the user energy from the total potential
-        # energy to separately deliver the system potential energy (i.e. the PE without
-        # the iMD interaction) and the user energy (the PE of the iMD interaction)
-        # frame_data.user_energy = 0.0
-        # if self.atoms.calc.results["interactive_energy"]:
-        #     frame_data.user_energy = (
-        #         self.atoms.calc.results["interactive_energy"] * EV_TO_KJMOL
-        #     )
-        #     # Subtract the user energy from the potential energy
-        #     frame_data.potential_energy -= frame_data.user_energy
-        #     # If the particle forces are included in the frame data, subtract
-        #     # the user forces to deliver the internal forces of the system
-        #     # and iMD forces separately (i.e. subtract the iMD forces from the
-        #     # total forces)
-        #     if self.include_forces:
-        #         frame_data.particle_forces_system -= (
-        #             self.atoms.calc.results["interactive_forces"]
-        #         ) * (EV_TO_KJMOL / ANG_TO_NM)
-        # user_sparse_indices, user_sparse_forces = get_sparse_forces(
-        #     self.atoms.calc.results["interactive_forces"]
-        # )
-        # frame_data.user_forces_sparse = user_sparse_forces * (EV_TO_KJMOL / ANG_TO_NM)
-        # frame_data.user_forces_index = user_sparse_indices
 
         return frame_data
