@@ -264,7 +264,7 @@ class ImdCalculator(Calculator):
             energy = self.calculator.results["energy"]
             forces = self.calculator.results["forces"]
 
-        # Reset velocities (on first pass, if desired)
+        # Reset velocities (if desired)
         if self._imd_force_manager.call_reset_velocities:
             self._reset_velocities(atoms, self.interactions, self._previous_interactions)
             self._previous_interactions = self._imd_force_manager._previous_interactions
