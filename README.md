@@ -1,4 +1,4 @@
-# NanoVer Protocol
+# NanoVer Python Server + gRPC Protocol
 
 Repository containing the gRPC protocol and python based implementations
 of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
