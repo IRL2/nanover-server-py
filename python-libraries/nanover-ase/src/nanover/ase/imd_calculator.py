@@ -24,7 +24,7 @@ class ImdForceManager:
     an ASE simulation.
     """
 
-    def __init__(self, atoms, imd_state: ImdStateWrapper):
+    def __init__(self, imd_state: ImdStateWrapper, atoms: Atoms):
         self.atoms = atoms
         self.imd_state = imd_state
 
@@ -131,7 +131,7 @@ class ImdCalculator(Calculator):
     def __init__(
         self,
         imd_state: ImdStateWrapper,
-        imd_force_manager: ImdForceManager,
+        imd_force_manager: Optional[ImdForceManager] = None,
         calculator: Optional[Calculator] = None,
         atoms: Optional[Atoms] = None,
         dynamics: Optional[MolecularDynamics] = None,

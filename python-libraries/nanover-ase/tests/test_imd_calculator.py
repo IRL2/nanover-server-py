@@ -33,7 +33,7 @@ def interact_c():
 def imd_calculator_co(imd_server):
     atoms = co_atoms()
     calculator = LennardJones()
-    imd_force_manager = ImdForceManager(atoms, imd_server.imd_state)
+    imd_force_manager = ImdForceManager(imd_server.imd_state, atoms)
     imd_calculator = ImdCalculator(
         imd_server.imd_state, imd_force_manager, calculator, atoms
     )
@@ -43,7 +43,7 @@ def imd_calculator_co(imd_server):
 @pytest.fixture
 def imd_calculator_no_atoms(imd_server):
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(imd_server.imd_state, calculator)
+    imd_calculator = ImdCalculator(imd_server.imd_state, calculator=calculator)
     yield imd_calculator
 
 

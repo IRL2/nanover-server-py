@@ -70,7 +70,7 @@ def imd_calculator_berendsen_dynamics_context() -> (
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
-    imd_force_manager = ImdForceManager(atoms, server.imd_state)
+    imd_force_manager = ImdForceManager(server.imd_state, atoms)
     dynamics = NVTBerendsen(atoms, 1.0, TEST_TEMPERATURE, 1.0)
     imd_calculator = ImdCalculator(
         server.imd_state, imd_force_manager, calculator, atoms, dynamics=dynamics
@@ -96,7 +96,7 @@ def imd_calculator_langevin_dynamics():
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
-    imd_force_manager = ImdForceManager(atoms, server.imd_state)
+    imd_force_manager = ImdForceManager(server.imd_state, atoms)
     dynamics = Langevin(atoms, 1.0, friction=1.0, temperature_K=TEST_TEMPERATURE)
     imd_calculator = ImdCalculator(
         server.imd_state, imd_force_manager, calculator, atoms, dynamics=dynamics
@@ -158,7 +158,7 @@ def test_custom_temperature():
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
-    imd_force_manager = ImdForceManager(atoms, server.imd_state)
+    imd_force_manager = ImdForceManager(server.imd_state, atoms)
     imd_calculator = ImdCalculator(
         server.imd_state, imd_force_manager, calculator, atoms, reset_scale=0.1
     )

@@ -124,7 +124,7 @@ class ASESimulation:
         self.atoms.set_cell(self.checkpoint.cell)
 
         # setup imd force manager
-        self.imd_force_manager = ImdForceManager(self.atoms, self.app_server.imd)
+        self.imd_force_manager = ImdForceManager(self.app_server.imd, self.atoms)
 
         # setup calculator
         self.atoms.calc = ImdCalculator(
