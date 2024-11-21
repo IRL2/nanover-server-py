@@ -233,30 +233,6 @@ class ImdCalculator(Calculator):
         self._previous_interactions = {}
 
 
-def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
-    """
-    Gets the periodic box lengths of an orthorhombic box, in nm, from an ASE atoms collection, if it exists.
-
-    :param atoms: ASE atoms.
-    :return: Array of periodic box lengths if periodic boundaries are in use, ``None`` otherwise.
-    """
-    if not np.all(atoms.get_pbc()):
-        if np.any(atoms.get_pbc()):
-            raise NotImplementedError(
-                "Atoms object has periodic unit cell on only some dimensions, which is not "
-                "supported."
-            )
-        return None
-    lengths_angles = atoms.cell.cellpar()
-    lengths = np.array(lengths_angles[0:3])
-    angles = np.array(lengths_angles[3:])
-    if not np.allclose(angles, (90, 90, 90)):
-        raise NotImplementedError(
-            "Atoms object has periodic unit cell that is not orthorhombic, which is not supported!"
-        )
-    return lengths
-
-
 class ImdForceManager:
     """
     A class that calculates and stores the iMD forces and energies for
@@ -335,6 +311,30 @@ class ImdForceManager:
         forces = forces_kjmol * ev_per_kjmol / converter.NM_TO_ANG
 
         return energy, forces
+
+
+def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
+    """
+    Gets the periodic box lengths of an orthorhombic box, in nm, from an ASE atoms collection, if it exists.
+
+    :param atoms: ASE atoms.
+    :return: Array of periodic box lengths if periodic boundaries are in use, ``None`` otherwise.
+    """
+    if not np.all(atoms.get_pbc()):
+        if np.any(atoms.get_pbc()):
+            raise NotImplementedError(
+                "Atoms object has periodic unit cell on only some dimensions, which is not "
+                "supported."
+            )
+        return None
+    lengths_angles = atoms.cell.cellpar()
+    lengths = np.array(lengths_angles[0:3])
+    angles = np.array(lengths_angles[3:])
+    if not np.allclose(angles, (90, 90, 90)):
+        raise NotImplementedError(
+            "Atoms object has periodic unit cell that is not orthorhombic, which is not supported!"
+        )
+    return lengths
 
 
 def _get_cancelled_interactions(
