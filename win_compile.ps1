@@ -19,7 +19,7 @@ if ($noedit)
 else
 {
     $edit_option = "-e"
-    Announce "Installing nanover-protocol in edit mode."
+    Announce "Installing nanover-server-py in edit mode."
 }
 
 if ($user) 
