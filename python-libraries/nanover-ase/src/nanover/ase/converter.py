@@ -12,6 +12,7 @@ import itertools
 import numpy as np
 import numpy.typing as npt
 
+from nanover.ase.imd_calculator import ImdCalculator
 from nanover.trajectory import FrameData
 
 ANG_TO_NM = 0.1
@@ -118,9 +119,8 @@ def ase_to_frame_data(
         )
     if include_forces:
         data.particle_forces_system = ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
-        data.particle_forces_system -= ase_atoms.calc.get_property(
-            "interactive_forces", allow_calculation=False
-        ) * (EV_TO_KJMOL / ANG_TO_NM)
+        if isinstance(ase_atoms.calc, ImdCalculator):
+            data.particle_forces_system -= ase_atoms.calc.results["interactive_forces"] * (EV_TO_KJMOL / ANG_TO_NM)
 
     return data
 
@@ -267,10 +267,11 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     if energy is not None:
         frame_data.potential_energy = energy * EV_TO_KJMOL
         # Subtract iMD energy from total potential energy to obtain system potential energy
-        frame_data.potential_energy -= (
-            ase_atoms.calc.get_property("interactive_energy", allow_calculation=False)
-            * EV_TO_KJMOL
-        )
+        if isinstance(ase_atoms.calc, ImdCalculator):
+            frame_data.potential_energy -= (
+                    ase_atoms.calc.get_property("interactive_energy", allow_calculation=False)
+                    * EV_TO_KJMOL
+            )
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
