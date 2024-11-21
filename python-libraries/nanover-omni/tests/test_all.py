@@ -1,12 +1,14 @@
 import time
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import numpy
 import pytest
 
 from nanover.app import NanoverImdClient
-from nanover.omni.omni import Simulation, OmniRunner
-from nanover.testing import assert_equal_soon
+from nanover.omni.omni import Simulation, OmniRunner, CLEAR_PREFIXES
+from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
+from nanover.utilities.change_buffers import DictionaryChange
 from test_openmm import example_openmm
 from test_ase_omm import example_ase_omm
 from test_ase import example_ase, example_dynamics
@@ -41,11 +43,17 @@ def multi_sim_runner(request):
         yield runner
 
 
+@contextmanager
+def make_client_connected_to_runner(runner):
+    with NanoverImdClient.connect_to_single_server(
+        port=runner.app_server.port
+    ) as client:
+        yield client
+
+
 @pytest.fixture
 def multi_sim_client_runner(multi_sim_runner):
-    with NanoverImdClient.connect_to_single_server(
-        port=multi_sim_runner.app_server.port
-    ) as client:
+    with make_client_connected_to_runner(multi_sim_runner) as client:
         yield client, multi_sim_runner
 
 
@@ -143,3 +151,28 @@ def test_play_step_interval(multi_sim_client_runner_without_playback, fps):
     assert numpy.average(deltas) == pytest.approx(
         play_step_interval, abs=TIMING_TOLERANCE
     )
+
+
+def test_simulation_switch_clears_state(multi_sim_runner):
+    """
+    Test that state keys with certain prefixes are no longer present in the state after switching simulation.
+    """
+    key = "pytest"
+
+    updates = {prefix + key: {} for prefix in CLEAR_PREFIXES}
+
+    with make_client_connected_to_runner(multi_sim_runner) as client:
+        client.attempt_update_multiplayer_state(DictionaryChange(updates=updates))
+
+    with make_client_connected_to_runner(multi_sim_runner) as client:
+        client.subscribe_multiplayer()
+
+        for key in updates:
+            assert_in_soon(lambda: key, lambda: client._multiplayer_client.copy_state())
+
+        client.run_next()
+
+        for key in updates:
+            assert_not_in_soon(
+                lambda: key, lambda: client._multiplayer_client.copy_state()
+            )

@@ -20,6 +20,9 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
 
 
+CLEAR_PREFIXES = {"avatar.", "play-area.", "selection.", "scene", "interaction."}
+
+
 class Simulation(Protocol):
     name: str
 
@@ -150,13 +153,11 @@ class OmniRunner:
         self.simulation_selections[simulation] = existing_selections
 
     def _clear_state(self):
-        temporary = ["avatar.", "play-area.", "selection.", "scene", "interaction."]
-
         with self.app_server.server.lock_state() as state:
             removals = {
                 key
                 for key in state.keys()
-                if any(key.startswith(prefix) for prefix in temporary)
+                if any(key.startswith(prefix) for prefix in CLEAR_PREFIXES)
             }
         self.app_server.server.update_state(None, DictionaryChange(removals=removals))
 
