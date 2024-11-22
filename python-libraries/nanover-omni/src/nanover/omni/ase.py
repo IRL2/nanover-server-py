@@ -232,6 +232,7 @@ class ASESimulation:
 
         # Add the user forces and user energy to the frame (converting from ASE units
         # to NanoVer units)
-        self.imd_force_manager.add_to_frame_data(frame_data)
+        if self.imd_force_manager is not None:
+            self.imd_force_manager.add_to_frame_data(frame_data)
 
         return frame_data
