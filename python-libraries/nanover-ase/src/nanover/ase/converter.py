@@ -204,7 +204,7 @@ def add_ase_velocities_to_frame_data(data: FrameData, ase_atoms: Atoms):
     :param ase_atoms: ASE :class:`Atoms` to add particle positions to.
     """
     data.particle_velocities = ase_atoms.get_velocities() * (
-            ANG_TO_NM / ASE_TIME_UNIT_TO_PS
+        ANG_TO_NM / ASE_TIME_UNIT_TO_PS
     )
 
 
@@ -220,9 +220,9 @@ def add_ase_forces_to_frame_data(data: FrameData, ase_atoms: Atoms):
 
     data.particle_forces_system = ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
     if isinstance(ase_atoms.calc, ImdCalculator):
-        data.particle_forces_system -= ase_atoms.calc.results[
-                                           "interactive_forces"
-                                       ] * (EV_TO_KJMOL / ANG_TO_NM)
+        data.particle_forces_system -= ase_atoms.calc.results["interactive_forces"] * (
+            EV_TO_KJMOL / ANG_TO_NM
+        )
 
 
 def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
