@@ -153,6 +153,7 @@ class ImdCalculator(Calculator):
         self.reset_scale = reset_scale
         self._custom_temperature = None
         self._initialise_velocity_reset()
+        self._pbc_implemented = False
 
     @property
     def temperature(self) -> float:
@@ -257,6 +258,13 @@ class ImdCalculator(Calculator):
                 "No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation."
             )
 
+        # Check whether the periodic boundary conditions defined in the atoms object are implemented
+        # for the iMD calculator. If they are (or no pbcs are defined), set _pbc_implemented property
+        # to true to avoid repeating this check.
+        if not self._pbc_implemented:
+            get_periodic_box_lengths(atoms)
+            self._pbc_implemented = True
+
         forces = np.zeros((len(atoms), 3))
 
         if self.calculator is not None:
@@ -264,20 +272,22 @@ class ImdCalculator(Calculator):
             energy = self.calculator.results["energy"]
             forces = self.calculator.results["forces"]
 
-        # Reset velocities (if desired)
-        if self._imd_force_manager.call_reset_velocities:
-            self._reset_velocities(
-                atoms, self.interactions, self._previous_interactions
-            )
-            self._previous_interactions = self._imd_force_manager._previous_interactions
-            self._imd_force_manager.call_reset_velocities = False
+        if self._imd_force_manager is not None:
+            # Reset velocities (if desired)
+            if self._imd_force_manager.call_reset_velocities:
+                self._reset_velocities(
+                    atoms, self.interactions, self._previous_interactions
+                )
+                self._previous_interactions = self._imd_force_manager._previous_interactions
+                self._imd_force_manager.call_reset_velocities = False
 
-        imd_energy = self._imd_force_manager.total_user_energy
-        imd_forces = self._imd_force_manager.user_forces
-        self.results["energy"] = energy + imd_energy
-        self.results["forces"] = forces + imd_forces
-        self.results["interactive_energy"] = imd_energy
-        self.results["interactive_forces"] = imd_forces
+            # Retrieve iMD energy and forces and add to results
+            imd_energy = self._imd_force_manager.total_user_energy
+            imd_forces = self._imd_force_manager.user_forces
+            self.results["energy"] = energy + imd_energy
+            self.results["forces"] = forces + imd_forces
+            self.results["interactive_energy"] = imd_energy
+            self.results["interactive_forces"] = imd_forces
 
     def _calculate_imd(self, atoms):
         interactions = self.interactions
