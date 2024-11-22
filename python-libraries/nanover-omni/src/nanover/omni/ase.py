@@ -82,6 +82,7 @@ class ASESimulation:
         self.initial_calc: Optional[Calculator] = None
 
         self.imd_force_manager: Optional[ImdForceManager] = None
+        self.imd_calculator: Optional[ImdCalculator] = None
 
         self.frame_index = 0
         self.ase_atoms_to_frame_data = ase_atoms_to_frame_data
@@ -217,7 +218,7 @@ class ASESimulation:
         """
         Make a NanoVer FrameData corresponding to the current state of the simulation.
         """
-        assert self.atoms is not None
+        assert self.atoms is not None and self.imd_calculator is not None
 
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
@@ -232,7 +233,6 @@ class ASESimulation:
 
         # Add the user forces and user energy to the frame (converting from ASE units
         # to NanoVer units)
-        if self.imd_force_manager is not None:
-            self.imd_force_manager.add_to_frame_data(frame_data)
+        self.imd_force_manager.add_to_frame_data(frame_data)
 
         return frame_data
