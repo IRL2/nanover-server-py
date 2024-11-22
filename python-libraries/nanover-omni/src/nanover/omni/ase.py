@@ -81,7 +81,6 @@ class ASESimulation:
         self.checkpoint: Optional[InitialState] = None
         self.initial_calc: Optional[Calculator] = None
 
-        self.imd_force_manager: Optional[ImdForceManager] = None
         self.imd_calculator: Optional[ImdCalculator] = None
 
         self.frame_index = 0
@@ -122,13 +121,10 @@ class ASESimulation:
         self.atoms.set_velocities(self.checkpoint.velocities)
         self.atoms.set_cell(self.checkpoint.cell)
 
-        # setup imd force manager
-        self.imd_force_manager = ImdForceManager(self.app_server.imd, self.atoms)
-
         # setup imd calculator
         self.imd_calculator = ImdCalculator(
             self.app_server.imd,
-            self.imd_force_manager,
+            ImdForceManager(self.app_server.imd, self.atoms),
             self.initial_calc,
             dynamics=self.dynamics,
         )
