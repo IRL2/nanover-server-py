@@ -302,33 +302,6 @@ class ImdCalculator(Calculator):
         assert self._imd_force_manager is not None
         self._imd_force_manager.add_to_frame_data(frame_data)
 
-    def _calculate_imd(self, atoms):
-        interactions = self.interactions
-
-        self._reset_velocities(atoms, interactions, self._previous_interactions)
-
-        # convert positions to the one true unit of distance, nanometers.
-        positions = atoms.positions * converter.ANG_TO_NM
-        # masses are in amu, which is fine.
-        masses = atoms.get_masses()
-
-        periodic_box_lengths = get_periodic_box_lengths(atoms)
-        energy_kjmol, forces_kjmol = calculate_imd_force(
-            positions,
-            masses,
-            interactions.values(),
-            periodic_box_lengths=periodic_box_lengths,
-        )
-        ev_per_kjmol = converter.KJMOL_TO_EV
-        # convert back to ASE units (eV and Angstroms).
-        energy = energy_kjmol * ev_per_kjmol
-        forces = forces_kjmol * ev_per_kjmol / converter.NM_TO_ANG
-
-        # update previous interactions for next step.
-        self._previous_interactions = dict(interactions)
-
-        return energy, forces
-
     def _reset_velocities(self, atoms, interactions, previous_interactions):
         cancelled_interactions = _get_cancelled_interactions(
             interactions, previous_interactions
