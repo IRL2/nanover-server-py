@@ -317,13 +317,13 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
         particles=selection,
         reset_velocities=True,
     )
-    # Add interaction to calculator and update force manager
+    # Add interaction to calculator and update interactions
     calculator._imd_state.insert_interaction("interaction.test", interaction)
-    calculator._imd_force_manager.update_interactions()
+    calculator.update_interactions()
     atoms.get_forces()
-    # Remove interaction from calculator and update force manager
+    # Remove interaction from calculator and update interactions
     calculator._imd_state.remove_interaction("interaction.test")
-    calculator._imd_force_manager.update_interactions()
+    calculator.update_interactions()
     atoms.get_forces()
 
     assert (

@@ -133,8 +133,8 @@ def test_one_interaction(
         with client_interaction(imd_client, interact_c):
             time.sleep(0.1)
             assert len(imd_calculator.interactions) == 1
-            # Update interactions in force manager
-            imd_calculator._imd_force_manager.update_interactions()
+            # Update interactions
+            imd_calculator.update_interactions()
             imd_calculator.calculate(properties=properties)
             results = imd_calculator.results
 
