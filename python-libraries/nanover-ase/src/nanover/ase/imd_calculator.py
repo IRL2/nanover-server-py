@@ -58,13 +58,8 @@ class ImdForceManager:
         # Get the current interactions from the iMD service (if any)
         interactions = self.imd_state.active_interactions
 
-        # Determine whether interactions are the same as previous, and if
-        # not call _reset_velocities in ImdCalculator
-        if interactions != self._previous_interactions:
-            self.call_reset_velocities = True
-
-        # Not sure what the line below is here for? Comment out for now?
-        # self._reset_velocities(atoms, interactions, self._previous_interactions)
+        # Call _reset_velocities in ImdCalculator
+        self.call_reset_velocities = True
 
         # convert positions to the one true unit of distance, nanometers.
         positions = atoms.positions * converter.ANG_TO_NM
