@@ -10,7 +10,6 @@ from ase.md.md import MolecularDynamics
 from nanover.app import NanoverImdApplication
 from nanover.ase.converter import (
     EV_TO_KJMOL,
-    ANG_TO_NM,
     ASE_TIME_UNIT_TO_PS,
     ase_atoms_to_frame_data,
 )
@@ -18,7 +17,6 @@ from nanover.ase.imd_calculator import ImdCalculator, ImdForceManager
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData
 from nanover.utilities.event import Event
-from nanover.imd.imd_force import get_sparse_forces
 
 
 @dataclass

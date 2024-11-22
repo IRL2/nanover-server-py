@@ -278,7 +278,9 @@ class ImdCalculator(Calculator):
                 self._reset_velocities(
                     atoms, self.interactions, self._previous_interactions
                 )
-                self._previous_interactions = self._imd_force_manager._previous_interactions
+                self._previous_interactions = (
+                    self._imd_force_manager._previous_interactions
+                )
                 self._imd_force_manager.call_reset_velocities = False
 
             # Retrieve iMD energy and forces and add to results
