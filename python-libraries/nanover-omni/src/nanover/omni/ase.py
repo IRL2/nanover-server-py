@@ -125,13 +125,16 @@ class ASESimulation:
         # setup imd force manager
         self.imd_force_manager = ImdForceManager(self.app_server.imd, self.atoms)
 
-        # setup calculator
-        self.atoms.calc = ImdCalculator(
+        # setup imd calculator
+        self.imd_calculator = ImdCalculator(
             self.app_server.imd,
             self.imd_force_manager,
             self.initial_calc,
             dynamics=self.dynamics,
         )
+
+        # assign imd calculator to atoms
+        self.atoms.calc = self.imd_calculator
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
@@ -172,7 +175,7 @@ class ASESimulation:
         assert (
             self.dynamics is not None
             and self.app_server is not None
-            and self.imd_force_manager is not None
+            and self.imd_calculator is not None
         )
 
         # determine step count for next frame
@@ -185,7 +188,7 @@ class ASESimulation:
         self.dynamics.run(steps_to_next_frame)
 
         # update imd forces and energies
-        self.imd_force_manager.update_interactions()
+        self.imd_calculator.update_interactions()
 
         # generate the next frame
         frame_data = self.make_regular_frame()
@@ -218,7 +221,7 @@ class ASESimulation:
         """
         Make a NanoVer FrameData corresponding to the current state of the simulation.
         """
-        assert self.atoms is not None and self.imd_force_manager is not None
+        assert self.atoms is not None and self.imd_calculator is not None
 
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
@@ -233,6 +236,6 @@ class ASESimulation:
 
         # Add the user forces and user energy to the frame (converting from ASE units
         # to NanoVer units)
-        self.imd_force_manager.add_to_frame_data(frame_data)
+        self.imd_calculator.add_to_frame_data(frame_data)
 
         return frame_data

@@ -36,13 +36,13 @@ class ImdForceManager:
 
     def update_interactions(self):
         """
-        Update the iMD interaction energies and forces (in ASE units)
+        Update the iMD interaction energies and forces (in ASE units).
         """
         self._update_forces(self.atoms)
 
     def add_to_frame_data(self, frame_data: FrameData):
         """
-        Add the iMD forces and energy to the frame data
+        Add the iMD forces and energy to the frame data.
         """
         frame_data.user_energy = self.total_user_energy * converter.EV_TO_KJMOL
         user_sparse_indices, user_sparse_forces = get_sparse_forces(self.user_forces)
@@ -285,6 +285,22 @@ class ImdCalculator(Calculator):
             self.results["forces"] = forces + imd_forces
             self.results["interactive_energy"] = imd_energy
             self.results["interactive_forces"] = imd_forces
+
+    def update_interactions(self):
+        """
+        Update the iMD interaction energies and forces (in ASE units)
+        via the ImdForceManager.
+        """
+        assert self._imd_force_manager is not None
+        self._imd_force_manager.update_interactions()
+
+    def add_to_frame_data(self, frame_data: FrameData):
+        """
+        Add the iMD forces and energy to the frame data via the
+        ImdForceManager.
+        """
+        assert self._imd_force_manager is not None
+        self._imd_force_manager.add_to_frame_data(frame_data)
 
     def _calculate_imd(self, atoms):
         interactions = self.interactions
