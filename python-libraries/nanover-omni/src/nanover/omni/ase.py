@@ -218,7 +218,7 @@ class ASESimulation:
         """
         Make a NanoVer FrameData corresponding to the current state of the simulation.
         """
-        assert self.atoms is not None and self.imd_calculator is not None
+        assert self.atoms is not None and self.imd_force_manager is not None
 
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
