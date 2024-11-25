@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Optional, Any
 
 import numpy as np
-import numpy.typing as npt
 
 from openmm.app import Simulation, StateDataReporter
 

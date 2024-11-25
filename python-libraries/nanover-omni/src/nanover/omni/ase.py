@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Optional, Any, Protocol
 
 import numpy as np
-import numpy.typing as npt
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.md import MDLogger
