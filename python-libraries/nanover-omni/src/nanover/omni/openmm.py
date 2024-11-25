@@ -4,8 +4,10 @@ from typing import Optional, Any
 
 import numpy as np
 import numpy.typing as npt
+from openmm import CMMotionRemover
 
 from openmm.app import Simulation, StateDataReporter
+from openmm import unit
 
 from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer, openmm_to_frame_data
@@ -86,6 +88,8 @@ class OpenMMSimulation:
         self.prev_imd_forces: Optional[np.ndarray] = None
         self.prev_imd_indices: Optional[np.ndarray] = None
 
+        self._dof: Optional[int] = None
+
     def load(self):
         """
         Load and set up the simulation if it isn't done already.
@@ -112,6 +116,8 @@ class OpenMMSimulation:
         self.app_server = app_server
         self.simulation.context.loadCheckpoint(self.checkpoint)
         self.imd_force_manager = ImdForceManager(self.app_server.imd, self.imd_force)
+
+        self._dof = compute_dof(self.simulation.system)
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
@@ -231,6 +237,9 @@ class OpenMMSimulation:
             state_excludes_imd=True,
         )
 
+        # TODO: move?
+        frame_data.system_temperature = compute_temperature(self.simulation, state, self._dof)
+
         # add any provided positions
         if positions is not None:
             frame_data.particle_positions = positions
@@ -269,3 +278,27 @@ class OpenMMSimulation:
             self._work_done_intermediate += np.dot(
                 np.transpose(forces[atom]), positions[atom]
             )
+
+
+def compute_dof(system):
+    # Compute the number of degrees of freedom.
+    dof = 0
+    for i in range(system.getNumParticles()):
+        if system.getParticleMass(i) > 0 * unit.dalton:
+            dof += 3
+    for i in range(system.getNumConstraints()):
+        p1, p2, distance = system.getConstraintParameters(i)
+        if system.getParticleMass(p1) > 0 * unit.dalton or system.getParticleMass(p2) > 0 * unit.dalton:
+            dof -= 1
+    if any(type(system.getForce(i)) == CMMotionRemover for i in range(system.getNumForces())):
+        dof -= 3
+    return dof
+
+
+# TODO: MOVE TO FRAME CONVERTER AND REUSE KINETIC ENERGY
+def compute_temperature(simulation: Simulation, state, dof):
+    integrator = simulation.context.getIntegrator()
+    if hasattr(integrator, 'computeSystemTemperature'):
+        return integrator.computeSystemTemperature().value_in_unit(unit.kelvin)
+    else:
+        (2 * state.getKineticEnergy() / (dof * unit.MOLAR_GAS_CONSTANT_R)).value_in_unit(unit.kelvin)
