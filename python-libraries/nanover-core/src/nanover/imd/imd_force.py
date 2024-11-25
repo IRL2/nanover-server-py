@@ -340,7 +340,7 @@ def get_sparse_forces(user_forces: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArra
     return sparse_indices, sparse_forces
 
 
-def add_contribution_to_work(forces: npt.NDArray, positions: npt.NDArray):
+def calculate_contribution_to_work(forces: npt.NDArray, positions: npt.NDArray):
     r"""
     The expression for the work done on the system by the user is
 

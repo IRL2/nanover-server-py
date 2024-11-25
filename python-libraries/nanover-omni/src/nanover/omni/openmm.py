@@ -15,7 +15,7 @@ from nanover.openmm.imd import (
     NON_IMD_FORCES_GROUP_MASK,
 )
 from nanover.trajectory.frame_data import Array2Dfloat
-from nanover.imd.imd_force import add_contribution_to_work
+from nanover.imd.imd_force import calculate_contribution_to_work
 
 
 class OpenMMSimulation:
@@ -83,8 +83,8 @@ class OpenMMSimulation:
 
         self.work_done: float = 0.0
         self._work_done_intermediate: float = 0.0
-        self.prev_imd_forces: Optional[np.ndarray] = None
-        self.prev_imd_indices: Optional[np.ndarray] = None
+        self._prev_imd_forces: Optional[np.ndarray] = None
+        self._prev_imd_indices: Optional[np.ndarray] = None
 
     def load(self):
         """
@@ -164,10 +164,10 @@ class OpenMMSimulation:
         positions = state.getPositions(asNumpy=True)
 
         # Calculate on-step contribution to work
-        if self.prev_imd_forces is not None:
-            affected_atom_positions = positions[self.prev_imd_indices]
-            self._work_done_intermediate += add_contribution_to_work(
-                self.prev_imd_forces, affected_atom_positions
+        if self._prev_imd_forces is not None:
+            affected_atom_positions = positions[self._prev_imd_indices]
+            self._work_done_intermediate += calculate_contribution_to_work(
+                self._prev_imd_forces, affected_atom_positions
             )
 
         # update imd forces and energies
@@ -184,7 +184,7 @@ class OpenMMSimulation:
         # (negative contribution, so subtract from the total work done)
         if frame_data.user_forces_sparse is not None:
             affected_atom_positions = positions[frame_data.user_forces_index]
-            self._work_done_intermediate -= add_contribution_to_work(
+            self._work_done_intermediate -= calculate_contribution_to_work(
                 frame_data.user_forces_sparse, affected_atom_positions
             )
 
@@ -193,8 +193,8 @@ class OpenMMSimulation:
         self.frame_index += 1
 
         # Update previous step forces (saving them in their sparse form)
-        self.prev_imd_forces = frame_data.user_forces_sparse
-        self.prev_imd_indices = frame_data.user_forces_index
+        self._prev_imd_forces = frame_data.user_forces_sparse
+        self._prev_imd_indices = frame_data.user_forces_index
 
     def make_topology_frame(self):
         """
