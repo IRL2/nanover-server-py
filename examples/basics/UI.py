@@ -52,7 +52,8 @@ def run_simulation(simulation_type, input_files, trajectory_files, state_file, s
         imd_runner = OmniRunner.with_basic_server(
             *tuple(simulation_files + recording_playbacks), name=server_name, port=port
         )
-        imd_runner.next()
+        imd_runner.load(0)
+        imd_runner.play()
         imd_runner.runner.play_step_interval = 1 / simulation_fps
         if start_paused:
             imd_runner.pause()
