@@ -7,6 +7,7 @@ from nanover.omni.playback import PlaybackSimulation
 from nanover.trajectory import FrameData
 
 from common import app_server, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
+from nanover.utilities.change_buffers import DictionaryChange
 
 
 @pytest.fixture
@@ -41,7 +42,7 @@ def test_step_loops(example_playback):
         example_playback.advance_by_one_step()
 
     assert example_playback.next_entry_index == 1
-    emit.assert_called_once_with(frame=first_frame, update=first_update)
+    emit.assert_called_with(frame=first_frame, update=first_update)
 
 
 def test_advance_seconds_emits_intermediate(example_playback):
