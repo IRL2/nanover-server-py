@@ -159,6 +159,7 @@ class OmniRunner:
                 for key in state.keys()
                 if any(key.startswith(prefix) for prefix in CLEAR_PREFIXES)
             }
+        self.app_server.server.clear_locks()
         self.app_server.server.update_state(None, DictionaryChange(removals=removals))
 
     def _load_simulation_selections(self):

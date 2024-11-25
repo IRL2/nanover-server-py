@@ -105,6 +105,12 @@ class NanoverServer(GrpcServer):
             release = set()
         self._state_service.update_locks(access_token, acquire, release)
 
+    def clear_locks(self):
+        """
+        Forces the release all locks on all keys in the shared key/value store.
+        """
+        self._state_service.clear_locks()
+
     def _setup_command_service(self):
         self._command_service = CommandService()
         self.add_service(self._command_service)

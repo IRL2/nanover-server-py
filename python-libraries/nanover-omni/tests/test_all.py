@@ -160,9 +160,11 @@ def test_simulation_switch_clears_state(multi_sim_runner):
     key = "pytest"
 
     updates = {prefix + key: {} for prefix in CLEAR_PREFIXES}
+    locks = {key: 10 for key in updates}
 
     with make_client_connected_to_runner(multi_sim_runner) as client:
         client.attempt_update_multiplayer_state(DictionaryChange(updates=updates))
+        client.attempt_update_multiplayer_locks(locks)
 
     with make_client_connected_to_runner(multi_sim_runner) as client:
         client.subscribe_multiplayer()
