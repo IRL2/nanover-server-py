@@ -17,6 +17,7 @@ from nanover.openmm.imd import (
     ImdForceManager,
     NON_IMD_FORCES_GROUP_MASK,
 )
+from nanover.openmm.thermo import compute_instantaneous_temperature
 from nanover.trajectory.frame_data import Array2Dfloat
 
 
@@ -117,7 +118,7 @@ class OpenMMSimulation:
         self.simulation.context.loadCheckpoint(self.checkpoint)
         self.imd_force_manager = ImdForceManager(self.app_server.imd, self.imd_force)
 
-        self._dof = compute_dof(self.simulation.system)
+        self._dof = self.compute_dof()
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
@@ -238,7 +239,9 @@ class OpenMMSimulation:
         )
 
         # TODO: move?
-        frame_data.system_temperature = compute_instantaneous_temperature(self.simulation, state, self._dof)
+        frame_data.system_temperature = compute_instantaneous_temperature(
+                self.simulation, frame_data.kinetic_energy, self._dof
+            )
 
         # add any provided positions
         if positions is not None:
@@ -279,42 +282,23 @@ class OpenMMSimulation:
                 np.transpose(forces[atom]), positions[atom]
             )
 
-
-def compute_dof(system):
-    # Compute the number of degrees of freedom.
-    dof = 0
-    for i in range(system.getNumParticles()):
-        if system.getParticleMass(i) > 0 * unit.dalton:
-            dof += 3
-    for i in range(system.getNumConstraints()):
-        p1, p2, distance = system.getConstraintParameters(i)
-        if system.getParticleMass(p1) > 0 * unit.dalton or system.getParticleMass(p2) > 0 * unit.dalton:
-            dof -= 1
-    if any(type(system.getForce(i)) == CMMotionRemover for i in range(system.getNumForces())):
-        dof -= 3
-    return dof
-
-
-# TODO: MOVE TO FRAME CONVERTER AND REUSE KINETIC ENERGY
-def compute_instantaneous_temperature(simulation: Simulation, kinetic_energy: float, dof: int):
-    r"""
-    Calculate the instantaneous temperature of the system. If the integrator has an internal
-    function to do this, that function is used. Otherwise, it is calculated using the
-    kinetic energy of the system, according to
-
-    .. math::
-        T = \frac{2 * \mathrm{KE}}{N_{\mathrm{dof}} * R}
-
-    where KE is the kinetic energy of the system, N_{dof} is the number of degrees of freedom
-    of the system and R is the molar gas constant.
-
-    :param simulation: OpenMM simulation of the system.
-    :param kinetic_energy: Kinetic energy of the system.
-    :param dof: Number of degrees of freedom of the system.
-    :return: Instantaneous temperature of the system.
-    """
-    integrator = simulation.context.getIntegrator()
-    if hasattr(integrator, 'computeSystemTemperature'):
-        return integrator.computeSystemTemperature().value_in_unit(unit.kelvin)
-    else:
-        return (2 * kinetic_energy / (dof * unit.MOLAR_GAS_CONSTANT_R)).value_in_unit(unit.kelvin)
+    def compute_dof(self):
+        # Compute the number of degrees of freedom.
+        dof = 0
+        system = self.simulation.system
+        for i in range(system.getNumParticles()):
+            if system.getParticleMass(i) > 0 * unit.dalton:
+                dof += 3
+        for i in range(system.getNumConstraints()):
+            p1, p2, distance = system.getConstraintParameters(i)
+            if (
+                system.getParticleMass(p1) > 0 * unit.dalton
+                or system.getParticleMass(p2) > 0 * unit.dalton
+            ):
+                dof -= 1
+        if any(
+            type(system.getForce(i)) == CMMotionRemover
+            for i in range(system.getNumForces())
+        ):
+            dof -= 3
+        return dof
