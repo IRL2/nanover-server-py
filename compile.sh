@@ -55,12 +55,14 @@ if [[ $with_python == true ]]; then
 	announce "Compiling proto files to python"
 	python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src
 
+  LOCALPATH=$(pwd)
+
 	announce "Installing the python packages"
-	python -m pip install ${edit_option} ${nanover_user_option} ./python-libraries/nanover-core/
+	python -m pip install ${edit_option} ${nanover_user_option} ${LOCALPATH}/python-libraries/nanover-core/ --config-settings editable_mode=compat
 
 	for package in python-libraries/nanover-*/; do
 		if [[ -f "${package}/pyproject.toml" ]]; then
-			python -m pip install ${edit_option} ${nanover_user_option} ${package}
+			python -m pip install ${edit_option} ${nanover_user_option} ${LOCALPATH}/${package} --config-settings editable_mode=compat
 		fi
 	done
 
