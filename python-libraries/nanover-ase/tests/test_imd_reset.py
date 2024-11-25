@@ -307,9 +307,11 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
     calculator, atoms, dyn = imd_calculator
     atoms.calc = calculator
 
+    # TODO: not sure why we set this to none
     calculator.atoms = None
     calculator.calculate(atoms=atoms, system_changes=["numbers"])
     MaxwellBoltzmannDistribution(atoms, temperature_K=300)
+    calculator.atoms = atoms
 
     selection = [0, 1]
     selection = np.array(list(selection))

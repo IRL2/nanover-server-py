@@ -10,6 +10,7 @@ from ase import Atoms, units  # type: ignore
 from ase.calculators.calculator import Calculator, all_changes
 from ase.md.md import MolecularDynamics
 from ase.md.velocitydistribution import _maxwellboltzmanndistribution
+
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd.imd_state import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
@@ -31,8 +32,7 @@ class ImdForceManager:
         self.total_user_energy = 0.0
         self.user_forces: np.ndarray = np.zeros(self.atoms.positions.shape)
 
-        self._previous_interactions: Dict[str, ParticleInteraction] = {}
-        self.call_reset_velocities: bool = False
+        self._current_interactions: Dict[str, ParticleInteraction] = {}
 
     def update_interactions(self):
         """
@@ -58,9 +58,6 @@ class ImdForceManager:
         # Get the current interactions from the iMD service (if any)
         interactions = self.imd_state.active_interactions
 
-        # Call _reset_velocities in ImdCalculator
-        self.call_reset_velocities = True
-
         # convert positions to the one true unit of distance, nanometers.
         positions = atoms.positions * converter.ANG_TO_NM
         energy = 0.0
@@ -73,8 +70,8 @@ class ImdForceManager:
         self.total_user_energy = energy
         self.user_forces = forces
 
-        # update previous interactions for next step.
-        self._previous_interactions = dict(interactions)
+        # update interactions for next frame interval
+        self._current_interactions = dict(interactions)
 
     def _calculate_imd(
         self,
@@ -120,8 +117,6 @@ class ImdCalculator(Calculator):
         running an interactive molecular dynamics simulation in ASE straightforward.
 
     """
-
-    _previous_interactions: Dict[str, ParticleInteraction]
 
     def __init__(
         self,
@@ -268,16 +263,6 @@ class ImdCalculator(Calculator):
             forces = self.calculator.results["forces"]
 
         if self._imd_force_manager is not None:
-            # Reset velocities (if desired)
-            if self._imd_force_manager.call_reset_velocities:
-                self._reset_velocities(
-                    atoms, self.interactions, self._previous_interactions
-                )
-                self._previous_interactions = (
-                    self._imd_force_manager._previous_interactions
-                )
-                self._imd_force_manager.call_reset_velocities = False
-
             # Retrieve iMD energy and forces and add to results
             imd_energy = self._imd_force_manager.total_user_energy
             imd_forces = self._imd_force_manager.user_forces
@@ -292,7 +277,10 @@ class ImdCalculator(Calculator):
         via the ImdForceManager.
         """
         assert self._imd_force_manager is not None
+        prev_interactions = self._imd_force_manager._current_interactions
         self._imd_force_manager.update_interactions()
+        next_interactions = self._imd_force_manager._current_interactions
+        self._reset_velocities(self.atoms, next_interactions, prev_interactions)
 
     def add_to_frame_data(self, frame_data: FrameData):
         """
@@ -320,7 +308,6 @@ class ImdCalculator(Calculator):
         except MissingDataError:
             self._imd_state.velocity_reset_available = False
         self._imd_state.velocity_reset_available = True
-        self._previous_interactions = {}
 
 
 def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
