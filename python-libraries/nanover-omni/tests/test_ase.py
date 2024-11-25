@@ -345,8 +345,6 @@ def test_work_done_server(example_ase_app_sim_constant_force_interaction):
 
     app, sim = example_ase_app_sim_constant_force_interaction
 
-    print(sim.atoms.get_masses())
-
     # Add step to account for zeroth (topology) frame where force is not applied
     for _ in range(401):
         sim.advance_to_next_report()
