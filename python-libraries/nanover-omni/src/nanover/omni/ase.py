@@ -19,6 +19,7 @@ from nanover.ase.imd_calculator import ImdCalculator, ImdForceManager
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData
 from nanover.utilities.event import Event
+from nanover.imd.imd_force import add_contribution_to_work
 
 
 @dataclass
@@ -196,7 +197,9 @@ class ASESimulation:
         # Calculate on-step contribution to work
         if self.prev_imd_forces is not None:
             affected_atom_positions = positions[self.prev_imd_indices]
-            self.add_contribution_to_work(self.prev_imd_forces, affected_atom_positions)
+            self._work_done_intermediate += add_contribution_to_work(
+                self.prev_imd_forces, affected_atom_positions
+            )
 
         # update imd forces and energies
         self.imd_calculator.update_interactions()
@@ -209,10 +212,10 @@ class ASESimulation:
         frame_data.user_work_done = self.work_done
 
         # Calculate previous-step contribution to work for the next time step
-        # (minus sign in positions accounts for subtraction of this contribution)
+        # (negative contribution, so subtract from the total work done)
         if frame_data.user_forces_sparse is not None:
-            affected_atom_positions = -positions[frame_data.user_forces_index]
-            self.add_contribution_to_work(
+            affected_atom_positions = positions[frame_data.user_forces_index]
+            self._work_done_intermediate -= add_contribution_to_work(
                 frame_data.user_forces_sparse, affected_atom_positions
             )
 
@@ -268,38 +271,37 @@ class ASESimulation:
         return frame_data
 
 
-    def add_contribution_to_work(self, forces: npt.NDArray, positions: npt.NDArray):
-        r"""
-        The expression for the work done on the system by the user is
-
-        .. math::
-            W = \sum_{t = 1}^{n_{steps}} \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
-             \cdot (\mathbf{r}_{i}(t) - \mathbf{r}_{i}(t - 1)))
-
-        which can be rewritten as
-
-        .. math::
-            W = \sum_{t = 1}^{n_{steps}} \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
-             \cdot \mathbf{r}_{i}(t) \bigg)  - \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
-             \cdot \mathbf{r}_{i}(t - 1) \bigg)
-
-        where the contribution at each value of t is separated into an
-        previous-step contribution (t-1) and an on-step contribution (t). Doing so
-        enables calculation of the work done on-the-fly without having to save
-        the positions of the atoms at each time step that the user applies an
-        iMD force.
-
-        This function calculates the contribution to the work done on the system by the user
-        for a set of forces and positions, and add it to the work done on the system. Only
-        involves the atoms affected by the user interaction.
-
-        :param forces: Array of user forces acting on the system (in NanoVer units of force,
-        i.e. kJ mol-1 nm-1)
-        :param positions: Array of atomic positions of the atoms on which the user forces
-        act (in NanoVer units, i.e. nm)
-        """
-        for atom in range(len(forces)):
-            self._work_done_intermediate += np.dot(
-                np.transpose(forces[atom]), positions[atom]
-            )
-
+#    def add_contribution_to_work(self, forces: npt.NDArray, positions: npt.NDArray):
+#        r"""
+#        The expression for the work done on the system by the user is
+#
+#        .. math::
+#            W = \sum_{t = 1}^{n_{steps}} \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+#             \cdot (\mathbf{r}_{i}(t) - \mathbf{r}_{i}(t - 1)))
+#
+#        which can be rewritten as
+#
+#        .. math::
+#            W = \sum_{t = 1}^{n_{steps}} \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+#             \cdot \mathbf{r}_{i}(t) \bigg)  - \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+#             \cdot \mathbf{r}_{i}(t - 1) \bigg)
+#
+#        where the contribution at each value of t is separated into an
+#        previous-step contribution (t-1) and an on-step contribution (t). Doing so
+#        enables calculation of the work done on-the-fly without having to save
+#        the positions of the atoms at each time step that the user applies an
+#        iMD force.
+#
+#        This function calculates the contribution to the work done on the system by the user
+#        for a set of forces and positions, and add it to the work done on the system. Only
+#        involves the atoms affected by the user interaction.
+#
+#        :param forces: Array of user forces acting on the system (in NanoVer units of force,
+#        i.e. kJ mol-1 nm-1)
+#        :param positions: Array of atomic positions of the atoms on which the user forces
+#        act (in NanoVer units, i.e. nm)
+#        """
+#        for atom in range(len(forces)):
+#            self._work_done_intermediate += np.dot(
+#                np.transpose(forces[atom]), positions[atom]
+#            )
