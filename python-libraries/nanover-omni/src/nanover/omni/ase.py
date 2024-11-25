@@ -12,11 +12,13 @@ from nanover.ase.converter import (
     EV_TO_KJMOL,
     ASE_TIME_UNIT_TO_PS,
     ase_atoms_to_frame_data,
+    ANG_TO_NM,
 )
 from nanover.ase.imd_calculator import ImdCalculator, ImdForceManager
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData
 from nanover.utilities.event import Event
+from nanover.imd.imd_force import calculate_contribution_to_work
 
 
 @dataclass
@@ -85,6 +87,11 @@ class ASESimulation:
 
         self.frame_index = 0
         self.ase_atoms_to_frame_data = ase_atoms_to_frame_data
+
+        self.work_done: float = 0.0
+        self._work_done_intermediate: float = 0.0
+        self._prev_imd_forces: Optional[np.ndarray] = None
+        self._prev_imd_indices: Optional[np.ndarray] = None
 
     def load(self):
         """
@@ -183,15 +190,41 @@ class ASESimulation:
         # advance the simulation
         self.dynamics.run(steps_to_next_frame)
 
+        # Get positions to calculate work done (in NanoVer units)
+        positions = self.atoms.get_positions(wrap=False) * ANG_TO_NM
+
+        # Calculate on-step contribution to work
+        if self._prev_imd_forces is not None:
+            affected_atom_positions = positions[self._prev_imd_indices]
+            self._work_done_intermediate += calculate_contribution_to_work(
+                self._prev_imd_forces, affected_atom_positions
+            )
+
         # update imd forces and energies
         self.imd_calculator.update_interactions()
 
         # generate the next frame
         frame_data = self.make_regular_frame()
 
+        # Update work done in frame data
+        self.work_done = self._work_done_intermediate
+        frame_data.user_work_done = self.work_done
+
+        # Calculate previous-step contribution to work for the next time step
+        # (negative contribution, so subtract from the total work done)
+        if frame_data.user_forces_sparse is not None:
+            affected_atom_positions = positions[frame_data.user_forces_index]
+            self._work_done_intermediate -= calculate_contribution_to_work(
+                frame_data.user_forces_sparse, affected_atom_positions
+            )
+
         # send the next frame
         self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
         self.frame_index += 1
+
+        # Update previous step forces (saving them in their sparse form)
+        self._prev_imd_forces = frame_data.user_forces_sparse
+        self._prev_imd_indices = frame_data.user_forces_index
 
         # check if excessive energy requires sim reset
         if self.reset_energy is not None and self.app_server is not None:
