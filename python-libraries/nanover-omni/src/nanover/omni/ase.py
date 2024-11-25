@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, Any, Protocol
 
 import numpy as np
+import numpy.typing as npt
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.md import MDLogger
@@ -12,6 +13,7 @@ from nanover.ase.converter import (
     EV_TO_KJMOL,
     ASE_TIME_UNIT_TO_PS,
     ase_atoms_to_frame_data,
+    ANG_TO_NM,
 )
 from nanover.ase.imd_calculator import ImdCalculator, ImdForceManager
 from nanover.ase.wall_constraint import VelocityWallConstraint
@@ -85,6 +87,11 @@ class ASESimulation:
 
         self.frame_index = 0
         self.ase_atoms_to_frame_data = ase_atoms_to_frame_data
+
+        self.work_done: float = 0.0
+        self._work_done_intermediate: float = 0.0
+        self.prev_imd_forces: Optional[np.ndarray] = None
+        self.prev_imd_indices: Optional[np.ndarray] = None
 
     def load(self):
         """
@@ -183,15 +190,39 @@ class ASESimulation:
         # advance the simulation
         self.dynamics.run(steps_to_next_frame)
 
+        # Get positions to calculate work done (in NanoVer units)
+        positions = self.atoms.get_positions(wrap=False) * ANG_TO_NM
+
+        # Calculate on-step contribution to work
+        if self.prev_imd_forces is not None:
+            affected_atom_positions = positions[self.prev_imd_indices]
+            self.add_contribution_to_work(self.prev_imd_forces, affected_atom_positions)
+
         # update imd forces and energies
         self.imd_calculator.update_interactions()
 
         # generate the next frame
         frame_data = self.make_regular_frame()
 
+        # Update work done in frame data
+        self.work_done = self._work_done_intermediate
+        frame_data.user_work_done = self.work_done
+
+        # Calculate previous-step contribution to work for the next time step
+        # (minus sign in positions accounts for subtraction of this contribution)
+        if frame_data.user_forces_sparse is not None:
+            affected_atom_positions = -positions[frame_data.user_forces_index]
+            self.add_contribution_to_work(
+                frame_data.user_forces_sparse, affected_atom_positions
+            )
+
         # send the next frame
         self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
         self.frame_index += 1
+
+        # Update previous step forces (saving them in their sparse form)
+        self.prev_imd_forces = frame_data.user_forces_sparse
+        self.prev_imd_indices = frame_data.user_forces_index
 
         # check if excessive energy requires sim reset
         if self.reset_energy is not None and self.app_server is not None:
@@ -235,3 +266,40 @@ class ASESimulation:
         self.imd_calculator.add_to_frame_data(frame_data)
 
         return frame_data
+
+
+    def add_contribution_to_work(self, forces: npt.NDArray, positions: npt.NDArray):
+        r"""
+        The expression for the work done on the system by the user is
+
+        .. math::
+            W = \sum_{t = 1}^{n_{steps}} \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+             \cdot (\mathbf{r}_{i}(t) - \mathbf{r}_{i}(t - 1)))
+
+        which can be rewritten as
+
+        .. math::
+            W = \sum_{t = 1}^{n_{steps}} \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+             \cdot \mathbf{r}_{i}(t) \bigg)  - \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+             \cdot \mathbf{r}_{i}(t - 1) \bigg)
+
+        where the contribution at each value of t is separated into an
+        previous-step contribution (t-1) and an on-step contribution (t). Doing so
+        enables calculation of the work done on-the-fly without having to save
+        the positions of the atoms at each time step that the user applies an
+        iMD force.
+
+        This function calculates the contribution to the work done on the system by the user
+        for a set of forces and positions, and add it to the work done on the system. Only
+        involves the atoms affected by the user interaction.
+
+        :param forces: Array of user forces acting on the system (in NanoVer units of force,
+        i.e. kJ mol-1 nm-1)
+        :param positions: Array of atomic positions of the atoms on which the user forces
+        act (in NanoVer units, i.e. nm)
+        """
+        for atom in range(len(forces)):
+            self._work_done_intermediate += np.dot(
+                np.transpose(forces[atom]), positions[atom]
+            )
+
