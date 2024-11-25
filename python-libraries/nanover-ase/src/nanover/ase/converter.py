@@ -7,6 +7,7 @@ NanoVer clients.
 from typing import Iterable, Optional
 
 from ase import Atoms, Atom  # type: ignore
+from ase.units import fs as fs_in_ase_time_unit
 import itertools
 import numpy as np
 import numpy.typing as npt
@@ -17,6 +18,8 @@ ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM
 KJMOL_TO_EV = 0.01036427
 EV_TO_KJMOL = 1.0 / KJMOL_TO_EV
+PS_TO_ASE_TIME_UNIT = fs_in_ase_time_unit * 1e3
+ASE_TIME_UNIT_TO_PS = 1.0 / PS_TO_ASE_TIME_UNIT
 
 # from https://chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_Maps/Supplemental_Modules_(Physical_and_Theoretical_Chemistry)/Chemical_Bonding/Fundamentals_of_Chemical_Bonding/Covalent_Bond_Distance%2C_Radius_and_van_der_Waals_Radius
 # TODO make a helper class with complete coverage of this stuff.
@@ -110,9 +113,11 @@ def ase_to_frame_data(
     if box_vectors:
         add_ase_box_vectors_to_frame_data(data, ase_atoms)
     if include_velocities:
-        data.particle_velocities = ase_atoms.get_velocities()
+        data.particle_velocities = ase_atoms.get_velocities() * (
+            ANG_TO_NM / ASE_TIME_UNIT_TO_PS
+        )
     if include_forces:
-        data.particle_forces = ase_atoms.get_forces()
+        data.particle_forces_system = ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
 
     return data
 

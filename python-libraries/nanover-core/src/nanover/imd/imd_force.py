@@ -319,6 +319,27 @@ def _calculate_diff_and_sqr_distance(
     return diff, dist_sqr
 
 
+def get_sparse_forces(user_forces: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray]:
+    """
+    Takes in an array of user forces acting on the system containing N particles
+    and outputs two arrays that describe these user forces in a sparse form:
+
+    - The first contains the indices of the particles for which the user forces
+      are non-zero
+    - The second contains the non-zero user forces associated with each index
+
+    :param user_forces: Array of user forces with dimensions (N, 3)
+    :return: Array of particle indices, Array of corresponding user forces
+    """
+    sparse_indices = np.unique(np.nonzero(user_forces)[0])
+    sparse_forces = np.zeros((sparse_indices.shape[0], 3))
+
+    for index in range(sparse_indices.shape[0]):
+        sparse_forces[index, :] = user_forces[sparse_indices[index]]
+
+    return sparse_indices, sparse_forces
+
+
 INTERACTION_METHOD_MAP: Dict[str, ForceCalculator] = {
     "gaussian": calculate_gaussian_force,
     "spring": calculate_spring_force,
