@@ -242,34 +242,3 @@ class OpenMMSimulation:
         self.imd_force_manager.add_to_frame_data(frame_data)
 
         return frame_data
-
-
-#    def add_contribution_to_work(self, forces: npt.NDArray, positions: npt.NDArray):
-#        r"""
-#        The expression for the work done on the system by the user is
-#
-#        .. math::
-#            W = \sum_{t = 1}^{n_{steps}} \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
-#             \cdot (\mathbf{r}_{i}(t) - \mathbf{r}_{i}(t - 1)))
-#
-#        which can be rewritten as
-#
-#        .. math::
-#            W = \sum_{t = 1}^{n_{steps}} \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
-#             \cdot \mathbf{r}_{i}(t) \bigg)  - \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
-#             \cdot \mathbf{r}_{i}(t - 1) \bigg)
-#
-#        where the contribution at each value of t is separated into an
-#        previous-step contribution (t-1) and an on-step contribution (t). Doing so
-#        enables calculation of the work done on-the-fly without having to save
-#        the positions of the atoms at each time step that the user applies an
-#        iMD force.
-#
-#        This function calculates the contribution to the work done on the system by the user
-#        for a set of forces and positions, and add it to the work done on the system. Only
-#        involves the atoms affected by the user interaction.
-#        """
-#        for atom in range(len(forces)):
-#            self._work_done_intermediate += np.dot(
-#                np.transpose(forces[atom]), positions[atom]
-#            )
