@@ -238,7 +238,7 @@ class OpenMMSimulation:
         )
 
         # TODO: move?
-        frame_data.system_temperature = compute_temperature(self.simulation, state, self._dof)
+        frame_data.system_temperature = compute_instantaneous_temperature(self.simulation, state, self._dof)
 
         # add any provided positions
         if positions is not None:
@@ -296,9 +296,25 @@ def compute_dof(system):
 
 
 # TODO: MOVE TO FRAME CONVERTER AND REUSE KINETIC ENERGY
-def compute_temperature(simulation: Simulation, state, dof):
+def compute_instantaneous_temperature(simulation: Simulation, kinetic_energy: float, dof: int):
+    r"""
+    Calculate the instantaneous temperature of the system. If the integrator has an internal
+    function to do this, that function is used. Otherwise, it is calculated using the
+    kinetic energy of the system, according to
+
+    .. math::
+        T = \frac{2 * \mathrm{KE}}{N_{\mathrm{dof}} * R}
+
+    where KE is the kinetic energy of the system, N_{dof} is the number of degrees of freedom
+    of the system and R is the molar gas constant.
+
+    :param simulation: OpenMM simulation of the system.
+    :param kinetic_energy: Kinetic energy of the system.
+    :param dof: Number of degrees of freedom of the system.
+    :return: Instantaneous temperature of the system.
+    """
     integrator = simulation.context.getIntegrator()
     if hasattr(integrator, 'computeSystemTemperature'):
         return integrator.computeSystemTemperature().value_in_unit(unit.kelvin)
     else:
-        (2 * state.getKineticEnergy() / (dof * unit.MOLAR_GAS_CONSTANT_R)).value_in_unit(unit.kelvin)
+        return (2 * kinetic_energy / (dof * unit.MOLAR_GAS_CONSTANT_R)).value_in_unit(unit.kelvin)
