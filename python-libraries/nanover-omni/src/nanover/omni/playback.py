@@ -10,6 +10,7 @@ from nanover.recording.reading import iter_recording_files
 from nanover.utilities.key_lockable_map import ResourceLockedError
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
+SCENE_POSE_IDENTITY = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
 
 Entry = Tuple[float, Optional[FrameData], Optional[DictionaryChange]]
 
@@ -63,6 +64,7 @@ class PlaybackSimulation:
             for _, _, update in self.entries
             if update is not None
             for key in update.updates.keys()
+            if key != "scene"
         }
 
     def reset(self, app_server: NanoverImdApplication):
@@ -74,9 +76,9 @@ class PlaybackSimulation:
         self.next_entry_index = 0
         self.time = 0.0
 
-        # clear simulation
+        # clear simulation and reset box pose to identity
         self.emit(
-            frame=FrameData(), update=DictionaryChange(removals=self.changed_keys)
+            frame=FrameData({"scene": SCENE_POSE_IDENTITY}), update=DictionaryChange(removals=self.changed_keys)
         )
 
     def advance_by_one_step(self):
@@ -123,9 +125,5 @@ class PlaybackSimulation:
             index = 0 if "index" not in frame.values else int(frame.values["index"])
             self.app_server.frame_publisher.send_frame(index, frame)
         if update is not None:
-            with suppress(ResourceLockedError):
-                self.app_server.server.update_state(None, update)
-
-
-def _gather_changed_keys(updates: Iterable[DictionaryChange]):
-    pass
+            self.app_server.server.clear_locks()
+            self.app_server.server.update_state(None, update)
