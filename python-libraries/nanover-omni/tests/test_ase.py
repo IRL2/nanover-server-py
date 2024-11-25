@@ -352,7 +352,9 @@ def test_work_done_server(example_ase_app_sim_constant_force_interaction):
         sim.advance_to_next_report()
 
     # Check that 1.0025 ps have passed (and hence that force has been applied for 1 ps)
-    assert sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS == pytest.approx(1.0025, abs=10e-12)
+    assert sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS == pytest.approx(
+        1.0025, abs=10e-12
+    )
     assert sim.work_done == pytest.approx(20.0, abs=1e-6)
 
 
