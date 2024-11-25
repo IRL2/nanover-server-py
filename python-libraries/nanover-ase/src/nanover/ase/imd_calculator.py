@@ -22,7 +22,11 @@ from . import converter
 class ImdForceManager:
     """
     A class that calculates and stores the iMD forces and energies for
-    an ASE simulation.
+    an ASE simulation. This class manages data associated with the iMD interactions
+    for the :class:`ImdCalculator`.
+
+    :param imd_state: A wrapper that provides access to the active interactive forces.
+    :param atoms: An ASE atoms object to use.
     """
 
     def __init__(self, imd_state: ImdStateWrapper, atoms: Atoms):
@@ -43,6 +47,8 @@ class ImdForceManager:
     def add_to_frame_data(self, frame_data: FrameData):
         """
         Add the iMD forces and energy to the frame data.
+
+        :param frame_data: The FrameData object to which the iMD results are appended.
         """
         frame_data.user_energy = self.total_user_energy * converter.EV_TO_KJMOL
         user_sparse_indices, user_sparse_forces = get_sparse_forces(self.user_forces)
@@ -54,6 +60,8 @@ class ImdForceManager:
     def _update_forces(self, atoms):
         """
         Get the forces to apply from the iMD service and communicate them
+
+        :param atoms: an ASE atoms object.
         """
         # Get the current interactions from the iMD service (if any)
         interactions = self.imd_state.active_interactions
@@ -79,6 +87,15 @@ class ImdForceManager:
         positions: np.ndarray,
         interactions: Dict[str, ParticleInteraction],
     ):
+        """
+        A calculate the iMD forces and energies and convert
+        the results into ASE units.
+
+        :param atoms: an ASE atoms object.
+        :param positions: the positions of the ASE atoms in NanoVer units.
+        :param interactions: a dictionary of the interactions being applied
+        to the atoms in the system.
+        """
         # masses are in amu, which is fine.
         masses = atoms.get_masses()
 
@@ -274,7 +291,8 @@ class ImdCalculator(Calculator):
     def update_interactions(self):
         """
         Update the iMD interaction energies and forces (in ASE units)
-        via the ImdForceManager.
+        via the ImdForceManager, and subsequently resets the velocities
+        (if applicable).
         """
         assert self._imd_force_manager is not None
         prev_interactions = self._imd_force_manager._current_interactions
@@ -286,6 +304,8 @@ class ImdCalculator(Calculator):
         """
         Add the iMD forces and energy to the frame data via the
         ImdForceManager.
+
+        :param frame_data: The FrameData object to which the iMD results are appended.
         """
         assert self._imd_force_manager is not None
         self._imd_force_manager.add_to_frame_data(frame_data)
