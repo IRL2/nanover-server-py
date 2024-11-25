@@ -13,6 +13,7 @@ requirements:
     - nanover-ase =={{ NANOVER_BUILD_VERSION }}
     - nanover-mdanalysis =={{ NANOVER_BUILD_VERSION }}
     - nanover-omni =={{ NANOVER_BUILD_VERSION }}
+    - nanover-jupyter =={{ NANOVER_BUILD_VERSION }}
 
 about:
   home: {{ NANOVER_DOC_URL }}

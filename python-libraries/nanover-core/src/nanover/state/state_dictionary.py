@@ -111,6 +111,12 @@ class StateDictionary:
             for key, duration in acquire.items():
                 self._write_locks.lock_key(access_token, key, duration)
 
+    def clear_locks(self):
+        """
+        Release all locks on all keys.
+        """
+        self._write_locks.release_all_keys()
+
     def _can_token_access_keys(self, access_token, keys):
         """
         Return whether or not all keys are either unlocked or locked by the

@@ -8,8 +8,6 @@ source:
 build:
   noarch: python
   number: 0
-  entry_points:
-    - nanover-omm-ase = nanover.ase.openmm.cli:main
 
 requirements:
   build:

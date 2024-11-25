@@ -4,8 +4,13 @@ import pytest
 
 from nanover.essd import DiscoveryServer
 from nanover.essd.client import DiscoveryClient
+from nanover.testing import assert_not_in_soon, assert_in_soon
 from test_essd_server import service
-from test_essd_service import properties, properties_unique_id
+from test_essd_service import (
+    properties,
+    properties_unique_id,
+    EXAMPLE_SERVICE_PROPERTIES,
+)
 
 from nanover.essd.servicehub import ServiceHub
 
@@ -63,22 +68,20 @@ def test_send_service_different_port(service):
 
 
 def test_remove_service(client_server, service):
+    """
+    Test that a removed service is no longer found by searching for services.
+    """
     client, server = client_server
+
+    def find_services():
+        services = set(client.search_for_services(search_time=1))
+        return services
+
     server.register_service(service)
-    services = set(
-        client.search_for_services(
-            search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
-        )
-    )
-    assert service in services
+    assert_in_soon(lambda: service, lambda: find_services(), timeout=5)
+
     server.unregister_service(service)
-    time.sleep(TEST_INTERVAL_TIME)
-    services = set(
-        client.search_for_services(
-            search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
-        )
-    )
-    assert service not in services
+    assert_not_in_soon(lambda: service, lambda: find_services(), timeout=5)
 
 
 def test_send_service_multiple_clients(client_server, service):
@@ -135,17 +138,17 @@ def run_with_server(service, residual=None):
             run_with_client(service, residual)
 
 
-def test_context_managers(service, properties_unique_id):
+def test_context_managers():
     """
     tests that running the server and client with context managers cleans up correctly.
     If discovery servers do not clean up cleanly, future clients will find additional servers.
     """
-    service1 = service
-    service2 = ServiceHub(**properties_unique_id)
+    service1 = ServiceHub(**EXAMPLE_SERVICE_PROPERTIES)
+    service2 = ServiceHub(**EXAMPLE_SERVICE_PROPERTIES)
 
     run_with_server(service1)
     time.sleep(
-        TEST_INTERVAL_TIME
+        TEST_SEARCH_TIME
     )  # give a small window for old servers to stop advertising
     run_with_server(service2, service1)
 

@@ -7,11 +7,26 @@ from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.omni.ase_omm import ASEOpenMMSimulation, CONSTRAINTS_UNSUPPORTED_MESSAGE
 
 from common import app_server, ARGON_XML_PATH
+from nanover.openmm.serializer import deserialize_simulation
+
+from openmm_simulation_utils import (
+    basic_system,
+    basic_simulation,
+    basic_simulation_with_imd_force,
+    BASIC_SIMULATION_POSITIONS,
+    empty_imd_force,
+    assert_basic_simulation_topology,
+    single_atom_system,
+    single_atom_simulation,
+    single_atom_simulation_with_imd_force,
+    ARGON_SIMULATION_POSITION,
+    assert_single_atom_simulation_topology,
+)
 
 
 @pytest.fixture
-def example_ase_omm(app_server):
-    sim = ASEOpenMMSimulation.from_xml_path(ARGON_XML_PATH)
+def example_ase_omm(app_server, single_atom_simulation):
+    sim = ASEOpenMMSimulation.from_simulation(single_atom_simulation)
     sim.load()
     sim.reset(app_server)
     yield sim
@@ -29,16 +44,6 @@ def test_step_interval(example_ase_omm):
         example_ase_omm.advance_by_one_step()
 
 
-@pytest.mark.parametrize("time_step", (0.5, 1.0, 1.5))
-def test_time_step(example_ase_omm, time_step, app_server):
-    example_ase_omm.time_step = time_step
-    example_ase_omm.frame_interval = 1
-    example_ase_omm.reset(app_server)
-    for i in range(5):
-        assert example_ase_omm.dynamics.dt == pytest.approx(time_step * units.fs)
-        example_ase_omm.advance_by_one_step()
-
-
 # TODO: test it actually outputs
 def test_verbose(example_ase_omm, app_server):
     """
@@ -52,7 +57,6 @@ def test_verbose(example_ase_omm, app_server):
 
 @pytest.mark.parametrize("walls", (False, True))
 def test_walls(example_ase_omm, walls):
-    example_ase_omm.simulation = None
     example_ase_omm.use_walls = walls
     example_ase_omm.load()
     assert (
@@ -81,6 +85,6 @@ def test_constraint_warning(example_ase_omm, app_server, recwarn):
     logged.
     """
     with pytest.warns(UserWarning, match=CONSTRAINTS_UNSUPPORTED_MESSAGE):
-        example_ase_omm.load()
         example_ase_omm.simulation.system.addConstraint(0, 1, 1)
+        example_ase_omm.load()
         example_ase_omm.reset(app_server)

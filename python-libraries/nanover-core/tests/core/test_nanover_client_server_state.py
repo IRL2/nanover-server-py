@@ -3,6 +3,8 @@ from typing import Tuple
 
 import numpy
 import pytest
+
+from nanover.testing import assert_in_soon
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.key_lockable_map import ResourceLockedError
 
@@ -80,7 +82,8 @@ def test_client_copy_state_is_independent(client_server):
     client, server = client_server
     client.subscribe_all_state_updates(0)
 
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    # wait for first update
+    assert_in_soon(lambda: "test", lambda: client.copy_state())
 
     copy = client.copy_state()
     copy["test"]["baby"] = "shark"

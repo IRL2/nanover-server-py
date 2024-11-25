@@ -43,16 +43,6 @@ if [[ ! -z "${edit_option}" ]]; then
 fi
 
 if [[ $with_python == true ]]; then
-	# mpi4py (required for nanover-lammps) needs MPI to be installed on the system.
-	python -c "import mpi4py" 2>&1 >/dev/null || {
-		announce "The mpi4py library is required but cannot be found."
-		announce "Because it requires a system library, it is not installed by this"
-		announce "script; you have to install it yourself."
-		announce "If you are using conda, install mpi4py by running"
-		announce "conda install -c conda-forge mpi4py"
-		exit 1
-	}
-
 	announce "Installing python requirements"
 	python -m pip install -r ./python-libraries/nanover-core/requirements.txt ${user_option}
 
@@ -63,14 +53,16 @@ if [[ $with_python == true ]]; then
 	python -m pip install -r ./python-libraries/requirements.test ${user_option}
 
 	announce "Compiling proto files to python"
-	python ./python-libraries/nanover-core/setup.py compile_proto
+	python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src
+
+  LOCALPATH=$(pwd)
 
 	announce "Installing the python packages"
-	python -m pip install ${edit_option} ${nanover_user_option} ./python-libraries/nanover-core/
+	python -m pip install ${edit_option} ${nanover_user_option} ${LOCALPATH}/python-libraries/nanover-core/ --config-settings editable_mode=compat
 
 	for package in python-libraries/nanover-*/; do
-		if [[ -f "${package}/setup.py" ]]; then
-			python -m pip install ${edit_option} ${nanover_user_option} ${package}
+		if [[ -f "${package}/pyproject.toml" ]]; then
+			python -m pip install ${edit_option} ${nanover_user_option} ${LOCALPATH}/${package} --config-settings editable_mode=compat
 		fi
 	done
 

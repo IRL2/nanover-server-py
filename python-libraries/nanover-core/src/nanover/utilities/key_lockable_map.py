@@ -56,6 +56,11 @@ class KeyLockableMap:
                 raise ResourceLockedError
             self._remove_lock(key)
 
+    def release_all_keys(self):
+        with self._lock:
+            self._key_lock_owners.clear()
+            self._key_lock_timeouts.clear()
+
     def remove_owner(self, owner_id):
         with self._lock:
             locked_keys = {
