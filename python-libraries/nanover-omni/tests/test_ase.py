@@ -50,7 +50,7 @@ def example_ase_app_sim_constant_force_interaction(example_ase_app_sim):
 
 @pytest.fixture
 def example_dynamics():
-    atoms = Atoms("Ar", positions=[(0, 0, 0)], cell=[2, 2, 2])
+    atoms = Atoms("Ar", positions=[(0, 0, 0)], masses=[40.0], cell=[2, 2, 2])
     atoms.calc = LennardJones()
     dynamics = VelocityVerlet(atoms, timestep=0.5 * ase_units.fs)
     yield dynamics
@@ -329,3 +329,46 @@ def test_imd_force_unit_conversion(example_ase_app_sim_constant_force_interactio
             assert particle_forces[f_i] == pytest.approx(
                 particle_forces_frame[f_i], rel=1e-7
             )
+
+
+def test_work_done_server(example_ase_app_sim_constant_force_interaction):
+    """
+    Test that the calculated user work done on a single atom system gives the
+    expected numerical result within the code.
+    """
+
+    # For a simulation with a frame interval of 5 simulation steps and a simulation
+    # step size of 0.5 fs, using a constant force to accelerate the atom at 1 nm ps-1
+    # (for Ar this is a force of 40 kJ mol-1 nm-1), after 401 steps the work done on
+    # an Argon atom should be 20.0 kJ mol-1 analytically. Allowing for numerical error,
+    # the expected value should be slightly greater than 20.0 kJ mol-1
+
+    app, sim = example_ase_app_sim_constant_force_interaction
+
+    # Add step to account for zeroth (topology) frame where force is not applied
+    for _ in range(401):
+        sim.advance_to_next_report()
+
+    # Check that 1.0025 ps have passed (and hence that force has been applied for 1 ps)
+    assert sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS == pytest.approx(
+        1.0025, abs=10e-12
+    )
+    assert sim.work_done == pytest.approx(20.0, abs=1e-6)
+
+
+def test_work_done_frame(example_ase_app_sim_constant_force_interaction):
+    """
+    Test that the calculated user work done on a single atom system that appears
+    in the frame is equal to the user work done as calculated in the ASESimulation.
+    """
+    app, sim = example_ase_app_sim_constant_force_interaction
+
+    for _ in range(11):
+        sim.advance_to_next_report()
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        assert client.current_frame.user_work_done == sim.work_done
