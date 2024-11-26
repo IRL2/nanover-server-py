@@ -1,15 +1,14 @@
-from contextlib import suppress
 from os import PathLike
 from pathlib import Path
-from typing import List, Optional, Tuple, Iterable
+from typing import List, Optional, Tuple, Iterable, Set
 
 from nanover.app import NanoverImdApplication
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.recording.reading import iter_recording_files
-from nanover.utilities.key_lockable_map import ResourceLockedError
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
+SCENE_POSE_IDENTITY = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
 
 Entry = Tuple[float, Optional[FrameData], Optional[DictionaryChange]]
 
@@ -45,6 +44,7 @@ class PlaybackSimulation:
         self.app_server: Optional[NanoverImdApplication] = None
 
         self.entries: List[Entry] = []
+        self.changed_keys: Set[str] = set()
         self.next_entry_index = 0
         self.time = 0.0
 
@@ -57,6 +57,13 @@ class PlaybackSimulation:
             (time * MICROSECONDS_TO_SECONDS, frame, update)
             for time, frame, update in entries
         ]
+        self.changed_keys = {
+            key
+            for _, _, update in self.entries
+            if update is not None
+            for key in update.updates.keys()
+            if key != "scene"
+        }
 
     def reset(self, app_server: NanoverImdApplication):
         """
@@ -67,18 +74,23 @@ class PlaybackSimulation:
         self.next_entry_index = 0
         self.time = 0.0
 
-        # clear simulation
-        self.emit(frame=FrameData(), update=None)
+        # clear simulation and reset box pose to identity
+        self.emit(
+            frame=FrameData(),
+            update=DictionaryChange(
+                updates={"scene": SCENE_POSE_IDENTITY}, removals=self.changed_keys
+            ),
+        )
 
     def advance_by_one_step(self):
         """
         Advance playback to the next point a frame or update should be reported, and report it.
         """
+        assert self.app_server is not None
         try:
             self.advance_to_next_entry()
         except IndexError:
-            self.next_entry_index = 0
-            self.time = 0.0
+            self.reset(self.app_server)
             self.advance_to_next_entry()
 
     def advance_by_seconds(self, dt: float):
@@ -86,14 +98,14 @@ class PlaybackSimulation:
         Advance the playback by some seconds, emitting any intermediate frames and state updates.
         :param dt: Time to advance playback by in seconds
         """
+        assert self.app_server is not None
         next_time = self.time + dt
 
         try:
             while self.entries[self.next_entry_index][0] <= next_time:
                 self.advance_to_next_entry()
         except IndexError:
-            self.next_entry_index = 0
-            self.time = 0.0
+            self.reset(self.app_server)
         else:
             self.time = next_time
 
@@ -114,5 +126,5 @@ class PlaybackSimulation:
             index = 0 if "index" not in frame.values else int(frame.values["index"])
             self.app_server.frame_publisher.send_frame(index, frame)
         if update is not None:
-            with suppress(ResourceLockedError):
-                self.app_server.server.update_state(None, update)
+            self.app_server.server.clear_locks()
+            self.app_server.server.update_state(None, update)
