@@ -5,8 +5,7 @@ import pytest
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.omni.ase_omm import ASEOpenMMSimulation, CONSTRAINTS_UNSUPPORTED_MESSAGE
 
-from common import make_app_server
-
+from common import make_app_server, make_loaded_sim
 
 from openmm_simulation_utils import (
     build_single_atom_simulation
@@ -14,74 +13,68 @@ from openmm_simulation_utils import (
 
 
 @pytest.fixture
-def example_ase_omm():
-    with make_app_server() as app_server:
-        sim = make_example_ase_omm()
-        sim.load()
-        sim.reset(app_server)
-        yield sim
+def ase_omm_single_atom():
+    yield make_ase_omm_single_atom()
 
 
-def make_example_ase_omm():
+def make_ase_omm_single_atom():
     return ASEOpenMMSimulation.from_simulation(build_single_atom_simulation())
 
 
-def test_step_interval(example_ase_omm):
+def test_step_interval(ase_omm_single_atom):
     """
     Test that advancing by one step increments the dynamics steps by frame_interval.
     """
-    for i in range(5):
-        assert (
-            example_ase_omm.dynamics.get_number_of_steps()
-            == i * example_ase_omm.frame_interval
-        )
-        example_ase_omm.advance_by_one_step()
+    with make_loaded_sim(ase_omm_single_atom):
+        for i in range(5):
+            assert (
+                    ase_omm_single_atom.dynamics.get_number_of_steps()
+                    == i * ase_omm_single_atom.frame_interval
+            )
+            ase_omm_single_atom.advance_by_one_step()
 
 
 # TODO: test it actually outputs
-def test_verbose(example_ase_omm):
+def test_verbose(ase_omm_single_atom):
     """
     Test verbose option steps without exceptions.
     """
-    with make_app_server() as app_server:
-        example_ase_omm.verbose = True
-        example_ase_omm.reset(app_server)
+    ase_omm_single_atom.verbose = True
+    with make_loaded_sim(ase_omm_single_atom):
         for i in range(5):
-            example_ase_omm.advance_by_one_step()
+            ase_omm_single_atom.advance_by_one_step()
 
 
 @pytest.mark.parametrize("walls", (False, True))
-def test_walls(example_ase_omm, walls):
-    example_ase_omm.use_walls = walls
-    example_ase_omm.load()
+def test_walls(ase_omm_single_atom, walls):
+    ase_omm_single_atom.use_walls = walls
+    ase_omm_single_atom.load()
     assert (
         any(
             isinstance(constraint, VelocityWallConstraint)
-            for constraint in example_ase_omm.atoms.constraints
+            for constraint in ase_omm_single_atom.atoms.constraints
         )
         == walls
     )
 
 
-def test_no_constraint_no_warning(example_ase_omm):
+def test_no_constraint_no_warning(ase_omm_single_atom):
     """
     Test that a system without constraints does not cause a constraint warning
     to be logged.
     """
-    with make_app_server() as app_server:
-        with warnings.catch_warnings():
-            warnings.simplefilter("error", UserWarning)
-            example_ase_omm.load()
-            example_ase_omm.reset(app_server)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        with make_loaded_sim(ase_omm_single_atom):
+            pass
 
 
-def test_constraint_warning(example_ase_omm, recwarn):
+def test_constraint_warning(ase_omm_single_atom, recwarn):
     """
     Test that a system with constraints causes a constraint warning to be
     logged.
     """
-    with make_app_server() as app_server:
-        with pytest.warns(UserWarning, match=CONSTRAINTS_UNSUPPORTED_MESSAGE):
-            example_ase_omm.simulation.system.addConstraint(0, 1, 1)
-            example_ase_omm.load()
-            example_ase_omm.reset(app_server)
+    with pytest.warns(UserWarning, match=CONSTRAINTS_UNSUPPORTED_MESSAGE):
+        ase_omm_single_atom.simulation.system.addConstraint(0, 1, 1)
+        with make_loaded_sim(ase_omm_single_atom):
+            pass

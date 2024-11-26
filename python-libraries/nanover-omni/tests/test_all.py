@@ -8,14 +8,14 @@ from nanover.omni.omni import Simulation, CLEAR_PREFIXES
 from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
 from nanover.utilities.change_buffers import DictionaryChange
 from test_openmm import make_example_openmm
-from test_ase_omm import make_example_ase_omm
+from test_ase_omm import make_ase_omm_single_atom
 from test_ase import make_example_ase
 from test_playback import make_example_playback
 from common import make_runner, make_connected_client_from_runner, make_app_server
 
 SIMULATION_FACTORIES_IMD = [
     make_example_openmm,
-    make_example_ase_omm,
+    make_ase_omm_single_atom,
     make_example_ase,
 ]
 

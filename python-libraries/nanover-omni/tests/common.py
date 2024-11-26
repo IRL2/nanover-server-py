@@ -10,6 +10,14 @@ ARGON_XML_PATH = EXAMPLES_PATH / "argon_simulation.xml"
 
 
 @contextmanager
+def make_loaded_sim(sim):
+    with make_app_server() as app_server:
+        sim.load()
+        sim.reset(app_server)
+        yield sim
+
+
+@contextmanager
 def make_runner(simulations):
     with OmniRunner.with_basic_server(*simulations, port=0) as runner:
         yield runner
