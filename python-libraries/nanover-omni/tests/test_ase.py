@@ -11,25 +11,27 @@ from nanover.omni import OmniRunner
 from nanover.omni.ase import ASESimulation
 from nanover.ase.converter import ASE_TIME_UNIT_TO_PS, ANG_TO_NM, EV_TO_KJMOL
 
-from common import app_server
+from common import make_app_server
 
 
 @pytest.fixture
-def example_ase(app_server, example_dynamics):
-    sim = ASESimulation.from_ase_dynamics(example_dynamics)
-    sim.load()
-    sim.reset(app_server)
-    yield sim
+def example_ase(example_dynamics):
+    with make_app_server() as app_server:
+        sim = ASESimulation.from_ase_dynamics(example_dynamics)
+        sim.load()
+        sim.reset(app_server)
+        yield sim
 
 
 @pytest.fixture
-def example_ase_app_sim(app_server, example_dynamics):
-    sim = ASESimulation.from_ase_dynamics(example_dynamics)
-    sim.include_forces = True
-    sim.include_velocities = True
-    sim.load()
-    sim.reset(app_server)
-    yield app_server, sim
+def example_ase_app_sim(example_dynamics):
+    with make_app_server() as app_server:
+        sim = ASESimulation.from_ase_dynamics(example_dynamics)
+        sim.include_forces = True
+        sim.include_velocities = True
+        sim.load()
+        sim.reset(app_server)
+        yield app_server, sim
 
 
 @pytest.fixture
@@ -70,13 +72,14 @@ def multiple_atom_dynamics():
 
 
 @pytest.fixture
-def multiple_atom_ase_app_sim(app_server, multiple_atom_dynamics):
-    sim = ASESimulation.from_ase_dynamics(multiple_atom_dynamics)
-    sim.include_forces = True
-    sim.include_velocities = True
-    sim.load()
-    sim.reset(app_server)
-    yield app_server, sim
+def multiple_atom_ase_app_sim(multiple_atom_dynamics):
+    with make_app_server() as app_server:
+        sim = ASESimulation.from_ase_dynamics(multiple_atom_dynamics)
+        sim.include_forces = True
+        sim.include_velocities = True
+        sim.load()
+        sim.reset(app_server)
+        yield app_server, sim
 
 
 @pytest.fixture

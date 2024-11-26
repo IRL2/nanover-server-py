@@ -14,6 +14,7 @@ from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
 from nanover.omni.record import record_from_server
+from nanover.utilities.change_buffers import DictionaryChange
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -156,6 +157,16 @@ def main():
     with initialise_runner(arguments) as runner:
         if len(runner.simulations) > 0:
             runner.next()
+
+        def on_change(*, change: DictionaryChange, **kwargs):
+            if any(key for key in change.removals if key.startswith("update.index.")):
+                print("REMOVED")
+
+            keys = [key for key in change.updates if key.startswith("update.index.")]
+            if keys:
+                print(change.updates[keys[0]])
+
+        runner.app_server.server._state_service.state_dictionary.content_updated.add_callback(on_change)
 
         if arguments.rich:
             try:

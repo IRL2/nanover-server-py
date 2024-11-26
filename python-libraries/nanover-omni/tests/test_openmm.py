@@ -1,120 +1,124 @@
+from contextlib import contextmanager
+
 import numpy as np
 import pytest
 
-from nanover.openmm import imd, serializer
+from nanover.openmm import serializer
 from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
-from nanover.app import NanoverImdApplication, NanoverImdClient
+from nanover.app import NanoverImdClient
 
-from common import app_server
+from common import make_app_server
 
 from openmm_simulation_utils import (
-    basic_system,
-    basic_simulation,
-    basic_simulation_with_imd_force,
-    BASIC_SIMULATION_POSITIONS,
-    empty_imd_force,
-    assert_basic_simulation_topology,
-    single_atom_system,
-    single_atom_simulation,
-    single_atom_simulation_with_imd_force,
-    ARGON_SIMULATION_POSITION,
-    assert_single_atom_simulation_topology,
+    build_single_atom_simulation,
+    build_basic_simulation,
 )
 
 
 @pytest.fixture
-def example_openmm(app_server, single_atom_simulation):
-    sim = OpenMMSimulation.from_simulation(single_atom_simulation)
-    sim.load()
-    sim.reset(app_server)
-    yield sim
+def example_openmm():
+    with make_app_server() as app_server:
+        omm_sim = build_single_atom_simulation()
+        sim = OpenMMSimulation.from_simulation(omm_sim)
+        sim.load()
+        sim.reset(app_server)
+        yield sim
 
 
 @pytest.fixture
-def single_atom_app_and_simulation_with_constant_force(
-    app_server, single_atom_simulation
-):
-    sim = OpenMMSimulation.from_simulation(single_atom_simulation)
-    sim.load()
-    sim.reset(app_server)
+def single_atom_app_and_simulation_with_constant_force():
+    with make_single_atom_app_and_simulation_with_constant_force() as (app_server, sim):
+        yield app_server, sim
 
-    # Add a constant force interaction with the force positioned far
-    # from the origin (the initial position of the atom)
-    interaction = ParticleInteraction(
-        interaction_type="constant",
-        position=(0.0, 0.0, 1000.0),
-        particles=[0],
-        scale=1,
-    )
 
-    app_server.imd.insert_interaction("interaction.test", interaction)
+@contextmanager
+def make_single_atom_app_and_simulation_with_constant_force():
+    with make_app_server() as app_server:
+        omm_sim = build_single_atom_simulation()
+        sim = OpenMMSimulation.from_simulation(omm_sim)
+        sim.load()
+        sim.reset(app_server)
 
-    yield app_server, sim
+        # Add a constant force interaction with the force positioned far
+        # from the origin (the initial position of the atom)
+        interaction = ParticleInteraction(
+            interaction_type="constant",
+            position=(0.0, 0.0, 1000.0),
+            particles=[0],
+            scale=1,
+        )
+
+        app_server.imd.insert_interaction("interaction.test", interaction)
+
+        yield app_server, sim
 
 
 @pytest.fixture
-def basic_system_app_and_simulation_with_constant_force(app_server, basic_simulation):
-    sim = OpenMMSimulation.from_simulation(basic_simulation)
-    sim.load()
-    sim.reset(app_server)
+def basic_system_app_and_simulation_with_constant_force():
+    with make_app_server() as app_server:
+        omm_sim = build_basic_simulation()
+        sim = OpenMMSimulation.from_simulation(omm_sim)
+        sim.load()
+        sim.reset(app_server)
 
-    # Add a constant force interaction with the force positioned far
-    # from the origin and a harmonic force sqrt(2) from the origin,
-    # acting on different atoms
-    interaction_1 = ParticleInteraction(
-        interaction_type="constant",
-        position=(0.0, 0.0, 1000.0),
-        particles=[0],
-        scale=1,
-    )
-    interaction_2 = ParticleInteraction(
-        interaction_type="spring",
-        position=(1.0, 0.0, 1.0),
-        particles=[6],
-        scale=1,
-    )
+        # Add a constant force interaction with the force positioned far
+        # from the origin and a harmonic force sqrt(2) from the origin,
+        # acting on different atoms
+        interaction_1 = ParticleInteraction(
+            interaction_type="constant",
+            position=(0.0, 0.0, 1000.0),
+            particles=[0],
+            scale=1,
+        )
+        interaction_2 = ParticleInteraction(
+            interaction_type="spring",
+            position=(1.0, 0.0, 1.0),
+            particles=[6],
+            scale=1,
+        )
 
-    app_server.imd.insert_interaction("interaction.test1", interaction_1)
-    app_server.imd.insert_interaction("interaction.test2", interaction_2)
+        app_server.imd.insert_interaction("interaction.test1", interaction_1)
+        app_server.imd.insert_interaction("interaction.test2", interaction_2)
 
-    yield app_server, sim
+        yield app_server, sim
 
 
-def test_auto_force(app_server, single_atom_simulation):
+def test_auto_force():
     """
     Test that interactions work if the imd force isn't added manually.
     """
-    omni_sim = OpenMMSimulation.from_simulation(single_atom_simulation)
-    omni_sim.load()
-    omni_sim.reset(app_server)
+    with make_app_server() as app_server:
+        omni_sim = OpenMMSimulation.from_simulation(build_single_atom_simulation())
+        omni_sim.load()
+        omni_sim.reset(app_server)
 
-    def get_position():
-        positions = omni_sim.simulation.context.getState(
-            getPositions=True
-        ).getPositions(asNumpy=True)
-        return np.asarray(positions[0])
+        def get_position():
+            positions = omni_sim.simulation.context.getState(
+                getPositions=True
+            ).getPositions(asNumpy=True)
+            return np.asarray(positions[0])
 
-    # add an interaction far to the right
-    prev_pos = get_position()
-    next_pos = list(prev_pos)
-    next_pos[0] += 100
+        # add an interaction far to the right
+        prev_pos = get_position()
+        next_pos = list(prev_pos)
+        next_pos[0] += 100
 
-    interaction = ParticleInteraction(
-        interaction_type="constant",
-        position=next_pos,
-        particles=[0],
-        scale=10,
-    )
-    app_server.imd.insert_interaction("interaction.test", interaction)
+        interaction = ParticleInteraction(
+            interaction_type="constant",
+            position=next_pos,
+            particles=[0],
+            scale=10,
+        )
+        app_server.imd.insert_interaction("interaction.test", interaction)
 
-    # run some simulation steps
-    for _ in range(50):
-        omni_sim.advance_by_one_step()
+        # run some simulation steps
+        for _ in range(50):
+            omni_sim.advance_by_one_step()
 
-    # check the atom moved some way to the right
-    curr_pos = get_position()
-    assert curr_pos[0] - prev_pos[0] >= 1
+        # check the atom moved some way to the right
+        curr_pos = get_position()
+        assert curr_pos[0] - prev_pos[0] >= 1
 
 
 def test_step_interval(example_openmm):

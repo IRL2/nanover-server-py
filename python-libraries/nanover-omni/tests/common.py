@@ -1,8 +1,7 @@
+from contextlib import contextmanager
 from pathlib import Path
-
-import pytest
-
-from nanover.app import NanoverImdApplication
+from nanover.app import NanoverImdApplication, NanoverImdClient
+from nanover.omni import OmniRunner
 
 EXAMPLES_PATH = Path(__file__).parent
 RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
@@ -10,7 +9,24 @@ RECORDING_PATH_STATE = EXAMPLES_PATH / "nanotube-example-recording.state"
 ARGON_XML_PATH = EXAMPLES_PATH / "argon_simulation.xml"
 
 
-@pytest.fixture
-def app_server():
+@contextmanager
+def make_runner(simulations):
+    with OmniRunner.with_basic_server(*simulations, port=0) as runner:
+        yield runner
+
+
+@contextmanager
+def make_connected_client_from_runner(runner):
+    with NanoverImdClient.connect_to_single_server(
+        port=runner.app_server.port
+    ) as client:
+        yield client
+
+
+@contextmanager
+def make_app_server():
     with NanoverImdApplication.basic_server(port=0) as app_server:
         yield app_server
+
+
+

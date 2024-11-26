@@ -14,7 +14,7 @@ from test_ase_omm import example_ase_omm
 from test_ase import example_ase, example_dynamics
 from test_playback import example_playback
 from openmm_simulation_utils import single_atom_simulation
-from common import app_server
+from common import make_runner, make_connected_client_from_runner, make_app_server
 
 SIMULATION_FIXTURES = (
     "example_openmm",
@@ -30,75 +30,75 @@ SIMULATION_FIXTURES_WITHOUT_PLAYBACK = [
 ]
 
 
+SIMULATION_FIXTURES_IMD = [
+    "example_openmm",
+    "example_ase_omm",
+    "example_ase",
+]
+
+
 TIMING_TOLERANCE = 0.05
+
+
+def make_sim_from_fixture(request, fixture_name):
+    simulation: Simulation = request.getfixturevalue(fixture_name)
+    simulation.name = fixture_name
+    return simulation
+
+
+def make_imd_sims(request):
+    return [make_sim_from_fixture(request, fixture_name) for fixture_name in SIMULATION_FIXTURES_IMD]
+
+
+def make_all_sims(request):
+    return [make_sim_from_fixture(request, fixture_name) for fixture_name in SIMULATION_FIXTURES]
 
 
 @pytest.fixture
 def multi_sim_runner(request):
-    with OmniRunner.with_basic_server(port=0) as runner:
-        for sim_fixture in SIMULATION_FIXTURES:
-            simulation = request.getfixturevalue(sim_fixture)
-            simulation.name = sim_fixture
-            runner.add_simulation(simulation)
+    with make_runner(make_all_sims(request)) as runner:
         yield runner
-
-
-@contextmanager
-def make_client_connected_to_runner(runner):
-    with NanoverImdClient.connect_to_single_server(
-        port=runner.app_server.port
-    ) as client:
-        yield client
-
-
-@pytest.fixture
-def multi_sim_client_runner(multi_sim_runner):
-    with make_client_connected_to_runner(multi_sim_runner) as client:
-        yield client, multi_sim_runner
 
 
 @pytest.fixture
 def multi_sim_client_runner_without_playback(request):
-    with OmniRunner.with_basic_server(port=0) as runner:
-        for sim_fixture in SIMULATION_FIXTURES_WITHOUT_PLAYBACK:
-            simulation = request.getfixturevalue(sim_fixture)
-            simulation.name = sim_fixture
-            runner.add_simulation(simulation)
-        with NanoverImdClient.connect_to_single_server(
-            port=runner.app_server.port
-        ) as client:
+    with make_runner(make_imd_sims(request)) as runner:
+        with make_connected_client_from_runner(runner) as client:
             yield client, runner
 
 
 @pytest.mark.parametrize("sim_fixture", SIMULATION_FIXTURES)
-def test_reset(sim_fixture, app_server, request):
-    sim: Simulation = request.getfixturevalue(sim_fixture)
-    sim.reset(app_server)
+def test_reset(sim_fixture, request):
+    sim = make_sim_from_fixture(request, sim_fixture)
+
+    with make_app_server() as app_server:
+        sim.reset(app_server)
 
 
 @pytest.mark.parametrize("sim_fixture", SIMULATION_FIXTURES)
 def test_load(sim_fixture, request):
-    sim: Simulation = request.getfixturevalue(sim_fixture)
+    sim = make_sim_from_fixture(request, sim_fixture)
     sim.load()
 
 
 # TODO: not true for playback because stepping might step through state changes...
 @pytest.mark.parametrize("sim_fixture", SIMULATION_FIXTURES_WITHOUT_PLAYBACK)
-def test_step_gives_exactly_one_frame(sim_fixture, request, app_server):
+def test_step_gives_exactly_one_frame(sim_fixture, request):
     """
     Test that stepping sends exactly one frame.
     """
-    sim: Simulation = request.getfixturevalue(sim_fixture)
-    sim.load()
-    sim.reset(app_server)
-    sim.advance_by_one_step()
+    with make_app_server() as app_server:
+        sim = make_sim_from_fixture(request, sim_fixture)
+        sim.load()
+        sim.reset(app_server)
+        sim.advance_by_one_step()
 
-    with patch.object(
-        app_server.frame_publisher, "send_frame", autospec=True
-    ) as send_frame:
-        for i in range(1, 20):
-            sim.advance_by_one_step()
-            assert send_frame.call_count == i
+        with patch.object(
+            app_server.frame_publisher, "send_frame", autospec=True
+        ) as send_frame:
+            for i in range(1, 20):
+                sim.advance_by_one_step()
+                assert send_frame.call_count == i
 
 
 def test_list_simulations(multi_sim_runner):
@@ -162,11 +162,11 @@ def test_simulation_switch_clears_state(multi_sim_runner):
     updates = {prefix + key: {} for prefix in CLEAR_PREFIXES}
     locks = {key: 10 for key in updates}
 
-    with make_client_connected_to_runner(multi_sim_runner) as client:
+    with make_connected_client_from_runner(multi_sim_runner) as client:
         client.attempt_update_multiplayer_state(DictionaryChange(updates=updates))
         client.attempt_update_multiplayer_locks(locks)
 
-    with make_client_connected_to_runner(multi_sim_runner) as client:
+    with make_connected_client_from_runner(multi_sim_runner) as client:
         client.subscribe_multiplayer()
 
         for key in updates:
