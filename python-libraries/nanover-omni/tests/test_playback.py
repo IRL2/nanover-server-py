@@ -105,4 +105,3 @@ def test_playback_starts_with_scene_identity(app_server, example_playback):
 
     with app_server.server.lock_state() as state:
         assert state["scene"] == SCENE_POSE_IDENTITY
-
