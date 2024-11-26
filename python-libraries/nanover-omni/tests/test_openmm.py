@@ -19,11 +19,14 @@ from openmm_simulation_utils import (
 @pytest.fixture
 def example_openmm():
     with make_app_server() as app_server:
-        omm_sim = build_single_atom_simulation()
-        sim = OpenMMSimulation.from_simulation(omm_sim)
+        sim = make_example_openmm()
         sim.load()
         sim.reset(app_server)
         yield sim
+
+
+def make_example_openmm():
+    return OpenMMSimulation.from_simulation(build_single_atom_simulation())
 
 
 @pytest.fixture

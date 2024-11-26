@@ -1,40 +1,25 @@
 import time
-from contextlib import contextmanager
 from unittest.mock import patch
 
 import numpy
 import pytest
 
-from nanover.app import NanoverImdClient
 from nanover.omni.omni import Simulation, CLEAR_PREFIXES
 from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
 from nanover.utilities.change_buffers import DictionaryChange
-from test_openmm import example_openmm
-from test_ase_omm import example_ase_omm
-from test_ase import example_ase, example_dynamics
-from test_playback import example_playback
-from openmm_simulation_utils import single_atom_simulation
+from test_openmm import make_example_openmm
+from test_ase_omm import make_example_ase_omm
+from test_ase import make_example_ase
+from test_playback import make_example_playback
 from common import make_runner, make_connected_client_from_runner, make_app_server
 
-SIMULATION_FIXTURES = (
-    "example_openmm",
-    "example_playback",
-    "example_ase_omm",
-    "example_ase",
-)
-
-SIMULATION_FIXTURES_WITHOUT_PLAYBACK = [
-    "example_openmm",
-    "example_ase_omm",
-    "example_ase",
+SIMULATION_FACTORIES_IMD = [
+    make_example_openmm,
+    make_example_ase_omm,
+    make_example_ase,
 ]
 
-
-SIMULATION_FIXTURES_IMD = [
-    "example_openmm",
-    "example_ase_omm",
-    "example_ase",
-]
+SIMULATION_FACTORIES_ALL = SIMULATION_FACTORIES_IMD + [make_example_playback]
 
 
 TIMING_TOLERANCE = 0.05
@@ -46,48 +31,49 @@ def make_sim_from_fixture(request, fixture_name):
     return simulation
 
 
-def make_imd_sims(request):
-    return [make_sim_from_fixture(request, fixture_name) for fixture_name in SIMULATION_FIXTURES_IMD]
+def make_imd_sims():
+    return [sim_factory() for sim_factory in SIMULATION_FACTORIES_IMD]
 
 
-def make_all_sims(request):
-    return [make_sim_from_fixture(request, fixture_name) for fixture_name in SIMULATION_FIXTURES]
+def make_all_sims():
+    return [sim_factory() for sim_factory in SIMULATION_FACTORIES_ALL]
 
 
 @pytest.fixture
-def runner_with_all_sims(request):
-    with make_runner(make_all_sims(request)) as runner:
+def runner_with_all_sims():
+    with make_runner(make_all_sims()) as runner:
         yield runner
 
 
 @pytest.fixture
-def runner_with_imd_sims(request):
-    with make_runner(make_imd_sims(request)) as runner:
+def runner_with_imd_sims():
+    with make_runner(make_imd_sims()) as runner:
         yield runner
 
 
-@pytest.mark.parametrize("sim_fixture", SIMULATION_FIXTURES)
-def test_reset(sim_fixture, request):
-    sim = make_sim_from_fixture(request, sim_fixture)
-
-    with make_app_server() as app_server:
-        sim.reset(app_server)
-
-
-@pytest.mark.parametrize("sim_fixture", SIMULATION_FIXTURES)
-def test_load(sim_fixture, request):
-    sim = make_sim_from_fixture(request, sim_fixture)
+@pytest.mark.parametrize("sim_factory", SIMULATION_FACTORIES_ALL)
+def test_load(sim_factory):
+    sim = sim_factory()
     sim.load()
 
 
+@pytest.mark.parametrize("sim_factory", SIMULATION_FACTORIES_ALL)
+def test_reset(sim_factory):
+    sim = sim_factory()
+
+    with make_app_server() as app_server:
+        sim.load()
+        sim.reset(app_server)
+
+
 # TODO: not true for playback because stepping might step through state changes...
-@pytest.mark.parametrize("sim_fixture", SIMULATION_FIXTURES_WITHOUT_PLAYBACK)
-def test_step_gives_exactly_one_frame(sim_fixture, request):
+@pytest.mark.parametrize("sim_factory", SIMULATION_FACTORIES_IMD)
+def test_step_gives_exactly_one_frame(sim_factory):
     """
     Test that stepping sends exactly one frame.
     """
     with make_app_server() as app_server:
-        sim = make_sim_from_fixture(request, sim_fixture)
+        sim = sim_factory()
         sim.load()
         sim.reset(app_server)
         sim.advance_by_one_step()
@@ -105,7 +91,7 @@ def test_list_simulations(runner_with_all_sims):
     Test runner lists exactly the expected simulations.
     """
     names = runner_with_all_sims.list()["simulations"]
-    assert sorted(names) == sorted(SIMULATION_FIXTURES)
+    assert sorted(names) == sorted(sim.name for sim in make_all_sims())
 
 
 def test_next_simulation_increments_counter(runner_with_imd_sims):

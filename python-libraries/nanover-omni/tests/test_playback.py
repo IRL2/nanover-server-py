@@ -11,14 +11,18 @@ from common import make_app_server, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
 @pytest.fixture
 def example_playback():
     with make_app_server() as app_server:
-        sim = PlaybackSimulation(
-            "nanotube-example-recording",
-            traj=RECORDING_PATH_TRAJ,
-            state=RECORDING_PATH_STATE,
-        )
+        sim = make_example_playback()
         sim.load()
         sim.reset(app_server)
         yield sim
+
+
+def make_example_playback():
+    return PlaybackSimulation(
+        "nanotube-example-recording",
+        traj=RECORDING_PATH_TRAJ,
+        state=RECORDING_PATH_STATE,
+    )
 
 
 def test_step_gives_exactly_one_emit(example_playback):

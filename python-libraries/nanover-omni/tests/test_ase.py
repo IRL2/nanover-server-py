@@ -14,12 +14,16 @@ from common import make_app_server
 
 
 @pytest.fixture
-def example_ase(example_dynamics):
+def example_ase():
     with make_app_server() as app_server:
-        sim = ASESimulation.from_ase_dynamics(example_dynamics)
+        sim = make_example_ase()
         sim.load()
         sim.reset(app_server)
         yield sim
+
+
+def make_example_ase():
+    return ASESimulation.from_ase_dynamics(make_example_dynamics())
 
 
 @pytest.fixture
@@ -51,10 +55,14 @@ def example_ase_app_sim_constant_force_interaction(example_ase_app_sim):
 
 @pytest.fixture
 def example_dynamics():
+    yield make_example_dynamics()
+
+
+def make_example_dynamics():
     atoms = Atoms("Ar", positions=[(0, 0, 0)], masses=[40.0], cell=[2, 2, 2])
     atoms.calc = LennardJones()
     dynamics = VelocityVerlet(atoms, timestep=0.5 * ase_units.fs)
-    yield dynamics
+    return dynamics
 
 
 @pytest.fixture

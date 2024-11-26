@@ -16,10 +16,14 @@ from openmm_simulation_utils import (
 @pytest.fixture
 def example_ase_omm():
     with make_app_server() as app_server:
-        sim = ASEOpenMMSimulation.from_simulation(build_single_atom_simulation())
+        sim = make_example_ase_omm()
         sim.load()
         sim.reset(app_server)
         yield sim
+
+
+def make_example_ase_omm():
+    return ASEOpenMMSimulation.from_simulation(build_single_atom_simulation())
 
 
 def test_step_interval(example_ase_omm):
