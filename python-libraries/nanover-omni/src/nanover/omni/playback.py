@@ -1,4 +1,3 @@
-from contextlib import suppress
 from os import PathLike
 from pathlib import Path
 from typing import List, Optional, Tuple, Iterable, Set
@@ -7,7 +6,6 @@ from nanover.app import NanoverImdApplication
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.recording.reading import iter_recording_files
-from nanover.utilities.key_lockable_map import ResourceLockedError
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 SCENE_POSE_IDENTITY = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
@@ -78,7 +76,10 @@ class PlaybackSimulation:
 
         # clear simulation and reset box pose to identity
         self.emit(
-            frame=FrameData({"scene": SCENE_POSE_IDENTITY}), update=DictionaryChange(removals=self.changed_keys)
+            frame=FrameData(),
+            update=DictionaryChange(
+                updates={"scene": SCENE_POSE_IDENTITY}, removals=self.changed_keys
+            ),
         )
 
     def advance_by_one_step(self):
