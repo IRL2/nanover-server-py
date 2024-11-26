@@ -1,18 +1,15 @@
 import warnings
 
 import pytest
-from ase import units
 
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.omni.ase_omm import ASEOpenMMSimulation, CONSTRAINTS_UNSUPPORTED_MESSAGE
 
-from common import make_app_server, ARGON_XML_PATH
-from nanover.openmm.serializer import deserialize_simulation
+from common import make_app_server
 
 
 from openmm_simulation_utils import (
-    build_single_atom_simulation,
-    build_basic_simulation,
+    build_single_atom_simulation
 )
 
 

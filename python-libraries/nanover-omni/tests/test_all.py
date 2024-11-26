@@ -6,7 +6,7 @@ import numpy
 import pytest
 
 from nanover.app import NanoverImdClient
-from nanover.omni.omni import Simulation, OmniRunner, CLEAR_PREFIXES
+from nanover.omni.omni import Simulation, CLEAR_PREFIXES
 from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
 from nanover.utilities.change_buffers import DictionaryChange
 from test_openmm import example_openmm
@@ -55,16 +55,15 @@ def make_all_sims(request):
 
 
 @pytest.fixture
-def multi_sim_runner(request):
+def runner_with_all_sims(request):
     with make_runner(make_all_sims(request)) as runner:
         yield runner
 
 
 @pytest.fixture
-def multi_sim_client_runner_without_playback(request):
+def runner_with_imd_sims(request):
     with make_runner(make_imd_sims(request)) as runner:
-        with make_connected_client_from_runner(runner) as client:
-            yield client, runner
+        yield runner
 
 
 @pytest.mark.parametrize("sim_fixture", SIMULATION_FIXTURES)
@@ -101,29 +100,29 @@ def test_step_gives_exactly_one_frame(sim_fixture, request):
                 assert send_frame.call_count == i
 
 
-def test_list_simulations(multi_sim_runner):
+def test_list_simulations(runner_with_all_sims):
     """
     Test runner lists exactly the expected simulations.
     """
-    names = multi_sim_runner.list()["simulations"]
+    names = runner_with_all_sims.list()["simulations"]
     assert sorted(names) == sorted(SIMULATION_FIXTURES)
 
 
-def test_next_simulation_increments_counter(multi_sim_client_runner_without_playback):
+def test_next_simulation_increments_counter(runner_with_imd_sims):
     """
     Test each next command increments the simulation counter to the correct value.
     """
-    client, runner = multi_sim_client_runner_without_playback
-    client.subscribe_to_frames()
+    with make_connected_client_from_runner(runner_with_imd_sims) as client:
+        client.subscribe_to_frames()
 
-    for i in range(5):
-        client.run_next()
-        client.wait_until_first_frame()
-        assert_equal_soon(lambda: client.current_frame.simulation_counter, lambda: i)
+        for i in range(5):
+            client.run_next()
+            client.wait_until_first_frame()
+            assert_equal_soon(lambda: client.current_frame.simulation_counter, lambda: i)
 
 
 @pytest.mark.parametrize("fps", (5, 10, 30))
-def test_play_step_interval(multi_sim_client_runner_without_playback, fps):
+def test_play_step_interval(runner_with_imd_sims, fps):
     """
     Test that the play step interval is respected and the sent frame frequency matches the requested interval.
     We only guarantee that the interval is close on average.
@@ -132,19 +131,19 @@ def test_play_step_interval(multi_sim_client_runner_without_playback, fps):
     test_frames = 30
 
     play_step_interval = 1 / fps
-    client, runner = multi_sim_client_runner_without_playback
 
-    client.subscribe_to_all_frames()
-    runner.next()
-    runner.runner.play_step_interval = play_step_interval
+    with make_connected_client_from_runner(runner_with_imd_sims) as client:
+        client.subscribe_to_all_frames()
+        runner_with_imd_sims.next()
+        runner_with_imd_sims.runner.play_step_interval = play_step_interval
 
-    while len(client.frames) < test_frames:
-        time.sleep(0.1)
-    runner.pause()
+        while len(client.frames) < test_frames:
+            time.sleep(0.1)
+        runner_with_imd_sims.pause()
 
-    # first frame (topology) isn't subject to intervals
-    timestamps = [frame.server_timestamp for frame in client.frames[1:]]
-    deltas = numpy.diff(timestamps)
+        # first frame (topology) isn't subject to intervals
+        timestamps = [frame.server_timestamp for frame in client.frames[1:]]
+        deltas = numpy.diff(timestamps)
 
     # The interval is not very accurate. We only check that the observed
     # interval is close on average.
@@ -153,7 +152,7 @@ def test_play_step_interval(multi_sim_client_runner_without_playback, fps):
     )
 
 
-def test_simulation_switch_clears_state(multi_sim_runner):
+def test_simulation_switch_clears_state(runner_with_all_sims):
     """
     Test that state keys with certain prefixes are no longer present in the state after switching simulation.
     """
@@ -162,11 +161,11 @@ def test_simulation_switch_clears_state(multi_sim_runner):
     updates = {prefix + key: {} for prefix in CLEAR_PREFIXES}
     locks = {key: 10 for key in updates}
 
-    with make_connected_client_from_runner(multi_sim_runner) as client:
+    with make_connected_client_from_runner(runner_with_all_sims) as client:
         client.attempt_update_multiplayer_state(DictionaryChange(updates=updates))
         client.attempt_update_multiplayer_locks(locks)
 
-    with make_connected_client_from_runner(multi_sim_runner) as client:
+    with make_connected_client_from_runner(runner_with_all_sims) as client:
         client.subscribe_multiplayer()
 
         for key in updates:

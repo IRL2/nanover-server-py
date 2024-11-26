@@ -1,13 +1,12 @@
 import pytest
 import numpy as np
-from ase import units, Atoms
+from ase import Atoms
 import ase.units as ase_units
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
 
 from nanover.imd import ParticleInteraction
 from nanover.app import NanoverImdClient
-from nanover.omni import OmniRunner
 from nanover.omni.ase import ASESimulation
 from nanover.ase.converter import ASE_TIME_UNIT_TO_PS, ANG_TO_NM, EV_TO_KJMOL
 

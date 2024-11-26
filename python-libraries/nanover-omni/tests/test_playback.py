@@ -1,10 +1,9 @@
 from pathlib import Path
-from unittest.mock import patch, ANY, call
+from unittest.mock import patch, call
 
 import pytest
 
 from nanover.omni.playback import PlaybackSimulation
-from nanover.trajectory import FrameData
 
 from common import make_app_server, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
 
