@@ -41,13 +41,13 @@ def make_all_sims():
 
 @pytest.fixture
 def runner_with_all_sims():
-    with make_runner(make_all_sims()) as runner:
+    with make_runner(*make_all_sims()) as runner:
         yield runner
 
 
 @pytest.fixture
 def runner_with_imd_sims():
-    with make_runner(make_imd_sims()) as runner:
+    with make_runner(*make_imd_sims()) as runner:
         yield runner
 
 
@@ -172,7 +172,7 @@ def test_first_frame_topology(sim_factory):
     """
     Test that the first frame contains topology and position information.
     """
-    with make_runner([sim_factory()]) as runner:
+    with make_runner(sim_factory()) as runner:
         with make_connected_client_from_runner(runner) as client:
             client.subscribe_to_frames()
             runner.load(0)

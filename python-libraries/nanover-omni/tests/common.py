@@ -18,7 +18,7 @@ def make_loaded_sim(sim):
 
 
 @contextmanager
-def make_runner(simulations):
+def make_runner(*simulations):
     with OmniRunner.with_basic_server(*simulations, port=0) as runner:
         yield runner
 
