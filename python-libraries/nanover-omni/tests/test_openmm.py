@@ -3,7 +3,6 @@ from typing import Set
 
 import numpy as np
 import pytest
-from joblib.testing import param
 from openmm import CustomExternalForce
 
 from nanover.openmm import serializer
@@ -13,8 +12,6 @@ from nanover.app import NanoverImdClient
 
 from common import (
     make_app_server,
-    make_connected_client_from_runner,
-    make_connected_client_from_app_server,
     connect_and_retrieve_first_frame_from_app_server,
 )
 
@@ -236,6 +233,7 @@ def test_report_frame_forces(basic_system_app_and_simulation_with_constant_force
     assert frame.user_forces_index == [0, 6]
 
 
+# TODO: could generalise for all three MDs
 def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force):
     """
     Test that the sparse user forces exist in the frame data when a user applies an iMD force,
@@ -253,6 +251,7 @@ def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force)
     assert np.all(frame.user_forces_sparse) != 0.0
 
 
+# TODO: could generalise for all three MDs
 # TODO: update for actual system or use system from original test
 def test_sparse_user_forces_elements(
     basic_system_app_and_simulation_with_constant_force,
@@ -289,6 +288,39 @@ def test_apply_interactions(basic_system_app_and_simulation_with_constant_force)
     )
 
 
+def test_remove_interaction_partial(basic_system_app_and_simulation_with_constant_force):
+    """
+    When an interaction is removed, the corresponding forces are reset.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+
+    sim.advance_by_one_step()
+    app.imd.remove_interaction("interaction.test1")
+    sim.advance_by_one_step()
+
+    assert_imd_force_affected_particles(
+        sim.imd_force_manager.imd_force,
+        expected_affected_indices={6},
+    )
+
+
+def test_remove_interaction_complete(basic_system_app_and_simulation_with_constant_force):
+    """
+    When all interactions are removed, all the corresponding forces are reset.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+
+    sim.advance_by_one_step()
+    app.imd.remove_interaction("interaction.test1")
+    app.imd.remove_interaction("interaction.test2")
+    sim.advance_by_one_step()
+
+    assert_imd_force_affected_particles(
+        sim.imd_force_manager.imd_force,
+        expected_affected_indices=set(),
+    )
+
+
 def assert_imd_force_affected_particles(
     imd_force: CustomExternalForce, expected_affected_indices: Set[int]
 ):
@@ -305,3 +337,70 @@ def assert_imd_force_affected_particles(
         index for index in range(num_particles) if particle_is_affected(index)
     }
     assert actual_affected_indices == expected_affected_indices
+
+
+def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_force):
+    """
+    Test the particle velocities and particle forces that can be optionally included
+    when running OpenMM simulations. Assert that these arrays exist, have the same
+    length as the particle positions array and are non-zero.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+
+    sim.include_forces = True
+    sim.include_velocities = True
+
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    # TODO: which particle forces field to use?
+    assert frame.particle_velocities
+    assert frame.particle_forces_system
+    assert len(frame.particle_velocities) == len(frame.particle_positions)
+    assert len(frame.particle_forces_system) == len(frame.particle_positions)
+    assert np.all(frame.particle_velocities) != 0.0
+    assert np.all(frame.particle_forces_system) != 0.0
+
+
+# TODO: update according to actual system
+def test_velocities_and_forces_single_atom(single_atom_app_and_simulation_with_constant_force):
+    """
+    Numerically test the optionally included velocities and forces being passed
+    from OpenMM. This test checks that the velocities and forces arrays have the
+    same length as the particle positions array, that the forces array is the
+    same as the user forces array (which should be true for the second frame of a
+    single atom system using the Verlet integrator with a constant force), and
+    then numerically checks that the values of the velocities and forces arrays
+    are as expected.
+    """
+    app, sim = single_atom_app_and_simulation_with_constant_force
+
+    sim.include_forces = True
+    sim.include_velocities = True
+
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    # The force is a constant force which should cause the particle to accelerate
+    # at 1 nm ps^-1. Thus the expected force (along a single axis) for an argon
+    # atom with a mass of 40 amu is 40 kJ mol^-1 nm^-1. The force is applied from
+    # the frame with index 1, with a simulation step size of 2 fs and a frame and
+    # force interval of 5 simulation steps. Therefore, the expected velocity after
+    # 5 simulation steps (0.01 ps) is 0.01 nm ps^-1.
+    expected_forces = [0.0, 0.0, 40.0]
+    expected_velocities = [0.0, 0.0, 0.01]
+
+    # TODO: which particle forces field to use?
+    assert frame.particle_velocities
+    assert frame.particle_forces_system
+    assert frame.user_forces_sparse
+    assert len(frame.particle_velocities) == len(frame.particle_positions)
+    assert len(frame.particle_forces_system) == len(frame.particle_positions)
+    for i in range(len(frame.particle_forces_system)):
+        assert frame.particle_forces_system[i] == pytest.approx(
+            frame.user_forces_sparse[i], abs=1e-10
+        )
+        assert frame.particle_forces_system[i] == pytest.approx(expected_forces, abs=1e-10)
+        assert frame.particle_velocities[i] == pytest.approx(
+            expected_velocities, abs=1e-7
+        )
