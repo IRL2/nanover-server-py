@@ -156,17 +156,7 @@ def main():
 
     with initialise_runner(arguments) as runner:
         if len(runner.simulations) > 0:
-            runner.next()
-
-        def on_change(*, change: DictionaryChange, **kwargs):
-            if any(key for key in change.removals if key.startswith("update.index.")):
-                print("REMOVED")
-
-            keys = [key for key in change.updates if key.startswith("update.index.")]
-            if keys:
-                print(change.updates[keys[0]])
-
-        runner.app_server.server._state_service.state_dictionary.content_updated.add_callback(on_change)
+            runner.load(0)
 
         if arguments.rich:
             try:

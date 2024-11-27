@@ -7,9 +7,7 @@ from nanover.omni.ase_omm import ASEOpenMMSimulation, CONSTRAINTS_UNSUPPORTED_ME
 
 from common import make_app_server, make_loaded_sim
 
-from openmm_simulation_utils import (
-    build_single_atom_simulation
-)
+from openmm_simulation_utils import build_single_atom_simulation
 
 
 @pytest.fixture
@@ -28,8 +26,8 @@ def test_step_interval(ase_omm_single_atom):
     with make_loaded_sim(ase_omm_single_atom):
         for i in range(5):
             assert (
-                    ase_omm_single_atom.dynamics.get_number_of_steps()
-                    == i * ase_omm_single_atom.frame_interval
+                ase_omm_single_atom.dynamics.get_number_of_steps()
+                == i * ase_omm_single_atom.frame_interval
             )
             ase_omm_single_atom.advance_by_one_step()
 

@@ -1,14 +1,22 @@
 from contextlib import contextmanager
+from typing import Set
 
 import numpy as np
 import pytest
+from joblib.testing import param
+from openmm import CustomExternalForce
 
 from nanover.openmm import serializer
 from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.app import NanoverImdClient
 
-from common import make_app_server
+from common import (
+    make_app_server,
+    make_connected_client_from_runner,
+    make_connected_client_from_app_server,
+    connect_and_retrieve_first_frame_from_app_server,
+)
 
 from openmm_simulation_utils import (
     build_single_atom_simulation,
@@ -60,8 +68,7 @@ def make_single_atom_app_and_simulation_with_constant_force():
 @pytest.fixture
 def basic_system_app_and_simulation_with_constant_force():
     with make_app_server() as app_server:
-        omm_sim = build_basic_simulation()
-        sim = OpenMMSimulation.from_simulation(omm_sim)
+        sim = OpenMMSimulation.from_simulation(build_basic_simulation())
         sim.load()
         sim.reset(app_server)
 
@@ -206,3 +213,91 @@ def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_f
         assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=2.0e-7)
         assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=2.0e-7)
         assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.0e-7)
+
+
+def test_force_manager_masses(example_openmm):
+    """
+    Test that the force manager has the correct masses for the simulated system.
+    """
+    for _ in range(10):
+        example_openmm.advance_by_one_step()
+        assert example_openmm.imd_force_manager.masses == pytest.approx([40])
+
+
+# TODO: could generalise for all three MDs
+def test_report_frame_forces(basic_system_app_and_simulation_with_constant_force):
+    """
+    Test that user forces are reported within the frame.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    assert frame.user_forces_index == [0, 6]
+
+
+def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force):
+    """
+    Test that the sparse user forces exist in the frame data when a user applies an iMD force,
+    check that the size of the array of forces is equal to the size of the array of corresponding
+    indices, and check that none of the elements of the sparse forces array are zero.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    assert frame.user_forces_sparse
+    assert frame.user_forces_index
+    assert len(frame.user_forces_sparse) >= 1
+    assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
+    assert np.all(frame.user_forces_sparse) != 0.0
+
+
+# TODO: update for actual system or use system from original test
+def test_sparse_user_forces_elements(
+    basic_system_app_and_simulation_with_constant_force,
+):
+    """
+    Test that the values of the sparse user forces are approximately as expected from the initial
+    positions and the position from which the user force is applied, for a constant force acting
+    on the C atoms.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    # For a mass-weighted constant force applied at [0.0, 0.0, 1.0] to the COM of the C atoms
+    mass_weighted_user_forces_t0 = [[0.0, 0.0, -6.0], [0.0, 0.0, -6.0]]
+    assert set(frame.user_forces_index) == {0, 6}
+    for i in range(len(frame.user_forces_index)):
+        assert frame.user_forces_sparse[i] == pytest.approx(
+            mass_weighted_user_forces_t0[i], abs=3e-3
+        )
+
+
+def test_apply_interactions(basic_system_app_and_simulation_with_constant_force):
+    """
+    Interactions are applied and the computed forces are passed to the imd
+    force object.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+    sim.advance_by_one_step()
+
+    assert_imd_force_affected_particles(
+        sim.imd_force_manager.imd_force,
+        expected_affected_indices={0, 6},
+    )
+
+
+def assert_imd_force_affected_particles(imd_force: CustomExternalForce, expected_affected_indices: Set[int]):
+    """
+    Assert that the given imd force is applying force only to the expected particle indices.
+    """
+    num_particles = imd_force.getNumParticles()
+
+    def particle_is_affected(index: int):
+        index, force = imd_force.getParticleParameters(index)
+        return any(component != 0 for component in force)
+
+    actual_affected_indices = {index for index in range(num_particles) if particle_is_affected(index)}
+    assert actual_affected_indices == expected_affected_indices

@@ -1,19 +1,15 @@
-from pathlib import Path
 from unittest.mock import patch, call
 
 import pytest
 
 from nanover.omni.playback import PlaybackSimulation
 
-from common import make_app_server, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
+from common import RECORDING_PATH_TRAJ, RECORDING_PATH_STATE, make_loaded_sim
 
 
 @pytest.fixture
 def example_playback():
-    with make_app_server() as app_server:
-        sim = make_example_playback()
-        sim.load()
-        sim.reset(app_server)
+    with make_loaded_sim(make_example_playback()) as sim:
         yield sim
 
 

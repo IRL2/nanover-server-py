@@ -104,7 +104,9 @@ def test_next_simulation_increments_counter(runner_with_imd_sims):
         for i in range(5):
             client.run_next()
             client.wait_until_first_frame()
-            assert_equal_soon(lambda: client.current_frame.simulation_counter, lambda: i)
+            assert_equal_soon(
+                lambda: client.current_frame.simulation_counter, lambda: i
+            )
 
 
 @pytest.mark.parametrize("fps", (5, 10, 30))
@@ -162,4 +164,20 @@ def test_simulation_switch_clears_state(runner_with_all_sims):
         for key in updates:
             assert_not_in_soon(
                 lambda: key, lambda: client._multiplayer_client.copy_state()
+            )
+
+
+@pytest.mark.parametrize("sim_factory", SIMULATION_FACTORIES_IMD)
+def test_first_frame_topology(sim_factory):
+    """
+    Test that the first frame contains topology and position information.
+    """
+    with make_runner([sim_factory()]) as runner:
+        with make_connected_client_from_runner(runner) as client:
+            client.subscribe_to_frames()
+            runner.load(0)
+            client.wait_until_first_frame()
+            assert (
+                len(client.first_frame.particle_positions) > 0
+                and len(client.first_frame.particle_elements) > 0
             )

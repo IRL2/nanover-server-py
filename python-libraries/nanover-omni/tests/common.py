@@ -25,16 +25,23 @@ def make_runner(simulations):
 
 @contextmanager
 def make_connected_client_from_runner(runner):
-    with NanoverImdClient.connect_to_single_server(
-        port=runner.app_server.port
-    ) as client:
+    with make_connected_client_from_app_server(runner.app_server) as client:
         yield client
+
+
+@contextmanager
+def make_connected_client_from_app_server(app_server):
+    with NanoverImdClient.connect_to_single_server(port=app_server.port) as client:
+        yield client
+
+
+def connect_and_retrieve_first_frame_from_app_server(app_server):
+    with make_connected_client_from_app_server(app_server) as client:
+        client.subscribe_to_frames()
+        return client.wait_until_first_frame()
 
 
 @contextmanager
 def make_app_server():
     with NanoverImdApplication.basic_server(port=0) as app_server:
         yield app_server
-
-
-

@@ -116,7 +116,8 @@ def test_step_interval(example_ase_loaded):
     """
     for i in range(5):
         assert (
-                example_ase_loaded.dynamics.get_number_of_steps() == i * example_ase_loaded.frame_interval
+            example_ase_loaded.dynamics.get_number_of_steps()
+            == i * example_ase_loaded.frame_interval
         )
         example_ase_loaded.advance_by_one_step()
 
