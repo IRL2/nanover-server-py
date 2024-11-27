@@ -289,7 +289,9 @@ def test_apply_interactions(basic_system_app_and_simulation_with_constant_force)
     )
 
 
-def assert_imd_force_affected_particles(imd_force: CustomExternalForce, expected_affected_indices: Set[int]):
+def assert_imd_force_affected_particles(
+    imd_force: CustomExternalForce, expected_affected_indices: Set[int]
+):
     """
     Assert that the given imd force is applying force only to the expected particle indices.
     """
@@ -299,5 +301,7 @@ def assert_imd_force_affected_particles(imd_force: CustomExternalForce, expected
         index, force = imd_force.getParticleParameters(index)
         return any(component != 0 for component in force)
 
-    actual_affected_indices = {index for index in range(num_particles) if particle_is_affected(index)}
+    actual_affected_indices = {
+        index for index in range(num_particles) if particle_is_affected(index)
+    }
     assert actual_affected_indices == expected_affected_indices
