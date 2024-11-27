@@ -4,8 +4,6 @@ Fixtures and utilities for tests that requires OpenMM simulations.
 
 # Pylint does not recognize pytest fixtures, which causes some false warnings.
 # pylint: disable=unused-argument,redefined-outer-name
-import pytest
-from typing import Optional
 import numpy as np
 
 import openmm as mm
@@ -19,9 +17,6 @@ from openmm.unit import (
     femtosecond,
     nanometer,
 )  # pylint: disable=no-name-in-module
-
-from nanover.openmm import serializer
-import nanover.openmm.imd
 
 
 BASIC_SIMULATION_BOX_VECTORS = [[50, 0, 0], [0, 50, 0], [0, 0, 50]]
@@ -39,31 +34,6 @@ BASIC_SIMULATION_POSITIONS = [
     [-10.685, -0.537, 6.921],  # H
 ]
 ARGON_SIMULATION_POSITION = [[0.0, 0.0, 0.0]]
-
-
-class DoNothingReporter:
-    """
-    OpenMM reporter that does nothing.
-
-    The reporter does nothing but is valid. It is meant to populate the list of
-    reporters of an OpenMM simulation.
-    """
-
-    # The name of the method is part of the OpenMM API. It cannot be made to
-    # conform PEP8.
-    def describeNextReport(
-        self, simulation
-    ):  # pylint: disable=invalid-name,no-self-use
-        """
-        Activate the reporting every step, but collect no data.
-        """
-        return 1, False, False, False, False
-
-    def report(self, simulation, state):
-        """
-        Do not report anything.
-        """
-        pass
 
 
 def build_basic_system():
@@ -106,9 +76,7 @@ def build_basic_topology() -> app.Topology:
     return topology
 
 
-def build_basic_simulation(
-    imd_force: Optional[mm.CustomExternalForce] = None,
-) -> app.Simulation:
+def build_basic_simulation():
     """
     Setup a minimal OpenMM simulation with two methane molecules.
     """
@@ -121,9 +89,6 @@ def build_basic_simulation(
 
     topology = build_basic_topology()
     system = build_basic_system()
-    if imd_force is not None:
-        nanover.openmm.imd.populate_imd_force(imd_force, system)
-        system.addForce(imd_force)
 
     force = mm.NonbondedForce()
     force.setNonbondedMethod(force.NoCutoff)
@@ -148,50 +113,6 @@ def build_basic_simulation(
     simulation.context.setPositions(positions * nanometer)
 
     return simulation
-
-
-@pytest.fixture
-def basic_system():
-    return build_basic_system()
-
-
-@pytest.fixture
-def basic_simulation():
-    return build_basic_simulation()
-
-
-@pytest.fixture
-def basic_simulation_with_imd_force():
-    imd_force = nanover.openmm.imd.create_imd_force()
-    return build_basic_simulation(imd_force), imd_force
-
-
-@pytest.fixture
-def serialized_simulation_path(basic_simulation, tmp_path):
-    """
-    Setup an XML serialized simulation as a temporary file.
-    """
-    serialized_simulation = serializer.serialize_simulation(
-        basic_simulation, save_state=True
-    )
-    xml_path = tmp_path / "system.xml"
-    with open(str(xml_path), "w") as outfile:
-        outfile.write(serialized_simulation)
-    return xml_path
-
-
-@pytest.fixture
-def basic_simulation_xml(basic_simulation):
-    """
-    Generate an XML serialized simulation from the basic test simulation.
-    """
-    xml_string = serializer.serialize_simulation(basic_simulation, save_state=True)
-    return xml_string
-
-
-@pytest.fixture
-def empty_imd_force():
-    return nanover.openmm.imd.create_imd_force()
 
 
 def assert_basic_simulation_topology(frame):
@@ -232,16 +153,11 @@ def build_single_atom_topology() -> app.Topology:
     return topology
 
 
-def build_single_atom_simulation(
-    imd_force: Optional[mm.CustomExternalForce] = None,
-) -> app.Simulation:
+def build_single_atom_simulation():
     periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
     positions = np.array(ARGON_SIMULATION_POSITION, dtype=np.float32)
     topology = build_single_atom_topology()
     system = build_single_atom_system()
-    if imd_force is not None:
-        nanover.openmm.imd.populate_imd_force(imd_force, system)
-        system.addForce(imd_force)
 
     # As we are only dealing with a single atom system, it is unnecessary to
     # add a non-bonded force.
@@ -256,47 +172,6 @@ def build_single_atom_simulation(
     simulation.context.setPositions(positions * nanometer)
 
     return simulation
-
-
-@pytest.fixture
-def single_atom_system():
-    return build_single_atom_system()
-
-
-@pytest.fixture
-def single_atom_simulation():
-    return build_single_atom_simulation()
-
-
-@pytest.fixture
-def single_atom_simulation_with_imd_force():
-    imd_force = nanover.openmm.imd.create_imd_force()
-    return build_single_atom_simulation(imd_force), imd_force
-
-
-@pytest.fixture
-def serialized_single_atom_simulation_path(single_atom_simulation, tmp_path):
-    """
-    Setup an XML serialized simulation for a single atom system as a temporary file.
-    """
-    serialized_simulation = serializer.serialize_simulation(
-        single_atom_simulation, save_state=True
-    )
-    xml_path = tmp_path / "system.xml"
-    with open(str(xml_path), "w") as outfile:
-        outfile.write(serialized_simulation)
-    return xml_path
-
-
-@pytest.fixture
-def single_atom_simulation_xml(single_atom_simulation):
-    """
-    Generate an XML serialized simulation from the single atom test simulation.
-    """
-    xml_string = serializer.serialize_simulation(
-        single_atom_simulation, save_state=True
-    )
-    return xml_string
 
 
 def assert_single_atom_simulation_topology(frame):

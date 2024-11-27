@@ -288,7 +288,9 @@ def test_apply_interactions(basic_system_app_and_simulation_with_constant_force)
     )
 
 
-def test_remove_interaction_partial(basic_system_app_and_simulation_with_constant_force):
+def test_remove_interaction_partial(
+    basic_system_app_and_simulation_with_constant_force,
+):
     """
     When an interaction is removed, the corresponding forces are reset.
     """
@@ -304,7 +306,9 @@ def test_remove_interaction_partial(basic_system_app_and_simulation_with_constan
     )
 
 
-def test_remove_interaction_complete(basic_system_app_and_simulation_with_constant_force):
+def test_remove_interaction_complete(
+    basic_system_app_and_simulation_with_constant_force,
+):
     """
     When all interactions are removed, all the corresponding forces are reset.
     """
@@ -363,7 +367,9 @@ def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_for
 
 
 # TODO: update according to actual system
-def test_velocities_and_forces_single_atom(single_atom_app_and_simulation_with_constant_force):
+def test_velocities_and_forces_single_atom(
+    single_atom_app_and_simulation_with_constant_force,
+):
     """
     Numerically test the optionally included velocities and forces being passed
     from OpenMM. This test checks that the velocities and forces arrays have the
@@ -400,7 +406,9 @@ def test_velocities_and_forces_single_atom(single_atom_app_and_simulation_with_c
         assert frame.particle_forces_system[i] == pytest.approx(
             frame.user_forces_sparse[i], abs=1e-10
         )
-        assert frame.particle_forces_system[i] == pytest.approx(expected_forces, abs=1e-10)
+        assert frame.particle_forces_system[i] == pytest.approx(
+            expected_forces, abs=1e-10
+        )
         assert frame.particle_velocities[i] == pytest.approx(
             expected_velocities, abs=1e-7
         )
