@@ -80,10 +80,6 @@ def build_basic_simulation():
     """
     Setup a minimal OpenMM simulation with two methane molecules.
     """
-    # In ths function, we define matrices and we want to align the column.
-    # We disable the pylint warning about bad spacing for the scope of the
-    # function.
-    # pylint: disable=bad-whitespace
     periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
     positions = np.array(BASIC_SIMULATION_POSITIONS, dtype=np.float32)
 
