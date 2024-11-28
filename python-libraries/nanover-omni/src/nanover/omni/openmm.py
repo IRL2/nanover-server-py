@@ -240,8 +240,8 @@ class OpenMMSimulation:
 
         # TODO: move?
         frame_data.system_temperature = compute_instantaneous_temperature(
-                self.simulation, frame_data.kinetic_energy, self._dof
-            )
+            self.simulation, frame_data.kinetic_energy, self._dof
+        )
 
         # add any provided positions
         if positions is not None:
@@ -297,7 +297,7 @@ class OpenMMSimulation:
             ):
                 dof -= 1
         if any(
-            type(system.getForce(i)) == CMMotionRemover
+            isinstance(system.getForce(i), CMMotionRemover)
             for i in range(system.getNumForces())
         ):
             dof -= 3
