@@ -11,7 +11,7 @@ def compute_instantaneous_temperature(
 ):
     r"""
     Calculate the instantaneous temperature of the system, using the same procedure as
-    the `StateDataReporter in OpenMM <https://github.com/openmm/openmm/blob/a056d5a3754e193105409afa12c9f0c9a2d972a2/wrappers/python/openmm/app/statedatareporter.py#L250-L255>`__
+    the `StateDataReporter in OpenMM <https://github.com/openmm/openmm/blob/a056d5a3754e193105409afa12c9f0c9a2d972a2/wrappers/python/openmm/app/statedatareporter.py#L250-L255>`__.
     If the integrator has an internal function to do this, that function is used.
     Otherwise, it is calculated using the kinetic energy of the system, according to
 
@@ -35,7 +35,10 @@ def compute_instantaneous_temperature(
 
 
 def compute_dof(system):
-    # Compute the number of degrees of freedom.
+    r"""
+    Compute the number of degrees of freedom of the system, using the same procedure as
+    the `StateDataReporter in OpenMM <https://github.com/openmm/openmm/blob/a056d5a3754e193105409afa12c9f0c9a2d972a2/wrappers/python/openmm/app/statedatareporter.py#L302-L313>`__.
+    """
     dof = 0
     for i in range(system.getNumParticles()):
         if system.getParticleMass(i) > 0 * unit.dalton:
