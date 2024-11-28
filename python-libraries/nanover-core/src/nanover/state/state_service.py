@@ -93,6 +93,12 @@ class StateService(StateServicer):
         """
         self.state_dictionary.update_locks(access_token, acquire, release)
 
+    def clear_locks(self):
+        """
+        Release all locks on all keys.
+        """
+        self.state_dictionary.clear_locks()
+
     def get_change_buffer(self) -> ContextManager[DictionaryChangeBuffer]:
         """
         Return a DictionaryChangeBuffer that tracks changes to this service's

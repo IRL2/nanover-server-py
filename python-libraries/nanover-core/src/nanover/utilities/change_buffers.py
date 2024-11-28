@@ -75,7 +75,7 @@ class DictionaryChangeMultiView:
         Freeze the given change buffer and stop providing updates to it.
         """
         with self._lock:
-            self._views.remove(view)
+            self._views.discard(view)
             view.freeze()
 
     def subscribe_changes(self, interval: float = 0) -> Iterator[DictionaryChange]:
@@ -139,7 +139,7 @@ class DictionaryChangeMultiView:
             try:
                 view.update(updates, removals)
             except ObjectFrozenError:
-                self._views.remove(view)
+                self._views.discard(view)
 
 
 class DictionaryChangeBuffer:

@@ -319,6 +319,66 @@ def _calculate_diff_and_sqr_distance(
     return diff, dist_sqr
 
 
+def get_sparse_forces(user_forces: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray]:
+    """
+    Takes in an array of user forces acting on the system containing N particles
+    and outputs two arrays that describe these user forces in a sparse form:
+
+    - The first contains the indices of the particles for which the user forces
+      are non-zero
+    - The second contains the non-zero user forces associated with each index
+
+    :param user_forces: Array of user forces with dimensions (N, 3)
+    :return: Array of particle indices, Array of corresponding user forces
+    """
+    sparse_indices = np.unique(np.nonzero(user_forces)[0])
+    sparse_forces = np.zeros((sparse_indices.shape[0], 3))
+
+    for index in range(sparse_indices.shape[0]):
+        sparse_forces[index, :] = user_forces[sparse_indices[index]]
+
+    return sparse_indices, sparse_forces
+
+
+def calculate_contribution_to_work(forces: npt.NDArray, positions: npt.NDArray):
+    r"""
+    The expression for the work done on the system by the user is
+
+    .. math::
+        W = \sum_{t = 1}^{n_{steps}} \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+         \cdot (\mathbf{r}_{i}(t) - \mathbf{r}_{i}(t - 1)))
+
+    which can be rewritten as
+
+    .. math::
+        W = \sum_{t = 1}^{n_{steps}} \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+         \cdot \mathbf{r}_{i}(t) \bigg)  - \bigg(  \sum_{i = 1}^{N} \mathbf{F}_{i}(t - 1)
+         \cdot \mathbf{r}_{i}(t - 1) \bigg)
+
+    where the contribution at each value of t is separated into an
+    previous-step contribution (t-1) and an on-step contribution (t). Doing so
+    enables calculation of the work done on-the-fly without having to save
+    the positions of the atoms at each time step that the user applies an
+    iMD force.
+
+    This function calculates the contribution to the work done on the system by the user
+    for a set of forces and positions, and add it to the work done on the system. Only
+    involves the atoms affected by the user interaction.
+
+    :param forces: Array of user forces acting on the system (in NanoVer units of force,
+    i.e. kJ mol-1 nm-1)
+    :param positions: Array of atomic positions of the atoms on which the user forces
+    act (in NanoVer units, i.e. nm)
+    :return work_done_contribution: the contribution to the work done on the system (in NanoVer units of energy,
+    i.e. kJ mol-1)
+    """
+    work_done_contribution = 0.0
+    for atom in range(len(forces)):
+        work_done_contribution += np.dot(np.transpose(forces[atom]), positions[atom])
+
+    return work_done_contribution
+
+
 INTERACTION_METHOD_MAP: Dict[str, ForceCalculator] = {
     "gaussian": calculate_gaussian_force,
     "spring": calculate_spring_force,

@@ -1,4 +1,4 @@
-# NanoVer Protocol
+# NanoVer Python Server + gRPC Protocol
 
 Repository containing the gRPC protocol and python based implementations
 of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
@@ -32,7 +32,7 @@ If you haven't installed NanoVer yet, please go to [User installation](#User-ins
 
 ### Running a server via the command line
 
-`nanover.omni` provides a command line interface for running OpenMM simulations. For example, from the `nanover-protocol` directory:
+`nanover.omni` provides a command line interface for running OpenMM simulations. For example, from the `nanover-server-py` directory:
 
     nanover-omni --omm examples/ase/openmm_files/nanotube.xml
 
@@ -75,21 +75,20 @@ page in our documentation for detailed instructions on installing NanoVer.
 
 * Install Anaconda
 * Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
-* Clone the nanover-protocol repository
+* Clone the nanover-server-py repository
 * In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "nanover-dev"): `conda create -n nanover-dev "python>3.11"`
+    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase mpi4py`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Install the required conda packages: `conda install -c conda-forge openmm MDAnalysis MDAnalysisTests ase`
-    * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
+    * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
 ### Mac and Linux
 
 * Install Anaconda
-* Clone the nanover-protocol repository
+* Clone the nanover-server-py repository
 * In a terminal, in the repository root:
     * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase mpi4py`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Compile the protocol and install the NanoVer python libraries in your conda environment: `./compile.sh --no-dotnet`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit --no-dotnet` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-protocol` directory will be directly reflected in your python environment.
+    * Compile the protocol and install the NanoVer python libraries in your conda environment: `./compile.sh --no-dotnet`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit --no-dotnet` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
 Here, we installed only the python library. Using the `--no-dotnet` argument, we skipped building the C# libraries for NanoVer. Would you want to work on these library, you would need to:
 
@@ -156,7 +155,7 @@ Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tuto
 ### OpenMM IMD Simulations
 
 `nanover.omni` provides a command line interface for running serialised OpenMM simulations. For example, from the 
-`nanover-protocol` directory:
+`nanover-server-py` directory:
 
     nanover-omni --omm examples/ase/openmm_files/nanotube.xml
 
@@ -168,7 +167,7 @@ from a notebook.
 ### MD Analysis Trajectories
 
 `nanover.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
-trajectory. To serve the frames on port 54321, from the `nanover-protocol` directory, run
+trajectory. To serve the frames on port 54321, from the `nanover-server-py` directory, run
 
     python ./examples/mdanalysis/example.py
 

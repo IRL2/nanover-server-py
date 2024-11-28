@@ -8,11 +8,17 @@ from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
 from nanover.app import NanoverImdApplication
-from nanover.ase.converter import EV_TO_KJMOL, ase_atoms_to_frame_data
-from nanover.ase.imd_calculator import ImdCalculator
+from nanover.ase.converter import (
+    EV_TO_KJMOL,
+    ASE_TIME_UNIT_TO_PS,
+    ase_atoms_to_frame_data,
+    ANG_TO_NM,
+)
+from nanover.ase.imd_calculator import ImdCalculator, ImdForceManager
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData
 from nanover.utilities.event import Event
+from nanover.imd.imd_force import calculate_contribution_to_work
 
 
 @dataclass
@@ -77,8 +83,15 @@ class ASESimulation:
         self.checkpoint: Optional[InitialState] = None
         self.initial_calc: Optional[Calculator] = None
 
+        self.imd_calculator: Optional[ImdCalculator] = None
+
         self.frame_index = 0
         self.ase_atoms_to_frame_data = ase_atoms_to_frame_data
+
+        self.work_done: float = 0.0
+        self._work_done_intermediate: float = 0.0
+        self._prev_imd_forces: Optional[np.ndarray] = None
+        self._prev_imd_indices: Optional[np.ndarray] = None
 
     def load(self):
         """
@@ -115,12 +128,16 @@ class ASESimulation:
         self.atoms.set_velocities(self.checkpoint.velocities)
         self.atoms.set_cell(self.checkpoint.cell)
 
-        # setup calculator
-        self.atoms.calc = ImdCalculator(
+        # setup imd calculator
+        self.imd_calculator = ImdCalculator(
             self.app_server.imd,
+            ImdForceManager(self.app_server.imd, self.atoms),
             self.initial_calc,
             dynamics=self.dynamics,
         )
+
+        # assign imd calculator to atoms
+        self.atoms.calc = self.imd_calculator
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
@@ -158,7 +175,11 @@ class ASESimulation:
         """
         Step the simulation to the next point a frame should be reported, and send that frame.
         """
-        assert self.dynamics is not None and self.app_server is not None
+        assert (
+            self.dynamics is not None
+            and self.app_server is not None
+            and self.imd_calculator is not None
+        )
 
         # determine step count for next frame
         steps_to_next_frame = (
@@ -169,12 +190,41 @@ class ASESimulation:
         # advance the simulation
         self.dynamics.run(steps_to_next_frame)
 
+        # Get positions to calculate work done (in NanoVer units)
+        positions = self.atoms.get_positions(wrap=False) * ANG_TO_NM
+
+        # Calculate on-step contribution to work
+        if self._prev_imd_forces is not None:
+            affected_atom_positions = positions[self._prev_imd_indices]
+            self._work_done_intermediate += calculate_contribution_to_work(
+                self._prev_imd_forces, affected_atom_positions
+            )
+
+        # update imd forces and energies
+        self.imd_calculator.update_interactions()
+
         # generate the next frame
         frame_data = self.make_regular_frame()
+
+        # Update work done in frame data
+        self.work_done = self._work_done_intermediate
+        frame_data.user_work_done = self.work_done
+
+        # Calculate previous-step contribution to work for the next time step
+        # (negative contribution, so subtract from the total work done)
+        if frame_data.user_forces_sparse is not None:
+            affected_atom_positions = positions[frame_data.user_forces_index]
+            self._work_done_intermediate -= calculate_contribution_to_work(
+                frame_data.user_forces_sparse, affected_atom_positions
+            )
 
         # send the next frame
         self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
         self.frame_index += 1
+
+        # Update previous step forces (saving them in their sparse form)
+        self._prev_imd_forces = frame_data.user_forces_sparse
+        self._prev_imd_indices = frame_data.user_forces_index
 
         # check if excessive energy requires sim reset
         if self.reset_energy is not None and self.app_server is not None:
@@ -200,11 +250,21 @@ class ASESimulation:
         """
         Make a NanoVer FrameData corresponding to the current state of the simulation.
         """
-        assert self.atoms is not None
+        assert self.atoms is not None and self.imd_calculator is not None
 
-        return self.ase_atoms_to_frame_data(
+        frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
             topology=False,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
+
+        # Add simulation time to the frame
+        if self.dynamics is not None:
+            frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
+
+        # Add the user forces and user energy to the frame (converting from ASE units
+        # to NanoVer units)
+        self.imd_calculator.add_to_frame_data(frame_data)
+
+        return frame_data

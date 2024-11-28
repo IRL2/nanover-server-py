@@ -7,16 +7,20 @@ NanoVer clients.
 from typing import Iterable, Optional
 
 from ase import Atoms, Atom  # type: ignore
+from ase.units import fs as fs_in_ase_time_unit
 import itertools
 import numpy as np
 import numpy.typing as npt
 
+from nanover.ase.imd_calculator import ImdCalculator
 from nanover.trajectory import FrameData
 
 ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM
 KJMOL_TO_EV = 0.01036427
 EV_TO_KJMOL = 1.0 / KJMOL_TO_EV
+PS_TO_ASE_TIME_UNIT = fs_in_ase_time_unit * 1e3
+ASE_TIME_UNIT_TO_PS = 1.0 / PS_TO_ASE_TIME_UNIT
 
 # from https://chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_Maps/Supplemental_Modules_(Physical_and_Theoretical_Chemistry)/Chemical_Bonding/Fundamentals_of_Chemical_Bonding/Covalent_Bond_Distance%2C_Radius_and_van_der_Waals_Radius
 # TODO make a helper class with complete coverage of this stuff.
@@ -110,9 +114,9 @@ def ase_to_frame_data(
     if box_vectors:
         add_ase_box_vectors_to_frame_data(data, ase_atoms)
     if include_velocities:
-        data.particle_velocities = ase_atoms.get_velocities()
+        add_ase_velocities_to_frame_data(data, ase_atoms)
     if include_forces:
-        data.particle_forces = ase_atoms.get_forces()
+        add_ase_forces_to_frame_data(data, ase_atoms)
 
     return data
 
@@ -192,6 +196,35 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: npt.NDArray):
     data.particle_positions = positions * ANG_TO_NM
 
 
+def add_ase_velocities_to_frame_data(data: FrameData, ase_atoms: Atoms):
+    """
+    Adds ASE velocities to the frame data, converting to nanometers per picosecond.
+
+    :param data: :class:`FrameData` to add atom velocities to.
+    :param ase_atoms: ASE :class:`Atoms` to add particle positions to.
+    """
+    data.particle_velocities = ase_atoms.get_velocities() * (
+        ANG_TO_NM / ASE_TIME_UNIT_TO_PS
+    )
+
+
+def add_ase_forces_to_frame_data(data: FrameData, ase_atoms: Atoms):
+    """
+    Adds ASE forces to the frame data, converting to kJ mol-1 per nanometer. If the ASE
+    calculator is an ImdCalculator, removes the iMD forces from the ASE forces to deliver
+    the system forces (iMD forces delivered separately elsewhere).
+
+    :param data: :class:`FrameData` to add atom forces to.
+    :param ase_atoms: ASE :class:`Atoms` to add particle positions to.
+    """
+
+    data.particle_forces_system = ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+    if isinstance(ase_atoms.calc, ImdCalculator):
+        data.particle_forces_system -= ase_atoms.calc.results["interactive_forces"] * (
+            EV_TO_KJMOL / ANG_TO_NM
+        )
+
+
 def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     """
     Adds the periodic box vectors from the given ASE :class:`Atoms`
@@ -246,7 +279,11 @@ def add_ase_topology_to_frame_data(
 def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
     Adds simulation state information to the frame,
-    consisting of the potential energy and kinetic energy.
+    consisting of the potential energy and kinetic energy of the
+    molecular system. If the ASE calculator is an ImdCalculator,
+    removes the iMD energy from the ASE potential energy to deliver
+    the system potential energy (iMD energy delivered separately
+    elsewhere).
 
     :param frame_data: Frame data to add ASE state information to.
     :param ase_atoms: The ASE atoms from which to extract state information.
@@ -258,6 +295,14 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
         raise AttributeError("No calculator in atoms, so energy cannot be computed")
     if energy is not None:
         frame_data.potential_energy = energy * EV_TO_KJMOL
+        # Subtract iMD energy from total potential energy to obtain system potential energy
+        if isinstance(ase_atoms.calc, ImdCalculator):
+            frame_data.potential_energy -= (
+                ase_atoms.calc.get_property(
+                    "interactive_energy", allow_calculation=False
+                )
+                * EV_TO_KJMOL
+            )
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
