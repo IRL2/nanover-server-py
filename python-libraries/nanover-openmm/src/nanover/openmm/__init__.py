@@ -3,7 +3,6 @@ Interface between NanoVer and OpenMM.
 """
 
 from .converter import openmm_to_frame_data
-from .nanoverreporter import NanoverReporter
 
 GET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/get-frame-interval"
 SET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/set-frame-interval"
