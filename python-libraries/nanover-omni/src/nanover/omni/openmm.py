@@ -4,10 +4,8 @@ from typing import Optional, Any
 
 import numpy as np
 import numpy.typing as npt
-from openmm import CMMotionRemover
 
 from openmm.app import Simulation, StateDataReporter
-from openmm import unit
 
 from nanover.app import NanoverImdApplication
 from nanover.openmm import serializer, openmm_to_frame_data
@@ -17,7 +15,7 @@ from nanover.openmm.imd import (
     ImdForceManager,
     NON_IMD_FORCES_GROUP_MASK,
 )
-from nanover.openmm.thermo import compute_instantaneous_temperature
+from nanover.openmm.thermo import compute_instantaneous_temperature, compute_dof
 from nanover.trajectory.frame_data import Array2Dfloat
 
 
@@ -118,7 +116,7 @@ class OpenMMSimulation:
         self.simulation.context.loadCheckpoint(self.checkpoint)
         self.imd_force_manager = ImdForceManager(self.app_server.imd, self.imd_force)
 
-        self._dof = self.compute_dof()
+        self._dof = compute_dof(self.simulation.system)
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
@@ -217,7 +215,11 @@ class OpenMMSimulation:
         Make a NanoVer FrameData corresponding to the current state of the simulation.
         :param positions: Optionally provided particle positions to save fetching them again.
         """
-        assert self.simulation is not None and self.imd_force_manager is not None
+        assert (
+            self.simulation is not None
+            and self.imd_force_manager is not None
+            and self._dof is not None
+        )
 
         # fetch omm state
         state = self.simulation.context.getState(
@@ -238,7 +240,7 @@ class OpenMMSimulation:
             state_excludes_imd=True,
         )
 
-        # TODO: move?
+        # Assume that the KE is always available, which is true for this case
         frame_data.system_temperature = compute_instantaneous_temperature(
             self.simulation, frame_data.kinetic_energy, self._dof
         )
@@ -281,24 +283,3 @@ class OpenMMSimulation:
             self._work_done_intermediate += np.dot(
                 np.transpose(forces[atom]), positions[atom]
             )
-
-    def compute_dof(self):
-        # Compute the number of degrees of freedom.
-        dof = 0
-        system = self.simulation.system
-        for i in range(system.getNumParticles()):
-            if system.getParticleMass(i) > 0 * unit.dalton:
-                dof += 3
-        for i in range(system.getNumConstraints()):
-            p1, p2, distance = system.getConstraintParameters(i)
-            if (
-                system.getParticleMass(p1) > 0 * unit.dalton
-                or system.getParticleMass(p2) > 0 * unit.dalton
-            ):
-                dof -= 1
-        if any(
-            isinstance(system.getForce(i), CMMotionRemover)
-            for i in range(system.getNumForces())
-        ):
-            dof -= 3
-        return dof

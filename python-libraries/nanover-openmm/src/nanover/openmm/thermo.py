@@ -3,7 +3,7 @@ Calculate thermodynamic quantities associated with the simulation.
 """
 
 from openmm.app import Simulation
-from openmm import unit
+from openmm import unit, CMMotionRemover
 
 
 def compute_instantaneous_temperature(
@@ -32,3 +32,24 @@ def compute_instantaneous_temperature(
         return integrator.computeSystemTemperature().value_in_unit(unit.kelvin)
     else:
         return (2 * KE / (dof * unit.MOLAR_GAS_CONSTANT_R)).value_in_unit(unit.kelvin)
+
+
+def compute_dof(system):
+    # Compute the number of degrees of freedom.
+    dof = 0
+    for i in range(system.getNumParticles()):
+        if system.getParticleMass(i) > 0 * unit.dalton:
+            dof += 3
+    for i in range(system.getNumConstraints()):
+        p1, p2, distance = system.getConstraintParameters(i)
+        if (
+            system.getParticleMass(p1) > 0 * unit.dalton
+            or system.getParticleMass(p2) > 0 * unit.dalton
+        ):
+            dof -= 1
+    if any(
+        isinstance(system.getForce(i), CMMotionRemover)
+        for i in range(system.getNumForces())
+    ):
+        dof -= 3
+    return dof
