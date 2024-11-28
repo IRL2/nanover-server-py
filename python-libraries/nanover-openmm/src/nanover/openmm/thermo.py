@@ -4,16 +4,16 @@ Calculate thermodynamic quantities associated with the simulation.
 
 from openmm.app import Simulation
 from openmm import unit
-from openmm.unit import MOLAR_GAS_CONSTANT_R
 
 
 def compute_instantaneous_temperature(
     simulation: Simulation, kinetic_energy: float, dof: int
 ):
     r"""
-    Calculate the instantaneous temperature of the system. If the integrator has an internal
-    function to do this, that function is used. Otherwise, it is calculated using the
-    kinetic energy of the system, according to
+    Calculate the instantaneous temperature of the system, using the same procedure as
+    the `StateDataReporter in OpenMM <https://github.com/openmm/openmm/blob/a056d5a3754e193105409afa12c9f0c9a2d972a2/wrappers/python/openmm/app/statedatareporter.py#L250-L255>`__
+    If the integrator has an internal function to do this, that function is used.
+    Otherwise, it is calculated using the kinetic energy of the system, according to
 
     .. math::
         T = \frac{2 * \mathrm{KE}}{N_{\mathrm{dof}} * R}
