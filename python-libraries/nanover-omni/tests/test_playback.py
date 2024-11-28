@@ -1,24 +1,24 @@
-from pathlib import Path
-from unittest.mock import patch, ANY, call
+from unittest.mock import patch, call
 
 import pytest
 
 from nanover.omni.playback import PlaybackSimulation
-from nanover.trajectory import FrameData
 
-from common import app_server, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
+from common import RECORDING_PATH_TRAJ, RECORDING_PATH_STATE, make_loaded_sim
 
 
 @pytest.fixture
-def example_playback(app_server):
-    sim = PlaybackSimulation(
+def example_playback():
+    with make_loaded_sim(make_example_playback()) as sim:
+        yield sim
+
+
+def make_example_playback():
+    return PlaybackSimulation(
         "nanotube-example-recording",
         traj=RECORDING_PATH_TRAJ,
         state=RECORDING_PATH_STATE,
     )
-    sim.load()
-    sim.reset(app_server)
-    yield sim
 
 
 def test_step_gives_exactly_one_emit(example_playback):

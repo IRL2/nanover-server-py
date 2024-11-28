@@ -155,7 +155,7 @@ def main():
 
     with initialise_runner(arguments) as runner:
         if len(runner.simulations) > 0:
-            runner.next()
+            runner.load(0)
 
         if arguments.rich:
             try:
