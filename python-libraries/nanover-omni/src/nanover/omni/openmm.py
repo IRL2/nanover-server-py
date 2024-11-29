@@ -250,6 +250,8 @@ def reinitialize_simulation_forces(simulation):
     """
     Call updateParametersInContext on all forces to ensure they are up to date.
     See: https://github.com/IRL2/nanover-server-py/issues/322
+
+    This was previous achieved with `simulation.context.reinitialize()` which is significantly slower.
     """
     for i in range(simulation.system.getNumForces()):
         force = simulation.system.getForce(i)
