@@ -19,7 +19,7 @@ if ($noedit)
 else
 {
     $edit_option = "-e"
-    Announce "Installing nanover-protocol in edit mode."
+    Announce "Installing nanover-server-py in edit mode."
 }
 
 if ($user) 
@@ -41,12 +41,12 @@ announce "Compiling proto files to python"
 python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src
 
 announce "Installing the python packages"
-python -m pip install ${edit_option} ${user_option} ./python-libraries/nanover-core/
+python -m pip install ${edit_option} ${user_option}  (Convert-Path "./python-libraries/nanover-core/") --config-settings editable_mode=compat
 
 Get-ChildItem -Directory python-libraries/nanover-* | ForEach-Object {
     if (Test-Path -Path "$($_.FullName)/pyproject.toml") {
         Write-Host "$($_.FullName)"
-        pip install ${edit_option} ${user_option} ""$($_.FullName)""
+        pip install ${edit_option} ${user_option} ""$($_.FullName)""  --config-settings editable_mode=compat
     }
  }
 
@@ -55,13 +55,6 @@ if ($LASTEXITCODE -ne 0)
 {
     announce "OpenMM appears to not be installed."
     announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
-}
-
-python -c "import mpi4py"
-if ($LASTEXITCODE -ne 0)
-{
-    announce "Cannot load mpi4py. Do you have Microsoft MPI installed?"
-    announce "See https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi"
 }
 
 announce "Compiling proto files to C#"

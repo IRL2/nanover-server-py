@@ -3,7 +3,11 @@ import pytest
 import numpy as np
 from ase.calculators.lj import LennardJones
 from nanover.ase import converter
-from nanover.ase.imd_calculator import ImdCalculator, get_periodic_box_lengths
+from nanover.ase.imd_calculator import (
+    ImdCalculator,
+    ImdForceManager,
+    get_periodic_box_lengths,
+)
 from nanover.imd import ImdClient
 from nanover.imd.particle_interaction import ParticleInteraction
 from util import co_atoms, imd_server, client_interaction
@@ -29,14 +33,17 @@ def interact_c():
 def imd_calculator_co(imd_server):
     atoms = co_atoms()
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(imd_server.imd_state, calculator, atoms)
+    imd_force_manager = ImdForceManager(imd_server.imd_state, atoms)
+    imd_calculator = ImdCalculator(
+        imd_server.imd_state, imd_force_manager, calculator, atoms
+    )
     yield imd_calculator, atoms, imd_server
 
 
 @pytest.fixture
 def imd_calculator_no_atoms(imd_server):
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(imd_server.imd_state, calculator)
+    imd_calculator = ImdCalculator(imd_server.imd_state, calculator=calculator)
     yield imd_calculator
 
 
@@ -126,6 +133,8 @@ def test_one_interaction(
         with client_interaction(imd_client, interact_c):
             time.sleep(0.1)
             assert len(imd_calculator.interactions) == 1
+            # Update interactions
+            imd_calculator.update_interactions()
             imd_calculator.calculate(properties=properties)
             results = imd_calculator.results
 

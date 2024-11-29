@@ -16,9 +16,6 @@ dependencies = [
 ]
 dynamic = ["version"]
 
-[project.scripts]
-nanover-omm-ase = "nanover.ase.openmm.cli:main"
-
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
 include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)
