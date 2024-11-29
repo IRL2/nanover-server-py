@@ -304,9 +304,6 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
                 * EV_TO_KJMOL
             )
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
-    # Get instantaneous temperature, calculated from KE and DOF
-    # TODO: Check whether this calculates the KE again and if it's negligible to do so
-    frame_data.system_temperature = ase_atoms.get_temperature()
 
 
 def get_radius_of_element(symbol: str, default=1.0):

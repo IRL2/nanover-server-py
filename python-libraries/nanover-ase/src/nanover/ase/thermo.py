@@ -4,6 +4,7 @@ Calculate thermodynamic quantities associated with the simulation.
 
 from ase import Atoms, units
 
+
 def compute_instantaneous_temperature(kinetic_energy: float, dof: int) -> float:
     """
     Calculate the instantaneous temperature of the system, using the same procedure as
@@ -19,8 +20,7 @@ def compute_instantaneous_temperature(kinetic_energy: float, dof: int) -> float:
     constant in native ASE units.
     """
 
-    return (2 * kinetic_energy)/(dof * units.kB)
-
+    return (2 * kinetic_energy) / (dof * units.kB)
 
 
 def compute_dof(atoms: Atoms) -> int:
