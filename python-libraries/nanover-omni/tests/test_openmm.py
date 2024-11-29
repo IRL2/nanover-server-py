@@ -208,6 +208,7 @@ def test_reset_gives_equal_frames(app_server):
     """
     Test that resetting the simulation gives frames with equal positions, velocities, and forces etc.
     """
+
     def fetch_data(frame_data: FrameData):
         return {
             "positions": np.array(frame_data.particle_positions).flatten(),
