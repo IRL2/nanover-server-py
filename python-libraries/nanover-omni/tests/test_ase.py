@@ -372,3 +372,24 @@ def test_work_done_frame(example_ase_app_sim_constant_force_interaction):
         client.subscribe_to_frames()
         client.wait_until_first_frame()
         assert client.current_frame.user_work_done == sim.work_done
+
+
+def test_instantaneous_temperature(example_ase_app_sim_constant_force_interaction):
+    """
+    Test that the instantaneous temperature calculated by NanoVer is equal to the
+    instantaneous temperature calculated by ASE internally.
+    """
+    app, sim = example_ase_app_sim_constant_force_interaction
+
+    for _ in range(101):
+        sim.advance_to_next_report()
+
+    # Calculate temperature using method in ASE Atoms class
+    ase_temp = sim.atoms.get_temperature()
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        assert client.current_frame.system_temperature == ase_temp
