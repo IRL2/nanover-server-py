@@ -1,6 +1,8 @@
 import sys
 from io import StringIO
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 from openmm.app import StateDataReporter
@@ -11,6 +13,7 @@ from nanover.omni.openmm import OpenMMSimulation
 from nanover.app import NanoverImdApplication, NanoverImdClient
 
 from common import app_server
+from nanover.trajectory import FrameData
 
 from openmm_simulation_utils import (
     basic_system,
@@ -284,3 +287,30 @@ def test_instantaneous_temperature_imd_interaction(
         # 1% of the temperature calculated by the StateDataReporter (including
         # the effect of the iMD interaction on the temperature)
         assert frame_temperature == pytest.approx(state_data_temperature, rel=1.0e-2)
+
+
+def test_reset_gives_equal_frames(app_server):
+    """
+    Test that resetting the simulation gives frames with equal positions, velocities, and forces etc.
+    """
+
+    def fetch_data(frame_data: FrameData):
+        return {
+            "positions": np.array(frame_data.particle_positions).flatten(),
+            "velocities": np.array(frame_data.particle_velocities).flatten(),
+            "forces": np.array(frame_data.particle_forces_system).flatten(),
+        }
+
+    sim = OpenMMSimulation.from_xml_path(Path(__file__).parent / "hiv1_complex.xml")
+    sim.load()
+
+    sim.include_forces = True
+    sim.include_velocities = True
+
+    sim.reset(app_server)
+    prev_data = fetch_data(sim.make_regular_frame())
+
+    sim.reset(app_server)
+    next_data = fetch_data(sim.make_regular_frame())
+
+    assert all(np.all(prev_data[key] - next_data[key]) == 0 for key in prev_data)
