@@ -24,7 +24,7 @@ def compute_instantaneous_temperature(
     :param simulation: OpenMM simulation of the system.
     :param kinetic_energy: Kinetic energy of the system (in kJ mol-1).
     :param dof: Number of degrees of freedom of the system.
-    :return: Instantaneous temperature of the system.
+    :return: Instantaneous temperature of the system (in Kelvin).
     """
     KE = unit.Quantity(value=kinetic_energy, unit=unit.kilojoules_per_mole)
     integrator = simulation.context.getIntegrator()
@@ -38,6 +38,8 @@ def compute_dof(system):
     r"""
     Compute the number of degrees of freedom of the system, using the same procedure as
     the `StateDataReporter in OpenMM <https://github.com/openmm/openmm/blob/a056d5a3754e193105409afa12c9f0c9a2d972a2/wrappers/python/openmm/app/statedatareporter.py#L302-L313>`__.
+    :param system: OpenMM system.
+    :return: Number of degrees of freedom of the system.
     """
     dof = 0
     for i in range(system.getNumParticles()):

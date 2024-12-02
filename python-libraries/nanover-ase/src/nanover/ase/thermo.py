@@ -18,6 +18,9 @@ def compute_instantaneous_temperature(kinetic_energy: float, dof: int) -> float:
     where KE is the kinetic energy of the system (in eV), :math:`N_{dof}` is the number
     of degrees of freedom of the system and :math:`k_{\mathrm{B}}` is the Boltzmann
     constant in native ASE units.
+    :param kinetic_energy: Kinetic energy of the system (in eV).
+    :param dof: Number of degrees of freedom of the system.
+    :return: Instantaneous temperature of the system (in Kelvin).
     """
     return (2 * kinetic_energy) / (dof * units.kB)
 
@@ -26,6 +29,8 @@ def compute_dof(atoms: Atoms) -> int:
     """
     Compute the number of degrees of freedom of the system, using the same procedure as
     the :meth:`get_temperature` method of the :class:`Atoms` class in ASE.
+    :param atoms: ASE Atoms object.
+    :return: Number of degrees of freedom of the system.
     """
     dof = len(atoms) * 3
     for constraint in atoms._constraints:
