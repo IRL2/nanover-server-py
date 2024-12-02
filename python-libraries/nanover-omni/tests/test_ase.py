@@ -392,4 +392,6 @@ def test_instantaneous_temperature(example_ase_app_sim_constant_force_interactio
     ) as client:
         client.subscribe_to_frames()
         client.wait_until_first_frame()
-        assert client.current_frame.system_temperature == ase_temp
+        assert client.current_frame.system_temperature == pytest.approx(
+            ase_temp, abs=1e-12
+        )
