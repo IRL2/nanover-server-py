@@ -228,7 +228,8 @@ def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulatio
 
     # Attach StateDataReporter to the simulation
     sim.simulation.reporters.append(
-        StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True))
+        StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True)
+    )
 
     # Advance the simulation
     for _ in range(11):
@@ -246,7 +247,9 @@ def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulatio
         assert client.current_frame.system_temperature == state_data_temperature
 
 
-def test_instantaneous_temperature_imd_interaction(basic_system_app_and_simulation_with_constant_force):
+def test_instantaneous_temperature_imd_interaction(
+    basic_system_app_and_simulation_with_constant_force,
+):
     """
     Test that the instantaneous temperature calculated by NanoVer is equal to the
     instantaneous temperature calculated by the StateDataReporter of OpenMM to within
@@ -260,7 +263,8 @@ def test_instantaneous_temperature_imd_interaction(basic_system_app_and_simulati
 
     # Attach StateDataReporter to the simulation
     sim.simulation.reporters.append(
-        StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True))
+        StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True)
+    )
 
     # Advance the simulation
     for _ in range(101):
@@ -271,7 +275,7 @@ def test_instantaneous_temperature_imd_interaction(basic_system_app_and_simulati
     state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
 
     with NanoverImdClient.connect_to_single_server(
-            port=app.port, address="localhost"
+        port=app.port, address="localhost"
     ) as client:
         client.subscribe_to_frames()
         client.wait_until_first_frame()
@@ -280,5 +284,3 @@ def test_instantaneous_temperature_imd_interaction(basic_system_app_and_simulati
         # 1% of the temperature calculated by the StateDataReporter (including
         # the effect of the iMD interaction on the temperature)
         assert frame_temperature == pytest.approx(state_data_temperature, rel=1.0e-2)
-
-
