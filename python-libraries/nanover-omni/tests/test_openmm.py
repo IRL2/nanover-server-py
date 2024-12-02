@@ -1,5 +1,9 @@
+import sys
+from io import StringIO
+
 import numpy as np
 import pytest
+from openmm.app import StateDataReporter
 
 from nanover.openmm import imd, serializer
 from nanover.imd import ParticleInteraction
@@ -49,6 +53,15 @@ def single_atom_app_and_simulation_with_constant_force(
     )
 
     app_server.imd.insert_interaction("interaction.test", interaction)
+
+    yield app_server, sim
+
+
+@pytest.fixture
+def basic_system_app_and_simulation(app_server, basic_simulation):
+    sim = OpenMMSimulation.from_simulation(basic_simulation)
+    sim.load()
+    sim.reset(app_server)
 
     yield app_server, sim
 
@@ -199,3 +212,73 @@ def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_f
         assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=2.0e-7)
         assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=2.0e-7)
         assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.0e-7)
+
+
+def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulation):
+    """
+    Test that the instantaneous temperature calculated by NanoVer is equal to the
+    instantaneous temperature calculated by the StateDataReporter of OpenMM for a
+    simulation without iMD interactions.
+    """
+    app, sim = basic_system_app_and_simulation
+
+    # Save the output of the StateDataReporter to a variable
+    old_stdout = sys.stdout
+    sys.stdout = state_data_output = StringIO()
+
+    # Attach StateDataReporter to the simulation
+    sim.simulation.reporters.append(
+        StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True))
+
+    # Advance the simulation
+    for _ in range(11):
+        sim.advance_to_next_report()
+
+    # Retrieve the final temperature from StateDataReporter output
+    sys.stdout = old_stdout
+    state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
+
+    with NanoverImdClient.connect_to_single_server(
+        port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        assert client.current_frame.system_temperature == state_data_temperature
+
+
+def test_instantaneous_temperature_imd_interaction(basic_system_app_and_simulation_with_constant_force):
+    """
+    Test that the instantaneous temperature calculated by NanoVer is equal to the
+    instantaneous temperature calculated by the StateDataReporter of OpenMM to within
+    a tolerance (see `issue #324 <https://github.com/IRL2/nanover-server-py/issues/324>`__).
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+
+    # Save the output of the StateDataReporter to a variable
+    old_stdout = sys.stdout
+    sys.stdout = state_data_output = StringIO()
+
+    # Attach StateDataReporter to the simulation
+    sim.simulation.reporters.append(
+        StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True))
+
+    # Advance the simulation
+    for _ in range(101):
+        sim.advance_to_next_report()
+
+    # Retrieve the final temperature from StateDataReporter output
+    sys.stdout = old_stdout
+    state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
+
+    with NanoverImdClient.connect_to_single_server(
+            port=app.port, address="localhost"
+    ) as client:
+        client.subscribe_to_frames()
+        client.wait_until_first_frame()
+        frame_temperature = client.current_frame.system_temperature
+        # Check that the temperature during the iMD interaction is within
+        # 1% of the temperature calculated by the StateDataReporter (including
+        # the effect of the iMD interaction on the temperature)
+        assert frame_temperature == pytest.approx(state_data_temperature, rel=1.0e-2)
+
+
