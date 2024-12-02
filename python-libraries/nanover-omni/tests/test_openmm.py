@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -7,6 +9,7 @@ from nanover.omni.openmm import OpenMMSimulation
 from nanover.app import NanoverImdApplication, NanoverImdClient
 
 from common import app_server
+from nanover.trajectory import FrameData
 
 from openmm_simulation_utils import (
     basic_system,
@@ -199,3 +202,30 @@ def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_f
         assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=2.0e-7)
         assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=2.0e-7)
         assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.0e-7)
+
+
+def test_reset_gives_equal_frames(app_server):
+    """
+    Test that resetting the simulation gives frames with equal positions, velocities, and forces etc.
+    """
+
+    def fetch_data(frame_data: FrameData):
+        return {
+            "positions": np.array(frame_data.particle_positions).flatten(),
+            "velocities": np.array(frame_data.particle_velocities).flatten(),
+            "forces": np.array(frame_data.particle_forces_system).flatten(),
+        }
+
+    sim = OpenMMSimulation.from_xml_path(Path(__file__).parent / "hiv1_complex.xml")
+    sim.load()
+
+    sim.include_forces = True
+    sim.include_velocities = True
+
+    sim.reset(app_server)
+    prev_data = fetch_data(sim.make_regular_frame())
+
+    sim.reset(app_server)
+    next_data = fetch_data(sim.make_regular_frame())
+
+    assert all(np.all(prev_data[key] - next_data[key]) == 0 for key in prev_data)
