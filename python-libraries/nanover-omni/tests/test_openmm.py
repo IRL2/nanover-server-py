@@ -225,21 +225,23 @@ def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulatio
     """
     app, sim = basic_system_app_and_simulation
 
-    # Save the output of the StateDataReporter to a variable
-    old_stdout = sys.stdout
-    sys.stdout = state_data_output = StringIO()
+    try:
+        # Save the output of the StateDataReporter to a variable
+        old_stdout = sys.stdout
+        sys.stdout = state_data_output = StringIO()
 
-    # Attach StateDataReporter to the simulation
-    sim.simulation.reporters.append(
-        StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True)
-    )
+        # Attach StateDataReporter to the simulation
+        sim.simulation.reporters.append(
+            StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True)
+        )
 
-    # Advance the simulation
-    for _ in range(11):
-        sim.advance_to_next_report()
+        # Advance the simulation
+        for _ in range(11):
+            sim.advance_to_next_report()
+    finally:
+        # Retrieve the final temperature from StateDataReporter output
+        sys.stdout = old_stdout
 
-    # Retrieve the final temperature from StateDataReporter output
-    sys.stdout = old_stdout
     state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
 
     with NanoverImdClient.connect_to_single_server(
@@ -262,21 +264,24 @@ def test_instantaneous_temperature_imd_interaction(
     """
     app, sim = basic_system_app_and_simulation_with_constant_force
 
-    # Save the output of the StateDataReporter to a variable
-    old_stdout = sys.stdout
-    sys.stdout = state_data_output = StringIO()
+    try:
+        # Save the output of the StateDataReporter to a variable
+        old_stdout = sys.stdout
+        sys.stdout = state_data_output = StringIO()
 
-    # Attach StateDataReporter to the simulation
-    sim.simulation.reporters.append(
-        StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True)
-    )
+        # Attach StateDataReporter to the simulation
+        sim.simulation.reporters.append(
+            StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True)
+        )
 
-    # Advance the simulation
-    for _ in range(101):
-        sim.advance_to_next_report()
+        # Advance the simulation
+        for _ in range(101):
+            sim.advance_to_next_report()
 
-    # Retrieve the final temperature from StateDataReporter output
-    sys.stdout = old_stdout
+    finally:
+        # Retrieve the final temperature from StateDataReporter output
+        sys.stdout = old_stdout
+
     state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
 
     with NanoverImdClient.connect_to_single_server(
