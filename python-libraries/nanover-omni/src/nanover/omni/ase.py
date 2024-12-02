@@ -13,8 +13,10 @@ from nanover.ase.converter import (
     ASE_TIME_UNIT_TO_PS,
     ase_atoms_to_frame_data,
     ANG_TO_NM,
+    KJMOL_TO_EV,
 )
 from nanover.ase.imd_calculator import ImdCalculator, ImdForceManager
+from nanover.ase.thermo import compute_dof, compute_instantaneous_temperature
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData
 from nanover.utilities.event import Event
@@ -93,6 +95,8 @@ class ASESimulation:
         self._prev_imd_forces: Optional[np.ndarray] = None
         self._prev_imd_indices: Optional[np.ndarray] = None
 
+        self._dof: Optional[int] = None
+
     def load(self):
         """
         Load and set up the simulation if it isn't done already.
@@ -138,6 +142,8 @@ class ASESimulation:
 
         # assign imd calculator to atoms
         self.atoms.calc = self.imd_calculator
+
+        self._dof = compute_dof(self.atoms)
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
@@ -250,7 +256,11 @@ class ASESimulation:
         """
         Make a NanoVer FrameData corresponding to the current state of the simulation.
         """
-        assert self.atoms is not None and self.imd_calculator is not None
+        assert (
+            self.atoms is not None
+            and self.imd_calculator is not None
+            and self._dof is not None
+        )
 
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
@@ -262,6 +272,13 @@ class ASESimulation:
         # Add simulation time to the frame
         if self.dynamics is not None:
             frame_data.simulation_time = self.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
+
+        # Assume that KE is always available, which is true for this case, and  convert to
+        # ASE units for calculating instantaneous temperature
+        kinetic_energy = frame_data.kinetic_energy * KJMOL_TO_EV
+        frame_data.system_temperature = compute_instantaneous_temperature(
+            kinetic_energy, self._dof
+        )
 
         # Add the user forces and user energy to the frame (converting from ASE units
         # to NanoVer units)

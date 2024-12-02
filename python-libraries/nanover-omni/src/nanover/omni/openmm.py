@@ -14,6 +14,7 @@ from nanover.openmm.imd import (
     ImdForceManager,
     NON_IMD_FORCES_GROUP_MASK,
 )
+from nanover.openmm.thermo import compute_instantaneous_temperature, compute_dof
 from nanover.trajectory.frame_data import Array2Dfloat
 from nanover.imd.imd_force import calculate_contribution_to_work
 
@@ -86,6 +87,8 @@ class OpenMMSimulation:
         self._prev_imd_forces: Optional[np.ndarray] = None
         self._prev_imd_indices: Optional[np.ndarray] = None
 
+        self._dof: Optional[int] = None
+
     def load(self):
         """
         Load and set up the simulation if it isn't done already.
@@ -111,6 +114,8 @@ class OpenMMSimulation:
 
         self.app_server = app_server
         self.imd_force_manager = ImdForceManager(self.app_server.imd, self.imd_force)
+
+        self._dof = compute_dof(self.simulation.system)
 
         # reload initial state and cleanup forces
         self.simulation.context.loadCheckpoint(self.checkpoint)
@@ -215,7 +220,11 @@ class OpenMMSimulation:
         Make a NanoVer FrameData corresponding to the current state of the simulation.
         :param positions: Optionally provided particle positions to save fetching them again.
         """
-        assert self.simulation is not None and self.imd_force_manager is not None
+        assert (
+            self.simulation is not None
+            and self.imd_force_manager is not None
+            and self._dof is not None
+        )
 
         # fetch omm state
         state = self.simulation.context.getState(
@@ -234,6 +243,11 @@ class OpenMMSimulation:
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
             state_excludes_imd=True,
+        )
+
+        # Assume that the KE is always available, which is true for this case
+        frame_data.system_temperature = compute_instantaneous_temperature(
+            self.simulation, frame_data.kinetic_energy, self._dof
         )
 
         # add any provided positions
