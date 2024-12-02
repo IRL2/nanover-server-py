@@ -3,10 +3,12 @@ from unittest.mock import patch, ANY, call
 
 import pytest
 
-from nanover.omni.playback import PlaybackSimulation
+from nanover.mdanalysis import explosion_mask
+from nanover.omni.playback import PlaybackSimulation, SCENE_POSE_IDENTITY
 from nanover.trajectory import FrameData
 
 from common import app_server, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
+from nanover.utilities.change_buffers import DictionaryChange
 
 
 @pytest.fixture
@@ -41,7 +43,7 @@ def test_step_loops(example_playback):
         example_playback.advance_by_one_step()
 
     assert example_playback.next_entry_index == 1
-    emit.assert_called_once_with(frame=first_frame, update=first_update)
+    emit.assert_called_with(frame=first_frame, update=first_update)
 
 
 def test_advance_seconds_emits_intermediate(example_playback):
@@ -62,3 +64,44 @@ def test_advance_seconds_emits_intermediate(example_playback):
 
             assert emit.call_count == len(calls)
             emit.assert_has_calls(calls)
+
+
+def test_playback_finds_changed_keys(example_playback):
+    """
+    Test that the keys chosen for reset are exactly those changed in the recording.
+    """
+    assert example_playback.changed_keys == {
+        "avatar.2c85cd8f-580e-4d41-98e5-b6f71be2575b",
+        "playarea.2c85cd8f-580e-4d41-98e5-b6f71be2575b",
+        "update.index.2c85cd8f-580e-4d41-98e5-b6f71be2575b",
+        "interaction.8615bf5a-763a-48c5-812f-2ca5a06589c1",
+    }
+
+
+def test_playback_reset_clears_keys(app_server, example_playback):
+    """
+    Test that reset clears the relevant keys.
+    """
+
+    count = len(example_playback.entries)
+    half = count // 2
+
+    # playback to the middle of the simulation where there is an avatar and an interaction
+    for _ in range(half):
+        example_playback.advance_to_next_entry()
+
+    example_playback.reset(app_server)
+
+    # check all keys that should be removed are not present
+    with app_server.server.lock_state() as state:
+        assert all(key not in state for key in example_playback.changed_keys)
+
+
+def test_playback_starts_with_scene_identity(app_server, example_playback):
+    """
+    Test that reset results in scene identity.
+    """
+    example_playback.reset(app_server)
+
+    with app_server.server.lock_state() as state:
+        assert state["scene"] == SCENE_POSE_IDENTITY
