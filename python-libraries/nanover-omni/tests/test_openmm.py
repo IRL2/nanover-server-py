@@ -247,7 +247,9 @@ def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulatio
     ) as client:
         client.subscribe_to_frames()
         client.wait_until_first_frame()
-        assert client.current_frame.system_temperature == state_data_temperature
+        assert client.current_frame.system_temperature == pytest.approx(
+            state_data_temperature, abs=1e-12
+        )
 
 
 def test_instantaneous_temperature_imd_interaction(
