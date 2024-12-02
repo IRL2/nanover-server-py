@@ -1,5 +1,6 @@
 import sys
 from io import StringIO
+from contextlib import redirect_stdout
 
 from pathlib import Path
 
@@ -225,11 +226,8 @@ def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulatio
     """
     app, sim = basic_system_app_and_simulation
 
-    try:
-        # Save the output of the StateDataReporter to a variable
-        old_stdout = sys.stdout
-        sys.stdout = state_data_output = StringIO()
-
+    # Save the output of the StateDataReporter to a variable
+    with redirect_stdout(StringIO()) as state_data_output:
         # Attach StateDataReporter to the simulation
         sim.simulation.reporters.append(
             StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True)
@@ -238,11 +236,8 @@ def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulatio
         # Advance the simulation
         for _ in range(11):
             sim.advance_to_next_report()
-    finally:
-        # Retrieve the final temperature from StateDataReporter output
-        sys.stdout = old_stdout
 
-    state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
+        state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
 
     with NanoverImdClient.connect_to_single_server(
         port=app.port, address="localhost"
@@ -264,10 +259,8 @@ def test_instantaneous_temperature_imd_interaction(
     """
     app, sim = basic_system_app_and_simulation_with_constant_force
 
-    try:
-        # Save the output of the StateDataReporter to a variable
-        old_stdout = sys.stdout
-        sys.stdout = state_data_output = StringIO()
+    # Save the output of the StateDataReporter to a variable
+    with redirect_stdout(StringIO()) as state_data_output:
 
         # Attach StateDataReporter to the simulation
         sim.simulation.reporters.append(
@@ -278,11 +271,7 @@ def test_instantaneous_temperature_imd_interaction(
         for _ in range(101):
             sim.advance_to_next_report()
 
-    finally:
-        # Retrieve the final temperature from StateDataReporter output
-        sys.stdout = old_stdout
-
-    state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
+        state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
 
     with NanoverImdClient.connect_to_single_server(
         port=app.port, address="localhost"
