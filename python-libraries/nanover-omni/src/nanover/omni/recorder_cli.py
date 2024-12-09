@@ -1,6 +1,7 @@
 """
 Command line interface for recording from a server.
 """
+
 import argparse
 import textwrap
 import time
