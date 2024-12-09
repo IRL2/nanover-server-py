@@ -17,6 +17,7 @@ dynamic = ["version"]
 
 [project.scripts]
 nanover-omni = "nanover.omni.cli:main"
+nanover-record = "nanover.omni.recorder_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
