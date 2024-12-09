@@ -24,7 +24,7 @@ optionally, an OpenMM serialized state. The resulting XML file looks like:
 
 The ``System``, ``Integrator`` and ``State`` tags are the roots of the serialized
 system, integrator and state, respectively. The ``pdbx`` tag can be replaced by a
- ``pdb`` one for backward compatibility.
+``pdb`` one for backward compatibility.
 
 This module provides a function :func:`serialize_simulation` that generates an
 XML file from an existing instance of :class:`openmm.app.Simulation`, and
