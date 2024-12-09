@@ -7,6 +7,9 @@ import time
 
 from nanover.omni.record import record_from_server
 
+from nanover.essd import DiscoveryClient
+from nanover.trajectory import FRAME_SERVICE_NAME
+
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
     """
@@ -62,12 +65,15 @@ def main():
 
     if arguments.address is not None:
         address = arguments.address
-    # elif arguments.autoconnect is not None:
-    #     with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
-    #         for hub in discovery_client.search_for_services(2.0):
-    #             if hub.name == arguments.autoconnect:
-    #                 address = hub.get_service_address(FRAME_SERVICE_NAME)
-    #                 break
+    elif arguments.autoconnect is not None:
+        print(f"Using server discovery to find '{arguments.autoconnect}'")
+        with DiscoveryClient() as discovery_client:
+            for hub in discovery_client.search_for_services():
+                if arguments.autoconnect in hub.name:
+                    host, port = hub.get_service_address(FRAME_SERVICE_NAME)
+                    address = f"{host}:{port}"
+                    print(f"Found '{hub.name}' at {address}.")
+                    break
 
     path = arguments.path
     prefix = arguments.prefix
@@ -81,6 +87,8 @@ def main():
 
         traj = f"{path}/{name}.traj"
         state = f"{path}/{name}.state"
+
+        print(f"Connecting to {address}.")
 
         executor, channel = record_from_server(address, traj, state)
 
