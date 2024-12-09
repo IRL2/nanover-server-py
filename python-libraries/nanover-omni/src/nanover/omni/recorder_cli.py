@@ -41,6 +41,12 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         help="Connect to specific host address and port.",
     )
 
+    parser.add_argument(
+        "--autoconnect",
+        metavar="QUERY",
+        help="Use server discovery and pick a server with name matching the query.",
+    )
+
     arguments = parser.parse_args(args)
     return arguments
 
@@ -56,6 +62,12 @@ def main():
 
     if arguments.address is not None:
         address = arguments.address
+    # elif arguments.autoconnect is not None:
+    #     with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
+    #         for hub in discovery_client.search_for_services(2.0):
+    #             if hub.name == arguments.autoconnect:
+    #                 address = hub.get_service_address(FRAME_SERVICE_NAME)
+    #                 break
 
     path = arguments.path
     prefix = arguments.prefix
