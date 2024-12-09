@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional, Any
 
 import numpy as np
+from openmm import OpenMMException
 
 from openmm.app import Simulation, StateDataReporter
 
@@ -118,8 +119,7 @@ class OpenMMSimulation:
         self._dof = compute_dof(self.simulation.system)
 
         # reload initial state and cleanup forces
-        self.simulation.context.loadCheckpoint(self.checkpoint)
-        reinitialize_simulation_forces(self.simulation)
+        load_simulation_checkpoint(self.simulation, self.checkpoint)
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
@@ -260,6 +260,18 @@ class OpenMMSimulation:
         return frame_data
 
 
+def load_simulation_checkpoint(simulation, checkpoint):
+    """
+    Try to load a checkpoint the fast way or otherwise fall back to the slow way.
+    """
+    simulation.context.loadCheckpoint(checkpoint)
+    try:
+        reinitialize_simulation_forces(simulation)
+    except OpenMMException:
+        simulation.context.reinitialize()
+        simulation.context.loadCheckpoint(checkpoint)
+
+
 def reinitialize_simulation_forces(simulation):
     """
     Call updateParametersInContext on all forces to ensure they are up to date.
@@ -267,7 +279,8 @@ def reinitialize_simulation_forces(simulation):
 
     This was previous achieved with `simulation.context.reinitialize()` which is significantly slower.
     """
-    for i in range(simulation.system.getNumForces()):
-        force = simulation.system.getForce(i)
-        if hasattr(force, "updateParametersInContext"):
-            force.updateParametersInContext(simulation.context)
+    simulation.context.reinitialize()
+    # for i in range(simulation.system.getNumForces()):
+    #     force = simulation.system.getForce(i)
+    #     if hasattr(force, "updateParametersInContext"):
+    #         force.updateParametersInContext(simulation.context)
