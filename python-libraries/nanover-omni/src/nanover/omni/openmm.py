@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional, Any
 
 import numpy as np
+from openmm import OpenMMException
 
 from openmm.app import Simulation, StateDataReporter
 
@@ -118,8 +119,7 @@ class OpenMMSimulation:
         self._dof = compute_dof(self.simulation.system)
 
         # reload initial state and cleanup forces
-        self.simulation.context.loadCheckpoint(self.checkpoint)
-        reinitialize_simulation_forces(self.simulation)
+        load_simulation_checkpoint(self.simulation, self.checkpoint)
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
@@ -258,6 +258,18 @@ class OpenMMSimulation:
         self.imd_force_manager.add_to_frame_data(frame_data)
 
         return frame_data
+
+
+def load_simulation_checkpoint(simulation, checkpoint):
+    """
+    Try to load a checkpoint the fast way or otherwise fall back to the slow way.
+    """
+    simulation.context.loadCheckpoint(checkpoint)
+    try:
+        reinitialize_simulation_forces(simulation)
+    except OpenMMException:
+        simulation.context.reinitialize()
+        simulation.context.loadCheckpoint(checkpoint)
 
 
 def reinitialize_simulation_forces(simulation):
