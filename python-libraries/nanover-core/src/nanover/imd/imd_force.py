@@ -366,11 +366,11 @@ def calculate_contribution_to_work(forces: npt.NDArray, positions: npt.NDArray):
     involves the atoms affected by the user interaction.
 
     :param forces: Array of user forces acting on the system (in NanoVer units of force,
-    i.e. kJ mol-1 nm-1)
+        i.e. kJ mol-1 nm-1)
     :param positions: Array of atomic positions of the atoms on which the user forces
-    act (in NanoVer units, i.e. nm)
+        act (in NanoVer units, i.e. nm)
     :return work_done_contribution: the contribution to the work done on the system (in NanoVer units of energy,
-    i.e. kJ mol-1)
+        i.e. kJ mol-1)
     """
     work_done_contribution = 0.0
     for atom in range(len(forces)):
