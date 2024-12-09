@@ -279,8 +279,7 @@ def reinitialize_simulation_forces(simulation):
 
     This was previous achieved with `simulation.context.reinitialize()` which is significantly slower.
     """
-    simulation.context.reinitialize()
-    # for i in range(simulation.system.getNumForces()):
-    #     force = simulation.system.getForce(i)
-    #     if hasattr(force, "updateParametersInContext"):
-    #         force.updateParametersInContext(simulation.context)
+    for i in range(simulation.system.getNumForces()):
+        force = simulation.system.getForce(i)
+        if hasattr(force, "updateParametersInContext"):
+            force.updateParametersInContext(simulation.context)
