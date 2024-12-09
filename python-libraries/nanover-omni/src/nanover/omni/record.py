@@ -19,7 +19,7 @@ def record_from_server(address, trajectory_file, state_file):
     executor = ThreadPoolExecutor(max_workers=2)
     executor.submit(record_trajectory, trajectory_file, channel)
     executor.submit(record_state, state_file, channel)
-    return executor
+    return executor, channel
 
 
 def record_trajectory(path, channel):
