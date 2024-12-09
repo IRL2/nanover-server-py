@@ -42,6 +42,8 @@ USER_FORCES_SPARSE = "forces.user.sparse"
 USER_FORCES_INDEX = "forces.user.index"
 USER_WORK_DONE = "forces.user.work_done"
 
+SYSTEM_TEMPERATURE = "system.temperature"
+
 SERVER_TIMESTAMP = "server.timestamp"
 
 
@@ -289,6 +291,13 @@ class FrameData(metaclass=_FrameDataMeta):
     )
     user_energy: float = _Shortcut(  # type: ignore[assignment]
         key=USER_ENERGY,
+        record_type="values",
+        field_type="number_value",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
+    system_temperature: float = _Shortcut(  # type: ignore[assignment]
+        key=SYSTEM_TEMPERATURE,
         record_type="values",
         field_type="number_value",
         to_python=_as_is,
