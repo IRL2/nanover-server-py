@@ -118,8 +118,8 @@ class OpenMMSimulation:
         self._dof = compute_dof(self.simulation.system)
 
         # reload initial state and cleanup forces
+        self.simulation.context.reinitialize()
         self.simulation.context.loadCheckpoint(self.checkpoint)
-        reinitialize_simulation_forces(self.simulation)
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
@@ -258,16 +258,3 @@ class OpenMMSimulation:
         self.imd_force_manager.add_to_frame_data(frame_data)
 
         return frame_data
-
-
-def reinitialize_simulation_forces(simulation):
-    """
-    Call updateParametersInContext on all forces to ensure they are up to date.
-    See: https://github.com/IRL2/nanover-server-py/issues/322
-
-    This was previous achieved with `simulation.context.reinitialize()` which is significantly slower.
-    """
-    for i in range(simulation.system.getNumForces()):
-        force = simulation.system.getForce(i)
-        if hasattr(force, "updateParametersInContext"):
-            force.updateParametersInContext(simulation.context)
