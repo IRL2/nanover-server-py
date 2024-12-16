@@ -3,7 +3,6 @@ title: 'NanoVer Server: A Package for Serving Real-Time Multi-User/Collaborative
  Molecular Dynamics in Virtual Reality'
 tags:
   - Python
-  - Rust
   - virtual reality
   - interactive molecular dynamics
   - iMD-VR
