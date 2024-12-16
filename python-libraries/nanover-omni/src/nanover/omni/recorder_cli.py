@@ -1,11 +1,17 @@
 """
-Command line interface for recording from a server.
+A NanoVer client that records the trajectory and the state updates.
+
+Run the script as `nanover-record` to connect to a server running on localhost
+on the default port (38801) and begin recording to uniquely named .traj and
+.state files. Run `nanover-record --help` to find options for connecting to
+specific servers and changing the output filename.
 """
 
 import argparse
 import textwrap
 import time
 
+from nanover.app.app_server import DEFAULT_NANOVER_PORT
 from nanover.omni.record import record_from_server
 
 from nanover.essd import DiscoveryClient
@@ -61,8 +67,7 @@ def main():
     """
 
     arguments = handle_user_arguments()
-
-    address = "localhost:38801"
+    address = f"localhost:{DEFAULT_NANOVER_PORT}"
 
     if arguments.address is not None:
         address = arguments.address
@@ -107,6 +112,8 @@ def main():
         try:
             input("Done. Press Ctrl-C to quit or Return to begin recording again.")
         except KeyboardInterrupt:
+            break
+        except EOFError:
             break
 
 
