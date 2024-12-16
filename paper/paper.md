@@ -102,13 +102,13 @@ to it. This feature enables accurate integrate the equations of motion between e
 slowing the simulation from the user perspective. To achieve quantitative iMD within this framework, the server
 adopts the following blueprint between the publishing of each frame:
 
-(1) Perform n simulation steps (as specified by the user) using any existing iMD forces and energies
+  1) Perform n simulation steps (as specified by the user) using any existing iMD forces and energies
 
-(2) Calculate all iMD forces and energies applied to the system using its current configuration, 
+  2) Calculate all iMD forces and energies applied to the system using its current configuration, 
     passing this information to the physics engine&mdash;these forces will be applied for the next n simulation steps
 
-(3) Gather all the data about the current state of the system (including the iMD forces and energies calculated in
-    step (2)) and construct a frame to publish to the client(s) connecting to the simulation.
+  3) Gather all the data about the current state of the system (including the iMD forces and energies calculated in
+    step 2) and construct a frame to publish to the client(s) connecting to the simulation.
 
 Using the blueprint for quantitative iMD described above, all the information about the iMD interactions applied
 to the molecular system during an iMD simulation is delivered in the frames published by the server.
@@ -148,6 +148,7 @@ Outline of paragraphs:
   - Introduce the concept of interactive molecular dynamics as a biasing method to explore the dynamics of rare events, and give examples of other programs that can do iMD. This might also be the right time to introduce iMD-VR as a method of performing iMD in a way that harnesses researchers' spatial intuition.
   - Introduce the NanoVer server as a method of performing real-time multi-user iMD
   - Describe the protocol for quantitative iMD employed by NanoVer
+  - Discuss the client-server architecture for collaborative research
 
 
 Ideas from the paper meeting (#1):
