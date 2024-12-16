@@ -73,7 +73,34 @@ A number of programs have implementations of iMD, including (include examples of
 with emphasis on those using 2-D interfaces) [Citations]. However, a limitation of many of the aforementioned iMD 
 implementations is that they force researchers to interact with inherently 3-D systems via 2-D interfaces, which
 means they have limited utility for exploring complex 3-D reaction coordinates [Citations?]. This problem can
-be overcome by performing iMD in virtual reality (iMD-VR)...
+be overcome by performing iMD in virtual reality (iMD-VR). Virtual reality (VR) provides a natural interface for 
+visualising molecular systems by mapping the 3-D simulation space in which the molecular system is simulated to 
+a 3-D virtual space that the researcher can access, and a number of programs offer such 3-D molecular visualisation. 
+When combined with the tools to interact with molecular simulations, such a mapping facilitates iMD in 3-D, 
+enabling researchers to explore the behaviour of molecular systems in the natural set of spatial dimensions. 
+Many studies have demonstrated the utility of iMD-VR for research applications, including (cite Helen, Robin, Rhos, 
+Becca, etc. as well as other iMD-VR programs (which? which ones count as iMD-VR?)).
+
+NanoVer is a software ecosystem for performing quantitative real-time multi-user iMD simulations, with an emphasis 
+on iMD-VR. In order to facilitate this, NanoVer operates using a server-client architecture, of which NanoVer Server
+comprises the server component. NanoVer Server facilitates iMD simulations by providing an interface between the 
+physics engine used to simulate the molecular system and the researcher(s) connecting to the simulation, equipping
+the researcher(s) with tools to interact with the system in real time. NanoVer Server already interfaces with many 
+multiple programs used to perform molecular simulations [Cite OpenMM and ASE], with a particular emphasis on OpenMM. 
+The NanoVer Server package is written in Python, making it easy to integrate with many of the existing tools of the 
+computational chemistry community and beyond. Additionally, being free and open-source (distributed under the MIT 
+license [Citation?]), the NanoVer Server package can easily be customised and extended to interface with other 
+physics engines.
+
+The server-client architecture of NanoVer enables multiple users to connect to a single simulation running on a 
+NanoVer Server simultaneously, facilitating real-time collaborative iMD and/or molecular visualisation. 
+NanoVer Server interfaces with NanoVer iMD-VR, a client that enables the researcher(s) to connect to simulations 
+on the server via a VR interface, which enables real-time collaborative iMD-VR simulations. The server-client 
+structure enables multi-user iMD-VR to be performed using colocated (where users interact in the same physical space)
+and distributed (where users can connect to the same virtual space from different physical spaces) setups. This 
+flexible structure has great potential for collaborative research: previous iMD-VR frameworks with similar structure 
+have demonstrated that cloud computing can be used to facilitate real-time multi-user iMD-VR across large physical 
+distances [Cite the appropriate Narupa paper].
 
 # Notes for "Statement of need" section
 
@@ -86,7 +113,7 @@ Ideas for specific topics:
   - Interactive MD provides a method for a user to dynamically guide molecular systems to sample rare events
   - NanoVer enables researchers to harness their chemical intuition and spatial reasoning to perform real-time iMD simulations that can be interacted with via VR
   - Interfaces with popular molecular simulation programs (?) to facilitate real-time iMD-VR simulations
-  - and visualisation/analysis packages
+    and visualisation/analysis packages
   - Multi-user virtual environment (either colocated or distributed) facilitates collaboration between researchers
   - NanoVer can be used both in research and teaching settings as demonstrated by its precursor, Narupa (citations?) from which it is forked - Don't talk about Narupa, talk about iMD-VR (refer to iMD-VR frameworks rather than Narupa itself)
   - Server-client structure with primary server written in Python so it can be easily integrated with other tools in workflows in the comp chem community (e.g. Jupyter notebooks) and beyond
