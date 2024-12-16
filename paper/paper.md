@@ -94,8 +94,8 @@ physics engines.
 
 NanoVer Server performs quantitative iMD simulations, delivering rigorous on-the-fly analytics about both the 
 molecular simulation (including energies, particle forces and particle velocities) and the perturbations induced by 
-the user (including the user forces, associated potential energy, and cumulative work done by the users on the
-molecular system). The server allows a user to tune the relationship between simulation time and real time during
+the user (including the collective user forces, associated potential energy, and cumulative work done). 
+The server allows a user to tune the relationship between simulation time and real time during
 iMD simulations by specifying the number of simulation steps to perform between the publishing of each frame
 (a data structure containing information about the molecular system in its current state) to the clients connecting
 to it. This feature enables accurate integrate the equations of motion between each frame without significantly 
