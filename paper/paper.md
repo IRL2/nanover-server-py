@@ -92,15 +92,22 @@ computational chemistry community and beyond. Additionally, being free and open-
 license [Citation?]), the NanoVer Server package can easily be customised and extended to interface with other 
 physics engines.
 
+NanoVer Server performs quantitative iMD simulations, delivering rigorous on-the-fly analytics about both the 
+molecular simulation (including energies, particle forces and particle velocities) and the perturbations induced by 
+the user (including the user forces, associated potential energy, and cumulative work done by the users on the
+molecular system). The server allows a user to specify the interval of simulation steps at which to
+publish a frame, containing information about the molecular system in its current state, to the clients connecting
+to it.
+
 The server-client architecture of NanoVer enables multiple users to connect to a single simulation running on a 
 NanoVer Server simultaneously, facilitating real-time collaborative iMD and/or molecular visualisation. 
 NanoVer Server interfaces with NanoVer iMD-VR, a client that enables the researcher(s) to connect to simulations 
 on the server via a VR interface, which enables real-time collaborative iMD-VR simulations. The server-client 
 structure enables multi-user iMD-VR to be performed using colocated (where users interact in the same physical space)
 and distributed (where users can connect to the same virtual space from different physical spaces) setups. This 
-flexible structure has great potential for collaborative research: previous iMD-VR frameworks with similar structure 
-have demonstrated that cloud computing can be used to facilitate real-time multi-user iMD-VR across large physical 
-distances [Cite the appropriate Narupa paper].
+flexible structure has great potential for collaborative research: previous iMD-VR frameworks have demonstrated that 
+cloud computing can be used to facilitate real-time multi-user iMD-VR across large physical distances 
+[Cite the appropriate Narupa paper, and any other appropriate ones?].
 
 # Notes for "Statement of need" section
 
