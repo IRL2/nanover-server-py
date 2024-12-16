@@ -95,9 +95,23 @@ physics engines.
 NanoVer Server performs quantitative iMD simulations, delivering rigorous on-the-fly analytics about both the 
 molecular simulation (including energies, particle forces and particle velocities) and the perturbations induced by 
 the user (including the user forces, associated potential energy, and cumulative work done by the users on the
-molecular system). The server allows a user to specify the interval of simulation steps at which to
-publish a frame, containing information about the molecular system in its current state, to the clients connecting
-to it.
+molecular system). The server allows a user to tune the relationship between simulation time and real time during
+iMD simulations by specifying the number of simulation steps to perform between the publishing of each frame
+(a data structure containing information about the molecular system in its current state) to the clients connecting
+to it. This feature enables accurate integrate the equations of motion between each frame without significantly 
+slowing the simulation from the user perspective. To achieve quantitative iMD within this framework, the server
+adopts the following blueprint between the publishing of each frame:
+
+(1) Perform n simulation steps (as specified by the user) using any existing iMD forces and energies
+
+(2) Calculate all iMD forces and energies applied to the system using its current configuration, 
+    passing this information to the physics engine&mdash;these forces will be applied for the next n simulation steps
+
+(3) Gather all the data about the current state of the system (including the iMD forces and energies calculated in
+    step (2)) and construct a frame to publish to the client(s) connecting to the simulation.
+
+Using the blueprint for quantitative iMD described above, all the information about the iMD interactions applied
+to the molecular system during an iMD simulation is delivered in the frames published by the server.
 
 The server-client architecture of NanoVer enables multiple users to connect to a single simulation running on a 
 NanoVer Server simultaneously, facilitating real-time collaborative iMD and/or molecular visualisation. 
