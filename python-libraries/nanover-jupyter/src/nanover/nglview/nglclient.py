@@ -107,7 +107,7 @@ def frame_data_to_nglwidget(frame, **kwargs):
 
     :param frame: The FrameData object containing the data from the
         molecular simulation.
-    :param *kwargs: Additional keyword arguments passed to the
+    :param kwargs: Additional keyword arguments passed to the
         NGLWidget constructor.
     :return: An NGLView widget to visualise the molecular system
         described by the frame.
