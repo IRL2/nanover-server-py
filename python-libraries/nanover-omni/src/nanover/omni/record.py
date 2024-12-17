@@ -42,22 +42,25 @@ def record_from_server(address, trajectory_file, state_file):
 
 
 def record_trajectory(path, channel):
-    path = Path(path)
-    path.parent.mkdir(exist_ok=True, parents=True)
-
-    with path.open("wb") as io:
-        stub = TrajectoryServiceStub(channel)
-        request = GetFrameRequest()
-        stream = stub.SubscribeLatestFrames(request)
-        record_messages(io, stream)
+    stub = TrajectoryServiceStub(channel)
+    request = GetFrameRequest()
+    stream = stub.SubscribeLatestFrames(request)
+    write_messages_ignore_disconnect(path, stream)
 
 
 def record_state(path, channel):
+    stub = StateStub(channel)
+    request = SubscribeStateUpdatesRequest()
+    stream = stub.SubscribeStateUpdates(request)
+    write_messages_ignore_disconnect(path, stream)
+
+
+def write_messages_ignore_disconnect(path, stream):
     path = Path(path)
     path.parent.mkdir(exist_ok=True, parents=True)
 
     with path.open("wb") as io:
-        stub = StateStub(channel)
-        request = SubscribeStateUpdatesRequest()
-        stream = stub.SubscribeStateUpdates(request)
-        record_messages(io, stream)
+        try:
+            record_messages(io, stream)
+        except grpc.RpcError:
+            pass
