@@ -1,5 +1,5 @@
+import os
 import time
-from unittest.mock import mock_open, patch
 
 import pytest
 
@@ -8,18 +8,16 @@ from common import ARGON_XML_PATH, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
 
 
 @pytest.mark.serial
-@patch("builtins.open", mock_open())
-def test_record_opens_files():
+def test_record_writes_files(tmp_path):
     """
-    Test that the expected files are opened for writing during recording.
+    Test that the expected files created during recording.
     """
-    arguments = handle_user_arguments(["--record", "test", "--port", "0"])
+    arguments = handle_user_arguments(["--record", str(tmp_path / "test"), "--port", "0"])
 
     with initialise_runner(arguments):
         pass
 
-    open.assert_any_call("test.traj", "wb")
-    open.assert_any_call("test.state", "wb")
+    assert set(os.listdir(tmp_path)) == { "test.traj", "test.state" }
 
 
 @pytest.mark.serial
