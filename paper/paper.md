@@ -53,7 +53,7 @@ using interactive molecular dynamics in virtual reality (iMD-VR).
 # Statement of need
 
 For decades, the family of simulation methods encompassed by the umbrella term "molecular dynamics"
-(MD) have been indispensable for exploring the temporal evolution of molecular systems [@Alder1958molecular].
+(MD) have been indispensable for exploring the temporal evolution of molecular systems [@alder_molecular_1958].
 MD has been applied to a wide range of chemical and biological systems, including (include some 
 applications...) [Citations]. One of the major challenges when using MD simulations to explore the dynamics
 of chemical and biological systems is the sampling of rare events [Citations]. Many interesting molecular
@@ -61,7 +61,7 @@ processes occur over timescales substantially longer than are computationally fe
 to model, even when harnessing the power of high-performance computing [Citations]. This is particularly true
 for biological systems, which may contain hundreds of thousands of atoms that must be explicitly
 simulated in order to accurately determine the dynamics of the system [Citations]. A number of techniques have
-been developed to tackle this problem, including (examples of enhanced sampling approaches...) [@henin2022enhanced].
+been developed to tackle this problem, including (examples of enhanced sampling approaches...) [@henin_enhanced_2022].
 (Talk about any issues to do with whatever enhanced sampling methods discussed, possibly including
 needing to specify a pre-determined reaction coordinate, placing constraints on the system, etc.)
 
