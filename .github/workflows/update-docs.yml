@@ -1,4 +1,4 @@
-name: "Notify docs repo to update submodules"
+name: "Notify docs repo to rebuild from latest source code"
 
 on:
   push:
@@ -26,5 +26,5 @@ jobs:
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: Bearer $DOCS_UPDATE_TOKEN" \
-            https://api.github.com/repos/IRL2/nanover-docs/actions/workflows/submodules.yml/dispatches \
+            https://api.github.com/repos/IRL2/nanover-docs/actions/workflows/build-and-publish.yml/dispatches \
             -d '{"ref":"main"}'
