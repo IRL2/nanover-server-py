@@ -1,26 +1,24 @@
-from pathlib import Path
-from unittest.mock import patch, ANY, call
+from unittest.mock import patch, call
 
 import pytest
 
-from nanover.mdanalysis import explosion_mask
 from nanover.omni.playback import PlaybackSimulation, SCENE_POSE_IDENTITY
-from nanover.trajectory import FrameData
 
-from common import app_server, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
-from nanover.utilities.change_buffers import DictionaryChange
+from common import RECORDING_PATH_TRAJ, RECORDING_PATH_STATE, make_loaded_sim
 
 
 @pytest.fixture
-def example_playback(app_server):
-    sim = PlaybackSimulation(
+def example_playback():
+    with make_loaded_sim(make_example_playback()) as sim:
+        yield sim
+
+
+def make_example_playback():
+    return PlaybackSimulation(
         "nanotube-example-recording",
         traj=RECORDING_PATH_TRAJ,
         state=RECORDING_PATH_STATE,
     )
-    sim.load()
-    sim.reset(app_server)
-    yield sim
 
 
 def test_step_gives_exactly_one_emit(example_playback):
@@ -78,7 +76,7 @@ def test_playback_finds_changed_keys(example_playback):
     }
 
 
-def test_playback_reset_clears_keys(app_server, example_playback):
+def test_playback_reset_clears_keys(example_playback):
     """
     Test that reset clears the relevant keys.
     """
@@ -90,18 +88,16 @@ def test_playback_reset_clears_keys(app_server, example_playback):
     for _ in range(half):
         example_playback.advance_to_next_entry()
 
-    example_playback.reset(app_server)
+    example_playback.reset(example_playback.app_server)
 
     # check all keys that should be removed are not present
-    with app_server.server.lock_state() as state:
+    with example_playback.app_server.server.lock_state() as state:
         assert all(key not in state for key in example_playback.changed_keys)
 
 
-def test_playback_starts_with_scene_identity(app_server, example_playback):
+def test_playback_starts_with_scene_identity(example_playback):
     """
     Test that reset results in scene identity.
     """
-    example_playback.reset(app_server)
-
-    with app_server.server.lock_state() as state:
+    with example_playback.app_server.server.lock_state() as state:
         assert state["scene"] == SCENE_POSE_IDENTITY
