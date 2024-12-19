@@ -3,9 +3,11 @@ from io import StringIO
 from contextlib import redirect_stdout, contextmanager
 
 from pathlib import Path
+from typing import Set
 
 import numpy as np
 import pytest
+from openmm import CustomExternalForce
 from openmm.app import StateDataReporter
 
 from nanover.openmm import serializer
@@ -29,10 +31,7 @@ from openmm_simulation_utils import (
 
 @pytest.fixture
 def example_openmm():
-    with make_app_server() as app_server:
-        sim = make_example_openmm()
-        sim.load()
-        sim.reset(app_server)
+    with make_loaded_sim(make_example_openmm()) as sim:
         yield sim
 
 
@@ -316,3 +315,134 @@ def test_reset_gives_equal_frames():
         next_data = fetch_data(sim.make_regular_frame())
 
     assert all(np.all(prev_data[key] - next_data[key]) == 0 for key in prev_data)
+
+
+def test_force_manager_masses(example_openmm):
+    """
+    Test that the force manager has the correct masses for the simulated system.
+    """
+    for _ in range(10):
+        example_openmm.advance_by_one_step()
+        assert example_openmm.imd_force_manager.masses == pytest.approx([40])
+
+
+# TODO: could generalise for both OMM and ASE
+def test_report_frame_forces(basic_system_app_and_simulation_with_constant_force):
+    """
+    Test that user forces are reported within the frame.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    assert frame.user_forces_index == [0, 6]
+
+
+# TODO: could generalise for both OMM and ASE
+def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force):
+    """
+    Test that the sparse user forces exist in the frame data when a user applies an iMD force,
+    check that the size of the array of forces is equal to the size of the array of corresponding
+    indices, and check that none of the elements of the sparse forces array are zero.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    assert frame.user_forces_sparse
+    assert frame.user_forces_index
+    assert len(frame.user_forces_sparse) >= 1
+    assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
+    assert np.all(frame.user_forces_sparse) != 0.0
+
+
+def test_apply_interactions(basic_system_app_and_simulation_with_constant_force):
+    """
+    Interactions are applied and the computed forces are passed to the imd
+    force object.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+    sim.advance_by_one_step()
+
+    assert_imd_force_affected_particles(
+        sim.imd_force_manager.imd_force,
+        expected_affected_indices={0, 6},
+    )
+
+
+def test_remove_interaction_partial(
+    basic_system_app_and_simulation_with_constant_force,
+):
+    """
+    When an interaction is removed, the corresponding forces are reset.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+
+    sim.advance_by_one_step()
+    app.imd.remove_interaction("interaction.test1")
+    sim.advance_by_one_step()
+
+    assert_imd_force_affected_particles(
+        sim.imd_force_manager.imd_force,
+        expected_affected_indices={6},
+    )
+
+
+def test_remove_interaction_complete(
+    basic_system_app_and_simulation_with_constant_force,
+):
+    """
+    When all interactions are removed, all the corresponding forces are reset.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+
+    sim.advance_by_one_step()
+    app.imd.remove_interaction("interaction.test1")
+    app.imd.remove_interaction("interaction.test2")
+    sim.advance_by_one_step()
+
+    assert_imd_force_affected_particles(
+        sim.imd_force_manager.imd_force,
+        expected_affected_indices=set(),
+    )
+
+
+def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_force):
+    """
+    Test the particle velocities and particle forces that can be optionally included
+    when running OpenMM simulations. Assert that these arrays exist, have the same
+    length as the particle positions array and are non-zero.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+
+    sim.include_forces = True
+    sim.include_velocities = True
+
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    # TODO: which particle forces field to use?
+    assert frame.particle_velocities
+    assert frame.particle_forces_system
+    assert len(frame.particle_velocities) == len(frame.particle_positions)
+    assert len(frame.particle_forces_system) == len(frame.particle_positions)
+    assert np.all(frame.particle_velocities) != 0.0
+    assert np.all(frame.particle_forces_system) != 0.0
+
+
+def assert_imd_force_affected_particles(
+    imd_force: CustomExternalForce, expected_affected_indices: Set[int]
+):
+    """
+    Assert that the given imd force is applying force only to the expected particle indices.
+    """
+    num_particles = imd_force.getNumParticles()
+
+    def particle_is_affected(index: int):
+        index, force = imd_force.getParticleParameters(index)
+        return any(component != 0 for component in force)
+
+    actual_affected_indices = {
+        index for index in range(num_particles) if particle_is_affected(index)
+    }
+    assert actual_affected_indices == expected_affected_indices
