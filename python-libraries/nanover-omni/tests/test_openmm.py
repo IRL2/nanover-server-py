@@ -1,6 +1,6 @@
 import sys
 from io import StringIO
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, contextmanager
 
 from pathlib import Path
 
@@ -8,130 +8,139 @@ import numpy as np
 import pytest
 from openmm.app import StateDataReporter
 
-from nanover.openmm import imd, serializer
+from nanover.openmm import serializer
 from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
-from nanover.app import NanoverImdApplication, NanoverImdClient
+from nanover.app import NanoverImdClient
 
-from common import app_server
 from nanover.trajectory import FrameData
 
+from common import (
+    make_app_server,
+    connect_and_retrieve_first_frame_from_app_server,
+    make_loaded_sim,
+)
+
 from openmm_simulation_utils import (
-    basic_system,
-    basic_simulation,
-    basic_simulation_with_imd_force,
-    BASIC_SIMULATION_POSITIONS,
-    empty_imd_force,
-    assert_basic_simulation_topology,
-    single_atom_system,
-    single_atom_simulation,
-    single_atom_simulation_with_imd_force,
-    ARGON_SIMULATION_POSITION,
-    assert_single_atom_simulation_topology,
+    build_single_atom_simulation,
+    build_basic_simulation,
 )
 
 
 @pytest.fixture
-def example_openmm(app_server, single_atom_simulation):
-    sim = OpenMMSimulation.from_simulation(single_atom_simulation)
-    sim.load()
-    sim.reset(app_server)
-    yield sim
+def example_openmm():
+    with make_app_server() as app_server:
+        sim = make_example_openmm()
+        sim.load()
+        sim.reset(app_server)
+        yield sim
+
+
+def make_example_openmm():
+    return OpenMMSimulation.from_simulation(build_single_atom_simulation())
 
 
 @pytest.fixture
-def single_atom_app_and_simulation_with_constant_force(
-    app_server, single_atom_simulation
-):
-    sim = OpenMMSimulation.from_simulation(single_atom_simulation)
-    sim.load()
-    sim.reset(app_server)
-
-    # Add a constant force interaction with the force positioned far
-    # from the origin (the initial position of the atom)
-    interaction = ParticleInteraction(
-        interaction_type="constant",
-        position=(0.0, 0.0, 1000.0),
-        particles=[0],
-        scale=1,
-    )
-
-    app_server.imd.insert_interaction("interaction.test", interaction)
-
-    yield app_server, sim
+def single_atom_app_and_simulation_with_constant_force():
+    with make_single_atom_app_and_simulation_with_constant_force() as (app_server, sim):
+        yield app_server, sim
 
 
-@pytest.fixture
-def basic_system_app_and_simulation(app_server, basic_simulation):
-    sim = OpenMMSimulation.from_simulation(basic_simulation)
-    sim.load()
-    sim.reset(app_server)
+@contextmanager
+def make_single_atom_app_and_simulation_with_constant_force():
+    with make_app_server() as app_server:
+        omm_sim = build_single_atom_simulation()
+        sim = OpenMMSimulation.from_simulation(omm_sim)
+        sim.load()
+        sim.reset(app_server)
 
-    yield app_server, sim
+        # Add a constant force interaction with the force positioned far
+        # from the origin (the initial position of the atom)
+        interaction = ParticleInteraction(
+            interaction_type="constant",
+            position=(0.0, 0.0, 1000.0),
+            particles=[0],
+            scale=1,
+        )
+
+        app_server.imd.insert_interaction("interaction.test", interaction)
+
+        yield app_server, sim
 
 
 @pytest.fixture
-def basic_system_app_and_simulation_with_constant_force(app_server, basic_simulation):
-    sim = OpenMMSimulation.from_simulation(basic_simulation)
-    sim.load()
-    sim.reset(app_server)
-
-    # Add a constant force interaction with the force positioned far
-    # from the origin and a harmonic force sqrt(2) from the origin,
-    # acting on different atoms
-    interaction_1 = ParticleInteraction(
-        interaction_type="constant",
-        position=(0.0, 0.0, 1000.0),
-        particles=[0],
-        scale=1,
-    )
-    interaction_2 = ParticleInteraction(
-        interaction_type="spring",
-        position=(1.0, 0.0, 1.0),
-        particles=[6],
-        scale=1,
-    )
-
-    app_server.imd.insert_interaction("interaction.test1", interaction_1)
-    app_server.imd.insert_interaction("interaction.test2", interaction_2)
-
-    yield app_server, sim
+def basic_system_app_and_simulation():
+    with make_app_server() as app_server:
+        sim = OpenMMSimulation.from_simulation(build_basic_simulation())
+        sim.load()
+        sim.reset(app_server)
+        yield app_server, sim
 
 
-def test_auto_force(app_server, single_atom_simulation):
+@pytest.fixture
+def basic_system_app_and_simulation_with_constant_force():
+    with make_app_server() as app_server:
+        sim = OpenMMSimulation.from_simulation(build_basic_simulation())
+        sim.load()
+        sim.reset(app_server)
+
+        # Add a constant force interaction with the force positioned far
+        # from the origin and a harmonic force sqrt(2) from the origin,
+        # acting on different atoms
+        interaction_1 = ParticleInteraction(
+            interaction_type="constant",
+            position=(0.0, 0.0, 1000.0),
+            particles=[0],
+            scale=1,
+        )
+        interaction_2 = ParticleInteraction(
+            interaction_type="spring",
+            position=(1.0, 0.0, 1.0),
+            particles=[6],
+            scale=1,
+        )
+
+        app_server.imd.insert_interaction("interaction.test1", interaction_1)
+        app_server.imd.insert_interaction("interaction.test2", interaction_2)
+
+        yield app_server, sim
+
+
+def test_auto_force():
     """
     Test that interactions work if the imd force isn't added manually.
     """
-    omni_sim = OpenMMSimulation.from_simulation(single_atom_simulation)
-    omni_sim.load()
-    omni_sim.reset(app_server)
+    with make_app_server() as app_server:
+        omni_sim = OpenMMSimulation.from_simulation(build_single_atom_simulation())
+        omni_sim.load()
+        omni_sim.reset(app_server)
 
-    def get_position():
-        positions = omni_sim.simulation.context.getState(
-            getPositions=True
-        ).getPositions(asNumpy=True)
-        return np.asarray(positions[0])
+        def get_position():
+            positions = omni_sim.simulation.context.getState(
+                getPositions=True
+            ).getPositions(asNumpy=True)
+            return np.asarray(positions[0])
 
-    # add an interaction far to the right
-    prev_pos = get_position()
-    next_pos = list(prev_pos)
-    next_pos[0] += 100
+        # add an interaction far to the right
+        prev_pos = get_position()
+        next_pos = list(prev_pos)
+        next_pos[0] += 100
 
-    interaction = ParticleInteraction(
-        interaction_type="constant",
-        position=next_pos,
-        particles=[0],
-        scale=10,
-    )
-    app_server.imd.insert_interaction("interaction.test", interaction)
+        interaction = ParticleInteraction(
+            interaction_type="constant",
+            position=next_pos,
+            particles=[0],
+            scale=10,
+        )
+        app_server.imd.insert_interaction("interaction.test", interaction)
 
-    # run some simulation steps
-    for _ in range(50):
-        omni_sim.advance_by_one_step()
+        # run some simulation steps
+        for _ in range(50):
+            omni_sim.advance_by_one_step()
 
-    # check the atom moved some way to the right
-    curr_pos = get_position()
-    assert curr_pos[0] - prev_pos[0] >= 1
+        # check the atom moved some way to the right
+        curr_pos = get_position()
+        assert curr_pos[0] - prev_pos[0] >= 1
 
 
 def test_step_interval(example_openmm):
@@ -285,7 +294,7 @@ def test_instantaneous_temperature_imd_interaction(
         assert frame_temperature == pytest.approx(state_data_temperature, rel=1.0e-2)
 
 
-def test_reset_gives_equal_frames(app_server):
+def test_reset_gives_equal_frames():
     """
     Test that resetting the simulation gives frames with equal positions, velocities, and forces etc.
     """
@@ -298,15 +307,12 @@ def test_reset_gives_equal_frames(app_server):
         }
 
     sim = OpenMMSimulation.from_xml_path(Path(__file__).parent / "hiv1_complex.xml")
-    sim.load()
-
     sim.include_forces = True
     sim.include_velocities = True
 
-    sim.reset(app_server)
-    prev_data = fetch_data(sim.make_regular_frame())
-
-    sim.reset(app_server)
-    next_data = fetch_data(sim.make_regular_frame())
+    with make_loaded_sim(sim):
+        prev_data = fetch_data(sim.make_regular_frame())
+        sim.reset(sim.app_server)
+        next_data = fetch_data(sim.make_regular_frame())
 
     assert all(np.all(prev_data[key] - next_data[key]) == 0 for key in prev_data)
