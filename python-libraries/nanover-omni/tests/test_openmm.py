@@ -127,25 +127,6 @@ def basic_system_app_and_simulation_with_constant_force_old():
         yield app_server, sim
 
 
-@pytest.fixture
-def single_atom_app_simulation_and_reporter_with_constant_force_interaction_old():
-    with make_app_server() as app_server:
-        sim = OpenMMSimulation.from_simulation(build_single_atom_simulation())
-        sim.load()
-        sim.reset(app_server)
-
-        app_server.imd.insert_interaction(
-            "interaction.0",
-            ParticleInteraction(
-                position=(0.0, 0.0, 1.0),
-                particles=[0],
-                interaction_type="constant",
-            ),
-        )
-
-        yield app_server, sim
-
-
 def test_auto_force():
     """
     Test that interactions work if the imd force isn't added manually.
@@ -534,11 +515,7 @@ def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_for
     assert np.all(frame.particle_forces_system) != 0.0
 
 
-# TODO: update according to actual system
-@pytest.mark.xfail(reason="Needs fixing")
-def test_velocities_and_forces_single_atom(
-    single_atom_app_simulation_and_reporter_with_constant_force_interaction_old,
-):
+def test_velocities_and_forces_single_atom():
     """
     Numerically test the optionally included velocities and forces being passed
     from OpenMM. This test checks that the velocities and forces arrays have the
@@ -548,16 +525,28 @@ def test_velocities_and_forces_single_atom(
     then numerically checks that the values of the velocities and forces arrays
     are as expected.
     """
-    app, sim = (
-        single_atom_app_simulation_and_reporter_with_constant_force_interaction_old
-    )
 
-    sim.include_forces = True
-    sim.include_velocities = True
+    with make_app_server() as app_server:
+        sim = OpenMMSimulation.from_simulation(build_single_atom_simulation())
 
-    sim.frame_interval = 10
-    sim.advance_by_one_step()
-    frame = connect_and_retrieve_first_frame_from_app_server(app)
+        sim.include_forces = True
+        sim.include_velocities = True
+
+        sim.load()
+        sim.reset(app_server)
+
+        app_server.imd.insert_interaction(
+            "interaction.0",
+            ParticleInteraction(
+                position=(0.0, 0.0, 1.0),
+                particles=[0],
+                interaction_type="constant",
+            ),
+        )
+
+        sim.advance_by_one_step()
+        sim.advance_by_one_step()
+        frame = connect_and_retrieve_first_frame_from_app_server(app_server)
 
     # The force is a constant force which should cause the particle to accelerate
     # at 1 nm ps^-1. Thus the expected force (along a single axis) for an argon
@@ -568,19 +557,16 @@ def test_velocities_and_forces_single_atom(
     expected_forces = [0.0, 0.0, 40.0]
     expected_velocities = [0.0, 0.0, 0.01]
 
-    # TODO: which particle forces field to use?
     assert frame.particle_velocities
     assert frame.particle_forces_system
     assert frame.user_forces_sparse
     assert len(frame.particle_velocities) == len(frame.particle_positions)
     assert len(frame.particle_forces_system) == len(frame.particle_positions)
+
+    assert len(frame.user_forces_sparse) == 1
+    assert frame.user_forces_sparse[0] == pytest.approx(expected_forces)
+
     for i in range(len(frame.particle_forces_system)):
-        assert frame.particle_forces_system[i] == pytest.approx(
-            frame.user_forces_sparse[i], abs=1e-10
-        )
-        assert frame.particle_forces_system[i] == pytest.approx(
-            expected_forces, abs=1e-10
-        )
         assert frame.particle_velocities[i] == pytest.approx(
             expected_velocities, abs=1e-7
         )
