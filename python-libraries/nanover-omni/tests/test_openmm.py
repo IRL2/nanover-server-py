@@ -446,3 +446,101 @@ def assert_imd_force_affected_particles(
         index for index in range(num_particles) if particle_is_affected(index)
     }
     assert actual_affected_indices == expected_affected_indices
+
+
+# TODO: could generalise for both MDs
+# TODO: update for actual system or use system from original test
+@pytest.mark.xfail(reason="Written for different system")
+def test_sparse_user_forces_elements(
+    basic_system_app_and_simulation_with_constant_force,
+):
+    """
+    Test that the values of the sparse user forces are approximately as expected from the initial
+    positions and the position from which the user force is applied, for a constant force acting
+    on the C atoms.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    # For a mass-weighted constant force applied at [0.0, 0.0, 1.0] to the COM of the C atoms
+    mass_weighted_user_forces_t0 = [[0.0, 0.0, -6.0], [0.0, 0.0, -6.0]]
+    assert set(frame.user_forces_index) == {0, 6}
+    for i in range(len(frame.user_forces_index)):
+        assert frame.user_forces_sparse[i] == pytest.approx(
+            mass_weighted_user_forces_t0[i], abs=3e-3
+        )
+
+
+# TODO: update according to actual system
+@pytest.mark.xfail(reason="Written for different system")
+def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_force):
+    """
+    Test the particle velocities and particle forces that can be optionally included
+    when running OpenMM simulations. Assert that these arrays exist, have the same
+    length as the particle positions array and are non-zero.
+    """
+    app, sim = basic_system_app_and_simulation_with_constant_force
+
+    sim.include_forces = True
+    sim.include_velocities = True
+
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    # TODO: which particle forces field to use?
+    assert frame.particle_velocities
+    assert frame.particle_forces_system
+    assert len(frame.particle_velocities) == len(frame.particle_positions)
+    assert len(frame.particle_forces_system) == len(frame.particle_positions)
+    assert np.all(frame.particle_velocities) != 0.0
+    assert np.all(frame.particle_forces_system) != 0.0
+
+
+# TODO: update according to actual system
+@pytest.mark.xfail(reason="Written for different system")
+def test_velocities_and_forces_single_atom(
+    single_atom_app_and_simulation_with_constant_force,
+):
+    """
+    Numerically test the optionally included velocities and forces being passed
+    from OpenMM. This test checks that the velocities and forces arrays have the
+    same length as the particle positions array, that the forces array is the
+    same as the user forces array (which should be true for the second frame of a
+    single atom system using the Verlet integrator with a constant force), and
+    then numerically checks that the values of the velocities and forces arrays
+    are as expected.
+    """
+    app, sim = single_atom_app_and_simulation_with_constant_force
+
+    sim.include_forces = True
+    sim.include_velocities = True
+
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    # The force is a constant force which should cause the particle to accelerate
+    # at 1 nm ps^-1. Thus the expected force (along a single axis) for an argon
+    # atom with a mass of 40 amu is 40 kJ mol^-1 nm^-1. The force is applied from
+    # the frame with index 1, with a simulation step size of 2 fs and a frame and
+    # force interval of 5 simulation steps. Therefore, the expected velocity after
+    # 5 simulation steps (0.01 ps) is 0.01 nm ps^-1.
+    expected_forces = [0.0, 0.0, 40.0]
+    expected_velocities = [0.0, 0.0, 0.01]
+
+    # TODO: which particle forces field to use?
+    assert frame.particle_velocities
+    assert frame.particle_forces_system
+    assert frame.user_forces_sparse
+    assert len(frame.particle_velocities) == len(frame.particle_positions)
+    assert len(frame.particle_forces_system) == len(frame.particle_positions)
+    for i in range(len(frame.particle_forces_system)):
+        assert frame.particle_forces_system[i] == pytest.approx(
+            frame.user_forces_sparse[i], abs=1e-10
+        )
+        assert frame.particle_forces_system[i] == pytest.approx(
+            expected_forces, abs=1e-10
+        )
+        assert frame.particle_velocities[i] == pytest.approx(
+            expected_velocities, abs=1e-7
+        )
