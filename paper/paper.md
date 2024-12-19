@@ -60,23 +60,27 @@ of chemical and biological systems is the sampling of rare events [Citations]. M
 processes occur over timescales substantially longer than are computationally feasible 
 to model, even when harnessing the power of high-performance computing [Citations]. This is particularly true
 for biological systems, which may contain hundreds of thousands of atoms that must be explicitly
-simulated in order to accurately determine the dynamics of the system [Citations]. A number of techniques have
-been developed to tackle this problem, including (examples of enhanced sampling approaches...) [@henin_enhanced_2022].
-(Talk about any issues to do with whatever enhanced sampling methods discussed, possibly including
-needing to specify a pre-determined reaction coordinate, placing constraints on the system, etc.)
+simulated in order to accurately determine the dynamics of the system [Citations]. A plethora of enhanced sampling
+techniques have been developed to tackle this problem [@henin_enhanced_2022]: families of such techniques include
+(though are by no means limited to) umbrella sampling, metadynamics, steered molecular dynamics, generalised ensemble 
+approaches and biasing potential methods [Citations for specific methods]. Though undoubtedly effective, many of these techniques have certain 
+limitations when applied to explore specific behaviour, such as needing to specify a pre-determined reaction
+coordinate or collective variable(s), adding certain constraints or restraints to the system, or requiring a large 
+number of simulation steps and/or multiple simulations to sample the desired behaviour [Citations for limitations].
 
-Interactive molecular dynamics (iMD) is an approach that allows researchers to bias molecular simulations
-on-the-fly, without the need to pre-define the behaviour of the system of interest [Citations]. It allows researchers
-to interact with molecular systems in real-time, to bias their dynamics and sample rare events of interest [Citations].
-A number of programs have implementations of iMD, including (include examples of softwares that offer iMD, probably
-with emphasis on those using 2-D interfaces) [Citations]. However, a limitation of many of the aforementioned iMD 
-implementations is that they force researchers to interact with inherently 3-D systems via 2-D interfaces, which
-means they have limited utility for exploring complex 3-D reaction coordinates [Citations?]. This problem can
-be overcome by performing iMD in virtual reality (iMD-VR). Virtual reality (VR) provides a natural interface for 
-visualising molecular systems by mapping the 3-D simulation space in which the molecular system is simulated to 
-a 3-D virtual space that the researcher can access, and a number of programs offer such 3-D molecular visualisation. 
-When combined with the tools to interact with molecular simulations, such a mapping facilitates iMD in 3-D, 
-enabling researchers to explore the behaviour of molecular systems in the natural set of spatial dimensions. 
+
+Interactive molecular dynamics (iMD) is an out-of-equilibrium approach that allows researchers to bias molecular 
+simulations on-the-fly, without the need to pre-define the behaviour of the system of interest [Citations]. It 
+allows researchers to interact with molecular systems in real-time, to bias their dynamics and sample rare events of
+interest [Citations]. A number of programs have implementations of iMD, including (include examples of softwares that
+offer iMD, probably with emphasis on those using 2-D interfaces) [Citations]. However, a limitation of many of the 
+aforementioned iMD implementations is that they force researchers to interact with inherently 3-D systems via 2-D 
+interfaces, which means they have limited utility for exploring complex 3-D reaction coordinates [Citations?]. This 
+problem can be overcome by performing iMD in virtual reality (iMD-VR). Virtual reality (VR) provides a natural 
+interface for visualising molecular systems by mapping the 3-D simulation space in which the molecular system is 
+simulated to a 3-D virtual space that the researcher can access, and a number of programs offer such 3-D molecular 
+visualisation. When combined with the tools to interact with molecular simulations, such a mapping facilitates iMD 
+in 3-D, enabling researchers to explore the behaviour of molecular systems in the natural set of spatial dimensions. 
 Many studies have demonstrated the utility of iMD-VR for research applications, including (cite Helen, Robin, Rhos, 
 Becca, etc. as well as other iMD-VR programs (which? which ones count as iMD-VR?)).
 
@@ -146,10 +150,18 @@ Ideas for specific topics:
 Outline of paragraphs:
 
   - First paragraph: introduce MD simulations, give examples of their applications and use, discuss limitations regarding sampling rare events
-  - Introduce the concept of interactive molecular dynamics as a biasing method to explore the dynamics of rare events, and give examples of other programs that can do iMD. This might also be the right time to introduce iMD-VR as a method of performing iMD in a way that harnesses researchers' spatial intuition.
-  - Introduce the NanoVer server as a method of performing real-time multi-user iMD
-  - Describe the protocol for quantitative iMD employed by NanoVer
-  - Discuss the client-server architecture for collaborative research
+  - Second paragraph: Introduce the concept of interactive molecular dynamics as a biasing method to explore the dynamics of rare events, and give examples of other programs that can do iMD. This might also be the right time to introduce iMD-VR as a method of performing iMD in a way that harnesses researchers' spatial intuition.
+  - Third paragraph: Introduce the NanoVer server as a method of performing real-time multi-user iMD
+  - Fourth paragraph: Describe the protocol for quantitative iMD employed by NanoVer
+  - Fifth paragraph: Discuss the client-server architecture for collaborative research
+
+First paragraph:
+ 
+  - Talk about any issues to do with whatever enhanced sampling methods discussed, possibly including needing to 
+    specify a pre-determined reaction coordinate, placing constraints on the system, requiring a large number of 
+    samples/running multiple simulations to obtain desired information which still does not guarantee sampling of
+    the desired transitions/transformations etc.
+  - 
 
 
 Ideas from the paper meeting (#1):
