@@ -105,6 +105,47 @@ def basic_system_app_and_simulation_with_constant_force():
         yield app_server, sim
 
 
+@pytest.fixture
+def basic_system_app_and_simulation_with_constant_force_old():
+    with make_app_server() as app_server:
+        sim = OpenMMSimulation.from_simulation(build_basic_simulation())
+        sim.load()
+        sim.reset(app_server)
+
+        # Add a constant force interaction with the force positioned far
+        # from the origin and a harmonic force sqrt(2) from the origin,
+        # acting on different atoms
+        interaction_1 = ParticleInteraction(
+            interaction_type="constant",
+            position=(0.0, 0.0, 1.0),
+            particles=[0, 4],
+            scale=1,
+        )
+
+        app_server.imd.insert_interaction("interaction.test1", interaction_1)
+
+        yield app_server, sim
+
+
+@pytest.fixture
+def single_atom_app_simulation_and_reporter_with_constant_force_interaction_old():
+    with make_app_server() as app_server:
+        sim = OpenMMSimulation.from_simulation(build_single_atom_simulation())
+        sim.load()
+        sim.reset(app_server)
+
+        app_server.imd.insert_interaction(
+            "interaction.0",
+            ParticleInteraction(
+                position=(0.0, 0.0, 1.0),
+                particles=[0],
+                interaction_type="constant",
+            ),
+        )
+
+        yield app_server, sim
+
+
 def test_auto_force():
     """
     Test that interactions work if the imd force isn't added manually.
@@ -449,38 +490,34 @@ def assert_imd_force_affected_particles(
 
 
 # TODO: could generalise for both MDs
-# TODO: update for actual system or use system from original test
-@pytest.mark.xfail(reason="Written for different system")
 def test_sparse_user_forces_elements(
-    basic_system_app_and_simulation_with_constant_force,
+    basic_system_app_and_simulation_with_constant_force_old,
 ):
     """
     Test that the values of the sparse user forces are approximately as expected from the initial
     positions and the position from which the user force is applied, for a constant force acting
     on the C atoms.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    app, sim = basic_system_app_and_simulation_with_constant_force_old
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
     # For a mass-weighted constant force applied at [0.0, 0.0, 1.0] to the COM of the C atoms
     mass_weighted_user_forces_t0 = [[0.0, 0.0, -6.0], [0.0, 0.0, -6.0]]
-    assert set(frame.user_forces_index) == {0, 6}
+    assert set(frame.user_forces_index) == {0, 4}
     for i in range(len(frame.user_forces_index)):
         assert frame.user_forces_sparse[i] == pytest.approx(
             mass_weighted_user_forces_t0[i], abs=3e-3
         )
 
 
-# TODO: update according to actual system
-@pytest.mark.xfail(reason="Written for different system")
-def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_force):
+def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_force_old):
     """
     Test the particle velocities and particle forces that can be optionally included
     when running OpenMM simulations. Assert that these arrays exist, have the same
     length as the particle positions array and are non-zero.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    app, sim = basic_system_app_and_simulation_with_constant_force_old
 
     sim.include_forces = True
     sim.include_velocities = True
@@ -498,9 +535,9 @@ def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_for
 
 
 # TODO: update according to actual system
-@pytest.mark.xfail(reason="Written for different system")
+@pytest.mark.xfail(reason="Needs fixing")
 def test_velocities_and_forces_single_atom(
-    single_atom_app_and_simulation_with_constant_force,
+    single_atom_app_simulation_and_reporter_with_constant_force_interaction_old,
 ):
     """
     Numerically test the optionally included velocities and forces being passed
@@ -511,11 +548,14 @@ def test_velocities_and_forces_single_atom(
     then numerically checks that the values of the velocities and forces arrays
     are as expected.
     """
-    app, sim = single_atom_app_and_simulation_with_constant_force
+    app, sim = (
+        single_atom_app_simulation_and_reporter_with_constant_force_interaction_old
+    )
 
     sim.include_forces = True
     sim.include_velocities = True
 
+    sim.frame_interval = 10
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
