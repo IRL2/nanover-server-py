@@ -69,7 +69,6 @@ coordinate or collective variable(s), imposing pre-defined constraints or restra
 or requiring a large number of simulation steps and/or multiple simulations to sample the desired behaviour 
 [Citations for limitations].
 
-
 Interactive molecular dynamics (iMD) is an out-of-equilibrium approach that allows researchers to bias molecular 
 simulations on-the-fly, without the need to pre-define the behaviour of the system of interest [Citations]. It 
 allows researchers to interact with molecular systems in real-time, to bias their dynamics and sample rare events of
@@ -126,8 +125,8 @@ and distributed (where users can connect to the same virtual space from differen
 flexible structure has great potential for collaborative research: previous iMD-VR frameworks have demonstrated that 
 cloud computing can be used to facilitate real-time multi-user iMD-VR across large physical distances 
 [Cite the appropriate Narupa paper, and any other appropriate ones?]. Furthermore, the protocol on which NanoVer 
-Server is built comprises general tools for constructing multi-user VR experiences, and the scope of such tools
-extend beyond application in computational chemistry.
+Server is built comprises general tools for constructing multi-user VR experiences, the scope of which extend beyond 
+application in computational chemistry.
 
 # Notes for "Statement of need" section
 
