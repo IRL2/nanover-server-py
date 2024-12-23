@@ -63,10 +63,11 @@ for biological systems, which may contain hundreds of thousands of atoms that mu
 simulated in order to accurately determine the dynamics of the system [Citations]. A plethora of enhanced sampling
 techniques have been developed to tackle this problem [@henin_enhanced_2022]: families of such techniques include
 (though are by no means limited to) umbrella sampling, metadynamics, steered molecular dynamics, generalised ensemble 
-approaches and biasing potential methods [Citations for specific methods]. Though undoubtedly effective, many of these techniques have certain 
-limitations when applied to explore specific behaviour, such as needing to specify a pre-determined reaction
-coordinate or collective variable(s), adding certain constraints or restraints to the system, or requiring a large 
-number of simulation steps and/or multiple simulations to sample the desired behaviour [Citations for limitations].
+approaches and biasing potential methods [Citations for specific methods]. Though undoubtedly effective, many of 
+these techniques have certain limitations, such as needing to specify a pre-determined reaction
+coordinate or collective variable(s), imposing pre-defined constraints or restraints on the molecular system, 
+or requiring a large number of simulation steps and/or multiple simulations to sample the desired behaviour 
+[Citations for limitations].
 
 
 Interactive molecular dynamics (iMD) is an out-of-equilibrium approach that allows researchers to bias molecular 
