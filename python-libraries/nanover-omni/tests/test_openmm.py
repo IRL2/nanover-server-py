@@ -112,9 +112,8 @@ def basic_system_app_and_simulation_with_constant_force_old():
         sim.load()
         sim.reset(app_server)
 
-        # Add a constant force interaction with the force positioned far
-        # from the origin and a harmonic force sqrt(2) from the origin,
-        # acting on different atoms
+        # Add a constant force interaction with the force positioned at
+        # 1 nm along the positive x axis
         interaction_1 = ParticleInteraction(
             interaction_type="constant",
             position=(0.0, 0.0, 1.0),
