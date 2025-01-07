@@ -4,7 +4,7 @@ from unittest.mock import patch
 import numpy
 import pytest
 
-from nanover.omni.omni import Simulation, CLEAR_PREFIXES
+from nanover.omni.omni import CLEAR_PREFIXES
 from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
 from nanover.utilities.change_buffers import DictionaryChange
 from test_openmm import make_example_openmm
@@ -21,12 +21,6 @@ SIMULATION_FACTORIES_ALL = SIMULATION_FACTORIES_IMD + [make_example_playback]
 
 
 TIMING_TOLERANCE = 0.05
-
-
-def make_sim_from_fixture(request, fixture_name):
-    simulation: Simulation = request.getfixturevalue(fixture_name)
-    simulation.name = fixture_name
-    return simulation
 
 
 def make_imd_sims():
