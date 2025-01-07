@@ -490,29 +490,6 @@ def test_sparse_user_forces_elements(
         )
 
 
-def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_force_old):
-    """
-    Test the particle velocities and particle forces that can be optionally included
-    when running OpenMM simulations. Assert that these arrays exist, have the same
-    length as the particle positions array and are non-zero.
-    """
-    app, sim = basic_system_app_and_simulation_with_constant_force_old
-
-    sim.include_forces = True
-    sim.include_velocities = True
-
-    sim.advance_by_one_step()
-    frame = connect_and_retrieve_first_frame_from_app_server(app)
-
-    # TODO: which particle forces field to use?
-    assert frame.particle_velocities
-    assert frame.particle_forces_system
-    assert len(frame.particle_velocities) == len(frame.particle_positions)
-    assert len(frame.particle_forces_system) == len(frame.particle_positions)
-    assert np.all(frame.particle_velocities) != 0.0
-    assert np.all(frame.particle_forces_system) != 0.0
-
-
 def test_velocities_and_forces_single_atom():
     """
     Numerically test the optionally included velocities and forces being passed
