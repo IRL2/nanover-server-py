@@ -442,7 +442,6 @@ def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_for
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    # TODO: which particle forces field to use?
     assert frame.particle_velocities
     assert frame.particle_forces_system
     assert len(frame.particle_velocities) == len(frame.particle_positions)
