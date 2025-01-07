@@ -169,6 +169,9 @@ def test_first_frame_topology(sim_factory):
             client.subscribe_to_frames()
             runner.load(0)
             client.wait_until_first_frame()
+            # Currently the initial frame is the only frame containing the element
+            # information, so this is equivalent to testing the frame in which the
+            # topology is sent (where relevant).
             assert (
                 len(client.first_frame.particle_positions) > 0
                 and len(client.first_frame.particle_elements) > 0
