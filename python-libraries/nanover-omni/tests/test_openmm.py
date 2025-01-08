@@ -20,7 +20,8 @@ from nanover.trajectory import FrameData
 from common import (
     make_app_server,
     connect_and_retrieve_first_frame_from_app_server,
-    make_loaded_sim, make_loaded_sim_with_interactions,
+    make_loaded_sim,
+    make_loaded_sim_with_interactions,
 )
 
 from openmm_simulation_utils import (
