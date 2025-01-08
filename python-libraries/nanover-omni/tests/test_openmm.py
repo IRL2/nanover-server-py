@@ -380,27 +380,27 @@ def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force)
     assert np.all(frame.user_forces_sparse) != 0.0
 
 
-def test_apply_interactions(basic_system_app_and_simulation_with_constant_force):
+def test_apply_interactions(basic_system_app_and_simulation_with_complex_interactions):
     """
     Interactions are applied and the computed forces are passed to the imd
     force object.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    app, sim = basic_system_app_and_simulation_with_complex_interactions
     sim.advance_by_one_step()
 
     assert_imd_force_affected_particles(
         sim.imd_force_manager.imd_force,
-        expected_affected_indices={0, 6},
+        expected_affected_indices={0, 1, 4, 5},
     )
 
 
 def test_remove_interaction_partial(
-    basic_system_app_and_simulation_with_constant_force,
+    basic_system_app_and_simulation_with_complex_interactions,
 ):
     """
     When an interaction is removed, the corresponding forces are reset.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    app, sim = basic_system_app_and_simulation_with_complex_interactions
 
     sim.advance_by_one_step()
     app.imd.remove_interaction("interaction.0")
@@ -408,17 +408,17 @@ def test_remove_interaction_partial(
 
     assert_imd_force_affected_particles(
         sim.imd_force_manager.imd_force,
-        expected_affected_indices={6},
+        expected_affected_indices={4, 5},
     )
 
 
 def test_remove_interaction_complete(
-    basic_system_app_and_simulation_with_constant_force,
+    basic_system_app_and_simulation_with_complex_interactions,
 ):
     """
     When all interactions are removed, all the corresponding forces are reset.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    app, sim = basic_system_app_and_simulation_with_complex_interactions
 
     sim.advance_by_one_step()
     app.imd.remove_interaction("interaction.0")
