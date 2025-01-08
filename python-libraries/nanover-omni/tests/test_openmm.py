@@ -37,7 +37,7 @@ def example_openmm():
 
 
 def make_example_openmm():
-    return OpenMMSimulation.from_simulation(build_single_atom_simulation())
+    return OpenMMSimulation.from_simulation(build_basic_simulation())
 
 
 @pytest.fixture
@@ -198,12 +198,12 @@ def test_work_done_server(single_atom_app_and_simulation_with_constant_force):
     assert sim.work_done == pytest.approx(20.0, abs=0.05)
 
 
-def test_work_done_frame(single_atom_app_and_simulation_with_constant_force):
+def test_work_done_frame(basic_system_app_and_simulation_with_complex_interactions):
     """
-    Test that the calculated user work done on a single atom system that appears
-    in the frame is equal to the user work done as calculated in the OpenMMSimulation.
+    Test that the calculated user work done on a system that appears in the frame is equal
+    to the user work done as calculated in the OpenMMSimulation.
     """
-    app, sim = single_atom_app_and_simulation_with_constant_force
+    app, sim = basic_system_app_and_simulation_with_complex_interactions
 
     for _ in range(11):
         sim.advance_to_next_report()
