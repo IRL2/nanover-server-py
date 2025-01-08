@@ -20,7 +20,7 @@ from nanover.trajectory import FrameData
 from common import (
     make_app_server,
     connect_and_retrieve_first_frame_from_app_server,
-    make_loaded_sim,
+    make_loaded_sim, make_loaded_sim_with_interactions,
 )
 
 from openmm_simulation_utils import (
@@ -123,6 +123,24 @@ def basic_system_app_and_simulation_with_constant_force_old():
 
         app_server.imd.insert_interaction("interaction.test1", interaction_1)
 
+        yield app_server, sim
+
+
+@pytest.fixture
+def basic_system_app_and_simulation_with_complex_interactions():
+    with make_loaded_sim_with_interactions(
+        OpenMMSimulation.from_simulation(build_basic_simulation()),
+        ParticleInteraction(
+            position=(2.0, 3.0, 1.0),
+            particles=(0, 1, 4),
+            interaction_type="spring",
+        ),
+        ParticleInteraction(
+            position=(10.0, 20.0, 0.0),
+            particles=(4, 5),
+            interaction_type="spring",
+        ),
+    ) as (app_server, sim):
         yield app_server, sim
 
 
@@ -350,15 +368,15 @@ def test_force_manager_masses(basic_system_app_and_simulation):
 
 
 # TODO: could generalise for both OMM and ASE
-def test_report_frame_forces(basic_system_app_and_simulation_with_constant_force):
+def test_report_frame_forces(basic_system_app_and_simulation_with_complex_interactions):
     """
     Test that user forces are reported within the frame.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    app, sim = basic_system_app_and_simulation_with_complex_interactions
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    assert frame.user_forces_index == [0, 6]
+    assert frame.user_forces_index == [0, 1, 4, 5]
 
 
 # TODO: could generalise for both OMM and ASE

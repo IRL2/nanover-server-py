@@ -18,6 +18,18 @@ def make_loaded_sim(sim):
 
 
 @contextmanager
+def make_loaded_sim_with_interactions(sim, *interactions):
+    with make_app_server() as app_server:
+        sim.load()
+        sim.reset(app_server)
+
+        for i, interaction in enumerate(interactions):
+            app_server.imd.insert_interaction(f"interaction.{i}", interaction)
+
+        yield app_server, sim
+
+
+@contextmanager
 def make_runner(*simulations):
     with OmniRunner.with_basic_server(*simulations, port=0) as runner:
         yield runner
