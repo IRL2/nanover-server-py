@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from pathlib import Path
-from nanover.app import NanoverImdApplication, NanoverImdClient
+from nanover.app import NanoverImdClient, NanoverApplicationServer, NanoverImdApplication
 from nanover.omni import OmniRunner
 
 EXAMPLES_PATH = Path(__file__).parent
@@ -30,12 +30,12 @@ def make_connected_client_from_runner(runner):
 
 
 @contextmanager
-def make_connected_client_from_app_server(app_server):
+def make_connected_client_from_app_server(app_server: NanoverApplicationServer):
     with NanoverImdClient.connect_to_single_server(port=app_server.port) as client:
         yield client
 
 
-def connect_and_retrieve_first_frame_from_app_server(app_server):
+def connect_and_retrieve_first_frame_from_app_server(app_server: NanoverApplicationServer):
     with make_connected_client_from_app_server(app_server) as client:
         client.subscribe_to_frames()
         return client.wait_until_first_frame()

@@ -338,13 +338,15 @@ def test_reset_gives_equal_frames():
     assert all(np.all(prev_data[key] - next_data[key]) == 0 for key in prev_data)
 
 
-def test_force_manager_masses(example_openmm):
+def test_force_manager_masses(basic_system_app_and_simulation):
     """
     Test that the force manager has the correct masses for the simulated system.
     """
+    _, sim = basic_system_app_and_simulation
+
     for _ in range(10):
-        example_openmm.advance_by_one_step()
-        assert example_openmm.imd_force_manager.masses == pytest.approx([40])
+        sim.advance_by_one_step()
+        assert sim.imd_force_manager.masses == pytest.approx([12, 1, 1, 1, 12, 1, 1, 1])
 
 
 # TODO: could generalise for both OMM and ASE
