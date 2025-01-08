@@ -1,35 +1,38 @@
 import pytest
 import numpy as np
-from ase import units, Atoms
+from ase import Atoms
 import ase.units as ase_units
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
 
 from nanover.imd import ParticleInteraction
 from nanover.app import NanoverImdClient
-from nanover.omni import OmniRunner
 from nanover.omni.ase import ASESimulation
 from nanover.ase.converter import ASE_TIME_UNIT_TO_PS, ANG_TO_NM, EV_TO_KJMOL
 
-from common import app_server
+from common import make_app_server, make_loaded_sim
 
 
 @pytest.fixture
-def example_ase(app_server, example_dynamics):
-    sim = ASESimulation.from_ase_dynamics(example_dynamics)
-    sim.load()
-    sim.reset(app_server)
-    yield sim
+def example_ase_app_sim():
+    with make_app_server() as app_server:
+        sim = make_example_ase()
+        sim.include_forces = True
+        sim.include_velocities = True
+        sim.load()
+        sim.reset(app_server)
+        yield app_server, sim
 
 
 @pytest.fixture
-def example_ase_app_sim(app_server, example_dynamics):
-    sim = ASESimulation.from_ase_dynamics(example_dynamics)
-    sim.include_forces = True
-    sim.include_velocities = True
-    sim.load()
-    sim.reset(app_server)
-    yield app_server, sim
+def example_ase_loaded():
+    with make_loaded_sim(make_example_ase()) as sim:
+        yield sim
+
+
+@pytest.fixture
+def multiple_atom_dynamics():
+    return make_multiple_atom_dynamics()
 
 
 @pytest.fixture
@@ -49,34 +52,14 @@ def example_ase_app_sim_constant_force_interaction(example_ase_app_sim):
 
 
 @pytest.fixture
-def example_dynamics():
-    atoms = Atoms("Ar", positions=[(0, 0, 0)], masses=[40.0], cell=[2, 2, 2])
-    atoms.calc = LennardJones()
-    dynamics = VelocityVerlet(atoms, timestep=0.5 * ase_units.fs)
-    yield dynamics
-
-
-@pytest.fixture
-def multiple_atom_dynamics():
-    # Generate system of multiple Argon atoms
-    atoms = Atoms(
-        ["Ar" for _ in range(10)],
-        positions=[(0, 0, i) for i in range(10)],
-        cell=[2, 2, 2],
-    )
-    atoms.calc = LennardJones()
-    dynamics = VelocityVerlet(atoms, timestep=0.5 * ase_units.fs)
-    yield dynamics
-
-
-@pytest.fixture
-def multiple_atom_ase_app_sim(app_server, multiple_atom_dynamics):
-    sim = ASESimulation.from_ase_dynamics(multiple_atom_dynamics)
-    sim.include_forces = True
-    sim.include_velocities = True
-    sim.load()
-    sim.reset(app_server)
-    yield app_server, sim
+def multiple_atom_ase_app_sim(multiple_atom_dynamics):
+    with make_app_server() as app_server:
+        sim = ASESimulation.from_ase_dynamics(multiple_atom_dynamics)
+        sim.include_forces = True
+        sim.include_velocities = True
+        sim.load()
+        sim.reset(app_server)
+        yield app_server, sim
 
 
 @pytest.fixture
@@ -104,22 +87,46 @@ def multiple_atom_ase_app_sim_multiple_interactions(multiple_atom_ase_app_sim):
     yield app, sim
 
 
-def test_step_interval(example_ase):
+def make_example_ase():
+    return ASESimulation.from_ase_dynamics(make_example_dynamics())
+
+
+def make_example_dynamics():
+    atoms = Atoms("Ar", positions=[(0, 0, 0)], masses=[40.0], cell=[2, 2, 2])
+    atoms.calc = LennardJones()
+    dynamics = VelocityVerlet(atoms, timestep=0.5 * ase_units.fs)
+    return dynamics
+
+
+def make_multiple_atom_dynamics():
+    # Generate system of multiple Argon atoms
+    atoms = Atoms(
+        ["Ar" for _ in range(10)],
+        positions=[(0, 0, i) for i in range(10)],
+        cell=[2, 2, 2],
+    )
+    atoms.calc = LennardJones()
+    dynamics = VelocityVerlet(atoms, timestep=0.5 * ase_units.fs)
+    return dynamics
+
+
+def test_step_interval(example_ase_loaded):
     """
     Test that advancing by one step increments the dynamics steps by frame_interval.
     """
     for i in range(5):
         assert (
-            example_ase.dynamics.get_number_of_steps() == i * example_ase.frame_interval
+            example_ase_loaded.dynamics.get_number_of_steps()
+            == i * example_ase_loaded.frame_interval
         )
-        example_ase.advance_by_one_step()
+        example_ase_loaded.advance_by_one_step()
 
 
-def test_dynamics_interaction(example_ase):
+def test_dynamics_interaction(example_ase_loaded):
     """
     Test that example dynamics responds to interactions.
     """
-    example_ase.app_server.imd.insert_interaction(
+    example_ase_loaded.app_server.imd.insert_interaction(
         "interaction.0",
         ParticleInteraction(
             position=(0.0, 0.0, 10.0),
@@ -128,9 +135,9 @@ def test_dynamics_interaction(example_ase):
         ),
     )
     for _ in range(31):
-        example_ase.advance_by_one_step()
+        example_ase_loaded.advance_by_one_step()
 
-    positions = example_ase.atoms.get_positions()
+    positions = example_ase_loaded.atoms.get_positions()
     (x, y, z) = positions[0]
 
     # Applying a force of 1 kJ mol-1 nm-1 for
