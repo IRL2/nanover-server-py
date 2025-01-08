@@ -48,82 +48,64 @@ def single_atom_app_and_simulation_with_constant_force():
 
 @contextmanager
 def make_single_atom_app_and_simulation_with_constant_force():
-    with make_app_server() as app_server:
-        omm_sim = build_single_atom_simulation()
-        sim = OpenMMSimulation.from_simulation(omm_sim)
-        sim.load()
-        sim.reset(app_server)
-
+    with make_loaded_sim_with_interactions(
+        OpenMMSimulation.from_simulation(build_single_atom_simulation()),
         # Add a constant force interaction with the force positioned far
         # from the origin (the initial position of the atom)
-        interaction = ParticleInteraction(
+        ParticleInteraction(
             interaction_type="constant",
             position=(0.0, 0.0, 1000.0),
             particles=[0],
             scale=1,
-        )
-
-        app_server.imd.insert_interaction("interaction.test", interaction)
-
+        ),
+    ) as (app_server, sim):
         yield app_server, sim
 
 
 @pytest.fixture
 def basic_system_app_and_simulation():
-    with make_app_server() as app_server:
-        sim = OpenMMSimulation.from_simulation(build_basic_simulation())
-        sim.load()
-        sim.reset(app_server)
+    with make_loaded_sim_with_interactions(
+        OpenMMSimulation.from_simulation(build_basic_simulation())
+    ) as (app_server, sim):
         yield app_server, sim
 
 
 @pytest.fixture
 def basic_system_app_and_simulation_with_constant_force():
-    with make_app_server() as app_server:
-        sim = OpenMMSimulation.from_simulation(build_basic_simulation())
-        sim.load()
-        sim.reset(app_server)
-
+    with make_loaded_sim_with_interactions(
+        OpenMMSimulation.from_simulation(build_basic_simulation()),
         # Add a constant force interaction with the force positioned far
         # from the origin and a harmonic force sqrt(2) from the origin,
         # acting on different atoms
-        interaction_1 = ParticleInteraction(
+        ParticleInteraction(
             interaction_type="constant",
             position=(0.0, 0.0, 1000.0),
             particles=[0],
             scale=1,
-        )
-        interaction_2 = ParticleInteraction(
+        ),
+        ParticleInteraction(
             interaction_type="spring",
             position=(1.0, 0.0, 1.0),
             particles=[6],
             scale=1,
-        )
-
-        app_server.imd.insert_interaction("interaction.test1", interaction_1)
-        app_server.imd.insert_interaction("interaction.test2", interaction_2)
-
+        ),
+    ) as (app_server, sim):
         yield app_server, sim
 
 
 @pytest.fixture
 def basic_system_app_and_simulation_with_constant_force_old():
-    with make_app_server() as app_server:
-        sim = OpenMMSimulation.from_simulation(build_basic_simulation())
-        sim.load()
-        sim.reset(app_server)
-
+    with make_loaded_sim_with_interactions(
+        OpenMMSimulation.from_simulation(build_basic_simulation()),
         # Add a constant force interaction with the force positioned at
         # 1 nm along the positive x axis
-        interaction_1 = ParticleInteraction(
+        ParticleInteraction(
             interaction_type="constant",
             position=(0.0, 0.0, 1.0),
             particles=[0, 4],
             scale=1,
-        )
-
-        app_server.imd.insert_interaction("interaction.test1", interaction_1)
-
+        ),
+    ) as (app_server, sim):
         yield app_server, sim
 
 
@@ -421,7 +403,7 @@ def test_remove_interaction_partial(
     app, sim = basic_system_app_and_simulation_with_constant_force
 
     sim.advance_by_one_step()
-    app.imd.remove_interaction("interaction.test1")
+    app.imd.remove_interaction("interaction.0")
     sim.advance_by_one_step()
 
     assert_imd_force_affected_particles(
@@ -439,8 +421,8 @@ def test_remove_interaction_complete(
     app, sim = basic_system_app_and_simulation_with_constant_force
 
     sim.advance_by_one_step()
-    app.imd.remove_interaction("interaction.test1")
-    app.imd.remove_interaction("interaction.test2")
+    app.imd.remove_interaction("interaction.0")
+    app.imd.remove_interaction("interaction.1")
     sim.advance_by_one_step()
 
     assert_imd_force_affected_particles(
