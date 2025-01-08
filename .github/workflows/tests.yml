@@ -11,8 +11,8 @@ jobs:
         # the shell does not load ,profile or .bashrc.
         shell: bash -el {0}
     steps:
-      - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           miniforge-version: latest
@@ -35,8 +35,8 @@ jobs:
         # the shell does not load ,profile or .bashrc.
         shell: bash -el {0}
     steps:
-      - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           miniforge-version: latest
@@ -72,8 +72,8 @@ jobs:
         # the shell does not load ,profile or .bashrc.
         shell: bash -el {0}
     steps:
-      - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           miniforge-version: latest
@@ -91,8 +91,8 @@ jobs:
     name: C# unit and integration tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-dotnet@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '2.1.x'
       - name: Compile
