@@ -49,7 +49,7 @@ receives the interactions. It can be use instead of
 
 """
 
-from typing import Dict, List, Set, Optional, NamedTuple, Tuple
+from typing import Dict, Set, Optional, NamedTuple, Tuple
 import itertools
 
 import numpy as np
@@ -60,11 +60,10 @@ from openmm import unit
 from openmm.app import Simulation
 from openmm.unit import kilojoule_per_mole
 
-from nanover.imd.imd_force import calculate_imd_force
+from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd import ImdStateWrapper
 from nanover.trajectory.frame_publisher import FramePublisher
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.imd.imd_force import get_sparse_forces
 from .converter import openmm_to_frame_data
 from nanover.trajectory.frame_data import Array2Dfloat, FrameData
 
@@ -354,22 +353,3 @@ def add_imd_force_to_system(system: System) -> CustomExternalForce:
     populate_imd_force(force, system)
     system.addForce(force)
     return force
-
-
-def get_imd_forces_from_system(system: Simulation) -> List[CustomExternalForce]:
-    """
-    Find the forces that are compatible with an imd force in a given system.
-
-    A compatible force has the expected energy expression, and contains as
-    many particles as the system.
-
-    All the compatible force objects are returned.
-    """
-    system_num_particles = system.getNumParticles()
-    return [
-        force
-        for force in system.getForces()
-        if isinstance(force, CustomExternalForce)
-        and force.getEnergyFunction() == IMD_FORCE_EXPRESSION
-        and force.getNumParticles() == system_num_particles
-    ]
