@@ -53,7 +53,8 @@ using interactive molecular dynamics in virtual reality (iMD-VR).
 # Statement of need
 
 For decades, the family of simulation methods encompassed by the umbrella term "molecular dynamics"
-(MD) have been indispensable for exploring the temporal evolution of molecular systems [@alder_molecular_1958].
+(MD) have been indispensable for exploring the temporal evolution of atomic and molecular systems 
+[alder_phase_1957; @alder_molecular_1958; alder_studies_1959; rahman_correlations_1964; verlet_computer_1967].
 MD has been applied to a wide range of chemical and biological systems, including (include some 
 applications...) [Citations]. One of the major challenges when using MD simulations to explore the dynamics
 of chemical and biological systems is the sampling of rare events [Citations]. Many interesting molecular
@@ -89,7 +90,7 @@ on iMD-VR. In order to facilitate this, NanoVer operates using a server-client a
 comprises the server component. NanoVer Server facilitates iMD simulations by providing an interface between the 
 physics engine used to simulate the molecular system and the researcher(s) connecting to the simulation, equipping
 the researcher(s) with tools to interact with the system in real time. NanoVer Server already interfaces with many 
-multiple programs used to perform molecular simulations [eastman_openmm_2024,larsen_atomic_2017], with a particular 
+multiple programs used to perform molecular simulations [eastman_openmm_2024; larsen_atomic_2017], with a particular 
 emphasis on OpenMM. The NanoVer Server package is written in Python, making it easy to integrate with many of the 
 existing tools of the computational chemistry community and beyond. Additionally, being free and open-source 
 (distributed under the MIT license [Citation?]), the NanoVer Server package can easily be customised and extended 
@@ -101,7 +102,7 @@ the user (including the collective user forces, associated potential energy, and
 The server allows a user to tune the relationship between simulation time and real time during
 iMD simulations by specifying the number of simulation steps to perform between the publishing of each frame
 (a data structure containing information about the molecular system in its current state) to the clients connecting
-to it. This feature enables accurate integrate the equations of motion between each frame without significantly 
+to it. This feature enables accurate integration of the equations of motion between each frame without significantly 
 slowing the simulation from the user perspective. To achieve quantitative iMD within this framework, the server
 adopts the following blueprint between the publishing of each frame:
 
