@@ -10,6 +10,7 @@ build:
   number: 0
   entry_points:
     - nanover-multiplayer = nanover.multiplayer.cli:main
+    - nanover-record = nanover.recording.recorder_cli:main
 
 requirements:
   build:

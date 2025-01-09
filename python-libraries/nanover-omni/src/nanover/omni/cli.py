@@ -13,7 +13,7 @@ from typing import Iterable
 from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
-from nanover.omni.record import record_from_server
+from nanover.recording.record import record_from_server
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:

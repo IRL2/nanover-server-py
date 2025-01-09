@@ -12,7 +12,7 @@ import textwrap
 import time
 
 from nanover.app.app_server import DEFAULT_NANOVER_PORT
-from nanover.omni.record import record_from_server
+from nanover.recording.record import record_from_server
 
 from nanover.essd import DiscoveryClient
 from nanover.trajectory import FRAME_SERVICE_NAME

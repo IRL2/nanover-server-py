@@ -23,6 +23,7 @@ dynamic = ["version"]
 
 [project.scripts]
 nanover-multiplayer = "nanover.multiplayer.cli:main"
+nanover-record = "nanover.recording.recorder_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
