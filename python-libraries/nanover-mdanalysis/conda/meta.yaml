@@ -18,7 +18,7 @@ requirements:
     - python >={{ MIN_PYTHON_VERSION }}
     - nanover-core =={{ NANOVER_BUILD_VERSION }}
     - numpy
-    - mdanalysis
+    - mdanalysis >=2.8.0
 
 about:
   home: {{ NANOVER_DOC_URL }}
