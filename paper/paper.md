@@ -54,7 +54,8 @@ using interactive molecular dynamics in virtual reality (iMD-VR).
 
 For decades, the family of simulation methods encompassed by the umbrella term "molecular dynamics"
 (MD) have been indispensable for exploring the temporal evolution of atomic and molecular systems 
-[alder_phase_1957; @alder_molecular_1958; alder_studies_1959; rahman_correlations_1964; verlet_computer_1967].
+[alder_phase_1957; @alder_molecular_1958; alder_studies_1959; rahman_correlations_1964; verlet_computer_1967; 
+mccammon_dynamics_1977].
 MD has been applied to a wide range of chemical and biological systems, including (include some 
 applications...) [Citations]. One of the major challenges when using MD simulations to explore the dynamics
 of chemical and biological systems is the sampling of rare events [Citations]. Many interesting molecular
