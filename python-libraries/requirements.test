@@ -14,3 +14,5 @@ typing_extensions
 types-protobuf
 # jupyter notebooks
 nbval
+# ui
+gradio
