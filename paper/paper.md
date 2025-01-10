@@ -58,8 +58,11 @@ For decades, the family of simulation methods encompassed by the umbrella term "
 (MD) have been indispensable for exploring the temporal evolution and properties of atomic and molecular systems 
 [@alder_phase_1957; @alder_molecular_1958; @alder_studies_1959; @rahman_correlations_1964; @verlet_computer_1967; 
  @mccammon_dynamics_1977].
-MD has been applied to a wide range of chemical and biological systems, including (include some 
-applications...) [Citations]. One of the major challenges when using MD simulations to explore the dynamics
+MD has been used to study a plethora of chemical and biological systems [@van_gunsteren_validation_2018]; 
+applications include the prediction of protein structures [@geng_applications_2019], 
+simulation of drug docking in protein-ligand systems [@de_vivo_recent_2017], and the characterisation 
+and nano-engineering of materials [Citation]. 
+One of the major challenges when using MD simulations to explore the dynamics
 of chemical and biological systems is the sampling of rare events [Citations]. Many interesting molecular
 processes occur over timescales substantially longer than are computationally feasible 
 to model, even when harnessing the power of high-performance computing [Citations]. This is particularly true
