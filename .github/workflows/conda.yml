@@ -38,13 +38,6 @@ jobs:
       - name: Building the Conda packages
         run: |
           $build_command \
-            python-libraries/nanover-essd/conda \
-            python-libraries/nanover-core/conda \
-            python-libraries/nanover-openmm/conda \
-            python-libraries/nanover-ase/conda \
-            python-libraries/nanover-mdanalysis/conda \
-            python-libraries/nanover-omni/conda \
-            python-libraries/nanover-jupyter/conda \
             python-libraries/nanover-server/conda
       - run: |
           mkdir artifacts
