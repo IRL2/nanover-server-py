@@ -27,7 +27,6 @@ requirements:
     - hypothesis
     - typing-extensions
     - protobuf
-    - numpy
     - attrs
     - setuptools
   run:
@@ -40,9 +39,10 @@ requirements:
     - hypothesis
     - typing-extensions
     - protobuf
-    - numpy
     - attrs
     - setuptools
+    - openmm
+    - ase >=3.21
 
 about:
   home: {{ NANOVER_DOC_URL }}
