@@ -9,7 +9,7 @@ from nanover.imd.imd_state import (
 from nanover.testing import assert_in_soon, assert_not_in_soon, assert_equal_soon
 from nanover.utilities.change_buffers import DictionaryChange
 
-from .test_imd_server import imd_server_client
+from .test_imd_server import imd_server_client, imd_server
 
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
 

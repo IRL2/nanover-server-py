@@ -22,6 +22,7 @@ from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.trajectory import MissingDataError
 import numpy as np
 from test_imd_calculator import imd_calculator_co
+from util import imd_server
 
 # Sets of dummy interactions to test cancellation selections.
 NUM_INTERACTIONS = 10

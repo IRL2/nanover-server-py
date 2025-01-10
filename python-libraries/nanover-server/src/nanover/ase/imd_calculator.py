@@ -53,7 +53,7 @@ class ImdForceManager:
         frame_data.user_energy = self.total_user_energy * converter.EV_TO_KJMOL
         user_sparse_indices, user_sparse_forces = get_sparse_forces(self.user_forces)
         frame_data.user_forces_sparse = user_sparse_forces * (
-                converter.EV_TO_KJMOL / converter.ANG_TO_NM
+            converter.EV_TO_KJMOL / converter.ANG_TO_NM
         )
         frame_data.user_forces_index = user_sparse_indices
 

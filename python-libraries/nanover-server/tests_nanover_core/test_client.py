@@ -13,7 +13,7 @@ from nanover.trajectory.frame_server import (
 
 from .test_frame_server import simple_frame_data, disjoint_frame_data, frame_server
 from .imd.test_imd_server import imd_server, interaction
-from .core.test_nanover_client_server_commands import mock_callback
+from .core.test_nanover_client_server_commands import mock_callback, default_args
 from nanover.app import NanoverImdClient
 import numpy as np
 
