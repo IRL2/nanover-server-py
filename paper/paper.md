@@ -61,7 +61,7 @@ For decades, the family of simulation methods encompassed by the umbrella term "
 MD has been used to study a plethora of chemical and biological systems [@van_gunsteren_validation_2018]; 
 applications include the prediction of protein structures [@geng_applications_2019], 
 simulation of drug docking in protein-ligand systems [@de_vivo_recent_2017], and the characterisation 
-and nano-engineering of materials [Citation]. 
+and nano-engineering of materials [@lau_nano_engineering_2018]. 
 One of the major challenges when using MD simulations to explore the dynamics
 of chemical and biological systems is the sampling of rare events [Citations]. Many interesting molecular
 processes occur over timescales substantially longer than are computationally feasible 
