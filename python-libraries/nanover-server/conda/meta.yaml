@@ -20,9 +20,6 @@ requirements:
     - grpcio-tools
   run:
     - python >={{ MIN_PYTHON_VERSION }}
-    - nanover-core =={{ NANOVER_BUILD_VERSION }}
-    - nanover-ase =={{ NANOVER_BUILD_VERSION }}
-    - nanover-core =={{ NANOVER_BUILD_VERSION }}
     - typing-extensions
     - protobuf
     - grpcio

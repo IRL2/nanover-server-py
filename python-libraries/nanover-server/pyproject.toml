@@ -10,7 +10,6 @@ authors = [
 description = "Multi-simulation server for NanoVer"
 requires-python = ">=3.11"
 dependencies = [
-    "nanover",
     "openmm",
     "MDAnalysis",
     "numpy",
