@@ -57,22 +57,21 @@ using interactive molecular dynamics in virtual reality (iMD-VR).
 For decades, the family of simulation methods encompassed by the umbrella term "molecular dynamics"
 (MD) have been indispensable for exploring the temporal evolution and properties of atomic and molecular systems 
 [@alder_phase_1957; @alder_molecular_1958; @alder_studies_1959; @rahman_correlations_1964; @verlet_computer_1967; 
- @mccammon_dynamics_1977].
-MD has been used to study a plethora of chemical and biological systems [@van_gunsteren_validation_2018]; 
-applications include the prediction of protein structures [@geng_applications_2019], simulation of drug docking in 
-protein-ligand systems [@de_vivo_recent_2017], and the characterisation and nano-engineering of 
-materials [@lau_nano_engineering_2018]. One of the major challenges when using MD simulations to explore the dynamics
-of chemical and biological systems is the sampling of rare events. Many interesting molecular
-processes occur over timescales substantially longer than are computationally feasible 
-to model for most researchers, even when harnessing the power of high-performance computing 
-[@yang_enhanced_2019, @kamenik_enhanced_2022]. This is particularly true for biological systems 
-[@hollingsworth_molecular_2018], which often contain 
-hundreds of thousands of atoms that must be explicitly simulated in order to accurately determine the dynamics of 
-the system [@brooks_biomolecular_2024]. A plethora of enhanced sampling techniques have been developed to tackle this 
-problem [@henin_enhanced_2022]: families of such techniques include
-(though are by no means limited to) umbrella sampling, metadynamics, steered molecular dynamics, generalised ensemble 
-approaches and biasing potential methods [Citations for specific methods]. Though undoubtedly effective, many of 
-these techniques have certain limitations, such as needing to specify a pre-determined reaction
+Re@mccammon_dynamics_1977]. MD has been used to study a plethora of chemical and biological systems 
+[@van_gunsteren_validation_2018]; applications include the prediction of protein structures [@geng_applications_2019], 
+simulation of drug docking in protein-ligand systems [@de_vivo_recent_2017], and the characterisation and 
+nano-engineering of materials [@lau_nano_engineering_2018]. One of the major challenges when using MD simulations to 
+explore the dynamics of chemical and biological systems is the sampling of rare events. Many interesting molecular 
+processes occur over timescales substantially longer than are computationally feasible to model for most researchers, 
+even when harnessing the power of high-performance computing [@yang_enhanced_2019; @kamenik_enhanced_2022]. This is 
+particularly true for biological systems [@hollingsworth_molecular_2018], which often contain hundreds of thousands of 
+atoms that must be explicitly simulated in order to accurately determine the dynamics of the system 
+[@brooks_biomolecular_2024]. A wide variety of enhanced sampling techniques have been developed to tackle the issue of 
+insufficient sampling by brute force MD simulations [@henin_enhanced_2022; @yang_enhanced_2019; 
+@kamenik_enhanced_2022]. Families of such techniques include (though are by no means limited to) umbrella sampling, 
+metadynamics, steered molecular dynamics, generalised ensemble approaches and biasing potential methods 
+[Citations for specific methods]. Though undoubtedly 
+effective, many of these techniques have certain limitations, such as needing to specify a pre-determined reaction
 coordinate or collective variable(s), imposing pre-defined constraints or restraints on the molecular system, 
 or requiring a large number of simulation steps and/or multiple simulations to sample the desired behaviour 
 [Citations for limitations].
@@ -99,9 +98,8 @@ physics engine used to simulate the molecular system and the researcher(s) conne
 the researcher(s) with tools to interact with the system in real time. NanoVer Server already interfaces with many 
 multiple programs used to perform molecular simulations [@eastman_openmm_2024; @larsen_atomic_2017], with a particular 
 emphasis on OpenMM. The NanoVer Server package is written in Python, making it easy to integrate with many of the 
-existing tools of the computational chemistry community and beyond. Additionally, being free and open-source 
-(distributed under the MIT license [Citation?]), the NanoVer Server package can easily be customised and extended 
-to interface with other physics engines.
+existing tools of the computational chemistry community and beyond. Additionally, being free and open-source, 
+the NanoVer Server package can easily be customised and extended to interface with other physics engines.
 
 NanoVer Server performs quantitative iMD simulations, delivering rigorous on-the-fly analytics about both the 
 molecular simulation (including energies, particle forces and particle velocities) and the perturbations induced by 
