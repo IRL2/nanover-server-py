@@ -21,14 +21,12 @@ requirements:
     - python >={{ MIN_PYTHON_VERSION }}
     - netifaces
     - grpcio
-    - grpcio-tools
     - pytest
     - numpy
     - hypothesis
     - typing-extensions
     - protobuf
     - attrs
-    - setuptools
   run:
     - python >={{ MIN_PYTHON_VERSION }}
     - netifaces

@@ -54,6 +54,7 @@ if [[ $with_python == true ]]; then
 
 	announce "Compiling proto files to python"
 	python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-server/src
+  touch ./python-libraries/nanover-server/src/nanover/protocol/__init__.py
 
   LOCALPATH=$(pwd)
 
