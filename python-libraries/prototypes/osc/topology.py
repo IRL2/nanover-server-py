@@ -2,7 +2,7 @@
 Functions for extracting topology from nanover frames into per-atom dictionaries.
 """
 
-from nanover.trajectory.frame_data import (
+from nanover.trajectory import (
     PARTICLE_ELEMENTS,
     PARTICLE_RESIDUES,
     PARTICLE_NAMES,

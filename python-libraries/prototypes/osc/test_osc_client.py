@@ -4,7 +4,7 @@ import threading
 
 from osc_client import OscClient
 from nanover.trajectory import FrameServer, FrameData
-from nanover.app.client import DEFAULT_SUBSCRIPTION_INTERVAL, NanoverImdClient
+from nanover.app import DEFAULT_SUBSCRIPTION_INTERVAL, NanoverImdClient
 
 from pythonosc import dispatcher
 from pythonosc.osc_server import ThreadingOSCUDPServer

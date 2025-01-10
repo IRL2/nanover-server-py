@@ -44,7 +44,7 @@ fi
 
 if [[ $with_python == true ]]; then
 	announce "Installing python requirements"
-	python -m pip install -r ./python-libraries/nanover-core/requirements.txt ${user_option}
+	python -m pip install -r ./python-libraries/nanover-server/requirements.txt ${user_option}
 
 	announce "Installing python prototypes requirements"
 	python -m pip install -r ./python-libraries/prototypes/requirements.txt ${user_option}
@@ -53,7 +53,7 @@ if [[ $with_python == true ]]; then
 	python -m pip install -r ./python-libraries/requirements.test ${user_option}
 
 	announce "Compiling proto files to python"
-	python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src
+	python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-server/src
 
   LOCALPATH=$(pwd)
 

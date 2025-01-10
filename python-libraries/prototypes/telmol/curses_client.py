@@ -9,7 +9,7 @@ import sys
 import textwrap
 from typing import Dict, Callable, Sequence, Any
 
-from nanover.app.app_server import DEFAULT_NANOVER_PORT
+from nanover.app import DEFAULT_NANOVER_PORT
 from nanover.trajectory import MissingDataError
 
 try:

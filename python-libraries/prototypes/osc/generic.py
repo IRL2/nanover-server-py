@@ -8,7 +8,7 @@ Run with:
     python generic.py --osc-port 9000
 """
 
-from nanover.trajectory.frame_data import KINETIC_ENERGY, POTENTIAL_ENERGY
+from nanover.trajectory import KINETIC_ENERGY, POTENTIAL_ENERGY
 from osc_app import OscApp
 
 

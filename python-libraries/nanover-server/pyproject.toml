@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanover-server"
+authors = [
+    {name = "Intangible Realities Lab"},
+]
+description = "Multi-simulation server for NanoVer"
+requires-python = ">=3.11"
+dependencies = [
+    "nanover",
+    "openmm",
+    "MDAnalysis",
+    "numpy",
+    "nglview",
+    "netifaces",
+    "grpcio>=1.63.0",
+    "grpcio-tools>=1.63.0",
+    "pytest",
+    "aiogrpc",
+    "numpy",
+    "hypothesis",
+    "typing_extensions",
+    "ase >= 3.21",
+]
+dynamic = ["version"]
+
+[project.scripts]
+nanover-omni = "nanover.omni.cli:main"
+nanover-record = "nanover.omni.recorder_cli:main"
+nanover-omm-server = "nanover.openmm.cli:main"
+nanover-essd-list = "nanover.essd.list_cli:main"
+nanover-multiplayer = "nanover.multiplayer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+include = ["nanover.*", "nanover.protocol"]  # package names should match these glob patterns (["*"] by default)
