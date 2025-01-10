@@ -10,7 +10,7 @@ from nanover.recording.reading import iter_recording_entries
 from nanover.recording.writing import record_entries
 from nanover.state.state_service import dictionary_change_to_state_update
 from nanover.trajectory import FrameData
-from nanover.utilities import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange
 
 
 def random_frame_message():

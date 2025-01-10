@@ -9,12 +9,12 @@ from hypothesis import strategies as st
 from hypothesis import given
 
 from nanover.protocol.trajectory import FrameData as GrpcFrameData
-from nanover.trajectory import (
+from nanover.trajectory.frame_data import (
     FrameData,
     RecordView,
 )
 from nanover.trajectory import frame_data
-from nanover.utilities import object_to_value
+from nanover.utilities.protobuf_utilities import object_to_value
 from .. import (
     EXACT_SINGLE_VALUE_STRATEGY,
     EXACT_VALUE_STRATEGIES,

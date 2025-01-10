@@ -1,4 +1,4 @@
-from nanover.utilities import Event
+from nanover.utilities.event import Event
 
 
 def test_invoke_nocallbacks():

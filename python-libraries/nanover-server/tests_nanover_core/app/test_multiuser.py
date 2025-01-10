@@ -1,12 +1,12 @@
 import time
 import numpy
 import pytest
-from nanover.app import (
+from nanover.app.multiuser import (
     RADIAL_ORIENT_COMMAND_KEY,
     MULTIUSER_ORIGIN_PREFIX,
     add_multiuser_commands,
 )
-from nanover.utilities import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange
 
 from ..app.test_client_selections import server_clients
 from ..core.test_nanover_client_server_state import IMMEDIATE_REPLY_WAIT_TIME

@@ -7,7 +7,7 @@ from nanover.imd.imd_state import (
     interaction_to_dict,
 )
 from nanover.testing import assert_in_soon, assert_not_in_soon, assert_equal_soon
-from nanover.utilities import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange
 
 from .test_imd_server import imd_server_client
 

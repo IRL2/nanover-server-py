@@ -7,7 +7,7 @@ import itertools
 import pytest
 
 from nanover.trajectory import FramePublisher
-from nanover.trajectory import FrameData, SERVER_TIMESTAMP
+from nanover.trajectory.frame_publisher import FrameData, SERVER_TIMESTAMP
 from nanover.protocol.trajectory import FrameData as RawFrameData
 
 

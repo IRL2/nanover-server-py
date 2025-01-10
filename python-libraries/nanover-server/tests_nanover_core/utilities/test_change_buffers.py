@@ -1,6 +1,6 @@
 import pytest
 
-from nanover.utilities import (
+from nanover.utilities.change_buffers import (
     DictionaryChangeBuffer,
     DictionaryChangeMultiView,
     ObjectFrozenError,

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from hypothesis import strategies, given
 from math import exp
-from nanover.imd import (
+from nanover.imd.imd_force import (
     get_center_of_mass_subset,
     calculate_spring_force,
     calculate_gaussian_force,

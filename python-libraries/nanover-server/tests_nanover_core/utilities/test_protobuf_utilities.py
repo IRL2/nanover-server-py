@@ -3,7 +3,7 @@ from math import inf, nan
 
 import pytest
 from google.protobuf.struct_pb2 import Value
-from nanover.utilities import (
+from nanover.utilities.protobuf_utilities import (
     dict_to_struct,
     object_to_value,
     value_to_object,

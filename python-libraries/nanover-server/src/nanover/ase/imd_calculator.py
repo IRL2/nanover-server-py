@@ -11,7 +11,7 @@ from ase.calculators.calculator import Calculator, all_changes
 from ase.md.md import MolecularDynamics
 from ase.md.velocitydistribution import _maxwellboltzmanndistribution
 
-from nanover.imd import calculate_imd_force, get_sparse_forces
+from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd.imd_state import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.trajectory import MissingDataError, FrameData

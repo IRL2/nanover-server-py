@@ -8,7 +8,7 @@ import time
 
 from grpc import RpcError, StatusCode
 from nanover.trajectory import FrameServer, FrameClient, FrameData
-from nanover.trajectory import SERVER_TIMESTAMP, SIMULATION_COUNTER
+from nanover.trajectory.frame_publisher import SERVER_TIMESTAMP, SIMULATION_COUNTER
 from numpy import average
 
 from .utilities.test_timing import TIMING_TOLERANCE, COMMON_INTERVALS

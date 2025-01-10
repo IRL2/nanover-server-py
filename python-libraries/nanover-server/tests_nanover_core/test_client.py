@@ -4,7 +4,7 @@ from mock import Mock
 from nanover.core import NanoverServer
 from nanover.trajectory import FrameData
 
-from nanover.trajectory import (
+from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
     RESET_COMMAND_KEY,
     STEP_COMMAND_KEY,

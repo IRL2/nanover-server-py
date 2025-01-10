@@ -3,7 +3,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 from nanover.utilities.key_lockable_map import ResourceLockedError
-from nanover.utilities import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange
 from nanover.state.state_dictionary import StateDictionary
 
 

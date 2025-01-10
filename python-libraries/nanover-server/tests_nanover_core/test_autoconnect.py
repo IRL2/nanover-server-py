@@ -5,10 +5,10 @@ Tests for application level autoconnecting between client and server.
 import pytest
 from mock import Mock
 from nanover.app import NanoverImdApplication, NanoverImdClient
-from nanover.app import MULTIPLAYER_SERVICE_NAME, DEFAULT_NANOVER_PORT
+from nanover.app.app_server import MULTIPLAYER_SERVICE_NAME, DEFAULT_NANOVER_PORT
 from nanover.core import NanoverServer
 from nanover.essd import DiscoveryServer, ServiceHub
-from nanover.essd import BROADCAST_PORT
+from nanover.essd.server import BROADCAST_PORT
 from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ImdServer, IMD_SERVICE_NAME
 from nanover.trajectory import FrameServer, FRAME_SERVICE_NAME

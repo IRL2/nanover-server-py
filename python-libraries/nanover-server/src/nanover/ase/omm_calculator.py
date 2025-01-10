@@ -13,7 +13,7 @@ from openmm.app import Topology, Simulation
 from openmm.unit import angstrom, kilojoules_per_mole, kilojoule_per_mole, amu, Quantity
 
 from nanover.ase.converter import KJMOL_TO_EV, ase_to_frame_data
-from nanover.openmm import add_openmm_topology_to_frame_data
+from nanover.openmm.converter import add_openmm_topology_to_frame_data
 from nanover.trajectory import FrameData
 
 

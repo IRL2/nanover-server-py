@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 from hypothesis import strategies, given, example
 
-from nanover.imd import _calculate_diff_and_sqr_distance
+from nanover.imd.imd_force import _calculate_diff_and_sqr_distance
 
 
 @strategies.composite

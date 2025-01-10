@@ -5,7 +5,7 @@ import numpy
 import pytest
 
 from nanover.testing import assert_in_soon
-from nanover.utilities import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.key_lockable_map import ResourceLockedError
 
 from nanover.core.nanover_client import NanoverClient
