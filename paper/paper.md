@@ -59,16 +59,17 @@ For decades, the family of simulation methods encompassed by the umbrella term "
 [@alder_phase_1957; @alder_molecular_1958; @alder_studies_1959; @rahman_correlations_1964; @verlet_computer_1967; 
  @mccammon_dynamics_1977].
 MD has been used to study a plethora of chemical and biological systems [@van_gunsteren_validation_2018]; 
-applications include the prediction of protein structures [@geng_applications_2019], 
-simulation of drug docking in protein-ligand systems [@de_vivo_recent_2017], and the characterisation 
-and nano-engineering of materials [@lau_nano_engineering_2018]. 
-One of the major challenges when using MD simulations to explore the dynamics
-of chemical and biological systems is the sampling of rare events [Citations]. Many interesting molecular
+applications include the prediction of protein structures [@geng_applications_2019], simulation of drug docking in 
+protein-ligand systems [@de_vivo_recent_2017], and the characterisation and nano-engineering of 
+materials [@lau_nano_engineering_2018]. One of the major challenges when using MD simulations to explore the dynamics
+of chemical and biological systems is the sampling of rare events. Many interesting molecular
 processes occur over timescales substantially longer than are computationally feasible 
-to model, even when harnessing the power of high-performance computing [Citations]. This is particularly true
-for biological systems, which may contain hundreds of thousands of atoms that must be explicitly
-simulated in order to accurately determine the dynamics of the system [Citations]. A plethora of enhanced sampling
-techniques have been developed to tackle this problem [@henin_enhanced_2022]: families of such techniques include
+to model for most researchers, even when harnessing the power of high-performance computing 
+[@yang_enhanced_2019, @kamenik_enhanced_2022]. This is particularly true for biological systems 
+[@hollingsworth_molecular_2018], which often contain 
+hundreds of thousands of atoms that must be explicitly simulated in order to accurately determine the dynamics of 
+the system [@brooks_biomolecular_2024]. A plethora of enhanced sampling techniques have been developed to tackle this 
+problem [@henin_enhanced_2022]: families of such techniques include
 (though are by no means limited to) umbrella sampling, metadynamics, steered molecular dynamics, generalised ensemble 
 approaches and biasing potential methods [Citations for specific methods]. Though undoubtedly effective, many of 
 these techniques have certain limitations, such as needing to specify a pre-determined reaction
