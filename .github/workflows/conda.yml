@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: conda install -y python conda-build "grpcio-tools<1.62" conda-verify
       - name: Compiling the prototypes
-        run: python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src
+        run: python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-server/src
       - name: Building the Conda packages
         run: |
           $build_command python-libraries/nanover-server/conda
