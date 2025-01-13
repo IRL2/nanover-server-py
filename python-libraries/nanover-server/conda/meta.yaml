@@ -2,18 +2,34 @@ package:
   name: nanover-server
   version: {{ NANOVER_BUILD_VERSION }}
 
+source:
+  path: ../
+
 build:
   noarch: python
   number: 0
+  entry_points:
+    - nanover-omni = nanover.omni.cli:main
+    - nanover-record = nanover.omni.recording_cli:main
+    - nanover-essd-list = nanover.essd.list_cli:main
+    - nanover-multiplayer = nanover.multiplayer.cli:main
 
 requirements:
+  build:
+    - python >={{ MIN_PYTHON_VERSION }}
+    - setuptools
+    - grpcio-tools
   run:
-    - nanover-core =={{ NANOVER_BUILD_VERSION }}
-    - nanover-openmm =={{ NANOVER_BUILD_VERSION }}
-    - nanover-ase =={{ NANOVER_BUILD_VERSION }}
-    - nanover-mdanalysis =={{ NANOVER_BUILD_VERSION }}
-    - nanover-omni =={{ NANOVER_BUILD_VERSION }}
-    - nanover-jupyter =={{ NANOVER_BUILD_VERSION }}
+    - python >={{ MIN_PYTHON_VERSION }}
+    - netifaces
+    - grpcio
+    - numpy
+    - typing-extensions
+    - protobuf
+    - attrs
+    - openmm
+    - ase >=3.21
+    - mdanalysis
 
 about:
   home: {{ NANOVER_DOC_URL }}

@@ -14,7 +14,7 @@ from nanover.openmm.serializer import deserialize_simulation
 from nanover.trajectory import FrameData
 from nanover.imd.particle_interaction import ParticleInteraction
 
-from .simulation_utils import (
+from simulation_utils import (
     basic_system,
     basic_simulation,
     basic_simulation_with_imd_force,
