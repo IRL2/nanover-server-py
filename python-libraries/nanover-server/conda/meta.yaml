@@ -41,6 +41,7 @@ requirements:
     - setuptools
     - openmm
     - ase >=3.21
+    - mdanalysis
 
 about:
   home: {{ NANOVER_DOC_URL }}
