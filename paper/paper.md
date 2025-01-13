@@ -84,11 +84,11 @@ offer iMD, probably with emphasis on those using 2-D interfaces) [Citations]. Ho
 aforementioned iMD implementations is that they force researchers to interact with inherently 3-D systems via 2-D 
 interfaces, which means they have limited utility for exploring complex 3-D reaction coordinates [Citations?]. This 
 problem can be overcome by performing iMD in virtual reality (iMD-VR). Virtual reality (VR) provides a natural 
-interface for visualising molecular systems by mapping the 3-D simulation space in which the molecular system is 
-simulated to a 3-D virtual space that the researcher can access, and a number of programs offer such 3-D molecular 
-visualisation. When combined with the tools to interact with molecular simulations, such a mapping facilitates iMD 
-in 3-D, enabling researchers to explore the behaviour of molecular systems in the natural set of spatial dimensions. 
-Many studies have demonstrated the utility of iMD-VR for research applications, including (cite Helen, Robin, Rhos, 
+interface for visualising molecular systems by mapping the 3-D simulation space of the molecular system 
+to a 3-D virtual environment that the researcher can access, with several programs already supporting molecular 
+visualisation in VR [Citations]. By combining 3-D visualisation in VR with iMD, iMD-VR enables researchers 
+to interact directly with molecular simulations in the natural set of spatial dimensions. Many studies have 
+demonstrated the utility of iMD-VR for research applications, including (cite Helen, Robin, Rhos, 
 Becca, etc. as well as other iMD-VR programs (which? which ones count as iMD-VR?)).
 
 NanoVer is a software ecosystem for performing quantitative real-time multi-user iMD simulations, with an emphasis 
