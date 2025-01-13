@@ -58,7 +58,7 @@ exploration of molecular systems using interactive molecular dynamics in virtual
 For decades, the family of simulation methods encompassed by the umbrella term "molecular dynamics"
 (MD) have been indispensable for exploring the temporal evolution and properties of atomic and molecular systems 
 [@alder_phase_1957; @alder_molecular_1958; @alder_studies_1959; @rahman_correlations_1964; @verlet_computer_1967; 
-Re@mccammon_dynamics_1977]. MD has been used to study a plethora of chemical and biological systems 
+@mccammon_dynamics_1977]. MD has been used to study a plethora of chemical and biological systems 
 [@van_gunsteren_validation_2018]; applications include the prediction of protein structures [@geng_applications_2019], 
 simulation of drug docking in protein-ligand systems [@de_vivo_recent_2017], and the characterisation and 
 nano-engineering of materials [@lau_nano_engineering_2018]. One of the major challenges when using MD simulations to 
@@ -66,9 +66,8 @@ explore the dynamics of chemical and biological systems is the sampling of rare 
 processes occur over timescales substantially longer than are computationally feasible to model for most researchers, 
 even when harnessing the power of high-performance computing [@yang_enhanced_2019; @kamenik_enhanced_2022]. This is 
 particularly true for biological systems [@hollingsworth_molecular_2018], which often contain hundreds of thousands of 
-atoms that must be explicitly simulated in order to accurately determine the dynamics of the system 
-[@brooks_biomolecular_2024]. A wide variety of enhanced sampling techniques have been developed to tackle the issue of 
-insufficient sampling by brute force MD simulations [@henin_enhanced_2022; @yang_enhanced_2019; 
+atoms [@brooks_biomolecular_2024]. A wide variety of enhanced sampling techniques have been developed to tackle the 
+issue of insufficient sampling by brute force MD simulations [@henin_enhanced_2022; @yang_enhanced_2019; 
 @kamenik_enhanced_2022]. Families of such techniques include (though are by no means limited to) umbrella sampling, 
 metadynamics, steered molecular dynamics, generalised ensemble approaches and biasing potential methods 
 [Citations for specific methods]. Though undoubtedly 
