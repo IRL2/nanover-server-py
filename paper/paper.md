@@ -44,13 +44,14 @@ bibliography: paper.bib
 
 # Summary
 
-NanoVer Server is a python package that facilitates real-time multi-user/collaborative interactive 
+NanoVer Server is a Python package that facilitates real-time multi-user/collaborative interactive 
 molecular dynamics (iMD) simulations. It is part of the NanoVer software ecosystem, comprising the
 server component of a server-client architecture that allows multiple clients to connect and 
-interact with a real-time molecular simulation. The NanoVer Server provides an interface to stream
-data between a molecular simulation engine and connected clients, and interfaces with the NanoVer 
-iMD-VR package to facilitate its current primary application: the exploration of molecular systems
-using interactive molecular dynamics in virtual reality (iMD-VR).
+interact with a real-time molecular simulation. NanoVer Server provides an interface to stream
+data between a molecular simulation engine and connected clients, and includes a client that can 
+connect to the server via a Python script or Jupyter notebook. Furthermore, NanoVer Server 
+interfaces with the NanoVer iMD-VR package to facilitate its current primary application: the 
+exploration of molecular systems using interactive molecular dynamics in virtual reality (iMD-VR).
 
 # Statement of need
 
