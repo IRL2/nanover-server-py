@@ -16,16 +16,21 @@ build:
 
 requirements:
   build:
+    - python >={{ MIN_PYTHON_VERSION }}
     - setuptools
     - grpcio-tools
   run:
     - python >={{ MIN_PYTHON_VERSION }}
     - netifaces
     - grpcio
+    - grpcio-tools
+    - pytest
     - numpy
+    - hypothesis
     - typing-extensions
     - protobuf
     - attrs
+    - setuptools
     - openmm
     - ase >=3.21
     - mdanalysis
