@@ -73,10 +73,10 @@ issue of insufficient sampling by brute force MD simulations [@henin_enhanced_20
 @valsson_enhancing_2016], steered molecular dynamics [@izrailev_steered_1999; @park_free_2003],
 replica exchange approaches [@swendsen_replica_1986; @geyer_markov_1991; @sugita_replica_exchange_1999] 
 and adaptive biasing force methods [@darve_calculating_2001; @comer_adaptive_2015].
-Though undoubtedly effective, many of these techniques have certain limitations, such as needing to specify a 
-pre-determined reaction coordinate or collective variable(s), imposing pre-defined constraints or restraints on the 
-molecular system, requiring a large number of simulation steps and/or multiple simulations to sample the 
-desired behaviour, or using adaptive strategies that are not guaranteed to investigate the desired behaviour.
+Though effective, many of these techniques have certain limitations, such as (a) requiring a priori definition of
+a reaction coordinate, collective variable(s) and/or constraints or restraints on the 
+system, (b) needing a large number of simulation steps and/or multiple parallel simulations, or (c) 
+using adaptive strategies that are not guaranteed to sample the desired behaviour.
 
 Interactive molecular dynamics (iMD) is an out-of-equilibrium approach that allows researchers to bias molecular 
 simulations on-the-fly, without the need to pre-define the behaviour of the system of interest [Citations]. It 
