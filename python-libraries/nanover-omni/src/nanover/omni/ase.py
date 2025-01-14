@@ -135,13 +135,10 @@ class ASESimulation:
         # setup imd calculator
         self.imd_calculator = ImdCalculator(
             self.app_server.imd,
-            ImdForceManager(self.app_server.imd, self.atoms),
-            self.initial_calc,
+            calculator=self.initial_calc,
+            atoms=self.atoms,
             dynamics=self.dynamics,
         )
-
-        # assign imd calculator to atoms
-        self.atoms.calc = self.imd_calculator
 
         self._dof = compute_dof(self.atoms)
 

@@ -138,17 +138,16 @@ class ImdCalculator(Calculator):
     def __init__(
         self,
         imd_state: ImdStateWrapper,
-        imd_force_manager: Optional[ImdForceManager] = None,
         calculator: Optional[Calculator] = None,
         atoms: Optional[Atoms] = None,
         dynamics: Optional[MolecularDynamics] = None,
         reset_scale=0.5,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(atoms=atoms, **kwargs)
+
         self._imd_state = imd_state
-        self._imd_force_manager = imd_force_manager
-        self.atoms = atoms
+        self._imd_force_manager = ImdForceManager(imd_state, atoms) if atoms is not None else None
         self._calculator = calculator
         self.implemented_properties = [
             "energy",
@@ -161,6 +160,8 @@ class ImdCalculator(Calculator):
         self._custom_temperature = None
         self._initialise_velocity_reset()
         self._pbc_implemented = False
+
+        self._atoms = atoms
 
     @property
     def temperature(self) -> float:
@@ -259,7 +260,7 @@ class ImdCalculator(Calculator):
         """
         energy = 0.0
         if atoms is None:
-            atoms = self.atoms
+            atoms = self._atoms
         if atoms is None:
             raise ValueError(
                 "No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation."
@@ -298,7 +299,7 @@ class ImdCalculator(Calculator):
         prev_interactions = self._imd_force_manager._current_interactions
         self._imd_force_manager.update_interactions()
         next_interactions = self._imd_force_manager._current_interactions
-        self._reset_velocities(self.atoms, next_interactions, prev_interactions)
+        self._reset_velocities(self._atoms, next_interactions, prev_interactions)
 
     def add_to_frame_data(self, frame_data: FrameData):
         """
@@ -372,7 +373,6 @@ def _get_atoms_to_reset(cancelled_interactions) -> Set[int]:
 
 def _apply_velocities_reset(atoms, atoms_to_reset, temperature):
     atoms_to_reset = np.array(list(atoms_to_reset))
-
     _reset_selection_to_boltzmann(atoms, atoms_to_reset, temperature)
     # now scale the velocities so the exact target temperature is achieved.
     _scale_momentum_of_selection(atoms, atoms_to_reset, temperature)

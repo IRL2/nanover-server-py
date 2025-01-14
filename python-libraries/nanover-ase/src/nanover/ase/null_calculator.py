@@ -14,4 +14,4 @@ class NullCalculator(Calculator):
     def calculate(
         self, atoms=None, properties=("forces", "energy"), system_changes=all_changes
     ):
-        self.results = {"forces": np.zeros((len(atoms), 3)), "energies": 0.0}
+        self.results = {"forces": np.zeros((len(atoms), 3)), "energy": 0.0}
