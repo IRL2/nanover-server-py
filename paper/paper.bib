@@ -377,7 +377,13 @@
 	shorttitle = {Nonphysical sampling distributions in {Monte} {Carlo} free-energy estimation},
 	url = {https://www.sciencedirect.com/science/article/pii/0021999177901218},
 	doi = {10.1016/0021-9991(77)90121-8},
-	abstract = {The free energy difference between a model system and some reference system can easily be written as an ensemble average, but the conventional Monte Carlo methods of obtaining such averages are inadequate for the free-energy case. That is because the Boltzmann-weighted sampling distribution ordinarily used is extremely inefficient for the purpose. This paper describes the use of arbitrary sampling distributions chosen to facilitate such estimates. The methods have been tested successfully on the Lennard-Jones system over a wide range of temperature and density, including the gas-liquid coexistence region, and are found to be extremely powerful and economical.},
+	abstract = {The free energy difference between a model system and some reference system can easily be written as
+	an ensemble average, but the conventional Monte Carlo methods of obtaining such averages are inadequate for the
+	free-energy case. That is because the Boltzmann-weighted sampling distribution ordinarily used is extremely
+	inefficient for the purpose. This paper describes the use of arbitrary sampling distributions chosen to facilitate
+	such estimates. The methods have been tested successfully on the Lennard-Jones system over a wide range of
+	temperature and density, including the gas-liquid coexistence region, and are found to be extremely powerful
+	and economical.},
 	number = {2},
 	urldate = {2025-01-13},
 	journal = {Journal of Computational Physics},
@@ -385,7 +391,6 @@
 	month = feb,
 	year = {1977},
 	pages = {187--199},
-	file = {ScienceDirect Snapshot:/Users/harrystroud/Zotero/storage/W7MKJV4I/0021999177901218.html:text/html},
 }
 
 % Umbrella sampling review
@@ -396,7 +401,22 @@
 	issn = {1759-0884},
 	url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/wcms.66},
 	doi = {10.1002/wcms.66},
-	abstract = {The calculation of free-energy differences is one of the main challenges in computational biology and biochemistry. Umbrella sampling, biased molecular dynamics (MD), is one of the methods that provide free energy along a reaction coordinate. Here, the method is derived in a historic overview and is compared with related methods like thermodynamic integration, slow growth, steered MD, or the Jarzynski-based fast-growth technique. In umbrella sampling, bias potentials along a (one- or more-dimensional) reaction coordinate drive a system from one thermodynamic state to another (e.g., reactant and product). The intermediate steps are covered by a series of windows, at each of which an MD simulation is performed. The bias potentials can have any functional form. Often, harmonic potentials are used for their simplicity. From the sampled distribution of the system along the reaction coordinate, the change in free energy in each window can be calculated. The windows are then combined by methods like the weighted histogram analysis method or umbrella integration. If the bias potential is adapted to result in an even distribution between the end states, then this whole range can be spanned by one window (adaptive-bias umbrella sampling). In this case, the free-energy change is directly obtained from the bias. The sampling in each window can be improved by replica exchange methods; either by exchange between successive windows or by running additional simulations at higher temperatures. © 2011 John Wiley \& Sons, Ltd. WIREs Comput Mol Sci 2011 1 932–942 DOI: 10.1002/wcms.66 This article is categorized under: Molecular and Statistical Mechanics {\textgreater} Molecular Dynamics and Monte-Carlo Methods},
+	abstract = {The calculation of free-energy differences is one of the main challenges in computational biology and
+	biochemistry. Umbrella sampling, biased molecular dynamics (MD), is one of the methods that provide free energy
+	along a reaction coordinate. Here, the method is derived in a historic overview and is compared with related
+	methods like thermodynamic integration, slow growth, steered MD, or the Jarzynski-based fast-growth technique.
+	In umbrella sampling, bias potentials along a (one- or more-dimensional) reaction coordinate drive a system
+	from one thermodynamic state to another (e.g., reactant and product). The intermediate steps are covered by a
+	series of windows, at each of which an MD simulation is performed. The bias potentials can have any functional
+	form. Often, harmonic potentials are used for their simplicity. From the sampled distribution of the system
+	along the reaction coordinate, the change in free energy in each window can be calculated. The windows are then
+	combined by methods like the weighted histogram analysis method or umbrella integration. If the bias potential
+	is adapted to result in an even distribution between the end states, then this whole range can be spanned by one
+	window (adaptive-bias umbrella sampling). In this case, the free-energy change is directly obtained from the bias.
+	The sampling in each window can be improved by replica exchange methods; either by exchange between successive
+	windows or by running additional simulations at higher temperatures. © 2011 John Wiley \& Sons, Ltd. WIREs Comput
+	Mol Sci 2011 1 932–942 DOI: 10.1002/wcms.66 This article is categorized under: Molecular and Statistical Mechanics
+	{\textgreater} Molecular Dynamics and Monte-Carlo Methods},
 	language = {en},
 	number = {6},
 	urldate = {2025-01-13},
@@ -405,8 +425,82 @@
 	year = {2011},
 	note = {\_eprint: https://onlinelibrary.wiley.com/doi/pdf/10.1002/wcms.66},
 	pages = {932--942},
-	file = {Full Text PDF:/Users/harrystroud/Zotero/storage/MLYWI29Z/Kästner - 2011 - Umbrella sampling.pdf:application/pdf;Snapshot:/Users/harrystroud/Zotero/storage/FI5LA44L/wcms.html:text/html},
 }
+
+% Metadynamics original paper
+@article{laio_escaping_2002,
+	title = {Escaping free-energy minima},
+	volume = {99},
+	url = {https://www.pnas.org/doi/full/10.1073/pnas.202427399},
+	doi = {10.1073/pnas.202427399},
+	abstract = {We introduce a powerful method for exploring the properties of the multidimensional free energy
+	surfaces (FESs) of complex many-body systems by means of coarse-grained non-Markovian dynamics in the space
+	defined by a few collective coordinates. A characteristic feature of these dynamics is the presence of a
+	history-dependent potential term that, in time, fills the minima in the FES, allowing the efficient exploration
+	and accurate determination of the FES as a function of the collective coordinates. We demonstrate the usefulness
+	of this approach in the case of the dissociation of a NaCl molecule in water and in the study of the conformational
+	changes of a dialanine in solution.},
+	number = {20},
+	urldate = {2025-01-14},
+	journal = {Proceedings of the National Academy of Sciences},
+	author = {Laio, Alessandro and Parrinello, Michele},
+	month = oct,
+	year = {2002},
+	note = {Publisher: Proceedings of the National Academy of Sciences},
+	pages = {12562--12566},
+}
+
+% Well-tempered metadynamics
+@article{barducci_well_tempered_2008,
+	title = {Well-{Tempered} {Metadynamics}: {A} {Smoothly} {Converging} and {Tunable} {Free}-{Energy} {Method}},
+	volume = {100},
+	shorttitle = {Well-{Tempered} {Metadynamics}},
+	url = {https://link.aps.org/doi/10.1103/PhysRevLett.100.020603},
+	doi = {10.1103/PhysRevLett.100.020603},
+	abstract = {We present a method for determining the free-energy dependence on a selected number of collective
+	variables using an adaptive bias. The formalism provides a unified description which has metadynamics and
+	canonical sampling as limiting cases. Convergence and errors can be rigorously and easily controlled. The
+	parameters of the simulation can be tuned so as to focus the computational effort only on the physically
+	relevant regions of the order parameter space. The algorithm is tested on the reconstruction of an alanine
+	dipeptide free-energy landscape.},
+	number = {2},
+	urldate = {2025-01-14},
+	journal = {Physical Review Letters},
+	author = {Barducci, Alessandro and Bussi, Giovanni and Parrinello, Michele},
+	month = jan,
+	year = {2008},
+	note = {Publisher: American Physical Society},
+	pages = {020603},
+}
+
+% Metadynamics review
+@article{valsson_enhancing_2016,
+	title = {Enhancing {Important} {Fluctuations}: {Rare} {Events} and {Metadynamics} from a {Conceptual} {Viewpoint}},
+	volume = {67},
+	issn = {0066-426X, 1545-1593},
+	shorttitle = {Enhancing {Important} {Fluctuations}},
+	url = {https://www.annualreviews.org/content/journals/10.1146/annurev-physchem-040215-112229},
+	doi = {10.1146/annurev-physchem-040215-112229},
+	abstract = {Atomistic simulations play a central role in many fields of science. However, their usefulness is
+	often limited by the fact that many systems are characterized by several metastable states separated by high
+	barriers, leading to kinetic bottlenecks. Transitions between metastable states are thus rare events that occur
+	on significantly longer timescales than one can simulate in practice. Numerous enhanced sampling methods have
+	been introduced to alleviate this timescale problem, including methods based on identifying a few crucial order
+	parameters or collective variables and enhancing the sampling of these variables. Metadynamics is one such method
+	that has proven successful in a great variety of fields. Here we review the conceptual and theoretical foundations
+	of metadynamics. As demonstrated, metadynamics is not just a practical tool but can also be considered an
+	important development in the theory of statistical mechanics.},
+	language = {en},
+	number = {Volume 67, 2016},
+	urldate = {2025-01-14},
+	journal = {Annual Review of Physical Chemistry},
+	author = {Valsson, Omar and Tiwary, Pratyush and Parrinello, Michele},
+	month = may,
+	year = {2016},
+	note = {Publisher: Annual Reviews},
+	pages = {159--184},
+}
+
 
 
 % OpenMM reference paper
