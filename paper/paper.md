@@ -76,7 +76,7 @@ and adaptive biasing force methods [@darve_calculating_2001; @comer_adaptive_201
 Though effective, many of these techniques have certain limitations, such as (a) requiring a priori definition of
 a reaction coordinate, collective variable(s) and/or constraints or restraints on the 
 system, (b) needing a large number of simulation steps and/or multiple parallel simulations, or (c) 
-using adaptive strategies that are not guaranteed to sample the desired behaviour.
+employing adaptive strategies that are not guaranteed to sample the desired behaviour.
 
 Interactive molecular dynamics (iMD) is an out-of-equilibrium approach that allows researchers to bias molecular 
 simulations on-the-fly, without the need to pre-define the behaviour of the system of interest [Citations]. It 
