@@ -13,10 +13,10 @@ jobs:
     env:
       build_command: "conda-build --prefix-length=100 --no-test --no-anaconda-upload "
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # We need all the history to figure out the version number
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           miniforge-version: latest
@@ -51,7 +51,7 @@ jobs:
           cp -r ${CONDA_PREFIX}/conda-bld ./artifacts
           ls ./artifacts
       - name: Save the artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: conda-packages
           path: ./artifacts
@@ -69,13 +69,13 @@ jobs:
         # the shell does not load ,profile or .bashrc.
         shell: bash -el {0}
     steps:
-      - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           miniforge-version: latest
       - name: Retrieve conda packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: conda-packages
       - name: Install NanoVer
@@ -97,8 +97,8 @@ jobs:
         # the shell does not load ,profile or .bashrc.
         shell: bash -el {0}
     steps:
-      - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           # WARNING! On the contrary to all the other places where we install
@@ -107,7 +107,7 @@ jobs:
           # from the default (anaconda) channel to upload to anaconda.
           miniconda-version: latest
       - name: Retrieve conda packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: conda-packages
       - name: Install Anaconda
