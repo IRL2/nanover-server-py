@@ -70,7 +70,7 @@ atoms [@brooks_biomolecular_2024]. A wide variety of enhanced sampling technique
 issue of insufficient sampling by brute force MD simulations [@henin_enhanced_2022; @yang_enhanced_2019; 
 @kamenik_enhanced_2022]. Families of such techniques include (though are by no means limited to) umbrella sampling
 [@torrie_nonphysical_1977; @kastner_umbrella_2011], metadynamics [@laio_escaping_2002; @barducci_well_tempered_2008; 
-@valsson_enhancing_2016], steered molecular dynamics [Citations],
+@valsson_enhancing_2016], steered molecular dynamics [@izrailev_steered_1999; @park_free_2003],
 replica exchange approaches [Citations] and biasing force methods 
 [Citations]. Though undoubtedly effective, many of these techniques have certain limitations (something about "in terms
 of flexible exploration of molecular behaviour"), such as needing to specify a pre-determined reaction
