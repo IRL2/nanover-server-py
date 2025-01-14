@@ -72,7 +72,7 @@ issue of insufficient sampling by brute force MD simulations [@henin_enhanced_20
 [@torrie_nonphysical_1977; @kastner_umbrella_2011], metadynamics [@laio_escaping_2002; @barducci_well_tempered_2008; 
 @valsson_enhancing_2016], steered molecular dynamics [@izrailev_steered_1999; @park_free_2003],
 replica exchange approaches [@swendsen_replica_1986; @geyer_markov_1991; @sugita_replica_exchange_1999] 
-and biasing force methods [Citations]. 
+and adaptive biasing force methods [@darve_calculating_2001; @comer_adaptive_2015]. 
 Though undoubtedly effective, many of these techniques have certain limitations (something about "in terms
 of flexible exploration of molecular behaviour"), such as needing to specify a pre-determined reaction
 coordinate or collective variable(s), imposing pre-defined constraints or restraints on the molecular system, 
