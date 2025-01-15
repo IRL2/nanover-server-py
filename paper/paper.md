@@ -8,28 +8,28 @@ tags:
   - iMD-VR
   - iMD
 authors:
-  - name: Jonathan Barnoud
+  - name: Harry J. Stroud
     affiliation: '1'
   - name: Mark Wonnacott
     affiliation: '1'
-  - name: Harry J. Stroud
+  - name: Jonathan Barnoud
     affiliation: '1'
   - name: Rhoslyn Roebuck Williams
     affiliation: '1'
   - name: Mohamed Dhouioui
     affiliation: '1'
+  - name: Adam McSloy
+    affiliation: '2'
   - name: Ludovica Aisa
     affiliation: '1'
   - name: Luis Toledo
     affiliation: '1'
-  - name: David Glowacki
-    affiliation: '1'
-  - name: Adam McSloy
-    affiliation: '2'
   - name: Phil Bates
     affiliation: '2'
   - name: Adrian Mulholland
     affiliation: '2'
+  - name: David Glowacki
+    affiliation: '1'
 affiliations:
   - index: 1
     name: Intangible Realities Laboratory, Centro Singular de Investigación en 
