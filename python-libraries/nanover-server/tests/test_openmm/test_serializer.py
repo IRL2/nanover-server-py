@@ -14,7 +14,7 @@ from nanover.openmm.serializer import (
     ROOT_TAG,
 )
 
-from .simulation_utils import (
+from simulation_utils import (
     basic_simulation,
     basic_simulation_xml,
     empty_imd_force,
