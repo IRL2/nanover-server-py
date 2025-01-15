@@ -11,7 +11,7 @@ from nanover.trajectory import frame_data
 from openmm.app.element import Element
 from openmm.app.topology import Topology
 
-from .simulation_utils import (
+from simulation_utils import (
     BASIC_SIMULATION_POSITIONS,
     BASIC_SIMULATION_BOX_VECTORS,
     basic_simulation,

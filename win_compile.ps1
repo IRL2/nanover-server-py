@@ -29,7 +29,7 @@ if ($user)
 }
 
 announce "Installing python requirements"
-python -m pip install -r ./python-libraries/nanover-core/requirements.txt ${user_option}
+python -m pip install -r ./python-libraries/nanover-server/requirements.txt ${user_option}
 
 announce "Installing prototypes requirements"
 python -m pip install -r ./python-libraries/prototypes/requirements.txt ${user_option}
@@ -38,17 +38,10 @@ announce "Installing python test requirements"
 python -m pip install -r ./python-libraries/requirements.test ${user_option}
 
 announce "Compiling proto files to python"
-python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src
+python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-server/src
 
 announce "Installing the python packages"
-python -m pip install ${edit_option} ${user_option}  (Convert-Path "./python-libraries/nanover-core/") --config-settings editable_mode=compat
-
-Get-ChildItem -Directory python-libraries/nanover-* | ForEach-Object {
-    if (Test-Path -Path "$($_.FullName)/pyproject.toml") {
-        Write-Host "$($_.FullName)"
-        pip install ${edit_option} ${user_option} ""$($_.FullName)""  --config-settings editable_mode=compat
-    }
- }
+python -m pip install ${edit_option} ${user_option}  (Convert-Path "./python-libraries/nanover-server/") --config-settings editable_mode=compat
 
 python -c "import openmm"
 if ($LASTEXITCODE -ne 0)
