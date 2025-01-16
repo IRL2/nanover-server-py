@@ -261,17 +261,9 @@ class ImdCalculator(Calculator):
             See :func:`~Calculator.calculate` for details.
         :param system_changes: List of what has changed since last calculation. See :func:`~Calculator.calculate` for
             details.
-
-        :raises ValueError: If no ASE atoms are supplied to the calculation, and no ASE atoms were supplied during
-            initialisation.
         """
-
         if atoms is None:
             atoms = self._atoms
-        if atoms is None:
-            raise ValueError(
-                "No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation."
-            )
 
         # Use internal calculator for system energy and forces
         self.calculator.calculate(atoms, properties, system_changes)
