@@ -1,6 +1,6 @@
 import openmm as mm
 from nanover.openmm import potentials
-from .simulation_utils import basic_simulation
+from simulation_utils import basic_simulation
 from openmm.unit import kilojoule_per_mole, nanometer
 
 

@@ -6,7 +6,7 @@ ignore = ["E501"]
 # The directory with the python files generated from the proto files is already
 # in the gitignore and therefore should be ignored by ruff. This does not seem
 # to be the case so we exclude it explicitely.
-exclude = ["python-libraries/nanover-core/src/nanover/protocol/**"]
+exclude = ["python-libraries/nanover-server/src/nanover/protocol/**"]
 
 [lint.per-file-ignores]
 "test*" = ["F401", "F811"]

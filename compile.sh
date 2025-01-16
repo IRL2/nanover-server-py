@@ -44,7 +44,7 @@ fi
 
 if [[ $with_python == true ]]; then
 	announce "Installing python requirements"
-	python -m pip install -r ./python-libraries/nanover-core/requirements.txt ${user_option}
+	python -m pip install -r ./python-libraries/nanover-server/requirements.txt ${user_option}
 
 	announce "Installing python prototypes requirements"
 	python -m pip install -r ./python-libraries/prototypes/requirements.txt ${user_option}
@@ -53,18 +53,12 @@ if [[ $with_python == true ]]; then
 	python -m pip install -r ./python-libraries/requirements.test ${user_option}
 
 	announce "Compiling proto files to python"
-	python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-core/src
+	python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-server/src
 
   LOCALPATH=$(pwd)
 
 	announce "Installing the python packages"
-	python -m pip install ${edit_option} ${nanover_user_option} ${LOCALPATH}/python-libraries/nanover-core/ --config-settings editable_mode=compat
-
-	for package in python-libraries/nanover-*/; do
-		if [[ -f "${package}/pyproject.toml" ]]; then
-			python -m pip install ${edit_option} ${nanover_user_option} ${LOCALPATH}/${package} --config-settings editable_mode=compat
-		fi
-	done
+	python -m pip install ${edit_option} ${nanover_user_option} ${LOCALPATH}/python-libraries/nanover-server/ --config-settings editable_mode=compat
 
 	python -c "import openmm" 2>&1 >/dev/null || {
 		announce "OpenMM is not installed."
