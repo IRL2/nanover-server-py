@@ -80,19 +80,27 @@ employing adaptive strategies that are not guaranteed to sample the desired beha
 
 Interactive molecular dynamics (iMD) is an out-of-equilibrium approach that allows researchers to bias atomic/molecular 
 simulations on-the-fly, without the need to pre-define the behaviour of the system [@stone_system_2001; 
-@rapaport_interactive_1997]. It enables researchers to interact with molecular systems in real-time, to bias their 
-dynamics and sample rare events of interest [@stone_system_2001]. A number of programs have implementations of iMD, 
-including (include examples of softwares that
-offer iMD, probably with emphasis on those using 2-D interfaces) [Citations]. However, a limitation of many of the 
-aforementioned iMD implementations is that they force researchers to interact with inherently 3-D systems via 2-D 
-interfaces, which means they have limited utility for exploring complex 3-D reaction coordinates [Citations?]. This 
-problem can be overcome by performing iMD in virtual reality (iMD-VR). Virtual reality (VR) provides a natural 
-interface for visualising molecular systems by mapping the 3-D simulation space of the molecular system 
-to a 3-D virtual environment that the researcher can access, with several programs already supporting molecular 
-visualisation in VR [Citations]. By combining 3-D visualisation in VR with iMD, iMD-VR enables researchers 
-to interact directly with molecular simulations in the natural set of spatial dimensions. Many studies have 
-demonstrated the utility of iMD-VR for research applications, including (cite Helen, Robin, Rhos, 
-Becca, etc. as well as other iMD-VR programs (which? which ones count as iMD-VR?)).
+@rapaport_interactive_1997; @oconnor_sampling_2018; oconnor_interactive_2019]. iMD enables researchers to interact with 
+molecular systems in real-time, to bias their dynamics and sample rare events of interest [@stone_system_2001]. A 
+number of programs have implementations of iMD, including for example TeraChem 
+(https://pubs.acs.org/doi/full/10.1021/acs.jctc.5b00419), SCINE, 
+(https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/474361/3/s9.pdf) and NAMD/VMD 
+[@stone_system_2001]. These iMD implementations enable researchers to interact with inherently 3-D systems via haptic 
+interfaces visualized on 2-D screens. Relatively fewer environments are available which enable researchers to interact 
+with molecular dynamics simulations in a 3-D native environment, which is especially important for exploring complex 
+molecular structural transformations [@oconnor_sampling_2018]. This problem can be overcome by performing iMD in 
+virtual reality (iMD-VR), which provides a natural interface for visualising molecular systems by mapping the 3-D 
+simulation space of the molecular system to a 3-D virtual environment that the researcher can inhabit. While several 
+programs already enable molecular visualisation in VR [@doutreligne_unitymol_2014; @bennie_virtual_2023; 
+@pettersen_ucsf_2021; @ozvoldik_yasara_2023; @cassidy_proteinvr_2020; @cortes_rodriguez_molecularwebxr_2025], 
+relatively fewer support the combination of VR-enabled 3D visualisation in VR with real-time iMD. The iMD-VR 
+combination enables researchers to interact directly with molecular simulations in an environment which is natively 
+3-dimensional, i.e., researchers can ‘reach out & touch’ molecular simulations as if they were tangible objects. 
+Many studies have demonstrated the utility of iMD-VR for research applications,  in areas spanning protein-drug 
+binding, [@deeks_interactive_2020; @deeks_interactive_docking_2020; @henry_chan_discovery_2021; 
+@walters_emerging_2022], protein conformational dynamics [@juarez_jimenez_combining_2020], machine-learning potential 
+energy surfaces [@amabilino_training_2019; @amabilino_training_2020], discovering reaction networks 
+[@shannon_exploring_2021], and chemistry education [@bennie_teaching_2019].
 
 NanoVer is a software ecosystem for performing quantitative real-time multi-user iMD simulations, with an emphasis 
 on iMD-VR. In order to facilitate this, NanoVer operates using a server-client architecture, of which NanoVer Server
