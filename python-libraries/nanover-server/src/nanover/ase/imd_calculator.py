@@ -42,7 +42,11 @@ class ImdForceManager:
         """
         Update the iMD interaction energies and forces (in ASE units).
         """
+        prev_interactions = self._current_interactions
         self._update_forces(self.atoms)
+        next_interactions = self._current_interactions
+
+        return prev_interactions, next_interactions
 
     def add_to_frame_data(self, frame_data: FrameData):
         """
@@ -260,7 +264,7 @@ class ImdCalculator(Calculator):
         :raises ValueError: If no ASE atoms are supplied to the calculation, and no ASE atoms were supplied during
             initialisation.
         """
-        energy = 0.0
+
         if atoms is None:
             atoms = self._atoms
         if atoms is None:
@@ -275,21 +279,21 @@ class ImdCalculator(Calculator):
             get_periodic_box_lengths(atoms)
             self._pbc_implemented = True
 
-        forces = np.zeros((len(atoms), 3))
-
         if self.calculator is not None:
             self.calculator.calculate(atoms, properties, system_changes)
             energy = self.calculator.results["energy"]
             forces = self.calculator.results["forces"]
+        else:
+            energy = 0.0
+            forces = np.zeros((len(atoms), 3))
 
-        if self._imd_force_manager is not None:
-            # Retrieve iMD energy and forces and add to results
-            imd_energy = self._imd_force_manager.total_user_energy
-            imd_forces = self._imd_force_manager.user_forces
-            self.results["energy"] = energy + imd_energy
-            self.results["forces"] = forces + imd_forces
-            self.results["interactive_energy"] = imd_energy
-            self.results["interactive_forces"] = imd_forces
+        # Retrieve iMD energy and forces and add to results
+        imd_energy = self._imd_force_manager.total_user_energy
+        imd_forces = self._imd_force_manager.user_forces
+        self.results["energy"] = energy + imd_energy
+        self.results["forces"] = forces + imd_forces
+        self.results["interactive_energy"] = imd_energy
+        self.results["interactive_forces"] = imd_forces
 
     def update_interactions(self):
         """
@@ -297,10 +301,7 @@ class ImdCalculator(Calculator):
         via the ImdForceManager, and subsequently resets the velocities
         (if applicable).
         """
-        assert self._imd_force_manager is not None
-        prev_interactions = self._imd_force_manager._current_interactions
-        self._imd_force_manager.update_interactions()
-        next_interactions = self._imd_force_manager._current_interactions
+        prev_interactions, next_interactions = self._imd_force_manager.update_interactions()
         self._reset_velocities(self._atoms, next_interactions, prev_interactions)
 
     def add_to_frame_data(self, frame_data: FrameData):
@@ -310,7 +311,6 @@ class ImdCalculator(Calculator):
 
         :param frame_data: The FrameData object to which the iMD results are appended.
         """
-        assert self._imd_force_manager is not None
         self._imd_force_manager.add_to_frame_data(frame_data)
 
     def _reset_velocities(self, atoms, interactions, previous_interactions):
