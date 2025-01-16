@@ -137,6 +137,20 @@ cloud computing can be used to facilitate real-time multi-user iMD-VR across lar
 Server is built comprises general tools for constructing multi-user VR experiences, the scope of which extend beyond 
 application in computational chemistry.
 
+# Acknowledgements
+
+This work is supported by the European Research Council under the European Union’s Horizon 
+2020 research and innovation programme through consolidator Grant NANOVR 866559, the 
+Axencia Galega de Innovación for funding as an Investigador Distinguido through the 
+Oportunius Program, and the Xunta de Galicia (Centro de investigación de Galicia accreditation 
+2019–2022, ED431G-2019/04).
+
+# References
+
+From the JOSS website: "A list of key references, including to other software addressing related needs. 
+Note that the references should include full names of venues, e.g., journals and conferences, not 
+abbreviations only understood in the context of a specific discipline."
+
 # Notes for "Statement of need" section
 
 Aim of section: "A Statement of need section that clearly illustrates the research purpose of the
@@ -181,24 +195,6 @@ Ideas from the paper meeting (#1):
 
 Ideas from the paper meeting (#2): see whiteboard! echoed much of the above.
 
-
-# Acknowledgements
-
-From the JOSS website: "Acknowledgement of any financial support."
-
-This is probably the place to acknowledge the funding that supports NanoVer.
-
-This also seems to be the place to acknowledge contributions from other people that have helped with the project?
-
-- ERC
-- Xunta
-
-# References
-
-From the JOSS website: "A list of key references, including to other software addressing related needs. 
-Note that the references should include full names of venues, e.g., journals and conferences, not 
-abbreviations only understood in the context of a specific discipline."
-
 # Notes for "Summary" section
 
 Aim of section: "A summary describing the high-level functionality and purpose of the software for a diverse, non-specialist audience."
@@ -214,5 +210,12 @@ NanoVer is a software ecosystem for performing interactive molecular dynamics si
 - the NanoVer VR client (nanover-imd-vr)
 
 The NanoVer server facilitates real-time iMD, interfaces with nanover-imd-vr to facilitate our primary use case of iMD-VR. The NanoVer server comprises a set of libraries that facilitate client-server collaborative interactive molecular dynamics simulations in virtual reality... It is part of the NanoVer software ecosystem for collaborative interactive molecular dynamics simulations in virtual reality (iMD-VR).
+
+# Notes for Acknowledgements section
+
+From the JOSS website: "Acknowledgement of any financial support."
+
+This is probably the place to acknowledge the funding that supports NanoVer.
+
 
 
