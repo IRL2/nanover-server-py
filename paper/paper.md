@@ -78,10 +78,11 @@ a reaction coordinate, collective variable(s) and/or constraints or restraints o
 system, (b) needing a large number of simulation steps and/or multiple parallel simulations, or (c) 
 employing adaptive strategies that are not guaranteed to sample the desired behaviour.
 
-Interactive molecular dynamics (iMD) is an out-of-equilibrium approach that allows researchers to bias molecular 
-simulations on-the-fly, without the need to pre-define the behaviour of the system of interest [Citations]. It 
-allows researchers to interact with molecular systems in real-time, to bias their dynamics and sample rare events of
-interest [Citations]. A number of programs have implementations of iMD, including (include examples of softwares that
+Interactive molecular dynamics (iMD) is an out-of-equilibrium approach that allows researchers to bias atomic/molecular 
+simulations on-the-fly, without the need to pre-define the behaviour of the system [@stone_system_2001; 
+@rapaport_interactive_1997]. It enables researchers to interact with molecular systems in real-time, to bias their 
+dynamics and sample rare events of interest [@stone_system_2001]. A number of programs have implementations of iMD, 
+including (include examples of softwares that
 offer iMD, probably with emphasis on those using 2-D interfaces) [Citations]. However, a limitation of many of the 
 aforementioned iMD implementations is that they force researchers to interact with inherently 3-D systems via 2-D 
 interfaces, which means they have limited utility for exploring complex 3-D reaction coordinates [Citations?]. This 
