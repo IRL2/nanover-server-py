@@ -150,7 +150,10 @@ structure enables multi-user iMD-VR to be performed using colocated (where users
 and distributed (where users can connect to the same virtual space from different physical spaces) setups. This 
 flexible structure has great potential for collaborative research: previous iMD-VR frameworks have demonstrated that 
 cloud computing can be used to facilitate real-time multi-user iMD-VR across large physical distances 
-[Cite the appropriate Narupa paper, and any other appropriate ones?]. Furthermore, the protocol on which NanoVer 
+
+(Cite the appropriate Narupa paper, and any other appropriate ones?). 
+
+Furthermore, the protocol on which NanoVer 
 Server is built comprises general tools for constructing multi-user VR experiences, the scope of which extend beyond 
 application in computational chemistry.
 
