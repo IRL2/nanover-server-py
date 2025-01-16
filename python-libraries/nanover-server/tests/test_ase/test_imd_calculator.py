@@ -37,13 +37,6 @@ def imd_calculator_co(imd_server):
     yield imd_calculator, atoms, imd_server
 
 
-@pytest.fixture
-def imd_calculator_no_atoms(imd_server):
-    calculator = LennardJones()
-    imd_calculator = ImdCalculator(imd_server.imd_state, calculator=calculator)
-    yield imd_calculator
-
-
 def test_imd_calculator_no_interactions(imd_calculator_co):
     imd_calculator, atoms, _ = imd_calculator_co
     properties = ("energy", "forces")
@@ -75,21 +68,6 @@ def test_imd_calculator_not_orthorhombic(imd_calculator_co):
     atoms.set_cell([1, 1, 1, 45, 45, 45])
     with pytest.raises(NotImplementedError):
         imd_calculator.calculate()
-
-
-def test_imd_calculator_late_atoms(imd_calculator_no_atoms, atoms):
-    """
-    tests that the imd calculator works if atoms supplied after initialisation.
-    """
-    imd_calculator_no_atoms.calculate(atoms=atoms)
-
-
-def test_imd_calculator_no_atoms(imd_calculator_no_atoms):
-    """
-    tests that the imd calculator throws an exception if no atoms are supplied.
-    """
-    with pytest.raises(ValueError):
-        imd_calculator_no_atoms.calculate()
 
 
 @pytest.mark.parametrize(

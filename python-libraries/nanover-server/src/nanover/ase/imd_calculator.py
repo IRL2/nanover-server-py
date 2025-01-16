@@ -17,7 +17,6 @@ from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.trajectory.frame_data import MissingDataError, FrameData
 
 from . import converter
-from .null_calculator import NullCalculator
 
 
 class ImdForceManager:
@@ -143,8 +142,8 @@ class ImdCalculator(Calculator):
     def __init__(
         self,
         imd_state: ImdStateWrapper,
-        calculator: Optional[Calculator] = None,
-        atoms: Optional[Atoms] = None,
+        calculator: Calculator,
+        atoms: Atoms,
         dynamics: Optional[MolecularDynamics] = None,
         reset_scale=0.5,
         **kwargs,
@@ -152,10 +151,8 @@ class ImdCalculator(Calculator):
         super().__init__(atoms=atoms, **kwargs)
 
         self._imd_state = imd_state
-        self._imd_force_manager = (
-            ImdForceManager(imd_state, atoms) if atoms is not None else None
-        )
-        self._calculator = calculator if calculator is not None else NullCalculator()
+        self._imd_force_manager = ImdForceManager(imd_state, atoms)
+        self._calculator = calculator
         self.implemented_properties = [
             "energy",
             "forces",
@@ -299,7 +296,9 @@ class ImdCalculator(Calculator):
         via the ImdForceManager, and subsequently resets the velocities
         (if applicable).
         """
-        prev_interactions, next_interactions = self._imd_force_manager.update_interactions()
+        prev_interactions, next_interactions = (
+            self._imd_force_manager.update_interactions()
+        )
         self._reset_velocities(self._atoms, next_interactions, prev_interactions)
 
     def add_to_frame_data(self, frame_data: FrameData):
