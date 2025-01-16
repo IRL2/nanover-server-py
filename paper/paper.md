@@ -44,13 +44,7 @@ bibliography: paper.bib
 
 # Summary
 
-NanoVer Server is a Python package that facilitates multi-user interactive molecular dynamics (iMD) for real-time 
-collaboration in simulation-based computational chemistry. It is the primary software of NanoVer, interfacing with 
-standard molecular dynamics packages to provide a familiar Python and Jupyter based workflow for running iMD 
-simulations and serving them to local and remote clients over the network. This forms the base of NanoVer's 
-primary application: the exploration of molecular systems using interactive molecular dynamics in virtual 
-reality (iMD-VR), which is achieved by connecting a dedicated VR client from the NanoVer iMD-VR package.
-
+(Original version)
 NanoVer Server is a Python package that facilitates real-time multi-user/collaborative interactive 
 molecular dynamics (iMD) simulations. It is part of the NanoVer software ecosystem, comprising the
 server component of a server-client architecture that allows multiple clients to connect and 
@@ -59,6 +53,14 @@ data between a molecular simulation engine and connected clients, and includes a
 connect to the server via a Python script or Jupyter notebook. Furthermore, NanoVer Server 
 interfaces with the NanoVer iMD-VR package to facilitate its current primary application: the 
 exploration of molecular systems using interactive molecular dynamics in virtual reality (iMD-VR).
+
+(Suggested version)
+NanoVer Server is a Python package that facilitates multi-user interactive molecular dynamics (iMD) for real-time 
+collaboration in simulation-based computational chemistry. It is the primary software of NanoVer, interfacing with 
+standard molecular dynamics packages to provide a familiar Python and Jupyter based workflow for running iMD 
+simulations and serving them to local and remote clients over the network. This forms the base of NanoVer's 
+primary application: the exploration of molecular systems using interactive molecular dynamics in virtual 
+reality (iMD-VR), which is achieved by connecting a dedicated VR client from the NanoVer iMD-VR package.
 
 # Statement of need
 
