@@ -50,11 +50,12 @@ def test_imd_calculator_no_interactions(imd_calculator_co):
     assert np.all(results["interactive_forces"] == np.zeros((len(atoms), 3)))
 
 
-def test_imd_calculator_one_dimension_pbc(imd_calculator_co):
-    imd_calculator, atoms, _ = imd_calculator_co
+def test_imd_calculator_one_dimension_pbc(imd_server):
+    atoms = co_atoms()
     atoms.set_pbc((True, False, False))
+    calculator = LennardJones()
     with pytest.raises(NotImplementedError):
-        imd_calculator.calculate()
+        imd_calculator = ImdCalculator(imd_server.imd_state, calculator, atoms)
 
 
 def test_imd_calculator_no_pbc(imd_calculator_co):
