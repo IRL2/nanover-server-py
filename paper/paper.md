@@ -147,11 +147,10 @@ application in computational chemistry.
 
 # Acknowledgements
 
-This work is supported by the European Research Council under the European Union’s Horizon 
-2020 research and innovation programme through consolidator Grant NANOVR 866559, the 
-Axencia Galega de Innovación for funding as an Investigador Distinguido through the 
-Oportunius Program, and the Xunta de Galicia (Centro de investigación de Galicia accreditation 
-2019–2022, ED431G-2019/04).
+This work is supported by the European Research Council under the European Union’s Horizon 2020 research and 
+innovation programme through consolidator Grant NANOVR 866559, the Axencia Galega de Innovación for funding as an 
+Investigador Distinguido through the Oportunius Program, and the Xunta de Galicia (Centro de investigación de 
+Galicia accreditation 2019–2022, ED431G-2019/04).
 
 # References
 
