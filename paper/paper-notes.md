@@ -1,8 +1,18 @@
-# References
+# Notes for "Summary" section
 
-From the JOSS website: "A list of key references, including to other software addressing related needs. 
-Note that the references should include full names of venues, e.g., journals and conferences, not 
-abbreviations only understood in the context of a specific discipline."
+Aim of section: "A summary describing the high-level functionality and purpose of the software for a diverse, non-specialist audience."
+
+Q: What software are we presenting in this paper?
+A: The python implementation of the NanoVer server (nanover-server-py)
+
+The NanoVer server (nanover-server-py) facilitates real-time multi-user interactive molecular dynamics (iMD) simulations, for which the current primary application is performing collaborative iMD simulations in virtual reality (iMD-VR).
+
+NanoVer is a software ecosystem for performing interactive molecular dynamics simulations in virtual reality (iMD-VR), consisting of:
+
+- the NanoVer server (nanover-server-py)
+- the NanoVer VR client (nanover-imd-vr)
+
+The NanoVer server facilitates real-time iMD, interfaces with nanover-imd-vr to facilitate our primary use case of iMD-VR. The NanoVer server comprises a set of libraries that facilitate client-server collaborative interactive molecular dynamics simulations in virtual reality... It is part of the NanoVer software ecosystem for collaborative interactive molecular dynamics simulations in virtual reality (iMD-VR).
 
 # Notes for "Statement of need" section
 
@@ -48,27 +58,17 @@ Ideas from the paper meeting (#1):
 
 Ideas from the paper meeting (#2): see whiteboard! echoed much of the above.
 
-# Notes for "Summary" section
-
-Aim of section: "A summary describing the high-level functionality and purpose of the software for a diverse, non-specialist audience."
-
-Q: What software are we presenting in this paper?
-A: The python implementation of the NanoVer server (nanover-server-py)
-
-The NanoVer server (nanover-server-py) facilitates real-time multi-user interactive molecular dynamics (iMD) simulations, for which the current primary application is performing collaborative iMD simulations in virtual reality (iMD-VR).
-
-NanoVer is a software ecosystem for performing interactive molecular dynamics simulations in virtual reality (iMD-VR), consisting of:
-
-- the NanoVer server (nanover-server-py)
-- the NanoVer VR client (nanover-imd-vr)
-
-The NanoVer server facilitates real-time iMD, interfaces with nanover-imd-vr to facilitate our primary use case of iMD-VR. The NanoVer server comprises a set of libraries that facilitate client-server collaborative interactive molecular dynamics simulations in virtual reality... It is part of the NanoVer software ecosystem for collaborative interactive molecular dynamics simulations in virtual reality (iMD-VR).
-
 # Notes for Acknowledgements section
 
 From the JOSS website: "Acknowledgement of any financial support."
 
 This is probably the place to acknowledge the funding that supports NanoVer.
+
+# References
+
+From the JOSS website: "A list of key references, including to other software addressing related needs. 
+Note that the references should include full names of venues, e.g., journals and conferences, not 
+abbreviations only understood in the context of a specific discipline."
 
 
 
