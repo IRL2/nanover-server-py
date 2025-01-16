@@ -17,6 +17,7 @@ from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.trajectory.frame_data import MissingDataError, FrameData
 
 from . import converter
+from .null_calculator import NullCalculator
 
 
 class ImdForceManager:
@@ -154,7 +155,7 @@ class ImdCalculator(Calculator):
         self._imd_force_manager = (
             ImdForceManager(imd_state, atoms) if atoms is not None else None
         )
-        self._calculator = calculator
+        self._calculator = calculator if calculator is not None else NullCalculator()
         self.implemented_properties = [
             "energy",
             "forces",
@@ -225,7 +226,7 @@ class ImdCalculator(Calculator):
         return self.temperature * self.reset_scale
 
     @property
-    def calculator(self) -> Optional[Calculator]:
+    def calculator(self) -> Calculator:
         """
         The internal ASE calculator being used.
 
@@ -279,13 +280,10 @@ class ImdCalculator(Calculator):
             get_periodic_box_lengths(atoms)
             self._pbc_implemented = True
 
-        if self.calculator is not None:
-            self.calculator.calculate(atoms, properties, system_changes)
-            energy = self.calculator.results["energy"]
-            forces = self.calculator.results["forces"]
-        else:
-            energy = 0.0
-            forces = np.zeros((len(atoms), 3))
+        # Use internal calculator for system energy and forces
+        self.calculator.calculate(atoms, properties, system_changes)
+        energy = self.calculator.results["energy"]
+        forces = self.calculator.results["forces"]
 
         # Retrieve iMD energy and forces and add to results
         imd_energy = self._imd_force_manager.total_user_energy
