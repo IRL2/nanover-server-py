@@ -324,7 +324,7 @@ class ImdCalculator(Calculator):
 
     def _initialise_velocity_reset(self):
         try:
-            pass
+            _ = self.temperature
         except MissingDataError:
             self._imd_state.velocity_reset_available = False
         self._imd_state.velocity_reset_available = True
