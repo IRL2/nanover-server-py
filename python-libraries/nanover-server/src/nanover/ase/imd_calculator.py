@@ -163,9 +163,12 @@ class ImdCalculator(Calculator):
         self.reset_scale = reset_scale
         self._custom_temperature = None
         self._initialise_velocity_reset()
-        self._pbc_implemented = False
 
         self._atoms = atoms
+
+        # Check whether the periodic boundary conditions defined in the atoms object are implemented
+        # for the iMD calculator.
+        get_periodic_box_lengths(atoms)
 
     @property
     def temperature(self) -> float:
@@ -269,13 +272,6 @@ class ImdCalculator(Calculator):
             raise ValueError(
                 "No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation."
             )
-
-        # Check whether the periodic boundary conditions defined in the atoms object are implemented
-        # for the iMD calculator. If they are (or no pbcs are defined), set _pbc_implemented property
-        # to true to avoid repeating this check.
-        if not self._pbc_implemented:
-            get_periodic_box_lengths(atoms)
-            self._pbc_implemented = True
 
         # Use internal calculator for system energy and forces
         self.calculator.calculate(atoms, properties, system_changes)
