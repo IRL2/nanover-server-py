@@ -147,7 +147,9 @@ class ImdCalculator(Calculator):
         super().__init__(atoms=atoms, **kwargs)
 
         self._imd_state = imd_state
-        self._imd_force_manager = ImdForceManager(imd_state, atoms) if atoms is not None else None
+        self._imd_force_manager = (
+            ImdForceManager(imd_state, atoms) if atoms is not None else None
+        )
         self._calculator = calculator
         self.implemented_properties = [
             "energy",

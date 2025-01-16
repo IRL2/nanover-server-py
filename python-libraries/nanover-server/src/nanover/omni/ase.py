@@ -15,7 +15,7 @@ from nanover.ase.converter import (
     ANG_TO_NM,
     KJMOL_TO_EV,
 )
-from nanover.ase.imd_calculator import ImdCalculator, ImdForceManager
+from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.thermo import compute_dof, compute_instantaneous_temperature
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData

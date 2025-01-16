@@ -156,9 +156,7 @@ def test_custom_temperature():
     server = ImdServer(address=None, port=0)
     atoms = fcc_atoms()
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(
-        server.imd_state, calculator, atoms, reset_scale=0.1
-    )
+    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, reset_scale=0.1)
     imd_calculator.temperature = 100
     assert pytest.approx(imd_calculator.reset_temperature) == 0.1 * 100
 

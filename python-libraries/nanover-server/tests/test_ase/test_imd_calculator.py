@@ -33,9 +33,7 @@ def interact_c():
 def imd_calculator_co(imd_server):
     atoms = co_atoms()
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(
-        imd_server.imd_state, calculator, atoms
-    )
+    imd_calculator = ImdCalculator(imd_server.imd_state, calculator, atoms)
     yield imd_calculator, atoms, imd_server
 
 
