@@ -27,9 +27,9 @@ def start_default_server_and_discovery(
     """
     Utility method for creating a default NanoVer server along with ESSD discovery.
 
-    :param: address: Address to run the server at. If nothing is passed, the default
+    :param address: Address to run the server at. If nothing is passed, the default
         address of all interfaces will be used.
-    :param: port: Port to run the server on, if nothing is passed, the default
+    :param port: Port to run the server on, if nothing is passed, the default
         NanoVer port will be used. The value of zero should be passed to let the OS
         pick a free port.
     :return: tuple of NanoVer server and ESSD discovery.
