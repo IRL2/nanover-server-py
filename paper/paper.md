@@ -92,11 +92,12 @@ simulations on-the-fly, without the need to pre-define the behaviour of the syst
 @rapaport_interactive_1997; @oconnor_sampling_2018; @oconnor_interactive_2019]. iMD enables researchers to interact with 
 molecular systems in real-time, to bias their dynamics and sample rare events of interest [@stone_system_2001]. A 
 number of programs have implementations of iMD, including for example 
-[TeraChem](https://pubs.acs.org/doi/full/10.1021/acs.jctc.5b00419), 
-[SCINE](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/474361/3/s9.pdf), and NAMD/VMD 
-[@stone_system_2001]. These iMD implementations enable researchers to interact with inherently 3-D systems via haptic 
-interfaces visualized on 2-D screens. Relatively fewer environments are available which enable researchers to interact 
-with molecular dynamics simulations in a 3-D native environment, which is especially important for exploring complex 
+[TeraChem](https://pubs.acs.org/doi/full/10.1021/acs.jctc.5b00419) [@luehr_ab_2015], 
+[SCINE](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/474361/3/s9.pdf) 
+[@weymuth_immersive_2021], and NAMD/VMD [@stone_system_2001]. These iMD implementations enable researchers to 
+interact with inherently 3-D systems via haptic interfaces visualized on 2-D screens. Relatively fewer environments are 
+available which enable researchers to interact with molecular dynamics simulations in a 3-D native environment, which 
+is especially important for exploring complex 
 molecular structural transformations [@oconnor_sampling_2018]. This problem can be overcome by performing iMD in 
 virtual reality (iMD-VR), which provides a natural interface for visualising molecular systems by mapping the 3-D 
 simulation space of the molecular system to a 3-D virtual environment that the researcher can inhabit. While several 
