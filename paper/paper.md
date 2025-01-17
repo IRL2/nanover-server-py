@@ -89,7 +89,7 @@ employing adaptive strategies that are not guaranteed to sample the desired beha
 
 Interactive molecular dynamics (iMD) is an out-of-equilibrium approach that allows researchers to bias atomic/molecular 
 simulations on-the-fly, without the need to pre-define the behaviour of the system [@stone_system_2001; 
-@rapaport_interactive_1997; @oconnor_sampling_2018; oconnor_interactive_2019]. iMD enables researchers to interact with 
+@rapaport_interactive_1997; @oconnor_sampling_2018; @oconnor_interactive_2019]. iMD enables researchers to interact with 
 molecular systems in real-time, to bias their dynamics and sample rare events of interest [@stone_system_2001]. A 
 number of programs have implementations of iMD, including for example TeraChem 
 (https://pubs.acs.org/doi/full/10.1021/acs.jctc.5b00419), SCINE, 
