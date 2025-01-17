@@ -175,4 +175,14 @@ innovation programme through consolidator Grant NANOVR 866559, the Axencia Galeg
 Investigador Distinguido through the Oportunius Program, and the Xunta de Galicia (Centro de investigación de 
 Galicia accreditation 2019–2022, ED431G-2019/04).
 
+INCLUDE BRISTOL FUNDING 
+
+LIST OF CONTRIBUTIONS MADE BY AUTHORS
+
+We would also like to thank all previous contributors to NanoVer: a full list of contributors can be found 
+[here](https://github.com/IRL2/nanover-server-py/blob/main/CONTRIBUTORS.md).
+
+We would like to thank the developers of the Python packages used by NanoVer Server, and the Python community as a 
+whole for providing a great ecosystem that facilitates development of free and open source scientific software.
+
 # References
