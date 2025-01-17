@@ -222,7 +222,7 @@ class OpenMMSimulation:
     def make_regular_frame(self, positions: Optional[Array2Dfloat] = None):
         """
         Make a NanoVer FrameData corresponding to the current state of the simulation.
-        
+
         :param positions: Optionally provided particle positions to save fetching them again.
         """
         assert (

@@ -22,11 +22,11 @@ class ServiceHub:
     A service hub consists of properties that must at least consist of a name and ip address.
     The payload can optionally include additional information on the services provided.
 
-    :param: name: The name of the service hub.
-    :param: address: The address of the service hub.
-    :param: id: The unique ID of the service hub. If not specified, it will be generated.
-    :param: essd_version: The version of ESSD this service hub uses. If not specified it will be determined automatically.
-    :param: services: Dictionary of service names and their ports. Standard NanoVer services include
+    :param name: The name of the service hub.
+    :param address: The address of the service hub.
+    :param id: The unique ID of the service hub. If not specified, it will be generated.
+    :param essd_version: The version of ESSD this service hub uses. If not specified it will be determined automatically.
+    :param services: Dictionary of service names and their ports. Standard NanoVer services include
         imd, trajectory, multiplayer and builder.
 
     Example
