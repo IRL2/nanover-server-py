@@ -111,7 +111,7 @@ jobs:
       - name: Upload packages
         # Anaconda will complain if the given version of a package is already
         # there. Until we have some versioning, we force the upload.
-        run: anaconda  upload --user irl conda-bld/noarch/nanover-*.tar.bz2 --force
+        run: anaconda  upload --user irl conda-bld/noarch/nanover-*.conda --force
       - name: Disconnect from Anaconda cloud
         #  Do not fail the build if we cannot logout.
         run: anaconda logout || echo "Could not logout. Too bad."
