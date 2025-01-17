@@ -91,9 +91,9 @@ Interactive molecular dynamics (iMD) is an out-of-equilibrium approach that allo
 simulations on-the-fly, without the need to pre-define the behaviour of the system [@stone_system_2001; 
 @rapaport_interactive_1997; @oconnor_sampling_2018; @oconnor_interactive_2019]. iMD enables researchers to interact with 
 molecular systems in real-time, to bias their dynamics and sample rare events of interest [@stone_system_2001]. A 
-number of programs have implementations of iMD, including for example TeraChem 
-(https://pubs.acs.org/doi/full/10.1021/acs.jctc.5b00419), SCINE, 
-(https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/474361/3/s9.pdf) and NAMD/VMD 
+number of programs have implementations of iMD, including for example 
+[TeraChem](https://pubs.acs.org/doi/full/10.1021/acs.jctc.5b00419), 
+[SCINE](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/474361/3/s9.pdf), and NAMD/VMD 
 [@stone_system_2001]. These iMD implementations enable researchers to interact with inherently 3-D systems via haptic 
 interfaces visualized on 2-D screens. Relatively fewer environments are available which enable researchers to interact 
 with molecular dynamics simulations in a 3-D native environment, which is especially important for exploring complex 
@@ -153,6 +153,20 @@ cloud computing can be used to facilitate real-time multi-user iMD-VR across lar
 [@jamieson_binnie_narupa_2020; @deeks_interactive_2020; @deeks_free_2023]. Furthermore, the protocol on which NanoVer 
 Server is built comprises general tools for constructing multi-user VR experiences, the scope of which extend beyond 
 application in computational chemistry.
+
+# Availability
+
+NanoVer Server can be installed as a [conda package](https://anaconda.org/irl/nanover-server), the documentation is
+available on [readthedocs](https://irl2.github.io/nanover-docs/index.html) and the source code is available on 
+[GitHub](https://github.com/IRL2/nanover-server-py). More information about 
+[how to install NanoVer Server](https://irl2.github.io/nanover-docs/installation.html) can be found in the 
+documentation.
+
+NanoVer Server also has a suite of 
+[Jupyter notebook tutorials](https://github.com/IRL2/nanover-server-py/tree/main/examples), many of which demonstrate 
+how to use the server in conjunction with the 
+[NanoVer iMD-VR client](https://github.com/IRL2/nanover-imd-vr). For new users, the "basics" tutorials are a good 
+place to start, which provide hands-on tutorials that introduce many of the key features of NanoVer.
 
 # Acknowledgements
 
