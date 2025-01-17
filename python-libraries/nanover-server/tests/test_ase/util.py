@@ -2,13 +2,19 @@ from contextlib import contextmanager
 
 import pytest
 from ase import Atoms
-from nanover.imd import ImdServer, ImdClient
+from nanover.imd import ImdServer, ImdClient, ImdStateWrapper
+from nanover.state.state_dictionary import StateDictionary
 
 
 @pytest.fixture
 def imd_server():
     with ImdServer(address="localhost", port=0) as server:
         yield server
+
+
+@pytest.fixture
+def state_wrapper():
+    return ImdStateWrapper(StateDictionary())
 
 
 def co_atoms():

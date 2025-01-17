@@ -15,7 +15,7 @@ from nanover.ase.converter import (
     ANG_TO_NM,
     KJMOL_TO_EV,
 )
-from nanover.ase.imd_calculator import ImdCalculator, ImdForceManager
+from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.thermo import compute_dof, compute_instantaneous_temperature
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.trajectory import FrameData
@@ -136,13 +136,10 @@ class ASESimulation:
         # setup imd calculator
         self.imd_calculator = ImdCalculator(
             self.app_server.imd,
-            ImdForceManager(self.app_server.imd, self.atoms),
-            self.initial_calc,
+            calculator=self.initial_calc,
+            atoms=self.atoms,
             dynamics=self.dynamics,
         )
-
-        # assign imd calculator to atoms
-        self.atoms.calc = self.imd_calculator
 
         self._dof = compute_dof(self.atoms)
 
