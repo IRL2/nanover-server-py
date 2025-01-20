@@ -117,14 +117,13 @@ A user can tune the relationship between simulation time and real time during iM
 
 To achieve quantitative iMD, the server adopts the following blueprint between the publishing of each frame:
 
-  1) Perform _n_ simulation steps (as specified by the user) using existing iMD forces and energies
+  1) Perform _n_ simulation steps (as specified by the user) using all existing iMD forces and energies
 
-  2) Calculate all iMD forces and energies applied to the system using its current configuration, passing this information to the simulation engine&mdash;these forces will be applied for the next _n_ simulation steps
+  2) Calculate all current iMD forces and energies applied to the system given its current configuration, passing this information to the simulation engine&mdash;these forces will be applied for the next _n_ simulation steps
 
-  3) Compile the data about the current state of the system (including the iMD forces and energies calculated in step 2) into a frame and publish to the connected client(s)
+  3) Compile the data describing the current state of the system (including the iMD forces and energies calculated in step 2) into a frame and publish to the connected client(s)
 
 <!---
-- Point 1: existing? How to explain, current
 - Replace/support with figure?
 --->
 
