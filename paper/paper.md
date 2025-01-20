@@ -45,7 +45,7 @@ bibliography: paper.bib
 # Summary
 
 (New version)
-NanoVer Server is a Python package facilitating real-time multi-user interactive molecular dynamics (iMD) simulations.
+NanoVer Server is a Python package that facilitates real-time multi-user interactive molecular dynamics (iMD) simulations.
 
 <!---
 - Facilitating?
@@ -137,7 +137,7 @@ To achieve quantitative iMD, the server adopts the following blueprint between t
 
 Using the blueprint for quantitative iMD described above, all the information about the iMD interactions applied to the molecular system during an iMD simulation is delivered in the frames published by the server.
 
-The server-client architecture of NanoVer enables multiple users to connect simultaneously to a server. NanoVer Server interfaces with NanoVer iMD-VR, a client that enables the researcher(s) to connect to simulations on the server via a VR interface, which enables real-time collaborative iMD-VR simulations. The server-client structure enables multi-user iMD-VR to be performed using colocated (where users interact in the same physical space) and distributed (where users can connect to the same virtual space from different physical spaces) setups. This flexible structure has great potential for collaborative research: previous iMD-VR frameworks have demonstrated that cloud computing can be used to facilitate real-time multi-user iMD-VR across large physical distances[@jamieson_binnie_narupa_2020; @deeks_interactive_2020; @deeks_free_2023; @glowacki_group_2022]. Furthermore, the protocol on which NanoVer Server is built comprises general tools for constructing multi-user VR experiences, the scope of which extend beyond application in computational chemistry [@glowacki_group_2022].
+The server-client architecture of NanoVer enables multiple users to connect simultaneously to a server. NanoVer Server interfaces with NanoVer iMD-VR, a client that enables the researcher(s) to connect to simulations on the server via a VR interface, which enables real-time collaborative iMD-VR simulations. The server-client structure enables multi-user iMD-VR to be performed using colocated (where users interact in the same physical space) and distributed (where users can connect to the same virtual space from different physical spaces) setups. This flexible structure has great potential for collaborative research: previous iMD-VR frameworks have demonstrated that cloud computing can be used to facilitate real-time multi-user iMD-VR across large physical distances[@jamieson_binnie_narupa_2020; @deeks_interactive_2020; @deeks_free_2023; @glowacki_group_2022]. Furthermore, the protocol on which NanoVer Server is built comprises general tools for constructing multi-user VR experiences, the scope of which extend beyond application in computational chemistry.
 
 <!---
 - multiple users/collaboration
