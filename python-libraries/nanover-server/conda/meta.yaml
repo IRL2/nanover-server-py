@@ -30,6 +30,7 @@ requirements:
     - openmm
     - ase >=3.21
     - mdanalysis
+    - nglview
 
 about:
   home: {{ NANOVER_DOC_URL }}
