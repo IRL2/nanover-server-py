@@ -59,11 +59,17 @@ NanoVer Server is a Python package facilitating real-time multi-user interactive
 
 # Statement of need
 
+## Background
+
 For decades, the family of simulation methods encompassed by the umbrella term "molecular dynamics" (MD) have been indispensable for exploring the temporal evolution and properties of atomic and molecular systems[@alder_phase_1957; @alder_molecular_1958; @alder_studies_1959; @rahman_correlations_1964; @verlet_computer_1967; @mccammon_dynamics_1977]. MD has been used to study a plethora of chemical and biological systems[@van_gunsteren_validation_2018]; applications include the prediction of protein structures [@geng_applications_2019], simulation of drug docking in protein-ligand systems [@de_vivo_recent_2017], and the characterisation and nano-engineering of materials [@lau_nano_engineering_2018].
 
 <!---
 - Should has been be changed to make it more contemporary
+--->
+
 One of the major challenges when using MD simulations to explore the dynamics of chemical and biological systems is the sampling of rare events.
+
+<!---
 - Reword sentence to remove repetition of chemical and biological 
 - change sampling?
 --->
@@ -98,6 +104,8 @@ Many studies have demonstrated the utility of iMD-VR for research applications, 
 <!---
 - Subheading?
 --->
+
+## Quantitative iMD in NanoVer Server
 
 NanoVer is a software ecosystem for performing quantitative real-time multi-user iMD simulations, with an emphasis on iMD-VR. In order to facilitate this, NanoVer operates using a server-client architecture. NanoVer Server facilitates iMD by providing an interface between the simulation engine used for the molecular system and the researcher(s) connecting to the simulation, equipping the researcher(s) with tools to interact with the system in real time. NanoVer Server already interfaces with multiple programs used to perform molecular simulations [@eastman_openmm_2024; @larsen_atomic_2017], with particular support for OpenMM. NanoVer Server is written in Python, making it easy to integrate with many of the existing tools of the computational chemistry community and beyond. Additionally, being free and open-source, NanoVer Server can be customised and extended to interface with other molecular simulation engines.
 
