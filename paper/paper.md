@@ -186,7 +186,7 @@ flexible structure has great potential for collaborative research: previous iMD-
 cloud computing can be used to facilitate real-time multi-user iMD-VR across large physical distances 
 [@jamieson_binnie_narupa_2020; @deeks_interactive_2020; @deeks_free_2023]. Furthermore, the protocol on which NanoVer 
 Server is built comprises general tools for constructing multi-user VR experiences, the scope of which extend beyond 
-application in computational chemistry.
+application in computational chemistry [@glowacki_group_2022].
 
 %%
 - multiple users/collaboration
