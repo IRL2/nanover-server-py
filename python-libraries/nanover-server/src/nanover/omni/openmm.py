@@ -34,6 +34,7 @@ class OpenMMSimulation:
     def from_simulation(cls, simulation: Simulation, *, name: Optional[str] = None):
         """
         Construct this from an existing OpenMM simulation.
+
         :param simulation: An existing OpenMM Simulation
         :param name: An optional name for the simulation instead of default
         """
@@ -50,6 +51,7 @@ class OpenMMSimulation:
     def from_xml_path(cls, path: PathLike[str], *, name: Optional[str] = None):
         """
         Construct this from an existing NanoVer OpenMM XML file at a given path.
+
         :param path: Path of the NanoVer OpenMM XML file
         :param name: An optional name for the simulation instead of filename
         """
@@ -108,6 +110,7 @@ class OpenMMSimulation:
         """
         Reset the simulation to its initial conditions, reset IMD interactions, and reset frame stream to begin with
         topology and continue.
+
         :param app_server: The app server hosting the frame publisher and imd state
         """
         assert self.simulation is not None and self.checkpoint is not None
@@ -136,6 +139,7 @@ class OpenMMSimulation:
     def advance_by_seconds(self, dt: float):
         """
         Advance playback time by some seconds, and advance the simulation to the next frame output.
+
         :param dt: Time to advance playback by in seconds (ignored)
         """
         self.advance_to_next_report()
@@ -218,6 +222,7 @@ class OpenMMSimulation:
     def make_regular_frame(self, positions: Optional[Array2Dfloat] = None):
         """
         Make a NanoVer FrameData corresponding to the current state of the simulation.
+
         :param positions: Optionally provided particle positions to save fetching them again.
         """
         assert (

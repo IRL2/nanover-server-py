@@ -102,6 +102,7 @@ def test_frame_potential_energy(atoms_lj_calc):
 def test_frame_potential_energy_no_calculation(atoms_lj_calc):
     """
     Tests that if no calculation has been peformed, no potential energy is produced in the frame.
+
     :param atoms_lj_calc: ASE atoms object with a lennard jones calculator.
     """
     frame = ase_to_frame_data(atoms_lj_calc)

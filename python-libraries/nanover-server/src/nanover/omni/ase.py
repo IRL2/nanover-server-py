@@ -49,6 +49,7 @@ class ASESimulation:
     ):
         """
         Construct this from an existing ASE dynamics.
+
         :param dynamics: An existing ASE Dynamics
         :param name: An optional name for the simulation instead of default
         :param ase_atoms_to_frame_data: An optional callback to extra frames from the system
