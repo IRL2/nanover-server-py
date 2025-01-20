@@ -15,6 +15,7 @@ Phil Bates (Intangible Realities Laboratory, University of Santiago de Compostel
 Simon Bennie (Intangible Realities Laboratory, University of Bristol, UK)
 Barnali Das (Indian Institute of Technology, Kharagpur, India)
 Helen Deeks (Intangible Realities Laboratory, University of Bristol, UK)
+Mohamed Dhouioui (Intangible Realities Laboratory, University of Santiago de Compostela, Spain)
 David Glowacki (Intangible Realities Laboratory, University of Santiago de Compostela, Spain)
 Alex Jamieson-Binnie (Intangible Realities Laboratory, University of Bristol, UK)
 Adam McSloy (University of Bristol, UK)
