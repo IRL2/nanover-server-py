@@ -262,6 +262,10 @@ class ImdCalculator(Calculator):
         :param system_changes: List of what has changed since last calculation. See :func:`~Calculator.calculate` for
             details.
         """
+        # TODO: We do not call super().calculate because for reasons we don't yet understand, this breaks everything.
+        # That method's main effect is updating self.atoms to a copy, it's not clear why this matters since we don't
+        # use it.
+
         if atoms is None:
             atoms = self._atoms
         else:
