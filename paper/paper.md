@@ -151,6 +151,8 @@ Galicia accreditation 2019–2022, ED431G-2019/04).
 
 INCLUDE BRISTOL FUNDING 
 
+PB would like to acknowledge the Royal Society Entrepreneur in Residence Scheme.
+
 LIST OF CONTRIBUTIONS MADE BY AUTHORS
 
 We would also like to thank all previous contributors to NanoVer: a full list of contributors can be found 
