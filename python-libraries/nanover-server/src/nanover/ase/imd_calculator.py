@@ -42,7 +42,11 @@ class ImdForceManager:
         """
         Update the iMD interaction energies and forces (in ASE units).
         """
+        prev_interactions = self._current_interactions
         self._update_forces(self.atoms)
+        next_interactions = self._current_interactions
+
+        return prev_interactions, next_interactions
 
     def add_to_frame_data(self, frame_data: FrameData):
         """
@@ -138,17 +142,16 @@ class ImdCalculator(Calculator):
     def __init__(
         self,
         imd_state: ImdStateWrapper,
-        imd_force_manager: Optional[ImdForceManager] = None,
-        calculator: Optional[Calculator] = None,
-        atoms: Optional[Atoms] = None,
+        calculator: Calculator,
+        atoms: Atoms,
         dynamics: Optional[MolecularDynamics] = None,
         reset_scale=0.5,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(atoms=atoms, **kwargs)
+
         self._imd_state = imd_state
-        self._imd_force_manager = imd_force_manager
-        self.atoms = atoms
+        self._imd_force_manager = ImdForceManager(imd_state, atoms)
         self._calculator = calculator
         self.implemented_properties = [
             "energy",
@@ -160,7 +163,12 @@ class ImdCalculator(Calculator):
         self.reset_scale = reset_scale
         self._custom_temperature = None
         self._initialise_velocity_reset()
-        self._pbc_implemented = False
+
+        self._atoms = atoms
+
+        # Check whether the periodic boundary conditions defined in the atoms object are implemented
+        # for the iMD calculator.
+        get_periodic_box_lengths(atoms)
 
     @property
     def temperature(self) -> float:
@@ -218,7 +226,7 @@ class ImdCalculator(Calculator):
         return self.temperature * self.reset_scale
 
     @property
-    def calculator(self) -> Optional[Calculator]:
+    def calculator(self) -> Calculator:
         """
         The internal ASE calculator being used.
 
@@ -253,40 +261,28 @@ class ImdCalculator(Calculator):
             See :func:`~Calculator.calculate` for details.
         :param system_changes: List of what has changed since last calculation. See :func:`~Calculator.calculate` for
             details.
-
-        :raises ValueError: If no ASE atoms are supplied to the calculation, and no ASE atoms were supplied during
-            initialisation.
         """
-        energy = 0.0
+        # TODO: We do not call super().calculate because for reasons we don't yet understand, this breaks everything.
+        # That method's main effect is updating self.atoms to a copy, it's not clear why this matters since we don't
+        # use it.
+
         if atoms is None:
-            atoms = self.atoms
-        if atoms is None:
-            raise ValueError(
-                "No ASE atoms supplied to IMD calculation, and no ASE atoms supplied with initialisation."
-            )
+            atoms = self._atoms
+        else:
+            assert atoms.positions.shape == self._atoms.positions.shape
 
-        # Check whether the periodic boundary conditions defined in the atoms object are implemented
-        # for the iMD calculator. If they are (or no pbcs are defined), set _pbc_implemented property
-        # to true to avoid repeating this check.
-        if not self._pbc_implemented:
-            get_periodic_box_lengths(atoms)
-            self._pbc_implemented = True
+        # Use internal calculator for system energy and forces
+        self.calculator.calculate(atoms, properties, system_changes)
+        energy = self.calculator.results["energy"]
+        forces = self.calculator.results["forces"]
 
-        forces = np.zeros((len(atoms), 3))
-
-        if self.calculator is not None:
-            self.calculator.calculate(atoms, properties, system_changes)
-            energy = self.calculator.results["energy"]
-            forces = self.calculator.results["forces"]
-
-        if self._imd_force_manager is not None:
-            # Retrieve iMD energy and forces and add to results
-            imd_energy = self._imd_force_manager.total_user_energy
-            imd_forces = self._imd_force_manager.user_forces
-            self.results["energy"] = energy + imd_energy
-            self.results["forces"] = forces + imd_forces
-            self.results["interactive_energy"] = imd_energy
-            self.results["interactive_forces"] = imd_forces
+        # Retrieve iMD energy and forces and add to results
+        imd_energy = self._imd_force_manager.total_user_energy
+        imd_forces = self._imd_force_manager.user_forces
+        self.results["energy"] = energy + imd_energy
+        self.results["forces"] = forces + imd_forces
+        self.results["interactive_energy"] = imd_energy
+        self.results["interactive_forces"] = imd_forces
 
     def update_interactions(self):
         """
@@ -294,11 +290,10 @@ class ImdCalculator(Calculator):
         via the ImdForceManager, and subsequently resets the velocities
         (if applicable).
         """
-        assert self._imd_force_manager is not None
-        prev_interactions = self._imd_force_manager._current_interactions
-        self._imd_force_manager.update_interactions()
-        next_interactions = self._imd_force_manager._current_interactions
-        self._reset_velocities(self.atoms, next_interactions, prev_interactions)
+        prev_interactions, next_interactions = (
+            self._imd_force_manager.update_interactions()
+        )
+        self._reset_velocities(self._atoms, next_interactions, prev_interactions)
 
     def add_to_frame_data(self, frame_data: FrameData):
         """
@@ -307,7 +302,6 @@ class ImdCalculator(Calculator):
 
         :param frame_data: The FrameData object to which the iMD results are appended.
         """
-        assert self._imd_force_manager is not None
         self._imd_force_manager.add_to_frame_data(frame_data)
 
     def _reset_velocities(self, atoms, interactions, previous_interactions):
@@ -324,7 +318,7 @@ class ImdCalculator(Calculator):
 
     def _initialise_velocity_reset(self):
         try:
-            pass
+            _ = self.temperature
         except MissingDataError:
             self._imd_state.velocity_reset_available = False
         self._imd_state.velocity_reset_available = True
@@ -372,7 +366,6 @@ def _get_atoms_to_reset(cancelled_interactions) -> Set[int]:
 
 def _apply_velocities_reset(atoms, atoms_to_reset, temperature):
     atoms_to_reset = np.array(list(atoms_to_reset))
-
     _reset_selection_to_boltzmann(atoms, atoms_to_reset, temperature)
     # now scale the velocities so the exact target temperature is achieved.
     _scale_momentum_of_selection(atoms, atoms_to_reset, temperature)
