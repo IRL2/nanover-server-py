@@ -49,10 +49,11 @@ NanoVer Server is a Python package that facilitates real-time multi-user interac
 
 <!---
 - Express succinctly difference between Python and VR clients
+- Is it reasonable to leave out the description of the Python client in the summary, or should it be there?
 --->
 
 (Original version)
-NanoVer Server is a Python package that facilitates multi-user interactive molecular dynamics (iMD) simulations in real-time. It is part of the NanoVer software ecosystem, comprising the server component of a server-client architecture that allows multiple clients to connect and interact with a real-time molecular simulation. NanoVer Server provides an interface to stream data between a molecular simulation engine and connected clients, and includes a client that can connect to the server via a Python script or Jupyter notebook. Furthermore, NanoVer Server interfaces with the NanoVer iMD-VR package to facilitate its current primary application: the exploration of molecular systems using interactive molecular dynamics in virtual reality (iMD-VR).
+NanoVer Server is a Python package that facilitates multi-user interactive molecular dynamics (iMD) simulations in real-time. It is part of the NanoVer software ecosystem, which employs a server-client architecture that allows multiple clients to connect and interact with a real-time molecular simulation. NanoVer Server provides an interface to stream data between a molecular simulation engine and connected clients, and includes a client that can connect to the server via a Python script or Jupyter notebook. Furthermore, NanoVer Server interfaces with the NanoVer iMD-VR package to facilitate its current primary application: the exploration of molecular systems using interactive molecular dynamics in virtual reality (iMD-VR).
 
 (Suggested version)
 NanoVer Server is a Python package facilitating real-time multi-user interactive molecular dynamics (iMD) simulations. It is the primary software of NanoVer, interfacing with standard molecular dynamics packages to provide a familiar Python and Jupyter based workflow for running iMD simulations and serving them to local and remote clients over the network. This forms the base of NanoVer's primary application: the exploration of molecular systems using interactive molecular dynamics in virtual reality (iMD-VR), which can be achieved by connecting a dedicated VR client from the NanoVer iMD-VR package.
