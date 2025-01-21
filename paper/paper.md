@@ -75,7 +75,7 @@ For decades, the family of simulation methods encompassed by the umbrella term "
 Interactive molecular dynamics (iMD) is a nonequilibrium enhanced sampling method that allows researchers to bias atomic/molecular simulations on-the-fly in real time, without the need to pre-define the behaviour of the system [@stone_system_2001; @rapaport_interactive_1997; @oconnor_sampling_2018; @oconnor_interactive_2019]. A number of programs have implementations of iMD, including for example TeraChem [@luehr_ab_2015], SCINE [@weymuth_immersive_2021], and NAMD/VMD [@stone_system_2001]. These iMD implementations enable researchers to interact with 3-D molecular systems via haptic interfaces visualized on 2-D screens. Fewer environments are available that enable researchers to interact with molecular dynamics simulations in their native 3-D environment, which is especially important for exploring complex molecular structural transformations [@oconnor_sampling_2018]. This problem can be overcome by performing iMD in virtual reality (iMD-VR), which provides a natural interface for visualising molecular systems by mapping the 3-D simulation space of the molecular system to a 3-D virtual environment that the researcher can inhabit. While several programs already enable molecular visualisation in VR [@doutreligne_unitymol_2014; @bennie_virtual_2023; @pettersen_ucsf_2021; @ozvoldik_yasara_2023; @cassidy_proteinvr_2020; @cortes_rodriguez_molecularwebxr_2025], fewer support the combination of VR-enabled 3-D visualisation in VR with real-time iMD. The iMD-VR combination enables researchers to interact directly with molecular simulations in an environment which is inherently 3-D, where researchers can reach out and ‘touch’ molecular simulations as if they were tangible objects. Many studies have demonstrated the utility of iMD-VR for research applications, in areas spanning protein-drug binding, [@deeks_interactive_2020; @deeks_interactive_docking_2020; @henry_chan_discovery_2021; @walters_emerging_2022], protein conformational dynamics [@juarez_jimenez_combining_2020], machine-learning potential energy surfaces [@amabilino_training_2019; @amabilino_training_2020], discovering reaction networks [@shannon_exploring_2021], and chemistry education [@bennie_teaching_2019].
 
 <!---
-- Do we need "as if they were tangible objects"? 
+- Do we need "as if they were tangible objects"? Should we reference Rhos' paper about 
 --->
 
 <!---
@@ -126,17 +126,9 @@ The server-client architecture of NanoVer enables multiple users to connect simu
 
 # Availability
 
-NanoVer Server can be installed as a [conda package](https://anaconda.org/irl/nanover-server), the documentation is
-available on the project's [readthedocs](https://irl2.github.io/nanover-docs/index.html) and the source code is 
-available on [GitHub](https://github.com/IRL2/nanover-server-py). More information about 
-[how to install NanoVer Server](https://irl2.github.io/nanover-docs/installation.html) can be found in the 
-documentation.
+NanoVer Server can be installed as a [conda package](https://anaconda.org/irl/nanover-server), the documentation is available on the project's [readthedocs](https://irl2.github.io/nanover-docs/index.html) and the source code is available on [GitHub](https://github.com/IRL2/nanover-server-py). More information about [how to install NanoVer Server](https://irl2.github.io/nanover-docs/installation.html) can be found in the documentation.
 
-NanoVer Server also has a suite of 
-[Jupyter notebook tutorials](https://github.com/IRL2/nanover-server-py/tree/main/examples), many of which demonstrate 
-how to use the server in conjunction with the 
-[NanoVer iMD-VR client](https://github.com/IRL2/nanover-imd-vr). For new users, the "basics" notebooks are a good 
-place to start, which provide hands-on tutorials that introduce many of the key features of NanoVer.
+NanoVer Server also has a suite of [Jupyter notebook tutorials](https://github.com/IRL2/nanover-server-py/tree/main/examples), many of which demonstrate how to use the server in conjunction with the [NanoVer iMD-VR client](https://github.com/IRL2/nanover-imd-vr). For new users, the "basics" notebooks are a good place to start, which provide hands-on tutorials that introduce many of the key features of NanoVer.
 
 # Acknowledgements
 
