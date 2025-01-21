@@ -70,8 +70,6 @@ For decades, the family of simulation methods encompassed by the umbrella term "
 <!---
 - Suggestion: Should "has been" be changed to make it more contemporary in second sentence?
   Response: 
-- Suggestion: Reword sentence to remove repetition of chemical and biological in "One of the major challenges..." sentence, and possibly change "sampling"? 
-  Response: I have changed "chemical and biological systems" to "systems in atomic detail". I believe "sampling" is the correct terminology to use, so I am going to keep it for now.
 - Suggestion: Think about "have certain limitations", e.g. specific, suffer from, etc. 
   Response: When searching for a definition of "certain" in Google, the second definition is "specific but not explicitly named or stated", which is precisely the intended meaning here, so again I think this should be kept for now.
 --->
