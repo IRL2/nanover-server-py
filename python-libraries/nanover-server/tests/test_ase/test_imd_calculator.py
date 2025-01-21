@@ -5,13 +5,12 @@ from ase.calculators.lj import LennardJones
 from nanover.ase import converter
 from nanover.ase.imd_calculator import (
     ImdCalculator,
-    ImdForceManager,
     get_periodic_box_lengths,
 )
 from nanover.ase.null_calculator import NullCalculator
 from nanover.imd import ImdClient
 from nanover.imd.particle_interaction import ParticleInteraction
-from util import co_atoms, imd_server, client_interaction, state_wrapper
+from util import co_atoms, imd_server, client_interaction, state_wrapper, c_atoms
 
 
 @pytest.fixture
@@ -49,6 +48,14 @@ def test_imd_calculator_no_interactions(imd_calculator_co):
         assert np.allclose(results[key], expected_results[key])
     assert results["interactive_energy"] == 0
     assert np.all(results["interactive_forces"] == np.zeros((len(atoms), 3)))
+
+
+def test_imd_calculator_shape_change_error(imd_calculator_co):
+    imd_calculator, _, _ = imd_calculator_co
+
+    with pytest.raises(AssertionError):
+        atoms_different = c_atoms()
+        imd_calculator.calculate(atoms=atoms_different)
 
 
 def test_imd_calculator_one_dimension_pbc(state_wrapper):

@@ -264,6 +264,8 @@ class ImdCalculator(Calculator):
         """
         if atoms is None:
             atoms = self._atoms
+        else:
+            assert atoms.positions.shape == self._atoms.positions.shape
 
         # Use internal calculator for system energy and forces
         self.calculator.calculate(atoms, properties, system_changes)

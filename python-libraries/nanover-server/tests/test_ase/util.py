@@ -23,6 +23,11 @@ def co_atoms():
     return co
 
 
+def c_atoms():
+    c = Atoms("C", positions=[(0, 0, 0)], cell=[2, 2, 2], pbc=[1, 1, 1])
+    return c
+
+
 @contextmanager
 def client_interaction(client: ImdClient, interaction):
     interaction_id = client.start_interaction()
