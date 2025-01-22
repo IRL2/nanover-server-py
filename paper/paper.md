@@ -100,9 +100,9 @@ The server-client architecture of NanoVer enables multiple users to connect simu
 
 # Availability
 
-NanoVer Server can be installed as a [conda package](https://anaconda.org/irl/nanover-server), the documentation is available on the project's [readthedocs](https://irl2.github.io/nanover-docs/index.html) and the source code is available on [GitHub](https://github.com/IRL2/nanover-server-py). More information about [how to install NanoVer Server](https://irl2.github.io/nanover-docs/installation.html) can be found in the documentation.
+NanoVer Server can be installed as a [conda package](https://anaconda.org/irl/nanover-server) and the source code is available on [GitHub](https://github.com/IRL2/nanover-server-py). The [documentation](https://irl2.github.io/nanover-docs/index.html) is available online, including instructions on [how to install NanoVer Server](https://irl2.github.io/nanover-docs/installation.html).
 
-NanoVer Server also has a suite of [Jupyter notebook tutorials](https://github.com/IRL2/nanover-server-py/tree/main/examples), many of which demonstrate how to use the server in conjunction with the [NanoVer iMD-VR client](https://github.com/IRL2/nanover-imd-vr). For new users, the "basics" notebooks are a good place to start, which provide hands-on tutorials that introduce many of the key features of NanoVer.
+NanoVer Server also has a suite of [Jupyter notebook tutorials](https://github.com/IRL2/nanover-server-py/tree/main/examples), many of which demonstrate how to use the server in conjunction with the [NanoVer iMD-VR client](https://github.com/IRL2/nanover-imd-vr). For new users, the [basics notebooks](https://github.com/IRL2/nanover-server-py/tree/main/examples/basics) are a good place to start, which provide hands-on tutorials that introduce many of the key features of NanoVer.
 
 # Acknowledgements
 
@@ -110,7 +110,7 @@ This work is supported by the European Research Council under the European Union
 
 INCLUDE BRISTOL FUNDING 
 
-PB would like to acknowledge the Royal Society Entrepreneur in Residence Scheme.
+PB is funded by the Royal Society Entrepreneur in Residence Scheme.
 
 LIST OF CONTRIBUTIONS MADE BY AUTHORS
 
