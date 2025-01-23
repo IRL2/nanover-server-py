@@ -1,6 +1,6 @@
 import ipaddress
 import socket
-from typing import List, Optional, Iterable, Dict
+from typing import List, Optional, Dict
 
 import psutil
 from psutil._common import snicaddr
@@ -18,25 +18,18 @@ def addr_to_ipv4_addr(addr: snicaddr):
     }
 
 
-def get_ipv4_addresses(
-    interfaces: Optional[Iterable[str]] = None,
-) -> List[InterfaceAddresses]:
+def get_ipv4_addresses() -> List[InterfaceAddresses]:
     """
-    Gets all the IPV4 addresses currently available on all the given interfaces.
+    Gets all the IPV4 addresses currently available on all interfaces.
 
-    :param interfaces: Optional list of interfaces to extract addresses from. If none are provided,
-        all interfaces will be used.
     :return: A list of dictionaries containing the IP address and other information for each interface,
         as returned by :func:`netifaces.ifaddresses`.
     """
-    if interfaces is None:
-        interfaces = list(psutil.net_if_addrs().keys())
-
     active_ifs = {name for name, stats in psutil.net_if_stats().items() if stats.isup}
     valid_ifs = {
         name: addrs
         for name, addrs in psutil.net_if_addrs().items()
-        if name in interfaces and name in active_ifs
+        if name in active_ifs
     }
 
     ipv4_addrs = [
@@ -49,14 +42,10 @@ def get_ipv4_addresses(
     return ipv4_addrs
 
 
-def get_broadcast_addresses(
-    interfaces: Optional[Iterable[str]] = None,
-) -> List[InterfaceAddresses]:
+def get_broadcast_addresses() -> List[InterfaceAddresses]:
     """
-    Gets all the IPV4 addresses currently available on all the given interfaces that have broadcast addresses.
+    Gets all the IPV4 addresses currently available on all interfaces that have broadcast addresses.
 
-    :param interfaces: Optional list of interfaces to extract addresses from. If none are provided,
-        all interfaces will be used.
     :return: A list of dictionaries containing the IP address and other information for each interface,
         as returned by :func:`netifaces.ifaddresses`.
 
@@ -72,7 +61,7 @@ def get_broadcast_addresses(
 
     """
 
-    ipv4_addrs = get_ipv4_addresses(interfaces)
+    ipv4_addrs = get_ipv4_addresses()
     return [
         address_entry for address_entry in ipv4_addrs if "broadcast" in address_entry
     ]
