@@ -14,7 +14,7 @@ dependencies = [
     "MDAnalysis",
     "numpy",
     "nglview",
-    "netifaces",
+    "netifaces2",
     "grpcio>=1.63.0",
     "grpcio-tools>=1.63.0",
     "pytest",

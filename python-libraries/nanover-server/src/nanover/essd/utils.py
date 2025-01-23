@@ -1,10 +1,23 @@
 import ipaddress
 import socket
-from typing import List, Optional, Iterable, Dict
+from typing import List, Optional, Iterable, Dict, Union, Literal
 
 import netifaces
 
-InterfaceAddresses = Dict[str, str]
+Address = str
+AddressType = Union[
+    Literal["addr"],
+    Literal["peer"],
+    Literal["mask"],
+    Literal["broadcast"],
+]
+
+InterfaceAddresses = Dict[AddressType, Address]
+
+
+def add_broadcast(addr: InterfaceAddresses):
+    addr["broadcast"] = str(ipaddress.IPv4Network(f"{addr["addr"]}/{addr["mask"]}", strict=False).broadcast_address)
+    return addr
 
 
 def get_ipv4_addresses(
@@ -20,13 +33,17 @@ def get_ipv4_addresses(
     """
     if interfaces is None:
         interfaces = netifaces.interfaces()
+
     ipv4_addrs: List[InterfaceAddresses] = []
     for interface in interfaces:
         addrs = netifaces.ifaddresses(interface)
         try:
-            ipv4_addrs += addrs[netifaces.AF_INET]
+            ipv4_addrs += [add_broadcast(addr) for addr in addrs[netifaces.InterfaceType.AF_INET]]
         except KeyError:
             continue
+
+    print(ipv4_addrs)
+
     return ipv4_addrs
 
 
@@ -47,7 +64,7 @@ def get_broadcast_addresses(
 
         {
           'addr': '172.23.43.33',
-          'netmask': '255.255.0.0',
+          'mask': '255.255.0.0',
           'broadcast': '172.23.255.255'
         }
 
@@ -86,11 +103,11 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
 
     :param address: An IPv4 address.
     :param interface_address_entry: An IPv4 address entry, as produced by :func:`netifaces.ifaddresses`. It must
-        contain the `netmask` and `broadcast` fields, representing the subnet mask IP and the broadcast IP for the given
+        contain the `mask` and `broadcast` fields, representing the subnet mask IP and the broadcast IP for the given
         interface
     :return: `True`, if the given address is in the same network as given interface address, `False` otherwise.
     :raises: ValueError: if invalid IP addresses are given for any field.
-    :raises: KeyError: if the `netmask` and `broadcast` fields are not present in the interface address entry
+    :raises: KeyError: if the `mask` and `broadcast` fields are not present in the interface address entry
         argument.
     """
     try:
@@ -98,22 +115,22 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
     except ValueError:
         raise ValueError(f"Given address {address} is not a valid IP address.")
     try:
-        netmask = ipaddress.ip_address(interface_address_entry["netmask"])
+        mask = ipaddress.ip_address(interface_address_entry["mask"])
         broadcast_address = ipaddress.ip_address(interface_address_entry["broadcast"])
         # to network address e.g. 255.255.255.0 & 192.168.1.255 = 192.168.1.0
-        network_address = ipaddress.ip_address(int(netmask) & int(broadcast_address))
+        network_address = ipaddress.ip_address(int(mask) & int(broadcast_address))
         # The doc and typing stub seem to indicate this is not a valid call of
         # ipaddress.ip_network, but this is well tested so we accept it for the
         # time being.
         # TODO: Fix this line as the types seem to be incorrect.
-        ip_network = ipaddress.ip_network((network_address, interface_address_entry["netmask"]))  # type: ignore
+        ip_network = ipaddress.ip_network((network_address, interface_address_entry["mask"]))  # type: ignore
     except ValueError:
         raise ValueError(
             f"Given address {interface_address_entry} is not a valid IP network address."
         )
     except KeyError:
         raise KeyError(
-            f"Given interface address dictionary did not contain either 'broadcast' or 'netmask' keys: "
+            f"Given interface address dictionary did not contain either 'broadcast' or 'mask' keys: "
             f"{interface_address_entry}"
         )
     return ip_address in ip_network
