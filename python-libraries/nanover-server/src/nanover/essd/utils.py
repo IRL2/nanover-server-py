@@ -2,9 +2,20 @@ import ipaddress
 import socket
 from typing import List, Optional, Iterable, Dict
 
-import netifaces
+import psutil
+from psutil._common import snicaddr
 
 InterfaceAddresses = Dict[str, str]
+
+
+def addr_to_ipv4_addr(addr: snicaddr):
+    network = ipaddress.IPv4Network(f"{addr.address}/{addr.netmask}", strict=False)
+
+    return {
+        "addr": addr.address,
+        "netmask": addr.netmask,
+        "broadcast": str(network.broadcast_address),
+    }
 
 
 def get_ipv4_addresses(
@@ -19,14 +30,22 @@ def get_ipv4_addresses(
         as returned by :func:`netifaces.ifaddresses`.
     """
     if interfaces is None:
-        interfaces = netifaces.interfaces()
-    ipv4_addrs: List[InterfaceAddresses] = []
-    for interface in interfaces:
-        addrs = netifaces.ifaddresses(interface)
-        try:
-            ipv4_addrs += addrs[netifaces.AF_INET]
-        except KeyError:
-            continue
+        interfaces = list(psutil.net_if_addrs().keys())
+
+    active_ifs = {name for name, stats in psutil.net_if_stats().items() if stats.isup}
+    valid_ifs = {
+        name: addrs
+        for name, addrs in psutil.net_if_addrs().items()
+        if name in interfaces and name in active_ifs
+    }
+
+    ipv4_addrs = [
+        addr_to_ipv4_addr(addr)
+        for name, addrs in valid_ifs.items()
+        for addr in addrs
+        if addr.family == socket.AddressFamily.AF_INET
+    ]
+
     return ipv4_addrs
 
 
@@ -119,10 +138,11 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
     return ip_address in ip_network
 
 
-def get_broadcastable_ip():
+def get_broadcastable_test_ip():
     broadcast_addresses = get_broadcast_addresses()
     if len(broadcast_addresses) == 0:
         raise RuntimeError(
             "No broadcastable IP addresses could be found on the system!"
         )
+
     return broadcast_addresses[0]["addr"]
