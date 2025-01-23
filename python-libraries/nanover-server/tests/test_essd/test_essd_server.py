@@ -1,4 +1,5 @@
 import pytest
+from psutil._common import snicaddr
 
 from nanover.essd.server import DiscoveryServer
 from nanover.essd.utils import (
@@ -85,7 +86,13 @@ def test_get_broadcast_addresses():
     ],
 )
 def test_is_in_network(address, netmask, broadcast_address, expected_result):
-    network_interface_addresses = {"netmask": netmask, "broadcast": broadcast_address}
+    network_interface_addresses = snicaddr(
+        netmask=netmask,
+        broadcast=broadcast_address,
+        ptp=None,
+        address=None,
+        family=None,
+    )
     assert expected_result == is_in_network(address, network_interface_addresses)
 
 
@@ -99,17 +106,15 @@ def test_is_in_network(address, netmask, broadcast_address, expected_result):
     ],
 )
 def test_is_in_network_invalid_addresses(address, netmask, broadcast_address):
-    network_interface_addresses = {"netmask": netmask, "broadcast": broadcast_address}
+    network_interface_addresses = snicaddr(
+        netmask=netmask,
+        broadcast=broadcast_address,
+        ptp=None,
+        address=None,
+        family=None,
+    )
     with pytest.raises(ValueError):
         _ = is_in_network(address, network_interface_addresses)
-
-
-@pytest.mark.parametrize(
-    "entry", [({"broadcast": "192.168.255.255"}), ({"netmask": "255.255.255.0"}), ({})]
-)
-def test_is_in_network_missing_fields(entry):
-    with pytest.raises(KeyError):
-        _ = is_in_network("192.168.0.1", entry)
 
 
 def test_resolve_address():
@@ -121,8 +126,8 @@ def test_resolve_address():
     ip = get_broadcastable_test_ip()
     addr = resolve_host_broadcast_address(ip)
     assert addr is not None
-    assert addr["addr"] == ip
-    assert "broadcast" in addr
+    assert addr.address == ip
+    assert addr.broadcast is not None
 
 
 def test_resolve_invalid_address():
