@@ -44,14 +44,18 @@ bibliography: paper.bib
 
 # Summary
 
+<!---
 (New suggested version (post-meeting #3))
+--->
 NanoVer Server is a Python package that facilitates real-time multi-user interactive molecular dynamics (iMD) simulations. It is part of the NanoVer software ecosystem, interfacing with standard molecular dynamics packages to run iMD simulations and serve them to local and remote clients over the network. The package includes a Python client that connects to the server, enabling researchers to incorporate iMD into their existing Python and Jupyter based workflows. Furthermore, NanoVer Server interfaces with the NanoVer iMD-VR package to facilitate its current primary application: the exploration of molecular systems using interactive molecular dynamics in virtual reality (iMD-VR).
 
+<!---
 (Original version)
 NanoVer Server is a Python package that facilitates multi-user interactive molecular dynamics (iMD) simulations in real-time. It is part of the NanoVer software ecosystem, which employs a server-client architecture that allows multiple clients to connect and interact with a real-time molecular simulation. NanoVer Server provides an interface to stream data between a molecular simulation engine and connected clients, and includes a client that can connect to the server via a Python script or Jupyter notebook. Furthermore, NanoVer Server interfaces with the NanoVer iMD-VR package to facilitate its current primary application: the exploration of molecular systems using interactive molecular dynamics in virtual reality (iMD-VR).
 
 (Suggested version)
 NanoVer Server is a Python package facilitating real-time multi-user interactive molecular dynamics (iMD) simulations. It is the primary software of NanoVer, interfacing with standard molecular dynamics packages to provide a familiar Python and Jupyter based workflow for running iMD simulations and serving them to local and remote clients over the network. This forms the base of NanoVer's primary application: the exploration of molecular systems using interactive molecular dynamics in virtual reality (iMD-VR), which can be achieved by connecting a dedicated VR client from the NanoVer iMD-VR package.
+--->
 
 # Statement of need
 
