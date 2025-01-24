@@ -75,7 +75,7 @@ NanoVer Server performs quantitative iMD simulations, delivering on-the-fly metr
 
 To achieve quantitative iMD, the server adopts the following blueprint between the publishing of each frame:
 
-  1) Perform _n_ simulation steps (as specified by the user) using all existing iMD forces and energies
+  1) Perform _n_ simulation steps using all existing iMD forces and energies
 
   2) Calculate all current iMD forces and energies applied to the system given its current configuration, passing this information to the simulation engine&mdash;these forces will be applied for the next _n_ simulation steps
 
