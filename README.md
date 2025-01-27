@@ -148,7 +148,7 @@ Because of the special setup required you will probably not be able to run this 
 
 The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 
 Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) or
-[how to run a NanoVer server]https://irl2.github.io/nanover-docs/tutorials/basics.html#running-a-server) in this
+[how to run a NanoVer server](https://irl2.github.io/nanover-docs/tutorials/basics.html#running-a-server) in this
 [project's documentation](https://irl2.github.io/nanover-docs).
 
 
