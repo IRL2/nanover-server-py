@@ -175,7 +175,7 @@ trajectory. To serve the frames on port 54321, from the `nanover-server-py` dire
 
 ### Autoconnect
 
-If you are having autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
+If you are having trouble autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
 ## Citation and external libraries
 
