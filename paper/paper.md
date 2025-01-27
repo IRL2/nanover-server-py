@@ -71,12 +71,6 @@ NanoVer is a software ecosystem for performing quantitative real-time multi-user
 
 NanoVer Server performs quantitative iMD simulations, delivering on-the-fly metrics about the molecular simulation including energies, particle forces and particle velocities, and the perturbations induced by the user including the collective user forces, associated potential energy and cumulative work done. As the molecular simulation progresses, simulation data is delivered to connected clients in data structures called 'frames', which provide a snapshot of the state of the system at that point in time. The server allows users to tune the relationship between simulation time and real time during iMD simulations by specifying the number of simulation steps $n$ performed by the molecular simulation engine between frame publishing events. This feature allows users to choose a small simulation time step&mdash;facilitating accurate integration of the equations of motion&mdash;without needing to observe every simulation step, thus retaining usability from a user perspective.
 
-<!---
-- retain accuracy and usability (responsiveness)
-- the point is not to watch simulation in slow motion
-- significantly slowing simulation, do we have any evidence
---->
-
 To achieve quantitative iMD, the server adopts the following blueprint between the publishing of each frame:
 
   1) Perform $n$ simulation steps, applying the iMD forces calculated during the previous iteration
