@@ -5,12 +5,12 @@ from ase.calculators.lj import LennardJones
 from nanover.ase import converter
 from nanover.ase.imd_calculator import (
     ImdCalculator,
-    ImdForceManager,
     get_periodic_box_lengths,
 )
+from nanover.ase.null_calculator import NullCalculator
 from nanover.imd import ImdClient
 from nanover.imd.particle_interaction import ParticleInteraction
-from util import co_atoms, imd_server, client_interaction
+from util import co_atoms, imd_server, client_interaction, state_wrapper, c_atoms
 
 
 @pytest.fixture
@@ -33,18 +33,8 @@ def interact_c():
 def imd_calculator_co(imd_server):
     atoms = co_atoms()
     calculator = LennardJones()
-    imd_force_manager = ImdForceManager(imd_server.imd_state, atoms)
-    imd_calculator = ImdCalculator(
-        imd_server.imd_state, imd_force_manager, calculator, atoms
-    )
+    imd_calculator = ImdCalculator(imd_server.imd_state, calculator, atoms)
     yield imd_calculator, atoms, imd_server
-
-
-@pytest.fixture
-def imd_calculator_no_atoms(imd_server):
-    calculator = LennardJones()
-    imd_calculator = ImdCalculator(imd_server.imd_state, calculator=calculator)
-    yield imd_calculator
 
 
 def test_imd_calculator_no_interactions(imd_calculator_co):
@@ -60,11 +50,20 @@ def test_imd_calculator_no_interactions(imd_calculator_co):
     assert np.all(results["interactive_forces"] == np.zeros((len(atoms), 3)))
 
 
-def test_imd_calculator_one_dimension_pbc(imd_calculator_co):
-    imd_calculator, atoms, _ = imd_calculator_co
+def test_imd_calculator_shape_change_error(imd_calculator_co):
+    imd_calculator, _, _ = imd_calculator_co
+
+    with pytest.raises(AssertionError):
+        atoms_different = c_atoms()
+        imd_calculator.calculate(atoms=atoms_different)
+
+
+def test_imd_calculator_one_dimension_pbc(state_wrapper):
+    calculator = NullCalculator()
+    atoms = co_atoms()
     atoms.set_pbc((True, False, False))
     with pytest.raises(NotImplementedError):
-        imd_calculator.calculate()
+        ImdCalculator(state_wrapper, calculator, atoms)
 
 
 def test_imd_calculator_no_pbc(imd_calculator_co):
@@ -73,26 +72,12 @@ def test_imd_calculator_no_pbc(imd_calculator_co):
     assert get_periodic_box_lengths(atoms) is None
 
 
-def test_imd_calculator_not_orthorhombic(imd_calculator_co):
-    imd_calculator, atoms, _ = imd_calculator_co
+def test_imd_calculator_not_orthorhombic(state_wrapper):
+    calculator = NullCalculator()
+    atoms = co_atoms()
     atoms.set_cell([1, 1, 1, 45, 45, 45])
     with pytest.raises(NotImplementedError):
-        imd_calculator.calculate()
-
-
-def test_imd_calculator_late_atoms(imd_calculator_no_atoms, atoms):
-    """
-    tests that the imd calculator works if atoms supplied after initialisation.
-    """
-    imd_calculator_no_atoms.calculate(atoms=atoms)
-
-
-def test_imd_calculator_no_atoms(imd_calculator_no_atoms):
-    """
-    tests that the imd calculator throws an exception if no atoms are supplied.
-    """
-    with pytest.raises(ValueError):
-        imd_calculator_no_atoms.calculate()
+        ImdCalculator(state_wrapper, calculator, atoms)
 
 
 @pytest.mark.parametrize(

@@ -100,6 +100,7 @@ class CommandService(CommandServicer):
     def GetCommands(self, request, context) -> GetCommandsReply:
         """
         GRPC method to get all of the commands available on this service.
+
         :param request: :class:`GetCommandsRequest`
         :param context: GRPC context.
         :return: :class:`GetCommandsReply`, detailing all the available commands.

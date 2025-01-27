@@ -18,6 +18,7 @@ class PlaybackSimulation:
     def from_paths(cls, paths: Iterable[PathLike[str]]):
         """
         Construct this from one or both of trajectory and state recording file paths.
+
         :param paths: One or both of trajectory and state recording file paths.
         """
         paths = [Path(path) for path in paths]
