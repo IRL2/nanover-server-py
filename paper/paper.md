@@ -89,7 +89,6 @@ NanoVer Server interfaces with NanoVer iMD-VR, a client that allows researchers 
 - colocated and distributed setups possible
 - Possibility for cloud, collaboration more extensively
 - general tools for building VR experiences beyond comp chem
-- cite isness-D (second to last/last paragraph)
 --->
 
 # Availability
