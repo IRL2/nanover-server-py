@@ -4,13 +4,13 @@ Repository containing the gRPC protocol and python based implementations
 of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
 
 This software is designed to be used with **NanoVer VR clients**, 
-e.g. [NanoVer IMD](https://github.com/irl2/nanover-imd).
+e.g. [NanoVer iMD-VR](https://github.com/IRL2/nanover-imd-vr).
 
 This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostela,
 and is distributed under the [MIT](LICENSE) license.
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
-For more information please take a look at [the project's documentation](https://irl2.github.io/nanover-docs/#).
+For more information please take a look at [the project's documentation](https://irl2.github.io/nanover-docs).
 
 ## Contents
 
@@ -37,12 +37,12 @@ If you haven't installed NanoVer yet, please go to [User installation](#User-ins
     nanover-omni --omm examples/ase/openmm_files/nanotube.xml
 
 Learn more about running a NanoVer server 
-[here](https://irl2.github.io/nanover-docs/tutorials/fundamentals.html#running-a-server) in our documentation.
+[here in our documentation](https://irl2.github.io/nanover-docs/tutorials/basics.html#running-a-server).
 
 ### Tutorials
 
 The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with NanoVer. 
-Please head to the [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) page of the 
+Please head to the [Tutorials page](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) of the 
 [project's documentation](https://irl2.github.io/nanover-docs) for more information!
 
 ### Exploring the code  
@@ -148,7 +148,7 @@ Because of the special setup required you will probably not be able to run this 
 
 The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 
 Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) or
-[how to run a NanoVer server](https://irl2.github.io/nanover-docs/tutorials/fundamentals.html#running-a-server) in this
+[how to run a NanoVer server](https://irl2.github.io/nanover-docs/tutorials/basics.html#running-a-server) in this
 [project's documentation](https://irl2.github.io/nanover-docs).
 
 
@@ -175,7 +175,7 @@ trajectory. To serve the frames on port 54321, from the `nanover-server-py` dire
 
 ### Autoconnect
 
-If you are having autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
+If you are having trouble autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
 ## Citation and external libraries
 
