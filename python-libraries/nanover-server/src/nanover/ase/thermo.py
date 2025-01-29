@@ -6,7 +6,7 @@ from ase import Atoms, units
 
 
 def compute_instantaneous_temperature(kinetic_energy: float, dof: int) -> float:
-    """
+    r"""
     Calculate the instantaneous temperature of the system (in Kelvin), using the same procedure as
     the :meth:`get_temperature` method of the :class:`Atoms` class in ASE. This
     function calculates the instantaneous temperature of the system from the kinetic
