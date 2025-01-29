@@ -12,6 +12,7 @@ from typing import (
 )
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
+from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import state_update_to_dictionary_change
 from nanover.trajectory import FrameData, MissingDataError
 from nanover.utilities.change_buffers import DictionaryChange
@@ -19,6 +20,29 @@ from nanover.utilities.change_buffers import DictionaryChange
 MAGIC_NUMBER = 6661355757386708963
 
 FrameEntry = Tuple[int, int, FrameData]
+
+
+def iter_full_view(
+    *, traj: Optional[PathLike[str]] = None, state: Optional[PathLike[str]] = None
+):
+    """
+    Iterate one or both of trajectory and state recording files, yield a timestamp and copies of both the current
+    aggregate FrameData and the current aggregate state dictionary.
+    """
+    full_frame = FrameData()
+    full_state = StateDictionary()
+
+    for time, frame, update in iter_recording_files(traj=traj, state=state):
+        if frame is not None:
+            frame_reset = frame.values["index"] == 0
+            if frame_reset:
+                full_frame = FrameData()
+            full_frame.raw.MergeFrom(frame.raw)
+
+        if update is not None:
+            full_state.update_state(None, update)
+
+        yield time, full_frame.copy(), full_state.copy_content()
 
 
 def iter_recording_files(
