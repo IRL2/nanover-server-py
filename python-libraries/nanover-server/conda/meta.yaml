@@ -21,7 +21,7 @@ requirements:
     - grpcio-tools
   run:
     - python >={{ MIN_PYTHON_VERSION }}
-    - netifaces
+    - netifaces2
     - grpcio
     - numpy
     - typing-extensions
