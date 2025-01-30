@@ -21,11 +21,12 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
 from typing import Optional, Dict, List
 
+from psutil._common import snicaddr
+
 from nanover.essd.utils import (
     get_broadcast_addresses,
     is_in_network,
     resolve_host_broadcast_address,
-    InterfaceAddresses,
 )
 from nanover.essd.servicehub import ServiceHub
 
@@ -56,7 +57,7 @@ def configure_reusable_socket() -> socket:
 
 
 class DiscoveryServer:
-    services: Dict[ServiceHub, List[InterfaceAddresses]]
+    services: Dict[ServiceHub, List[snicaddr]]
     _socket: socket
 
     def __init__(self, broadcast_port: Optional[int] = None, delay=0.5):
@@ -150,14 +151,14 @@ class DiscoveryServer:
         address = service.address
         for broadcast_address in addresses:
             if address == "[::]" or address == "localhost":
-                message = service.to_message(override_address=broadcast_address["addr"])
+                message = service.to_message(override_address=broadcast_address.address)
             else:
                 message = service.to_message()
             self.logger.debug(
-                f'Sending service {service} to {broadcast_address["broadcast"]}:{self.port}'
+                f"Sending service {service} to {broadcast_address.broadcast}:{self.port}"
             )
             self._socket.sendto(
-                message.encode(), (broadcast_address["broadcast"], self.port)
+                message.encode(), (broadcast_address.broadcast, self.port)
             )
 
     def __enter__(self):
@@ -166,7 +167,7 @@ class DiscoveryServer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def get_broadcast_addresses_for_service(self, service) -> List[InterfaceAddresses]:
+    def get_broadcast_addresses_for_service(self, service) -> List[snicaddr]:
         address = service.address
         if address == "[::]":
             return self.broadcast_addresses
