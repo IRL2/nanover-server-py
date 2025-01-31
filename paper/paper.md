@@ -51,7 +51,7 @@ NanoVer Server is a Python package that facilitates real-time multi-user interac
 
 ![Diagram illustrating the NanoVer workflow.\label{fig:nanover-systems-diagram}](./nanover-systems-diagram.svg)
 <figure>
-    <iframe src="./nanover-systems-diagram.svg"></iframe>
+    <img src="./nanover-systems-diagram.svg">
     <figcaption>Here's the figure caption.</figcaption>
 </figure>
 
