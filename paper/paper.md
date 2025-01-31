@@ -90,10 +90,10 @@ INCLUDE BRISTOL FUNDING
 
 PB is funded by the Royal Society Entrepreneur in Residence Scheme.
 
-LIST OF CONTRIBUTIONS MADE BY AUTHORS
+Author contributions: HJS software development and documentation, paper writing and submission; MDW software development and documentation, paper editing; JB software development and documentation; RRW software development and documentation, paper editing; MD software development and documentation, paper editing; AM software development; LA software development and documentation, paper editing; LET software development, figure creation, paper editing; PB project coordination; AM project coordination, principal investigator; DRG project coordination, principal investigator. All authors reviewed and approved this paper for submission.
 
-We would also like to thank all previous contributors to NanoVer: a full list of contributors can be found [here](https://github.com/IRL2/nanover-server-py/blob/main/CONTRIBUTORS.md).
+We would like to thank all previous contributors to NanoVer: a full list of contributors can be found [here](https://github.com/IRL2/nanover-server-py/blob/main/CONTRIBUTORS.md).
 
-We would like to thank the developers of the Python packages used by NanoVer Server, and the Python community as a whole for providing a great ecosystem that facilitates development of free and open source scientific software.
+We would also like to thank the developers of the Python packages used by NanoVer Server, and the Python community as a whole for providing a great ecosystem that facilitates development of free and open source scientific software.
 
 # References
