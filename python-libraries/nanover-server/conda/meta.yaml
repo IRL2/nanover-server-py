@@ -10,7 +10,7 @@ build:
   number: 0
   entry_points:
     - nanover-omni = nanover.omni.cli:main
-    - nanover-record = nanover.omni.recording_cli:main
+    - nanover-record = nanover.omni.recorder_cli:main
     - nanover-essd-list = nanover.essd.list_cli:main
     - nanover-multiplayer = nanover.multiplayer.cli:main
 
