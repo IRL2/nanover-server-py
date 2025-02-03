@@ -84,13 +84,9 @@ NanoVer Server also has a suite of [Jupyter notebook tutorials](https://github.c
 
 # Acknowledgements
 
-This work is supported by the European Research Council under the European Union’s Horizon 2020 research and innovation programme through consolidator Grant NANOVR 866559, the Axencia Galega de Innovación for funding as an Investigador Distinguido through the Oportunius Program, and the Xunta de Galicia (Centro de investigación de Galicia accreditation 2019–2022, ED431G-2019/04).
+This work is supported by the European Research Council under the European Union’s Horizon 2020 research and innovation programme through consolidator Grant NANOVR 866559, the Axencia Galega de Innovación for funding as an Investigador Distinguido through the Oportunius Program, and the Xunta de Galicia (Centro de investigación de Galicia accreditation 2019–2022, ED431G-2019/04). This work is part of a project that has received funding from the European Research Council under the European Horizon 2020 research and innovation program (PREDACTED Advanced Grant Agreement no. 101021207) to A.J.M. P.B. is funded by the Royal Society Entrepreneur in Residence Scheme, and A.J.M. and A.M. are funded by BBSRC grant number BB/T017066/1.
 
-INCLUDE BRISTOL FUNDING 
-
-PB is funded by the Royal Society Entrepreneur in Residence Scheme.
-
-Author contributions: HJS software development and documentation, paper writing and submission; MDW software development and documentation, paper editing; JB software development and documentation; RRW software development and documentation, paper editing; MD software development and documentation, paper editing; AM software development; LA software development and documentation, paper editing; LET software development, figure creation, paper editing; PB project coordination; AM project coordination, principal investigator; DRG project coordination, principal investigator. All authors reviewed and approved this paper for submission.
+Author contributions: H.J.S. software development and documentation, paper writing and submission; M.D.W. software development and documentation, paper editing; J.B. software development and documentation; R.R.W. software development and documentation, paper editing; M.D. software development and documentation, paper editing; A.M. software development; L.A. software development and documentation, paper editing; L.E.T. software development, figure creation, paper editing; P.B. project coordination; A.J.M. project coordination, principal investigator; D.R.G. project coordination, principal investigator. All authors reviewed and approved this paper for submission.
 
 We would like to thank all previous contributors to NanoVer: a full list of contributors can be found [here](https://github.com/IRL2/nanover-server-py/blob/main/CONTRIBUTORS.md).
 
