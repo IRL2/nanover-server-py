@@ -1,12 +1,15 @@
 ---
-title: 'NanoVer Server: A Python Package for Serving Real-Time Multi-User Interactive
- Molecular Dynamics in Virtual Reality'
+title: 'NanoVer Server: A Python Package for Serving Real-Time Multi-User Interactive Molecular Dynamics in Virtual Reality'
 tags:
   - Python
+  - NanoVer
   - virtual reality
   - interactive molecular dynamics
-  - iMD-VR
   - iMD
+  - iMD-VR
+  - molecular dynamics
+  - MD
+  - enhanced sampling
 authors:
   - name: Harry J. Stroud
     affiliation: '1'
@@ -32,11 +35,9 @@ authors:
     affiliation: '1'
 affiliations:
   - index: 1
-    name: Intangible Realities Laboratory, Centro Singular de Investigación en 
-          Technoloxías Intelixentes (CiTIUS), Universidade de Santiago de Compostela, Spain
+    name: Intangible Realities Laboratory, Centro Singular de Investigación en Technoloxías Intelixentes (CiTIUS), Universidade de Santiago de Compostela, Spain
   - index: 2
-    name: Centre for Computational Chemistry, School of Chemistry, 
-          University of Bristol, United Kingdom
+    name: Centre for Computational Chemistry, School of Chemistry, University of Bristol, United Kingdom
 date: SUBMISSION DATE, TDB
 bibliography: paper.bib
 
