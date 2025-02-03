@@ -91,6 +91,6 @@ Author contributions: H.J.S. software development and documentation, paper writi
 
 We would like to thank all previous contributors to NanoVer: a full list of contributors can be found [here](https://github.com/IRL2/nanover-server-py/blob/main/CONTRIBUTORS.md).
 
-We would also like to thank the developers of the Python packages used by NanoVer Server, and the Python community as a whole for providing a great ecosystem that facilitates development of free and open source scientific software.
+Finally, we would like to thank the developers of the Python packages used by NanoVer Server, and the Python community as a whole for providing a great ecosystem that facilitates development of free and open source scientific software.
 
 # References
