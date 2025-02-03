@@ -10,6 +10,8 @@ tags:
   - molecular dynamics
   - MD
   - enhanced sampling
+  - computational chemistry
+  - nonequilibrium
 authors:
   - name: Harry J. Stroud
     affiliation: '1'
