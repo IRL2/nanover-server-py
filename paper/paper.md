@@ -26,7 +26,7 @@ authors:
     affiliation: '1'
   - name: Phil Bates
     affiliation: '2'
-  - name: Adrian Mulholland
+  - name: Adrian J. Mulholland
     affiliation: '2'
   - name: David R. Glowacki
     affiliation: '1'
