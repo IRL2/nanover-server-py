@@ -91,7 +91,7 @@ This work is supported by the European Research Council under the European Union
 
 Author contributions: H.J.S. software development and documentation, paper writing and submission; M.D.W. software development and documentation, paper editing; J.B. software development and documentation; R.R.W. software development and documentation, paper editing; M.D. software development and documentation, paper editing; A.M. software development; L.A. software development and documentation, paper editing; L.E.T. software development, figure creation, paper editing; P.B. project coordination; A.J.M. project coordination, principal investigator; D.R.G. project coordination, principal investigator. All authors reviewed and approved this paper for submission.
 
-We would like to thank all previous contributors to NanoVer: a full list of contributors can be found [here](https://github.com/IRL2/nanover-server-py/blob/main/CONTRIBUTORS.md).
+We would like to thank all previous contributors to NanoVer: a full list of contributors can be found in the [CONTRIBUTORS file](https://github.com/IRL2/nanover-server-py/blob/main/CONTRIBUTORS.md) in the public repository.
 
 Finally, we would like to thank the developers of the Python packages used by NanoVer Server, and the Python community as a whole for providing a great ecosystem that facilitates development of free and open source scientific software.
 
