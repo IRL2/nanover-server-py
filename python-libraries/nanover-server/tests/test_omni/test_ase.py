@@ -390,7 +390,7 @@ def test_work_done_server_reset(example_ase_app_sim_constant_force_interaction):
         # Time accumulates across resets
         expected_dynamics_time = (i + 1) * test_time
 
-        actual_dynamics_time = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS()
+        actual_dynamics_time = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
 
         # Check that 1.0025 ps have passed (and hence that force has been applied for 1 ps)
         assert actual_dynamics_time == pytest.approx(expected_dynamics_time, abs=10e-12)
