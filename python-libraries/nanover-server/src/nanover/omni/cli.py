@@ -3,6 +3,7 @@ Command line interface for nanover.omni.
 """
 
 import logging
+import signal
 import time
 import textwrap
 import argparse
@@ -167,6 +168,11 @@ def main():
                 app.run()
         else:
             runner.print_basic_info_and_wait()
+
+        def handler(signum, frame):
+            print("(ignoring additional keyboard interrupt while closing)")
+
+        signal.signal(signal.SIGINT, handler)
 
 
 if __name__ == "__main__":
