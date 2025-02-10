@@ -27,7 +27,7 @@ jobs:
       - name: Serial tests
         run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial'
       - name: Jupyter notebooks
-        run: python -m pytest --nbval-lax examples --nbval-cell-timeout=30
+        run: python -m pytest --nbval-lax ./tutorials --nbval-cell-timeout=30
   mypy:
     name: Type analysis for python
     runs-on: ubuntu-latest

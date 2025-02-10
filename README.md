@@ -4,13 +4,13 @@ Repository containing the gRPC protocol and python based implementations
 of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
 
 This software is designed to be used with **NanoVer VR clients**, 
-e.g. [NanoVer IMD](https://github.com/irl2/nanover-imd).
+e.g. [NanoVer iMD-VR](https://github.com/IRL2/nanover-imd-vr).
 
 This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostela,
 and is distributed under the [MIT](LICENSE) license.
 See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
 
-For more information please take a look at [the project's documentation](https://irl2.github.io/nanover-docs/#).
+For more information please take a look at [the project's documentation](https://irl2.github.io/nanover-docs).
 
 ## Contents
 
@@ -18,7 +18,7 @@ For more information please take a look at [the project's documentation](https:/
 2. [User installation](#User-installation)
 3. [Developer installation](#Developer-installation)
 4. [Running the tests](#Running-the-tests)
-5. [Running the examples](#Running-the-examples)
+5. [Running the tutorials](#Running-the-tutorials)
 6. [Troubleshooting](#Troubleshooting)
 7. [Citation and external libraries](#Citation-and-external-libraries)
 
@@ -37,12 +37,12 @@ If you haven't installed NanoVer yet, please go to [User installation](#User-ins
     nanover-omni --omm examples/ase/openmm_files/nanotube.xml
 
 Learn more about running a NanoVer server 
-[here](https://irl2.github.io/nanover-docs/tutorials/fundamentals.html#running-a-server) in our documentation.
+[here in our documentation](https://irl2.github.io/nanover-docs/tutorials/basics.html#running-a-server).
 
 ### Tutorials
 
-The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for getting started with NanoVer. 
-Please head to the [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) page of the 
+The [examples](tutorials) folder contains [Jupyter notebooks](https://jupyter.org/) that demostrate how to get started NanoVer. 
+Please head to the [Tutorials page](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) of the 
 [project's documentation](https://irl2.github.io/nanover-docs) for more information!
 
 ### Exploring the code  
@@ -127,28 +127,15 @@ black can automatically reformat the files for you:
 
 ### Type Checks
 
-The type checks look at the type hints in the code to make sure they are consistent and help find potential errors. 
-Because of the special setup required you will probably not be able to run this locally, but you can try:
+The type checks look at the type hints in the code to make sure they are consistent and help find potential errors:
 
     python -m pip install mypy
-    packages=$(find python-libraries -name __init__.py \ 
-             | sed 's/__init__.py//g' \ 
-             | awk '{split($0, a, /src/); print(a[2])}' \ 
-             | sed 's#/#.#g' \ 
-             | cut -c 2- \ 
-             | sed 's/\.$//g' \ 
-             | grep -v '^$' \ 
-             | grep -v protocol \ 
-             | sed 's/^/-p /g' \ 
-             | grep -v '\..*\.' \ 
-             | tr '\n' ' ') 
-    python -m mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages 
+    mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition nanover-server
+## Running the tutorials
 
-## Running the examples
-
-The [examples](examples) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 
+The [tutorials](tutorials) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 
 Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) or
-[how to run a NanoVer server](https://irl2.github.io/nanover-docs/tutorials/fundamentals.html#running-a-server) in this
+[how to run a NanoVer server](https://irl2.github.io/nanover-docs/tutorials/basics.html#running-a-server) in this
 [project's documentation](https://irl2.github.io/nanover-docs).
 
 
@@ -161,7 +148,7 @@ Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tuto
 
 ### ASE IMD Simulations Jupyter Notebooks
 
-The [`examples/ase`](examples/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
+The [`examples/ase`](tutorials/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
 from a notebook.
 
 ### MD Analysis Trajectories
@@ -175,7 +162,7 @@ trajectory. To serve the frames on port 54321, from the `nanover-server-py` dire
 
 ### Autoconnect
 
-If you are having autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
+If you are having trouble autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
 ## Citation and external libraries
 

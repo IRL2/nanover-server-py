@@ -7,6 +7,7 @@ from nanover.recording.reading import (
     iter_state_file,
     iter_recording_buffers,
     iter_recording_files,
+    iter_full_view,
 )
 
 from nanover.protocol.trajectory import GetFrameResponse
@@ -53,3 +54,42 @@ def test_monotonic_timestamp(path):
         for next_time, _ in iter_recording_buffers(infile):
             assert next_time >= prev_time
             prev_time = next_time
+
+
+@pytest.mark.parametrize(
+    "traj_path,state_path", ((RECORDING_PATH_TRAJ, RECORDING_PATH_STATE),)
+)
+def test_full_view_independent(traj_path, state_path):
+    """
+    Test that frames and state dictionaries returned are independent and mutations don't affect subsequent frames and
+    state.
+    """
+    KEY = "__test"
+
+    for timestamp, frame, state in iter_full_view(traj=traj_path, state=state_path):
+        assert KEY not in frame
+        assert KEY not in state
+        frame.values[KEY] = timestamp
+        state[KEY] = timestamp
+
+
+@pytest.mark.parametrize(
+    "traj_path,state_path", ((RECORDING_PATH_TRAJ, RECORDING_PATH_STATE),)
+)
+def test_full_view_no_gaps(traj_path, state_path):
+    """
+    Test that frames and state dictionaries are never None and continue to persist fields present only at the start
+    of the recording.
+    """
+    # skip past initial setup
+    iterator = iter_full_view(traj=traj_path, state=state_path)
+    next(iterator)
+    next(iterator)
+
+    for timestamp, frame, state in iterator:
+        assert frame is not None
+        assert state is not None
+
+        # frame fields that appear during resets only
+        assert frame.particle_count > 0
+        assert len(frame.bond_pairs) > 0

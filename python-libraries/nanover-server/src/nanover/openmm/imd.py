@@ -126,7 +126,7 @@ class ImdForceManager:
 
 
 def _build_particle_interaction_index_set(
-    interactions: Dict[str, ParticleInteraction]
+    interactions: Dict[str, ParticleInteraction],
 ) -> Set[int]:
     """
     Get a set of the indices of the particles involved in interactions.
