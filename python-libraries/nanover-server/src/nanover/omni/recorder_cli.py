@@ -101,7 +101,9 @@ def main():
             executor, channel = record_from_server(address, traj, state)
 
             try:
-                print(f"Recording from server to {traj} and {state}. Press Ctrl-C to stop.")
+                print(
+                    f"Recording from server to {traj} and {state}. Press Ctrl-C to stop."
+                )
                 cancellation.wait_cancellation(interval=0.01)
             finally:
                 channel.close()

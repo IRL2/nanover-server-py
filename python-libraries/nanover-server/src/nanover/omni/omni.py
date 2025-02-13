@@ -1,5 +1,4 @@
 import logging
-import time
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty

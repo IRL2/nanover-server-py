@@ -3,7 +3,6 @@ Command line interface for nanover.omni.
 """
 
 import logging
-import signal
 import time
 import textwrap
 import argparse
@@ -15,8 +14,7 @@ from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
 from nanover.omni.record import record_from_server
-from nanover.utilities.cli import suppress_keyboard_interrupt, suppress_keyboard_interrupt_as_event, \
-    suppress_keyboard_interrupt_as_cancellation
+from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -171,7 +169,7 @@ def main():
                     app.run()
             else:
                 runner.print_basic_info()
-                cancellation.wait_cancellation(interval=.5)
+                cancellation.wait_cancellation(interval=0.5)
                 print("Closing due to KeyboardInterrupt.")
 
 
