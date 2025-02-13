@@ -129,8 +129,6 @@ def test_universes_from_recording():
 
 
 def test_n_frames(single_topology_universe):
-    print(single_topology_universe.trajectory)
-
     assert single_topology_universe.trajectory.n_frames == 624
 
 
