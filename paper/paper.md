@@ -14,26 +14,38 @@ tags:
   - nonequilibrium
 authors:
   - name: Harry J. Stroud
+    orcid: 0000-0001-8440-2629
+    corresponding: true
     affiliation: '1'
   - name: Mark D. Wonnacott
+    orcid: 0000-0001-9304-7278
     affiliation: '1'
   - name: Jonathan Barnoud
+    orcid: 0000-0003-0343-7796
     affiliation: '1'
   - name: Rhoslyn Roebuck Williams
+    orcid: 0000-0003-2535-7180
     affiliation: '1'
   - name: Mohamed Dhouioui
+    orcid: 0000-0003-4876-4686
     affiliation: '1'
   - name: Adam McSloy
+    orcid: 0000-0002-9064-7072
     affiliation: '2'
   - name: Ludovica Aisa
+    orcid: 0009-0002-2925-0081
     affiliation: '1'
   - name: Luis E. Toledo
+    orcid: 0009-0001-4683-9835
     affiliation: '1'
   - name: Phil Bates
+    orcid: 0000-0001-6010-1151
     affiliation: '2'
   - name: Adrian J. Mulholland
+    orcid: 0000-0003-1015-4567
     affiliation: '2'
   - name: David R. Glowacki
+    orcid: 0000-0002-9608-3845
     affiliation: '1'
 affiliations:
   - index: 1
