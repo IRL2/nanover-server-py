@@ -15,6 +15,8 @@ from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
 from nanover.omni.record import record_from_server
+from nanover.utilities.cli import suppress_keyboard_interrupt, suppress_keyboard_interrupt_as_event, \
+    suppress_keyboard_interrupt_as_cancellation
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -154,25 +156,23 @@ def main():
 
     arguments = handle_user_arguments()
 
-    with initialise_runner(arguments) as runner:
-        if len(runner.simulations) > 0:
-            runner.load(0)
+    with suppress_keyboard_interrupt_as_cancellation() as cancellation:
+        with initialise_runner(arguments) as runner:
+            if len(runner.simulations) > 0:
+                runner.load(0)
 
-        if arguments.rich:
-            try:
-                from nanover.omni.rich import OmniTextualApp
-            except ImportError as error:
-                print(f"Error: {error.msg}\nTry `pip install textual`")
+            if arguments.rich:
+                try:
+                    from nanover.omni.rich import OmniTextualApp
+                except ImportError as error:
+                    print(f"Error: {error.msg}\nTry `pip install textual`")
+                else:
+                    app = OmniTextualApp(runner)
+                    app.run()
             else:
-                app = OmniTextualApp(runner)
-                app.run()
-        else:
-            runner.print_basic_info_and_wait()
-
-        def handler(signum, frame):
-            print("(ignoring additional keyboard interrupt while closing)")
-
-        signal.signal(signal.SIGINT, handler)
+                runner.print_basic_info()
+                cancellation.wait_cancellation(interval=.5)
+                print("Closing due to KeyboardInterrupt.")
 
 
 if __name__ == "__main__":

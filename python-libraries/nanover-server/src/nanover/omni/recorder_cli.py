@@ -16,6 +16,7 @@ from nanover.omni.record import record_from_server
 
 from nanover.essd import DiscoveryClient
 from nanover.trajectory import FRAME_SERVICE_NAME
+from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -96,18 +97,15 @@ def main():
 
         print(f"Connecting to {address}.")
 
-        executor, channel = record_from_server(address, traj, state)
+        with suppress_keyboard_interrupt_as_cancellation() as cancellation:
+            executor, channel = record_from_server(address, traj, state)
 
-        print(f"Recording from server to {traj} and {state}. Press Ctrl-C to stop.")
-
-        try:
-            while True:
-                time.sleep(0.01)
-        except KeyboardInterrupt:
-            pass
-        finally:
-            channel.close()
-            executor.shutdown()
+            try:
+                print(f"Recording from server to {traj} and {state}. Press Ctrl-C to stop.")
+                cancellation.wait_cancellation(interval=0.01)
+            finally:
+                channel.close()
+                executor.shutdown()
 
         try:
             input("Done. Press Ctrl-C to quit or Return to begin recording again.")
