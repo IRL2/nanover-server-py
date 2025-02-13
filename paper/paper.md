@@ -52,7 +52,7 @@ affiliations:
     name: Intangible Realities Laboratory, Centro Singular de Investigación en Technoloxías Intelixentes (CiTIUS), Universidade de Santiago de Compostela, Spain
   - index: 2
     name: Centre for Computational Chemistry, School of Chemistry, University of Bristol, United Kingdom
-date: SUBMISSION DATE, TDB
+date: 13 February 2025
 bibliography: paper.bib
 
 ---
