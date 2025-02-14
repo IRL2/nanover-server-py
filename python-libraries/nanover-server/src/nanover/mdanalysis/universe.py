@@ -100,10 +100,12 @@ def universes_from_recording(*, traj: PathLike[str]):
         # universe from first frame of session
         universe = frame_data_to_mdanalysis(session[0][1])
         # integrate time elapsed into frames
-        for (elapsed, frame, state) in session:
+        for elapsed, frame, state in session:
             frame.values["elapsed"] = elapsed
         # trajectory from all frames of session
-        universe.trajectory = NanoverFramesReader(frame for (elapsed, frame, state) in session)
+        universe.trajectory = NanoverFramesReader(
+            frame for (elapsed, frame, state) in session
+        )
         universes.append(universe)
 
     return universes
