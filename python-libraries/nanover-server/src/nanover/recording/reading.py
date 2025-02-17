@@ -1,4 +1,5 @@
 import math
+from itertools import groupby
 from os import PathLike
 from typing import (
     Tuple,
@@ -15,11 +16,36 @@ from nanover.protocol.state import StateUpdate
 from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import state_update_to_dictionary_change
 from nanover.trajectory import FrameData, MissingDataError
+from nanover.trajectory.frame_data import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
 
 MAGIC_NUMBER = 6661355757386708963
 
 FrameEntry = Tuple[int, int, FrameData]
+
+
+def split_by_simulation_counter(
+    *, traj: PathLike[str], state: Optional[PathLike[str]] = None
+):
+    """
+    Split a trajectory recording (and optionally a corresponding state recording) into sequences that share the same
+    simulation counter value.
+    """
+
+    def get_simulation_counter(triplet):
+        _, frame, _ = triplet
+        return frame.values.get(SIMULATION_COUNTER)
+
+    full_view = iter_full_view(traj=traj, state=state)
+    sessions = [
+        list(session)
+        for simulation_counter, session in groupby(
+            full_view, key=get_simulation_counter
+        )
+        if simulation_counter is not None
+    ]
+
+    return sessions
 
 
 def iter_full_view(

@@ -84,7 +84,6 @@ def test_get_broadcast_addresses():
     if interfaces is None or len(interfaces) == 0:
         return
     broadcast_addresses = get_broadcast_addresses()
-    print(broadcast_addresses)
     assert len(broadcast_addresses) > 0
 
 

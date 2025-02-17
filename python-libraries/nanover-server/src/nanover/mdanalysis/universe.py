@@ -22,7 +22,8 @@ Facilities to read a NanoVer trajectory recording into an MDAnalysis Universe.
 
 import warnings
 from itertools import takewhile, chain, islice
-from typing import NamedTuple, Type, Callable
+from os import PathLike
+from typing import NamedTuple, Type, Callable, Iterable
 
 from MDAnalysis.coordinates.base import ProtoReader
 from MDAnalysis.coordinates.timestep import Timestep
@@ -55,6 +56,7 @@ from nanover.trajectory.frame_data import (
     RESIDUE_IDS,
     CHAIN_NAMES,
     MissingDataError,
+    PARTICLE_POSITIONS,
 )
 
 from nanover.recording.reading import (
@@ -62,8 +64,9 @@ from nanover.recording.reading import (
     iter_trajectory_with_elapsed_integrated,
     advance_to_first_particle_frame,
     advance_to_first_coordinate_frame,
+    split_by_simulation_counter,
 )
-from .converter import _to_chemical_symbol
+from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
 
 
 class KeyConversion(NamedTuple):
@@ -85,6 +88,33 @@ KEY_TO_ATTRIBUTE = {
     RESIDUE_IDS: KeyConversion(Resids, _as_is),
     CHAIN_NAMES: KeyConversion(Segids, _as_is),
 }
+
+
+def universes_from_recording(*, traj: PathLike[str]):
+    """
+    Decompose a NanoVer trajectory recording into an mdanalysis Universe for each session of simulation (determined
+    by simulation counter).
+    """
+    universes = []
+
+    for session in split_by_simulation_counter(traj=traj):
+        # universe from first frame of session containing initial positions
+        first_positions_frame = next(
+            frame
+            for (elapsed, frame, state) in session
+            if frame.particle_count > 0 and PARTICLE_POSITIONS in frame.arrays
+        )
+        universe = frame_data_to_mdanalysis(first_positions_frame)
+        # integrate time elapsed into frames
+        for elapsed, frame, state in session:
+            frame.values["elapsed"] = elapsed
+        # trajectory from all frames of session
+        universe.trajectory = NanoverFramesReader(
+            frame for (elapsed, frame, state) in session
+        )
+        universes.append(universe)
+
+    return universes
 
 
 class NanoverParser(TopologyReaderBase):
@@ -152,40 +182,22 @@ class NanoverParser(TopologyReaderBase):
             )
 
 
-class NanoverReader(ProtoReader):
+class NanoverFramesReader(ProtoReader):
     units = {"time": "ps", "length": "nm", "velocity": "nm/ps", "force": "kJ/(mol*nm)"}
 
-    def __init__(self, filename, convert_units=True, **kwargs):
+    def __init__(self, frames: Iterable[FrameData], **kwargs):
         super().__init__()
-        self.filename = filename
-        self.convert_units = convert_units
-        with openany(filename, mode="rb") as infile:
-            recording = advance_to_first_coordinate_frame(
-                iter_trajectory_with_elapsed_integrated(
-                    iter_trajectory_recording(infile)
-                )
-            )
-            try:
-                _, _, first_frame = next(recording)
-            except StopIteration:
-                raise IOError("Empty trajectory.")
-            self.n_atoms = first_frame.particle_count
 
-            non_topology_frames = takewhile(
-                lambda frame: not has_topology(frame),
-                map(lambda record: record[2], recording),
-            )
-            self._frames = list(chain([first_frame], non_topology_frames))
-            self.n_frames = len(self._frames)
-            self._read_frame(0)
-            reminder = list(recording)
-            if reminder:
-                warnings.warn(
-                    f"The simulation contains changes to the topology after the "
-                    f"first frame. Only the frames with the initial topology are "
-                    f"accessible in this Universe. There are {len(reminder)} "
-                    f"unread frames with a different topology."
-                )
+        self.filename = None
+        self.convert_units = True
+
+        # use only frames with position updates for timestep information
+        self._frames = list(
+            frame for frame in frames if PARTICLE_POSITIONS in frame.arrays
+        )
+        self.n_frames = len(self._frames)
+        self.n_atoms = self._frames[0].particle_count
+        self._read_frame(0)
 
     def _read_frame(self, frame):
         self._current_frame_index = frame
@@ -234,7 +246,10 @@ class NanoverReader(ProtoReader):
         self.ts = ts
         return ts
 
-    def _read_next_timestep(self):
+    def _read_next_timestep(self, ts=None):
+        # unsupported
+        assert ts is None
+
         if self._current_frame_index is None:
             frame = 0
         else:
@@ -260,6 +275,41 @@ class NanoverReader(ProtoReader):
         if self.convert_units:
             self.convert_forces_from_native(forces)
         ts.data["user_forces"] = forces
+
+
+class NanoverReader(NanoverFramesReader):
+    def __init__(self, filename, convert_units=True, **kwargs):
+        with openany(filename, mode="rb") as infile:
+            recording = advance_to_first_coordinate_frame(
+                iter_trajectory_with_elapsed_integrated(
+                    iter_trajectory_recording(infile)
+                )
+            )
+            try:
+                _, _, first_frame = next(recording)
+            except StopIteration:
+                raise IOError("Empty trajectory.")
+            self.n_atoms = first_frame.particle_count
+
+            non_topology_frames = takewhile(
+                lambda frame: not has_topology(frame),
+                map(lambda record: record[2], recording),
+            )
+
+            frames = list(chain([first_frame], non_topology_frames))
+            reminder = list(recording)
+
+        if reminder:
+            warnings.warn(
+                f"The simulation contains changes to the topology after the "
+                f"first frame. Only the frames with the initial topology are "
+                f"accessible in this Universe. There are {len(reminder)} "
+                f"unread frames with a different topology."
+            )
+
+        super().__init__(frames, **kwargs)
+        self.filename = filename
+        self.convert_units = convert_units
 
 
 def has_topology(frame: FrameData) -> bool:

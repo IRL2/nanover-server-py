@@ -8,6 +8,7 @@ from nanover.recording.reading import (
     iter_recording_buffers,
     iter_recording_files,
     iter_full_view,
+    split_by_simulation_counter,
 )
 
 from nanover.protocol.trajectory import GetFrameResponse
@@ -16,6 +17,9 @@ from nanover.protocol.state import StateUpdate
 EXAMPLES_PATH = Path(__file__).parent
 RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
 RECORDING_PATH_STATE = EXAMPLES_PATH / "nanotube-example-recording.state"
+
+RECORDING_PATH_TRAJ_SWITCHING = EXAMPLES_PATH / "sim-switching-test-recording.traj"
+RECORDING_PATH_STATE_SWITCHING = EXAMPLES_PATH / "sim-switching-test-recording.state"
 
 
 @pytest.mark.parametrize("path,count", ((RECORDING_PATH_TRAJ, 930),))
@@ -93,3 +97,28 @@ def test_full_view_no_gaps(traj_path, state_path):
         # frame fields that appear during resets only
         assert frame.particle_count > 0
         assert len(frame.bond_pairs) > 0
+
+
+def test_split_by_simulation_counter():
+    """
+    Test that splitting a known recording results in the correct number of parts with the expected length and expected
+    properties e.g particle counts etc.
+    """
+    traj_path = RECORDING_PATH_TRAJ_SWITCHING
+    state_path = RECORDING_PATH_STATE_SWITCHING
+
+    expected_count = 4
+    expected_entry_counts = [104, 108, 127, 115]
+    expected_particle_counts = [65, 173, 65, 173]
+
+    views = split_by_simulation_counter(traj=traj_path, state=state_path)
+
+    assert len(views) == expected_count
+
+    for i in range(expected_count):
+        view = views[i]
+        timestamp, frame, state = view[-1]
+
+        assert frame.simulation_counter == i
+        assert len(view) == expected_entry_counts[i]
+        assert frame.particle_count == expected_particle_counts[i]
