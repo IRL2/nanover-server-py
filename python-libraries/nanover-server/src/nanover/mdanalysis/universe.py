@@ -56,6 +56,7 @@ from nanover.trajectory.frame_data import (
     RESIDUE_IDS,
     CHAIN_NAMES,
     MissingDataError,
+    PARTICLE_POSITIONS,
 )
 
 from nanover.recording.reading import (
@@ -97,8 +98,13 @@ def universes_from_recording(*, traj: PathLike[str]):
     universes = []
 
     for session in split_by_simulation_counter(traj=traj):
-        # universe from first frame of session
-        universe = frame_data_to_mdanalysis(session[0][1])
+        # universe from first frame of session containing initial positions
+        first_positions_frame = next(
+            frame
+            for (elapsed, frame, state) in session
+            if frame.particle_count > 0 and PARTICLE_POSITIONS in frame.arrays
+        )
+        universe = frame_data_to_mdanalysis(first_positions_frame)
         # integrate time elapsed into frames
         for elapsed, frame, state in session:
             frame.values["elapsed"] = elapsed
@@ -185,7 +191,10 @@ class NanoverFramesReader(ProtoReader):
         self.filename = None
         self.convert_units = True
 
-        self._frames = list(frames)
+        # use only frames with position updates for timestep information
+        self._frames = list(
+            frame for frame in frames if PARTICLE_POSITIONS in frame.arrays
+        )
         self.n_frames = len(self._frames)
         self.n_atoms = self._frames[0].particle_count
         self._read_frame(0)
