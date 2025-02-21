@@ -53,7 +53,7 @@ affiliations:
   - index: 2
     name: Centre for Computational Chemistry, School of Chemistry, University of Bristol, United Kingdom
 date: 13 February 2025
-bibliography: joss-paper-2025.bib
+bibliography: paper.bib
 
 ---
 
