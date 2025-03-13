@@ -1,5 +1,4 @@
 import logging
-import time
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
@@ -89,9 +88,9 @@ class OmniRunner:
         self.app_server.close()
         self._cancel_run()
 
-    def print_basic_info_and_wait(self):
+    def print_basic_info(self):
         """
-        Print out basic runner info to the terminal and await keyboard interrupt.
+        Print out basic runner info to the terminal.
         """
         print(
             f'Serving "{self.app_server.name}" on port {self.app_server.port}, '
@@ -103,12 +102,6 @@ class OmniRunner:
             for index, simulation in enumerate(self.simulations)
         )
         print(f"Available simulations:\n{list}")
-
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("Closing due to keyboard interrupt.")
 
     @property
     def app_server(self):

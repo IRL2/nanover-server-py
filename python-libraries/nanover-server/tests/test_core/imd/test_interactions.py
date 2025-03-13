@@ -146,8 +146,6 @@ def test_position(orig, new):
 @given(particles(), particles())
 def test_particles(orig, new):
     interaction = ParticleInteraction(particles=orig)
-    print(np.array(orig))
-    print(interaction.particles)
     assert np.all(interaction.particles == np.array(orig))
     interaction.particles = new
     assert np.all(interaction.particles == np.array(new))
