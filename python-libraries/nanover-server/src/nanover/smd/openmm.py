@@ -1,14 +1,15 @@
 from os import PathLike
 from pathlib import Path
 from typing import Optional, Union, Any
+from abc import abstractmethod
 
 import numpy as np
-from ase.transport.tools import get_subspace
 
 from openmm import CustomExternalForce, CustomCentroidBondForce
 from openmm.app import Simulation
 
 from nanover.openmm import serializer
+
 
 class OpenMMSMDSimulation:
     """
@@ -16,13 +17,21 @@ class OpenMMSMDSimulation:
     """
 
     @classmethod
-    def from_simulation(cls, simulation: Simulation, smd_atom_indices: np.ndarray, smd_path: np.ndarray, smd_force_constant: float, *, name: Optional[str] = None):
+    def from_simulation(
+        cls,
+        simulation: Simulation,
+        smd_atom_indices: np.ndarray,
+        smd_path: np.ndarray,
+        smd_force_constant: float,
+        *,
+        name: Optional[str] = None
+    ):
         """
         Construct the SMD simulation from an existing OpenMM simulation.
         """
 
         # Create instance of SMD simulation based on type of indices passed
-        assert(smd_atom_indices.size >= 1)
+        assert smd_atom_indices.size >= 1
         if smd_atom_indices.size > 1:
             sim = super(cls, OpenMMSMDSimulationCOM).__new__(OpenMMSMDSimulationCOM)
         else:
@@ -33,7 +42,6 @@ class OpenMMSMDSimulation:
         sim.smd_atom_indices = smd_atom_indices
         sim.smd_path = smd_path
         sim.smd_force_constant = smd_force_constant
-        sim.n_smd_atom_indices = sim.smd_atom_indices.size
 
         # Create SMD force and add it to the system
         sim.add_smd_force_to_system()
@@ -44,9 +52,16 @@ class OpenMMSMDSimulation:
 
         return sim
 
-
     @classmethod
-    def from_xml_path(cls, path: PathLike[str], smd_atom_indices: np.ndarray, smd_path: np.ndarray, smd_force_constant: float, *, name: Optional[str] = None):
+    def from_xml_path(
+        cls,
+        path: PathLike[str],
+        smd_atom_indices: np.ndarray,
+        smd_path: np.ndarray,
+        smd_force_constant: float,
+        *,
+        name: Optional[str] = None
+    ):
         """
         Construct the SMD simulation from an existing NanoVer OpenMM XML file located at a given path.
         """
@@ -55,7 +70,6 @@ class OpenMMSMDSimulation:
             sim = super(cls, OpenMMSMDSimulationCOM).__new__(OpenMMSMDSimulationCOM)
         elif smd_atom_indices.size == 1:
             sim = super(cls, OpenMMSMDSimulationAtom).__new__(OpenMMSMDSimulationAtom)
-
 
         if name is None:
             sim.name = Path(path).stem
@@ -70,7 +84,6 @@ class OpenMMSMDSimulation:
         sim.smd_atom_indices = smd_atom_indices
         sim.smd_path = smd_path
         sim.smd_force_constant = smd_force_constant
-        sim.n_smd_atom_indices = sim.smd_atom_indices.size
 
         # Create SMD force and add it to the system
         sim.add_smd_force_to_system()
@@ -81,8 +94,6 @@ class OpenMMSMDSimulation:
 
         return sim
 
-
-
     def __init__(self, name: Optional[str] = None):
         self.name = name or "Unnamed OpenMM SMD Simulation"
 
@@ -92,14 +103,23 @@ class OpenMMSMDSimulation:
         self.smd_atom_indices: Optional[np.ndarray] = None
         self.smd_path: Optional[np.ndarray] = None
         self.smd_force_constant: Optional[float] = None
+        self.current_smd_force_position: Optional[np.ndarray] = None
 
         self.n_smd_atom_indices: Optional[int] = None
 
-        self.smd_force: Optional[Union[CustomExternalForce, CustomCentroidBondForce]] = None
+        self.smd_force: Optional[
+            Union[CustomExternalForce, CustomCentroidBondForce]
+        ] = None
 
         self.checkpoint: Optional[Any] = None
 
+    @abstractmethod
+    def add_smd_force_to_system(self):
+        pass
 
+    @abstractmethod
+    def update_smd_force_position(self):
+        pass
 
 
 class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
@@ -107,15 +127,24 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
     def __init__(self, name: Optional[str] = None):
 
         super().__init__(name)
+        self.current_smd_force_position = self.smd_path[0]
 
 
     def add_smd_force_to_system(self):
 
-        x0, y0, z0 = self.smd_path[0]
+        x0, y0, z0 = self.current_smd_force_position
         smd_force = smd_single_atom_force(self.smd_force_constant)
         smd_force.addParticle(self.smd_atom_indices, [x0, y0, z0])
         self.smd_force = smd_force
         self.simulation.system.addForce(self.smd_force)
+
+
+    def update_smd_force_position(self):
+
+        x0, y0, z0 = self.current_smd_force_position
+        self.smd_force.setParticleParameters(0, self.smd_atom_indices, [x0, y0, z0])
+        self.smd_force.updateParametersInContext(self.simulation.context)
+
 
 
 class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
@@ -123,17 +152,24 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
     def __init__(self, name: Optional[str] = None):
 
         super().__init__(name)
-
+        self.current_smd_force_position = self.smd_path[0]
 
 
     def add_smd_force_to_system(self):
 
-        x0, y0, z0 = self.smd_path[0]
+        x0, y0, z0 = self.current_smd_force_position
         smd_force = smd_com_force(self.smd_force_constant)
         smd_force.addGroup(self.smd_atom_indices)
         smd_force.addBond([0], [x0, y0, z0])
         self.smd_force = smd_force
         self.simulation.system.addForce(self.smd_force)
+
+
+    def update_smd_force_position(self):
+
+        x0, y0, z0 = self.current_smd_force_position
+        self.smd_force.setBondParameters(0, 0, [x0, y0, z0])
+        self.smd_force.updateParametersInContext(self.simulation.context)
 
 
 def smd_com_force(force_constant: float):
@@ -142,7 +178,9 @@ def smd_com_force(force_constant: float):
     """
 
     # TODO: Check that this works with PBCs correctly - may need to amend setUsesPBCs line...
-    smd_force = CustomCentroidBondForce(1, "0.5 * smd_k * pointdistance(x1, y1, z1, x0, y0, z0)^2")
+    smd_force = CustomCentroidBondForce(
+        1, "0.5 * smd_k * pointdistance(x1, y1, z1, x0, y0, z0)^2"
+    )
     smd_force.addGlobalParameter("smd_k", force_constant)
     smd_force.addPerBondParameter("x0")
     smd_force.addPerBondParameter("y0")
@@ -158,7 +196,9 @@ def smd_single_atom_force(force_constant: float):
     Defines a harmonic restraint force for a single atom for performing SMD.
     """
 
-    smd_force = CustomExternalForce("0.5 * smd_k * periodicdistance(x, y, z, x0, y0, z0)^2")
+    smd_force = CustomExternalForce(
+        "0.5 * smd_k * periodicdistance(x, y, z, x0, y0, z0)^2"
+    )
     smd_force.addGlobalParameter("smd_k", force_constant)
     smd_force.addPerParticleParameter("x0")
     smd_force.addPerParticleParameter("y0")
@@ -166,5 +206,3 @@ def smd_single_atom_force(force_constant: float):
     smd_force.setForceGroup(31)
 
     return smd_force
-
-
