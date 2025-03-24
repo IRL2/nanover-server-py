@@ -42,8 +42,12 @@ class OpenMMSMDSimulation:
         sim.smd_atom_indices = smd_atom_indices
         sim.smd_path = smd_path
         sim.smd_force_constant = smd_force_constant
+        sim.n_smd_atom_indices = sim.smd_atom_indices.size
+        sim.define_smd_simulation_atom_positions_array()
 
         # Create SMD force and add it to the system
+        sim.current_smd_force_position = sim.smd_path[0]
+        sim.current_smd_force_position_index = 0
         sim.add_smd_force_to_system()
         sim.simulation.context.reinitialize(preserveState=True)
 
@@ -85,8 +89,11 @@ class OpenMMSMDSimulation:
         sim.n_smd_atom_indices = sim.smd_atom_indices.size
         sim.smd_path = smd_path
         sim.smd_force_constant = smd_force_constant
+        sim.define_smd_simulation_atom_positions_array()
 
         # Create SMD force and add it to the system
+        sim.current_smd_force_position = sim.smd_path[0]
+        sim.current_smd_force_position_index = 0
         sim.add_smd_force_to_system()
         sim.simulation.context.reinitialize(preserveState=True)
 
@@ -116,6 +123,17 @@ class OpenMMSMDSimulation:
         self.current_smd_force_position: Optional[np.ndarray] = None
         self.current_smd_force_position_index: Optional[int] = None
         self.smd_simulation_atom_positions: Optional[np.ndarray] = None
+        self.smd_simulation_forces: Optional[np.ndarray] = None
+        self.smd_simulation_work_done: Optional[np.ndarray] = None
+
+
+    @abstractmethod
+    def define_smd_simulation_atom_positions_array(self):
+        """
+        Define the array to which the positions of the atoms with which the
+        SMD force interacts will be saved over the course of the SMD simulation.
+        """
+        pass
 
 
     @abstractmethod
@@ -134,6 +152,14 @@ class OpenMMSMDSimulation:
         """
         pass
 
+    @abstractmethod
+    def calculate_cumulative_work_done(self):
+        """
+        Calculate the cumulative work done along the reaction coordinate
+        during the SMD simulation.
+        """
+        pass
+
 
     def get_smd_atom_positions(self):
         """
@@ -144,19 +170,48 @@ class OpenMMSMDSimulation:
         self.smd_simulation_atom_positions[self.current_smd_force_position_index] = positions[self.smd_atom_indices]
 
 
+    def run_smd(self):
+        """
+        Perform an SMD simulation on the system using the SMD force and
+        path defined, store the positions of the atoms with which the
+        SMD force interacts, and calculate the work done along the reaction
+        coordinate.
+        """
+        return None
+
+
+    def calculate_forces(self, interaction_centre_positions):
+        """
+        Calculate the SMD forces that acted on the system during the simulation.
+        """
+        assert(np.all(self.smd_path.shape == interaction_centre_positions.shape))
+        self.smd_simulation_forces = - self.smd_force_constant * (interaction_centre_positions - self.smd_path)
+
+
+    def _calculate_work_done(self):
+        """
+        Calculate the cumulative work done along the reaction coordinate
+        """
+        assert(self.smd_path is not None and self.smd_simulation_forces is not None)
+        smd_force_displacements = np.diff(self.smd_path, axis=0)
+        work_done_array = np.zeros(smd_force_displacements.shape[0])
+        for i in range(work_done_array.size):
+            work_done_array[i] = np.dot(self.smd_simulation_forces[i], smd_force_displacements[i])
+        self.smd_simulation_work_done = np.cumsum(work_done_array, axis=0)
+
+
+
 
 class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
 
     def __init__(self, name: Optional[str] = None):
 
         super().__init__(name)
-        self.current_smd_force_position = self.smd_path[0]
-        self.smd_simulation_atom_positions = np.zeros((self.smd_path.shape[0], 3))
 
 
     def add_smd_force_to_system(self):
 
-        x0, y0, z0 = self.current_smd_force_position
+        x0, y0, z0 = self.smd_path[0]
         smd_force = smd_single_atom_force(self.smd_force_constant)
         smd_force.addParticle(self.smd_atom_indices, [x0, y0, z0])
         self.smd_force = smd_force
@@ -170,19 +225,32 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
         self.smd_force.updateParametersInContext(self.simulation.context)
 
 
+    def define_smd_simulation_atom_positions_array(self):
+        self.smd_simulation_atom_positions = np.zeros((self.smd_path.shape[0], 3))
+
+
+    def calculate_cumulative_work_done(self):
+        """
+        Calculate the cumulative work done by the SMD force on the
+        atom with which it interacts over the SMD simulation.
+        """
+        assert(np.all(self.smd_simulation_atom_positions != 0.0))
+        self.calculate_forces(self.smd_simulation_atom_positions)
+        self._calculate_work_done()
+
+
 
 class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
 
     def __init__(self, name: Optional[str] = None):
 
         super().__init__(name)
-        self.current_smd_force_position = self.smd_path[0]
-        self.smd_simulation_atom_positions = np.zeros((self.smd_path.shape[0], self.n_smd_atom_indices, 3))
+        self.com_positions: Optional[np.ndarray] = None
 
 
     def add_smd_force_to_system(self):
 
-        x0, y0, z0 = self.current_smd_force_position
+        x0, y0, z0 = self.smd_path[0]
         smd_force = smd_com_force(self.smd_force_constant)
         smd_force.addGroup(self.smd_atom_indices)
         smd_force.addBond([0], [x0, y0, z0])
@@ -193,8 +261,45 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
     def update_smd_force_position(self):
 
         x0, y0, z0 = self.current_smd_force_position
-        self.smd_force.setBondParameters(0, 0, [x0, y0, z0])
+        self.smd_force.setBondParameters(0, [0], [x0, y0, z0])
         self.smd_force.updateParametersInContext(self.simulation.context)
+
+
+    def define_smd_simulation_atom_positions_array(self):
+        self.smd_simulation_atom_positions = np.zeros((self.smd_path.shape[0], self.smd_atom_indices.size, 3))
+
+
+    def calculate_com(self, atom_positions: np.ndarray, atom_masses: np.ndarray):
+        """
+        Calculate the centre of mass of a group of atoms.
+        """
+        #TODO: Check this works and write tests!
+        assert(np.all(atom_positions.shape == np.array((self.smd_atom_indices.size, 3))))
+        return np.sum(np.multiply(np.transpose(atom_positions), atom_masses), axis=1) / np.sum(atom_masses)
+
+    def calculate_com_trajectory(self):
+        """
+        Calculate the trajectory that the COM follows during the SMD simulation.
+        """
+        #TODO: Check this works and write tests!
+        assert(np.all(self.smd_simulation_atom_positions != np.zeros((self.smd_path.shape[0], self.smd_atom_indices.size, 3))))
+        atom_masses = np.zeros(self.n_smd_atom_indices)
+        for index in range(self.n_smd_atom_indices):
+            atom_masses[index] = self.simulation.system.getParticleMass(self.smd_atom_indices[index])
+        self.com_positions = np.array([self.calculate_com(self.smd_simulation_atom_positions[i], atom_masses) for i in range(self.smd_path.shape[0])])
+
+
+    def calculate_cumulative_work_done(self):
+        """
+        Calculate the cumulative work done by the SMD force on the
+        COM of the atoms with which it interacts over the SMD simulation.
+        """
+        self.calculate_com_trajectory()
+        self.calculate_forces(self.com_positions)
+        self._calculate_work_done()
+
+
+
 
 
 def smd_com_force(force_constant: float):
