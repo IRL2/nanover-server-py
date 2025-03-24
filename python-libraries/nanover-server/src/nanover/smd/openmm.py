@@ -82,6 +82,7 @@ class OpenMMSMDSimulation:
         with open(sim.xml_path) as infile:
             sim.simulation = serializer.deserialize_simulation(infile)
         sim.smd_atom_indices = smd_atom_indices
+        sim.n_smd_atom_indices = sim.smd_atom_indices.size
         sim.smd_path = smd_path
         sim.smd_force_constant = smd_force_constant
 
@@ -103,7 +104,6 @@ class OpenMMSMDSimulation:
         self.smd_atom_indices: Optional[np.ndarray] = None
         self.smd_path: Optional[np.ndarray] = None
         self.smd_force_constant: Optional[float] = None
-        self.current_smd_force_position: Optional[np.ndarray] = None
 
         self.n_smd_atom_indices: Optional[int] = None
 
@@ -113,13 +113,36 @@ class OpenMMSMDSimulation:
 
         self.checkpoint: Optional[Any] = None
 
+        self.current_smd_force_position: Optional[np.ndarray] = None
+        self.current_smd_force_position_index: Optional[int] = None
+        self.smd_simulation_atom_positions: Optional[np.ndarray] = None
+
+
     @abstractmethod
     def add_smd_force_to_system(self):
+        """
+        Add the required SMD force to the system, depending on the type of
+        SMD interaction required (single atom or centre-of-mass).
+        """
         pass
+
 
     @abstractmethod
     def update_smd_force_position(self):
+        """
+        Update the position of the SMD force.
+        """
         pass
+
+
+    def get_smd_atom_positions(self):
+        """
+        Retrieve the positions of the atoms with which the SMD force is
+        interacting, and add them to the array of positions to save.
+        """
+        positions = self.simulation.context.getState(getPositions=True).getPositions(asNumpy=True)
+        self.smd_simulation_atom_positions[self.current_smd_force_position_index] = positions[self.smd_atom_indices]
+
 
 
 class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
@@ -128,6 +151,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
 
         super().__init__(name)
         self.current_smd_force_position = self.smd_path[0]
+        self.smd_simulation_atom_positions = np.zeros((self.smd_path.shape[0], 3))
 
 
     def add_smd_force_to_system(self):
@@ -153,6 +177,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
 
         super().__init__(name)
         self.current_smd_force_position = self.smd_path[0]
+        self.smd_simulation_atom_positions = np.zeros((self.smd_path.shape[0], self.n_smd_atom_indices, 3))
 
 
     def add_smd_force_to_system(self):
