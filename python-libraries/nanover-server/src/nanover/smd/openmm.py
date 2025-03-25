@@ -359,7 +359,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         for index in range(self.n_smd_atom_indices):
             atom_masses[index] = self.simulation.system.getParticleMass(
                 self.smd_atom_indices[index]
-            )
+            )._value
         self.com_positions = np.array(
             [
                 self.calculate_com(self.smd_simulation_atom_positions[i], atom_masses)
