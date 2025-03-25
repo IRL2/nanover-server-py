@@ -214,6 +214,7 @@ class OpenMMSMDSimulation:
 
         print("Work done calculated.")
 
+
     def calculate_forces(self, interaction_centre_positions):
         """
         Calculate the SMD forces that acted on the system during the simulation.
@@ -222,6 +223,7 @@ class OpenMMSMDSimulation:
         self.smd_simulation_forces = -self.smd_force_constant * (
             interaction_centre_positions - self.smd_path
         )
+
 
     def _calculate_work_done(self):
         """
@@ -235,6 +237,37 @@ class OpenMMSMDSimulation:
                 self.smd_simulation_forces[i], smd_force_displacements[i]
             )
         self.smd_simulation_work_done = np.cumsum(work_done_array, axis=0)
+
+
+    def save_smd_simulation_data(self, path: str = None):
+
+        if path is None:
+            raise ValueError("Output file path cannot be None. Please specify an output file path.")
+
+        elif self.smd_simulation_work_done is None:
+            raise ValueError("Missing values for the work done. This data can only be saved after"
+                             "the SMD calculation is completed.")
+
+        elif self.smd_simulation_atom_positions is None or np.all(self.smd_simulation_atom_positions == 0.0):
+            raise ValueError("Missing values for the atom positions. This data can only be saved after"
+                             "the SMD calculation is completed.")
+
+        with open(path, "wb") as outfile:
+            np.save(outfile, self.smd_simulation_atom_positions)
+            np.save(outfile, self.smd_simulation_work_done)
+
+
+    def save_general_smd_data(self, path: str = None):
+
+        if path is None:
+            raise ValueError("Output file path cannot be None. Please specify an output file path.")
+
+        with open(path, "wb") as outfile:
+            np.save(outfile, self.smd_atom_indices)
+            np.save(outfile, self.smd_path)
+            np.save(outfile, self.smd_force_constant)
+            np.save(outfile, self.simulation.integrator.getTemperature()._value)
+            np.save(outfile, self.simulation.integrator.getStepSize()._value)
 
 
 class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
