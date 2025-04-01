@@ -170,6 +170,23 @@ class OpenMMSMDSimulation:
             positions[self.smd_atom_indices]
         )
 
+    def run_equilibration_with_initial_restraint(self, n_steps: int):
+        """
+        Perform an equilibration of the system with the restraint fixed at the
+        initial position defined in the SMD force path.
+        :param n_steps: Number of simulation steps to run equilibration for.
+        """
+
+        try:
+            assert np.all(self.current_smd_force_position == self.smd_path[0])
+        except AssertionError:
+            raise AssertionError("Restraint is not located at the initial position "
+                                 "of the SMD force, equilibration aborted. To prepare the system "
+                                 "appropriately, the restraint should be placed at the first point "
+                                 "on the path that the SMD force will take during the SMD simulation.")
+
+        self.simulation.step(n_steps)
+
     def run_smd(self, progress_interval: Optional[int] = 100000):
         """
         Perform an SMD simulation on the system using the SMD force and
