@@ -231,9 +231,9 @@ class OpenMMSMDSimulation:
         """
         assert self.smd_path is not None and self.smd_simulation_forces is not None
         smd_force_displacements = np.diff(self.smd_path, axis=0)
-        work_done_array = np.zeros(smd_force_displacements.shape[0])
-        for i in range(work_done_array.size):
-            work_done_array[i] = np.dot(
+        work_done_array = np.zeros(self.smd_simulation_forces.shape[0])
+        for i in range(smd_force_displacements.shape[0]):
+            work_done_array[i+1] = np.dot(
                 self.smd_simulation_forces[i], smd_force_displacements[i]
             )
         self.smd_simulation_work_done = np.cumsum(work_done_array, axis=0)
