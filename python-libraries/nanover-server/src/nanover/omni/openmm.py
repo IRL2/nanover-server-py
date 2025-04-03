@@ -75,6 +75,8 @@ class OpenMMSimulation:
         """Include particle forces in frames."""
         self.platform_name: Optional[str] = None
         """Name of OpenMM platform to use at the time the system is loaded from XML."""
+        self.enforce_pbc = False
+        """Enforce periodic boundary conditions: wrap atoms positions to within the box."""
 
         self.imd_force = create_imd_force()
         self.simulation: Optional[Simulation] = None
@@ -177,7 +179,7 @@ class OpenMMSimulation:
         # fetch positions early, for updating imd
         state = self.simulation.context.getState(
             getPositions=True,
-            enforcePeriodicBox=True,
+            enforcePeriodicBox=self.enforce_pbc,
         )
         positions = state.getPositions(asNumpy=True)
 
@@ -221,7 +223,7 @@ class OpenMMSimulation:
         assert self.simulation is not None
 
         state = self.simulation.context.getState(
-            getPositions=True, getEnergy=True, enforcePeriodicBox=True
+            getPositions=True, getEnergy=True, enforcePeriodicBox=self.enforce_pbc
         )
         topology = self.simulation.topology
         frame_data = openmm_to_frame_data(state=state, topology=topology)
@@ -245,7 +247,7 @@ class OpenMMSimulation:
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
-            enforcePeriodicBox=True,
+            enforcePeriodicBox=self.enforce_pbc,
             groups=NON_IMD_FORCES_GROUP_MASK,
         )
 
