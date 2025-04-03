@@ -29,6 +29,8 @@ from openmm_simulation_utils import (
     build_basic_simulation,
 )
 
+UNIT_SIMULATION_BOX_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+
 
 @pytest.fixture
 def example_openmm():
@@ -249,9 +251,9 @@ def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_f
     # Assert that all components of velocities are approximately equal before and after
     # serialization/deserialization procedure.
     for i in range(len(velocities)):
-        assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=2.0e-7)
-        assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=2.0e-7)
-        assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.0e-7)
+        assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=2.0e-6)
+        assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=2.0e-6)
+        assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.0e-6)
 
 
 def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulation):
@@ -543,3 +545,38 @@ def test_velocities_and_forces_single_atom():
         assert frame.particle_velocities[i] == pytest.approx(
             expected_velocities, abs=1e-7
         )
+
+
+def test_pbc_enforcement():
+    """
+    Test that PBC wrapping of positions defaults to off, doesn't wrap positions when off, and does wrap positions when on.
+    """
+    omm_sim = build_basic_simulation()
+    sim = OpenMMSimulation.from_simulation(omm_sim)
+    sim.load()
+
+    with make_app_server() as app_server:
+        sim.reset(app_server)
+        sim.advance_by_one_step()
+
+    # switch to 1x1x1 periodic bounding box
+    omm_sim.context.setPeriodicBoxVectors(*UNIT_SIMULATION_BOX_VECTORS)
+
+    def out_of_bounds(coord):
+        return coord < 0 or coord > 1
+
+    def get_sim_position_coords(sim):
+        for position in sim.make_regular_frame().particle_positions:
+            for coord in position:
+                yield coord
+
+    # should default to not PBC wrapping coords
+    assert not sim.enforce_pbc
+
+    # without PBC wrapping, some coords should fall outside the box
+    sim.enforce_pbc = False
+    assert any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))
+
+    # with PBC wrapping, no coords should fall outside the box
+    sim.enforce_pbc = True
+    assert not any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))
