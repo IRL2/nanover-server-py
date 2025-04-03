@@ -10,7 +10,11 @@ from nanover.app import NanoverImdClient
 from nanover.omni.ase import ASESimulation
 from nanover.ase.converter import ASE_TIME_UNIT_TO_PS, ANG_TO_NM, EV_TO_KJMOL
 
-from common import make_app_server, make_loaded_sim
+from common import (
+    make_app_server,
+    make_loaded_sim,
+    connect_and_retrieve_first_frame_from_app_server,
+)
 
 
 @pytest.fixture
@@ -338,10 +342,29 @@ def test_imd_force_unit_conversion(example_ase_app_sim_constant_force_interactio
             )
 
 
-def test_work_done_server(example_ase_app_sim_constant_force_interaction):
+def test_work_done_frame(example_ase_app_sim_constant_force_interaction):
+    """
+    Test that the calculated user work done on a single atom system that appears
+    in the frame is equal to the user work done as calculated in the ASESimulation,
+    even after resets.
+    """
+    app, sim = example_ase_app_sim_constant_force_interaction
+
+    for _ in range(5):
+        sim.reset(app)
+
+        for _ in range(11):
+            sim.advance_to_next_report()
+
+        frame = connect_and_retrieve_first_frame_from_app_server(app)
+        assert frame.user_work_done == sim.work_done
+
+
+def test_work_done_server_reset(example_ase_app_sim_constant_force_interaction):
     """
     Test that the calculated user work done on a single atom system gives the
-    expected numerical result within the code.
+    expected numerical result within the code, and doesn't accumulate across
+    resets.
     """
 
     # For a simulation with a frame interval of 5 simulation steps and a simulation
@@ -353,32 +376,29 @@ def test_work_done_server(example_ase_app_sim_constant_force_interaction):
     app, sim = example_ase_app_sim_constant_force_interaction
 
     # Add step to account for zeroth (topology) frame where force is not applied
-    for _ in range(401):
-        sim.advance_to_next_report()
+    test_steps = 400 + 1
 
-    # Check that 1.0025 ps have passed (and hence that force has been applied for 1 ps)
-    assert sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS == pytest.approx(
-        1.0025, abs=10e-12
-    )
-    assert sim.work_done == pytest.approx(20.0, abs=1e-6)
+    # Passing 1.0025 ps will apply force for 1 ps
+    test_time = test_steps * 0.0025
 
+    expected_work = 20.0
 
-def test_work_done_frame(example_ase_app_sim_constant_force_interaction):
-    """
-    Test that the calculated user work done on a single atom system that appears
-    in the frame is equal to the user work done as calculated in the ASESimulation.
-    """
-    app, sim = example_ase_app_sim_constant_force_interaction
+    for i in range(3):
+        for _ in range(test_steps):
+            sim.advance_to_next_report()
 
-    for _ in range(11):
-        sim.advance_to_next_report()
+        # Time accumulates across resets
+        expected_dynamics_time = (i + 1) * test_time
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.user_work_done == sim.work_done
+        actual_dynamics_time = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
+
+        # Check that 1.0025 ps have passed (and hence that force has been applied for 1 ps)
+        assert actual_dynamics_time == pytest.approx(expected_dynamics_time, abs=10e-12)
+        assert sim.work_done == pytest.approx(expected_work, abs=1e-6)
+
+        # Reset simulation and check work done is now zero
+        sim.reset(app)
+        assert sim.work_done == 0
 
 
 def test_instantaneous_temperature(example_ase_app_sim_constant_force_interaction):
@@ -394,11 +414,5 @@ def test_instantaneous_temperature(example_ase_app_sim_constant_force_interactio
     # Calculate temperature using method in ASE Atoms class
     ase_temp = sim.atoms.get_temperature()
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.system_temperature == pytest.approx(
-            ase_temp, abs=1e-12
-        )
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    assert frame.system_temperature == pytest.approx(ase_temp, abs=1e-12)
