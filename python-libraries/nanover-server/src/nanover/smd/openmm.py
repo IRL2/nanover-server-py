@@ -1,3 +1,4 @@
+import os.path
 from os import PathLike
 from pathlib import Path
 from typing import Optional, Union, Any
@@ -157,6 +158,13 @@ class OpenMMSMDSimulation:
         """
         pass
 
+    @abstractmethod
+    def remove_smd_force_from_system(self):
+        """
+        Remove the SMD force from the system.
+        """
+        pass
+
 
     def get_smd_atom_positions(self):
         """
@@ -187,8 +195,32 @@ class OpenMMSMDSimulation:
 
         self.simulation.step(n_steps)
 
-    def save_simulation(self):
-        pass
+
+    def save_simulation(self, output_filepath: PathLike[str], save_state: bool = False, save_smd_force: Optional[bool] = False):
+        """
+        Save the simulation to a NanoVer XML file, with the option to include the
+        SMD force in the XML file.
+        :param output_filepath: Path to output file to save the simulation to.
+        :param save_state: If True, save the present state of the simulation to the XML file.
+        :param save_smd_force: Bool defining whether to save the SMD force in the XML file (optional).
+        """
+        assert output_filepath is not None
+
+        if save_smd_force:
+            with open(output_filepath, "w") as outfile:
+                outfile.write(serializer.serialize_simulation(self.simulation, save_state=save_state))
+
+        else:
+            # Temporarily remove SMD force from simulation
+            self.remove_smd_force_from_system()
+
+            # Save simulation without SMD force
+            with open(output_filepath, "w") as outfile:
+                outfile.write(serializer.serialize_simulation(self.simulation, save_state=save_state))
+
+            # Add SMD force back to the system
+            self.add_smd_force_to_system()
+
 
     def generate_starting_structures(self, interval_ps: float, n_structures: int, output_directory: Optional[PathLike[str]] = None, filename_prefix: Optional[str] = None):
         """
@@ -322,7 +354,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
 
     def add_smd_force_to_system(self):
 
-        x0, y0, z0 = self.smd_path[0]
+        x0, y0, z0 = self.smd_path[self.current_smd_force_position_index]
         smd_force = smd_single_atom_force(self.smd_force_constant)
         smd_force.addParticle(self.smd_atom_indices, [x0, y0, z0])
         self.smd_force = smd_force
@@ -359,7 +391,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
 
     def add_smd_force_to_system(self):
 
-        x0, y0, z0 = self.smd_path[0]
+        x0, y0, z0 = self.smd_path[self.current_smd_force_position_index]
         smd_force = smd_com_force(self.smd_force_constant)
         smd_force.addGroup(self.smd_atom_indices)
         smd_force.addBond([0], [x0, y0, z0])
