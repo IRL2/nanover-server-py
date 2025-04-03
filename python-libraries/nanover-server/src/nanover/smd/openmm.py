@@ -187,6 +187,33 @@ class OpenMMSMDSimulation:
 
         self.simulation.step(n_steps)
 
+    def save_simulation(self):
+        pass
+
+    def generate_starting_structures(self, interval_ps: float, n_structures: int, output_directory: Optional[PathLike[str]] = None, filename_prefix: Optional[str] = None):
+        """
+        Generate the specified number of starting structures by running the simulation for the specified
+        interval with the initial restraint applied to the system and saving structures at regular intervals.
+        Structures are saved to the output path, optionally with the filename prefix. If no output path is
+        specified, structures will be saved to the current working directory. If no prefix is specified,
+        the output files will be named automatically.
+        :param interval_ps: Interval to run simulation steps.
+        :param n_structures: Number of structures to generate.
+        :param output_directory: Output directory to save the structures to (Optional).
+        :param filename_prefix: Prefix for output files (Optional).
+        """
+        timestep_ps = self.simulation.integrator.getStepSize()._value
+        n_steps_struct_interval = int(np.floor(interval_ps / (n_structures * timestep_ps)))
+
+        for i in range(n_structures):
+
+            # Run set of simulation steps to generate next structure
+            self.simulation.step(n_steps_struct_interval)
+
+            # Save structure to output file
+
+
+
     def run_smd(self, progress_interval: Optional[int] = 100000):
         """
         Perform an SMD simulation on the system using the SMD force and
@@ -256,7 +283,7 @@ class OpenMMSMDSimulation:
         self.smd_simulation_work_done = np.cumsum(work_done_array, axis=0)
 
 
-    def save_smd_simulation_data(self, path: str = None):
+    def save_smd_simulation_data(self, path: PathLike[str] = None):
 
         if path is None:
             raise ValueError("Output file path cannot be None. Please specify an output file path.")
