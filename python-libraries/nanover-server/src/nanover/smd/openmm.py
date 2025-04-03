@@ -224,7 +224,11 @@ class OpenMMSMDSimulation:
 
             # Save simulation without SMD force
             with open(output_filepath, "w") as outfile:
-                outfile.write(serializer.serialize_simulation(self.simulation, save_state=save_state))
+                xml_string = serializer.serialize_simulation(self.simulation, save_state=save_state)
+                # Manually remove parameters for now...
+                # TODO: Work out how to deal with these unwanted parameters... maybe change to per bond parameter?
+                xml_string =  "\n".join(x for x in xml_string.splitlines() if "smd_k" not in x)
+                outfile.write(xml_string)
 
             # Add SMD force back to the system
             self.add_smd_force_to_system()
@@ -245,13 +249,24 @@ class OpenMMSMDSimulation:
         timestep_ps = self.simulation.integrator.getStepSize()._value
         n_steps_struct_interval = int(np.floor(interval_ps / (n_structures * timestep_ps)))
 
+        if output_directory is None:
+            output_directory = os.getcwd()
+
+        if filename_prefix is None:
+            filename_prefix = "smd_structure"
+
+        print(f"Generating {n_structures} structures...\nStructures will be saved to {output_directory}\n")
+
         for i in range(n_structures):
 
             # Run set of simulation steps to generate next structure
             self.simulation.step(n_steps_struct_interval)
 
             # Save structure to output file
+            outfile_path = os.path.join(output_directory, filename_prefix + str(i+1) + ".xml")
+            self.save_simulation(output_filepath=outfile_path, save_state=True, save_smd_force=False)
 
+        print(f"Structure generation complete: {n_structures} structures generated.")
 
 
     def run_smd(self, progress_interval: Optional[int] = 100000):
