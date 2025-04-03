@@ -64,7 +64,9 @@ def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
     document = implementation.createDocument(None, ROOT_TAG, None)
 
     # Extract the PDB
-    positions = simulation.context.getState(getPositions=True).getPositions()
+    positions = simulation.context.getState(
+        getPositions=True, enforcePeriodicBox=True
+    ).getPositions()
     pdb_content = StringIO()
     app.PDBxFile.writeFile(simulation.topology, positions, pdb_content)
     pdb_node = document.createElement("pdbx")
@@ -91,6 +93,7 @@ def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
                 getVelocities=True,
                 getParameters=True,
                 getIntegratorParameters=True,
+                enforcePeriodicBox=True,
             )
         )
         state_document = parseString(state_xml_str)

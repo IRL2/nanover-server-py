@@ -171,7 +171,7 @@ class OpenMMSimulation:
         # fetch positions early, for updating imd
         state = self.simulation.context.getState(
             getPositions=True,
-            enforcePeriodicBox=False,
+            enforcePeriodicBox=True,
         )
         positions = state.getPositions(asNumpy=True)
 
@@ -214,7 +214,9 @@ class OpenMMSimulation:
         """
         assert self.simulation is not None
 
-        state = self.simulation.context.getState(getPositions=True, getEnergy=True)
+        state = self.simulation.context.getState(
+            getPositions=True, getEnergy=True, enforcePeriodicBox=True
+        )
         topology = self.simulation.topology
         frame_data = openmm_to_frame_data(state=state, topology=topology)
         return frame_data
@@ -237,6 +239,7 @@ class OpenMMSimulation:
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
+            enforcePeriodicBox=True,
             groups=NON_IMD_FORCES_GROUP_MASK,
         )
 
