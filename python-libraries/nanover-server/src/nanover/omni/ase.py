@@ -128,6 +128,12 @@ class ASESimulation:
 
         self.app_server = app_server
 
+        # reset imd and work
+        self.work_done = 0.0
+        self._work_done_intermediate = 0.0
+        self._prev_imd_forces = None
+        self._prev_imd_indices = None
+
         # reset atoms to initial state
         self.atoms.set_positions(self.checkpoint.positions)
         self.atoms.set_velocities(self.checkpoint.velocities)
