@@ -120,6 +120,12 @@ class OpenMMSimulation:
 
         self._dof = compute_dof(self.simulation.system)
 
+        # reset imd and work
+        self.work_done = 0.0
+        self._work_done_intermediate = 0.0
+        self._prev_imd_forces = None
+        self._prev_imd_indices = None
+
         # reload initial state and cleanup forces
         self.simulation.context.reinitialize()
         self.simulation.context.loadCheckpoint(self.checkpoint)

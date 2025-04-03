@@ -133,7 +133,11 @@ class FramePublisher(TrajectoryServiceServicer):
                 if key in self.last_frame.values:
                     del self.last_frame.values[key]
 
-            self.last_frame.MergeFrom(frame)
+            # repeated merging onto the same last_frame seems to cause a memory leak, so we start from a blank state each time
+            merged = RawFrameData()
+            merged.MergeFrom(self.last_frame)
+            merged.MergeFrom(frame)
+            self.last_frame = merged
 
         for queue in self.frame_queues.iter_queues():
             queue.put(GetFrameResponse(frame_index=frame_index, frame=frame))
