@@ -8,7 +8,7 @@ e.g. [NanoVer iMD-VR](https://github.com/IRL2/nanover-imd-vr).
 
 This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostela,
 and is distributed under the [MIT](LICENSE) license.
-See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project.
+See [the list of contributors](CONTRIBUTORS.md) for the individual authors of the project. If you would like to contribute to NanoVer, please see our [contributing file](./CONTRIBUTING.md) for guidelines on how to do this.
 
 For more information please take a look at [the project's documentation](https://irl2.github.io/nanover-docs).
 
