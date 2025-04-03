@@ -158,12 +158,20 @@ class OpenMMSMDSimulation:
         """
         pass
 
-    @abstractmethod
     def remove_smd_force_from_system(self):
         """
-        Remove the SMD force from the system.
+        Remove any SMD forces from the system.
         """
-        pass
+        forces = self.simulation.system.getForces()
+        forces_to_remove = []
+        for i in range(len(forces)):
+            if type(forces[i]) == type(self.smd_force) and forces[i].getGlobalParameterName(0)=="smd_k":
+                forces_to_remove.append(i)
+
+        # Remove any SMD forces, accounting for the changes in indices
+        # as forces are removed
+        for j in range(len(forces_to_remove)):
+            self.simulation.system.removeForce(forces_to_remove[j]-j)
 
 
     def get_smd_atom_positions(self):
