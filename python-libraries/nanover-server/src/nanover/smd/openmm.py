@@ -15,6 +15,11 @@ from nanover.openmm import serializer
 class OpenMMSMDSimulation:
     """
     A wrapper for performing constant velocity SMD on an OpenMM simulation.
+
+    This base class defines much of the functionality required for an SMD
+    simulation to be performed using OpenMM, and automatically returns an
+    instance of the appropriate subclass, depending on the mode of interaction
+    required to perform SMD (i.e. either single atom or COM).
     """
 
     @classmethod
@@ -306,6 +311,9 @@ class OpenMMSMDSimulation:
         path defined, store the positions of the atoms with which the
         SMD force interacts, and calculate the work done along the reaction
         coordinate.
+
+        :param progress_interval: Interval defining how regularly to print the progress
+          of the simulation, in terms of the number of simulation steps.
         """
 
         # Get initial atom positions for SMD force at initial position
@@ -347,7 +355,10 @@ class OpenMMSMDSimulation:
 
     def calculate_forces(self, interaction_centre_positions):
         """
-        Calculate the SMD forces that acted on the system during the simulation.
+        Calculate the SMD forces that acted on the system during the simulation in kJ mol-1 nm-1.
+
+        :param interaction_centre_positions: Array of positions defining the centre
+          (single atom or COM of group of atoms) with which the SMD force interacted during the simulation.
         """
         assert np.all(self.smd_path.shape == interaction_centre_positions.shape)
         self.smd_simulation_forces = -self.smd_force_constant * (
@@ -356,7 +367,7 @@ class OpenMMSMDSimulation:
 
     def _calculate_work_done(self):
         """
-        Calculate the cumulative work done along the reaction coordinate
+        Calculate the work done along the reaction coordinate in kJ mol-1.
         """
         assert self.smd_path is not None and self.smd_simulation_forces is not None
         smd_force_displacements = np.diff(self.smd_path, axis=0)
@@ -368,6 +379,15 @@ class OpenMMSMDSimulation:
         self.smd_simulation_work_done = np.cumsum(work_done_array, axis=0)
 
     def save_smd_simulation_data(self, path: PathLike[str] = None):
+        """
+        Save the data produced by the SMD simulation in binary form that can be read
+        into NumPy arrays. The following data are saved, in the order listed below:
+
+        - Trajectories of the atoms to which the SMD force was applied, in nm
+        - Work done along the reaction coordinate defined by the path of the SMD force, in kJ mol-1
+
+        :param path: Path to the file to which the data will be saved.
+        """
 
         if path is None:
             raise ValueError(
@@ -393,6 +413,18 @@ class OpenMMSMDSimulation:
             np.save(outfile, self.smd_simulation_work_done)
 
     def save_general_smd_data(self, path: str = None):
+        """
+        Saves general data related to the SMD simulation in binary form that can be read
+        into NumPy arrays. The following data are saved, in the order listed below:
+
+        - Indices of the atoms to which the SMD force is applied
+        - Positions defining the path of the SMD force, in nm
+        - Force constant of the SMD force, in kJ mol-1 nm-2
+        - Temperature of the simulation, in Kelvin
+        - Time step of the simulation, in picoseconds
+
+        :param path: Path to the file to which the data will be saved.
+        """
 
         if path is None:
             raise ValueError(
@@ -408,12 +440,20 @@ class OpenMMSMDSimulation:
 
 
 class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
+    """
+    A class for performing constant velocity SMD on an OpenMM simulations,
+    where the SMD force is applied to a single atom.
+    """
 
     def __init__(self, name: Optional[str] = None):
 
         super().__init__(name)
 
     def add_smd_force_to_system(self):
+        """
+        Add the SMD force to the OpenMM system that interacts with the
+        specified atom.
+        """
 
         x0, y0, z0 = self.smd_path[self.current_smd_force_position_index]
         smd_force = smd_single_atom_force(self.smd_force_constant)
@@ -444,6 +484,11 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
 
 
 class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
+    """
+    A class for performing constant velocity SMD on an OpenMM simulations,
+    where the SMD force is applied to the centre of mass of a specified
+    group of atoms.
+    """
 
     def __init__(self, name: Optional[str] = None):
 
@@ -451,6 +496,10 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         self.com_positions: Optional[np.ndarray] = None
 
     def add_smd_force_to_system(self):
+        """
+        Add the SMD force to the OpenMM system that interacts with the
+        centre of mass of the specified group of atoms.
+        """
 
         x0, y0, z0 = self.smd_path[self.current_smd_force_position_index]
         smd_force = smd_com_force(self.smd_force_constant)
@@ -475,7 +524,11 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
 
     def calculate_com(self, atom_positions: np.ndarray, atom_masses: np.ndarray):
         """
-        Calculate the centre of mass of a group of atoms.
+        Calculate the centre of mass of a group of N atoms.
+
+        :param atom_positions: NumPy array of atom positions with dimensions (N, 3)
+        :param atom_masses: NumPy array of atomic masses (AMU) with dimension (N)
+        :return: NumPy array containing the position of the centre of mass of the atoms with dimension (3)
         """
         # TODO: Check this works and write tests!
         assert np.all(atom_positions.shape == np.array((self.smd_atom_indices.size, 3)))
@@ -517,6 +570,11 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
 def smd_com_force(force_constant: float):
     """
     Defines a harmonic restraint force for the COM of a group of atoms for performing SMD.
+
+    :param force_constant: Force constant of the harmonic restraint to be applied to the
+      COM of the group of atoms in units kJ mol-1 nm-2
+    :return: CustomCentroidBondForce defining the harmonic SMD force that interacts with
+      the COM of the specified atoms.
     """
 
     # TODO: Check that this works with PBCs correctly - may need to amend setUsesPBCs line...
@@ -536,6 +594,11 @@ def smd_com_force(force_constant: float):
 def smd_single_atom_force(force_constant: float):
     """
     Defines a harmonic restraint force for a single atom for performing SMD.
+
+    :param force_constant: Force constant of the harmonic restraint to be applied to the
+      specified atom in units kJ mol-1 nm-2
+    :return: CustomExternalForce defining the harmonic SMD force that interacts with the
+      specified atom.
     """
 
     smd_force = CustomExternalForce(
