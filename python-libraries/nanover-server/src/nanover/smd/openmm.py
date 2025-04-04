@@ -165,14 +165,16 @@ class OpenMMSMDSimulation:
         forces = self.simulation.system.getForces()
         forces_to_remove = []
         for i in range(len(forces)):
-            if type(forces[i]) == type(self.smd_force) and forces[i].getGlobalParameterName(0)=="smd_k":
+            if (
+                type(forces[i]) == type(self.smd_force)
+                and forces[i].getGlobalParameterName(0) == "smd_k"
+            ):
                 forces_to_remove.append(i)
 
         # Remove any SMD forces, accounting for the changes in indices
         # as forces are removed
         for j in range(len(forces_to_remove)):
-            self.simulation.system.removeForce(forces_to_remove[j]-j)
-
+            self.simulation.system.removeForce(forces_to_remove[j] - j)
 
     def get_smd_atom_positions(self):
         """
@@ -196,27 +198,37 @@ class OpenMMSMDSimulation:
         try:
             assert np.all(self.current_smd_force_position == self.smd_path[0])
         except AssertionError:
-            raise AssertionError("Restraint is not located at the initial position "
-                                 "of the SMD force, equilibration aborted. To prepare the system "
-                                 "appropriately, the restraint should be placed at the first point "
-                                 "on the path that the SMD force will take during the SMD simulation.")
+            raise AssertionError(
+                "Restraint is not located at the initial position "
+                "of the SMD force, equilibration aborted. To prepare the system "
+                "appropriately, the restraint should be placed at the first point "
+                "on the path that the SMD force will take during the SMD simulation."
+            )
 
         self.simulation.step(n_steps)
 
-
-    def save_simulation(self, output_filepath: PathLike[str], save_state: bool = False, save_smd_force: Optional[bool] = False):
+    def save_simulation(
+        self,
+        output_filepath: PathLike[str],
+        save_state: bool = False,
+        save_smd_force: Optional[bool] = False,
+    ):
         """
-        Save the simulation to a NanoVer XML file, with the option to include the
+        Save the simulation to a NanoVer OpenMM XML file, with the option to include the
         SMD force in the XML file.
         :param output_filepath: Path to output file to save the simulation to.
         :param save_state: If True, save the present state of the simulation to the XML file.
-        :param save_smd_force: Bool defining whether to save the SMD force in the XML file (optional).
+        :param save_smd_force: Bool defining whether to save the SMD force in the XML file (Optional).
         """
         assert output_filepath is not None
 
         if save_smd_force:
             with open(output_filepath, "w") as outfile:
-                outfile.write(serializer.serialize_simulation(self.simulation, save_state=save_state))
+                outfile.write(
+                    serializer.serialize_simulation(
+                        self.simulation, save_state=save_state
+                    )
+                )
 
         else:
             # Temporarily remove SMD force from simulation
@@ -224,17 +236,28 @@ class OpenMMSMDSimulation:
 
             # Save simulation without SMD force
             with open(output_filepath, "w") as outfile:
-                xml_string = serializer.serialize_simulation(self.simulation, save_state=save_state)
+                xml_string = serializer.serialize_simulation(
+                    self.simulation, save_state=save_state
+                )
                 # Manually remove parameters for now...
-                # TODO: Work out how to deal with these unwanted parameters... maybe change to per bond parameter?
-                xml_string =  "\n".join(x for x in xml_string.splitlines() if "smd_k" not in x)
+                # TODO: Work out how to deal with these unwanted parameters...
+                #  WARNING: this will not work if you have other parameters!
+                #  maybe change smd_k to a per bond parameter?
+                xml_string = "\n".join(
+                    x for x in xml_string.splitlines() if "smd_k" not in x
+                )
                 outfile.write(xml_string)
 
             # Add SMD force back to the system
             self.add_smd_force_to_system()
 
-
-    def generate_starting_structures(self, interval_ps: float, n_structures: int, output_directory: Optional[PathLike[str]] = None, filename_prefix: Optional[str] = None):
+    def generate_starting_structures(
+        self,
+        interval_ps: float,
+        n_structures: int,
+        output_directory: Optional[PathLike[str]] = None,
+        filename_prefix: Optional[str] = None,
+    ):
         """
         Generate the specified number of starting structures by running the simulation for the specified
         interval with the initial restraint applied to the system and saving structures at regular intervals.
@@ -247,7 +270,9 @@ class OpenMMSMDSimulation:
         :param filename_prefix: Prefix for output files (Optional).
         """
         timestep_ps = self.simulation.integrator.getStepSize()._value
-        n_steps_struct_interval = int(np.floor(interval_ps / (n_structures * timestep_ps)))
+        n_steps_struct_interval = int(
+            np.floor(interval_ps / (n_structures * timestep_ps))
+        )
 
         if output_directory is None:
             output_directory = os.getcwd()
@@ -255,7 +280,10 @@ class OpenMMSMDSimulation:
         if filename_prefix is None:
             filename_prefix = "smd_structure"
 
-        print(f"Generating {n_structures} structures...\nStructures will be saved to {output_directory}\n")
+        print(
+            f"Generating {n_structures} structures in {interval_ps} ps simulation...\n"
+            f"Structures will be saved to {output_directory}\n"
+        )
 
         for i in range(n_structures):
 
@@ -263,11 +291,14 @@ class OpenMMSMDSimulation:
             self.simulation.step(n_steps_struct_interval)
 
             # Save structure to output file
-            outfile_path = os.path.join(output_directory, filename_prefix + str(i+1) + ".xml")
-            self.save_simulation(output_filepath=outfile_path, save_state=True, save_smd_force=False)
+            outfile_path = os.path.join(
+                output_directory, filename_prefix + "_" + str(i + 1) + ".xml"
+            )
+            self.save_simulation(
+                output_filepath=outfile_path, save_state=True, save_smd_force=False
+            )
 
         print(f"Structure generation complete: {n_structures} structures generated.")
-
 
     def run_smd(self, progress_interval: Optional[int] = 100000):
         """
@@ -278,10 +309,11 @@ class OpenMMSMDSimulation:
         """
 
         # Get initial atom positions for SMD force at initial position
-        assert(self.smd_simulation_atom_positions is not None and np.all(
-            self.current_smd_force_position == self.smd_path[0]) and
-            self.current_smd_force_position_index == 0
-    )
+        assert (
+            self.smd_simulation_atom_positions is not None
+            and np.all(self.current_smd_force_position == self.smd_path[0])
+            and self.current_smd_force_position_index == 0
+        )
         self.get_smd_atom_positions()
 
         # Run SMD procedure
@@ -313,7 +345,6 @@ class OpenMMSMDSimulation:
 
         print("Work done calculated.")
 
-
     def calculate_forces(self, interaction_centre_positions):
         """
         Calculate the SMD forces that acted on the system during the simulation.
@@ -323,7 +354,6 @@ class OpenMMSMDSimulation:
             interaction_centre_positions - self.smd_path
         )
 
-
     def _calculate_work_done(self):
         """
         Calculate the cumulative work done along the reaction coordinate
@@ -332,34 +362,42 @@ class OpenMMSMDSimulation:
         smd_force_displacements = np.diff(self.smd_path, axis=0)
         work_done_array = np.zeros(self.smd_simulation_forces.shape[0])
         for i in range(smd_force_displacements.shape[0]):
-            work_done_array[i+1] = np.dot(
+            work_done_array[i + 1] = np.dot(
                 self.smd_simulation_forces[i], smd_force_displacements[i]
             )
         self.smd_simulation_work_done = np.cumsum(work_done_array, axis=0)
 
-
     def save_smd_simulation_data(self, path: PathLike[str] = None):
 
         if path is None:
-            raise ValueError("Output file path cannot be None. Please specify an output file path.")
+            raise ValueError(
+                "Output file path cannot be None. Please specify an output file path."
+            )
 
         elif self.smd_simulation_work_done is None:
-            raise ValueError("Missing values for the work done. This data can only be saved after"
-                             "the SMD calculation is completed.")
+            raise ValueError(
+                "Missing values for the work done. This data can only be saved after"
+                "the SMD calculation is completed."
+            )
 
-        elif self.smd_simulation_atom_positions is None or np.all(self.smd_simulation_atom_positions == 0.0):
-            raise ValueError("Missing values for the atom positions. This data can only be saved after"
-                             "the SMD calculation is completed.")
+        elif self.smd_simulation_atom_positions is None or np.all(
+            self.smd_simulation_atom_positions == 0.0
+        ):
+            raise ValueError(
+                "Missing values for the atom positions. This data can only be saved after"
+                "the SMD calculation is completed."
+            )
 
         with open(path, "wb") as outfile:
             np.save(outfile, self.smd_simulation_atom_positions)
             np.save(outfile, self.smd_simulation_work_done)
 
-
     def save_general_smd_data(self, path: str = None):
 
         if path is None:
-            raise ValueError("Output file path cannot be None. Please specify an output file path.")
+            raise ValueError(
+                "Output file path cannot be None. Please specify an output file path."
+            )
 
         with open(path, "wb") as outfile:
             np.save(outfile, self.smd_atom_indices)
