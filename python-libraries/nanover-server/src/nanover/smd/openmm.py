@@ -451,7 +451,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
 
     def add_smd_force_to_system(self):
         """
-        Add the SMD force to the OpenMM system that interacts with the
+        Add an SMD force to the OpenMM system that interacts with the
         specified atom.
         """
 
@@ -497,7 +497,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
 
     def add_smd_force_to_system(self):
         """
-        Add the SMD force to the OpenMM system that interacts with the
+        Add an SMD force to the OpenMM system that interacts with the
         centre of mass of the specified group of atoms.
         """
 
