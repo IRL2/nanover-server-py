@@ -551,16 +551,15 @@ def test_pbc_enforcement():
     """
     Test that PBC wrapping of positions defaults to off, doesn't wrap positions when off, and does wrap positions when on.
     """
+    # use simulation with PBC changed to 1x1x1 with some atom positions falling outside the PBC
     omm_sim = build_basic_simulation()
+    omm_sim.context.setPeriodicBoxVectors(*UNIT_SIMULATION_BOX_VECTORS)
     sim = OpenMMSimulation.from_simulation(omm_sim)
     sim.load()
 
     with make_app_server() as app_server:
         sim.reset(app_server)
         sim.advance_by_one_step()
-
-    # switch to 1x1x1 periodic bounding box
-    omm_sim.context.setPeriodicBoxVectors(*UNIT_SIMULATION_BOX_VECTORS)
 
     def out_of_bounds(coord):
         return coord < 0 or coord > 1
