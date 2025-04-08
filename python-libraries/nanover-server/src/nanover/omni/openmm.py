@@ -76,7 +76,8 @@ class OpenMMSimulation:
         self.platform_name: Optional[str] = None
         """Name of OpenMM platform to use at the time the system is loaded from XML."""
         self.enforce_pbc = False
-        """Enforce periodic boundary conditions: wrap atoms positions to within the box."""
+        """Provide atom positions wrapped according to PBC such that each molecule has a center of mass within the
+        primary periodic box."""
 
         self.imd_force = create_imd_force()
         self.simulation: Optional[Simulation] = None

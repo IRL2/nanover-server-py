@@ -13,7 +13,6 @@ from openmm.app import StateDataReporter
 from nanover.openmm import serializer
 from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
-from nanover.app import NanoverImdClient
 
 from nanover.trajectory import FrameData
 
