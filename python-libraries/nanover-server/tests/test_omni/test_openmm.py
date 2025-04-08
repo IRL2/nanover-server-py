@@ -569,12 +569,12 @@ def test_pbc_enforcement():
                 yield coord
 
     # should default to not PBC wrapping coords
-    assert not sim.enforce_pbc
+    assert not sim.use_pbc_wrapping
 
     # without PBC wrapping, some coords should fall outside the box
-    sim.enforce_pbc = False
+    sim.use_pbc_wrapping = False
     assert any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))
 
     # with PBC wrapping, no coords should fall outside the box
-    sim.enforce_pbc = True
+    sim.use_pbc_wrapping = True
     assert not any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))
