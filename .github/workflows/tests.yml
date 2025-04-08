@@ -91,7 +91,7 @@ jobs:
         run: black --diff --check ./python-libraries
   csharp-tests:
     name: C# unit and integration tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
     steps:
