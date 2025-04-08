@@ -27,7 +27,12 @@ class PathSmoother:
         ps = cls()
         ps.filename = filename
         ps.retrieve_traj_data()
-        ps.atom_positions, ps.com_positions, ps.atom_indices, ps.n_interaction_frames = retrieve_uf_com_path(
+        (
+            ps.atom_positions,
+            ps.com_positions,
+            ps.atom_indices,
+            ps.n_interaction_frames,
+        ) = retrieve_uf_com_path(
             ps.all_atom_positions, ps.all_atom_masses, ps.all_user_forces
         )
         return ps
@@ -89,7 +94,6 @@ class PathSmoother:
         """
         self.create_mda_universe()
         self.read_mda_universe_data()
-
 
     def plot_com_trajectory(self):
         """
