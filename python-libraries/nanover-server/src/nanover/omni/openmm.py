@@ -75,6 +75,9 @@ class OpenMMSimulation:
         """Include particle forces in frames."""
         self.platform_name: Optional[str] = None
         """Name of OpenMM platform to use at the time the system is loaded from XML."""
+        self.use_pbc_wrapping = False
+        """Provide atom positions wrapped according to PBC such that each molecule has a center of mass within the
+        primary periodic box."""
 
         self.imd_force = create_imd_force()
         self.simulation: Optional[Simulation] = None
@@ -177,7 +180,7 @@ class OpenMMSimulation:
         # fetch positions early, for updating imd
         state = self.simulation.context.getState(
             getPositions=True,
-            enforcePeriodicBox=False,
+            enforcePeriodicBox=self.use_pbc_wrapping,
         )
         positions = state.getPositions(asNumpy=True)
 
@@ -220,7 +223,9 @@ class OpenMMSimulation:
         """
         assert self.simulation is not None
 
-        state = self.simulation.context.getState(getPositions=True, getEnergy=True)
+        state = self.simulation.context.getState(
+            getPositions=True, getEnergy=True, enforcePeriodicBox=self.use_pbc_wrapping
+        )
         topology = self.simulation.topology
         frame_data = openmm_to_frame_data(state=state, topology=topology)
         return frame_data
@@ -243,6 +248,7 @@ class OpenMMSimulation:
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
+            enforcePeriodicBox=self.use_pbc_wrapping,
             groups=NON_IMD_FORCES_GROUP_MASK,
         )
 
