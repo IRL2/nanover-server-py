@@ -1,5 +1,4 @@
 import math
-from dataclasses import dataclass
 from itertools import groupby
 from os import PathLike
 from typing import (
@@ -56,22 +55,6 @@ def iter_full_view(
     Iterate one or both of trajectory and state recording files, yield a timestamp and copies of both the current
     aggregate FrameData and the current aggregate state dictionary.
     """
-    for data in iter_full_view_max(traj=traj, state=state):
-        yield data.time, data.full_frame, data.full_state
-
-
-@dataclass
-class RecordingIterationData:
-    time: float
-    full_frame: FrameData
-    full_state: StateDictionary
-    frame: Optional[FrameData]
-    update: Optional[DictionaryChange]
-
-
-def iter_full_view_max(
-    *, traj: Optional[PathLike[str]] = None, state: Optional[PathLike[str]] = None
-):
     full_frame = FrameData()
     full_state = StateDictionary()
 
@@ -85,13 +68,7 @@ def iter_full_view_max(
         if update is not None:
             full_state.update_state(None, update)
 
-        yield RecordingIterationData(
-            time=time,
-            full_frame=full_frame.copy(),
-            full_state=full_state.copy_content(),
-            frame=frame,
-            update=update,
-        )
+        yield time, full_frame.copy(), full_state.copy_content()
 
 
 def iter_recording_files(
