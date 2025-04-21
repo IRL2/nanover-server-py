@@ -43,8 +43,8 @@ def make_example_openmm():
 
 @pytest.fixture
 def single_atom_app_and_simulation_with_constant_force():
-    with make_single_atom_app_and_simulation_with_constant_force() as (app_server, sim):
-        yield app_server, sim
+    with make_single_atom_app_and_simulation_with_constant_force() as data:
+        yield data
 
 
 @contextmanager
@@ -59,16 +59,16 @@ def make_single_atom_app_and_simulation_with_constant_force():
             particles=[0],
             scale=1,
         ),
-    ) as (app_server, sim):
-        yield app_server, sim
+    ) as data:
+        yield data
 
 
 @pytest.fixture
 def basic_system_app_and_simulation():
     with make_loaded_sim_with_interactions(
         OpenMMSimulation.from_simulation(build_basic_simulation())
-    ) as (app_server, sim):
-        yield app_server, sim
+    ) as data:
+        yield data
 
 
 @pytest.fixture
@@ -90,8 +90,8 @@ def basic_system_app_and_simulation_with_constant_force():
             particles=[6],
             scale=1,
         ),
-    ) as (app_server, sim):
-        yield app_server, sim
+    ) as data:
+        yield data
 
 
 @pytest.fixture
@@ -106,8 +106,8 @@ def basic_system_app_and_simulation_with_constant_force_old():
             particles=[0, 4],
             scale=1,
         ),
-    ) as (app_server, sim):
-        yield app_server, sim
+    ) as data:
+        yield data
 
 
 @pytest.fixture
@@ -124,8 +124,8 @@ def basic_system_app_and_simulation_with_complex_interactions():
             particles=(4, 5),
             interaction_type="spring",
         ),
-    ) as (app_server, sim):
-        yield app_server, sim
+    ) as data:
+        yield data
 
 
 def test_auto_force():
@@ -188,7 +188,8 @@ def test_work_done_server(single_atom_app_and_simulation_with_constant_force):
     # an Argon atom should be 20.0 kJ mol-1 analytically. Allowing for numerical error,
     # the expected value should be slightly greater than 20.0 kJ mol-1
 
-    app, sim = single_atom_app_and_simulation_with_constant_force
+    app = single_atom_app_and_simulation_with_constant_force.app_server
+    sim = single_atom_app_and_simulation_with_constant_force.simulation
 
     for _ in range(3):
         # Add step to account for zeroth (topology) frame where force is not applied
@@ -211,7 +212,8 @@ def test_work_done_frame(basic_system_app_and_simulation_with_complex_interactio
     Test that the calculated user work done on a system that appears in the frame is equal
     to the user work done as calculated in the OpenMMSimulation.
     """
-    app, sim = basic_system_app_and_simulation_with_complex_interactions
+    app = basic_system_app_and_simulation_with_complex_interactions.app_server
+    sim = basic_system_app_and_simulation_with_complex_interactions.simulation
 
     for _ in range(3):
         sim.reset(app)
@@ -229,7 +231,7 @@ def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_f
     by testing that the velocities of the simulation being serialized approximately
     equal those of the simulation loaded after serialization/deserialization.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    sim = basic_system_app_and_simulation_with_constant_force.simulation
 
     # Run the simulation for a few steps
     for _ in range(11):
@@ -261,7 +263,8 @@ def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulatio
     instantaneous temperature calculated by the StateDataReporter of OpenMM for a
     simulation without iMD interactions.
     """
-    app, sim = basic_system_app_and_simulation
+    app = basic_system_app_and_simulation.app_server
+    sim = basic_system_app_and_simulation.simulation
 
     # Save the output of the StateDataReporter to a variable
     with redirect_stdout(StringIO()) as state_data_output:
@@ -288,7 +291,8 @@ def test_instantaneous_temperature_imd_interaction(
     instantaneous temperature calculated by the StateDataReporter of OpenMM to within
     a tolerance (see `issue #324 <https://github.com/IRL2/nanover-server-py/issues/324>`__).
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    app = basic_system_app_and_simulation_with_constant_force.app_server
+    sim = basic_system_app_and_simulation_with_constant_force.simulation
 
     # Save the output of the StateDataReporter to a variable
     with redirect_stdout(StringIO()) as state_data_output:
@@ -339,7 +343,7 @@ def test_force_manager_masses(basic_system_app_and_simulation):
     """
     Test that the force manager has the correct masses for the simulated system.
     """
-    _, sim = basic_system_app_and_simulation
+    sim = basic_system_app_and_simulation.simulation
 
     for _ in range(10):
         sim.advance_by_one_step()
@@ -351,7 +355,9 @@ def test_report_frame_forces(basic_system_app_and_simulation_with_complex_intera
     """
     Test that user forces are reported within the frame.
     """
-    app, sim = basic_system_app_and_simulation_with_complex_interactions
+    app = basic_system_app_and_simulation_with_complex_interactions.app_server
+    sim = basic_system_app_and_simulation_with_complex_interactions.simulation
+
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
@@ -365,7 +371,9 @@ def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force)
     check that the size of the array of forces is equal to the size of the array of corresponding
     indices, and check that none of the elements of the sparse forces array are zero.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    app = basic_system_app_and_simulation_with_constant_force.app_server
+    sim = basic_system_app_and_simulation_with_constant_force.simulation
+
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
@@ -381,7 +389,8 @@ def test_apply_interactions(basic_system_app_and_simulation_with_complex_interac
     Interactions are applied and the computed forces are passed to the imd
     force object.
     """
-    app, sim = basic_system_app_and_simulation_with_complex_interactions
+    sim = basic_system_app_and_simulation_with_complex_interactions.simulation
+
     sim.advance_by_one_step()
 
     assert_imd_force_affected_particles(
@@ -396,7 +405,8 @@ def test_remove_interaction_partial(
     """
     When an interaction is removed, the corresponding forces are reset.
     """
-    app, sim = basic_system_app_and_simulation_with_complex_interactions
+    app = basic_system_app_and_simulation_with_complex_interactions.app_server
+    sim = basic_system_app_and_simulation_with_complex_interactions.simulation
 
     sim.advance_by_one_step()
     app.imd.remove_interaction("interaction.0")
@@ -414,7 +424,8 @@ def test_remove_interaction_complete(
     """
     When all interactions are removed, all the corresponding forces are reset.
     """
-    app, sim = basic_system_app_and_simulation_with_complex_interactions
+    app = basic_system_app_and_simulation_with_complex_interactions.app_server
+    sim = basic_system_app_and_simulation_with_complex_interactions.simulation
 
     sim.advance_by_one_step()
     app.imd.remove_interaction("interaction.0")
@@ -433,7 +444,8 @@ def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_for
     when running OpenMM simulations. Assert that these arrays exist, have the same
     length as the particle positions array and are non-zero.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    app = basic_system_app_and_simulation_with_constant_force.app_server
+    sim = basic_system_app_and_simulation_with_constant_force.simulation
 
     sim.include_forces = True
     sim.include_velocities = True
@@ -476,17 +488,28 @@ def test_sparse_user_forces_elements(
     positions and the position from which the user force is applied, for a constant force acting
     on the C atoms.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force_old
-    sim.advance_by_one_step()
-    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    data = basic_system_app_and_simulation_with_constant_force_old
+    data.simulation.advance_by_one_step()
 
-    # For a mass-weighted constant force applied at [0.0, 0.0, 1.0] to the COM of the C atoms
-    mass_weighted_user_forces_t0 = [[0.0, 0.0, -6.0], [0.0, 0.0, -6.0]]
+    interaction = data.interactions[0]
+    frame = connect_and_retrieve_first_frame_from_app_server(data.app_server)
+
+    # compute interaction center of mass and direction
+    interaction_particles = interaction.particles
+    interaction_positions = [
+        frame.particle_positions[index] for index in interaction_particles
+    ]
+    interaction_center = np.mean(interaction_positions, axis=0)
+    interaction_vector = np.subtract(interaction.position, interaction_center)
+
+    # expected force vector is interaction direction with magnitude of a carbon atom (6)
+    expected_heading = interaction_vector / np.linalg.norm(interaction_vector)
+    expected_magnitude = 6
+    expected_vector = expected_heading * expected_magnitude
+
     assert set(frame.user_forces_index) == {0, 4}
     for i in range(len(frame.user_forces_index)):
-        assert frame.user_forces_sparse[i] == pytest.approx(
-            mass_weighted_user_forces_t0[i], abs=3e-3
-        )
+        assert frame.user_forces_sparse[i] == pytest.approx(expected_vector, abs=1e-5)
 
 
 def test_velocities_and_forces_single_atom():
