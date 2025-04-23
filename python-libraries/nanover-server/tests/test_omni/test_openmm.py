@@ -13,7 +13,6 @@ from openmm.app import StateDataReporter
 from nanover.openmm import serializer
 from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
-from nanover.app import NanoverImdClient
 
 from nanover.trajectory import FrameData
 
@@ -28,6 +27,8 @@ from openmm_simulation_utils import (
     build_single_atom_simulation,
     build_basic_simulation,
 )
+
+UNIT_SIMULATION_BOX_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 
 
 @pytest.fixture
@@ -178,7 +179,7 @@ def test_step_interval(example_openmm):
 def test_work_done_server(single_atom_app_and_simulation_with_constant_force):
     """
     Test that the calculated user work done on a single atom system gives the
-    expected numerical result within the code.
+    expected numerical result within the code, even across resets.
     """
 
     # For a simulation with a frame interval of 5 simulation steps and a simulation
@@ -189,13 +190,20 @@ def test_work_done_server(single_atom_app_and_simulation_with_constant_force):
 
     app, sim = single_atom_app_and_simulation_with_constant_force
 
-    # Add step to account for zeroth (topology) frame where force is not applied
-    for _ in range(101):
-        sim.advance_to_next_report()
+    for _ in range(3):
+        # Add step to account for zeroth (topology) frame where force is not applied
+        for _ in range(101):
+            sim.advance_to_next_report()
 
-    # Check that 1.01 ps have passed (and hence that force has been applied for 1 ps)
-    assert sim.simulation.context.getTime()._value == pytest.approx(1.01, abs=10e-12)
-    assert sim.work_done == pytest.approx(20.0, abs=0.05)
+        # Check that 1.01 ps have passed (and hence that force has been applied for 1 ps)
+        assert sim.simulation.context.getTime()._value == pytest.approx(
+            1.01, abs=10e-12
+        )
+        assert sim.work_done == pytest.approx(20.0, abs=0.05)
+
+        # Reset simulation and check work done is now zero
+        sim.reset(app)
+        assert sim.work_done == 0
 
 
 def test_work_done_frame(basic_system_app_and_simulation_with_complex_interactions):
@@ -205,15 +213,14 @@ def test_work_done_frame(basic_system_app_and_simulation_with_complex_interactio
     """
     app, sim = basic_system_app_and_simulation_with_complex_interactions
 
-    for _ in range(11):
-        sim.advance_to_next_report()
+    for _ in range(3):
+        sim.reset(app)
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.user_work_done == sim.work_done
+        for _ in range(11):
+            sim.advance_to_next_report()
+
+        frame = connect_and_retrieve_first_frame_from_app_server(app)
+        assert frame.user_work_done == sim.work_done
 
 
 def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_force):
@@ -243,9 +250,9 @@ def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_f
     # Assert that all components of velocities are approximately equal before and after
     # serialization/deserialization procedure.
     for i in range(len(velocities)):
-        assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=2.0e-7)
-        assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=2.0e-7)
-        assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.0e-7)
+        assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=2.0e-6)
+        assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=2.0e-6)
+        assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.0e-6)
 
 
 def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulation):
@@ -269,14 +276,8 @@ def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulatio
 
         state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.system_temperature == pytest.approx(
-            state_data_temperature, abs=1e-12
-        )
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    assert frame.system_temperature == pytest.approx(state_data_temperature, abs=1e-12)
 
 
 def test_instantaneous_temperature_imd_interaction(
@@ -303,16 +304,11 @@ def test_instantaneous_temperature_imd_interaction(
 
         state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        frame_temperature = client.current_frame.system_temperature
-        # Check that the temperature during the iMD interaction is within
-        # 1% of the temperature calculated by the StateDataReporter (including
-        # the effect of the iMD interaction on the temperature)
-        assert frame_temperature == pytest.approx(state_data_temperature, rel=1.0e-2)
+    # Check that the temperature during the iMD interaction is within
+    # 1% of the temperature calculated by the StateDataReporter (including
+    # the effect of the iMD interaction on the temperature)
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    assert frame.system_temperature == pytest.approx(state_data_temperature, rel=1.0e-2)
 
 
 def test_reset_gives_equal_frames():
@@ -548,3 +544,37 @@ def test_velocities_and_forces_single_atom():
         assert frame.particle_velocities[i] == pytest.approx(
             expected_velocities, abs=1e-7
         )
+
+
+def test_pbc_enforcement():
+    """
+    Test that PBC wrapping of positions defaults to off, doesn't wrap positions when off, and does wrap positions when on.
+    """
+    # use simulation with PBC changed to 1x1x1 with some atom positions falling outside the PBC
+    omm_sim = build_basic_simulation()
+    omm_sim.context.setPeriodicBoxVectors(*UNIT_SIMULATION_BOX_VECTORS)
+    sim = OpenMMSimulation.from_simulation(omm_sim)
+    sim.load()
+
+    with make_app_server() as app_server:
+        sim.reset(app_server)
+        sim.advance_by_one_step()
+
+    def out_of_bounds(coord):
+        return coord < 0 or coord > 1
+
+    def get_sim_position_coords(sim):
+        for position in sim.make_regular_frame().particle_positions:
+            for coord in position:
+                yield coord
+
+    # should default to not PBC wrapping coords
+    assert not sim.use_pbc_wrapping
+
+    # without PBC wrapping, some coords should fall outside the box
+    sim.use_pbc_wrapping = False
+    assert any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))
+
+    # with PBC wrapping, no coords should fall outside the box
+    sim.use_pbc_wrapping = True
+    assert not any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))

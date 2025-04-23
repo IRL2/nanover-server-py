@@ -91,7 +91,7 @@ jobs:
         run: black --diff --check ./python-libraries
   csharp-tests:
     name: C# unit and integration tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     env:
       DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
     steps:
@@ -99,10 +99,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '2.1.x'
-      - name: Install OpenSSL 1.1
-        run: |
-          wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
-          sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
       - name: Compile
         run: ./compile.sh --no-python
       - name: Tests

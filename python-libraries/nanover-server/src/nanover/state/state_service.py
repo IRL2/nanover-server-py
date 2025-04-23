@@ -18,6 +18,7 @@ from nanover.utilities.protobuf_utilities import (
 from nanover.utilities.change_buffers import (
     DictionaryChange,
     DictionaryChangeBuffer,
+    ObjectFrozenError,
 )
 from nanover.protocol.state import (
     StateServicer,
@@ -136,7 +137,7 @@ class StateService(StateServicer):
         change = state_update_to_dictionary_change(request.update)
         try:
             self.update_state(request.access_token, change)
-        except ResourceLockedError:
+        except (ResourceLockedError, ObjectFrozenError):
             success = False
         return UpdateStateResponse(success=success)
 

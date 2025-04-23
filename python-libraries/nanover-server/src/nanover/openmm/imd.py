@@ -38,6 +38,10 @@ class ImdForceManager:
         self._previous_force_index: Set[int] = set()
         self._total_user_energy = 0.0
 
+        # clear any residual forces in external force
+        for particle in range(self.imd_force.getNumParticles()):
+            self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
+
     def update_interactions(self, simulation: Simulation, positions: np.ndarray):
         if self.masses is None:
             self._update_masses(simulation.system)
