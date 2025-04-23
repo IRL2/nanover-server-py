@@ -75,26 +75,36 @@ def split_recording(
     try:
         open_all()
 
+        prev_frame = None
+        prev_state = None
+
         for event in iter_recording_max(traj=traj, state=state):
+            if event.frame_event is not None:
+                prev_frame = event.frame_event
+            if event.frame_event is not None:
+                prev_state = event.state_event
+
             if split_predicate(event):
                 close_all()
                 split_count += 1
                 current_base_timestamp = event.timestamp
                 open_all()
-                if event.frame_event is not None:
+                if prev_frame is not None:
                     frame = GetFrameResponse(
-                        frame_index=0, frame=event.frame_event.current_frame.raw
+                        frame_index=0, frame=prev_frame.current_frame.raw
                     )
                     write_entry(current_traj_out, 0, frame)
-                if event.state_event is not None:
-                    state = dict_to_state_update(event.state_event.current_state)
-                    write_entry(current_state_out, 0, state)
+                if prev_state is not None:
+                    state_update = dict_to_state_update(prev_state.current_state)
+                    write_entry(current_state_out, 0, state_update)
             else:
                 timestamp = event.timestamp - current_base_timestamp
                 if event.frame_event is not None:
                     write_entry(current_traj_out, timestamp, event.frame_event.message)
                 if event.state_event is not None:
                     write_entry(current_state_out, timestamp, event.state_event.message)
+
+
 
     finally:
         close_all()
