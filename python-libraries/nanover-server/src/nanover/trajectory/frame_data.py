@@ -11,6 +11,7 @@ from nanover.utilities.protobuf_utilities import value_to_object, object_to_valu
 BOX_VECTORS = "system.box.vectors"
 SIMULATION_TIME = "system.simulation.time"
 SIMULATION_COUNTER = "system.simulation.counter"
+SIMULATION_EXCEPTION = "system.simulation.exception"
 
 BOND_PAIRS = "bond.pairs"
 BOND_ORDERS = "bond.orders"
