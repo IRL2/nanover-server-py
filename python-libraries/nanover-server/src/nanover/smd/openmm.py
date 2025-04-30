@@ -642,6 +642,8 @@ def smd_com_force(force_constant: float, uses_pbcs: bool):
 
     :param force_constant: Force constant of the harmonic restraint to be applied to the
       COM of the group of atoms in units kJ mol-1 nm-2
+    :param uses_pbcs: Bool specifying whether to use periodic boundary conditions for the
+      harmonic restraint
     :return: CustomCentroidBondForce defining the harmonic SMD force that interacts with
       the COM of the specified atoms.
     """
@@ -666,6 +668,8 @@ def smd_single_atom_force(force_constant: float, uses_pbcs: bool):
 
     :param force_constant: Force constant of the harmonic restraint to be applied to the
       specified atom in units kJ mol-1 nm-2
+    :param uses_pbcs: Bool specifying whether to use periodic boundary conditions for the
+      harmonic restraint
     :return: CustomExternalForce defining the harmonic SMD force that interacts with the
       specified atom.
     """
