@@ -81,6 +81,8 @@ class PathSmoother:
         """
         Create an MDAnalysis universe from the given trajectory file.
         """
+        # TODO: This reads the trajectory in Angstrom by default, perhaps convert
+        #  to nanometers...
         assert self.filename is not None
         self.universe = mda.Universe(
             self.filename,
