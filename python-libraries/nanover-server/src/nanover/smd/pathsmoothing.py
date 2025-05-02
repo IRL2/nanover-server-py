@@ -5,6 +5,7 @@ import ipywidgets as widgets
 
 from typing import Optional, Union, Tuple
 from os import PathLike
+
 from scipy.interpolate import splprep, splev
 from ipywidgets import interact, interactive, fixed, interact_manual
 
@@ -35,6 +36,32 @@ class PathSmoother:
         ) = retrieve_uf_com_path(
             ps.all_atom_positions, ps.all_atom_masses, ps.all_user_forces
         )
+        return ps
+
+    @classmethod
+    def from_path_coordinates(cls, coords: np.ndarray, atom_masses: np.ndarray):
+        """
+        Create a PathSmoother object from a set of coordinates, atom indices and atom masses that
+        directly define the path to be smoothed.
+
+        :param coords: NumPy array with dimensions (m x N x 3), defining the cartesian coordinates of
+          the N atoms defining the m frame path to be smoothed
+        :param atom_masses: NumPy array with dimensions (N) defining the masses of the atoms for
+          which the coordinates have been passed
+        """
+        # TODO: add functionality to specify length coordinate
+        ps = cls()
+        # Reshape coordinates array if 1-D coordinates given (i.e. if path of single atom given)
+        if coords.ndim == 2 and coords.shape[1] == 3:
+            ps.atom_positions = np.array([[coords[i]] for i in range(coords.shape[0])])
+        elif coords.ndim == 3:
+            ps.atom_positions = coords
+        ps.atom_masses = atom_masses
+        ps.com_positions = np.array(
+            [calculate_com(ps.atom_positions[i], ps.atom_masses) for i in range(ps.atom_positions.shape[0])]
+        )
+        ps.n_interaction_frames = ps.atom_positions.shape[0]
+
         return ps
 
     def __init__(self):
@@ -326,7 +353,7 @@ def calculate_com(atom_positions: np.ndarray, atom_masses: np.ndarray) -> np.nda
     ) / np.sum(atom_masses)
 
 
-def plot_com_trajectory(atom_positions: np.ndarray, n_frames: np.int64) -> None:
+def plot_com_trajectory(atom_positions: np.ndarray, n_frames: int) -> None:
     """
     Function that takes the trajectory of an atom as a NumPy array and the number of frames of the trajectory,
     and create a 3-D plot of the trajectory, coloured using the Viridis colour scheme.
@@ -351,7 +378,7 @@ def plot_com_trajectory(atom_positions: np.ndarray, n_frames: np.int64) -> None:
     plt.show()
 
 
-def plot_atom_trajectories(atoms_positions: np.ndarray, n_frames: np.int64) -> None:
+def plot_atom_trajectories(atoms_positions: np.ndarray, n_frames: int) -> None:
     """
     Function that takes the trajectory of an atom as a NumPy array and the number of frames of the trajectory,
     and create a 3-D plot of the trajectory, coloured using the Viridis colour scheme.
