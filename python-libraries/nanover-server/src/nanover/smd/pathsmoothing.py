@@ -7,9 +7,15 @@ from typing import Optional, Union, Tuple
 from os import PathLike
 
 from scipy.interpolate import splprep, splev
-from ipywidgets import interact, interactive, fixed, interact_manual
 
 from nanover.mdanalysis import NanoverParser, NanoverReader
+
+try:
+    from ipywidgets import interact, interactive, fixed, interact_manual
+    from IPython import get_ipython
+    _in_notebook = get_ipython().__class__.__name__ in ['ZMQInteractiveShell', 'TerminalInteractiveShell']
+except:
+    _in_notebook = False
 
 
 class PathSmoother:
@@ -63,6 +69,28 @@ class PathSmoother:
         ps.n_interaction_frames = ps.atom_positions.shape[0]
 
         return ps
+
+    @staticmethod
+    def make_plots_interactive():
+        """
+        Function that can be used to make plots interactive in Jupyter or IPython interfaces.
+        """
+        if _in_notebook:
+            get_ipython().run_line_magic("matplotlib", "widget")
+        else:
+            print("WARNING: interactive plots are only supported for Jupyter or IPython"
+                  "interfaces.")
+
+    @staticmethod
+    def close_interactive_plots():
+        """
+        Function that closes any interactive plots that are currently open within a Jupyter
+        or IPython session.
+        """
+        if _in_notebook:
+            plt.close('all')
+            print("Existing interactive plots closed.")
+
 
     def __init__(self):
         self.filename: Optional[Union[str, PathLike]] = None
