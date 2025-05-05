@@ -50,7 +50,7 @@ from .imd import populate_imd_force
 ROOT_TAG = "OpenMMSimulation"
 
 
-def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
+def serialize_simulation(simulation: app.Simulation, save_state=False, pbc_wrapping=False) -> str:
     """
     Generate an XML string from a simulation.
 
@@ -65,7 +65,7 @@ def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
 
     # Extract the PDB
     positions = simulation.context.getState(
-        getPositions=True, enforcePeriodicBox=True
+        getPositions=True, enforcePeriodicBox=pbc_wrapping
     ).getPositions()
     pdb_content = StringIO()
     app.PDBxFile.writeFile(simulation.topology, positions, pdb_content)
@@ -93,7 +93,7 @@ def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
                 getVelocities=True,
                 getParameters=True,
                 getIntegratorParameters=True,
-                enforcePeriodicBox=True,
+                enforcePeriodicBox=pbc_wrapping,
             )
         )
         state_document = parseString(state_xml_str)
