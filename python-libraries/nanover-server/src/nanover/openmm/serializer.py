@@ -50,12 +50,15 @@ from .imd import populate_imd_force
 ROOT_TAG = "OpenMMSimulation"
 
 
-def serialize_simulation(simulation: app.Simulation, save_state=False, pbc_wrapping=False) -> str:
+def serialize_simulation(
+    simulation: app.Simulation, save_state=False, pbc_wrapping=False
+) -> str:
     """
     Generate an XML string from a simulation.
 
     :param simulation: The simulation to serialize.
     :param save_state: Save the present state of the simulation too.
+    :pbc_wrapping: enforce periodic boundary conditions.
     :return: A string with the content of an XML file describing the simulation.
     """
     implementation = getDOMImplementation()
