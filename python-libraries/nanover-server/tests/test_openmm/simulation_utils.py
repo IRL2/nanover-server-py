@@ -308,3 +308,38 @@ def assert_single_atom_simulation_topology(frame):
     assert frame.residue_chains == [0]
     assert frame.particle_names == ["AR1"]
     assert frame.particle_elements == [40]
+
+
+def build_basic_simulation():
+    """
+    Setup a minimal OpenMM simulation with two methane molecules.
+    """
+    periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
+    positions = np.array(BASIC_SIMULATION_POSITIONS, dtype=np.float32)
+
+    topology = build_basic_topology()
+    system = build_basic_system()
+
+    force = mm.NonbondedForce()
+    force.setNonbondedMethod(force.NoCutoff)
+    # These non-bonded parameters are completely wrong, but it does not matter
+    # for the tests as long as we do not start testing the dynamic and
+    # thermodynamics properties of methane.
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    system.addForce(force)
+
+    integrator = mm.LangevinIntegrator(300 * kelvin, 1 / picosecond, 2 * femtosecond)
+
+    platform = mm.Platform.getPlatformByName("CPU")
+    simulation = app.Simulation(topology, system, integrator, platform=platform)
+    simulation.context.setPeriodicBoxVectors(*periodic_box_vector)
+    simulation.context.setPositions(positions * nanometer)
+
+    return simulation
