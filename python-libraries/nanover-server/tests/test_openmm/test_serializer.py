@@ -150,9 +150,7 @@ def test_serializer_pbc():
     with open("test-sim-pbc.xml", "w") as outfile:
         outfile.write(serialize_simulation(omm_sim, pbc_wrapping=True))
     with open("test-sim-no-pbc.xml", "w") as outfile:
-        outfile.write(
-            serialize_simulation(omm_sim, save_state=False, pbc_wrapping=False)
-        )
+        outfile.write(serialize_simulation(omm_sim, pbc_wrapping=False))
 
     def out_of_bounds(coord):
         return coord < 0 or coord > 1
