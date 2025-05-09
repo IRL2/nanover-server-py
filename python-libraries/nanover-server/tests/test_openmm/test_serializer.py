@@ -17,7 +17,14 @@ from nanover.openmm.serializer import (
 from simulation_utils import (
     basic_simulation,
     basic_simulation_xml,
+    build_basic_simulation,
     empty_imd_force,
+)
+from nanover.omni.openmm import OpenMMSimulation
+from nanover.app import (
+    NanoverImdClient,
+    NanoverApplicationServer,
+    NanoverImdApplication,
 )
 
 
@@ -124,3 +131,45 @@ def test_platform(basic_simulation_xml, platform):
     simulation = deserialize_simulation(basic_simulation_xml, platform_name=platform)
     effective_platform_name = simulation.context.getPlatform().getName()
     assert effective_platform_name == platform
+
+
+def test_serializer_pbc():
+    omm_sim = build_basic_simulation()
+    UNIT_SIMULATION_BOX_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    omm_sim.context.setPeriodicBoxVectors(*UNIT_SIMULATION_BOX_VECTORS)
+
+    with open("test-sim-pbc.xml", "w") as outfile:
+        outfile.write(serialize_simulation(omm_sim, save_state= True, pbc_wrapping=True))
+    with open("test-sim-no-pbc.xml", "w") as outfile:
+        outfile.write(serialize_simulation(omm_sim, save_state= True, pbc_wrapping=False))
+
+    def out_of_bounds(coord):
+        return coord < 0 or coord > 1
+
+    def get_sim_position_coords(sim):
+        for position in sim.make_regular_frame().particle_positions:
+            for coord in position:
+                yield coord
+
+    with open("test-sim-pbc.xml") as infile:
+        sim_pbc_obj = deserialize_simulation(infile.read())
+    openmm_sim = OpenMMSimulation.from_simulation(sim_pbc_obj)
+    openmm_sim.load()
+    openmm_sim.use_pbc_wrapping = True
+    with NanoverImdApplication.basic_server(port=0) as app_server:
+        openmm_sim.reset(app_server)
+        openmm_sim.advance_by_one_step()
+
+    assert not any(
+        out_of_bounds(coord) for coord in get_sim_position_coords(openmm_sim)
+    )  # This is failing, do we need sim.pbc_wrapping = True ?
+
+    with open("test-sim-no-pbc.xml") as infile:
+        sim_pbc_obj_1 = deserialize_simulation(infile.read())
+    openmm_sim_1 = OpenMMSimulation.from_simulation(sim_pbc_obj_1)
+    openmm_sim_1.load()
+    with NanoverImdApplication.basic_server(port=0) as app_server:
+        openmm_sim_1.reset(app_server)
+        openmm_sim_1.advance_by_one_step()
+
+    assert any(out_of_bounds(coord) for coord in get_sim_position_coords(openmm_sim_1))

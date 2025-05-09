@@ -58,7 +58,7 @@ def serialize_simulation(
 
     :param simulation: The simulation to serialize.
     :param save_state: Save the present state of the simulation too.
-    :pbc_wrapping: enforce periodic boundary conditions.
+    :param pbc_wrapping: Enforce periodic boundary conditions.
     :return: A string with the content of an XML file describing the simulation.
     """
     implementation = getDOMImplementation()
