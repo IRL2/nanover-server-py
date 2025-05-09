@@ -134,14 +134,25 @@ def test_platform(basic_simulation_xml, platform):
 
 
 def test_serializer_pbc():
+    """
+    Check if the periodic boundary conditions are correctly serialized.
+    The test deserializes two simulations with different setting of pbc and check if the positions are correct.
+    """
     omm_sim = build_basic_simulation()
     UNIT_SIMULATION_BOX_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     omm_sim.context.setPeriodicBoxVectors(*UNIT_SIMULATION_BOX_VECTORS)
+    sim = OpenMMSimulation.from_simulation(omm_sim)
+    sim.load()
+    with NanoverImdApplication.basic_server(port=0) as app_server:
+        sim.reset(app_server)
+        sim.advance_by_one_step()
 
     with open("test-sim-pbc.xml", "w") as outfile:
-        outfile.write(serialize_simulation(omm_sim, save_state= True, pbc_wrapping=True))
+        outfile.write(serialize_simulation(omm_sim, pbc_wrapping=True))
     with open("test-sim-no-pbc.xml", "w") as outfile:
-        outfile.write(serialize_simulation(omm_sim, save_state= True, pbc_wrapping=False))
+        outfile.write(
+            serialize_simulation(omm_sim, save_state=False, pbc_wrapping=False)
+        )
 
     def out_of_bounds(coord):
         return coord < 0 or coord > 1
@@ -155,14 +166,13 @@ def test_serializer_pbc():
         sim_pbc_obj = deserialize_simulation(infile.read())
     openmm_sim = OpenMMSimulation.from_simulation(sim_pbc_obj)
     openmm_sim.load()
-    openmm_sim.use_pbc_wrapping = True
+
     with NanoverImdApplication.basic_server(port=0) as app_server:
         openmm_sim.reset(app_server)
-        openmm_sim.advance_by_one_step()
 
     assert not any(
         out_of_bounds(coord) for coord in get_sim_position_coords(openmm_sim)
-    )  # This is failing, do we need sim.pbc_wrapping = True ?
+    )
 
     with open("test-sim-no-pbc.xml") as infile:
         sim_pbc_obj_1 = deserialize_simulation(infile.read())
@@ -170,6 +180,5 @@ def test_serializer_pbc():
     openmm_sim_1.load()
     with NanoverImdApplication.basic_server(port=0) as app_server:
         openmm_sim_1.reset(app_server)
-        openmm_sim_1.advance_by_one_step()
 
     assert any(out_of_bounds(coord) for coord in get_sim_position_coords(openmm_sim_1))
