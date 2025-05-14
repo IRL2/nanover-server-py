@@ -476,17 +476,30 @@ def test_sparse_user_forces_elements(
     positions and the position from which the user force is applied, for a constant force acting
     on the C atoms.
     """
+    # test setup parameters
+    carbon_mass = 6
+    interaction_particles = {0, 4}
+    interaction_position = (0, 0, 1)
+
     app, sim = basic_system_app_and_simulation_with_constant_force_old
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    # For a mass-weighted constant force applied at [0.0, 0.0, 1.0] to the COM of the C atoms
-    mass_weighted_user_forces_t0 = [[0.0, 0.0, -6.0], [0.0, 0.0, -6.0]]
-    assert set(frame.user_forces_index) == {0, 4}
+    # compute interaction center of mass and direction
+    interaction_positions = [
+        frame.particle_positions[index] for index in interaction_particles
+    ]
+    interaction_center = np.mean(interaction_positions, axis=0)
+    interaction_vector = np.subtract(interaction_position, interaction_center)
+
+    # expected force vector is interaction direction with magnitude of a carbon atom (6)
+    expected_heading = interaction_vector / np.linalg.norm(interaction_vector)
+    expected_magnitude = carbon_mass
+    expected_vector = expected_heading * expected_magnitude
+
+    assert set(frame.user_forces_index) == interaction_particles
     for i in range(len(frame.user_forces_index)):
-        assert frame.user_forces_sparse[i] == pytest.approx(
-            mass_weighted_user_forces_t0[i], abs=3e-3
-        )
+        assert frame.user_forces_sparse[i] == pytest.approx(expected_vector, abs=1e-5)
 
 
 def test_velocities_and_forces_single_atom():
