@@ -1,3 +1,4 @@
+import MDAnalysis.units
 import numpy as np
 import matplotlib.pyplot as plt
 import MDAnalysis as mda
@@ -78,7 +79,7 @@ class PathSmoother:
         if _in_notebook:
             get_ipython().run_line_magic("matplotlib", "widget")
         else:
-            print("WARNING: interactive plots are only supported for Jupyter or IPython"
+            print("WARNING: interactive plots are only supported for Jupyter or IPython "
                   "interfaces.")
 
     @staticmethod
