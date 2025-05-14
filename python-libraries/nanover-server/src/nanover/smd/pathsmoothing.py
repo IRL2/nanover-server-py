@@ -153,19 +153,23 @@ class PathSmoother:
         self.create_mda_universe()
         self.read_mda_universe_data()
 
-    def plot_com_trajectory(self):
+    def plot_com_trajectory(self, equal_aspect_ratio: bool = False):
         """
         Plot the trajectory of the COM of the atoms defining the path.
+
+        :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
         """
         assert self.com_positions is not None and self.n_interaction_frames is not None
-        plot_com_trajectory(self.com_positions, self.n_interaction_frames)
+        plot_com_trajectory(self.com_positions, self.n_interaction_frames, equal_aspect_ratio)
 
-    def plot_atoms_trajectories(self):
+    def plot_atoms_trajectories(self, equal_aspect_ratio: bool = False):
         """
         Plot the trajectories of the individual atoms defining the path.
+
+        :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
         """
         assert self.atom_positions is not None and self.n_interaction_frames is not None
-        plot_atom_trajectories(self.atom_positions, self.n_interaction_frames)
+        plot_atom_trajectories(self.atom_positions, self.n_interaction_frames, equal_aspect_ratio)
 
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
@@ -384,16 +388,16 @@ def calculate_com(atom_positions: np.ndarray, atom_masses: np.ndarray) -> np.nda
     ) / np.sum(atom_masses)
 
 
-def plot_com_trajectory(atom_positions: np.ndarray, n_frames: int) -> None:
+def plot_com_trajectory(atom_positions: np.ndarray, n_frames: int, equal_aspect_ratio: bool = False) -> None:
     """
     Function that takes the trajectory of an atom as a NumPy array and the number of frames of the trajectory,
     and create a 3-D plot of the trajectory, coloured using the Viridis colour scheme.
 
     :param atom_positions: A NumPy array of atom positions defining the trajectory of the atom
     :param n_frames: An integer defining the number of frames of the trajectory
+    :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
     """
     assert atom_positions.shape[0] == n_frames
-    fig = plt.figure(figsize=(8, 8))
     ax = plt.axes(projection="3d")
     ax.scatter3D(
         atom_positions[:, 0],
@@ -406,19 +410,25 @@ def plot_com_trajectory(atom_positions: np.ndarray, n_frames: int) -> None:
     ax.set_xlabel(r"$x / \AA$")
     ax.set_ylabel(r"$y / \AA$")
     ax.set_zlabel(r"$z / \AA$")
+    if not equal_aspect_ratio:
+        xlim = ax.get_xlim3d()
+        ylim = ax.get_ylim3d()
+        zlim = ax.get_zlim3d()
+        ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
     plt.show()
 
 
-def plot_atom_trajectories(atoms_positions: np.ndarray, n_frames: int) -> None:
+def plot_atom_trajectories(atoms_positions: np.ndarray, n_frames: int, equal_aspect_ratio: bool = False) -> None:
     """
     Function that takes the trajectory of an atom as a NumPy array and the number of frames of the trajectory,
     and create a 3-D plot of the trajectory, coloured using the Viridis colour scheme.
 
     :param atoms_positions: A NumPy array of atom positions defining the trajectory of the atom
     :param n_frames: An integer defining the number of frames of the trajectory
+    :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
     """
     assert atoms_positions.shape[0] == n_frames
-    fig = plt.figure(figsize=(8, 8))
+    #fig = plt.figure(figsize=(8, 8))
     ax = plt.axes(projection="3d")
     for i in range(atoms_positions.shape[1]):
         ax.scatter3D(
@@ -432,4 +442,9 @@ def plot_atom_trajectories(atoms_positions: np.ndarray, n_frames: int) -> None:
     ax.set_xlabel(r"$x / \AA$")
     ax.set_ylabel(r"$y / \AA$")
     ax.set_zlabel(r"$z / \AA$")
+    if not equal_aspect_ratio:
+        xlim = ax.get_xlim3d()
+        ylim = ax.get_ylim3d()
+        zlim = ax.get_zlim3d()
+        ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
     plt.show()
