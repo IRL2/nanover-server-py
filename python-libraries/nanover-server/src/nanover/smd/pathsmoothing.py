@@ -413,6 +413,7 @@ def plot_com_trajectory(
     :param atom_positions: A NumPy array of atom positions defining the trajectory of the atom
     :param n_frames: An integer defining the number of frames of the trajectory
     :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
+    :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
     """
     assert atom_positions.shape[0] == n_frames
     ax = plt.axes(projection="3d")
@@ -448,7 +449,7 @@ def plot_atom_trajectories(
     :param atoms_positions: A NumPy array of atom positions defining the trajectory of the atom
     :param n_frames: An integer defining the number of frames of the trajectory
     :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
-    :param cmap: A string defining the colour map to use to plot the trajectory
+    :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
     """
     assert atoms_positions.shape[0] == n_frames
     # fig = plt.figure(figsize=(8, 8))
