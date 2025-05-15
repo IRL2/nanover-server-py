@@ -161,26 +161,28 @@ class PathSmoother:
         self.create_mda_universe()
         self.read_mda_universe_data()
 
-    def plot_com_trajectory(self, equal_aspect_ratio: bool = False):
+    def plot_com_trajectory(self, equal_aspect_ratio: bool = False, cmap: str = "viridis"):
         """
         Plot the trajectory of the COM of the atoms defining the path.
 
         :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
+        :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
         """
         assert self.com_positions is not None and self.n_interaction_frames is not None
         plot_com_trajectory(
-            self.com_positions, self.n_interaction_frames, equal_aspect_ratio
+            self.com_positions, self.n_interaction_frames, equal_aspect_ratio, cmap
         )
 
-    def plot_atoms_trajectories(self, equal_aspect_ratio: bool = False):
+    def plot_atoms_trajectories(self, equal_aspect_ratio: bool = False, cmap: str = "viridis"):
         """
         Plot the trajectories of the individual atoms defining the path.
 
         :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
+        :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
         """
         assert self.atom_positions is not None and self.n_interaction_frames is not None
         plot_atom_trajectories(
-            self.atom_positions, self.n_interaction_frames, equal_aspect_ratio
+            self.atom_positions, self.n_interaction_frames, equal_aspect_ratio, cmap
         )
 
 
