@@ -199,8 +199,14 @@ class PathSmoother:
             self.atom_positions, self.n_interaction_frames, equal_aspect_ratio, cmap
         )
 
-    def create_interactive_smoothing_plot(self):
+    def create_interactive_smoothing_plot(self, equal_aspect_ratio: bool = False, cmap: str = "viridis"):
+        """
+        Create an interactive plot to smooth the trajectory of the centre of mass of the atoms defining
+        the path.
 
+        :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
+        :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
+        """
         self._make_plots_interactive()
 
         def interactive_smoothing_plot(x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point):
@@ -229,22 +235,23 @@ class PathSmoother:
                                              y_fine,
                                              z_fine,
                                              c=np.linspace(0, 1, len(x_fine)),
-                                             cmap='viridis',
+                                             cmap=cmap,
                                              s=1.0)
                 self.scatter_points = self.ax.scatter3D(x_pos,
                                               y_pos,
                                               z_pos,
                                               c=np.linspace(0, 1, pos_array_size),
-                                              cmap='viridis',
+                                              cmap=cmap,
                                               s=50.0,
                                               alpha=0.05)
                 self.ax.set_xlabel(r"$x$ / nm")
                 self.ax.set_ylabel(r"$y$ / nm")
                 self.ax.set_zlabel(r"$z$ / nm")
-                xlim = self.ax.get_xlim3d()
-                ylim = self.ax.get_ylim3d()
-                zlim = self.ax.get_zlim3d()
-                self.ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
+                if not equal_aspect_ratio:
+                    xlim = self.ax.get_xlim3d()
+                    ylim = self.ax.get_ylim3d()
+                    zlim = self.ax.get_zlim3d()
+                    self.ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
                 plt.show(block=False)
 
             else:
@@ -254,13 +261,13 @@ class PathSmoother:
                                              y_fine,
                                              z_fine,
                                              c=np.linspace(0, 1, len(x_fine)),
-                                             cmap='viridis',
+                                             cmap=cmap,
                                              s=1.0)
                 self.scatter_points = self.ax.scatter3D(x_pos,
                                               y_pos,
                                               z_pos,
                                               c=np.linspace(0, 1, pos_array_size),
-                                              cmap='viridis',
+                                              cmap=cmap,
                                               s=50.0,
                                               alpha=0.05)
 
