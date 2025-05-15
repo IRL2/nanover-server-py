@@ -125,7 +125,7 @@ class PathSmoother:
         self.smoothing_start_index: Optional[int] = None
         self.smoothing_end_index: Optional[int] = None
 
-        self.smoothed_path: Optional[np.ndarray] = None
+        self.smoothed_com_trajectory: Optional[np.ndarray] = None
 
     def create_mda_universe(self):
         """
@@ -317,6 +317,30 @@ class PathSmoother:
             self.smoothing_start_index,
             self.smoothing_end_index,
         ) = self.smoothing_plot.result
+        self.smoothed_com_trajectory, _ = interpolate_path(
+            self.com_positions[:, 0],
+            self.com_positions[:, 1],
+            self.com_positions[:, 2],
+            self.smoothing_parameter,
+            self.n_points,
+            self.smoothing_start_index,
+            self.smoothing_end_index,
+        )
+
+    def plot_smoothed_com_trajectory(
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
+    ):
+        """
+        Plot the trajectory of the COM of the atoms defining the path.
+
+        :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
+        :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
+        """
+        assert self.smoothed_com_trajectory is not None and self.n_points is not None
+        self._make_plots_interactive()
+        plot_com_trajectory(
+            np.transpose(self.smoothed_com_trajectory), self.n_points, equal_aspect_ratio, cmap
+        )
 
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
