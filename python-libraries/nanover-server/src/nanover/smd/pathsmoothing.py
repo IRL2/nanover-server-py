@@ -331,7 +331,7 @@ class PathSmoother:
         self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
     ):
         """
-        Plot the trajectory of the COM of the atoms defining the path.
+        Plot the smoothed trajectory of the COM of the atoms defining the path.
 
         :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
         :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
