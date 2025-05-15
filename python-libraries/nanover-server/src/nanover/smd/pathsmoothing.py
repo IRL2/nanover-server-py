@@ -23,11 +23,6 @@ try:
 except:
     _in_notebook = False
 
-fig = None
-ax = None
-scatter_curve = None
-scatter_points = None
-
 
 class PathSmoother:
     """
@@ -120,6 +115,10 @@ class PathSmoother:
         self.universe: Optional[mda.Universe] = None
 
         # Plot smoothing properties
+        self.fig = None
+        self.ax = None
+        self.scatter_curve = None
+        self.scatter_points = None
         self.smoothing_plot: Optional[plt.Figure] = None
         self.smoothing_parameter: Optional[float] = None
         self.n_points: Optional[int] = None
@@ -221,45 +220,45 @@ class PathSmoother:
 
             # Save current view if plot already exists
             elev = azim = None
-            if fig is None or ax is None:
+            if self.fig is None or self.ax is None:
 
                 # Close the old figure to avoid duplicates
-                plt.close(fig)
+                plt.close(self.fig)
 
-                fig = plt.figure(figsize=(8, 8))
-                ax = plt.axes(111, projection='3d')
-                scatter_curve = ax.scatter3D(x_fine,
+                self.fig = plt.figure(figsize=(8, 8))
+                self.ax = plt.axes(111, projection='3d')
+                self.scatter_curve = self.ax.scatter3D(x_fine,
                                              y_fine,
                                              z_fine,
                                              c=np.linspace(0, 1, len(x_fine)),
                                              cmap='viridis',
                                              s=1.0)
-                scatter_points = ax.scatter3D(x_pos,
+                self.scatter_points = self.ax.scatter3D(x_pos,
                                               y_pos,
                                               z_pos,
                                               c=np.linspace(0, 1, pos_array_size),
                                               cmap='viridis',
                                               s=50.0,
                                               alpha=0.05)
-                ax.set_xlabel(r"$x$ / nm")
-                ax.set_ylabel(r"$y$ / nm")
-                ax.set_zlabel(r"$z$ / nm")
-                xlim = ax.get_xlim3d()
-                ylim = ax.get_ylim3d()
-                zlim = ax.get_zlim3d()
-                ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
+                self.ax.set_xlabel(r"$x$ / nm")
+                self.ax.set_ylabel(r"$y$ / nm")
+                self.ax.set_zlabel(r"$z$ / nm")
+                xlim = self.ax.get_xlim3d()
+                ylim = self.ax.get_ylim3d()
+                zlim = self.ax.get_zlim3d()
+                self.ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
                 plt.show(block=False)
 
             else:
-                scatter_curve.remove()
-                scatter_points.remove()
-                scatter_curve = ax.scatter3D(x_fine,
+                self.scatter_curve.remove()
+                self.scatter_points.remove()
+                self.scatter_curve = self.ax.scatter3D(x_fine,
                                              y_fine,
                                              z_fine,
                                              c=np.linspace(0, 1, len(x_fine)),
                                              cmap='viridis',
                                              s=1.0)
-                scatter_points = ax.scatter3D(x_pos,
+                self.scatter_points = self.ax.scatter3D(x_pos,
                                               y_pos,
                                               z_pos,
                                               c=np.linspace(0, 1, pos_array_size),
@@ -275,7 +274,7 @@ class PathSmoother:
                                           x_pos=fixed(self.com_positions[:,0]),
                                           y_pos=fixed(self.com_positions[:,1]),
                                           z_pos=fixed(self.com_positions[:,2]),
-                                          smoothing_value=widgets.IntSlider(min=0.0, max=1000, step=0.1, value=1.0),
+                                          smoothing_value=widgets.IntSlider(min=0.0, max=1000, step=0.1, value=0.0),
                                           n_points=widgets.IntSlider(min=1000, max=10000, step=100, value=1000),
                                           start_point=widgets.IntSlider(min=0, max=1000, step=1, value=0),
                                           end_point=widgets.IntSlider(min=0, max=1000, step=1, value=0))
