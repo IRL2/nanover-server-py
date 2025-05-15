@@ -234,7 +234,7 @@ class PathSmoother:
                 self.fig = plt.figure(figsize=(8, 8))
                 self.ax = plt.axes(111, projection="3d")
                 self.scatter_curve = self.ax.scatter3D(
-                    interpolated_path[0], interpolated_path[1], interpolated_path[2],
+                    interpolated_path[:, 0], interpolated_path[:, 1], interpolated_path[:, 2],
                     c=interpolated_u_values,
                     cmap=cmap,
                     s=1.0,
@@ -273,7 +273,7 @@ class PathSmoother:
                 self.scatter_curve.remove()
                 self.scatter_points.remove()
                 self.scatter_curve = self.ax.scatter3D(
-                    interpolated_path[0], interpolated_path[1], interpolated_path[2],
+                    interpolated_path[:, 0], interpolated_path[:, 1], interpolated_path[:, 2],
                     c=interpolated_u_values,
                     cmap=cmap,
                     s=1.0,
@@ -339,7 +339,7 @@ class PathSmoother:
         assert self.smoothed_com_trajectory is not None and self.n_points is not None
         self._make_plots_interactive()
         plot_com_trajectory(
-            np.transpose(self.smoothed_com_trajectory), self.n_points, equal_aspect_ratio, cmap
+            self.smoothed_com_trajectory, self.n_points, equal_aspect_ratio, cmap
         )
 
 
@@ -641,6 +641,21 @@ def interpolate_path(
     start_index: int,
     end_index: int,
 ):
+    """
+    Function that interpolates the path defined by the arrays of x, y and z coordinates passed to
+    it and returns an n_point trajectory of coordinates that are approximately equally spaced along
+    the interpolated path.
+
+    :param x_pos: A 1-D NumPy array of x coordinates
+    :param y_pos: A 1-D NumPy array of y coordinates
+    :param z_pos: A 1-D NumPy array of z coordinates
+    :param smoothing_parameter: A float defining the smoothing parameter to be used in the interpolation
+    :param n_points: An integer defining the number of interpolation points
+    :param start_index: An integer defining the index of the coordinates at which the interpolation
+      should begin.
+    :param end_index: An integer defining the index of the coordinates at which the interpolation
+      should end.
+    """
     pos_array_size = x_pos.size
     tck, u = splprep(
         [
@@ -652,5 +667,5 @@ def interpolate_path(
     )
     u_fine = np.linspace(0, 1, n_points)
     x_fine, y_fine, z_fine = splev(u_fine, tck)
-    return np.squeeze([x_fine, y_fine, z_fine]), u_fine
+    return np.transpose(np.squeeze([x_fine, y_fine, z_fine])), u_fine
 
