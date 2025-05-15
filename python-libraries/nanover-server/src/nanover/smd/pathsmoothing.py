@@ -276,8 +276,8 @@ class PathSmoother:
                                           z_pos=fixed(self.com_positions[:,2]),
                                           smoothing_value=widgets.IntSlider(min=0.0, max=1000, step=0.1, value=0.0),
                                           n_points=widgets.IntSlider(min=1000, max=10000, step=100, value=1000),
-                                          start_point=widgets.IntSlider(min=0, max=1000, step=1, value=0),
-                                          end_point=widgets.IntSlider(min=0, max=1000, step=1, value=0))
+                                          start_point=widgets.IntSlider(min=0, max=int((self.com_positions[:,0].size/2) - 2), step=1, value=0),
+                                          end_point=widgets.IntSlider(min=0, max=int((self.com_positions[:,0].size/2) - 2), step=1, value=0))
 
         return self.smoothing_plot
 
