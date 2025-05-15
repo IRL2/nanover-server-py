@@ -454,7 +454,6 @@ def plot_atom_trajectories(
     :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
     """
     assert atoms_positions.shape[0] == n_frames
-    # fig = plt.figure(figsize=(8, 8))
     ax = plt.axes(projection="3d")
     for i in range(atoms_positions.shape[1]):
         ax.scatter3D(
