@@ -221,23 +221,11 @@ class PathSmoother:
         ):
 
             pos_array_size = x_pos.size
-            # start_point = min(int(x_pos.size)/2., start_point)
-            # end_point = min(int(x_pos.size)/2., end_point)
-            tck, u = splprep(
-                [
-                    x_pos[start_point : pos_array_size - end_point],
-                    y_pos[start_point : pos_array_size - end_point],
-                    z_pos[start_point : pos_array_size - end_point],
-                ],
-                s=smoothing_value,
-            )
-            # tck, u = splprep([x_pos, y_pos, z_pos], s=smoothing_value);
-            x_knots, y_knots, z_knots = splev(tck[0], tck)
-            u_fine = np.linspace(0, 1, n_points)
-            x_fine, y_fine, z_fine = splev(u_fine, tck)
+            original_u_values = np.linspace(0, 1, pos_array_size)
+
+            interpolated_path, interpolated_u_values = interpolate_path(x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point)
 
             # Save current view if plot already exists
-            elev = azim = None
             if self.fig is None or self.ax is None:
 
                 # Close the old figure to avoid duplicates
@@ -246,10 +234,8 @@ class PathSmoother:
                 self.fig = plt.figure(figsize=(8, 8))
                 self.ax = plt.axes(111, projection="3d")
                 self.scatter_curve = self.ax.scatter3D(
-                    x_fine,
-                    y_fine,
-                    z_fine,
-                    c=np.linspace(0, 1, len(x_fine)),
+                    interpolated_path[0], interpolated_path[1], interpolated_path[2],
+                    c=interpolated_u_values,
                     cmap=cmap,
                     s=1.0,
                 )
@@ -257,7 +243,7 @@ class PathSmoother:
                     x_pos,
                     y_pos,
                     z_pos,
-                    c=np.linspace(0, 1, pos_array_size),
+                    c=original_u_values,
                     cmap=cmap,
                     s=50.0,
                     alpha=0.05,
@@ -287,18 +273,14 @@ class PathSmoother:
                 self.scatter_curve.remove()
                 self.scatter_points.remove()
                 self.scatter_curve = self.ax.scatter3D(
-                    x_fine,
-                    y_fine,
-                    z_fine,
-                    c=np.linspace(0, 1, len(x_fine)),
+                    interpolated_path[0], interpolated_path[1], interpolated_path[2],
+                    c=interpolated_u_values,
                     cmap=cmap,
                     s=1.0,
                 )
                 self.scatter_points = self.ax.scatter3D(
-                    x_pos,
-                    y_pos,
-                    z_pos,
-                    c=np.linspace(0, 1, pos_array_size),
+                    x_pos, y_pos, z_pos,
+                    c=original_u_values,
                     cmap=cmap,
                     s=50.0,
                     alpha=0.05,
