@@ -125,6 +125,7 @@ class PathSmoother:
         self.smoothing_start_index: Optional[int] = None
         self.smoothing_end_index: Optional[int] = None
 
+        self.smoothed_path: Optional[np.ndarray] = None
 
     def create_mda_universe(self):
         """
@@ -173,7 +174,9 @@ class PathSmoother:
         self.create_mda_universe()
         self.read_mda_universe_data()
 
-    def plot_com_trajectory(self, equal_aspect_ratio: bool = False, cmap: str = "viridis"):
+    def plot_com_trajectory(
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
+    ):
         """
         Plot the trajectory of the COM of the atoms defining the path.
 
@@ -186,7 +189,9 @@ class PathSmoother:
             self.com_positions, self.n_interaction_frames, equal_aspect_ratio, cmap
         )
 
-    def plot_atoms_trajectories(self, equal_aspect_ratio: bool = False, cmap: str = "viridis"):
+    def plot_atoms_trajectories(
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
+    ):
         """
         Plot the trajectories of the individual atoms defining the path.
 
@@ -199,7 +204,9 @@ class PathSmoother:
             self.atom_positions, self.n_interaction_frames, equal_aspect_ratio, cmap
         )
 
-    def create_interactive_smoothing_plot(self, equal_aspect_ratio: bool = False, cmap: str = "viridis"):
+    def create_interactive_smoothing_plot(
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
+    ):
         """
         Create an interactive plot to smooth the trajectory of the centre of mass of the atoms defining
         the path.
@@ -209,14 +216,21 @@ class PathSmoother:
         """
         self._make_plots_interactive()
 
-        def interactive_smoothing_plot(x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point):
+        def interactive_smoothing_plot(
+            x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point
+        ):
 
             pos_array_size = x_pos.size
             # start_point = min(int(x_pos.size)/2., start_point)
             # end_point = min(int(x_pos.size)/2., end_point)
             tck, u = splprep(
-                [x_pos[start_point:pos_array_size - end_point], y_pos[start_point:pos_array_size - end_point],
-                 z_pos[start_point:pos_array_size - end_point]], s=smoothing_value);
+                [
+                    x_pos[start_point : pos_array_size - end_point],
+                    y_pos[start_point : pos_array_size - end_point],
+                    z_pos[start_point : pos_array_size - end_point],
+                ],
+                s=smoothing_value,
+            )
             # tck, u = splprep([x_pos, y_pos, z_pos], s=smoothing_value);
             x_knots, y_knots, z_knots = splev(tck[0], tck)
             u_fine = np.linspace(0, 1, n_points)
@@ -230,20 +244,24 @@ class PathSmoother:
                 plt.close(self.fig)
 
                 self.fig = plt.figure(figsize=(8, 8))
-                self.ax = plt.axes(111, projection='3d')
-                self.scatter_curve = self.ax.scatter3D(x_fine,
-                                             y_fine,
-                                             z_fine,
-                                             c=np.linspace(0, 1, len(x_fine)),
-                                             cmap=cmap,
-                                             s=1.0)
-                self.scatter_points = self.ax.scatter3D(x_pos,
-                                              y_pos,
-                                              z_pos,
-                                              c=np.linspace(0, 1, pos_array_size),
-                                              cmap=cmap,
-                                              s=50.0,
-                                              alpha=0.05)
+                self.ax = plt.axes(111, projection="3d")
+                self.scatter_curve = self.ax.scatter3D(
+                    x_fine,
+                    y_fine,
+                    z_fine,
+                    c=np.linspace(0, 1, len(x_fine)),
+                    cmap=cmap,
+                    s=1.0,
+                )
+                self.scatter_points = self.ax.scatter3D(
+                    x_pos,
+                    y_pos,
+                    z_pos,
+                    c=np.linspace(0, 1, pos_array_size),
+                    cmap=cmap,
+                    s=50.0,
+                    alpha=0.05,
+                )
                 self.ax.set_xlabel(r"$x$ / nm")
                 self.ax.set_ylabel(r"$y$ / nm")
                 self.ax.set_zlabel(r"$z$ / nm")
@@ -251,49 +269,72 @@ class PathSmoother:
                     xlim = self.ax.get_xlim3d()
                     ylim = self.ax.get_ylim3d()
                     zlim = self.ax.get_zlim3d()
-                    self.ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
+                    self.ax.set_box_aspect(
+                        (xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0])
+                    )
 
-                cbar = self.fig.colorbar(self.scatter_curve, ax=self.ax, pad=0.1, shrink=0.8)
+                cbar = self.fig.colorbar(
+                    self.scatter_curve, ax=self.ax, pad=0.1, shrink=0.8
+                )
                 cbar.set_label("COM trajectory")
                 cbar.set_ticks([0, 1])
-                cbar.set_ticklabels([r"$\mathbf{r}_{\rm{start}}$", r"$\mathbf{r}_{\rm{end}}$"])
+                cbar.set_ticklabels(
+                    [r"$\mathbf{r}_{\rm{start}}$", r"$\mathbf{r}_{\rm{end}}$"]
+                )
                 plt.show(block=False)
 
             else:
                 self.scatter_curve.remove()
                 self.scatter_points.remove()
-                self.scatter_curve = self.ax.scatter3D(x_fine,
-                                             y_fine,
-                                             z_fine,
-                                             c=np.linspace(0, 1, len(x_fine)),
-                                             cmap=cmap,
-                                             s=1.0)
-                self.scatter_points = self.ax.scatter3D(x_pos,
-                                              y_pos,
-                                              z_pos,
-                                              c=np.linspace(0, 1, pos_array_size),
-                                              cmap=cmap,
-                                              s=50.0,
-                                              alpha=0.05)
+                self.scatter_curve = self.ax.scatter3D(
+                    x_fine,
+                    y_fine,
+                    z_fine,
+                    c=np.linspace(0, 1, len(x_fine)),
+                    cmap=cmap,
+                    s=1.0,
+                )
+                self.scatter_points = self.ax.scatter3D(
+                    x_pos,
+                    y_pos,
+                    z_pos,
+                    c=np.linspace(0, 1, pos_array_size),
+                    cmap=cmap,
+                    s=50.0,
+                    alpha=0.05,
+                )
 
                 plt.draw()
 
             return smoothing_value, n_points, start_point, end_point
 
-        self.smoothing_plot = interactive(interactive_smoothing_plot,
-                                          x_pos=fixed(self.com_positions[:,0]),
-                                          y_pos=fixed(self.com_positions[:,1]),
-                                          z_pos=fixed(self.com_positions[:,2]),
-                                          smoothing_value=widgets.FloatSlider(min=0.0, max=10.0, step=0.001, value=0.0),
-                                          n_points=widgets.IntSlider(min=1000, max=10000, step=100, value=1000),
-                                          start_point=widgets.IntSlider(min=0, max=int((self.com_positions[:,0].size/2) - 2), step=1, value=0),
-                                          end_point=widgets.IntSlider(min=0, max=int((self.com_positions[:,0].size/2) - 2), step=1, value=0))
+        self.smoothing_plot = interactive(
+            interactive_smoothing_plot,
+            x_pos=fixed(self.com_positions[:, 0]),
+            y_pos=fixed(self.com_positions[:, 1]),
+            z_pos=fixed(self.com_positions[:, 2]),
+            smoothing_value=widgets.FloatSlider(
+                min=0.0, max=10.0, step=0.001, value=0.0
+            ),
+            n_points=widgets.IntSlider(min=1000, max=10000, step=100, value=1000),
+            start_point=widgets.IntSlider(
+                min=0, max=int((self.com_positions[:, 0].size / 2) - 2), step=1, value=0
+            ),
+            end_point=widgets.IntSlider(
+                min=0, max=int((self.com_positions[:, 0].size / 2) - 2), step=1, value=0
+            ),
+        )
 
         return self.smoothing_plot
 
     def save_smoothing_plot_result(self):
         assert self.smoothing_plot is not None
-        self.smoothing_parameter, self.n_points, self.smoothing_start_index, self.smoothing_end_index = self.smoothing_plot.result
+        (
+            self.smoothing_parameter,
+            self.n_points,
+            self.smoothing_start_index,
+            self.smoothing_end_index,
+        ) = self.smoothing_plot.result
 
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
@@ -583,3 +624,27 @@ def plot_atom_trajectories(
         zlim = ax.get_zlim3d()
         ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
     plt.show()
+
+
+def interpolate_path(
+    x_pos: np.ndarray,
+    y_pos: np.ndarray,
+    z_pos: np.ndarray,
+    smoothing_parameter: float,
+    n_points: int,
+    start_index: int,
+    end_index: int,
+):
+    pos_array_size = x_pos.size
+    tck, u = splprep(
+        [
+            x_pos[start_index : pos_array_size - end_index],
+            y_pos[start_index : pos_array_size - end_index],
+            z_pos[start_index : pos_array_size - end_index],
+        ],
+        s=smoothing_parameter,
+    )
+    u_fine = np.linspace(0, 1, n_points)
+    x_fine, y_fine, z_fine = splev(u_fine, tck)
+    return np.squeeze([x_fine, y_fine, z_fine]), u_fine
+
