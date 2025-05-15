@@ -486,13 +486,17 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
             n_forces = self.simulation.system.getNumForces()
             smd_force = self.simulation.system.getForce(n_forces - 1)
             params = smd_force.getParticleParameters(0)
-            assert(type(smd_force) == CustomExternalForce)
-            assert(smd_force.getEnergyFunction() == "0.5 * smd_k * periodicdistance(x, y, z, x0, y0, z0)^2"
-                   or smd_force.getEnergyFunction() == "0.5 * smd_k * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)")
-            assert(smd_force.getNumParticles() == 1)
-            assert(force_constant == self.smd_force_constant)
-            assert(params[0] == self.smd_atom_indices)
-            assert(np.all(params[1] == self.current_smd_force_position))
+            assert type(smd_force) == CustomExternalForce
+            assert (
+                smd_force.getEnergyFunction()
+                == "0.5 * smd_k * periodicdistance(x, y, z, x0, y0, z0)^2"
+                or smd_force.getEnergyFunction()
+                == "0.5 * smd_k * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)"
+            )
+            assert smd_force.getNumParticles() == 1
+            assert force_constant == self.smd_force_constant
+            assert params[0] == self.smd_atom_indices
+            assert np.all(params[1] == self.current_smd_force_position)
             print("SMD force already present in loaded simulation.")
             self.smd_force = smd_force
             self.loaded_smd_force_from_sim = True
@@ -551,12 +555,19 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
             force_constant = self.simulation.context.getParameter("smd_k")
             n_forces = self.simulation.system.getNumForces()
             smd_force = self.simulation.system.getForce(n_forces - 1)
-            assert(type(smd_force) == CustomCentroidBondForce)
-            assert(smd_force.getEnergyFunction() == "0.5 * smd_k * pointdistance(x1, y1, z1, x0, y0, z0)^2")
-            assert(smd_force.getNumGroups() == 1)
-            assert(force_constant == self.smd_force_constant)
-            assert(np.all((smd_force.getGroupParameters(0)[0] == self.smd_atom_indices) == True))
-            assert(np.all(smd_force.getBondParameters(0)[1] == self.current_smd_force_position))
+            assert type(smd_force) == CustomCentroidBondForce
+            assert (
+                smd_force.getEnergyFunction()
+                == "0.5 * smd_k * pointdistance(x1, y1, z1, x0, y0, z0)^2"
+            )
+            assert smd_force.getNumGroups() == 1
+            assert force_constant == self.smd_force_constant
+            assert np.all(
+                (smd_force.getGroupParameters(0)[0] == self.smd_atom_indices) == True
+            )
+            assert np.all(
+                smd_force.getBondParameters(0)[1] == self.current_smd_force_position
+            )
             print("SMD force already present in loaded simulation.")
             self.smd_force = smd_force
             self.loaded_smd_force_from_sim = True
@@ -678,7 +689,9 @@ def smd_single_atom_force(force_constant: float, uses_pbcs: bool):
             "0.5 * smd_k * periodicdistance(x, y, z, x0, y0, z0)^2"
         )
     else:
-        smd_force = CustomExternalForce("0.5 * smd_k * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)")
+        smd_force = CustomExternalForce(
+            "0.5 * smd_k * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)"
+        )
     smd_force.addGlobalParameter("smd_k", force_constant)
     smd_force.addPerParticleParameter("x0")
     smd_force.addPerParticleParameter("y0")

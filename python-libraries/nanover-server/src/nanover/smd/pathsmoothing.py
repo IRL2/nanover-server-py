@@ -14,7 +14,11 @@ from nanover.mdanalysis import NanoverParser, NanoverReader
 try:
     from ipywidgets import interact, interactive, fixed, interact_manual
     from IPython import get_ipython
-    _in_notebook = get_ipython().__class__.__name__ in ['ZMQInteractiveShell', 'TerminalInteractiveShell']
+
+    _in_notebook = get_ipython().__class__.__name__ in [
+        "ZMQInteractiveShell",
+        "TerminalInteractiveShell",
+    ]
 except:
     _in_notebook = False
 
@@ -65,7 +69,10 @@ class PathSmoother:
             ps.atom_positions = coords
         ps.atom_masses = atom_masses
         ps.com_positions = np.array(
-            [calculate_com(ps.atom_positions[i], ps.atom_masses) for i in range(ps.atom_positions.shape[0])]
+            [
+                calculate_com(ps.atom_positions[i], ps.atom_masses)
+                for i in range(ps.atom_positions.shape[0])
+            ]
         )
         ps.n_interaction_frames = ps.atom_positions.shape[0]
 
@@ -79,8 +86,10 @@ class PathSmoother:
         if _in_notebook:
             get_ipython().run_line_magic("matplotlib", "widget")
         else:
-            print("WARNING: interactive plots are only supported for Jupyter or IPython "
-                  "interfaces.")
+            print(
+                "WARNING: interactive plots are only supported for Jupyter or IPython "
+                "interfaces."
+            )
 
     @staticmethod
     def close_interactive_plots():
@@ -89,9 +98,8 @@ class PathSmoother:
         or IPython session.
         """
         if _in_notebook:
-            plt.close('all')
+            plt.close("all")
             print("Existing interactive plots closed.")
-
 
     def __init__(self):
         self.filename: Optional[Union[str, PathLike]] = None
@@ -160,7 +168,9 @@ class PathSmoother:
         :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
         """
         assert self.com_positions is not None and self.n_interaction_frames is not None
-        plot_com_trajectory(self.com_positions, self.n_interaction_frames, equal_aspect_ratio)
+        plot_com_trajectory(
+            self.com_positions, self.n_interaction_frames, equal_aspect_ratio
+        )
 
     def plot_atoms_trajectories(self, equal_aspect_ratio: bool = False):
         """
@@ -169,7 +179,9 @@ class PathSmoother:
         :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
         """
         assert self.atom_positions is not None and self.n_interaction_frames is not None
-        plot_atom_trajectories(self.atom_positions, self.n_interaction_frames, equal_aspect_ratio)
+        plot_atom_trajectories(
+            self.atom_positions, self.n_interaction_frames, equal_aspect_ratio
+        )
 
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
@@ -388,7 +400,12 @@ def calculate_com(atom_positions: np.ndarray, atom_masses: np.ndarray) -> np.nda
     ) / np.sum(atom_masses)
 
 
-def plot_com_trajectory(atom_positions: np.ndarray, n_frames: int, equal_aspect_ratio: bool = False) -> None:
+def plot_com_trajectory(
+    atom_positions: np.ndarray,
+    n_frames: int,
+    equal_aspect_ratio: bool = False,
+    cmap: str = "viridis",
+) -> None:
     """
     Function that takes the trajectory of an atom as a NumPy array and the number of frames of the trajectory,
     and create a 3-D plot of the trajectory, coloured using the Viridis colour scheme.
@@ -404,7 +421,7 @@ def plot_com_trajectory(atom_positions: np.ndarray, n_frames: int, equal_aspect_
         atom_positions[:, 1],
         atom_positions[:, 2],
         c=np.linspace(0, 1, n_frames),
-        cmap="viridis",
+        cmap=cmap,
         s=1.0,
     )
     ax.set_xlabel(r"$x / \AA$")
@@ -418,7 +435,12 @@ def plot_com_trajectory(atom_positions: np.ndarray, n_frames: int, equal_aspect_
     plt.show()
 
 
-def plot_atom_trajectories(atoms_positions: np.ndarray, n_frames: int, equal_aspect_ratio: bool = False) -> None:
+def plot_atom_trajectories(
+    atoms_positions: np.ndarray,
+    n_frames: int,
+    equal_aspect_ratio: bool = False,
+    cmap: str = "viridis",
+) -> None:
     """
     Function that takes the trajectory of an atom as a NumPy array and the number of frames of the trajectory,
     and create a 3-D plot of the trajectory, coloured using the Viridis colour scheme.
@@ -426,9 +448,10 @@ def plot_atom_trajectories(atoms_positions: np.ndarray, n_frames: int, equal_asp
     :param atoms_positions: A NumPy array of atom positions defining the trajectory of the atom
     :param n_frames: An integer defining the number of frames of the trajectory
     :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
+    :param cmap: A string defining the colour map to use to plot the trajectory
     """
     assert atoms_positions.shape[0] == n_frames
-    #fig = plt.figure(figsize=(8, 8))
+    # fig = plt.figure(figsize=(8, 8))
     ax = plt.axes(projection="3d")
     for i in range(atoms_positions.shape[1]):
         ax.scatter3D(
@@ -436,7 +459,7 @@ def plot_atom_trajectories(atoms_positions: np.ndarray, n_frames: int, equal_asp
             atoms_positions[:, i, 1],
             atoms_positions[:, i, 2],
             c=np.linspace(0, 1, n_frames),
-            cmap="viridis",
+            cmap=cmap,
             s=1.0,
         )
     ax.set_xlabel(r"$x / \AA$")
