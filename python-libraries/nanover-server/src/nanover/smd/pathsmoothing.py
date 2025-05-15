@@ -12,8 +12,9 @@ from scipy.interpolate import splprep, splev
 from nanover.mdanalysis import NanoverParser, NanoverReader
 
 try:
-    from ipywidgets import interact, interactive, fixed, interact_manual
+    from ipywidgets import interact, interactive, fixed, interact_manual, VBox, HBox
     from IPython import get_ipython
+    from IPython.display import display
 
     _in_notebook = get_ipython().__class__.__name__ in [
         "ZMQInteractiveShell",
@@ -21,6 +22,11 @@ try:
     ]
 except:
     _in_notebook = False
+
+fig = None
+ax = None
+scatter_curve = None
+scatter_points = None
 
 
 class PathSmoother:
@@ -79,14 +85,14 @@ class PathSmoother:
         return ps
 
     @staticmethod
-    def make_plots_interactive():
+    def _make_plots_interactive():
         """
         Function that can be used to make plots interactive in Jupyter or IPython interfaces.
         """
         if _in_notebook:
             get_ipython().run_line_magic("matplotlib", "widget")
         else:
-            print(
+            raise Exception(
                 "WARNING: interactive plots are only supported for Jupyter or IPython "
                 "interfaces."
             )
@@ -113,6 +119,14 @@ class PathSmoother:
         self.all_atom_masses: Optional[np.ndarray] = None
 
         self.universe: Optional[mda.Universe] = None
+
+        # Plot smoothing properties
+        self.smoothing_plot: Optional[plt.Figure] = None
+        self.smoothing_parameter: Optional[float] = None
+        self.n_points: Optional[int] = None
+        self.smoothing_start_index: Optional[int] = None
+        self.smoothing_end_index: Optional[int] = None
+
 
     def create_mda_universe(self):
         """
@@ -169,6 +183,7 @@ class PathSmoother:
         :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
         """
         assert self.com_positions is not None and self.n_interaction_frames is not None
+        self._make_plots_interactive()
         plot_com_trajectory(
             self.com_positions, self.n_interaction_frames, equal_aspect_ratio, cmap
         )
@@ -181,9 +196,96 @@ class PathSmoother:
         :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
         """
         assert self.atom_positions is not None and self.n_interaction_frames is not None
+        self._make_plots_interactive()
         plot_atom_trajectories(
             self.atom_positions, self.n_interaction_frames, equal_aspect_ratio, cmap
         )
+
+    def create_interactive_smoothing_plot(self):
+
+        self._make_plots_interactive()
+
+        def interactive_smoothing_plot(x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point):
+
+            global fig, ax, scatter_curve, scatter_points
+
+            pos_array_size = x_pos.size
+            # start_point = min(int(x_pos.size)/2., start_point)
+            # end_point = min(int(x_pos.size)/2., end_point)
+            tck, u = splprep(
+                [x_pos[start_point:pos_array_size - end_point], y_pos[start_point:pos_array_size - end_point],
+                 z_pos[start_point:pos_array_size - end_point]], s=smoothing_value);
+            # tck, u = splprep([x_pos, y_pos, z_pos], s=smoothing_value);
+            x_knots, y_knots, z_knots = splev(tck[0], tck)
+            u_fine = np.linspace(0, 1, n_points)
+            x_fine, y_fine, z_fine = splev(u_fine, tck)
+
+            # Save current view if plot already exists
+            elev = azim = None
+            if fig is None or ax is None:
+
+                # Close the old figure to avoid duplicates
+                plt.close(fig)
+
+                fig = plt.figure(figsize=(8, 8))
+                ax = plt.axes(111, projection='3d')
+                scatter_curve = ax.scatter3D(x_fine,
+                                             y_fine,
+                                             z_fine,
+                                             c=np.linspace(0, 1, len(x_fine)),
+                                             cmap='viridis',
+                                             s=1.0)
+                scatter_points = ax.scatter3D(x_pos,
+                                              y_pos,
+                                              z_pos,
+                                              c=np.linspace(0, 1, pos_array_size),
+                                              cmap='viridis',
+                                              s=50.0,
+                                              alpha=0.05)
+                ax.set_xlabel(r"$x / \AA$")
+                ax.set_ylabel(r"$y / \AA$")
+                ax.set_zlabel(r"$z / \AA$")
+                xlim = ax.get_xlim3d()
+                ylim = ax.get_ylim3d()
+                zlim = ax.get_zlim3d()
+                ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
+                plt.show(block=False)
+
+            else:
+                scatter_curve.remove()
+                scatter_points.remove()
+                scatter_curve = ax.scatter3D(x_fine,
+                                             y_fine,
+                                             z_fine,
+                                             c=np.linspace(0, 1, len(x_fine)),
+                                             cmap='viridis',
+                                             s=1.0)
+                scatter_points = ax.scatter3D(x_pos,
+                                              y_pos,
+                                              z_pos,
+                                              c=np.linspace(0, 1, pos_array_size),
+                                              cmap='viridis',
+                                              s=50.0,
+                                              alpha=0.05)
+
+                plt.draw()
+
+            return smoothing_value, n_points, start_point, end_point
+
+        self.smoothing_plot = interactive(interactive_smoothing_plot,
+                                          x_pos=fixed(self.com_positions[:,0]),
+                                          y_pos=fixed(self.com_positions[:,1]),
+                                          z_pos=fixed(self.com_positions[:,2]),
+                                          smoothing_value=widgets.IntSlider(min=0.0, max=1000, step=0.1, value=1.0),
+                                          n_points=widgets.IntSlider(min=1000, max=10000, step=100, value=1000),
+                                          start_point=widgets.IntSlider(min=0, max=1000, step=1, value=0),
+                                          end_point=widgets.IntSlider(min=0, max=1000, step=1, value=0))
+
+        return self.smoothing_plot
+
+    def save_smoothing_plot_result(self):
+        assert self.smoothing_plot is not None
+        self.smoothing_parameter, self.n_points, self.smoothing_start_index, self.smoothing_end_index = self.smoothing_plot.result
 
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
