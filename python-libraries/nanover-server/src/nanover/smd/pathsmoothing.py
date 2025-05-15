@@ -205,8 +205,6 @@ class PathSmoother:
 
         def interactive_smoothing_plot(x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point):
 
-            global fig, ax, scatter_curve, scatter_points
-
             pos_array_size = x_pos.size
             # start_point = min(int(x_pos.size)/2., start_point)
             # end_point = min(int(x_pos.size)/2., end_point)
@@ -274,7 +272,7 @@ class PathSmoother:
                                           x_pos=fixed(self.com_positions[:,0]),
                                           y_pos=fixed(self.com_positions[:,1]),
                                           z_pos=fixed(self.com_positions[:,2]),
-                                          smoothing_value=widgets.IntSlider(min=0.0, max=1000, step=0.1, value=0.0),
+                                          smoothing_value=widgets.FloatSlider(min=0.0, max=10.0, step=0.001, value=0.0),
                                           n_points=widgets.IntSlider(min=1000, max=10000, step=100, value=1000),
                                           start_point=widgets.IntSlider(min=0, max=int((self.com_positions[:,0].size/2) - 2), step=1, value=0),
                                           end_point=widgets.IntSlider(min=0, max=int((self.com_positions[:,0].size/2) - 2), step=1, value=0))
