@@ -252,6 +252,11 @@ class PathSmoother:
                     ylim = self.ax.get_ylim3d()
                     zlim = self.ax.get_zlim3d()
                     self.ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
+
+                cbar = self.fig.colorbar(self.scatter_curve, ax=self.ax, pad=0.1, shrink=0.8)
+                cbar.set_label("COM trajectory")
+                cbar.set_ticks([0, 1])
+                cbar.set_ticklabels([r"$\mathbf{r}_{\rm{start}}$", r"$\mathbf{r}_{\rm{end}}$"])
                 plt.show(block=False)
 
             else:
