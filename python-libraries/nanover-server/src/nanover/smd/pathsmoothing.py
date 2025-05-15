@@ -62,11 +62,10 @@ class PathSmoother:
         directly define the path to be smoothed.
 
         :param coords: NumPy array with dimensions (m x N x 3), defining the cartesian coordinates of
-          the N atoms defining the m frame path to be smoothed
+          the N atoms defining the m frame path to be smoothed, with length units of nanometers
         :param atom_masses: NumPy array with dimensions (N) defining the masses of the atoms for
           which the coordinates have been passed
         """
-        # TODO: add functionality to specify length coordinate
         ps = cls()
         # Reshape coordinates array if 1-D coordinates given (i.e. if path of single atom given)
         if coords.ndim == 2 and coords.shape[1] == 3:
@@ -130,15 +129,15 @@ class PathSmoother:
 
     def create_mda_universe(self):
         """
-        Create an MDAnalysis universe from the given trajectory file.
+        Create an MDAnalysis universe from the given trajectory file, retaining NanoVer
+        units for all quantities.
         """
-        # TODO: This reads the trajectory in Angstrom by default, perhaps convert
-        #  to nanometers...
         assert self.filename is not None
         self.universe = mda.Universe(
             self.filename,
             format=NanoverReader,
             topology_format=NanoverParser,
+            convert_units=False,
         )
 
     def read_mda_universe_data(self):
@@ -242,9 +241,9 @@ class PathSmoother:
                                               cmap='viridis',
                                               s=50.0,
                                               alpha=0.05)
-                ax.set_xlabel(r"$x / \AA$")
-                ax.set_ylabel(r"$y / \AA$")
-                ax.set_zlabel(r"$z / \AA$")
+                ax.set_xlabel(r"$x$ / nm")
+                ax.set_ylabel(r"$y$ / nm")
+                ax.set_zlabel(r"$z$ / nm")
                 xlim = ax.get_xlim3d()
                 ylim = ax.get_ylim3d()
                 zlim = ax.get_zlim3d()
@@ -529,9 +528,9 @@ def plot_com_trajectory(
         cmap=cmap,
         s=1.0,
     )
-    ax.set_xlabel(r"$x / \AA$")
-    ax.set_ylabel(r"$y / \AA$")
-    ax.set_zlabel(r"$z / \AA$")
+    ax.set_xlabel(r"$x$ / nm")
+    ax.set_ylabel(r"$y$ / nm")
+    ax.set_zlabel(r"$z$ / nm")
     if not equal_aspect_ratio:
         xlim = ax.get_xlim3d()
         ylim = ax.get_ylim3d()
@@ -566,9 +565,9 @@ def plot_atom_trajectories(
             cmap=cmap,
             s=1.0,
         )
-    ax.set_xlabel(r"$x / \AA$")
-    ax.set_ylabel(r"$y / \AA$")
-    ax.set_zlabel(r"$z / \AA$")
+    ax.set_xlabel(r"$x$ / nm")
+    ax.set_ylabel(r"$y$ / nm")
+    ax.set_zlabel(r"$z$ / nm")
     if not equal_aspect_ratio:
         xlim = ax.get_xlim3d()
         ylim = ax.get_ylim3d()
