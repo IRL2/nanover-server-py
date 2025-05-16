@@ -118,6 +118,9 @@ class PathSmoother:
         self.smoothing_end_index: Optional[int] = None
 
         self.smoothed_com_trajectory: Optional[np.ndarray] = None
+        self.constant_speed_com_trajectory: Optional[np.ndarray] = None
+        self.constant_speed_nm_ps: Optional[float] = None
+        self.timestep_ps: Optional[float] = None
 
     def close_interactive_plots(self):
         """
@@ -347,7 +350,23 @@ class PathSmoother:
             self.smoothed_com_trajectory, self.n_points, equal_aspect_ratio, cmap
         )
 
-    def calculate_constant_speed_path(self, desired_speed_nm_ps: float, timestep_ps: float, rel_tolerance: float = 1e-5, max_iterations: int = 10):
+    def plot_constant_speed_trajectory(
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
+    ):
+        """
+        Plot the constant speed trajectory calculated using :func:`calculate_constant_speed_trajectory`.
+
+        :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
+        :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
+        """
+        assert self.constant_speed_com_trajectory is not None
+        self._make_plots_interactive()
+        n_points = self.constant_speed_com_trajectory.shape[0]
+        plot_com_trajectory(
+            self.constant_speed_com_trajectory, n_points, equal_aspect_ratio, cmap
+        )
+
+    def calculate_constant_speed_trajectory(self, desired_speed_nm_ps: float, timestep_ps: float, rel_tolerance: float = 1e-5, max_iterations: int = 10):
         """
         Calculate the coordinates that define a constant speed trajectory along a smoothed
         COM trajectory, given the desired speed in nm ps-1 and timestep of the simulation in ps.
@@ -386,8 +405,9 @@ class PathSmoother:
                 print("***\nRelative tolerance achieved, exiting iterative refinement...\n***\n\n")
                 print(f"Final path length: {path_length} Angstrom")
                 print(f"Final speed: {speed_along_path_nm_ps} Angstrom ps-1")
-                self.smoothed_com_trajectory = refined_path
-                self.n_points = n_points_required
+                self.constant_speed_com_trajectory = refined_path
+                self.constant_speed_nm_ps = speed_along_path_nm_ps
+                self.timestep_ps = timestep_ps
                 break
             elif i == max_iterations - 1:
                 print("***\nFailed to achieve relative tolerance, aborting iterative refinement...\n***\n\n")
@@ -395,6 +415,25 @@ class PathSmoother:
 
 
         return None
+
+    def save_constant_speed_trajectory_data(self, output_filepath: PathLike[str]):
+        """
+        Save the constant speed trajectory data as numpy arrays to an output file
+        whose path is defined by the user.
+        """
+        assert output_filepath is not None
+        assert self.constant_speed_com_trajectory is not None and self.constant_speed_nm_ps is not None and self.timestep_ps is not None
+
+        print(f"Saving constant speed trajectory data to {output_filepath}")
+
+        with open(output_filepath, "wb") as outfile:
+            np.save(outfile, self.constant_speed_com_trajectory)
+            np.save(outfile, self.constant_speed_nm_ps)
+            np.save(outfile, self.timestep_ps)
+            if self.atom_indices is not None:
+                np.save(outfile, self.atom_indices)
+            else:
+                print("Warning: atom indices not provided and hence not saved to output file.")
 
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
