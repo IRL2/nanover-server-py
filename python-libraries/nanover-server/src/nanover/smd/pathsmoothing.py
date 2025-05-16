@@ -347,6 +347,55 @@ class PathSmoother:
             self.smoothed_com_trajectory, self.n_points, equal_aspect_ratio, cmap
         )
 
+    def calculate_constant_speed_path(self, desired_speed_nm_ps: float, timestep_ps: float, rel_tolerance: float = 1e-5, max_iterations: int = 10):
+        """
+        Calculate the coordinates that define a constant speed trajectory along a smoothed
+        COM trajectory, given the desired speed in nm ps-1 and timestep of the simulation in ps.
+        
+        :param desired_speed_nm_ps: The desired speed in nm ps-1
+        :param timestep_ps: The timestep in ps
+        :param rel_tolerance: The relative tolerance in the errors of the speed and distance between points
+        :param max_iterations: The maximum number of iterations for the iterative refinement procedure
+        """
+
+        assert self.smoothed_com_trajectory is not None
+        path_length = calculate_trajectory_length(self.smoothed_com_trajectory)
+        n_points_required = int(np.ceil(path_length / (desired_speed_nm_ps * timestep_ps)))# + 1
+        refined_path, _ = interpolate_path(self.smoothed_com_trajectory[:,0],self.smoothed_com_trajectory[:,1],self.smoothed_com_trajectory[:,2], 0.0, n_points=n_points_required)
+
+        print(f"Starting iterative path refinement for trajectory of length {path_length} nm with desired speed {desired_speed_nm_ps} nm...\n")
+
+        # Iterate until convergence criteria achieved
+        for i in range(max_iterations):
+            print(f"\n--------------\nIteration {i+1}\n--------------\n")
+            n_points_required = int(
+                np.ceil(path_length / (desired_speed_nm_ps * timestep_ps)))# + 1
+            print(f"Number of points required to achieve desired speed along path: {n_points_required}\n")
+            refined_path, _ = interpolate_path(refined_path[:,0], refined_path[:,1], refined_path[:,2],
+                                                      0.0, n_points_required)
+            print("Path interpolation completed\n")
+            path_length = calculate_trajectory_length(refined_path)
+            speed_along_path_nm_ps = path_length / (n_points_required * timestep_ps)
+            print(f"Total path length: {path_length} nm")
+            print(f"Speed along path: {speed_along_path_nm_ps} nm ps-1")
+            relative_speed_error = (
+                                       abs(speed_along_path_nm_ps - desired_speed_nm_ps)) / desired_speed_nm_ps
+            distances = np.linalg.norm(np.diff(refined_path, axis=0), axis=1)
+            maximum_distance_error = (np.max(distances) - np.min(distances)) / np.average(distances)
+            if maximum_distance_error < rel_tolerance and relative_speed_error < rel_tolerance:
+                print("***\nRelative tolerance achieved, exiting iterative refinement...\n***\n\n")
+                print(f"Final path length: {path_length} Angstrom")
+                print(f"Final speed: {speed_along_path_nm_ps} Angstrom ps-1")
+                self.smoothed_com_trajectory = refined_path
+                self.n_points = n_points_required
+                break
+            elif i == max_iterations - 1:
+                print("***\nFailed to achieve relative tolerance, aborting iterative refinement...\n***\n\n")
+                break
+
+
+        return None
+
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
     """
@@ -643,8 +692,8 @@ def interpolate_path(
     z_pos: np.ndarray,
     smoothing_parameter: float,
     n_points: int,
-    start_index: int,
-    end_index: int,
+    start_index: int = 0,
+    end_index: int = 0,
 ):
     """
     Function that interpolates the path defined by the arrays of x, y and z coordinates passed to
@@ -673,4 +722,14 @@ def interpolate_path(
     u_fine = np.linspace(0, 1, n_points)
     x_fine, y_fine, z_fine = splev(u_fine, tck)
     return np.transpose(np.squeeze([x_fine, y_fine, z_fine])), u_fine
+
+def calculate_trajectory_length(path: np.ndarray):
+    """
+    Calculate the total length of an m frame trajectory defined by an mx3 array of
+    coordinates in nanometers.
+
+    :param path: A NumPy array of coordinates with dimensions m x 3
+    """
+
+    return np.sum(np.linalg.norm(np.diff(path, axis=0), axis=1))
 
