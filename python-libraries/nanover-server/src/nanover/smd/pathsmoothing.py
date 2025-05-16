@@ -91,15 +91,7 @@ class PathSmoother:
                 "interfaces."
             )
 
-    @staticmethod
-    def close_interactive_plots():
-        """
-        Function that closes any interactive plots that are currently open within a Jupyter
-        or IPython session.
-        """
-        if _in_notebook:
-            plt.close("all")
-            print("Existing interactive plots closed.")
+
 
     def __init__(self):
         self.filename: Optional[Union[str, PathLike]] = None
@@ -126,6 +118,19 @@ class PathSmoother:
         self.smoothing_end_index: Optional[int] = None
 
         self.smoothed_com_trajectory: Optional[np.ndarray] = None
+
+    def close_interactive_plots(self):
+        """
+        Function that closes any interactive plots that are currently open within a Jupyter
+        or IPython session.
+        """
+        if _in_notebook:
+            plt.close("all")
+            print("Existing interactive plots closed.")
+            self.fig = None
+            self.ax = None
+            self.scatter_curve = None
+            self.scatter_points = None
 
     def create_mda_universe(self):
         """
