@@ -392,6 +392,7 @@ class OpenMMSMDSimulation:
         # Get initial atom positions for SMD force at initial position
         assert (
             self.smd_simulation_atom_positions is not None
+            and self.smd_force is not None
             and np.all(self.current_smd_force_position == self.smd_path[0])
             and self.current_smd_force_position_index == 0
         )
