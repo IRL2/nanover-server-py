@@ -1,5 +1,5 @@
 import math
-from dataclasses import dataclass, KW_ONLY
+from dataclasses import dataclass
 from os import PathLike
 from typing import Optional, BinaryIO, Callable
 
@@ -17,25 +17,22 @@ from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 
 
-@dataclass
+@dataclass(kw_only=True)
 class FrameRecordingEvent:
-    _: KW_ONLY
     timestamp: int
     message: GetFrameResponse
     current_frame: FrameData
 
 
-@dataclass
+@dataclass(kw_only=True)
 class StateRecordingEvent:
-    _: KW_ONLY
     timestamp: int
     message: StateUpdate
     current_state: dict
 
 
-@dataclass
+@dataclass(kw_only=True)
 class RecordingEvent:
-    _: KW_ONLY
     timestamp: int
     frame_event: Optional[FrameRecordingEvent]
     state_event: Optional[StateRecordingEvent]
@@ -103,8 +100,6 @@ def split_recording(
                     write_entry(current_traj_out, timestamp, event.frame_event.message)
                 if event.state_event is not None:
                     write_entry(current_state_out, timestamp, event.state_event.message)
-
-
 
     finally:
         close_all()
