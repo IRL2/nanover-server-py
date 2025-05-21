@@ -341,7 +341,8 @@ class OpenMMSMDSimulation:
         Structures are saved to the output path, optionally with the filename prefix. If no output path is
         specified, structures will be saved to the current working directory. If no prefix is specified,
         the output files will be named automatically.
-        :param interval_ps: Interval to run simulation steps.
+
+        :param interval_ps: Interval to run the simulation for, in picoseconds.
         :param n_structures: Number of structures to generate.
         :param output_directory: Output directory to save the structures to (Optional).
         :param filename_prefix: Prefix for output files (Optional).
@@ -425,7 +426,7 @@ class OpenMMSMDSimulation:
 
         print("Work done calculated.")
 
-    def calculate_forces(self, interaction_centre_positions):
+    def _calculate_forces(self, interaction_centre_positions):
         """
         Calculate the SMD forces that acted on the system during the simulation in kJ mol-1 nm-1.
 
@@ -576,7 +577,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
         atom with which it interacts over the SMD simulation.
         """
         assert np.all(self.smd_simulation_atom_positions != 0.0)
-        self.calculate_forces(self.smd_simulation_atom_positions)
+        self._calculate_forces(self.smd_simulation_atom_positions)
         self._calculate_work_done()
 
 
@@ -685,7 +686,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         COM of the atoms with which it interacts over the SMD simulation.
         """
         self.calculate_com_trajectory()
-        self.calculate_forces(self.com_positions)
+        self._calculate_forces(self.com_positions)
         self._calculate_work_done()
 
 
