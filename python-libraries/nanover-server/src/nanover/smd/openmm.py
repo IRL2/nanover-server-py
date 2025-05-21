@@ -34,6 +34,14 @@ class OpenMMSMDSimulation:
     ):
         """
         Construct the SMD simulation from an existing OpenMM simulation.
+
+        :param simulation: An existing OpenMM Simulation
+        :param smd_atom_indices: The indices of the atoms to which the SMD force
+          should be applied
+        :param smd_path: A NumPy array of coordinates defining the path that the
+          SMD force will take during the SMD simulation
+        :param smd_force_constant: The force constant of the SMD force
+        :param name: An optional name for the simulation instead of default
         """
 
         # Create instance of SMD simulation based on type of indices passed
@@ -84,6 +92,14 @@ class OpenMMSMDSimulation:
     ):
         """
         Construct the SMD simulation from an existing NanoVer OpenMM XML file located at a given path.
+
+        :param path: Path of the NanoVer OpenMM XML file
+        :param smd_atom_indices: The indices of the atoms to which the SMD force
+          should be applied
+        :param smd_path: A NumPy array of coordinates defining the path that the
+          SMD force will take during the SMD simulation
+        :param smd_force_constant: The force constant of the SMD force
+        :param name: An optional name for the simulation instead of default
         """
 
         if smd_atom_indices.size > 1:
@@ -193,6 +209,30 @@ class OpenMMSMDSimulation:
         """
         pass
 
+    def reset(self):
+        """
+        Reset the SMD simulation to its initial state, and reset the arrays output
+        by the SMD simulation.
+        """
+        assert self.simulation is not None and self.checkpoint is not None and self.smd_path is not None and self.smd_force is not None
+
+        # Reset SMD force position
+        self.current_smd_force_position = self.smd_path[0]
+        self.current_smd_force_position_index = 0
+        self.update_smd_force_position()
+
+        # Reset simulation, reinitialise context to be safe
+        self.simulation.context.reinitialize()
+        self.simulation.context.loadCheckpoint(self.checkpoint)
+
+        # Reset SMD simulation arrays
+        self.smd_simulation_atom_positions = None
+        self.define_smd_simulation_atom_positions_array()
+        self.smd_simulation_forces = None
+        self.smd_simulation_work_done = None
+
+
+
     def remove_smd_force_from_system(self):
         """
         Remove any SMD forces from the system.
@@ -227,6 +267,7 @@ class OpenMMSMDSimulation:
         """
         Perform an equilibration of the system with the restraint fixed at the
         initial position defined in the SMD force path.
+
         :param n_steps: Number of simulation steps to run equilibration for.
         """
 
@@ -251,6 +292,7 @@ class OpenMMSMDSimulation:
         """
         Save the simulation to a NanoVer OpenMM XML file, with the option to include the
         SMD force in the XML file.
+
         :param output_filepath: Path to output file to save the simulation to.
         :param save_state: If True, save the present state of the simulation to the XML file.
         :param save_smd_force: Bool defining whether to save the SMD force in the XML file (Optional).
