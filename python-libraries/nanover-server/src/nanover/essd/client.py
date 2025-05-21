@@ -57,7 +57,7 @@ class DiscoveryClient:
         deadline = time.monotonic() + search_time
         while time.monotonic() < deadline:
             time_before_recv = time.monotonic()
-            time_remaining = deadline - time.monotonic()
+            time_remaining = max(deadline - time.monotonic(), 0)
             if self._check_for_messages(timeout=time_remaining):
                 service = self._receive_service()
                 if service is not None and service not in services:
