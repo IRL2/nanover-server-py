@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy
 import pytest
 
-from nanover.testing import assert_in_soon
+from nanover.testing import assert_in_soon, assert_equal_soon
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.key_lockable_map import ResourceLockedError
 
@@ -213,13 +213,11 @@ def test_subscribe_updates_interval(client_server, update_interval):
     Test that state updates are sent at the requested interval.
     """
     test_count = 8
-    deadline = time.perf_counter() + update_interval * test_count + 2
 
     client, server = client_server
     client.subscribe_all_state_updates(update_interval)
 
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-
+    assert_in_soon(lambda: "hello", lambda: client.copy_state())
     with client.lock_state() as state:
         assert state["hello"] == INITIAL_STATE["hello"]
 
@@ -230,15 +228,9 @@ def test_subscribe_updates_interval(client_server, update_interval):
         client.attempt_update_state(change)
 
         time_before = time.perf_counter()
-
-        while time.perf_counter() < deadline:
-            with client.lock_state() as state:
-                if state["hello"] == i:
-                    break
-            time.sleep(0.01)
-        else:
-            raise Exception("Test timed out.")
-
+        assert_equal_soon(
+            lambda: i, lambda: client.copy_state()["hello"], interval=0.05
+        )
         time_after = time.perf_counter()
         update_times.append(time_after - time_before)
 

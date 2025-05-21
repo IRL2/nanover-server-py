@@ -102,7 +102,9 @@ def universes_from_recording(*, traj: PathLike[str]):
         first_positions_frame = next(
             frame
             for (elapsed, frame, state) in session
-            if frame.particle_count > 0 and PARTICLE_POSITIONS in frame.arrays
+            if PARTICLE_POSITIONS in frame
+            and PARTICLE_COUNT in frame
+            and frame.particle_count > 0
         )
         universe = frame_data_to_mdanalysis(first_positions_frame)
         # integrate time elapsed into frames
