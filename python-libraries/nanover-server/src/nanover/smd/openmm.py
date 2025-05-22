@@ -334,6 +334,7 @@ class OpenMMSMDSimulation:
         n_structures: int,
         output_directory: Optional[PathLike[str]] = None,
         filename_prefix: Optional[str] = None,
+        save_smd_force: Optional[bool] = None,
     ):
         """
         Generate the specified number of starting structures by running the simulation for the specified
@@ -346,6 +347,7 @@ class OpenMMSMDSimulation:
         :param n_structures: Number of structures to generate.
         :param output_directory: Output directory to save the structures to (Optional).
         :param filename_prefix: Prefix for output files (Optional).
+        :param save_smd_force: Bool defining whether to save the SMD force in the XML file (Optional).
         """
         timestep_ps = self.simulation.integrator.getStepSize()._value
         n_steps_struct_interval = int(
@@ -373,7 +375,7 @@ class OpenMMSMDSimulation:
                 output_directory, filename_prefix + "_" + str(i + 1) + ".xml"
             )
             self.save_simulation(
-                output_filepath=outfile_path, save_state=True, save_smd_force=False
+                output_filepath=outfile_path, save_state=True, save_smd_force=save_smd_force
             )
 
         print(f"Structure generation complete: {n_structures} structures generated.")
