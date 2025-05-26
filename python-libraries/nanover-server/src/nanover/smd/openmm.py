@@ -709,6 +709,8 @@ class OpenMMStringOptimiser:
         self.node_positions: Optional[np.ndarray] = None
         self.tangent_vectors: Optional[np.ndarray] = None
 
+        self.node_position_history = []
+
     def generate_nodes(self, n_nodes):
         """
         Generate the checkpoint files defining the starting node positions and
@@ -918,6 +920,8 @@ class OpenMMStringOptimiser:
                                                self.node_positions[:, 2],
                                                0.0,
                                                self.node_positions.shape[0])
+
+            self.node_position_history.append(self.node_positions)
 
             # Add evenly spaced node positions to checkpoints
             for j in j_range:
