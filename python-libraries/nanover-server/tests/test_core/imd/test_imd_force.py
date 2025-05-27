@@ -9,6 +9,7 @@ from nanover.imd.imd_force import (
     apply_single_interaction_force,
     calculate_imd_force,
     calculate_constant_force,
+    InvalidInteractionError,
 )
 from nanover.imd.particle_interaction import ParticleInteraction
 
@@ -100,6 +101,24 @@ def test_multiple_interactions(particles):
 
     assert np.allclose(energy, expected_energy)
     assert np.allclose(forces, expected_forces)
+
+
+@pytest.mark.parametrize("particle_count", (1, 2))
+def test_interaction_invalid_particle_index(particles, particle_count):
+    """
+    Test that attempting to calculate iMD forces for interactions with out of bounds particles raises InvalidInteractionError.
+    """
+    positions, masses = particles
+    single_forces = np.zeros((len(positions), 3))
+    indexes = [len(positions) + i for i in range(particle_count)]
+
+    interaction = ParticleInteraction(particles=indexes)
+
+    with pytest.raises(InvalidInteractionError):
+        apply_single_interaction_force(positions, masses, interaction, single_forces)
+
+    with pytest.raises(InvalidInteractionError):
+        calculate_imd_force(positions, masses, [interaction])
 
 
 @pytest.mark.parametrize("scale", [np.nan, np.inf, -np.inf])

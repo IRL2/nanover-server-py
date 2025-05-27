@@ -15,6 +15,10 @@ import numpy.typing as npt
 from nanover.imd.particle_interaction import ParticleInteraction
 
 
+class InvalidInteractionError(ValueError):
+    pass
+
+
 class ForceCalculator(Protocol):
     def __call__(
         self,
@@ -58,7 +62,7 @@ def calculate_imd_force(
 def apply_single_interaction_force(
     positions: npt.NDArray,
     masses: npt.NDArray,
-    interaction,
+    interaction: ParticleInteraction,
     forces: npt.NDArray,
     periodic_box_lengths: Optional[npt.NDArray] = None,
 ) -> float:
@@ -80,7 +84,13 @@ def apply_single_interaction_force(
             positions, masses, interaction.particles, periodic_box_lengths
         )
     else:
-        center = positions[interaction.particles[0]]
+        particle_index = interaction.particles[0]
+        try:
+            center = positions[particle_index]
+        except IndexError as e:
+            raise InvalidInteractionError(
+                f"Particle index {particle_index} out of bounds for {len(positions)} particles."
+            ) from e
 
     # fetch the correct potential to use based on the interaction type.
     try:
@@ -179,8 +189,16 @@ def get_center_of_mass_subset(
     :return: The center of mass of the subset of positions.
     """
     subset = list(subset)
-    subset_positions = positions[subset]
+
+    try:
+        subset_positions = positions[subset]
+    except IndexError as e:
+        raise InvalidInteractionError(
+            f"Particle indexes {subset} out of bounds for {len(positions)} particles."
+        ) from e
+
     subset_masses = masses[subset, np.newaxis]
+
     subset_total_mass = subset_masses.sum()
     if subset_total_mass == 0:
         # we raise before actually doing the division since we know it will fail.
