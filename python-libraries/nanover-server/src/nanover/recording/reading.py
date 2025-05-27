@@ -2,7 +2,7 @@ import math
 from contextlib import suppress
 from dataclasses import dataclass
 from itertools import groupby
-from os import PathLike
+from os import PathLike, SEEK_CUR
 from typing import (
     Tuple,
     Iterable,
@@ -41,19 +41,19 @@ class MessageRecordingReader:
 
     def __init__(self, io: BinaryIO):
         self.io = io
-        self.frame_offsets = []
+        self.message_offsets: list[int] = []
         self.reindex()
 
     def reindex(self):
         self.io.seek(0)
         read_header(self.io)
-        self.frame_offsets = [entry.offset for entry in iter_buffers(self.io)]
+        self.message_offsets = [entry.offset for entry in skip_buffers(self.io)]
 
     def close(self):
         self.io.close()
 
-    def get_entry_at_frame(self, index):
-        return self.get_entry_at_offset(self.frame_offsets[index])
+    def get_entry_at_index(self, index):
+        return self.get_entry_at_offset(self.message_offsets[index])
 
     def get_entry_at_offset(self, offset):
         self.io.seek(offset)
@@ -67,14 +67,14 @@ class MessageRecordingReader:
         self.close()
 
     def __iter__(self):
-        for offset in self.frame_offsets:
+        for offset in self.message_offsets:
             yield self.get_entry_at_offset(offset)
 
     def __len__(self):
-        return len(self.frame_offsets)
+        return len(self.message_offsets)
 
     def __getitem__(self, index):
-        return self.get_entry_at_frame(index)
+        return self.get_entry_at_index(index)
 
 
 def split_by_simulation_counter(
@@ -277,6 +277,14 @@ def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
     yield from frames
 
 
+def buffer_to_frame_message(buffer):
+    return buffer_to_message(buffer, GetFrameResponse)
+
+
+def buffer_to_state_message(buffer):
+    return buffer_to_message(buffer, StateUpdate)
+
+
 def buffer_to_message(buffer, message_type: Callable[[], TMessage]):
     instance = message_type()
     instance.ParseFromString(buffer)
@@ -290,6 +298,16 @@ def iter_buffers(io: BinaryIO):
             timestamp, buffer = read_buffer(io)
             yield RecordingFileEntry(
                 offset=position, timestamp=timestamp, buffer=buffer
+            )
+
+
+def skip_buffers(io: BinaryIO):
+    with suppress(EOFError):
+        while True:
+            position = io.tell()
+            timestamp, _ = skip_buffer(io)
+            yield RecordingFileEntry(
+                offset=position, timestamp=timestamp, buffer=bytes()
             )
 
 
@@ -310,6 +328,13 @@ def read_buffer(io: BinaryIO):
     record_size = read_u64(io)
     buffer = io.read(record_size)
     return timestamp, buffer
+
+
+def skip_buffer(io: BinaryIO):
+    timestamp = read_u128(io)
+    record_size = read_u64(io)
+    io.seek(record_size, SEEK_CUR)
+    return timestamp, record_size
 
 
 def read_u64(io: BinaryIO):
