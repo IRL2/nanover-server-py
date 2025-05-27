@@ -8,10 +8,13 @@ import numpy as np
 
 from openmm import CustomExternalForce, CustomCentroidBondForce, OpenMMException
 from openmm.app import Simulation
+from openmm.unit import picosecond
 
 from nanover.openmm import serializer
 
 from nanover.smd.pathsmoothing import interpolate_path
+
+from numba import jit, prange
 
 
 class OpenMMSMDSimulation:
@@ -817,10 +820,25 @@ class OpenMMStringOptimiser:
         parallel_component = (inner_force_velocity / norm_squared_velocity) * tangent
         return parallel_component
 
-    def components_of_vector_perpendicular_to_RC(self, distance: np.ndarray, tangent: np.ndarray):
+    def components_of_vector_perpendicular_to_RC_old(self, distance: np.ndarray, tangent: np.ndarray):
         parallel_component = self.components_of_vector_parallel_to_RC(distance, tangent)
         perpendicular_component = distance - parallel_component
         return perpendicular_component
+
+    def components_of_vector_perpendicular_to_RC(self, vector: np.ndarray, tangent: np.ndarray):
+        """
+        Calculate the perpendicular component of a vector with respect to the reaction coordinate.
+        """
+        return vector - np.dot(vector, tangent) * tangent
+
+    def update_timestep_ps(self,  timestep_ps: float):
+        for i in range(len(self.checkpoints)):
+            self.smd_simulation.simulation.context.loadCheckpoint(self.checkpoints[i])
+            self.smd_simulation.simulation.integrator.setStepSize(timestep_ps*picosecond)
+            self.smd_simulation.simulation.context.reinitialize()
+            self.checkpoints[i] = self.smd_simulation.simulation.context.createCheckpoint()
+
+        # TODO: Write test to confirm this works as expected
 
     def equilibrate_checkpoints(self, n_steps: int):
 
@@ -845,8 +863,7 @@ class OpenMMStringOptimiser:
         assert self.node_positions is not None
         self.node_positions[1:-1] = (1-smoothing_parameter) * self.node_positions[1:-1] + 0.5 * smoothing_parameter * (self.node_positions[0:-2]+self.node_positions[2:])
 
-
-    def optimise_string(self, n_sim_steps: int, n_iterations: int, smoothing_parameter: float, fix_initial_position: bool = True, fix_final_position: bool = True):
+    def calculate_minimum_energy_path(self, n_iterations: int, smoothing_parameter: float, fix_initial_position: bool = True, fix_final_position: bool = True, max_update_distance_nm: float = 0.005):
 
         assert self.checkpoints is not None
 
@@ -857,13 +874,14 @@ class OpenMMStringOptimiser:
             )._value
 
         if fix_initial_position and fix_final_position:
-            j_range = range(1, len(self.checkpoints) - 1)
+            j_range = prange(1, len(self.checkpoints) - 1)
         elif fix_initial_position and not fix_final_position:
-            j_range = range(1, len(self.checkpoints))
+            j_range = prange(1, len(self.checkpoints))
         elif fix_final_position and not fix_initial_position:
-            j_range = range(len(self.checkpoints) - 1)
+            j_range = prange(len(self.checkpoints) - 1)
         else:
-            j_range = range(len(self.checkpoints))
+            j_range = prange(len(self.checkpoints))
+
 
         self.calculate_tangent_vectors()
 
@@ -879,33 +897,30 @@ class OpenMMStringOptimiser:
 
             self.calculate_tangent_vectors()
 
-
             for j in j_range:
 
                 self.smd_simulation.simulation.context.reinitialize()
                 self.smd_simulation.simulation.context.loadCheckpoint(self.checkpoints[j])
 
-                positions_array = np.zeros((n_sim_steps, self.smd_simulation.n_smd_atom_indices, 3))
+                self.smd_simulation.simulation.minimizeEnergy()
 
-                for k in range(n_sim_steps):
-
-                    self.smd_simulation.simulation.step(1)
-
-                    positions = self.smd_simulation.simulation.context.getState(getPositions=True).getPositions(
-                        asNumpy=True
-                    )
-                    positions_array[k, :, :] = (
-                        positions[self.smd_simulation.smd_atom_indices]
-                    )
+                positions = self.smd_simulation.simulation.context.getState(getPositions=True).getPositions(
+                    asNumpy=True
+                )
+                positions_array = (
+                    positions[self.smd_simulation.smd_atom_indices]
+                )
 
                 # Calculate new position of restraint from mean of COM
-                mean_COM_position = np.mean([self.calculate_com(positions_array[l], atom_masses) for l in range(n_sim_steps)], axis=0)
-                perpendicular_component = self.components_of_vector_perpendicular_to_RC(mean_COM_position - self.node_positions[j], self.tangent_vectors[j])
+                com_position = self.calculate_com(positions_array, atom_masses)
+                perpendicular_component = self.components_of_vector_perpendicular_to_RC(com_position - self.node_positions[j], self.tangent_vectors[j])
+                # Scale the update based on some threshold, commented out for now
                 perpendicular_component_magnitude = np.linalg.norm(perpendicular_component)
-                update_distance = np.min([perpendicular_component_magnitude, 0.005])
+                update_distance = np.min([perpendicular_component_magnitude, max_update_distance_nm])
                 normalised_perpendicular_vector = perpendicular_component / perpendicular_component_magnitude
                 update_vector = update_distance * normalised_perpendicular_vector
                 new_node_position = self.node_positions[j] + update_vector
+                #new_node_position = self.node_positions[j] + perpendicular_component
 
                 # Update position of force and save new checkpoint
                 self.update_force_position(new_node_position)
@@ -930,7 +945,94 @@ class OpenMMStringOptimiser:
                 self.update_force_position(self.node_positions[j])
                 self.checkpoints[j] = self.smd_simulation.simulation.context.createCheckpoint()
 
-            # print(self.node_positions)
+        print(f"Completed {n_iterations} iterations.")
+
+
+    def optimise_string(self, n_sim_steps: int, n_iterations: int, smoothing_parameter: float, fix_initial_position: bool = True, fix_final_position: bool = True, max_update_distance_nm: float = 0.005):
+
+        assert self.checkpoints is not None
+
+        atom_masses = np.zeros(self.smd_simulation.n_smd_atom_indices)
+        for index in range(self.smd_simulation.n_smd_atom_indices):
+            atom_masses[index] = self.smd_simulation.simulation.system.getParticleMass(
+                self.smd_simulation.smd_atom_indices[index]
+            )._value
+
+        if fix_initial_position and fix_final_position:
+            j_range = prange(1, len(self.checkpoints) - 1)
+        elif fix_initial_position and not fix_final_position:
+            j_range = prange(1, len(self.checkpoints))
+        elif fix_final_position and not fix_initial_position:
+            j_range = prange(len(self.checkpoints) - 1)
+        else:
+            j_range = prange(len(self.checkpoints))
+
+
+        self.calculate_tangent_vectors()
+
+        for j in j_range:
+            self.smd_simulation.simulation.context.reinitialize()
+            self.smd_simulation.simulation.context.loadCheckpoint(self.checkpoints[j])
+            self.update_force_position(self.node_positions[j])
+            self.checkpoints[j] = self.smd_simulation.simulation.context.createCheckpoint()
+
+        for i in range(n_iterations):
+
+            print(f"Iteration {i+1}")
+
+            self.calculate_tangent_vectors()
+
+            for j in j_range:
+
+                self.smd_simulation.simulation.context.reinitialize()
+                self.smd_simulation.simulation.context.loadCheckpoint(self.checkpoints[j])
+
+                positions_array = np.zeros((n_sim_steps, self.smd_simulation.n_smd_atom_indices, 3))
+
+                for k in range(n_sim_steps):
+
+                    self.smd_simulation.simulation.step(1)
+
+                    positions = self.smd_simulation.simulation.context.getState(getPositions=True).getPositions(
+                        asNumpy=True
+                    )
+                    positions_array[k, :, :] = (
+                        positions[self.smd_simulation.smd_atom_indices]
+                    )
+
+                # Calculate new position of restraint from mean of COM
+                mean_COM_position = np.mean([self.calculate_com(positions_array[l], atom_masses) for l in range(n_sim_steps)], axis=0)
+                perpendicular_component = self.components_of_vector_perpendicular_to_RC(mean_COM_position - self.node_positions[j], self.tangent_vectors[j])
+                # Scale the update based on some threshold, commented out for now
+                perpendicular_component_magnitude = np.linalg.norm(perpendicular_component)
+                update_distance = np.min([perpendicular_component_magnitude, max_update_distance_nm])
+                normalised_perpendicular_vector = perpendicular_component / perpendicular_component_magnitude
+                update_vector = update_distance * normalised_perpendicular_vector
+                new_node_position = self.node_positions[j] + update_vector
+                #new_node_position = self.node_positions[j] + perpendicular_component
+
+                # Update position of force and save new checkpoint
+                self.update_force_position(new_node_position)
+                self.checkpoints[j] = self.smd_simulation.simulation.context.createCheckpoint()
+
+                self.node_positions[j] = new_node_position
+
+
+            self.smooth_path_naively(smoothing_parameter=smoothing_parameter)
+            self.node_positions, _ = interpolate_path(self.node_positions[:, 0],
+                                               self.node_positions[:, 1],
+                                               self.node_positions[:, 2],
+                                               0.0,
+                                               self.node_positions.shape[0])
+
+            self.node_position_history.append(self.node_positions)
+
+            # Add evenly spaced node positions to checkpoints
+            for j in j_range:
+                self.smd_simulation.simulation.context.reinitialize()
+                self.smd_simulation.simulation.context.loadCheckpoint(self.checkpoints[j])
+                self.update_force_position(self.node_positions[j])
+                self.checkpoints[j] = self.smd_simulation.simulation.context.createCheckpoint()
 
         print(f"Completed {n_iterations} iterations.")
 
