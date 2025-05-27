@@ -163,9 +163,7 @@ TMessage = TypeVar("TMessage", bound=Parseable)
 
 def iter_recording_entries(io: BinaryIO, message_type: Callable[[], TMessage]):
     for elapsed, buffer in iter_recording_buffers(io):
-        instance = message_type()
-        instance.ParseFromString(buffer)
-        yield elapsed, instance
+        yield elapsed, buffer_to_message(buffer, message_type)
 
 
 def iter_recording_buffers(io: BinaryIO):
@@ -175,9 +173,7 @@ def iter_recording_buffers(io: BinaryIO):
     :param io: Stream of bytes to read.
     """
     read_header(io)
-    with suppress(EOFError):
-        while True:
-            yield read_buffer(io)
+    yield from ((entry.timestamp, entry.buffer) for entry in iter_buffers(io))
 
 
 def iter_trajectory_recording(io: BinaryIO):
@@ -230,19 +226,20 @@ def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
     yield from frames
 
 
-@dataclass(kw_only=True)
-class RecordingFileEntry:
-    position: int
-    elapsed: float
-    buffer: bytes
+def buffer_to_message(buffer, message_type: Callable[[], TMessage]):
+    instance = message_type()
+    instance.ParseFromString(buffer)
+    return instance
 
 
 def iter_buffers(io: BinaryIO):
     with suppress(EOFError):
         while True:
             position = io.tell()
-            elapsed, buffer = read_buffer(io)
-            yield RecordingFileEntry(position=position, elapsed=elapsed, buffer=buffer)
+            timestamp, buffer = read_buffer(io)
+            yield RecordingFileEntry(
+                offset=position, timestamp=timestamp, buffer=buffer
+            )
 
 
 def read_header(io: BinaryIO):
@@ -258,10 +255,10 @@ def read_header(io: BinaryIO):
 
 
 def read_buffer(io: BinaryIO):
-    elapsed = read_u128(io)
+    timestamp = read_u128(io)
     record_size = read_u64(io)
     buffer = io.read(record_size)
-    return elapsed, buffer
+    return timestamp, buffer
 
 
 def read_u64(io: BinaryIO):
