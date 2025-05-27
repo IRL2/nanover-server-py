@@ -13,6 +13,7 @@ from typing import (
     Optional,
     Iterator,
 )
+
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
 from nanover.state.state_dictionary import StateDictionary
@@ -24,6 +25,56 @@ from nanover.utilities.change_buffers import DictionaryChange
 MAGIC_NUMBER = 6661355757386708963
 
 FrameEntry = Tuple[int, int, FrameData]
+
+
+@dataclass(kw_only=True)
+class RecordingFileEntry:
+    offset: int
+    timestamp: float
+    buffer: bytes
+
+
+class MessageRecordingReader:
+    @classmethod
+    def from_path(cls, path: PathLike[str]):
+        return cls(open(path, "rb"))
+
+    def __init__(self, io: BinaryIO):
+        self.io = io
+        self.frame_offsets = []
+        self.reindex()
+
+    def reindex(self):
+        self.io.seek(0)
+        read_header(self.io)
+        self.frame_offsets = [entry.offset for entry in iter_buffers(self.io)]
+
+    def close(self):
+        self.io.close()
+
+    def get_entry_at_frame(self, index):
+        return self.get_entry_at_offset(self.frame_offsets[index])
+
+    def get_entry_at_offset(self, offset):
+        self.io.seek(offset)
+        timestamp, buffer = read_buffer(self.io)
+        return RecordingFileEntry(offset=offset, timestamp=timestamp, buffer=buffer)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def __iter__(self):
+        for offset in self.frame_offsets:
+            yield self.get_entry_at_offset(offset)
+
+    def __len__(self):
+        return len(self.frame_offsets)
+
+    def __getitem__(self, index):
+        return self.get_entry_at_frame(index)
 
 
 def split_by_simulation_counter(
