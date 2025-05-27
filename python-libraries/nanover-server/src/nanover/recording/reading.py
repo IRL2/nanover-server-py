@@ -172,22 +172,10 @@ def iter_recording_buffers(io: BinaryIO):
 
     :param io: Stream of bytes to read.
     """
-    supported_format_versions = (2,)
-
-    magic_number = read_u64(io)
-    if magic_number != MAGIC_NUMBER:
-        raise InvalidMagicNumber
-    format_version = read_u64(io)
-    if format_version not in supported_format_versions:
-        raise UnsupportedFormatVersion(format_version, supported_format_versions)
-    while True:
-        try:
-            elapsed = read_u128(io)
-            record_size = read_u64(io)
-            buffer = io.read(record_size)
-        except EOFError:
-            break
-        yield elapsed, buffer
+    read_header(io)
+    with suppress(EOFError):
+        while True:
+            yield read_buffer(io)
 
 
 def iter_trajectory_recording(io: BinaryIO):
@@ -238,6 +226,25 @@ def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
 
     yield (elapsed, frame_index, frame)
     yield from frames
+
+
+def read_header(io: BinaryIO):
+    supported_format_versions = (2,)
+
+    magic_number = read_u64(io)
+    if magic_number != MAGIC_NUMBER:
+        raise InvalidMagicNumber
+
+    format_version = read_u64(io)
+    if format_version not in supported_format_versions:
+        raise UnsupportedFormatVersion(format_version, supported_format_versions)
+
+
+def read_buffer(io: BinaryIO):
+    elapsed = read_u128(io)
+    record_size = read_u64(io)
+    buffer = io.read(record_size)
+    return elapsed, buffer
 
 
 def read_u64(io: BinaryIO):
