@@ -1,4 +1,6 @@
 import math
+from contextlib import suppress
+from dataclasses import dataclass
 from itertools import groupby
 from os import PathLike
 from typing import (
@@ -226,6 +228,21 @@ def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
 
     yield (elapsed, frame_index, frame)
     yield from frames
+
+
+@dataclass(kw_only=True)
+class RecordingFileEntry:
+    position: int
+    elapsed: float
+    buffer: bytes
+
+
+def iter_buffers(io: BinaryIO):
+    with suppress(EOFError):
+        while True:
+            position = io.tell()
+            elapsed, buffer = read_buffer(io)
+            yield RecordingFileEntry(position=position, elapsed=elapsed, buffer=buffer)
 
 
 def read_header(io: BinaryIO):
