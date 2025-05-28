@@ -5,10 +5,11 @@ import pytest
 from nanover.recording.reading import (
     iter_trajectory_file,
     iter_state_file,
-    iter_recording_buffers,
     iter_recording_files,
     iter_full_view,
     split_by_simulation_counter,
+    iter_buffers,
+    read_header,
 )
 
 EXAMPLES_PATH = Path(__file__).parent
@@ -52,9 +53,10 @@ def test_monotonic_timestamp(path):
     """
     with open(path, "rb") as infile:
         prev_time = 0
-        for next_time, _ in iter_recording_buffers(infile):
-            assert next_time >= prev_time
-            prev_time = next_time
+        read_header(infile)
+        for entry in iter_buffers(infile):
+            assert entry.timestamp >= prev_time
+            prev_time = entry.timestamp
 
 
 @pytest.mark.parametrize(

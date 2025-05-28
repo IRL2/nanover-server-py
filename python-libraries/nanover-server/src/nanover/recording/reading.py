@@ -34,6 +34,13 @@ class RecordingFileEntry:
     buffer: bytes
 
 
+class Parseable(Protocol):
+    def ParseFromString(self, _: bytes) -> bytes: ...
+
+
+TMessage = TypeVar("TMessage", bound=Parseable)
+
+
 class MessageRecordingReader:
     @classmethod
     def from_path(cls, path: PathLike[str]):
@@ -205,45 +212,21 @@ class UnsupportedFormatVersion(Exception):
         )
 
 
-class Parseable(Protocol):
-    def ParseFromString(self, _: bytes) -> bytes: ...
-
-
-TMessage = TypeVar("TMessage", bound=Parseable)
-
-
-def iter_recording_entries(io: BinaryIO, message_type: Callable[[], TMessage]):
-    for elapsed, buffer in iter_recording_buffers(io):
-        yield elapsed, buffer_to_message(buffer, message_type)
-
-
-def iter_recording_buffers(io: BinaryIO):
-    """
-    Iterate over elements of a recording, yielding pairs of a timestamp in microseconds and a buffer of bytes.
-
-    :param io: Stream of bytes to read.
-    """
-    read_header(io)
-    yield from ((entry.timestamp, entry.buffer) for entry in iter_buffers(io))
-
-
 def iter_trajectory_recording(io: BinaryIO):
-    for elapsed, get_frame_response in iter_recording_entries(io, GetFrameResponse):
+    reader = MessageRecordingReader(io)
+    for entry in reader:
+        get_frame_response = buffer_to_frame_message(entry.buffer)
         frame_index: int = get_frame_response.frame_index
         frame = FrameData(get_frame_response.frame)
-        yield (elapsed, frame_index, frame)
+        yield (entry.timestamp, frame_index, frame)
 
 
 def iter_state_recording(io: BinaryIO):
-    for elapsed, state_update in iter_recording_entries(io, StateUpdate):
+    reader = MessageRecordingReader(io)
+    for entry in reader:
+        state_update = buffer_to_state_message(entry.buffer)
         dictionary_change = state_update_to_dictionary_change(state_update)
-        yield (elapsed, dictionary_change)
-
-
-def iter_trajectory_with_elapsed_integrated(frames: Iterable[FrameEntry]):
-    for elapsed, frame_index, frame in frames:
-        frame.values["elapsed"] = elapsed
-        yield (elapsed, frame_index, frame)
+        yield (entry.timestamp, dictionary_change)
 
 
 def advance_to_first_particle_frame(frames: Iterable[FrameEntry]):
@@ -255,21 +238,6 @@ def advance_to_first_particle_frame(frames: Iterable[FrameEntry]):
         else:
             if particle_count > 0:
                 break
-    else:
-        return
-
-    yield (elapsed, frame_index, frame)
-    yield from frames
-
-
-def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
-    for elapsed, frame_index, frame in frames:
-        try:
-            frame.particle_positions
-        except MissingDataError:
-            pass
-        else:
-            break
     else:
         return
 
