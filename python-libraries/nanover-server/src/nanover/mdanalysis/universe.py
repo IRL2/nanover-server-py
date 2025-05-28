@@ -369,29 +369,39 @@ class NanoverReader2(NanoverFramesReader):
         self.convert_units = convert_units
 
 
+def reconfigure_frame_reader(reader: MessageRecordingReader):
+    first_frame = FrameData()
+    for i, entry in enumerate(reader):
+        message = buffer_to_frame_message(entry.buffer)
+        first_frame.raw.MergeFrom(message.frame)
+        if PARTICLE_POSITIONS in first_frame:
+            reader.message_offsets = reader.message_offsets[i:]
+            return first_frame
+
+
+def trim_frame_reader(reader: MessageRecordingReader):
+    for i, entry in enumerate(reader):
+        message = buffer_to_frame_message(entry.buffer)
+        if message.frame_index == 0 and i > 0:
+            reader.message_offsets = reader.message_offsets[:i]
+            break
+
+
 class NanoverReaderFile(NanoverFramesReader):
     units = {"time": "ps", "length": "nm", "velocity": "nm/ps", "force": "kJ/(mol*nm)"}
 
     def __init__(self, filename, convert_units=True, **kwargs):
-        with openany(filename, mode="rb") as infile:
-            recording = advance_to_first_coordinate_frame(
-                iter_trajectory_with_elapsed_integrated(
-                    iter_trajectory_recording(infile)
-                )
-            )
-            try:
-                _, _, first_frame = next(recording)
-            except StopIteration:
-                raise IOError("Empty trajectory.")
-            self.n_atoms = first_frame.particle_count
-
         self.reader = MessageRecordingReader.from_path(filename)
+        first_frame = reconfigure_frame_reader(self.reader)
+        trim_frame_reader(self.reader)
+
         self.convert_units = convert_units
 
         super().__init__([first_frame], **kwargs)
 
-        self.filename = filename
+        self.n_atoms = first_frame.particle_count
         self.n_frames = len(self.reader)
+        self.filename = filename
         self._read_frame(0)
 
     def replace_reader(self, reader):
