@@ -8,8 +8,6 @@ from nanover.recording.reading import (
     iter_recording_files,
     iter_full_view,
     split_by_simulation_counter,
-    iter_buffers,
-    read_header,
     MessageRecordingReader,
 )
 
@@ -46,8 +44,8 @@ def test_n_messages(path, count):
     """
     Test examples recording have the expected number of messages.
     """
-    reader = MessageRecordingReader.from_path(path)
-    assert len(reader.message_offsets) == count
+    with MessageRecordingReader.from_path(path) as reader:
+        assert len(reader.message_offsets) == count
 
 
 @pytest.mark.parametrize(
@@ -63,10 +61,9 @@ def test_monotonic_timestamp(path):
     """
     Test the timestamps are read correctly such that they increase monotonically.
     """
-    with open(path, "rb") as infile:
+    with MessageRecordingReader.from_path(path) as reader:
         prev_time = 0
-        read_header(infile)
-        for entry in iter_buffers(infile):
+        for entry in reader:
             assert entry.timestamp >= prev_time
             prev_time = entry.timestamp
 

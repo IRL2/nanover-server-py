@@ -107,6 +107,7 @@ def universes_from_recording(*, traj: PathLike[str]):
 
         reader = NanoverReader(traj)
         reader.reader.message_offsets = list(frame_offsets)
+        reader.on_reader_changed()
         frame_offsets.clear()
 
         try:
@@ -226,15 +227,16 @@ class NanoverReader(ProtoReader):
     def __init__(self, filename, convert_units=True, **kwargs):
         super().__init__()
 
+        self._current_frame_index = 0
         self.convert_units = convert_units
-
         self.filename = filename
-
-        # if the frame_offsets are provided, no need to do the indexing
         self.reader = MessageRecordingReader.from_path(filename)
+        self.on_reader_changed()
+
+    def on_reader_changed(self):
         first_frame = _reconfigure_frame_reader(self.reader)
-        self.n_atoms = first_frame.particle_count
         remainder = _trim_frame_reader(self.reader)
+        self.n_atoms = first_frame.particle_count
 
         if remainder > 0:
             warnings.warn(
@@ -244,7 +246,7 @@ class NanoverReader(ProtoReader):
                 f"unread frames with a potentially different topology."
             )
 
-        self._read_frame(0)
+        self._read_frame(self._current_frame_index)
 
     @property
     def n_frames(self):
@@ -307,7 +309,7 @@ class NanoverReader(ProtoReader):
         return self._read_frame(frame)
 
     def _reopen(self):
-        self._current_frame_index = None
+        self._current_frame_index = 0
 
     def _add_user_forces_to_ts(self, frame, ts):
         """
