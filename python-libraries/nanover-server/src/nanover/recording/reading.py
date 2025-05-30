@@ -5,7 +5,6 @@ from itertools import groupby
 from os import PathLike, SEEK_CUR
 from typing import (
     Tuple,
-    Iterable,
     BinaryIO,
     Protocol,
     Callable,
@@ -18,7 +17,7 @@ from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
 from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import state_update_to_dictionary_change
-from nanover.trajectory import FrameData, MissingDataError
+from nanover.trajectory import FrameData
 from nanover.trajectory.frame_data import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -38,18 +37,53 @@ class Parseable(Protocol):
     def ParseFromString(self, _: bytes) -> bytes: ...
 
 
+class InvalidMagicNumber(Exception):
+    """
+    The magic number read from a file is not the expected one.
+
+    The file may not be in the correct format, or it may be corrupted.
+    """
+
+
+class UnsupportedFormatVersion(Exception):
+    """
+    The version of the file format is not supported by the parser.
+    """
+
+    def __init__(self, format_version: int, supported_format_versions: tuple[int]):
+        self._format_version = format_version
+        self._supported_format_versions = supported_format_versions
+
+    def __str__(self) -> str:
+        return (
+            f"Version {self._format_version} of the format is not supported "
+            f"by this parser. The supported versions are "
+            f"{self._supported_format_versions}."
+        )
+
+
 TMessage = TypeVar("TMessage", bound=Parseable)
 
 
 class MessageRecordingReader:
+    """
+    Wraps a NanoVer recording of gRPC messages to provide fast and convenient random access.
+    """
+
     @classmethod
-    def from_path(cls, path: PathLike[str]):
-        return cls(open(path, "rb"))
+    def from_path(cls, path: PathLike[str], *, do_indexing=True):
+        return cls.from_io(open(path, "rb"), do_indexing=do_indexing)
+
+    @classmethod
+    def from_io(cls, io: BinaryIO, *, do_indexing=True):
+        reader = cls(io)
+        if do_indexing:
+            reader.reindex()
+        return reader
 
     def __init__(self, io: BinaryIO):
         self.io = io
         self.message_offsets: list[int] = []
-        self.reindex()
 
     def reindex(self):
         self.io.seek(0)
@@ -66,6 +100,10 @@ class MessageRecordingReader:
         self.io.seek(offset)
         timestamp, buffer = read_buffer(self.io)
         return RecordingFileEntry(offset=offset, timestamp=timestamp, buffer=buffer)
+
+    def iter_messages(self, message_type: Callable[[], TMessage]):
+        for entry in self:
+            yield (entry.timestamp, buffer_to_message(entry.buffer, message_type))
 
     def __enter__(self):
         return self
@@ -187,33 +225,8 @@ def iter_state_file(path):
         yield from iter_state_recording(infile)
 
 
-class InvalidMagicNumber(Exception):
-    """
-    The magic number read from a file is not the expected one.
-
-    The file may not be in the correct format, or it may be corrupted.
-    """
-
-
-class UnsupportedFormatVersion(Exception):
-    """
-    The version of the file format is not supported by the parser.
-    """
-
-    def __init__(self, format_version: int, supported_format_versions: tuple[int]):
-        self._format_version = format_version
-        self._supported_format_versions = supported_format_versions
-
-    def __str__(self) -> str:
-        return (
-            f"Version {self._format_version} of the format is not supported "
-            f"by this parser. The supported versions are "
-            f"{self._supported_format_versions}."
-        )
-
-
 def iter_trajectory_recording(io: BinaryIO):
-    reader = MessageRecordingReader(io)
+    reader = MessageRecordingReader.from_io(io)
     for entry in reader:
         get_frame_response = buffer_to_frame_message(entry.buffer)
         frame_index: int = get_frame_response.frame_index
@@ -222,27 +235,11 @@ def iter_trajectory_recording(io: BinaryIO):
 
 
 def iter_state_recording(io: BinaryIO):
-    reader = MessageRecordingReader(io)
+    reader = MessageRecordingReader.from_io(io)
     for entry in reader:
         state_update = buffer_to_state_message(entry.buffer)
         dictionary_change = state_update_to_dictionary_change(state_update)
         yield (entry.timestamp, dictionary_change)
-
-
-def advance_to_first_particle_frame(frames: Iterable[FrameEntry]):
-    for elapsed, frame_index, frame in frames:
-        try:
-            particle_count = frame.particle_count
-        except MissingDataError:
-            pass
-        else:
-            if particle_count > 0:
-                break
-    else:
-        return
-
-    yield (elapsed, frame_index, frame)
-    yield from frames
 
 
 def buffer_to_frame_message(buffer):
@@ -279,18 +276,6 @@ def skip_buffers(io: BinaryIO):
             )
 
 
-def read_header(io: BinaryIO):
-    supported_format_versions = (2,)
-
-    magic_number = read_u64(io)
-    if magic_number != MAGIC_NUMBER:
-        raise InvalidMagicNumber
-
-    format_version = read_u64(io)
-    if format_version not in supported_format_versions:
-        raise UnsupportedFormatVersion(format_version, supported_format_versions)
-
-
 def read_buffer(io: BinaryIO):
     timestamp = read_u128(io)
     record_size = read_u64(io)
@@ -303,6 +288,20 @@ def skip_buffer(io: BinaryIO):
     record_size = read_u64(io)
     io.seek(record_size, SEEK_CUR)
     return timestamp, record_size
+
+
+def read_header(io: BinaryIO):
+    supported_format_versions = (2,)
+
+    magic_number = read_u64(io)
+    if magic_number != MAGIC_NUMBER:
+        raise InvalidMagicNumber
+
+    format_version = read_u64(io)
+    if format_version not in supported_format_versions:
+        raise UnsupportedFormatVersion(format_version, supported_format_versions)
+
+    return format_version
 
 
 def read_u64(io: BinaryIO):

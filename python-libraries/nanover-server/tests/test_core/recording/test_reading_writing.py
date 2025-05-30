@@ -6,7 +6,9 @@ import pytest
 
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
-from nanover.recording.reading import MessageRecordingReader, buffer_to_message
+from nanover.recording.reading import (
+    MessageRecordingReader,
+)
 from nanover.recording.writing import record_entries
 from nanover.state.state_service import dictionary_change_to_state_update
 from nanover.trajectory import FrameData
@@ -67,12 +69,6 @@ def test_reads_written_messages(message_type, random_message):
 
     with BytesIO() as io:
         record_entries(io, entries)
-
-        reader = MessageRecordingReader(io)
-        iter = (
-            (entry.timestamp, buffer_to_message(entry.buffer, message_type))
-            for entry in reader
-        )
-
-        for a, b in zip_longest(entries, iter):
-            assert a == b
+        with MessageRecordingReader.from_io(io) as reader:
+            for a, b in zip_longest(entries, reader.iter_messages(message_type)):
+                assert a == b

@@ -10,6 +10,7 @@ from nanover.recording.reading import (
     split_by_simulation_counter,
     iter_buffers,
     read_header,
+    MessageRecordingReader,
 )
 
 EXAMPLES_PATH = Path(__file__).parent
@@ -36,6 +37,17 @@ def test_n_updates(path, count):
     """
     updates = list(iter_state_file(path))
     assert len(updates) == count
+
+
+@pytest.mark.parametrize(
+    "path,count", ((RECORDING_PATH_TRAJ, 930), (RECORDING_PATH_STATE, 685))
+)
+def test_n_messages(path, count):
+    """
+    Test examples recording have the expected number of messages.
+    """
+    reader = MessageRecordingReader.from_path(path)
+    assert len(reader.message_offsets) == count
 
 
 @pytest.mark.parametrize(

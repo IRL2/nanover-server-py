@@ -64,11 +64,7 @@ from nanover.trajectory.frame_data import (
 )
 
 from nanover.recording.reading import (
-    iter_trajectory_recording,
-    advance_to_first_particle_frame,
     MessageRecordingReader,
-    read_header,
-    iter_buffers,
     buffer_to_frame_message,
 )
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
@@ -122,9 +118,8 @@ def universes_from_recording(*, traj: PathLike[str]):
 
         first_particle_frame = FrameData()
 
-    with open(traj, "rb") as io:
-        read_header(io)
-        for entry in iter_buffers(io):
+    with MessageRecordingReader.from_path(traj) as reader:
+        for entry in reader:
             message = buffer_to_frame_message(entry.buffer)
             if message.frame_index == 0:
                 make_universe()
@@ -144,23 +139,22 @@ class NanoverParser(TopologyReaderBase):
             # count greater than 0. This will be true only most of the time.
             # TODO: implement a more reliable way to get the full topology
             try:
-                _, _, frame = next(
-                    advance_to_first_particle_frame(iter_trajectory_recording(infile))
-                )
+                reader = MessageRecordingReader.from_io(infile)
+                first_frame = _reconfigure_frame_reader(reader)
             except StopIteration:
                 raise IOError("The file does not contain any frame.")
 
             attrs = []
             for frame_key, (attribute, converter) in KEY_TO_ATTRIBUTE.items():
                 try:
-                    values = frame.arrays[frame_key]
+                    values = first_frame.arrays[frame_key]
                 except MissingDataError:
                     pass
                 else:
                     attrs.append(attribute([converter(value) for value in values]))
 
             try:
-                elements = frame.arrays[PARTICLE_ELEMENTS]
+                elements = first_frame.arrays[PARTICLE_ELEMENTS]
             except MissingDataError:
                 pass
             else:
@@ -169,14 +163,14 @@ class NanoverParser(TopologyReaderBase):
                 attrs.append(Elements(converted_elements))
 
             # TODO: generate these values if they are not part of the FrameData
-            residx = frame.arrays[PARTICLE_RESIDUES]
-            segidx = frame.arrays[RESIDUE_CHAINS]
-            n_atoms = int(frame.values[PARTICLE_COUNT])
-            n_residues = int(frame.values[RESIDUE_COUNT])
-            n_chains = int(frame.values[CHAIN_COUNT])
+            residx = first_frame.arrays[PARTICLE_RESIDUES]
+            segidx = first_frame.arrays[RESIDUE_CHAINS]
+            n_atoms = int(first_frame.values[PARTICLE_COUNT])
+            n_residues = int(first_frame.values[RESIDUE_COUNT])
+            n_chains = int(first_frame.values[CHAIN_COUNT])
 
             try:
-                chain_ids_per_chain = frame.arrays[CHAIN_NAMES]
+                chain_ids_per_chain = first_frame.arrays[CHAIN_NAMES]
             except MissingDataError:
                 pass
             else:
@@ -187,7 +181,11 @@ class NanoverParser(TopologyReaderBase):
 
             try:
                 attrs.append(
-                    Bonds(frame.bond_pairs, guessed=False, order=frame.bond_orders)
+                    Bonds(
+                        first_frame.bond_pairs,
+                        guessed=False,
+                        order=first_frame.bond_orders,
+                    )
                 )
             except MissingDataError:
                 pass
@@ -202,7 +200,7 @@ class NanoverParser(TopologyReaderBase):
             )
 
 
-def reconfigure_frame_reader(reader: MessageRecordingReader):
+def _reconfigure_frame_reader(reader: MessageRecordingReader):
     first_frame = FrameData()
     for i, entry in enumerate(reader):
         message = buffer_to_frame_message(entry.buffer)
@@ -212,7 +210,7 @@ def reconfigure_frame_reader(reader: MessageRecordingReader):
             return first_frame
 
 
-def trim_frame_reader(reader: MessageRecordingReader):
+def _trim_frame_reader(reader: MessageRecordingReader):
     for i, entry in enumerate(reader):
         message = buffer_to_frame_message(entry.buffer)
         if message.frame_index == 0 and i > 0:
@@ -231,10 +229,12 @@ class NanoverReader(ProtoReader):
         self.convert_units = convert_units
 
         self.filename = filename
+
+        # if the frame_offsets are provided, no need to do the indexing
         self.reader = MessageRecordingReader.from_path(filename)
-        first_frame = reconfigure_frame_reader(self.reader)
+        first_frame = _reconfigure_frame_reader(self.reader)
         self.n_atoms = first_frame.particle_count
-        remainder = trim_frame_reader(self.reader)
+        remainder = _trim_frame_reader(self.reader)
 
         if remainder > 0:
             warnings.warn(
