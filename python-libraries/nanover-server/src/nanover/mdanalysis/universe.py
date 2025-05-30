@@ -141,7 +141,7 @@ class NanoverParser(TopologyReaderBase):
             # TODO: implement a more reliable way to get the full topology
             try:
                 reader = MessageRecordingReader.from_io(infile)
-                first_frame = _reconfigure_frame_reader(reader)
+                first_frame = _trim_start_frame_reader(reader)
             except StopIteration:
                 raise IOError("The file does not contain any frame.")
 
@@ -201,26 +201,6 @@ class NanoverParser(TopologyReaderBase):
             )
 
 
-def _reconfigure_frame_reader(reader: MessageRecordingReader):
-    first_frame = FrameData()
-    for i, entry in enumerate(reader):
-        message = buffer_to_frame_message(entry.buffer)
-        first_frame.raw.MergeFrom(message.frame)
-        if PARTICLE_POSITIONS in first_frame:
-            reader.message_offsets = reader.message_offsets[i:]
-            return first_frame
-
-
-def _trim_frame_reader(reader: MessageRecordingReader):
-    for i, entry in enumerate(reader):
-        message = buffer_to_frame_message(entry.buffer)
-        if message.frame_index == 0 and i > 0:
-            remainder = len(reader.message_offsets) - i
-            reader.message_offsets = reader.message_offsets[:i]
-            return remainder
-    return 0
-
-
 class NanoverReader(ProtoReader):
     units = {"time": "ps", "length": "nm", "velocity": "nm/ps", "force": "kJ/(mol*nm)"}
 
@@ -234,8 +214,8 @@ class NanoverReader(ProtoReader):
         self.on_reader_changed()
 
     def on_reader_changed(self):
-        first_frame = _reconfigure_frame_reader(self.reader)
-        remainder = _trim_frame_reader(self.reader)
+        first_frame = _trim_start_frame_reader(self.reader)
+        remainder = _trim_end_frame_reader(self.reader)
         self.n_atoms = first_frame.particle_count
 
         if remainder > 0:
@@ -257,7 +237,7 @@ class NanoverReader(ProtoReader):
         ts.frame = frame
 
         try:
-            ts.positions = unflatten3d(frame_at_index, PARTICLE_POSITIONS)
+            ts.positions = _unflatten3d(frame_at_index, PARTICLE_POSITIONS)
         except MissingDataError as e:
             raise Exception(f"No particle positions in trajectory frame {frame}") from e
 
@@ -270,14 +250,14 @@ class NanoverReader(ProtoReader):
         except MissingDataError:
             pass
         try:
-            ts.velocities = unflatten3d(frame_at_index, PARTICLE_VELOCITIES)
+            ts.velocities = _unflatten3d(frame_at_index, PARTICLE_VELOCITIES)
         except MissingDataError:
             pass
         try:
             try:
-                ts.forces = unflatten3d(frame_at_index, PARTICLE_FORCES)
+                ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES)
             except MissingDataError:
-                ts.forces = unflatten3d(frame_at_index, PARTICLE_FORCES_SYSTEM)
+                ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES_SYSTEM)
         except MissingDataError:
             pass
 
@@ -339,6 +319,51 @@ class NanoverReader(ProtoReader):
             raise EOFError(err) from None
 
         return self._frame_to_timestep(frame, frame_at_index)
+
+
+def _trim_start_frame_reader(reader: MessageRecordingReader):
+    """
+    Change reader index to ignore initial frames that don't contain positions
+    and return an aggregate of all skipped frames.
+    """
+    first_frame = FrameData()
+    for i, entry in enumerate(reader):
+        message = buffer_to_frame_message(entry.buffer)
+        first_frame.raw.MergeFrom(message.frame)
+        if PARTICLE_POSITIONS in first_frame:
+            reader.message_offsets = reader.message_offsets[i:]
+            return first_frame
+
+
+def _trim_end_frame_reader(reader: MessageRecordingReader):
+    """
+    Change reader index to ignore all frames after and including the next
+    frame_index reset.
+    """
+    for i, entry in enumerate(reader):
+        message = buffer_to_frame_message(entry.buffer)
+        if message.frame_index == 0 and i > 0:
+            remainder = len(reader.message_offsets) - i
+            reader.message_offsets = reader.message_offsets[:i]
+            return remainder
+    return 0
+
+
+def _unflatten3d(frame: FrameData, key: str):
+    """
+    Extract a (-1, 3) shape numpy array from a flat gRPC array in a given frame under a given key.
+
+    :param frame: FrameData to extract the data from.
+    :param key: Key name of data array in the frame.
+
+    This seems to be significantly faster than the existing shortcut that uses list comprehensions.
+    """
+    try:
+        fields = frame.raw.arrays[key].ListFields()
+        array = fields[0][1].values
+        return np.array(array).reshape((-1, 3))
+    except IndexError:
+        raise MissingDataError()
 
 
 def has_topology(frame: FrameData) -> bool:
@@ -407,12 +432,3 @@ def explosion_mask(trajectory, max_displacement):
         previous = ts.positions
         prev_reset = reset
     return mask
-
-
-def unflatten3d(frame, key):
-    try:
-        fields = frame.raw.arrays[key].ListFields()
-        array = fields[0][1].values
-        return np.array(array).reshape((-1, 3))
-    except IndexError:
-        raise MissingDataError()

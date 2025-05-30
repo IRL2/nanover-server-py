@@ -71,14 +71,19 @@ class MessageRecordingReader:
     """
 
     @classmethod
-    def from_path(cls, path: PathLike[str], *, do_indexing=True):
-        return cls.from_io(open(path, "rb"), do_indexing=do_indexing)
+    def from_path(cls, path: PathLike[str]):
+        """
+        Read a recording from a filepath.
+        """
+        return cls.from_io(open(path, "rb"))
 
     @classmethod
-    def from_io(cls, io: BinaryIO, *, do_indexing=True):
+    def from_io(cls, io: BinaryIO):
+        """
+        Read a recording from binary data source.
+        """
         reader = cls(io)
-        if do_indexing:
-            reader.reindex()
+        reader.reindex()
         return reader
 
     def __init__(self, io: BinaryIO):
@@ -86,6 +91,9 @@ class MessageRecordingReader:
         self.message_offsets: list[int] = []
 
     def reindex(self):
+        """
+        Read the file from beginning to end and recording the byte position of each message for later access.
+        """
         self.io.seek(0)
         read_header(self.io)
         self.message_offsets = [entry.offset for entry in skip_buffers(self.io)]
@@ -94,9 +102,19 @@ class MessageRecordingReader:
         self.io.close()
 
     def get_entry_at_index(self, index):
+        """
+        Return an entry for the nth message in the file.
+
+        :param index: Index of the message in the sequence of all messages in the data.
+        """
         return self.get_entry_at_offset(self.message_offsets[index])
 
     def get_entry_at_offset(self, offset):
+        """
+        Read and return a message entry from a specific byte offset in the data.
+
+        :param offset: Offset in bytes to begin reading a message entry.
+        """
         self.io.seek(offset)
         timestamp, buffer = read_buffer(self.io)
         return RecordingFileEntry(offset=offset, timestamp=timestamp, buffer=buffer)
