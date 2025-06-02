@@ -105,18 +105,17 @@ def universes_from_recording(*, traj: PathLike[str]):
         if not frame_offsets:
             return
 
-        reader = NanoverReader(traj)
-        reader.reader.message_offsets = list(frame_offsets)
-        reader.on_reader_changed()
-        frame_offsets.clear()
+        reader = MessageRecordingReader(open(traj, "rb"))
+        reader.message_offsets = list(frame_offsets)
 
         try:
             universe = frame_data_to_mdanalysis(first_particle_frame)
-            universe.trajectory = reader
+            universe.trajectory = NanoverReaderBase(reader, filename=traj)
             universes.append(universe)
         except Exception as e:
             print(e)
 
+        frame_offsets.clear()
         first_particle_frame = FrameData()
 
     with MessageRecordingReader.from_path(traj) as reader:
@@ -201,19 +200,17 @@ class NanoverParser(TopologyReaderBase):
             )
 
 
-class NanoverReader(ProtoReader):
+class NanoverReaderBase(ProtoReader):
     units = {"time": "ps", "length": "nm", "velocity": "nm/ps", "force": "kJ/(mol*nm)"}
 
-    def __init__(self, filename, convert_units=True, **kwargs):
+    def __init__(self, reader, *, filename=None, convert_units=True, **kwargs):
         super().__init__()
 
         self._current_frame_index = 0
         self.convert_units = convert_units
         self.filename = filename
-        self.reader = MessageRecordingReader.from_path(filename)
-        self.on_reader_changed()
+        self.reader = reader
 
-    def on_reader_changed(self):
         first_frame = _trim_start_frame_reader(self.reader)
         remainder = _trim_end_frame_reader(self.reader)
         self.n_atoms = first_frame.particle_count
@@ -432,3 +429,13 @@ def explosion_mask(trajectory, max_displacement):
         previous = ts.positions
         prev_reset = reset
     return mask
+
+
+class NanoverReader(NanoverReaderBase):
+    def __init__(self, filename, convert_units=True, **kwargs):
+        super().__init__(
+            MessageRecordingReader.from_path(filename),
+            filename=filename,
+            convert_units=convert_units,
+            **kwargs,
+        )
