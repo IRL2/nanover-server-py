@@ -100,7 +100,10 @@ def universes_from_recording(*, traj: PathLike[str]):
     universes: list[Universe] = []
     first_particle_frame = FrameData()
 
-    def make_universe():
+    def message_begins_next_universe(message):
+        return message.frame_index == 0
+
+    def finalise_prev_universe():
         nonlocal first_particle_frame
         if not frame_offsets:
             return
@@ -113,7 +116,7 @@ def universes_from_recording(*, traj: PathLike[str]):
             universe.trajectory = NanoverReaderBase(reader, filename=traj)
             universes.append(universe)
         except Exception as e:
-            print(e)
+            warnings.warn(f"Failed to extract one universe from recording: {e}")
 
         frame_offsets.clear()
         first_particle_frame = FrameData()
@@ -121,13 +124,14 @@ def universes_from_recording(*, traj: PathLike[str]):
     with MessageRecordingReader.from_path(traj) as reader:
         for entry in reader:
             message = buffer_to_frame_message(entry.buffer)
-            if message.frame_index == 0:
-                make_universe()
+            if message_begins_next_universe(message):
+                finalise_prev_universe()
+            # aggregate initial frames until there is position and topology information
             if PARTICLE_POSITIONS not in first_particle_frame:
                 first_particle_frame.raw.MergeFrom(message.frame)
             frame_offsets.append(entry.offset)
 
-    make_universe()
+    finalise_prev_universe()
 
     return universes
 
