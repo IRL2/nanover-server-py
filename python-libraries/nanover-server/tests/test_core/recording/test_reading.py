@@ -19,24 +19,6 @@ RECORDING_PATH_TRAJ_SWITCHING = EXAMPLES_PATH / "sim-switching-test-recording.tr
 RECORDING_PATH_STATE_SWITCHING = EXAMPLES_PATH / "sim-switching-test-recording.state"
 
 
-@pytest.mark.parametrize("path,count", ((RECORDING_PATH_TRAJ, 930),))
-def test_n_frames(path, count):
-    """
-    Test an example recording has the expected number of frames.
-    """
-    frames = list(iter_trajectory_file(path))
-    assert len(frames) == count
-
-
-@pytest.mark.parametrize("path,count", ((RECORDING_PATH_STATE, 685),))
-def test_n_updates(path, count):
-    """
-    Test an example recording has the expected number of updates.
-    """
-    updates = list(iter_state_file(path))
-    assert len(updates) == count
-
-
 @pytest.mark.parametrize(
     "path,count", ((RECORDING_PATH_TRAJ, 930), (RECORDING_PATH_STATE, 685))
 )
@@ -45,7 +27,8 @@ def test_n_messages(path, count):
     Test examples recording have the expected number of messages.
     """
     with MessageRecordingReader.from_path(path) as reader:
-        assert len(reader.message_offsets) == count
+        assert len(reader) == count
+        assert sum(1 for _ in reader) == count
 
 
 @pytest.mark.parametrize(

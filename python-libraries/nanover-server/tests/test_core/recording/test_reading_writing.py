@@ -69,6 +69,6 @@ def test_reads_written_messages(message_type, random_message):
 
     with BytesIO() as io:
         record_entries(io, entries)
-        with MessageRecordingReader.from_io(io) as reader:
-            for a, b in zip_longest(entries, reader.iter_messages(message_type)):
-                assert a == b
+        reader = MessageRecordingReader.from_io(io)
+        for a, b in zip_longest(entries, reader.iter_messages(message_type)):
+            assert a == b
