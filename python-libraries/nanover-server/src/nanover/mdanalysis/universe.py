@@ -91,6 +91,14 @@ KEY_TO_ATTRIBUTE = {
 }
 
 
+def universe_from_recording(*, traj: PathLike[str]):
+    return Universe(
+        traj,
+        format=NanoverReader,
+        topology_format=NanoverParser,
+    )
+
+
 def universes_from_recording(*, traj: PathLike[str]):
     """
     Decompose a NanoVer trajectory recording into an mdanalysis Universe for each session of simulation (determined
@@ -184,11 +192,16 @@ class NanoverParser(TopologyReaderBase):
                 attrs.append(ChainIDs(chain_ids_per_particle))
 
             try:
+                try:
+                    order = first_frame.bond_orders
+                except MissingDataError:
+                    order = None
+
                 attrs.append(
                     Bonds(
                         first_frame.bond_pairs,
                         guessed=False,
-                        order=first_frame.bond_orders,
+                        order=order,
                     )
                 )
             except MissingDataError:
