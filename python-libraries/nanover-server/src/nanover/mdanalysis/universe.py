@@ -4,19 +4,19 @@ Facilities to read a NanoVer trajectory recording into an MDAnalysis Universe.
 .. code:: python
 
     import MDAnalysis as mda
-    from nanover.mdanalysis import NanoverReader, NanoverParser
+    from nanover.mdanalysis import universe_from_recording
 
-    u = mda.Universe(
-        'input.traj',
-        format=NanoverReader,
-        topology_format=NanoverParser,
-    )
+    u = universe_from_recording('input.traj')
+
+    # or if there are multiple sessions in the recording:
+    universes = universes_from_recording('input.traj')
 
 .. note::
     A NanoVer trajectory recording can have its topology change over time. It
     can even contain trajectories for unrelated simulations. The topology in an
     MDAnalysis Universe is constant. Only the frames corresponding to the first
-    topology are read in a Universe.
+    topology are read in the singular `universe_from_recording` function.
+
 
 """
 
@@ -92,6 +92,10 @@ KEY_TO_ATTRIBUTE = {
 
 
 def universe_from_recording(*, traj: PathLike[str]):
+    """
+    Read and convert a NanoVer trajectory recording into an mdanalysis Universe, ignore all frames after a frame_index
+    reset.
+    """
     return Universe(
         traj,
         format=NanoverReader,
