@@ -7,5 +7,6 @@ from .universe import (
     NanoverParser,
     NanoverReader,
     explosion_mask,
+    universe_from_recording,
     universes_from_recording,
 )

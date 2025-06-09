@@ -327,7 +327,8 @@ def _add_bonds_to_mda(u: Universe, frame: FrameData):
     :param frame: NanoVer :class:`FrameData`.
     """
     try:
-        bonds = [(bond[0], bond[1]) for bond in frame.bond_pairs]
+        # TODO: why does mypy hate this?
+        bonds = [(bond[0], bond[1]) for bond in frame.bond_pairs]  # type: ignore
     except MissingDataError:
         return
     u.add_TopologyAttr("bonds", bonds)

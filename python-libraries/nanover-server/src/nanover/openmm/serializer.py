@@ -77,17 +77,21 @@ def serialize_simulation(
 
     # Extract the system
     system_xml_str = XmlSerializer.serialize(simulation.system)
-    system_document = parseString(system_xml_str)
+    system_document = parseString(system_xml_str).documentElement
 
     # Extract the integrator
     integrator_xml_str = XmlSerializer.serialize(simulation.integrator)
-    integrator_document = parseString(integrator_xml_str)
+    integrator_document = parseString(integrator_xml_str).documentElement
 
     # Combine the element in a single
     root = document.documentElement
+    assert root is not None
+    assert system_document is not None
+    assert integrator_document is not None
+
     root.appendChild(pdb_node)
-    root.appendChild(system_document.documentElement)
-    root.appendChild(integrator_document.documentElement)
+    root.appendChild(system_document)
+    root.appendChild(integrator_document)
 
     # Extract and append the state
     if save_state:
@@ -99,8 +103,9 @@ def serialize_simulation(
                 enforcePeriodicBox=pbc_wrapping,
             )
         )
-        state_document = parseString(state_xml_str)
-        root.appendChild(state_document.documentElement)
+        state_document = parseString(state_xml_str).documentElement
+        assert state_document is not None
+        root.appendChild(state_document)
 
     return root.toprettyxml()
 
