@@ -223,7 +223,7 @@ class NanoverReaderBase(ProtoReader):
     def __init__(self, reader, *, filename=None, convert_units=True, **kwargs):
         super().__init__()
 
-        self._current_frame_index = 0
+        self._current_frame_index = None
         self.convert_units = convert_units
         self.filename = filename
         self.reader = reader
@@ -240,7 +240,7 @@ class NanoverReaderBase(ProtoReader):
                 f"unread frames with a potentially different topology."
             )
 
-        self._read_frame(self._current_frame_index)
+        self._read_frame(0)
 
     @property
     def n_frames(self):
@@ -303,7 +303,8 @@ class NanoverReaderBase(ProtoReader):
         return self._read_frame(frame)
 
     def _reopen(self):
-        self._current_frame_index = 0
+        # no current frame, next frame is 0
+        self._current_frame_index = None
 
     def _add_user_forces_to_ts(self, frame, ts):
         """
@@ -324,13 +325,15 @@ class NanoverReaderBase(ProtoReader):
 
     def _read_frame(self, frame):
         self._current_frame_index = frame
+
         try:
             entry = self.reader[frame]
-            message = buffer_to_frame_message(entry.buffer)
-            frame_at_index = FrameData(message.frame)
-            frame_at_index.values["elapsed"] = entry.timestamp
         except IndexError as err:
             raise EOFError(err) from None
+
+        message = buffer_to_frame_message(entry.buffer)
+        frame_at_index = FrameData(message.frame)
+        frame_at_index.values["elapsed"] = entry.timestamp
 
         return self._frame_to_timestep(frame, frame_at_index)
 
