@@ -214,7 +214,12 @@ class OpenMMSMDSimulation:
         Reset the SMD simulation to its initial state, and reset the arrays output
         by the SMD simulation.
         """
-        assert self.simulation is not None and self.checkpoint is not None and self.smd_path is not None and self.smd_force is not None
+        assert (
+            self.simulation is not None
+            and self.checkpoint is not None
+            and self.smd_path is not None
+            and self.smd_force is not None
+        )
 
         # Reset SMD force position
         self.current_smd_force_position = self.smd_path[0]
@@ -230,8 +235,6 @@ class OpenMMSMDSimulation:
         self.define_smd_simulation_atom_positions_array()
         self.smd_simulation_forces = None
         self.smd_simulation_work_done = None
-
-
 
     def remove_smd_force_from_system(self):
         """
@@ -375,7 +378,9 @@ class OpenMMSMDSimulation:
                 output_directory, filename_prefix + "_" + str(i + 1) + ".xml"
             )
             self.save_simulation(
-                output_filepath=outfile_path, save_state=True, save_smd_force=save_smd_force
+                output_filepath=outfile_path,
+                save_state=True,
+                save_smd_force=save_smd_force,
             )
 
         print(f"Structure generation complete: {n_structures} structures generated.")

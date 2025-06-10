@@ -38,6 +38,7 @@ Things to test:
 - smd_com_force works as expected
 - smd_single_atom_force works as expected
 """
+
 import pytest
 from contextlib import contextmanager
 
@@ -74,11 +75,14 @@ ARGON_SIMULATION_POSITION = [[0.0, 0.0, 0.0]]
 
 TEST_SMD_SINGLE_INDEX = np.array(0)
 TEST_SMD_MULTIPLE_INDICES = np.array([0, 1, 2, 3])
-TEST_SMD_PATH = np.array([np.linspace(0.0,1.0,101), np.zeros(101), np.zeros(101)]).transpose()
+TEST_SMD_PATH = np.array(
+    [np.linspace(0.0, 1.0, 101), np.zeros(101), np.zeros(101)]
+).transpose()
 TEST_SMD_FORCE_CONSTANT = 3011.0
 
 TEST_SMD_INDEX_OPTIONS = [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES]
 EXPECTED_SMD_SIMULATION_TYPES = [OpenMMSMDSimulationAtom, OpenMMSMDSimulationCOM]
+
 
 def build_basic_system():
     periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
@@ -161,18 +165,23 @@ def build_basic_simulation() -> app.Simulation:
 
 @pytest.fixture
 def make_basic_simulation_xml(tmp_path):
-    serialized_simulation = serializer.serialize_simulation(build_basic_simulation(), save_state=True)
+    serialized_simulation = serializer.serialize_simulation(
+        build_basic_simulation(), save_state=True
+    )
     xml_path = tmp_path / "basic_simulation.xml"
     with open(str(xml_path), "w") as xml_file:
         xml_file.write(serialized_simulation)
     return xml_path
+
 
 @pytest.fixture
 def make_smd_simulation(simulation, indices):
     """
     Fixture that creates an OpenMMSMDSimulation from
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(simulation, indices, TEST_SMD_PATH, TEST_SMD_FORCE_CONSTANT)
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        simulation, indices, TEST_SMD_PATH, TEST_SMD_FORCE_CONSTANT
+    )
     return smd_sim
 
 
@@ -180,7 +189,12 @@ def test_load_smd_sim_from_simulation():
     """
     Test that an OpenMMSMDSimulation can be correctly loaded from an OpenMM simulation.
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(build_basic_simulation(), TEST_SMD_SINGLE_INDEX, TEST_SMD_PATH, TEST_SMD_FORCE_CONSTANT)
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        TEST_SMD_SINGLE_INDEX,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
     assert smd_sim
     assert smd_sim.simulation
     assert (smd_sim.smd_path == TEST_SMD_PATH).all()
@@ -192,7 +206,12 @@ def test_load_smd_sim_from_xml_path(make_basic_simulation_xml):
     """
     Test that an OpenMMSMDSimulation can be correctly loaded from a NanoVer OpenMM XML file.
     """
-    smd_sim = OpenMMSMDSimulation.from_xml_path(make_basic_simulation_xml, TEST_SMD_SINGLE_INDEX, TEST_SMD_PATH, TEST_SMD_FORCE_CONSTANT)
+    smd_sim = OpenMMSMDSimulation.from_xml_path(
+        make_basic_simulation_xml,
+        TEST_SMD_SINGLE_INDEX,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
     assert smd_sim
     assert smd_sim.xml_path == make_basic_simulation_xml
     assert smd_sim.simulation
