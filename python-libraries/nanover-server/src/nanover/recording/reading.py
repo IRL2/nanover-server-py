@@ -23,8 +23,6 @@ from nanover.utilities.change_buffers import DictionaryChange
 
 MAGIC_NUMBER = 6661355757386708963
 
-FrameEntry = Tuple[int, int, FrameData]
-
 
 @dataclass(kw_only=True)
 class RecordingFileEntry:
