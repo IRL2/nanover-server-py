@@ -5,14 +5,11 @@ import pytest
 from nanover.recording.reading import (
     iter_trajectory_file,
     iter_state_file,
-    iter_recording_buffers,
     iter_recording_files,
     iter_full_view,
     split_by_simulation_counter,
+    MessageRecordingReader,
 )
-
-from nanover.protocol.trajectory import GetFrameResponse
-from nanover.protocol.state import StateUpdate
 
 EXAMPLES_PATH = Path(__file__).parent
 RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
@@ -22,22 +19,16 @@ RECORDING_PATH_TRAJ_SWITCHING = EXAMPLES_PATH / "sim-switching-test-recording.tr
 RECORDING_PATH_STATE_SWITCHING = EXAMPLES_PATH / "sim-switching-test-recording.state"
 
 
-@pytest.mark.parametrize("path,count", ((RECORDING_PATH_TRAJ, 930),))
-def test_n_frames(path, count):
+@pytest.mark.parametrize(
+    "path,count", ((RECORDING_PATH_TRAJ, 930), (RECORDING_PATH_STATE, 685))
+)
+def test_n_messages(path, count):
     """
-    Test an example recording has the expected number of frames.
+    Test examples recording have the expected number of messages.
     """
-    frames = list(iter_trajectory_file(path))
-    assert len(frames) == count
-
-
-@pytest.mark.parametrize("path,count", ((RECORDING_PATH_STATE, 685),))
-def test_n_updates(path, count):
-    """
-    Test an example recording has the expected number of updates.
-    """
-    updates = list(iter_state_file(path))
-    assert len(updates) == count
+    with MessageRecordingReader.from_path(path) as reader:
+        assert len(reader) == count
+        assert sum(1 for _ in reader) == count
 
 
 @pytest.mark.parametrize(
@@ -53,11 +44,11 @@ def test_monotonic_timestamp(path):
     """
     Test the timestamps are read correctly such that they increase monotonically.
     """
-    with open(path, "rb") as infile:
+    with MessageRecordingReader.from_path(path) as reader:
         prev_time = 0
-        for next_time, _ in iter_recording_buffers(infile):
-            assert next_time >= prev_time
-            prev_time = next_time
+        for entry in reader:
+            assert entry.timestamp >= prev_time
+            prev_time = entry.timestamp
 
 
 @pytest.mark.parametrize(

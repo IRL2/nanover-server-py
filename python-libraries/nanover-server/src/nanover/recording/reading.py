@@ -1,9 +1,10 @@
 import math
+from contextlib import suppress
+from dataclasses import dataclass
 from itertools import groupby
-from os import PathLike
+from os import PathLike, SEEK_CUR
 from typing import (
     Tuple,
-    Iterable,
     BinaryIO,
     Protocol,
     Callable,
@@ -11,17 +12,132 @@ from typing import (
     Optional,
     Iterator,
 )
+
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
 from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import state_update_to_dictionary_change
-from nanover.trajectory import FrameData, MissingDataError
+from nanover.trajectory import FrameData
 from nanover.trajectory.frame_data import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
 
 MAGIC_NUMBER = 6661355757386708963
 
 FrameEntry = Tuple[int, int, FrameData]
+
+
+@dataclass(kw_only=True)
+class RecordingFileEntry:
+    offset: int
+    timestamp: float
+    buffer: bytes
+
+
+class Parseable(Protocol):
+    def ParseFromString(self, _: bytes) -> bytes: ...
+
+
+class InvalidMagicNumber(Exception):
+    """
+    The magic number read from a file is not the expected one.
+
+    The file may not be in the correct format, or it may be corrupted.
+    """
+
+
+class UnsupportedFormatVersion(Exception):
+    """
+    The version of the file format is not supported by the parser.
+    """
+
+    def __init__(self, format_version: int, supported_format_versions: tuple[int]):
+        self._format_version = format_version
+        self._supported_format_versions = supported_format_versions
+
+    def __str__(self) -> str:
+        return (
+            f"Version {self._format_version} of the format is not supported "
+            f"by this parser. The supported versions are "
+            f"{self._supported_format_versions}."
+        )
+
+
+TMessage = TypeVar("TMessage", bound=Parseable)
+
+
+class MessageRecordingReader:
+    """
+    Wraps a NanoVer recording of gRPC messages to provide fast and convenient random access.
+    """
+
+    @classmethod
+    def from_path(cls, path: PathLike[str]):
+        """
+        Read a recording from a filepath.
+        """
+        return cls.from_io(open(path, "rb"))
+
+    @classmethod
+    def from_io(cls, io: BinaryIO):
+        """
+        Read a recording from binary data source.
+        """
+        reader = cls(io)
+        reader.reindex()
+        return reader
+
+    def __init__(self, io: BinaryIO):
+        self.io = io
+        self.message_offsets: list[int] = []
+
+    def reindex(self):
+        """
+        Read the file from beginning to end and recording the byte position of each message for later access.
+        """
+        self.io.seek(0)
+        read_header(self.io)
+        self.message_offsets = [entry.offset for entry in skip_buffers(self.io)]
+
+    def close(self):
+        self.io.close()
+
+    def get_entry_at_index(self, index):
+        """
+        Return an entry for the nth message in the file.
+
+        :param index: Index of the message in the sequence of all messages in the data.
+        """
+        return self.get_entry_at_offset(self.message_offsets[index])
+
+    def get_entry_at_offset(self, offset):
+        """
+        Read and return a message entry from a specific byte offset in the data.
+
+        :param offset: Offset in bytes to begin reading a message entry.
+        """
+        self.io.seek(offset)
+        timestamp, buffer = read_buffer(self.io)
+        return RecordingFileEntry(offset=offset, timestamp=timestamp, buffer=buffer)
+
+    def iter_messages(self, message_type: Callable[[], TMessage]):
+        for entry in self:
+            yield (entry.timestamp, buffer_to_message(entry.buffer, message_type))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def __iter__(self):
+        for offset in self.message_offsets:
+            yield self.get_entry_at_offset(offset)
+
+    def __len__(self):
+        return len(self.message_offsets)
+
+    def __getitem__(self, index):
+        return self.get_entry_at_index(index)
 
 
 def split_by_simulation_counter(
@@ -127,117 +243,83 @@ def iter_state_file(path):
         yield from iter_state_recording(infile)
 
 
-class InvalidMagicNumber(Exception):
-    """
-    The magic number read from a file is not the expected one.
-
-    The file may not be in the correct format, or it may be corrupted.
-    """
-
-
-class UnsupportedFormatVersion(Exception):
-    """
-    The version of the file format is not supported by the parser.
-    """
-
-    def __init__(self, format_version: int, supported_format_versions: tuple[int]):
-        self._format_version = format_version
-        self._supported_format_versions = supported_format_versions
-
-    def __str__(self) -> str:
-        return (
-            f"Version {self._format_version} of the format is not supported "
-            f"by this parser. The supported versions are "
-            f"{self._supported_format_versions}."
-        )
+def iter_trajectory_recording(io: BinaryIO):
+    reader = MessageRecordingReader.from_io(io)
+    for entry in reader:
+        get_frame_response = buffer_to_frame_message(entry.buffer)
+        frame_index: int = get_frame_response.frame_index
+        frame = FrameData(get_frame_response.frame)
+        yield (entry.timestamp, frame_index, frame)
 
 
-class Parseable(Protocol):
-    def ParseFromString(self, _: bytes) -> bytes: ...
+def iter_state_recording(io: BinaryIO):
+    reader = MessageRecordingReader.from_io(io)
+    for entry in reader:
+        state_update = buffer_to_state_message(entry.buffer)
+        dictionary_change = state_update_to_dictionary_change(state_update)
+        yield (entry.timestamp, dictionary_change)
 
 
-TMessage = TypeVar("TMessage", bound=Parseable)
+def buffer_to_frame_message(buffer):
+    return buffer_to_message(buffer, GetFrameResponse)
 
 
-def iter_recording_entries(io: BinaryIO, message_type: Callable[[], TMessage]):
-    for elapsed, buffer in iter_recording_buffers(io):
-        instance = message_type()
-        instance.ParseFromString(buffer)
-        yield elapsed, instance
+def buffer_to_state_message(buffer):
+    return buffer_to_message(buffer, StateUpdate)
 
 
-def iter_recording_buffers(io: BinaryIO):
-    """
-    Iterate over elements of a recording, yielding pairs of a timestamp in microseconds and a buffer of bytes.
+def buffer_to_message(buffer, message_type: Callable[[], TMessage]):
+    instance = message_type()
+    instance.ParseFromString(buffer)
+    return instance
 
-    :param io: Stream of bytes to read.
-    """
+
+def iter_buffers(io: BinaryIO):
+    with suppress(EOFError):
+        while True:
+            position = io.tell()
+            timestamp, buffer = read_buffer(io)
+            yield RecordingFileEntry(
+                offset=position, timestamp=timestamp, buffer=buffer
+            )
+
+
+def skip_buffers(io: BinaryIO):
+    with suppress(EOFError):
+        while True:
+            position = io.tell()
+            timestamp, _ = skip_buffer(io)
+            yield RecordingFileEntry(
+                offset=position, timestamp=timestamp, buffer=bytes()
+            )
+
+
+def read_buffer(io: BinaryIO):
+    timestamp = read_u128(io)
+    record_size = read_u64(io)
+    buffer = io.read(record_size)
+    return timestamp, buffer
+
+
+def skip_buffer(io: BinaryIO):
+    timestamp = read_u128(io)
+    record_size = read_u64(io)
+    io.seek(record_size, SEEK_CUR)
+    return timestamp, record_size
+
+
+def read_header(io: BinaryIO):
     supported_format_versions = (2,)
 
     magic_number = read_u64(io)
     if magic_number != MAGIC_NUMBER:
         raise InvalidMagicNumber
+
     format_version = read_u64(io)
     if format_version not in supported_format_versions:
         raise UnsupportedFormatVersion(format_version, supported_format_versions)
-    while True:
-        try:
-            elapsed = read_u128(io)
-            record_size = read_u64(io)
-            buffer = io.read(record_size)
-        except EOFError:
-            break
-        yield elapsed, buffer
 
-
-def iter_trajectory_recording(io: BinaryIO):
-    for elapsed, get_frame_response in iter_recording_entries(io, GetFrameResponse):
-        frame_index: int = get_frame_response.frame_index
-        frame = FrameData(get_frame_response.frame)
-        yield (elapsed, frame_index, frame)
-
-
-def iter_state_recording(io: BinaryIO):
-    for elapsed, state_update in iter_recording_entries(io, StateUpdate):
-        dictionary_change = state_update_to_dictionary_change(state_update)
-        yield (elapsed, dictionary_change)
-
-
-def iter_trajectory_with_elapsed_integrated(frames: Iterable[FrameEntry]):
-    for elapsed, frame_index, frame in frames:
-        frame.values["elapsed"] = elapsed
-        yield (elapsed, frame_index, frame)
-
-
-def advance_to_first_particle_frame(frames: Iterable[FrameEntry]):
-    for elapsed, frame_index, frame in frames:
-        try:
-            particle_count = frame.particle_count
-        except MissingDataError:
-            pass
-        else:
-            if particle_count > 0:
-                break
-    else:
-        return
-
-    yield (elapsed, frame_index, frame)
-    yield from frames
-
-
-def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
-    for elapsed, frame_index, frame in frames:
-        try:
-            frame.particle_positions
-        except MissingDataError:
-            pass
-        else:
-            break
-    else:
-        return
-
-    yield (elapsed, frame_index, frame)
-    yield from frames
+    return format_version
 
 
 def read_u64(io: BinaryIO):
