@@ -49,7 +49,7 @@ authors:
     affiliation: '1'
 affiliations:
   - index: 1
-    name: Intangible Realities Laboratory, Centro Singular de Investigación en Technoloxías Intelixentes (CiTIUS), Universidade de Santiago de Compostela, Spain
+    name: Intangible Realities Laboratory, Centro Singular de Investigación en Tecnoloxías Intelixentes (CiTIUS), Universidade de Santiago de Compostela, Spain
   - index: 2
     name: Centre for Computational Chemistry, School of Chemistry, University of Bristol, United Kingdom
 date: 13 February 2025
