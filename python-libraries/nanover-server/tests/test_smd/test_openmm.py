@@ -5,7 +5,7 @@ Things to test:
 - An SMD simulation can be created either from an existing OpenMM simulation or
   a NanoVer OpenMM XML file [√]
 - OpenMMSMDSimulation returns OpenMMSMDSimulationAtom or OpenMMSMDSimulationCOM
-  as appropriate []
+  as appropriate [√]
 - The PBCs of the loaded simulation are respected by the SMD force, and the SMD
   force shares this periodicity []
 - The SMD force attaches to the correct atom (dictated by the index/indices passed
@@ -79,9 +79,6 @@ TEST_SMD_PATH = np.array(
     [np.linspace(0.0, 1.0, 101), np.zeros(101), np.zeros(101)]
 ).transpose()
 TEST_SMD_FORCE_CONSTANT = 3011.0
-
-TEST_SMD_INDEX_OPTIONS = [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES]
-EXPECTED_SMD_SIMULATION_TYPES = [OpenMMSMDSimulationAtom, OpenMMSMDSimulationCOM]
 
 
 def build_basic_system():
@@ -218,3 +215,25 @@ def test_load_smd_sim_from_xml_path(make_basic_simulation_xml):
     assert (smd_sim.smd_path == TEST_SMD_PATH).all()
     assert (smd_sim.smd_atom_indices == TEST_SMD_SINGLE_INDEX).all()
     assert smd_sim.smd_force_constant == TEST_SMD_FORCE_CONSTANT
+
+
+@pytest.mark.parametrize(
+    "indices, sim_type",
+    [
+        (TEST_SMD_SINGLE_INDEX, OpenMMSMDSimulationAtom),
+        (TEST_SMD_MULTIPLE_INDICES, OpenMMSMDSimulationCOM),
+    ],
+)
+def test_return_correct_smd_sim_type(indices, sim_type):
+    """
+    Check that the OpenMMSMDSimulation class returns the correct subclass depending on the
+    number of indices that are passed to it (one for OpenMMSMDSimulationAtom, more than one
+    for OpenMMSMDSimulationCOM).
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    assert type(smd_sim) == sim_type
