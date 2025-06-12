@@ -14,7 +14,7 @@ Things to test:
   state as immediately after the creation of the class itself [√]
 - SMD force is correctly added to the system [√]
 - SMD force can be correctly removed from the system [√]
-- SMD force position is correctly updated []
+- SMD force position is correctly updated [√]
 - Running the equilibration with the initial restraint throws an error correctly
   when run with the SMD force not located at the initial position []
 - The SMD simulation can be saved correctly, with or without the SMD force []
@@ -421,3 +421,53 @@ def test_smd_force_removed_from_system(indices):
             assert force.getEnergyFunction() != smd_sim.smd_force.getEnergyFunction()
         except AttributeError:
             pass
+
+
+@pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
+def test_smd_force_updates_correctly(indices):
+    """
+    Check that the position of the SMD force is correctly updated upon calling
+    update_smd_force_position().
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    # Choose next force position to be the final position defined by
+    # the SMD path
+    new_force_position_index = TEST_SMD_PATH.shape[0] - 1
+    new_force_position = TEST_SMD_PATH[new_force_position_index]
+
+    # Update the force position and check the relevant class parameters
+    # update accordingly
+    smd_sim.current_smd_force_position_index = new_force_position_index
+    smd_sim.update_smd_force_position()
+    assert np.array_equal(smd_sim.current_smd_force_position, new_force_position)
+
+    # Check the subclass-specific force parameters in both the class and the system
+    # which should be identical
+    n_system_forces = smd_sim.simulation.system.getNumForces()
+    if type(smd_sim.smd_force) == CustomExternalForce:
+
+        # OpenMMSMDSimulationAtom force parameters
+        index, position = smd_sim.smd_force.getParticleParameters(0)
+        assert index == indices
+        assert np.array_equal(np.array(position), new_force_position)
+
+        # Force parameters from system
+        sys_index, sys_position = smd_sim.simulation.system.getForce(n_system_forces-1).getParticleParameters(0)
+        assert sys_index == indices
+        assert np.array_equal(np.array(sys_position), new_force_position)
+
+    elif type(smd_sim.smd_force) == CustomCentroidBondForce:
+
+        # OpenMMSMDSimulationCOM force parameters
+        _, bond_params = smd_sim.smd_force.getBondParameters(0)
+        assert np.array_equal(np.array(bond_params), new_force_position)
+
+        # Force parameters from system
+        _, sys_bond_params = smd_sim.simulation.system.getForce(n_system_forces-1).getBondParameters(0)
+        assert np.array_equal(np.array(sys_bond_params), new_force_position)
+
