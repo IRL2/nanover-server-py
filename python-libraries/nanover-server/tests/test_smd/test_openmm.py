@@ -13,7 +13,7 @@ Things to test:
 - The simulation can be reset correctly, with all attributes returning to the same
   state as immediately after the creation of the class itself [√]
 - SMD force is correctly added to the system [√]
-- SMD force can be correctly removed from the system []
+- SMD force can be correctly removed from the system [√]
 - SMD force position is correctly updated []
 - Running the equilibration with the initial restraint throws an error correctly
   when run with the SMD force not located at the initial position []
@@ -363,6 +363,7 @@ def test_reset(indices):
     # fresh copy after the reset
     assert np.array_equal(smd_sim.smd_simulation_atom_positions, smd_sim_copy.smd_simulation_atom_positions)
 
+
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
 def test_smd_force_added_to_system(indices):
     """
@@ -384,3 +385,39 @@ def test_smd_force_added_to_system(indices):
         assert type(smd_sim.smd_force) == CustomExternalForce
     elif type(smd_sim) == OpenMMSMDSimulationCOM:
         assert type(smd_sim.smd_force) == CustomCentroidBondForce
+
+
+@pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
+def test_smd_force_removed_from_system(indices):
+    """
+    Check that the SMD force is correctly removed from the OpenMM simulation upon calling
+    remove_smd_force_from_system().
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    # Add arbitrary force to system (to test scenario when extra forces added after
+    # creation of the SMD class)
+    arb_force = CustomExternalForce("0.5 * k * (x)^2")
+    arb_force.addGlobalParameter("k", 100.0)
+    arb_force.addPerParticleParameter("x")
+    smd_sim.simulation.system.addForce(arb_force)
+
+    # Check that the number of forces before and after removal of the SMD
+    # force make sense (that only a single SMD force is removed)
+    n_forces_before_removal = smd_sim.simulation.system.getNumForces()
+    smd_sim.remove_smd_force_from_system()
+    n_forces_after_removal = smd_sim.simulation.system.getNumForces()
+    assert n_forces_before_removal == n_forces_after_removal + 1
+
+    # Check that none of the energy functions of the remaining system forces
+    # match that of the SMD force removed from the system
+    system_forces = smd_sim.simulation.system.getForces()
+    for force in system_forces:
+        try:
+            assert force.getEnergyFunction() != smd_sim.smd_force.getEnergyFunction()
+        except AttributeError:
+            pass
