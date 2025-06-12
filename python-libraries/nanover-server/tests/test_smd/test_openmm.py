@@ -7,7 +7,7 @@ Things to test:
 - OpenMMSMDSimulation returns OpenMMSMDSimulationAtom or OpenMMSMDSimulationCOM
   as appropriate [√]
 - The PBCs of the loaded simulation are respected by the SMD force, and the SMD
-  force shares this periodicity []
+  force shares this periodicity [√]
 - The SMD force attaches to the correct atom (dictated by the index/indices passed
   to the class upon creation) []
 - The simulation can be reset correctly, with all attributes returning to the same
@@ -121,7 +121,7 @@ def build_basic_topology() -> app.Topology:
     return topology
 
 
-def build_basic_simulation() -> app.Simulation:
+def build_basic_simulation(pbcs: bool = False) -> app.Simulation:
     """
     Setup a minimal OpenMM simulation with two methane molecules.
     """
@@ -136,7 +136,10 @@ def build_basic_simulation() -> app.Simulation:
     system = build_basic_system()
 
     force = mm.NonbondedForce()
-    force.setNonbondedMethod(force.NoCutoff)
+    if pbcs:
+        force.setNonbondedMethod(force.CutoffPeriodic)
+    else:
+        force.setNonbondedMethod(force.NoCutoff)
     # These non-bonded parameters are completely wrong, but it does not matter
     # for the tests as long as we do not start testing the dynamic and
     # thermodynamics properties of methane.
@@ -237,3 +240,24 @@ def test_return_correct_smd_sim_type(indices, sim_type):
         TEST_SMD_FORCE_CONSTANT,
     )
     assert type(smd_sim) == sim_type
+
+
+@pytest.mark.parametrize("apply_pbcs", [True, False])
+@pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
+def test_simulation_pbcs_are_respected(apply_pbcs, indices):
+    """
+    Check that the periodic boundary conditions of the OpenMMSimulation passed to the
+    OpenMMSMDSimulation class are respected (i.e. the PBCs of the SMD simulation match
+    those of the OpenMM simulation), and that the PBCs of the SMD force match the PBCs
+    of the simulation.
+    """
+    sim = build_basic_simulation(pbcs=apply_pbcs)
+    uses_pbcs = sim.system.usesPeriodicBoundaryConditions()
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        sim,
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    assert smd_sim.smd_force.usesPeriodicBoundaryConditions() == uses_pbcs
+    assert smd_sim.simulation.system.usesPeriodicBoundaryConditions() == uses_pbcs
