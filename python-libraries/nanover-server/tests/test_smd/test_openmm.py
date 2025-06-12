@@ -11,7 +11,7 @@ Things to test:
 - The SMD force attaches to the correct atom (dictated by the index/indices passed
   to the class upon creation) [√]
 - The simulation can be reset correctly, with all attributes returning to the same
-  state as immediately after the creation of the class itself []
+  state as immediately after the creation of the class itself [√]
 - SMD force is correctly added to the system []
 - SMD force can be correctly removed from the system []
 - SMD force position is correctly updated []
@@ -38,6 +38,7 @@ Things to test:
 - smd_com_force works as expected []
 - smd_single_atom_force works as expected []
 """
+import copy
 
 import pytest
 from contextlib import contextmanager
@@ -306,3 +307,69 @@ def test_smd_force_attaches_to_correct_atoms(indices):
     # Only one centroid force added, index of force is zero
     p_indices, _ = smd_sim.smd_force.getGroupParameters(0)
     assert np.array_equal(np.array(p_indices), indices)
+
+
+@pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
+def test_reset(indices):
+    """
+    Check that all the attributes of the OpenMMSMDSimulation subclasses are reset to their initial
+    state by the .reset() function of the class.
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    # TODO: May wish to consider suppressing the output of the run_smd()
+    smd_sim.run_smd()
+    smd_sim.reset()
+
+    # Create a fresh copy of the SMD simulation
+    smd_sim_copy = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+
+    # Check that the attributes that were created during the SMD simulation
+    # are no longer present in the class
+    try:
+        assert smd_sim.smd_simulation_forces or smd_sim_copy.smd_simulation_work_done
+    except AttributeError:
+        pass
+
+    # Check relevant observables from the simulation against the fresh simulation
+    smd_sim_state = smd_sim.simulation.context.getState(getPositions=True, getVelocities=True, getForces=True,
+                                                        getEnergy=True)
+    smd_sim_copy_state = smd_sim_copy.simulation.context.getState(getPositions=True, getVelocities=True, getForces=True,
+                                                                  getEnergy=True)
+    assert np.array_equal(smd_sim_state.getPositions(asNumpy=True), smd_sim_copy_state.getPositions(asNumpy=True))
+    assert np.array_equal(smd_sim_state.getVelocities(asNumpy=True), smd_sim_copy_state.getVelocities(asNumpy=True))
+    assert np.array_equal(smd_sim_state.getForces(asNumpy=True), smd_sim_copy_state.getForces(asNumpy=True))
+    assert smd_sim_state.getKineticEnergy() == smd_sim_copy_state.getKineticEnergy()
+    assert smd_sim_state.getPotentialEnergy() == smd_sim_copy_state.getPotentialEnergy()
+    assert np.array_equal(smd_sim.smd_simulation_atom_positions, smd_sim_copy.smd_simulation_atom_positions)
+
+    # Check the arguments passed to the OpenMMSMDSimulation class are unchanged by the reset
+    assert np.array_equal(smd_sim.smd_atom_indices, smd_sim_copy.smd_atom_indices)
+    assert np.array_equal(smd_sim.smd_path, smd_sim_copy.smd_path)
+    assert np.array_equal(smd_sim.smd_force_constant, smd_sim_copy.smd_force_constant)
+
+    # Check that the SMD force attached to the simulation is correctly reset
+    assert np.array_equal(smd_sim.current_smd_force_position, smd_sim_copy.current_smd_force_position)
+    assert smd_sim.current_smd_force_position_index == smd_sim_copy.current_smd_force_position_index
+    assert smd_sim.smd_force.getEnergyFunction() == smd_sim_copy.smd_force.getEnergyFunction()
+    # Class-specific checks
+    if type(smd_sim) == OpenMMSMDSimulationAtom:
+        assert smd_sim.smd_force.getParticleParameters(0) == smd_sim_copy.smd_force.getParticleParameters(0)
+        assert smd_sim.smd_force.getNumParticles() == 1
+    elif type(smd_sim) == OpenMMSMDSimulationCOM:
+        assert smd_sim.smd_force.getGroupParameters(0) == smd_sim_copy.smd_force.getGroupParameters(0)
+        assert smd_sim.smd_force.getNumBonds() == 1
+
+    # Check other relevant properties of the OpenMMSMDSimulation class match those of the
+    # fresh copy after the reset
+    assert np.array_equal(smd_sim.smd_simulation_atom_positions, smd_sim_copy.smd_simulation_atom_positions)
+
