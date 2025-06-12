@@ -230,11 +230,10 @@ class OpenMMSMDSimulation:
         self.simulation.context.reinitialize()
         self.simulation.context.loadCheckpoint(self.checkpoint)
 
-        # Reset SMD simulation arrays
-        self.smd_simulation_atom_positions = None
+        # Reset or remove SMD simulation arrays
         self.define_smd_simulation_atom_positions_array()
-        self.smd_simulation_forces = None
-        self.smd_simulation_work_done = None
+        del self.smd_simulation_forces
+        del self.smd_simulation_work_done
 
     def remove_smd_force_from_system(self):
         """
@@ -584,7 +583,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
         Calculate the cumulative work done by the SMD force on the
         atom with which it interacts over the SMD simulation.
         """
-        assert np.all(self.smd_simulation_atom_positions != 0.0)
+        assert not np.array_equal(self.smd_simulation_atom_positions, np.zeros((self.smd_path.shape[0], 3)))
         self._calculate_forces(self.smd_simulation_atom_positions)
         self._calculate_work_done()
 
@@ -672,9 +671,8 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         Calculate the trajectory that the COM follows during the SMD simulation.
         """
         # TODO: Check this works and write tests!
-        assert np.all(
-            self.smd_simulation_atom_positions
-            != np.zeros((self.smd_path.shape[0], self.smd_atom_indices.size, 3))
+        assert not np.array_equal(
+            self.smd_simulation_atom_positions, np.zeros((self.smd_path.shape[0], self.smd_atom_indices.size, 3))
         )
         atom_masses = np.zeros(self.n_smd_atom_indices)
         for index in range(self.n_smd_atom_indices):
