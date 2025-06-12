@@ -9,7 +9,7 @@ Things to test:
 - The PBCs of the loaded simulation are respected by the SMD force, and the SMD
   force shares this periodicity [√]
 - The SMD force attaches to the correct atom (dictated by the index/indices passed
-  to the class upon creation) []
+  to the class upon creation) [√]
 - The simulation can be reset correctly, with all attributes returning to the same
   state as immediately after the creation of the class itself []
 - SMD force is correctly added to the system []
@@ -76,7 +76,7 @@ ARGON_SIMULATION_POSITION = [[0.0, 0.0, 0.0]]
 TEST_SMD_SINGLE_INDEX = np.array(0)
 TEST_SMD_MULTIPLE_INDICES = np.array([0, 1, 2, 3])
 TEST_SMD_PATH = np.array(
-    [np.linspace(0.0, 1.0, 101), np.zeros(101), np.zeros(101)]
+    [np.linspace(0.05, 1.05, 101), np.zeros(101), np.zeros(101)]
 ).transpose()
 TEST_SMD_FORCE_CONSTANT = 3011.0
 
@@ -177,7 +177,7 @@ def make_basic_simulation_xml(tmp_path):
 @pytest.fixture
 def make_smd_simulation(simulation, indices):
     """
-    Fixture that creates an OpenMMSMDSimulation from
+    Fixture that creates an OpenMMSMDSimulation from an OpenMMSimulation.
     """
     smd_sim = OpenMMSMDSimulation.from_simulation(
         simulation, indices, TEST_SMD_PATH, TEST_SMD_FORCE_CONSTANT
@@ -197,8 +197,8 @@ def test_load_smd_sim_from_simulation():
     )
     assert smd_sim
     assert smd_sim.simulation
-    assert (smd_sim.smd_path == TEST_SMD_PATH).all()
-    assert (smd_sim.smd_atom_indices == TEST_SMD_SINGLE_INDEX).all()
+    assert np.array_equal(smd_sim.smd_path, TEST_SMD_PATH)
+    assert np.array_equal(smd_sim.smd_atom_indices, TEST_SMD_SINGLE_INDEX)
     assert smd_sim.smd_force_constant == TEST_SMD_FORCE_CONSTANT
 
 
@@ -215,8 +215,8 @@ def test_load_smd_sim_from_xml_path(make_basic_simulation_xml):
     assert smd_sim
     assert smd_sim.xml_path == make_basic_simulation_xml
     assert smd_sim.simulation
-    assert (smd_sim.smd_path == TEST_SMD_PATH).all()
-    assert (smd_sim.smd_atom_indices == TEST_SMD_SINGLE_INDEX).all()
+    assert np.array_equal(smd_sim.smd_path, TEST_SMD_PATH)
+    assert np.array_equal(smd_sim.smd_atom_indices, TEST_SMD_SINGLE_INDEX)
     assert smd_sim.smd_force_constant == TEST_SMD_FORCE_CONSTANT
 
 
@@ -261,3 +261,48 @@ def test_simulation_pbcs_are_respected(apply_pbcs, indices):
     )
     assert smd_sim.smd_force.usesPeriodicBoundaryConditions() == uses_pbcs
     assert smd_sim.simulation.system.usesPeriodicBoundaryConditions() == uses_pbcs
+
+
+@pytest.mark.parametrize(
+    "index", [np.array(0), np.array(1), np.array(4), np.array(5), np.array(7)]
+)
+def test_smd_force_attaches_to_correct_atom(index):
+    """
+    Check that the SMD force is attached to the correct atom when a single index is passed.
+    Should use the OpenMMSMDSimulationAtom class, with only one CustomExternalForce.
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        index,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    # Attaches force to single atom, so index of atom within force is zero
+    p_index, p_params = smd_sim.smd_force.getParticleParameters(0)
+    assert p_index == index
+    assert np.array_equal(np.array(p_params), TEST_SMD_PATH[0])
+
+
+@pytest.mark.parametrize(
+    "indices",
+    [
+        np.array([0, 1, 2, 3]),
+        np.array([1, 2, 3, 4]),
+        np.array([0, 1, 4, 5]),
+        np.array([1, 3, 4, 7]),
+    ],
+)
+def test_smd_force_attaches_to_correct_atoms(indices):
+    """
+    Check that the SMD force attaches to the correct atoms when an array of indices is passed.
+    Should use the OpenMMSMDSimulationCOM class, with only one CustomCentroidBondForce.
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    # Only one centroid force added, index of force is zero
+    p_indices, _ = smd_sim.smd_force.getGroupParameters(0)
+    assert np.array_equal(np.array(p_indices), indices)
