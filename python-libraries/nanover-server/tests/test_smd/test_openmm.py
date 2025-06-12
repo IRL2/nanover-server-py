@@ -12,7 +12,7 @@ Things to test:
   to the class upon creation) [√]
 - The simulation can be reset correctly, with all attributes returning to the same
   state as immediately after the creation of the class itself [√]
-- SMD force is correctly added to the system []
+- SMD force is correctly added to the system [√]
 - SMD force can be correctly removed from the system []
 - SMD force position is correctly updated []
 - Running the equilibration with the initial restraint throws an error correctly
@@ -53,6 +53,7 @@ from openmm.unit import (
     nanometer,
 )
 
+from nanover.omni.openmm import OpenMMSimulation
 from nanover.openmm import serializer
 from nanover.smd.openmm import *
 
@@ -173,17 +174,6 @@ def make_basic_simulation_xml(tmp_path):
     with open(str(xml_path), "w") as xml_file:
         xml_file.write(serialized_simulation)
     return xml_path
-
-
-@pytest.fixture
-def make_smd_simulation(simulation, indices):
-    """
-    Fixture that creates an OpenMMSMDSimulation from an OpenMMSimulation.
-    """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
-        simulation, indices, TEST_SMD_PATH, TEST_SMD_FORCE_CONSTANT
-    )
-    return smd_sim
 
 
 def test_load_smd_sim_from_simulation():
@@ -373,3 +363,24 @@ def test_reset(indices):
     # fresh copy after the reset
     assert np.array_equal(smd_sim.smd_simulation_atom_positions, smd_sim_copy.smd_simulation_atom_positions)
 
+@pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
+def test_smd_force_added_to_system(indices):
+    """
+    Check that the last force to be added to the OpenMM simulation is the SMD force added during
+    initialisation of the OpenMMSMDSimulation class, with force group 31.
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    last_force = smd_sim.simulation.system.getForces()[-1]
+    assert type(last_force) == type(smd_sim.smd_force)
+    assert last_force.getEnergyFunction() == smd_sim.smd_force.getEnergyFunction()
+    assert last_force.getForceGroup() == 31
+    # Subclass-specific force type check
+    if type(smd_sim) == OpenMMSMDSimulationAtom:
+        assert type(smd_sim.smd_force) == CustomExternalForce
+    elif type(smd_sim) == OpenMMSMDSimulationCOM:
+        assert type(smd_sim.smd_force) == CustomCentroidBondForce
