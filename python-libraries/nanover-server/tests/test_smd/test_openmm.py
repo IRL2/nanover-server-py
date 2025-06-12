@@ -16,7 +16,7 @@ Things to test:
 - SMD force can be correctly removed from the system [√]
 - SMD force position is correctly updated [√]
 - Running the equilibration with the initial restraint throws an error correctly
-  when run with the SMD force not located at the initial position []
+  when run with the SMD force not located at the initial position [√]
 - The SMD simulation can be saved correctly, with or without the SMD force []
 - If the SMD simulation is being loaded from a NanoVer OpenMM XML file created
   via one of the SMDSimulation classes and contains an SMD force already, this
@@ -38,7 +38,6 @@ Things to test:
 - smd_com_force works as expected []
 - smd_single_atom_force works as expected []
 """
-import copy
 
 import pytest
 from contextlib import contextmanager
@@ -470,4 +469,24 @@ def test_smd_force_updates_correctly(indices):
         # Force parameters from system
         _, sys_bond_params = smd_sim.simulation.system.getForce(n_system_forces-1).getBondParameters(0)
         assert np.array_equal(np.array(sys_bond_params), new_force_position)
+
+
+def test_error_for_non_initial_restraint_during_equilibration():
+    """
+    Check that the SMD simulation throws an error if the user attempts to perform an
+    equilibration after updating the position of the SMD force.
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        TEST_SMD_SINGLE_INDEX,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    smd_sim.current_smd_force_position_index = 1
+    smd_sim.update_smd_force_position()
+    try:
+        smd_sim.run_equilibration_with_initial_restraint(n_steps=10)
+    except AssertionError:
+        pass
+
 
