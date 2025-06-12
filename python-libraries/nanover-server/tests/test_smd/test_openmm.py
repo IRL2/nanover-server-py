@@ -330,16 +330,30 @@ def test_reset(indices):
         pass
 
     # Check relevant observables from the simulation against the fresh simulation
-    smd_sim_state = smd_sim.simulation.context.getState(getPositions=True, getVelocities=True, getForces=True,
-                                                        getEnergy=True)
-    smd_sim_copy_state = smd_sim_copy.simulation.context.getState(getPositions=True, getVelocities=True, getForces=True,
-                                                                  getEnergy=True)
-    assert np.array_equal(smd_sim_state.getPositions(asNumpy=True), smd_sim_copy_state.getPositions(asNumpy=True))
-    assert np.array_equal(smd_sim_state.getVelocities(asNumpy=True), smd_sim_copy_state.getVelocities(asNumpy=True))
-    assert np.array_equal(smd_sim_state.getForces(asNumpy=True), smd_sim_copy_state.getForces(asNumpy=True))
+    smd_sim_state = smd_sim.simulation.context.getState(
+        getPositions=True, getVelocities=True, getForces=True, getEnergy=True
+    )
+    smd_sim_copy_state = smd_sim_copy.simulation.context.getState(
+        getPositions=True, getVelocities=True, getForces=True, getEnergy=True
+    )
+    assert np.array_equal(
+        smd_sim_state.getPositions(asNumpy=True),
+        smd_sim_copy_state.getPositions(asNumpy=True),
+    )
+    assert np.array_equal(
+        smd_sim_state.getVelocities(asNumpy=True),
+        smd_sim_copy_state.getVelocities(asNumpy=True),
+    )
+    assert np.array_equal(
+        smd_sim_state.getForces(asNumpy=True),
+        smd_sim_copy_state.getForces(asNumpy=True),
+    )
     assert smd_sim_state.getKineticEnergy() == smd_sim_copy_state.getKineticEnergy()
     assert smd_sim_state.getPotentialEnergy() == smd_sim_copy_state.getPotentialEnergy()
-    assert np.array_equal(smd_sim.smd_simulation_atom_positions, smd_sim_copy.smd_simulation_atom_positions)
+    assert np.array_equal(
+        smd_sim.smd_simulation_atom_positions,
+        smd_sim_copy.smd_simulation_atom_positions,
+    )
 
     # Check the arguments passed to the OpenMMSMDSimulation class are unchanged by the reset
     assert np.array_equal(smd_sim.smd_atom_indices, smd_sim_copy.smd_atom_indices)
@@ -347,20 +361,35 @@ def test_reset(indices):
     assert np.array_equal(smd_sim.smd_force_constant, smd_sim_copy.smd_force_constant)
 
     # Check that the SMD force attached to the simulation is correctly reset
-    assert np.array_equal(smd_sim.current_smd_force_position, smd_sim_copy.current_smd_force_position)
-    assert smd_sim.current_smd_force_position_index == smd_sim_copy.current_smd_force_position_index
-    assert smd_sim.smd_force.getEnergyFunction() == smd_sim_copy.smd_force.getEnergyFunction()
+    assert np.array_equal(
+        smd_sim.current_smd_force_position, smd_sim_copy.current_smd_force_position
+    )
+    assert (
+        smd_sim.current_smd_force_position_index
+        == smd_sim_copy.current_smd_force_position_index
+    )
+    assert (
+        smd_sim.smd_force.getEnergyFunction()
+        == smd_sim_copy.smd_force.getEnergyFunction()
+    )
     # Class-specific checks
     if type(smd_sim) == OpenMMSMDSimulationAtom:
-        assert smd_sim.smd_force.getParticleParameters(0) == smd_sim_copy.smd_force.getParticleParameters(0)
+        assert smd_sim.smd_force.getParticleParameters(
+            0
+        ) == smd_sim_copy.smd_force.getParticleParameters(0)
         assert smd_sim.smd_force.getNumParticles() == 1
     elif type(smd_sim) == OpenMMSMDSimulationCOM:
-        assert smd_sim.smd_force.getGroupParameters(0) == smd_sim_copy.smd_force.getGroupParameters(0)
+        assert smd_sim.smd_force.getGroupParameters(
+            0
+        ) == smd_sim_copy.smd_force.getGroupParameters(0)
         assert smd_sim.smd_force.getNumBonds() == 1
 
     # Check other relevant properties of the OpenMMSMDSimulation class match those of the
     # fresh copy after the reset
-    assert np.array_equal(smd_sim.smd_simulation_atom_positions, smd_sim_copy.smd_simulation_atom_positions)
+    assert np.array_equal(
+        smd_sim.smd_simulation_atom_positions,
+        smd_sim_copy.smd_simulation_atom_positions,
+    )
 
 
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
@@ -456,7 +485,9 @@ def test_smd_force_updates_correctly(indices):
         assert np.array_equal(np.array(position), new_force_position)
 
         # Force parameters from system
-        sys_index, sys_position = smd_sim.simulation.system.getForce(n_system_forces-1).getParticleParameters(0)
+        sys_index, sys_position = smd_sim.simulation.system.getForce(
+            n_system_forces - 1
+        ).getParticleParameters(0)
         assert sys_index == indices
         assert np.array_equal(np.array(sys_position), new_force_position)
 
@@ -467,7 +498,9 @@ def test_smd_force_updates_correctly(indices):
         assert np.array_equal(np.array(bond_params), new_force_position)
 
         # Force parameters from system
-        _, sys_bond_params = smd_sim.simulation.system.getForce(n_system_forces-1).getBondParameters(0)
+        _, sys_bond_params = smd_sim.simulation.system.getForce(
+            n_system_forces - 1
+        ).getBondParameters(0)
         assert np.array_equal(np.array(sys_bond_params), new_force_position)
 
 
@@ -488,5 +521,3 @@ def test_error_for_non_initial_restraint_during_equilibration():
         smd_sim.run_equilibration_with_initial_restraint(n_steps=10)
     except AssertionError:
         pass
-
-

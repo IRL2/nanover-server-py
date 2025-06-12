@@ -583,7 +583,9 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
         Calculate the cumulative work done by the SMD force on the
         atom with which it interacts over the SMD simulation.
         """
-        assert not np.array_equal(self.smd_simulation_atom_positions, np.zeros((self.smd_path.shape[0], 3)))
+        assert not np.array_equal(
+            self.smd_simulation_atom_positions, np.zeros((self.smd_path.shape[0], 3))
+        )
         self._calculate_forces(self.smd_simulation_atom_positions)
         self._calculate_work_done()
 
@@ -672,7 +674,8 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         """
         # TODO: Check this works and write tests!
         assert not np.array_equal(
-            self.smd_simulation_atom_positions, np.zeros((self.smd_path.shape[0], self.smd_atom_indices.size, 3))
+            self.smd_simulation_atom_positions,
+            np.zeros((self.smd_path.shape[0], self.smd_atom_indices.size, 3)),
         )
         atom_masses = np.zeros(self.n_smd_atom_indices)
         for index in range(self.n_smd_atom_indices):
