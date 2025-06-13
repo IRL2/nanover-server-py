@@ -449,6 +449,10 @@ def test_smd_force_removed_from_system(indices):
             assert force.getEnergyFunction() != smd_sim.smd_force.getEnergyFunction()
         except AttributeError:
             pass
+    # TODO: Figure out if it's possible to remove the force constant
+    #  associated with the force from global parameters (doesn't seem
+    #  to be implemented in OpenMM right now)
+    assert smd_sim.simulation.context.getParameter("smd_k") == TEST_SMD_FORCE_CONSTANT
 
 
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
