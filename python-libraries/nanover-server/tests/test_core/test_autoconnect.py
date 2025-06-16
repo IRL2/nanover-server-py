@@ -9,7 +9,7 @@ from nanover.app.app_server import MULTIPLAYER_SERVICE_NAME, DEFAULT_NANOVER_POR
 from nanover.core import NanoverServer
 from nanover.essd import DiscoveryServer, ServiceHub
 from nanover.essd.server import BROADCAST_PORT
-from nanover.essd.utils import get_broadcastable_ip
+from nanover.essd.utils import get_broadcastable_test_ip
 from nanover.imd import ImdServer, IMD_SERVICE_NAME
 from nanover.trajectory import FrameServer, FRAME_SERVICE_NAME
 
@@ -27,7 +27,7 @@ def broadcastable_servers():
 
     We do this because localhost is not always broadcastable in test environments.
     """
-    address = get_broadcastable_ip()
+    address = get_broadcastable_test_ip()
     with FrameServer(address=address, port=0) as frame_server:
         with ImdServer(address=address, port=0) as imd_server:
             with NanoverServer(address=address, port=0) as multiplayer_server:
@@ -42,7 +42,7 @@ def discoverable_imd_server():
     # Use unique non-default port for discovery. This avoids interference
     # with other tests and other servers on the network.
     DISCOVERY_PORT = BROADCAST_PORT + 1
-    address = get_broadcastable_ip()
+    address = get_broadcastable_test_ip()
     server = NanoverServer(address=address, port=0)
     discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
     with NanoverImdApplication(server, discovery) as app_server:
@@ -57,7 +57,7 @@ def test_autoconnect_app_server_default_ports():
     """
     mock = Mock(return_value={})
 
-    address = get_broadcastable_ip()
+    address = get_broadcastable_test_ip()
     server = NanoverServer(address=address, port=DEFAULT_NANOVER_PORT)
     discovery = DiscoveryServer(delay=DISCOVERY_DELAY)
 
@@ -150,7 +150,7 @@ def test_autoconnect_named_server():
     Test autoconnecting to a named server.
     """
     SERVER_NAME = "pytest baby yoda"
-    address = get_broadcastable_ip()
+    address = get_broadcastable_test_ip()
     server = NanoverServer(address=address, port=0)
     discovery = DiscoveryServer(delay=DISCOVERY_DELAY)
 
