@@ -91,6 +91,12 @@ KEY_TO_ATTRIBUTE = {
 }
 
 
+FIRST_FRAME_REQUIRED = {
+    PARTICLE_POSITIONS,
+    PARTICLE_COUNT,
+}
+
+
 def universe_from_recording(*, traj: PathLike[str]):
     """
     Read and convert a NanoVer trajectory recording into an mdanalysis Universe, ignore all frames after a frame_index
@@ -111,14 +117,13 @@ def universes_from_recording(*, traj: PathLike[str]):
     frame_offsets: list[int] = []
     universes: list[Universe] = []
     first_particle_frame = FrameData()
+    first_frame = last_frame = None
 
     def message_begins_next_universe(message):
         return message.frame_index == 0
 
     def finalise_prev_universe():
-        nonlocal first_particle_frame
-        if not frame_offsets:
-            return
+        nonlocal first_particle_frame, first_frame, last_frame
 
         reader = MessageRecordingReader(open(traj, "rb"))
         reader.message_offsets = list(frame_offsets)
@@ -128,22 +133,30 @@ def universes_from_recording(*, traj: PathLike[str]):
             universe.trajectory = NanoverReaderBase(reader, filename=traj)
             universes.append(universe)
         except Exception as e:
-            warnings.warn(f"Failed to extract one universe from recording: {e}")
+            warnings.warn(
+                f"Failed to extract universe in frames #{first_frame}-{last_frame}: {e}"
+            )
 
         frame_offsets.clear()
         first_particle_frame = FrameData()
+        first_frame = last_frame = None
 
     with MessageRecordingReader.from_path(traj) as reader:
-        for entry in reader:
+        for i, entry in enumerate(reader):
+            if first_frame is None:
+                first_frame = i
+            last_frame = i
+
             message = buffer_to_frame_message(entry.buffer)
-            if message_begins_next_universe(message):
+            if message_begins_next_universe(message) and frame_offsets:
                 finalise_prev_universe()
             # aggregate initial frames until there is position and topology information
-            if PARTICLE_POSITIONS not in first_particle_frame:
+            if not is_valid_first_frame(first_particle_frame):
                 first_particle_frame.raw.MergeFrom(message.frame)
             frame_offsets.append(entry.offset)
 
-    finalise_prev_universe()
+    if is_valid_first_frame(first_particle_frame) and frame_offsets:
+        finalise_prev_universe()
 
     return universes
 
@@ -351,7 +364,7 @@ def _trim_start_frame_reader(reader: MessageRecordingReader):
     for i, entry in enumerate(reader):
         message = buffer_to_frame_message(entry.buffer)
         first_frame.raw.MergeFrom(message.frame)
-        if PARTICLE_POSITIONS in first_frame:
+        if is_valid_first_frame(first_frame):
             reader.message_offsets = reader.message_offsets[i:]
             return first_frame
 
@@ -453,6 +466,10 @@ def explosion_mask(trajectory, max_displacement):
         previous = ts.positions
         prev_reset = reset
     return mask
+
+
+def is_valid_first_frame(frame):
+    return all(key in frame for key in FIRST_FRAME_REQUIRED)
 
 
 class NanoverReader(NanoverReaderBase):
