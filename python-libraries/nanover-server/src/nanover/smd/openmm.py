@@ -439,7 +439,7 @@ class OpenMMSMDSimulation:
 
         print("Work done calculated.")
 
-    def _calculate_forces(self, interaction_centre_positions):
+    def _calculate_smd_forces(self, interaction_centre_positions):
         """
         Calculate the SMD forces that acted on the system during the simulation in kJ mol-1 nm-1.
 
@@ -591,7 +591,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
         assert not np.array_equal(
             self.smd_simulation_atom_positions, np.zeros((self.smd_path.shape[0], 3))
         )
-        self._calculate_forces(self.smd_simulation_atom_positions)
+        self._calculate_smd_forces(self.smd_simulation_atom_positions)
         self._calculate_work_done()
 
 
@@ -697,7 +697,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         COM of the atoms with which it interacts over the SMD simulation.
         """
         self.calculate_com_trajectory()
-        self._calculate_forces(self.com_positions)
+        self._calculate_smd_forces(self.com_positions)
         self._calculate_work_done()
 
 

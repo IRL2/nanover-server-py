@@ -26,7 +26,7 @@ Things to test:
   time interval, and that these are saved to the correct location [√]
 - Running an SMD simulation produces reasonable results for the cumulative work done
   (may need to think about a specific test case for this...) []
-- _calculate_forces works as expected []
+- _calculate_smd_forces works as expected []
 - _calculate_work_done works as expected []
 - Simulation data is saved in the correct format to the correct location, and can be
   subsequently loaded back into python correctly []
@@ -42,10 +42,10 @@ Things to test:
 import tempfile
 from io import StringIO
 
-import pytest
-from contextlib import contextmanager, redirect_stdout
-
 import numpy as np
+import pytest
+from contextlib import redirect_stdout
+
 import openmm as mm
 from openmm import app
 from openmm.unit import (
@@ -55,8 +55,6 @@ from openmm.unit import (
     nanometer,
 )
 
-from nanover.omni.openmm import OpenMMSimulation
-from nanover.openmm import serializer
 from nanover.smd.openmm import *
 
 # Very basic thing to test entire class as it would be used: tutorial notebook that can be tested
@@ -687,7 +685,9 @@ def test_generate_starting_structures(n_structures, interval_ps):
             assert len(generated_files) == n_structures
 
             # Check that filenames are as expected
-            expected_filenames = sorted([f"{structure_file_prefix}_{i + 1}.xml" for i in range(n_structures)])
+            expected_filenames = sorted(
+                [f"{structure_file_prefix}_{i + 1}.xml" for i in range(n_structures)]
+            )
             actual_filenames = sorted(f.name for f in generated_files)
             assert actual_filenames == expected_filenames
 
@@ -695,3 +695,45 @@ def test_generate_starting_structures(n_structures, interval_ps):
             for file in generated_files:
                 size = file.stat().st_size
                 assert size > 0, f"File {file.name} is unexpectedly empty."
+
+
+@pytest.mark.parametrize(
+    "position_shifts",
+    [
+        np.array([0.0, 0.0, 0.0]),
+        np.array([1.0, 0.0, 0.0]),
+        np.array([0.0, 1.0, 0.0]),
+        np.array([0.0, 0.0, 1.0]),
+        np.array([2.0, 0.0, 0.0]),
+        np.array([1.75, -3.0, 5.263]),
+    ],
+)
+def test_calculate_smd_forces(position_shifts):
+    """
+    Test that the function _calculate_smd_forces correctly calculates the SMD forces
+    for a given set of positions that is passed to it. As the SMD force is harmonic,
+    we expect the force to take the form
+
+    F = - k * (position - smd_force_position)
+
+    This is tested below using the SMD force path given to the simulation, which is
+    shifted by some defined by the position_shifts parameter, meaning that we expect
+    the forces calculated to take the form
+
+    F = - k * position_shift
+
+    :param position_shifts: Array defining the offset for the positions defined by
+      the positions from the test SMD path
+    """
+    test_positions = TEST_SMD_PATH + position_shifts
+    expected_forces = (
+        np.zeros(TEST_SMD_PATH.shape) - TEST_SMD_FORCE_CONSTANT * position_shifts
+    )
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        TEST_SMD_SINGLE_INDEX,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    smd_sim._calculate_smd_forces(test_positions)
+    assert np.allclose(smd_sim.smd_simulation_forces, expected_forces)
