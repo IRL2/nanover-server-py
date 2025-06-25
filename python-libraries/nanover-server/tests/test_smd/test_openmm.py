@@ -21,7 +21,7 @@ Things to test:
 - If the SMD simulation is being loaded from a NanoVer OpenMM XML file created
   via one of the SMDSimulation classes and contains an SMD force already, this
   SMD force is correctly loaded and matches the expected force constant specified
-  when creating the class []
+  when creating the class [√]
 - The class can generate the correct number of starting structures in the specified
   time interval, and that these are saved to the correct location []
 - Running an SMD simulation produces reasonable results for the cumulative work done
