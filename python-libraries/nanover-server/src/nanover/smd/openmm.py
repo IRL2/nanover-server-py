@@ -713,7 +713,6 @@ def smd_com_force(force_constant: float, uses_pbcs: bool):
       the COM of the specified atoms.
     """
 
-    # TODO: Check that this works with PBCs correctly - may need to amend setUsesPBCs line...
     smd_force = CustomCentroidBondForce(1, SMD_FORCE_EXPRESSION_COM)
     smd_force.addGlobalParameter("smd_k", force_constant)
     smd_force.addPerBondParameter("x0")
