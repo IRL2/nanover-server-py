@@ -498,7 +498,7 @@ class OpenMMSMDSimulation:
             np.save(outfile, self.smd_simulation_atom_positions)
             np.save(outfile, self.smd_simulation_work_done)
 
-    def save_general_smd_data(self, path: str = None):
+    def save_general_smd_data(self, path: PathLike[str] = None):
         """
         Saves general data related to the SMD simulation in binary form that can be read
         into NumPy arrays. The following data are saved, in the order listed below:

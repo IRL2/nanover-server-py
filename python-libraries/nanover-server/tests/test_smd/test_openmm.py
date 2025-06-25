@@ -858,3 +858,43 @@ def test_save_smd_simulation_data(indices):
             loaded_smd_simulation_work_done = np.load(infile)
             assert np.array_equal(smd_sim.smd_simulation_atom_positions, loaded_smd_simulation_atom_positions)
             assert np.array_equal(smd_sim.smd_simulation_work_done, loaded_smd_simulation_work_done)
+
+
+@pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
+def test_save_general_smd_data(indices):
+    """
+    Check that the function save_general_smd_data correctly saves the
+    data from the SMD simulation in the correct format to the
+    correct location, and that the data can be subsequently loaded into
+    Python, giving the same results as before saving
+
+    :param indices: Indices of atoms to apply the SMD force to (should at least
+      test one single index and one set of indices)
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    smd_sim.run_smd()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = Path(tmpdir)
+        filename = "test_simulation_data.npy"
+        file_path = output_path.joinpath(filename)
+        smd_sim.save_general_smd_data(file_path)
+        assert file_path.exists()
+
+        with open(file_path, "rb") as infile:
+            loaded_smd_atom_indices = np.load(infile)
+            loaded_smd_path = np.load(infile)
+            loaded_smd_force_constant = np.load(infile)
+            loaded_temperature = np.load(infile)
+            loaded_timestep_ps = np.load(infile)
+
+            assert np.array_equal(smd_sim.smd_atom_indices, loaded_smd_atom_indices)
+            assert np.array_equal(smd_sim.smd_path, loaded_smd_path)
+            assert np.array_equal(smd_sim.smd_force_constant, loaded_smd_force_constant)
+            assert smd_sim.simulation.integrator.getTemperature()._value == loaded_temperature
+            assert smd_sim.simulation.integrator.getStepSize()._value == loaded_timestep_ps
