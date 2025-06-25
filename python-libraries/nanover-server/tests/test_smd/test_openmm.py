@@ -23,7 +23,7 @@ Things to test:
   SMD force is correctly loaded and matches the expected force constant specified
   when creating the class [√]
 - The class can generate the correct number of starting structures in the specified
-  time interval, and that these are saved to the correct location []
+  time interval, and that these are saved to the correct location [√]
 - Running an SMD simulation produces reasonable results for the cumulative work done
   (may need to think about a specific test case for this...) []
 - _calculate_forces works as expected []
@@ -687,8 +687,7 @@ def test_generate_starting_structures(n_structures, interval_ps):
             assert len(generated_files) == n_structures
 
             # Check that filenames are as expected
-            expected_filenames = [f"{structure_file_prefix}_{i + 1}.xml" for i in range(n_structures)]
-            expected_filenames.sort()
+            expected_filenames = sorted([f"{structure_file_prefix}_{i + 1}.xml" for i in range(n_structures)])
             actual_filenames = sorted(f.name for f in generated_files)
             assert actual_filenames == expected_filenames
 
