@@ -26,8 +26,8 @@ Things to test:
   time interval, and that these are saved to the correct location [√]
 - Running an SMD simulation produces reasonable results for the cumulative work done
   (may need to think about a specific test case for this...) []
-- _calculate_smd_forces works as expected []
-- _calculate_work_done works as expected []
+- _calculate_smd_forces works as expected [√]
+- _calculate_work_done works as expected [√]
 - Simulation data is saved in the correct format to the correct location, and can be
   subsequently loaded back into python correctly []
 - General SMD data is saved in the correct format to the correct location, and can be
@@ -767,3 +767,54 @@ def test_calculate_smd_forces(position_shifts):
     )
     smd_sim._calculate_smd_forces(test_positions)
     assert np.allclose(smd_sim.smd_simulation_forces, expected_forces)
+
+
+@pytest.mark.parametrize(
+    "position_shifts",
+    [
+        np.array([0.0, 0.0, 0.0]),
+        np.array([1.0, 0.0, 0.0]),
+        np.array([0.0, 1.0, 0.0]),
+        np.array([0.0, 0.0, 1.0]),
+        np.array([2.0, 0.0, 0.0]),
+        np.array([1.75, -3.0, 5.263]),
+    ],
+)
+def test_calculate_work_done(position_shifts):
+    """
+    Check that the work done by the SMD force on the system along the reaction
+    coordinate defined by the SMD path is correctly calculated in the function
+    _calculate_work_done. Uses the same logic as test_calculate_smd_forces.
+
+    :param position_shifts: Array defining the offset for the positions defined by
+      the positions from the test SMD path
+    """
+    test_positions = TEST_SMD_PATH + position_shifts
+
+    # Calculate displacements of force along test SMD path and
+    # check they are all approximately equal
+    smd_force_displacements = np.diff(TEST_SMD_PATH, axis=0)
+    diff = smd_force_displacements[0]
+    assert np.allclose(smd_force_displacements, np.full(smd_force_displacements.shape,diff))
+
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        TEST_SMD_SINGLE_INDEX,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    smd_sim._calculate_smd_forces(test_positions)
+
+    # Calculate expected work done as a function of time, based on forces and
+    # the vector between successive points defining the SMD coordinate. Zeroth
+    # value corresponds to work done at t=0 (i.e. zero), so non-zero values
+    # start at index 1. SMD paths are straight lines in the current examples,
+    # so work done between each step is the same.
+    smd_force = smd_sim.smd_simulation_forces[0]
+    work_per_step = np.dot(diff, smd_force)
+    expected_work_done = np.array([i*work_per_step for i in range(test_positions.shape[0])])
+
+    # Calculate work done using function and check that the values match the
+    # expected values
+    smd_sim._calculate_work_done()
+    assert np.allclose(smd_sim.smd_simulation_work_done, expected_work_done)
