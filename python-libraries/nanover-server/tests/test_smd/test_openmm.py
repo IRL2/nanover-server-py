@@ -29,7 +29,7 @@ Things to test:
 - _calculate_smd_forces works as expected [√]
 - _calculate_work_done works as expected [√]
 - Simulation data is saved in the correct format to the correct location, and can be
-  subsequently loaded back into python correctly []
+  subsequently loaded back into python correctly [√]
 - General SMD data is saved in the correct format to the correct location, and can be
   subsequently loaded back into python correctly []
 - For OpenMMSMDSimulationCOM, the COM of the specified atoms is correctly calculated []
@@ -825,3 +825,36 @@ def test_calculate_work_done(position_shifts, indices):
     # expected values
     smd_sim._calculate_work_done()
     assert np.allclose(smd_sim.smd_simulation_work_done, expected_work_done)
+
+
+@pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
+def test_save_smd_simulation_data(indices):
+    """
+    Check that the function save_smd_simulation_data correctly saves the
+    data from the specific SMD simulation in the correct format to the
+    correct location, and that the data can be subsequently loaded into
+    Python, giving the same results as before saving
+
+    :param indices: Indices of atoms to apply the SMD force to (should at least
+      test one single index and one set of indices)
+    """
+
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    smd_sim.run_smd()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = Path(tmpdir)
+        filename = "test_simulation_data.npy"
+        file_path = output_path.joinpath(filename)
+        smd_sim.save_smd_simulation_data(file_path)
+        assert file_path.exists()
+
+        with open(file_path, "rb") as infile:
+            loaded_smd_simulation_atom_positions = np.load(infile)
+            loaded_smd_simulation_work_done = np.load(infile)
+            assert np.array_equal(smd_sim.smd_simulation_atom_positions, loaded_smd_simulation_atom_positions)
+            assert np.array_equal(smd_sim.smd_simulation_work_done, loaded_smd_simulation_work_done)
