@@ -17,7 +17,7 @@ Things to test:
 - SMD force position is correctly updated [√]
 - Running the equilibration with the initial restraint throws an error correctly
   when run with the SMD force not located at the initial position [√]
-- The SMD simulation can be saved correctly, with or without the SMD force []
+- The SMD simulation can be saved correctly, with or without the SMD force [√]
 - If the SMD simulation is being loaded from a NanoVer OpenMM XML file created
   via one of the SMDSimulation classes and contains an SMD force already, this
   SMD force is correctly loaded and matches the expected force constant specified
@@ -38,6 +38,7 @@ Things to test:
 - smd_com_force works as expected []
 - smd_single_atom_force works as expected []
 """
+
 from io import StringIO
 
 import pytest
@@ -175,9 +176,11 @@ def make_basic_simulation_xml(tmp_path):
         xml_file.write(serialized_simulation)
     return xml_path
 
+
 @pytest.fixture
 def make_basic_smd_simulation_with_atom_smd_force_xml(tmp_path):
-    smd_sim = OpenMMSMDSimulation.from_simulation(build_basic_simulation(),
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
         TEST_SMD_SINGLE_INDEX,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
@@ -186,15 +189,43 @@ def make_basic_smd_simulation_with_atom_smd_force_xml(tmp_path):
     smd_sim.save_simulation(xml_path, save_state=True, save_smd_force=True)
     return xml_path
 
+
 @pytest.fixture
 def make_basic_smd_simulation_with_com_smd_force_xml(tmp_path):
-    smd_sim = OpenMMSMDSimulation.from_simulation(build_basic_simulation(),
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
         TEST_SMD_MULTIPLE_INDICES,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
     xml_path = tmp_path / "basic_smd_simulation.xml"
     smd_sim.save_simulation(xml_path, save_state=True, save_smd_force=True)
+    return xml_path
+
+
+@pytest.fixture
+def make_basic_smd_simulation_without_atom_smd_force_xml(tmp_path):
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        TEST_SMD_SINGLE_INDEX,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    xml_path = tmp_path / "basic_smd_simulation.xml"
+    smd_sim.save_simulation(xml_path, save_state=True, save_smd_force=False)
+    return xml_path
+
+
+@pytest.fixture
+def make_basic_smd_simulation_without_com_smd_force_xml(tmp_path):
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        TEST_SMD_MULTIPLE_INDICES,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    xml_path = tmp_path / "basic_smd_simulation.xml"
+    smd_sim.save_simulation(xml_path, save_state=True, save_smd_force=False)
     return xml_path
 
 
@@ -233,7 +264,9 @@ def test_load_smd_sim_from_xml_path(make_basic_simulation_xml):
     assert smd_sim.smd_force_constant == TEST_SMD_FORCE_CONSTANT
 
 
-def test_load_smd_simulation_with_atom_smd_force_from_xml_path(make_basic_smd_simulation_with_atom_smd_force_xml):
+def test_load_smd_simulation_with_atom_smd_force_from_xml_path(
+    make_basic_smd_simulation_with_atom_smd_force_xml,
+):
     """
     Check that when an input file containing a single atom SMD force is passed to the
     OpenMMSMDSimulation class, the SMD force is loaded correctly from the file using
@@ -249,7 +282,10 @@ def test_load_smd_simulation_with_atom_smd_force_from_xml_path(make_basic_smd_si
         )
         assert smd_sim.loaded_smd_force_from_sim
 
-def test_load_smd_simulation_with_com_smd_force_from_xml_path(make_basic_smd_simulation_with_com_smd_force_xml):
+
+def test_load_smd_simulation_with_com_smd_force_from_xml_path(
+    make_basic_smd_simulation_with_com_smd_force_xml,
+):
     """
     Check that when an input file containing a COM SMD force is passed to the
     OpenMMSMDSimulation class, the SMD force is loaded correctly from the file using
@@ -264,6 +300,39 @@ def test_load_smd_simulation_with_com_smd_force_from_xml_path(make_basic_smd_sim
             TEST_SMD_FORCE_CONSTANT,
         )
         assert smd_sim.loaded_smd_force_from_sim
+
+
+def test_load_smd_simulation_without_atom_smd_force_from_xml_path(
+    make_basic_smd_simulation_without_atom_smd_force_xml,
+):
+    """
+    Check that when an xml input file is saved from an OpenMMSMDSimulationAtom class
+    without the SMD force, the SMD force is not loaded from the file.
+    """
+    smd_sim = OpenMMSMDSimulation.from_xml_path(
+        make_basic_smd_simulation_without_atom_smd_force_xml,
+        TEST_SMD_SINGLE_INDEX,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    assert not smd_sim.loaded_smd_force_from_sim
+
+
+def test_load_smd_simulation_without_com_smd_force_from_xml_path(
+    make_basic_smd_simulation_without_com_smd_force_xml,
+):
+    """
+    Check that when an xml input file is saved from an OpenMMSMDSimulationCOM class
+    without the SMD force, the SMD force is not loaded from the file.
+    """
+    smd_sim = OpenMMSMDSimulation.from_xml_path(
+        make_basic_smd_simulation_without_com_smd_force_xml,
+        TEST_SMD_MULTIPLE_INDICES,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+    assert not smd_sim.loaded_smd_force_from_sim
+
 
 @pytest.mark.parametrize(
     "indices, sim_type",
