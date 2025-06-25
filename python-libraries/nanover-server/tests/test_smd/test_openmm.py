@@ -39,6 +39,7 @@ Things to test:
 - smd_single_atom_force works as expected []
 """
 
+import tempfile
 from io import StringIO
 
 import pytest
@@ -650,3 +651,48 @@ def test_error_for_non_initial_restraint_during_equilibration():
         smd_sim.run_equilibration_with_initial_restraint(n_steps=10)
     except AssertionError:
         pass
+
+
+@pytest.mark.parametrize("n_structures", [10, 100, 1000])
+@pytest.mark.parametrize("interval_ps", [10.0, 100.0])
+def test_generate_starting_structures(n_structures, interval_ps):
+    """
+    Check that the SMD simulation class generates the correct number of starting
+    structures in a given time interval, saves them to the correct path, and check
+    that the generated files aren't empty.
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(),
+        TEST_SMD_SINGLE_INDEX,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+
+    structure_file_prefix = "starting_structure"
+    with redirect_stdout(StringIO()) as _:
+        with tempfile.TemporaryDirectory() as tmpdir:
+
+            output_path = Path(tmpdir)
+
+            smd_sim.generate_starting_structures(
+                interval_ps=interval_ps,
+                n_structures=n_structures,
+                output_directory=output_path,
+                filename_prefix=structure_file_prefix,
+                save_smd_force=False,
+            )
+
+            # Check that correct number of files are generated
+            generated_files = list(output_path.glob(f"{structure_file_prefix}_*.xml"))
+            assert len(generated_files) == n_structures
+
+            # Check that filenames are as expected
+            expected_filenames = [f"{structure_file_prefix}_{i + 1}.xml" for i in range(n_structures)]
+            expected_filenames.sort()
+            actual_filenames = sorted(f.name for f in generated_files)
+            assert actual_filenames == expected_filenames
+
+            # Check that files aren't empty
+            for file in generated_files:
+                size = file.stat().st_size
+                assert size > 0, f"File {file.name} is unexpectedly empty."

@@ -12,7 +12,9 @@ from openmm.app import Simulation
 from nanover.openmm import serializer
 
 SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC = "0.5 * smd_k * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)"
-SMD_FORCE_EXPRESSION_ATOM_PERIODIC = "0.5 * smd_k * periodicdistance(x, y, z, x0, y0, z0)^2"
+SMD_FORCE_EXPRESSION_ATOM_PERIODIC = (
+    "0.5 * smd_k * periodicdistance(x, y, z, x0, y0, z0)^2"
+)
 SMD_FORCE_EXPRESSION_COM = "0.5 * smd_k * pointdistance(x1, y1, z1, x0, y0, z0)^2"
 
 
@@ -542,8 +544,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
             params = smd_force.getParticleParameters(0)
             assert type(smd_force) == CustomExternalForce
             assert (
-                smd_force.getEnergyFunction()
-                == SMD_FORCE_EXPRESSION_ATOM_PERIODIC
+                smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_ATOM_PERIODIC
                 or smd_force.getEnergyFunction()
                 == SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC
             )
@@ -612,10 +613,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
             n_forces = self.simulation.system.getNumForces()
             smd_force = self.simulation.system.getForce(n_forces - 1)
             assert type(smd_force) == CustomCentroidBondForce
-            assert (
-                smd_force.getEnergyFunction()
-                == SMD_FORCE_EXPRESSION_COM
-            )
+            assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_COM
             assert smd_force.getNumGroups() == 1
             assert force_constant == self.smd_force_constant
             assert np.all(
@@ -716,9 +714,7 @@ def smd_com_force(force_constant: float, uses_pbcs: bool):
     """
 
     # TODO: Check that this works with PBCs correctly - may need to amend setUsesPBCs line...
-    smd_force = CustomCentroidBondForce(
-        1, SMD_FORCE_EXPRESSION_COM
-    )
+    smd_force = CustomCentroidBondForce(1, SMD_FORCE_EXPRESSION_COM)
     smd_force.addGlobalParameter("smd_k", force_constant)
     smd_force.addPerBondParameter("x0")
     smd_force.addPerBondParameter("y0")
@@ -741,13 +737,9 @@ def smd_single_atom_force(force_constant: float, uses_pbcs: bool):
       specified atom.
     """
     if uses_pbcs:
-        smd_force = CustomExternalForce(
-            SMD_FORCE_EXPRESSION_ATOM_PERIODIC
-        )
+        smd_force = CustomExternalForce(SMD_FORCE_EXPRESSION_ATOM_PERIODIC)
     else:
-        smd_force = CustomExternalForce(
-            SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC
-        )
+        smd_force = CustomExternalForce(SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC)
     smd_force.addGlobalParameter("smd_k", force_constant)
     smd_force.addPerParticleParameter("x0")
     smd_force.addPerParticleParameter("y0")
