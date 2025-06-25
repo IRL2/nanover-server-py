@@ -738,7 +738,8 @@ def test_generate_starting_structures(n_structures, interval_ps):
         np.array([1.75, -3.0, 5.263]),
     ],
 )
-def test_calculate_smd_forces(position_shifts):
+@pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
+def test_calculate_smd_forces(position_shifts, indices):
     """
     Test that the function _calculate_smd_forces correctly calculates the SMD forces
     for a given set of positions that is passed to it. As the SMD force is harmonic,
@@ -754,6 +755,8 @@ def test_calculate_smd_forces(position_shifts):
 
     :param position_shifts: Array defining the offset for the positions defined by
       the positions from the test SMD path
+    :param indices: Indices of atoms to apply the SMD force to (should at least
+      test one single index and one set of indices)
     """
     test_positions = TEST_SMD_PATH + position_shifts
     expected_forces = (
@@ -761,7 +764,7 @@ def test_calculate_smd_forces(position_shifts):
     )
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
-        TEST_SMD_SINGLE_INDEX,
+        indices,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
@@ -780,7 +783,8 @@ def test_calculate_smd_forces(position_shifts):
         np.array([1.75, -3.0, 5.263]),
     ],
 )
-def test_calculate_work_done(position_shifts):
+@pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
+def test_calculate_work_done(position_shifts, indices):
     """
     Check that the work done by the SMD force on the system along the reaction
     coordinate defined by the SMD path is correctly calculated in the function
@@ -788,6 +792,8 @@ def test_calculate_work_done(position_shifts):
 
     :param position_shifts: Array defining the offset for the positions defined by
       the positions from the test SMD path
+    :param indices: Indices of atoms to apply the SMD force to (should at least
+      test one single index and one set of indices)
     """
     # TODO: Generalise to curved paths?
     test_positions = TEST_SMD_PATH + position_shifts
@@ -800,7 +806,7 @@ def test_calculate_work_done(position_shifts):
 
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
-        TEST_SMD_SINGLE_INDEX,
+        indices,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
