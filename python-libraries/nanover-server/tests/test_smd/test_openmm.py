@@ -651,13 +651,17 @@ def test_error_for_non_initial_restraint_during_equilibration():
         pass
 
 
-@pytest.mark.parametrize("n_structures", [10, 100, 1000])
+@pytest.mark.parametrize("n_structures", [10, 100, 328, 1000])
 @pytest.mark.parametrize("interval_ps", [10.0, 100.0])
 def test_generate_starting_structures(n_structures, interval_ps):
     """
     Check that the SMD simulation class generates the correct number of starting
     structures in a given time interval, saves them to the correct path, and check
     that the generated files aren't empty.
+
+    :param n_structures: Number of structures to generate
+    :param interval_ps: Simulation time interval (in picoseconds) in which to
+      generate the structures
     """
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
