@@ -789,6 +789,7 @@ def test_calculate_work_done(position_shifts):
     :param position_shifts: Array defining the offset for the positions defined by
       the positions from the test SMD path
     """
+    # TODO: Generalise to curved paths?
     test_positions = TEST_SMD_PATH + position_shifts
 
     # Calculate displacements of force along test SMD path and
