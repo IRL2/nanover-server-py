@@ -345,6 +345,10 @@ def test_return_correct_smd_sim_type(indices, sim_type):
     Check that the OpenMMSMDSimulation class returns the correct subclass depending on the
     number of indices that are passed to it (one for OpenMMSMDSimulationAtom, more than one
     for OpenMMSMDSimulationCOM).
+
+    :param indices: Indices of atoms to apply the SMD force to (should at least
+      test one single index and one set of indices)
+    :param sim_type: Type of simulation to expect for the indices given
     """
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
@@ -363,6 +367,10 @@ def test_simulation_pbcs_are_respected(apply_pbcs, indices):
     OpenMMSMDSimulation class are respected (i.e. the PBCs of the SMD simulation match
     those of the OpenMM simulation), and that the PBCs of the SMD force match the PBCs
     of the simulation.
+
+    :param apply_pbcs: Boolean value indicating whether to apply PBCs to the simulation
+    :param indices: Indices of atoms to apply the SMD force to (should at least
+      test one single index and one set of indices)
     """
     sim = build_basic_simulation(pbcs=apply_pbcs)
     uses_pbcs = sim.system.usesPeriodicBoundaryConditions()
@@ -383,6 +391,9 @@ def test_smd_force_attaches_to_correct_atom(index):
     """
     Check that the SMD force is attached to the correct atom when a single index is passed.
     Should use the OpenMMSMDSimulationAtom class, with only one CustomExternalForce.
+
+    :param index: Indices of atoms to apply the SMD force to (should be arrays containing
+      a single index)
     """
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
@@ -409,6 +420,9 @@ def test_smd_force_attaches_to_correct_atoms(indices):
     """
     Check that the SMD force attaches to the correct atoms when an array of indices is passed.
     Should use the OpenMMSMDSimulationCOM class, with only one CustomCentroidBondForce.
+
+    :param indices: Indices of atoms to apply the SMD force to (should be arrays of multiple
+      indices)
     """
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
@@ -426,6 +440,9 @@ def test_reset(indices):
     """
     Check that all the attributes of the OpenMMSMDSimulation subclasses are reset to their initial
     state by the .reset() function of the class.
+
+    :param indices: Indices of atoms to apply the SMD force to (should at least
+      test one single index and one set of indices)
     """
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
@@ -521,6 +538,9 @@ def test_smd_force_added_to_system(indices):
     """
     Check that the last force to be added to the OpenMM simulation is the SMD force added during
     initialisation of the OpenMMSMDSimulation class, with force group 31.
+
+    :param indices: Indices of atoms to apply the SMD force to (should at least
+      test one single index and one set of indices)
     """
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
@@ -544,6 +564,9 @@ def test_smd_force_removed_from_system(indices):
     """
     Check that the SMD force is correctly removed from the OpenMM simulation upon calling
     remove_smd_force_from_system().
+
+    :param indices: Indices of atoms to apply the SMD force to (should at least
+      test one single index and one set of indices)
     """
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
@@ -584,6 +607,9 @@ def test_smd_force_updates_correctly(indices):
     """
     Check that the position of the SMD force is correctly updated upon calling
     update_smd_force_position().
+
+    :param indices: Indices of atoms to apply the SMD force to (should at least
+      test one single index and one set of indices)
     """
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
