@@ -754,6 +754,7 @@ def calculate_com(atom_positions: np.ndarray, atom_masses: np.ndarray) -> np.nda
     :param atom_masses: NumPy array of atomic masses (AMU) with dimension (N)
     :return: NumPy array containing the position of the centre of mass of the atoms with dimension (3)
     """
+    # TODO: Make sure this can handle periodic boundary conditions correctly
     return np.sum(
         np.multiply(np.transpose(atom_positions), atom_masses), axis=1
     ) / np.sum(atom_masses)
