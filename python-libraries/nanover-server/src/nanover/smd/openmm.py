@@ -11,11 +11,12 @@ from openmm.app import Simulation
 
 from nanover.openmm import serializer
 
-SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC = "0.5 * smd_k * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)"
+SMD_FORCE_CONSTANT_PARAMETER_NAME = "smd_k"
+SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC = f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)"
 SMD_FORCE_EXPRESSION_ATOM_PERIODIC = (
-    "0.5 * smd_k * periodicdistance(x, y, z, x0, y0, z0)^2"
+    f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * periodicdistance(x, y, z, x0, y0, z0)^2"
 )
-SMD_FORCE_EXPRESSION_COM = "0.5 * smd_k * pointdistance(x1, y1, z1, x0, y0, z0)^2"
+SMD_FORCE_EXPRESSION_COM = f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * pointdistance(x1, y1, z1, x0, y0, z0)^2"
 
 
 class OpenMMSMDSimulation:
@@ -250,7 +251,7 @@ class OpenMMSMDSimulation:
         for i in range(len(forces)):
             if (
                 type(forces[i]) == type(self.smd_force)
-                and forces[i].getGlobalParameterName(0) == "smd_k"
+                and forces[i].getGlobalParameterName(0) == SMD_FORCE_CONSTANT_PARAMETER_NAME
             ):
                 forces_to_remove.append(i)
 
@@ -329,7 +330,7 @@ class OpenMMSMDSimulation:
                 #  WARNING: this will not work if you have other parameters!
                 #  maybe change smd_k to a per bond parameter?
                 xml_string = "\n".join(
-                    x for x in xml_string.splitlines() if "smd_k" not in x
+                    x for x in xml_string.splitlines() if SMD_FORCE_CONSTANT_PARAMETER_NAME not in x
                 )
                 outfile.write(xml_string)
 
@@ -538,7 +539,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
     def check_for_existing_smd_force(self):
 
         try:
-            force_constant = self.simulation.context.getParameter("smd_k")
+            force_constant = self.simulation.context.getParameter(SMD_FORCE_CONSTANT_PARAMETER_NAME)
             n_forces = self.simulation.system.getNumForces()
             smd_force = self.simulation.system.getForce(n_forces - 1)
             params = smd_force.getParticleParameters(0)
@@ -609,7 +610,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
 
     def check_for_existing_smd_force(self):
         try:
-            force_constant = self.simulation.context.getParameter("smd_k")
+            force_constant = self.simulation.context.getParameter(SMD_FORCE_CONSTANT_PARAMETER_NAME)
             n_forces = self.simulation.system.getNumForces()
             smd_force = self.simulation.system.getForce(n_forces - 1)
             assert type(smd_force) == CustomCentroidBondForce
@@ -710,7 +711,7 @@ def smd_com_force(force_constant: float, uses_pbcs: bool):
     """
 
     smd_force = CustomCentroidBondForce(1, SMD_FORCE_EXPRESSION_COM)
-    smd_force.addGlobalParameter("smd_k", force_constant)
+    smd_force.addGlobalParameter(SMD_FORCE_CONSTANT_PARAMETER_NAME, force_constant)
     smd_force.addPerBondParameter("x0")
     smd_force.addPerBondParameter("y0")
     smd_force.addPerBondParameter("z0")
@@ -735,7 +736,7 @@ def smd_single_atom_force(force_constant: float, uses_pbcs: bool):
         smd_force = CustomExternalForce(SMD_FORCE_EXPRESSION_ATOM_PERIODIC)
     else:
         smd_force = CustomExternalForce(SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC)
-    smd_force.addGlobalParameter("smd_k", force_constant)
+    smd_force.addGlobalParameter(SMD_FORCE_CONSTANT_PARAMETER_NAME, force_constant)
     smd_force.addPerParticleParameter("x0")
     smd_force.addPerParticleParameter("y0")
     smd_force.addPerParticleParameter("z0")

@@ -36,8 +36,8 @@ Things to test:
 - For OpenMMSMDSimulationCOM, the COM of the specified atoms is correctly calculated [√]
 - For OpenMMSMDSimulationCOM, the trajectory of the COM of the specified atoms is
   correctly calculated [√]
-- smd_com_force works as expected []
-- smd_single_atom_force works as expected []
+- smd_com_force works as expected [√]
+- smd_single_atom_force works as expected [√]
 """
 
 import tempfile
@@ -1084,4 +1084,45 @@ def test_calculate_com_trajectory_smd_simulation_class(positions, masses, com):
     # COMs match the predicted COMs
     smd_sim._calculate_com_trajectory()
     assert np.allclose(smd_sim.com_positions, expected_com_array, atol=1e-16)
+
+
+@pytest.mark.parametrize("pbcs", [True, False])
+def test_smd_com_force(pbcs):
+    """
+    Check that the force produced by the function smd_com_force returns
+    a force with the correct properties.
+    """
+    smd_force = smd_com_force(TEST_SMD_FORCE_CONSTANT, uses_pbcs=pbcs)
+    assert type(smd_force) == CustomCentroidBondForce
+    assert smd_force.usesPeriodicBoundaryConditions() == pbcs
+    assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_COM
+    assert smd_force.getGlobalParameterName(0) == SMD_FORCE_CONSTANT_PARAMETER_NAME
+    assert smd_force.getGlobalParameterDefaultValue(0) == TEST_SMD_FORCE_CONSTANT
+    assert smd_force.getNumPerBondParameters() == 3
+    assert smd_force.getPerBondParameterName(0) == "x0"
+    assert smd_force.getPerBondParameterName(1) == "y0"
+    assert smd_force.getPerBondParameterName(2) == "z0"
+    assert smd_force.getForceGroup() == 31
+
+
+@pytest.mark.parametrize("pbcs", [True, False])
+def test_smd_single_atom_force(pbcs):
+    """
+    Check that the force produced by the function smd_single_atom_force
+    returns a force with the correct properties.
+    """
+    smd_force = smd_single_atom_force(TEST_SMD_FORCE_CONSTANT, uses_pbcs=pbcs)
+    assert type(smd_force) == CustomExternalForce
+    assert smd_force.usesPeriodicBoundaryConditions() == pbcs
+    if pbcs:
+        assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_ATOM_PERIODIC
+    else:
+        assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC
+    assert smd_force.getGlobalParameterName(0) == SMD_FORCE_CONSTANT_PARAMETER_NAME
+    assert smd_force.getGlobalParameterDefaultValue(0) == TEST_SMD_FORCE_CONSTANT
+    assert smd_force.getNumPerParticleParameters() == 3
+    assert smd_force.getPerParticleParameterName(0) == "x0"
+    assert smd_force.getPerParticleParameterName(1) == "y0"
+    assert smd_force.getPerParticleParameterName(2) == "z0"
+    assert smd_force.getForceGroup() == 31
 
