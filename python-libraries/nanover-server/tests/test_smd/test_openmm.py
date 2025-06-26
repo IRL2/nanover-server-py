@@ -31,7 +31,8 @@ Things to test:
 - Simulation data is saved in the correct format to the correct location, and can be
   subsequently loaded back into python correctly [√]
 - General SMD data is saved in the correct format to the correct location, and can be
-  subsequently loaded back into python correctly []
+  subsequently loaded back into python correctly [√]
+- The COM of a specified group of atoms is correctly calculated [√]
 - For OpenMMSMDSimulationCOM, the COM of the specified atoms is correctly calculated []
 - For OpenMMSMDSimulationCOM, the trajectory of the COM of the specified atoms is
   correctly calculated []
@@ -75,12 +76,56 @@ BASIC_SIMULATION_POSITIONS = [
 ]
 ARGON_SIMULATION_POSITION = [[0.0, 0.0, 0.0]]
 
+# Test parameters for OpenMMSMDSimulation
 TEST_SMD_SINGLE_INDEX = np.array(0)
 TEST_SMD_MULTIPLE_INDICES = np.array([0, 1, 2, 3])
 TEST_SMD_PATH = np.array(
     [np.linspace(0.05, 1.05, 101), np.zeros(101), np.zeros(101)]
 ).transpose()
 TEST_SMD_FORCE_CONSTANT = 3011.0
+
+# Test systems for COM calculations, formatted as (positions, masses, expected COM)
+TEST_COM_TWO_ATOMS = (
+    np.array([[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]),
+    np.array([1.0, 1.0]),
+    np.array([0.0, 0.0, 0.0]),
+)
+TEST_COM_METHANE = (
+    np.array(
+        [
+            [1.0, 1.0, 0.0],
+            [0.0, 1.0, -1.0 / np.sqrt(2)],
+            [2.0, 1.0, -1.0 / np.sqrt(2)],
+            [1.0, 0.0, 1.0 / np.sqrt(2)],
+            [1.0, 2.0, 1.0 / np.sqrt(2)],
+        ]
+    ),
+    np.array([12.01, 1.00, 1.00, 1.00, 1.00]),
+    np.array([1.0, 1.0, 0.0]),
+)
+TEST_COM_CIRCLE = (
+    np.array(
+        [[np.cos(i * (np.pi / 4)), 0.0, np.sin(i * (np.pi / 4))] for i in range(8)]
+    ),
+    np.array([2.0, 1.05, 2.0, 1.05, 2.0, 1.05, 2.0, 1.05]),
+    np.array([0.0, 0.0, 0.0]),
+)
+TEST_COM_CUBE = (
+    np.array(
+        [
+            [0.0, 1.0, 2.0],
+            [0.0, 1.0, 4.0],
+            [0.0, 3.0, 2.0],
+            [0.0, 3.0, 4.0],
+            [2.0, 1.0, 2.0],
+            [2.0, 1.0, 4.0],
+            [2.0, 3.0, 2.0],
+            [2.0, 3.0, 4.0],
+        ]
+    ),
+    np.array([6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0]),
+    np.array([1.0, 2.0, 3.0]),
+)
 
 
 def build_basic_system():
@@ -769,7 +814,7 @@ def test_calculate_smd_forces(position_shifts, indices):
         TEST_SMD_FORCE_CONSTANT,
     )
     smd_sim._calculate_smd_forces(test_positions)
-    assert np.allclose(smd_sim.smd_simulation_forces, expected_forces)
+    assert np.allclose(smd_sim.smd_simulation_forces, expected_forces, atol=1e-16)
 
 
 @pytest.mark.parametrize(
@@ -802,7 +847,11 @@ def test_calculate_work_done(position_shifts, indices):
     # check they are all approximately equal
     smd_force_displacements = np.diff(TEST_SMD_PATH, axis=0)
     diff = smd_force_displacements[0]
-    assert np.allclose(smd_force_displacements, np.full(smd_force_displacements.shape,diff))
+    assert np.allclose(
+        smd_force_displacements,
+        np.full(smd_force_displacements.shape, diff),
+        atol=1e-16,
+    )
 
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(),
@@ -819,12 +868,14 @@ def test_calculate_work_done(position_shifts, indices):
     # so work done between each step is the same.
     smd_force = smd_sim.smd_simulation_forces[0]
     work_per_step = np.dot(diff, smd_force)
-    expected_work_done = np.array([i*work_per_step for i in range(test_positions.shape[0])])
+    expected_work_done = np.array(
+        [i * work_per_step for i in range(test_positions.shape[0])]
+    )
 
     # Calculate work done using function and check that the values match the
     # expected values
     smd_sim._calculate_work_done()
-    assert np.allclose(smd_sim.smd_simulation_work_done, expected_work_done)
+    assert np.allclose(smd_sim.smd_simulation_work_done, expected_work_done, atol=1e-16)
 
 
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
@@ -845,7 +896,9 @@ def test_save_smd_simulation_data(indices):
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
-    smd_sim.run_smd()
+    with redirect_stdout(StringIO()) as _:
+        smd_sim.run_smd()
+
     with tempfile.TemporaryDirectory() as tmpdir:
         output_path = Path(tmpdir)
         filename = "test_simulation_data.npy"
@@ -856,8 +909,14 @@ def test_save_smd_simulation_data(indices):
         with open(file_path, "rb") as infile:
             loaded_smd_simulation_atom_positions = np.load(infile)
             loaded_smd_simulation_work_done = np.load(infile)
-            assert np.array_equal(smd_sim.smd_simulation_atom_positions, loaded_smd_simulation_atom_positions)
-            assert np.array_equal(smd_sim.smd_simulation_work_done, loaded_smd_simulation_work_done)
+
+            assert np.array_equal(
+                smd_sim.smd_simulation_atom_positions,
+                loaded_smd_simulation_atom_positions,
+            )
+            assert np.array_equal(
+                smd_sim.smd_simulation_work_done, loaded_smd_simulation_work_done
+            )
 
 
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
@@ -877,7 +936,8 @@ def test_save_general_smd_data(indices):
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
-    smd_sim.run_smd()
+    with redirect_stdout(StringIO()) as _:
+        smd_sim.run_smd()
 
     with tempfile.TemporaryDirectory() as tmpdir:
         output_path = Path(tmpdir)
@@ -896,5 +956,26 @@ def test_save_general_smd_data(indices):
             assert np.array_equal(smd_sim.smd_atom_indices, loaded_smd_atom_indices)
             assert np.array_equal(smd_sim.smd_path, loaded_smd_path)
             assert np.array_equal(smd_sim.smd_force_constant, loaded_smd_force_constant)
-            assert smd_sim.simulation.integrator.getTemperature()._value == loaded_temperature
-            assert smd_sim.simulation.integrator.getStepSize()._value == loaded_timestep_ps
+            assert (
+                smd_sim.simulation.integrator.getTemperature()._value
+                == loaded_temperature
+            )
+            assert (
+                smd_sim.simulation.integrator.getStepSize()._value == loaded_timestep_ps
+            )
+
+
+@pytest.mark.parametrize(
+    "positions, masses, com",
+    [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
+)
+def test_calculate_com(positions, masses, com):
+    """
+    Check that the function calculate_com correctly calculates
+    the centre of mass of a set of atoms, given their positions
+    and masses.
+    """
+    calculated_com = calculate_com(positions, masses)
+    expected_com = com
+    assert np.allclose(calculated_com, expected_com, atol=1e-16)
+
