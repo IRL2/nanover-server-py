@@ -1074,7 +1074,9 @@ def test_calculate_com_trajectory_smd_simulation_class(positions, masses, com):
     atom_positions = np.zeros((TEST_SMD_PATH.shape[0], *positions.shape))
     expected_com_array = np.zeros(TEST_SMD_PATH.shape)
     for i in range(TEST_SMD_PATH.shape[0]):
-        atom_positions[i] = positions + np.array([TEST_SMD_PATH[i] for j in range(indices.size)])
+        atom_positions[i] = positions + np.array(
+            [TEST_SMD_PATH[i] for j in range(indices.size)]
+        )
         expected_com_array[i] = com + TEST_SMD_PATH[i]
 
     # Set SMD atom positions equal to the trajectory of calculated atom positions
@@ -1125,4 +1127,3 @@ def test_smd_single_atom_force(pbcs):
     assert smd_force.getPerParticleParameterName(1) == "y0"
     assert smd_force.getPerParticleParameterName(2) == "z0"
     assert smd_force.getForceGroup() == 31
-

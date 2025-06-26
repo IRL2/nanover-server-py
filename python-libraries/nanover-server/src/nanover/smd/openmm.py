@@ -12,10 +12,10 @@ from openmm.app import Simulation
 from nanover.openmm import serializer
 
 SMD_FORCE_CONSTANT_PARAMETER_NAME = "smd_k"
-SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC = f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)"
-SMD_FORCE_EXPRESSION_ATOM_PERIODIC = (
-    f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * periodicdistance(x, y, z, x0, y0, z0)^2"
+SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC = (
+    f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)"
 )
+SMD_FORCE_EXPRESSION_ATOM_PERIODIC = f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * periodicdistance(x, y, z, x0, y0, z0)^2"
 SMD_FORCE_EXPRESSION_COM = f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * pointdistance(x1, y1, z1, x0, y0, z0)^2"
 
 
@@ -43,8 +43,8 @@ class OpenMMSMDSimulation:
         Construct the SMD simulation from an existing OpenMM simulation.
 
         :param simulation: An existing OpenMM Simulation
-        :param smd_atom_indices: The indices of the atoms to which the SMD force
-          should be applied
+        :param smd_atom_indices: A NumPy array of indices of the atoms to which the SMD force
+          should be applied (0-D for single atom, 1-D for COM)
         :param smd_path: A NumPy array of coordinates defining the path that the
           SMD force will take during the SMD simulation
         :param smd_force_constant: The force constant of the SMD force
@@ -60,27 +60,12 @@ class OpenMMSMDSimulation:
 
         sim.name = name
         sim.simulation = simulation
+
         # Check if simulation employs periodic boundary conditions
         sim._sim_uses_pbcs = sim.simulation.system.usesPeriodicBoundaryConditions()
 
-        sim.smd_atom_indices = smd_atom_indices
-        sim.smd_path = smd_path
-        sim.smd_force_constant = smd_force_constant
-        sim.n_smd_atom_indices = sim.smd_atom_indices.size
-        sim.define_smd_simulation_atom_positions_array()
-
-        # Create SMD force and add it to the system
-        sim.current_smd_force_position = sim.smd_path[0]
-        sim.current_smd_force_position_index = 0
-
-        # Check whether SMD force is already present
-        sim.check_for_existing_smd_force()
-
-        if not sim.loaded_smd_force_from_sim:
-            # Create SMD force and add it to the system
-            sim.add_smd_force_to_system()
-
-        sim.simulation.context.reinitialize(preserveState=True)
+        # Initialise all objects relevant to the SMD simulation
+        sim._initialise_smd_simulation(smd_atom_indices, smd_path, smd_force_constant)
 
         # Create a checkpoint of the simulation
         sim.checkpoint = sim.simulation.context.createCheckpoint()
@@ -124,26 +109,12 @@ class OpenMMSMDSimulation:
         # Load the simulation from the path
         with open(sim.xml_path) as infile:
             sim.simulation = serializer.deserialize_simulation(infile)
+
         # Check if simulation employs periodic boundary conditions
         sim._sim_uses_pbcs = sim.simulation.system.usesPeriodicBoundaryConditions()
 
-        sim.smd_atom_indices = smd_atom_indices
-        sim.n_smd_atom_indices = sim.smd_atom_indices.size
-        sim.smd_path = smd_path
-        sim.smd_force_constant = smd_force_constant
-        sim.define_smd_simulation_atom_positions_array()
-
-        sim.current_smd_force_position = sim.smd_path[0]
-        sim.current_smd_force_position_index = 0
-
-        # Check whether SMD force is already present
-        sim.check_for_existing_smd_force()
-
-        if not sim.loaded_smd_force_from_sim:
-            # Create SMD force and add it to the system
-            sim.add_smd_force_to_system()
-
-        sim.simulation.context.reinitialize(preserveState=True)
+        # Initialise all objects relevant to the SMD simulation
+        sim._initialise_smd_simulation(smd_atom_indices, smd_path, smd_force_constant)
 
         # Create a checkpoint of the simulation
         sim.checkpoint = sim.simulation.context.createCheckpoint()
@@ -216,6 +187,35 @@ class OpenMMSMDSimulation:
         """
         pass
 
+    def _initialise_smd_simulation(
+        self,
+        smd_atom_indices: np.ndarray,
+        smd_path: np.ndarray,
+        smd_force_constant: float,
+    ):
+        """
+        Set the fields relevant to the SMD simulation and add the SMD force to the system.
+        Called upon when constructing an OpenMMSMDSimulation using the classmethods
+        from_simulation or from_xml_path.
+        """
+        self.smd_atom_indices = smd_atom_indices
+        self.n_smd_atom_indices = self.smd_atom_indices.size
+        self.smd_path = smd_path
+        self.smd_force_constant = smd_force_constant
+        self.define_smd_simulation_atom_positions_array()
+
+        self.current_smd_force_position = self.smd_path[0]
+        self.current_smd_force_position_index = 0
+
+        # Check whether SMD force is already present
+        self.check_for_existing_smd_force()
+
+        if not self.loaded_smd_force_from_sim:
+            # Create SMD force and add it to the system
+            self.add_smd_force_to_system()
+
+        self.simulation.context.reinitialize(preserveState=True)
+
     def reset(self):
         """
         Reset the SMD simulation to its initial state, and reset the arrays output
@@ -251,7 +251,8 @@ class OpenMMSMDSimulation:
         for i in range(len(forces)):
             if (
                 type(forces[i]) == type(self.smd_force)
-                and forces[i].getGlobalParameterName(0) == SMD_FORCE_CONSTANT_PARAMETER_NAME
+                and forces[i].getGlobalParameterName(0)
+                == SMD_FORCE_CONSTANT_PARAMETER_NAME
             ):
                 forces_to_remove.append(i)
 
@@ -330,7 +331,9 @@ class OpenMMSMDSimulation:
                 #  WARNING: this will not work if you have other parameters!
                 #  maybe change smd_k to a per bond parameter?
                 xml_string = "\n".join(
-                    x for x in xml_string.splitlines() if SMD_FORCE_CONSTANT_PARAMETER_NAME not in x
+                    x
+                    for x in xml_string.splitlines()
+                    if SMD_FORCE_CONSTANT_PARAMETER_NAME not in x
                 )
                 outfile.write(xml_string)
 
@@ -539,7 +542,9 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
     def check_for_existing_smd_force(self):
 
         try:
-            force_constant = self.simulation.context.getParameter(SMD_FORCE_CONSTANT_PARAMETER_NAME)
+            force_constant = self.simulation.context.getParameter(
+                SMD_FORCE_CONSTANT_PARAMETER_NAME
+            )
             n_forces = self.simulation.system.getNumForces()
             smd_force = self.simulation.system.getForce(n_forces - 1)
             params = smd_force.getParticleParameters(0)
@@ -610,7 +615,9 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
 
     def check_for_existing_smd_force(self):
         try:
-            force_constant = self.simulation.context.getParameter(SMD_FORCE_CONSTANT_PARAMETER_NAME)
+            force_constant = self.simulation.context.getParameter(
+                SMD_FORCE_CONSTANT_PARAMETER_NAME
+            )
             n_forces = self.simulation.system.getNumForces()
             smd_force = self.simulation.system.getForce(n_forces - 1)
             assert type(smd_force) == CustomCentroidBondForce
