@@ -1027,7 +1027,8 @@ def test_calculate_com_smd_simulation_class(positions, masses, com):
     """
     Check that the function _calculate_com correctly calculates
     the centre of mass of the atoms to which the SMD force is
-    applied, given their positions and masses.
+    applied in the OpenMMSMDSimulationCOM class, given their
+    positions and masses.
     """
     # Create the simulation and retrieve indices for all atoms
     simulation = build_com_simulation((positions, masses, com))
@@ -1046,7 +1047,6 @@ def test_calculate_com_smd_simulation_class(positions, masses, com):
     assert np.allclose(calculated_com, com, atol=1e-16)
 
 
-
 @pytest.mark.parametrize(
     "positions, masses, com",
     [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
@@ -1055,7 +1055,7 @@ def test_calculate_com_trajectory_smd_simulation_class(positions, masses, com):
     """
     Check that the function _calculate_com_trajectory correctly calculates
     the trajectory of the centre of mass of the atoms to which the SMD force is
-    applied.
+    applied in the OpenMMSMDSimulationCOM class.
     """
     # Create the simulation and retrieve indices for all atoms
     simulation = build_com_simulation((positions, masses, com))
