@@ -656,9 +656,9 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
             (self.smd_path.shape[0], self.smd_atom_indices.size, 3)
         )
 
-    def calculate_com(self, atom_positions: np.ndarray, atom_masses: np.ndarray):
+    def _calculate_com(self, atom_positions: np.ndarray, atom_masses: np.ndarray):
         """
-        Calculate the centre of mass of a group of N atoms.
+        Calculate the centre of mass of the N atoms to which the SMD force has been applied.
 
         :param atom_positions: NumPy array of atom positions with dimensions (N, 3)
         :param atom_masses: NumPy array of atomic masses (AMU) with dimension (N)
@@ -666,9 +666,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         """
         # TODO: Check this works and write tests!
         assert np.all(atom_positions.shape == np.array((self.smd_atom_indices.size, 3)))
-        return np.sum(
-            np.multiply(np.transpose(atom_positions), atom_masses), axis=1
-        ) / np.sum(atom_masses)
+        return calculate_com(atom_positions, atom_masses)
 
     def calculate_com_trajectory(self):
         """
@@ -686,7 +684,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
             )._value
         self.com_positions = np.array(
             [
-                self.calculate_com(self.smd_simulation_atom_positions[i], atom_masses)
+                self._calculate_com(self.smd_simulation_atom_positions[i], atom_masses)
                 for i in range(self.smd_path.shape[0])
             ]
         )
@@ -746,3 +744,16 @@ def smd_single_atom_force(force_constant: float, uses_pbcs: bool):
     smd_force.setForceGroup(31)
 
     return smd_force
+
+
+def calculate_com(atom_positions: np.ndarray, atom_masses: np.ndarray) -> np.ndarray:
+    """
+    Calculate the centre of mass of a group of N atoms, given their positions and masses.
+
+    :param atom_positions: NumPy array of atom positions with dimensions (N, 3)
+    :param atom_masses: NumPy array of atomic masses (AMU) with dimension (N)
+    :return: NumPy array containing the position of the centre of mass of the atoms with dimension (3)
+    """
+    return np.sum(
+        np.multiply(np.transpose(atom_positions), atom_masses), axis=1
+    ) / np.sum(atom_masses)
