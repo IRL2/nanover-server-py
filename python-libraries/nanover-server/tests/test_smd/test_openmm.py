@@ -33,9 +33,9 @@ Things to test:
 - General SMD data is saved in the correct format to the correct location, and can be
   subsequently loaded back into python correctly [√]
 - The COM of a specified group of atoms is correctly calculated [√]
-- For OpenMMSMDSimulationCOM, the COM of the specified atoms is correctly calculated []
+- For OpenMMSMDSimulationCOM, the COM of the specified atoms is correctly calculated [√]
 - For OpenMMSMDSimulationCOM, the trajectory of the COM of the specified atoms is
-  correctly calculated []
+  correctly calculated [√]
 - smd_com_force works as expected []
 - smd_single_atom_force works as expected []
 """
@@ -126,6 +126,45 @@ TEST_COM_CUBE = (
     np.array([6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0]),
     np.array([1.0, 2.0, 3.0]),
 )
+
+
+def build_com_system(parameters: tuple):
+    positions, masses, com = parameters
+    box_vector = BASIC_SIMULATION_BOX_VECTORS
+    system = mm.System()
+    system.setDefaultPeriodicBoxVectors(*box_vector)
+    for atom in range(masses.size):
+        system.addParticle(mass=masses[atom])
+
+    return system
+
+
+def build_com_topology(parameters: tuple) -> app.Topology:
+    positions, masses, com = parameters
+    topology = app.Topology()
+    for atom in range(masses.size):
+        element = app.Element.getByMass(masses.size)
+        chain = topology.addChain()
+        residue = topology.addResidue(name=f"atom_{atom}", chain=chain)
+        topology.addAtom(element=element, name=f"AT{atom}", residue=residue)
+    return topology
+
+
+def build_com_simulation(parameters: tuple) -> app.Simulation:
+    positions, masses, com = parameters
+    periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
+    topology = build_com_topology(parameters)
+    system = build_com_system(parameters)
+
+    # No forces added to system, non-interacting particles
+    integrator = mm.LangevinIntegrator(300 * kelvin, 1 / picosecond, 2 * femtosecond)
+
+    platform = mm.Platform.getPlatformByName("CPU")
+    simulation = app.Simulation(topology, system, integrator, platform=platform)
+    simulation.context.setPeriodicBoxVectors(*periodic_box_vector)
+    simulation.context.setPositions(positions * nanometer)
+
+    return simulation
 
 
 def build_basic_system():
@@ -978,4 +1017,71 @@ def test_calculate_com(positions, masses, com):
     calculated_com = calculate_com(positions, masses)
     expected_com = com
     assert np.allclose(calculated_com, expected_com, atol=1e-16)
+
+
+@pytest.mark.parametrize(
+    "positions, masses, com",
+    [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
+)
+def test_calculate_com_smd_simulation_class(positions, masses, com):
+    """
+    Check that the function _calculate_com correctly calculates
+    the centre of mass of the atoms to which the SMD force is
+    applied, given their positions and masses.
+    """
+    # Create the simulation and retrieve indices for all atoms
+    simulation = build_com_simulation((positions, masses, com))
+    indices = np.array([i for i in range(masses.size)])
+
+    # Create the SMD simulation
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        simulation,
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+
+    # Calculate the COM using the class function to caand check it against the expected COM
+    calculated_com = smd_sim._calculate_com(positions, masses)
+    assert np.allclose(calculated_com, com, atol=1e-16)
+
+
+
+@pytest.mark.parametrize(
+    "positions, masses, com",
+    [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
+)
+def test_calculate_com_trajectory_smd_simulation_class(positions, masses, com):
+    """
+    Check that the function _calculate_com_trajectory correctly calculates
+    the trajectory of the centre of mass of the atoms to which the SMD force is
+    applied.
+    """
+    # Create the simulation and retrieve indices for all atoms
+    simulation = build_com_simulation((positions, masses, com))
+    indices = np.array([i for i in range(masses.size)])
+
+    # Create the SMD simulation
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        simulation,
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+
+    # Manually set the trajectory of atom positions and calculate the
+    # corresponding trajectory of the COM
+    atom_positions = np.zeros((TEST_SMD_PATH.shape[0], *positions.shape))
+    expected_com_array = np.zeros(TEST_SMD_PATH.shape)
+    for i in range(TEST_SMD_PATH.shape[0]):
+        atom_positions[i] = positions + np.array([TEST_SMD_PATH[i] for j in range(indices.size)])
+        expected_com_array[i] = com + TEST_SMD_PATH[i]
+
+    # Set SMD atom positions equal to the trajectory of calculated atom positions
+    smd_sim.smd_simulation_atom_positions = atom_positions
+
+    # Calculate COM trajectory using internal function and check the calculated
+    # COMs match the predicted COMs
+    smd_sim._calculate_com_trajectory()
+    assert np.allclose(smd_sim.com_positions, expected_com_array, atol=1e-16)
 

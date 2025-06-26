@@ -664,15 +664,13 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         :param atom_masses: NumPy array of atomic masses (AMU) with dimension (N)
         :return: NumPy array containing the position of the centre of mass of the atoms with dimension (3)
         """
-        # TODO: Check this works and write tests!
         assert np.all(atom_positions.shape == np.array((self.smd_atom_indices.size, 3)))
         return calculate_com(atom_positions, atom_masses)
 
-    def calculate_com_trajectory(self):
+    def _calculate_com_trajectory(self):
         """
         Calculate the trajectory that the COM follows during the SMD simulation.
         """
-        # TODO: Check this works and write tests!
         assert not np.array_equal(
             self.smd_simulation_atom_positions,
             np.zeros((self.smd_path.shape[0], self.smd_atom_indices.size, 3)),
@@ -694,7 +692,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         Calculate the cumulative work done by the SMD force on the
         COM of the atoms with which it interacts over the SMD simulation.
         """
-        self.calculate_com_trajectory()
+        self._calculate_com_trajectory()
         self._calculate_smd_forces(self.com_positions)
         self._calculate_work_done()
 
@@ -755,6 +753,8 @@ def calculate_com(atom_positions: np.ndarray, atom_masses: np.ndarray) -> np.nda
     :return: NumPy array containing the position of the centre of mass of the atoms with dimension (3)
     """
     # TODO: Make sure this can handle periodic boundary conditions correctly
+    #  ^this may not be necessary, as getPositions() should return unwrapped
+    #  positions by default!
     return np.sum(
         np.multiply(np.transpose(atom_positions), atom_masses), axis=1
     ) / np.sum(atom_masses)
