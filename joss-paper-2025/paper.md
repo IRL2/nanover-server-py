@@ -23,7 +23,9 @@ authors:
   - name: Jonathan Barnoud
     orcid: 0000-0003-0343-7796
     affiliation: '1'
-  - name: Rhoslyn Roebuck Williams
+  - name:
+      given-names: Rhoslyn 
+      surname: Roebuck Williams
     orcid: 0000-0003-2535-7180
     affiliation: '1'
   - name: Mohamed Dhouioui
