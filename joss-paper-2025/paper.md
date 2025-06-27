@@ -95,7 +95,7 @@ NanoVer Server interfaces with NanoVer iMD-VR, a VR client that enables research
 
 # Availability
 
-NanoVer Server can be installed as a [conda package](https://anaconda.org/irl/nanover-server) and the source code is available on [GitHub](https://github.com/IRL2/nanover-server-py). The [documentation](https://irl2.github.io/nanover-docs/index.html) is available online, including instructions on [how to install NanoVer Server](https://irl2.github.io/nanover-docs/installation.html).
+NanoVer Server can be installed as a [Conda package](https://anaconda.org/irl/nanover-server) and the source code is available on [GitHub](https://github.com/IRL2/nanover-server-py). The [documentation](https://irl2.github.io/nanover-docs/index.html) is available online, including instructions on [how to install NanoVer Server](https://irl2.github.io/nanover-docs/installation.html).
 
 NanoVer Server also has a suite of [Jupyter notebook tutorials](https://github.com/IRL2/nanover-server-py/tree/main/tutorials), many of which demonstrate how to use the server in conjunction with the [NanoVer iMD-VR client](https://github.com/IRL2/nanover-imd-vr). Details of [compatible VR setups](https://irl2.github.io/nanover-docs/tutorials/vrclient.html#choosing-your-imd-vr-setup) can be found in our documentation. For new users, the [basics notebooks](https://github.com/IRL2/nanover-server-py/tree/main/tutorials/basics) are a good place to start, which provide hands-on tutorials that introduce many of the key features of NanoVer.
 
