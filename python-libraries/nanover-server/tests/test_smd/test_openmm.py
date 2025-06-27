@@ -84,6 +84,12 @@ TEST_SMD_PATH = np.array(
 ).transpose()
 TEST_SMD_FORCE_CONSTANT = 3011.0
 
+TEST_SMD_ARGON_INDEX = np.array(0)
+TEST_SMD_ARGON_PATH = np.array(
+    [np.linspace(0.00, 0.02, 3), np.zeros(3), np.zeros(3)]
+).transpose()
+TEST_SMD_ARGON_FORCE_CONSTANT = 100.0
+
 # Test systems for COM calculations, formatted as (positions, masses, expected COM)
 TEST_COM_TWO_ATOMS = (
     np.array([[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]),
@@ -240,6 +246,45 @@ def build_basic_simulation(pbcs: bool = False) -> app.Simulation:
     system.addForce(force)
 
     integrator = mm.LangevinIntegrator(300 * kelvin, 1 / picosecond, 2 * femtosecond)
+
+    platform = mm.Platform.getPlatformByName("CPU")
+    simulation = app.Simulation(topology, system, integrator, platform=platform)
+    simulation.context.setPeriodicBoxVectors(*periodic_box_vector)
+    simulation.context.setPositions(positions * nanometer)
+
+    return simulation
+
+
+def build_single_atom_system():
+    box_vector = BASIC_SIMULATION_BOX_VECTORS
+    system = mm.System()
+    system.setDefaultPeriodicBoxVectors(*box_vector)
+    system.addParticle(mass=40)
+
+    return system
+
+
+def build_single_atom_topology() -> app.Topology:
+    topology = app.Topology()
+    argon = app.Element.getBySymbol("Ar")
+    chain = topology.addChain()
+    residue = topology.addResidue(name="ARGON", chain=chain)
+    topology.addAtom(element=argon, name="AR1", residue=residue)
+    return topology
+
+
+def build_single_atom_simulation(pbcs: bool = False):
+    periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
+    positions = np.array(ARGON_SIMULATION_POSITION, dtype=np.float32)
+    topology = build_single_atom_topology()
+    system = build_single_atom_system()
+
+    # As we are only dealing with a single atom system, it is unnecessary to
+    # add a non-bonded force.
+
+    # Use a Verlet integrator to make the dynamics predictable, avoiding the
+    # random kicks introduced by Langevin.
+    integrator = mm.VerletIntegrator(2 * femtosecond)
 
     platform = mm.Platform.getPlatformByName("CPU")
     simulation = app.Simulation(topology, system, integrator, platform=platform)
@@ -1127,3 +1172,32 @@ def test_smd_single_atom_force(pbcs):
     assert smd_force.getPerParticleParameterName(1) == "y0"
     assert smd_force.getPerParticleParameterName(2) == "z0"
     assert smd_force.getForceGroup() == 31
+
+
+# TODO: Tests single atom case only!
+# TODO: Not 100% sure this works at the moment...
+def test_calculate_cumulative_work_done():
+    """
+    Check that the work done along the reaction coordinate is correctly
+    calculated. Use a single atom argon simulation with a Verlet integrator
+    to test this to eliminate random kicks induced by a thermostat and
+    guarantee reproducibility.
+
+    W = Sum(F_i . ds_i)
+    ds_i = 0.01 nm
+    F = - k (x - x0)
+    At i=0, t=0, F = 0, ds =
+    At i=1, t=0.002ps, F = -100.0 kJ mol-1 nm-2 * (0.00 - 0.01)nm = 1.00 kJ mol-1 nm-1
+    """
+    # Create the SMD simulation
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_single_atom_simulation(),
+        TEST_SMD_ARGON_INDEX,
+        TEST_SMD_ARGON_PATH,
+        TEST_SMD_ARGON_FORCE_CONSTANT,
+    )
+    smd_sim.run_smd()
+    print(f"Forces:\n{smd_sim.smd_simulation_forces}\n")
+    print(f"Atom positions:\n{smd_sim.smd_simulation_atom_positions}\n")
+    print("Final work done value: {0:.15f}".format(smd_sim.smd_simulation_work_done[-1]))
+    print(np.dot(np.array([1.0, 0.0, 0.0]), np.array([0.01, 0.0, 0.0])))
