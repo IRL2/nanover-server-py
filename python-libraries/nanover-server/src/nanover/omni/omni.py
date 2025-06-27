@@ -2,7 +2,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
-from typing import Protocol, List, Optional, Set, Dict
+from typing import Protocol, List, Optional, Set, Dict, Any
 
 from nanover.app import NanoverImdApplication, RenderingSelection
 from nanover.trajectory import FrameData
@@ -224,6 +224,26 @@ class OmniRunner:
         """
         assert self._runner is not None
         self._runner.signals.put("step")
+
+    def get_shared_value(self, key: str):
+        """
+        Get the value of the given key/value pair on the multiplayer shared value store.
+        """
+        return self.app_server.server.copy_state()[key]
+
+    def set_shared_value(self, key: str, value: Any):
+        """
+        Set the given key/value pair on the multiplayer shared value store.
+        """
+        change = DictionaryChange(updates={key: value})
+        self.app_server.server.update_state(None, change)
+
+    def remove_shared_value(self, key: str):
+        """
+        Remove the given key on the multiplayer shared value store.
+        """
+        change = DictionaryChange(removals={key})
+        self.app_server.server.update_state(None, change)
 
     def _start_run(self):
         if self._run_task is not None:
