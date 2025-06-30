@@ -1,8 +1,9 @@
-[![DOI](https://joss.theoj.org/papers/10.21105/joss.08118/status.svg)](https://doi.org/10.21105/joss.08118)
-[![Build Status](https://github.com/IRL2/nanover-server-py/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/IRL2/nanover-server-py/actions/workflows/tests.yml?query=branch%3Amain)
-[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://irl2.github.io/nanover-docs)
-
 # NanoVer Python Server + gRPC Protocol
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-darkblue.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/Docs-latest-blue.svg)](https://irl2.github.io/nanover-docs) 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.08118/status.svg)](https://doi.org/10.21105/joss.08118) 
+[![Build Status](https://github.com/IRL2/nanover-server-py/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/IRL2/nanover-server-py/actions/workflows/tests.yml?query=branch%3Amain)
 
 Repository containing the gRPC protocol and python based implementations
 of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
