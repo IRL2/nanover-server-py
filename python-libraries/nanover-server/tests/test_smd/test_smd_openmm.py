@@ -1256,12 +1256,14 @@ def test_calculate_cumulative_work_done(fc_multiplier):
 
 
 @pytest.mark.parametrize("apply_pbcs", [True, False])
+@pytest.mark.parametrize("save_smd_force", [True, False])
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
-def test_load_openmm_state(apply_pbcs, indices):
+def test_load_openmm_state(apply_pbcs, save_smd_force, indices):
     """
     Check that the OpenMMSMDSimulation correctly loads the state
     of the system by checking that the velocities loaded are
-    correct.
+    correct. This also implicitly tests the save_simulation
+    function.
     """
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_basic_simulation(apply_pbcs),
@@ -1281,7 +1283,9 @@ def test_load_openmm_state(apply_pbcs, indices):
         output_path = Path(tmpdir)
         filename = "test_velocities.xml"
         file_path = output_path.joinpath(filename)
-        smd_sim.save_simulation(output_filepath=file_path, save_state=True)
+        smd_sim.save_simulation(
+            output_filepath=file_path, save_state=True, save_smd_force=save_smd_force
+        )
         assert file_path.exists()
 
         # Load saved simulation
