@@ -43,7 +43,6 @@ Things to test:
 import tempfile
 from io import StringIO
 
-import numpy as np
 import pytest
 from contextlib import redirect_stdout
 
