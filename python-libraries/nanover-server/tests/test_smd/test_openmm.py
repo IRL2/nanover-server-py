@@ -1249,5 +1249,6 @@ def test_calculate_cumulative_work_done(fc_multiplier):
     with redirect_stdout(StringIO()) as _:
         smd_sim.run_smd()
 
+    # Check values of work done
     assert smd_sim.smd_simulation_work_done[-1] == fc_multiplier * 0.01
     assert np.array_equal(smd_sim.smd_simulation_work_done, fc_multiplier * np.array([0.0, 0.0, 0.01]))
