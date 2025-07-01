@@ -37,6 +37,7 @@ Things to test:
   correctly calculated [√]
 - smd_com_force works as expected [√]
 - smd_single_atom_force works as expected [√]
+- OpenMMSMDSimulation correctly loads the state of a simulation [√]
 """
 
 import tempfile
