@@ -1175,29 +1175,79 @@ def test_smd_single_atom_force(pbcs):
 
 
 # TODO: Tests single atom case only!
-# TODO: Not 100% sure this works at the moment...
-def test_calculate_cumulative_work_done():
-    """
+@pytest.mark.parametrize("fc_multiplier", (1.0, 2.02, 0.00750, 4002.8, 5.0003))
+def test_calculate_cumulative_work_done(fc_multiplier):
+    r"""
     Check that the work done along the reaction coordinate is correctly
     calculated. Use a single atom argon simulation with a Verlet integrator
     to test this to eliminate random kicks induced by a thermostat and
     guarantee reproducibility.
 
-    W = Sum(F_i . ds_i)
-    ds_i = 0.01 nm
-    F = - k (x - x0)
-    At i=0, t=0, F = 0, ds =
-    At i=1, t=0.002ps, F = -100.0 kJ mol-1 nm-2 * (0.00 - 0.01)nm = 1.00 kJ mol-1 nm-1
+    The expression for work done being tested is
+
+    .. math::
+        W(n) = \sum_{i=0}^{n-1} F_i \cdot v_{i} \Delta t
+
+    Where v_{i} is the velocity of the restraint and F_{i} is the force
+    applied by the restraint at the ith step. Defining velocity in terms
+    of position using the formal definition of the derivative, the
+    expression above can be written as
+
+    .. math::
+        W(n) = \sum_{i=0}^{n-1} F_i \cdot (x_{i+1} - x_{i})
+
+    where x_{i+1} is the position of the restraint at the (i + 1)th step
+    and x_{i} is the position of the restraint at the ith step.
+
+    TEST CASE: a single Argon atom (Ar) that starts at the origin and a
+    3 point path defining the positions of the SMD force, starting at the
+    origin and increasing along the x-axis in increments of 0.01 nm, with
+    a force constant of 100 kJ mol-1 nm-2. The force can be calculated
+    using
+
+    .. math::
+        F = - k (X_{Ar, i} - x_{i})
+
+    where X_{Ar, i} is the position of the argon atom on the ith step.
+    According to the scheme above, the total work done by the time the
+    restraint reaches the final point should be
+
+    .. math::
+        W(2) = (F_{0} \cdot (x_{1} - x_{0})) + (F_{1} \cdot (x_{2} - x_{1}))
+             = (F_{0} \cdot 0.01 nm) + (F_{1} \cdot 0.01 nm)
+
+    Given
+
+    .. math::
+        F_{0} = -100.0 kJ mol-1 nm-2 * (0.00 - 0.00) nm = 0.0 kJ mol-1 nm-1
+
+    and
+
+    .. math::
+        F_{1} = -100.0 kJ mol-1 nm-2 * (0.00 - 0.01) nm = 1.0 kJ mol-1 nm-1
+
+    Then we expect the work done by step 2 to be
+
+    .. math::
+        W(2) = (0.00 kJ mol-1 nm-1 * 0.01 nm) + (1.00 kJ mol-1 nm-1 * 0.01 nm)
+             = 0.01 kJ mol-1
+
+    Thus, the work done by the SMD force applied in this simulation should
+    be 0.01 kJ mol-1.
     """
+    assert TEST_SMD_ARGON_PATH.shape == (3, 3)
+    assert TEST_SMD_ARGON_FORCE_CONSTANT == 100.0
     # Create the SMD simulation
     smd_sim = OpenMMSMDSimulation.from_simulation(
         build_single_atom_simulation(),
         TEST_SMD_ARGON_INDEX,
         TEST_SMD_ARGON_PATH,
-        TEST_SMD_ARGON_FORCE_CONSTANT,
+        fc_multiplier*TEST_SMD_ARGON_FORCE_CONSTANT,
     )
-    smd_sim.run_smd()
-    print(f"Forces:\n{smd_sim.smd_simulation_forces}\n")
-    print(f"Atom positions:\n{smd_sim.smd_simulation_atom_positions}\n")
-    print("Final work done value: {0:.15f}".format(smd_sim.smd_simulation_work_done[-1]))
-    print(np.dot(np.array([1.0, 0.0, 0.0]), np.array([0.01, 0.0, 0.0])))
+
+    # Run SMD procedure
+    with redirect_stdout(StringIO()) as _:
+        smd_sim.run_smd()
+
+    assert smd_sim.smd_simulation_work_done[-1] == fc_multiplier * 0.01
+    assert np.array_equal(smd_sim.smd_simulation_work_done, fc_multiplier * np.array([0.0, 0.0, 0.01]))
