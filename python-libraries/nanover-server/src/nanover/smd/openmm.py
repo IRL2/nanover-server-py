@@ -420,19 +420,19 @@ class OpenMMSMDSimulation:
         print("Starting SMD simulation...")
         for step in range(1, n_steps):
 
+            # Perform single simulation step
+            self.simulation.step(1)
+
             # Update force position index
             self.current_smd_force_position_index = step
 
             # Update SMD force position
             self.update_smd_force_position()
 
-            # Perform single simulation step
-            self.simulation.step(1)
-
             # Retrieve atom positions on step
             self.get_smd_atom_positions()
 
-            # Print every 10000 steps
+            # Print step at intervals
             if step % progress_interval == 0:
                 print(f"Steps completed: {step}")
 
