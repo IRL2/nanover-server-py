@@ -1278,26 +1278,27 @@ def test_load_openmm_state(apply_pbcs, save_smd_force, indices):
         getVelocities=True
     ).getVelocities(asNumpy=True)
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # Save simulation to file
-        output_path = Path(tmpdir)
-        filename = "test_velocities.xml"
-        file_path = output_path.joinpath(filename)
-        smd_sim.save_simulation(
-            output_filepath=file_path, save_state=True, save_smd_force=save_smd_force
-        )
-        assert file_path.exists()
+    with redirect_stdout(StringIO()) as _:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Save simulation to file
+            output_path = Path(tmpdir)
+            filename = "test_velocities.xml"
+            file_path = output_path.joinpath(filename)
+            smd_sim.save_simulation(
+                output_filepath=file_path, save_state=True, save_smd_force=save_smd_force
+            )
+            assert file_path.exists()
 
-        # Load saved simulation
-        loaded_smd_sim = OpenMMSMDSimulation.from_xml_path(
-            file_path,
-            indices,
-            TEST_SMD_PATH,
-            TEST_SMD_FORCE_CONSTANT,
-        )
+            # Load saved simulation
+            loaded_smd_sim = OpenMMSMDSimulation.from_xml_path(
+                file_path,
+                indices,
+                TEST_SMD_PATH,
+                TEST_SMD_FORCE_CONSTANT,
+            )
 
-        # Retrieve and compare velocities
-        loaded_velocities = loaded_smd_sim.simulation.context.getState(
-            getVelocities=True
-        ).getVelocities(asNumpy=True)
-        assert np.allclose(original_velocities, loaded_velocities, rtol=1e-7)
+            # Retrieve and compare velocities
+            loaded_velocities = loaded_smd_sim.simulation.context.getState(
+                getVelocities=True
+            ).getVelocities(asNumpy=True)
+            assert np.allclose(original_velocities, loaded_velocities, rtol=1e-7)
