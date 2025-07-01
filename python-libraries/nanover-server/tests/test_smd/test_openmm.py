@@ -1284,6 +1284,7 @@ def test_load_openmm_state(apply_pbcs, indices):
         smd_sim.save_simulation(output_filepath=file_path, save_state=True)
         assert file_path.exists()
 
+        # Load saved simulation
         loaded_smd_sim = OpenMMSMDSimulation.from_xml_path(
             file_path,
             indices,
@@ -1291,7 +1292,8 @@ def test_load_openmm_state(apply_pbcs, indices):
             TEST_SMD_FORCE_CONSTANT,
         )
 
+        # Retrieve and compare velocities
         loaded_velocities = loaded_smd_sim.simulation.context.getState(
             getVelocities=True
         ).getVelocities(asNumpy=True)
-        assert np.allclose(original_velocities, loaded_velocities)
+        assert np.allclose(original_velocities, loaded_velocities, rtol=1e-7)
