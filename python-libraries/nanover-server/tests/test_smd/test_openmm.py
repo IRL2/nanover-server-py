@@ -1241,7 +1241,7 @@ def test_calculate_cumulative_work_done(fc_multiplier):
         build_single_atom_simulation(),
         TEST_SMD_ARGON_INDEX,
         TEST_SMD_ARGON_PATH,
-        fc_multiplier*TEST_SMD_ARGON_FORCE_CONSTANT,
+        fc_multiplier * TEST_SMD_ARGON_FORCE_CONSTANT,
     )
 
     # Run SMD procedure
@@ -1250,4 +1250,48 @@ def test_calculate_cumulative_work_done(fc_multiplier):
 
     # Check values of work done
     assert smd_sim.smd_simulation_work_done[-1] == fc_multiplier * 0.01
-    assert np.array_equal(smd_sim.smd_simulation_work_done, fc_multiplier * np.array([0.0, 0.0, 0.01]))
+    assert np.array_equal(
+        smd_sim.smd_simulation_work_done, fc_multiplier * np.array([0.0, 0.0, 0.01])
+    )
+
+
+@pytest.mark.parametrize("apply_pbcs", [True, False])
+@pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
+def test_load_openmm_state(apply_pbcs, indices):
+    """
+    Check that the OpenMMSMDSimulation correctly loads the state
+    of the system by checking that the velocities loaded are
+    correct.
+    """
+    smd_sim = OpenMMSMDSimulation.from_simulation(
+        build_basic_simulation(apply_pbcs),
+        indices,
+        TEST_SMD_PATH,
+        TEST_SMD_FORCE_CONSTANT,
+    )
+
+    # Run simulation for a few steps
+    smd_sim.run_equilibration_with_initial_restraint(n_steps=1000)
+    original_velocities = smd_sim.simulation.context.getState(
+        getVelocities=True
+    ).getVelocities(asNumpy=True)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Save simulation to file
+        output_path = Path(tmpdir)
+        filename = "test_velocities.xml"
+        file_path = output_path.joinpath(filename)
+        smd_sim.save_simulation(output_filepath=file_path, save_state=True)
+        assert file_path.exists()
+
+        loaded_smd_sim = OpenMMSMDSimulation.from_xml_path(
+            file_path,
+            indices,
+            TEST_SMD_PATH,
+            TEST_SMD_FORCE_CONSTANT,
+        )
+
+        loaded_velocities = loaded_smd_sim.simulation.context.getState(
+            getVelocities=True
+        ).getVelocities(asNumpy=True)
+        assert np.allclose(original_velocities, loaded_velocities)
