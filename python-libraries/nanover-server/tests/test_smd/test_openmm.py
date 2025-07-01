@@ -24,8 +24,7 @@ Things to test:
   when creating the class [√]
 - The class can generate the correct number of starting structures in the specified
   time interval, and that these are saved to the correct location [√]
-- Running an SMD simulation produces reasonable results for the cumulative work done
-  (may need to think about a specific test case for this...) []
+- Running an SMD simulation produces reasonable results for the cumulative work done [√]
 - _calculate_smd_forces works as expected [√]
 - _calculate_work_done works as expected [√]
 - Simulation data is saved in the correct format to the correct location, and can be
