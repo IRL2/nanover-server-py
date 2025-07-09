@@ -311,7 +311,7 @@ class PathSmoother:
             y_pos=fixed(self.com_positions[:, 1]),
             z_pos=fixed(self.com_positions[:, 2]),
             smoothing_value=widgets.FloatSlider(
-                min=0.0, max=10.0, step=0.001, value=0.0
+                min=0.0, max=10.0, step=0.0001, value=0.0
             ),
             n_points=widgets.IntSlider(min=1000, max=10000, step=100, value=1000),
             start_point=widgets.IntSlider(
@@ -442,8 +442,8 @@ class PathSmoother:
                 print(
                     "***\nRelative tolerance achieved, exiting iterative refinement...\n***\n\n"
                 )
-                print(f"Final path length: {path_length} Angstrom")
-                print(f"Final speed: {speed_along_path_nm_ps} Angstrom ps-1")
+                print(f"Final path length: {path_length} nm")
+                print(f"Final speed: {speed_along_path_nm_ps} nm ps-1")
                 self.constant_speed_com_trajectory = refined_path
                 self.constant_speed_nm_ps = speed_along_path_nm_ps
                 self.timestep_ps = timestep_ps
