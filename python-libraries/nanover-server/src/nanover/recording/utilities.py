@@ -1,6 +1,7 @@
 import math
 from dataclasses import dataclass
 from os import PathLike
+from pathlib import Path
 from typing import Optional, BinaryIO, Callable
 
 from nanover.protocol.trajectory import GetFrameResponse
@@ -66,23 +67,31 @@ def split_recording(
     recording should split at this point.
     """
     split_count = 0
+    last_name = "UNKNOWN"
     current_base_timestamp = 0
     current_traj_out: Optional[BinaryIO] = None
     current_state_out: Optional[BinaryIO] = None
 
+    input_stem = Path(traj if traj is not None else state).stem
+    temp_stem = f"{input_stem}--TEMP"
+
     def close_all():
+        split_stem = f"{input_stem}--SPLIT--{split_count}--{last_name}"
+
         if current_state_out is not None:
             current_traj_out.close()
+            Path(f"{temp_stem}.traj").rename(Path(f"{split_stem}.state"))
         if current_state_out is not None:
             current_state_out.close()
+            Path(f"{temp_stem}.state").rename(Path(f"{split_stem}.traj"))
 
     def open_all():
         nonlocal current_traj_out, current_state_out
         if traj is not None:
-            current_traj_out = open(f"{traj}--SPLIT--{split_count}.traj", "wb")
+            current_traj_out = open(f"{temp_stem}.traj", "wb")
             write_header(current_traj_out)
         if state is not None:
-            current_state_out = open(f"{state}--SPLIT--{split_count}.state", "wb")
+            current_state_out = open(f"{temp_stem}.state", "wb")
             write_header(current_state_out)
 
     def dict_to_state_update(dict):
@@ -99,8 +108,12 @@ def split_recording(
         for event in iter_recording_max(traj=traj, state=state):
             if event.frame_event is not None:
                 prev_frame = event.frame_event
-            if event.frame_event is not None:
+            if event.state_event is not None:
                 prev_state = event.state_event
+
+            last_name = prev_state.current_state.get(
+                "puppeteer.simulation-name", "UNKNOWN"
+            )
 
             if split_predicate(event):
                 close_all()
