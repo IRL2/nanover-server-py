@@ -282,17 +282,33 @@ class InternalRunner:
             self.omni.failed_simulations.discard(self.simulation)
 
             for dt in self.variable_interval_generator.yield_interval():
-                self.handle_signals()
+                try:
+                    self.handle_signals()
 
-                if self.cancelled:
-                    break
-                if not self.is_paused:
-                    # for recording playback we want to know real time elapsed, for live simulations it is typically
-                    # ignored and stepped one frame per invocation
-                    self.simulation.advance_by_seconds(dt)
-        except Exception:
+                    if self.cancelled:
+                        break
+                    if not self.is_paused:
+                        # for recording playback we want to know real time elapsed, for live simulations it is typically
+                        # ignored and stepped one frame per invocation
+                        self.simulation.advance_by_seconds(dt)
+                except Exception as e:
+                    message = (
+                        f"{type(e).__name__} during simulation `{self.simulation.name}`"
+                    )
+
+                    frame = FrameData()
+                    frame.values["system.simulation.exception"] = message
+                    self.app_server.frame_publisher.send_frame(1, frame)
+                    self.is_paused = True
+
+                    self.logger.exception(message)
+                    self.logger.warning("Simulation paused due to exception.")
+
+        except Exception as e:
             self.omni.failed_simulations.add(self.simulation)
-            self.logger.exception("exception in simulation")
+            self.logger.exception(
+                f"{type(e)} loading simulation `{self.simulation.name}`"
+            )
             self.app_server.frame_publisher.send_frame(0, FrameData())
             raise
 
