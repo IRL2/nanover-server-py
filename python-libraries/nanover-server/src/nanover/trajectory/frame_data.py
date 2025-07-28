@@ -347,6 +347,13 @@ class FrameData(metaclass=_FrameDataMeta):
         to_python=_as_is,
         to_raw=_as_is,
     )
+    simulation_exception: float = _Shortcut(  # type: ignore[assignment]
+        key=SIMULATION_EXCEPTION,
+        record_type="values",
+        field_type="string",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
 
     server_timestamp: float = _Shortcut(  # type: ignore[assignment]
         key=SERVER_TIMESTAMP,

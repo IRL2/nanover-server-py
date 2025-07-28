@@ -3,9 +3,11 @@ from unittest.mock import patch
 
 import numpy
 import pytest
+from nanover.imd import ParticleInteraction
 
 from nanover.omni.omni import CLEAR_PREFIXES
 from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
+from nanover.trajectory.frame_data import SIMULATION_EXCEPTION
 from nanover.utilities.change_buffers import DictionaryChange
 from test_openmm import make_example_openmm
 from test_ase import make_example_ase
@@ -176,3 +178,28 @@ def test_first_frame_topology(sim_factory):
                 len(client.first_frame.particle_positions) > 0
                 and len(client.first_frame.particle_elements) > 0
             )
+
+
+@pytest.mark.parametrize("sim_factory", SIMULATION_FACTORIES_IMD)
+def test_interaction_invalid_particle_index(sim_factory):
+    """
+    Test that attempting to calculate iMD forces for interactions with out of bounds particles adds an exception to the
+    frame and removes all interactions.
+    """
+    with make_runner(sim_factory()) as runner:
+        with make_connected_client_from_runner(runner) as client:
+            client.subscribe_to_frames()
+            client.subscribe_multiplayer()
+            runner.load(0)
+            client.wait_until_first_frame()
+
+            count = client.current_frame.particle_count
+            interaction_id = client.start_interaction(ParticleInteraction(particles=[count + 10]))
+
+            # interaction exists in state
+            assert_in_soon(lambda: interaction_id, lambda: runner.app_server.imd.active_interactions)
+
+            # exception exists in frame
+            assert_in_soon(lambda: SIMULATION_EXCEPTION, lambda: client.current_frame)
+            # interaction no longer exists in state
+            assert_not_in_soon(lambda: interaction_id, lambda: runner.app_server.imd.active_interactions)
