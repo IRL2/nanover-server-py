@@ -5,6 +5,7 @@ from queue import Queue, Empty
 from typing import Protocol, List, Optional, Set, Dict
 
 from nanover.app import NanoverImdApplication, RenderingSelection
+from nanover.imd.imd_force import InvalidInteractionError
 from nanover.trajectory import FrameData
 from nanover.trajectory.frame_server import (
     LOAD_COMMAND_KEY,
@@ -276,23 +277,45 @@ class InternalRunner:
         self.variable_interval_generator.interval = interval
 
     def run(self):
+        def send_exception_frame(message):
+            frame = FrameData()
+            frame.simulation_exception = message
+            self.app_server.frame_publisher.send_frame(1, frame)
+            self.logger.exception(message)
+
         try:
             self.simulation.load()
             self.simulation.reset(self.app_server)
             self.omni.failed_simulations.discard(self.simulation)
 
             for dt in self.variable_interval_generator.yield_interval():
-                self.handle_signals()
+                try:
+                    self.handle_signals()
 
-                if self.cancelled:
-                    break
-                if not self.is_paused:
-                    # for recording playback we want to know real time elapsed, for live simulations it is typically
-                    # ignored and stepped one frame per invocation
-                    self.simulation.advance_by_seconds(dt)
-        except Exception:
+                    if self.cancelled:
+                        break
+                    if not self.is_paused:
+                        # for recording playback we want to know real time elapsed, for live simulations it is typically
+                        # ignored and stepped one frame per invocation
+                        self.simulation.advance_by_seconds(dt)
+                except InvalidInteractionError:
+                    send_exception_frame(
+                        f"Invalid interaction, tried erasing all interactions during simulation `{self.simulation.name}`"
+                    )
+                    self.app_server.imd.clear_interactions()
+                except Exception as e:
+                    send_exception_frame(
+                        f"{type(e).__name__} during simulation `{self.simulation.name}`"
+                    )
+
+                    self.is_paused = True
+                    self.logger.warning("Simulation paused due to exception.")
+
+        except Exception as e:
             self.omni.failed_simulations.add(self.simulation)
-            self.logger.exception("exception in simulation")
+            self.logger.exception(
+                f"{type(e)} loading simulation `{self.simulation.name}`"
+            )
             self.app_server.frame_publisher.send_frame(0, FrameData())
             raise
 
