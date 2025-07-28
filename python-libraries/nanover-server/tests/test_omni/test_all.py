@@ -194,12 +194,20 @@ def test_interaction_invalid_particle_index(sim_factory):
             client.wait_until_first_frame()
 
             count = client.current_frame.particle_count
-            interaction_id = client.start_interaction(ParticleInteraction(particles=[count + 10]))
+            interaction_id = client.start_interaction(
+                ParticleInteraction(particles=[count + 10])
+            )
 
             # interaction exists in state
-            assert_in_soon(lambda: interaction_id, lambda: runner.app_server.imd.active_interactions)
+            assert_in_soon(
+                lambda: interaction_id,
+                lambda: runner.app_server.imd.active_interactions,
+            )
 
             # exception exists in frame
             assert_in_soon(lambda: SIMULATION_EXCEPTION, lambda: client.current_frame)
             # interaction no longer exists in state
-            assert_not_in_soon(lambda: interaction_id, lambda: runner.app_server.imd.active_interactions)
+            assert_not_in_soon(
+                lambda: interaction_id,
+                lambda: runner.app_server.imd.active_interactions,
+            )
