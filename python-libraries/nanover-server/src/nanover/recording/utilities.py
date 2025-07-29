@@ -1,8 +1,7 @@
 import math
 from dataclasses import dataclass
 from os import PathLike
-from pathlib import Path
-from typing import Optional, BinaryIO, Callable
+from typing import Optional
 
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
@@ -11,15 +10,11 @@ from nanover.recording.reading import (
     buffer_to_frame_message,
     buffer_to_state_message,
 )
-from nanover.recording.writing import write_entry, write_header
 from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import (
-    dictionary_change_to_state_update,
     state_update_to_dictionary_change,
 )
 from nanover.trajectory import FrameData
-from nanover.trajectory.frame_data import SIMULATION_COUNTER
-from nanover.utilities.change_buffers import DictionaryChange
 
 
 @dataclass(kw_only=True)
@@ -87,6 +82,10 @@ class RecordingEvent:
 def iter_recording_max(
     *, traj: Optional[PathLike[str]] = None, state: Optional[PathLike[str]] = None
 ):
+    """
+    Iterate recording file(s) yielding recording events in timestamp order, with each event containing the full
+    information of previous frame, previous state, current message, next frame, and next state.
+    """
     frames = iter([]) if traj is None else iter_frame_file_full(traj)
     states = iter([]) if state is None else iter_state_file_full(state)
 
