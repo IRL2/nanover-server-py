@@ -11,8 +11,8 @@ Example when used as a cli:
     # split a recording whenever the frame resets
     nanover-split-recording recording.traj recording.state
 
-    # split a recording whenever a specific key's value changes and include the value of a specific key in the resulting filenames
-    nanover-split-recording recording.traj recording.state -c puppeteer.simulation-name -n puppeteer.simulation-name
+    # split a recording whenever the simulation counter key changes and include a custom key's value in the resulting filenames
+    nanover-split-recording recording.traj recording.state -s system.simulation.counter -n puppeteer.simulation-name
 
 """
 
@@ -189,8 +189,8 @@ def main():
         help="Recording files to split (one or both of .traj and .state)",
     )
     parser.add_argument(
-        "-c",
-        "--on-key-change",
+        "-s",
+        "--split-by-key",
         help="Split when a message changes the value of (or removes) this key",
         type=str,
     )
