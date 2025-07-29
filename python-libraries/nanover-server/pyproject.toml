@@ -28,6 +28,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.scripts]
+nanover-dump-state = "nanover.recording.dump_cli:main"
 nanover-omni = "nanover.omni.cli:main"
 nanover-record = "nanover.omni.recorder_cli:main"
 nanover-omm-server = "nanover.openmm.cli:main"
