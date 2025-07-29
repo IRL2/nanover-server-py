@@ -14,6 +14,7 @@ build:
     - nanover-essd-list = nanover.essd.list_cli:main
     - nanover-multiplayer = nanover.multiplayer.cli:main
     - nanover-dump-state = nanover.recording.dump_cli:main
+    - nanover-split-recording = nanover.recording.split_cli:main
 
 requirements:
   build:

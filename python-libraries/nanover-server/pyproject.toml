@@ -28,12 +28,13 @@ dependencies = [
 dynamic = ["version"]
 
 [project.scripts]
-nanover-dump-state = "nanover.recording.dump_cli:main"
 nanover-omni = "nanover.omni.cli:main"
 nanover-record = "nanover.omni.recorder_cli:main"
 nanover-omm-server = "nanover.openmm.cli:main"
 nanover-essd-list = "nanover.essd.list_cli:main"
 nanover-multiplayer = "nanover.multiplayer.cli:main"
+nanover-dump-state = "nanover.recording.dump_cli:main"
+nanover-split-recording = "nanover.recording.split_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
