@@ -199,6 +199,10 @@ def split_recording(
 def iter_recording_max(
     *, traj: Optional[PathLike[str]] = None, state: Optional[PathLike[str]] = None
 ):
+    """
+    Iterate recording file(s) yielding recording events in timestamp order, with each event containing the full
+    information of previous frame, previous state, current message, next frame, and next state.
+    """
     frames = iter([]) if traj is None else iter_frame_file_full(traj)
     states = iter([]) if state is None else iter_state_file_full(state)
 

@@ -11,6 +11,7 @@ from nanover.utilities.protobuf_utilities import value_to_object, object_to_valu
 BOX_VECTORS = "system.box.vectors"
 SIMULATION_TIME = "system.simulation.time"
 SIMULATION_COUNTER = "system.simulation.counter"
+SIMULATION_EXCEPTION = "system.simulation.exception"
 
 BOND_PAIRS = "bond.pairs"
 BOND_ORDERS = "bond.orders"
@@ -343,6 +344,13 @@ class FrameData(metaclass=_FrameDataMeta):
         key=SIMULATION_COUNTER,
         record_type="values",
         field_type="number_value",
+        to_python=_as_is,
+        to_raw=_as_is,
+    )
+    simulation_exception: float = _Shortcut(  # type: ignore[assignment]
+        key=SIMULATION_EXCEPTION,
+        record_type="values",
+        field_type="string",
         to_python=_as_is,
         to_raw=_as_is,
     )

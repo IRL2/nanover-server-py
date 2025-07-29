@@ -1,0 +1,92 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Stroud
+  given-names: Harry J.
+  orcid: "https://orcid.org/0000-0001-8440-2629"
+- family-names: Wonnacott
+  given-names: Mark D.
+  orcid: "https://orcid.org/0000-0001-9304-7278"
+- family-names: Barnoud
+  given-names: Jonathan
+  orcid: "https://orcid.org/0000-0003-0343-7796"
+- family-names: "Roebuck Williams"
+  given-names: Rhoslyn
+  orcid: "https://orcid.org/0000-0003-2535-7180"
+- family-names: Dhouioui
+  given-names: Mohamed
+  orcid: "https://orcid.org/0000-0003-4876-4686"
+- family-names: McSloy
+  given-names: Adam
+  orcid: "https://orcid.org/0000-0002-9064-7072"
+- family-names: Aisa
+  given-names: Ludovica
+  orcid: "https://orcid.org/0009-0002-2925-0081"
+- family-names: Toledo
+  given-names: Luis E.
+  orcid: "https://orcid.org/0009-0001-4683-9835"
+- family-names: Bates
+  given-names: Phil
+  orcid: "https://orcid.org/0000-0001-6010-1151"
+- family-names: Mulholland
+  given-names: Adrian J.
+  orcid: "https://orcid.org/0000-0003-1015-4567"
+- family-names: Glowacki
+  given-names: David R.
+  orcid: "https://orcid.org/0000-0002-9608-3845"
+contact:
+- family-names: Stroud
+  given-names: Harry J.
+  orcid: "https://orcid.org/0000-0001-8440-2629"
+doi: 10.5281/zenodo.15691916
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Stroud
+    given-names: Harry J.
+    orcid: "https://orcid.org/0000-0001-8440-2629"
+  - family-names: Wonnacott
+    given-names: Mark D.
+    orcid: "https://orcid.org/0000-0001-9304-7278"
+  - family-names: Barnoud
+    given-names: Jonathan
+    orcid: "https://orcid.org/0000-0003-0343-7796"
+  - family-names: "Roebuck Williams"
+    given-names: Rhoslyn
+    orcid: "https://orcid.org/0000-0003-2535-7180"
+  - family-names: Dhouioui
+    given-names: Mohamed
+    orcid: "https://orcid.org/0000-0003-4876-4686"
+  - family-names: McSloy
+    given-names: Adam
+    orcid: "https://orcid.org/0000-0002-9064-7072"
+  - family-names: Aisa
+    given-names: Ludovica
+    orcid: "https://orcid.org/0009-0002-2925-0081"
+  - family-names: Toledo
+    given-names: Luis E.
+    orcid: "https://orcid.org/0009-0001-4683-9835"
+  - family-names: Bates
+    given-names: Phil
+    orcid: "https://orcid.org/0000-0001-6010-1151"
+  - family-names: Mulholland
+    given-names: Adrian J.
+    orcid: "https://orcid.org/0000-0003-1015-4567"
+  - family-names: Glowacki
+    given-names: David R.
+    orcid: "https://orcid.org/0000-0002-9608-3845"
+  date-published: 2025-06-27
+  doi: 10.21105/joss.08118
+  issn: 2475-9066
+  issue: 110
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 8118
+  title: "NanoVer Server: A Python Package for Serving Real-Time
+    Multi-User Interactive Molecular Dynamics in Virtual Reality"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.08118"
+  volume: 10
+title: "NanoVer Server: A Python Package for Serving Real-Time
+  Multi-User Interactive Molecular Dynamics in Virtual Reality"
