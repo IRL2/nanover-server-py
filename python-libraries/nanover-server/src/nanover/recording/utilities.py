@@ -236,15 +236,18 @@ def iter_recording_max(
 
 
 def iter_frame_file_full(path: PathLike[str]):
+    """
+    Yield an event for every message in the recording that contains the timestamp, message, and frame data before and
+    after the message was applied.
+    """
     prev_frame = FrameData()
     with MessageRecordingReader.from_path(path) as reader:
         for entry in reader:
             message = buffer_to_frame_message(entry.buffer)
             frame_reset = message.frame_index == 0
-            if frame_reset:
-                prev_frame = FrameData()
             next_frame = FrameData()
-            next_frame.raw.MergeFrom(prev_frame.raw)
+            if not frame_reset:
+                next_frame.raw.MergeFrom(prev_frame.raw)
             next_frame.raw.MergeFrom(message.frame)
 
             yield FrameRecordingEvent(
@@ -258,6 +261,10 @@ def iter_frame_file_full(path: PathLike[str]):
 
 
 def iter_state_file_full(path: PathLike[str]):
+    """
+    Yield an event for every message in the recording that contains the timestamp, message, and state before and after
+    the message was applied.
+    """
     current_state = StateDictionary()
     prev_state = current_state.copy_content()
     with MessageRecordingReader.from_path(path) as reader:
