@@ -13,6 +13,7 @@ build:
     - nanover-record = nanover.omni.recorder_cli:main
     - nanover-essd-list = nanover.essd.list_cli:main
     - nanover-multiplayer = nanover.multiplayer.cli:main
+    - nanover-dump-state = nanover.recording.dump_cli:main
 
 requirements:
   build:

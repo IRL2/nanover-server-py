@@ -914,7 +914,12 @@ class NanoverImdClient:
         self._frames.append(frame)
         if frame_index == 0:
             self._current_frame = FrameData()
-        self._current_frame.raw.MergeFrom(frame.raw)
+
+        # repeated merging onto the same last_frame seems to cause a memory leak, so we start from a blank state each time
+        merged = FrameData()
+        merged.raw.MergeFrom(self._current_frame.raw)
+        merged.raw.MergeFrom(frame.raw)
+        self._current_frame = merged
 
     def __enter__(self):
         return self
