@@ -97,7 +97,7 @@ FIRST_FRAME_REQUIRED = {
 }
 
 
-def universe_from_recording(*, traj: PathLike[str]):
+def universe_from_recording(*, traj: PathLike[str], convert_units=True):
     """
     Read and convert a NanoVer trajectory recording into an mdanalysis Universe, ignore all frames after a frame_index
     reset.
@@ -106,10 +106,11 @@ def universe_from_recording(*, traj: PathLike[str]):
         traj,
         format=NanoverReader,
         topology_format=NanoverParser,
+        convert_units=convert_units,
     )
 
 
-def universes_from_recording(*, traj: PathLike[str]):
+def universes_from_recording(*, traj: PathLike[str], convert_units=True):
     """
     Decompose a NanoVer trajectory recording into an mdanalysis Universe for each session of simulation (determined
     by frame_index resets).
@@ -130,7 +131,9 @@ def universes_from_recording(*, traj: PathLike[str]):
 
         try:
             universe = frame_data_to_mdanalysis(first_particle_frame)
-            universe.trajectory = NanoverReaderBase(reader, filename=traj)
+            universe.trajectory = NanoverReaderBase(
+                reader, filename=traj, convert_units=convert_units
+            )
             universes.append(universe)
         except Exception as e:
             warnings.warn(
