@@ -10,17 +10,6 @@ class Serializable(Protocol):
     def SerializeToString(self) -> bytes: ...
 
 
-def record_messages_to_file(path, messages: Iterable[Serializable]):
-    """
-    Write a sequence of messages to a recording file.
-
-    :param path: Path of recording file to write to.
-    :param messages: Iterable sequence of messages to record.
-    """
-    with open(path, "wb") as outfile:
-        yield from record_messages(outfile, messages)
-
-
 def record_messages(io: BinaryIO, messages, start_time: Optional[int] = None):
     if start_time is None:
         start_time = perf_counter_ns()
@@ -30,6 +19,17 @@ def record_messages(io: BinaryIO, messages, start_time: Optional[int] = None):
 
     entries = ((timestamp(), message) for message in messages)
     record_entries(io, entries)
+
+
+def record_entries_to_file(path, messages: Iterable[Serializable]):
+    """
+    Write a sequence of message entries to a recording file.
+
+    :param path: Path of recording file to write to.
+    :param messages: Iterable sequence of message entries to record.
+    """
+    with open(path, "wb") as outfile:
+        record_entries(outfile, messages)
 
 
 def record_entries(io: BinaryIO, entries):
