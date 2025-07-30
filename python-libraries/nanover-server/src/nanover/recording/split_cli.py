@@ -206,8 +206,8 @@ def main():
     traj_path = next((path for path in paths if path.suffix == ".traj"), None)
     state_path = next((path for path in paths if path.suffix == ".state"), None)
 
-    if args.on_key_change is not None:
-        predicate = make_key_change_predicate(args.on_key_change)
+    if args.split_by_key is not None:
+        predicate = make_key_change_predicate(args.split_by_key)
     else:
         predicate = split_on_frame_reset
 
