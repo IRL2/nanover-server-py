@@ -3,7 +3,7 @@ Provides an implementation of IMD force field in ASE.
 """
 
 import math
-from typing import Optional, Dict, Set, Collection
+from typing import Optional, Dict, Set, Collection, Sequence
 
 import numpy as np
 from ase import Atoms, units  # type: ignore
@@ -372,7 +372,7 @@ def _apply_velocities_reset(atoms, atoms_to_reset, temperature):
 
 
 def _reset_selection_to_boltzmann(
-    atoms: Atoms, selection: Collection[int], temperature: float
+    atoms: Atoms, selection: np.ndarray, temperature: float
 ):
     # TODO importing a private function here... reimplement?
     reset = _maxwellboltzmanndistribution(
@@ -382,7 +382,7 @@ def _reset_selection_to_boltzmann(
 
 
 def _scale_momentum_of_selection(
-    atoms: Atoms, selection: Collection[int], temperature: float
+    atoms: Atoms, selection: np.ndarray, temperature: float
 ):
     scaled_selection = _get_scaled_momentum(atoms[selection], temperature)
     _apply_momentum_to_selection(atoms, selection, scaled_selection)
