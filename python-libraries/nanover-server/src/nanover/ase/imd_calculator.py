@@ -3,7 +3,7 @@ Provides an implementation of IMD force field in ASE.
 """
 
 import math
-from typing import Optional, Dict, Set, Collection, Sequence
+from typing import Optional, Dict, Set
 
 import numpy as np
 from ase import Atoms, units  # type: ignore
