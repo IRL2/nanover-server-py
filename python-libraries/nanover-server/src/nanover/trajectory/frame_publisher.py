@@ -1,5 +1,6 @@
+import asyncio
 import time
-from queue import Queue
+from queue import Queue, Empty
 from threading import Lock
 from typing import Union, Callable
 
@@ -71,6 +72,27 @@ class FramePublisher(TrajectoryServiceServicer):
             context,
             queue_type=GetFrameResponseAggregatingQueue,
         )
+
+    async def subscribe_latest_frames(self, *, frame_interval=1/30):
+        request_id = self._get_new_request_id()
+
+        try:
+            yield next(self._yield_last_frame_if_any())
+        except Exception:
+            pass
+
+        with self.frame_queues.one_queue(request_id, queue_class=GetFrameResponseAggregatingQueue) as queue:
+            # if not listen_for_cancellation(lambda: queue.put(SENTINEL)):
+            #     return
+            for dt in yield_interval(frame_interval):
+                try:
+                    item = queue.get(block=False)
+                    if item is SENTINEL:
+                        break
+                    yield item
+                except Empty:
+                    await asyncio.sleep(0.03)
+
 
     def _subscribe_frame_base(self, request, context, queue_type):
         listen_for_cancellation = context.add_callback

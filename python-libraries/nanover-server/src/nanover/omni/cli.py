@@ -1,16 +1,19 @@
 """
 Command line interface for nanover.omni.
 """
-
+import asyncio
 import logging
+import ssl
 import time
 import textwrap
 import argparse
 from contextlib import contextmanager
 from glob import glob
+from pathlib import Path
 from typing import Iterable
 
 from nanover.omni import OmniRunner
+from nanover.omni.nanover_server_ws import NanoverServerWS
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
 from nanover.omni.record import record_from_server
@@ -158,6 +161,20 @@ def main():
         with initialise_runner(arguments) as runner:
             if len(runner.simulations) > 0:
                 runner.load(0)
+
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            ssl_key = "localhost.key"
+            ssl_cert = "localhost.pem"
+
+            ssl_context.load_verify_locations(ssl_cert)
+            ssl_context.load_cert_chain(ssl_cert, keyfile=ssl_key, password="nanover")
+
+            async def main():
+                websocket = NanoverServerWS(app=runner.app_server)
+                await websocket.serve(cancellation=cancellation, ssl=ssl_context)
+
+            asyncio.run(main())
+            return
 
             if arguments.rich:
                 try:
