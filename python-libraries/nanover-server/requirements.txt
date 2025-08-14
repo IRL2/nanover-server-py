@@ -6,3 +6,4 @@ aiogrpc
 numpy
 hypothesis
 typing_extensions
+websockets
