@@ -91,7 +91,7 @@ class FramePublisher(TrajectoryServiceServicer):
                         break
                     yield item
                 except Empty:
-                    await asyncio.sleep(0.03)
+                    await asyncio.sleep(1/30)
 
 
     def _subscribe_frame_base(self, request, context, queue_type):

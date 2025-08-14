@@ -1,6 +1,7 @@
 import asyncio
 import json
 import time
+from asyncio import gather
 from functools import partial
 from typing import Callable, Any, Optional
 
@@ -12,7 +13,7 @@ from nanover.omni.converter import pack_array
 from nanover.trajectory.frame_data import PARTICLE_COUNT, CHAIN_COUNT, RESIDUE_COUNT, SIMULATION_COUNTER, \
     PARTICLE_POSITIONS, PARTICLE_ELEMENTS, PARTICLE_RESIDUES, BOND_PAIRS, RESIDUE_CHAINS, BOX_VECTORS, FrameData
 from nanover.utilities.cli import CancellationToken
-from websockets import WebSocketServerProtocol
+from websockets import WebSocketServerProtocol, ConnectionClosedOK
 
 
 class NanoverServerWS:
@@ -30,11 +31,8 @@ class NanoverServerWS:
         ssl=None,
         cancellation: Optional[CancellationToken]=None,
     ):
+        self.cancellation = cancellation
         name = name or "nanover websocket server"
-
-        async def await_cancellation():
-            while not cancellation.is_cancelled:
-                await asyncio.sleep(0.01)
 
         print("POLLING DISCOVERY")
         async with aiohttp.ClientSession() as session:
@@ -58,6 +56,11 @@ class NanoverServerWS:
                 port = list(server.sockets)[0].getsockname()[1]
                 data["ws"] = f"ws://{ip}:{port}"
 
+            async def await_cancellation():
+                while not cancellation.is_cancelled:
+                    await asyncio.sleep(0.1)
+                print("CANCELLED")
+
             async with websockets.connect("wss://irl-discovery.onrender.com/", open_timeout=5) as discovery:
                 await asyncio.gather(
                     run_discovery(discovery, data),
@@ -70,17 +73,32 @@ class NanoverServerWS:
         async def send_frames():
             frame_publisher = self.app._frame_publisher
 
+            times = []
+
             prev = time.perf_counter()
             async for response in frame_publisher.subscribe_latest_frames():
+                if self.cancellation.is_cancelled:
+                    break
+
+                times.append(time.perf_counter())
+                if (len(times) > 10):
+                    print(times[1]-times[0], websocket.latency)
+                    times = []
+
                 frame = FrameData(response.frame)
                 data = {"frame": convert_frame(frame)}
                 bytes = msgpack.packb(data)
                 await websocket.send(bytes)
-                next = time.perf_counter()
-                print(next-prev, websocket)
-                prev = next
 
-        await send_frames()
+        async def recv():
+            while not self.cancellation.is_cancelled:
+                await websocket.recv()
+                await asyncio.sleep(0.1)
+
+        try:
+            await gather(send_frames(), recv())
+        except ConnectionClosedOK:
+            print("CONNECTION CLOSED")
 
 
 async def run_discovery(websocket, data):
