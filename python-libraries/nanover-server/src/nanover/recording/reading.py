@@ -293,17 +293,21 @@ def skip_buffers(io: BinaryIO):
 
 
 def read_buffer(io: BinaryIO):
-    timestamp = read_u128(io)
-    record_size = read_u64(io)
-    buffer = io.read(record_size)
+    timestamp, buffer_size = read_entry_info(io)
+    buffer = io.read(buffer_size)
     return timestamp, buffer
 
 
 def skip_buffer(io: BinaryIO):
+    timestamp, buffer_size = read_entry_info(io)
+    io.seek(buffer_size, SEEK_CUR)
+    return timestamp, buffer_size
+
+
+def read_entry_info(io: BinaryIO):
     timestamp = read_u128(io)
-    record_size = read_u64(io)
-    io.seek(record_size, SEEK_CUR)
-    return timestamp, record_size
+    buffer_size = read_u64(io)
+    return timestamp, buffer_size
 
 
 def read_header(io: BinaryIO):

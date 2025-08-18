@@ -45,6 +45,10 @@ def write_header(io: BinaryIO):
 
 def write_entry(io: BinaryIO, timestamp: int, message: Serializable):
     buffer = message.SerializeToString()
+    write_buffer(io, timestamp, buffer)
+
+
+def write_buffer(io: BinaryIO, timestamp: int, buffer: bytes):
     write_u128(io, timestamp)
     write_u64(io, len(buffer))
     io.write(buffer)
