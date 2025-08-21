@@ -61,13 +61,6 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--rich",
-        action="store_true",
-        default=False,
-        help="Provide an interactive rich interface in the terminal.",
-    )
-
-    parser.add_argument(
         "-q",
         "--include-velocities",
         action="store_true",
@@ -159,18 +152,9 @@ def main():
             if len(runner.simulations) > 0:
                 runner.load(0)
 
-            if arguments.rich:
-                try:
-                    from nanover.omni.rich import OmniTextualApp
-                except ImportError as error:
-                    print(f"Error: {error.msg}\nTry `pip install textual`")
-                else:
-                    app = OmniTextualApp(runner)
-                    app.run()
-            else:
-                runner.print_basic_info()
-                cancellation.wait_cancellation(interval=0.5)
-                print("Closing due to KeyboardInterrupt.")
+            runner.print_basic_info()
+            cancellation.wait_cancellation(interval=0.5)
+            print("Closing due to KeyboardInterrupt.")
 
 
 if __name__ == "__main__":
