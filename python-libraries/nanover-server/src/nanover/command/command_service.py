@@ -117,24 +117,24 @@ class CommandService(CommandServicer):
         :param context: GRPC context.
         :return: :class:`CommandReply`, consisting of any results of the command.
         """
-        name = request.name
-        command = self._commands.get(name)
-        if command is None:
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            message = f"Unknown command: {command}"
-            context.set_details(message)
-            return
-        args = command.info.arguments
-        args.update(struct_to_dict(request.arguments))
-        results = command.callback(**args)
-        if results is not None:
+        try:
+            results = self.run_command(request.name, struct_to_dict(request.arguments))
+            if results is None:
+                return CommandReply()
             try:
-                result_struct = dict_to_struct(results)
+                return CommandReply(result=dict_to_struct(results))
             except ValueError:
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-                message = f"Command ({name}) generated results that cannot be serialised: {results}"
+                message = f"Command ({request.name}) generated results that cannot be serialised: {results}"
                 context.set_details(message)
-                return
-            return CommandReply(result=result_struct)
-        else:
-            return CommandReply()
+        except KeyError as e:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details(str(e))
+
+    def run_command(self, name: str, arguments: dict):
+        command = self._commands.get(name)
+        if command is None:
+            raise KeyError(f"Unknown command: {name}")
+        args = command.info.arguments
+        args.update(arguments)
+        return command.callback(**args)
