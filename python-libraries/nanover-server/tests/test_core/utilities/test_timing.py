@@ -6,15 +6,18 @@ import itertools
 
 from numpy import average
 
-from nanover.utilities.timing import yield_interval, wait_busy
+from nanover.utilities.timing import yield_interval, wait_busy, yield_interval_async
+
+pytest_plugins = ("pytest_asyncio",)
 
 TIMING_TOLERANCE = 0.01  # 10ms
 COMMON_INTERVALS = (1 / 10, 1 / 30, 1 / 60)
+WORK_FACTORS = (0.75, 0.25, 0)
 
 
 @pytest.mark.serial  # we want accurate timing so run without any parallel load
 @pytest.mark.parametrize("interval", COMMON_INTERVALS)
-@pytest.mark.parametrize("work_factor", (0.75, 0.5, 0.25, 0))
+@pytest.mark.parametrize("work_factor", WORK_FACTORS)
 def test_yield_interval(interval, work_factor):
     """
     Test that yield_interval yields on average at the correct interval when time is spent between resuming iteration.
@@ -32,7 +35,7 @@ def test_yield_interval(interval, work_factor):
 
 
 @pytest.mark.parametrize("interval", COMMON_INTERVALS)
-@pytest.mark.parametrize("work_factor", (0.75, 0.5, 0.25, 0))
+@pytest.mark.parametrize("work_factor", WORK_FACTORS)
 def test_yield_interval_dt(interval, work_factor):
     """
     Test that yield_interval yields the actual time between yields.
@@ -47,6 +50,57 @@ def test_yield_interval_dt(interval, work_factor):
         reported_deltas.append(dt)
         times.append(time.perf_counter())
         time.sleep(interval * work_factor)
+
+    measured_deltas = numpy.diff(times)
+    assert reported_deltas == pytest.approx(measured_deltas, abs=TIMING_TOLERANCE)
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial  # we want accurate timing so run without any parallel load
+@pytest.mark.parametrize("interval", COMMON_INTERVALS)
+@pytest.mark.parametrize("work_factor", WORK_FACTORS)
+async def test_yield_interval_async(interval, work_factor):
+    """
+    Test that yield_interval yields on average at the correct interval when time is spent between resuming iteration.
+    """
+
+    times = []
+    count = 30
+
+    async for dt in yield_interval_async(interval):
+        times.append(time.perf_counter())
+        wait_busy(interval * work_factor)
+
+        count -= 1
+        if count == 0:
+            break
+
+    intervals = numpy.diff(times)
+    assert average(intervals) == pytest.approx(interval, abs=TIMING_TOLERANCE)
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial  # we want accurate timing so run without any parallel load
+@pytest.mark.parametrize("interval", COMMON_INTERVALS)
+@pytest.mark.parametrize("work_factor", WORK_FACTORS)
+async def test_yield_interval_async_dt(interval, work_factor):
+    """
+    Test that yield_interval_async yields the actual time between yields.
+    """
+
+    times = []
+    reported_deltas = []
+    count = 30
+
+    times.append(time.perf_counter())
+    async for dt in yield_interval_async(interval):
+        reported_deltas.append(dt)
+        times.append(time.perf_counter())
+        time.sleep(interval * work_factor)
+
+        count -= 1
+        if count == 0:
+            break
 
     measured_deltas = numpy.diff(times)
     assert reported_deltas == pytest.approx(measured_deltas, abs=TIMING_TOLERANCE)

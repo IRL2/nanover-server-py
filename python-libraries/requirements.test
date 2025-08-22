@@ -1,5 +1,6 @@
 # Requirement files for running the tests.
 pytest
+pytest-asyncio
 pytest-cov
 pytest-timeout
 pytest-xdist
