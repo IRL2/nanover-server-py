@@ -3,6 +3,7 @@ from queue import Queue
 from threading import Lock
 from typing import Union, Callable
 
+from nanover.utilities.cli import CancellationToken
 from nanover.utilities.request_queues import (
     DictOfQueues,
     GetFrameResponseAggregatingQueue,
@@ -57,7 +58,7 @@ class FramePublisher(TrajectoryServiceServicer):
         This method publishes all the frames produced by the trajectory service,
         starting when the client subscribes.
         """
-        yield from self._subscribe_frame_base(request, context, queue_type=Queue)
+        yield from self._subscribe_frame_grpc_base(request, context, queue_class=Queue)
 
     def SubscribeLatestFrames(self, request, context):
         """
@@ -66,23 +67,46 @@ class FramePublisher(TrajectoryServiceServicer):
         This method publishes the latest frame available at the time of
         yielding.
         """
-        yield from self._subscribe_frame_base(
+        yield from self._subscribe_frame_grpc_base(
             request,
             context,
-            queue_type=GetFrameResponseAggregatingQueue,
+            queue_class=GetFrameResponseAggregatingQueue,
         )
 
-    def _subscribe_frame_base(self, request, context, queue_type):
-        listen_for_cancellation = context.add_callback
+    def _subscribe_frame_grpc_base(
+        self, request, context, queue_class=GetFrameResponseAggregatingQueue
+    ):
+        cancellation = CancellationToken()
+        if context.add_callback(cancellation.cancel):
+            yield from self.subscribe_latest_frames(
+                frame_interval=request.frame_interval,
+                queue_class=queue_class,
+                cancellation=cancellation,
+            )
+
+    def subscribe_latest_frames(
+        self,
+        *,
+        frame_interval=1 / 30,
+        cancellation,
+        queue_class=GetFrameResponseAggregatingQueue
+    ):
+        """
+        Yield the most recent frame, if changed, at a regular interval. Terminates when cancellation token is
+        cancelled.
+        """
         request_id = self._get_new_request_id()
+
         yield from self._yield_last_frame_if_any()
-        with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
-            if not listen_for_cancellation(lambda: queue.put(SENTINEL)):
-                return
-            for dt in yield_interval(request.frame_interval):
-                item = queue.get(block=True)
-                if item is SENTINEL:
+
+        with self.frame_queues.one_queue(
+            request_id,
+            queue_class=queue_class,
+        ) as queue:
+            for dt in yield_interval(frame_interval):
+                if cancellation.is_cancelled:
                     break
+                item = queue.get(block=True)
                 yield item
 
     def _get_new_request_id(self) -> int:
