@@ -40,3 +40,7 @@ nanover-check-recording = "nanover.recording.cli.check_cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
 include = ["nanover.*", "nanover.protocol"]  # package names should match these glob patterns (["*"] by default)
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = ["serial"]

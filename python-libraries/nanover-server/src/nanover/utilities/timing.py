@@ -2,6 +2,7 @@
 Module providing time-dependent utility methods.
 """
 
+import asyncio
 import time
 from threading import RLock
 
@@ -31,6 +32,27 @@ class VariableIntervalGenerator:
             next_yield = time.perf_counter()
             yield next_yield - prev_yield
             prev_yield = next_yield
+
+    async def yield_interval_async(self):
+        target = time.perf_counter()
+        prev_yield = target
+        yield 0
+        while True:
+            target += self.interval
+            await wait_mixed_target_async(target)
+            next_yield = time.perf_counter()
+            yield next_yield - prev_yield
+            prev_yield = next_yield
+
+
+def yield_interval_async(interval: float):
+    """
+    Yield immediately and then roughly every interval seconds, yielding the time in seconds that passed between yields.
+
+    :param interval: Number of seconds to ensure between yields
+    :yield: Number of seconds since last yielding
+    """
+    return VariableIntervalGenerator(interval).yield_interval_async()
 
 
 def yield_interval(interval: float):
@@ -62,5 +84,18 @@ def wait_mixed(seconds: float):
         duration = max(target - now, 0)
         if duration > 0:
             time.sleep(duration * 0.5)
+        else:
+            break
+
+
+async def wait_mixed_target_async(target: float):
+    """
+    Do nothing for a period of time by using a series of short sleeps.
+    """
+    while True:
+        now = time.perf_counter()
+        duration = max(target - now, 0)
+        if duration > 0:
+            await asyncio.sleep(duration * 0.5)
         else:
             break
