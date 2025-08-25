@@ -7,7 +7,6 @@ import msgpack
 from websockets import ConnectionClosedOK
 
 from nanover.app import NanoverImdApplication
-from nanover.omni import OmniRunner
 from nanover.trajectory.frame_data import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
@@ -17,8 +16,8 @@ from nanover.websocket.convert import convert_frame
 
 
 @contextmanager
-def serve_from_omni_runner(
-    omni_runner: OmniRunner,
+def serve_from_app_server(
+    app_server: NanoverImdApplication,
     *,
     ssl: Optional[SSLContext] = None,
     cancellation: Optional[CancellationToken] = None,
@@ -26,7 +25,7 @@ def serve_from_omni_runner(
     cancellation = cancellation or CancellationToken()
 
     def handle_client(websocket: ServerConnection):
-        WebSocketClientHandler(omni_runner.app_server, websocket, cancellation).listen()
+        WebSocketClientHandler(app_server, websocket, cancellation).listen()
 
     with (
         serve(handle_client, "0.0.0.0", 0, ssl=ssl) as wss,
@@ -44,11 +43,11 @@ def serve_from_omni_runner(
 class WebSocketClientHandler:
     def __init__(
         self,
-        app: NanoverImdApplication,
+        app_server: NanoverImdApplication,
         websocket: ServerConnection,
         cancellation: CancellationToken,
     ):
-        self.app = app
+        self.app_server = app_server
         self.websocket = websocket
 
         self.cancellation = CancellationToken()
@@ -60,14 +59,14 @@ class WebSocketClientHandler:
 
     @property
     def frame_publisher(self):
-        return self.app._frame_publisher
+        return self.app_server._frame_publisher
 
     @property
     def state_dictionary(self):
-        return self.app.server._state_service.state_dictionary
+        return self.app_server.server._state_service.state_dictionary
 
     def run_command(self, name: str, arguments: Optional[dict] = None):
-        return self.app.server._command_service.run_command(name, arguments or {})
+        return self.app_server.server._command_service.run_command(name, arguments or {})
 
     def send_frame(self, frame: FrameData):
         self.send_message({"frame": convert_frame(frame)})

@@ -18,7 +18,7 @@ from nanover.omni.record import record_from_server
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.discovery import get_local_ip, DiscoveryClient
 
-from nanover.websocket.server import serve_from_omni_runner
+from nanover.websocket.server import serve_from_app_server
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -204,8 +204,8 @@ def main():
 
             runner.print_basic_info()
 
-            with serve_from_omni_runner(
-                runner,
+            with serve_from_app_server(
+                runner.app_server,
                 cancellation=cancellation,
                 ssl=ssl,
             ) as (wss, ws):
