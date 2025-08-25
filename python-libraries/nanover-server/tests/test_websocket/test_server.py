@@ -30,10 +30,13 @@ def make_websocket_server():
 def connect_client_to_server(server: Server):
     port = server.socket.getsockname()[1]
     with connect(f"ws://localhost:{port}") as websocket:
+
         def send_message(message: dict):
             websocket.send(msgpack.packb(message))
+
         def recv_message():
             return msgpack.unpackb(websocket.recv())
+
         yield send_message, recv_message
 
 

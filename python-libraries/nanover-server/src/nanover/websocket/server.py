@@ -66,7 +66,9 @@ class WebSocketClientHandler:
         return self.app_server.server._state_service.state_dictionary
 
     def run_command(self, name: str, arguments: Optional[dict] = None):
-        return self.app_server.server._command_service.run_command(name, arguments or {})
+        return self.app_server.server._command_service.run_command(
+            name, arguments or {}
+        )
 
     def send_frame(self, frame: FrameData):
         self.send_message({"frame": convert_frame(frame)})
