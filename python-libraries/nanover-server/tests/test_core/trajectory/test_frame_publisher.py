@@ -9,6 +9,7 @@ import pytest
 from nanover.trajectory import FramePublisher
 from nanover.trajectory.frame_data import FrameData, SERVER_TIMESTAMP
 from nanover.protocol.trajectory import FrameData as RawFrameData
+from nanover.utilities.cli import CancellationToken
 
 
 def test_user_queue():
@@ -69,3 +70,70 @@ def test_get_new_request_id_threaded():
     obtained = list(itertools.chain(*client_id_lists))
     assert len(obtained) == ids_per_run * number_of_runs
     assert len(set(obtained)) == len(obtained)
+
+
+@pytest.mark.timeout(1)
+def test_cancellation_ends_empty_stream():
+    """
+    Test that a cancelled a frame stream yields no frames and terminates.
+    """
+    publisher = FramePublisher()
+    cancellation = CancellationToken()
+
+    stream = publisher.subscribe_latest_frames(
+        frame_interval=0,
+        cancellation=cancellation,
+    )
+
+    cancellation.cancel()
+
+    assert sum(1 for _ in stream) == 0
+
+
+@pytest.mark.timeout(1)
+@pytest.mark.parametrize("count", list(range(5)))
+def test_cancellation_ends_stream_immediately(count):
+    """
+    Test that a cancelled a frame stream yields no frames and terminates, even though frames were sent.
+    """
+    publisher = FramePublisher()
+    cancellation = CancellationToken()
+
+    stream = publisher.subscribe_latest_frames(
+        frame_interval=0,
+        cancellation=cancellation,
+    )
+
+    for i in range(count):
+        publisher.send_frame(i, FrameData())
+
+    cancellation.cancel()
+
+    assert sum(1 for _ in stream) == 0
+
+
+@pytest.mark.timeout(1)
+@pytest.mark.parametrize("count", list(range(5)))
+def test_cancellation_ends_started_stream(count):
+    """
+    Test that a cancelled a frame stream yields no more frames and terminates, even after consuming some frames and then
+    sending more.
+    """
+    publisher = FramePublisher()
+    cancellation = CancellationToken()
+
+    stream = publisher.subscribe_latest_frames(
+        frame_interval=0,
+        cancellation=cancellation,
+    )
+
+    for i in range(count):
+        publisher.send_frame(i, FrameData())
+        next(stream)
+
+    for _ in range(count):
+        publisher.send_frame(i, FrameData())
+
+    cancellation.cancel()
+
+    assert sum(1 for _ in stream) == 0

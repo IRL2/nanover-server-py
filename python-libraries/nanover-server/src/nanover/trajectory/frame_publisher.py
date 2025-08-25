@@ -97,16 +97,28 @@ class FramePublisher(TrajectoryServiceServicer):
         """
         request_id = self._get_new_request_id()
 
-        yield from self._yield_last_frame_if_any()
-
         with self.frame_queues.one_queue(
             request_id,
             queue_class=queue_class,
         ) as queue:
+            if cancellation.is_cancelled:
+                return
+
+            with self._last_frame_lock:
+                initial_frame_index = self.last_frame_index
+                initial_frame = self.last_frame
+
+            if initial_frame is not None:
+                yield GetFrameResponse(
+                    frame_index=initial_frame_index, frame=initial_frame
+                )
+
+            cancellation.subscribe_cancellation(lambda: queue.put(SENTINEL))
+
             for dt in yield_interval(frame_interval):
-                if cancellation.is_cancelled:
-                    break
                 item = queue.get(block=True)
+                if cancellation.is_cancelled or item is SENTINEL:
+                    break
                 yield item
 
     def _get_new_request_id(self) -> int:
@@ -128,10 +140,12 @@ class FramePublisher(TrajectoryServiceServicer):
         read them.
         """
         with self._last_frame_lock:
-            if self.last_frame is not None:
-                yield GetFrameResponse(
-                    frame_index=self.last_frame_index, frame=self.last_frame
-                )
+            frame = self.last_frame
+
+        if frame is not None:
+            yield GetFrameResponse(
+                frame_index=self.last_frame_index, frame=self.last_frame
+            )
 
     def send_frame(self, frame_index: int, frame: Union[FrameData, RawFrameData]):
         now = time.monotonic()
