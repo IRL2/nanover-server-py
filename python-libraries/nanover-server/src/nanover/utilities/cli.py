@@ -1,4 +1,3 @@
-import asyncio
 import time
 from signal import signal, SIGINT
 from contextlib import contextmanager
@@ -54,12 +53,3 @@ class CancellationToken:
         """
         while not self._cancelled:
             time.sleep(interval)
-
-    async def wait_cancellation_async(self, interval=0.1):
-        """
-        Sleep until this token is cancelled.
-
-        :param interval: the interval in seconds between waking up to check cancellation.
-        """
-        while not self._cancelled:
-            await asyncio.sleep(interval)

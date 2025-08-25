@@ -24,6 +24,8 @@ dependencies = [
     "typing_extensions",
     "ase >= 3.21",
     "setuptools>=40.1.1",
+    "websockets",
+    "msgpack",
 ]
 dynamic = ["version"]
 

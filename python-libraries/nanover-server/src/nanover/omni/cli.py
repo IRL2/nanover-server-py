@@ -3,6 +3,7 @@ Command line interface for nanover.omni.
 """
 
 import logging
+import ssl
 import time
 import textwrap
 import argparse
@@ -15,6 +16,9 @@ from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
 from nanover.omni.record import record_from_server
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
+from nanover.websocket.discovery import get_local_ip, DiscoveryClient
+
+from nanover.websocket.server import serve_from_omni_runner
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -76,6 +80,14 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "-s",
+        "--ssl",
+        nargs=3,
+        metavar=("CERTFILE", "KEYFILE", "PASSWORD"),
+        help="Offer SSL in addition to insecure connections.",
+    )
+
+    parser.add_argument(
         "-n",
         "--name",
         help="Give a friendly name to the server.",
@@ -132,6 +144,43 @@ def initialise_runner(arguments: argparse.Namespace):
         yield runner
 
 
+def initialise_ssl(arguments: argparse.Namespace):
+    if arguments.ssl is None:
+        return None
+
+    certfile, keyfile, password = arguments.ssl
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_verify_locations(certfile)
+    ssl_context.load_cert_chain(certfile, keyfile=keyfile, password=password)
+
+    return ssl_context
+
+
+@contextmanager
+def do_cloud_discovery(name, wss, ws, ssl):
+    ip = get_local_ip()
+
+    data = {
+        "name": name,
+        "web": f"https://{ip}:5500",
+        "https": f"https://{ip}:5500",
+    }
+
+    if ssl is not None:
+        port = wss.socket.getsockname()[1]
+        data["wss"] = f"wss://{ip}:{port}"
+        print("OFFERING SSL")
+
+    port = ws.socket.getsockname()[1]
+    data["ws"] = f"ws://{ip}:{port}"
+
+    print(data)
+    discovery = DiscoveryClient("irl-discovery.onrender.com")
+    print(discovery.get_listing())
+    with discovery.advertise(data) as init:
+        yield init
+
+
 def main():
     """
     Entry point for the command line.
@@ -146,6 +195,7 @@ def main():
     logging.captureWarnings(True)
 
     arguments = handle_user_arguments()
+    ssl = initialise_ssl(arguments)
 
     with suppress_keyboard_interrupt_as_cancellation() as cancellation:
         with initialise_runner(arguments) as runner:
@@ -153,7 +203,14 @@ def main():
                 runner.load(0)
 
             runner.print_basic_info()
-            cancellation.wait_cancellation(interval=0.5)
+
+            with serve_from_omni_runner(
+                runner,
+                cancellation=cancellation,
+                ssl=ssl,
+            ) as (wss, ws):
+                with do_cloud_discovery(runner.app_server.name, wss, ws, ssl):
+                    cancellation.wait_cancellation()
             print("Closing due to KeyboardInterrupt.")
 
 
