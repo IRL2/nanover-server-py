@@ -103,10 +103,12 @@ class FramePublisher(TrajectoryServiceServicer):
             request_id,
             queue_class=queue_class,
         ) as queue:
+            cancellation.subscribe_cancellation(lambda: queue.put(SENTINEL))
+
             for dt in yield_interval(frame_interval):
-                if cancellation.is_cancelled:
-                    break
                 item = queue.get(block=True)
+                if cancellation.is_cancelled or item is SENTINEL:
+                    break
                 yield item
 
     def _get_new_request_id(self) -> int:
