@@ -1,3 +1,4 @@
+import random
 from dataclasses import dataclass
 from typing import Optional, Any, Protocol
 
@@ -215,6 +216,13 @@ class ASESimulation:
 
         # generate the next frame
         frame_data = self.make_regular_frame()
+
+        # TODO: determine bonds
+        frame_data.bond_pairs = [
+            [random.randint(0, 50),
+            random.randint(0, 50)]
+            for _ in range(50)
+        ]
 
         # Update work done in frame data
         self.work_done = self._work_done_intermediate
