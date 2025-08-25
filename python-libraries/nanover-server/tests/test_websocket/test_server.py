@@ -53,6 +53,8 @@ TEST_CHANGE = DictionaryChange(
 def test_websocket_sends_frame(frame):
     with make_websocket_server() as (app_server, ws):
         with connect_client_to_server(ws) as (send, recv):
+            _ = recv()
+
             app_server._frame_publisher.send_frame(frame_index=1, frame=frame)
 
             message = recv()
@@ -66,6 +68,8 @@ def test_websocket_sends_frame(frame):
 def test_websocket_sends_state(change):
     with make_websocket_server() as (app_server, ws):
         with connect_client_to_server(ws) as (send, recv):
+            _ = recv()
+
             app_server.server._state_service.state_dictionary.update_state(None, change)
 
             message = recv()
