@@ -47,7 +47,7 @@ TEST_CHANGE = DictionaryChange(
 
 
 @pytest.mark.parametrize("frame", (TEST_FRAME,))
-async def test_websocket_sends_frame(frame):
+def test_websocket_sends_frame(frame):
     with make_websocket_server() as (app_server, ws):
         with connect_client_to_server(ws) as (send, recv):
             app_server._frame_publisher.send_frame(frame_index=1, frame=frame)
@@ -60,7 +60,7 @@ async def test_websocket_sends_frame(frame):
 
 
 @pytest.mark.parametrize("change", (TEST_CHANGE,))
-async def test_websocket_sends_state(change):
+def test_websocket_sends_state(change):
     with make_websocket_server() as (app_server, ws):
         with connect_client_to_server(ws) as (send, recv):
             app_server.server._state_service.state_dictionary.update_state(None, change)
