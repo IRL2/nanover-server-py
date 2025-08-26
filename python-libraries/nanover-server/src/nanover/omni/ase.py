@@ -15,6 +15,7 @@ from nanover.ase.converter import (
     ase_atoms_to_frame_data,
     ANG_TO_NM,
     KJMOL_TO_EV,
+    generate_bonds_from_ase,
 )
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.thermo import compute_dof, compute_instantaneous_temperature
@@ -217,13 +218,6 @@ class ASESimulation:
         # generate the next frame
         frame_data = self.make_regular_frame()
 
-        # TODO: determine bonds
-        frame_data.bond_pairs = [
-            [random.randint(0, 50),
-            random.randint(0, 50)]
-            for _ in range(50)
-        ]
-
         # Update work done in frame data
         self.work_done = self._work_done_intermediate
         frame_data.user_work_done = self.work_done
@@ -295,5 +289,8 @@ class ASESimulation:
         # Add the user forces and user energy to the frame (converting from ASE units
         # to NanoVer units)
         self.imd_calculator.add_to_frame_data(frame_data)
+
+        # Determine bonds and add to frame data
+        frame_data.bond_pairs = generate_bonds_from_ase(self.atoms)
 
         return frame_data
