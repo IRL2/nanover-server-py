@@ -1,6 +1,6 @@
 import random
 from dataclasses import dataclass
-from typing import Optional, Any, Protocol
+from typing import Optional, Any, Protocol, Tuple
 
 import numpy as np
 from ase import Atoms
@@ -99,6 +99,8 @@ class ASESimulation:
         self._prev_imd_indices: Optional[np.ndarray] = None
 
         self._dof: Optional[int] = None
+
+        self.previous_bonds: Optional[Tuple[int, int]] = None
 
     def load(self):
         """
@@ -268,9 +270,18 @@ class ASESimulation:
             and self._dof is not None
         )
 
+        # Calculate bonds and determine whether topology needs updating
+        update_topology = False
+        current_bonds = generate_bonds_from_ase(self.atoms)
+        if self.previous_bonds is not None and current_bonds != self.previous_bonds:
+            update_topology = True
+            self.previous_bonds = current_bonds
+        elif self.previous_bonds is None:
+            self.previous_bonds = current_bonds
+
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
-            topology=False,
+            topology=update_topology,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
@@ -289,8 +300,5 @@ class ASESimulation:
         # Add the user forces and user energy to the frame (converting from ASE units
         # to NanoVer units)
         self.imd_calculator.add_to_frame_data(frame_data)
-
-        # Determine bonds and add to frame data
-        frame_data.bond_pairs = generate_bonds_from_ase(self.atoms)
 
         return frame_data
