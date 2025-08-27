@@ -4,13 +4,14 @@ Module containing methods for converting between ASE simulations consisting of
 NanoVer clients.
 """
 
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Tuple
 
 from ase import Atoms, Atom  # type: ignore
 from ase.units import fs as fs_in_ase_time_unit
 import itertools
 import numpy as np
 import numpy.typing as npt
+from networkx.algorithms.threshold import eigenvalues, eigenvectors
 
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.trajectory import FrameData
@@ -250,13 +251,14 @@ def add_ase_topology_to_frame_data(
     :param ase_atoms: ASE atoms to extract topology information from.
     """
     # TODO it would be nice to do dynamic molecule/chain detection here.
-    frame_data.residue_names = ["ASE"]
-    frame_data.residue_chains = [0]
-    frame_data.residue_count = 1
-    frame_data.residue_ids = ["1"]
+    bonds, molecule_strings, molecule_indices = determine_molecules(ase_atoms)
 
-    frame_data.chain_names = ["A"]
-    frame_data.chain_count = 1
+    frame_data.chain_names = molecule_strings
+    frame_data.chain_count = len(molecule_strings)
+    frame_data.residue_names = molecule_strings
+    frame_data.residue_chains = [i for i in range(len(molecule_strings))]
+    frame_data.residue_count = len(molecule_strings)
+    frame_data.residue_ids = [str(i+1) for i in range(len(molecule_strings))]
 
     atom_names = []
     elements = []
@@ -264,7 +266,10 @@ def add_ase_topology_to_frame_data(
     for index, atom in enumerate(ase_atoms):
         atom_names.append(str(atom.index))
         elements.append(atom.number)
-        residue_ids.append(0)
+        for resid in range(len(molecule_indices)):
+            if index in molecule_indices[resid]:
+                residue_ids.append(resid)
+                break
 
     frame_data.particle_names = atom_names
     frame_data.particle_elements = elements
@@ -275,6 +280,53 @@ def add_ase_topology_to_frame_data(
         bonds = generate_bonds_from_ase(ase_atoms)
         frame_data.bond_pairs = bonds
 
+def determine_molecules(ase_atoms: Atoms, bonds: Optional[Tuple[int, int]]=None):
+    """
+    Determines the molecules in the system based on the topology
+    from :func:`generate_bonds_from_ase`.
+
+    :param ase_atoms: ASE atoms to extract topology information from.
+    :param bonds: [Optional] Tuple of bonds defining the topology (saves
+      recalculating if they have already been calculated)
+    """
+    # Retrieve number of atoms
+    n_atoms = ase_atoms.get_global_number_of_atoms()
+
+    # Calculate bonds and convert to array
+    if not bonds:
+        bonds = generate_bonds_from_ase(ase_atoms)
+
+    # Define upper triangular matrix from bonding vector
+    upper_tri = np.zeros((n_atoms, n_atoms))
+    for bond in bonds:
+        upper_tri[*bond] = 1
+
+    # Define adjacency matrix with ones on diagonal
+    adj_mat = np.identity(n_atoms) + upper_tri + upper_tri.transpose()
+
+    # Calculate "molecular connectivity matrix" as (n_atoms-1)th power
+    # of adjacency matrix, and set all non-zero elements to 1
+    mol_connect_mat = np.linalg.matrix_power(adj_mat, n_atoms-1)
+    mol_connect_mat[mol_connect_mat != 0] = 1
+
+    # Retrieve unique vectors defining molecules
+    molecules = np.unique(mol_connect_mat, axis=0)
+
+    # Get elements for atoms:
+    elements = np.array(ase_atoms.get_chemical_symbols())
+
+    # Define molecule strings and atom indices of molecules from rows
+    # of "molecular connectivity matrix"
+    molecule_strings = []
+    molecule_indices = []
+    for molecule in molecules:
+        molecule_atom_indices = molecule.nonzero()[0]
+        molecule_indices.append(molecule_atom_indices)
+        element_strings = elements[molecule_atom_indices]
+        molecule_string = "".join(element_strings)
+        molecule_strings.append(molecule_string)
+
+    return bonds, molecule_strings, molecule_indices
 
 def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
