@@ -22,7 +22,9 @@ def suppress_keyboard_interrupt_as_cancellation():
 
 class CancellationToken:
     _cancelled = False
-    _on_cancellation = Event()
+
+    def __init__(self):
+        self._on_cancellation = Event()
 
     def subscribe_cancellation(self, callback):
         if self._cancelled:
