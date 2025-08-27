@@ -222,7 +222,7 @@ def main():
                         ssl=ssl,
                     )
                 else:
-                    cloud_discovery = nullcontext()
+                    cloud_discovery = nullcontext()  # type: ignore
 
                 with cloud_discovery:
                     cancellation.wait_cancellation()
