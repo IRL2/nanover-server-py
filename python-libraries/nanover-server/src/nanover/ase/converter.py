@@ -264,7 +264,7 @@ def add_ase_topology_to_frame_data(
     elements = []
     residue_ids = []
     for index, atom in enumerate(ase_atoms):
-        atom_names.append(str(atom.index))
+        atom_names.append(atom.symbol)
         elements.append(atom.number)
         for resid in range(len(molecule_indices)):
             if index in molecule_indices[resid]:
