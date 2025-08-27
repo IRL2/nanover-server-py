@@ -7,7 +7,7 @@ import ssl
 import time
 import textwrap
 import argparse
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from glob import glob
 from typing import Iterable
 
@@ -18,7 +18,7 @@ from nanover.omni.record import record_from_server
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.discovery import get_local_ip, DiscoveryClient
 
-from nanover.websocket.server import serve_from_app_server
+from nanover.websocket.server import serve_from_app_server, get_server_port
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -85,6 +85,13 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         nargs=3,
         metavar=("CERTFILE", "KEYFILE", "PASSWORD"),
         help="Offer SSL in addition to insecure connections.",
+    )
+
+    parser.add_argument(
+        "--cloud-discovery",
+        dest="cloud_discovery_host",
+        metavar="ENDPOINT",
+        help="Advertise server on cloud discovery.",
     )
 
     parser.add_argument(
@@ -157,7 +164,7 @@ def initialise_ssl(arguments: argparse.Namespace):
 
 
 @contextmanager
-def do_cloud_discovery(name, wss, ws, ssl):
+def do_cloud_discovery(endpoint, *, name, wss, ws, ssl):
     ip = get_local_ip()
 
     data = {
@@ -167,15 +174,12 @@ def do_cloud_discovery(name, wss, ws, ssl):
     }
 
     if ssl is not None:
-        port = wss.socket.getsockname()[1]
-        data["wss"] = f"wss://{ip}:{port}"
+        data["wss"] = f"wss://{ip}:{get_server_port(wss)}"
         print("OFFERING SSL")
-
-    port = ws.socket.getsockname()[1]
-    data["ws"] = f"ws://{ip}:{port}"
+    data["ws"] = f"ws://{ip}:{get_server_port(ws)}"
 
     print(data)
-    discovery = DiscoveryClient("irl-discovery.onrender.com")
+    discovery = DiscoveryClient(endpoint)
     print(discovery.get_listing())
     with discovery.advertise(data) as init:
         yield init
@@ -209,7 +213,18 @@ def main():
                 cancellation=cancellation,
                 ssl=ssl,
             ) as (wss, ws):
-                with do_cloud_discovery(runner.app_server.name, wss, ws, ssl):
+                if arguments.cloud_discovery_host is not None:
+                    cloud_discovery = do_cloud_discovery(
+                        arguments.cloud_discovery_host,
+                        name=runner.app_server.name,
+                        wss=wss,
+                        ws=ws,
+                        ssl=ssl,
+                    )
+                else:
+                    cloud_discovery = nullcontext()  # type: ignore
+
+                with cloud_discovery:
                     cancellation.wait_cancellation()
             print("Closing due to KeyboardInterrupt.")
 

@@ -10,7 +10,7 @@ from nanover.app import NanoverImdApplication
 from nanover.trajectory.frame_data import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
-from websockets.sync.server import serve, ServerConnection
+from websockets.sync.server import serve, ServerConnection, Server
 
 from nanover.websocket.convert import convert_frame
 
@@ -33,6 +33,13 @@ def serve_from_app_server(
     ):
         cancellation.subscribe_cancellation(wss.shutdown)
         cancellation.subscribe_cancellation(ws.shutdown)
+
+        if app_server.running_discovery:
+            hub = app_server._service_hub
+            hub.add_service("ws", get_server_port(ws))
+            if ssl is not None:
+                hub.add_service("wss", get_server_port(wss))
+            app_server._update_discovery_services()
 
         threads = ThreadPoolExecutor(max_workers=2)
         threads.submit(wss.serve_forever)
@@ -134,3 +141,7 @@ class WebSocketClientHandler:
         threads.submit(send_updates)
         threads.submit(recv_all)
         threads.shutdown(wait=True)
+
+
+def get_server_port(server: Server):
+    return server.socket.getsockname()[1]
