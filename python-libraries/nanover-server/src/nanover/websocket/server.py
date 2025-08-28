@@ -43,7 +43,7 @@ class WebSocketServer:
             self._ws_server = serve(self._handle_client, "0.0.0.0", 0)
             self._threads.submit(self._ws_server.serve_forever)
             if self.app_server.running_discovery:
-                self.app_server._service_hub.add_service("wss", self.wss_port)
+                self.app_server._service_hub.add_service("ws", self.ws_port)
                 self.app_server._update_discovery_services()
 
     def serve_secure(self, *, ssl: SSLContext):
@@ -51,7 +51,7 @@ class WebSocketServer:
             self._wss_server = serve(self._handle_client, "0.0.0.0", 0, ssl=ssl)
             self._threads.submit(self._wss_server.serve_forever)
             if self.app_server.running_discovery:
-                self.app_server._service_hub.add_service("ws", self.wss_port)
+                self.app_server._service_hub.add_service("wss", self.wss_port)
                 self.app_server._update_discovery_services()
 
     @property
@@ -60,7 +60,9 @@ class WebSocketServer:
 
     @property
     def wss_port(self):
-        return get_server_port(self._ws_server) if self._ws_server is not None else None
+        return (
+            get_server_port(self._wss_server) if self._wss_server is not None else None
+        )
 
     def close(self):
         self._cancellation.cancel()
