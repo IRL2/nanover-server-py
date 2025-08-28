@@ -1,10 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import suppress, contextmanager
 from ssl import SSLContext
 from typing import Optional
 
 import msgpack
-from websockets import ConnectionClosedOK
 
 from nanover.app import NanoverImdApplication
 from nanover.trajectory.frame_data import FrameData
@@ -15,36 +13,73 @@ from websockets.sync.server import serve, ServerConnection, Server
 from nanover.websocket.convert import convert_frame
 
 
-@contextmanager
-def serve_from_app_server(
-    app_server: NanoverImdApplication,
-    *,
-    ssl: Optional[SSLContext] = None,
-    cancellation: Optional[CancellationToken] = None,
-):
-    cancellation = cancellation or CancellationToken()
-
-    def handle_client(websocket: ServerConnection):
-        WebSocketClientHandler(app_server, websocket, cancellation).listen()
-
-    with (
-        serve(handle_client, "0.0.0.0", 0, ssl=ssl) as wss,
-        serve(handle_client, "0.0.0.0", 0) as ws,
+class WebSocketServer:
+    @classmethod
+    def basic_server(
+        cls,
+        app_server: NanoverImdApplication,
+        *,
+        ssl: Optional[SSLContext] = None,
+        insecure=True,
     ):
-        cancellation.subscribe_cancellation(wss.shutdown)
-        cancellation.subscribe_cancellation(ws.shutdown)
+        server = cls(app_server)
 
-        if app_server.running_discovery:
-            hub = app_server._service_hub
-            hub.add_service("ws", get_server_port(ws))
-            if ssl is not None:
-                hub.add_service("wss", get_server_port(wss))
-            app_server._update_discovery_services()
+        if insecure:
+            server.serve_insecure()
+        if ssl is not None:
+            server.serve_secure(ssl=ssl)
 
-        threads = ThreadPoolExecutor(max_workers=2)
-        threads.submit(wss.serve_forever)
-        threads.submit(ws.serve_forever)
-        yield wss, ws
+        return server
+
+    def __init__(self, app_server: NanoverImdApplication):
+        self.app_server = app_server
+        self._cancellation = CancellationToken()
+        self._threads = ThreadPoolExecutor(max_workers=2)
+        self._ws_server: Optional[Server] = None
+        self._wss_server: Optional[Server] = None
+
+    def serve_insecure(self):
+        if self._ws_server is None:
+            self._ws_server = serve(self._handle_client, "0.0.0.0", 0)
+            self._threads.submit(self._ws_server.serve_forever)
+            if self.app_server.running_discovery:
+                self.app_server._service_hub.add_service("wss", self.wss_port)
+                self.app_server._update_discovery_services()
+
+    def serve_secure(self, *, ssl: SSLContext):
+        if self._wss_server is None:
+            self._wss_server = serve(self._handle_client, "0.0.0.0", 0, ssl=ssl)
+            self._threads.submit(self._wss_server.serve_forever)
+            if self.app_server.running_discovery:
+                self.app_server._service_hub.add_service("ws", self.wss_port)
+                self.app_server._update_discovery_services()
+
+    @property
+    def ws_port(self):
+        return get_server_port(self._ws_server) if self._ws_server is not None else None
+
+    @property
+    def wss_port(self):
+        return get_server_port(self._ws_server) if self._ws_server is not None else None
+
+    def close(self):
+        self._cancellation.cancel()
+
+        if self._wss_server is not None:
+            self._wss_server.shutdown()
+        if self._ws_server is not None:
+            self._ws_server.shutdown()
+
+        self._threads.shutdown()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def _handle_client(self, websocket: ServerConnection):
+        WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
 
 class WebSocketClientHandler:
@@ -131,9 +166,8 @@ class WebSocketClientHandler:
                     self.send_state_update(change)
 
         def recv_all():
-            with suppress(ConnectionClosedOK):
-                for data in self.websocket:
-                    self.recv_message(msgpack.unpackb(data))
+            for data in self.websocket:
+                self.recv_message(msgpack.unpackb(data))
             self.cancellation.cancel()
 
         threads = ThreadPoolExecutor(max_workers=3)

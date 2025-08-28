@@ -11,14 +11,13 @@ from contextlib import contextmanager, nullcontext
 from glob import glob
 from typing import Iterable
 
+from nanover.essd import ServiceHub
 from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
 from nanover.omni.record import record_from_server
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.discovery import get_local_ip, DiscoveryClient
-
-from nanover.websocket.server import serve_from_app_server, get_server_port
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -122,6 +121,7 @@ def initialise_runner(arguments: argparse.Namespace):
         name=arguments.name,
         address=arguments.address,
         port=arguments.port,
+        ssl=initialise_ssl(arguments),
     ) as runner:
         for paths in arguments.recording_entries:
             runner.add_simulation(PlaybackSimulation.from_paths(paths))
@@ -164,19 +164,21 @@ def initialise_ssl(arguments: argparse.Namespace):
 
 
 @contextmanager
-def do_cloud_discovery(endpoint, *, name, wss, ws, ssl):
+def do_cloud_discovery(endpoint, *, hub: ServiceHub):
     ip = get_local_ip()
 
     data = {
-        "name": name,
+        "name": hub.name,
         "web": f"https://{ip}:5500",
         "https": f"https://{ip}:5500",
     }
 
-    if ssl is not None:
-        data["wss"] = f"wss://{ip}:{get_server_port(wss)}"
-        print("OFFERING SSL")
-    data["ws"] = f"ws://{ip}:{get_server_port(ws)}"
+    services = hub.properties["services"]
+
+    if "wss" in services:
+        data["wss"] = f"wss://{ip}:{services["wss"]}"
+    if "ws" in services:
+        data["ws"] = f"ws://{ip}:{services["ws"]}"
 
     print(data)
     discovery = DiscoveryClient(endpoint)
@@ -199,7 +201,6 @@ def main():
     logging.captureWarnings(True)
 
     arguments = handle_user_arguments()
-    ssl = initialise_ssl(arguments)
 
     with suppress_keyboard_interrupt_as_cancellation() as cancellation:
         with initialise_runner(arguments) as runner:
@@ -208,24 +209,15 @@ def main():
 
             runner.print_basic_info()
 
-            with serve_from_app_server(
-                runner.app_server,
-                cancellation=cancellation,
-                ssl=ssl,
-            ) as (wss, ws):
-                if arguments.cloud_discovery_host is not None:
-                    cloud_discovery = do_cloud_discovery(
-                        arguments.cloud_discovery_host,
-                        name=runner.app_server.name,
-                        wss=wss,
-                        ws=ws,
-                        ssl=ssl,
-                    )
-                else:
-                    cloud_discovery = nullcontext()  # type: ignore
+            if arguments.cloud_discovery_host is not None:
+                cloud_discovery = do_cloud_discovery(
+                    arguments.cloud_discovery_host, hub=runner.app_server._service_hub
+                )
+            else:
+                cloud_discovery = nullcontext()  # type: ignore
 
-                with cloud_discovery:
-                    cancellation.wait_cancellation()
+            with cloud_discovery:
+                cancellation.wait_cancellation()
             print("Closing due to KeyboardInterrupt.")
 
 

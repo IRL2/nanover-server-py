@@ -1,10 +1,7 @@
 from contextlib import contextmanager
 
-import msgpack
 import pytest
 from mock import Mock
-from websockets.sync.server import Server
-from websockets.sync.client import connect
 
 from nanover.app import NanoverImdApplication
 from nanover.testing import assert_equal_soon
@@ -12,7 +9,7 @@ from nanover.trajectory import FrameData
 from nanover.trajectory.frame_data import PARTICLE_COUNT
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client import WebsocketClient
-from nanover.websocket.server import serve_from_app_server
+from nanover.websocket.server import WebSocketServer
 
 
 @contextmanager
@@ -24,15 +21,13 @@ def make_app_server():
 @contextmanager
 def make_websocket_server():
     with make_app_server() as app_server:
-        with serve_from_app_server(app_server) as (wss, ws):
-            yield app_server, ws
-        ws.shutdown()
+        with WebSocketServer.basic_server(app_server) as websocket_server:
+            yield app_server, websocket_server
 
 
 @contextmanager
-def connect_client_to_server(server: Server):
-    port = server.socket.getsockname()[1]
-    with WebsocketClient(f"ws://localhost:{port}") as client:
+def connect_client_to_server(websocket_server: WebSocketServer):
+    with WebsocketClient(f"ws://localhost:{websocket_server.ws_port}") as client:
         yield client
 
 
@@ -65,6 +60,30 @@ def test_websocket_sends_frame(frame):
             lambda: client.frame.get(PARTICLE_COUNT, None),
             lambda: TEST_FRAME.values[PARTICLE_COUNT],
         )
+
+
+@pytest.mark.parametrize("frame", (TEST_FRAME,))
+def test_websocket_sends_frame_two_clients(frame):
+    with make_websocket_server() as (app_server, websocket_server):
+        with connect_client_to_server(
+            websocket_server
+        ) as client1, connect_client_to_server(websocket_server) as client2:
+            app_server._frame_publisher.send_frame(frame_index=1, frame=frame)
+
+            assert_equal_soon(
+                lambda: (
+                    client1.frame.get(PARTICLE_COUNT, None),
+                    client2.frame.get(PARTICLE_COUNT, None),
+                ),
+                lambda: (TEST_FRAME.values[PARTICLE_COUNT],) * 2,
+            )
+
+            app_server._frame_publisher.send_frame(frame_index=0, frame=FrameData())
+
+            assert_equal_soon(
+                lambda: client1.frame.get(PARTICLE_COUNT, None),
+                lambda: client2.frame.get(PARTICLE_COUNT, None),
+            )
 
 
 @pytest.mark.parametrize("change", (TEST_CHANGE,))

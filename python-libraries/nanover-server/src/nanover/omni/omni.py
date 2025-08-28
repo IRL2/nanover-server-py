@@ -2,6 +2,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
+from ssl import SSLContext
 from typing import Protocol, List, Optional, Set, Dict
 
 from nanover.app import NanoverImdApplication, RenderingSelection
@@ -18,7 +19,7 @@ from nanover.trajectory.frame_server import (
 )
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
-
+from nanover.websocket.server import WebSocketServer
 
 CLEAR_PREFIXES = {"avatar.", "play-area.", "selection.", "scene", "interaction."}
 
@@ -44,6 +45,7 @@ class OmniRunner:
         name: Optional[str] = None,
         address: Optional[str] = None,
         port: Optional[int] = None,
+        ssl: Optional[SSLContext] = None,
     ):
         """
         Construct this using a basic NanoVer server and an optional list of initial simulations.
@@ -52,9 +54,12 @@ class OmniRunner:
         :param name: Optional server name to broadcast
         :param address: Optional server address to use
         :param port: Optional server port to use
+        :param ssl: Optional SSL context to use for the WebSocket server
         """
         app_server = NanoverImdApplication.basic_server(name, address, port)
+
         omni = cls(app_server)
+        omni._websocket_server = WebSocketServer.basic_server(app_server, ssl=ssl)
         for simulation in simulations:
             omni.add_simulation(simulation)
         return omni
@@ -65,6 +70,8 @@ class OmniRunner:
         self.simulations: List[Simulation] = []
         self._simulation_index = 0
         self.simulation_selections: Dict[Simulation, Set[RenderingSelection]] = {}
+
+        self._websocket_server: Optional[WebSocketServer] = None
 
         app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
         app_server.server.register_command(NEXT_COMMAND_KEY, self.next)
@@ -86,6 +93,9 @@ class OmniRunner:
         """
         Stop simulations and shut down server.
         """
+        if self._websocket_server is not None:
+            self._websocket_server.close()
+
         self.app_server.close()
         self._cancel_run()
 
