@@ -4,8 +4,32 @@ from contextlib import contextmanager
 
 from websockets.sync.client import connect
 
+from nanover.app import NanoverImdApplication
+
 
 class DiscoveryClient:
+    @classmethod
+    @contextmanager
+    def advertise_server(cls, endpoint, *, app_server: NanoverImdApplication):
+        assert app_server.running_discovery
+
+        ip = get_local_ip()
+
+        data = {
+            "name": app_server._service_hub.name,
+        }
+
+        services = app_server._service_hub.properties["services"]
+
+        if "wss" in services:
+            data["wss"] = f"wss://{ip}:{services["wss"]}"
+        if "ws" in services:
+            data["ws"] = f"ws://{ip}:{services["ws"]}"
+
+        discovery = DiscoveryClient(endpoint)
+        with discovery.advertise(data) as init:
+            yield discovery, init
+
     def __init__(self, host: str):
         self.host = host
 
