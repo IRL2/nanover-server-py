@@ -6,7 +6,7 @@ from nanover.command import CommandService
 
 @pytest.fixture
 def service():
-    return CommandService()
+    return CommandService(add_list_command=False)
 
 
 def test_register_command(service):
