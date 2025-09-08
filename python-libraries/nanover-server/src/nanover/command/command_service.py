@@ -44,12 +44,23 @@ class CommandService(CommandServicer):
     which are run as callbacks.
     """
 
-    def __init__(self):
+    def __init__(self, add_list_command=True):
         super().__init__()
         self.name: str = "command"
         self.add_to_server_method: Callable = add_CommandServicer_to_server
         self._commands = KeyLockableMap()
         self._id = "service"
+
+        def list_commands():
+            return {
+                "list": {
+                    name: registration.info.arguments
+                    for name, registration in self.commands.items()
+                }
+            }
+
+        if add_list_command:
+            self.register_command("commands/list", list_commands)
 
     @property
     def commands(self) -> Dict[str, CommandRegistration]:

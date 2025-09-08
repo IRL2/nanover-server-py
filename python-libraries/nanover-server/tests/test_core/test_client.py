@@ -392,8 +392,7 @@ def test_available_commands(client_server, mock_callback):
 
     commands = client.update_available_commands()
 
-    assert len(commands) == 3
-    assert set(commands.keys()) == {frame_str, imd_str, multiplayer_str}
+    assert set(commands.keys()).issuperset({frame_str, imd_str, multiplayer_str})
 
 
 def test_available_commands_frame_server_only(client_frame_server, mock_callback):
@@ -404,8 +403,7 @@ def test_available_commands_frame_server_only(client_frame_server, mock_callback
     client, frame_server = client_frame_server
     frame_server.register_command(frame_str, mock_callback)
     commands = client.update_available_commands()
-    assert len(commands) == 1
-    assert set(commands.keys()) == {frame_str}
+    assert set(commands.keys()).issuperset({frame_str})
 
 
 def run_client_server_command_test(client, server):
