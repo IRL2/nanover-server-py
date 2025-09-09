@@ -23,15 +23,12 @@ set -euo pipefail
 # mode. If not, they can supply the --no-edit argument.
 user_option=""
 edit_option="-e"
-with_dotnet=true
 with_python=true
 for option in "$@"; do
 	if [[ "$option" == "--user" ]]; then
 		user_option="--user"
 	elif [[ "$option" == "--no-edit" ]]; then
 		edit_option=""
-	elif [[ "$option" == "--no-dotnet" ]]; then
-		with_dotnet=false
 	elif [[ "$option" == "--no-python" ]]; then
 		with_python=false
 	fi
@@ -64,10 +61,4 @@ if [[ $with_python == true ]]; then
 		announce "OpenMM is not installed."
 		announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
 	}
-fi
-
-if [[ $with_dotnet == true ]]; then
-	announce "Compiling proto files to C#"
-	dotnet build --configuration Release csharp-libraries/Nanover.Protocol
-	dotnet publish --configuration Release csharp-libraries/Nanover.Protocol
 fi

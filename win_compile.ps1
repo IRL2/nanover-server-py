@@ -49,7 +49,3 @@ if ($LASTEXITCODE -ne 0)
     announce "OpenMM appears to not be installed."
     announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
 }
-
-announce "Compiling proto files to C#"
-dotnet build --configuration Release csharp-libraries/NanoVer.Protocol
-dotnet publish --configuration Release csharp-libraries/NanoVer.Protocol
