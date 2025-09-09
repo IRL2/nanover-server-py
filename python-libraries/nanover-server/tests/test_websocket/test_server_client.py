@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from dataclasses import dataclass
 
 import pytest
 from hypothesis import given, strategies as st
@@ -14,6 +15,20 @@ from nanover.websocket.server import WebSocketServer
 
 
 from data_strategies import packable_structures, dictionary_keys
+
+
+@dataclass(kw_only=True)
+class ServerClientSetup:
+    app: NanoverImdApplication
+    server: WebSocketServer
+    client: WebsocketClient
+
+
+@pytest.fixture(scope="module")
+def reusable_setup():
+    with make_connected_server_client_setup() as setup:
+        setup.app.server.register_command("test/identity", lambda **kwargs: kwargs)
+        yield setup
 
 
 @contextmanager
@@ -36,32 +51,32 @@ def connect_client_to_server(websocket_server: WebSocketServer):
 
 
 @contextmanager
-def make_connected_server_client_pair():
+def make_connected_server_client_setup():
     with make_websocket_server() as (app_server, ws):
         with connect_client_to_server(ws) as client:
-            yield app_server, client
-
-
-@pytest.fixture(scope="module")
-def reusable_server_client_pair():
-    with make_connected_server_client_pair() as (app_server, client):
-        app_server.server.register_command("test/identity", lambda **kwargs: kwargs)
-        yield app_server, client
+            yield ServerClientSetup(
+                app=app_server,
+                server=ws,
+                client=client,
+            )
 
 
 TEST_FRAME = FrameData()
 TEST_FRAME.particle_count = 42
 
 
-@given(frame_index=st.integers(min_value=1, max_value=2**32-1))
+@given(frame_index=st.integers(min_value=1, max_value=2**32 - 1))
 @pytest.mark.parametrize("frame", (TEST_FRAME,))
-def test_websocket_sends_frame(reusable_server_client_pair, frame, frame_index):
-    app_server, client = reusable_server_client_pair
-
-    app_server._frame_publisher.send_frame(frame_index=frame_index, frame=frame)
+def test_websocket_sends_frame(reusable_setup, frame, frame_index):
+    reusable_setup.app._frame_publisher.send_frame(frame_index=frame_index, frame=frame)
     assert_equal_soon(
-        lambda: pick(client.current_frame, { PARTICLE_COUNT, FRAME_INDEX }),
-        lambda: { PARTICLE_COUNT: TEST_FRAME.values[PARTICLE_COUNT], FRAME_INDEX: frame_index },
+        lambda: pick(
+            reusable_setup.client.current_frame, {PARTICLE_COUNT, FRAME_INDEX}
+        ),
+        lambda: {
+            PARTICLE_COUNT: TEST_FRAME.values[PARTICLE_COUNT],
+            FRAME_INDEX: frame_index,
+        },
     )
 
 
@@ -94,15 +109,13 @@ def test_websocket_sends_frame_two_clients(frame):
         keys=dictionary_keys(), values=packable_structures(), max_size=5
     )
 )
-def test_websocket_sends_state(reusable_server_client_pair, updates):
+def test_websocket_sends_state(reusable_setup, updates):
     """
     Test that state updates made directly on the server are accurately reflected on the client.
     """
-    app_server, client = reusable_server_client_pair
-
     change = DictionaryChange(updates=updates)
 
-    service = app_server.server._state_service
+    service = reusable_setup.app.server._state_service
     service.state_dictionary.update_state(None, change)
 
     assert_equal_soon(
@@ -112,7 +125,7 @@ def test_websocket_sends_state(reusable_server_client_pair, updates):
 
     assert_equal_soon(
         lambda: pick(service.state_dictionary.copy_content(), updates),
-        lambda: pick(client.state_dictionary.copy_content(), updates),
+        lambda: pick(reusable_setup.client.state_dictionary.copy_content(), updates),
     )
 
 
@@ -121,15 +134,13 @@ def test_websocket_sends_state(reusable_server_client_pair, updates):
         keys=dictionary_keys(), values=packable_structures(), max_size=5
     )
 )
-def test_echo_command(reusable_server_client_pair, arguments):
+def test_echo_command(reusable_setup, arguments):
     """
     Test that preprepared identity command successfully returns unaltered and arbitrary arguments the command
     is called with.
     """
-    app_server, client = reusable_server_client_pair
-
     mock_callback = Mock()
-    client.run_command("test/identity", arguments, mock_callback)
+    reusable_setup.client.run_command("test/identity", arguments, mock_callback)
 
     assert_equal_soon(
         lambda: mock_callback.call_args and mock_callback.call_args.args[0],
