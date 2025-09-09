@@ -7,7 +7,7 @@ from mock import Mock
 from nanover.app import NanoverImdApplication
 from nanover.testing import assert_equal_soon
 from nanover.trajectory import FrameData
-from nanover.trajectory.frame_data import PARTICLE_COUNT
+from nanover.trajectory.frame_data import PARTICLE_COUNT, FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client import WebsocketClient
 from nanover.websocket.server import WebSocketServer
@@ -53,14 +53,16 @@ TEST_FRAME = FrameData()
 TEST_FRAME.particle_count = 42
 
 
+@given(frame_index=st.integers(min_value=1, max_value=2**32-1))
 @pytest.mark.parametrize("frame", (TEST_FRAME,))
-def test_websocket_sends_frame(frame):
-    with make_connected_server_client_pair() as (app_server, client):
-        app_server._frame_publisher.send_frame(frame_index=1, frame=frame)
-        assert_equal_soon(
-            lambda: client.current_frame.get(PARTICLE_COUNT, None),
-            lambda: TEST_FRAME.values[PARTICLE_COUNT],
-        )
+def test_websocket_sends_frame(reusable_server_client_pair, frame, frame_index):
+    app_server, client = reusable_server_client_pair
+
+    app_server._frame_publisher.send_frame(frame_index=frame_index, frame=frame)
+    assert_equal_soon(
+        lambda: pick(client.current_frame, { PARTICLE_COUNT, FRAME_INDEX }),
+        lambda: { PARTICLE_COUNT: TEST_FRAME.values[PARTICLE_COUNT], FRAME_INDEX: frame_index },
+    )
 
 
 @pytest.mark.parametrize("frame", (TEST_FRAME,))

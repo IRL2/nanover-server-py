@@ -5,7 +5,7 @@ from typing import Optional
 import msgpack
 
 from nanover.app import NanoverImdApplication
-from nanover.trajectory.frame_data import FrameData
+from nanover.trajectory.frame_data import FrameData, FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
@@ -159,7 +159,9 @@ class WebSocketClientHandler:
                 frame_interval=frame_interval,
                 cancellation=self.cancellation,
             ):
-                self.send_frame(FrameData(response.frame))
+                frame = FrameData(response.frame)
+                frame.values[FRAME_INDEX] = response.frame_index
+                self.send_frame(frame)
 
         def send_updates():
             with self.state_dictionary.get_change_buffer() as change_buffer:

@@ -8,6 +8,8 @@ import numpy.typing as npt
 from nanover.protocol import trajectory
 from nanover.utilities.protobuf_utilities import value_to_object, object_to_value
 
+FRAME_INDEX = "frame.index"
+
 BOX_VECTORS = "system.box.vectors"
 SIMULATION_TIME = "system.simulation.time"
 SIMULATION_COUNTER = "system.simulation.counter"
