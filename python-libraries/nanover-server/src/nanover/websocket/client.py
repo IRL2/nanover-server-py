@@ -11,7 +11,7 @@ from nanover.utilities.change_buffers import DictionaryChange
 
 class WebsocketClient:
     def __init__(self, uri: str):
-        self.frame = {}
+        self.current_frame = {}
         self.state_dictionary = StateDictionary()
         self.pending_commands = {}
 
@@ -48,7 +48,7 @@ class WebsocketClient:
                 self.recv_command(command)
 
     def recv_frame(self, message: dict):
-        self.frame = message
+        self.current_frame.update(message)
 
     def recv_state(self, message: dict):
         change = DictionaryChange(

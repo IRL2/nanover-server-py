@@ -10,7 +10,7 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
-from nanover.websocket.convert import convert_frame
+from nanover.websocket.convert import pack_grpc_frame
 
 
 class WebSocketServer:
@@ -115,7 +115,7 @@ class WebSocketClientHandler:
         )
 
     def send_frame(self, frame: FrameData):
-        self.send_message({"frame": convert_frame(frame)})
+        self.send_message({"frame": pack_grpc_frame(frame)})
 
     def send_state_update(self, change: DictionaryChange):
         self.send_message(
