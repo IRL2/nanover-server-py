@@ -3,7 +3,7 @@ from nanover.websocket.convert import (
     pack_dict_frame,
     unpack_dict_frame,
 )
-from data_strategies import dict_frames
+from nanover.testing.strategies import dict_frames
 
 
 @given(dict_frames())

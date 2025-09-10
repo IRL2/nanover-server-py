@@ -6,7 +6,6 @@ from hypothesis import given, strategies as st
 from mock import Mock
 
 from nanover.app import NanoverImdApplication
-from nanover.testing import assert_equal_soon
 from nanover.trajectory import FrameData
 from nanover.trajectory.frame_data import PARTICLE_COUNT, FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
@@ -14,8 +13,8 @@ from nanover.websocket.client import WebsocketClient
 from nanover.websocket.convert import pack_grpc_frame, unpack_dict_frame
 from nanover.websocket.server import WebSocketServer
 
-
-from data_strategies import command_arguments, state_updates
+from nanover.testing import assert_equal_soon
+from nanover.testing.strategies import command_arguments, state_updates
 
 
 @dataclass(kw_only=True)
