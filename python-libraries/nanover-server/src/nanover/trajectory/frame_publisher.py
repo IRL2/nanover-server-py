@@ -19,6 +19,7 @@ from nanover.trajectory.frame_data import (
     FrameData,
     SERVER_TIMESTAMP,
     SIMULATION_COUNTER,
+    FRAME_INDEX,
 )
 
 SENTINEL = None
@@ -159,8 +160,10 @@ class FramePublisher(TrajectoryServiceServicer):
             frame.values[SIMULATION_COUNTER].number_value = self.simulation_counter
             self.simulation_counter += 1
 
+        frame.values[FRAME_INDEX].number_value = frame_index
+
         with self._last_frame_lock:
-            if self.last_frame is None:
+            if self.last_frame is None or frame_index == 0:
                 self.last_frame = RawFrameData()
             self.last_frame_index = frame_index
 

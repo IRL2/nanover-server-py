@@ -214,7 +214,10 @@ def test_subscribe_updates_interval(client_server, update_interval):
 
         time_before = time.perf_counter()
         assert_equal_soon(
-            lambda: i, lambda: client.copy_state()["hello"], interval=0.05
+            lambda: i,
+            lambda: client.copy_state()["hello"],
+            interval=0.05,
+            timeout=update_interval * 2,
         )
         time_after = time.perf_counter()
         update_times.append(time_after - time_before)

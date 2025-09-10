@@ -8,13 +8,17 @@ import time
 
 from grpc import RpcError, StatusCode
 from nanover.trajectory import FrameServer, FrameClient, FrameData
-from nanover.trajectory.frame_data import SERVER_TIMESTAMP, SIMULATION_COUNTER
+from nanover.trajectory.frame_data import (
+    SERVER_TIMESTAMP,
+    SIMULATION_COUNTER,
+    FRAME_INDEX,
+)
 from numpy import average
 
 from .utilities.test_timing import TIMING_TOLERANCE, COMMON_INTERVALS
 
 SUBSCRIBE_METHODS = ("subscribe_frames_async", "subscribe_last_frames_async")
-FRAME_DATA_VARIABLE_KEYS = (SERVER_TIMESTAMP, SIMULATION_COUNTER)
+FRAME_DATA_VARIABLE_KEYS = (SERVER_TIMESTAMP, SIMULATION_COUNTER, FRAME_INDEX)
 IMMEDIATE_REPLY_WAIT_TIME = 0.01
 
 

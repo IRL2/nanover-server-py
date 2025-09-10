@@ -5,12 +5,12 @@ from typing import Optional
 import msgpack
 
 from nanover.app import NanoverImdApplication
-from nanover.trajectory.frame_data import FrameData
+from nanover.trajectory.frame_data import FrameData, FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
-from nanover.websocket.convert import convert_frame
+from nanover.websocket.convert import pack_grpc_frame
 
 
 class WebSocketServer:
@@ -115,7 +115,7 @@ class WebSocketClientHandler:
         )
 
     def send_frame(self, frame: FrameData):
-        self.send_message({"frame": convert_frame(frame)})
+        self.send_message({"frame": pack_grpc_frame(frame)})
 
     def send_state_update(self, change: DictionaryChange):
         self.send_message(
@@ -159,7 +159,9 @@ class WebSocketClientHandler:
                 frame_interval=frame_interval,
                 cancellation=self.cancellation,
             ):
-                self.send_frame(FrameData(response.frame))
+                frame = FrameData(response.frame)
+                frame.values[FRAME_INDEX] = response.frame_index
+                self.send_frame(frame)
 
         def send_updates():
             with self.state_dictionary.get_change_buffer() as change_buffer:

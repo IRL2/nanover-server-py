@@ -3,29 +3,36 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Callable
 
 import msgpack
-from websockets.sync.client import connect
+from websockets.sync.client import connect, ClientConnection
 
 from nanover.state.state_dictionary import StateDictionary
+from nanover.trajectory.frame_data import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 
 
 class WebsocketClient:
-    def __init__(self, uri: str):
-        self.frame = {}
+    @classmethod
+    def from_url(cls, url: str):
+        connection = connect(url)
+        client = cls(connection)
+        return client
+
+    def __init__(self, connection: ClientConnection):
+        self.connection = connection
+
+        self.current_frame = {}
         self.state_dictionary = StateDictionary()
         self.pending_commands = {}
 
-        self.websocket = connect(uri)
-
         def listen():
-            for message in self.websocket:
+            for message in self.connection:
                 self.recv_message(msgpack.unpackb(message))
 
         self.threads = ThreadPoolExecutor(max_workers=1)
         self.threads.submit(listen)
 
     def close(self):
-        self.websocket.close()
+        self.connection.close()
         self.threads.shutdown(False)
 
     def run_command(self, name: str, arguments: dict, callback: Callable[[dict], None]):
@@ -36,7 +43,7 @@ class WebsocketClient:
         self.send_message(message)
 
     def send_message(self, message: dict):
-        self.websocket.send(msgpack.packb(message))
+        self.connection.send(msgpack.packb(message))
 
     def recv_message(self, message: dict):
         if "frame" in message:
@@ -48,7 +55,9 @@ class WebsocketClient:
                 self.recv_command(command)
 
     def recv_frame(self, message: dict):
-        self.frame = message
+        if message.get(FRAME_INDEX, None) == 0:
+            self.current_frame = {}
+        self.current_frame.update(message)
 
     def recv_state(self, message: dict):
         change = DictionaryChange(
