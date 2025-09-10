@@ -7,7 +7,7 @@ from mock import Mock
 
 from nanover.app import NanoverImdApplication
 from nanover.trajectory import FrameData
-from nanover.trajectory.frame_data import PARTICLE_COUNT, FRAME_INDEX
+from nanover.trajectory.frame_data import PARTICLE_COUNT
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client import WebsocketClient
 from nanover.websocket.convert import pack_grpc_frame, unpack_dict_frame
@@ -22,6 +22,22 @@ class ServerClientSetup:
     app: NanoverImdApplication
     server: WebSocketServer
     client: WebsocketClient
+
+    def assert_frames_synced_soon(self, **kwargs):
+        __tracebackhide__ = True  # hide this function in the test traceback
+        assert_equal_soon(
+            lambda: self.client_current_frame,
+            lambda: self.server_current_frame,
+            **kwargs,
+        )
+
+    def assert_states_synced_soon(self, **kwargs):
+        __tracebackhide__ = True  # hide this function in the test traceback
+        assert_equal_soon(
+            lambda: self.client_current_state,
+            lambda: self.server_current_state,
+            **kwargs,
+        )
 
     def server_publish_frame_reset(self):
         self.server_publish_frame(frame=FrameData(), frame_index=0)
@@ -42,10 +58,12 @@ class ServerClientSetup:
     def server_update_state(self, change: DictionaryChange):
         self.app.server._state_service.state_dictionary.update_state(None, change)
 
-    def server_copy_state(self):
+    @property
+    def server_current_state(self):
         return self.app.server._state_service.state_dictionary.copy_content()
 
-    def client_copy_state(self):
+    @property
+    def client_current_state(self):
         return self.client.state_dictionary.copy_content()
 
 
@@ -96,15 +114,7 @@ TEST_FRAME.particle_count = 42
 @pytest.mark.parametrize("frame", (TEST_FRAME,))
 def test_websocket_sends_frame(reusable_setup, frame, frame_index):
     reusable_setup.server_publish_frame(frame_index=frame_index, frame=frame)
-    assert_equal_soon(
-        lambda: pick(
-            reusable_setup.client.current_frame, {PARTICLE_COUNT, FRAME_INDEX}
-        ),
-        lambda: {
-            PARTICLE_COUNT: TEST_FRAME.values[PARTICLE_COUNT],
-            FRAME_INDEX: frame_index,
-        },
-    )
+    reusable_setup.assert_frames_synced_soon()
 
 
 @pytest.mark.parametrize("frame", (TEST_FRAME,))
@@ -140,14 +150,11 @@ def test_websocket_sends_state(reusable_setup, updates):
     reusable_setup.server_update_state(change)
 
     assert_equal_soon(
-        lambda: pick(reusable_setup.server_copy_state(), updates),
+        lambda: pick(reusable_setup.server_current_state, updates),
         lambda: updates,
     )
 
-    assert_equal_soon(
-        lambda: pick(reusable_setup.server_copy_state(), updates),
-        lambda: pick(reusable_setup.client_copy_state(), updates),
-    )
+    reusable_setup.assert_states_synced_soon()
 
 
 @given(arguments=command_arguments())
@@ -169,16 +176,10 @@ def test_echo_command(reusable_setup, arguments):
 @pytest.mark.parametrize("frame", (TEST_FRAME,))
 def test_client_frame_reset(reusable_setup, frame, frame_index):
     reusable_setup.server_publish_frame(frame_index=frame_index, frame=frame)
-    assert_equal_soon(
-        lambda: reusable_setup.client_current_frame,
-        lambda: reusable_setup.server_current_frame,
-    )
+    reusable_setup.assert_frames_synced_soon()
 
     reusable_setup.server_publish_frame_reset()
-    assert_equal_soon(
-        lambda: reusable_setup.client_current_frame,
-        lambda: reusable_setup.server_current_frame,
-    )
+    reusable_setup.assert_frames_synced_soon()
 
 
 def pick(dictionary, keys):
