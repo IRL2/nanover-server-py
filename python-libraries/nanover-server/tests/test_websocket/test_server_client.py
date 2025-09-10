@@ -11,10 +11,11 @@ from nanover.trajectory import FrameData
 from nanover.trajectory.frame_data import PARTICLE_COUNT, FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client import WebsocketClient
+from nanover.websocket.convert import pack_grpc_frame, unpack_dict_frame
 from nanover.websocket.server import WebSocketServer
 
 
-from data_strategies import packable_structures, dictionary_keys
+from data_strategies import command_arguments, state_updates
 
 
 @dataclass(kw_only=True)
@@ -22,6 +23,31 @@ class ServerClientSetup:
     app: NanoverImdApplication
     server: WebSocketServer
     client: WebsocketClient
+
+    def server_publish_frame_reset(self):
+        self.server_publish_frame(frame=FrameData(), frame_index=0)
+
+    def server_publish_frame(self, frame: FrameData, frame_index: int):
+        self.app._frame_publisher.send_frame(frame=frame, frame_index=frame_index)
+
+    @property
+    def client_current_frame(self):
+        return self.client.current_frame
+
+    @property
+    def server_current_frame(self):
+        return unpack_dict_frame(
+            pack_grpc_frame(FrameData(self.app._frame_publisher.last_frame))
+        )
+
+    def server_update_state(self, change: DictionaryChange):
+        self.app.server._state_service.state_dictionary.update_state(None, change)
+
+    def server_copy_state(self):
+        return self.app.server._state_service.state_dictionary.copy_content()
+
+    def client_copy_state(self):
+        return self.client.state_dictionary.copy_content()
 
 
 @pytest.fixture(scope="module")
@@ -46,7 +72,9 @@ def make_websocket_server():
 
 @contextmanager
 def connect_client_to_server(websocket_server: WebSocketServer):
-    with WebsocketClient(f"ws://localhost:{websocket_server.ws_port}") as client:
+    with WebsocketClient.from_url(
+        f"ws://localhost:{websocket_server.ws_port}"
+    ) as client:
         yield client
 
 
@@ -68,7 +96,7 @@ TEST_FRAME.particle_count = 42
 @given(frame_index=st.integers(min_value=1, max_value=2**32 - 1))
 @pytest.mark.parametrize("frame", (TEST_FRAME,))
 def test_websocket_sends_frame(reusable_setup, frame, frame_index):
-    reusable_setup.app._frame_publisher.send_frame(frame_index=frame_index, frame=frame)
+    reusable_setup.server_publish_frame(frame_index=frame_index, frame=frame)
     assert_equal_soon(
         lambda: pick(
             reusable_setup.client.current_frame, {PARTICLE_COUNT, FRAME_INDEX}
@@ -104,36 +132,26 @@ def test_websocket_sends_frame_two_clients(frame):
             )
 
 
-@given(
-    updates=st.dictionaries(
-        keys=dictionary_keys(), values=packable_structures(), max_size=5
-    )
-)
+@given(updates=state_updates())
 def test_websocket_sends_state(reusable_setup, updates):
     """
     Test that state updates made directly on the server are accurately reflected on the client.
     """
     change = DictionaryChange(updates=updates)
-
-    service = reusable_setup.app.server._state_service
-    service.state_dictionary.update_state(None, change)
+    reusable_setup.server_update_state(change)
 
     assert_equal_soon(
-        lambda: pick(service.state_dictionary.copy_content(), updates),
+        lambda: pick(reusable_setup.server_copy_state(), updates),
         lambda: updates,
     )
 
     assert_equal_soon(
-        lambda: pick(service.state_dictionary.copy_content(), updates),
-        lambda: pick(reusable_setup.client.state_dictionary.copy_content(), updates),
+        lambda: pick(reusable_setup.server_copy_state(), updates),
+        lambda: pick(reusable_setup.client_copy_state(), updates),
     )
 
 
-@given(
-    arguments=st.dictionaries(
-        keys=dictionary_keys(), values=packable_structures(), max_size=5
-    )
-)
+@given(arguments=command_arguments())
 def test_echo_command(reusable_setup, arguments):
     """
     Test that preprepared identity command successfully returns unaltered and arbitrary arguments the command
@@ -145,6 +163,22 @@ def test_echo_command(reusable_setup, arguments):
     assert_equal_soon(
         lambda: mock_callback.call_args and mock_callback.call_args.args[0],
         lambda: arguments,
+    )
+
+
+@given(frame_index=st.integers(min_value=1, max_value=2**32 - 1))
+@pytest.mark.parametrize("frame", (TEST_FRAME,))
+def test_client_frame_reset(reusable_setup, frame, frame_index):
+    reusable_setup.server_publish_frame(frame_index=frame_index, frame=frame)
+    assert_equal_soon(
+        lambda: reusable_setup.client_current_frame,
+        lambda: reusable_setup.server_current_frame,
+    )
+
+    reusable_setup.server_publish_frame_reset()
+    assert_equal_soon(
+        lambda: reusable_setup.client_current_frame,
+        lambda: reusable_setup.server_current_frame,
     )
 
 

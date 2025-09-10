@@ -52,6 +52,26 @@ def dict_frames(draw):
 
 
 @st.composite
+def state_updates(draw):
+    arguments = st.dictionaries(
+        keys=dictionary_keys(),
+        values=packable_structures(),
+    )
+
+    return draw(arguments)
+
+
+@st.composite
+def command_arguments(draw):
+    arguments = st.dictionaries(
+        keys=dictionary_keys(),
+        values=packable_structures(),
+    )
+
+    return draw(arguments)
+
+
+@st.composite
 def packable_structures(draw):
     structures = st.recursive(
         packable_primitives(),
