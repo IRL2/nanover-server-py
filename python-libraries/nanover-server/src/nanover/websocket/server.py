@@ -110,9 +110,10 @@ class WebSocketClientHandler:
         return self.app_server.server._state_service.state_dictionary
 
     def run_command(self, name: str, arguments: Optional[dict] = None):
-        return self.app_server.server._command_service.run_command(
+        results = self.app_server.server._command_service.run_command(
             name, arguments or {}
         )
+        return results
 
     def send_frame(self, frame: FrameData):
         self.send_message({"frame": pack_grpc_frame(frame)})
@@ -140,8 +141,11 @@ class WebSocketClientHandler:
 
         def handle_command_request(request):
             name, arguments = request.get("name"), request.get("arguments", {})
-            result = self.run_command(name, arguments)
-            response = {"request": request, "response": result}
+            try:
+                result = self.run_command(name, arguments)
+                response = {"request": request, "response": result}
+            except Exception as e:
+                response = {"request": request, "exception": str(e)}
             return response
 
         if "state" in message:

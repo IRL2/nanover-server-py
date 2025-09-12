@@ -11,7 +11,7 @@ from typing_extensions import Protocol
 
 from nanover.core import NanoverServer, DEFAULT_SERVE_ADDRESS
 from nanover.essd import DiscoveryServer, ServiceHub
-
+from nanover.trajectory import FramePublisher
 
 DEFAULT_NANOVER_PORT = 38801
 MULTIPLAYER_SERVICE_NAME = "multiplayer"
@@ -64,6 +64,10 @@ class NanoverApplicationServer:
 
     _services: Set[SupportsClose]
 
+    @classmethod
+    def null_server(cls):
+        return cls(NanoverServer())
+
     def __init__(
         self,
         server: NanoverServer,
@@ -77,10 +81,7 @@ class NanoverApplicationServer:
         self._service_hub = ServiceHub(
             name=name, address=self._server.address, port=self._server.port
         )
-        self._services = set()
-
-        # Advertise as a multiplayer service
-        self._add_service_entry(MULTIPLAYER_SERVICE_NAME, self._server.port)
+        self._frame_publisher = FramePublisher()
 
         add_multiuser_commands(self.server)
 
@@ -113,10 +114,11 @@ class NanoverApplicationServer:
         server, discovery = start_default_server_and_discovery(
             address=address, port=port
         )
+
         return cls(server, discovery, name)
 
     @property
-    def name(self) -> str:
+    def name(self):
         """
         Name of the server.
         :return: The name of the server.
@@ -124,7 +126,7 @@ class NanoverApplicationServer:
         return self._service_hub.name
 
     @property
-    def address(self) -> str:
+    def address(self):
         """
         Address of the server.
         :return: Address of the server.
@@ -132,7 +134,7 @@ class NanoverApplicationServer:
         return self._server.address
 
     @property
-    def port(self) -> int:
+    def port(self):
         """
         Server port.
         :return: Port of the server.
@@ -150,7 +152,7 @@ class NanoverApplicationServer:
         return self._server
 
     @property
-    def running_discovery(self) -> bool:
+    def running_discovery(self):
         """
         Indicates whether a discovery service is running or not.
         :return: True if discovery is available, False otherwise.
@@ -158,7 +160,7 @@ class NanoverApplicationServer:
         return self.discovery is not None
 
     @property
-    def discovery(self) -> Optional[DiscoveryServer]:
+    def discovery(self):
         """
         The discovery service that can be used to allow clients to find services hosted by this application.
         :return: The discovery service, or None if no discovery has been set up.
@@ -171,14 +173,24 @@ class NanoverApplicationServer:
         """
         return self._discovery
 
+    @property
+    def frame_publisher(self) -> FramePublisher:
+        """
+        The frame publisher attached to this application. Use it to publish
+        frames for consumption by NanoVer frame clients.
+
+        :return: The :class:`FramePublisher` attached to this application.
+        """
+        # TODO could just expose send frame here.
+        return self._frame_publisher
+
     def close(self):
         """
         Close the application server and all services.
         """
+        self._frame_publisher.close()
         if self.running_discovery:
             self._discovery.close()  # type: ignore
-        for service in self._services:
-            service.close()
         self._server.close()
 
     def add_service(self, service):
@@ -186,8 +198,6 @@ class NanoverApplicationServer:
         Adds a gRPC service to the server and broadcast it on discovery.
         :param service: Service implementation
         """
-        self._server.add_service(service)
-        self._services.add(service)
         self._add_service_entry(service.name, self._server.port)
 
     def _add_service_entry(self, name: str, port: int):

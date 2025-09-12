@@ -1,25 +1,19 @@
 import time
-from queue import Queue
 from threading import Lock
-from typing import Union, Callable
+from typing import Union
 
-from nanover.utilities.cli import CancellationToken
 from nanover.utilities.request_queues import (
     DictOfQueues,
     GetFrameResponseAggregatingQueue,
 )
 from nanover.utilities.timing import yield_interval
-from nanover.protocol.trajectory import (
-    TrajectoryServiceServicer,
-    GetFrameResponse,
-    add_TrajectoryServiceServicer_to_server,
-)
 from nanover.protocol.trajectory import FrameData as RawFrameData
 from nanover.trajectory.frame_data import (
     FrameData,
     SERVER_TIMESTAMP,
     SIMULATION_COUNTER,
     FRAME_INDEX,
+    FramePublishEvent,
 )
 
 SENTINEL = None
@@ -27,7 +21,7 @@ SENTINEL = None
 FRAME_SERVICE_NAME = "trajectory"
 
 
-class FramePublisher(TrajectoryServiceServicer):
+class FramePublisher:
     """
     An implementation of a trajectory service. Call send_frame
     to send data to clients when called by other python code.
@@ -43,7 +37,6 @@ class FramePublisher(TrajectoryServiceServicer):
 
     def __init__(self):
         self.name: str = FRAME_SERVICE_NAME
-        self.add_to_server_method: Callable = add_TrajectoryServiceServicer_to_server
         self.frame_queues = DictOfQueues()
         self.last_frame = None
         self.last_frame_index = 0
@@ -51,39 +44,6 @@ class FramePublisher(TrajectoryServiceServicer):
         self.simulation_counter = 0
         self._last_frame_lock = Lock()
         self._request_id_lock = Lock()
-
-    def SubscribeFrames(self, request, context):
-        """
-        Subscribe to all the frames produced by the service.
-
-        This method publishes all the frames produced by the trajectory service,
-        starting when the client subscribes.
-        """
-        yield from self._subscribe_frame_grpc_base(request, context, queue_class=Queue)
-
-    def SubscribeLatestFrames(self, request, context):
-        """
-        Subscribe to the last produced frames produced by the service.
-
-        This method publishes the latest frame available at the time of
-        yielding.
-        """
-        yield from self._subscribe_frame_grpc_base(
-            request,
-            context,
-            queue_class=GetFrameResponseAggregatingQueue,
-        )
-
-    def _subscribe_frame_grpc_base(
-        self, request, context, queue_class=GetFrameResponseAggregatingQueue
-    ):
-        cancellation = CancellationToken()
-        if context.add_callback(cancellation.cancel):
-            yield from self.subscribe_latest_frames(
-                frame_interval=request.frame_interval,
-                queue_class=queue_class,
-                cancellation=cancellation,
-            )
 
     def subscribe_latest_frames(
         self,
@@ -110,7 +70,7 @@ class FramePublisher(TrajectoryServiceServicer):
                 initial_frame = self.last_frame
 
             if initial_frame is not None:
-                yield GetFrameResponse(
+                yield FramePublishEvent(
                     frame_index=initial_frame_index, frame=initial_frame
                 )
 
@@ -144,7 +104,7 @@ class FramePublisher(TrajectoryServiceServicer):
             frame = self.last_frame
 
         if frame is not None:
-            yield GetFrameResponse(
+            yield FramePublishEvent(
                 frame_index=self.last_frame_index, frame=self.last_frame
             )
 
@@ -181,7 +141,7 @@ class FramePublisher(TrajectoryServiceServicer):
             self.last_frame = merged
 
         for queue in self.frame_queues.iter_queues():
-            queue.put(GetFrameResponse(frame_index=frame_index, frame=frame))
+            queue.put(FramePublishEvent(frame_index=frame_index, frame=frame))
 
     def close(self):
         for queue in self.frame_queues.iter_queues():

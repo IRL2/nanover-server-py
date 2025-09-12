@@ -1,8 +1,10 @@
+import collections
 from dataclasses import dataclass
 from functools import partial
 from typing import Iterable, Callable, TypeVar, Generic
 
 import numpy as np
+import numpy.typing as npt
 
 from nanover.trajectory.frame_data import (
     PARTICLE_COUNT,
@@ -29,15 +31,15 @@ class PackingPair(Generic[U, P]):
     unpack: Callable[[P], U]
 
 
-def pack_array(values: Iterable, *, dtype: str):
+def pack_array(values: Iterable, *, dtype: npt.DTypeLike):
     return np.fromiter(values, dtype=dtype).tobytes()
 
 
-def unpack_array(buffer: bytes, *, dtype: str):
-    return np.frombuffer(buffer, dtype=dtype)
+def unpack_array(buffer: bytes, *, dtype: npt.DTypeLike):
+    return list(np.frombuffer(buffer, dtype=dtype))
 
 
-def make_bytes_packer(dtype: str):
+def make_bytes_packer(dtype: npt.DTypeLike):
     return PackingPair(
         pack=partial(pack_array, dtype=dtype),
         unpack=partial(unpack_array, dtype=dtype),
@@ -48,8 +50,8 @@ pack_float32 = make_bytes_packer(np.float32)
 pack_uint32 = make_bytes_packer(np.uint32)
 pack_uint8 = make_bytes_packer(np.uint8)
 
-pack_identity = PackingPair(pack=lambda value: value, unpack=lambda value: value)
-pack_force_list = PackingPair(pack=list, unpack=list)
+pack_identity = PackingPair(pack=lambda value: value, unpack=lambda value: value)  # type: ignore
+pack_force_list = PackingPair(pack=list, unpack=list)  # type: ignore
 pack_force_int = PackingPair(pack=int, unpack=int)
 
 
@@ -67,6 +69,22 @@ converters: dict[str, PackingPair] = {
 }
 
 
+def convert_dict_frame_to_grpc_frame(dict_frame):
+    grpc_frame = FrameData()
+
+    for key, value in dict_frame.items():
+        if isinstance(value, collections.abc.Sequence) and not isinstance(value, str):
+            grpc_frame.arrays[key] = value
+        else:
+            grpc_frame.values[key] = value
+
+    return grpc_frame
+
+
+def convert_grpc_frame_to_dict_frame(grpc_frame):
+    return unpack_dict_frame(pack_grpc_frame(grpc_frame))
+
+
 def pack_grpc_frame(frame: FrameData):
     data = {}
 
@@ -82,16 +100,20 @@ def pack_grpc_frame(frame: FrameData):
 
 
 def pack_dict_frame(frame: dict):
+    packed = {}
+
     for key in frame:
         converter = converters.get(key, pack_identity)
-        frame[key] = converter.pack(frame[key])
+        packed[key] = converter.pack(frame[key])
 
-    return frame
+    return packed
 
 
 def unpack_dict_frame(frame: dict):
+    unpacked = {}
+
     for key in frame:
         converter = converters.get(key, pack_identity)
-        frame[key] = converter.unpack(frame[key])
+        unpacked[key] = converter.unpack(frame[key])
 
-    return frame
+    return unpacked

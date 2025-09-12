@@ -19,7 +19,6 @@ from nanover.trajectory.frame_server import (
 )
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
-from nanover.websocket.server import WebSocketServer
 
 CLEAR_PREFIXES = {"avatar.", "play-area.", "selection.", "scene", "interaction."}
 
@@ -56,10 +55,9 @@ class OmniRunner:
         :param port: Optional server port to use
         :param ssl: Optional SSL context to use for the WebSocket server
         """
-        app_server = NanoverImdApplication.basic_server(name, address, port)
+        app_server = NanoverImdApplication.basic_server(name, address, port, ssl=ssl)
 
         omni = cls(app_server)
-        omni._websocket_server = WebSocketServer.basic_server(app_server, ssl=ssl)
         for simulation in simulations:
             omni.add_simulation(simulation)
         return omni
@@ -70,8 +68,6 @@ class OmniRunner:
         self.simulations: List[Simulation] = []
         self._simulation_index = 0
         self.simulation_selections: Dict[Simulation, Set[RenderingSelection]] = {}
-
-        self._websocket_server: Optional[WebSocketServer] = None
 
         app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
         app_server.server.register_command(NEXT_COMMAND_KEY, self.next)
@@ -93,9 +89,6 @@ class OmniRunner:
         """
         Stop simulations and shut down server.
         """
-        if self._websocket_server is not None:
-            self._websocket_server.close()
-
         self.app_server.close()
         self._cancel_run()
 

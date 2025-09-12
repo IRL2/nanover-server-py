@@ -181,11 +181,13 @@ def serialized_simulation_path(basic_simulation, tmp_path):
 
 
 @pytest.fixture
-def basic_simulation_xml(basic_simulation):
+def basic_simulation_xml():
     """
     Generate an XML serialized simulation from the basic test simulation.
     """
-    xml_string = serializer.serialize_simulation(basic_simulation, save_state=True)
+    xml_string = serializer.serialize_simulation(
+        build_basic_simulation(), save_state=True
+    )
     return xml_string
 
 

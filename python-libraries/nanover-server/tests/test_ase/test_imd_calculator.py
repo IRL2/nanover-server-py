@@ -8,9 +8,9 @@ from nanover.ase.imd_calculator import (
     get_periodic_box_lengths,
 )
 from nanover.ase.null_calculator import NullCalculator
-from nanover.imd import ImdClient
 from nanover.imd.particle_interaction import ParticleInteraction
-from util import co_atoms, imd_server, client_interaction, state_wrapper, c_atoms
+from nanover.websocket.client.app_client import NanoverImdClient
+from util import co_atoms, app_server, client_interaction, state_wrapper, c_atoms
 
 
 @pytest.fixture
@@ -30,11 +30,11 @@ def interact_c():
 
 
 @pytest.fixture
-def imd_calculator_co(imd_server):
+def imd_calculator_co(app_server):
     atoms = co_atoms()
     calculator = LennardJones()
-    imd_calculator = ImdCalculator(imd_server.imd_state, calculator, atoms)
-    yield imd_calculator, atoms, imd_server
+    imd_calculator = ImdCalculator(app_server.imd, calculator, atoms)
+    yield imd_calculator, atoms, app_server
 
 
 def test_imd_calculator_no_interactions(imd_calculator_co):
@@ -101,7 +101,7 @@ def test_one_interaction(
     """
     tests an interaction in several different positions, including periodic boundary positions.
     """
-    imd_calculator, atoms, imd_server = imd_calculator_co
+    imd_calculator, atoms, app_server = imd_calculator_co
     # reshape the expected imd forces.
     imd_forces = np.array(imd_forces)
     imd_forces = imd_forces.reshape((2, 3))
@@ -114,8 +114,8 @@ def test_one_interaction(
 
     # perform the calculation with interaction applied.
     interact_c.position = position
-    with ImdClient.insecure_channel(port=imd_server.port) as imd_client:
-        with client_interaction(imd_client, interact_c):
+    with NanoverImdClient.from_app_server(app_server) as client:
+        with client_interaction(client, interact_c):
             time.sleep(0.1)
             assert len(imd_calculator.interactions) == 1
             # Update interactions
