@@ -30,8 +30,7 @@ def make_app_server():
 @contextmanager
 def make_websocket_server():
     with make_app_server() as app_server:
-        websocket_server = app_server.serve_websocket()
-        yield app_server, websocket_server
+        yield app_server, app_server._server_ws
 
 
 @contextmanager

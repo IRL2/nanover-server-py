@@ -35,12 +35,14 @@ class WebsocketClient:
                 except Exception as e:
                     print(f"RECV FAILED ({set(message.keys())})", e)
 
-        self.threads = ThreadPoolExecutor(max_workers=1)
+        self.threads = ThreadPoolExecutor(
+            max_workers=1, thread_name_prefix="WebSocketClient"
+        )
         self.threads.submit(listen)
 
     def close(self):
         self._connection.close()
-        self.threads.shutdown(False)
+        self.threads.shutdown(True)
 
     def update_state(self, change):
         self.send_message(
