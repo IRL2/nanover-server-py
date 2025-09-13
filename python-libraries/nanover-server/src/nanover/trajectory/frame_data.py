@@ -1,10 +1,12 @@
 from collections import namedtuple
 from collections.abc import Set
 import numbers
+from dataclasses import dataclass
 from typing import Dict, Optional, List, Union
 
 import numpy as np
 import numpy.typing as npt
+
 from nanover.protocol import trajectory
 from nanover.utilities.protobuf_utilities import value_to_object, object_to_value
 
@@ -57,6 +59,12 @@ _Shortcut = namedtuple(
 Array2Dfloat = Union[List[List[float]], npt.NDArray[Union[np.float32, np.float64]]]
 Array2Dint = Union[List[List[int]], npt.NDArray[Union[np.int_]]]
 Array1Dint = Union[List[int], npt.NDArray[np.int_]]
+
+
+@dataclass(kw_only=True)
+class FramePublishEvent:
+    frame_index: int
+    frame: trajectory.FrameData
 
 
 class MissingDataError(KeyError):
@@ -536,6 +544,9 @@ class ValuesView(RecordView):
         self._raw_record[key].CopyFrom(object_to_value(value))
 
 
+_EMPTY = object()
+
+
 class ArraysView(RecordView):
     """
     Give access to homogeneous arrays from a :class:`FrameData`.
@@ -552,13 +563,15 @@ class ArraysView(RecordView):
         try:
             reference_value = value[0]
         except IndexError:
-            raise ValueError(
-                f"Element type cannot be determined by empty array {key}."
-            ) from None
+            reference_value = _EMPTY
         except TypeError:
             raise ValueError(f"Value must be indexable for array {key}.") from None
 
-        if isinstance(reference_value, numbers.Integral) and int(reference_value) >= 0:
+        if reference_value is _EMPTY:
+            type_attribute = "index_values"
+        elif (
+            isinstance(reference_value, numbers.Integral) and int(reference_value) >= 0
+        ):
             type_attribute = "index_values"
         elif isinstance(reference_value, numbers.Real):
             type_attribute = "float_values"

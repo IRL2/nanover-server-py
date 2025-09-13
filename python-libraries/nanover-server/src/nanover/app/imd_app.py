@@ -5,7 +5,8 @@ with in real-time through biasing potentials.
 
 """
 
-from typing import Optional
+from ssl import SSLContext
+from typing import Optional, Any
 
 from nanover.app.frame_app import NanoverFrameApplication
 from nanover.core import NanoverServer
@@ -28,6 +29,33 @@ class NanoverImdApplication(NanoverFrameApplication):
 
     DEFAULT_SERVER_NAME: str = "NanoVer iMD Server"
     _imd_state: ImdStateWrapper
+    _server_ws: Optional[Any] = None
+
+    @classmethod
+    def basic_server(
+        cls,
+        name: Optional[str] = None,
+        address: Optional[str] = None,
+        port: Optional[int] = None,
+        *,
+        ssl: Optional[SSLContext] = None,
+    ):
+        """
+        Initialises a basic NanoVer application server with default settings,
+        with a default unencrypted server and ESSD discovery server for
+        finding it on a local area network.
+
+        :param name: Name of the server for the purposes of discovery.
+        :param address: The address at which to bind the server to. If none given,
+            the default address of
+        :param port: Optional port on which to run the NanoVer server. If none given,
+            default port will be used.
+        :return: An instantiation of a basic NanoVer server, registered with an
+            ESSD discovery server.
+        """
+        app_server = super().basic_server(name=name, address=address, port=port)
+        app_server.serve_websocket(ssl=ssl)
+        return app_server
 
     def __init__(
         self,
@@ -37,6 +65,17 @@ class NanoverImdApplication(NanoverFrameApplication):
     ):
         super().__init__(server, discovery, name)
         self._setup_imd()
+
+    def close(self):
+        if self._server_ws is not None:
+            self._server_ws.close()
+        super().close()
+
+    def serve_websocket(self, *, insecure=True, ssl: Optional[SSLContext] = None):
+        from nanover.websocket.server import WebSocketServer
+
+        self._server_ws = WebSocketServer.basic_server(self, insecure=insecure, ssl=ssl)
+        return self._server_ws
 
     @property
     def imd(self) -> ImdStateWrapper:
