@@ -7,7 +7,7 @@ from nanover.trajectory.frame_data import (
     RESIDUE_CHAINS,
     BOX_VECTORS,
 )
-from nanover.websocket.convert import converters
+from nanover.websocket.convert import converters, convert_dict_frame_to_grpc_frame
 
 
 def uint8s():
@@ -23,13 +23,27 @@ def float32s():
 
 
 known_types = {
-    BOX_VECTORS: st.lists(float32s()),
+    BOX_VECTORS: st.lists(float32s(), min_size=1),
     PARTICLE_POSITIONS: st.lists(float32s()),
     PARTICLE_ELEMENTS: st.lists(uint8s()),
     PARTICLE_RESIDUES: st.lists(uint32s()),
     BOND_PAIRS: st.lists(uint32s()),
     RESIDUE_CHAINS: st.lists(uint32s()),
 }
+
+
+@st.composite
+def grpc_frames(draw):
+    known = st.fixed_dictionaries(
+        mapping={},
+        optional=known_types,
+    )
+
+    dict_frame = {}
+    dict_frame.update(draw(known))
+
+    grpc_frame = convert_dict_frame_to_grpc_frame(dict_frame)
+    return grpc_frame
 
 
 @st.composite
@@ -54,7 +68,7 @@ def dict_frames(draw):
 @st.composite
 def state_updates(draw):
     arguments = st.dictionaries(
-        keys=dictionary_keys(),
+        keys=dictionary_keys().filter(lambda key: not key.startswith("interaction.")),
         values=packable_structures(),
     )
 
@@ -64,7 +78,7 @@ def state_updates(draw):
 @st.composite
 def command_arguments(draw):
     arguments = st.dictionaries(
-        keys=dictionary_keys(),
+        keys=st.text(max_size=32),
         values=packable_structures(),
     )
 

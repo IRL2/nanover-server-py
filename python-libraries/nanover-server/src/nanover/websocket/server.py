@@ -34,7 +34,9 @@ class WebSocketServer:
     def __init__(self, app_server: NanoverImdApplication):
         self.app_server = app_server
         self._cancellation = CancellationToken()
-        self._threads = ThreadPoolExecutor(max_workers=2)
+        self._threads = ThreadPoolExecutor(
+            max_workers=2, thread_name_prefix="WebSocketServer"
+        )
         self._ws_server: Optional[Server] = None
         self._wss_server: Optional[Server] = None
 
@@ -96,7 +98,7 @@ class WebSocketClientHandler:
 
         self.cancellation = CancellationToken()
         self.cancellation.subscribe_cancellation(self.websocket.close)
-        cancellation.subscribe_cancellation(self.cancellation.cancel)
+        cancellation.subscribe_cancellation(self.close)
 
     def close(self):
         self.cancellation.cancel()
@@ -110,9 +112,10 @@ class WebSocketClientHandler:
         return self.app_server.server._state_service.state_dictionary
 
     def run_command(self, name: str, arguments: Optional[dict] = None):
-        return self.app_server.server._command_service.run_command(
+        results = self.app_server.server._command_service.run_command(
             name, arguments or {}
         )
+        return results
 
     def send_frame(self, frame: FrameData):
         self.send_message({"frame": pack_grpc_frame(frame)})
@@ -140,8 +143,11 @@ class WebSocketClientHandler:
 
         def handle_command_request(request):
             name, arguments = request.get("name"), request.get("arguments", {})
-            result = self.run_command(name, arguments)
-            response = {"request": request, "response": result}
+            try:
+                result = self.run_command(name, arguments)
+                response = {"request": request, "response": result}
+            except Exception as e:
+                response = {"request": request, "exception": str(e)}
             return response
 
         if "state" in message:
@@ -174,7 +180,9 @@ class WebSocketClientHandler:
                 self.recv_message(msgpack.unpackb(data))
             self.cancellation.cancel()
 
-        threads = ThreadPoolExecutor(max_workers=3)
+        threads = ThreadPoolExecutor(
+            max_workers=3, thread_name_prefix="WebSocketClientHandler"
+        )
         threads.submit(send_frames)
         threads.submit(send_updates)
         threads.submit(recv_all)

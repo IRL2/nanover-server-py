@@ -22,7 +22,7 @@ TEST_SYSTEM_PATH = os.path.join(
 
 @pytest.fixture
 def universe():
-    return Universe(TEST_SYSTEM_PATH, guess_bonds=True)
+    return Universe(TEST_SYSTEM_PATH, to_guess=("bonds",))
 
 
 @pytest.fixture()
