@@ -1,11 +1,8 @@
 from typing import Dict
 
-from nanover.utilities.protobuf_utilities import (
-    dict_to_struct,
-    struct_to_dict,
-    Serializable,
-)
-from nanover.protocol.command import CommandMessage
+import msgpack
+
+from nanover.utilities.protobuf_utilities import Serializable
 
 CommandArguments = Dict[str, Serializable]
 CommandResult = Dict[str, Serializable]
@@ -21,28 +18,22 @@ class CommandInfo:
     """
 
     def __init__(self, name, **arguments):
-        args_struct = dict_to_struct(arguments)
-        self.raw = CommandMessage(name=name, arguments=args_struct)
-
-    @classmethod
-    def from_proto(cls, raw):
-        instance = cls(raw.name)
-        instance.raw.MergeFrom(raw)
-        return instance
+        self._name = name
+        self._arguments = arguments
 
     @property
-    def name(self) -> str:
-        return self.raw.name
+    def name(self):
+        return self._name
 
     @property
-    def arguments(self) -> CommandArguments:
+    def arguments(self):
         """
         Gets a copy of the default arguments this command accepts, as
         a dictionary.
 
         :return: Dictionary of default arguments.
         """
-        return struct_to_dict(self.raw.arguments)
+        return msgpack.unpackb(msgpack.packb(self._arguments))
 
     def __str__(self):
         args = self.arguments

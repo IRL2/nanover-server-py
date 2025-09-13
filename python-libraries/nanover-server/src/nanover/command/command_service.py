@@ -6,20 +6,12 @@ Module providing an implementation of the :class:`CommandServicer`.
 from typing import Dict, Callable, Optional, Union
 from typing import NamedTuple
 
-import grpc
 from nanover.command.command_info import (
     CommandInfo,
     CommandArguments,
     CommandResult,
 )
-from nanover.protocol.command import (
-    CommandServicer,
-    CommandReply,
-    GetCommandsReply,
-    add_CommandServicer_to_server,
-)
 from nanover.utilities.key_lockable_map import KeyLockableMap
-from nanover.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
 CommandHandler = Union[
     Callable[..., Optional[CommandResult]],
@@ -38,7 +30,7 @@ class CommandRegistration(NamedTuple):
     callback: CommandHandler
 
 
-class CommandService(CommandServicer):
+class CommandService:
     """
     Implementation of the Command service, enabling services to register arbitrary commands
     which are run as callbacks.
@@ -47,7 +39,6 @@ class CommandService(CommandServicer):
     def __init__(self, add_list_command=True):
         super().__init__()
         self.name: str = "command"
-        self.add_to_server_method: Callable = add_CommandServicer_to_server
         self._commands = KeyLockableMap()
         self._id = "service"
 
@@ -107,40 +98,6 @@ class CommandService(CommandServicer):
             self._commands.delete(self._id, name)
         except KeyError:
             raise KeyError(f"Command {name} does not exist")
-
-    def GetCommands(self, request, context) -> GetCommandsReply:
-        """
-        GRPC method to get all of the commands available on this service.
-
-        :param request: :class:`GetCommandsRequest`
-        :param context: GRPC context.
-        :return: :class:`GetCommandsReply`, detailing all the available commands.
-        """
-        commands_copy = self.commands
-        commands = [command.info.raw for command in commands_copy.values()]
-        return GetCommandsReply(commands=commands)
-
-    def RunCommand(self, request, context) -> CommandReply:
-        """
-        GRPC method to run a command.
-
-        :param request: :class:`CommandMessage` detailing the command to run and any arguments.
-        :param context: GRPC context.
-        :return: :class:`CommandReply`, consisting of any results of the command.
-        """
-        try:
-            results = self.run_command(request.name, struct_to_dict(request.arguments))
-            if results is None:
-                return CommandReply()
-            try:
-                return CommandReply(result=dict_to_struct(results))
-            except ValueError:
-                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-                message = f"Command ({request.name}) generated results that cannot be serialised: {results}"
-                context.set_details(message)
-        except KeyError as e:
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            context.set_details(str(e))
 
     def run_command(self, name: str, arguments: dict):
         command = self._commands.get(name)

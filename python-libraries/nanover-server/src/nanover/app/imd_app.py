@@ -8,13 +8,13 @@ with in real-time through biasing potentials.
 from ssl import SSLContext
 from typing import Optional, Any
 
-from nanover.app.frame_app import NanoverFrameApplication
+from nanover.app import NanoverApplicationServer
 from nanover.core import NanoverServer
 from nanover.essd import DiscoveryServer
 from nanover.imd import ImdStateWrapper, IMD_SERVICE_NAME
 
 
-class NanoverImdApplication(NanoverFrameApplication):
+class NanoverImdApplication(NanoverApplicationServer):
     """
     Application-level class for implementing a NanoVer iMD server, something that publishes
     :class:`FrameData` that can be consumed, e.g. simulation trajectories, and can received

@@ -2,7 +2,6 @@ from typing import Callable, Optional, Dict, ContextManager, Set, Union
 
 from nanover.command import CommandService
 from nanover.command.command_service import CommandRegistration, CommandHandler
-from nanover.core import GrpcServer
 from nanover.state.state_service import StateService
 from nanover.utilities.change_buffers import (
     DictionaryChange,
@@ -13,7 +12,7 @@ CommandCallable = Union[
 ]
 
 
-class NanoverServer(GrpcServer):
+class NanoverServer:
     """
     A base for NanoVer gRPC servers. Sets up a gRPC server, and automatically
     attaches a :class:`CommandService` and  :class:`StateService` enabling the running of arbitrary commands
@@ -23,17 +22,31 @@ class NanoverServer(GrpcServer):
     _command_service: CommandService
     _state_service: StateService
 
+    def __init__(
+        self,
+        *,
+        address: Optional[str] = None,
+        port=0,
+    ):
+        self.setup_services()
+        self.address = address
+        self.port = port
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def setup_services(self):
         """
         Sets up the services, including the :class:`CommandService`.
         """
-        super().setup_services()
         self._setup_command_service()
         self._setup_state_service()
 
     def close(self):
         self._state_service.close()
-        super().close()
 
     @property
     def commands(self) -> Dict[str, CommandRegistration]:
@@ -113,8 +126,6 @@ class NanoverServer(GrpcServer):
 
     def _setup_command_service(self):
         self._command_service = CommandService()
-        self.add_service(self._command_service)
 
     def _setup_state_service(self):
         self._state_service = StateService()
-        self.add_service(self._state_service)

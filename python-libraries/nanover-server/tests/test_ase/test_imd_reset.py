@@ -1,9 +1,6 @@
 import contextlib
-from typing import ContextManager, Tuple
 
 import pytest
-from ase import units
-from ase.lattice.bravais import Lattice
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.calculators.lj import LennardJones
@@ -11,19 +8,19 @@ from ase.md import Langevin
 from ase.md.md import MolecularDynamics
 from ase.md.nvtberendsen import NVTBerendsen
 from hypothesis import strategies, given
+
+from nanover.app import NanoverImdApplication
 from nanover.ase.imd_calculator import (
     ImdCalculator,
-    ImdForceManager,
     _get_cancelled_interactions,
     _get_atoms_to_reset,
     _scale_momentum_of_selection,
 )
-from nanover.imd import ImdServer
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.trajectory.frame_data import MissingDataError
 import numpy as np
 from test_imd_calculator import imd_calculator_co
-from util import imd_server
+from util import app_server
 
 # Sets of dummy interactions to test cancellation selections.
 NUM_INTERACTIONS = 10
@@ -64,18 +61,15 @@ def fcc_atoms():
 
 
 @contextlib.contextmanager
-def imd_calculator_berendsen_dynamics_context() -> (
-    ContextManager[Tuple[ImdCalculator, Lattice, NVTBerendsen]]
-):
-    server = ImdServer(address=None, port=0)
-    atoms = fcc_atoms()
-    calculator = LennardJones()
-    dynamics = NVTBerendsen(atoms, 1.0, TEST_TEMPERATURE, 1.0)
-    imd_calculator = ImdCalculator(
-        server.imd_state, calculator, atoms, dynamics=dynamics
-    )
-    yield imd_calculator, atoms, dynamics
-    server.close()
+def imd_calculator_berendsen_dynamics_context():
+    with NanoverImdApplication.null_server() as app_server:
+        atoms = fcc_atoms()
+        calculator = LennardJones()
+        dynamics = NVTBerendsen(atoms, 1.0, TEST_TEMPERATURE, 1.0)
+        imd_calculator = ImdCalculator(
+            app_server.imd, calculator, atoms, dynamics=dynamics
+        )
+        yield imd_calculator, atoms, dynamics
 
 
 @pytest.fixture
@@ -92,15 +86,14 @@ def imd_calculator_langevin_dynamics():
     """
     Initialises an IMD calculator with langevin NVT integrator and an FCC crystal.
     """
-    server = ImdServer(address=None, port=0)
-    atoms = fcc_atoms()
-    calculator = LennardJones()
-    dynamics = Langevin(atoms, 1.0, friction=1.0, temperature_K=TEST_TEMPERATURE)
-    imd_calculator = ImdCalculator(
-        server.imd_state, calculator, atoms, dynamics=dynamics
-    )
-    yield imd_calculator, atoms, dynamics
-    server.close()
+    with NanoverImdApplication.null_server() as app_server:
+        atoms = fcc_atoms()
+        calculator = LennardJones()
+        dynamics = Langevin(atoms, 1.0, friction=1.0, temperature_K=TEST_TEMPERATURE)
+        imd_calculator = ImdCalculator(
+            app_server.imd, calculator, atoms, dynamics=dynamics
+        )
+        yield imd_calculator, atoms, dynamics
 
 
 @pytest.mark.parametrize(
@@ -153,12 +146,14 @@ def test_custom_temperature():
     """
     Tests handling temperature not set in constructor of IMD calculator.
     """
-    server = ImdServer(address=None, port=0)
-    atoms = fcc_atoms()
-    calculator = LennardJones()
-    imd_calculator = ImdCalculator(server.imd_state, calculator, atoms, reset_scale=0.1)
-    imd_calculator.temperature = 100
-    assert pytest.approx(imd_calculator.reset_temperature) == 0.1 * 100
+    with NanoverImdApplication.basic_server() as app_server:
+        atoms = fcc_atoms()
+        calculator = LennardJones()
+        imd_calculator = ImdCalculator(
+            app_server.imd, calculator, atoms, reset_scale=0.1
+        )
+        imd_calculator.temperature = 100
+        assert pytest.approx(imd_calculator.reset_temperature) == 0.1 * 100
 
 
 def test_temperature_not_set_md(imd_calculator_co):
