@@ -14,9 +14,9 @@ from typing import Iterable
 from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
-from nanover.omni.record import record_from_server
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.discovery import DiscoveryClient
+from nanover.websocket.record import record_from_server
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -142,7 +142,7 @@ def initialise_runner(arguments: argparse.Namespace):
             print(f"Recording to {traj_path} & {state_path}")
 
             record_from_server(
-                f"localhost:{runner.app_server.port}",
+                f"ws://localhost:{runner.app_server._server_ws.ws_port}",
                 traj_path,
                 state_path,
             )

@@ -18,6 +18,7 @@ from nanover.trajectory.frame_data import (
     RESIDUE_CHAINS,
     BOX_VECTORS,
     FrameData,
+    FRAME_INDEX,
 )
 
 
@@ -56,6 +57,7 @@ pack_force_int = PackingPair(pack=int, unpack=int)
 
 
 converters: dict[str, PackingPair] = {
+    FRAME_INDEX: pack_force_int,
     PARTICLE_COUNT: pack_force_int,
     CHAIN_COUNT: pack_force_int,
     RESIDUE_COUNT: pack_force_int,

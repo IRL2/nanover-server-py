@@ -11,12 +11,9 @@ import argparse
 import textwrap
 import time
 
-from nanover.app.app_server import DEFAULT_NANOVER_PORT
-from nanover.omni.record import record_from_server
-
 from nanover.essd import DiscoveryClient
-from nanover.trajectory import FRAME_SERVICE_NAME
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
+from nanover.websocket.record import record_from_server
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -68,7 +65,7 @@ def main():
     """
 
     arguments = handle_user_arguments()
-    address = f"localhost:{DEFAULT_NANOVER_PORT}"
+    address = "localhost:80"
 
     if arguments.address is not None:
         address = arguments.address
@@ -77,8 +74,8 @@ def main():
         with DiscoveryClient() as discovery_client:
             for hub in discovery_client.search_for_services():
                 if arguments.autoconnect in hub.name:
-                    host, port = hub.get_service_address(FRAME_SERVICE_NAME)
-                    address = f"{host}:{port}"
+                    host, port = hub.get_service_address("ws")
+                    address = f"ws://{host}:{port}"
                     print(f"Found '{hub.name}' at {address}.")
                     break
 
@@ -98,7 +95,7 @@ def main():
         print(f"Connecting to {address}.")
 
         with suppress_keyboard_interrupt_as_cancellation() as cancellation:
-            executor, channel = record_from_server(address, traj, state)
+            executor, websocket = record_from_server(address, traj, state)
 
             try:
                 print(
@@ -106,7 +103,7 @@ def main():
                 )
                 cancellation.wait_cancellation(interval=0.01)
             finally:
-                channel.close()
+                websocket.close()
                 executor.shutdown()
 
         try:
