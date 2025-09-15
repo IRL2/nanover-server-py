@@ -2,7 +2,7 @@
 Example of using selections to hide solvent by residue name.
 """
 
-from nanover.app import NanoverImdClient
+from nanover.websocket import NanoverImdClient
 from nanover.mdanalysis import frame_data_to_mdanalysis
 from nanover.trajectory import FrameData
 
@@ -19,13 +19,10 @@ def get_selection_indices(frame: FrameData, query: str):
     return indices
 
 
-with NanoverImdClient.autoconnect() as client:
-    # we need frames so we can query topology and multiplayer to set shared selections
-    client.subscribe_to_frames()
-    client.subscribe_multiplayer()
-
+with NanoverImdClient.from_discovery() as client:
     # wait for an initial frame in which topology will be available
-    first_frame = client.wait_until_first_frame(check_interval=0.5, timeout=10)
+    client.wait_until_first_frame(check_interval=0.5, timeout=10)
+    first_frame = client.current_frame_grpc
 
     print(f"Attempting to hide residue {SOLVENT_RESIDUE_NAME} (residues in frame: {', '.join(set(first_frame.residue_names))})")
 

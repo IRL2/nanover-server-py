@@ -59,8 +59,6 @@ servers in python, as well as the services implemented in python. The
 `python-libraries/prototypes` directory contains examples and (sometimes
 unmaintained) prototypes using the python libraries.
 
-The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
-
 ## User installation
 
 Check out the [Installation & Getting Started](https://irl2.github.io/nanover-docs/installation) 
@@ -79,7 +77,6 @@ page in our documentation for detailed instructions on installing NanoVer.
 ### Windows
 
 * Install Anaconda
-* Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
 * Clone the nanover-server-py repository
 * In the "Anaconda Powershell Prompt":
     * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase`
@@ -93,12 +90,7 @@ page in our documentation for detailed instructions on installing NanoVer.
 * In a terminal, in the repository root:
     * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Compile the protocol and install the NanoVer python libraries in your conda environment: `./compile.sh --no-dotnet`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit --no-dotnet` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
-
-Here, we installed only the python library. Using the `--no-dotnet` argument, we skipped building the C# libraries for NanoVer. Would you want to work on these library, you would need to:
-
-* Install dotnet 2.11. This is an old version of the framework that is not maintained anymore. However, Unity still relies on it.
-* Run the compile script: `./compile.sh --no-python` to skip installing the python libraries, or just `./compile.sh` to build the python libraries as well.
+    * Compile the protocol and install the NanoVer python libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
 ## Running the tests
 

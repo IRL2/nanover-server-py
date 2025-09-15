@@ -8,4 +8,3 @@ from .selection import RenderingSelection
 from .app_server import NanoverApplicationServer
 from .frame_app import NanoverFrameApplication
 from .imd_app import NanoverImdApplication
-from .runner import NanoverRunner

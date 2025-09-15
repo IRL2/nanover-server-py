@@ -6,7 +6,7 @@ import collections
 
 import numpy as np
 from MDAnalysis import Universe
-from MDAnalysis.topology.guessers import guess_atom_element
+from MDAnalysis.guesser.default_guesser import DefaultGuesser
 
 from nanover.trajectory import FrameData
 from nanover.trajectory.frame_data import (
@@ -388,6 +388,8 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
 
     Adds particle, residue and chain information, if available.
     """
+    guesser = DefaultGuesser(u)
+
     for group, attribute, frame_key in ALL_MDA_ATTRIBUTES:
         try:
             field = _get_mda_attribute(u, group, attribute)
@@ -398,7 +400,8 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
             # in upper case. We need to fix the case before we can query our
             # table.
             field = [
-                ELEMENT_INDEX[guess_atom_element(name).capitalize()] for name in field
+                ELEMENT_INDEX[guesser.guess_atom_element(name).capitalize()]
+                for name in field
             ]
         frame_data.arrays[frame_key] = field
 

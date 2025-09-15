@@ -3,6 +3,7 @@ Command line interface for nanover.omni.
 """
 
 import logging
+import ssl
 import time
 import textwrap
 import argparse
@@ -13,8 +14,9 @@ from typing import Iterable
 from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
-from nanover.omni.record import record_from_server
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
+from nanover.websocket.discovery import DiscoveryClient
+from nanover.websocket.record import record_from_server
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -61,13 +63,6 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--rich",
-        action="store_true",
-        default=False,
-        help="Provide an interactive rich interface in the terminal.",
-    )
-
-    parser.add_argument(
         "-q",
         "--include-velocities",
         action="store_true",
@@ -80,6 +75,21 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         action="store_true",
         default=False,
         help="Optionally include the particle forces in the frame data for OMM and ASE simulations.",
+    )
+
+    parser.add_argument(
+        "-s",
+        "--ssl",
+        nargs=3,
+        metavar=("CERTFILE", "KEYFILE", "PASSWORD"),
+        help="Offer SSL in addition to insecure connections.",
+    )
+
+    parser.add_argument(
+        "--cloud-discovery",
+        dest="cloud_discovery_host",
+        metavar="ENDPOINT",
+        help="Advertise server on cloud discovery.",
     )
 
     parser.add_argument(
@@ -110,6 +120,7 @@ def initialise_runner(arguments: argparse.Namespace):
         name=arguments.name,
         address=arguments.address,
         port=arguments.port,
+        ssl=initialise_ssl(arguments),
     ) as runner:
         for paths in arguments.recording_entries:
             runner.add_simulation(PlaybackSimulation.from_paths(paths))
@@ -131,12 +142,30 @@ def initialise_runner(arguments: argparse.Namespace):
             print(f"Recording to {traj_path} & {state_path}")
 
             record_from_server(
-                f"localhost:{runner.app_server.port}",
+                f"ws://localhost:{runner.app_server._server_ws.ws_port}",
                 traj_path,
                 state_path,
             )
 
-        yield runner
+        if arguments.cloud_discovery_host:
+            with DiscoveryClient.advertise_server(
+                arguments.cloud_discovery_host, app_server=runner.app_server
+            ):
+                yield runner
+        else:
+            yield runner
+
+
+def initialise_ssl(arguments: argparse.Namespace):
+    if arguments.ssl is None:
+        return None
+
+    certfile, keyfile, password = arguments.ssl
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_verify_locations(certfile)
+    ssl_context.load_cert_chain(certfile, keyfile=keyfile, password=password)
+
+    return ssl_context
 
 
 def main():
@@ -159,18 +188,9 @@ def main():
             if len(runner.simulations) > 0:
                 runner.load(0)
 
-            if arguments.rich:
-                try:
-                    from nanover.omni.rich import OmniTextualApp
-                except ImportError as error:
-                    print(f"Error: {error.msg}\nTry `pip install textual`")
-                else:
-                    app = OmniTextualApp(runner)
-                    app.run()
-            else:
-                runner.print_basic_info()
-                cancellation.wait_cancellation(interval=0.5)
-                print("Closing due to KeyboardInterrupt.")
+            runner.print_basic_info()
+            cancellation.wait_cancellation()
+            print("Closing due to KeyboardInterrupt.")
 
 
 if __name__ == "__main__":

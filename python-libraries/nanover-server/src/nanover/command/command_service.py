@@ -44,12 +44,23 @@ class CommandService(CommandServicer):
     which are run as callbacks.
     """
 
-    def __init__(self):
+    def __init__(self, add_list_command=True):
         super().__init__()
         self.name: str = "command"
         self.add_to_server_method: Callable = add_CommandServicer_to_server
         self._commands = KeyLockableMap()
         self._id = "service"
+
+        def list_commands():
+            return {
+                "list": {
+                    name: registration.info.arguments
+                    for name, registration in self.commands.items()
+                }
+            }
+
+        if add_list_command:
+            self.register_command("commands/list", list_commands)
 
     @property
     def commands(self) -> Dict[str, CommandRegistration]:
@@ -117,24 +128,24 @@ class CommandService(CommandServicer):
         :param context: GRPC context.
         :return: :class:`CommandReply`, consisting of any results of the command.
         """
-        name = request.name
-        command = self._commands.get(name)
-        if command is None:
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            message = f"Unknown command: {command}"
-            context.set_details(message)
-            return
-        args = command.info.arguments
-        args.update(struct_to_dict(request.arguments))
-        results = command.callback(**args)
-        if results is not None:
+        try:
+            results = self.run_command(request.name, struct_to_dict(request.arguments))
+            if results is None:
+                return CommandReply()
             try:
-                result_struct = dict_to_struct(results)
+                return CommandReply(result=dict_to_struct(results))
             except ValueError:
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-                message = f"Command ({name}) generated results that cannot be serialised: {results}"
+                message = f"Command ({request.name}) generated results that cannot be serialised: {results}"
                 context.set_details(message)
-                return
-            return CommandReply(result=result_struct)
-        else:
-            return CommandReply()
+        except KeyError as e:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details(str(e))
+
+    def run_command(self, name: str, arguments: dict):
+        command = self._commands.get(name)
+        if command is None:
+            raise KeyError(f"Unknown command: {name}")
+        args = command.info.arguments
+        args.update(arguments)
+        return command.callback(**args)

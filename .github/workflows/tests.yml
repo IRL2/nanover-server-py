@@ -25,9 +25,9 @@ jobs:
       - name: Parallel tests
         run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial'
       - name: Serial tests
-        run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial'
+        run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial' --cov-append
       - name: Jupyter notebooks
-        run: python -m pytest --nbval-lax ./tutorials --nbval-cell-timeout=30
+        run: python -m pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
   mypy:
     name: Type analysis for python
     runs-on: ubuntu-latest
@@ -89,17 +89,3 @@ jobs:
         run: ruff check ./python-libraries
       - name: Black
         run: black --diff --check ./python-libraries
-  csharp-tests:
-    name: C# unit and integration tests
-    runs-on: ubuntu-22.04
-    env:
-      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '2.1.x'
-      - name: Compile
-        run: ./compile.sh --no-python
-      - name: Tests
-        run: cd ./csharp-libraries && dotnet test

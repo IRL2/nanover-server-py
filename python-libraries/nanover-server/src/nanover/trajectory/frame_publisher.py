@@ -3,6 +3,7 @@ from queue import Queue
 from threading import Lock
 from typing import Union, Callable
 
+from nanover.utilities.cli import CancellationToken
 from nanover.utilities.request_queues import (
     DictOfQueues,
     GetFrameResponseAggregatingQueue,
@@ -18,6 +19,7 @@ from nanover.trajectory.frame_data import (
     FrameData,
     SERVER_TIMESTAMP,
     SIMULATION_COUNTER,
+    FRAME_INDEX,
 )
 
 SENTINEL = None
@@ -57,7 +59,7 @@ class FramePublisher(TrajectoryServiceServicer):
         This method publishes all the frames produced by the trajectory service,
         starting when the client subscribes.
         """
-        yield from self._subscribe_frame_base(request, context, queue_type=Queue)
+        yield from self._subscribe_frame_grpc_base(request, context, queue_class=Queue)
 
     def SubscribeLatestFrames(self, request, context):
         """
@@ -66,22 +68,57 @@ class FramePublisher(TrajectoryServiceServicer):
         This method publishes the latest frame available at the time of
         yielding.
         """
-        yield from self._subscribe_frame_base(
+        yield from self._subscribe_frame_grpc_base(
             request,
             context,
-            queue_type=GetFrameResponseAggregatingQueue,
+            queue_class=GetFrameResponseAggregatingQueue,
         )
 
-    def _subscribe_frame_base(self, request, context, queue_type):
-        listen_for_cancellation = context.add_callback
+    def _subscribe_frame_grpc_base(
+        self, request, context, queue_class=GetFrameResponseAggregatingQueue
+    ):
+        cancellation = CancellationToken()
+        if context.add_callback(cancellation.cancel):
+            yield from self.subscribe_latest_frames(
+                frame_interval=request.frame_interval,
+                queue_class=queue_class,
+                cancellation=cancellation,
+            )
+
+    def subscribe_latest_frames(
+        self,
+        *,
+        frame_interval=1 / 30,
+        cancellation,
+        queue_class=GetFrameResponseAggregatingQueue
+    ):
+        """
+        Yield the most recent frame, if changed, at a regular interval. Terminates when cancellation token is
+        cancelled.
+        """
         request_id = self._get_new_request_id()
-        yield from self._yield_last_frame_if_any()
-        with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
-            if not listen_for_cancellation(lambda: queue.put(SENTINEL)):
+
+        with self.frame_queues.one_queue(
+            request_id,
+            queue_class=queue_class,
+        ) as queue:
+            if cancellation.is_cancelled:
                 return
-            for dt in yield_interval(request.frame_interval):
+
+            with self._last_frame_lock:
+                initial_frame_index = self.last_frame_index
+                initial_frame = self.last_frame
+
+            if initial_frame is not None:
+                yield GetFrameResponse(
+                    frame_index=initial_frame_index, frame=initial_frame
+                )
+
+            cancellation.subscribe_cancellation(lambda: queue.put(SENTINEL))
+
+            for dt in yield_interval(frame_interval):
                 item = queue.get(block=True)
-                if item is SENTINEL:
+                if cancellation.is_cancelled or item is SENTINEL:
                     break
                 yield item
 
@@ -104,10 +141,12 @@ class FramePublisher(TrajectoryServiceServicer):
         read them.
         """
         with self._last_frame_lock:
-            if self.last_frame is not None:
-                yield GetFrameResponse(
-                    frame_index=self.last_frame_index, frame=self.last_frame
-                )
+            frame = self.last_frame
+
+        if frame is not None:
+            yield GetFrameResponse(
+                frame_index=self.last_frame_index, frame=self.last_frame
+            )
 
     def send_frame(self, frame_index: int, frame: Union[FrameData, RawFrameData]):
         now = time.monotonic()
@@ -121,8 +160,10 @@ class FramePublisher(TrajectoryServiceServicer):
             frame.values[SIMULATION_COUNTER].number_value = self.simulation_counter
             self.simulation_counter += 1
 
+        frame.values[FRAME_INDEX].number_value = frame_index
+
         with self._last_frame_lock:
-            if self.last_frame is None:
+            if self.last_frame is None or frame_index == 0:
                 self.last_frame = RawFrameData()
             self.last_frame_index = frame_index
 

@@ -136,10 +136,7 @@ def test_client_receive_initial_state(client_server):
     client, server = client_server
     client.subscribe_all_state_updates(0)
 
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-
-    with client.lock_state() as state:
-        assert state == INITIAL_STATE
+    assert_equal_soon(lambda: INITIAL_STATE, lambda: client.copy_state())
 
 
 def test_server_state_reflects_client_update(client_server):
@@ -151,10 +148,7 @@ def test_server_state_reflects_client_update(client_server):
     change = DictionaryChange({"hello": "goodbye"}, {"test"})
     client.attempt_update_state(change)
 
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-
-    with server.lock_state() as state:
-        assert state == {"hello": "goodbye"}
+    assert_equal_soon(lambda: {"hello": "goodbye"}, lambda: server.copy_state())
 
 
 def test_client_state_reflects_own_update(client_server):
@@ -167,10 +161,7 @@ def test_client_state_reflects_own_update(client_server):
     change = DictionaryChange({"hello": "goodbye"}, {"test"})
     client.attempt_update_state(change)
 
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-
-    with client.lock_state() as state:
-        assert state == {"hello": "goodbye"}
+    assert_equal_soon(lambda: {"hello": "goodbye"}, lambda: client.copy_state())
 
 
 def test_client_state_reflects_other_update(client_server):
@@ -186,10 +177,7 @@ def test_client_state_reflects_other_update(client_server):
         change = DictionaryChange({"hello": "goodbye"}, {"test"})
         client2.attempt_update_state(change)
 
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-
-    with client1.lock_state() as state:
-        assert state == {"hello": "goodbye"}
+    assert_equal_soon(lambda: {"hello": "goodbye"}, lambda: client1.copy_state())
 
 
 @pytest.mark.parametrize("update_interval", (1 / 10, 1 / 30, 1 / 60))
@@ -201,10 +189,7 @@ def test_subscribe_updates_sends_initial_immediately(client_server, update_inter
     client, server = client_server
     client.subscribe_all_state_updates(update_interval)
 
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
-
-    with client.lock_state() as state:
-        assert state == INITIAL_STATE
+    assert_equal_soon(lambda: INITIAL_STATE, lambda: client.copy_state())
 
 
 @pytest.mark.parametrize("update_interval", (0.5, 0.2, 0.1))
@@ -229,7 +214,10 @@ def test_subscribe_updates_interval(client_server, update_interval):
 
         time_before = time.perf_counter()
         assert_equal_soon(
-            lambda: i, lambda: client.copy_state()["hello"], interval=0.05
+            lambda: i,
+            lambda: client.copy_state()["hello"],
+            interval=0.05,
+            timeout=update_interval * 2,
         )
         time_after = time.perf_counter()
         update_times.append(time_after - time_before)

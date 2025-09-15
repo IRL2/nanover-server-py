@@ -3,8 +3,6 @@ from pathlib import Path
 import pytest
 
 from nanover.recording.reading import (
-    iter_trajectory_file,
-    iter_state_file,
     iter_recording_files,
     iter_full_view,
     split_by_simulation_counter,

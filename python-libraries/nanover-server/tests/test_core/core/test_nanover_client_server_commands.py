@@ -77,9 +77,8 @@ def test_get_commands(client_server, default_args):
     server.register_command(TEST_COMMAND_KEY, mock.callback, default_args)
 
     commands = client.update_available_commands()
-    assert len(commands) == 1
     assert TEST_COMMAND_KEY in commands
-    command = next(iter(commands.values()))
+    command = commands[TEST_COMMAND_KEY]
     assert command.name == TEST_COMMAND_KEY
     assert command.arguments == default_args
 
@@ -91,7 +90,7 @@ def test_commands_on_server(client_server):
     server.register_command(TEST_COMMAND_KEY, mock.callback)
     commands = server.commands
     assert TEST_COMMAND_KEY in commands
-    command_registration = next(iter(commands.values()))
+    command_registration = commands[TEST_COMMAND_KEY]
     assert command_registration.info.name == TEST_COMMAND_KEY
     assert command_registration.callback == mock.callback
 
@@ -103,12 +102,11 @@ def test_unregister_command(client_server):
     server.register_command(TEST_COMMAND_KEY, mock.callback)
 
     commands = client.update_available_commands()
-    assert len(commands) == 1
     assert TEST_COMMAND_KEY in commands
 
     server.unregister_command(TEST_COMMAND_KEY)
     commands = client.update_available_commands()
-    assert len(commands) == 0
+    assert TEST_COMMAND_KEY not in commands
 
 
 def test_get_multiple_commands(client_server):
@@ -121,9 +119,10 @@ def test_get_multiple_commands(client_server):
         server.register_command(name, mock.callback)
 
     commands = client.update_available_commands()
-    assert len(commands) == 10
-    assert set(commands.keys()) == expected_names
-    assert set((command.name for command in commands.values())) == expected_names
+    assert set(commands.keys()).issuperset(expected_names)
+    assert set((command.name for command in commands.values())).issuperset(
+        expected_names
+    )
     assert all(command.arguments == {} for command in commands.values())
 
 
@@ -133,7 +132,7 @@ def test_get_command_with_argument(client_server):
     arguments = {"x": 1, "y": 2}
     server.register_command(TEST_COMMAND_KEY, mock.callback, arguments)
     commands = client.update_available_commands()
-    assert next(iter(commands.values())).arguments == arguments
+    assert commands[TEST_COMMAND_KEY].arguments == arguments
 
 
 def test_run_command(client_server, mock_callback):

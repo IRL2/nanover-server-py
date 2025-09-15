@@ -571,7 +571,6 @@ def test_set_existing_array(init_value, new_value):
 @pytest.mark.parametrize(
     "value",
     (
-        [],  # Empty list, type cannot be guessed
         21,  # Not an sequence
         [None, None],  # Not a valid type
     ),

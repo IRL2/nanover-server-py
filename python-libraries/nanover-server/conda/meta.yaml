@@ -13,6 +13,9 @@ build:
     - nanover-record = nanover.omni.recorder_cli:main
     - nanover-essd-list = nanover.essd.list_cli:main
     - nanover-multiplayer = nanover.multiplayer.cli:main
+    - nanover-dump-state = nanover.recording.cli.dump_cli:main
+    - nanover-split-recording = nanover.recording.cli.split_cli:main
+    - nanover-check-recording = nanover.recording.cli.check_cli:main
 
 requirements:
   build:
@@ -31,6 +34,8 @@ requirements:
     - ase >=3.21
     - mdanalysis
     - nglview
+    - websockets
+    - msgpack-python
 
 about:
   home: {{ NANOVER_DOC_URL }}

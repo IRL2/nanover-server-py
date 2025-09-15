@@ -72,6 +72,10 @@ class ImdStateWrapper:
         change = DictionaryChange(removals=set([interaction_id]))
         self.state_dictionary.update_state(None, change)
 
+    def clear_interactions(self):
+        for interaction_id in self.active_interactions.keys():
+            self.remove_interaction(interaction_id)
+
     @property
     def active_interactions(self) -> Dict[str, ParticleInteraction]:
         """
