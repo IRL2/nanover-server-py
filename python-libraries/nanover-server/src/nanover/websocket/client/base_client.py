@@ -11,10 +11,13 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.convert import unpack_dict_frame
 
 
+MAX_MESSAGE_SIZE = 128 * 1024 * 1024
+
+
 class WebsocketClient:
     @classmethod
     def from_url(cls, url: str):
-        connection = connect(url)
+        connection = connect(url, max_size=MAX_MESSAGE_SIZE)
         client = cls(connection)
         return client
 

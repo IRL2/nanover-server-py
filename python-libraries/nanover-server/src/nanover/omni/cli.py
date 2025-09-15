@@ -16,7 +16,7 @@ from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.discovery import DiscoveryClient
-from nanover.websocket.record import record_from_server
+from nanover.websocket.record import record_from_runner
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -141,11 +141,7 @@ def initialise_runner(arguments: argparse.Namespace):
             state_path = f"{stem}.state"
             print(f"Recording to {traj_path} & {state_path}")
 
-            record_from_server(
-                f"ws://localhost:{runner.app_server._server_ws.ws_port}",
-                traj_path,
-                state_path,
-            )
+            record_from_runner(runner, traj_path, state_path)
 
         if arguments.cloud_discovery_host:
             with DiscoveryClient.advertise_server(

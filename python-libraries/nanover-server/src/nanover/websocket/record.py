@@ -5,10 +5,12 @@ from time import perf_counter_ns
 import msgpack
 from websockets.sync.client import connect, ClientConnection
 
+from nanover.omni import OmniRunner
 from nanover.recording.writing import write_entry, write_header
 from nanover.state.state_service import dictionary_change_to_state_update
 from nanover.trajectory.frame_data import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
+from nanover.websocket.client.base_client import MAX_MESSAGE_SIZE
 from nanover.websocket.convert import (
     convert_dict_frame_to_grpc_frame,
     unpack_dict_frame,
@@ -16,11 +18,32 @@ from nanover.websocket.convert import (
 from nanover.protocol.trajectory import GetFrameResponse
 
 
+def record_from_runner(runner: OmniRunner, trajectory_file, state_file):
+    """
+    Connect to the given runner and record trajectory frames and state updates to files
+
+    :param runner: OmniRunner instance to connect to
+    :param trajectory_file: File to write trajectory frames to
+    :param state_file: File to write state updates to
+    :return:
+    """
+    server = runner._websocket_server
+    assert server is not None
+    port = server.ws_port
+    assert port is not None
+
+    return record_from_server(
+        address=f"ws://localhost:{port}",
+        trajectory_file=trajectory_file,
+        state_file=state_file,
+    )
+
+
 def record_from_server(address, trajectory_file, state_file):
     """
-    Connect to the given host:port and record trajectory frames and state updates to files
+    Connect to the given address and record trajectory frames and state updates to files
 
-    :param address: String host:port of server to connect to
+    :param address: String protocol://host:port of server to connect to
     :param trajectory_file: File to write trajectory frames to
     :param state_file: File to write state updates to
     :return:
@@ -71,7 +94,7 @@ def record_from_server(address, trajectory_file, state_file):
             finally:
                 websocket.close()
 
-    websocket = connect(address)
+    websocket = connect(address, max_size=MAX_MESSAGE_SIZE)
     executor = ThreadPoolExecutor(max_workers=1)
     executor.submit(listen, websocket)
 
