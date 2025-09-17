@@ -1,10 +1,10 @@
 setuptools>=40.1.1
 grpcio>=1.63.0
 grpcio-tools>=1.63.0
+websockets>=15.0.0
+msgpack>=1.0.0
 pytest
 aiogrpc
 numpy
 hypothesis
 typing_extensions
-websockets
-msgpack

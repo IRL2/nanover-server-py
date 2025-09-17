@@ -34,8 +34,8 @@ requirements:
     - ase >=3.21
     - mdanalysis
     - nglview
-    - websockets
-    - msgpack-python
+    - websockets >=15.0.0
+    - msgpack-python >=1.0.0
 
 about:
   home: {{ NANOVER_DOC_URL }}
