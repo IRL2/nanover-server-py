@@ -1,4 +1,4 @@
-from typing import Optional, Iterable
+from typing import Iterable
 from uuid import uuid4
 
 from nanover.app import RenderingSelection
@@ -33,7 +33,7 @@ class SelectionClient(WebsocketClient):
     def create_selection(
         self,
         name: str,
-        particle_ids: Optional[Iterable[int]] = None,
+        particle_ids: Iterable[int] | None = None,
     ) -> RenderingSelection:
         """
         Create a particle selection with the given name.

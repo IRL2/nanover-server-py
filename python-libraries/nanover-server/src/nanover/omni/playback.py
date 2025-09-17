@@ -1,6 +1,6 @@
 from os import PathLike
 from pathlib import Path
-from typing import List, Optional, Tuple, Iterable, Set
+from typing import List, Tuple, Iterable, Set
 
 from nanover.app import NanoverImdApplication
 from nanover.trajectory import FrameData
@@ -10,7 +10,7 @@ from nanover.recording.reading import iter_recording_files
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 SCENE_POSE_IDENTITY = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
 
-Entry = Tuple[float, Optional[FrameData], Optional[DictionaryChange]]
+Entry = Tuple[float, FrameData | None, DictionaryChange | None]
 
 
 class PlaybackSimulation:
@@ -35,14 +35,14 @@ class PlaybackSimulation:
         self,
         name,
         *,
-        traj: Optional[PathLike[str]] = None,
-        state: Optional[PathLike[str]] = None
+        traj: PathLike[str] | None = None,
+        state: PathLike[str] | None = None
     ):
         self.name = name
         self.traj_path = traj
         self.state_path = state
 
-        self.app_server: Optional[NanoverImdApplication] = None
+        self.app_server: NanoverImdApplication | None = None
 
         self.entries: List[Entry] = []
         self.changed_keys: Set[str] = set()
@@ -119,7 +119,7 @@ class PlaybackSimulation:
         self.time = time
         self.emit(frame=frame, update=update)
 
-    def emit(self, *, frame: Optional[FrameData], update: Optional[DictionaryChange]):
+    def emit(self, *, frame: FrameData | None, update: DictionaryChange | None):
         if self.app_server is None:
             return
 

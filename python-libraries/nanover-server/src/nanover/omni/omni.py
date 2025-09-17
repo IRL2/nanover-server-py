@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
 from ssl import SSLContext
-from typing import Protocol, List, Optional, Set, Dict
+from typing import Protocol, List, Set, Dict
 
 from nanover.app import NanoverImdApplication, RenderingSelection
 from nanover.imd.imd_force import InvalidInteractionError
@@ -42,10 +42,10 @@ class OmniRunner:
     def with_basic_server(
         cls,
         *simulations: Simulation,
-        name: Optional[str] = None,
-        address: Optional[str] = None,
-        port: Optional[int] = None,
-        ssl: Optional[SSLContext] = None,
+        name: str | None = None,
+        address: str | None = None,
+        port: int | None = None,
+        ssl: SSLContext | None = None,
     ):
         """
         Construct this using a basic NanoVer server and an optional list of initial simulations.
@@ -71,7 +71,7 @@ class OmniRunner:
         self._simulation_index = 0
         self.simulation_selections: Dict[Simulation, Set[RenderingSelection]] = {}
 
-        self._websocket_server: Optional[WebSocketServer] = None
+        self._websocket_server: WebSocketServer | None = None
 
         app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
         app_server.server.register_command(NEXT_COMMAND_KEY, self.next)
@@ -83,8 +83,8 @@ class OmniRunner:
         app_server.server.register_command(STEP_COMMAND_KEY, self.step)
 
         self._threads = ThreadPoolExecutor(max_workers=1)
-        self._runner: Optional[InternalRunner] = None
-        self._run_task: Optional[Future] = None
+        self._runner: InternalRunner | None = None
+        self._run_task: Future | None = None
 
         self.failed_simulations: Set[Simulation] = set()
         self.logging = logging.getLogger(__name__)

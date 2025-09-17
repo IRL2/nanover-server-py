@@ -3,7 +3,7 @@ Provides an implementation of IMD force field in ASE.
 """
 
 import math
-from typing import Optional, Dict, Set
+from typing import Dict, Set
 
 import numpy as np
 from ase import Atoms, units  # type: ignore
@@ -144,7 +144,7 @@ class ImdCalculator(Calculator):
         imd_state: ImdStateWrapper,
         calculator: Calculator,
         atoms: Atoms,
-        dynamics: Optional[MolecularDynamics] = None,
+        dynamics: MolecularDynamics | None = None,
         reset_scale=0.5,
         **kwargs,
     ):
@@ -244,7 +244,7 @@ class ImdCalculator(Calculator):
 
     def calculate(
         self,
-        atoms: Optional[Atoms] = None,
+        atoms: Atoms | None = None,
         properties=("energy", "forces"),
         system_changes=all_changes,
     ):
@@ -324,7 +324,7 @@ class ImdCalculator(Calculator):
         self._imd_state.velocity_reset_available = True
 
 
-def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
+def get_periodic_box_lengths(atoms: Atoms) -> np.ndarray | None:
     """
     Gets the periodic box lengths of an orthorhombic box, in nm, from an ASE atoms collection, if it exists.
 

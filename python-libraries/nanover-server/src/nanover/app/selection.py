@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Dict, Iterable, Set, Union, TypeVar, Optional, cast
+from typing import Dict, Iterable, Set, Union, TypeVar, cast
 
 from nanover.utilities.event import Event
 
@@ -101,7 +101,7 @@ class RenderingSelection:
         """
         self.selected_particle_ids.clear()
 
-    def set_particles(self, particle_ids: Optional[Iterable[int]] = None):
+    def set_particles(self, particle_ids: Iterable[int] | None = None):
         """
         Set the particles in this selection, replacing the previous selection.
 

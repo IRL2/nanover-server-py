@@ -1,6 +1,6 @@
 import time
 from collections import deque
-from typing import Optional, Any
+from typing import Any
 
 from nanover.app import NanoverImdApplication
 from nanover.app.client import _search_for_first_server_with_name
@@ -35,8 +35,8 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
     def from_discovery(
         cls,
         *,
-        server_name: Optional[str] = None,
-        discovery_port: Optional[int] = None,
+        server_name: str | None = None,
+        discovery_port: int | None = None,
     ):
         if server_name is not None:
             first_service = _search_for_first_server_with_name(
@@ -131,8 +131,8 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
 
 def _search_for_first_local_server(
     search_time: float = 2.0,
-    discovery_address: Optional[str] = None,
-    discovery_port: Optional[int] = None,
+    discovery_address: str | None = None,
+    discovery_port: int | None = None,
 ):
     try:
         local_ip = get_local_ip()

@@ -1,6 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
-from typing import Optional
 
 import msgpack
 
@@ -19,7 +18,7 @@ class WebSocketServer:
         cls,
         app_server: NanoverImdApplication,
         *,
-        ssl: Optional[SSLContext] = None,
+        ssl: SSLContext | None = None,
         insecure=True,
     ):
         server = cls(app_server)
@@ -37,8 +36,8 @@ class WebSocketServer:
         self._threads = ThreadPoolExecutor(
             max_workers=2, thread_name_prefix="WebSocketServer"
         )
-        self._ws_server: Optional[Server] = None
-        self._wss_server: Optional[Server] = None
+        self._ws_server: Server | None = None
+        self._wss_server: Server | None = None
 
     def serve_insecure(self):
         if self._ws_server is None:
@@ -111,7 +110,7 @@ class WebSocketClientHandler:
     def state_dictionary(self):
         return self.app_server.server._state_service.state_dictionary
 
-    def run_command(self, name: str, arguments: Optional[dict] = None):
+    def run_command(self, name: str, arguments: dict | None = None):
         results = self.app_server.server._command_service.run_command(
             name, arguments or {}
         )

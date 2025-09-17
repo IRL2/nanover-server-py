@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Dict, ContextManager, Set, Union
+from typing import Callable, Dict, ContextManager, Set, Union
 
 from nanover.command import CommandService
 from nanover.command.command_service import CommandRegistration, CommandHandler
@@ -9,7 +9,7 @@ from nanover.utilities.change_buffers import (
 )
 
 CommandCallable = Union[
-    Callable[[Dict], Optional[Dict]], Callable[[], None], Callable[[Dict], None]
+    Callable[[Dict], Dict] | None, Callable[[], None], Callable[[Dict], None]
 ]
 
 
@@ -48,7 +48,7 @@ class NanoverServer(GrpcServer):
         self,
         name: str,
         callback: CommandHandler,
-        default_arguments: Optional[Dict] = None,
+        default_arguments: Dict | None = None,
     ):
         """
         Registers a command with the :class:`CommandService` running on this server.
@@ -92,8 +92,8 @@ class NanoverServer(GrpcServer):
     def update_locks(
         self,
         access_token: object = None,
-        acquire: Optional[Dict[str, float]] = None,
-        release: Optional[Set[str]] = None,
+        acquire: Dict[str, float] | None = None,
+        release: Set[str] | None = None,
     ):
         """
         Attempts to acquire and release locks on keys in the shared key/value

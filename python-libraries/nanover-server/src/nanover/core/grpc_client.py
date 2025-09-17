@@ -3,7 +3,6 @@ Module providing a base class for gRPC clients.
 """
 
 from concurrent import futures
-from typing import Optional
 
 import grpc
 from nanover.core import DEFAULT_CONNECT_ADDRESS
@@ -35,7 +34,7 @@ class GrpcClient:
 
     @classmethod
     def insecure_channel(
-        cls, *, address: Optional[str] = None, port: Optional[int] = None, **kwargs
+        cls, *, address: str | None = None, port: int | None = None, **kwargs
     ):
         """
         Create an insecure connection at the given address and port.

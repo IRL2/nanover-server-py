@@ -2,7 +2,7 @@ from collections import namedtuple
 from collections.abc import Set
 import numbers
 from dataclasses import dataclass
-from typing import Dict, Optional, List, Union
+from typing import Dict, List, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -476,8 +476,8 @@ class RecordView:
     This class needs to be subclassed.
     """
 
-    record_name: Optional[str] = None  # MUST be overwritten as "arrays" or "values"
-    singular: Optional[str] = None  # MUST be overwritten as "array" or "value"
+    record_name: str | None = None  # MUST be overwritten as "arrays" or "values"
+    singular: str | None = None  # MUST be overwritten as "array" or "value"
 
     def __init__(self, raw):
         if self.record_name is None or self.singular is None:

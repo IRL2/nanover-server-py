@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Any, Protocol
+from typing import Any, Protocol
 
 import numpy as np
 from ase import Atoms
@@ -44,7 +44,7 @@ class ASESimulation:
         cls,
         dynamics: MolecularDynamics,
         *,
-        name: Optional[str] = None,
+        name: str | None = None,
         ase_atoms_to_frame_data: ASEAtomsToFrameData = ase_atoms_to_frame_data
     ):
         """
@@ -68,35 +68,35 @@ class ASESimulation:
         else:
             return self.dynamics.atoms
 
-    def __init__(self, name: Optional[str] = None):
+    def __init__(self, name: str | None = None):
         self.name = name or "Unnamed ASE OpenMM Simulation"
 
-        self.app_server: Optional[NanoverImdApplication] = None
+        self.app_server: NanoverImdApplication | None = None
 
         self.on_reset_energy_exceeded = Event()
 
         self.verbose = False
         self.use_walls = False
-        self.reset_energy: Optional[float] = None
+        self.reset_energy: float | None = None
         self.frame_interval = 5
         self.include_velocities = False
         self.include_forces = False
 
-        self.dynamics: Optional[MolecularDynamics] = None
-        self.checkpoint: Optional[InitialState] = None
-        self.initial_calc: Optional[Calculator] = None
+        self.dynamics: MolecularDynamics | None = None
+        self.checkpoint: InitialState | None = None
+        self.initial_calc: Calculator | None = None
 
-        self.imd_calculator: Optional[ImdCalculator] = None
+        self.imd_calculator: ImdCalculator | None = None
 
         self.frame_index = 0
         self.ase_atoms_to_frame_data = ase_atoms_to_frame_data
 
         self.work_done: float = 0.0
         self._work_done_intermediate: float = 0.0
-        self._prev_imd_forces: Optional[np.ndarray] = None
-        self._prev_imd_indices: Optional[np.ndarray] = None
+        self._prev_imd_forces: np.ndarray | None = None
+        self._prev_imd_indices: np.ndarray | None = None
 
-        self._dof: Optional[int] = None
+        self._dof: int | None = None
 
     def load(self):
         """
