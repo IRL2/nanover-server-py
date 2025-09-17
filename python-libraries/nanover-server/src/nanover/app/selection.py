@@ -3,6 +3,11 @@ from typing import Dict, Iterable, Set, Union, TypeVar, cast
 
 from nanover.utilities.event import Event
 
+# ID of the root selection
+SELECTION_ROOT_ID = "selection.root"
+# Name of the root selection
+SELECTION_ROOT_NAME = "Root Selection"
+
 INTERACTION_SINGLE = "single"
 INTERACTION_GROUP = "group"
 INTERACTION_RESTRAINT = "restraint"

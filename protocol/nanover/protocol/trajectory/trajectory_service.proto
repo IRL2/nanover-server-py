@@ -1,16 +1,17 @@
 
 syntax = "proto3";
 
-import "nanover/protocol/trajectory/get_frame.proto";
+import "nanover/protocol/array.proto";
+import "google/protobuf/struct.proto";
 
 package nanover.protocol.trajectory;
 
-/* A service which provides access to frames of a trajectory, which may either be precomputed or represent a live simulation. It can also be used to obtain one or more frames on demand, allowing molecules or trajectories to be generated based on requests */
-service TrajectoryService {
+message FrameData {
+  map<string, google.protobuf.Value> values = 1;
+  map<string, nanover.protocol.ValueArray> arrays = 2;
+}
 
-  /* Subscribe to a continuous updating source of frames. Frames are added to the stream when they are available */
-  rpc SubscribeFrames (GetFrameRequest) returns (stream GetFrameResponse);
-
-  /* Subscribe to a continuous updating source of frames. The client gets the latest available frame at the time of transmission. */
-  rpc SubscribeLatestFrames (GetFrameRequest) returns (stream GetFrameResponse);
+message GetFrameResponse {
+  uint32 frame_index = 1;
+  nanover.protocol.trajectory.FrameData frame = 2;
 }

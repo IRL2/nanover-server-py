@@ -8,23 +8,17 @@ with in real-time through biasing potentials.
 from ssl import SSLContext
 from typing import Any
 
-from nanover.app.frame_app import NanoverFrameApplication
-from nanover.core import NanoverServer
+from nanover.app.app_server import NanoverApplicationServer
 from nanover.essd import DiscoveryServer
-from nanover.imd import ImdStateWrapper, IMD_SERVICE_NAME
+from nanover.imd import ImdStateWrapper
+from .multiuser import add_multiuser_commands
 
 
-class NanoverImdApplication(NanoverFrameApplication):
+class NanoverImdApplication(NanoverApplicationServer):
     """
     Application-level class for implementing a NanoVer iMD server, something that publishes
-    :class:`FrameData` that can be consumed, e.g. simulation trajectories, and can received
+    :class:`FrameData` that can be consumed, e.g. simulation trajectories, and can receive
     interactive forces in real-time, allowing the simulation to be biased.
-
-    >>> with NanoverImdApplication.basic_server() as app: # fire up interactive molecular dynamics
-    ...     with NanoverImdClient() as client:
-    ...         client.interactions # print any active interactions (in this case, none).
-    {}
-
     """
 
     DEFAULT_SERVER_NAME: str = "NanoVer iMD Server"
@@ -34,10 +28,10 @@ class NanoverImdApplication(NanoverFrameApplication):
     @classmethod
     def basic_server(
         cls,
+        *,
         name: str | None = None,
         address: str | None = None,
         port: int | None = None,
-        *,
         ssl: SSLContext | None = None,
     ):
         """
@@ -50,21 +44,25 @@ class NanoverImdApplication(NanoverFrameApplication):
             the default address of
         :param port: Optional port on which to run the NanoVer server. If none given,
             default port will be used.
+        :param ssl: Optional SSLContext that if provided is used to host an additional
+            secure websocket server on the WSS protocol.
         :return: An instantiation of a basic NanoVer server, registered with an
             ESSD discovery server.
         """
-        app_server = super().basic_server(name=name, address=address, port=port)
+        app_server = super().basic_server(name=name, address=address)
         app_server.serve_websocket(ssl=ssl)
         return app_server
 
     def __init__(
         self,
-        server: NanoverServer,
+        *,
         discovery: DiscoveryServer | None = None,
         name: str | None = None,
+        address: str | None = None,
     ):
-        super().__init__(server, discovery, name)
-        self._setup_imd()
+        super().__init__(discovery=discovery, name=name, address=address)
+        self._imd_state = ImdStateWrapper(self._state_service.state_dictionary)
+        add_multiuser_commands(self)
 
     def close(self):
         if self._server_ws is not None:
@@ -78,6 +76,10 @@ class NanoverImdApplication(NanoverFrameApplication):
         return self._server_ws
 
     @property
+    def port(self):
+        return self._server_ws.ws_port if self._server_ws else 0
+
+    @property
     def imd(self) -> ImdStateWrapper:
         """
         The iMD service attached to this application. Use it to access interactive forces sent
@@ -86,7 +88,3 @@ class NanoverImdApplication(NanoverFrameApplication):
         :return: An :class:`ImdStateWrapper` for tracking interactions.
         """
         return self._imd_state
-
-    def _setup_imd(self):
-        self._imd_state = ImdStateWrapper(self.server._state_service.state_dictionary)
-        self._add_service_entry(IMD_SERVICE_NAME, self.server.port)

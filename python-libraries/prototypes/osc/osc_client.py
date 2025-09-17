@@ -1,4 +1,4 @@
-from nanover.app import NanoverImdClient
+from nanover.websocket import NanoverImdClient
 from nanover.utilities.timing import yield_interval
 from pythonosc import udp_client
 
@@ -28,15 +28,11 @@ class OscClient:
         host, port = osc_address
         self.osc_client = udp_client.SimpleUDPClient(host, port, allow_broadcast=True)
         self.nanover_client = nanover_client
-        self.nanover_client.subscribe_to_all_frames()
 
     def run(self):
         for dt in yield_interval(self.send_interval):
-            if not self.nanover_client.are_frames_subscribed:
-                break
-
-            frame = self.nanover_client.latest_frame
-            if frame is not None:
+            frame = self.nanover_client.current_frame_grpc
+            if frame:
                 self.process_frame(frame)
 
     def close(self):

@@ -6,7 +6,7 @@ import numpy as np
 
 from openmm.app import Simulation, StateDataReporter
 
-from nanover.app import NanoverImdApplication
+from nanover.app.types import AppServer
 from nanover.openmm import serializer, openmm_to_frame_data
 from nanover.openmm.imd import (
     create_imd_force,
@@ -65,7 +65,7 @@ class OpenMMSimulation:
         self.name = name or "Unnamed OpenMM Simulation"
 
         self.xml_path: PathLike[str] | None = None
-        self.app_server: NanoverImdApplication | None = None
+        self.app_server: AppServer | None = None
 
         self.frame_interval = 5
         """Number of simulation steps to advance between frames."""
@@ -109,7 +109,7 @@ class OpenMMSimulation:
 
         self.checkpoint = self.simulation.context.createCheckpoint()
 
-    def reset(self, app_server: NanoverImdApplication):
+    def reset(self, app_server: AppServer):
         """
         Reset the simulation to its initial conditions, reset IMD interactions, and reset frame stream to begin with
         topology and continue.

@@ -120,6 +120,8 @@ class WebsocketClient:
         else:
             response = message["response"]
 
+        print("CMD", response, message)
+
         callback = self._pending_commands.pop(id)
         callback(response)
 

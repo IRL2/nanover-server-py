@@ -6,6 +6,7 @@ from ssl import SSLContext
 from typing import Protocol, List, Set, Dict
 
 from nanover.app import NanoverImdApplication, RenderingSelection
+from nanover.app.types import AppServer
 from nanover.imd.imd_force import InvalidInteractionError
 from nanover.trajectory import FrameData
 from nanover.trajectory.frame_server import (
@@ -19,7 +20,6 @@ from nanover.trajectory.frame_server import (
 )
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
-from nanover.websocket.server import WebSocketServer
 
 CLEAR_PREFIXES = {"avatar.", "play-area.", "selection.", "scene", "interaction."}
 
@@ -28,7 +28,7 @@ class Simulation(Protocol):
     name: str
 
     def load(self): ...
-    def reset(self, app_server: NanoverImdApplication): ...
+    def reset(self, app_server: AppServer): ...
     def advance_by_one_step(self): ...
     def advance_by_seconds(self, dt: float): ...
 
@@ -56,31 +56,33 @@ class OmniRunner:
         :param port: Optional server port to use
         :param ssl: Optional SSL context to use for the WebSocket server
         """
-        app_server = NanoverImdApplication.basic_server(name, address, port)
+        app_server = NanoverImdApplication.basic_server(
+            name=name,
+            address=address,
+            port=port,
+            ssl=ssl,
+        )
 
         omni = cls(app_server)
-        omni._websocket_server = WebSocketServer.basic_server(app_server, ssl=ssl)
         for simulation in simulations:
             omni.add_simulation(simulation)
         return omni
 
-    def __init__(self, app_server: NanoverImdApplication):
+    def __init__(self, app_server: AppServer):
         self._app_server = app_server
 
         self.simulations: List[Simulation] = []
         self._simulation_index = 0
         self.simulation_selections: Dict[Simulation, Set[RenderingSelection]] = {}
 
-        self._websocket_server: WebSocketServer | None = None
+        app_server.register_command(LOAD_COMMAND_KEY, self.load)
+        app_server.register_command(NEXT_COMMAND_KEY, self.next)
+        app_server.register_command(LIST_COMMAND_KEY, self.list)
 
-        app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
-        app_server.server.register_command(NEXT_COMMAND_KEY, self.next)
-        app_server.server.register_command(LIST_COMMAND_KEY, self.list)
-
-        app_server.server.register_command(RESET_COMMAND_KEY, self.reset)
-        app_server.server.register_command(PAUSE_COMMAND_KEY, self.pause)
-        app_server.server.register_command(PLAY_COMMAND_KEY, self.play)
-        app_server.server.register_command(STEP_COMMAND_KEY, self.step)
+        app_server.register_command(RESET_COMMAND_KEY, self.reset)
+        app_server.register_command(PAUSE_COMMAND_KEY, self.pause)
+        app_server.register_command(PLAY_COMMAND_KEY, self.play)
+        app_server.register_command(STEP_COMMAND_KEY, self.step)
 
         self._threads = ThreadPoolExecutor(max_workers=1)
         self._runner: InternalRunner | None = None
@@ -93,9 +95,6 @@ class OmniRunner:
         """
         Stop simulations and shut down server.
         """
-        if self._websocket_server is not None:
-            self._websocket_server.close()
-
         self.app_server.close()
         self._cancel_run()
 
@@ -103,8 +102,13 @@ class OmniRunner:
         """
         Print out basic runner info to the terminal.
         """
+        protocols = ", ".join(
+            f"{protocol}://localhost:{port}"
+            for protocol, port in self.app_server.service_hub.services.items()
+        )
+
         print(
-            f'Serving "{self.app_server.name}" on port {self.app_server.port}, '
+            f'Serving "{self.app_server.name}" ({protocols}), '
             f"discoverable on all interfaces on port {self.app_server.discovery.port}"
         )
 
@@ -157,17 +161,17 @@ class OmniRunner:
         self.simulation_selections[simulation] = existing_selections
 
     def _clear_state(self):
-        with self.app_server.server.lock_state() as state:
+        with self.app_server.lock_state() as state:
             removals = {
                 key
                 for key in state.keys()
                 if any(key.startswith(prefix) for prefix in CLEAR_PREFIXES)
             }
-        self.app_server.server.clear_locks()
-        self.app_server.server.update_state(None, DictionaryChange(removals=removals))
+        self.app_server.clear_locks()
+        self.app_server.update_state(None, DictionaryChange(removals=removals))
 
     def _load_simulation_selections(self):
-        with self.app_server.server.lock_state() as state:
+        with self.app_server.lock_state() as state:
             next_selections = {
                 selection.selection_id: selection.to_dictionary()
                 for selection in self.simulation_selections.get(self.simulation, [])
@@ -182,7 +186,7 @@ class OmniRunner:
                 updates=next_selections,
                 removals=prev_selections,
             )
-        self.app_server.server.update_state(None, change)
+        self.app_server.update_state(None, change)
 
     def load(self, index: int):
         """
@@ -265,7 +269,7 @@ class InternalRunner:
         self,
         omni: OmniRunner,
         simulation: Simulation,
-        app_server: NanoverImdApplication,
+        app_server: AppServer,
     ):
         self.omni = omni
         self.simulation = simulation

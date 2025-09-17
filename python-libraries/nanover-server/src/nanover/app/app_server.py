@@ -4,46 +4,16 @@ with an underyling gRPC server, discovery, multiplayer and commands.
 """
 
 import getpass
-from typing import Tuple, Set
+from typing import Any
 
-from nanover.app.multiuser import add_multiuser_commands
-
-from nanover.app.types import Closeable
-from nanover.core import NanoverServer, DEFAULT_SERVE_ADDRESS
 from nanover.essd import DiscoveryServer, ServiceHub
+from nanover.state.state_service import StateService
+from nanover.trajectory import FramePublisher
+from nanover.utilities.change_buffers import DictionaryChange
 
+from .commands import CommandService, CommandHandler
 
-DEFAULT_NANOVER_PORT = 38801
-MULTIPLAYER_SERVICE_NAME = "multiplayer"
-
-
-def start_default_server_and_discovery(
-    address: str | None = None, port: int | None = None
-) -> Tuple[NanoverServer, DiscoveryServer]:
-    """
-    Utility method for creating a default NanoVer server along with ESSD discovery.
-
-    :param address: Address to run the server at. If nothing is passed, the default
-        address of all interfaces will be used.
-    :param port: Port to run the server on, if nothing is passed, the default
-        NanoVer port will be used. The value of zero should be passed to let the OS
-        pick a free port.
-    :return: tuple of NanoVer server and ESSD discovery.
-    """
-    address = address or DEFAULT_SERVE_ADDRESS
-    if port is None:
-        port = DEFAULT_NANOVER_PORT
-    try:
-        server = NanoverServer(address=address, port=port)
-    except IOError:
-        if port == DEFAULT_NANOVER_PORT:
-            raise IOError(
-                f"Could not start a server at the default port ({port}). Is another NanoVer server running? "
-                f"Use port=0 to let the OS find a free port"
-            )
-        raise
-    discovery = DiscoveryServer()
-    return server, discovery
+DEFAULT_SERVE_ADDRESS = "[::]"
 
 
 class NanoverApplicationServer:
@@ -58,27 +28,30 @@ class NanoverApplicationServer:
 
     DEFAULT_SERVER_NAME: str = "NanoVer Server"
 
-    _services: Set[Closeable]
+    @classmethod
+    def null_server(cls):
+        return cls()
 
     def __init__(
         self,
-        server: NanoverServer,
+        *,
         discovery: DiscoveryServer | None = None,
         name: str | None = None,
+        address: str | None = None,
     ):
         if name is None:
             name = qualified_server_name(self.DEFAULT_SERVER_NAME)
-        self._server = server
+
+        if address is None:
+            address = DEFAULT_SERVE_ADDRESS
+
+        self._address = address
+        self._command_service = CommandService()
+        self._state_service = StateService()
+        self._frame_publisher = FramePublisher()
+
         self._discovery = discovery
-        self._service_hub = ServiceHub(
-            name=name, address=self._server.address, port=self._server.port
-        )
-        self._services = set()
-
-        # Advertise as a multiplayer service
-        self._add_service_entry(MULTIPLAYER_SERVICE_NAME, self._server.port)
-
-        add_multiuser_commands(self.server)
+        self._service_hub = ServiceHub(name=name, address=address)
 
     def __enter__(self):
         return self
@@ -89,9 +62,9 @@ class NanoverApplicationServer:
     @classmethod
     def basic_server(
         cls,
+        *,
         name: str | None = None,
         address: str | None = None,
-        port: int | None = None,
     ):
         """
         Initialises a basic NanoVer application server with default settings,
@@ -101,18 +74,13 @@ class NanoverApplicationServer:
         :param name: Name of the server for the purposes of discovery.
         :param address: The address at which to bind the server to. If none given,
             the default address of
-        :param port: Optional port on which to run the NanoVer server. If none given,
-            default port will be used.
         :return: An instantiation of a basic NanoVer server, registered with an
             ESSD discovery server.
         """
-        server, discovery = start_default_server_and_discovery(
-            address=address, port=port
-        )
-        return cls(server, discovery, name)
+        return cls(name=name, address=address, discovery=DiscoveryServer())
 
     @property
-    def name(self) -> str:
+    def name(self):
         """
         Name of the server.
         :return: The name of the server.
@@ -120,33 +88,15 @@ class NanoverApplicationServer:
         return self._service_hub.name
 
     @property
-    def address(self) -> str:
+    def address(self):
         """
         Address of the server.
         :return: Address of the server.
         """
-        return self._server.address
+        return self._address
 
     @property
-    def port(self) -> int:
-        """
-        Server port.
-        :return: Port of the server.
-        """
-        return self._server.port
-
-    @property
-    def server(self) -> NanoverServer:
-        """
-        The underlying NanoVer server for this application.
-        One can use this to manage commands and services.
-        :return: The NanoVer server.
-        """
-        # TODO expose command api directly?
-        return self._server
-
-    @property
-    def running_discovery(self) -> bool:
+    def running_discovery(self):
         """
         Indicates whether a discovery service is running or not.
         :return: True if discovery is available, False otherwise.
@@ -154,7 +104,7 @@ class NanoverApplicationServer:
         return self.discovery is not None
 
     @property
-    def discovery(self) -> DiscoveryServer | None:
+    def discovery(self):
         """
         The discovery service that can be used to allow clients to find services hosted by this application.
         :return: The discovery service, or None if no discovery has been set up.
@@ -167,29 +117,101 @@ class NanoverApplicationServer:
         """
         return self._discovery
 
+    @property
+    def frame_publisher(self):
+        """
+        The frame publisher attached to this application. Use it to publish
+        frames for consumption by NanoVer frame clients.
+
+        :return: The :class:`FramePublisher` attached to this application.
+        """
+        # TODO could just expose send frame here.
+        return self._frame_publisher
+
     def close(self):
         """
         Close the application server and all services.
         """
+        self._state_service.close()
+        self._frame_publisher.close()
         if self.running_discovery:
             self._discovery.close()  # type: ignore
-        for service in self._services:
-            service.close()
-        self._server.close()
 
-    def add_service(self, service):
+    @property
+    def commands(self):
         """
-        Adds a gRPC service to the server and broadcast it on discovery.
-        :param service: Service implementation
-        """
-        self._server.add_service(service)
-        self._services.add(service)
-        self._add_service_entry(service.name, self._server.port)
+        Gets the commands available on this server.
 
-    def _add_service_entry(self, name: str, port: int):
+        :return: The commands, consisting of their names, callback and default parameters.
+        """
+        return self._command_service.commands
+
+    def run_command(self, name: str, arguments: dict[str, Any]):
+        return self._command_service.run_command(name, arguments)
+
+    def register_command(
+        self,
+        name: str,
+        callback: CommandHandler,
+        default_arguments: dict | None = None,
+    ):
+        """
+        Adds a command on this server.
+
+        :param name: Name of the command to register
+        :param callback: Method to be called whenever the given command name is run by a client.
+        :param default_arguments: A description of the arguments of the callback and their default values.
+
+        :raises ValueError: Raised when a command with the same name already exists.
+        """
+        self._command_service.register_command(name, callback, default_arguments)
+
+    def unregister_command(self, name):
+        """
+        Deletes a command from this server.
+
+        :param name: Name of the command to delete
+        """
+        self._command_service.unregister_command(name)
+
+    def lock_state(self):
+        """
+        Context manager for reading the current state while delaying any changes
+        to it.
+        """
+        return self._state_service.lock_state()
+
+    def copy_state(self):
+        """
+        Return a deep copy of the current state.
+        """
+        return self._state_service.copy_state()
+
+    def update_state(self, access_token: Any, change: DictionaryChange):
+        """
+        Attempts an atomic update of the shared key/value store. If any key
+        cannot be updates, no change will be made.
+        """
+        self._state_service.update_state(access_token, change)
+
+    def clear_locks(self):
+        """
+        Forces the release all locks on all keys in the shared key/value store.
+        """
+        self._state_service.clear_locks()
+
+    @property
+    def state_dictionary(self):
+        return self._state_service.state_dictionary
+
+    def add_service(self, name: str, port: int):
         self._service_hub.add_service(name, port)
         if self.running_discovery:
             self._update_discovery_services()
+
+    @property
+    def service_hub(self):
+        return self._service_hub
 
     def _update_discovery_services(self):
         try:

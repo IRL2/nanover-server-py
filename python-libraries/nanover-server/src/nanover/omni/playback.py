@@ -2,7 +2,7 @@ from os import PathLike
 from pathlib import Path
 from typing import List, Tuple, Iterable, Set
 
-from nanover.app import NanoverImdApplication
+from nanover.app.types import AppServer
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.recording.reading import iter_recording_files
@@ -42,7 +42,7 @@ class PlaybackSimulation:
         self.traj_path = traj
         self.state_path = state
 
-        self.app_server: NanoverImdApplication | None = None
+        self.app_server: AppServer | None = None
 
         self.entries: List[Entry] = []
         self.changed_keys: Set[str] = set()
@@ -66,7 +66,7 @@ class PlaybackSimulation:
             if key != "scene"
         }
 
-    def reset(self, app_server: NanoverImdApplication):
+    def reset(self, app_server: AppServer):
         """
         Reset the playback to its initial state.
         :param app_server: The app server hosting the frame publisher and imd state
@@ -127,5 +127,5 @@ class PlaybackSimulation:
             index = 0 if "index" not in frame.values else int(frame.values["index"])
             self.app_server.frame_publisher.send_frame(index, frame)
         if update is not None:
-            self.app_server.server.clear_locks()
-            self.app_server.server.update_state(None, update)
+            self.app_server.clear_locks()
+            self.app_server.update_state(None, update)
