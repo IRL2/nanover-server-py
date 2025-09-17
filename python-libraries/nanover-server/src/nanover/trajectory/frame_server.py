@@ -1,4 +1,3 @@
-from typing import Optional
 from nanover.core import (
     NanoverServer,
     get_requested_port_or_default,
@@ -24,7 +23,7 @@ NEXT_COMMAND_KEY = "playback/next"
 class FrameServer(NanoverServer):
     _trajectory_service: FramePublisher
 
-    def __init__(self, *, address: Optional[str] = None, port: Optional[int] = None):
+    def __init__(self, *, address: str | None = None, port: int | None = None):
         if address is None:
             address = DEFAULT_SERVE_ADDRESS
         port = get_requested_port_or_default(port, DEFAULT_PORT)

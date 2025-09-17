@@ -1,6 +1,6 @@
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Callable, Any, Optional
+from typing import Callable, Any
 
 import msgpack
 from websockets.sync.client import connect, ClientConnection
@@ -60,8 +60,8 @@ class WebsocketClient:
     def run_command(
         self,
         name: str,
-        arguments: Optional[dict] = None,
-        callback: Optional[Callable[[dict], None]] = None,
+        arguments: dict | None = None,
+        callback: Callable[[dict], None] | None = None,
     ):
         id = self.next_command_id
         self.next_command_id += 1

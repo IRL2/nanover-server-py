@@ -3,7 +3,7 @@ Module providing an implementation of the :class:`CommandServicer`.
 
 """
 
-from typing import Dict, Callable, Optional, Union
+from typing import Dict, Callable, Union
 from typing import NamedTuple
 
 import grpc
@@ -22,8 +22,8 @@ from nanover.utilities.key_lockable_map import KeyLockableMap
 from nanover.utilities.protobuf_utilities import dict_to_struct, struct_to_dict
 
 CommandHandler = Union[
-    Callable[..., Optional[CommandResult]],
-    Callable[[], Optional[CommandResult]],
+    Callable[..., CommandResult] | None,
+    Callable[[], CommandResult] | None,
 ]
 
 
@@ -76,7 +76,7 @@ class CommandService(CommandServicer):
         self,
         name: str,
         callback: CommandHandler,
-        default_arguments: Optional[CommandArguments] = None,
+        default_arguments: CommandArguments | None = None,
     ):
         """
         Registers a command with this service

@@ -2,7 +2,7 @@
 Module providing an implementation of the :class:`StateServicer`.
 """
 
-from typing import Iterable, Tuple, Set, Dict, ContextManager, Callable, Optional
+from typing import Iterable, Tuple, Set, Dict, ContextManager, Callable
 from numbers import Real
 from nanover.utilities.grpc_utilities import (
     subscribe_rpc_termination,
@@ -81,8 +81,8 @@ class StateService(StateServicer):
     def update_locks(
         self,
         access_token: Serializable,
-        acquire: Optional[Dict[str, float]] = None,
-        release: Optional[Set[str]] = None,
+        acquire: Dict[str, float] | None = None,
+        release: Set[str] | None = None,
     ):
         """
         Attempts to acquire and release locks on keys in the shared key/value

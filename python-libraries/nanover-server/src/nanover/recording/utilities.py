@@ -1,7 +1,6 @@
 import math
 from dataclasses import dataclass
 from os import PathLike
-from typing import Optional
 
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
@@ -51,8 +50,8 @@ class RecordingEvent:
     timestamp: int
     prev_frame_event: FrameRecordingEvent
     prev_state_event: StateRecordingEvent
-    next_frame_event: Optional[FrameRecordingEvent]
-    next_state_event: Optional[StateRecordingEvent]
+    next_frame_event: FrameRecordingEvent | None
+    next_state_event: StateRecordingEvent | None
 
     @property
     def prev_frame(self):
@@ -80,7 +79,7 @@ class RecordingEvent:
 
 
 def iter_recording_max(
-    *, traj: Optional[PathLike[str]] = None, state: Optional[PathLike[str]] = None
+    *, traj: PathLike[str] | None = None, state: PathLike[str] | None = None
 ):
     """
     Iterate recording file(s) yielding recording events in timestamp order, with each event containing the full
@@ -99,8 +98,8 @@ def iter_recording_max(
     prev_state_event = StateRecordingEvent.make_empty()
 
     while next_frame is not None or next_state is not None:
-        next_frame_event: Optional[FrameRecordingEvent] = None
-        next_state_event: Optional[StateRecordingEvent] = None
+        next_frame_event: FrameRecordingEvent | None = None
+        next_state_event: StateRecordingEvent | None = None
 
         time = min(get_time(next_frame), get_time(next_state))
         if next_frame is not None and get_time(next_frame) == time:

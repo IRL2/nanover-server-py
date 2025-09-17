@@ -4,7 +4,7 @@ with an underyling gRPC server, discovery, multiplayer and commands.
 """
 
 import getpass
-from typing import Tuple, Optional, Set
+from typing import Tuple, Set
 
 from nanover.app.multiuser import add_multiuser_commands
 from typing_extensions import Protocol
@@ -22,7 +22,7 @@ class SupportsClose(Protocol):
 
 
 def start_default_server_and_discovery(
-    address: Optional[str] = None, port: Optional[int] = None
+    address: str | None = None, port: int | None = None
 ) -> Tuple[NanoverServer, DiscoveryServer]:
     """
     Utility method for creating a default NanoVer server along with ESSD discovery.
@@ -67,8 +67,8 @@ class NanoverApplicationServer:
     def __init__(
         self,
         server: NanoverServer,
-        discovery: Optional[DiscoveryServer] = None,
-        name: Optional[str] = None,
+        discovery: DiscoveryServer | None = None,
+        name: str | None = None,
     ):
         if name is None:
             name = qualified_server_name(self.DEFAULT_SERVER_NAME)
@@ -93,9 +93,9 @@ class NanoverApplicationServer:
     @classmethod
     def basic_server(
         cls,
-        name: Optional[str] = None,
-        address: Optional[str] = None,
-        port: Optional[int] = None,
+        name: str | None = None,
+        address: str | None = None,
+        port: int | None = None,
     ):
         """
         Initialises a basic NanoVer application server with default settings,
@@ -158,7 +158,7 @@ class NanoverApplicationServer:
         return self.discovery is not None
 
     @property
-    def discovery(self) -> Optional[DiscoveryServer]:
+    def discovery(self) -> DiscoveryServer | None:
         """
         The discovery service that can be used to allow clients to find services hosted by this application.
         :return: The discovery service, or None if no discovery has been set up.

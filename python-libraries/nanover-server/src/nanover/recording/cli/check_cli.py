@@ -18,7 +18,6 @@ from contextlib import suppress
 from dataclasses import dataclass
 from os import PathLike, SEEK_END, SEEK_CUR
 from pathlib import Path
-from typing import Optional
 
 from nanover.recording.reading import (
     read_header,
@@ -39,8 +38,8 @@ class IndexRepairEntry:
 class IndexRepairDefectiveBlock:
     offset: int
     size: int
-    prev: Optional[IndexRepairEntry] = None
-    next: Optional[IndexRepairEntry] = None
+    prev: IndexRepairEntry | None = None
+    next: IndexRepairEntry | None = None
 
 
 def reindex_repair(

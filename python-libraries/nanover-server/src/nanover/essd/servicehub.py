@@ -3,7 +3,7 @@ Module defining a Service.
 """
 
 import json
-from typing import Optional, Tuple
+from typing import Tuple
 from uuid import uuid4
 import nanover.essd
 
@@ -148,7 +148,7 @@ class ServiceHub:
         """
         self.services[name] = port
 
-    def to_message(self, override_address: Optional[str] = None) -> str:
+    def to_message(self, override_address: str | None = None) -> str:
         """
         Returns the JSON message representing this service hub, with the option to override this address.
 
@@ -177,7 +177,7 @@ class ServiceHub:
             hub = self
         return hub.message
 
-    def get_service_address(self, service_name: str) -> Optional[Tuple[str, int]]:
+    def get_service_address(self, service_name: str) -> Tuple[str, int] | None:
         """
         Gets the address and port of a service, if it exists.
         :param service_name: Service name

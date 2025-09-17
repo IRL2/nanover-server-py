@@ -5,7 +5,6 @@ Fixtures and utilities for tests that requires OpenMM simulations.
 # Pylint does not recognize pytest fixtures, which causes some false warnings.
 # pylint: disable=unused-argument,redefined-outer-name
 import pytest
-from typing import Optional
 import numpy as np
 
 import openmm as mm
@@ -107,7 +106,7 @@ def build_basic_topology() -> app.Topology:
 
 
 def build_basic_simulation(
-    imd_force: Optional[mm.CustomExternalForce] = None,
+    imd_force: mm.CustomExternalForce | None = None,
 ) -> app.Simulation:
     """
     Setup a minimal OpenMM simulation with two methane molecules.
@@ -233,7 +232,7 @@ def build_single_atom_topology() -> app.Topology:
 
 
 def build_single_atom_simulation(
-    imd_force: Optional[mm.CustomExternalForce] = None,
+    imd_force: mm.CustomExternalForce | None = None,
 ) -> app.Simulation:
     periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
     positions = np.array(ARGON_SIMULATION_POSITION, dtype=np.float32)

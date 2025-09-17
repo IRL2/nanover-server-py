@@ -5,7 +5,7 @@ shared key/value store between multiple clients.
 
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Dict, Iterator, Iterable, Optional, Generator, Mapping
+from typing import Any, Set, Dict, Iterator, Iterable, Generator, Mapping
 
 from .timing import yield_interval
 
@@ -19,8 +19,8 @@ class DictionaryChange:
 
     def __init__(
         self,
-        updates: Optional[KeyUpdates] = None,
-        removals: Optional[KeyRemovals] = None,
+        updates: KeyUpdates | None = None,
+        removals: KeyRemovals | None = None,
     ):
         self.updates = updates or {}
         self.removals = removals or set()
@@ -89,8 +89,8 @@ class DictionaryChangeMultiView:
 
     def update(
         self,
-        updates: Optional[KeyUpdates] = None,
-        removals: Optional[KeyRemovals] = None,
+        updates: KeyUpdates | None = None,
+        removals: KeyRemovals | None = None,
     ):
         """
         Updates the shared dictionary with key values pairs from :updates: and
@@ -174,8 +174,8 @@ class DictionaryChangeBuffer:
 
     def update(
         self,
-        updates: Optional[KeyUpdates] = None,
-        removals: Optional[KeyRemovals] = None,
+        updates: KeyUpdates | None = None,
+        removals: KeyRemovals | None = None,
     ):
         """
         Update the known changes from a dictionary of keys that have changed

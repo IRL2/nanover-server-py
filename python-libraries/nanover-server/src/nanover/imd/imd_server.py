@@ -2,8 +2,6 @@
 Module providing a server for running a :class: ImdService.
 """
 
-from typing import Optional
-
 from nanover.core import (
     NanoverServer,
     get_requested_port_or_default,
@@ -26,8 +24,8 @@ class ImdServer(NanoverServer):
     def __init__(
         self,
         *,
-        address: Optional[str] = None,
-        port: Optional[int] = None,
+        address: str | None = None,
+        port: int | None = None,
     ):
         if address is None:
             address = DEFAULT_SERVE_ADDRESS

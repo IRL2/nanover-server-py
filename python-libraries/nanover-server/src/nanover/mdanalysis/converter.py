@@ -3,6 +3,7 @@ Module for performing conversions between MDAnalysis universes and NanoVer Frame
 """
 
 import collections
+from contextlib import suppress
 
 import numpy as np
 from MDAnalysis import Universe
@@ -31,128 +32,9 @@ FrameDataFieldConversion = collections.namedtuple(
     "FrameDataFieldConversion", "key converter"
 )
 
-ELEMENT_INDEX = {
-    "H": 1,
-    "He": 2,
-    "Li": 3,
-    "Be": 4,
-    "B": 5,
-    "C": 6,
-    "N": 7,
-    "O": 8,
-    "F": 9,
-    "Ne": 10,
-    "Na": 11,
-    "Mg": 12,
-    "Al": 13,
-    "Si": 14,
-    "P": 15,
-    "S": 16,
-    "Cl": 17,
-    "Ar": 18,
-    "K": 19,
-    "Ca": 20,
-    "Sc": 21,
-    "Ti": 22,
-    "V": 23,
-    "Cr": 24,
-    "Mn": 25,
-    "Fe": 26,
-    "Co": 27,
-    "Ni": 28,
-    "Cu": 29,
-    "Zn": 30,
-    "Ga": 31,
-    "Ge": 32,
-    "As": 33,
-    "Se": 34,
-    "Br": 35,
-    "Kr": 36,
-    "Rb": 37,
-    "Sr": 38,
-    "Y": 39,
-    "Zr": 40,
-    "Nb": 41,
-    "Mo": 42,
-    "Tc": 43,
-    "Ru": 44,
-    "Rh": 45,
-    "Pd": 46,
-    "Ag": 47,
-    "Cd": 48,
-    "In": 49,
-    "Sn": 50,
-    "Sb": 51,
-    "Te": 52,
-    "I": 53,
-    "Xe": 54,
-    "Cs": 55,
-    "Ba": 56,
-    "La": 57,
-    "Ce": 58,
-    "Pr": 59,
-    "Nd": 60,
-    "Pm": 61,
-    "Sm": 62,
-    "Eu": 63,
-    "Gd": 64,
-    "Tb": 65,
-    "Dy": 66,
-    "Ho": 67,
-    "Er": 68,
-    "Tu": 69,
-    "Yb": 70,
-    "Lu": 71,
-    "Hf": 72,
-    "Ta": 73,
-    "W": 74,
-    "Re": 75,
-    "Os": 76,
-    "Ir": 77,
-    "Pt": 78,
-    "Au": 79,
-    "Hg": 80,
-    "Tl": 81,
-    "Pb": 82,
-    "Bi": 83,
-    "Po": 84,
-    "At": 85,
-    "Rn": 86,
-    "Fr": 87,
-    "Ra": 88,
-    "Ac": 89,
-    "Th": 90,
-    "Pa": 91,
-    "U": 92,
-    "Np": 93,
-    "Pu": 94,
-    "Am": 95,
-    "Cm": 96,
-    "Bk": 97,
-    "Cf": 98,
-    "Es": 99,
-    "Fm": 100,
-    "Md": 101,
-    "No": 102,
-    "Lr": 103,
-    "Rf": 104,
-    "Db": 105,
-    "Sg": 106,
-    "Bh": 107,
-    "Hs": 108,
-    "Mt": 109,
-    "Ds": 110,
-    "Rg": 111,
-    "Cn": 112,
-    "Nh": 113,
-    "Fv": 114,
-    "Ms": 115,
-    "Lv": 116,
-    "Ts": 117,
-    "Og": 118,
-}
-
-INDEX_ELEMENT = {value: key for key, value in ELEMENT_INDEX.items()}
+ELEMENT_NAMES = ",H,He,Li,Be,B,C,N,O,F,Ne,Na,Mg,Al,Si,P,S,Cl,Ar,K,Ca,Sc,Ti,V,Cr,Mn,Fe,Co,Ni,Cu,Zn,Ga,Ge,As,Se,Br,Kr,Rb,Sr,Y,Zr,Nb,Mo,Tc,Ru,Rh,Pd,Ag,Cd,In,Sn,Sb,Te,I,Xe,Cs,Ba,La,Ce,Pr,Nd,Pm,Sm,Eu,Gd,Tb,Dy,Ho,Er,Tu,Yb,Lu,Hf,Ta,W,Re,Os,Ir,Pt,Au,Hg,Tl,Pb,Bi,Po,At,Rn,Fr,Ra,Ac,Th,Pa,U,Np,Pu,Am,Cm,Bk,Cf,Es,Fm,Md,No,Lr,Rf,Db,Sg,Bh,Hs,Mt,Ds,Rg,Cn,Nh,Fv,Ms,Lv,Ts,Og"
+ELEMENT_INDEX = {name: index for index, name in enumerate(ELEMENT_NAMES.split(","))}
+INDEX_ELEMENT = {index: name for name, index in ELEMENT_INDEX.items()}
 
 MDANALYSIS_COUNTS_TO_FRAME_DATA = {
     "atoms": PARTICLE_COUNT,
@@ -326,12 +208,10 @@ def _add_bonds_to_mda(u: Universe, frame: FrameData):
     :param u: MDAnalysis :class:`Universe`.
     :param frame: NanoVer :class:`FrameData`.
     """
-    try:
+    with suppress(MissingDataError):
         # TODO: why does mypy hate this?
         bonds = [(bond[0], bond[1]) for bond in frame.bond_pairs]  # type: ignore
-    except MissingDataError:
-        return
-    u.add_TopologyAttr("bonds", bonds)
+        u.add_TopologyAttr("bonds", bonds)
 
 
 def _get_universe_constructor_params(frame: FrameData):
@@ -391,19 +271,17 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
     guesser = DefaultGuesser(u)
 
     for group, attribute, frame_key in ALL_MDA_ATTRIBUTES:
-        try:
+        with suppress(AttributeError):
             field = _get_mda_attribute(u, group, attribute)
-        except AttributeError:
-            continue
-        if frame_key == PARTICLE_ELEMENTS:
-            # When MDAnalysis guesses an element symbol, it returns it fully
-            # in upper case. We need to fix the case before we can query our
-            # table.
-            field = [
-                ELEMENT_INDEX[guesser.guess_atom_element(name).capitalize()]
-                for name in field
-            ]
-        frame_data.arrays[frame_key] = field
+            if frame_key == PARTICLE_ELEMENTS:
+                # When MDAnalysis guesses an element symbol, it returns it fully
+                # in upper case. We need to fix the case before we can query our
+                # table.
+                field = [
+                    ELEMENT_INDEX[guesser.guess_atom_element(name).capitalize()]
+                    for name in field
+                ]
+            frame_data.arrays[frame_key] = field
 
 
 def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
@@ -416,11 +294,9 @@ def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
     Adds particle counts, residue counts and chain counts, if available.
     """
     for attribute, frame_key in MDANALYSIS_COUNTS_TO_FRAME_DATA.items():
-        try:
+        with suppress(AttributeError):
             field = getattr(u, attribute)
-        except AttributeError:
-            continue
-        frame_data.values[frame_key] = len(field)
+            frame_data.values[frame_key] = len(field)
 
 
 def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
@@ -430,10 +306,8 @@ def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
     :param u: MDAnalysis universe.
     :param frame_data: NanoVer frame data.
     """
-    try:
+    with suppress(AttributeError):
         frame_data.bond_pairs = u.atoms.bonds.indices
-    except AttributeError:
-        pass
 
 
 def _try_get_field(frame: FrameData, field):
@@ -447,9 +321,6 @@ def _try_get_field(frame: FrameData, field):
 
 def _add_frame_attributes_to_mda(universe, frame):
     for name, (key, converter) in FRAME_DATA_TO_MDANALYSIS.items():
-        try:
+        with suppress(KeyError, MissingDataError):
             value = frame.arrays[key]
-        except (KeyError, MissingDataError):
-            # TODO should some fields be required?
-            continue
-        universe.add_TopologyAttr(name, converter(value))
+            universe.add_TopologyAttr(name, converter(value))
