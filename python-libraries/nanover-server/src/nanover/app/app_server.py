@@ -7,18 +7,14 @@ import getpass
 from typing import Tuple, Set
 
 from nanover.app.multiuser import add_multiuser_commands
-from typing_extensions import Protocol
 
+from nanover.app.types import Closeable
 from nanover.core import NanoverServer, DEFAULT_SERVE_ADDRESS
 from nanover.essd import DiscoveryServer, ServiceHub
 
 
 DEFAULT_NANOVER_PORT = 38801
 MULTIPLAYER_SERVICE_NAME = "multiplayer"
-
-
-class SupportsClose(Protocol):
-    def close(self) -> None: ...
 
 
 def start_default_server_and_discovery(
@@ -62,7 +58,7 @@ class NanoverApplicationServer:
 
     DEFAULT_SERVER_NAME: str = "NanoVer Server"
 
-    _services: Set[SupportsClose]
+    _services: Set[Closeable]
 
     def __init__(
         self,

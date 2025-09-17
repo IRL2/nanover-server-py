@@ -1,4 +1,4 @@
-from typing import Callable, Dict, ContextManager, Set, Union
+from typing import Callable, Dict, ContextManager, Set, Union, Any
 
 from nanover.command import CommandService
 from nanover.command.command_service import CommandRegistration, CommandHandler
@@ -68,6 +68,13 @@ class NanoverServer(GrpcServer):
         :param name: Name of the command to delete
         """
         self._command_service.unregister_command(name)
+
+    def run_command(self, name: str, arguments: dict[str, Any]):
+        return self._command_service.run_command(name, arguments)
+
+    @property
+    def state_dictionary(self):
+        return self._state_service.state_dictionary
 
     def lock_state(self) -> ContextManager[Dict[str, object]]:
         """
