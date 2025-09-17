@@ -14,7 +14,11 @@ from uuid import uuid4
 import grpc
 from grpc import RpcError, StatusCode
 from nanover.app.app_server import DEFAULT_NANOVER_PORT, MULTIPLAYER_SERVICE_NAME
-from nanover.app.selection import RenderingSelection
+from nanover.app.selection import (
+    RenderingSelection,
+    SELECTION_ROOT_ID,
+    SELECTION_ROOT_NAME,
+)
 from nanover.command import CommandInfo
 from nanover.core import NanoverClient, DEFAULT_CONNECT_ADDRESS
 from nanover.core.nanover_client import DEFAULT_STATE_UPDATE_INTERVAL
@@ -35,11 +39,6 @@ from nanover.utilities.change_buffers import DictionaryChange
 
 # Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
-
-# ID of the root selection
-SELECTION_ROOT_ID = "selection.root"
-# Name of the root selection
-SELECTION_ROOT_NAME = "Root Selection"
 
 
 ClientVarType = TypeVar("ClientVarType", bound=NanoverClient)

@@ -71,7 +71,7 @@ def extra_dictionaries(draw):
     serializable_dict: dict = draw(serializable_dictionaries())
 
     for key in {
-        "positon",
+        "position",
         "particles",
         "reset_velocities",
         "mass_weighted",
@@ -86,7 +86,7 @@ def extra_dictionaries(draw):
 
 @st.composite
 def interactions(draw):
-    serializable_dict = draw(serializable_dictionaries())
+    extra = draw(extra_dictionaries())
     return ParticleInteraction(
         position=draw(positions()),
         particles=draw(particles()),
@@ -95,7 +95,7 @@ def interactions(draw):
         scale=draw(scale()),
         max_force=draw(max_force()),
         interaction_type=draw(interaction_type()),
-        **serializable_dict
+        **extra
     )
 
 

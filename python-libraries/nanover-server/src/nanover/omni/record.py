@@ -12,6 +12,12 @@ from nanover.recording.writing import record_messages
 from threading import Lock
 
 
+def record_from_runner(imd_runner, trajectory_file, state_file):
+    return record_from_server(
+        f"localhost:{imd_runner.app_server.port}", trajectory_file, state_file
+    )
+
+
 def record_from_server(address, trajectory_file, state_file):
     """
     Connect to the given host:port and record trajectory frames and state updates to files
