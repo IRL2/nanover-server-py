@@ -38,13 +38,21 @@ class ImdForceManager:
         self._previous_force_index: Set[int] = set()
         self._total_user_energy = 0.0
 
+        self.pbc_lengths = None
+
         # clear any residual forces in external force
         for particle in range(self.imd_force.getNumParticles()):
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
 
-    def update_interactions(self, simulation: Simulation, positions: np.ndarray):
+    def update_interactions(self, simulation: Simulation,
+                            positions: np.ndarray,
+                            pbc_vectors: np.ndarray = None,
+                            ):
         if self.masses is None:
             self._update_masses(simulation.system)
+
+        if self.pbc_lengths is None and pbc_vectors is not None:
+            self.pbc_lengths = np.diag(pbc_vectors)
 
         self._update_forces(
             positions.astype(float),
@@ -107,6 +115,7 @@ class ImdForceManager:
             positions,
             self.masses,
             interactions.values(),
+            self.pbc_lengths,
         )
         affected_particles = _build_particle_interaction_index_set(interactions)
         to_reset_particles = self._previous_force_index - affected_particles
