@@ -27,7 +27,6 @@ requirements:
     - netifaces
     - grpcio
     - numpy
-    - typing-extensions
     - protobuf
     - attrs
     - openmm

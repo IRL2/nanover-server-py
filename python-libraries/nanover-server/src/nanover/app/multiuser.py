@@ -5,7 +5,8 @@ experience.
 
 import math
 from functools import partial
-from nanover.core import NanoverServer
+
+from nanover.app.types import AppServerMinimal
 from nanover.utilities.change_buffers import DictionaryChange
 
 RADIAL_ORIENT_COMMAND_KEY = "multiuser/radially-orient-origins"
@@ -15,7 +16,7 @@ MULTIUSER_ORIGIN_PREFIX = "user-origin."
 FULL_CIRCLE = math.pi * 2
 
 
-def _radially_orient_server(*, server, radius=1):
+def _radially_orient_server(*, server: AppServerMinimal, radius=1):
     """
     For each avatar present, add a suggested origin to the multiuser state
     for the corresponding user id. Distributes the origins in a circle
@@ -43,7 +44,7 @@ def _radially_orient_server(*, server, radius=1):
     server.update_state(None, DictionaryChange(updates))
 
 
-def add_multiuser_commands(server: NanoverServer):
+def add_multiuser_commands(server: AppServerMinimal):
     """
     Add server commands specific to the NanoverIMD multiuser experience.
     """
