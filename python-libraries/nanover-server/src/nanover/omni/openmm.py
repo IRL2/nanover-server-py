@@ -42,10 +42,8 @@ class OpenMMSimulation:
         sim.simulation = simulation
         sim.imd_force = add_imd_force_to_system(simulation.system)
         sim.simulation.context.reinitialize(preserveState=True)
-        sim.use_pbc_wrapping = sim.simulation.system.usesPeriodicBoundaryConditions()
-        if sim.use_pbc_wrapping:
-            pbc_vectors = np.array([[vec3._value.x, vec3._value.y, vec3._value.z] for vec3 in sim.simulation.system.getDefaultPeriodicBoxVectors()])
-            sim.pbc_vectors = pbc_vectors
+        sim.get_pbcs()
+
         sim.checkpoint = sim.simulation.context.createCheckpoint()
 
         return sim
@@ -82,6 +80,7 @@ class OpenMMSimulation:
         """Provide atom positions wrapped according to PBC such that each molecule has a center of mass within the
         primary periodic box."""
         self.pbc_vectors = None
+        """Array of vectors defining the periodic boundary conditions used by the simulation."""
 
         self.imd_force = create_imd_force()
         self.simulation: Optional[Simulation] = None
@@ -111,11 +110,7 @@ class OpenMMSimulation:
                 infile, imd_force=self.imd_force, platform_name=self.platform_name
             )
 
-        self.use_pbc_wrapping = self.simulation.system.usesPeriodicBoundaryConditions()
-        if self.use_pbc_wrapping:
-            pbc_vectors = np.array([[vec3._value.x, vec3._value.y, vec3._value.z] for vec3 in
-                           self.simulation.system.getDefaultPeriodicBoxVectors()])
-            self.pbc_vectors = pbc_vectors
+        self.get_pbcs()
         self.checkpoint = self.simulation.context.createCheckpoint()
 
     def reset(self, app_server: NanoverImdApplication):
@@ -153,6 +148,20 @@ class OpenMMSimulation:
             and self.verbose_reporter not in self.simulation.reporters
         ):
             self.simulation.reporters.append(self.verbose_reporter)
+
+    def get_pbcs(self):
+        """
+        Determine whether the simulation uses periodic boundary conditions and if it does,
+        retrieve the periodic box vectors in nanometers.
+        """
+        self.use_pbc_wrapping = self.simulation.system.usesPeriodicBoundaryConditions()
+        if self.use_pbc_wrapping:
+            self.pbc_vectors = np.array(
+                [
+                    [vec3._value.x, vec3._value.y, vec3._value.z]
+                    for vec3 in self.simulation.system.getDefaultPeriodicBoxVectors()
+                ]
+            )
 
     def advance_by_seconds(self, dt: float):
         """
@@ -201,7 +210,9 @@ class OpenMMSimulation:
             )
 
         # update imd forces and energies
-        self.imd_force_manager.update_interactions(self.simulation, positions, self.pbc_vectors)
+        self.imd_force_manager.update_interactions(
+            self.simulation, positions, self.pbc_vectors
+        )
 
         # generate the next frame with the existing (still valid) positions
         frame_data = self.make_regular_frame(positions)

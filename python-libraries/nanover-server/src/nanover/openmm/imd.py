@@ -44,10 +44,12 @@ class ImdForceManager:
         for particle in range(self.imd_force.getNumParticles()):
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
 
-    def update_interactions(self, simulation: Simulation,
-                            positions: np.ndarray,
-                            pbc_vectors: np.ndarray = None,
-                            ):
+    def update_interactions(
+        self,
+        simulation: Simulation,
+        positions: np.ndarray,
+        pbc_vectors: np.ndarray = None,
+    ):
         if self.masses is None:
             self._update_masses(simulation.system)
 
