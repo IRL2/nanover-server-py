@@ -2,7 +2,7 @@
 Manage an OpenMM CustomExternalForce in conjunction with NanoVer IMD
 """
 
-from typing import Dict, Set, Tuple, Optional
+from typing import Dict, Set, Tuple
 import itertools
 
 import numpy as np
@@ -38,7 +38,7 @@ class ImdForceManager:
         self._previous_force_index: Set[int] = set()
         self._total_user_energy = 0.0
 
-        self.periodic_box_lengths: Optional[np.ndarray] = None
+        self.periodic_box_lengths: np.ndarray | None = None
 
         # clear any residual forces in external force
         for particle in range(self.imd_force.getNumParticles()):
