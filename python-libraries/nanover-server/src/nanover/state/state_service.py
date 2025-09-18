@@ -2,7 +2,7 @@
 Module providing an implementation of the :class:`StateServicer`.
 """
 
-from typing import Set, Dict, ContextManager
+from typing import Set, ContextManager
 from nanover.utilities.protobuf_utilities import (
     deep_copy_serializable_dict,
     struct_to_dict,
@@ -36,14 +36,14 @@ class StateService:
     def close(self):
         self.state_dictionary.freeze()
 
-    def lock_state(self) -> ContextManager[Dict[str, Serializable]]:
+    def lock_state(self) -> ContextManager[dict[str, Serializable]]:
         """
         Context manager for reading the current state while delaying any changes
         to it.
         """
         return self.state_dictionary.lock_content()
 
-    def copy_state(self) -> Dict[str, Serializable]:
+    def copy_state(self) -> dict[str, Serializable]:
         """
         Return a deep copy of the current state.
         """
@@ -66,7 +66,7 @@ class StateService:
     def update_locks(
         self,
         access_token: Serializable,
-        acquire: Dict[str, float] | None = None,
+        acquire: dict[str, float] | None = None,
         release: Set[str] | None = None,
     ):
         """
