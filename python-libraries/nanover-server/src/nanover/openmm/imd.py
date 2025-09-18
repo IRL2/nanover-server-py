@@ -38,7 +38,7 @@ class ImdForceManager:
         self._previous_force_index: Set[int] = set()
         self._total_user_energy = 0.0
 
-        self.pbc_lengths = None
+        self.periodic_box_lengths: Optional[np.ndarray] = None
 
         # clear any residual forces in external force
         for particle in range(self.imd_force.getNumParticles()):
@@ -53,8 +53,14 @@ class ImdForceManager:
         if self.masses is None:
             self._update_masses(simulation.system)
 
-        if self.pbc_lengths is None and pbc_vectors is not None:
-            self.pbc_lengths = np.diag(pbc_vectors)
+        if self.periodic_box_lengths is None and pbc_vectors is not None:
+            # Check that the periodic cell vectors define an orthorhombic cell
+            assert np.all(pbc_vectors == np.diagflat(np.diag(pbc_vectors))), (
+                "The periodic box vectors do not correspond to an orthorhombic cell. "
+                "Periodic boundary conditions are currently only implemented "
+                "for orthorhombic systems."
+            )
+            self.periodic_box_lengths = np.diag(pbc_vectors)
 
         self._update_forces(
             positions.astype(float),
@@ -117,7 +123,7 @@ class ImdForceManager:
             positions,
             self.masses,
             interactions.values(),
-            self.pbc_lengths,
+            self.periodic_box_lengths,
         )
         affected_particles = _build_particle_interaction_index_set(interactions)
         to_reset_particles = self._previous_force_index - affected_particles
