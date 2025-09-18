@@ -1,6 +1,6 @@
 import logging
 from uuid import uuid4
-from typing import Dict, Set, Mapping
+from typing import Set, Mapping
 
 import grpc
 from nanover.core import NanoverClient
@@ -28,7 +28,7 @@ class ImdClient(NanoverClient):
         self._logger = logging.getLogger(__name__)
 
     @property
-    def interactions(self) -> Dict[str, ParticleInteraction]:
+    def interactions(self) -> dict[str, ParticleInteraction]:
         with self.lock_state() as state:
             return {
                 key: dict_to_interaction(value)

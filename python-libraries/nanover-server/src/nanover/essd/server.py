@@ -19,7 +19,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
-from typing import Dict, List
+from typing import List
 
 from nanover.essd.utils import (
     get_broadcast_addresses,
@@ -56,7 +56,7 @@ def configure_reusable_socket() -> socket:
 
 
 class DiscoveryServer:
-    services: Dict[ServiceHub, List[InterfaceAddresses]]
+    services: dict[ServiceHub, List[InterfaceAddresses]]
     _socket: socket
 
     def __init__(self, broadcast_port: int | None = None, delay=0.5):

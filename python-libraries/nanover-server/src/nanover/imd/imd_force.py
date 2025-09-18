@@ -8,7 +8,7 @@ For details, and if you find these functions helpful, please cite [1]_.
 """
 
 from math import exp
-from typing import Tuple, Iterable, Dict, Protocol
+from typing import Tuple, Iterable, Protocol
 
 import numpy as np
 import numpy.typing as npt
@@ -395,7 +395,7 @@ def calculate_contribution_to_work(forces: npt.NDArray, positions: npt.NDArray):
     return work_done_contribution
 
 
-INTERACTION_METHOD_MAP: Dict[str, ForceCalculator] = {
+INTERACTION_METHOD_MAP: dict[str, ForceCalculator] = {
     "gaussian": calculate_gaussian_force,
     "spring": calculate_spring_force,
     "constant": calculate_constant_force,

@@ -3,7 +3,7 @@ Provides an implementation of IMD force field in ASE.
 """
 
 import math
-from typing import Dict, Set
+from typing import Set
 
 import numpy as np
 from ase import Atoms, units  # type: ignore
@@ -36,7 +36,7 @@ class ImdForceManager:
         self.total_user_energy = 0.0
         self.user_forces: np.ndarray = np.zeros(self.atoms.positions.shape)
 
-        self._current_interactions: Dict[str, ParticleInteraction] = {}
+        self._current_interactions: dict[str, ParticleInteraction] = {}
 
     def update_interactions(self):
         """
@@ -89,7 +89,7 @@ class ImdForceManager:
         self,
         atoms,
         positions: np.ndarray,
-        interactions: Dict[str, ParticleInteraction],
+        interactions: dict[str, ParticleInteraction],
     ):
         """
         A calculate the iMD forces and energies and convert
@@ -235,7 +235,7 @@ class ImdCalculator(Calculator):
         return self._calculator
 
     @property
-    def interactions(self) -> Dict[str, ParticleInteraction]:
+    def interactions(self) -> dict[str, ParticleInteraction]:
         """
         Fetches a copy of the current interactions.
         """
@@ -350,7 +350,7 @@ def get_periodic_box_lengths(atoms: Atoms) -> np.ndarray | None:
 
 def _get_cancelled_interactions(
     interactions, previous_interactions
-) -> Dict[object, ParticleInteraction]:
+) -> dict[object, ParticleInteraction]:
     old_keys = set(previous_interactions.keys())
     cancelled_interactions = old_keys.difference(interactions.keys())
     return {key: previous_interactions[key] for key in cancelled_interactions}
