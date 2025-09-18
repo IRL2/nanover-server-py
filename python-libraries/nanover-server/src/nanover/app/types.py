@@ -1,6 +1,6 @@
 from typing import Any, Protocol
 
-from nanover.app.commands import CommandHandler, CommandRegistration
+from nanover.app.commands import CommandRegistration, CommandHandler
 from nanover.essd import ServiceHub
 from nanover.imd import ImdStateWrapper
 from nanover.state.state_dictionary import StateDictionary
@@ -54,6 +54,9 @@ class DiscoveryService(Closeable, Protocol):
 
     @property
     def service_hub(self) -> ServiceHub: ...
+
+
+class AppServerMinimal(CommandService, StateService, Protocol): ...
 
 
 class AppServer(CommandService, StateService, ImdService, DiscoveryService, Protocol):
