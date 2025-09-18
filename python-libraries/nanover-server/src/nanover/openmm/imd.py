@@ -2,7 +2,7 @@
 Manage an OpenMM CustomExternalForce in conjunction with NanoVer IMD
 """
 
-from typing import Dict, Set, Tuple
+from typing import Dict, Set, Tuple, Optional
 import itertools
 
 import numpy as np
