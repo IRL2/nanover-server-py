@@ -154,7 +154,7 @@ class OpenMMSimulation:
         Determine whether the simulation uses periodic boundary conditions and if it does,
         retrieve the periodic box vectors in nanometers.
         """
-        assert (self.simulation is not None)
+        assert self.simulation is not None
         self.use_pbc_wrapping = self.simulation.system.usesPeriodicBoundaryConditions()
         if self.use_pbc_wrapping:
             self.pbc_vectors = np.array(
