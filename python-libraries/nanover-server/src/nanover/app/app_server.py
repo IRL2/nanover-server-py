@@ -4,14 +4,15 @@ with an underyling gRPC server, discovery, multiplayer and commands.
 """
 
 import getpass
-from typing import Tuple, Set
+from typing import Tuple, Set, Any
 
 from nanover.app.multiuser import add_multiuser_commands
 
 from nanover.app.types import Closeable
+from nanover.command.command_service import CommandHandler
 from nanover.core import NanoverServer, DEFAULT_SERVE_ADDRESS
 from nanover.essd import DiscoveryServer, ServiceHub
-
+from nanover.utilities.change_buffers import DictionaryChange
 
 DEFAULT_NANOVER_PORT = 38801
 MULTIPLAYER_SERVICE_NAME = "multiplayer"
@@ -76,9 +77,9 @@ class NanoverApplicationServer:
         self._services = set()
 
         # Advertise as a multiplayer service
-        self._add_service_entry(MULTIPLAYER_SERVICE_NAME, self._server.port)
+        self.add_service(MULTIPLAYER_SERVICE_NAME, self._server.port)
 
-        add_multiuser_commands(self.server)
+        add_multiuser_commands(self)
 
     def __enter__(self):
         return self
@@ -177,16 +178,54 @@ class NanoverApplicationServer:
             service.close()
         self._server.close()
 
-    def add_service(self, service):
+    @property
+    def commands(self):
+        return self._server.commands
+
+    def run_command(self, name: str, arguments: dict[str, Any]):
+        return self._server.run_command(name, arguments)
+
+    def register_command(
+        self,
+        name: str,
+        callback: CommandHandler,
+        default_arguments: dict[str, Any] | None = None,
+    ):
+        return self._server.register_command(name, callback, default_arguments)
+
+    def unregister_command(self, name: str):
+        return self._server.unregister_command(name)
+
+    def lock_state(self):
+        return self._server.lock_state()
+
+    def copy_state(self):
+        return self._server.copy_state()
+
+    def update_state(self, access_token: Any, change: DictionaryChange):
+        return self._server.update_state(access_token, change)
+
+    def clear_locks(self):
+        return self._server.clear_locks()
+
+    @property
+    def state_dictionary(self):
+        return self._server.state_dictionary
+
+    @property
+    def service_hub(self):
+        return self._service_hub
+
+    def add_grpc_service(self, service):
         """
         Adds a gRPC service to the server and broadcast it on discovery.
         :param service: Service implementation
         """
         self._server.add_service(service)
         self._services.add(service)
-        self._add_service_entry(service.name, self._server.port)
+        self.add_service(service.name, self._server.port)
 
-    def _add_service_entry(self, name: str, port: int):
+    def add_service(self, name: str, port: int):
         self._service_hub.add_service(name, port)
         if self.running_discovery:
             self._update_discovery_services()

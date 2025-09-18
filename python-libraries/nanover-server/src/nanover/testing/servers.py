@@ -67,7 +67,7 @@ class ServerClientSetup:
         self.server_publish_frame(frame=FrameData(), frame_index=0)
 
     def server_publish_frame(self, frame: FrameData, frame_index: int):
-        self.app._frame_publisher.send_frame(frame=frame, frame_index=frame_index)
+        self.app.frame_publisher.send_frame(frame=frame, frame_index=frame_index)
 
     @property
     def client_current_frame(self):
@@ -76,15 +76,15 @@ class ServerClientSetup:
     @property
     def server_current_frame(self):
         return convert_grpc_frame_to_dict_frame(
-            FrameData(self.app._frame_publisher.last_frame)
+            FrameData(self.app.frame_publisher.last_frame)
         )
 
     def server_update_state(self, change: DictionaryChange):
-        self.app.server._state_service.state_dictionary.update_state(None, change)
+        self.app.state_dictionary.update_state(None, change)
 
     @property
     def server_current_state(self):
-        return self.app.server._state_service.state_dictionary.copy_content()
+        return self.app.state_dictionary.copy_content()
 
     @property
     def client_current_state(self):

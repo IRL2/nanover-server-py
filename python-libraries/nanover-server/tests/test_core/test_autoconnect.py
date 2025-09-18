@@ -62,7 +62,7 @@ def test_autoconnect_app_server_default_ports():
     discovery = DiscoveryServer(delay=DISCOVERY_DELAY)
 
     with NanoverImdApplication(server, discovery) as app_server:
-        app_server.server.register_command("test", mock)
+        app_server.register_command("test", mock)
         with NanoverImdClient.autoconnect(
             search_time=AUTOCONNECT_SEARCH_TIME,
             discovery_port=app_server.discovery.port,
@@ -85,7 +85,7 @@ def test_autoconnect_app_server(discoverable_imd_server):
     """
     mock = Mock(return_value={})
 
-    discoverable_imd_server.server.register_command("test", mock)
+    discoverable_imd_server.register_command("test", mock)
 
     with NanoverImdClient.autoconnect(
         search_time=AUTOCONNECT_SEARCH_TIME,

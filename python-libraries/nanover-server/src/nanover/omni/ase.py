@@ -7,7 +7,7 @@ from ase.calculators.calculator import Calculator
 from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
-from nanover.app import NanoverImdApplication
+from nanover.app.types import AppServer
 from nanover.ase.converter import (
     EV_TO_KJMOL,
     ASE_TIME_UNIT_TO_PS,
@@ -71,7 +71,7 @@ class ASESimulation:
     def __init__(self, name: str | None = None):
         self.name = name or "Unnamed ASE OpenMM Simulation"
 
-        self.app_server: NanoverImdApplication | None = None
+        self.app_server: AppServer | None = None
 
         self.on_reset_energy_exceeded = Event()
 
@@ -113,7 +113,7 @@ class ASESimulation:
             cell=self.atoms.get_cell(),
         )
 
-    def reset(self, app_server: NanoverImdApplication):
+    def reset(self, app_server: AppServer):
         """
         Reset the simulation to its initial conditions, reset IMD interactions, and reset frame stream to begin with
         topology and continue.

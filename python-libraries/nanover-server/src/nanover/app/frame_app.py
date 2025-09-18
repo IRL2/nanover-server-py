@@ -56,4 +56,4 @@ class NanoverFrameApplication(NanoverApplicationServer):
 
     def _setup_frame_publisher(self):
         self._frame_publisher = FramePublisher()
-        self.add_service(self._frame_publisher)
+        self.add_grpc_service(self._frame_publisher)
