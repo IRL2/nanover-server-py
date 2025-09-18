@@ -8,13 +8,17 @@ import warnings
 from collections import deque, ChainMap
 from functools import wraps, partial
 from typing import Iterable, Tuple, Type, TypeVar, cast, List
-from typing import Optional, Sequence, Dict, MutableMapping
+from typing import Sequence, Dict, MutableMapping
 from uuid import uuid4
 
 import grpc
 from grpc import RpcError, StatusCode
 from nanover.app.app_server import DEFAULT_NANOVER_PORT, MULTIPLAYER_SERVICE_NAME
-from nanover.app.selection import RenderingSelection
+from nanover.app.selection import (
+    RenderingSelection,
+    SELECTION_ROOT_ID,
+    SELECTION_ROOT_NAME,
+)
 from nanover.command import CommandInfo
 from nanover.core import NanoverClient, DEFAULT_CONNECT_ADDRESS
 from nanover.core.nanover_client import DEFAULT_STATE_UPDATE_INTERVAL
@@ -36,16 +40,11 @@ from nanover.utilities.change_buffers import DictionaryChange
 # Default to a low framerate to avoid build up in the frame stream
 DEFAULT_SUBSCRIPTION_INTERVAL = 1 / 30
 
-# ID of the root selection
-SELECTION_ROOT_ID = "selection.root"
-# Name of the root selection
-SELECTION_ROOT_NAME = "Root Selection"
-
 
 ClientVarType = TypeVar("ClientVarType", bound=NanoverClient)
 
 
-def _update_commands(client: Optional[NanoverClient]):
+def _update_commands(client: NanoverClient | None):
     if client is None:
         return {}
     try:
@@ -156,12 +155,12 @@ class NanoverImdClient:
     _player_id: str
     _channels: Dict[Tuple[str, int], grpc.Channel]
 
-    _frame_client: Optional[FrameClient]
-    _imd_client: Optional[ImdClient]
-    _multiplayer_client: Optional[NanoverClient]
+    _frame_client: FrameClient | None
+    _imd_client: ImdClient | None
+    _multiplayer_client: NanoverClient | None
     _frames: deque
     _current_frame: FrameData
-    _first_frame: Optional[FrameData]
+    _first_frame: FrameData | None
 
     _next_selection_id: int = 0
 
@@ -175,11 +174,11 @@ class NanoverImdClient:
     def __init__(
         self,
         *,
-        trajectory_address: Optional[Tuple[str, int]] = None,
-        imd_address: Optional[Tuple[str, int]] = None,
-        multiplayer_address: Optional[Tuple[str, int]] = None,
+        trajectory_address: Tuple[str, int] | None = None,
+        imd_address: Tuple[str, int] | None = None,
+        multiplayer_address: Tuple[str, int] | None = None,
         max_frames=50,
-        all_frames: Optional[bool] = None,
+        all_frames: bool | None = None,
     ):
         if all_frames is not None:
             warnings.warn(
@@ -219,7 +218,7 @@ class NanoverImdClient:
 
     @classmethod
     def connect_to_single_server(
-        cls, address: Optional[str] = None, port: Optional[int] = None
+        cls, address: str | None = None, port: int | None = None
     ):
         """
         Connect to a single NanoVer server running all services on the same port.
@@ -262,9 +261,9 @@ class NanoverImdClient:
     def autoconnect(
         cls,
         search_time=2.0,
-        discovery_address: Optional[str] = None,
-        discovery_port: Optional[int] = None,
-        name: Optional[str] = None,
+        discovery_address: str | None = None,
+        discovery_port: int | None = None,
+        name: str | None = None,
     ):
         """
         Autoconnect to the first available server discovered that at least produces frames.
@@ -354,9 +353,9 @@ class NanoverImdClient:
     def connect(
         self,
         *,
-        trajectory_address: Optional[Tuple[str, int]] = None,
-        imd_address: Optional[Tuple[str, int]] = None,
-        multiplayer_address: Optional[Tuple[str, int]] = None,
+        trajectory_address: Tuple[str, int] | None = None,
+        imd_address: Tuple[str, int] | None = None,
+        multiplayer_address: Tuple[str, int] | None = None,
     ):
         """
         Connects the client to all services for which addresses are provided.
@@ -392,7 +391,7 @@ class NanoverImdClient:
     @property  # type: ignore
     @need_frames
     @need_trajectory_joined
-    def latest_frame(self) -> Optional[FrameData]:
+    def latest_frame(self) -> FrameData | None:
         """
         The trajectory frame most recently received, if any.
 
@@ -438,7 +437,7 @@ class NanoverImdClient:
     @property  # type: ignore
     @need_frames
     @need_trajectory_joined
-    def first_frame(self) -> Optional[FrameData]:
+    def first_frame(self) -> FrameData | None:
         """
         The first received trajectory frame, if any.
 
@@ -457,9 +456,7 @@ class NanoverImdClient:
         return self._imd_client.interactions  # type: ignore
 
     @need_imd
-    def start_interaction(
-        self, interaction: Optional[ParticleInteraction] = None
-    ) -> str:
+    def start_interaction(self, interaction: ParticleInteraction | None = None) -> str:
         """
         Start an interaction with the IMD server.
 
@@ -664,7 +661,7 @@ class NanoverImdClient:
     @need_multiplayer
     def attempt_update_multiplayer_locks(
         self,
-        update: Dict[str, Optional[float]],
+        update: Dict[str, float] | None,
     ) -> bool:
         """
         Attempt to acquire and/or free a number of locks on the shared state.
@@ -737,7 +734,7 @@ class NanoverImdClient:
     def create_selection(
         self,
         name: str,
-        particle_ids: Optional[Iterable[int]] = None,
+        particle_ids: Iterable[int] | None = None,
     ) -> RenderingSelection:
         """
         Create a particle selection with the given name.
@@ -949,8 +946,8 @@ class NanoverImdClient:
 def _search_for_first_server_with_name(
     server_name: str,
     search_time: float = 2.0,
-    discovery_address: Optional[str] = None,
-    discovery_port: Optional[int] = None,
+    discovery_address: str | None = None,
+    discovery_port: int | None = None,
 ):
     with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
         for hub in discovery_client.search_for_services(search_time):
@@ -961,8 +958,8 @@ def _search_for_first_server_with_name(
 
 def _search_for_first_available_frame_service(
     search_time: float = 2.0,
-    discovery_address: Optional[str] = None,
-    discovery_port: Optional[int] = None,
+    discovery_address: str | None = None,
+    discovery_port: int | None = None,
 ):
     with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
         for hub in discovery_client.search_for_services(search_time):

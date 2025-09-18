@@ -6,7 +6,7 @@ with in real-time through biasing potentials.
 """
 
 from ssl import SSLContext
-from typing import Optional, Any
+from typing import Any
 
 from nanover.app.frame_app import NanoverFrameApplication
 from nanover.core import NanoverServer
@@ -29,16 +29,16 @@ class NanoverImdApplication(NanoverFrameApplication):
 
     DEFAULT_SERVER_NAME: str = "NanoVer iMD Server"
     _imd_state: ImdStateWrapper
-    _server_ws: Optional[Any] = None
+    _server_ws: Any | None = None
 
     @classmethod
     def basic_server(
         cls,
-        name: Optional[str] = None,
-        address: Optional[str] = None,
-        port: Optional[int] = None,
+        name: str | None = None,
+        address: str | None = None,
+        port: int | None = None,
         *,
-        ssl: Optional[SSLContext] = None,
+        ssl: SSLContext | None = None,
     ):
         """
         Initialises a basic NanoVer application server with default settings,
@@ -60,8 +60,8 @@ class NanoverImdApplication(NanoverFrameApplication):
     def __init__(
         self,
         server: NanoverServer,
-        discovery: Optional[DiscoveryServer] = None,
-        name: Optional[str] = None,
+        discovery: DiscoveryServer | None = None,
+        name: str | None = None,
     ):
         super().__init__(server, discovery, name)
         self._setup_imd()
@@ -71,7 +71,7 @@ class NanoverImdApplication(NanoverFrameApplication):
             self._server_ws.close()
         super().close()
 
-    def serve_websocket(self, *, insecure=True, ssl: Optional[SSLContext] = None):
+    def serve_websocket(self, *, insecure=True, ssl: SSLContext | None = None):
         from nanover.websocket.server import WebSocketServer
 
         self._server_ws = WebSocketServer.basic_server(self, insecure=insecure, ssl=ssl)
@@ -88,5 +88,5 @@ class NanoverImdApplication(NanoverFrameApplication):
         return self._imd_state
 
     def _setup_imd(self):
-        self._imd_state = ImdStateWrapper(self.server._state_service.state_dictionary)
-        self._add_service_entry(IMD_SERVICE_NAME, self.server.port)
+        self._imd_state = ImdStateWrapper(self.state_dictionary)
+        self.add_service(IMD_SERVICE_NAME, self.server.port)

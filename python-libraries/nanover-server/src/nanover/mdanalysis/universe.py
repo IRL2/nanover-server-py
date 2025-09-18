@@ -21,6 +21,7 @@ Facilities to read a NanoVer trajectory recording into an MDAnalysis Universe.
 """
 
 import warnings
+from contextlib import suppress
 from itertools import islice
 from os import PathLike
 from typing import NamedTuple, Type, Callable
@@ -178,18 +179,12 @@ class NanoverParser(TopologyReaderBase):
 
             attrs = []
             for frame_key, (attribute, converter) in KEY_TO_ATTRIBUTE.items():
-                try:
+                with suppress(MissingDataError):
                     values = first_frame.arrays[frame_key]
-                except MissingDataError:
-                    pass
-                else:
                     attrs.append(attribute([converter(value) for value in values]))
 
-            try:
+            with suppress(MissingDataError):
                 elements = first_frame.arrays[PARTICLE_ELEMENTS]
-            except MissingDataError:
-                pass
-            else:
                 converted_elements = _to_chemical_symbol(elements)
                 attrs.append(Atomtypes(converted_elements))
                 attrs.append(Elements(converted_elements))
@@ -201,21 +196,17 @@ class NanoverParser(TopologyReaderBase):
             n_residues = int(first_frame.values[RESIDUE_COUNT])
             n_chains = int(first_frame.values[CHAIN_COUNT])
 
-            try:
+            with suppress(MissingDataError):
                 chain_ids_per_chain = first_frame.arrays[CHAIN_NAMES]
-            except MissingDataError:
-                pass
-            else:
                 chain_ids_per_particle = [
                     chain_ids_per_chain[segidx[residx[atom]]] for atom in range(n_atoms)
                 ]
                 attrs.append(ChainIDs(chain_ids_per_particle))
 
-            try:
-                try:
+            with suppress(MissingDataError):
+                order = None
+                with suppress(MissingDataError):
                     order = first_frame.bond_orders
-                except MissingDataError:
-                    order = None
 
                 attrs.append(
                     Bonds(
@@ -224,8 +215,6 @@ class NanoverParser(TopologyReaderBase):
                         order=order,
                     )
                 )
-            except MissingDataError:
-                pass
 
             return Topology(
                 n_atoms,
@@ -275,25 +264,17 @@ class NanoverReaderBase(ProtoReader):
         except MissingDataError as e:
             raise Exception(f"No particle positions in trajectory frame {frame}") from e
 
-        try:
+        with suppress(MissingDataError):
             ts.time = frame_at_index.simulation_time
-        except MissingDataError:
-            pass
-        try:
+        with suppress(MissingDataError):
             ts.triclinic_dimensions = frame_at_index.box_vectors
-        except MissingDataError:
-            pass
-        try:
+        with suppress(MissingDataError):
             ts.velocities = _unflatten3d(frame_at_index, PARTICLE_VELOCITIES)
-        except MissingDataError:
-            pass
         try:
-            try:
-                ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES)
-            except MissingDataError:
-                ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES_SYSTEM)
+            ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES)
         except MissingDataError:
-            pass
+            with suppress(MissingDataError):
+                ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES_SYSTEM)
 
         ts.data.update(frame_at_index.values)
         self._add_user_forces_to_ts(frame_at_index, ts)

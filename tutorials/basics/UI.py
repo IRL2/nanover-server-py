@@ -5,7 +5,7 @@ import gradio as gr
 from nanover.omni import OmniRunner
 from nanover.omni.playback import PlaybackSimulation
 from nanover.omni.openmm import OpenMMSimulation
-from nanover.omni.record import record_from_server
+from nanover.omni.record import record_from_runner
 
 imd_runner = None
 
@@ -61,8 +61,8 @@ def run_simulation(simulation_type, input_files, trajectory_files, state_file, s
         if record_trajectory:
             if not trajectory_output_file or not shared_state_file:
                 raise ValueError("Please provide both a trajectory output file and a shared state file.")
-            record_from_server(
-                f"localhost:{imd_runner.app_server.port}",
+            record_from_runner(
+                imd_runner,
                 trajectory_output_file,
                 shared_state_file,
             )

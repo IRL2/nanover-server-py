@@ -91,7 +91,7 @@ def test_playback_reset_clears_keys(example_playback):
     example_playback.reset(example_playback.app_server)
 
     # check all keys that should be removed are not present
-    with example_playback.app_server.server.lock_state() as state:
+    with example_playback.app_server.lock_state() as state:
         assert all(key not in state for key in example_playback.changed_keys)
 
 
@@ -99,5 +99,5 @@ def test_playback_starts_with_scene_identity(example_playback):
     """
     Test that reset results in scene identity.
     """
-    with example_playback.app_server.server.lock_state() as state:
+    with example_playback.app_server.lock_state() as state:
         assert state["scene"] == SCENE_POSE_IDENTITY

@@ -3,9 +3,10 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
 from ssl import SSLContext
-from typing import Protocol, List, Optional, Set, Dict
+from typing import Protocol, List, Set, Dict
 
 from nanover.app import NanoverImdApplication, RenderingSelection
+from nanover.app.types import AppServer
 from nanover.imd.imd_force import InvalidInteractionError
 from nanover.trajectory import FrameData
 from nanover.trajectory.frame_server import (
@@ -28,7 +29,7 @@ class Simulation(Protocol):
     name: str
 
     def load(self): ...
-    def reset(self, app_server: NanoverImdApplication): ...
+    def reset(self, app_server: AppServer): ...
     def advance_by_one_step(self): ...
     def advance_by_seconds(self, dt: float): ...
 
@@ -42,10 +43,10 @@ class OmniRunner:
     def with_basic_server(
         cls,
         *simulations: Simulation,
-        name: Optional[str] = None,
-        address: Optional[str] = None,
-        port: Optional[int] = None,
-        ssl: Optional[SSLContext] = None,
+        name: str | None = None,
+        address: str | None = None,
+        port: int | None = None,
+        ssl: SSLContext | None = None,
     ):
         """
         Construct this using a basic NanoVer server and an optional list of initial simulations.
@@ -71,20 +72,20 @@ class OmniRunner:
         self._simulation_index = 0
         self.simulation_selections: Dict[Simulation, Set[RenderingSelection]] = {}
 
-        self._websocket_server: Optional[WebSocketServer] = None
+        self._websocket_server: WebSocketServer | None = None
 
-        app_server.server.register_command(LOAD_COMMAND_KEY, self.load)
-        app_server.server.register_command(NEXT_COMMAND_KEY, self.next)
-        app_server.server.register_command(LIST_COMMAND_KEY, self.list)
+        app_server.register_command(LOAD_COMMAND_KEY, self.load)
+        app_server.register_command(NEXT_COMMAND_KEY, self.next)
+        app_server.register_command(LIST_COMMAND_KEY, self.list)
 
-        app_server.server.register_command(RESET_COMMAND_KEY, self.reset)
-        app_server.server.register_command(PAUSE_COMMAND_KEY, self.pause)
-        app_server.server.register_command(PLAY_COMMAND_KEY, self.play)
-        app_server.server.register_command(STEP_COMMAND_KEY, self.step)
+        app_server.register_command(RESET_COMMAND_KEY, self.reset)
+        app_server.register_command(PAUSE_COMMAND_KEY, self.pause)
+        app_server.register_command(PLAY_COMMAND_KEY, self.play)
+        app_server.register_command(STEP_COMMAND_KEY, self.step)
 
         self._threads = ThreadPoolExecutor(max_workers=1)
-        self._runner: Optional[InternalRunner] = None
-        self._run_task: Optional[Future] = None
+        self._runner: InternalRunner | None = None
+        self._run_task: Future | None = None
 
         self.failed_simulations: Set[Simulation] = set()
         self.logging = logging.getLogger(__name__)
@@ -157,17 +158,17 @@ class OmniRunner:
         self.simulation_selections[simulation] = existing_selections
 
     def _clear_state(self):
-        with self.app_server.server.lock_state() as state:
+        with self.app_server.lock_state() as state:
             removals = {
                 key
                 for key in state.keys()
                 if any(key.startswith(prefix) for prefix in CLEAR_PREFIXES)
             }
-        self.app_server.server.clear_locks()
-        self.app_server.server.update_state(None, DictionaryChange(removals=removals))
+        self.app_server.clear_locks()
+        self.app_server.update_state(None, DictionaryChange(removals=removals))
 
     def _load_simulation_selections(self):
-        with self.app_server.server.lock_state() as state:
+        with self.app_server.lock_state() as state:
             next_selections = {
                 selection.selection_id: selection.to_dictionary()
                 for selection in self.simulation_selections.get(self.simulation, [])
@@ -182,7 +183,7 @@ class OmniRunner:
                 updates=next_selections,
                 removals=prev_selections,
             )
-        self.app_server.server.update_state(None, change)
+        self.app_server.update_state(None, change)
 
     def load(self, index: int):
         """

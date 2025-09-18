@@ -21,11 +21,10 @@ dependencies = [
     "aiogrpc",
     "numpy",
     "hypothesis",
-    "typing_extensions",
     "ase >= 3.21",
     "setuptools>=40.1.1",
-    "websockets",
-    "msgpack",
+    "websockets>=15.0.0",
+    "msgpack>=1.0.0",
 ]
 dynamic = ["version"]
 

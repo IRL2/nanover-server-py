@@ -19,7 +19,7 @@ Example when used as a cli:
 import argparse
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Callable, BinaryIO
+from typing import Callable, BinaryIO
 
 from nanover.recording.utilities import RecordingEvent, iter_recording_max
 from nanover.recording.writing import write_header, write_entry
@@ -91,8 +91,8 @@ def get_value(event: RecordingEvent, key: str):
 
 def split_recording(
     *,
-    traj: Optional[PathLike[str]] = None,
-    state: Optional[PathLike[str]] = None,
+    traj: PathLike[str] | None = None,
+    state: PathLike[str] | None = None,
     split_predicate: Callable[[RecordingEvent], bool] = split_on_frame_reset,
     name_template=name_basic,
 ):
@@ -106,8 +106,8 @@ def split_recording(
     split_count = 0
     last_event = None
     current_base_timestamp = 0
-    current_traj_out: Optional[BinaryIO] = None
-    current_state_out: Optional[BinaryIO] = None
+    current_traj_out: BinaryIO | None = None
+    current_state_out: BinaryIO | None = None
 
     input_path = Path(traj if traj is not None else state)
     temp_stem = f"{input_path.stem}--TEMP"

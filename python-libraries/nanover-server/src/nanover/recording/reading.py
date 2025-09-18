@@ -9,7 +9,6 @@ from typing import (
     Protocol,
     Callable,
     TypeVar,
-    Optional,
     Iterator,
 )
 
@@ -139,7 +138,7 @@ class MessageRecordingReader:
 
 
 def split_by_simulation_counter(
-    *, traj: PathLike[str], state: Optional[PathLike[str]] = None
+    *, traj: PathLike[str], state: PathLike[str] | None = None
 ):
     """
     Split a trajectory recording (and optionally a corresponding state recording) into sequences that share the same
@@ -163,7 +162,7 @@ def split_by_simulation_counter(
 
 
 def iter_full_view(
-    *, traj: Optional[PathLike[str]] = None, state: Optional[PathLike[str]] = None
+    *, traj: PathLike[str] | None = None, state: PathLike[str] | None = None
 ):
     """
     Iterate one or both of trajectory and state recording files, yield a timestamp and copies of both the current
@@ -186,7 +185,7 @@ def iter_full_view(
 
 
 def iter_recording_files(
-    *, traj: Optional[PathLike[str]] = None, state: Optional[PathLike[str]] = None
+    *, traj: PathLike[str] | None = None, state: PathLike[str] | None = None
 ):
     """
     Iterate one or both of trajectory and state recording files, yield a timestamp and one or both of frame and update
@@ -206,8 +205,8 @@ def iter_recording_files(
         return math.inf if entry is None else entry[0]
 
     while next_frame is not None or next_update is not None:
-        frame: Optional[FrameData] = None
-        update: Optional[DictionaryChange] = None
+        frame: FrameData | None = None
+        update: DictionaryChange | None = None
 
         time = min(get_time(next_frame), get_time(next_update))
         if next_frame is not None and get_time(next_frame) == time:

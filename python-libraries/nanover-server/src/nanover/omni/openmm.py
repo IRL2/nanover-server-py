@@ -1,12 +1,12 @@
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any
 
 import numpy as np
 
 from openmm.app import Simulation, StateDataReporter
 
-from nanover.app import NanoverImdApplication
+from nanover.app.types import AppServer
 from nanover.openmm import serializer, openmm_to_frame_data
 from nanover.openmm.imd import (
     create_imd_force,
@@ -31,7 +31,7 @@ class OpenMMSimulation:
     """
 
     @classmethod
-    def from_simulation(cls, simulation: Simulation, *, name: Optional[str] = None):
+    def from_simulation(cls, simulation: Simulation, *, name: str | None = None):
         """
         Construct this from an existing OpenMM simulation.
 
@@ -49,7 +49,7 @@ class OpenMMSimulation:
         return sim
 
     @classmethod
-    def from_xml_path(cls, path: PathLike[str], *, name: Optional[str] = None):
+    def from_xml_path(cls, path: PathLike[str], *, name: str | None = None):
         """
         Construct this from an existing NanoVer OpenMM XML file at a given path.
 
@@ -62,11 +62,11 @@ class OpenMMSimulation:
         sim.xml_path = path
         return sim
 
-    def __init__(self, name: Optional[str] = None):
+    def __init__(self, name: str | None = None):
         self.name = name or "Unnamed OpenMM Simulation"
 
-        self.xml_path: Optional[PathLike[str]] = None
-        self.app_server: Optional[NanoverImdApplication] = None
+        self.xml_path: PathLike[str] | None = None
+        self.app_server: AppServer | None = None
 
         self.frame_interval = 5
         """Number of simulation steps to advance between frames."""
@@ -74,7 +74,7 @@ class OpenMMSimulation:
         """Include particle velocities in frames."""
         self.include_forces = False
         """Include particle forces in frames."""
-        self.platform_name: Optional[str] = None
+        self.platform_name: str | None = None
         """Name of OpenMM platform to use at the time the system is loaded from XML."""
         self.use_pbc_wrapping = False
         """Provide atom positions wrapped according to PBC such that each molecule has a center of mass within the
@@ -83,19 +83,19 @@ class OpenMMSimulation:
         """Array of vectors defining the periodic boundary conditions used by the simulation."""
 
         self.imd_force = create_imd_force()
-        self.simulation: Optional[Simulation] = None
-        self.checkpoint: Optional[Any] = None
-        self.verbose_reporter: Optional[StateDataReporter] = None
+        self.simulation: Simulation | None = None
+        self.checkpoint: Any | None = None
+        self.verbose_reporter: StateDataReporter | None = None
 
         self.frame_index = 0
-        self.imd_force_manager: Optional[ImdForceManager] = None
+        self.imd_force_manager: ImdForceManager | None = None
 
         self.work_done: float = 0.0
         self._work_done_intermediate: float = 0.0
-        self._prev_imd_forces: Optional[np.ndarray] = None
-        self._prev_imd_indices: Optional[np.ndarray] = None
+        self._prev_imd_forces: np.ndarray | None = None
+        self._prev_imd_indices: np.ndarray | None = None
 
-        self._dof: Optional[int] = None
+        self._dof: int | None = None
 
     def load(self):
         """
@@ -113,7 +113,7 @@ class OpenMMSimulation:
         self.get_pbcs()
         self.checkpoint = self.simulation.context.createCheckpoint()
 
-    def reset(self, app_server: NanoverImdApplication):
+    def reset(self, app_server: AppServer):
         """
         Reset the simulation to its initial conditions, reset IMD interactions, and reset frame stream to begin with
         topology and continue.
@@ -250,7 +250,7 @@ class OpenMMSimulation:
         frame_data = openmm_to_frame_data(state=state, topology=topology)
         return frame_data
 
-    def make_regular_frame(self, positions: Optional[Array2Dfloat] = None):
+    def make_regular_frame(self, positions: Array2Dfloat | None = None):
         """
         Make a NanoVer FrameData corresponding to the current state of the simulation.
 

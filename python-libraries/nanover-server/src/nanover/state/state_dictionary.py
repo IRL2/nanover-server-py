@@ -5,7 +5,7 @@ shared key/value store.
 
 from contextlib import contextmanager
 from threading import Lock
-from typing import ContextManager, Generator, Dict, Optional, Iterable
+from typing import ContextManager, Generator, Dict, Iterable
 
 from nanover.utilities.change_buffers import (
     DictionaryChangeMultiView,
@@ -86,8 +86,8 @@ class StateDictionary:
     def update_locks(
         self,
         access_token: Serializable,
-        acquire: Optional[Dict[str, Optional[float]]] = None,
-        release: Optional[Iterable[str]] = None,
+        acquire: Dict[str, float] | None | None = None,
+        release: Iterable[str] | None = None,
     ):
         """
         Acquire and release locks for the given access token. If any of the

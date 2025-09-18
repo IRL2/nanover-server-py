@@ -4,8 +4,6 @@ simulations and trajectories for consumption by clients.
 
 """
 
-from typing import Optional
-
 from nanover.app import NanoverApplicationServer
 from nanover.core import NanoverServer
 from nanover.essd import DiscoveryServer
@@ -35,8 +33,8 @@ class NanoverFrameApplication(NanoverApplicationServer):
     def __init__(
         self,
         server: NanoverServer,
-        discovery: Optional[DiscoveryServer] = None,
-        name: Optional[str] = None,
+        discovery: DiscoveryServer | None = None,
+        name: str | None = None,
     ):
         super().__init__(server, discovery, name)
         self._setup_frame_publisher()
@@ -58,4 +56,4 @@ class NanoverFrameApplication(NanoverApplicationServer):
 
     def _setup_frame_publisher(self):
         self._frame_publisher = FramePublisher()
-        self.add_service(self._frame_publisher)
+        self.add_grpc_service(self._frame_publisher)

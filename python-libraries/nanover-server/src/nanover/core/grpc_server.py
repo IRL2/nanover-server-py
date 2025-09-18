@@ -4,7 +4,7 @@ Module providing a wrapper around the running of GRPC servers.
 
 import logging
 from concurrent import futures
-from typing import Optional, Tuple
+from typing import Tuple
 
 import grpc
 
@@ -118,7 +118,7 @@ class GrpcServer:
         self.close()
 
 
-def get_requested_port_or_default(port: Optional[int], default: int) -> int:
+def get_requested_port_or_default(port: int | None, default: int) -> int:
     """
     Returns the port you asked for, or the default one is `port` is `None`.
     """

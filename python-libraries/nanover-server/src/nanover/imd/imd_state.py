@@ -69,7 +69,7 @@ class ImdStateWrapper:
 
     def remove_interaction(self, interaction_id: str):
         assert interaction_id.startswith(INTERACTION_PREFIX)
-        change = DictionaryChange(removals=set([interaction_id]))
+        change = DictionaryChange(removals={interaction_id})
         self.state_dictionary.update_state(None, change)
 
     def clear_interactions(self):

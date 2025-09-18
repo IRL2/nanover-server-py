@@ -1,4 +1,4 @@
-from typing import Mapping, Optional
+from typing import Mapping
 from uuid import uuid4
 
 from nanover.imd import ParticleInteraction
@@ -29,9 +29,7 @@ class InteractionClient(WebsocketClient):
                 and isinstance(value, Mapping)
             }
 
-    def start_interaction(
-        self, interaction: Optional[ParticleInteraction] = None
-    ) -> str:
+    def start_interaction(self, interaction: ParticleInteraction | None = None) -> str:
         """
         Start an interaction with the IMD server.
 
