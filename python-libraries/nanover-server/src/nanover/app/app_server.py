@@ -6,10 +6,10 @@ with an underyling gRPC server, discovery, multiplayer and commands.
 import getpass
 from typing import Tuple, Set, Any
 
+from nanover.core.commands import CommandHandler
 from nanover.app.multiuser import add_multiuser_commands
 
 from nanover.app.types import Closeable
-from nanover.command.command_service import CommandHandler
 from nanover.core import NanoverServer, DEFAULT_SERVE_ADDRESS
 from nanover.essd import DiscoveryServer, ServiceHub
 from nanover.utilities.change_buffers import DictionaryChange

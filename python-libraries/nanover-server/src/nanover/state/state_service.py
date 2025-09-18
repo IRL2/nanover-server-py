@@ -2,7 +2,7 @@
 Module providing an implementation of the :class:`StateServicer`.
 """
 
-from typing import Iterable, Tuple, Set, Dict, ContextManager, Callable
+from typing import Iterable, Tuple, Set, ContextManager, Callable
 from numbers import Real
 from nanover.utilities.grpc_utilities import (
     subscribe_rpc_termination,
@@ -51,14 +51,14 @@ class StateService(StateServicer):
     def close(self):
         self.state_dictionary.freeze()
 
-    def lock_state(self) -> ContextManager[Dict[str, Serializable]]:
+    def lock_state(self) -> ContextManager[dict[str, Serializable]]:
         """
         Context manager for reading the current state while delaying any changes
         to it.
         """
         return self.state_dictionary.lock_content()
 
-    def copy_state(self) -> Dict[str, Serializable]:
+    def copy_state(self) -> dict[str, Serializable]:
         """
         Return a deep copy of the current state.
         """
@@ -81,7 +81,7 @@ class StateService(StateServicer):
     def update_locks(
         self,
         access_token: Serializable,
-        acquire: Dict[str, float] | None = None,
+        acquire: dict[str, float] | None = None,
         release: Set[str] | None = None,
     ):
         """
@@ -212,13 +212,13 @@ def dictionary_change_to_state_update(change: DictionaryChange) -> StateUpdate:
 
 def locks_update_to_acquire_release(
     update: UpdateLocksRequest,
-) -> Tuple[Dict[str, float], Set[str]]:
+) -> Tuple[dict[str, float], Set[str]]:
     """
     Convert a grpc UpdateLocksRequest to a tuple of lock times and locked keys
     to release.
     """
     release: Set[str] = set()
-    acquire: Dict[str, float] = {}
+    acquire: dict[str, float] = {}
 
     for key, duration in struct_to_dict(update.lock_keys).items():
         if duration is not None:

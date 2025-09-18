@@ -1,7 +1,7 @@
 from typing import Callable, Dict, ContextManager, Set, Union, Any
 
-from nanover.command import CommandService
-from nanover.command.command_service import CommandRegistration, CommandHandler
+from nanover.core.commands import CommandRegistration, CommandHandler
+from nanover.core.command_service import CommandService
 from nanover.core import GrpcServer
 from nanover.state.state_service import StateService
 from nanover.utilities.change_buffers import (
@@ -36,7 +36,7 @@ class NanoverServer(GrpcServer):
         super().close()
 
     @property
-    def commands(self) -> Dict[str, CommandRegistration]:
+    def commands(self) -> dict[str, CommandRegistration]:
         """
         Gets the commands available on this server.
 
@@ -76,14 +76,14 @@ class NanoverServer(GrpcServer):
     def state_dictionary(self):
         return self._state_service.state_dictionary
 
-    def lock_state(self) -> ContextManager[Dict[str, object]]:
+    def lock_state(self) -> ContextManager[dict[str, object]]:
         """
         Context manager for reading the current state while delaying any changes
         to it.
         """
         return self._state_service.lock_state()
 
-    def copy_state(self) -> Dict[str, object]:
+    def copy_state(self) -> dict[str, object]:
         """
         Return a deep copy of the current state.
         """
@@ -99,7 +99,7 @@ class NanoverServer(GrpcServer):
     def update_locks(
         self,
         access_token: object = None,
-        acquire: Dict[str, float] | None = None,
+        acquire: dict[str, float] | None = None,
         release: Set[str] | None = None,
     ):
         """

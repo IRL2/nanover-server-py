@@ -8,7 +8,7 @@ import warnings
 from collections import deque, ChainMap
 from functools import wraps, partial
 from typing import Iterable, Tuple, Type, TypeVar, cast, List
-from typing import Sequence, Dict, MutableMapping
+from typing import Sequence, MutableMapping
 from uuid import uuid4
 
 import grpc
@@ -19,7 +19,7 @@ from nanover.app.selection import (
     SELECTION_ROOT_ID,
     SELECTION_ROOT_NAME,
 )
-from nanover.command import CommandInfo
+from nanover.core.commands import CommandRegistration
 from nanover.core import NanoverClient, DEFAULT_CONNECT_ADDRESS
 from nanover.core.nanover_client import DEFAULT_STATE_UPDATE_INTERVAL
 from nanover.essd import DiscoveryClient
@@ -153,7 +153,7 @@ class NanoverImdClient:
     """
 
     _player_id: str
-    _channels: Dict[Tuple[str, int], grpc.Channel]
+    _channels: dict[Tuple[str, int], grpc.Channel]
 
     _frame_client: FrameClient | None
     _imd_client: ImdClient | None
@@ -164,9 +164,9 @@ class NanoverImdClient:
 
     _next_selection_id: int = 0
 
-    _trajectory_commands: Dict[str, CommandInfo]
-    _imd_commands: Dict[str, CommandInfo]
-    _multiplayer_commands: Dict[str, CommandInfo]
+    _trajectory_commands: dict[str, CommandRegistration]
+    _imd_commands: dict[str, CommandRegistration]
+    _multiplayer_commands: dict[str, CommandRegistration]
 
     _are_framed_subscribed: bool
     _subscribed_to_all_frames: bool
@@ -414,7 +414,7 @@ class NanoverImdClient:
 
     @property  # type: ignore
     @need_multiplayer
-    def latest_multiplayer_values(self) -> Dict[str, object]:
+    def latest_multiplayer_values(self) -> dict[str, object]:
         """
         The latest state of the multiplayer shared key/value store.
 
@@ -447,7 +447,7 @@ class NanoverImdClient:
 
     @property  # type: ignore
     @need_imd
-    def interactions(self) -> Dict[str, ParticleInteraction]:
+    def interactions(self) -> dict[str, ParticleInteraction]:
         """
         The dictionary of current interactions received by this client.
         :return: Dictionary of active interactions, keyed by interaction ID identifying who is performing the
@@ -557,7 +557,7 @@ class NanoverImdClient:
         """
         return self._frame_client.run_command(LIST_COMMAND_KEY)["simulations"]  # type: ignore
 
-    def update_available_commands(self) -> MutableMapping[str, CommandInfo]:
+    def update_available_commands(self) -> MutableMapping[str, CommandRegistration]:
         """
         Fetches an updated set of available commands from the services this client is connected
         to.
@@ -595,7 +595,7 @@ class NanoverImdClient:
         )
 
     @need_frames
-    def run_trajectory_command(self, name: str, **args) -> Dict[str, object]:
+    def run_trajectory_command(self, name: str, **args) -> dict[str, object]:
         """
         Runs a command on the trajectory service.
 
@@ -606,7 +606,7 @@ class NanoverImdClient:
         return self._frame_client.run_command(name, **args)  # type: ignore
 
     @need_imd
-    def run_imd_command(self, name: str, **args) -> Dict[str, object]:
+    def run_imd_command(self, name: str, **args) -> dict[str, object]:
         """
         Runs a command on the iMD service.
 
@@ -661,7 +661,7 @@ class NanoverImdClient:
     @need_multiplayer
     def attempt_update_multiplayer_locks(
         self,
-        update: Dict[str, float] | None,
+        update: dict[str, float] | None,
     ) -> bool:
         """
         Attempt to acquire and/or free a number of locks on the shared state.

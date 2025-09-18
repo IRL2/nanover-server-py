@@ -3,11 +3,10 @@ A module for setting up typical NanoVer clients, containing a client
 that sets up a command service.
 """
 
-from typing import Dict, Iterable, ContextManager, Union, Mapping
+from typing import Iterable, ContextManager, Union, Mapping, Any
 from uuid import uuid4
 
 import grpc
-from nanover.command.command_info import CommandInfo
 from nanover.core import GrpcClient
 from nanover.protocol.command import (
     CommandStub,
@@ -46,7 +45,7 @@ class NanoverClient(GrpcClient):
     """
 
     _command_stub: CommandStub
-    _available_commands: Dict[str, CommandInfo]
+    _available_commands: dict[str, dict[str, Any]]
     _state_stub: StateStub
     _access_token: str
     _state: StateDictionary
@@ -61,7 +60,7 @@ class NanoverClient(GrpcClient):
         super().close()
 
     @property
-    def available_commands(self) -> Dict[str, CommandInfo]:
+    def available_commands(self) -> dict[str, dict[str, Any]]:
         """
         Returns a copy of the dictionary of commands available on the server,
         as determined by previously calling :func:`update_available_commands`.
@@ -70,7 +69,7 @@ class NanoverClient(GrpcClient):
         """
         return dict(self._available_commands)
 
-    def run_command(self, name: str, **arguments) -> Dict[str, Serializable]:
+    def run_command(self, name: str, **arguments) -> dict[str, Serializable]:
         """
         Runs a command on the command server.
 
@@ -85,7 +84,7 @@ class NanoverClient(GrpcClient):
         result_message = self._command_stub.RunCommand(message)
         return struct_to_dict(result_message.result)
 
-    def update_available_commands(self) -> Dict[str, CommandInfo]:
+    def update_available_commands(self) -> dict[str, dict[str, Any]]:
         """
         Gets all the commands on the command server, and updates this
         client's known commands.
@@ -97,18 +96,18 @@ class NanoverClient(GrpcClient):
             GetCommandsRequest()
         ).commands
         self._available_commands = {
-            raw.name: CommandInfo.from_proto(raw) for raw in command_responses
+            raw.name: struct_to_dict(raw.arguments) for raw in command_responses
         }
         return self._available_commands
 
-    def lock_state(self) -> ContextManager[Dict[str, Serializable]]:
+    def lock_state(self) -> ContextManager[dict[str, Serializable]]:
         """
         Context manager that locks and returns the state. Any attempted state
         updates are delayed until the context is exited.
         """
         return self._state.lock_content()
 
-    def copy_state(self) -> Dict[str, Serializable]:
+    def copy_state(self) -> dict[str, Serializable]:
         """
         Return a deep copy of the current state.
         """

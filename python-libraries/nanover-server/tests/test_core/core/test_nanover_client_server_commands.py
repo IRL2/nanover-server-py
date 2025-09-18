@@ -78,9 +78,7 @@ def test_get_commands(client_server, default_args):
 
     commands = client.update_available_commands()
     assert TEST_COMMAND_KEY in commands
-    command = commands[TEST_COMMAND_KEY]
-    assert command.name == TEST_COMMAND_KEY
-    assert command.arguments == default_args
+    assert commands[TEST_COMMAND_KEY] == default_args
 
 
 def test_commands_on_server(client_server):
@@ -91,8 +89,8 @@ def test_commands_on_server(client_server):
     commands = server.commands
     assert TEST_COMMAND_KEY in commands
     command_registration = commands[TEST_COMMAND_KEY]
-    assert command_registration.info.name == TEST_COMMAND_KEY
-    assert command_registration.callback == mock.callback
+    assert command_registration.name == TEST_COMMAND_KEY
+    assert command_registration.handler == mock.callback
 
 
 def test_unregister_command(client_server):
@@ -120,10 +118,7 @@ def test_get_multiple_commands(client_server):
 
     commands = client.update_available_commands()
     assert set(commands.keys()).issuperset(expected_names)
-    assert set((command.name for command in commands.values())).issuperset(
-        expected_names
-    )
-    assert all(command.arguments == {} for command in commands.values())
+    assert all(arguments == {} for arguments in commands.values())
 
 
 def test_get_command_with_argument(client_server):
@@ -132,7 +127,7 @@ def test_get_command_with_argument(client_server):
     arguments = {"x": 1, "y": 2}
     server.register_command(TEST_COMMAND_KEY, mock.callback, arguments)
     commands = client.update_available_commands()
-    assert commands[TEST_COMMAND_KEY].arguments == arguments
+    assert commands[TEST_COMMAND_KEY] == arguments
 
 
 def test_run_command(client_server, mock_callback):
