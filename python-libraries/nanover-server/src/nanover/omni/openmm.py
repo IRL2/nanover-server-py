@@ -76,7 +76,7 @@ class OpenMMSimulation:
         """Include particle forces in frames."""
         self.platform_name: str | None = None
         """Name of OpenMM platform to use at the time the system is loaded from XML."""
-        self.use_pbc_wrapping = False
+        self.use_pbc_wrapping: bool = False
         """Provide atom positions wrapped according to PBC such that each molecule has a center of mass within the
         primary periodic box."""
         self.pbc_vectors: np.ndarray | None = None
@@ -154,6 +154,7 @@ class OpenMMSimulation:
         Determine whether the simulation uses periodic boundary conditions and if it does,
         retrieve the periodic box vectors in nanometers.
         """
+        assert (self.simulation is not None)
         self.use_pbc_wrapping = self.simulation.system.usesPeriodicBoundaryConditions()
         if self.use_pbc_wrapping:
             self.pbc_vectors = np.array(
