@@ -611,7 +611,9 @@ def test_pbc_enforcement():
     assert not any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))
 
 
-def test_imd_force_periodic_system(basic_periodic_system_app_and_simulation_with_constant_force):
+def test_imd_force_periodic_system(
+    basic_periodic_system_app_and_simulation_with_constant_force,
+):
     """
     Test that the PBCs of an OpenMM simulation are respected by the iMD force applied.
     """
@@ -628,4 +630,4 @@ def test_imd_force_periodic_system(basic_periodic_system_app_and_simulation_with
     # Check that application of the force is periodic
     # (force applied from over half a periodic box vector away in
     # positive x direction, so should act in the negative x direction)
-    assert (frame.user_forces_sparse[0][0] == -12.0)
+    assert frame.user_forces_sparse[0][0] == -12.0

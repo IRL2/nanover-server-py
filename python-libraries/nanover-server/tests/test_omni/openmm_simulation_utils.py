@@ -110,6 +110,7 @@ def build_basic_simulation():
 
     return simulation
 
+
 def build_basic_simulation_periodic():
     """
     Setup a minimal OpenMM simulation with two methane molecules.
