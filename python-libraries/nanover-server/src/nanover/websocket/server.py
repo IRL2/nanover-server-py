@@ -43,17 +43,13 @@ class WebSocketServer:
         if self._ws_server is None:
             self._ws_server = serve(self._handle_client, "0.0.0.0", 0)
             self._threads.submit(self._ws_server.serve_forever)
-            if self.app_server.running_discovery:
-                self.app_server._service_hub.add_service("ws", self.ws_port)
-                self.app_server._update_discovery_services()
+            self.app_server.add_service("ws", self.ws_port)
 
     def serve_secure(self, *, ssl: SSLContext):
         if self._wss_server is None:
             self._wss_server = serve(self._handle_client, "0.0.0.0", 0, ssl=ssl)
             self._threads.submit(self._wss_server.serve_forever)
-            if self.app_server.running_discovery:
-                self.app_server._service_hub.add_service("wss", self.wss_port)
-                self.app_server._update_discovery_services()
+            self.app_server.add_service("wss", self.wss_port)
 
     @property
     def ws_port(self):
@@ -104,16 +100,14 @@ class WebSocketClientHandler:
 
     @property
     def frame_publisher(self):
-        return self.app_server._frame_publisher
+        return self.app_server.frame_publisher
 
     @property
     def state_dictionary(self):
-        return self.app_server.server._state_service.state_dictionary
+        return self.app_server.state_dictionary
 
     def run_command(self, name: str, arguments: dict | None = None):
-        results = self.app_server.server._command_service.run_command(
-            name, arguments or {}
-        )
+        results = self.app_server.run_command(name, arguments or {})
         return results
 
     def send_frame(self, frame: FrameData):

@@ -88,5 +88,5 @@ class NanoverImdApplication(NanoverFrameApplication):
         return self._imd_state
 
     def _setup_imd(self):
-        self._imd_state = ImdStateWrapper(self.server._state_service.state_dictionary)
-        self._add_service_entry(IMD_SERVICE_NAME, self.server.port)
+        self._imd_state = ImdStateWrapper(self.state_dictionary)
+        self.add_service(IMD_SERVICE_NAME, self.server.port)
