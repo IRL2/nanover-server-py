@@ -79,7 +79,7 @@ class OpenMMSimulation:
         self.use_pbc_wrapping = False
         """Provide atom positions wrapped according to PBC such that each molecule has a center of mass within the
         primary periodic box."""
-        self.pbc_vectors = None
+        self.pbc_vectors: np.ndarray | None = None
         """Array of vectors defining the periodic box used by the simulation (if PBCs are employed)."""
 
         self.imd_force = create_imd_force()
