@@ -2,7 +2,7 @@ from collections import namedtuple
 from collections.abc import Set
 import numbers
 from dataclasses import dataclass
-from typing import Dict, List, Union
+from typing import List, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -135,7 +135,7 @@ class _FrameDataMeta(type):
     under the :attr:`_shortcuts` class attribute.
     """
 
-    _shortcuts: Dict[str, _Shortcut] = {}
+    _shortcuts: dict[str, _Shortcut] = {}
 
     def __init__(cls, name, bases, nmspc):
         shortcuts = {}
@@ -373,7 +373,7 @@ class FrameData(metaclass=_FrameDataMeta):
         to_raw=_as_is,
     )
 
-    _shortcuts: Dict[str, _Shortcut]
+    _shortcuts: dict[str, _Shortcut]
     _raw: trajectory.FrameData
 
     def __init__(self, raw_frame: trajectory.FrameData = None):

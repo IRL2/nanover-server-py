@@ -42,7 +42,7 @@ class CommandService:
             self.register_command("commands/list", list_commands)
 
     @property
-    def commands(self):
+    def commands(self) -> dict[str, CommandRegistration]:
         """
         Gets a copy of the commands that have been registered, as :class:`CommandRegistration`,
         including their names, default arguments and registered callback.

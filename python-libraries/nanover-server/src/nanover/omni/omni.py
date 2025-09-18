@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
 from ssl import SSLContext
-from typing import Protocol, List, Set, Dict
+from typing import Protocol, List, Set
 
 from nanover.app import NanoverImdApplication, RenderingSelection
 from nanover.app.types import AppServer
@@ -73,7 +73,7 @@ class OmniRunner:
 
         self.simulations: List[Simulation] = []
         self._simulation_index = 0
-        self.simulation_selections: Dict[Simulation, Set[RenderingSelection]] = {}
+        self.simulation_selections: dict[Simulation, Set[RenderingSelection]] = {}
 
         app_server.register_command(LOAD_COMMAND_KEY, self.load)
         app_server.register_command(NEXT_COMMAND_KEY, self.next)

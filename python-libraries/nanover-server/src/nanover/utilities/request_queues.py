@@ -2,7 +2,7 @@
 Provides a dictionary of queues.
 """
 
-from typing import Dict, Hashable, Generator, Tuple
+from typing import Hashable, Generator, Tuple
 from queue import Queue, Empty
 from threading import Lock, Condition
 from contextlib import contextmanager
@@ -38,7 +38,7 @@ class DictOfQueues:
     """
 
     queue_max_size: int
-    queues: Dict[Hashable, Queue]
+    queues: dict[Hashable, Queue]
     lock: Lock
 
     def __init__(self, queue_max_size=0):

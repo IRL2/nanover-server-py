@@ -2,7 +2,7 @@
 Module providing methods for storing ParticleInteractions in a StateDictionary.
 """
 
-from typing import Dict, Any, Mapping
+from typing import Any, Mapping
 
 from nanover.state.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
@@ -24,7 +24,7 @@ class ImdStateWrapper:
         used in allows velocity reset.
     """
 
-    _interactions: Dict[str, ParticleInteraction]
+    _interactions: dict[str, ParticleInteraction]
 
     def __init__(
         self,
@@ -77,7 +77,7 @@ class ImdStateWrapper:
             self.remove_interaction(interaction_id)
 
     @property
-    def active_interactions(self) -> Dict[str, ParticleInteraction]:
+    def active_interactions(self) -> dict[str, ParticleInteraction]:
         """
         The current dictionary of active interactions, keyed by interaction id.
 
@@ -97,7 +97,7 @@ class ImdStateWrapper:
                 self._interactions[key] = dict_to_interaction(value)
 
 
-def interaction_to_dict(interaction: ParticleInteraction) -> Dict[str, Serializable]:
+def interaction_to_dict(interaction: ParticleInteraction) -> dict[str, Serializable]:
     try:
         # properties with the same key as the builtins will be discarded
         # dicussion: https://gitlab.com/intangiblerealities/nanover-server-py/-/merge_requests/182#note_374156050

@@ -1,10 +1,10 @@
 import ipaddress
 import socket
-from typing import List, Iterable, Dict
+from typing import List, Iterable
 
 import netifaces
 
-InterfaceAddresses = Dict[str, str]
+InterfaceAddresses = dict[str, str]
 
 
 def get_ipv4_addresses(

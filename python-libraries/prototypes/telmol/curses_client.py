@@ -7,7 +7,7 @@ into the terminal.
 
 import sys
 import textwrap
-from typing import Dict, Callable, Sequence, Any
+from typing import Callable, Sequence, Any
 
 from nanover.trajectory import MissingDataError
 
@@ -176,7 +176,7 @@ class Renderer:
 class CursesFrontend:
     client: NanoverImdClient
     renderer: Renderer
-    bindings: Dict[int, Callable]
+    bindings: dict[int, Callable]
 
     def __init__(self, stdscr, client: NanoverImdClient, override_colors=False):
         self.stdscr = stdscr
