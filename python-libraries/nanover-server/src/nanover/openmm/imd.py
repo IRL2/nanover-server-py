@@ -26,7 +26,12 @@ NON_IMD_FORCES_GROUP_MASK = ALL_FORCES_GROUP_MASK ^ IMD_FORCES_GROUP_MASK
 
 
 class ImdForceManager:
-    def __init__(self, imd_state: ImdStateWrapper, imd_force: CustomExternalForce):
+    def __init__(
+        self,
+        imd_state: ImdStateWrapper,
+        imd_force: CustomExternalForce,
+        pbc_vectors: np.ndarray | None,
+    ):
         self.imd_state = imd_state
         self.imd_force = imd_force
 
@@ -39,6 +44,14 @@ class ImdForceManager:
         self._total_user_energy = 0.0
 
         self.periodic_box_lengths: np.ndarray | None = None
+        if pbc_vectors is not None:
+            # Check that the periodic cell vectors define an orthorhombic cell
+            assert np.all(pbc_vectors == np.diagflat(np.diag(pbc_vectors))), (
+                "The periodic box vectors do not correspond to an orthorhombic cell. "
+                "Periodic boundary conditions are currently only implemented "
+                "for orthorhombic systems."
+            )
+            self.periodic_box_lengths = np.diag(pbc_vectors)
 
         # clear any residual forces in external force
         for particle in range(self.imd_force.getNumParticles()):
@@ -48,19 +61,9 @@ class ImdForceManager:
         self,
         simulation: Simulation,
         positions: np.ndarray,
-        pbc_vectors: np.ndarray | None = None,
     ):
         if self.masses is None:
             self._update_masses(simulation.system)
-
-        if self.periodic_box_lengths is None and pbc_vectors is not None:
-            # Check that the periodic cell vectors define an orthorhombic cell
-            assert np.all(pbc_vectors == np.diagflat(np.diag(pbc_vectors))), (
-                "The periodic box vectors do not correspond to an orthorhombic cell. "
-                "Periodic boundary conditions are currently only implemented "
-                "for orthorhombic systems."
-            )
-            self.periodic_box_lengths = np.diag(pbc_vectors)
 
         self._update_forces(
             positions.astype(float),

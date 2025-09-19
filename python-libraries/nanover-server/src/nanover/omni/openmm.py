@@ -124,7 +124,9 @@ class OpenMMSimulation:
         assert self.simulation is not None and self.checkpoint is not None
 
         self.app_server = app_server
-        self.imd_force_manager = ImdForceManager(self.app_server.imd, self.imd_force)
+        self.imd_force_manager = ImdForceManager(
+            self.app_server.imd, self.imd_force, self.pbc_vectors
+        )
 
         self._dof = compute_dof(self.simulation.system)
 
@@ -212,9 +214,7 @@ class OpenMMSimulation:
             )
 
         # update imd forces and energies
-        self.imd_force_manager.update_interactions(
-            self.simulation, positions, self.pbc_vectors
-        )
+        self.imd_force_manager.update_interactions(self.simulation, positions)
 
         # generate the next frame with the existing (still valid) positions
         frame_data = self.make_regular_frame(positions)
