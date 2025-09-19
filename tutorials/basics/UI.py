@@ -2,6 +2,8 @@ import sys
 from os import getcwd, path
 from os.path import basename
 import gradio as gr
+
+from nanover.app import basic_info_string
 from nanover.omni import OmniRunner
 from nanover.omni.playback import PlaybackSimulation
 from nanover.omni.openmm import OpenMMSimulation
@@ -66,7 +68,7 @@ def run_simulation(simulation_type, input_files, trajectory_files, state_file, s
                 trajectory_output_file,
                 shared_state_file,
             )
-        return f"{imd_runner.app_server.name}: serving at {imd_runner.app_server.address}:{imd_runner.app_server.port} with simulations:{imd_runner.list()}"
+        return basic_info_string(imd_runner.app_server)
     except Exception as e:
         if imd_runner:
             imd_runner.close()

@@ -13,6 +13,7 @@ import time
 
 from nanover.essd import DiscoveryClient
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
+from nanover.websocket.client.app_client import get_websocket_address_from_hub
 from nanover.websocket.record import record_from_server
 
 
@@ -74,8 +75,7 @@ def main():
         with DiscoveryClient() as discovery_client:
             for hub in discovery_client.search_for_services():
                 if arguments.autoconnect in hub.name:
-                    host, port = hub.get_service_address("ws")
-                    address = f"ws://{host}:{port}"
+                    address = get_websocket_address_from_hub(hub)
                     print(f"Found '{hub.name}' at {address}.")
                     break
 

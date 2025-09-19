@@ -1,7 +1,7 @@
 from typing import Any, Protocol
 
 from nanover.app.commands import CommandRegistration, CommandHandler
-from nanover.essd import ServiceHub
+from nanover.essd import ServiceHub, DiscoveryServer
 from nanover.imd import ImdStateWrapper
 from nanover.state.state_dictionary import StateDictionary
 from nanover.trajectory import FramePublisher
@@ -50,6 +50,9 @@ class ImdService(Closeable, Protocol):
 
 
 class DiscoveryService(Closeable, Protocol):
+    @property
+    def discovery(self) -> DiscoveryServer: ...
+
     def add_service(self, name: str, port: int) -> None: ...
 
     @property
@@ -62,3 +65,15 @@ class AppServerMinimal(CommandService, StateService, Protocol): ...
 class AppServer(CommandService, StateService, ImdService, DiscoveryService, Protocol):
     @property
     def name(self) -> str: ...
+
+
+def basic_info_string(app_server: AppServer):
+    protocols = ", ".join(
+        f"{protocol}://localhost:{port}"
+        for protocol, port in app_server.service_hub.services.items()
+    )
+
+    return (
+        f'Serving "{app_server.name}" ({protocols}), '
+        f"discoverable on all interfaces on port {app_server.discovery.port}"
+    )
