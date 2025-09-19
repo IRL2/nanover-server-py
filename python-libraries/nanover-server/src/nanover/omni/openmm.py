@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 
 from openmm.app import Simulation, StateDataReporter
+from openmm.unit import nanometer
 
 from nanover.app.types import AppServer
 from nanover.openmm import serializer, openmm_to_frame_data
@@ -159,8 +160,8 @@ class OpenMMSimulation:
         if self.use_pbc_wrapping:
             self.pbc_vectors = np.array(
                 [
-                    [vec3._value.x, vec3._value.y, vec3._value.z]
-                    for vec3 in self.simulation.system.getDefaultPeriodicBoxVectors()
+                    vector.value_in_unit(nanometer)
+                    for vector in self.simulation.system.getDefaultPeriodicBoxVectors()
                 ]
             )
 
