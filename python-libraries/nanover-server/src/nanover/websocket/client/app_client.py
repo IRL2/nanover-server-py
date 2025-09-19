@@ -3,7 +3,7 @@ from collections import deque
 from typing import Any
 
 from nanover.app.types import AppServer
-from nanover.essd import DiscoveryClient
+from nanover.essd import DiscoveryClient, ServiceHub
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.playback_client import PlaybackClient
 from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
@@ -122,6 +122,18 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
 
     def get_shared_value(self, key: str, default=None):
         return self._state_dictionary.copy_content().get(key, default)
+
+
+def get_websocket_address_from_hub(hub: ServiceHub, *, host: str | None = None):
+    parts = hub.get_service_address("ws")
+    assert parts is not None
+    host_, port = parts
+    address = f"ws://{host or host_}:{port}"
+    return address
+
+
+def get_websocket_address_from_app_server(app_server: AppServer):
+    return get_websocket_address_from_hub(app_server.service_hub, host="localhost")
 
 
 def _search_for_first_server_with_name(

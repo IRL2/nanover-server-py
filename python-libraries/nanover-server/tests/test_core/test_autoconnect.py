@@ -5,6 +5,7 @@ Tests for application level autoconnecting between client and server.
 import pytest
 from mock import Mock
 from nanover.app import NanoverImdApplication
+from nanover.app.types import AppServer
 from nanover.essd import DiscoveryServer
 from nanover.essd.server import BROADCAST_PORT
 from nanover.essd.utils import get_broadcastable_ip
@@ -50,7 +51,7 @@ def test_autoconnect_app_server_default_ports():
             assert mock.call_count == 1
 
 
-def test_autoconnect_app_server(discoverable_imd_server):
+def test_autoconnect_app_server(discoverable_imd_server: AppServer):
     """
     Tests that an iMD application server running on one port is discoverable and
     that the client connects to it in the expected way.

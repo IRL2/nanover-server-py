@@ -10,6 +10,7 @@ from nanover.recording.writing import write_entry, write_header
 from nanover.state.state_service import dictionary_change_to_state_update
 from nanover.trajectory.frame_data import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
+from nanover.websocket.client.app_client import get_websocket_address_from_app_server
 from nanover.websocket.client.base_client import MAX_MESSAGE_SIZE
 from nanover.websocket.convert import (
     convert_dict_frame_to_grpc_frame,
@@ -28,7 +29,7 @@ def record_from_runner(runner: OmniRunner, trajectory_file, state_file):
     :return:
     """
     return record_from_server(
-        address=f"ws://localhost:{runner.app_server.port}",
+        address=get_websocket_address_from_app_server(runner.app_server),
         trajectory_file=trajectory_file,
         state_file=state_file,
     )
