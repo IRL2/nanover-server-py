@@ -2,7 +2,7 @@
 Manage an OpenMM CustomExternalForce in conjunction with NanoVer IMD
 """
 
-from typing import Dict, Set, Tuple, Optional
+from typing import Dict, Set, Tuple
 import itertools
 
 import numpy as np
@@ -48,7 +48,7 @@ class ImdForceManager:
         self,
         simulation: Simulation,
         positions: np.ndarray,
-        pbc_vectors: Optional[np.ndarray] = None,
+        pbc_vectors: np.ndarray | None = None,
     ):
         if self.masses is None:
             self._update_masses(simulation.system)
