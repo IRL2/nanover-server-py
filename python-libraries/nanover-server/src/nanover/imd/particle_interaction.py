@@ -3,7 +3,7 @@ Module providing a wrapper class around the protobuf interaction message.
 """
 
 import math
-from typing import Dict, Any, Iterable, Union
+from typing import Any, Iterable, Union
 import numpy as np
 import numpy.typing as npt
 
@@ -153,14 +153,14 @@ class ParticleInteraction:
         self._reset_velocities = value
 
     @property
-    def properties(self) -> Dict[str, Any]:
+    def properties(self) -> dict[str, Any]:
         """
         Gets the other properties for this interaction
         """
         return self._properties
 
     @properties.setter
-    def properties(self, value: Dict[str, Any]):
+    def properties(self, value: dict[str, Any]):
         self._properties = value
 
     def __eq__(self, other):

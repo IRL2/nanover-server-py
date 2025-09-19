@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 
 from nanover.app import NanoverImdApplication
+from nanover.app.types import AppServer
 from nanover.testing import assert_equal_soon
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
@@ -43,7 +44,7 @@ def connect_client_to_server(websocket_server: WebSocketServer):
 
 @dataclass(kw_only=True)
 class ServerClientSetup:
-    app: NanoverImdApplication
+    app: AppServer
     server: WebSocketServer
     client: NanoverImdClient
 

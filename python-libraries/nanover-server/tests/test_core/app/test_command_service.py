@@ -1,7 +1,7 @@
 import pytest
 from mock import Mock
 
-from nanover.command import CommandService
+from nanover.app.commands import CommandService
 
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def test_register_command_with_args(service):
     mock = Mock()
     service.register_command("test", mock.callback, {"a": 2})
     assert len(service.commands) == 1
-    assert service.commands["test"].info.arguments == {"a": 2}
+    assert service.commands["test"].arguments == {"a": 2}
 
 
 def test_register_existing_command(service):

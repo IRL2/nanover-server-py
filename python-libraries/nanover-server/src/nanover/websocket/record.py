@@ -27,13 +27,8 @@ def record_from_runner(runner: OmniRunner, trajectory_file, state_file):
     :param state_file: File to write state updates to
     :return:
     """
-    server = runner._websocket_server
-    assert server is not None
-    port = server.ws_port
-    assert port is not None
-
     return record_from_server(
-        address=f"ws://localhost:{port}",
+        address=f"ws://localhost:{runner.app_server.port}",
         trajectory_file=trajectory_file,
         state_file=state_file,
     )
