@@ -45,9 +45,7 @@ def test_autoconnect_app_server_default_ports():
     with NanoverImdApplication(discovery=discovery, address=address) as app_server:
         app_server.serve_websocket()
         app_server.register_command("test", mock)
-        with NanoverImdClient.from_discovery(
-            discovery_port=app_server.discovery.port,
-        ) as client:
+        with NanoverImdClient.from_discovery() as client:
             client.run_command_blocking("test")
             assert mock.call_count == 1
 
