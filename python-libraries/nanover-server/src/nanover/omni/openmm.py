@@ -43,7 +43,7 @@ class OpenMMSimulation:
         sim.simulation = simulation
         sim.imd_force = add_imd_force_to_system(simulation.system)
         sim.simulation.context.reinitialize(preserveState=True)
-        sim.get_pbcs()
+        sim.determine_pbcs()
 
         sim.checkpoint = sim.simulation.context.createCheckpoint()
 
@@ -111,7 +111,7 @@ class OpenMMSimulation:
                 infile, imd_force=self.imd_force, platform_name=self.platform_name
             )
 
-        self.get_pbcs()
+        self.determine_pbcs()
         self.checkpoint = self.simulation.context.createCheckpoint()
 
     def reset(self, app_server: AppServer):
@@ -150,7 +150,7 @@ class OpenMMSimulation:
         ):
             self.simulation.reporters.append(self.verbose_reporter)
 
-    def get_pbcs(self):
+    def determine_pbcs(self):
         """
         Determine whether the simulation uses periodic boundary conditions and if it does,
         retrieve the periodic box vectors in nanometers.
