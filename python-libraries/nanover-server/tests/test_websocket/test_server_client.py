@@ -19,7 +19,7 @@ def reusable_setup():
         return arguments
 
     with make_connected_server_client_setup() as setup:
-        setup.app.server.register_command("test/identity", echo)
+        setup.app.register_command("test/identity", echo)
         yield setup
 
 

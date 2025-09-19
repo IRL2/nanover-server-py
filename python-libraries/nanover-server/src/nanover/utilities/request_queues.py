@@ -2,13 +2,14 @@
 Provides a dictionary of queues.
 """
 
-from typing import Dict, Hashable, Generator, Tuple
+from typing import Hashable, Generator, Tuple
 from queue import Queue, Empty
 from threading import Lock, Condition
 from contextlib import contextmanager
 from time import monotonic as time
 
-from nanover.protocol.trajectory import GetFrameResponse, FrameData
+from nanover.protocol.trajectory import FrameData
+from nanover.trajectory.frame_data import FramePublishEvent
 
 
 class DictOfQueues:
@@ -37,7 +38,7 @@ class DictOfQueues:
     """
 
     queue_max_size: int
-    queues: Dict[Hashable, Queue]
+    queues: dict[Hashable, Queue]
     lock: Lock
 
     def __init__(self, queue_max_size=0):
@@ -177,7 +178,7 @@ class GetFrameResponseAggregatingQueue(SingleItemQueue):
     queue at any time.
     """
 
-    def put(self, item: GetFrameResponse, **kwargs):
+    def put(self, item: FramePublishEvent, **kwargs):
         with self._lock:
             if item is None:
                 # None is the sentinel value to indicate that the queue user
@@ -185,7 +186,7 @@ class GetFrameResponseAggregatingQueue(SingleItemQueue):
                 self._item = None
             else:
                 if self._item is None:
-                    self._item = GetFrameResponse(
+                    self._item = FramePublishEvent(
                         frame_index=item.frame_index,
                         frame=FrameData(),
                     )

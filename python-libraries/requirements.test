@@ -16,4 +16,4 @@ types-protobuf
 # jupyter notebooks
 nbval
 # ui
-gradio
+gradio>=5.18.0

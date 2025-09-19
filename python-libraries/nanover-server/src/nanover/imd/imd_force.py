@@ -8,7 +8,7 @@ For details, and if you find these functions helpful, please cite [1]_.
 """
 
 from math import exp
-from typing import Tuple, Optional, Iterable, Dict, Protocol
+from typing import Tuple, Iterable, Protocol
 
 import numpy as np
 import numpy.typing as npt
@@ -24,7 +24,7 @@ class ForceCalculator(Protocol):
         self,
         particle_position: npt.NDArray,
         interaction_position: npt.NDArray,
-        periodic_box_lengths: Optional[npt.NDArray],
+        periodic_box_lengths: npt.NDArray | None,
     ) -> Tuple[float, npt.NDArray]: ...
 
 
@@ -32,7 +32,7 @@ def calculate_imd_force(
     positions: npt.NDArray,
     masses: npt.NDArray,
     interactions: Iterable[ParticleInteraction],
-    periodic_box_lengths: Optional[npt.NDArray] = None,
+    periodic_box_lengths: npt.NDArray | None = None,
 ) -> Tuple[float, npt.NDArray]:
     """
     Reference implementation of the NanoVer IMD force.
@@ -64,7 +64,7 @@ def apply_single_interaction_force(
     masses: npt.NDArray,
     interaction: ParticleInteraction,
     forces: npt.NDArray,
-    periodic_box_lengths: Optional[npt.NDArray] = None,
+    periodic_box_lengths: npt.NDArray | None = None,
 ) -> float:
     """
     Calculates the energy and adds the forces to the particles of a single application of an interaction potential.
@@ -174,7 +174,7 @@ def get_center_of_mass_subset(
     positions: np.ndarray,
     masses: np.ndarray,
     subset: Iterable[int],
-    periodic_box_lengths: Optional[np.ndarray] = None,
+    periodic_box_lengths: np.ndarray | None = None,
 ) -> np.ndarray:
     """
     Gets the center of mass of [a subset of] positions.
@@ -215,7 +215,7 @@ def get_center_of_mass_subset(
 def calculate_gaussian_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
-    periodic_box_lengths: Optional[npt.NDArray] = None,
+    periodic_box_lengths: npt.NDArray | None = None,
 ) -> Tuple[float, npt.NDArray]:
     """
     Computes the interactive Gaussian force.
@@ -247,7 +247,7 @@ def calculate_gaussian_force(
 def calculate_spring_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
-    periodic_box_lengths: Optional[npt.NDArray] = None,
+    periodic_box_lengths: npt.NDArray | None = None,
 ) -> Tuple[float, npt.NDArray]:
     """
     Computes the interactive harmonic potential (or spring) force.
@@ -277,7 +277,7 @@ def calculate_spring_force(
 def calculate_constant_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
-    periodic_box_lengths: Optional[npt.NDArray] = None,
+    periodic_box_lengths: npt.NDArray | None = None,
 ) -> Tuple[float, npt.NDArray]:
     """
     Applies a constant force that is independent of the distance between the particle and the interaction site. Applies
@@ -303,9 +303,7 @@ def calculate_constant_force(
     return energy, force
 
 
-def _minimum_image(
-    diff, periodic_box_lengths: Optional[np.ndarray] = None
-) -> np.ndarray:
+def _minimum_image(diff, periodic_box_lengths: np.ndarray | None = None) -> np.ndarray:
     """
     Gets the difference between two vectors under minimum image convention for a cubic periodic box.
     :diff The difference between two vectors.
@@ -320,7 +318,7 @@ def _minimum_image(
 
 
 def _calculate_diff_and_sqr_distance(
-    u: np.ndarray, v: np.ndarray, periodic_box_lengths: Optional[np.ndarray] = None
+    u: np.ndarray, v: np.ndarray, periodic_box_lengths: np.ndarray | None = None
 ) -> Tuple[np.ndarray, float]:
     """
     Calculates the difference and square of the distance between two vectors.
@@ -397,7 +395,7 @@ def calculate_contribution_to_work(forces: npt.NDArray, positions: npt.NDArray):
     return work_done_contribution
 
 
-INTERACTION_METHOD_MAP: Dict[str, ForceCalculator] = {
+INTERACTION_METHOD_MAP: dict[str, ForceCalculator] = {
     "gaussian": calculate_gaussian_force,
     "spring": calculate_spring_force,
     "constant": calculate_constant_force,

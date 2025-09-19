@@ -1,5 +1,4 @@
-from time import perf_counter_ns
-from typing import BinaryIO, Protocol, Optional, Iterable
+from typing import BinaryIO, Protocol, Iterable
 
 from nanover.recording.reading import MAGIC_NUMBER
 
@@ -8,17 +7,6 @@ WRITE_VERSION = 2
 
 class Serializable(Protocol):
     def SerializeToString(self) -> bytes: ...
-
-
-def record_messages(io: BinaryIO, messages, start_time: Optional[int] = None):
-    if start_time is None:
-        start_time = perf_counter_ns()
-
-    def timestamp():
-        return int((perf_counter_ns() - start_time) / 1000)
-
-    entries = ((timestamp(), message) for message in messages)
-    record_entries(io, entries)
 
 
 def record_entries_to_file(path, messages: Iterable[Serializable]):

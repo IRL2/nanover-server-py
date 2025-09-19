@@ -33,7 +33,7 @@ def test_buffer_flush_reflects_removal(change_buffer):
     change_buffer.update({"hello": "test"})
     change_buffer.update(removals=["hello"])
     changes, removals = change_buffer.flush_changed_blocking()
-    assert removals == set(["hello"])
+    assert removals == {"hello"}
 
 
 def test_buffer_flush_empties_changes(change_buffer):
@@ -75,7 +75,7 @@ def test_buffer_flush_merges_removals(change_buffer):
     change_buffer.update(removals=["hello"])
     change_buffer.update(removals=["foo"])
     changes, removals = change_buffer.flush_changed_blocking()
-    assert removals == set(["hello", "foo"])
+    assert removals == {"hello", "foo"}
 
 
 def test_buffer_flush_merges_same_change_key(change_buffer):

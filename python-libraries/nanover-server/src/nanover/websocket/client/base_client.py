@@ -1,6 +1,6 @@
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Callable, Any, Optional
+from typing import Callable, Any
 
 import msgpack
 from websockets.sync.client import connect, ClientConnection
@@ -11,10 +11,13 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.convert import unpack_dict_frame
 
 
+MAX_MESSAGE_SIZE = 128 * 1024 * 1024
+
+
 class WebsocketClient:
     @classmethod
     def from_url(cls, url: str):
-        connection = connect(url)
+        connection = connect(url, max_size=MAX_MESSAGE_SIZE)
         client = cls(connection)
         return client
 
@@ -57,8 +60,8 @@ class WebsocketClient:
     def run_command(
         self,
         name: str,
-        arguments: Optional[dict] = None,
-        callback: Optional[Callable[[dict], None]] = None,
+        arguments: dict | None = None,
+        callback: Callable[[dict], None] | None = None,
     ):
         id = self.next_command_id
         self.next_command_id += 1

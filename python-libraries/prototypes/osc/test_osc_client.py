@@ -1,10 +1,11 @@
 import pytest
-import time
 import threading
 
+from nanover.app import NanoverImdApplication
+from nanover.testing import assert_equal_soon
+from nanover.websocket import NanoverImdClient
 from osc_client import OscClient
-from nanover.trajectory import FrameServer, FrameData
-from nanover.app.client import DEFAULT_SUBSCRIPTION_INTERVAL, NanoverImdClient
+from nanover.trajectory import FrameData
 
 from pythonosc import dispatcher
 from pythonosc.osc_server import ThreadingOSCUDPServer
@@ -15,7 +16,10 @@ OSC_SEND_INTERVAL = 1 / 100
 
 
 def simple_frame_to_message(frame):
-    yield "/test", frame.values["/test"]
+    try:
+        yield "/test", frame.values["/test"]
+    except KeyError:
+        pass
 
 
 @pytest.fixture
@@ -28,12 +32,12 @@ def simple_frame_data():
 
 
 @pytest.fixture
-def frame_server():
+def app_server():
     """
-    Provide a frame server hosting on an available port on localhost.
+    Provide a server hosting on an available port on localhost.
     """
-    with FrameServer(address="localhost", port=0) as frame_server:
-        yield frame_server
+    with NanoverImdApplication.basic_server(port=0) as app_server:
+        yield app_server
 
 
 @pytest.fixture
@@ -50,15 +54,13 @@ def osc_server():
 
 
 @pytest.fixture
-def frame_osc_converter(frame_server, osc_server):
+def frame_osc_converter(app_server, osc_server):
     """
     Provide a frame server, OSC server, and a client that is connected to both
     of them.
     """
     osc_port = osc_server.socket.getsockname()[1]
-    nanover_client = NanoverImdClient(
-        trajectory_address=("localhost", frame_server.port)
-    )
+    nanover_client = NanoverImdClient.from_app_server(app_server)
     with OscClient(
         nanover_client,
         osc_address=(IPV4_LOCALHOST, osc_port),
@@ -66,14 +68,14 @@ def frame_osc_converter(frame_server, osc_server):
         osc_send_interval=OSC_SEND_INTERVAL,
     ) as client:
         threading.Thread(target=client.run, daemon=True).start()
-        yield frame_server, osc_server, client
+        yield app_server, osc_server, client
 
 
 def test_transmission(frame_osc_converter, simple_frame_data):
     """
     Test that OscClient receiving frames can trigger the sending OSC messages.
     """
-    frame_server, osc_server, osc_client = frame_osc_converter
+    app_server, osc_server, osc_client = frame_osc_converter
 
     test_address = "/test"
     send_message = "hello"
@@ -86,9 +88,9 @@ def test_transmission(frame_osc_converter, simple_frame_data):
         recv_message = message
 
     osc_server.dispatcher.map(test_address, recv_test)
-    frame_server.send_frame(frame_data=simple_frame_data, frame_index=0)
+    app_server._frame_publisher.send_frame(frame=simple_frame_data, frame_index=0)
 
-    time.sleep(DEFAULT_SUBSCRIPTION_INTERVAL)
-    time.sleep(OSC_SEND_INTERVAL * 2)
-
-    assert recv_message == send_message
+    assert_equal_soon(
+        lambda: recv_message,
+        lambda: send_message,
+    )

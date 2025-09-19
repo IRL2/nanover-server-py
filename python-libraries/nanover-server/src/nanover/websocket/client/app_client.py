@@ -1,18 +1,13 @@
 import time
 from collections import deque
-from typing import Optional, Any
+from typing import Any
 
-from nanover.app import NanoverImdApplication
-from nanover.app.client import _search_for_first_server_with_name
+from nanover.app.types import AppServer
 from nanover.essd import DiscoveryClient
-from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.playback_client import PlaybackClient
-from nanover.websocket.convert import (
-    convert_dict_frame_to_grpc_frame,
-    unpack_dict_frame,
-)
-from nanover.websocket.discovery import get_local_ip
+from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
+from nanover.utilities.network import get_local_ip
 from nanover.websocket.client.interaction_client import InteractionClient
 from nanover.websocket.client.selection_client import SelectionClient
 
@@ -23,20 +18,22 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         return cls.from_app_server(runner.app_server)
 
     @classmethod
-    def from_app_server(cls, app_server: NanoverImdApplication):
-        server = app_server._server_ws
-        assert server is not None
-        if server.wss_port is not None:
-            return cls.from_url(f"wss://localhost:{server.wss_port}")
-        else:
-            return cls.from_url(f"ws://localhost:{server.ws_port}")
+    def from_app_server(cls, app_server: AppServer):
+        try:
+            return cls.from_url(
+                f"wss://localhost:{app_server.service_hub.services["wss"]}"
+            )
+        except KeyError:
+            return cls.from_url(
+                f"ws://localhost:{app_server.service_hub.services["ws"]}"
+            )
 
     @classmethod
     def from_discovery(
         cls,
         *,
-        server_name: Optional[str] = None,
-        discovery_port: Optional[int] = None,
+        server_name: str | None = None,
+        discovery_port: int | None = None,
     ):
         if server_name is not None:
             first_service = _search_for_first_server_with_name(
@@ -69,18 +66,16 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         return cls.from_url(url)
 
     def __init__(self, *args, **kwargs):
-        self._frames_grpc: deque[FrameData] = deque(maxlen=50)
+        self._frames: deque[dict] = deque(maxlen=50)
         super().__init__(*args, **kwargs)
 
     @property
     def frames(self):
-        return list(self._frames_grpc)
+        return list(self._frames)
 
     def recv_frame(self, message: dict):
-        # TODO: don't do this
-        frame_grpc = convert_dict_frame_to_grpc_frame(unpack_dict_frame(message))
-        self._frames_grpc.append(frame_grpc)
         super().recv_frame(message)
+        self._frames.append({key: value for key, value in self.current_frame.items()})
 
     @property
     def current_frame(self):
@@ -129,10 +124,23 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         return self._state_dictionary.copy_content().get(key, default)
 
 
+def _search_for_first_server_with_name(
+    server_name: str,
+    search_time: float = 2.0,
+    discovery_address: str | None = None,
+    discovery_port: int | None = None,
+):
+    with DiscoveryClient(discovery_address, discovery_port) as discovery_client:
+        for hub in discovery_client.search_for_services(search_time):
+            if hub.name == server_name:
+                return hub
+    return None
+
+
 def _search_for_first_local_server(
     search_time: float = 2.0,
-    discovery_address: Optional[str] = None,
-    discovery_port: Optional[int] = None,
+    discovery_address: str | None = None,
+    discovery_port: int | None = None,
 ):
     try:
         local_ip = get_local_ip()

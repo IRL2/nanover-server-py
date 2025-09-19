@@ -1,4 +1,4 @@
-from typing import Dict, List, Iterable, Mapping, Union, Any
+from typing import List, Iterable, Mapping, Union, Any
 
 from google.protobuf.internal.well_known_types import _SetStructValue, _GetStructValue  # type: ignore
 from google.protobuf.struct_pb2 import Struct, Value, ListValue
@@ -51,7 +51,7 @@ def dict_to_struct(dictionary: Mapping[str, Serializable]) -> Struct:
     return struct
 
 
-def struct_to_dict(struct: Struct) -> Dict[str, Serializable]:
+def struct_to_dict(struct: Struct) -> dict[str, Serializable]:
     """
     Converts a protobuf :class:`Struct` to a python dictionary.
 
@@ -97,8 +97,8 @@ def value_to_object(value: Value) -> Serializable:
 
 
 def deep_copy_serializable_dict(
-    dictionary: Dict[str, Serializable],
-) -> Dict[str, Serializable]:
+    dictionary: dict[str, Serializable],
+) -> dict[str, Serializable]:
     """
     Makes a deep copy of a dictionary by converting it to a protobuf Struct and
     back. Only protobuf serializable elements will be preserved.

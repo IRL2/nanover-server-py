@@ -4,7 +4,7 @@ Module containing methods for converting between ASE simulations consisting of
 NanoVer clients.
 """
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 from ase import Atoms, Atom  # type: ignore
 from ase.units import fs as fs_in_ase_time_unit
@@ -125,7 +125,7 @@ def frame_data_to_ase(
     frame_data: FrameData,
     positions: bool = True,
     topology: bool = True,
-    ase_atoms: Optional[Atoms] = None,
+    ase_atoms: Atoms | None = None,
 ) -> Atoms:
     """
     Constructs an ASE :class:`Atoms` object from a NanoVer :class:`FrameData`.

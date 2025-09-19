@@ -2,8 +2,6 @@
 Module providing conversion methods between NanoVer and OpenMM.
 """
 
-from typing import Optional
-
 from openmm import State
 from openmm.app.topology import Topology
 from openmm.unit import kilojoule_per_mole, picosecond
@@ -101,8 +99,8 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology) -> No
 
 def openmm_to_frame_data(
     *,
-    state: Optional[State] = None,
-    topology: Optional[Topology] = None,
+    state: State | None = None,
+    topology: Topology | None = None,
     include_positions=True,
     include_energies=True,
     include_velocities=False,

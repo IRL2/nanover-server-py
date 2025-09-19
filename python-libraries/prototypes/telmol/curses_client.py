@@ -7,9 +7,8 @@ into the terminal.
 
 import sys
 import textwrap
-from typing import Dict, Callable, Sequence, Any
+from typing import Callable, Sequence, Any
 
-from nanover.app.app_server import DEFAULT_NANOVER_PORT
 from nanover.trajectory import MissingDataError
 
 try:
@@ -27,7 +26,7 @@ import numpy as np
 import colorsys
 import time
 
-from nanover.app import NanoverImdClient
+from nanover.websocket import NanoverImdClient
 
 from transformations import rotation_matrix, scale_matrix
 import rendering
@@ -177,7 +176,7 @@ class Renderer:
 class CursesFrontend:
     client: NanoverImdClient
     renderer: Renderer
-    bindings: Dict[int, Callable]
+    bindings: dict[int, Callable]
 
     def __init__(self, stdscr, client: NanoverImdClient, override_colors=False):
         self.stdscr = stdscr
@@ -227,11 +226,13 @@ class CursesFrontend:
         self.stdscr.clear()
 
         try:
+            frame = self.client.current_frame_grpc
+
             self.renderer.positions = np.array(
-                self.client.current_frame.particle_positions, dtype=np.float32
+                frame.particle_positions, dtype=np.float32
             )
-            self.renderer.bonds = self.client.current_frame.bond_pairs
-            self.renderer.elements = self.client.current_frame.particle_elements
+            self.renderer.bonds = frame.bond_pairs
+            self.renderer.elements = frame.particle_elements
         except MissingDataError:
             self.renderer.clear()
 
@@ -359,16 +360,13 @@ def main(stdscr):
     arguments = handle_user_args()
 
     if arguments.autoconnect is not False:
-        client = NanoverImdClient.autoconnect(name=arguments.autoconnect)
+        client = NanoverImdClient.from_discovery(server_name=arguments.autoconnect)
     else:
-        address = (
-            arguments.hostname or "localhost",
-            arguments.port or DEFAULT_NANOVER_PORT,
-        )
-        client = NanoverImdClient(trajectory_address=address)
+        hostname = arguments.hostname or "localhost"
+        port = arguments.port
+        client = NanoverImdClient.from_url(f"ws://{hostname}:{port}")
 
     with client:
-        client.subscribe_to_frames()
         telmol = CursesFrontend(stdscr, client, override_colors=arguments.rainbow)
         telmol.run()
 

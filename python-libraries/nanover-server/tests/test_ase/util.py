@@ -2,13 +2,18 @@ from contextlib import contextmanager
 
 import pytest
 from ase import Atoms
-from nanover.imd import ImdServer, ImdClient, ImdStateWrapper
+
+from nanover.app import NanoverImdApplication
+from nanover.essd.utils import get_broadcastable_ip
+from nanover.imd import ImdStateWrapper
 from nanover.state.state_dictionary import StateDictionary
 
 
 @pytest.fixture
-def imd_server():
-    with ImdServer(address="localhost", port=0) as server:
+def app_server():
+    with NanoverImdApplication.basic_server(
+        address=get_broadcastable_ip(), port=0
+    ) as server:
         yield server
 
 
@@ -29,7 +34,7 @@ def c_atoms():
 
 
 @contextmanager
-def client_interaction(client: ImdClient, interaction):
+def client_interaction(client, interaction):
     interaction_id = client.start_interaction()
     client.update_interaction(interaction_id, interaction)
     yield interaction_id

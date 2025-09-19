@@ -5,7 +5,7 @@ shared key/value store between multiple clients.
 
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Dict, Iterator, Iterable, Optional, Generator, Mapping
+from typing import Any, Set, Iterator, Iterable, Generator, Mapping
 
 from .timing import yield_interval
 
@@ -19,8 +19,8 @@ class DictionaryChange:
 
     def __init__(
         self,
-        updates: Optional[KeyUpdates] = None,
-        removals: Optional[KeyRemovals] = None,
+        updates: KeyUpdates | None = None,
+        removals: KeyRemovals | None = None,
     ):
         self.updates = updates or {}
         self.removals = removals or set()
@@ -44,7 +44,7 @@ class DictionaryChangeMultiView:
     tracking a shared dictionary.
     """
 
-    _content: Dict[str, Any]
+    _content: dict[str, Any]
     _frozen: bool
     _lock: Lock
     _views: Set["DictionaryChangeBuffer"]
@@ -89,8 +89,8 @@ class DictionaryChangeMultiView:
 
     def update(
         self,
-        updates: Optional[KeyUpdates] = None,
-        removals: Optional[KeyRemovals] = None,
+        updates: KeyUpdates | None = None,
+        removals: KeyRemovals | None = None,
     ):
         """
         Updates the shared dictionary with key values pairs from :updates: and
@@ -115,7 +115,7 @@ class DictionaryChangeMultiView:
             for view in self._views:
                 view.freeze()
 
-    def copy_content(self) -> Dict[str, Any]:
+    def copy_content(self) -> dict[str, Any]:
         """
         Return a shallow copy of the dictionary at this instant.
         """
@@ -150,7 +150,7 @@ class DictionaryChangeBuffer:
     _frozen: bool
     _lock: Lock
     _any_changes: Condition
-    _pending_changes: Dict[str, Any]
+    _pending_changes: dict[str, Any]
     _pending_removals: Set[str]
 
     def __init__(self):
@@ -174,8 +174,8 @@ class DictionaryChangeBuffer:
 
     def update(
         self,
-        updates: Optional[KeyUpdates] = None,
-        removals: Optional[KeyRemovals] = None,
+        updates: KeyUpdates | None = None,
+        removals: KeyRemovals | None = None,
     ):
         """
         Update the known changes from a dictionary of keys that have changed

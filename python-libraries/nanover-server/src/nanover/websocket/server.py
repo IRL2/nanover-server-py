@@ -1,10 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
-from typing import Optional
 
 import msgpack
 
-from nanover.app import NanoverImdApplication
+from nanover.app.types import AppServer
 from nanover.trajectory.frame_data import FrameData, FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
@@ -17,9 +16,9 @@ class WebSocketServer:
     @classmethod
     def basic_server(
         cls,
-        app_server: NanoverImdApplication,
+        app_server: AppServer,
         *,
-        ssl: Optional[SSLContext] = None,
+        ssl: SSLContext | None = None,
         insecure=True,
     ):
         server = cls(app_server)
@@ -31,30 +30,26 @@ class WebSocketServer:
 
         return server
 
-    def __init__(self, app_server: NanoverImdApplication):
+    def __init__(self, app_server: AppServer):
         self.app_server = app_server
         self._cancellation = CancellationToken()
         self._threads = ThreadPoolExecutor(
             max_workers=2, thread_name_prefix="WebSocketServer"
         )
-        self._ws_server: Optional[Server] = None
-        self._wss_server: Optional[Server] = None
+        self._ws_server: Server | None = None
+        self._wss_server: Server | None = None
 
     def serve_insecure(self):
         if self._ws_server is None:
             self._ws_server = serve(self._handle_client, "0.0.0.0", 0)
             self._threads.submit(self._ws_server.serve_forever)
-            if self.app_server.running_discovery:
-                self.app_server._service_hub.add_service("ws", self.ws_port)
-                self.app_server._update_discovery_services()
+            self.app_server.add_service("ws", self.ws_port)
 
     def serve_secure(self, *, ssl: SSLContext):
         if self._wss_server is None:
             self._wss_server = serve(self._handle_client, "0.0.0.0", 0, ssl=ssl)
             self._threads.submit(self._wss_server.serve_forever)
-            if self.app_server.running_discovery:
-                self.app_server._service_hub.add_service("wss", self.wss_port)
-                self.app_server._update_discovery_services()
+            self.app_server.add_service("wss", self.wss_port)
 
     @property
     def ws_port(self):
@@ -89,7 +84,7 @@ class WebSocketServer:
 class WebSocketClientHandler:
     def __init__(
         self,
-        app_server: NanoverImdApplication,
+        app_server: AppServer,
         websocket: ServerConnection,
         cancellation: CancellationToken,
     ):
@@ -105,16 +100,14 @@ class WebSocketClientHandler:
 
     @property
     def frame_publisher(self):
-        return self.app_server._frame_publisher
+        return self.app_server.frame_publisher
 
     @property
     def state_dictionary(self):
-        return self.app_server.server._state_service.state_dictionary
+        return self.app_server.state_dictionary
 
-    def run_command(self, name: str, arguments: Optional[dict] = None):
-        results = self.app_server.server._command_service.run_command(
-            name, arguments or {}
-        )
+    def run_command(self, name: str, arguments: dict | None = None):
+        results = self.app_server.run_command(name, arguments or {})
         return results
 
     def send_frame(self, frame: FrameData):
