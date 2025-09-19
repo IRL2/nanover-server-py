@@ -5,7 +5,7 @@ import gradio as gr
 from nanover.omni import OmniRunner
 from nanover.omni.playback import PlaybackSimulation
 from nanover.omni.openmm import OpenMMSimulation
-from nanover.omni.record import record_from_runner
+from nanover.websocket.record import record_from_runner
 
 imd_runner = None
 

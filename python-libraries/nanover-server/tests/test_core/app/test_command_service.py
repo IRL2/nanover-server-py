@@ -1,7 +1,7 @@
 import pytest
 from mock import Mock
 
-from nanover.core.commands import CommandService
+from nanover.app.commands import CommandService
 
 
 @pytest.fixture

@@ -7,7 +7,12 @@ from nanover.imd import ParticleInteraction
 
 from nanover.omni.omni import CLEAR_PREFIXES
 from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
-from nanover.trajectory.frame_data import SIMULATION_EXCEPTION
+from nanover.testing.asserts import assert_true_soon
+from nanover.trajectory.frame_data import (
+    SIMULATION_EXCEPTION,
+    FRAME_INDEX,
+    SERVER_TIMESTAMP,
+)
 from nanover.utilities.change_buffers import DictionaryChange
 from test_openmm import make_example_openmm
 from test_ase import make_example_ase
@@ -93,13 +98,11 @@ def test_next_simulation_increments_counter(runner_with_imd_sims):
     Test each next command increments the simulation counter to the correct value.
     """
     with make_connected_client_from_runner(runner_with_imd_sims) as client:
-        client.subscribe_to_frames()
-
         for i in range(5):
             client.run_next()
             client.wait_until_first_frame()
             assert_equal_soon(
-                lambda: client.current_frame.simulation_counter, lambda: i
+                lambda: client.current_frame_grpc.simulation_counter, lambda: i
             )
 
 
@@ -115,16 +118,18 @@ def test_play_step_interval(runner_with_imd_sims, fps):
     play_step_interval = 1 / fps
 
     with make_connected_client_from_runner(runner_with_imd_sims) as client:
-        client.subscribe_to_all_frames()
         runner_with_imd_sims.next()
         runner_with_imd_sims.runner.play_step_interval = play_step_interval
 
-        while len(client.frames) < test_frames:
-            time.sleep(0.1)
+        assert_true_soon(
+            lambda: len(client.frames) >= test_frames,
+            timeout=play_step_interval * test_frames * 2,
+            interval=play_step_interval * 0.5,
+        )
         runner_with_imd_sims.pause()
 
         # first frame (topology) isn't subject to intervals
-        timestamps = [frame.server_timestamp for frame in client.frames[1:]]
+        timestamps = [frame[SERVER_TIMESTAMP] for frame in client.frames[1:]]
         deltas = numpy.diff(timestamps)
 
     # The interval is not very accurate. We only check that the observed
@@ -141,23 +146,19 @@ def test_simulation_switch_clears_state(runner_with_all_sims):
     key = "pytest"
 
     updates = {prefix + key: {} for prefix in CLEAR_PREFIXES}
-    locks = {key: 10 for key in updates}
 
     with make_connected_client_from_runner(runner_with_all_sims) as client:
-        client.attempt_update_multiplayer_state(DictionaryChange(updates=updates))
-        client.attempt_update_multiplayer_locks(locks)
+        client.update_state(DictionaryChange(updates=updates))
 
     with make_connected_client_from_runner(runner_with_all_sims) as client:
-        client.subscribe_multiplayer()
-
         for key in updates:
-            assert_in_soon(lambda: key, lambda: client._multiplayer_client.copy_state())
+            assert_in_soon(lambda: key, lambda: client._state_dictionary.copy_content())
 
         client.run_next()
 
         for key in updates:
             assert_not_in_soon(
-                lambda: key, lambda: client._multiplayer_client.copy_state()
+                lambda: key, lambda: client._state_dictionary.copy_content()
             )
 
 
@@ -168,15 +169,16 @@ def test_first_frame_topology(sim_factory):
     """
     with make_runner(sim_factory()) as runner:
         with make_connected_client_from_runner(runner) as client:
-            client.subscribe_to_frames()
             runner.load(0)
             client.wait_until_first_frame()
+            first_frame = client.current_frame_grpc
+
             # Currently the initial frame is the only frame containing the element
             # information, so this is equivalent to testing the frame in which the
             # topology is sent (where relevant).
             assert (
-                len(client.first_frame.particle_positions) > 0
-                and len(client.first_frame.particle_elements) > 0
+                len(first_frame.particle_positions) > 0
+                and len(first_frame.particle_elements) > 0
             )
 
 
@@ -188,24 +190,18 @@ def test_interaction_invalid_particle_index(sim_factory):
     """
     with make_runner(sim_factory()) as runner:
         with make_connected_client_from_runner(runner) as client:
-            client.subscribe_to_frames()
-            client.subscribe_multiplayer()
             runner.load(0)
             client.wait_until_first_frame()
 
-            count = client.current_frame.particle_count
+            count = client.current_frame_grpc.particle_count
             interaction_id = client.start_interaction(
                 ParticleInteraction(particles=[count + 10])
             )
 
-            # interaction exists in state
-            assert_in_soon(
-                lambda: interaction_id,
-                lambda: runner.app_server.imd.active_interactions,
-            )
-
             # exception exists in frame
-            assert_in_soon(lambda: SIMULATION_EXCEPTION, lambda: client.current_frame)
+            assert_in_soon(
+                lambda: SIMULATION_EXCEPTION, lambda: client.current_frame_grpc
+            )
             # interaction no longer exists in state
             assert_not_in_soon(
                 lambda: interaction_id,

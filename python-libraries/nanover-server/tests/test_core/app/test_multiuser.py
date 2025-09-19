@@ -1,15 +1,13 @@
-import time
 import numpy
 import pytest
 from nanover.app.multiuser import (
     RADIAL_ORIENT_COMMAND_KEY,
     MULTIUSER_ORIGIN_PREFIX,
-    add_multiuser_commands,
 )
+from nanover.testing.asserts import assert_true_soon
 from nanover.utilities.change_buffers import DictionaryChange
 
 from ..app.test_client_selections import server_clients
-from ..core.test_nanover_client_server_state import IMMEDIATE_REPLY_WAIT_TIME
 
 
 @pytest.mark.parametrize("avatar_count", (0, 1, 4))
@@ -20,15 +18,13 @@ def test_radial_orient(server_clients, avatar_count, radius):
     origin entries at the correct radius and spacing.
     """
     server, client, _ = server_clients
-    add_multiuser_commands(server)
     client.update_available_commands()
 
     user_ids = ["test" + str(i) for i in range(avatar_count)]
 
     update = DictionaryChange({"avatar." + id: [] for id in user_ids})
-    client.attempt_update_multiplayer_state(update)
-    client.run_command(RADIAL_ORIENT_COMMAND_KEY, radius=radius)
-    time.sleep(IMMEDIATE_REPLY_WAIT_TIME)
+    client.update_state(update)
+    client.run_command_blocking(RADIAL_ORIENT_COMMAND_KEY, radius=radius)
 
     origins = {
         key: value
@@ -37,5 +33,10 @@ def test_radial_orient(server_clients, avatar_count, radius):
     }
     positions = [origin["position"] for origin in origins.values()]
 
-    assert all((MULTIUSER_ORIGIN_PREFIX + id) in origins for id in user_ids)
-    assert all(numpy.linalg.norm(position) == radius for position in positions)
+    assert_true_soon(
+        lambda: all((MULTIUSER_ORIGIN_PREFIX + id) in origins for id in user_ids)
+    )
+
+    assert_true_soon(
+        lambda: all(numpy.linalg.norm(position) == radius for position in positions)
+    )

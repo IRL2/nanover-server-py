@@ -3,7 +3,7 @@ from ssl import SSLContext
 
 import msgpack
 
-from nanover.app import NanoverImdApplication
+from nanover.app.types import AppServer
 from nanover.trajectory.frame_data import FrameData, FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
@@ -16,7 +16,7 @@ class WebSocketServer:
     @classmethod
     def basic_server(
         cls,
-        app_server: NanoverImdApplication,
+        app_server: AppServer,
         *,
         ssl: SSLContext | None = None,
         insecure=True,
@@ -30,7 +30,7 @@ class WebSocketServer:
 
         return server
 
-    def __init__(self, app_server: NanoverImdApplication):
+    def __init__(self, app_server: AppServer):
         self.app_server = app_server
         self._cancellation = CancellationToken()
         self._threads = ThreadPoolExecutor(
@@ -84,7 +84,7 @@ class WebSocketServer:
 class WebSocketClientHandler:
     def __init__(
         self,
-        app_server: NanoverImdApplication,
+        app_server: AppServer,
         websocket: ServerConnection,
         cancellation: CancellationToken,
     ):
