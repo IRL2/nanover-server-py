@@ -12,6 +12,9 @@ from nanover.websocket.client.interaction_client import InteractionClient
 from nanover.websocket.client.selection_client import SelectionClient
 
 
+DEFAULT_DISCOVERY_SEARCH_TIME = 5.0
+
+
 class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
     @classmethod
     def from_runner(cls, runner: Any):
@@ -138,7 +141,7 @@ def get_websocket_address_from_app_server(app_server: AppServer):
 
 def _search_for_first_server_with_name(
     server_name: str,
-    search_time: float = 2.0,
+    search_time: float = DEFAULT_DISCOVERY_SEARCH_TIME,
     discovery_address: str | None = None,
     discovery_port: int | None = None,
 ):
@@ -150,7 +153,7 @@ def _search_for_first_server_with_name(
 
 
 def _search_for_first_local_server(
-    search_time: float = 2.0,
+    search_time: float = DEFAULT_DISCOVERY_SEARCH_TIME,
     discovery_address: str | None = None,
     discovery_port: int | None = None,
 ):
