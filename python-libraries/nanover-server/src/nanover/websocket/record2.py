@@ -86,9 +86,6 @@ def message_events_from_old_recording(*, traj, state):
             frame[FRAME_INDEX] = frame_response.frame_index
             message = {"frame": frame}
             data = msgpack.packb(message)
-
-            if len(data) > len(frame_response.SerializeToString()) * 1.5:
-                print(list(frame.keys()))
             yield MessageEvent(timestamp=event.timestamp, data=data)
         if event.next_state_event is not None:
             change = state_update_to_dictionary_change(event.next_state_event.message)

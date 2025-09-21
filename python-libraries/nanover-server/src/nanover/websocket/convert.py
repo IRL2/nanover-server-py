@@ -18,7 +18,7 @@ from nanover.trajectory.frame_data import (
     RESIDUE_CHAINS,
     BOX_VECTORS,
     FrameData,
-    FRAME_INDEX,
+    FRAME_INDEX, PARTICLE_VELOCITIES, PARTICLE_FORCES, PARTICLE_FORCES_SYSTEM,
 )
 
 
@@ -63,6 +63,9 @@ converters: dict[str, PackingPair] = {
     RESIDUE_COUNT: pack_force_int,
     SIMULATION_COUNTER: pack_force_int,
     PARTICLE_POSITIONS: pack_float32,
+    PARTICLE_VELOCITIES: pack_float32,
+    PARTICLE_FORCES: pack_float32,
+    PARTICLE_FORCES_SYSTEM: pack_float32,
     PARTICLE_ELEMENTS: pack_uint8,
     PARTICLE_RESIDUES: pack_uint32,
     BOND_PAIRS: pack_uint32,
