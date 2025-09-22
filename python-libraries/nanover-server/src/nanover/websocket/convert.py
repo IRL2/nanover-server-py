@@ -18,9 +18,12 @@ from nanover.trajectory.frame_data import (
     RESIDUE_CHAINS,
     BOX_VECTORS,
     FrameData,
-    FRAME_INDEX, PARTICLE_VELOCITIES, PARTICLE_FORCES, PARTICLE_FORCES_SYSTEM,
+    FRAME_INDEX,
+    PARTICLE_VELOCITIES,
+    PARTICLE_FORCES,
+    PARTICLE_FORCES_SYSTEM,
 )
-
+from nanover.utilities.change_buffers import DictionaryChange
 
 P = TypeVar("P")
 U = TypeVar("U")
@@ -84,6 +87,13 @@ def convert_dict_frame_to_grpc_frame(dict_frame):
             grpc_frame.values[key] = value
 
     return grpc_frame
+
+
+def convert_dict_state_to_dictionary_change(dict_state):
+    return DictionaryChange(
+        updates=dict_state["updates"],
+        removals=dict_state["removals"],
+    )
 
 
 def convert_grpc_frame_to_dict_frame(grpc_frame):
