@@ -101,9 +101,11 @@ class WebsocketClient:
 
     def recv_frame(self, message: dict):
         frame = unpack_dict_frame(message)
-        if frame.get(FRAME_INDEX, None) == 0:
-            self._current_frame = {}
-        self._current_frame.update(frame)
+        next_frame = {}
+        if frame.get(FRAME_INDEX, None) != 0:
+            next_frame.update(self._current_frame)
+        next_frame.update(frame)
+        self._current_frame = next_frame
 
     def recv_state(self, message: dict):
         change = DictionaryChange(
