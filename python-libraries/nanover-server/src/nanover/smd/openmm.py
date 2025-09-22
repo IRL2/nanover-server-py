@@ -1,7 +1,7 @@
 import os.path
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Union, Any
+from typing import Union, Any
 from abc import abstractmethod
 
 import numpy as np
@@ -37,7 +37,7 @@ class OpenMMSMDSimulation:
         smd_path: np.ndarray,
         smd_force_constant: float,
         *,
-        name: Optional[str] = None,
+        name: str | None = None,
     ):
         """
         Construct the SMD simulation from an existing OpenMM simulation.
@@ -80,7 +80,7 @@ class OpenMMSMDSimulation:
         smd_path: np.ndarray,
         smd_force_constant: float,
         *,
-        name: Optional[str] = None,
+        name: str | None = None,
     ):
         """
         Construct the SMD simulation from an existing NanoVer OpenMM XML file located at a given path.
@@ -121,32 +121,30 @@ class OpenMMSMDSimulation:
 
         return sim
 
-    def __init__(self, name: Optional[str] = None):
+    def __init__(self, name: str | None = None):
         self.name = name or "Unnamed OpenMM SMD Simulation"
 
-        self.xml_path: Optional[PathLike[str]] = None
+        self.xml_path: PathLike[str] | None = None
 
-        self.simulation: Optional[Simulation] = None
-        self.smd_atom_indices: Optional[np.ndarray] = None
-        self.smd_path: Optional[np.ndarray] = None
-        self.smd_force_constant: Optional[float] = None
+        self.simulation: Simulation | None = None
+        self.smd_atom_indices: np.ndarray | None = None
+        self.smd_path: np.ndarray | None = None
+        self.smd_force_constant: float | None = None
 
         self.loaded_smd_force_from_sim: bool = False
-        self.n_smd_atom_indices: Optional[int] = None
+        self.n_smd_atom_indices: int | None = None
 
-        self.smd_force: Optional[
-            Union[CustomExternalForce, CustomCentroidBondForce]
-        ] = None
+        self.smd_force: Union[CustomExternalForce, CustomCentroidBondForce] | None = None
 
-        self.checkpoint: Optional[Any] = None
+        self.checkpoint: Any | None = None
 
-        self.current_smd_force_position: Optional[np.ndarray] = None
-        self.current_smd_force_position_index: Optional[int] = None
-        self.smd_simulation_atom_positions: Optional[np.ndarray] = None
-        self.smd_simulation_forces: Optional[np.ndarray] = None
-        self.smd_simulation_work_done: Optional[np.ndarray] = None
+        self.current_smd_force_position: np.ndarray | None = None
+        self.current_smd_force_position_index: int | None = None
+        self.smd_simulation_atom_positions: np.ndarray | None = None
+        self.smd_simulation_forces: np.ndarray | None = None
+        self.smd_simulation_work_done: np.ndarray | None = None
 
-        self._sim_uses_pbcs: Optional[bool] = None
+        self._sim_uses_pbcs: bool | None = None
 
     @abstractmethod
     def define_smd_simulation_atom_positions_array(self):
@@ -297,7 +295,7 @@ class OpenMMSMDSimulation:
         self,
         output_filepath: PathLike[str],
         save_state: bool = False,
-        save_smd_force: Optional[bool] = False,
+        save_smd_force: bool | None = False,
     ):
         """
         Save the simulation to a NanoVer OpenMM XML file, with the option to include the
@@ -344,9 +342,9 @@ class OpenMMSMDSimulation:
         self,
         interval_ps: float,
         n_structures: int,
-        output_directory: Optional[PathLike[str]] = None,
-        filename_prefix: Optional[str] = None,
-        save_smd_force: Optional[bool] = None,
+        output_directory: PathLike[str] | None = None,
+        filename_prefix: str | None = None,
+        save_smd_force: bool | None = None,
     ):
         """
         Generate the specified number of starting structures by running the simulation for the specified
@@ -394,7 +392,7 @@ class OpenMMSMDSimulation:
 
         print(f"Structure generation complete: {n_structures} structures generated.")
 
-    def run_smd(self, progress_interval: Optional[int] = 100000):
+    def run_smd(self, progress_interval: int | None = 100000):
         """
         Perform an SMD simulation on the system using the SMD force and
         path defined, store the positions of the atoms with which the
@@ -535,7 +533,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
     where the SMD force is applied to a single atom.
     """
 
-    def __init__(self, name: Optional[str] = None):
+    def __init__(self, name: str | None = None):
 
         super().__init__(name)
 
@@ -608,10 +606,10 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
     group of atoms.
     """
 
-    def __init__(self, name: Optional[str] = None):
+    def __init__(self, name: str | None = None):
 
         super().__init__(name)
-        self.com_positions: Optional[np.ndarray] = None
+        self.com_positions: np.ndarray | None = None
 
     def check_for_existing_smd_force(self):
         try:

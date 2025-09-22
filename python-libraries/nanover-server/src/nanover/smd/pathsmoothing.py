@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import MDAnalysis as mda
 import ipywidgets as widgets
 
-from typing import Optional, Union, Tuple
+from typing import Union, Tuple
 from os import PathLike
 
 from scipy.interpolate import splprep, splev
@@ -92,33 +92,33 @@ class PathSmoother:
             )
 
     def __init__(self):
-        self.filename: Optional[Union[str, PathLike]] = None
-        self.com_positions: Optional[np.ndarray] = None
-        self.atom_positions: Optional[np.ndarray] = None
-        self.atom_indices: Optional[np.ndarray] = None
-        self.n_interaction_frames: Optional[int] = None
+        self.filename: Union[str, PathLike] | None = None
+        self.com_positions: np.ndarray | None = None
+        self.atom_positions: np.ndarray | None = None
+        self.atom_indices: np.ndarray | None = None
+        self.n_interaction_frames: int | None = None
 
-        self.all_atom_positions: Optional[np.ndarray] = None
-        self.all_user_forces: Optional[np.ndarray] = None
-        self.all_atom_masses: Optional[np.ndarray] = None
+        self.all_atom_positions: np.ndarray | None = None
+        self.all_user_forces: np.ndarray | None = None
+        self.all_atom_masses: np.ndarray | None = None
 
-        self.universe: Optional[mda.Universe] = None
+        self.universe: mda.Universe | None = None
 
         # Plot smoothing properties
         self.fig = None
         self.ax = None
         self.scatter_curve = None
         self.scatter_points = None
-        self.smoothing_plot: Optional[plt.Figure] = None
-        self.smoothing_parameter: Optional[float] = None
-        self.n_points: Optional[int] = None
-        self.smoothing_start_index: Optional[int] = None
-        self.smoothing_end_index: Optional[int] = None
+        self.smoothing_plot: plt.Figure | None = None
+        self.smoothing_parameter: float | None = None
+        self.n_points: int | None = None
+        self.smoothing_start_index: int | None = None
+        self.smoothing_end_index: int | None = None
 
-        self.smoothed_com_trajectory: Optional[np.ndarray] = None
-        self.constant_speed_com_trajectory: Optional[np.ndarray] = None
-        self.constant_speed_nm_ps: Optional[float] = None
-        self.timestep_ps: Optional[float] = None
+        self.smoothed_com_trajectory: np.ndarray | None = None
+        self.constant_speed_com_trajectory: np.ndarray | None = None
+        self.constant_speed_nm_ps: float | None = None
+        self.timestep_ps: float | None = None
 
     def close_interactive_plots(self):
         """
