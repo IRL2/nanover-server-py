@@ -2,7 +2,7 @@ from os import PathLike
 from pathlib import Path
 
 from nanover.app.types import AppServer
-from nanover.recording2.record2 import MessageZipReader, RecordingIndexEntry
+from nanover.recording2.reading import RecordingIndexEntry, MessageZipReader
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.convert import (

@@ -1,5 +1,6 @@
 from nanover.recording.utilities import iter_recording_max
-from nanover.recording2.record2 import MessageEvent, record_messages
+from nanover.recording2.reading import MessageEvent
+from nanover.recording2.writing import record_messages
 from nanover.state.state_service import state_update_to_dictionary_change
 from nanover.trajectory import FrameData
 from nanover.trajectory.frame_data import FRAME_INDEX

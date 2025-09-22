@@ -141,11 +141,10 @@ def initialise_runner(arguments: argparse.Namespace):
                 timestamp = time.strftime("%Y-%m-%d-%H%M-%S", time.gmtime())
                 stem = f"omni-recording-{timestamp}"
 
-            traj_path = f"{stem}.traj"
-            state_path = f"{stem}.state"
-            print(f"Recording to {traj_path} & {state_path}")
+            out_path = f"{stem}.nanover.zip"
+            print(f"Recording to {out_path}")
 
-            record_from_runner(runner, traj_path, state_path)
+            record_from_runner(runner, out_path)
 
         if arguments.cloud_discovery_host:
             with DiscoveryClient.advertise_server(
