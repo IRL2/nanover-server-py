@@ -53,9 +53,6 @@ class MessageZipReader:
         self.messagesfile = zipfile.open(RECORDING_MESSAGES_FILENAME)
         self.index = parse_index(zipfile)
 
-        # workaround python 3.12.0 bug (https://github.com/python/cpython/issues/101911)
-        self.get_message_at_index(0)
-
     def close(self):
         self.zipfile.close()
 

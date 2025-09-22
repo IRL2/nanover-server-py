@@ -1,4 +1,3 @@
-
 from nanover.recording.utilities import iter_recording_max
 from nanover.recording2.record2 import MessageEvent, record_messages
 from nanover.state.state_service import state_update_to_dictionary_change
