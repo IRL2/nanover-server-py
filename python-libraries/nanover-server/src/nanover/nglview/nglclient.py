@@ -10,7 +10,7 @@ import numpy as np
 
 from nanover.websocket import NanoverImdClient
 from nanover.mdanalysis import frame_data_to_mdanalysis
-from nanover.trajectory import FrameData
+from nanover.trajectory.frame_data2 import FrameData
 from nglview import NGLWidget
 
 import MDAnalysis as mda
@@ -50,7 +50,7 @@ class NGLClient(NanoverImdClient):
         Returns an NGLView widget to visualise the molecular system.
         """
         if self._view is None or self.dynamic_bonds:
-            self._view = frame_data_to_nglwidget(self.current_frame_grpc)
+            self._view = frame_data_to_nglwidget(self.current_frame)
         return self._view
 
     def recv_frame(self, *args, **kwargs):
@@ -60,7 +60,7 @@ class NGLClient(NanoverImdClient):
         """
         super().recv_frame(*args, **kwargs)
         self.view.set_coordinates(
-            {0: np.array(self.current_frame_grpc.particle_positions) * 10}
+            {0: np.array(self.current_frame.particle_positions) * 10}
         )
         # TODO: Add functionality to update callback functions to allow widget customisation
 

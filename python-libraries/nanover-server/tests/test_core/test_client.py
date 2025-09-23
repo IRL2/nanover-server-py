@@ -6,7 +6,7 @@ from nanover.app import NanoverImdApplication
 from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ParticleInteraction
 from nanover.testing import assert_equal_soon, assert_in_soon
-from nanover.trajectory import FrameData
+from nanover.trajectory.frame_data2 import FrameData
 
 from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
@@ -57,7 +57,7 @@ def test_receive_frames(client_server, simple_frame_data):
     )
 
     assert_equal_soon(
-        lambda: client.current_frame_grpc,
+        lambda: client.current_frame,
         lambda: simple_frame_data,
     )
 
@@ -77,26 +77,26 @@ def test_current_frame_does_merge(client_server):
     client, app_server = client_server
 
     first_frame = FrameData()
-    first_frame.arrays["indices"] = [0, 1, 3]
-    first_frame.values["string"] = "str"
+    first_frame["indices"] = [0, 1, 3]
+    first_frame["string"] = "str"
 
     second_frame = FrameData()
-    second_frame.arrays["indices"] = [4, 6, 8]
-    second_frame.values["bool"] = False
+    second_frame["indices"] = [4, 6, 8]
+    second_frame["bool"] = False
 
     app_server.frame_publisher.send_frame(0, first_frame)
     app_server.frame_publisher.send_frame(1, second_frame)
 
     assert_equal_soon(
         lambda: (
-            client.current_frame_grpc.arrays["indices"],
-            client.current_frame_grpc.values["bool"],
-            client.current_frame_grpc.values["string"],
+            client.current_frame["indices"],
+            client.current_frame["bool"],
+            client.current_frame["string"],
         ),
         lambda: (
-            second_frame.arrays["indices"],
-            second_frame.values["bool"],
-            first_frame.values["string"],
+            second_frame["indices"],
+            second_frame["bool"],
+            first_frame["string"],
         ),
     )
 
@@ -105,21 +105,21 @@ def test_current_frame_is_copy(client_server):
     client, app_server = client_server
 
     first_frame = FrameData()
-    first_frame.arrays["indices"] = [0, 1, 3]
-    first_frame.values["string"] = "str"
+    first_frame["indices"] = [0, 1, 3]
+    first_frame["string"] = "str"
 
     second_frame = FrameData()
-    second_frame.arrays["indices"] = [4, 6, 8]
-    second_frame.values["bool"] = False
+    second_frame["indices"] = [4, 6, 8]
+    second_frame["bool"] = False
 
     app_server.frame_publisher.send_frame(0, first_frame)
 
     assert_equal_soon(
-        lambda: client.current_frame_grpc.arrays["indices"],
+        lambda: client.current_frame.arrays["indices"],
         lambda: [0, 1, 3],
     )
 
-    frame = client.current_frame_grpc
+    frame = client.current_frame
     assert frame.arrays["indices"] == [0, 1, 3]
     assert "string" in frame
     assert "bool" not in frame
@@ -127,7 +127,7 @@ def test_current_frame_is_copy(client_server):
     app_server.frame_publisher.send_frame(0, second_frame)
 
     assert_equal_soon(
-        lambda: client.current_frame_grpc.arrays["indices"],
+        lambda: client.current_frame.arrays["indices"],
         lambda: [4, 6, 8],
     )
 
@@ -142,16 +142,16 @@ def test_frame_reset(client_server, simple_frame_data, disjoint_frame_data):
 
     assert_in_soon(
         lambda: "bool",
-        lambda: client.current_frame_grpc.values,
+        lambda: client.current_frame,
     )
 
     app_server.frame_publisher.send_frame(0, disjoint_frame_data)
 
     assert_in_soon(
         lambda: "number",
-        lambda: client.current_frame_grpc.values,
+        lambda: client.current_frame,
     )
-    assert "bool" not in client.current_frame_grpc.values
+    assert "bool" not in client.current_frame
 
 
 def test_close_interaction(client_server, interaction):

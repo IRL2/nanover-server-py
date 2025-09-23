@@ -31,7 +31,7 @@ class OscClient:
 
     def run(self):
         for dt in yield_interval(self.send_interval):
-            frame = self.nanover_client.current_frame_grpc
+            frame = self.nanover_client.current_frame
             if frame:
                 self.process_frame(frame)
 

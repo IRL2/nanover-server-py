@@ -4,9 +4,9 @@ from typing import Any
 
 from nanover.app.types import AppServer
 from nanover.essd import DiscoveryClient, ServiceHub
+from nanover.trajectory.frame_data2 import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.playback_client import PlaybackClient
-from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
 from nanover.utilities.network import get_local_ip
 from nanover.websocket.client.interaction_client import InteractionClient
 from nanover.websocket.client.selection_client import SelectionClient
@@ -85,14 +85,10 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         return self._current_frame
 
     @property
-    def current_frame_grpc(self):
-        return convert_dict_frame_to_grpc_frame(self.current_frame)
-
-    @property
     def latest_multiplayer_values(self):
         return self._state_dictionary.copy_content()
 
-    def wait_until_first_frame(self, check_interval=0.01, timeout=1):
+    def wait_until_first_frame(self, check_interval=0.01, timeout=1) -> FrameData:
         """
         Wait until the first frame is received from the server.
 

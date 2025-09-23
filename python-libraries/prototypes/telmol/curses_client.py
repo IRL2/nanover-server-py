@@ -226,7 +226,7 @@ class CursesFrontend:
         self.stdscr.clear()
 
         try:
-            frame = self.client.current_frame_grpc
+            frame = self.client.current_frame
 
             self.renderer.positions = np.array(
                 frame.particle_positions, dtype=np.float32

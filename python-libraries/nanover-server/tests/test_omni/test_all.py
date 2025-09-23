@@ -102,7 +102,7 @@ def test_next_simulation_increments_counter(runner_with_imd_sims):
             client.run_next()
             client.wait_until_first_frame()
             assert_equal_soon(
-                lambda: client.current_frame_grpc.simulation_counter, lambda: i
+                lambda: client.current_frame.simulation_counter, lambda: i
             )
 
 
@@ -170,8 +170,7 @@ def test_first_frame_topology(sim_factory):
     with make_runner(sim_factory()) as runner:
         with make_connected_client_from_runner(runner) as client:
             runner.load(0)
-            client.wait_until_first_frame()
-            first_frame = client.current_frame_grpc
+            first_frame = client.wait_until_first_frame()
 
             # Currently the initial frame is the only frame containing the element
             # information, so this is equivalent to testing the frame in which the
@@ -191,17 +190,14 @@ def test_interaction_invalid_particle_index(sim_factory):
     with make_runner(sim_factory()) as runner:
         with make_connected_client_from_runner(runner) as client:
             runner.load(0)
-            client.wait_until_first_frame()
+            count = client.wait_until_first_frame().particle_count
 
-            count = client.current_frame_grpc.particle_count
             interaction_id = client.start_interaction(
                 ParticleInteraction(particles=[count + 10])
             )
 
             # exception exists in frame
-            assert_in_soon(
-                lambda: SIMULATION_EXCEPTION, lambda: client.current_frame_grpc
-            )
+            assert_in_soon(lambda: SIMULATION_EXCEPTION, lambda: client.current_frame)
             # interaction no longer exists in state
             assert_not_in_soon(
                 lambda: interaction_id,
