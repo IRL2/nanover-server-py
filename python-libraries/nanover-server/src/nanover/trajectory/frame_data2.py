@@ -32,7 +32,8 @@ from nanover.trajectory.frame_data import (
     SIMULATION_TIME,
     SIMULATION_COUNTER,
     SIMULATION_EXCEPTION,
-    SERVER_TIMESTAMP, MissingDataError,
+    SERVER_TIMESTAMP,
+    MissingDataError,
 )
 
 FrameDict = dict[str, Any]
@@ -87,8 +88,11 @@ def merge_frame_dicts(a: dict, b: dict):
 class FrameData(metaclass=_FrameDataMeta):
     _shortcuts: dict[str, _Shortcut]
 
-    def __init__(self, frame_dict: FrameDict = None):
+    def __init__(self, frame_dict: FrameDict | None = None):
         self.frame_dict = frame_dict or {}
+
+    def __contains__(self, key: str):
+        return key in self.frame_dict
 
     def __getitem__(self, key: str):
         return self.frame_dict[key]
@@ -98,7 +102,6 @@ class FrameData(metaclass=_FrameDataMeta):
 
     def update(self, other: "FrameData"):
         self.frame_dict = merge_frame_dicts(self.frame_dict, other.frame_dict)
-
 
     box_vectors: FloatArray = _shortcut(key=BOX_VECTORS)
 

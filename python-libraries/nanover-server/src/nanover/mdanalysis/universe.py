@@ -45,16 +45,12 @@ from MDAnalysis.core.topology import Topology
 from MDAnalysis.topology.base import TopologyReaderBase
 import numpy as np
 
-from nanover.trajectory import FrameData
+from nanover.trajectory.frame_data2 import FrameData
 from nanover.trajectory.frame_data import (
     PARTICLE_COUNT,
-    RESIDUE_COUNT,
-    CHAIN_COUNT,
     PARTICLE_ELEMENTS,
     PARTICLE_NAMES,
-    PARTICLE_RESIDUES,
     RESIDUE_NAMES,
-    RESIDUE_CHAINS,
     RESIDUE_IDS,
     CHAIN_NAMES,
     MissingDataError,
@@ -62,10 +58,13 @@ from nanover.trajectory.frame_data import (
     PARTICLE_FORCES,
     PARTICLE_FORCES_SYSTEM,
     PARTICLE_VELOCITIES,
+    FRAME_INDEX,
+    USER_FORCES_INDEX,
+    USER_FORCES_SPARSE,
 )
 
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
-from nanover.recording2.reading import MessageZipReader
+from nanover.recording2.reading import MessageZipReader, RecordingIndexEntry
 
 
 class KeyConversion(NamedTuple):
@@ -113,24 +112,24 @@ def universes_from_recording(path: PathLike[str], *, convert_units=True):
     Decompose a NanoVer trajectory into an mdanalysis Universe for each session of simulation (determined
     by frame_index resets).
     """
-    frame_offsets: list[int] = []
+    index_entries: list[RecordingIndexEntry] = []
     universes: list[Universe] = []
     first_particle_frame = FrameData()
     first_frame = last_frame = None
 
-    def message_begins_next_universe(message):
-        return message.frame_index == 0
+    def message_begins_next_universe(message: dict):
+        return message.get(FRAME_INDEX, None) == 0
 
     def finalise_prev_universe():
         nonlocal first_particle_frame, first_frame, last_frame
 
-        reader = MessageRecordingReader(open(traj, "rb"))
-        reader.message_offsets = list(frame_offsets)
+        reader = MessageZipReader.from_path(path)
+        reader.index = list(index_entries)
 
         try:
             universe = frame_data_to_mdanalysis(first_particle_frame)
             universe.trajectory = NanoverReaderBase(
-                reader, filename=traj, convert_units=convert_units
+                reader, filename=path, convert_units=convert_units
             )
             universes.append(universe)
         except Exception as e:
@@ -138,25 +137,28 @@ def universes_from_recording(path: PathLike[str], *, convert_units=True):
                 f"Failed to extract universe in frames #{first_frame}-{last_frame}: {e}"
             )
 
-        frame_offsets.clear()
+        index_entries.clear()
         first_particle_frame = FrameData()
         first_frame = last_frame = None
 
-    with MessageRecordingReader.from_path(traj) as reader:
+    with MessageZipReader.from_path(path) as reader:
         for i, entry in enumerate(reader):
+            if "frame" not in entry["types"]:
+                continue
+
             if first_frame is None:
                 first_frame = i
             last_frame = i
 
-            message = buffer_to_frame_message(entry.buffer)
-            if message_begins_next_universe(message) and frame_offsets:
+            message = reader.get_message_from_entry(entry)
+            if message_begins_next_universe(message) and index_entries:
                 finalise_prev_universe()
             # aggregate initial frames until there is position and topology information
             if not is_valid_first_frame(first_particle_frame):
-                first_particle_frame.raw.MergeFrom(message.frame)
-            frame_offsets.append(entry.offset)
+                first_particle_frame.update(FrameData(message))
+            index_entries.append(entry.offset)
 
-    if is_valid_first_frame(first_particle_frame) and frame_offsets:
+    if is_valid_first_frame(first_particle_frame) and index_entries:
         finalise_prev_universe()
 
     return universes
@@ -169,7 +171,7 @@ class NanoverParser(TopologyReaderBase):
             # count greater than 0. This will be true only most of the time.
             # TODO: implement a more reliable way to get the full topology
             try:
-                reader = MessageRecordingReader.from_io(infile)
+                reader = MessageZipReader.from_io(infile)
                 first_frame = _trim_start_frame_reader(reader)
             except StopIteration:
                 raise IOError("The file does not contain any frame.")
@@ -177,24 +179,23 @@ class NanoverParser(TopologyReaderBase):
             attrs = []
             for frame_key, (attribute, converter) in KEY_TO_ATTRIBUTE.items():
                 with suppress(MissingDataError):
-                    values = first_frame.arrays[frame_key]
+                    values = first_frame[frame_key]
                     attrs.append(attribute([converter(value) for value in values]))
 
             with suppress(MissingDataError):
-                elements = first_frame.arrays[PARTICLE_ELEMENTS]
-                converted_elements = _to_chemical_symbol(elements)
+                converted_elements = _to_chemical_symbol(first_frame.particle_elements)
                 attrs.append(Atomtypes(converted_elements))
                 attrs.append(Elements(converted_elements))
 
             # TODO: generate these values if they are not part of the FrameData
-            residx = first_frame.arrays[PARTICLE_RESIDUES]
-            segidx = first_frame.arrays[RESIDUE_CHAINS]
-            n_atoms = int(first_frame.values[PARTICLE_COUNT])
-            n_residues = int(first_frame.values[RESIDUE_COUNT])
-            n_chains = int(first_frame.values[CHAIN_COUNT])
+            residx = first_frame.particle_residues
+            segidx = first_frame.residue_chains
+            n_atoms = first_frame.particle_count
+            n_residues = first_frame.residue_count
+            n_chains = first_frame.chain_count
 
             with suppress(MissingDataError):
-                chain_ids_per_chain = first_frame.arrays[CHAIN_NAMES]
+                chain_ids_per_chain = first_frame.chain_names
                 chain_ids_per_particle = [
                     chain_ids_per_chain[segidx[residx[atom]]] for atom in range(n_atoms)
                 ]
@@ -231,7 +232,7 @@ class NanoverReaderBase(ProtoReader):
     ):
         super().__init__()
 
-        self._current_frame_index = None
+        self._current_frame_index: int | None = None
         self.convert_units = convert_units
         self.filename = filename
         self.reader = reader
@@ -254,7 +255,7 @@ class NanoverReaderBase(ProtoReader):
     def n_frames(self):
         return len(self.reader)
 
-    def _frame_to_timestep(self, frame, frame_at_index):
+    def _frame_to_timestep(self, frame: int, frame_at_index: FrameData):
         ts = Timestep(self.n_atoms)
         ts.frame = frame
 
@@ -275,7 +276,8 @@ class NanoverReaderBase(ProtoReader):
             with suppress(MissingDataError):
                 ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES_SYSTEM)
 
-        ts.data.update(frame_at_index.values)
+        # TODO: what is this supposed to do?
+        # ts.data.update(frame_at_index.values)
         self._add_user_forces_to_ts(frame_at_index, ts)
 
         if self.convert_units:
@@ -306,14 +308,14 @@ class NanoverReaderBase(ProtoReader):
         # no current frame, next frame is 0
         self._current_frame_index = None
 
-    def _add_user_forces_to_ts(self, frame, ts):
+    def _add_user_forces_to_ts(self, frame: FrameData, ts):
         """
         Read the user forces from the frame if they are available and
         converts them to the units used by MDAnalysis if required.
         """
         try:
-            indices = frame.arrays["forces.user.index"]
-            sparse = frame.arrays["forces.user.sparse"]
+            indices = frame[USER_FORCES_INDEX]
+            sparse = frame[USER_FORCES_SPARSE]
         except KeyError:
             return
         forces = np.zeros((self.n_atoms, 3), dtype=np.float32)
@@ -323,7 +325,7 @@ class NanoverReaderBase(ProtoReader):
             self.convert_forces_from_native(forces)
         ts.data["user_forces"] = forces
 
-    def _read_frame(self, frame):
+    def _read_frame(self, frame: int):
         self._current_frame_index = frame
 
         try:
@@ -331,23 +333,23 @@ class NanoverReaderBase(ProtoReader):
         except IndexError as err:
             raise EOFError(err) from None
 
-        message = buffer_to_frame_message(entry.buffer)
-        frame_at_index = FrameData(message.frame)
-        frame_at_index.values["elapsed"] = entry.timestamp
+        message = self.reader.get_message_from_entry(entry)
+        frame_at_index = FrameData(message["frame"])
+        frame_at_index["elapsed"] = entry.timestamp
 
         return self._frame_to_timestep(frame, frame_at_index)
 
 
-def _trim_start_frame_reader(reader: MessageZipReader):
+def _trim_start_frame_reader(reader: MessageZipReader) -> FrameData:
     """
     Change reader index to ignore initial frames that don't contain positions
     and return an aggregate of all skipped frames.
     """
-    first_frame = {}
+    first_frame = FrameData()
     for i, entry in enumerate(reader):
         message = reader.get_message_from_entry(entry)
         if "frame" in message:
-            first_frame.update(message["frame"])
+            first_frame.update(FrameData(message["frame"]))
             if is_valid_first_frame(first_frame):
                 reader.index = reader.index[i:]
                 return first_frame
@@ -360,17 +362,18 @@ def _trim_end_frame_reader(reader: MessageZipReader):
     frame_index reset.
     """
     for i, entry in enumerate(reader):
-        message = buffer_to_frame_message(entry.buffer)
-        if message.frame_index == 0 and i > 0:
-            remainder = len(reader.message_offsets) - i
-            reader.message_offsets = reader.message_offsets[:i]
-            return remainder
+        message = reader.get_message_from_entry(entry)
+        if "frame" in message:
+            if message["frame"].get(FRAME_INDEX, None) == 0 and i > 0:
+                remainder = len(reader.index) - i
+                reader.index = reader.index[:i]
+                return remainder
     return 0
 
 
 def _unflatten3d(frame: FrameData, key: str):
     """
-    Extract a (-1, 3) shape numpy array from a flat gRPC array in a given frame under a given key.
+    Extract a (-1, 3) shape numpy array from a flat array in a given frame under a given key.
 
     :param frame: FrameData to extract the data from.
     :param key: Key name of data array in the frame.
@@ -378,16 +381,14 @@ def _unflatten3d(frame: FrameData, key: str):
     This seems to be significantly faster than the existing shortcut that uses list comprehensions.
     """
     try:
-        fields = frame.raw.arrays[key].ListFields()
-        array = fields[0][1].values
-        return np.array(array).reshape((-1, 3))
+        return np.array(frame[key]).reshape((-1, 3))
     except IndexError:
         raise MissingDataError()
 
 
 def has_topology(frame: FrameData) -> bool:
     topology_keys = set(list(KEY_TO_ATTRIBUTE.keys()) + [PARTICLE_ELEMENTS])
-    return bool(topology_keys.intersection(frame.array_keys))
+    return bool(topology_keys.intersection(frame.frame_dict.keys()))
 
 
 # Copied from the documentation of itertools. See
@@ -453,7 +454,7 @@ def explosion_mask(trajectory, max_displacement):
     return mask
 
 
-def is_valid_first_frame(frame):
+def is_valid_first_frame(frame: FrameData):
     return all(key in frame for key in FIRST_FRAME_REQUIRED)
 
 
