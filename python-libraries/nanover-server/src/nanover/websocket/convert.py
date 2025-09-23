@@ -40,7 +40,7 @@ def pack_array(values: Iterable, *, dtype: npt.DTypeLike):
 
 
 def unpack_array(buffer: bytes, *, dtype: npt.DTypeLike):
-    return list(np.frombuffer(buffer, dtype=dtype))
+    return np.frombuffer(buffer, dtype=dtype)
 
 
 def make_bytes_packer(dtype: npt.DTypeLike):

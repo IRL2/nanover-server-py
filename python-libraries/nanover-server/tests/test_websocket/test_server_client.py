@@ -6,6 +6,7 @@ from nanover.testing.servers import (
     make_connected_server_client_setup,
     connect_client_to_server,
 )
+from nanover.testing.utilities import simplify_numpy
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -47,16 +48,16 @@ def test_websocket_sends_frame_two_clients(reusable_setup_two_clients, frame):
     reusable_setup.assert_frames_synced_soon()
 
     assert_equal_soon(
-        lambda: reusable_setup.client.current_frame,
-        lambda: client2.current_frame,
+        lambda: simplify_numpy(reusable_setup.client.current_frame),
+        lambda: simplify_numpy(client2.current_frame),
     )
 
     reusable_setup.server_publish_frame(frame_index=0, frame=FrameData())
     reusable_setup.assert_frames_synced_soon()
 
     assert_equal_soon(
-        lambda: reusable_setup.client.current_frame,
-        lambda: client2.current_frame,
+        lambda: simplify_numpy(reusable_setup.client.current_frame),
+        lambda: simplify_numpy(client2.current_frame),
     )
 
 
