@@ -48,16 +48,16 @@ def test_websocket_sends_frame_two_clients(reusable_setup_two_clients, frame):
     reusable_setup.assert_frames_synced_soon()
 
     assert_equal_soon(
-        lambda: simplify_numpy(reusable_setup.client.current_frame),
-        lambda: simplify_numpy(client2.current_frame),
+        lambda: simplify_numpy(reusable_setup.client.current_frame.frame_dict),
+        lambda: simplify_numpy(client2.current_frame.frame_dict),
     )
 
     reusable_setup.server_publish_frame(frame_index=0, frame=FrameData())
     reusable_setup.assert_frames_synced_soon()
 
     assert_equal_soon(
-        lambda: simplify_numpy(reusable_setup.client.current_frame),
-        lambda: simplify_numpy(client2.current_frame),
+        lambda: simplify_numpy(reusable_setup.client.current_frame.frame_dict),
+        lambda: simplify_numpy(client2.current_frame.frame_dict),
     )
 
 

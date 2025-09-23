@@ -7,6 +7,7 @@ from websockets.sync.client import connect, ClientConnection
 
 from nanover.state.state_dictionary import StateDictionary
 from nanover.trajectory.frame_data import FRAME_INDEX
+from nanover.trajectory.frame_data2 import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.convert import unpack_dict_frame
 
@@ -26,7 +27,7 @@ class WebsocketClient:
 
         self._state_dictionary = StateDictionary()
         self._pending_commands: dict[int, Callable[..., Any]] = {}
-        self._current_frame: dict[str, Any] = {}
+        self._current_frame = FrameData()
 
         self.next_command_id = 1
 
@@ -101,11 +102,9 @@ class WebsocketClient:
 
     def recv_frame(self, message: dict):
         frame = unpack_dict_frame(message)
-        next_frame = {}
-        if frame.get(FRAME_INDEX, None) != 0:
-            next_frame.update(self._current_frame)
-        next_frame.update(frame)
-        self._current_frame = next_frame
+        if frame.get(FRAME_INDEX, None) == 0:
+            self._current_frame = FrameData()
+        self._current_frame.update(FrameData(message))
 
     def recv_state(self, message: dict):
         change = DictionaryChange(

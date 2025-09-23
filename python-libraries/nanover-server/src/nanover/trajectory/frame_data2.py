@@ -57,18 +57,11 @@ class _Shortcut:
         return property(fget=get, fset=set)
 
 
-def _shortcut(key: str) -> Any:
+def _shortcut(*, key: str) -> Any:
     return _Shortcut(key=key)
 
 
 class _FrameDataMeta(type):
-    """
-    Metaclass that adds shortcuts to the :class:`FrameData` class.
-
-    The shortcuts are defined as a tuple of :class:`_Shortcut` named tuples
-    under the :attr:`_shortcuts` class attribute.
-    """
-
     _shortcuts: dict[str, _Shortcut] = {}
 
     def __init__(cls, name, bases, nmspc):
@@ -81,17 +74,29 @@ class _FrameDataMeta(type):
         cls._shortcuts = shortcuts
 
 
+def merge_frame_dicts(a: dict, b: dict):
+    merged = {}
+    merged.update(a)
+    merged.update(b)
+    return merged
+
+
 class FrameData(metaclass=_FrameDataMeta):
     _shortcuts: dict[str, _Shortcut]
 
-    def __init__(self, frame_dict: FrameDict):
-        self.frame_dict = frame_dict
+    def __init__(self, frame_dict: FrameDict = None):
+        self.frame_dict = frame_dict or {}
+
+    def update(self, other: "FrameData"):
+        self.frame_dict = merge_frame_dicts(self.frame_dict, other.frame_dict)
+
 
     box_vectors: FloatArray = _shortcut(key=BOX_VECTORS)
 
     bond_pairs: IndexArray = _shortcut(key=BOND_PAIRS)
     bond_orders: EnumArray = _shortcut(key=BOND_ORDERS)
 
+    particle_count: int = _shortcut(key=PARTICLE_COUNT)
     particle_positions: FloatArray = _shortcut(key=PARTICLE_POSITIONS)
     particle_velocities: FloatArray = _shortcut(key=PARTICLE_VELOCITIES)
     particle_forces: FloatArray = _shortcut(key=PARTICLE_FORCES)
@@ -99,24 +104,23 @@ class FrameData(metaclass=_FrameDataMeta):
     particle_elements: EnumArray = _shortcut(key=PARTICLE_ELEMENTS)
     particle_names: StringArray = _shortcut(key=PARTICLE_NAMES)
     particle_residues: IndexArray = _shortcut(key=PARTICLE_RESIDUES)
-    particle_count: int = _shortcut(key=PARTICLE_COUNT)
 
+    residue_count: int = _shortcut(key=RESIDUE_COUNT)
     residue_names: StringArray = _shortcut(key=RESIDUE_NAMES)
     residue_ids: StringArray = _shortcut(key=RESIDUE_IDS)
     residue_chains: IndexArray = _shortcut(key=RESIDUE_CHAINS)
-    residue_count: int = _shortcut(key=RESIDUE_COUNT)
 
-    chain_names: StringArray = _shortcut(key=CHAIN_NAMES)
     chain_count: int = _shortcut(key=CHAIN_COUNT)
+    chain_names: StringArray = _shortcut(key=CHAIN_NAMES)
 
     kinetic_energy: float = _shortcut(key=KINETIC_ENERGY)
     potential_energy: float = _shortcut(key=POTENTIAL_ENERGY)
     system_temperature: float = _shortcut(key=SYSTEM_TEMPERATURE)
 
     user_energy: float = _shortcut(key=USER_ENERGY)
+    user_work_done: float = _shortcut(key=USER_WORK_DONE)
     user_forces_sparse: FloatArray = _shortcut(key=USER_FORCES_SPARSE)
     user_forces_index: IndexArray = _shortcut(key=USER_FORCES_INDEX)
-    user_work_done: float = _shortcut(key=USER_WORK_DONE)
 
     simulation_time: float = _shortcut(key=SIMULATION_TIME)
     simulation_counter: float = _shortcut(key=SIMULATION_COUNTER)

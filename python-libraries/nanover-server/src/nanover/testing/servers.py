@@ -52,8 +52,8 @@ class ServerClientSetup:
     def assert_frames_synced_soon(self, **kwargs):
         __tracebackhide__ = True  # hide this function in the test traceback
         assert_equal_soon(
-            lambda: simplify_numpy(self.client_current_frame),
-            lambda: simplify_numpy(self.server_current_frame),
+            lambda: simplify_numpy(self.client_current_frame.frame_dict),
+            lambda: simplify_numpy(self.server_current_frame.frame_dict),
             **kwargs,
         )
 
