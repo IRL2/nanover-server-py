@@ -32,7 +32,7 @@ from nanover.trajectory.frame_data import (
     SIMULATION_TIME,
     SIMULATION_COUNTER,
     SIMULATION_EXCEPTION,
-    SERVER_TIMESTAMP,
+    SERVER_TIMESTAMP, MissingDataError,
 )
 
 FrameDict = dict[str, Any]
@@ -48,13 +48,16 @@ class _Shortcut:
     key: str
 
     def make_property(shortcut):
-        def get(self: "FrameData"):
-            return self.frame_dict[shortcut.key]
+        def getter(self: "FrameData"):
+            try:
+                return self.frame_dict[shortcut.key]
+            except KeyError:
+                raise MissingDataError(shortcut.key) from None
 
-        def set(self: "FrameData", value):
+        def setter(self: "FrameData", value):
             self.frame_dict[shortcut.key] = value
 
-        return property(fget=get, fset=set)
+        return property(fget=getter, fset=setter)
 
 
 def _shortcut(*, key: str) -> Any:
@@ -86,6 +89,12 @@ class FrameData(metaclass=_FrameDataMeta):
 
     def __init__(self, frame_dict: FrameDict = None):
         self.frame_dict = frame_dict or {}
+
+    def __getitem__(self, key: str):
+        return self.frame_dict[key]
+
+    def __setitem__(self, key: str, value: Any):
+        self.frame_dict[key] = value
 
     def update(self, other: "FrameData"):
         self.frame_dict = merge_frame_dicts(self.frame_dict, other.frame_dict)

@@ -64,11 +64,8 @@ from nanover.trajectory.frame_data import (
     PARTICLE_VELOCITIES,
 )
 
-from nanover.recording.reading import (
-    MessageRecordingReader,
-    buffer_to_frame_message,
-)
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
+from nanover.recording2.reading import MessageZipReader
 
 
 class KeyConversion(NamedTuple):
@@ -98,22 +95,22 @@ FIRST_FRAME_REQUIRED = {
 }
 
 
-def universe_from_recording(*, traj: PathLike[str], convert_units=True):
+def universe_from_recording(path: PathLike[str], *, convert_units=True):
     """
-    Read and convert a NanoVer trajectory recording into an mdanalysis Universe, ignore all frames after a frame_index
+    Read and convert a NanoVer recording into an mdanalysis Universe, ignore all frames after a frame_index
     reset.
     """
     return Universe(
-        traj,
+        path,
         format=NanoverReader,
         topology_format=NanoverParser,
         convert_units=convert_units,
     )
 
 
-def universes_from_recording(*, traj: PathLike[str], convert_units=True):
+def universes_from_recording(path: PathLike[str], *, convert_units=True):
     """
-    Decompose a NanoVer trajectory recording into an mdanalysis Universe for each session of simulation (determined
+    Decompose a NanoVer trajectory into an mdanalysis Universe for each session of simulation (determined
     by frame_index resets).
     """
     frame_offsets: list[int] = []
@@ -229,7 +226,9 @@ class NanoverParser(TopologyReaderBase):
 class NanoverReaderBase(ProtoReader):
     units = {"time": "ps", "length": "nm", "velocity": "nm/ps", "force": "kJ/(mol*nm)"}
 
-    def __init__(self, reader, *, filename=None, convert_units=True, **kwargs):
+    def __init__(
+        self, reader: MessageZipReader, *, filename=None, convert_units=True, **kwargs
+    ):
         super().__init__()
 
         self._current_frame_index = None
@@ -339,21 +338,23 @@ class NanoverReaderBase(ProtoReader):
         return self._frame_to_timestep(frame, frame_at_index)
 
 
-def _trim_start_frame_reader(reader: MessageRecordingReader):
+def _trim_start_frame_reader(reader: MessageZipReader):
     """
     Change reader index to ignore initial frames that don't contain positions
     and return an aggregate of all skipped frames.
     """
-    first_frame = FrameData()
+    first_frame = {}
     for i, entry in enumerate(reader):
-        message = buffer_to_frame_message(entry.buffer)
-        first_frame.raw.MergeFrom(message.frame)
-        if is_valid_first_frame(first_frame):
-            reader.message_offsets = reader.message_offsets[i:]
-            return first_frame
+        message = reader.get_message_from_entry(entry)
+        if "frame" in message:
+            first_frame.update(message["frame"])
+            if is_valid_first_frame(first_frame):
+                reader.index = reader.index[i:]
+                return first_frame
+    raise ValueError("No valid first frame.")
 
 
-def _trim_end_frame_reader(reader: MessageRecordingReader):
+def _trim_end_frame_reader(reader: MessageZipReader):
     """
     Change reader index to ignore all frames after and including the next
     frame_index reset.
@@ -459,7 +460,7 @@ def is_valid_first_frame(frame):
 class NanoverReader(NanoverReaderBase):
     def __init__(self, filename, convert_units=True, **kwargs):
         super().__init__(
-            MessageRecordingReader.from_path(filename),
+            MessageZipReader.from_path(filename),
             filename=filename,
             convert_units=convert_units,
             **kwargs,

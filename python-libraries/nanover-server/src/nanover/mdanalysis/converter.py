@@ -9,7 +9,7 @@ import numpy as np
 from MDAnalysis import Universe
 from MDAnalysis.guesser.default_guesser import DefaultGuesser
 
-from nanover.trajectory import FrameData
+from nanover.trajectory.frame_data2 import FrameData
 from nanover.trajectory.frame_data import (
     PARTICLE_COUNT,
     RESIDUE_COUNT,
@@ -227,7 +227,7 @@ def _get_universe_constructor_params(frame: FrameData):
     NanoVer :class:`FrameData` object.
     """
     params = {
-        param_name: converter(_try_get_field(frame, field))
+        param_name: converter(frame[field])
         for param_name, (field, converter) in MDA_UNIVERSE_PARAMS_TO_FRAME_DATA.items()
     }
 
@@ -281,7 +281,7 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
                     ELEMENT_INDEX[guesser.guess_atom_element(name).capitalize()]
                     for name in field
                 ]
-            frame_data.arrays[frame_key] = field
+            frame_data[frame_key] = field
 
 
 def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
@@ -296,7 +296,7 @@ def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
     for attribute, frame_key in MDANALYSIS_COUNTS_TO_FRAME_DATA.items():
         with suppress(AttributeError):
             field = getattr(u, attribute)
-            frame_data.values[frame_key] = len(field)
+            frame_data[frame_key] = len(field)
 
 
 def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
@@ -310,17 +310,7 @@ def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
         frame_data.bond_pairs = u.atoms.bonds.indices
 
 
-def _try_get_field(frame: FrameData, field):
-    array_keys = frame.array_keys
-    value_keys = frame.value_keys
-    if field in array_keys:
-        return frame.arrays.get(field)
-    elif field in value_keys:
-        return frame.values.get(field)
-
-
 def _add_frame_attributes_to_mda(universe, frame):
     for name, (key, converter) in FRAME_DATA_TO_MDANALYSIS.items():
         with suppress(KeyError, MissingDataError):
-            value = frame.arrays[key]
-            universe.add_TopologyAttr(name, converter(value))
+            universe.add_TopologyAttr(name, converter(frame[key]))
