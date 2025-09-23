@@ -37,6 +37,7 @@ nanover-multiplayer = "nanover.multiplayer.cli:main"
 nanover-dump-state = "nanover.recording.cli.dump_cli:main"
 nanover-split-recording = "nanover.recording.cli.split_cli:main"
 nanover-check-recording = "nanover.recording.cli.check_cli:main"
+nanover-convert-recording = "nanover.recording2.cli.convert_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
