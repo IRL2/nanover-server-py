@@ -1285,7 +1285,9 @@ def test_load_openmm_state(apply_pbcs, save_smd_force, indices):
             filename = "test_velocities.xml"
             file_path = output_path.joinpath(filename)
             smd_sim.save_simulation(
-                output_filepath=file_path, save_state=True, save_smd_force=save_smd_force
+                output_filepath=file_path,
+                save_state=True,
+                save_smd_force=save_smd_force,
             )
             assert file_path.exists()
 

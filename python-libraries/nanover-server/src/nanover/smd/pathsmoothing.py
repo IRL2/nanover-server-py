@@ -155,7 +155,9 @@ class PathSmoother:
         # Retrieve atom elements and guess masses
         atom_elements = np.array(self.universe.atoms.types)
         # Old code: self.all_atom_masses = mda.topology.guessers.guess_masses(atom_elements)
-        self.all_atom_masses = np.array([mda.topology.guessers.get_atom_mass(atom_t) for atom_t in atom_elements])
+        self.all_atom_masses = np.array(
+            [mda.topology.guessers.get_atom_mass(atom_t) for atom_t in atom_elements]
+        )
 
         # Create empty arrays for atom positions and user forces
         n_atoms = atom_elements.size

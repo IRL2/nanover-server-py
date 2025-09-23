@@ -134,7 +134,9 @@ class OpenMMSMDSimulation:
         self.loaded_smd_force_from_sim: bool = False
         self.n_smd_atom_indices: int | None = None
 
-        self.smd_force: Union[CustomExternalForce, CustomCentroidBondForce] | None = None
+        self.smd_force: Union[CustomExternalForce, CustomCentroidBondForce] | None = (
+            None
+        )
 
         self.checkpoint: Any | None = None
 
