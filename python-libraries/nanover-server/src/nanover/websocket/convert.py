@@ -22,6 +22,8 @@ from nanover.trajectory.frame_data import (
     PARTICLE_VELOCITIES,
     PARTICLE_FORCES,
     PARTICLE_FORCES_SYSTEM,
+    BOND_ORDERS,
+    USER_FORCES_INDEX,
 )
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -72,8 +74,10 @@ converters: dict[str, PackingPair] = {
     PARTICLE_ELEMENTS: pack_uint8,
     PARTICLE_RESIDUES: pack_uint32,
     BOND_PAIRS: pack_uint32,
+    BOND_ORDERS: pack_uint8,
     RESIDUE_CHAINS: pack_uint32,
     BOX_VECTORS: pack_float32,
+    USER_FORCES_INDEX: pack_uint32,
 }
 
 
