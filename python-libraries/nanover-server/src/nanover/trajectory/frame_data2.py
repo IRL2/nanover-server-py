@@ -90,6 +90,9 @@ class FrameData:
     def __init__(self, frame_dict: FrameDict | None = None):
         self.frame_dict = frame_dict or {}
 
+    def __bool__(self):
+        return bool(self.frame_dict)
+
     def __contains__(self, key: str):
         return key in self.frame_dict
 

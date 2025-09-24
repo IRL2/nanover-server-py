@@ -172,6 +172,8 @@ def test_first_frame_topology(sim_factory):
             runner.load(0)
             first_frame = client.wait_until_first_frame()
 
+            print(first_frame.frame_dict)
+
             # Currently the initial frame is the only frame containing the element
             # information, so this is equivalent to testing the frame in which the
             # topology is sent (where relevant).
