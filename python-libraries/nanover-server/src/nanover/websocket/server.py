@@ -111,12 +111,7 @@ class WebSocketClientHandler:
         return results
 
     def send_frame(self, frame: FrameData):
-        print("SEND FRAME!")
-        try:
-            self.send_message({"frame": pack_grpc_frame(frame)})
-            print("SENT :)")
-        except Exception as e:
-            print(e)
+        self.send_message({"frame": pack_grpc_frame(frame)})
 
     def send_state_update(self, change: DictionaryChange):
         self.send_message(
@@ -158,6 +153,7 @@ class WebSocketClientHandler:
             self.send_message({"command": responses})
 
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
+        # TODO: error handling!!
         def send_frames():
             for response in self.frame_publisher.subscribe_latest_frames(
                 frame_interval=frame_interval,
