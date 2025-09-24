@@ -18,8 +18,6 @@ from nanover.trajectory.frame_data import (
 
 SENTINEL = None
 
-FRAME_SERVICE_NAME = "trajectory"
-
 
 class FramePublisher:
     """
@@ -36,7 +34,6 @@ class FramePublisher:
     _request_id_lock: Lock
 
     def __init__(self):
-        self.name: str = FRAME_SERVICE_NAME
         self.frame_queues = DictOfQueues()
         self.last_frame = None
         self.last_frame_index = 0

@@ -1,3 +1,4 @@
+import numpy as np
 from hypothesis import strategies as st
 from nanover.trajectory.frame_data import (
     PARTICLE_POSITIONS,
@@ -22,13 +23,41 @@ def float32s():
     return st.floats(width=32, allow_nan=False)
 
 
+@st.composite
+def arrays(draw, values, dtype=None):
+    value = draw(st.lists(values))
+    return np.array(value, dtype=dtype)
+
+
+@st.composite
+def arrays2d(draw, values, size, dtype=None):
+    value = draw(arrays(st.lists(values, min_size=size, max_size=size)))
+    return np.array(value, dtype=dtype)
+
+
+def enum_arrays():
+    return arrays(uint8s(), dtype=np.uint8)
+
+
+def index_arrays():
+    return arrays(uint32s(), dtype=np.uint32)
+
+
+def vec3_arrays():
+    return arrays2d(float32s(), dtype=np.float32, size=3)
+
+
+def index2_arrays():
+    return arrays2d(uint32s(), dtype=np.uint32, size=2)
+
+
 known_types = {
-    BOX_VECTORS: st.lists(float32s(), min_size=1),
-    PARTICLE_POSITIONS: st.lists(float32s()),
-    PARTICLE_ELEMENTS: st.lists(uint8s()),
-    PARTICLE_RESIDUES: st.lists(uint32s()),
-    BOND_PAIRS: st.lists(uint32s()),
-    RESIDUE_CHAINS: st.lists(uint32s()),
+    BOX_VECTORS: vec3_arrays(),
+    PARTICLE_POSITIONS: vec3_arrays(),
+    PARTICLE_ELEMENTS: enum_arrays(),
+    PARTICLE_RESIDUES: index_arrays(),
+    BOND_PAIRS: index2_arrays(),
+    RESIDUE_CHAINS: index_arrays(),
 }
 
 

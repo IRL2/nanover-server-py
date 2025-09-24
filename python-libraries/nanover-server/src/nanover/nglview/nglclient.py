@@ -6,11 +6,10 @@ the molecular system from within a Jupyter notebook (or iPython interface).
 from io import StringIO
 
 import nglview
-import numpy as np
 
 from nanover.websocket import NanoverImdClient
 from nanover.mdanalysis import frame_data_to_mdanalysis
-from nanover.trajectory.frame_data2 import FrameData
+from nanover.trajectory import FrameData
 from nglview import NGLWidget
 
 import MDAnalysis as mda
@@ -59,9 +58,7 @@ class NGLClient(NanoverImdClient):
         in the molecular system in Angstrom for visualisation using NGLView.
         """
         super().recv_frame(*args, **kwargs)
-        self.view.set_coordinates(
-            {0: np.array(self.current_frame.particle_positions) * 10}
-        )
+        self.view.set_coordinates({0: self.current_frame.particle_positions * 10})
         # TODO: Add functionality to update callback functions to allow widget customisation
 
 

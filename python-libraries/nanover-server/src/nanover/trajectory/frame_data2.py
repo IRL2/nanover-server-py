@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from inspect import getmembers
 from typing import Any
 
 import numpy as np
@@ -34,6 +35,7 @@ from nanover.trajectory.frame_data import (
     SIMULATION_EXCEPTION,
     SERVER_TIMESTAMP,
     MissingDataError,
+    FRAME_INDEX,
 )
 
 FrameDict = dict[str, Any]
@@ -65,31 +67,31 @@ def _shortcut(*, key: str) -> Any:
     return _Shortcut(key=key)
 
 
-class _FrameDataMeta(type):
-    _shortcuts: dict[str, _Shortcut] = {}
-
-    def __init__(cls, name, bases, nmspc):
-        shortcuts = {}
-        super().__init__(name, bases, nmspc)
-        for attribute_name, attribute in nmspc.items():
-            if isinstance(attribute, _Shortcut):
-                shortcuts[attribute_name] = attribute
-                setattr(cls, attribute_name, attribute.make_property())
-        cls._shortcuts = shortcuts
-
-
-def merge_frame_dicts(a: dict, b: dict):
+def merge_frame_dicts(a: dict, b: dict, ignore_reset=False):
     merged = {}
-    merged.update(a)
+    if b.get(FRAME_INDEX, None) != 0 or ignore_reset:
+        merged.update(a)
     merged.update(b)
     return merged
 
 
-class FrameData(metaclass=_FrameDataMeta):
+def replace_shortcuts(cls):
+    for name, attribute in getmembers(
+        cls, lambda attribute: isinstance(attribute, _Shortcut)
+    ):
+        setattr(cls, name, attribute.make_property())
+    return cls
+
+
+@replace_shortcuts
+class FrameData:
     _shortcuts: dict[str, _Shortcut]
 
     def __init__(self, frame_dict: FrameDict | None = None):
         self.frame_dict = frame_dict or {}
+
+    def __bool__(self):
+        return bool(self.frame_dict)
 
     def __contains__(self, key: str):
         return key in self.frame_dict
@@ -100,8 +102,15 @@ class FrameData(metaclass=_FrameDataMeta):
     def __setitem__(self, key: str, value: Any):
         self.frame_dict[key] = value
 
-    def update(self, other: "FrameData"):
-        self.frame_dict = merge_frame_dicts(self.frame_dict, other.frame_dict)
+    def copy(self):
+        return FrameData(self.frame_dict.copy())
+
+    def update(self, other: "FrameData", ignore_reset=False):
+        self.frame_dict = merge_frame_dicts(
+            self.frame_dict, other.frame_dict, ignore_reset=ignore_reset
+        )
+
+    frame_index: int = _shortcut(key=FRAME_INDEX)
 
     box_vectors: FloatArray = _shortcut(key=BOX_VECTORS)
 

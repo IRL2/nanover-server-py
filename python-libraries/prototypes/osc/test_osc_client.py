@@ -17,7 +17,7 @@ OSC_SEND_INTERVAL = 1 / 100
 
 def simple_frame_to_message(frame):
     try:
-        yield "/test", frame.values["/test"]
+        yield "/test", frame["/test"]
     except KeyError:
         pass
 

@@ -9,7 +9,6 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.utilities.protobuf_utilities import Serializable
 
-IMD_SERVICE_NAME = "imd"
 INTERACTION_PREFIX = "interaction."
 VELOCITY_RESET_KEY = "imd.velocity_reset_available"
 
