@@ -32,7 +32,7 @@ def main():
     paths = [Path(path) for path in args.paths]
     traj_path = next((path for path in paths if path.suffix == ".traj"), None)
     state_path = next((path for path in paths if path.suffix == ".state"), None)
-    out_path = f"{(traj_path or state_path or "FAILED")}.nanover.zip"
+    out_path = (traj_path or state_path).with_suffix(".nanover.zip")
 
     print(f"Writing recording to {out_path}")
     convert_old_recording(out_path, traj=traj_path, state=state_path)

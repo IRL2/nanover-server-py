@@ -3,34 +3,33 @@ import warnings
 from pathlib import Path
 
 import pytest
-import itertools
 import numpy as np
 import MDAnalysis as mda
 from nanover.mdanalysis import NanoverParser, NanoverReader, universes_from_recording
 
 SINGLE_TOPOLOGY_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello.traj",
+    "test.nanover.zip",
 )
 MULTI_TOPOLOGY_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello_multi.traj",
+    "test_multi.nanover.zip",
 )
 USER_FORCES_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello_force.traj",
+    "test_force.nanover.zip",
 )
 FORCES_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello_all_forces.traj",
+    "test_all_forces.nanover.zip",
 )
 VELOCITIES_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello_vel.traj",
+    "test_vel.nanover.zip",
 )
 VELOCITIES_FORCES_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello_vel_force.traj",
+    "test_vel_force.nanover.zip",
 )
 REFERENCE_PDB = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
