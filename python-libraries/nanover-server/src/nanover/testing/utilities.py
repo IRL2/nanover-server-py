@@ -12,7 +12,7 @@ def simplify_numpy(dict_frame: dict[str, Any]):
     simplified = {}
     for key, value in dict_frame.items():
         if isinstance(value, np.ndarray):
-            simplified[key] = list(value)
+            simplified[key] = list(value.reshape(-1))
         else:
             simplified[key] = value
     return simplified

@@ -1,3 +1,4 @@
+import numpy as np
 from hypothesis import strategies as st
 from nanover.trajectory.frame_data import (
     PARTICLE_POSITIONS,
@@ -22,13 +23,24 @@ def float32s():
     return st.floats(width=32, allow_nan=False)
 
 
+@st.composite
+def arrays(draw, values, shape=(-1, 1), dtype=None):
+    size = shape[1]
+    value = draw(st.lists(st.lists(values, min_size=size, max_size=size)))
+    return np.array(value, dtype=dtype)
+
+
+def np_vec3s():
+    return arrays(float32s(), dtype=np.float32, shape=(-1, 3))
+
+
 known_types = {
-    BOX_VECTORS: st.lists(float32s(), min_size=1),
-    PARTICLE_POSITIONS: st.lists(float32s()),
-    PARTICLE_ELEMENTS: st.lists(uint8s()),
-    PARTICLE_RESIDUES: st.lists(uint32s()),
-    BOND_PAIRS: st.lists(uint32s()),
-    RESIDUE_CHAINS: st.lists(uint32s()),
+    BOX_VECTORS: np_vec3s(),
+    PARTICLE_POSITIONS: np_vec3s(),
+    PARTICLE_ELEMENTS: arrays(uint8s()),
+    PARTICLE_RESIDUES: arrays(uint32s()),
+    BOND_PAIRS: arrays(uint32s()),
+    RESIDUE_CHAINS: arrays(uint32s()),
 }
 
 
