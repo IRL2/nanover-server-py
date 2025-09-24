@@ -197,9 +197,7 @@ def test_interaction_invalid_particle_index(sim_factory):
             )
 
             # exception exists in frame
-            assert_in_soon(
-                lambda: SIMULATION_EXCEPTION, lambda: client.current_frame
-            )
+            assert_in_soon(lambda: SIMULATION_EXCEPTION, lambda: client.current_frame)
             # interaction no longer exists in state
             assert_not_in_soon(
                 lambda: interaction_id,
