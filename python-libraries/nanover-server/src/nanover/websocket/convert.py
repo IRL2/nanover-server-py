@@ -59,9 +59,8 @@ def make_bytes_packer(dtype: npt.DTypeLike, shape: tuple[int, ...] = (-1,)):
 pack_uint32 = make_bytes_packer(np.uint32)
 pack_uint8 = make_bytes_packer(np.uint8)
 
-
 pack_vec3 = make_bytes_packer(np.float32, shape=(-1, 3))
-
+pack_bond = make_bytes_packer(np.uint32, shape=(-1, 2))
 
 pack_identity = PackingPair(pack=lambda value: value, unpack=lambda value: value)  # type: ignore
 pack_force_list = PackingPair(pack=list, unpack=list)  # type: ignore
@@ -80,7 +79,7 @@ converters: dict[str, PackingPair] = {
     PARTICLE_FORCES_SYSTEM: pack_vec3,
     PARTICLE_ELEMENTS: pack_uint8,
     PARTICLE_RESIDUES: pack_uint32,
-    BOND_PAIRS: pack_uint32,
+    BOND_PAIRS: pack_bond,
     BOND_ORDERS: pack_uint8,
     RESIDUE_CHAINS: pack_uint32,
     BOX_VECTORS: pack_vec3,

@@ -47,12 +47,16 @@ def vec3_arrays():
     return arrays2d(float32s(), dtype=np.float32, size=3)
 
 
+def index2_arrays():
+    return arrays2d(uint32s(), dtype=np.uint32, size=2)
+
+
 known_types = {
     BOX_VECTORS: vec3_arrays(),
     PARTICLE_POSITIONS: vec3_arrays(),
     PARTICLE_ELEMENTS: enum_arrays(),
     PARTICLE_RESIDUES: index_arrays(),
-    BOND_PAIRS: index_arrays(),
+    BOND_PAIRS: index2_arrays(),
     RESIDUE_CHAINS: index_arrays(),
 }
 
