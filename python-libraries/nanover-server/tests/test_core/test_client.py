@@ -14,6 +14,7 @@ from nanover.trajectory.frame_server import (
     STEP_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
 )
+from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
 
 from .test_frame_server import simple_frame_data, disjoint_frame_data
 from nanover.websocket import NanoverImdClient
@@ -57,7 +58,7 @@ def test_receive_frames(client_server, simple_frame_data):
     )
 
     assert_equal_soon(
-        lambda: client.current_frame_grpc,
+        lambda: convert_dict_frame_to_grpc_frame(client.current_frame.frame_dict),
         lambda: simple_frame_data,
     )
 
@@ -89,9 +90,9 @@ def test_current_frame_does_merge(client_server):
 
     assert_equal_soon(
         lambda: (
-            client.current_frame_grpc.arrays["indices"],
-            client.current_frame_grpc.values["bool"],
-            client.current_frame_grpc.values["string"],
+            client.current_frame["indices"],
+            client.current_frame["bool"],
+            client.current_frame["string"],
         ),
         lambda: (
             second_frame.arrays["indices"],
@@ -115,23 +116,23 @@ def test_current_frame_is_copy(client_server):
     app_server.frame_publisher.send_frame(0, first_frame)
 
     assert_equal_soon(
-        lambda: client.current_frame_grpc.arrays["indices"],
+        lambda: client.current_frame["indices"],
         lambda: [0, 1, 3],
     )
 
-    frame = client.current_frame_grpc
-    assert frame.arrays["indices"] == [0, 1, 3]
+    frame = client.current_frame
+    assert frame["indices"] == [0, 1, 3]
     assert "string" in frame
     assert "bool" not in frame
 
     app_server.frame_publisher.send_frame(0, second_frame)
 
     assert_equal_soon(
-        lambda: client.current_frame_grpc.arrays["indices"],
+        lambda: client.current_frame["indices"],
         lambda: [4, 6, 8],
     )
 
-    assert frame.arrays["indices"] == [0, 1, 3]
+    assert frame["indices"] == [0, 1, 3]
     assert "string" in frame
     assert "bool" not in frame
 
@@ -142,16 +143,16 @@ def test_frame_reset(client_server, simple_frame_data, disjoint_frame_data):
 
     assert_in_soon(
         lambda: "bool",
-        lambda: client.current_frame_grpc.values,
+        lambda: client.current_frame,
     )
 
     app_server.frame_publisher.send_frame(0, disjoint_frame_data)
 
     assert_in_soon(
         lambda: "number",
-        lambda: client.current_frame_grpc.values,
+        lambda: client.current_frame,
     )
-    assert "bool" not in client.current_frame_grpc.values
+    assert "bool" not in client.current_frame
 
 
 def test_close_interaction(client_server, interaction):

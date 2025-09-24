@@ -6,10 +6,10 @@ from nanover.app.types import AppServer
 from nanover.essd import DiscoveryClient, ServiceHub
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.playback_client import PlaybackClient
-from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
 from nanover.utilities.network import get_local_ip
 from nanover.websocket.client.interaction_client import InteractionClient
 from nanover.websocket.client.selection_client import SelectionClient
+from nanover.trajectory import FrameData2
 
 
 class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
@@ -66,24 +66,20 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         return cls.from_url(url)
 
     def __init__(self, *args, **kwargs):
-        self._frames: deque[dict] = deque(maxlen=50)
+        self._frames: deque[FrameData2] = deque(maxlen=50)
         super().__init__(*args, **kwargs)
 
     @property
-    def frames(self):
+    def frames(self) -> list[FrameData2]:
         return list(self._frames)
 
     def recv_frame(self, message: dict):
         super().recv_frame(message)
-        self._frames.append({key: value for key, value in self.current_frame.items()})
+        self._frames.append(FrameData2(message).copy())
 
     @property
-    def current_frame(self):
+    def current_frame(self) -> FrameData2:
         return self._current_frame
-
-    @property
-    def current_frame_grpc(self):
-        return convert_dict_frame_to_grpc_frame(self.current_frame)
 
     @property
     def latest_multiplayer_values(self):
