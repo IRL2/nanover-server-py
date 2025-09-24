@@ -49,7 +49,7 @@ def unpack_array(buffer: bytes, *, dtype: npt.DTypeLike) -> npt.NDArray:
     return np.frombuffer(buffer, dtype=dtype)
 
 
-def make_bytes_packer(dtype: npt.DTypeLike, shape=(-1, 1)):
+def make_bytes_packer(dtype: npt.DTypeLike, shape: tuple[int, ...] = (-1,)):
     return PackingPair(
         pack=lambda array: pack_array(array, dtype=dtype),
         unpack=lambda data: unpack_array(data, dtype=dtype).reshape(shape),
