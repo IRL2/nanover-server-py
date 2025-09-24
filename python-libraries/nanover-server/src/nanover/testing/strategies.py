@@ -24,23 +24,36 @@ def float32s():
 
 
 @st.composite
-def arrays(draw, values, shape=(-1, 1), dtype=None):
-    size = shape[1]
-    value = draw(st.lists(st.lists(values, min_size=size, max_size=size)))
+def arrays(draw, values, dtype=None):
+    value = draw(st.lists(values))
     return np.array(value, dtype=dtype)
 
 
-def np_vec3s():
-    return arrays(float32s(), dtype=np.float32, shape=(-1, 3))
+@st.composite
+def arrays2d(draw, values, size, dtype=None):
+    value = draw(arrays(st.lists(values, min_size=size, max_size=size)))
+    return np.array(value, dtype=dtype)
+
+
+def enum_arrays():
+    return arrays(uint8s(), dtype=np.uint8)
+
+
+def index_arrays():
+    return arrays(uint32s(), dtype=np.uint32)
+
+
+def vec3_arrays():
+    return arrays2d(float32s(), dtype=np.float32, size=3)
 
 
 known_types = {
-    BOX_VECTORS: np_vec3s(),
-    PARTICLE_POSITIONS: np_vec3s(),
-    PARTICLE_ELEMENTS: arrays(uint8s()),
-    PARTICLE_RESIDUES: arrays(uint32s()),
-    BOND_PAIRS: arrays(uint32s()),
-    RESIDUE_CHAINS: arrays(uint32s()),
+    BOX_VECTORS: vec3_arrays(),
+    PARTICLE_POSITIONS: vec3_arrays(),
+    PARTICLE_ELEMENTS: enum_arrays(),
+    PARTICLE_RESIDUES: index_arrays(),
+    BOND_PAIRS: index_arrays(),
+    RESIDUE_CHAINS: index_arrays(),
 }
 
 

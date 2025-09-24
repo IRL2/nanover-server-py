@@ -1,4 +1,4 @@
-from hypothesis import given, strategies as st
+from hypothesis import given, reproduce_failure
 from nanover.testing.utilities import simplify_numpy
 from nanover.websocket.convert import (
     pack_dict_frame,
@@ -14,4 +14,5 @@ def test_pack_unpack_dict_frames(dict_frame):
     """
     packed = pack_dict_frame(dict_frame)
     unpacked = unpack_dict_frame(packed)
+
     assert simplify_numpy(unpacked) == simplify_numpy(dict_frame)
