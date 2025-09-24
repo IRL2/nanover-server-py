@@ -111,7 +111,12 @@ class WebSocketClientHandler:
         return results
 
     def send_frame(self, frame: FrameData):
-        self.send_message({"frame": pack_grpc_frame(frame)})
+        print("SEND FRAME!")
+        try:
+            self.send_message({"frame": pack_grpc_frame(frame)})
+            print("SENT :)")
+        except Exception as e:
+            print(e)
 
     def send_state_update(self, change: DictionaryChange):
         self.send_message(
