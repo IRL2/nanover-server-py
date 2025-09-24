@@ -355,7 +355,7 @@ def test_report_frame_forces(basic_system_app_and_simulation_with_complex_intera
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    assert frame.user_forces_index == [0, 1, 4, 5]
+    assert np.all(frame.user_forces_index == [0, 1, 4, 5])
 
 
 # TODO: could generalise for both OMM and ASE
