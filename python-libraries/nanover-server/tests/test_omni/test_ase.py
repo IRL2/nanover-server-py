@@ -206,7 +206,6 @@ def test_user_energy(example_ase_app_sim_constant_force_interaction):
         sim.advance_by_one_step()
 
     frame = connect_and_retrieve_first_frame_from_app_server(app)
-    assert frame.user_energy
     assert frame.user_energy == pytest.approx(
         np.sqrt(np.sum(np.square(frame.user_forces_sparse))), abs=1e-6
     )
@@ -225,8 +224,7 @@ def test_particle_forces_system_single_atom(
         sim.advance_by_one_step()
 
     frame = connect_and_retrieve_first_frame_from_app_server(app)
-    assert frame.particle_forces_system
-    assert frame.user_forces_sparse
+    assert len(frame.user_forces_sparse) > 0
     # Assert elements are approximately zero (allow for small
     # numerical error)
     for f_i in np.squeeze(frame.particle_forces_system):
@@ -248,8 +246,7 @@ def test_velocity_unit_conversion(example_ase_app_sim_constant_force_interaction
     ).flatten()
 
     frame = connect_and_retrieve_first_frame_from_app_server(app)
-    assert frame.particle_velocities
-    particle_velocities_frame = np.array(frame.particle_velocities).flatten()
+    particle_velocities_frame = frame.particle_velocities.flatten()
     for v_i in range(len(particle_velocities_frame)):
         assert particle_velocities[v_i] == pytest.approx(
             particle_velocities_frame[v_i], rel=1e-7
@@ -273,8 +270,7 @@ def test_system_force_unit_conversion(multiple_atom_ase_app_sim):
     ).flatten()
 
     frame = connect_and_retrieve_first_frame_from_app_server(app)
-    assert frame.particle_forces_system
-    particle_forces_frame = np.array(frame.particle_forces_system).flatten()
+    particle_forces_frame = frame.particle_forces_system.flatten()
     for f_i in range(len(particle_forces_frame)):
         assert particle_forces[f_i] == pytest.approx(
             particle_forces_frame[f_i], rel=1e-7
@@ -298,8 +294,7 @@ def test_imd_force_unit_conversion(example_ase_app_sim_constant_force_interactio
     ).flatten()
 
     frame = connect_and_retrieve_first_frame_from_app_server(app)
-    assert frame.user_forces_sparse
-    particle_forces_frame = np.array(frame.user_forces_sparse).flatten()
+    particle_forces_frame = frame.user_forces_sparse.flatten()
     for f_i in range(len(particle_forces_frame)):
         assert particle_forces[f_i] == pytest.approx(
             particle_forces_frame[f_i], rel=1e-7
