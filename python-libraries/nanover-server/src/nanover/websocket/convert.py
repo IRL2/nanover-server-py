@@ -39,7 +39,10 @@ class PackingPair(Generic[U, P]):
 
 
 def pack_array(values: Iterable, *, dtype: npt.DTypeLike) -> bytes:
-    return np.fromiter(values, dtype=dtype).tobytes()
+    if isinstance(values, np.ndarray):
+        return values.flatten().tobytes()
+    else:
+        return np.fromiter(values, dtype=dtype).tobytes()
 
 
 def unpack_array(buffer: bytes, *, dtype: npt.DTypeLike) -> npt.NDArray:
@@ -48,7 +51,7 @@ def unpack_array(buffer: bytes, *, dtype: npt.DTypeLike) -> npt.NDArray:
 
 def make_bytes_packer(dtype: npt.DTypeLike, shape=(-1, 1)):
     return PackingPair(
-        pack=lambda array: pack_array(array.reshape(-1), dtype=dtype),
+        pack=lambda array: pack_array(array, dtype=dtype),
         unpack=lambda data: unpack_array(data, dtype=dtype).reshape(shape),
     )
 
