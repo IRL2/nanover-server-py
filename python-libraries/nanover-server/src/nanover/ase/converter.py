@@ -13,7 +13,8 @@ import numpy as np
 import numpy.typing as npt
 
 from nanover.ase.imd_calculator import ImdCalculator
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData, FrameData2
+from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
 
 ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM
@@ -122,7 +123,7 @@ def ase_to_frame_data(
 
 
 def frame_data_to_ase(
-    frame_data: FrameData,
+    frame_data: FrameData | FrameData2,
     positions: bool = True,
     topology: bool = True,
     ase_atoms: Atoms | None = None,
@@ -151,6 +152,9 @@ def frame_data_to_ase(
     Symbols('CO')
 
     """
+    if isinstance(frame_data, FrameData2):
+        frame_data = convert_dict_frame_to_grpc_frame(frame_data.frame_dict)
+
     if ase_atoms is None:
         ase_atoms = Atoms()
     if topology:

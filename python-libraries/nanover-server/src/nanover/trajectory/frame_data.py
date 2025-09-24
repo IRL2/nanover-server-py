@@ -578,6 +578,6 @@ class ArraysView(RecordView):
         elif isinstance(reference_value, str):
             type_attribute = "string_values"
         else:
-            raise ValueError("Cannot decide what type to use.")
+            raise ValueError(f"Cannot decide what type to use for [{key}]={value}")
 
         getattr(self._raw_record[key], type_attribute).values[:] = value

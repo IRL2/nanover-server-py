@@ -3,12 +3,12 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Any
 
 import msgpack
+from nanover.websocket.convert import unpack_dict_frame
 from websockets.sync.client import connect, ClientConnection
 
 from nanover.state.state_dictionary import StateDictionary
-from nanover.trajectory.frame_data import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.websocket.convert import unpack_dict_frame
+from nanover.trajectory import FrameData2
 
 
 MAX_MESSAGE_SIZE = 128 * 1024 * 1024
@@ -26,7 +26,7 @@ class WebsocketClient:
 
         self._state_dictionary = StateDictionary()
         self._pending_commands: dict[int, Callable[..., Any]] = {}
-        self._current_frame: dict[str, Any] = {}
+        self._current_frame = FrameData2()
 
         self.next_command_id = 1
 
@@ -100,10 +100,7 @@ class WebsocketClient:
                 self.recv_command(command)
 
     def recv_frame(self, message: dict):
-        frame = unpack_dict_frame(message)
-        if frame.get(FRAME_INDEX, None) == 0:
-            self._current_frame = {}
-        self._current_frame.update(frame)
+        self._current_frame.update(FrameData2(unpack_dict_frame(message)))
 
     def recv_state(self, message: dict):
         change = DictionaryChange(
