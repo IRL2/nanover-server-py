@@ -111,6 +111,42 @@ def build_basic_simulation():
     return simulation
 
 
+def build_basic_simulation_periodic():
+    """
+    Setup a minimal OpenMM simulation with two methane molecules.
+    """
+    periodic_box_vector = BASIC_SIMULATION_BOX_VECTORS
+    positions = np.array(BASIC_SIMULATION_POSITIONS, dtype=np.float32)
+
+    topology = build_basic_topology()
+    system = build_basic_system()
+
+    force = mm.NonbondedForce()
+    force.setNonbondedMethod(force.PME)
+    force.setCutoffDistance(1.2 * nanometer)
+    # These non-bonded parameters are completely wrong, but it does not matter
+    # for the tests as long as we do not start testing the dynamic and
+    # thermodynamics properties of methane.
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    force.addParticle(charge=0, sigma=0.47, epsilon=3.5)
+    system.addForce(force)
+
+    integrator = mm.LangevinIntegrator(300 * kelvin, 1 / picosecond, 2 * femtosecond)
+
+    platform = mm.Platform.getPlatformByName("CPU")
+    simulation = app.Simulation(topology, system, integrator, platform=platform)
+    simulation.context.setPeriodicBoxVectors(*periodic_box_vector)
+    simulation.context.setPositions(positions * nanometer)
+
+    return simulation
+
+
 def assert_basic_simulation_topology(frame):
     """
     Fails with an :exc:`AssertError` if the topology of the given frame does
