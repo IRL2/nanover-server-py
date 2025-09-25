@@ -102,6 +102,9 @@ class FrameData:
     def __setitem__(self, key: str, value: Any):
         self.frame_dict[key] = value
 
+    def __delitem__(self, key: str):
+        del self.frame_dict[key]
+
     def copy(self):
         return FrameData(self.frame_dict.copy())
 

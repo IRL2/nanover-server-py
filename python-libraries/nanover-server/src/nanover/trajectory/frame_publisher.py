@@ -19,7 +19,6 @@ class FramePublisher:
     to send data to clients when called by other python code.
     """
 
-    last_frame_index: int
     last_request_id: int
     _frame_queue_lock: Lock
     _last_frame_lock: Lock
@@ -28,7 +27,6 @@ class FramePublisher:
     def __init__(self):
         self.frame_queues = DictOfQueues()
         self.last_frame = FrameData2()
-        self.last_frame_index = 0
         self.last_request_id = 0
         self.simulation_counter = 0
         self._last_frame_lock = Lock()
@@ -82,8 +80,7 @@ class FramePublisher:
         Yields the last frame as a :class:`GetFrameResponse` object if there is
         one.
 
-        This method places a lock on :attr:`last_frame` and
-        :attr:`last_frame_index` to prevent other threads to modify them as we
+        This method places a lock on :attr:`last_frame` to prevent other threads modifying it as we
         read them.
         """
         with self._last_frame_lock:
@@ -114,7 +111,6 @@ class FramePublisher:
             self.simulation_counter += 1
 
         with self._last_frame_lock:
-            self.last_frame_index = frame_index
             self.last_frame.update(actual_frame)
 
         for queue in self.frame_queues.iter_queues():
