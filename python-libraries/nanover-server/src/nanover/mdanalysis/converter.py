@@ -23,7 +23,7 @@ from nanover.trajectory.frame_data import (
     CHAIN_NAMES,
     MissingDataError,
 )
-from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
+from nanover.trajectory.convert import convert_dict_frame_to_grpc_frame
 
 # tuple for storing a frame data key and whether it is required in conversion.
 FrameDataField = collections.namedtuple("FrameDataField", "key required")

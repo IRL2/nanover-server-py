@@ -8,7 +8,7 @@ from nanover.trajectory.frame_data import (
     RESIDUE_CHAINS,
     BOX_VECTORS,
 )
-from nanover.websocket.convert import converters, convert_dict_frame_to_grpc_frame
+from nanover.trajectory.convert import converters, convert_dict_frame_to_grpc_frame
 
 
 def uint8s():

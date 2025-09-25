@@ -12,7 +12,7 @@ from nanover.trajectory.frame_data import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.app_client import get_websocket_address_from_app_server
 from nanover.websocket.client.base_client import MAX_MESSAGE_SIZE
-from nanover.websocket.convert import (
+from nanover.trajectory.convert import (
     convert_dict_frame_to_grpc_frame,
     unpack_dict_frame,
 )

@@ -4,12 +4,12 @@ from ssl import SSLContext
 import msgpack
 
 from nanover.app.types import AppServer
-from nanover.trajectory.frame_data import FrameData, FRAME_INDEX
+from nanover.trajectory import FrameData2
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
-from nanover.websocket.convert import pack_grpc_frame
+from nanover.trajectory.convert import pack_dict_frame
 
 
 class WebSocketServer:
@@ -110,8 +110,8 @@ class WebSocketClientHandler:
         results = self.app_server.run_command(name, arguments or {})
         return results
 
-    def send_frame(self, frame: FrameData):
-        self.send_message({"frame": pack_grpc_frame(frame)})
+    def send_frame(self, frame: FrameData2):
+        self.send_message({"frame": pack_dict_frame(frame.frame_dict)})
 
     def send_state_update(self, change: DictionaryChange):
         self.send_message(
@@ -155,12 +155,10 @@ class WebSocketClientHandler:
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
         # TODO: error handling!!
         def send_frames():
-            for response in self.frame_publisher.subscribe_latest_frames(
+            for frame in self.frame_publisher.subscribe_latest_frames(
                 frame_interval=frame_interval,
                 cancellation=self.cancellation,
             ):
-                frame = FrameData(response.frame)
-                frame.values[FRAME_INDEX] = response.frame_index
                 self.send_frame(frame)
 
         def send_updates():
