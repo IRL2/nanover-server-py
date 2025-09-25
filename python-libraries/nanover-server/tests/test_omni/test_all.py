@@ -100,7 +100,6 @@ def test_next_simulation_increments_counter(runner_with_imd_sims):
     with make_connected_client_from_runner(runner_with_imd_sims) as client:
         for i in range(5):
             client.run_next()
-            client.wait_until_first_frame()
             assert_equal_soon(
                 lambda: client.current_frame.simulation_counter, lambda: i
             )

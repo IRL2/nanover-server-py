@@ -26,6 +26,8 @@ from common import (
 from openmm_simulation_utils import (
     build_single_atom_simulation,
     build_basic_simulation,
+    build_basic_simulation_periodic,
+    BASIC_SIMULATION_BOX_VECTORS,
 )
 
 UNIT_SIMULATION_BOX_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
@@ -104,6 +106,22 @@ def basic_system_app_and_simulation_with_constant_force_old():
             interaction_type="constant",
             position=(0.0, 0.0, 1.0),
             particles=[0, 4],
+            scale=1,
+        ),
+    ) as (app_server, sim):
+        yield app_server, sim
+
+
+@pytest.fixture
+def basic_periodic_system_app_and_simulation_with_constant_force():
+    with make_loaded_sim_with_interactions(
+        OpenMMSimulation.from_simulation(build_basic_simulation_periodic()),
+        # Add a constant force interaction with the force positioned at
+        # 26 nm along the positive x axis (over half a periodic box vector away)
+        ParticleInteraction(
+            interaction_type="constant",
+            position=(26.0, 0.0, 0.0),
+            particles=[0],
             scale=1,
         ),
     ) as (app_server, sim):
@@ -586,3 +604,25 @@ def test_pbc_enforcement():
     # with PBC wrapping, no coords should fall outside the box
     sim.use_pbc_wrapping = True
     assert not any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))
+
+
+def test_imd_force_periodic_system(
+    basic_periodic_system_app_and_simulation_with_constant_force,
+):
+    """
+    Test that the PBCs of an OpenMM simulation are respected by the iMD force applied.
+    """
+    app, sim = basic_periodic_system_app_and_simulation_with_constant_force
+
+    # Check PBCs of simulation
+    assert sim.use_pbc_wrapping
+    assert (sim.pbc_vectors == BASIC_SIMULATION_BOX_VECTORS).all()
+
+    # Advance simulation by one step and retrieve frame
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    # Check that application of the force is periodic
+    # (force applied from over half a periodic box vector away in
+    # positive x direction, so should act in the negative x direction)
+    assert frame.user_forces_sparse[0][0] == -12.0

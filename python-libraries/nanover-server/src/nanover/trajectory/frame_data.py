@@ -1,7 +1,6 @@
 from collections import namedtuple
 from collections.abc import Set
 import numbers
-from dataclasses import dataclass
 from typing import List, Union
 
 import numpy as np
@@ -59,12 +58,6 @@ _Shortcut = namedtuple(
 Array2Dfloat = Union[List[List[float]], npt.NDArray[Union[np.float32, np.float64]]]
 Array2Dint = Union[List[List[int]], npt.NDArray[Union[np.int_]]]
 Array1Dint = Union[List[int], npt.NDArray[np.int_]]
-
-
-@dataclass(kw_only=True)
-class FramePublishEvent:
-    frame_index: int
-    frame: trajectory.FrameData
 
 
 class MissingDataError(KeyError):

@@ -1,7 +1,7 @@
 from hypothesis import given
 
 from nanover.testing.utilities import simplify_numpy
-from nanover.websocket.convert import (
+from nanover.trajectory.convert import (
     pack_dict_frame,
     unpack_dict_frame,
 )
