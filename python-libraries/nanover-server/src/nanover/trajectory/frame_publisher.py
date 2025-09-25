@@ -111,6 +111,7 @@ class FramePublisher:
 
         if frame_index == 0:
             actual_frame.simulation_counter = self.simulation_counter
+            self.simulation_counter += 1
 
         with self._last_frame_lock:
             self.last_frame_index = frame_index
