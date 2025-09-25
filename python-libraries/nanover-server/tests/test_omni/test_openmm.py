@@ -26,6 +26,8 @@ from common import (
 from openmm_simulation_utils import (
     build_single_atom_simulation,
     build_basic_simulation,
+    build_basic_simulation_periodic,
+    BASIC_SIMULATION_BOX_VECTORS,
 )
 
 UNIT_SIMULATION_BOX_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
@@ -104,6 +106,22 @@ def basic_system_app_and_simulation_with_constant_force_old():
             interaction_type="constant",
             position=(0.0, 0.0, 1.0),
             particles=[0, 4],
+            scale=1,
+        ),
+    ) as (app_server, sim):
+        yield app_server, sim
+
+
+@pytest.fixture
+def basic_periodic_system_app_and_simulation_with_constant_force():
+    with make_loaded_sim_with_interactions(
+        OpenMMSimulation.from_simulation(build_basic_simulation_periodic()),
+        # Add a constant force interaction with the force positioned at
+        # 26 nm along the positive x axis (over half a periodic box vector away)
+        ParticleInteraction(
+            interaction_type="constant",
+            position=(26.0, 0.0, 0.0),
+            particles=[0],
             scale=1,
         ),
     ) as (app_server, sim):
@@ -355,7 +373,7 @@ def test_report_frame_forces(basic_system_app_and_simulation_with_complex_intera
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    assert frame.user_forces_index == [0, 1, 4, 5]
+    assert np.all(frame.user_forces_index == [0, 1, 4, 5])
 
 
 # TODO: could generalise for both OMM and ASE
@@ -369,8 +387,6 @@ def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force)
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    assert frame.user_forces_sparse
-    assert frame.user_forces_index
     assert len(frame.user_forces_sparse) >= 1
     assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
     assert np.all(frame.user_forces_sparse) != 0.0
@@ -441,8 +457,6 @@ def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_for
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    assert frame.particle_velocities
-    assert frame.particle_forces_system
     assert len(frame.particle_velocities) == len(frame.particle_positions)
     assert len(frame.particle_forces_system) == len(frame.particle_positions)
     assert np.all(frame.particle_velocities) != 0.0
@@ -497,6 +511,8 @@ def test_sparse_user_forces_elements(
     expected_magnitude = carbon_mass
     expected_vector = expected_heading * expected_magnitude
 
+    print(frame.user_forces_index)
+
     assert set(frame.user_forces_index) == interaction_particles
     for i in range(len(frame.user_forces_index)):
         assert frame.user_forces_sparse[i] == pytest.approx(expected_vector, abs=1e-5)
@@ -544,9 +560,6 @@ def test_velocities_and_forces_single_atom():
     expected_forces = [0.0, 0.0, 40.0]
     expected_velocities = [0.0, 0.0, 0.01]
 
-    assert frame.particle_velocities
-    assert frame.particle_forces_system
-    assert frame.user_forces_sparse
     assert len(frame.particle_velocities) == len(frame.particle_positions)
     assert len(frame.particle_forces_system) == len(frame.particle_positions)
 
@@ -591,3 +604,25 @@ def test_pbc_enforcement():
     # with PBC wrapping, no coords should fall outside the box
     sim.use_pbc_wrapping = True
     assert not any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))
+
+
+def test_imd_force_periodic_system(
+    basic_periodic_system_app_and_simulation_with_constant_force,
+):
+    """
+    Test that the PBCs of an OpenMM simulation are respected by the iMD force applied.
+    """
+    app, sim = basic_periodic_system_app_and_simulation_with_constant_force
+
+    # Check PBCs of simulation
+    assert sim.use_pbc_wrapping
+    assert (sim.pbc_vectors == BASIC_SIMULATION_BOX_VECTORS).all()
+
+    # Advance simulation by one step and retrieve frame
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    # Check that application of the force is periodic
+    # (force applied from over half a periodic box vector away in
+    # positive x direction, so should act in the negative x direction)
+    assert frame.user_forces_sparse[0][0] == -12.0

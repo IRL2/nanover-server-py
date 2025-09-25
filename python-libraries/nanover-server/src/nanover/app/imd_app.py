@@ -76,10 +76,6 @@ class NanoverImdApplication(NanoverApplicationServer):
         return self._server_ws
 
     @property
-    def port(self):
-        return self._server_ws.ws_port if self._server_ws else 0
-
-    @property
     def imd(self) -> ImdStateWrapper:
         """
         The iMD service attached to this application. Use it to access interactive forces sent

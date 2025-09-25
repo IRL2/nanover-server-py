@@ -9,7 +9,7 @@ import numpy as np
 from MDAnalysis import Universe
 from MDAnalysis.guesser.default_guesser import DefaultGuesser
 
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData, FrameData2
 from nanover.trajectory.frame_data import (
     PARTICLE_COUNT,
     RESIDUE_COUNT,
@@ -23,6 +23,7 @@ from nanover.trajectory.frame_data import (
     CHAIN_NAMES,
     MissingDataError,
 )
+from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
 
 # tuple for storing a frame data key and whether it is required in conversion.
 FrameDataField = collections.namedtuple("FrameDataField", "key required")
@@ -137,13 +138,15 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     return frame_data
 
 
-def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
+def frame_data_to_mdanalysis(frame: FrameData | FrameData2) -> Universe:
     """
     Converts from a NanoVer :class:`FrameData` object to an MDAnalysis universe.
 
     :param frame: NanoVer :class:`FrameData` object.
     :return: MDAnalysis :class:`Universe` constructed from the given FrameData.
     """
+    if isinstance(frame, FrameData2):
+        frame = convert_dict_frame_to_grpc_frame(frame.frame_dict)
 
     params = _get_universe_constructor_params(frame)
     universe = Universe.empty(**params)

@@ -153,6 +153,7 @@ class WebSocketClientHandler:
             self.send_message({"command": responses})
 
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
+        # TODO: error handling!!
         def send_frames():
             for response in self.frame_publisher.subscribe_latest_frames(
                 frame_interval=frame_interval,

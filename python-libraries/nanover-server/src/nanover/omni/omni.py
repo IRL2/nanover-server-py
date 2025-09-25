@@ -6,7 +6,7 @@ from ssl import SSLContext
 from typing import Protocol, List, Set
 
 from nanover.app import NanoverImdApplication, RenderingSelection
-from nanover.app.types import AppServer
+from nanover.app.types import AppServer, basic_info_string
 from nanover.imd.imd_force import InvalidInteractionError
 from nanover.trajectory import FrameData
 from nanover.trajectory.frame_server import (
@@ -102,15 +102,7 @@ class OmniRunner:
         """
         Print out basic runner info to the terminal.
         """
-        protocols = ", ".join(
-            f"{protocol}://localhost:{port}"
-            for protocol, port in self.app_server.service_hub.services.items()
-        )
-
-        print(
-            f'Serving "{self.app_server.name}" ({protocols}), '
-            f"discoverable on all interfaces on port {self.app_server.discovery.port}"
-        )
+        print(basic_info_string(self.app_server))
 
         list = "\n".join(
             f'{index}: "{simulation.name}"'

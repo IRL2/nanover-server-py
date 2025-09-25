@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from nanover.app import NanoverImdApplication
 from nanover.app.types import AppServer
 from nanover.testing import assert_equal_soon
+from nanover.testing.utilities import simplify_numpy
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket import NanoverImdClient
@@ -51,8 +52,8 @@ class ServerClientSetup:
     def assert_frames_synced_soon(self, **kwargs):
         __tracebackhide__ = True  # hide this function in the test traceback
         assert_equal_soon(
-            lambda: self.client_current_frame,
-            lambda: self.server_current_frame,
+            lambda: simplify_numpy(self.client_current_frame.frame_dict),
+            lambda: simplify_numpy(self.server_current_frame),
             **kwargs,
         )
 

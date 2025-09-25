@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 
 from openmm.app import Simulation, StateDataReporter
+from openmm.unit import nanometer
 
 from nanover.app.types import AppServer
 from nanover.openmm import serializer, openmm_to_frame_data
@@ -42,6 +43,7 @@ class OpenMMSimulation:
         sim.simulation = simulation
         sim.imd_force = add_imd_force_to_system(simulation.system)
         sim.simulation.context.reinitialize(preserveState=True)
+        sim.determine_pbcs()
 
         sim.checkpoint = sim.simulation.context.createCheckpoint()
 
@@ -75,9 +77,11 @@ class OpenMMSimulation:
         """Include particle forces in frames."""
         self.platform_name: str | None = None
         """Name of OpenMM platform to use at the time the system is loaded from XML."""
-        self.use_pbc_wrapping = False
+        self.use_pbc_wrapping: bool | None = None
         """Provide atom positions wrapped according to PBC such that each molecule has a center of mass within the
         primary periodic box."""
+        self.pbc_vectors: np.ndarray | None = None
+        """Array of vectors defining the periodic box used by the simulation (if PBCs are employed)."""
 
         self.imd_force = create_imd_force()
         self.simulation: Simulation | None = None
@@ -107,6 +111,7 @@ class OpenMMSimulation:
                 infile, imd_force=self.imd_force, platform_name=self.platform_name
             )
 
+        self.determine_pbcs()
         self.checkpoint = self.simulation.context.createCheckpoint()
 
     def reset(self, app_server: AppServer):
@@ -119,7 +124,11 @@ class OpenMMSimulation:
         assert self.simulation is not None and self.checkpoint is not None
 
         self.app_server = app_server
-        self.imd_force_manager = ImdForceManager(self.app_server.imd, self.imd_force)
+        self.imd_force_manager = ImdForceManager(
+            self.app_server.imd,
+            self.imd_force,
+            self.pbc_vectors if self.use_pbc_wrapping else None,
+        )
 
         self._dof = compute_dof(self.simulation.system)
 
@@ -144,6 +153,25 @@ class OpenMMSimulation:
             and self.verbose_reporter not in self.simulation.reporters
         ):
             self.simulation.reporters.append(self.verbose_reporter)
+
+    def determine_pbcs(self):
+        """
+        Determine whether the simulation uses periodic boundary conditions and if it does,
+        retrieve the periodic box vectors in nanometers.
+        """
+        assert self.simulation is not None
+
+        if self.use_pbc_wrapping is False:
+            return
+
+        self.use_pbc_wrapping = self.simulation.system.usesPeriodicBoundaryConditions()
+        if self.use_pbc_wrapping:
+            self.pbc_vectors = np.array(
+                [
+                    vector.value_in_unit(nanometer)
+                    for vector in self.simulation.system.getDefaultPeriodicBoxVectors()
+                ]
+            )
 
     def advance_by_seconds(self, dt: float):
         """
@@ -180,7 +208,7 @@ class OpenMMSimulation:
         # fetch positions early, for updating imd
         state = self.simulation.context.getState(
             getPositions=True,
-            enforcePeriodicBox=self.use_pbc_wrapping,
+            enforcePeriodicBox=self.use_pbc_wrapping or False,
         )
         positions = state.getPositions(asNumpy=True)
 
@@ -224,7 +252,9 @@ class OpenMMSimulation:
         assert self.simulation is not None
 
         state = self.simulation.context.getState(
-            getPositions=True, getEnergy=True, enforcePeriodicBox=self.use_pbc_wrapping
+            getPositions=True,
+            getEnergy=True,
+            enforcePeriodicBox=self.use_pbc_wrapping or False,
         )
         topology = self.simulation.topology
         frame_data = openmm_to_frame_data(state=state, topology=topology)
@@ -248,7 +278,7 @@ class OpenMMSimulation:
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
-            enforcePeriodicBox=self.use_pbc_wrapping,
+            enforcePeriodicBox=self.use_pbc_wrapping or False,
             groups=NON_IMD_FORCES_GROUP_MASK,
         )
 

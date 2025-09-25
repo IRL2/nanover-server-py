@@ -29,8 +29,6 @@ jobs:
           echo MIN_PYTHON_VERSION=3.11 >> "$GITHUB_ENV"
       - name: Test that the repo is sane and does not contain superfluous __init__ file
         run: bash ./maintainers/check_extra_init_files.sh
-      - name: Hotfix conda-build issue
-        run: conda install -y py-lief=0.14
       - name: Install dependencies
         run: conda install -y python conda-build "grpcio-tools<1.62" conda-verify
       - name: Compiling the prototypes

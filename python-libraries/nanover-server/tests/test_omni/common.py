@@ -55,8 +55,7 @@ def connect_and_retrieve_first_frame_from_app_server(
     app_server: AppServer,
 ):
     with make_connected_client_from_app_server(app_server) as client:
-        client.wait_until_first_frame()
-        return client.current_frame_grpc
+        return client.wait_until_first_frame()
 
 
 @contextmanager

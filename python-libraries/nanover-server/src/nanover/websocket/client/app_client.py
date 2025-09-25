@@ -3,13 +3,15 @@ from collections import deque
 from typing import Any
 
 from nanover.app.types import AppServer
-from nanover.essd import DiscoveryClient
+from nanover.essd import DiscoveryClient, ServiceHub
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.playback_client import PlaybackClient
-from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
 from nanover.utilities.network import get_local_ip
 from nanover.websocket.client.interaction_client import InteractionClient
 from nanover.websocket.client.selection_client import SelectionClient
+from nanover.trajectory import FrameData2
+
+DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
 
 
 class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
@@ -66,24 +68,20 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         return cls.from_url(url)
 
     def __init__(self, *args, **kwargs):
-        self._frames: deque[dict] = deque(maxlen=50)
+        self._frames: deque[FrameData2] = deque(maxlen=50)
         super().__init__(*args, **kwargs)
 
     @property
-    def frames(self):
+    def frames(self) -> list[FrameData2]:
         return list(self._frames)
 
     def recv_frame(self, message: dict):
         super().recv_frame(message)
-        self._frames.append({key: value for key, value in self.current_frame.items()})
+        self._frames.append(FrameData2(message).copy())
 
     @property
-    def current_frame(self):
+    def current_frame(self) -> FrameData2:
         return self._current_frame
-
-    @property
-    def current_frame_grpc(self):
-        return convert_dict_frame_to_grpc_frame(self.current_frame)
 
     @property
     def latest_multiplayer_values(self):
@@ -124,9 +122,21 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         return self._state_dictionary.copy_content().get(key, default)
 
 
+def get_websocket_address_from_hub(hub: ServiceHub, *, host: str | None = None):
+    parts = hub.get_service_address("ws")
+    assert parts is not None
+    host_, port = parts
+    address = f"ws://{host or host_}:{port}"
+    return address
+
+
+def get_websocket_address_from_app_server(app_server: AppServer):
+    return get_websocket_address_from_hub(app_server.service_hub, host="localhost")
+
+
 def _search_for_first_server_with_name(
     server_name: str,
-    search_time: float = 2.0,
+    search_time: float = DEFAULT_DISCOVERY_SEARCH_TIME,
     discovery_address: str | None = None,
     discovery_port: int | None = None,
 ):
@@ -138,7 +148,7 @@ def _search_for_first_server_with_name(
 
 
 def _search_for_first_local_server(
-    search_time: float = 2.0,
+    search_time: float = DEFAULT_DISCOVERY_SEARCH_TIME,
     discovery_address: str | None = None,
     discovery_port: int | None = None,
 ):
