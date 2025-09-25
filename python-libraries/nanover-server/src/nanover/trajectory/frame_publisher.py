@@ -96,9 +96,9 @@ class FramePublisher:
         actual_frame: FrameData2
 
         if isinstance(frame, RawFrameData):
-            actual_frame = FrameData2(convert_grpc_frame_to_dict_frame(frame))
+            actual_frame = FrameData2(convert_grpc_frame_to_dict_frame(FrameData(frame)))
         elif isinstance(frame, FrameData):
-            actual_frame = FrameData2(convert_grpc_frame_to_dict_frame(frame.raw))
+            actual_frame = FrameData2(convert_grpc_frame_to_dict_frame(frame))
         elif isinstance(frame, FrameData2):
             actual_frame = frame
         else:
