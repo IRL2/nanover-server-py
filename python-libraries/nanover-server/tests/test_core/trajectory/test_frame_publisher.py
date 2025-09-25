@@ -27,16 +27,16 @@ def test_send_wrapped_frame_data():
     publisher = FramePublisher()
     frame = FrameData()
     publisher.send_frame(3, frame)
-    assert publisher.last_frame_index == 3
-    assert SERVER_TIMESTAMP in publisher.last_frame.values
+    assert publisher.last_frame.frame_index == 3
+    assert SERVER_TIMESTAMP in publisher.last_frame
 
 
 def test_send_raw_frame_data():
     publisher = FramePublisher()
     frame = RawFrameData()
     publisher.send_frame(5, frame)
-    assert publisher.last_frame_index == 5
-    assert SERVER_TIMESTAMP in publisher.last_frame.values
+    assert publisher.last_frame.frame_index == 5
+    assert SERVER_TIMESTAMP in publisher.last_frame
 
 
 def test_get_new_request_id_serial():
