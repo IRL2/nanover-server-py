@@ -96,7 +96,9 @@ class FramePublisher:
         actual_frame: FrameData2
 
         if isinstance(frame, RawFrameData):
-            actual_frame = FrameData2(convert_grpc_frame_to_dict_frame(FrameData(frame)))
+            actual_frame = FrameData2(
+                convert_grpc_frame_to_dict_frame(FrameData(frame))
+            )
         elif isinstance(frame, FrameData):
             actual_frame = FrameData2(convert_grpc_frame_to_dict_frame(frame))
         elif isinstance(frame, FrameData2):
@@ -115,7 +117,7 @@ class FramePublisher:
             self.last_frame.update(actual_frame)
 
         for queue in self.frame_queues.iter_queues():
-            queue.put(frame)
+            queue.put(actual_frame)
 
     def close(self):
         for queue in self.frame_queues.iter_queues():
