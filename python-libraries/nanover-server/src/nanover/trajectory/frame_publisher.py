@@ -1,7 +1,5 @@
 import time
-from dataclasses import dataclass
 from threading import Lock
-from typing import Union
 
 from nanover.utilities.request_queues import (
     DictOfQueues,
@@ -9,20 +7,10 @@ from nanover.utilities.request_queues import (
 )
 from nanover.utilities.timing import yield_interval
 from nanover.protocol.trajectory import FrameData as RawFrameData
-from nanover.trajectory.frame_data import (
-    FrameData,
-    SERVER_TIMESTAMP,
-    SIMULATION_COUNTER,
-    FRAME_INDEX,
-)
+from nanover.trajectory import FrameData, FrameData2
+from nanover.websocket.convert import convert_grpc_frame_to_dict_frame
 
 SENTINEL = None
-
-
-@dataclass(kw_only=True)
-class FramePublishEvent:
-    frame_index: int
-    frame: RawFrameData
 
 
 class FramePublisher:
@@ -31,8 +19,6 @@ class FramePublisher:
     to send data to clients when called by other python code.
     """
 
-    frame_queues: DictOfQueues
-    last_frame: RawFrameData
     last_frame_index: int
     last_request_id: int
     _frame_queue_lock: Lock
@@ -41,7 +27,7 @@ class FramePublisher:
 
     def __init__(self):
         self.frame_queues = DictOfQueues()
-        self.last_frame = None
+        self.last_frame = FrameData2()
         self.last_frame_index = 0
         self.last_request_id = 0
         self.simulation_counter = 0
@@ -69,13 +55,10 @@ class FramePublisher:
                 return
 
             with self._last_frame_lock:
-                initial_frame_index = self.last_frame_index
                 initial_frame = self.last_frame
 
             if initial_frame is not None:
-                yield FramePublishEvent(
-                    frame_index=initial_frame_index, frame=initial_frame
-                )
+                yield initial_frame
 
             cancellation.subscribe_cancellation(lambda: queue.put(SENTINEL))
 
@@ -104,47 +87,35 @@ class FramePublisher:
         read them.
         """
         with self._last_frame_lock:
-            frame = self.last_frame
+            if self.last_frame is not None:
+                yield self.last_frame
 
-        if frame is not None:
-            yield FramePublishEvent(
-                frame_index=self.last_frame_index, frame=self.last_frame
-            )
+    def send_frame(
+        self, frame_index: int, frame: FrameData | RawFrameData | FrameData2
+    ):
+        actual_frame: FrameData2
 
-    def send_frame(self, frame_index: int, frame: Union[FrameData, RawFrameData]):
-        now = time.monotonic()
-        if isinstance(frame, FrameData):
-            frame.server_timestamp = now
-            frame = frame.raw
+        if isinstance(frame, RawFrameData):
+            actual_frame = FrameData2(convert_grpc_frame_to_dict_frame(frame))
+        elif isinstance(frame, FrameData):
+            actual_frame = FrameData2(convert_grpc_frame_to_dict_frame(frame.raw))
+        elif isinstance(frame, FrameData2):
+            actual_frame = frame
         else:
-            frame.values[SERVER_TIMESTAMP].number_value = now
+            raise TypeError("Invalid frame type")
+
+        actual_frame.server_timestamp = time.monotonic()
+        actual_frame.frame_index = frame_index
 
         if frame_index == 0:
-            frame.values[SIMULATION_COUNTER].number_value = self.simulation_counter
-            self.simulation_counter += 1
-
-        frame.values[FRAME_INDEX].number_value = frame_index
+            actual_frame.simulation_counter = self.simulation_counter
 
         with self._last_frame_lock:
-            if self.last_frame is None or frame_index == 0:
-                self.last_frame = RawFrameData()
             self.last_frame_index = frame_index
-
-            for key in frame.arrays.keys():
-                if key in self.last_frame.arrays:
-                    del self.last_frame.arrays[key]
-            for key in frame.values.keys():
-                if key in self.last_frame.values:
-                    del self.last_frame.values[key]
-
-            # repeated merging onto the same last_frame seems to cause a memory leak, so we start from a blank state each time
-            merged = RawFrameData()
-            merged.MergeFrom(self.last_frame)
-            merged.MergeFrom(frame)
-            self.last_frame = merged
+            self.last_frame.update(actual_frame)
 
         for queue in self.frame_queues.iter_queues():
-            queue.put(FramePublishEvent(frame_index=frame_index, frame=frame))
+            queue.put(frame)
 
     def close(self):
         for queue in self.frame_queues.iter_queues():
