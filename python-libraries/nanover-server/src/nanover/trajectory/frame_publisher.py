@@ -1,4 +1,5 @@
 import time
+from dataclasses import dataclass
 from threading import Lock
 from typing import Union
 
@@ -13,10 +14,15 @@ from nanover.trajectory.frame_data import (
     SERVER_TIMESTAMP,
     SIMULATION_COUNTER,
     FRAME_INDEX,
-    FramePublishEvent,
 )
 
 SENTINEL = None
+
+
+@dataclass(kw_only=True)
+class FramePublishEvent:
+    frame_index: int
+    frame: RawFrameData
 
 
 class FramePublisher:
