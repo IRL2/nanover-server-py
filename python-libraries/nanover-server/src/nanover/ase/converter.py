@@ -14,7 +14,7 @@ import numpy.typing as npt
 
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.trajectory import FrameData, FrameData2
-from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
+from nanover.trajectory.convert import convert_dict_frame_to_grpc_frame
 
 ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM

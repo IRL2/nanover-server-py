@@ -14,7 +14,7 @@ from nanover.trajectory.frame_server import (
     STEP_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
 )
-from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
+from nanover.trajectory.convert import convert_dict_frame_to_grpc_frame
 
 from .test_frame_server import simple_frame_data, disjoint_frame_data
 from nanover.websocket import NanoverImdClient

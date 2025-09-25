@@ -8,7 +8,7 @@ from nanover.utilities.request_queues import (
 from nanover.utilities.timing import yield_interval
 from nanover.protocol.trajectory import FrameData as RawFrameData
 from nanover.trajectory import FrameData, FrameData2
-from nanover.websocket.convert import convert_grpc_frame_to_dict_frame
+from nanover.trajectory.convert import convert_grpc_frame_to_dict_frame
 
 SENTINEL = None
 

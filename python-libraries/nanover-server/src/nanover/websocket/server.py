@@ -9,7 +9,7 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
-from nanover.websocket.convert import pack_dict_frame
+from nanover.trajectory.convert import pack_dict_frame
 
 
 class WebSocketServer:

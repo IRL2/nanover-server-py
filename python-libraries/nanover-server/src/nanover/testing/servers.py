@@ -8,7 +8,7 @@ from nanover.testing.utilities import simplify_numpy
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket import NanoverImdClient
-from nanover.websocket.convert import convert_grpc_frame_to_dict_frame
+from nanover.trajectory.convert import convert_grpc_frame_to_dict_frame
 from nanover.websocket.server import WebSocketServer
 
 
