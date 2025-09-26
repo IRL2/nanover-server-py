@@ -2,14 +2,15 @@
 Module providing conversion methods between NanoVer and OpenMM.
 """
 
+import numpy as np
 from openmm import State
 from openmm.app.topology import Topology
 from openmm.unit import kilojoule_per_mole, picosecond
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData2
 
 
 def add_openmm_state_to_frame_data(
-    data: FrameData,
+    data: FrameData2,
     state: State,
     include_positions=True,
     include_energies=True,
@@ -60,7 +61,7 @@ def add_openmm_state_to_frame_data(
     data.simulation_time = simulation_time
 
 
-def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology) -> None:
+def add_openmm_topology_to_frame_data(data: FrameData2, topology: Topology) -> None:
     """
     Adds the OpenMM topology information to the given :class:`FrameData`,
     including residue, chain, atomic and bond information.
@@ -71,30 +72,30 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology) -> No
 
     data.residue_names = [residue.name for residue in topology.residues()]
     data.residue_ids = [residue.id for residue in topology.residues()]
-    data.residue_chains = [residue.chain.index for residue in topology.residues()]
+    data.residue_chains = np.fromiter(
+        (residue.chain.index for residue in topology.residues()),
+        dtype=np.uint32,
+    )
     data.residue_count = topology.getNumResidues()
 
     data.chain_names = [chain.id for chain in topology.chains()]
     data.chain_count = topology.getNumChains()
 
-    atom_names = []
-    elements = []
-    residue_indices = []
-    bonds = []
-
-    for atom in topology.atoms():
-        atom_names.append(atom.name)
-        elements.append(atom.element.atomic_number)
-        residue_indices.append(atom.residue.index)
-
-    for bond in topology.bonds():
-        bonds.append([bond[0].index, bond[1].index])
-
-    data.particle_names = atom_names
-    data.particle_elements = elements
-    data.particle_residues = residue_indices
     data.particle_count = topology.getNumAtoms()
-    data.bond_pairs = bonds
+    data.particle_names = [atom.name for atom in topology.atoms()]
+
+    data.particle_elements = np.fromiter(
+        (atom.element.atomic_number for atom in topology.atoms()),
+        dtype=np.uint8,
+    )
+    data.particle_residues = np.fromiter(
+        (atom.residue.index for atom in topology.atoms()),
+        dtype=np.uint32,
+    )
+    data.bond_pairs = np.array(
+        [[a.index, b.index] for a, b in topology.bonds()],
+        dtype=np.uint32,
+    )
 
 
 def openmm_to_frame_data(
@@ -106,7 +107,7 @@ def openmm_to_frame_data(
     include_velocities=False,
     include_forces=False,
     state_excludes_imd=False,
-) -> FrameData:
+) -> FrameData2:
     """
     Converts the given OpenMM state and topology objects into a NanoVer :class:`FrameData`.
 
@@ -129,7 +130,7 @@ def openmm_to_frame_data(
     :return: A :class:`FrameData` with the state and topology information
         provided added to it.
     """
-    data = FrameData()
+    data = FrameData2()
     if state is not None:
         add_openmm_state_to_frame_data(
             data,
