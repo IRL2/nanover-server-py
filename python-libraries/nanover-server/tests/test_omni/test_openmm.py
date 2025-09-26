@@ -15,7 +15,7 @@ from nanover.openmm import serializer
 from nanover.imd import ParticleInteraction
 from nanover.omni.openmm import OpenMMSimulation
 
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData2
 
 from common import (
     make_app_server,
@@ -335,7 +335,7 @@ def test_reset_gives_equal_frames():
     Test that resetting the simulation gives frames with equal positions, velocities, and forces etc.
     """
 
-    def fetch_data(frame_data: FrameData):
+    def fetch_data(frame_data: FrameData2):
         return {
             "positions": np.array(frame_data.particle_positions).flatten(),
             "velocities": np.array(frame_data.particle_velocities).flatten(),
