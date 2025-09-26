@@ -34,7 +34,7 @@ def test_convert_bonds(frame):
 
 
 def test_convert_atom_residues(frame):
-    assert frame.particle_residues == [0, 0]
+    assert np.all(frame.particle_residues == [0, 0])
 
 
 def test_convert_atom_residue_count(frame):

@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
 
 import msgpack
+import numpy as np
 
 from nanover.app.types import AppServer
 from nanover.trajectory import FrameData2
@@ -124,7 +125,7 @@ class WebSocketClientHandler:
         )
 
     def send_message(self, message):
-        self.websocket.send(msgpack.packb(message))
+        self.websocket.send(msgpack.packb(message, default=default))
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
@@ -183,3 +184,9 @@ class WebSocketClientHandler:
 
 def get_server_port(server: Server):
     return server.socket.getsockname()[1]
+
+
+def default(obj):
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    raise TypeError(f"Unknown type: {obj}")
