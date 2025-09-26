@@ -344,8 +344,10 @@ def _trim_start_frame_reader(reader: MessageRecordingReader):
     """
     first_frame = FrameData2()
     for i, entry in enumerate(reader):
-        frame = convert_grpc_frame_to_dict_frame(
-            buffer_to_frame_message(entry.buffer).frame
+        frame = FrameData2(
+            convert_grpc_frame_to_dict_frame(
+                buffer_to_frame_message(entry.buffer).frame
+            )
         )
         first_frame.update(frame)
         if is_valid_first_frame(first_frame):
