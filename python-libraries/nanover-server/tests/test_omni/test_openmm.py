@@ -588,7 +588,7 @@ def test_pbc_enforcement():
         sim.advance_by_one_step()
 
     def out_of_bounds(coord):
-        return not 0 <= coord.value_in_unit(nanometer) <= 1
+        return not 0 <= coord <= 1
 
     def get_sim_position_coords(sim):
         for position in sim.make_regular_frame().particle_positions:

@@ -140,8 +140,8 @@ def test_serializer_pbc():
     UNIT_SIMULATION_BOX_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     omm_sim.context.setPeriodicBoxVectors(*UNIT_SIMULATION_BOX_VECTORS)
 
-    def out_of_bounds(coord: Quantity):
-        return not 0 <= coord.value_in_unit(nanometer) <= 1
+    def out_of_bounds(coord):
+        return not 0 <= coord <= 1
 
     def get_sim_position_coords(sim):
         for position in sim.make_regular_frame().particle_positions:
