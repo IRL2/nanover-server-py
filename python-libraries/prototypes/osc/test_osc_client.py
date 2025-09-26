@@ -81,14 +81,14 @@ def test_transmission(frame_osc_converter, simple_frame_data):
     send_message = "hello"
     recv_message = None
 
-    simple_frame_data.values[test_address] = send_message
+    simple_frame_data[test_address] = send_message
 
     def recv_test(address, message):
         nonlocal recv_message
         recv_message = message
 
     osc_server.dispatcher.map(test_address, recv_test)
-    app_server._frame_publisher.send_frame(frame=simple_frame_data, frame_index=0)
+    app_server.frame_publisher.send_frame(frame=simple_frame_data, frame_index=0)
 
     assert_equal_soon(
         lambda: recv_message,
