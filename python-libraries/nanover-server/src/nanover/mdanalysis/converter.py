@@ -272,6 +272,9 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData2):
     for group, attribute, frame_key in ALL_MDA_ATTRIBUTES:
         with suppress(AttributeError):
             field = _get_mda_attribute(u, group, attribute)
+            if frame_key == PARTICLE_NAMES:
+                # TODO: ensure this in a more sensible way
+                field = list(field)
             if frame_key == PARTICLE_ELEMENTS:
                 # When MDAnalysis guesses an element symbol, it returns it fully
                 # in upper case. We need to fix the case before we can query our
