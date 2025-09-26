@@ -62,7 +62,9 @@ from nanover.recording.reading import (
     buffer_to_frame_message,
 )
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
-from ..trajectory.convert import convert_grpc_frame_to_dict_frame
+from ..trajectory.convert import (
+    convert_grpc_raw_frame_to_framedata2,
+)
 
 
 class KeyConversion(NamedTuple):
@@ -145,10 +147,8 @@ def universes_from_recording(*, traj: PathLike[str], convert_units=True):
                 first_frame = i
             last_frame = i
 
-            frame = FrameData2(
-                convert_grpc_frame_to_dict_frame(
-                    buffer_to_frame_message(entry.buffer).frame
-                )
+            frame = convert_grpc_raw_frame_to_framedata2(
+                buffer_to_frame_message(entry.buffer).frame
             )
             if frame_begins_next_universe(frame) and frame_offsets:
                 finalise_prev_universe()
@@ -330,8 +330,9 @@ class NanoverReaderBase(ProtoReader):
         except IndexError as err:
             raise EOFError(err) from None
 
-        message = buffer_to_frame_message(entry.buffer)
-        frame_at_index = FrameData2(message.frame)
+        frame_at_index = convert_grpc_raw_frame_to_framedata2(
+            buffer_to_frame_message(entry.buffer).frame
+        )
         frame_at_index["elapsed"] = entry.timestamp
 
         return self._frame_to_timestep(frame, frame_at_index)
@@ -344,10 +345,8 @@ def _trim_start_frame_reader(reader: MessageRecordingReader):
     """
     first_frame = FrameData2()
     for i, entry in enumerate(reader):
-        frame = FrameData2(
-            convert_grpc_frame_to_dict_frame(
-                buffer_to_frame_message(entry.buffer).frame
-            )
+        frame = convert_grpc_raw_frame_to_framedata2(
+            buffer_to_frame_message(entry.buffer).frame
         )
         first_frame.update(frame)
         if is_valid_first_frame(first_frame):

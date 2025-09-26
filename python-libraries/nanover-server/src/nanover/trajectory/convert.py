@@ -6,7 +6,9 @@ import numpy as np
 import numpy.typing as npt
 from nanover.testing.utilities import simplify_numpy
 
-from nanover.trajectory.frame_data import (
+from .frame_data2 import FrameData as FrameData2
+from .frame_data import (
+    FrameData,
     PARTICLE_COUNT,
     CHAIN_COUNT,
     RESIDUE_COUNT,
@@ -17,7 +19,6 @@ from nanover.trajectory.frame_data import (
     BOND_PAIRS,
     RESIDUE_CHAINS,
     BOX_VECTORS,
-    FrameData,
     FRAME_INDEX,
     PARTICLE_VELOCITIES,
     PARTICLE_FORCES,
@@ -110,6 +111,10 @@ def convert_dict_state_to_dictionary_change(dict_state) -> DictionaryChange:
         updates=dict_state["updates"],
         removals=dict_state["removals"],
     )
+
+
+def convert_grpc_raw_frame_to_framedata2(raw_frame) -> FrameData2:
+    return FrameData2(convert_grpc_frame_to_dict_frame(FrameData(raw_frame)))
 
 
 def convert_grpc_frame_to_dict_frame(grpc_frame) -> dict[str, Any]:
