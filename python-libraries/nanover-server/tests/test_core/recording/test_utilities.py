@@ -9,6 +9,7 @@ from nanover.recording.utilities import (
 )
 from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import state_update_to_dictionary_change
+from nanover.testing.utilities import simplify_numpy
 from nanover.trajectory import FrameData2
 from nanover.trajectory.convert import convert_GetFrameResponse_to_framedata2
 from nanover.utilities.change_buffers import DictionaryChange
@@ -36,7 +37,9 @@ def test_iter_frame_full_merging(path):
             frame = FrameData2()
             frame.update(event.prev_frame)
             frame.update(convert_GetFrameResponse_to_framedata2(event.message.frame))
-            assert frame == event.next_frame
+            assert simplify_numpy(frame.frame_dict) == simplify_numpy(
+                event.next_frame.frame_dict
+            )
 
 
 @pytest.mark.parametrize("path", (RECORDING_PATH_TRAJ, RECORDING_PATH_TRAJ_SWITCHING))
