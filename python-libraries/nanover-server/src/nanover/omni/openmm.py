@@ -16,7 +16,6 @@ from nanover.openmm.imd import (
     NON_IMD_FORCES_GROUP_MASK,
 )
 from nanover.openmm.thermo import compute_instantaneous_temperature, compute_dof
-from nanover.trajectory.frame_data import Array2Dfloat
 from nanover.imd.imd_force import calculate_contribution_to_work
 
 
@@ -260,7 +259,7 @@ class OpenMMSimulation:
         frame_data = openmm_to_frame_data(state=state, topology=topology)
         return frame_data
 
-    def make_regular_frame(self, positions: Array2Dfloat | None = None):
+    def make_regular_frame(self, positions: np.ndarray | None = None):
         """
         Make a NanoVer FrameData corresponding to the current state of the simulation.
 
@@ -299,7 +298,7 @@ class OpenMMSimulation:
 
         # add any provided positions
         if positions is not None:
-            frame_data.particle_positions = positions
+            frame_data.particle_positions = positions.astype(np.float32)
 
         # add imd force information
         self.imd_force_manager.add_to_frame_data(frame_data)

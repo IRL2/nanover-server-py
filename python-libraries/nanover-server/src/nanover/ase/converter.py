@@ -13,8 +13,7 @@ import numpy as np
 import numpy.typing as npt
 
 from nanover.ase.imd_calculator import ImdCalculator
-from nanover.trajectory import FrameData, FrameData2
-from nanover.trajectory.convert import convert_dict_frame_to_grpc_frame
+from nanover.trajectory import FrameData2
 
 ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM
@@ -60,7 +59,7 @@ def ase_atoms_to_frame_data(
     *,
     topology: bool,
     **kwargs,
-) -> FrameData:
+) -> FrameData2:
     return ase_to_frame_data(ase_atoms, topology=topology, **kwargs)
 
 
@@ -73,7 +72,7 @@ def ase_to_frame_data(
     generate_bonds=True,
     include_velocities=False,
     include_forces=False,
-) -> FrameData:
+) -> FrameData2:
     """
     Constructs a NanoVer frame from the state of the atoms in an ASE simulation.
 
@@ -105,7 +104,7 @@ def ase_to_frame_data(
     [6, 8]
 
     """
-    data = FrameData()
+    data = FrameData2()
     if positions:
         add_ase_positions_to_frame_data(data, ase_atoms.get_positions(wrap=False))
     if topology:
@@ -123,7 +122,7 @@ def ase_to_frame_data(
 
 
 def frame_data_to_ase(
-    frame_data: FrameData | FrameData2,
+    frame_data: FrameData2,
     positions: bool = True,
     topology: bool = True,
     ase_atoms: Atoms | None = None,
@@ -152,9 +151,6 @@ def frame_data_to_ase(
     Symbols('CO')
 
     """
-    if isinstance(frame_data, FrameData2):
-        frame_data = convert_dict_frame_to_grpc_frame(frame_data.frame_dict)
-
     if ase_atoms is None:
         ase_atoms = Atoms()
     if topology:
@@ -165,7 +161,7 @@ def frame_data_to_ase(
     return ase_atoms
 
 
-def add_frame_data_topology_to_ase(frame_data: FrameData, atoms: Atoms):
+def add_frame_data_topology_to_ase(frame_data: FrameData2, atoms: Atoms):
     """
     Adds frame data topology information to ASE :class:`Atoms`.
 
@@ -190,29 +186,29 @@ def add_frame_data_positions_to_ase(frame_data, ase_atoms):
     ase_atoms.set_positions(np.array(frame_data.particle_positions) * NM_TO_ANG)
 
 
-def add_ase_positions_to_frame_data(data: FrameData, positions: npt.NDArray):
+def add_ase_positions_to_frame_data(data: FrameData2, positions: npt.NDArray):
     """
     Adds ASE positions to the frame data, converting to nanometers.
 
     :param data: :class:`FrameData` to add atom positions to.
     :param positions: Array of atomic positions, in angstroms.
     """
-    data.particle_positions = positions * ANG_TO_NM
+    data.particle_positions = (positions * ANG_TO_NM).astype(np.float32)
 
 
-def add_ase_velocities_to_frame_data(data: FrameData, ase_atoms: Atoms):
+def add_ase_velocities_to_frame_data(data: FrameData2, ase_atoms: Atoms):
     """
     Adds ASE velocities to the frame data, converting to nanometers per picosecond.
 
     :param data: :class:`FrameData` to add atom velocities to.
     :param ase_atoms: ASE :class:`Atoms` to add particle positions to.
     """
-    data.particle_velocities = ase_atoms.get_velocities() * (
-        ANG_TO_NM / ASE_TIME_UNIT_TO_PS
-    )
+    data.particle_velocities = (
+        ase_atoms.get_velocities() * (ANG_TO_NM / ASE_TIME_UNIT_TO_PS)
+    ).astype(np.float32)
 
 
-def add_ase_forces_to_frame_data(data: FrameData, ase_atoms: Atoms):
+def add_ase_forces_to_frame_data(data: FrameData2, ase_atoms: Atoms):
     """
     Adds ASE forces to the frame data, converting to kJ mol-1 per nanometer. If the ASE
     calculator is an ImdCalculator, removes the iMD forces from the ASE forces to deliver
@@ -222,14 +218,16 @@ def add_ase_forces_to_frame_data(data: FrameData, ase_atoms: Atoms):
     :param ase_atoms: ASE :class:`Atoms` to add particle positions to.
     """
 
-    data.particle_forces_system = ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+    data.particle_forces_system = (
+        ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+    ).astype(np.float32)
     if isinstance(ase_atoms.calc, ImdCalculator):
         data.particle_forces_system -= ase_atoms.calc.results["interactive_forces"] * (
             EV_TO_KJMOL / ANG_TO_NM
         )
 
 
-def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
+def add_ase_box_vectors_to_frame_data(data: FrameData2, ase_atoms: Atoms):
     """
     Adds the periodic box vectors from the given ASE :class:`Atoms`
     object to the given :class:`FrameData`.
@@ -237,12 +235,11 @@ def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     :param data: :class:`FrameData` upon which to add periodic box vectors.
     :param ase_atoms: :class:`Atoms` from which to extract periodic box vectors.
     """
-    box_vectors = ase_atoms.cell.copy() * ANG_TO_NM
-    data.box_vectors = box_vectors
+    data.box_vectors = ase_atoms.cell.copy() * ANG_TO_NM
 
 
 def add_ase_topology_to_frame_data(
-    frame_data: FrameData, ase_atoms: Atoms, generate_bonds=True
+    frame_data: FrameData2, ase_atoms: Atoms, generate_bonds=True
 ):
     """
     Generates a topology for the current state of the atoms and adds it to the frame.
@@ -255,24 +252,18 @@ def add_ase_topology_to_frame_data(
     """
     # TODO it would be nice to do dynamic molecule/chain detection here.
     frame_data.residue_names = ["ASE"]
-    frame_data.residue_chains = [0]
+    frame_data.residue_chains = np.array([0], dtype=np.uint32)
     frame_data.residue_count = 1
     frame_data.residue_ids = ["1"]
 
     frame_data.chain_names = ["A"]
     frame_data.chain_count = 1
 
-    atom_names = []
-    elements = []
-    residue_ids = []
-    for index, atom in enumerate(ase_atoms):
-        atom_names.append(str(atom.index))
-        elements.append(atom.number)
-        residue_ids.append(0)
-
-    frame_data.particle_names = atom_names
-    frame_data.particle_elements = elements
-    frame_data.particle_residues = residue_ids
+    frame_data.particle_names = [str(atom.index) for atom in ase_atoms]
+    frame_data.particle_elements = np.fromiter(
+        (atom.number for atom in ase_atoms), dtype=np.uint8
+    )
+    frame_data.particle_residues = np.fromiter((0 for _ in ase_atoms), dtype=np.uint32)
     frame_data.particle_count = len(ase_atoms)
 
     if generate_bonds:
@@ -280,7 +271,7 @@ def add_ase_topology_to_frame_data(
         frame_data.bond_pairs = bonds
 
 
-def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
+def add_ase_state_to_frame_data(frame_data: FrameData2, ase_atoms: Atoms):
     """
     Adds simulation state information to the frame,
     consisting of the potential energy and kinetic energy of the
@@ -349,7 +340,7 @@ def generate_bonds_from_ase(atoms: Atoms):
     monoxide molecule:
 
     >>> co = Atoms('CO', positions=[(0, 0, 0), (0, 0, 1.1)], cell=[2, 2, 2])
-    >>> generate_bonds(co)
+    >>> generate_bonds_from_ase(co)
     [[0, 1]]
 
     """
@@ -359,4 +350,4 @@ def generate_bonds_from_ase(atoms: Atoms):
         radii = [get_radius_of_element(atom.symbol) for atom in pair]
         if distance < _bond_threshold(radii):
             bonds.append([atom.index for atom in pair])
-    return bonds
+    return np.array(bonds, dtype=np.uint32)

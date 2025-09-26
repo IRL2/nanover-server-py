@@ -5,7 +5,7 @@ from nanover.app import NanoverImdApplication
 from nanover.testing import assert_equal_soon
 from nanover.websocket import NanoverImdClient
 from osc_client import OscClient
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData2
 
 from pythonosc import dispatcher
 from pythonosc.osc_server import ThreadingOSCUDPServer
@@ -24,10 +24,10 @@ def simple_frame_to_message(frame):
 
 @pytest.fixture
 def simple_frame_data():
-    basic_frame_data = FrameData()
-    basic_frame_data.arrays["indices"] = [0, 1, 3]
-    basic_frame_data.values["string"] = "str"
-    basic_frame_data.values["bool"] = False
+    basic_frame_data = FrameData2()
+    basic_frame_data["indices"] = [0, 1, 3]
+    basic_frame_data["string"] = "str"
+    basic_frame_data["bool"] = False
     return basic_frame_data
 
 
@@ -81,14 +81,14 @@ def test_transmission(frame_osc_converter, simple_frame_data):
     send_message = "hello"
     recv_message = None
 
-    simple_frame_data.values[test_address] = send_message
+    simple_frame_data[test_address] = send_message
 
     def recv_test(address, message):
         nonlocal recv_message
         recv_message = message
 
     osc_server.dispatcher.map(test_address, recv_test)
-    app_server._frame_publisher.send_frame(frame=simple_frame_data, frame_index=0)
+    app_server.frame_publisher.send_frame(frame=simple_frame_data, frame_index=0)
 
     assert_equal_soon(
         lambda: recv_message,

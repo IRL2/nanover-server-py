@@ -6,7 +6,9 @@ import numpy as np
 import numpy.typing as npt
 from nanover.testing.utilities import simplify_numpy
 
-from nanover.trajectory.frame_data import (
+from .frame_data2 import FrameData as FrameData2
+from .frame_data import (
+    FrameData,
     PARTICLE_COUNT,
     CHAIN_COUNT,
     RESIDUE_COUNT,
@@ -17,7 +19,6 @@ from nanover.trajectory.frame_data import (
     BOND_PAIRS,
     RESIDUE_CHAINS,
     BOX_VECTORS,
-    FrameData,
     FRAME_INDEX,
     PARTICLE_VELOCITIES,
     PARTICLE_FORCES,
@@ -40,9 +41,14 @@ class PackingPair(Generic[U, P]):
 
 def pack_array(values: Iterable, *, dtype: npt.DTypeLike) -> bytes:
     if isinstance(values, np.ndarray):
-        return values.flatten().tobytes()
+        return values.astype(dtype=dtype, copy=False).flatten().tobytes()
     else:
-        return np.fromiter(values, dtype=dtype).tobytes()
+        try:
+            return np.fromiter(values, dtype=dtype).tobytes()
+        except ValueError as e:
+            raise ValueError(
+                f"Failed to create array of {dtype} from {type(values)} ({values})"
+            ) from e
 
 
 def unpack_array(buffer: bytes, *, dtype: npt.DTypeLike) -> npt.NDArray:
@@ -105,6 +111,12 @@ def convert_dict_state_to_dictionary_change(dict_state) -> DictionaryChange:
         updates=dict_state["updates"],
         removals=dict_state["removals"],
     )
+
+
+def convert_GetFrameResponse_to_framedata2(response) -> FrameData2:
+    frame = FrameData2(convert_grpc_frame_to_dict_frame(FrameData(response.frame)))
+    frame.frame_index = response.frame_index
+    return frame
 
 
 def convert_grpc_frame_to_dict_frame(grpc_frame) -> dict[str, Any]:

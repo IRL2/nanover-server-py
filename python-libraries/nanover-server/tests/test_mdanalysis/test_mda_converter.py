@@ -12,7 +12,8 @@ from nanover.mdanalysis.converter import (
     add_mda_topology_to_frame_data,
     _get_mda_attribute,
 )
-from nanover.trajectory.frame_data import PARTICLE_ELEMENTS, MissingDataError, FrameData
+from nanover.trajectory.frame_data import PARTICLE_ELEMENTS, MissingDataError
+from nanover.trajectory import FrameData2
 
 TEST_SYSTEM_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -86,7 +87,7 @@ def test_mdanalysis_particle_field(
     frame, universe = frame_data_and_universe
     # fetches the atoms, residues or chains object, then the attribute.
     attribute = _get_mda_attribute(universe, universe_attribute, mda_attribute)
-    field = frame.arrays[frame_field]
+    field = frame[frame_field]
     if frame_field == PARTICLE_ELEMENTS:
         field = [INDEX_ELEMENT[x] for x in field]
     assert all(a == b for a, b in zip(attribute, field))
@@ -104,7 +105,7 @@ def test_mdanalysis_positions(frame_data_and_universe):
 )
 def test_mdanalysis_counts(mda_attribute, frame_field, frame_data_and_universe):
     frame, universe = frame_data_and_universe
-    assert len(getattr(universe, mda_attribute)) == frame.values[frame_field]
+    assert len(getattr(universe, mda_attribute)) == frame[frame_field]
 
 
 def test_mdanalysis_bonds(frame_data_and_universe):
@@ -175,7 +176,7 @@ def test_framedata_to_mda_missing_data(frame_data_and_universe):
     with the resulting structure conforming to expectations.
     """
     frame, universe = frame_data_and_universe
-    new_frame = FrameData()
+    new_frame = FrameData2()
     new_frame.particle_count = frame.particle_count
     new_frame.particle_positions = frame.particle_positions
 
@@ -188,6 +189,6 @@ def test_framedata_to_mda_missing_data(frame_data_and_universe):
 
 
 def test_multiletter_element_symbols(metal_universe):
-    frame = FrameData()
+    frame = FrameData2()
     add_mda_topology_to_frame_data(metal_universe, frame)
     assert frame.particle_elements == [11, 17, 26]

@@ -8,7 +8,7 @@ from typing import Protocol, List, Set
 from nanover.app import NanoverImdApplication, RenderingSelection
 from nanover.app.types import AppServer, basic_info_string
 from nanover.imd.imd_force import InvalidInteractionError
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData2
 from nanover.trajectory.frame_server import (
     LOAD_COMMAND_KEY,
     LIST_COMMAND_KEY,
@@ -284,7 +284,7 @@ class InternalRunner:
 
     def run(self):
         def send_exception_frame(message):
-            frame = FrameData()
+            frame = FrameData2()
             frame.simulation_exception = message
             self.app_server.frame_publisher.send_frame(1, frame)
             self.logger.exception(message)
@@ -322,7 +322,7 @@ class InternalRunner:
             self.logger.exception(
                 f"{type(e)} loading simulation `{self.simulation.name}`"
             )
-            self.app_server.frame_publisher.send_frame(0, FrameData())
+            self.app_server.frame_publisher.send_frame(0, FrameData2())
             raise
 
     def handle_signals(self):
