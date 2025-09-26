@@ -45,23 +45,16 @@ from MDAnalysis.core.topology import Topology
 from MDAnalysis.topology.base import TopologyReaderBase
 import numpy as np
 
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData2
 from nanover.trajectory.frame_data import (
     PARTICLE_COUNT,
-    RESIDUE_COUNT,
-    CHAIN_COUNT,
     PARTICLE_ELEMENTS,
     PARTICLE_NAMES,
-    PARTICLE_RESIDUES,
     RESIDUE_NAMES,
-    RESIDUE_CHAINS,
     RESIDUE_IDS,
     CHAIN_NAMES,
     MissingDataError,
     PARTICLE_POSITIONS,
-    PARTICLE_FORCES,
-    PARTICLE_FORCES_SYSTEM,
-    PARTICLE_VELOCITIES,
 )
 
 from nanover.recording.reading import (
@@ -69,6 +62,7 @@ from nanover.recording.reading import (
     buffer_to_frame_message,
 )
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
+from ..trajectory.convert import convert_grpc_frame_to_dict_frame
 
 
 class KeyConversion(NamedTuple):
@@ -118,10 +112,10 @@ def universes_from_recording(*, traj: PathLike[str], convert_units=True):
     """
     frame_offsets: list[int] = []
     universes: list[Universe] = []
-    first_particle_frame = FrameData()
+    first_particle_frame = FrameData2()
     first_frame = last_frame = None
 
-    def message_begins_next_universe(message):
+    def frame_begins_next_universe(message):
         return message.frame_index == 0
 
     def finalise_prev_universe():
@@ -142,7 +136,7 @@ def universes_from_recording(*, traj: PathLike[str], convert_units=True):
             )
 
         frame_offsets.clear()
-        first_particle_frame = FrameData()
+        first_particle_frame = FrameData2()
         first_frame = last_frame = None
 
     with MessageRecordingReader.from_path(traj) as reader:
@@ -151,12 +145,16 @@ def universes_from_recording(*, traj: PathLike[str], convert_units=True):
                 first_frame = i
             last_frame = i
 
-            message = buffer_to_frame_message(entry.buffer)
-            if message_begins_next_universe(message) and frame_offsets:
+            frame = FrameData2(
+                convert_grpc_frame_to_dict_frame(
+                    buffer_to_frame_message(entry.buffer).frame
+                )
+            )
+            if frame_begins_next_universe(frame) and frame_offsets:
                 finalise_prev_universe()
             # aggregate initial frames until there is position and topology information
             if not is_valid_first_frame(first_particle_frame):
-                first_particle_frame.raw.MergeFrom(message.frame)
+                first_particle_frame.update(frame)
             frame_offsets.append(entry.offset)
 
     if is_valid_first_frame(first_particle_frame) and frame_offsets:
@@ -180,24 +178,24 @@ class NanoverParser(TopologyReaderBase):
             attrs = []
             for frame_key, (attribute, converter) in KEY_TO_ATTRIBUTE.items():
                 with suppress(MissingDataError):
-                    values = first_frame.arrays[frame_key]
+                    values = first_frame[frame_key]
                     attrs.append(attribute([converter(value) for value in values]))
 
             with suppress(MissingDataError):
-                elements = first_frame.arrays[PARTICLE_ELEMENTS]
+                elements = first_frame.particle_elements
                 converted_elements = _to_chemical_symbol(elements)
                 attrs.append(Atomtypes(converted_elements))
                 attrs.append(Elements(converted_elements))
 
             # TODO: generate these values if they are not part of the FrameData
-            residx = first_frame.arrays[PARTICLE_RESIDUES]
-            segidx = first_frame.arrays[RESIDUE_CHAINS]
-            n_atoms = int(first_frame.values[PARTICLE_COUNT])
-            n_residues = int(first_frame.values[RESIDUE_COUNT])
-            n_chains = int(first_frame.values[CHAIN_COUNT])
+            residx = first_frame.particle_residues
+            segidx = first_frame.residue_chains
+            n_atoms = int(first_frame.particle_count)
+            n_residues = int(first_frame.residue_count)
+            n_chains = int(first_frame.chain_count)
 
             with suppress(MissingDataError):
-                chain_ids_per_chain = first_frame.arrays[CHAIN_NAMES]
+                chain_ids_per_chain = first_frame.chain_names
                 chain_ids_per_particle = [
                     chain_ids_per_chain[segidx[residx[atom]]] for atom in range(n_atoms)
                 ]
@@ -255,12 +253,12 @@ class NanoverReaderBase(ProtoReader):
     def n_frames(self):
         return len(self.reader)
 
-    def _frame_to_timestep(self, frame, frame_at_index):
+    def _frame_to_timestep(self, frame: int, frame_at_index: FrameData2):
         ts = Timestep(self.n_atoms)
         ts.frame = frame
 
         try:
-            ts.positions = _unflatten3d(frame_at_index, PARTICLE_POSITIONS)
+            ts.positions = frame_at_index.particle_positions
         except MissingDataError as e:
             raise Exception(f"No particle positions in trajectory frame {frame}") from e
 
@@ -269,14 +267,14 @@ class NanoverReaderBase(ProtoReader):
         with suppress(MissingDataError):
             ts.triclinic_dimensions = frame_at_index.box_vectors
         with suppress(MissingDataError):
-            ts.velocities = _unflatten3d(frame_at_index, PARTICLE_VELOCITIES)
+            ts.velocities = frame_at_index.particle_velocities
         try:
-            ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES)
+            ts.forces = frame_at_index.particle_forces
         except MissingDataError:
             with suppress(MissingDataError):
-                ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES_SYSTEM)
+                ts.forces = frame_at_index.particle_forces_system
 
-        ts.data.update(frame_at_index.values)
+        ts.data.update(frame_at_index.frame_dict)
         self._add_user_forces_to_ts(frame_at_index, ts)
 
         if self.convert_units:
@@ -307,15 +305,15 @@ class NanoverReaderBase(ProtoReader):
         # no current frame, next frame is 0
         self._current_frame_index = None
 
-    def _add_user_forces_to_ts(self, frame, ts):
+    def _add_user_forces_to_ts(self, frame: FrameData2, ts):
         """
         Read the user forces from the frame if they are available and
         converts them to the units used by MDAnalysis if required.
         """
         try:
-            indices = frame.arrays["forces.user.index"]
-            sparse = frame.arrays["forces.user.sparse"]
-        except KeyError:
+            indices = frame.user_forces_index
+            sparse = frame.user_forces_sparse
+        except MissingDataError:
             return
         forces = np.zeros((self.n_atoms, 3), dtype=np.float32)
         for index, force in zip(indices, batched(sparse, n=3)):
@@ -333,8 +331,8 @@ class NanoverReaderBase(ProtoReader):
             raise EOFError(err) from None
 
         message = buffer_to_frame_message(entry.buffer)
-        frame_at_index = FrameData(message.frame)
-        frame_at_index.values["elapsed"] = entry.timestamp
+        frame_at_index = FrameData2(message.frame)
+        frame_at_index["elapsed"] = entry.timestamp
 
         return self._frame_to_timestep(frame, frame_at_index)
 
@@ -344,10 +342,12 @@ def _trim_start_frame_reader(reader: MessageRecordingReader):
     Change reader index to ignore initial frames that don't contain positions
     and return an aggregate of all skipped frames.
     """
-    first_frame = FrameData()
+    first_frame = FrameData2()
     for i, entry in enumerate(reader):
-        message = buffer_to_frame_message(entry.buffer)
-        first_frame.raw.MergeFrom(message.frame)
+        frame = convert_grpc_frame_to_dict_frame(
+            buffer_to_frame_message(entry.buffer).frame
+        )
+        first_frame.update(frame)
         if is_valid_first_frame(first_frame):
             reader.message_offsets = reader.message_offsets[i:]
             return first_frame
@@ -367,26 +367,9 @@ def _trim_end_frame_reader(reader: MessageRecordingReader):
     return 0
 
 
-def _unflatten3d(frame: FrameData, key: str):
-    """
-    Extract a (-1, 3) shape numpy array from a flat gRPC array in a given frame under a given key.
-
-    :param frame: FrameData to extract the data from.
-    :param key: Key name of data array in the frame.
-
-    This seems to be significantly faster than the existing shortcut that uses list comprehensions.
-    """
-    try:
-        fields = frame.raw.arrays[key].ListFields()
-        array = fields[0][1].values
-        return np.array(array).reshape((-1, 3))
-    except IndexError:
-        raise MissingDataError()
-
-
-def has_topology(frame: FrameData) -> bool:
+def has_topology(frame: FrameData2) -> bool:
     topology_keys = set(list(KEY_TO_ATTRIBUTE.keys()) + [PARTICLE_ELEMENTS])
-    return bool(topology_keys.intersection(frame.array_keys))
+    return bool(topology_keys.intersection(frame.frame_dict.keys()))
 
 
 # Copied from the documentation of itertools. See
