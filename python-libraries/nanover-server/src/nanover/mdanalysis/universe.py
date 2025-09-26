@@ -44,7 +44,6 @@ from MDAnalysis.core.topologyattrs import (
 from MDAnalysis.core.topology import Topology
 from MDAnalysis.topology.base import TopologyReaderBase
 import numpy as np
-from pyexpat.errors import messages
 
 from nanover.trajectory import FrameData2
 from nanover.trajectory.frame_data import (
@@ -64,7 +63,7 @@ from nanover.recording.reading import (
 )
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
 from ..trajectory.convert import (
-    convert_grpc_raw_frame_to_framedata2,
+    convert_GetFrameResponse_to_framedata2,
 )
 
 
@@ -149,7 +148,7 @@ def universes_from_recording(*, traj: PathLike[str], convert_units=True):
             last_frame = i
 
             message = buffer_to_frame_message(entry.buffer)
-            frame = convert_grpc_raw_frame_to_framedata2(message.frame)
+            frame = convert_GetFrameResponse_to_framedata2(message)
             if message_begins_next_universe(message) and frame_offsets:
                 finalise_prev_universe()
             # aggregate initial frames until there is position and topology information
@@ -330,8 +329,8 @@ class NanoverReaderBase(ProtoReader):
         except IndexError as err:
             raise EOFError(err) from None
 
-        frame_at_index = convert_grpc_raw_frame_to_framedata2(
-            buffer_to_frame_message(entry.buffer).frame
+        frame_at_index = convert_GetFrameResponse_to_framedata2(
+            buffer_to_frame_message(entry.buffer)
         )
         frame_at_index["elapsed"] = entry.timestamp
 
@@ -345,8 +344,8 @@ def _trim_start_frame_reader(reader: MessageRecordingReader):
     """
     first_frame = FrameData2()
     for i, entry in enumerate(reader):
-        frame = convert_grpc_raw_frame_to_framedata2(
-            buffer_to_frame_message(entry.buffer).frame
+        frame = convert_GetFrameResponse_to_framedata2(
+            buffer_to_frame_message(entry.buffer)
         )
         first_frame.update(frame)
         if is_valid_first_frame(first_frame):

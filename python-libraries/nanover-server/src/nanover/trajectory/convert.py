@@ -113,8 +113,10 @@ def convert_dict_state_to_dictionary_change(dict_state) -> DictionaryChange:
     )
 
 
-def convert_grpc_raw_frame_to_framedata2(raw_frame) -> FrameData2:
-    return FrameData2(convert_grpc_frame_to_dict_frame(FrameData(raw_frame)))
+def convert_GetFrameResponse_to_framedata2(response) -> FrameData2:
+    frame = FrameData2(convert_grpc_frame_to_dict_frame(FrameData(response.frame)))
+    frame.frame_index = response.frame_index
+    return frame
 
 
 def convert_grpc_frame_to_dict_frame(grpc_frame) -> dict[str, Any]:
