@@ -44,6 +44,7 @@ from MDAnalysis.core.topologyattrs import (
 from MDAnalysis.core.topology import Topology
 from MDAnalysis.topology.base import TopologyReaderBase
 import numpy as np
+from pyexpat.errors import messages
 
 from nanover.trajectory import FrameData2
 from nanover.trajectory.frame_data import (
@@ -117,7 +118,7 @@ def universes_from_recording(*, traj: PathLike[str], convert_units=True):
     first_particle_frame = FrameData2()
     first_frame = last_frame = None
 
-    def frame_begins_next_universe(message):
+    def message_begins_next_universe(message):
         return message.frame_index == 0
 
     def finalise_prev_universe():
@@ -147,10 +148,9 @@ def universes_from_recording(*, traj: PathLike[str], convert_units=True):
                 first_frame = i
             last_frame = i
 
-            frame = convert_grpc_raw_frame_to_framedata2(
-                buffer_to_frame_message(entry.buffer).frame
-            )
-            if frame_begins_next_universe(frame) and frame_offsets:
+            message = buffer_to_frame_message(entry.buffer)
+            frame = convert_grpc_raw_frame_to_framedata2(message.frame)
+            if message_begins_next_universe(message) and frame_offsets:
                 finalise_prev_universe()
             # aggregate initial frames until there is position and topology information
             if not is_valid_first_frame(first_particle_frame):
