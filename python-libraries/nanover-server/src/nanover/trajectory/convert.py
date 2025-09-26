@@ -41,7 +41,7 @@ class PackingPair(Generic[U, P]):
 
 def pack_array(values: Iterable, *, dtype: npt.DTypeLike) -> bytes:
     if isinstance(values, np.ndarray):
-        return values.flatten().tobytes()
+        return values.astype(dtype=dtype, copy=False).flatten().tobytes()
     else:
         try:
             return np.fromiter(values, dtype=dtype).tobytes()
