@@ -9,7 +9,8 @@ from nanover.recording.utilities import (
 )
 from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import state_update_to_dictionary_change
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData2
+from nanover.trajectory.convert import convert_GetFrameResponse_to_framedata2
 from nanover.utilities.change_buffers import DictionaryChange
 
 from .test_reading import (
@@ -28,11 +29,13 @@ def test_iter_frame_full_merging(path):
     """
     for event in iter_frame_file_full(path):
         if event.message.frame_index == 0:
-            assert event.next_frame.raw == event.message.frame
+            assert event.next_frame == convert_GetFrameResponse_to_framedata2(
+                event.message
+            )
         else:
-            frame = FrameData()
-            frame.raw.MergeFrom(event.prev_frame.raw)
-            frame.raw.MergeFrom(event.message.frame)
+            frame = FrameData2()
+            frame.update(event.prev_frame)
+            frame.update(convert_GetFrameResponse_to_framedata2(event.message.frame))
             assert frame == event.next_frame
 
 

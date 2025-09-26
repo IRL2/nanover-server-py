@@ -3,14 +3,15 @@ from pathlib import Path
 from typing import List, Tuple, Iterable, Set
 
 from nanover.app.types import AppServer
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData2
+from nanover.trajectory.frame_data import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.recording.reading import iter_recording_files
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 SCENE_POSE_IDENTITY = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
 
-Entry = Tuple[float, FrameData | None, DictionaryChange | None]
+Entry = Tuple[float, FrameData2 | None, DictionaryChange | None]
 
 
 class PlaybackSimulation:
@@ -77,7 +78,7 @@ class PlaybackSimulation:
 
         # clear simulation and reset box pose to identity
         self.emit(
-            frame=FrameData(),
+            frame=FrameData2(),
             update=DictionaryChange(
                 updates={"scene": SCENE_POSE_IDENTITY}, removals=self.changed_keys
             ),
@@ -119,12 +120,12 @@ class PlaybackSimulation:
         self.time = time
         self.emit(frame=frame, update=update)
 
-    def emit(self, *, frame: FrameData | None, update: DictionaryChange | None):
+    def emit(self, *, frame: FrameData2 | None, update: DictionaryChange | None):
         if self.app_server is None:
             return
 
         if frame is not None:
-            index = 0 if "index" not in frame.values else int(frame.values["index"])
+            index = 0 if FRAME_INDEX not in frame.frame_dict else frame.frame_index
             self.app_server.frame_publisher.send_frame(index, frame)
         if update is not None:
             self.app_server.clear_locks()
