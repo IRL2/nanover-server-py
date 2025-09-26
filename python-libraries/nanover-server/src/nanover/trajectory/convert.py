@@ -42,7 +42,12 @@ def pack_array(values: Iterable, *, dtype: npt.DTypeLike) -> bytes:
     if isinstance(values, np.ndarray):
         return values.flatten().tobytes()
     else:
-        return np.fromiter(values, dtype=dtype).tobytes()
+        try:
+            return np.fromiter(values, dtype=dtype).tobytes()
+        except ValueError as e:
+            raise ValueError(
+                f"Failed to create array of {dtype} from {type(values)} ({values})"
+            ) from e
 
 
 def unpack_array(buffer: bytes, *, dtype: npt.DTypeLike) -> npt.NDArray:
