@@ -60,7 +60,7 @@ class ImdForceManager:
         frame_data.user_forces_sparse = (
             user_sparse_forces * (converter.EV_TO_KJMOL / converter.ANG_TO_NM)
         ).astype(np.float32)
-        frame_data.user_forces_index = user_sparse_indices
+        frame_data.user_forces_index = user_sparse_indices.astype(np.uint32)
 
     def _update_forces(self, atoms):
         """

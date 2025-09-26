@@ -187,8 +187,9 @@ def test_sparse_user_forces(multiple_atom_ase_app_sim_multiple_interactions):
         sim.advance_by_one_step()
 
     frame = connect_and_retrieve_first_frame_from_app_server(app)
+
     assert len(frame.user_forces_index) == 5
-    assert len(frame.user_forces_sparse.reshape(-1, 3)) == len(frame.user_forces_index)
+    assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
     for f_i in frame.user_forces_sparse.flatten():
         assert f_i != 0.0
 
