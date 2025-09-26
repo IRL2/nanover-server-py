@@ -193,7 +193,7 @@ def add_ase_positions_to_frame_data(data: FrameData2, positions: npt.NDArray):
     :param data: :class:`FrameData` to add atom positions to.
     :param positions: Array of atomic positions, in angstroms.
     """
-    data.particle_positions = positions * ANG_TO_NM
+    data.particle_positions = (positions * ANG_TO_NM).astype(np.float32)
 
 
 def add_ase_velocities_to_frame_data(data: FrameData2, ase_atoms: Atoms):
@@ -203,9 +203,9 @@ def add_ase_velocities_to_frame_data(data: FrameData2, ase_atoms: Atoms):
     :param data: :class:`FrameData` to add atom velocities to.
     :param ase_atoms: ASE :class:`Atoms` to add particle positions to.
     """
-    data.particle_velocities = ase_atoms.get_velocities() * (
-        ANG_TO_NM / ASE_TIME_UNIT_TO_PS
-    )
+    data.particle_velocities = (
+        ase_atoms.get_velocities() * (ANG_TO_NM / ASE_TIME_UNIT_TO_PS)
+    ).astype(np.float32)
 
 
 def add_ase_forces_to_frame_data(data: FrameData2, ase_atoms: Atoms):
@@ -218,7 +218,9 @@ def add_ase_forces_to_frame_data(data: FrameData2, ase_atoms: Atoms):
     :param ase_atoms: ASE :class:`Atoms` to add particle positions to.
     """
 
-    data.particle_forces_system = ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+    data.particle_forces_system = (
+        ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+    ).astype(np.float32)
     if isinstance(ase_atoms.calc, ImdCalculator):
         data.particle_forces_system -= ase_atoms.calc.results["interactive_forces"] * (
             EV_TO_KJMOL / ANG_TO_NM
@@ -233,8 +235,7 @@ def add_ase_box_vectors_to_frame_data(data: FrameData2, ase_atoms: Atoms):
     :param data: :class:`FrameData` upon which to add periodic box vectors.
     :param ase_atoms: :class:`Atoms` from which to extract periodic box vectors.
     """
-    box_vectors = ase_atoms.cell.copy() * ANG_TO_NM
-    data.box_vectors = box_vectors
+    data.box_vectors = ase_atoms.cell.copy() * ANG_TO_NM
 
 
 def add_ase_topology_to_frame_data(
