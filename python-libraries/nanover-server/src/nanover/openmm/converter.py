@@ -5,7 +5,11 @@ Module providing conversion methods between NanoVer and OpenMM.
 import numpy as np
 from openmm import State
 from openmm.app.topology import Topology
-from openmm.unit import kilojoule_per_mole, picosecond, nanometer
+from openmm.unit import (
+    kilojoule_per_mole,
+    picosecond,
+    nanometer,
+)
 from nanover.trajectory import FrameData2
 
 
@@ -47,10 +51,14 @@ def add_openmm_state_to_frame_data(
         data.kinetic_energy = kinetic_energy
         data.potential_energy = potential_energy
     if include_velocities:
-        velocities = state.getVelocities(asNumpy=True)
+        velocities = state.getVelocities(asNumpy=True).value_in_unit(
+            nanometer / picosecond
+        )
         data.particle_velocities = velocities
     if include_forces:
-        forces = state.getForces(asNumpy=True)
+        forces = state.getForces(asNumpy=True).value_in_unit(
+            kilojoule_per_mole / nanometer
+        )
         if state_excludes_imd:
             data.particle_forces_system = forces
         else:
