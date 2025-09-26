@@ -316,7 +316,7 @@ class NanoverReaderBase(ProtoReader):
         except MissingDataError:
             return
         forces = np.zeros((self.n_atoms, 3), dtype=np.float32)
-        for index, force in zip(indices, batched(sparse, n=3)):
+        for index, force in zip(indices, sparse):
             forces[index, :] = force
         if self.convert_units:
             self.convert_forces_from_native(forces)
