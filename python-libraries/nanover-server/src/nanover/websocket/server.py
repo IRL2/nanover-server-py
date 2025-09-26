@@ -1,4 +1,3 @@
-import traceback
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
 

@@ -43,7 +43,7 @@ def add_openmm_state_to_frame_data(
     # nanometer. By doing this assumption, we avoid arrays being copied during
     # unit conversion.
     if include_positions:
-        positions = state.getPositions(asNumpy=True)
+        positions = state.getPositions(asNumpy=True).value_in_unit(nanometer)
         data.particle_positions = positions
     if include_energies:
         potential_energy = state.getPotentialEnergy().value_in_unit(kilojoule_per_mole)
