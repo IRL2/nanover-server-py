@@ -6,9 +6,7 @@ from nanover.utilities.request_queues import (
     GetFrameResponseAggregatingQueue,
 )
 from nanover.utilities.timing import yield_interval
-from nanover.protocol.trajectory import FrameData as RawFrameData
-from nanover.trajectory import FrameData, FrameData2
-from nanover.trajectory.convert import convert_grpc_frame_to_dict_frame
+from nanover.trajectory import FrameData2
 
 SENTINEL = None
 
@@ -87,34 +85,21 @@ class FramePublisher:
             if self.last_frame is not None:
                 yield self.last_frame
 
-    def send_frame(
-        self, frame_index: int, frame: FrameData | RawFrameData | FrameData2
-    ):
-        actual_frame: FrameData2
+    def send_frame(self, frame_index: int, frame: FrameData2):
+        assert isinstance(frame, FrameData2), "Frame must be of type FrameData2"
 
-        if isinstance(frame, RawFrameData):
-            actual_frame = FrameData2(
-                convert_grpc_frame_to_dict_frame(FrameData(frame))
-            )
-        elif isinstance(frame, FrameData):
-            actual_frame = FrameData2(convert_grpc_frame_to_dict_frame(frame))
-        elif isinstance(frame, FrameData2):
-            actual_frame = frame
-        else:
-            raise TypeError("Invalid frame type")
-
-        actual_frame.server_timestamp = time.monotonic()
-        actual_frame.frame_index = frame_index
+        frame.server_timestamp = time.monotonic()
+        frame.frame_index = frame_index
 
         if frame_index == 0:
-            actual_frame.simulation_counter = self.simulation_counter
+            frame.simulation_counter = self.simulation_counter
             self.simulation_counter += 1
 
         with self._last_frame_lock:
-            self.last_frame.update(actual_frame)
+            self.last_frame.update(frame)
 
         for queue in self.frame_queues.iter_queues():
-            queue.put(actual_frame)
+            queue.put(frame)
 
     def close(self):
         for queue in self.frame_queues.iter_queues():

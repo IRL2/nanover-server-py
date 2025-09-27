@@ -8,15 +8,14 @@ from websockets.sync.client import connect, ClientConnection
 from nanover.omni import OmniRunner
 from nanover.recording.writing import write_entry, write_header
 from nanover.state.state_service import dictionary_change_to_state_update
-from nanover.trajectory.frame_data import FRAME_INDEX
+from nanover.trajectory import FrameData2
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.app_client import get_websocket_address_from_app_server
 from nanover.websocket.client.base_client import MAX_MESSAGE_SIZE
 from nanover.trajectory.convert import (
-    convert_dict_frame_to_grpc_frame,
     unpack_dict_frame,
+    convert_framedata2_to_GetFrameResponse,
 )
-from nanover.protocol.trajectory import GetFrameResponse
 
 
 def record_from_runner(runner: OmniRunner, trajectory_file, state_file):
@@ -57,11 +56,8 @@ def record_from_server(address, trajectory_file, state_file):
         return int((perf_counter_ns() - start_time) / 1000)
 
     def recv_frame(message: dict):
-        message = unpack_dict_frame(message)
-        response = GetFrameResponse(
-            frame_index=message[FRAME_INDEX],
-            frame=convert_dict_frame_to_grpc_frame(message).raw,
-        )
+        frame = FrameData2(unpack_dict_frame(message))
+        response = convert_framedata2_to_GetFrameResponse(frame)
         write_entry(frame_out, timestamp(), response)
 
     def recv_state(message: dict):

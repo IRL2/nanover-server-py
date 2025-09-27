@@ -13,23 +13,24 @@ from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import (
     state_update_to_dictionary_change,
 )
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData2
+from nanover.trajectory.convert import convert_GetFrameResponse_to_framedata2
 
 
 @dataclass(kw_only=True)
 class FrameRecordingEvent:
     timestamp: int
     message: GetFrameResponse
-    prev_frame: FrameData
-    next_frame: FrameData
+    prev_frame: FrameData2
+    next_frame: FrameData2
 
     @classmethod
     def make_empty(cls):
         return cls(
             timestamp=0,
             message=GetFrameResponse(),
-            prev_frame=FrameData(),
-            next_frame=FrameData(),
+            prev_frame=FrameData2(),
+            next_frame=FrameData2(),
         )
 
 
@@ -126,15 +127,14 @@ def iter_frame_file_full(path: PathLike[str]):
     Yield an event for every message in the recording that contains the timestamp, message, and frame data before and
     after the message was applied.
     """
-    prev_frame = FrameData()
+    prev_frame = FrameData2()
     with MessageRecordingReader.from_path(path) as reader:
         for entry in reader:
             message = buffer_to_frame_message(entry.buffer)
-            frame_reset = message.frame_index == 0
-            next_frame = FrameData()
-            if not frame_reset:
-                next_frame.raw.MergeFrom(prev_frame.raw)
-            next_frame.raw.MergeFrom(message.frame)
+            frame = convert_GetFrameResponse_to_framedata2(message)
+
+            next_frame = prev_frame.copy()
+            next_frame.update(frame)
 
             yield FrameRecordingEvent(
                 timestamp=entry.timestamp,
