@@ -148,7 +148,7 @@ def split_by_simulation_counter(
 
     def get_simulation_counter(triplet):
         _, frame, _ = triplet
-        return frame.values.get(SIMULATION_COUNTER)
+        return frame.frame_dict.get(SIMULATION_COUNTER)
 
     full_view = iter_full_view(traj=traj, state=state)
     sessions = [

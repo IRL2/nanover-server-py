@@ -48,7 +48,9 @@ def test_iter_frame_full_sequential(path):
     Test that each message's prev_frame matches the content of the previous message's next_frame.
     """
     for prev_event, next_event in pairwise(iter_frame_file_full(path)):
-        assert prev_event.next_frame == next_event.prev_frame
+        assert simplify_numpy(prev_event.next_frame.frame_dict) == simplify_numpy(
+            next_event.prev_frame.frame_dict
+        )
 
 
 @pytest.mark.parametrize("path", (RECORDING_PATH_STATE, RECORDING_PATH_STATE_SWITCHING))
