@@ -12,13 +12,14 @@ from nanover.recording.reading import (
 )
 from nanover.recording.writing import record_entries
 from nanover.state.state_service import dictionary_change_to_state_update
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 
 
 def random_frame_message():
     return GetFrameResponse(
-        frame_index=random.randint(0, 1000), frame=random_frame().raw
+        frame_index=random.randint(0, 1000),
+        frame=random_frame().raw,
     )
 
 
@@ -33,7 +34,7 @@ MESSAGE_TYPE_FACTORY_PAIRS = (
 
 
 def random_frame():
-    frame = FrameData2()
+    frame = FrameData()
     frame.particle_count = random.randint(10, 100)
     frame.particle_positions = np.array(
         [
