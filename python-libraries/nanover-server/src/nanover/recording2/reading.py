@@ -5,12 +5,11 @@ from zipfile import ZipFile
 
 import msgpack
 
+from nanover.trajectory import FrameData2
 from nanover.trajectory.convert import (
     unpack_dict_frame,
-    convert_dict_frame_to_grpc_frame,
     convert_dict_state_to_dictionary_change,
 )
-
 
 RECORDING_INDEX_FILENAME = "index.msgpack"
 RECORDING_MESSAGES_FILENAME = "messages.msgpack"
@@ -64,7 +63,7 @@ class MessageZipReader:
 
     def iter_messages(self):
         for entry in self:
-            yield entry.timestamp, self.get_message_from_entry(entry)
+            yield entry.metadata["timestamp"], self.get_message_from_entry(entry)
 
     def __enter__(self):
         return self
@@ -88,9 +87,7 @@ def iter_recording_file(path: PathLike[str]):
         frame, update = None, None
         message = reader.get_message_from_entry(entry)
         if "frame" in message:
-            frame = convert_dict_frame_to_grpc_frame(
-                unpack_dict_frame(message["frame"])
-            )
+            frame = FrameData2(unpack_dict_frame(message["frame"]))
         if "state" in message:
             update = convert_dict_state_to_dictionary_change(message["state"])
 
