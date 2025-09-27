@@ -34,7 +34,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         "--path",
         default=".",
         metavar="PATH",
-        help="Destination directory for recording files.",
+        help="Destination for recording files.",
     )
 
     parser.add_argument(
@@ -89,18 +89,15 @@ def main():
         timestamp = time.strftime("%Y%m%d-%H%M%S")
         name = f"{prefix}-{count}-{timestamp}"
 
-        traj = f"{path}/{name}.traj"
-        state = f"{path}/{name}.state"
+        outfile = f"{path}/{name}.nanover.zip"
 
         print(f"Connecting to {address}.")
 
         with suppress_keyboard_interrupt_as_cancellation() as cancellation:
-            executor, websocket = record_from_server(address, traj, state)
+            executor, websocket = record_from_server(address, outfile)
 
             try:
-                print(
-                    f"Recording from server to {traj} and {state}. Press Ctrl-C to stop."
-                )
+                print(f"Recording from server to {outfile}. Press Ctrl-C to stop.")
                 cancellation.wait_cancellation(interval=0.01)
             finally:
                 websocket.close()

@@ -1,71 +1,68 @@
 from os import PathLike
 from pathlib import Path
-from typing import List, Tuple, Iterable, Set
 
 from nanover.app.types import AppServer
+from nanover.recording2.reading import RecordingIndexEntry, MessageZipReader
 from nanover.trajectory import FrameData2
 from nanover.trajectory.frame_data import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.recording.reading import iter_recording_files
+from nanover.trajectory.convert import (
+    unpack_dict_frame,
+    convert_dict_state_to_dictionary_change,
+)
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 SCENE_POSE_IDENTITY = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
 
-Entry = Tuple[float, FrameData2 | None, DictionaryChange | None]
+Entry = tuple[float, RecordingIndexEntry]
 
 
 class PlaybackSimulation:
     @classmethod
-    def from_paths(cls, paths: Iterable[PathLike[str]]):
-        """
-        Construct this from one or both of trajectory and state recording file paths.
+    def from_path(
+        cls,
+        *,
+        name: str | None = None,
+        path: PathLike[str],
+    ):
+        path = Path(path)
+        name = name or path.stem
 
-        :param paths: One or both of trajectory and state recording file paths.
-        """
-        paths = [Path(path) for path in paths]
-        traj_path = next((path for path in paths if path.suffix == ".traj"), None)
-        state_path = next((path for path in paths if path.suffix == ".state"), None)
-
-        return cls(
-            name=paths[0].stem,
-            traj=traj_path,
-            state=state_path,
-        )
+        return cls(name=name, path=path)
 
     def __init__(
         self,
-        name,
         *,
-        traj: PathLike[str] | None = None,
-        state: PathLike[str] | None = None
+        name: str,
+        path: PathLike[str],
     ):
         self.name = name
-        self.traj_path = traj
-        self.state_path = state
+        self.path = path
 
         self.app_server: AppServer | None = None
 
-        self.entries: List[Entry] = []
-        self.changed_keys: Set[str] = set()
+        self.entries: list[Entry] = []
+        self.changed_keys: set[str] = set()
         self.next_entry_index = 0
         self.time = 0.0
+
+        self.reader = MessageZipReader.from_path(path)
 
     def load(self):
         """
         Load and set up the simulation if it isn't done already.
         """
-        entries = iter_recording_files(traj=self.traj_path, state=self.state_path)
         self.entries = [
-            (time * MICROSECONDS_TO_SECONDS, frame, update)
-            for time, frame, update in entries
+            (entry.metadata["timestamp"] * MICROSECONDS_TO_SECONDS, entry)
+            for entry in self.reader
         ]
-        self.changed_keys = {
-            key
-            for _, _, update in self.entries
-            if update is not None
-            for key in update.updates.keys()
-            if key != "scene"
-        }
+        # self.changed_keys = {
+        #     key
+        #     for _, _, update in self.entries
+        #     if update is not None
+        #     for key in update.updates.keys()
+        #     if key != "scene"
+        # }
 
     def reset(self, app_server: AppServer):
         """
@@ -115,9 +112,16 @@ class PlaybackSimulation:
         """
         Advance playback to the next point a frame or update should be reported, and report it.
         """
-        time, frame, update = self.entries[self.next_entry_index]
+        time, entry = self.entries[self.next_entry_index]
         self.next_entry_index = self.next_entry_index + 1
         self.time = time
+
+        frame, update = None, None
+        message = self.reader.get_message_from_entry(entry)
+        if "frame" in message:
+            frame = FrameData2(unpack_dict_frame(message["frame"]))
+        if "state" in message:
+            update = convert_dict_state_to_dictionary_change(message["state"])
         self.emit(frame=frame, update=update)
 
     def emit(self, *, frame: FrameData2 | None, update: DictionaryChange | None):
@@ -125,7 +129,7 @@ class PlaybackSimulation:
             return
 
         if frame is not None:
-            index = 0 if FRAME_INDEX not in frame.frame_dict else frame.frame_index
+            index = 0 if FRAME_INDEX not in frame else frame.frame_index
             self.app_server.frame_publisher.send_frame(index, frame)
         if update is not None:
             self.app_server.clear_locks()

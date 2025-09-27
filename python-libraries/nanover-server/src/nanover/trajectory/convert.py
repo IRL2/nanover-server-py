@@ -158,8 +158,13 @@ def pack_dict_frame(frame: dict) -> dict[str, Any]:
 def unpack_dict_frame(frame: dict) -> dict[str, Any]:
     unpacked = {}
 
+    # print({key: type(value) for key, value in frame.items()})
+
     for key in frame:
-        converter = converters.get(key, pack_identity)
-        unpacked[key] = converter.unpack(frame[key])
+        try:
+            converter = converters.get(key, pack_identity)
+            unpacked[key] = converter.unpack(frame[key])
+        except Exception as e:
+            raise RuntimeError(f"unpack {key} {type(frame[key])} failed {e}") from e
 
     return unpacked

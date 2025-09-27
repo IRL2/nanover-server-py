@@ -9,8 +9,7 @@ from nanover.websocket import NanoverImdClient
 from nanover.trajectory import FrameData2
 
 EXAMPLES_PATH = Path(__file__).parent
-RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
-RECORDING_PATH_STATE = EXAMPLES_PATH / "nanotube-example-recording.state"
+RECORDING_PATH = EXAMPLES_PATH / "nanotube-example-recording.nanover.zip"
 ARGON_XML_PATH = EXAMPLES_PATH / "argon_simulation.xml"
 
 
