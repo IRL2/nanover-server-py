@@ -39,7 +39,9 @@ REFERENCE_PDB = os.path.join(
 
 EXAMPLES_PATH = Path(__file__).parent
 RECORDING_PATH_TRAJ = (
-    EXAMPLES_PATH / "../test_core/recording" / "sim-switching-test-recording.traj"
+    EXAMPLES_PATH
+    / "../test_core/recording"
+    / "sim-switching-test-recording.nanover.zip"
 )
 
 
@@ -109,7 +111,7 @@ def test_universes_from_recording():
     Test that a recording with simulation switching is split into the correct number of universes with expected atom
     counts and frame counts.
     """
-    universes = universes_from_recording(traj=RECORDING_PATH_TRAJ)
+    universes = universes_from_recording(RECORDING_PATH_TRAJ)
 
     expected_frames_atoms = [
         [104, 65],

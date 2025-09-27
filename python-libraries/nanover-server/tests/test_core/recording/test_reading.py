@@ -2,11 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from nanover.recording.reading import (
+from nanover.recording2.reading import (
+    MessageZipReader,
+    iter_recording_file,
     iter_full_view,
     split_by_simulation_counter,
 )
-from nanover.recording2.reading import MessageZipReader, iter_recording_file
 
 EXAMPLES_PATH = Path(__file__).parent
 RECORDING_PATH = EXAMPLES_PATH / "nanotube-example-recording.nanover.zip"

@@ -1,15 +1,18 @@
 from dataclasses import dataclass, field
+from itertools import groupby
 from os import PathLike
 from typing import Any, IO, BinaryIO
 from zipfile import ZipFile
 
 import msgpack
 
+from nanover.state.state_dictionary import StateDictionary
 from nanover.trajectory import FrameData2
 from nanover.trajectory.convert import (
     unpack_dict_frame,
     convert_dict_state_to_dictionary_change,
 )
+from nanover.trajectory.frame_data import SIMULATION_COUNTER
 
 RECORDING_INDEX_FILENAME = "index.msgpack"
 RECORDING_MESSAGES_FILENAME = "messages.msgpack"
@@ -79,6 +82,37 @@ class MessageZipReader:
 
     def __getitem__(self, index):
         return self.index[index]
+
+
+def split_by_simulation_counter(path: PathLike[str]):
+    def get_simulation_counter(triplet):
+        _, frame, _ = triplet
+        return frame.frame_dict.get(SIMULATION_COUNTER)
+
+    full_view = iter_full_view(path)
+    sessions = [
+        list(session)
+        for simulation_counter, session in groupby(
+            full_view, key=get_simulation_counter
+        )
+        if simulation_counter is not None
+    ]
+
+    return sessions
+
+
+def iter_full_view(path: PathLike[str]):
+    full_frame = FrameData2()
+    full_state = StateDictionary()
+
+    for time, frame, update in iter_recording_file(path):
+        if frame is not None:
+            full_frame.update(frame)
+
+        if update is not None:
+            full_state.update_state(None, update)
+
+        yield time, full_frame.copy(), full_state.copy_content()
 
 
 def iter_recording_file(path: PathLike[str]):
