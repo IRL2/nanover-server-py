@@ -5,7 +5,6 @@ import pytest
 from nanover.recording.utilities import (
     iter_frame_file_full,
     iter_state_file_full,
-    iter_recording_max,
 )
 from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import state_update_to_dictionary_change
@@ -15,14 +14,12 @@ from nanover.trajectory.convert import convert_GetFrameResponse_to_framedata2
 from nanover.utilities.change_buffers import DictionaryChange
 
 from .test_reading import (
-    RECORDING_PATH_TRAJ,
-    RECORDING_PATH_TRAJ_SWITCHING,
-    RECORDING_PATH_STATE,
-    RECORDING_PATH_STATE_SWITCHING,
+    RECORDING_PATH,
+    RECORDING_PATH_SWITCHING,
 )
 
 
-@pytest.mark.parametrize("path", (RECORDING_PATH_TRAJ, RECORDING_PATH_TRAJ_SWITCHING))
+@pytest.mark.parametrize("path", (RECORDING_PATH, RECORDING_PATH_SWITCHING))
 def test_iter_frame_full_merging(path):
     """
     Test that frame resets result in a next frame that is equal to the frame message and that otherwise the next frame
@@ -43,7 +40,7 @@ def test_iter_frame_full_merging(path):
             )
 
 
-@pytest.mark.parametrize("path", (RECORDING_PATH_TRAJ, RECORDING_PATH_TRAJ_SWITCHING))
+@pytest.mark.parametrize("path", (RECORDING_PATH, RECORDING_PATH_SWITCHING))
 def test_iter_frame_full_sequential(path):
     """
     Test that each message's prev_frame matches the content of the previous message's next_frame.
@@ -101,15 +98,15 @@ def test_iter_max_sequential(traj_path, state_path):
 
 
 @pytest.mark.parametrize(
-    "traj_path,state_path",
+    "path",
     (
-        (RECORDING_PATH_TRAJ, RECORDING_PATH_STATE),
-        (RECORDING_PATH_TRAJ_SWITCHING, RECORDING_PATH_STATE_SWITCHING),
+        RECORDING_PATH,
+        RECORDING_PATH_SWITCHING,
     ),
 )
-def test_iter_max_contiguous(traj_path, state_path):
+def test_iter_max_contiguous(path):
     """
     Test that there is always one or both of a next frame event or next state event for each event
     """
-    for event in iter_recording_max(traj=traj_path, state=state_path):
+    for event in iter_recording_max(path):
         assert event.next_frame_event is not None or event.next_state_event is not None

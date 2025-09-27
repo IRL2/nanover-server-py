@@ -13,8 +13,7 @@ from typing import Iterable
 
 from nanover.omni import OmniRunner
 from nanover.omni.openmm import OpenMMSimulation
-from nanover.omni.playback import PlaybackSimulation as PlaybackSimulationOld
-from nanover.omni.playback2 import PlaybackSimulation
+from nanover.omni.playback import PlaybackSimulation
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.discovery import DiscoveryClient
 from nanover.websocket.record import record_from_runner
@@ -50,7 +49,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         nargs="+",
         default=[],
         metavar="PATH",
-        help="Recorded session to playback (one or both of .traj and .state)",
+        help="Recorded session to playback",
     )
 
     parser.add_argument(
@@ -124,10 +123,7 @@ def initialise_runner(arguments: argparse.Namespace):
         ssl=initialise_ssl(arguments),
     ) as runner:
         for paths in arguments.recording_entries:
-            if paths[0].endswith(".zip"):
-                runner.add_simulation(PlaybackSimulation.from_path(path=paths[0]))
-            else:
-                runner.add_simulation(PlaybackSimulationOld.from_paths(paths))
+            runner.add_simulation(PlaybackSimulation.from_path(path=paths[0]))
 
         for path in get_all_paths(arguments.openmm_xml_entries):
             simulation = OpenMMSimulation.from_xml_path(path)

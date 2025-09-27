@@ -4,7 +4,7 @@ import time
 import pytest
 
 from nanover.omni.cli import initialise_runner, handle_user_arguments
-from common import ARGON_XML_PATH, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
+from common import ARGON_XML_PATH, RECORDING_PATH
 
 
 @pytest.mark.serial
@@ -27,13 +27,10 @@ def test_cycle_multiple_sims():
     """
     arguments = handle_user_arguments(
         [
-            "--port",
-            "0",
             "--omm",
             str(ARGON_XML_PATH),
             "--playback",
-            str(RECORDING_PATH_TRAJ),
-            str(RECORDING_PATH_STATE),
+            str(RECORDING_PATH),
         ]
     )
 
