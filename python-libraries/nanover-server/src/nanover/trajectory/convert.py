@@ -123,7 +123,7 @@ def convert_GetFrameResponse_to_framedata2(response: GetFrameResponse) -> FrameD
 def convert_framedata2_to_GetFrameResponse(frame: FrameData2) -> GetFrameResponse:
     return GetFrameResponse(
         frame_index=frame.frame_index,
-        frame=convert_dict_frame_to_grpc_frame(frame).raw,
+        frame=convert_dict_frame_to_grpc_frame(frame.frame_dict).raw,
     )
 
 

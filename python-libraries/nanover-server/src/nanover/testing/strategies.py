@@ -9,10 +9,7 @@ from nanover.trajectory.frame_data import (
     RESIDUE_CHAINS,
     BOX_VECTORS,
 )
-from nanover.trajectory.convert import (
-    converters,
-    convert_framedata2_to_GetFrameResponse,
-)
+from nanover.trajectory.convert import converters
 
 
 def uint8s():
@@ -66,16 +63,8 @@ known_types = {
 
 
 @st.composite
-def grpc_frames(draw):
-    known = st.fixed_dictionaries(
-        mapping={},
-        optional=known_types,
-    )
-
-    dict_frame = {}
-    dict_frame.update(draw(known))
-    frame = FrameData2(dict_frame)
-    return convert_framedata2_to_GetFrameResponse(frame).frame
+def frames(draw):
+    return FrameData2(draw(dict_frames()))
 
 
 @st.composite
