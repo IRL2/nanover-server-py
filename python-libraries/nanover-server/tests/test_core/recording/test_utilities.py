@@ -6,6 +6,7 @@ from nanover.recording.utilities import (
     iter_frame_file_full,
     iter_state_file_full,
 )
+from nanover.recording2.utilities import iter_recording_max
 from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import state_update_to_dictionary_change
 from nanover.testing.utilities import simplify_numpy
@@ -74,19 +75,17 @@ def test_iter_state_full_sequential(path):
 
 
 @pytest.mark.parametrize(
-    "traj_path,state_path",
+    "path",
     (
-        (RECORDING_PATH_TRAJ, RECORDING_PATH_STATE),
-        (RECORDING_PATH_TRAJ_SWITCHING, RECORDING_PATH_STATE_SWITCHING),
+        RECORDING_PATH,
+        RECORDING_PATH_SWITCHING,
     ),
 )
-def test_iter_max_sequential(traj_path, state_path):
+def test_iter_max_sequential(path):
     """
     Test that each event's prev events match the content of the previous event's next events if it exists.
     """
-    for prev_event, next_event in pairwise(
-        iter_recording_max(traj=traj_path, state=state_path)
-    ):
+    for prev_event, next_event in pairwise(iter_recording_max(path)):
         assert (
             prev_event.next_frame_event is None
             or prev_event.next_frame_event == next_event.prev_frame_event

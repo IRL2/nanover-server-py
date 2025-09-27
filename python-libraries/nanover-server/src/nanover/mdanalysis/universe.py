@@ -139,7 +139,7 @@ def universes_from_recording(path: PathLike[str], *, convert_units=True):
 
     with MessageZipReader.from_path(path) as reader:
         for i, entry in enumerate(reader):
-            if "frame" not in entry["types"]:
+            if "frame" not in entry.metadata["types"]:
                 continue
 
             if first_frame is None:
