@@ -1,5 +1,6 @@
 import numpy as np
 from hypothesis import strategies as st
+from nanover.trajectory import FrameData2
 from nanover.trajectory.frame_data import (
     PARTICLE_POSITIONS,
     PARTICLE_ELEMENTS,
@@ -8,7 +9,10 @@ from nanover.trajectory.frame_data import (
     RESIDUE_CHAINS,
     BOX_VECTORS,
 )
-from nanover.trajectory.convert import converters, convert_dict_frame_to_grpc_frame
+from nanover.trajectory.convert import (
+    converters,
+    convert_framedata2_to_GetFrameResponse,
+)
 
 
 def uint8s():
@@ -70,9 +74,8 @@ def grpc_frames(draw):
 
     dict_frame = {}
     dict_frame.update(draw(known))
-
-    grpc_frame = convert_dict_frame_to_grpc_frame(dict_frame)
-    return grpc_frame
+    frame = FrameData2(dict_frame)
+    return convert_framedata2_to_GetFrameResponse(frame).frame
 
 
 @st.composite
