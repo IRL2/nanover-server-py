@@ -3,12 +3,10 @@ from pathlib import Path
 import pytest
 
 from nanover.recording.reading import (
-    iter_recording_files,
     iter_full_view,
     split_by_simulation_counter,
-    MessageRecordingReader,
 )
-from nanover.recording2.reading import MessageZipReader
+from nanover.recording2.reading import MessageZipReader, iter_recording_file
 
 EXAMPLES_PATH = Path(__file__).parent
 RECORDING_PATH = EXAMPLES_PATH / "nanotube-example-recording.nanover.zip"
@@ -27,7 +25,7 @@ def test_n_messages(path, count):
 
 @pytest.mark.parametrize("path,count", ((RECORDING_PATH, 1615),))
 def test_n_entries(path, count):
-    entries = list(iter_recording_files(path))
+    entries = list(iter_recording_file(path))
     assert len(entries) == count
 
 
@@ -55,7 +53,7 @@ def test_full_view_independent(path):
     for timestamp, frame, state in iter_full_view(path):
         assert KEY not in frame
         assert KEY not in state
-        frame.values[KEY] = timestamp
+        frame[KEY] = timestamp
         state[KEY] = timestamp
 
 

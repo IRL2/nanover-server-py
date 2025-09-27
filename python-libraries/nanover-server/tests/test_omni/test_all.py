@@ -171,6 +171,8 @@ def test_first_frame_topology(sim_factory):
             runner.load(0)
             first_frame = client.wait_until_first_frame()
 
+            print(first_frame.frame_dict)
+
             # Currently the initial frame is the only frame containing the element
             # information, so this is equivalent to testing the frame in which the
             # topology is sent (where relevant).
@@ -189,10 +191,10 @@ def test_interaction_invalid_particle_index(sim_factory):
     with make_runner(sim_factory()) as runner:
         with make_connected_client_from_runner(runner) as client:
             runner.load(0)
-            count = client.wait_until_first_frame().particle_count
+            frame = client.wait_until_first_frame()
 
             interaction_id = client.start_interaction(
-                ParticleInteraction(particles=[count + 10])
+                ParticleInteraction(particles=[frame.particle_count + 10])
             )
 
             # exception exists in frame

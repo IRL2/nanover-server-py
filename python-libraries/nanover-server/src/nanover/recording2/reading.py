@@ -5,7 +5,7 @@ from zipfile import ZipFile
 
 import msgpack
 
-from nanover.websocket.convert import (
+from nanover.trajectory.convert import (
     unpack_dict_frame,
     convert_dict_frame_to_grpc_frame,
     convert_dict_state_to_dictionary_change,

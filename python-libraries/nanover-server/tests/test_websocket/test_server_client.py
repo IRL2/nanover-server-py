@@ -11,7 +11,11 @@ from nanover.trajectory import FrameData2
 from nanover.utilities.change_buffers import DictionaryChange
 
 from nanover.testing import assert_equal_soon
-from nanover.testing.strategies import command_arguments, state_updates, grpc_frames
+from nanover.testing.strategies import (
+    command_arguments,
+    state_updates,
+    frames,
+)
 
 
 @pytest.fixture(scope="module")
@@ -33,14 +37,14 @@ def reusable_setup_two_clients():
 
 @given(
     frame_index=st.integers(min_value=1, max_value=2**32 - 1),
-    frame=grpc_frames(),
+    frame=frames(),
 )
 def test_websocket_sends_frame(reusable_setup, frame, frame_index):
     reusable_setup.server_publish_frame(frame_index=frame_index, frame=frame)
     reusable_setup.assert_frames_synced_soon()
 
 
-@given(frame=grpc_frames())
+@given(frame=frames())
 def test_websocket_sends_frame_two_clients(reusable_setup_two_clients, frame):
     reusable_setup, client2 = reusable_setup_two_clients
 
@@ -92,7 +96,7 @@ def test_echo_command(reusable_setup, arguments):
     )
 
 
-@given(frame_index=st.integers(min_value=1, max_value=2**32 - 1), frame=grpc_frames())
+@given(frame_index=st.integers(min_value=1, max_value=2**32 - 1), frame=frames())
 def test_client_frame_reset(reusable_setup, frame, frame_index):
     reusable_setup.server_publish_frame(frame_index=frame_index, frame=frame)
     reusable_setup.assert_frames_synced_soon()

@@ -9,7 +9,9 @@ from nanover.recording.utilities import (
 )
 from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import state_update_to_dictionary_change
-from nanover.trajectory import FrameData
+from nanover.testing.utilities import simplify_numpy
+from nanover.trajectory import FrameData2
+from nanover.trajectory.convert import convert_GetFrameResponse_to_framedata2
 from nanover.utilities.change_buffers import DictionaryChange
 
 from .test_reading import (
@@ -28,12 +30,17 @@ def test_iter_frame_full_merging(path):
     """
     for event in iter_frame_file_full(path):
         if event.message.frame_index == 0:
-            assert event.next_frame.raw == event.message.frame
+            frame = convert_GetFrameResponse_to_framedata2(event.message)
+            assert simplify_numpy(event.next_frame.frame_dict) == simplify_numpy(
+                frame.frame_dict
+            )
         else:
-            frame = FrameData()
-            frame.raw.MergeFrom(event.prev_frame.raw)
-            frame.raw.MergeFrom(event.message.frame)
-            assert frame == event.next_frame
+            frame = FrameData2()
+            frame.update(event.prev_frame)
+            frame.update(convert_GetFrameResponse_to_framedata2(event.message))
+            assert simplify_numpy(frame.frame_dict) == simplify_numpy(
+                event.next_frame.frame_dict
+            )
 
 
 @pytest.mark.parametrize("path", (RECORDING_PATH_TRAJ, RECORDING_PATH_TRAJ_SWITCHING))
@@ -42,7 +49,9 @@ def test_iter_frame_full_sequential(path):
     Test that each message's prev_frame matches the content of the previous message's next_frame.
     """
     for prev_event, next_event in pairwise(iter_frame_file_full(path)):
-        assert prev_event.next_frame == next_event.prev_frame
+        assert simplify_numpy(prev_event.next_frame.frame_dict) == simplify_numpy(
+            next_event.prev_frame.frame_dict
+        )
 
 
 @pytest.mark.parametrize("path", (RECORDING_PATH_STATE, RECORDING_PATH_STATE_SWITCHING))

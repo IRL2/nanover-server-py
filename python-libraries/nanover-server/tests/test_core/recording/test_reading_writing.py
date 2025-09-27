@@ -2,6 +2,7 @@ import random
 from io import BytesIO
 from itertools import zip_longest
 
+import numpy as np
 import pytest
 
 from nanover.protocol.trajectory import GetFrameResponse
@@ -17,7 +18,8 @@ from nanover.utilities.change_buffers import DictionaryChange
 
 def random_frame_message():
     return GetFrameResponse(
-        frame_index=random.randint(0, 1000), frame=random_frame().raw
+        frame_index=random.randint(0, 1000),
+        frame=random_frame().raw,
     )
 
 
@@ -34,10 +36,13 @@ MESSAGE_TYPE_FACTORY_PAIRS = (
 def random_frame():
     frame = FrameData()
     frame.particle_count = random.randint(10, 100)
-    frame.particle_positions = [
-        [random.random(), random.random(), random.random()]
-        for _ in range(frame.particle_count)
-    ]
+    frame.particle_positions = np.array(
+        [
+            [random.random(), random.random(), random.random()]
+            for _ in range(frame.particle_count)
+        ],
+        dtype=np.float32,
+    )
     return frame
 
 

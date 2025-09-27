@@ -3,10 +3,10 @@ from pathlib import Path
 
 from nanover.app.types import AppServer
 from nanover.recording2.reading import RecordingIndexEntry, MessageZipReader
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData2
+from nanover.trajectory.frame_data import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.websocket.convert import (
-    convert_dict_frame_to_grpc_frame,
+from nanover.trajectory.convert import (
     unpack_dict_frame,
     convert_dict_state_to_dictionary_change,
 )
@@ -75,7 +75,7 @@ class PlaybackSimulation:
 
         # clear simulation and reset box pose to identity
         self.emit(
-            frame=FrameData(),
+            frame=FrameData2(),
             update=DictionaryChange(
                 updates={"scene": SCENE_POSE_IDENTITY}, removals=self.changed_keys
             ),
@@ -119,19 +119,17 @@ class PlaybackSimulation:
         frame, update = None, None
         message = self.reader.get_message_from_entry(entry)
         if "frame" in message:
-            frame = convert_dict_frame_to_grpc_frame(
-                unpack_dict_frame(message["frame"])
-            )
+            frame = FrameData2(unpack_dict_frame(message["frame"]))
         if "state" in message:
             update = convert_dict_state_to_dictionary_change(message["state"])
         self.emit(frame=frame, update=update)
 
-    def emit(self, *, frame: FrameData | None, update: DictionaryChange | None):
+    def emit(self, *, frame: FrameData2 | None, update: DictionaryChange | None):
         if self.app_server is None:
             return
 
         if frame is not None:
-            index = 0 if "index" not in frame.values else int(frame.values["index"])
+            index = 0 if FRAME_INDEX not in frame else frame.frame_index
             self.app_server.frame_publisher.send_frame(index, frame)
         if update is not None:
             self.app_server.clear_locks()

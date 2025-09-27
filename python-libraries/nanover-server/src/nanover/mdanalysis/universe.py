@@ -55,16 +55,12 @@ from nanover.trajectory.frame_data import (
     CHAIN_NAMES,
     MissingDataError,
     PARTICLE_POSITIONS,
-    PARTICLE_FORCES,
-    PARTICLE_FORCES_SYSTEM,
-    PARTICLE_VELOCITIES,
     FRAME_INDEX,
-    USER_FORCES_INDEX,
-    USER_FORCES_SPARSE,
 )
 
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
 from nanover.recording2.reading import MessageZipReader, RecordingIndexEntry
+from ..trajectory.convert import unpack_dict_frame
 
 
 class KeyConversion(NamedTuple):
@@ -260,7 +256,7 @@ class NanoverReaderBase(ProtoReader):
         ts.frame = frame
 
         try:
-            ts.positions = _unflatten3d(frame_at_index, PARTICLE_POSITIONS)
+            ts.positions = frame_at_index.particle_positions
         except MissingDataError as e:
             raise Exception(f"No particle positions in trajectory frame {frame}") from e
 
@@ -269,15 +265,14 @@ class NanoverReaderBase(ProtoReader):
         with suppress(MissingDataError):
             ts.triclinic_dimensions = frame_at_index.box_vectors
         with suppress(MissingDataError):
-            ts.velocities = _unflatten3d(frame_at_index, PARTICLE_VELOCITIES)
+            ts.velocities = frame_at_index.particle_velocities
         try:
-            ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES)
+            ts.forces = frame_at_index.particle_forces
         except MissingDataError:
             with suppress(MissingDataError):
-                ts.forces = _unflatten3d(frame_at_index, PARTICLE_FORCES_SYSTEM)
+                ts.forces = frame_at_index.particle_forces_system
 
-        # TODO: what is this supposed to do?
-        # ts.data.update(frame_at_index.values)
+        ts.data.update(frame_at_index.frame_dict)
         self._add_user_forces_to_ts(frame_at_index, ts)
 
         if self.convert_units:
@@ -314,12 +309,12 @@ class NanoverReaderBase(ProtoReader):
         converts them to the units used by MDAnalysis if required.
         """
         try:
-            indices = frame[USER_FORCES_INDEX]
-            sparse = frame[USER_FORCES_SPARSE]
-        except KeyError:
+            indices = frame.user_forces_index
+            sparse = frame.user_forces_sparse
+        except MissingDataError:
             return
         forces = np.zeros((self.n_atoms, 3), dtype=np.float32)
-        for index, force in zip(indices, batched(sparse, n=3)):
+        for index, force in zip(indices, sparse):
             forces[index, :] = force
         if self.convert_units:
             self.convert_forces_from_native(forces)
@@ -334,8 +329,8 @@ class NanoverReaderBase(ProtoReader):
             raise EOFError(err) from None
 
         message = self.reader.get_message_from_entry(entry)
-        frame_at_index = FrameData(message["frame"])
-        frame_at_index["elapsed"] = entry.timestamp
+        frame_at_index = FrameData(unpack_dict_frame(message["frame"]))
+        frame_at_index["elapsed"] = entry.metadata["timestamp"]
 
         return self._frame_to_timestep(frame, frame_at_index)
 
@@ -349,7 +344,7 @@ def _trim_start_frame_reader(reader: MessageZipReader) -> FrameData:
     for i, entry in enumerate(reader):
         message = reader.get_message_from_entry(entry)
         if "frame" in message:
-            first_frame.update(FrameData(message["frame"]))
+            first_frame.update(FrameData(unpack_dict_frame(message["frame"])))
             if is_valid_first_frame(first_frame):
                 reader.index = reader.index[i:]
                 return first_frame
@@ -369,21 +364,6 @@ def _trim_end_frame_reader(reader: MessageZipReader):
                 reader.index = reader.index[:i]
                 return remainder
     return 0
-
-
-def _unflatten3d(frame: FrameData, key: str):
-    """
-    Extract a (-1, 3) shape numpy array from a flat array in a given frame under a given key.
-
-    :param frame: FrameData to extract the data from.
-    :param key: Key name of data array in the frame.
-
-    This seems to be significantly faster than the existing shortcut that uses list comprehensions.
-    """
-    try:
-        return np.array(frame[key]).reshape((-1, 3))
-    except IndexError:
-        raise MissingDataError()
 
 
 def has_topology(frame: FrameData) -> bool:

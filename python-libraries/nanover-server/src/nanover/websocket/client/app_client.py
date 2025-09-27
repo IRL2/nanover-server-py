@@ -4,7 +4,6 @@ from typing import Any
 
 from nanover.app.types import AppServer
 from nanover.essd import DiscoveryClient, ServiceHub
-from nanover.trajectory.frame_data2 import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.playback_client import PlaybackClient
 from nanover.utilities.network import get_local_ip
@@ -13,9 +12,6 @@ from nanover.websocket.client.selection_client import SelectionClient
 from nanover.trajectory import FrameData2
 
 DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
-
-
-DEFAULT_DISCOVERY_SEARCH_TIME = 5.0
 
 
 class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
@@ -91,7 +87,7 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
     def latest_multiplayer_values(self):
         return self._state_dictionary.copy_content()
 
-    def wait_until_first_frame(self, check_interval=0.01, timeout=1) -> FrameData:
+    def wait_until_first_frame(self, check_interval=0.01, timeout=1):
         """
         Wait until the first frame is received from the server.
 

@@ -4,7 +4,7 @@ from nanover.recording2.writing import record_messages
 from nanover.state.state_service import state_update_to_dictionary_change
 from nanover.trajectory import FrameData
 from nanover.trajectory.frame_data import FRAME_INDEX
-from nanover.websocket.convert import pack_grpc_frame
+from nanover.trajectory.convert import pack_grpc_frame
 
 
 def convert_old_recording(out_path, *, traj, state):

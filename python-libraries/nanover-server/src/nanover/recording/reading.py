@@ -16,7 +16,8 @@ from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
 from nanover.state.state_dictionary import StateDictionary
 from nanover.state.state_service import state_update_to_dictionary_change
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData2
+from nanover.trajectory.convert import convert_GetFrameResponse_to_framedata2
 from nanover.trajectory.frame_data import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -147,7 +148,7 @@ def split_by_simulation_counter(
 
     def get_simulation_counter(triplet):
         _, frame, _ = triplet
-        return frame.values.get(SIMULATION_COUNTER)
+        return frame.frame_dict.get(SIMULATION_COUNTER)
 
     full_view = iter_full_view(traj=traj, state=state)
     sessions = [
@@ -168,15 +169,12 @@ def iter_full_view(
     Iterate one or both of trajectory and state recording files, yield a timestamp and copies of both the current
     aggregate FrameData and the current aggregate state dictionary.
     """
-    full_frame = FrameData()
+    full_frame = FrameData2()
     full_state = StateDictionary()
 
     for time, frame, update in iter_recording_files(traj=traj, state=state):
         if frame is not None:
-            frame_reset = frame.values["index"] == 0
-            if frame_reset:
-                full_frame = FrameData()
-            full_frame.raw.MergeFrom(frame.raw)
+            full_frame.update(frame)
 
         if update is not None:
             full_state.update_state(None, update)
@@ -191,7 +189,7 @@ def iter_recording_files(
     Iterate one or both of trajectory and state recording files, yield a timestamp and one or both of frame and update
     that occurred at that instant. Frame index is included in frame data under the key "index".
     """
-    frames: Iterator[Tuple[int, int, FrameData]] = (
+    frames: Iterator[Tuple[int, FrameData2]] = (
         iter([]) if traj is None else iter_trajectory_file(traj)
     )
     updates: Iterator[Tuple[int, StateUpdate]] = (
@@ -205,13 +203,12 @@ def iter_recording_files(
         return math.inf if entry is None else entry[0]
 
     while next_frame is not None or next_update is not None:
-        frame: FrameData | None = None
+        frame: FrameData2 | None = None
         update: DictionaryChange | None = None
 
         time = min(get_time(next_frame), get_time(next_update))
         if next_frame is not None and get_time(next_frame) == time:
-            _, index, frame = next_frame
-            frame.values["index"] = index
+            _, frame = next_frame
             next_frame = next(frames, None)
         if next_update is not None and get_time(next_update) == time:
             _, update = next_update
@@ -244,9 +241,8 @@ def iter_trajectory_recording(io: BinaryIO):
     reader = MessageRecordingReader.from_io(io)
     for entry in reader:
         get_frame_response = buffer_to_frame_message(entry.buffer)
-        frame_index: int = get_frame_response.frame_index
-        frame = FrameData(get_frame_response.frame)
-        yield (entry.timestamp, frame_index, frame)
+        frame = convert_GetFrameResponse_to_framedata2(get_frame_response)
+        yield (entry.timestamp, frame)
 
 
 def iter_state_recording(io: BinaryIO):

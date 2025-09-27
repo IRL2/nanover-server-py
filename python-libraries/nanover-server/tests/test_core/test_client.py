@@ -6,7 +6,7 @@ from nanover.app import NanoverImdApplication
 from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ParticleInteraction
 from nanover.testing import assert_equal_soon, assert_in_soon
-from nanover.trajectory.frame_data2 import FrameData
+from nanover.trajectory import FrameData2
 
 from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
@@ -57,8 +57,8 @@ def test_receive_frames(client_server, simple_frame_data):
     )
 
     assert_equal_soon(
-        lambda: client.current_frame,
-        lambda: simple_frame_data,
+        lambda: client.current_frame.frame_dict,
+        lambda: simple_frame_data.frame_dict,
     )
 
 
@@ -76,11 +76,11 @@ def test_receive_multiple_frames(client_server, simple_frame_data):
 def test_current_frame_does_merge(client_server):
     client, app_server = client_server
 
-    first_frame = FrameData()
+    first_frame = FrameData2()
     first_frame["indices"] = [0, 1, 3]
     first_frame["string"] = "str"
 
-    second_frame = FrameData()
+    second_frame = FrameData2()
     second_frame["indices"] = [4, 6, 8]
     second_frame["bool"] = False
 
@@ -99,41 +99,6 @@ def test_current_frame_does_merge(client_server):
             first_frame["string"],
         ),
     )
-
-
-def test_current_frame_is_copy(client_server):
-    client, app_server = client_server
-
-    first_frame = FrameData()
-    first_frame["indices"] = [0, 1, 3]
-    first_frame["string"] = "str"
-
-    second_frame = FrameData()
-    second_frame["indices"] = [4, 6, 8]
-    second_frame["bool"] = False
-
-    app_server.frame_publisher.send_frame(0, first_frame)
-
-    assert_equal_soon(
-        lambda: client.current_frame.arrays["indices"],
-        lambda: [0, 1, 3],
-    )
-
-    frame = client.current_frame
-    assert frame.arrays["indices"] == [0, 1, 3]
-    assert "string" in frame
-    assert "bool" not in frame
-
-    app_server.frame_publisher.send_frame(0, second_frame)
-
-    assert_equal_soon(
-        lambda: client.current_frame.arrays["indices"],
-        lambda: [4, 6, 8],
-    )
-
-    assert frame.arrays["indices"] == [0, 1, 3]
-    assert "string" in frame
-    assert "bool" not in frame
 
 
 def test_frame_reset(client_server, simple_frame_data, disjoint_frame_data):

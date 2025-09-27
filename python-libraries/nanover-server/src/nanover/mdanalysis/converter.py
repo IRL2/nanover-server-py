@@ -9,7 +9,7 @@ import numpy as np
 from MDAnalysis import Universe
 from MDAnalysis.guesser.default_guesser import DefaultGuesser
 
-from nanover.trajectory.frame_data2 import FrameData
+from nanover.trajectory import FrameData2
 from nanover.trajectory.frame_data import (
     PARTICLE_COUNT,
     RESIDUE_COUNT,
@@ -110,7 +110,7 @@ MDA_UNIVERSE_PARAMS_TO_FRAME_DATA = {
 }
 
 
-def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> FrameData:
+def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> FrameData2:
     """
     Converts from an MDAnalysis universe to NanoVer FrameData object.
 
@@ -126,7 +126,7 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     residue names, residue ids, atom names, chain names, residue index and
     chain indexes
     """
-    frame_data = FrameData()
+    frame_data = FrameData2()
 
     if topology:
         add_mda_topology_to_frame_data(u, frame_data)
@@ -137,14 +137,13 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     return frame_data
 
 
-def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
+def frame_data_to_mdanalysis(frame: FrameData2) -> Universe:
     """
     Converts from a NanoVer :class:`FrameData` object to an MDAnalysis universe.
 
     :param frame: NanoVer :class:`FrameData` object.
     :return: MDAnalysis :class:`Universe` constructed from the given FrameData.
     """
-
     params = _get_universe_constructor_params(frame)
     universe = Universe.empty(**params)
 
@@ -169,7 +168,7 @@ def add_mda_topology_to_frame_data(u, frame_data):
     _add_mda_bonds_to_frame_data(u, frame_data)
 
 
-def add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData):
+def add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData2):
     """
     Adds the positions in a MDAnalysis universe to the frame data, if they exist.
 
@@ -185,12 +184,12 @@ def add_mda_positions_to_frame_data(u: Universe, frame_data: FrameData):
         raise MissingDataError("MDAnalysis universe has no positions.")
 
 
-def add_frame_topology_to_mda(u: Universe, frame: FrameData):
+def add_frame_topology_to_mda(u: Universe, frame: FrameData2):
     _add_bonds_to_mda(u, frame)
     _add_frame_attributes_to_mda(u, frame)
 
 
-def add_frame_positions_to_mda(u: Universe, frame: FrameData):
+def add_frame_positions_to_mda(u: Universe, frame: FrameData2):
     """
     Updates the positions in an MDAnalysis :class:`Universe` with those from the given frame.
 
@@ -201,7 +200,7 @@ def add_frame_positions_to_mda(u: Universe, frame: FrameData):
     u.atoms.positions = np.array(frame.particle_positions) * 10
 
 
-def _add_bonds_to_mda(u: Universe, frame: FrameData):
+def _add_bonds_to_mda(u: Universe, frame: FrameData2):
     """
     Add bonds from a framedata object to an MDAnalysis universe.
 
@@ -214,7 +213,7 @@ def _add_bonds_to_mda(u: Universe, frame: FrameData):
         u.add_TopologyAttr("bonds", bonds)
 
 
-def _get_universe_constructor_params(frame: FrameData):
+def _get_universe_constructor_params(frame: FrameData2):
     """
     Gets the MDAnalysis universe constructor params from a NanoVer frame data.
 
@@ -227,7 +226,7 @@ def _get_universe_constructor_params(frame: FrameData):
     NanoVer :class:`FrameData` object.
     """
     params = {
-        param_name: converter(frame[field])
+        param_name: converter(frame.frame_dict.get(field, None))
         for param_name, (field, converter) in MDA_UNIVERSE_PARAMS_TO_FRAME_DATA.items()
     }
 
@@ -259,7 +258,7 @@ def _get_mda_attribute(u: Universe, group, group_attribute):
     return getattr(getattr(u, group), group_attribute)
 
 
-def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
+def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData2):
     """
     Adds all available MDAnalysis attributes from the given universe to the given frame data
 
@@ -284,7 +283,7 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
             frame_data[frame_key] = field
 
 
-def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
+def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData2):
     """
     Adds the counts of all available MDAnalysis groups from the given universe to the given frame data.
 
@@ -299,7 +298,7 @@ def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
             frame_data[frame_key] = len(field)
 
 
-def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
+def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData2):
     """
     Adds the bonds in a MDAnalysis universe to the frame data, if they exist.
 
@@ -310,7 +309,7 @@ def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
         frame_data.bond_pairs = u.atoms.bonds.indices
 
 
-def _add_frame_attributes_to_mda(universe, frame):
+def _add_frame_attributes_to_mda(universe: Universe, frame: FrameData2):
     for name, (key, converter) in FRAME_DATA_TO_MDANALYSIS.items():
         with suppress(KeyError, MissingDataError):
             universe.add_TopologyAttr(name, converter(frame[key]))
