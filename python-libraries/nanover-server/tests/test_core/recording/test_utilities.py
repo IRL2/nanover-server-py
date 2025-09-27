@@ -30,8 +30,9 @@ def test_iter_frame_full_merging(path):
     """
     for event in iter_frame_file_full(path):
         if event.message.frame_index == 0:
-            assert event.next_frame == convert_GetFrameResponse_to_framedata2(
-                event.message
+            frame = convert_GetFrameResponse_to_framedata2(event.message)
+            assert simplify_numpy(event.next_frame.frame_dict) == simplify_numpy(
+                frame.frame_dict
             )
         else:
             frame = FrameData2()
