@@ -62,7 +62,7 @@ def test_full_view_independent(traj_path, state_path):
     for timestamp, frame, state in iter_full_view(traj=traj_path, state=state_path):
         assert KEY not in frame
         assert KEY not in state
-        frame.values[KEY] = timestamp
+        frame[KEY] = timestamp
         state[KEY] = timestamp
 
 

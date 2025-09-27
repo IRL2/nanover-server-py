@@ -36,7 +36,7 @@ def test_iter_frame_full_merging(path):
         else:
             frame = FrameData2()
             frame.update(event.prev_frame)
-            frame.update(convert_GetFrameResponse_to_framedata2(event.message.frame))
+            frame.update(convert_GetFrameResponse_to_framedata2(event.message))
             assert simplify_numpy(frame.frame_dict) == simplify_numpy(
                 event.next_frame.frame_dict
             )
