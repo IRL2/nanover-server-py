@@ -2,7 +2,10 @@ from os import PathLike
 from pathlib import Path
 
 from nanover.app.types import AppServer
-from nanover.recording2.reading import RecordingIndexEntry, MessageZipReader
+from nanover.recording2.reading import (
+    RecordingIndexEntry,
+    NanoverRecordingReader,
+)
 from nanover.trajectory import FrameData2
 from nanover.trajectory.frame_data import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
@@ -46,7 +49,7 @@ class PlaybackSimulation:
         self.next_entry_index = 0
         self.time = 0.0
 
-        self.reader = MessageZipReader.from_path(path)
+        self.reader = NanoverRecordingReader.from_path(path)
 
     def load(self):
         """
@@ -56,13 +59,16 @@ class PlaybackSimulation:
             (entry.metadata["timestamp"] * MICROSECONDS_TO_SECONDS, entry)
             for entry in self.reader
         ]
-        # self.changed_keys = {
-        #     key
-        #     for _, _, update in self.entries
-        #     if update is not None
-        #     for key in update.updates.keys()
-        #     if key != "scene"
-        # }
+
+        updates = (self.reader.get_state_from_entry(entry) for entry in self.reader)
+
+        self.changed_keys = {
+            key
+            for update in updates
+            if update is not None
+            for key in update.updates.keys()
+            if key != "scene"
+        }
 
     def reset(self, app_server: AppServer):
         """

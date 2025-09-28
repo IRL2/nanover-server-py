@@ -13,6 +13,7 @@ from nanover.trajectory.convert import (
     convert_dict_state_to_dictionary_change,
 )
 from nanover.trajectory.frame_data import SIMULATION_COUNTER
+from nanover.utilities.change_buffers import DictionaryChange
 
 RECORDING_INDEX_FILENAME = "index.msgpack"
 RECORDING_MESSAGES_FILENAME = "messages.msgpack"
@@ -95,6 +96,19 @@ class NanoverRecordingReader(MessageZipReader):
             return None
 
         return FrameData2(unpack_dict_frame(message["frame"]))
+
+    def get_state_from_entry(
+        self, entry: RecordingIndexEntry
+    ) -> DictionaryChange | None:
+        if "state" not in entry.metadata.get("types", ("state",)):
+            return None
+
+        message = self.get_message_from_entry(entry)
+
+        if "state" not in message:
+            return None
+
+        return convert_dict_state_to_dictionary_change(message["state"])
 
 
 def split_by_simulation_counter(path: PathLike[str]):
