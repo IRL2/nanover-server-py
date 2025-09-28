@@ -86,6 +86,30 @@ class MessageZipReader:
 
 
 class NanoverRecordingReader(MessageZipReader):
+    def iter_frames_full(self):
+        current = FrameData2()
+        for entry, frame in self.iter_frame_updates():
+            current.update(frame)
+            yield entry, current.copy()
+
+    def iter_states_full(self):
+        current = StateDictionary()
+        for entry, change in self.iter_state_updates():
+            current.update_state(None, change)
+            yield entry, current.copy_content()
+
+    def iter_frame_updates(self):
+        for entry in self:
+            frame = self.get_frame_from_entry(entry)
+            if frame is not None:
+                yield entry, frame
+
+    def iter_state_updates(self):
+        for entry in self:
+            state = self.get_state_from_entry(entry)
+            if state is not None:
+                yield entry, state
+
     def get_frame_from_entry(self, entry: RecordingIndexEntry) -> FrameData2 | None:
         if "frame" not in entry.metadata.get("types", ("frame",)):
             return None

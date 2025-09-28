@@ -23,10 +23,7 @@ Example when used as a cli:
 import argparse
 from pprint import pprint
 
-from nanover.recording.reading import (
-    iter_state_file,
-    iter_full_view,
-)
+from nanover.recording2.reading import NanoverRecordingReader
 
 
 def main():
@@ -46,15 +43,17 @@ def main():
     parser.add_argument("path", help="Path to the file to read.")
     args = parser.parse_args()
 
+    reader = NanoverRecordingReader.from_path(args.path)
+
     if args.full:
         stream = (
-            (timestamp, state)
-            for timestamp, _, state in iter_full_view(state=args.path)
+            (entry.metadata["timestamp"], state)
+            for entry, state in reader.iter_states_full()
         )
     else:
         stream = (
-            (timestamp, update.updates)
-            for timestamp, update in iter_state_file(args.path)
+            (entry.metadata["timestamp"], update.updates)
+            for entry, update in reader.iter_state_updates()
         )
 
     for timestamp, state in stream:

@@ -52,7 +52,7 @@ def test_iter_frame_full_sequential(path):
         )
 
 
-@pytest.mark.parametrize("path", (RECORDING_PATH_STATE, RECORDING_PATH_STATE_SWITCHING))
+@pytest.mark.parametrize("path", (RECORDING_PATH, RECORDING_PATH_SWITCHING))
 def test_iter_state_full_merging(path):
     """
     Test that the next state is equal to the previous state with the update message applied.
@@ -65,7 +65,7 @@ def test_iter_state_full_merging(path):
         assert event.next_state == state.copy_content()
 
 
-@pytest.mark.parametrize("path", (RECORDING_PATH_STATE, RECORDING_PATH_STATE_SWITCHING))
+@pytest.mark.parametrize("path", (RECORDING_PATH, RECORDING_PATH_SWITCHING))
 def test_iter_state_full_sequential(path):
     """
     Test that each event's prev_frame matches the content of the previous event's next_frame.
