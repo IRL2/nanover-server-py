@@ -167,17 +167,26 @@ def iter_full_view(path: PathLike[str]):
 
 
 def iter_recording_file(path: PathLike[str]):
-    reader = MessageZipReader.from_path(path)
-    for entry in reader:
-        frame, update = None, None
-        message = reader.get_message_from_entry(entry)
-        if "frame" in message:
-            frame = FrameData2(unpack_dict_frame(message["frame"]))
-        if "state" in message:
-            update = convert_dict_state_to_dictionary_change(message["state"])
+    with MessageZipReader.from_path(path) as reader:
+        for entry in reader:
+            frame, update = None, None
+            message = reader.get_message_from_entry(entry)
+            if "frame" in message:
+                frame = FrameData2(unpack_dict_frame(message["frame"]))
+            if "state" in message:
+                update = convert_dict_state_to_dictionary_change(message["state"])
 
-        if frame is not None or update is not None:
-            yield entry.metadata["timestamp"], frame, update
+            if frame is not None or update is not None:
+                yield entry.metadata["timestamp"], frame, update
+
+
+def message_events_from_recording(path: PathLike[str]):
+    with MessageZipReader.from_path(path) as reader:
+        for entry in reader:
+            yield MessageEvent(
+                timestamp=entry.metadata["timestamp"],
+                message=reader.get_message_from_entry(entry),
+            )
 
 
 def parse_index(zipfile: ZipFile):
