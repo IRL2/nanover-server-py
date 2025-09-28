@@ -84,6 +84,19 @@ class MessageZipReader:
         return self.index[index]
 
 
+class NanoverRecordingReader(MessageZipReader):
+    def get_frame_from_entry(self, entry: RecordingIndexEntry) -> FrameData2 | None:
+        if "frame" not in entry.metadata.get("types", ("frame",)):
+            return None
+
+        message = self.get_message_from_entry(entry)
+
+        if "frame" not in message:
+            return None
+
+        return FrameData2(unpack_dict_frame(message["frame"]))
+
+
 def split_by_simulation_counter(path: PathLike[str]):
     def get_simulation_counter(triplet):
         _, frame, _ = triplet

@@ -59,7 +59,11 @@ from nanover.trajectory.frame_data import (
 )
 
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
-from nanover.recording2.reading import MessageZipReader, RecordingIndexEntry
+from nanover.recording2.reading import (
+    MessageZipReader,
+    RecordingIndexEntry,
+    NanoverRecordingReader,
+)
 from ..trajectory.convert import unpack_dict_frame
 
 
@@ -113,8 +117,8 @@ def universes_from_recording(path: PathLike[str], *, convert_units=True):
     first_particle_frame = FrameData()
     first_frame = last_frame = None
 
-    def message_begins_next_universe(message: dict):
-        return message.get(FRAME_INDEX, None) == 0
+    def frame_begins_next_universe(frame: FrameData):
+        return frame.frame_dict.get(FRAME_INDEX, None) == 0
 
     def finalise_prev_universe():
         nonlocal first_particle_frame, first_frame, last_frame
@@ -137,22 +141,23 @@ def universes_from_recording(path: PathLike[str], *, convert_units=True):
         first_particle_frame = FrameData()
         first_frame = last_frame = None
 
-    with MessageZipReader.from_path(path) as reader:
+    with NanoverRecordingReader.from_path(path) as reader:
         for i, entry in enumerate(reader):
-            if "frame" not in entry.metadata["types"]:
+            frame = reader.get_frame_from_entry(entry)
+
+            if frame is None:
                 continue
 
             if first_frame is None:
                 first_frame = i
             last_frame = i
 
-            message = reader.get_message_from_entry(entry)
-            if message_begins_next_universe(message) and index_entries:
+            if frame_begins_next_universe(frame) and index_entries:
                 finalise_prev_universe()
             # aggregate initial frames until there is position and topology information
             if not is_valid_first_frame(first_particle_frame):
-                first_particle_frame.update(FrameData(message))
-            index_entries.append(entry.offset)
+                first_particle_frame.update(frame)
+            index_entries.append(entry)
 
     if is_valid_first_frame(first_particle_frame) and index_entries:
         finalise_prev_universe()
