@@ -6,8 +6,8 @@ from websockets import ConnectionClosed
 from websockets.sync.client import connect, ClientConnection
 
 from nanover.omni import OmniRunner
-from nanover.recording2.reading import MessageEvent
-from nanover.recording2.writing import record_messages
+from nanover.recording.reading import MessageEvent
+from nanover.recording.writing import record_messages
 from nanover.websocket.client.app_client import get_websocket_address_from_app_server
 from nanover.websocket.client.base_client import MAX_MESSAGE_SIZE
 

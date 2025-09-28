@@ -4,7 +4,7 @@ from os import PathLike
 
 from nanover.protocol.trajectory import GetFrameResponse
 from nanover.protocol.state import StateUpdate
-from nanover.recording.reading import (
+from nanover.recording.old.reading import (
     MessageRecordingReader,
     buffer_to_frame_message,
     buffer_to_state_message,

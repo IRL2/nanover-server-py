@@ -21,8 +21,8 @@ from os import PathLike
 from pathlib import Path
 from typing import Callable, BinaryIO
 
-from nanover.recording.utilities import RecordingEvent, iter_recording_max
-from nanover.recording.writing import write_header, write_entry
+from nanover.recording.old.utilities import RecordingEvent, iter_recording_max
+from nanover.recording.old.writing import write_header, write_entry
 from nanover.state.state_service import dictionary_change_to_state_update
 from nanover.trajectory.frame_data import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange

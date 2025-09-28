@@ -59,7 +59,7 @@ from nanover.trajectory.frame_data import (
 )
 
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
-from nanover.recording2.reading import (
+from nanover.recording.reading import (
     MessageZipReader,
     RecordingIndexEntry,
     NanoverRecordingReader,

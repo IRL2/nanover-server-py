@@ -23,7 +23,7 @@ Example when used as a cli:
 import argparse
 from pprint import pprint
 
-from nanover.recording2.reading import NanoverRecordingReader
+from nanover.recording.reading import NanoverRecordingReader
 
 
 def main():

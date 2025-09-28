@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from nanover.recording2.reading import (
+from nanover.recording.reading import (
     MessageZipReader,
     iter_recording_file,
     iter_full_view,

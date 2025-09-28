@@ -19,12 +19,12 @@ from dataclasses import dataclass
 from os import PathLike, SEEK_END, SEEK_CUR
 from pathlib import Path
 
-from nanover.recording.reading import (
+from nanover.recording.old.reading import (
     read_header,
     MessageRecordingReader,
     read_entry_info,
 )
-from nanover.recording.writing import write_header, write_buffer
+from nanover.recording.old.writing import write_header, write_buffer
 
 
 @dataclass(kw_only=True)
