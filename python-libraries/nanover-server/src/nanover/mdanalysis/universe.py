@@ -238,6 +238,7 @@ class NanoverReaderBase(ProtoReader):
         self.filename = filename
         self.reader = reader
 
+        _strip_reader(self.reader)
         first_frame = _trim_start_frame_reader(self.reader)
         remainder = _trim_end_frame_reader(self.reader)
         self.n_atoms = first_frame.particle_count
@@ -338,6 +339,12 @@ class NanoverReaderBase(ProtoReader):
         frame_at_index["elapsed"] = entry.metadata["timestamp"]
 
         return self._frame_to_timestep(frame, frame_at_index)
+
+
+def _strip_reader(reader: MessageZipReader) -> None:
+    reader.index = [
+        entry for entry in reader.index if "frame" in entry.metadata["types"]
+    ]
 
 
 def _trim_start_frame_reader(reader: MessageZipReader) -> FrameData:
