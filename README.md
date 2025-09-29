@@ -1,11 +1,11 @@
-# NanoVer Python Server + gRPC Protocol
+# NanoVer Python Server
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-darkblue.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/Docs-latest-blue.svg)](https://irl2.github.io/nanover-docs) 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.08118/status.svg)](https://doi.org/10.21105/joss.08118) 
 [![Build Status](https://github.com/IRL2/nanover-server-py/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/IRL2/nanover-server-py/actions/workflows/tests.yml?query=branch%3Amain)
 
-Repository containing the gRPC protocol and python based implementations
+Repository containing the python based implementations
 of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
 
 This software is designed to be used with **NanoVer VR clients**, 
@@ -51,8 +51,6 @@ Please head to the [Tutorials page](https://irl2.github.io/nanover-docs/tutorial
 [project's documentation](https://irl2.github.io/nanover-docs) for more information!
 
 ### Exploring the code  
-
-The `protocol` folder contains the definitions of the gRPC services.
 
 The `python-libraries` folder contains the library to write NanoVer clients and
 servers in python, as well as the services implemented in python. The
