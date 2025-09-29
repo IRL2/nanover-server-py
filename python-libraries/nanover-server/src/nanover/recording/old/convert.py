@@ -1,5 +1,3 @@
-from typing import Any
-
 from nanover.recording.old.utilities import (
     iter_recording_max,
     pack_grpc_frame,
@@ -8,7 +6,6 @@ from nanover.recording.old.utilities import (
 from nanover.recording.reading import MessageEvent
 from nanover.recording.writing import record_messages
 from .frame_data import FrameData as FrameDataOld
-from .protocol.state import StateUpdate
 from nanover.trajectory.keys import FRAME_INDEX
 
 

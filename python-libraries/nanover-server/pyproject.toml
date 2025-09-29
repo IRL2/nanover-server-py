@@ -40,4 +40,4 @@ nanover-convert-recording = "nanover.recording.cli.convert_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
-include = ["nanover.*", "nanover.protocol"]  # package names should match these glob patterns (["*"] by default)
+include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)
