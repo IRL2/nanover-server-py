@@ -9,7 +9,7 @@ from nanover.trajectory.frame_data import (
     RESIDUE_CHAINS,
     BOX_VECTORS,
 )
-from nanover.trajectory.convert import converters
+from nanover.trajectory.convert import converters, pack_dict_frame
 
 
 def uint8s():
@@ -65,6 +65,13 @@ known_types = {
 @st.composite
 def frames(draw):
     return FrameData2(draw(dict_frames()))
+
+
+@st.composite
+def packed_frame_dicts(draw):
+    frame_dict = draw(dict_frames())
+    packed_dict = pack_dict_frame(frame_dict)
+    return packed_dict
 
 
 @st.composite

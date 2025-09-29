@@ -1,4 +1,5 @@
 from dataclasses import asdict
+from io import BytesIO
 from typing import Iterable, Any
 from zipfile import ZipFile
 
@@ -13,8 +14,8 @@ from nanover.recording.reading import (
 from nanover.trajectory.frame_data import FRAME_INDEX
 
 
-def record_messages(out_path: str, messages: Iterable[MessageEvent]):
-    with ZipFile(out_path, "w") as archive:
+def record_messages(outfile: str | BytesIO, messages: Iterable[MessageEvent]):
+    with ZipFile(outfile, "w") as archive:
         entries: list[RecordingIndexEntry] = []
         try:
             with archive.open(

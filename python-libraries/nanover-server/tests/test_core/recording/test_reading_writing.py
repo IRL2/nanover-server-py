@@ -1,58 +1,38 @@
-import random
 from io import BytesIO
 from itertools import zip_longest
 
-import numpy as np
-import pytest
+from hypothesis import strategies as st
+from hypothesis import given
 
-from nanover.protocol.trajectory import GetFrameResponse
-from nanover.protocol.state import StateUpdate
-from nanover.recording.old.reading import (
-    MessageRecordingReader,
-)
-from nanover.state.state_service import dictionary_change_to_state_update
-from nanover.trajectory import FrameData
-from nanover.utilities.change_buffers import DictionaryChange
+from nanover.testing.strategies import packed_frame_dicts, state_updates
+from nanover.recording.reading import NanoverRecordingReader
+from nanover.recording.writing import record_messages, MessageEvent
 
 
-def random_frame_message():
-    return GetFrameResponse(
-        frame_index=random.randint(0, 1000),
-        frame=random_frame().raw,
-    )
+@st.composite
+def message_event_frames(draw):
+    timestamp = draw(st.integers(min_value=0, max_value=2**32 - 1))
+    message = {"frame": draw(packed_frame_dicts())}
+    return MessageEvent(timestamp=timestamp, message=message)
 
 
-def random_state_message():
-    return dictionary_change_to_state_update(random_change())
+@st.composite
+def message_event_states(draw):
+    timestamp = draw(st.integers(min_value=0, max_value=2**32 - 1))
+    message = {"state": draw(state_updates())}
+    return MessageEvent(timestamp=timestamp, message=message)
 
 
-MESSAGE_TYPE_FACTORY_PAIRS = (
-    (GetFrameResponse, random_frame_message),
-    (StateUpdate, random_state_message),
-)
+message_events_all = st.lists(st.one_of(message_event_states(), message_event_frames()))
 
 
-def random_frame():
-    frame = FrameData()
-    frame.particle_count = random.randint(10, 100)
-    frame.particle_positions = np.array(
-        [
-            [random.random(), random.random(), random.random()]
-            for _ in range(frame.particle_count)
-        ],
-        dtype=np.float32,
-    )
-    return frame
-
-
-def random_change():
-    return DictionaryChange(
-        updates={
-            "a" * random.randint(3, 8): random.random()
-            for _ in range(random.randint(5, 10))
-        },
-        removals={
-            "a" * random.randint(3, 8): random.random()
-            for _ in range(random.randint(5, 10))
-        },
-    )
+@given(message_events=message_events_all)
+def test_reads_written_messages(message_events):
+    """
+    Test that a written sequence of messages is read back the same.
+    """
+    with BytesIO() as io:
+        record_messages(io, message_events)
+        reader = NanoverRecordingReader.from_io(io)
+        for a, b in zip_longest(message_events, reader.iter_message_events()):
+            assert a == b

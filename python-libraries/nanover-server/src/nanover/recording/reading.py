@@ -65,10 +65,6 @@ class MessageZipReader:
     def get_message_from_entry(self, entry: RecordingIndexEntry) -> dict[str, Any]:
         return msgpack.unpackb(entry.read_from(self.messagesfile))
 
-    def iter_messages(self):
-        for entry in self:
-            yield entry.metadata["timestamp"], self.get_message_from_entry(entry)
-
     def __enter__(self):
         return self
 
@@ -109,6 +105,14 @@ class NanoverRecordingReader(MessageZipReader):
             state = self.get_state_from_entry(entry)
             if state is not None:
                 yield entry, state
+
+    def iter_message_events(self):
+        for entry in self:
+            message = self.get_message_from_entry(entry)
+            yield MessageEvent(
+                timestamp=entry.metadata["timestamp"],
+                message=message,
+            )
 
     def get_frame_from_entry(self, entry: RecordingIndexEntry) -> FrameData2 | None:
         if "frame" not in entry.metadata.get("types", ("frame",)):
