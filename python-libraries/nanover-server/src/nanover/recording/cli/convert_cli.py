@@ -16,7 +16,7 @@ Example when used as a cli:
 import argparse
 from pathlib import Path
 
-from nanover.recording.convert import convert_old_recording
+from nanover.recording.old.convert import convert_old_recording
 
 
 def main():

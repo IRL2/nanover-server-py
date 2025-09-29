@@ -1,14 +1,9 @@
-import collections
 from dataclasses import dataclass
 from typing import Iterable, Callable, TypeVar, Generic, Any
 
 import numpy as np
 import numpy.typing as npt
-from nanover.testing.utilities import simplify_numpy
 
-from nanover.protocol.trajectory import GetFrameResponse
-from .frame_data import FrameData as FrameDataOld
-from .frame_data2 import FrameData
 import nanover.trajectory.keys as keys
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -77,54 +72,11 @@ converters: dict[str, PackingPair] = {
 }
 
 
-def convert_dict_frame_to_grpc_frame(dict_frame) -> FrameDataOld:
-    grpc_frame = FrameDataOld()
-
-    for key, value in simplify_numpy(dict_frame).items():
-        if isinstance(value, collections.abc.Sequence) and not isinstance(value, str):
-            grpc_frame.arrays[key] = value
-        else:
-            grpc_frame.values[key] = value
-
-    return grpc_frame
-
-
 def convert_dict_state_to_dictionary_change(dict_state) -> DictionaryChange:
     return DictionaryChange(
         updates=dict_state["updates"],
         removals=dict_state["removals"],
     )
-
-
-def convert_GetFrameResponse_to_FrameData(response: GetFrameResponse) -> FrameData:
-    frame = FrameData(convert_grpc_frame_to_dict_frame(FrameDataOld(response.frame)))
-    frame.frame_index = response.frame_index
-    return frame
-
-
-def convert_FrameData_to_GetFrameResponse(frame: FrameData) -> GetFrameResponse:
-    return GetFrameResponse(
-        frame_index=frame.frame_index,
-        frame=convert_dict_frame_to_grpc_frame(frame.frame_dict).raw,
-    )
-
-
-def convert_grpc_frame_to_dict_frame(grpc_frame) -> dict[str, Any]:
-    return unpack_dict_frame(pack_grpc_frame(grpc_frame))
-
-
-def pack_grpc_frame(frame: FrameDataOld) -> dict[str, Any]:
-    data = {}
-
-    for key in frame.value_keys:
-        converter = converters.get(key, pack_identity)
-        data[key] = converter.pack(frame.values[key])
-
-    for key in frame.array_keys:
-        converter = converters.get(key, pack_force_list)
-        data[key] = converter.pack(frame.arrays[key])
-
-    return data
 
 
 def pack_dict_frame(frame: dict) -> dict[str, Any]:
