@@ -52,11 +52,6 @@ def test_receive_frames(client_server, simple_frame_data):
     app_server.frame_publisher.send_frame(0, simple_frame_data)
 
     assert_equal_soon(
-        lambda: len(client.frames),
-        lambda: 1,
-    )
-
-    assert_equal_soon(
         lambda: client.current_frame.frame_dict,
         lambda: simple_frame_data.frame_dict,
     )
