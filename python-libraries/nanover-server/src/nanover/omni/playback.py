@@ -7,7 +7,7 @@ from nanover.recording.reading import (
     NanoverRecordingReader,
 )
 from nanover.trajectory import FrameData2
-from nanover.trajectory.frame_data import FRAME_INDEX
+from nanover.trajectory.keys import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory.convert import (
     unpack_dict_frame,

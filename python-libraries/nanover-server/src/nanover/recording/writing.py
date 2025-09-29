@@ -11,7 +11,7 @@ from nanover.recording.reading import (
     MessageEvent,
     RecordingIndexEntry,
 )
-from nanover.trajectory.frame_data import FRAME_INDEX
+from nanover.trajectory.keys import FRAME_INDEX
 
 
 def record_messages(outfile: str | BytesIO, messages: Iterable[MessageEvent]):

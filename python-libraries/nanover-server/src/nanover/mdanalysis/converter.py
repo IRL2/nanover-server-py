@@ -9,20 +9,8 @@ import numpy as np
 from MDAnalysis import Universe
 from MDAnalysis.guesser.default_guesser import DefaultGuesser
 
-from nanover.trajectory import FrameData2
-from nanover.trajectory.frame_data import (
-    PARTICLE_COUNT,
-    RESIDUE_COUNT,
-    CHAIN_COUNT,
-    PARTICLE_ELEMENTS,
-    PARTICLE_NAMES,
-    PARTICLE_RESIDUES,
-    RESIDUE_NAMES,
-    RESIDUE_CHAINS,
-    RESIDUE_IDS,
-    CHAIN_NAMES,
-    MissingDataError,
-)
+from nanover.trajectory import FrameData2, MissingDataError
+import nanover.trajectory.keys as keys
 
 # tuple for storing a frame data key and whether it is required in conversion.
 FrameDataField = collections.namedtuple("FrameDataField", "key required")
@@ -37,21 +25,21 @@ ELEMENT_INDEX = {name: index for index, name in enumerate(ELEMENT_NAMES.split(",
 INDEX_ELEMENT = {index: name for name, index in ELEMENT_INDEX.items()}
 
 MDANALYSIS_COUNTS_TO_FRAME_DATA = {
-    "atoms": PARTICLE_COUNT,
-    "residues": RESIDUE_COUNT,
-    "segments": CHAIN_COUNT,
+    "atoms": keys.PARTICLE_COUNT,
+    "residues": keys.RESIDUE_COUNT,
+    "segments": keys.CHAIN_COUNT,
 }
 MDANALYSIS_ATOMS_TO_FRAME_DATA = {
-    "types": PARTICLE_ELEMENTS,
-    "names": PARTICLE_NAMES,
-    "resindices": PARTICLE_RESIDUES,
+    "types": keys.PARTICLE_ELEMENTS,
+    "names": keys.PARTICLE_NAMES,
+    "resindices": keys.PARTICLE_RESIDUES,
 }
 MDANALYSIS_RESIDUES_TO_FRAME_DATA = {
-    "resnames": RESIDUE_NAMES,
-    "segindices": RESIDUE_CHAINS,
-    "resids": RESIDUE_IDS,
+    "resnames": keys.RESIDUE_NAMES,
+    "segindices": keys.RESIDUE_CHAINS,
+    "resids": keys.RESIDUE_IDS,
 }
-MDANALYSIS_CHAINS_TO_FRAME_DATA = {"segids": CHAIN_NAMES}
+MDANALYSIS_CHAINS_TO_FRAME_DATA = {"segids": keys.CHAIN_NAMES}
 
 MDANALYSIS_GROUP_TO_ATTRIBUTES = {
     "atoms": MDANALYSIS_ATOMS_TO_FRAME_DATA,
@@ -92,21 +80,21 @@ def _to_chemical_symbol(elements):
 # to be applied.
 FRAME_DATA_TO_MDANALYSIS = {
     "types": FrameDataFieldConversion(
-        key=PARTICLE_ELEMENTS, converter=_to_chemical_symbol
+        key=keys.PARTICLE_ELEMENTS, converter=_to_chemical_symbol
     ),
-    "names": FrameDataFieldConversion(PARTICLE_NAMES, _identity),
-    "resnames": FrameDataFieldConversion(RESIDUE_NAMES, _identity),
-    "resids": FrameDataFieldConversion(RESIDUE_IDS, _identity),
-    "segids": FrameDataFieldConversion(CHAIN_NAMES, _identity),
+    "names": FrameDataFieldConversion(keys.PARTICLE_NAMES, _identity),
+    "resnames": FrameDataFieldConversion(keys.RESIDUE_NAMES, _identity),
+    "resids": FrameDataFieldConversion(keys.RESIDUE_IDS, _identity),
+    "segids": FrameDataFieldConversion(keys.CHAIN_NAMES, _identity),
 }
 
 # dictionary of mdanalysis constructor fields to field in frame data, along with conversion methods.
 MDA_UNIVERSE_PARAMS_TO_FRAME_DATA = {
-    "n_atoms": FrameDataFieldConversion(PARTICLE_COUNT, nullable_int),
-    "n_residues": FrameDataFieldConversion(RESIDUE_COUNT, nullable_int),
-    "n_segments": FrameDataFieldConversion(CHAIN_COUNT, nullable_int),
-    "atom_resindex": FrameDataFieldConversion(PARTICLE_RESIDUES, _identity),
-    "residue_segindex": FrameDataFieldConversion(RESIDUE_CHAINS, _identity),
+    "n_atoms": FrameDataFieldConversion(keys.PARTICLE_COUNT, nullable_int),
+    "n_residues": FrameDataFieldConversion(keys.RESIDUE_COUNT, nullable_int),
+    "n_segments": FrameDataFieldConversion(keys.CHAIN_COUNT, nullable_int),
+    "atom_resindex": FrameDataFieldConversion(keys.PARTICLE_RESIDUES, _identity),
+    "residue_segindex": FrameDataFieldConversion(keys.RESIDUE_CHAINS, _identity),
 }
 
 
@@ -272,7 +260,7 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData2):
     for group, attribute, frame_key in ALL_MDA_ATTRIBUTES:
         with suppress(AttributeError):
             field = _get_mda_attribute(u, group, attribute)
-            if frame_key == PARTICLE_ELEMENTS:
+            if frame_key == keys.PARTICLE_ELEMENTS:
                 # When MDAnalysis guesses an element symbol, it returns it fully
                 # in upper case. We need to fix the case before we can query our
                 # table.

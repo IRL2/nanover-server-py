@@ -12,7 +12,7 @@ from nanover.trajectory.convert import (
     unpack_dict_frame,
     convert_dict_state_to_dictionary_change,
 )
-from nanover.trajectory.frame_data import SIMULATION_COUNTER
+from nanover.trajectory.keys import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
 
 RECORDING_INDEX_FILENAME = "index.msgpack"

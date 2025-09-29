@@ -45,18 +45,8 @@ from MDAnalysis.core.topology import Topology
 from MDAnalysis.topology.base import TopologyReaderBase
 import numpy as np
 
-from nanover.trajectory.frame_data2 import FrameData
-from nanover.trajectory.frame_data import (
-    PARTICLE_COUNT,
-    PARTICLE_ELEMENTS,
-    PARTICLE_NAMES,
-    RESIDUE_NAMES,
-    RESIDUE_IDS,
-    CHAIN_NAMES,
-    MissingDataError,
-    PARTICLE_POSITIONS,
-    FRAME_INDEX,
-)
+from nanover.trajectory import FrameData2 as FrameData, MissingDataError
+import nanover.trajectory.keys as keys
 
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
 from nanover.recording.reading import (
@@ -81,16 +71,16 @@ def _trimmed(value):
 
 
 KEY_TO_ATTRIBUTE = {
-    PARTICLE_NAMES: KeyConversion(Atomnames, _trimmed),
-    RESIDUE_NAMES: KeyConversion(Resnames, _as_is),
-    RESIDUE_IDS: KeyConversion(Resids, _as_is),
-    CHAIN_NAMES: KeyConversion(Segids, _as_is),
+    keys.PARTICLE_NAMES: KeyConversion(Atomnames, _trimmed),
+    keys.RESIDUE_NAMES: KeyConversion(Resnames, _as_is),
+    keys.RESIDUE_IDS: KeyConversion(Resids, _as_is),
+    keys.CHAIN_NAMES: KeyConversion(Segids, _as_is),
 }
 
 
 FIRST_FRAME_REQUIRED = {
-    PARTICLE_POSITIONS,
-    PARTICLE_COUNT,
+    keys.PARTICLE_POSITIONS,
+    keys.PARTICLE_COUNT,
 }
 
 
@@ -118,7 +108,7 @@ def universes_from_recording(path: PathLike[str], *, convert_units=True):
     first_frame = last_frame = None
 
     def frame_begins_next_universe(frame: FrameData):
-        return frame.frame_dict.get(FRAME_INDEX, None) == 0
+        return frame.frame_dict.get(keys.FRAME_INDEX, None) == 0
 
     def finalise_prev_universe():
         nonlocal first_particle_frame, first_frame, last_frame
@@ -371,7 +361,7 @@ def _trim_end_frame_reader(reader: MessageZipReader):
     for i, entry in enumerate(reader):
         message = reader.get_message_from_entry(entry)
         if "frame" in message:
-            if message["frame"].get(FRAME_INDEX, None) == 0 and i > 0:
+            if message["frame"].get(keys.FRAME_INDEX, None) == 0 and i > 0:
                 remainder = len(reader.index) - i
                 reader.index = reader.index[:i]
                 return remainder
@@ -379,7 +369,7 @@ def _trim_end_frame_reader(reader: MessageZipReader):
 
 
 def has_topology(frame: FrameData) -> bool:
-    topology_keys = set(list(KEY_TO_ATTRIBUTE.keys()) + [PARTICLE_ELEMENTS])
+    topology_keys = set(list(KEY_TO_ATTRIBUTE.keys()) + [keys.PARTICLE_ELEMENTS])
     return bool(topology_keys.intersection(frame.frame_dict.keys()))
 
 

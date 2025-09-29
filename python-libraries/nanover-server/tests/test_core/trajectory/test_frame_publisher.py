@@ -7,7 +7,7 @@ import itertools
 import pytest
 
 from nanover.trajectory import FramePublisher, FrameData2
-from nanover.trajectory.frame_data import SERVER_TIMESTAMP
+from nanover.trajectory.keys import SERVER_TIMESTAMP
 from nanover.utilities.cli import CancellationToken
 
 

@@ -2,7 +2,7 @@ from nanover.recording.old.utilities import iter_recording_max
 from nanover.recording.reading import MessageEvent
 from nanover.recording.writing import record_messages
 from nanover.state.state_service import state_update_to_dictionary_change
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameDataOld
 from nanover.trajectory.frame_data import FRAME_INDEX
 from nanover.trajectory.convert import pack_grpc_frame
 
@@ -15,7 +15,7 @@ def message_events_from_old_recording(*, traj, state):
     for event in iter_recording_max(traj=traj, state=state):
         if event.next_frame_event is not None:
             frame_response = event.next_frame_event.message
-            frame = pack_grpc_frame(FrameData(frame_response.frame))
+            frame = pack_grpc_frame(FrameDataOld(frame_response.frame))
             frame[FRAME_INDEX] = frame_response.frame_index
             message = {"frame": frame}
             yield MessageEvent(

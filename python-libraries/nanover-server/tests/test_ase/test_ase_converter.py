@@ -4,7 +4,7 @@ from nanover.ase import ase_to_frame_data
 import numpy as np
 import pytest
 from nanover.ase.converter import EV_TO_KJMOL, frame_data_to_ase
-from nanover.trajectory.frame_data import MissingDataError
+from nanover.trajectory import MissingDataError
 from util import co_atoms
 
 

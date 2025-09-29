@@ -12,8 +12,8 @@ from nanover.mdanalysis.converter import (
     add_mda_topology_to_frame_data,
     _get_mda_attribute,
 )
-from nanover.trajectory.frame_data import PARTICLE_ELEMENTS, MissingDataError
-from nanover.trajectory import FrameData2
+from nanover.trajectory.keys import PARTICLE_ELEMENTS
+from nanover.trajectory import FrameData2, MissingDataError
 
 TEST_SYSTEM_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
