@@ -59,7 +59,7 @@ class DiscoveryServer:
     services: dict[ServiceHub, List[InterfaceAddresses]]
     _socket: socket
 
-    def __init__(self, broadcast_port: int | None = None, delay=0.5):
+    def __init__(self, broadcast_port: int | None = None, delay=0.1):
         if broadcast_port is None:
             broadcast_port = BROADCAST_PORT
         self.logger = logging.getLogger(__name__)
