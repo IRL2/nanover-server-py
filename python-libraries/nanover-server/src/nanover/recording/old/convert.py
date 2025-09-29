@@ -1,12 +1,15 @@
 from typing import Any
 
-from nanover.recording.old.utilities import iter_recording_max
+from nanover.recording.old.utilities import (
+    iter_recording_max,
+    pack_grpc_frame,
+    state_update_to_dictionary_change,
+)
 from nanover.recording.reading import MessageEvent
 from nanover.recording.writing import record_messages
-from nanover.state.state_service import state_update_to_dictionary_change
 from .frame_data import FrameData as FrameDataOld
+from .protocol.state import StateUpdate
 from nanover.trajectory.keys import FRAME_INDEX
-from nanover.trajectory.convert import converters, pack_identity, pack_force_list
 
 
 def convert_old_recording(out_path, *, traj, state):
@@ -33,17 +36,3 @@ def message_events_from_old_recording(*, traj, state):
                 timestamp=event.timestamp,
                 message=message,
             )
-
-
-def pack_grpc_frame(frame: FrameDataOld) -> dict[str, Any]:
-    data = {}
-
-    for key in frame.value_keys:
-        converter = converters.get(key, pack_identity)
-        data[key] = converter.pack(frame.values[key])
-
-    for key in frame.array_keys:
-        converter = converters.get(key, pack_force_list)
-        data[key] = converter.pack(frame.arrays[key])
-
-    return data

@@ -1,20 +1,71 @@
 import math
 from dataclasses import dataclass
 from os import PathLike
+from typing import Any
 
-from nanover.protocol.trajectory import GetFrameResponse
-from nanover.protocol.state import StateUpdate
+from .protocol.trajectory import GetFrameResponse
+from .protocol.state import StateUpdate
 from nanover.recording.old.reading import (
     MessageRecordingReader,
     buffer_to_frame_message,
     buffer_to_state_message,
 )
 from nanover.state.state_dictionary import StateDictionary
-from nanover.state.state_service import (
-    state_update_to_dictionary_change,
-)
 from nanover.trajectory import FrameData
-from nanover.trajectory.convert import convert_GetFrameResponse_to_FrameData
+from .frame_data import FrameData as FrameDataOld
+from ...trajectory.convert import (
+    unpack_dict_frame,
+    pack_identity,
+    pack_force_list,
+    converters,
+)
+from ...utilities.change_buffers import DictionaryChange
+from ...utilities.protobuf_utilities import struct_to_dict
+
+
+def convert_grpc_frame_to_dict_frame(grpc_frame) -> dict[str, Any]:
+    return unpack_dict_frame(pack_grpc_frame(grpc_frame))
+
+
+def convert_GetFrameResponse_to_framedata(response: GetFrameResponse) -> FrameData:
+    frame = FrameData(convert_grpc_frame_to_dict_frame(FrameDataOld(response.frame)))
+    frame.frame_index = response.frame_index
+    return frame
+
+
+def pack_grpc_frame(frame: FrameDataOld) -> dict[str, Any]:
+    data = {}
+
+    for key in frame.value_keys:
+        converter = converters.get(key, pack_identity)
+        data[key] = converter.pack(frame.values[key])
+
+    for key in frame.array_keys:
+        converter = converters.get(key, pack_force_list)
+        data[key] = converter.pack(frame.arrays[key])
+
+    return data
+
+
+def state_update_to_dictionary_change(update: StateUpdate) -> DictionaryChange:
+    """
+    Convert a protobuf StateUpdate to a DictionaryChange.
+
+    :param update: a protobuf StateUpdate which encodes key removals as keys
+        with a protobuf null value.
+    :return: an equivalent DictionaryChange representing the key changes and
+        key removals of the StateUpdate.
+    """
+    removals = set()
+    updates = {}
+
+    for key, value in struct_to_dict(update.changed_keys).items():
+        if value is None:
+            removals.add(key)
+        else:
+            updates[key] = value
+
+    return DictionaryChange(removals=removals, updates=updates)
 
 
 @dataclass(kw_only=True)
@@ -131,7 +182,7 @@ def iter_frame_file_full(path: PathLike[str]):
     with MessageRecordingReader.from_path(path) as reader:
         for entry in reader:
             message = buffer_to_frame_message(entry.buffer)
-            frame = convert_GetFrameResponse_to_FrameData(message)
+            frame = convert_GetFrameResponse_to_framedata(message)
 
             next_frame = prev_frame.copy()
             next_frame.update(frame)

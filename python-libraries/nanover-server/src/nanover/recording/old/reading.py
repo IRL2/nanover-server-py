@@ -8,8 +8,8 @@ from typing import (
     TypeVar,
 )
 
-from nanover.protocol.trajectory import GetFrameResponse
-from nanover.protocol.state import StateUpdate
+from .protocol.trajectory import GetFrameResponse
+from .protocol.state import StateUpdate
 
 MAGIC_NUMBER = 6661355757386708963
 
