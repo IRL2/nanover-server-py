@@ -14,7 +14,7 @@ from ase.md.velocitydistribution import _maxwellboltzmanndistribution
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd.imd_state import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.trajectory import FrameData2 as FrameData, MissingDataError
+from nanover.trajectory import FrameData, MissingDataError
 
 from . import converter
 

@@ -7,7 +7,7 @@ from zipfile import ZipFile
 import msgpack
 
 from nanover.state.state_dictionary import StateDictionary
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 from nanover.trajectory.convert import (
     unpack_dict_frame,
     convert_dict_state_to_dictionary_change,
@@ -27,16 +27,16 @@ class MessageEvent:
 
 @dataclass(kw_only=True)
 class FrameRecordingEvent(MessageEvent):
-    prev_frame: FrameData2
-    next_frame: FrameData2
+    prev_frame: FrameData
+    next_frame: FrameData
 
     @classmethod
     def make_empty(cls):
         return cls(
             timestamp=0,
             message={},
-            prev_frame=FrameData2(),
-            next_frame=FrameData2(),
+            prev_frame=FrameData(),
+            next_frame=FrameData(),
         )
 
 
@@ -157,7 +157,7 @@ class NanoverRecordingReader(MessageZipReader):
         Iterate recording yielding recording events in timestamp order, with each event containing the full
         information of previous frame, previous state, current message, next frame, and next state.
         """
-        current_frame = FrameData2()
+        current_frame = FrameData()
         current_state = StateDictionary()
 
         prev_frame_event = FrameRecordingEvent.make_empty()
@@ -173,7 +173,7 @@ class NanoverRecordingReader(MessageZipReader):
 
             if frame_message is not None:
                 prev_frame = current_frame.copy()
-                current_frame.update(FrameData2(frame_message))
+                current_frame.update(FrameData(frame_message))
 
                 next_frame_event = FrameRecordingEvent(
                     timestamp=timestamp,
@@ -205,7 +205,7 @@ class NanoverRecordingReader(MessageZipReader):
             prev_state_event = next_state_event or prev_state_event
 
     def iter_frames_full(self):
-        current = FrameData2()
+        current = FrameData()
         for entry, frame in self.iter_frame_updates():
             current.update(frame)
             yield entry, current.copy()
@@ -236,7 +236,7 @@ class NanoverRecordingReader(MessageZipReader):
                 message=message,
             )
 
-    def get_frame_from_entry(self, entry: RecordingIndexEntry) -> FrameData2 | None:
+    def get_frame_from_entry(self, entry: RecordingIndexEntry) -> FrameData | None:
         if "frame" not in entry.metadata.get("types", ("frame",)):
             return None
 
@@ -245,7 +245,7 @@ class NanoverRecordingReader(MessageZipReader):
         if "frame" not in message:
             return None
 
-        return FrameData2(unpack_dict_frame(message["frame"]))
+        return FrameData(unpack_dict_frame(message["frame"]))
 
     def get_state_from_entry(
         self, entry: RecordingIndexEntry
@@ -287,7 +287,7 @@ def split_by_simulation_counter(path: PathLike[str]):
 
 
 def iter_full_view(path: PathLike[str]):
-    full_frame = FrameData2()
+    full_frame = FrameData()
     full_state = StateDictionary()
 
     for time, frame, update in iter_recording_file(path):
@@ -306,7 +306,7 @@ def iter_recording_file(path: PathLike[str]):
             frame, update = None, None
             message = reader.get_message_from_entry(entry)
             if "frame" in message:
-                frame = FrameData2(unpack_dict_frame(message["frame"]))
+                frame = FrameData(unpack_dict_frame(message["frame"]))
             if "state" in message:
                 update = convert_dict_state_to_dictionary_change(message["state"])
 

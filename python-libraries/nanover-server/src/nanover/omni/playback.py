@@ -6,7 +6,7 @@ from nanover.recording.reading import (
     RecordingIndexEntry,
     NanoverRecordingReader,
 )
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 from nanover.trajectory.keys import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory.convert import (
@@ -81,7 +81,7 @@ class PlaybackSimulation:
 
         # clear simulation and reset box pose to identity
         self.emit(
-            frame=FrameData2(),
+            frame=FrameData(),
             update=DictionaryChange(
                 updates={"scene": SCENE_POSE_IDENTITY}, removals=self.changed_keys
             ),
@@ -125,12 +125,12 @@ class PlaybackSimulation:
         frame, update = None, None
         message = self.reader.get_message_from_entry(entry)
         if "frame" in message:
-            frame = FrameData2(unpack_dict_frame(message["frame"]))
+            frame = FrameData(unpack_dict_frame(message["frame"]))
         if "state" in message:
             update = convert_dict_state_to_dictionary_change(message["state"])
         self.emit(frame=frame, update=update)
 
-    def emit(self, *, frame: FrameData2 | None, update: DictionaryChange | None):
+    def emit(self, *, frame: FrameData | None, update: DictionaryChange | None):
         if self.app_server is None:
             return
 

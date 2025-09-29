@@ -5,7 +5,7 @@ from nanover.app import NanoverImdApplication
 from nanover.testing import assert_equal_soon
 from nanover.websocket import NanoverImdClient
 from osc_client import OscClient
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 from pythonosc import dispatcher
 from pythonosc.osc_server import ThreadingOSCUDPServer
@@ -24,7 +24,7 @@ def simple_frame_to_message(frame):
 
 @pytest.fixture
 def simple_frame_data():
-    basic_frame_data = FrameData2()
+    basic_frame_data = FrameData()
     basic_frame_data["indices"] = [0, 1, 3]
     basic_frame_data["string"] = "str"
     basic_frame_data["bool"] = False

@@ -96,13 +96,13 @@ def convert_dict_state_to_dictionary_change(dict_state) -> DictionaryChange:
     )
 
 
-def convert_GetFrameResponse_to_framedata2(response: GetFrameResponse) -> FrameData:
+def convert_GetFrameResponse_to_FrameData(response: GetFrameResponse) -> FrameData:
     frame = FrameData(convert_grpc_frame_to_dict_frame(FrameDataOld(response.frame)))
     frame.frame_index = response.frame_index
     return frame
 
 
-def convert_framedata2_to_GetFrameResponse(frame: FrameData) -> GetFrameResponse:
+def convert_FrameData_to_GetFrameResponse(frame: FrameData) -> GetFrameResponse:
     return GetFrameResponse(
         frame_index=frame.frame_index,
         frame=convert_dict_frame_to_grpc_frame(frame.frame_dict).raw,

@@ -15,7 +15,7 @@ from openmm.app import Simulation
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 
@@ -71,7 +71,7 @@ class ImdForceManager:
             simulation.context,
         )
 
-    def add_to_frame_data(self, frame_data: FrameData2):
+    def add_to_frame_data(self, frame_data: FrameData):
         frame_data.user_energy = self.total_user_energy
         sparse_indices, sparse_forces = get_sparse_forces(self.user_forces)
         frame_data.user_forces_sparse = sparse_forces

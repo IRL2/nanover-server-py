@@ -5,7 +5,7 @@ import msgpack
 import numpy as np
 
 from nanover.app.types import AppServer
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
@@ -111,7 +111,7 @@ class WebSocketClientHandler:
         results = self.app_server.run_command(name, arguments or {})
         return results
 
-    def send_frame(self, frame: FrameData2):
+    def send_frame(self, frame: FrameData):
         self.send_message({"frame": pack_dict_frame(frame.frame_dict)})
 
     def send_state_update(self, change: DictionaryChange):

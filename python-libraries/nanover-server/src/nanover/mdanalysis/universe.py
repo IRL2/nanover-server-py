@@ -45,7 +45,7 @@ from MDAnalysis.core.topology import Topology
 from MDAnalysis.topology.base import TopologyReaderBase
 import numpy as np
 
-from nanover.trajectory import FrameData2 as FrameData, MissingDataError
+from nanover.trajectory import FrameData as FrameData, MissingDataError
 import nanover.trajectory.keys as keys
 
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis

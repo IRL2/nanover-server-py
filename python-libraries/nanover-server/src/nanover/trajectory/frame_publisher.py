@@ -6,7 +6,7 @@ from nanover.utilities.request_queues import (
     GetFrameResponseAggregatingQueue,
 )
 from nanover.utilities.timing import yield_interval
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 SENTINEL = None
 
@@ -24,7 +24,7 @@ class FramePublisher:
 
     def __init__(self):
         self.frame_queues = DictOfQueues()
-        self.last_frame = FrameData2()
+        self.last_frame = FrameData()
         self.last_request_id = 0
         self.simulation_counter = 0
         self._last_frame_lock = Lock()
@@ -85,8 +85,8 @@ class FramePublisher:
             if self.last_frame is not None:
                 yield self.last_frame
 
-    def send_frame(self, frame_index: int, frame: FrameData2):
-        assert isinstance(frame, FrameData2), "Frame must be of type FrameData2"
+    def send_frame(self, frame_index: int, frame: FrameData):
+        assert isinstance(frame, FrameData), "Frame must be of type FrameData"
 
         frame.server_timestamp = time.monotonic()
         frame.frame_index = frame_index

@@ -1,6 +1,6 @@
 import numpy as np
 from hypothesis import strategies as st
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 import nanover.trajectory.keys as keys
 from nanover.trajectory.convert import converters, pack_dict_frame
 
@@ -57,7 +57,7 @@ known_types = {
 
 @st.composite
 def frames(draw):
-    return FrameData2(draw(dict_frames()))
+    return FrameData(draw(dict_frames()))
 
 
 @st.composite

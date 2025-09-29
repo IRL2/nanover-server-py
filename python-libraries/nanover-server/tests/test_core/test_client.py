@@ -6,7 +6,7 @@ from nanover.app import NanoverImdApplication
 from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ParticleInteraction
 from nanover.testing import assert_equal_soon, assert_in_soon
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 from nanover.trajectory.frame_server import (
     PLAY_COMMAND_KEY,
@@ -76,11 +76,11 @@ def test_receive_multiple_frames(client_server, simple_frame_data):
 def test_current_frame_does_merge(client_server):
     client, app_server = client_server
 
-    first_frame = FrameData2()
+    first_frame = FrameData()
     first_frame["indices"] = [0, 1, 3]
     first_frame["string"] = "str"
 
-    second_frame = FrameData2()
+    second_frame = FrameData()
     second_frame["indices"] = [4, 6, 8]
     second_frame["bool"] = False
 

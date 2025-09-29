@@ -9,7 +9,7 @@ from nanover.websocket.client.playback_client import PlaybackClient
 from nanover.utilities.network import get_local_ip
 from nanover.websocket.client.interaction_client import InteractionClient
 from nanover.websocket.client.selection_client import SelectionClient
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
 
@@ -68,19 +68,19 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         return cls.from_url(url)
 
     def __init__(self, *args, **kwargs):
-        self._frames: deque[FrameData2] = deque(maxlen=50)
+        self._frames: deque[FrameData] = deque(maxlen=50)
         super().__init__(*args, **kwargs)
 
     @property
-    def frames(self) -> list[FrameData2]:
+    def frames(self) -> list[FrameData]:
         return list(self._frames)
 
     def recv_frame(self, message: dict):
         super().recv_frame(message)
-        self._frames.append(FrameData2(message).copy())
+        self._frames.append(FrameData(message).copy())
 
     @property
-    def current_frame(self) -> FrameData2:
+    def current_frame(self) -> FrameData:
         return self._current_frame
 
     @property
