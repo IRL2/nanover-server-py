@@ -21,8 +21,78 @@ RECORDING_MESSAGES_FILENAME = "messages.msgpack"
 
 @dataclass(kw_only=True)
 class MessageEvent:
-    timestamp: int
+    timestamp: int | None
     message: dict[str, Any]
+
+
+@dataclass(kw_only=True)
+class FrameRecordingEvent(MessageEvent):
+    prev_frame: FrameData2
+    next_frame: FrameData2
+
+    @classmethod
+    def make_empty(cls):
+        return cls(
+            timestamp=0,
+            message={},
+            prev_frame=FrameData2(),
+            next_frame=FrameData2(),
+        )
+
+
+@dataclass(kw_only=True)
+class StateRecordingEvent(MessageEvent):
+    prev_state: dict
+    next_state: dict
+
+    @classmethod
+    def make_empty(cls):
+        return cls(
+            timestamp=0,
+            message={},
+            prev_state={},
+            next_state={},
+        )
+
+
+@dataclass(kw_only=True)
+class RecordingEvent:
+    prev_frame_event: FrameRecordingEvent
+    prev_state_event: StateRecordingEvent
+    next_frame_event: FrameRecordingEvent | None
+    next_state_event: StateRecordingEvent | None
+
+    @property
+    def timestamp(self) -> int | None:
+        if self.next_frame_event is not None:
+            return self.next_frame_event.timestamp
+        elif self.next_state_event is not None:
+            return self.next_state_event.timestamp
+        return None
+
+    @property
+    def prev_frame(self):
+        return self.prev_frame_event.next_frame
+
+    @property
+    def next_frame(self):
+        return (
+            self.next_frame_event.next_frame
+            if self.next_frame_event is not None
+            else self.prev_frame
+        )
+
+    @property
+    def prev_state(self):
+        return self.prev_state_event.next_state
+
+    @property
+    def next_state(self):
+        return (
+            self.next_state_event.next_state
+            if self.next_state_event is not None
+            else self.prev_state
+        )
 
 
 @dataclass(kw_only=True)
@@ -82,6 +152,58 @@ class MessageZipReader:
 
 
 class NanoverRecordingReader(MessageZipReader):
+    def iter_max(self):
+        """
+        Iterate recording yielding recording events in timestamp order, with each event containing the full
+        information of previous frame, previous state, current message, next frame, and next state.
+        """
+        current_frame = FrameData2()
+        current_state = StateDictionary()
+
+        prev_frame_event = FrameRecordingEvent.make_empty()
+        prev_state_event = StateRecordingEvent.make_empty()
+
+        for entry in self.index:
+            next_frame_event: FrameRecordingEvent | None = None
+            next_state_event: StateRecordingEvent | None = None
+
+            timestamp: int | None = entry.metadata.get("timestamp", None)
+            frame_message = self.get_message_type_from_entry(entry, "frame")
+            state_message = self.get_message_type_from_entry(entry, "state")
+
+            if frame_message is not None:
+                prev_frame = current_frame.copy()
+                current_frame.update(FrameData2(frame_message))
+
+                next_frame_event = FrameRecordingEvent(
+                    timestamp=timestamp,
+                    message=frame_message,
+                    prev_frame=prev_frame,
+                    next_frame=current_frame,
+                )
+            if state_message is not None:
+                prev_state = current_state.copy_content()
+                current_state.update_state(
+                    None, convert_dict_state_to_dictionary_change(state_message)
+                )
+
+                next_state_event = StateRecordingEvent(
+                    timestamp=timestamp,
+                    message=state_message,
+                    prev_state=prev_state,
+                    next_state=current_state.copy_content(),
+                )
+
+            yield RecordingEvent(
+                prev_frame_event=prev_frame_event,
+                prev_state_event=prev_state_event,
+                next_frame_event=next_frame_event,
+                next_state_event=next_state_event,
+            )
+
+            prev_frame_event = next_frame_event or prev_frame_event
+            prev_state_event = next_state_event or prev_state_event
+
     def iter_frames_full(self):
         current = FrameData2()
         for entry, frame in self.iter_frame_updates():
@@ -137,6 +259,14 @@ class NanoverRecordingReader(MessageZipReader):
             return None
 
         return convert_dict_state_to_dictionary_change(message["state"])
+
+    def get_message_type_from_entry(
+        self, entry: RecordingIndexEntry, type: str
+    ) -> Any | None:
+        if type not in entry.metadata.get("types", (type,)):
+            return None
+        message = self.get_message_from_entry(entry)
+        return message.get(type, None)
 
 
 def split_by_simulation_counter(path: PathLike[str]):
