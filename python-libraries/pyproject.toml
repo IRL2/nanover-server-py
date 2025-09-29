@@ -3,4 +3,4 @@ asyncio_mode = "auto"
 markers = ["serial"]
 
 [tool.black]
-force-exclude = "protocol"
+force-exclude = "/protocol/"

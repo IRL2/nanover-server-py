@@ -9,10 +9,6 @@ from nanover.recording.reading import (
 from nanover.trajectory import FrameData
 from nanover.trajectory.keys import FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.trajectory.convert import (
-    unpack_dict_frame,
-    convert_dict_state_to_dictionary_change,
-)
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 SCENE_POSE_IDENTITY = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
@@ -118,17 +114,13 @@ class PlaybackSimulation:
         """
         Advance playback to the next point a frame or update should be reported, and report it.
         """
-        time, entry = self.entries[self.next_entry_index]
+        self.time, entry = self.entries[self.next_entry_index]
         self.next_entry_index = self.next_entry_index + 1
-        self.time = time
 
-        frame, update = None, None
-        message = self.reader.get_message_from_entry(entry)
-        if "frame" in message:
-            frame = FrameData(unpack_dict_frame(message["frame"]))
-        if "state" in message:
-            update = convert_dict_state_to_dictionary_change(message["state"])
-        self.emit(frame=frame, update=update)
+        self.emit(
+            frame=self.reader.get_frame_from_entry(entry),
+            update=self.reader.get_state_from_entry(entry),
+        )
 
     def emit(self, *, frame: FrameData | None, update: DictionaryChange | None):
         if self.app_server is None:
