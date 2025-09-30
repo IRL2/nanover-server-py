@@ -1,6 +1,6 @@
 from collections.abc import Set
 import numbers
-from .protocol import trajectory
+from nanover.protocol import trajectory
 from nanover.utilities.protobuf_utilities import value_to_object, object_to_value
 
 

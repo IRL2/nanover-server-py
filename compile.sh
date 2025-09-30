@@ -49,6 +49,9 @@ if [[ $with_python == true ]]; then
 	announce "Installing python test requirements"
 	python -m pip install -r ./python-libraries/requirements.test ${user_option}
 
+	announce "Compiling proto files to python"
+	python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-server/src
+
   LOCALPATH=$(pwd)
 
 	announce "Installing the python packages"

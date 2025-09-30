@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from os import PathLike
 from typing import Any
 
-from .protocol.trajectory import GetFrameResponse
-from .protocol.state import StateUpdate
+from nanover.protocol.trajectory import GetFrameResponse
+from nanover.protocol.state import StateUpdate
 from nanover.recording.old.reading import (
     MessageRecordingReader,
     buffer_to_frame_message,
