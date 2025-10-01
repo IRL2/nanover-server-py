@@ -4,6 +4,7 @@ from typing import Any
 
 from nanover.app.types import AppServer
 from nanover.essd import DiscoveryClient, ServiceHub
+from nanover.trajectory.convert import unpack_dict_frame
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.playback_client import PlaybackClient
 from nanover.utilities.network import get_local_ip
@@ -77,7 +78,7 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
 
     def recv_frame(self, message: dict):
         super().recv_frame(message)
-        self._frames.append(FrameData(message).copy())
+        self._frames.append(FrameData(unpack_dict_frame(message)))
 
     @property
     def current_frame(self) -> FrameData:
