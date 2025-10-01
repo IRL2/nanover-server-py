@@ -5,7 +5,6 @@ Module for performing conversions between MDAnalysis universes and NanoVer Frame
 import collections
 from contextlib import suppress
 
-import numpy as np
 from MDAnalysis import Universe
 from MDAnalysis.guesser.default_guesser import DefaultGuesser
 
@@ -125,6 +124,15 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     return frame_data
 
 
+def update_universe_from_framedata(universe: Universe, frame: FrameData):
+    """
+    Updates an existing universe with new data from a NanoVer frame.
+    """
+    add_frame_positions_to_mda(universe, frame)
+    _add_frame_attributes_to_mda(universe, frame)
+    _add_bonds_to_mda(universe, frame)
+
+
 def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
     """
     Converts from a NanoVer :class:`FrameData` object to an MDAnalysis universe.
@@ -134,12 +142,7 @@ def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
     """
     params = _get_universe_constructor_params(frame)
     universe = Universe.empty(**params)
-
-    add_frame_positions_to_mda(universe, frame)
-
-    # additional topology information.
-    _add_frame_attributes_to_mda(universe, frame)
-    _add_bonds_to_mda(universe, frame)
+    update_universe_from_framedata(universe, frame)
 
     return universe
 
@@ -185,7 +188,7 @@ def add_frame_positions_to_mda(u: Universe, frame: FrameData):
     :param frame: NanoVer :class:`FrameData` from which to extract positions.
     """
     # convert from nanometers (nanover) to angstroms (mdanalysis)
-    u.atoms.positions = np.array(frame.particle_positions) * 10
+    u.atoms.positions = frame.particle_positions * 10
 
 
 def _add_bonds_to_mda(u: Universe, frame: FrameData):
