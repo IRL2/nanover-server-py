@@ -31,11 +31,11 @@ class PathSmoother:
     """
 
     @classmethod
-    def from_traj_file(cls, filename: Union[str, PathLike]):
+    def from_recording(cls, filename: Union[str, PathLike]):
         """
-        Create a PathSmoother object from the data stored in a NanoVer trajectory file.
+        Create a PathSmoother object from the data stored in a NanoVer recording.
 
-        :param filename: Path to the trajectory file.
+        :param filename: Path to the NanoVer recording.
         """
         ps = cls()
         ps.filename = filename
