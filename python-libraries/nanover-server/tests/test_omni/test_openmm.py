@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 from openmm import CustomExternalForce
 from openmm.app import StateDataReporter
+from openmm.unit import nanometer
 
 from nanover.openmm import serializer
 from nanover.imd import ParticleInteraction
@@ -587,7 +588,7 @@ def test_pbc_enforcement():
         sim.advance_by_one_step()
 
     def out_of_bounds(coord):
-        return coord < 0 or coord > 1
+        return not 0 <= coord <= 1
 
     def get_sim_position_coords(sim):
         for position in sim.make_regular_frame().particle_positions:

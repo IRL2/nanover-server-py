@@ -14,7 +14,7 @@ from ase.md.velocitydistribution import _maxwellboltzmanndistribution
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd.imd_state import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.trajectory.frame_data import MissingDataError, FrameData
+from nanover.trajectory import FrameData, MissingDataError
 
 from . import converter
 
@@ -56,10 +56,10 @@ class ImdForceManager:
         """
         frame_data.user_energy = self.total_user_energy * converter.EV_TO_KJMOL
         user_sparse_indices, user_sparse_forces = get_sparse_forces(self.user_forces)
-        frame_data.user_forces_sparse = user_sparse_forces * (
-            converter.EV_TO_KJMOL / converter.ANG_TO_NM
-        )
-        frame_data.user_forces_index = user_sparse_indices
+        frame_data.user_forces_sparse = (
+            user_sparse_forces * (converter.EV_TO_KJMOL / converter.ANG_TO_NM)
+        ).astype(np.float32)
+        frame_data.user_forces_index = user_sparse_indices.astype(np.uint32)
 
     def _update_forces(self, atoms):
         """

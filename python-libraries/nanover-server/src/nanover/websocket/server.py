@@ -2,14 +2,15 @@ from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
 
 import msgpack
+import numpy as np
 
 from nanover.app.types import AppServer
-from nanover.trajectory.frame_data import FrameData, FRAME_INDEX
+from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
-from nanover.websocket.convert import pack_grpc_frame
+from nanover.trajectory.convert import pack_dict_frame
 
 
 class WebSocketServer:
@@ -111,7 +112,7 @@ class WebSocketClientHandler:
         return results
 
     def send_frame(self, frame: FrameData):
-        self.send_message({"frame": pack_grpc_frame(frame)})
+        self.send_message({"frame": pack_dict_frame(frame.frame_dict)})
 
     def send_state_update(self, change: DictionaryChange):
         self.send_message(
@@ -124,7 +125,7 @@ class WebSocketClientHandler:
         )
 
     def send_message(self, message):
-        self.websocket.send(msgpack.packb(message))
+        self.websocket.send(msgpack.packb(message, default=default))
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
@@ -155,12 +156,10 @@ class WebSocketClientHandler:
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
         # TODO: error handling!!
         def send_frames():
-            for response in self.frame_publisher.subscribe_latest_frames(
+            for frame in self.frame_publisher.subscribe_latest_frames(
                 frame_interval=frame_interval,
                 cancellation=self.cancellation,
             ):
-                frame = FrameData(response.frame)
-                frame.values[FRAME_INDEX] = response.frame_index
                 self.send_frame(frame)
 
         def send_updates():
@@ -185,3 +184,9 @@ class WebSocketClientHandler:
 
 def get_server_port(server: Server):
     return server.socket.getsockname()[1]
+
+
+def default(obj):
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    raise TypeError(f"Unknown type: {obj}")

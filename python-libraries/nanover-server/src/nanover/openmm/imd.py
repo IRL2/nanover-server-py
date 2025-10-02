@@ -15,7 +15,7 @@ from openmm.app import Simulation
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.trajectory.frame_data import FrameData
+from nanover.trajectory import FrameData
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 

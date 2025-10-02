@@ -5,7 +5,7 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 
-from nanover.trajectory.frame_data import (
+from .keys import (
     PARTICLE_POSITIONS,
     BOND_PAIRS,
     BOND_ORDERS,
@@ -34,7 +34,6 @@ from nanover.trajectory.frame_data import (
     SIMULATION_COUNTER,
     SIMULATION_EXCEPTION,
     SERVER_TIMESTAMP,
-    MissingDataError,
     FRAME_INDEX,
 )
 
@@ -44,6 +43,14 @@ EnumArray = npt.NDArray[np.uint8]
 IndexArray = npt.NDArray[np.uint32]
 FloatArray = npt.NDArray[np.float32]
 StringArray = list[str]
+
+
+class MissingDataError(KeyError):
+    """
+    A shortcut does not contain data to return.
+    """
+
+    pass
 
 
 @dataclass(kw_only=True)
@@ -101,6 +108,9 @@ class FrameData:
 
     def __setitem__(self, key: str, value: Any):
         self.frame_dict[key] = value
+
+    def __delitem__(self, key: str):
+        del self.frame_dict[key]
 
     def copy(self):
         return FrameData(self.frame_dict.copy())

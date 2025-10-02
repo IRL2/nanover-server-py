@@ -2,9 +2,14 @@
 Module providing conversion methods between NanoVer and OpenMM.
 """
 
+import numpy as np
 from openmm import State
 from openmm.app.topology import Topology
-from openmm.unit import kilojoule_per_mole, picosecond
+from openmm.unit import (
+    kilojoule_per_mole,
+    picosecond,
+    nanometer,
+)
 from nanover.trajectory import FrameData
 
 
@@ -38,7 +43,7 @@ def add_openmm_state_to_frame_data(
     # nanometer. By doing this assumption, we avoid arrays being copied during
     # unit conversion.
     if include_positions:
-        positions = state.getPositions(asNumpy=True)
+        positions = state.getPositions(asNumpy=True).value_in_unit(nanometer)
         data.particle_positions = positions
     if include_energies:
         potential_energy = state.getPotentialEnergy().value_in_unit(kilojoule_per_mole)
@@ -46,16 +51,21 @@ def add_openmm_state_to_frame_data(
         data.kinetic_energy = kinetic_energy
         data.potential_energy = potential_energy
     if include_velocities:
-        velocities = state.getVelocities(asNumpy=True)
+        velocities = state.getVelocities(asNumpy=True).value_in_unit(
+            nanometer / picosecond
+        )
         data.particle_velocities = velocities
     if include_forces:
-        forces = state.getForces(asNumpy=True)
+        forces = state.getForces(asNumpy=True).value_in_unit(
+            kilojoule_per_mole / nanometer
+        )
         if state_excludes_imd:
             data.particle_forces_system = forces
         else:
             data.particle_forces = forces
-    box_vectors = state.getPeriodicBoxVectors(asNumpy=True)
-    data.box_vectors = box_vectors
+    data.box_vectors = state.getPeriodicBoxVectors(asNumpy=True).value_in_unit(
+        nanometer
+    )
     simulation_time = state.getTime().value_in_unit(picosecond)
     data.simulation_time = simulation_time
 
@@ -71,30 +81,30 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology) -> No
 
     data.residue_names = [residue.name for residue in topology.residues()]
     data.residue_ids = [residue.id for residue in topology.residues()]
-    data.residue_chains = [residue.chain.index for residue in topology.residues()]
+    data.residue_chains = np.fromiter(
+        (residue.chain.index for residue in topology.residues()),
+        dtype=np.uint32,
+    )
     data.residue_count = topology.getNumResidues()
 
     data.chain_names = [chain.id for chain in topology.chains()]
     data.chain_count = topology.getNumChains()
 
-    atom_names = []
-    elements = []
-    residue_indices = []
-    bonds = []
-
-    for atom in topology.atoms():
-        atom_names.append(atom.name)
-        elements.append(atom.element.atomic_number)
-        residue_indices.append(atom.residue.index)
-
-    for bond in topology.bonds():
-        bonds.append([bond[0].index, bond[1].index])
-
-    data.particle_names = atom_names
-    data.particle_elements = elements
-    data.particle_residues = residue_indices
     data.particle_count = topology.getNumAtoms()
-    data.bond_pairs = bonds
+    data.particle_names = [atom.name for atom in topology.atoms()]
+
+    data.particle_elements = np.fromiter(
+        (atom.element.atomic_number for atom in topology.atoms()),
+        dtype=np.uint8,
+    )
+    data.particle_residues = np.fromiter(
+        (atom.residue.index for atom in topology.atoms()),
+        dtype=np.uint32,
+    )
+    data.bond_pairs = np.array(
+        [[a.index, b.index] for a, b in topology.bonds()],
+        dtype=np.uint32,
+    )
 
 
 def openmm_to_frame_data(

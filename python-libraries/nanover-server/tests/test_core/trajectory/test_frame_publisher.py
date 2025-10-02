@@ -6,9 +6,8 @@ from concurrent.futures import ThreadPoolExecutor
 import itertools
 import pytest
 
-from nanover.trajectory import FramePublisher
-from nanover.trajectory.frame_data import FrameData, SERVER_TIMESTAMP
-from nanover.protocol.trajectory import FrameData as RawFrameData
+from nanover.trajectory import FramePublisher, FrameData
+from nanover.trajectory.keys import SERVER_TIMESTAMP
 from nanover.utilities.cli import CancellationToken
 
 
@@ -23,20 +22,11 @@ def test_user_queue():
     assert not publisher.frame_queues.queues
 
 
-def test_send_wrapped_frame_data():
+def test_send_frame_data():
     publisher = FramePublisher()
-    frame = FrameData()
-    publisher.send_frame(3, frame)
-    assert publisher.last_frame_index == 3
-    assert SERVER_TIMESTAMP in publisher.last_frame.values
-
-
-def test_send_raw_frame_data():
-    publisher = FramePublisher()
-    frame = RawFrameData()
-    publisher.send_frame(5, frame)
-    assert publisher.last_frame_index == 5
-    assert SERVER_TIMESTAMP in publisher.last_frame.values
+    publisher.send_frame(3, FrameData())
+    assert publisher.last_frame.frame_index == 3
+    assert SERVER_TIMESTAMP in publisher.last_frame
 
 
 def test_get_new_request_id_serial():

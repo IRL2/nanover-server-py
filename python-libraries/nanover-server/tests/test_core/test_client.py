@@ -14,7 +14,6 @@ from nanover.trajectory.frame_server import (
     STEP_COMMAND_KEY,
     PAUSE_COMMAND_KEY,
 )
-from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
 
 from .test_frame_server import simple_frame_data, disjoint_frame_data
 from nanover.websocket import NanoverImdClient
@@ -53,13 +52,8 @@ def test_receive_frames(client_server, simple_frame_data):
     app_server.frame_publisher.send_frame(0, simple_frame_data)
 
     assert_equal_soon(
-        lambda: len(client.frames),
-        lambda: 1,
-    )
-
-    assert_equal_soon(
-        lambda: convert_dict_frame_to_grpc_frame(client.current_frame.frame_dict),
-        lambda: simple_frame_data,
+        lambda: client.current_frame.frame_dict,
+        lambda: simple_frame_data.frame_dict,
     )
 
 
@@ -78,12 +72,12 @@ def test_current_frame_does_merge(client_server):
     client, app_server = client_server
 
     first_frame = FrameData()
-    first_frame.arrays["indices"] = [0, 1, 3]
-    first_frame.values["string"] = "str"
+    first_frame["indices"] = [0, 1, 3]
+    first_frame["string"] = "str"
 
     second_frame = FrameData()
-    second_frame.arrays["indices"] = [4, 6, 8]
-    second_frame.values["bool"] = False
+    second_frame["indices"] = [4, 6, 8]
+    second_frame["bool"] = False
 
     app_server.frame_publisher.send_frame(0, first_frame)
     app_server.frame_publisher.send_frame(1, second_frame)
@@ -95,9 +89,9 @@ def test_current_frame_does_merge(client_server):
             client.current_frame["string"],
         ),
         lambda: (
-            second_frame.arrays["indices"],
-            second_frame.values["bool"],
-            first_frame.values["string"],
+            second_frame["indices"],
+            second_frame["bool"],
+            first_frame["string"],
         ),
     )
 

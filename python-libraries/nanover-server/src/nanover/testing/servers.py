@@ -8,7 +8,6 @@ from nanover.testing.utilities import simplify_numpy
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket import NanoverImdClient
-from nanover.websocket.convert import convert_grpc_frame_to_dict_frame
 from nanover.websocket.server import WebSocketServer
 
 
@@ -53,7 +52,7 @@ class ServerClientSetup:
         __tracebackhide__ = True  # hide this function in the test traceback
         assert_equal_soon(
             lambda: simplify_numpy(self.client_current_frame.frame_dict),
-            lambda: simplify_numpy(self.server_current_frame),
+            lambda: simplify_numpy(self.server_current_frame.frame_dict),
             **kwargs,
         )
 
@@ -77,9 +76,7 @@ class ServerClientSetup:
 
     @property
     def server_current_frame(self):
-        return convert_grpc_frame_to_dict_frame(
-            FrameData(self.app.frame_publisher.last_frame)
-        )
+        return self.app.frame_publisher.last_frame
 
     def server_update_state(self, change: DictionaryChange):
         self.app.state_dictionary.update_state(None, change)

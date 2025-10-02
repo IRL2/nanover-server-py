@@ -5,25 +5,11 @@ Module for performing conversions between MDAnalysis universes and NanoVer Frame
 import collections
 from contextlib import suppress
 
-import numpy as np
 from MDAnalysis import Universe
 from MDAnalysis.guesser.default_guesser import DefaultGuesser
 
-from nanover.trajectory import FrameData, FrameData2
-from nanover.trajectory.frame_data import (
-    PARTICLE_COUNT,
-    RESIDUE_COUNT,
-    CHAIN_COUNT,
-    PARTICLE_ELEMENTS,
-    PARTICLE_NAMES,
-    PARTICLE_RESIDUES,
-    RESIDUE_NAMES,
-    RESIDUE_CHAINS,
-    RESIDUE_IDS,
-    CHAIN_NAMES,
-    MissingDataError,
-)
-from nanover.websocket.convert import convert_dict_frame_to_grpc_frame
+from nanover.trajectory import FrameData, MissingDataError
+import nanover.trajectory.keys as keys
 
 # tuple for storing a frame data key and whether it is required in conversion.
 FrameDataField = collections.namedtuple("FrameDataField", "key required")
@@ -38,21 +24,21 @@ ELEMENT_INDEX = {name: index for index, name in enumerate(ELEMENT_NAMES.split(",
 INDEX_ELEMENT = {index: name for name, index in ELEMENT_INDEX.items()}
 
 MDANALYSIS_COUNTS_TO_FRAME_DATA = {
-    "atoms": PARTICLE_COUNT,
-    "residues": RESIDUE_COUNT,
-    "segments": CHAIN_COUNT,
+    "atoms": keys.PARTICLE_COUNT,
+    "residues": keys.RESIDUE_COUNT,
+    "segments": keys.CHAIN_COUNT,
 }
 MDANALYSIS_ATOMS_TO_FRAME_DATA = {
-    "types": PARTICLE_ELEMENTS,
-    "names": PARTICLE_NAMES,
-    "resindices": PARTICLE_RESIDUES,
+    "types": keys.PARTICLE_ELEMENTS,
+    "names": keys.PARTICLE_NAMES,
+    "resindices": keys.PARTICLE_RESIDUES,
 }
 MDANALYSIS_RESIDUES_TO_FRAME_DATA = {
-    "resnames": RESIDUE_NAMES,
-    "segindices": RESIDUE_CHAINS,
-    "resids": RESIDUE_IDS,
+    "resnames": keys.RESIDUE_NAMES,
+    "segindices": keys.RESIDUE_CHAINS,
+    "resids": keys.RESIDUE_IDS,
 }
-MDANALYSIS_CHAINS_TO_FRAME_DATA = {"segids": CHAIN_NAMES}
+MDANALYSIS_CHAINS_TO_FRAME_DATA = {"segids": keys.CHAIN_NAMES}
 
 MDANALYSIS_GROUP_TO_ATTRIBUTES = {
     "atoms": MDANALYSIS_ATOMS_TO_FRAME_DATA,
@@ -93,21 +79,21 @@ def _to_chemical_symbol(elements):
 # to be applied.
 FRAME_DATA_TO_MDANALYSIS = {
     "types": FrameDataFieldConversion(
-        key=PARTICLE_ELEMENTS, converter=_to_chemical_symbol
+        key=keys.PARTICLE_ELEMENTS, converter=_to_chemical_symbol
     ),
-    "names": FrameDataFieldConversion(PARTICLE_NAMES, _identity),
-    "resnames": FrameDataFieldConversion(RESIDUE_NAMES, _identity),
-    "resids": FrameDataFieldConversion(RESIDUE_IDS, _identity),
-    "segids": FrameDataFieldConversion(CHAIN_NAMES, _identity),
+    "names": FrameDataFieldConversion(keys.PARTICLE_NAMES, _identity),
+    "resnames": FrameDataFieldConversion(keys.RESIDUE_NAMES, _identity),
+    "resids": FrameDataFieldConversion(keys.RESIDUE_IDS, _identity),
+    "segids": FrameDataFieldConversion(keys.CHAIN_NAMES, _identity),
 }
 
 # dictionary of mdanalysis constructor fields to field in frame data, along with conversion methods.
 MDA_UNIVERSE_PARAMS_TO_FRAME_DATA = {
-    "n_atoms": FrameDataFieldConversion(PARTICLE_COUNT, nullable_int),
-    "n_residues": FrameDataFieldConversion(RESIDUE_COUNT, nullable_int),
-    "n_segments": FrameDataFieldConversion(CHAIN_COUNT, nullable_int),
-    "atom_resindex": FrameDataFieldConversion(PARTICLE_RESIDUES, _identity),
-    "residue_segindex": FrameDataFieldConversion(RESIDUE_CHAINS, _identity),
+    "n_atoms": FrameDataFieldConversion(keys.PARTICLE_COUNT, nullable_int),
+    "n_residues": FrameDataFieldConversion(keys.RESIDUE_COUNT, nullable_int),
+    "n_segments": FrameDataFieldConversion(keys.CHAIN_COUNT, nullable_int),
+    "atom_resindex": FrameDataFieldConversion(keys.PARTICLE_RESIDUES, _identity),
+    "residue_segindex": FrameDataFieldConversion(keys.RESIDUE_CHAINS, _identity),
 }
 
 
@@ -138,24 +124,25 @@ def mdanalysis_to_frame_data(u: Universe, topology=True, positions=True) -> Fram
     return frame_data
 
 
-def frame_data_to_mdanalysis(frame: FrameData | FrameData2) -> Universe:
+def update_universe_from_framedata(universe: Universe, frame: FrameData):
+    """
+    Updates an existing universe with new data from a NanoVer frame.
+    """
+    add_frame_positions_to_mda(universe, frame)
+    _add_frame_attributes_to_mda(universe, frame)
+    _add_bonds_to_mda(universe, frame)
+
+
+def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
     """
     Converts from a NanoVer :class:`FrameData` object to an MDAnalysis universe.
 
     :param frame: NanoVer :class:`FrameData` object.
     :return: MDAnalysis :class:`Universe` constructed from the given FrameData.
     """
-    if isinstance(frame, FrameData2):
-        frame = convert_dict_frame_to_grpc_frame(frame.frame_dict)
-
     params = _get_universe_constructor_params(frame)
     universe = Universe.empty(**params)
-
-    add_frame_positions_to_mda(universe, frame)
-
-    # additional topology information.
-    _add_frame_attributes_to_mda(universe, frame)
-    _add_bonds_to_mda(universe, frame)
+    update_universe_from_framedata(universe, frame)
 
     return universe
 
@@ -201,7 +188,7 @@ def add_frame_positions_to_mda(u: Universe, frame: FrameData):
     :param frame: NanoVer :class:`FrameData` from which to extract positions.
     """
     # convert from nanometers (nanover) to angstroms (mdanalysis)
-    u.atoms.positions = np.array(frame.particle_positions) * 10
+    u.atoms.positions = frame.particle_positions * 10
 
 
 def _add_bonds_to_mda(u: Universe, frame: FrameData):
@@ -230,7 +217,7 @@ def _get_universe_constructor_params(frame: FrameData):
     NanoVer :class:`FrameData` object.
     """
     params = {
-        param_name: converter(_try_get_field(frame, field))
+        param_name: converter(frame.frame_dict.get(field, None))
         for param_name, (field, converter) in MDA_UNIVERSE_PARAMS_TO_FRAME_DATA.items()
     }
 
@@ -276,7 +263,7 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
     for group, attribute, frame_key in ALL_MDA_ATTRIBUTES:
         with suppress(AttributeError):
             field = _get_mda_attribute(u, group, attribute)
-            if frame_key == PARTICLE_ELEMENTS:
+            if frame_key == keys.PARTICLE_ELEMENTS:
                 # When MDAnalysis guesses an element symbol, it returns it fully
                 # in upper case. We need to fix the case before we can query our
                 # table.
@@ -284,7 +271,7 @@ def _add_mda_attributes_to_frame_data(u: Universe, frame_data: FrameData):
                     ELEMENT_INDEX[guesser.guess_atom_element(name).capitalize()]
                     for name in field
                 ]
-            frame_data.arrays[frame_key] = field
+            frame_data[frame_key] = field
 
 
 def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
@@ -299,7 +286,7 @@ def _add_mda_counts_to_frame_data(u: Universe, frame_data: FrameData):
     for attribute, frame_key in MDANALYSIS_COUNTS_TO_FRAME_DATA.items():
         with suppress(AttributeError):
             field = getattr(u, attribute)
-            frame_data.values[frame_key] = len(field)
+            frame_data[frame_key] = len(field)
 
 
 def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
@@ -313,17 +300,7 @@ def _add_mda_bonds_to_frame_data(u: Universe, frame_data: FrameData):
         frame_data.bond_pairs = u.atoms.bonds.indices
 
 
-def _try_get_field(frame: FrameData, field):
-    array_keys = frame.array_keys
-    value_keys = frame.value_keys
-    if field in array_keys:
-        return frame.arrays.get(field)
-    elif field in value_keys:
-        return frame.values.get(field)
-
-
-def _add_frame_attributes_to_mda(universe, frame):
+def _add_frame_attributes_to_mda(universe: Universe, frame: FrameData):
     for name, (key, converter) in FRAME_DATA_TO_MDANALYSIS.items():
         with suppress(KeyError, MissingDataError):
-            value = frame.arrays[key]
-            universe.add_TopologyAttr(name, converter(value))
+            universe.add_TopologyAttr(name, converter(frame[key]))

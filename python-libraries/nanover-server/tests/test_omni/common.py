@@ -6,10 +6,10 @@ from nanover.app import (
 from nanover.app.types import AppServer
 from nanover.omni import OmniRunner
 from nanover.websocket import NanoverImdClient
+from nanover.trajectory import FrameData
 
 EXAMPLES_PATH = Path(__file__).parent
-RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
-RECORDING_PATH_STATE = EXAMPLES_PATH / "nanotube-example-recording.state"
+RECORDING_PATH = EXAMPLES_PATH / "nanotube-example-recording.nanover.zip"
 ARGON_XML_PATH = EXAMPLES_PATH / "argon_simulation.xml"
 
 
@@ -53,7 +53,7 @@ def make_connected_client_from_app_server(app_server: AppServer):
 
 def connect_and_retrieve_first_frame_from_app_server(
     app_server: AppServer,
-):
+) -> FrameData:
     with make_connected_client_from_app_server(app_server) as client:
         return client.wait_until_first_frame()
 

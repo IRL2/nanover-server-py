@@ -23,10 +23,14 @@ with NanoverImdClient.from_discovery() as client:
     # wait for an initial frame in which topology will be available
     first_frame = client.wait_until_first_frame(check_interval=0.5, timeout=10)
 
-    print(f"Attempting to hide residue {SOLVENT_RESIDUE_NAME} (residues in frame: {', '.join(set(first_frame.residue_names))})")
+    print(
+        f"Attempting to hide residue {SOLVENT_RESIDUE_NAME} (residues in frame: {', '.join(set(first_frame.residue_names))})"
+    )
 
     # get atom indicies matching an mdanalysis selection for the particular residue name
-    solvent_indices = get_selection_indices(first_frame, f"resname {SOLVENT_RESIDUE_NAME}")
+    solvent_indices = get_selection_indices(
+        first_frame, f"resname {SOLVENT_RESIDUE_NAME}"
+    )
 
     # create the selection with the desired particles hidden and non-interactable
     with client.create_selection("solvent").modify() as selection:

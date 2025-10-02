@@ -8,11 +8,7 @@ from nanover.imd import ParticleInteraction
 from nanover.omni.omni import CLEAR_PREFIXES
 from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
 from nanover.testing.asserts import assert_true_soon
-from nanover.trajectory.frame_data import (
-    SIMULATION_EXCEPTION,
-    FRAME_INDEX,
-    SERVER_TIMESTAMP,
-)
+from nanover.trajectory.keys import SIMULATION_EXCEPTION, SERVER_TIMESTAMP
 from nanover.utilities.change_buffers import DictionaryChange
 from test_openmm import make_example_openmm
 from test_ase import make_example_ase
@@ -100,7 +96,6 @@ def test_next_simulation_increments_counter(runner_with_imd_sims):
     with make_connected_client_from_runner(runner_with_imd_sims) as client:
         for i in range(5):
             client.run_next()
-            client.wait_until_first_frame()
             assert_equal_soon(
                 lambda: client.current_frame.simulation_counter, lambda: i
             )
