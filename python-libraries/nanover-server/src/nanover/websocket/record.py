@@ -1,93 +1,59 @@
-import traceback
 from concurrent.futures import ThreadPoolExecutor
 from time import perf_counter_ns
 
 import msgpack
+from websockets import ConnectionClosed
 from websockets.sync.client import connect, ClientConnection
 
 from nanover.omni import OmniRunner
-from nanover.recording.writing import write_entry, write_header
-from nanover.state.state_service import dictionary_change_to_state_update
-from nanover.trajectory import FrameData2
-from nanover.utilities.change_buffers import DictionaryChange
+from nanover.recording.reading import MessageEvent
+from nanover.recording.writing import record_messages
 from nanover.websocket.client.app_client import get_websocket_address_from_app_server
 from nanover.websocket.client.base_client import MAX_MESSAGE_SIZE
-from nanover.trajectory.convert import (
-    unpack_dict_frame,
-    convert_framedata2_to_GetFrameResponse,
-)
 
 
-def record_from_runner(runner: OmniRunner, trajectory_file, state_file):
+def record_from_runner(runner: OmniRunner, out_path):
     """
-    Connect to the given runner and record trajectory frames and state updates to files
+    Connect to the given runner and record trajectory frames and state updates to a file
 
     :param runner: OmniRunner instance to connect to
-    :param trajectory_file: File to write trajectory frames to
-    :param state_file: File to write state updates to
-    :return:
+    :param out_path: File to write recording to
     """
     return record_from_server(
         address=get_websocket_address_from_app_server(runner.app_server),
-        trajectory_file=trajectory_file,
-        state_file=state_file,
+        out_path=out_path,
     )
 
 
-def record_from_server(address, trajectory_file, state_file):
+def record_from_server(address, out_path):
     """
-    Connect to the given address and record trajectory frames and state updates to files
+    Connect to the given address and record trajectory frames and state updates to a file
 
     :param address: String protocol://host:port of server to connect to
-    :param trajectory_file: File to write trajectory frames to
-    :param state_file: File to write state updates to
-    :return:
+    :param out_path: File to write recording to
     """
-
-    frame_out = open(trajectory_file, "wb")
-    state_out = open(state_file, "wb")
-
-    write_header(frame_out)
-    write_header(state_out)
-
-    start_time = perf_counter_ns()
-
-    def timestamp():
-        return int((perf_counter_ns() - start_time) / 1000)
-
-    def recv_frame(message: dict):
-        frame = FrameData2(unpack_dict_frame(message))
-        response = convert_framedata2_to_GetFrameResponse(frame)
-        write_entry(frame_out, timestamp(), response)
-
-    def recv_state(message: dict):
-        change = DictionaryChange(
-            updates=message["updates"],
-            removals=message["removals"],
-        )
-        update = dictionary_change_to_state_update(change)
-        write_entry(state_out, timestamp(), update)
-
-    def listen(websocket: ClientConnection):
-        with frame_out, state_out:
-            try:
-                for data in websocket:
-                    message = msgpack.unpackb(data)
-                    frame = message.get("frame", None)
-                    state = message.get("state", None)
-
-                    if frame is not None:
-                        recv_frame(frame)
-                    if state is not None:
-                        recv_state(state)
-            except Exception:
-                traceback.print_exc()
-                raise
-            finally:
-                websocket.close()
 
     websocket = connect(address, max_size=MAX_MESSAGE_SIZE)
     executor = ThreadPoolExecutor(max_workers=1)
-    executor.submit(listen, websocket)
+    executor.submit(record_messages, out_path, message_events_from_websocket(websocket))
 
     return executor, websocket
+
+
+def message_events_from_websocket(websocket: ClientConnection):
+    start_time = perf_counter_ns()
+
+    def get_timestamp():
+        return int((perf_counter_ns() - start_time) / 1000)
+
+    try:
+        for data in websocket:
+            if isinstance(data, bytes):
+                yield MessageEvent(
+                    timestamp=get_timestamp(),
+                    message=msgpack.unpackb(data),
+                )
+    except ConnectionClosed:
+        pass
+    finally:
+        websocket.close()

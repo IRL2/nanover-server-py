@@ -5,7 +5,7 @@ from nanover.app import NanoverImdApplication
 from nanover.app.types import AppServer
 from nanover.testing import assert_equal_soon
 from nanover.testing.utilities import simplify_numpy
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket import NanoverImdClient
 from nanover.websocket.server import WebSocketServer
@@ -65,9 +65,9 @@ class ServerClientSetup:
         )
 
     def server_publish_frame_reset(self):
-        self.server_publish_frame(frame=FrameData2(), frame_index=0)
+        self.server_publish_frame(frame=FrameData(), frame_index=0)
 
-    def server_publish_frame(self, frame: FrameData2, frame_index: int):
+    def server_publish_frame(self, frame: FrameData, frame_index: int):
         self.app.frame_publisher.send_frame(frame=frame, frame_index=frame_index)
 
     @property

@@ -8,7 +8,7 @@ from threading import Lock, Condition
 from contextlib import contextmanager
 from time import monotonic as time
 
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 
 class DictOfQueues:
@@ -177,7 +177,7 @@ class GetFrameResponseAggregatingQueue(SingleItemQueue):
     queue at any time.
     """
 
-    def put(self, item: FrameData2, **kwargs):
+    def put(self, item: FrameData, **kwargs):
         with self._lock:
             if item is None:
                 # None is the sentinel value to indicate that the queue user
@@ -185,7 +185,7 @@ class GetFrameResponseAggregatingQueue(SingleItemQueue):
                 self._item = None
             else:
                 if self._item is None:
-                    self._item = FrameData2()
+                    self._item = FrameData()
                 self._item.update(item)
             self._has_item = True
             self.not_empty.notify()

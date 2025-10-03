@@ -17,7 +17,7 @@ from nanover.ase.imd_calculator import (
     _scale_momentum_of_selection,
 )
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.trajectory.frame_data import MissingDataError
+from nanover.trajectory import MissingDataError
 import numpy as np
 from test_imd_calculator import imd_calculator_co
 from util import app_server

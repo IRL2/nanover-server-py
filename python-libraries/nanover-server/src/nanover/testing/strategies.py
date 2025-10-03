@@ -1,15 +1,8 @@
 import numpy as np
 from hypothesis import strategies as st
-from nanover.trajectory import FrameData2
-from nanover.trajectory.frame_data import (
-    PARTICLE_POSITIONS,
-    PARTICLE_ELEMENTS,
-    PARTICLE_RESIDUES,
-    BOND_PAIRS,
-    RESIDUE_CHAINS,
-    BOX_VECTORS,
-)
-from nanover.trajectory.convert import converters
+from nanover.trajectory import FrameData
+import nanover.trajectory.keys as keys
+from nanover.trajectory.convert import converters, pack_dict_frame
 
 
 def uint8s():
@@ -53,18 +46,25 @@ def index2_arrays():
 
 
 known_types = {
-    BOX_VECTORS: vec3_arrays(),
-    PARTICLE_POSITIONS: vec3_arrays(),
-    PARTICLE_ELEMENTS: enum_arrays(),
-    PARTICLE_RESIDUES: index_arrays(),
-    BOND_PAIRS: index2_arrays(),
-    RESIDUE_CHAINS: index_arrays(),
+    keys.BOX_VECTORS: vec3_arrays(),
+    keys.PARTICLE_POSITIONS: vec3_arrays(),
+    keys.PARTICLE_ELEMENTS: enum_arrays(),
+    keys.PARTICLE_RESIDUES: index_arrays(),
+    keys.BOND_PAIRS: index2_arrays(),
+    keys.RESIDUE_CHAINS: index_arrays(),
 }
 
 
 @st.composite
 def frames(draw):
-    return FrameData2(draw(dict_frames()))
+    return FrameData(draw(dict_frames()))
+
+
+@st.composite
+def packed_frame_dicts(draw):
+    frame_dict = draw(dict_frames())
+    packed_dict = pack_dict_frame(frame_dict)
+    return packed_dict
 
 
 @st.composite

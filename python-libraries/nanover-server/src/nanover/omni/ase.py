@@ -18,7 +18,7 @@ from nanover.ase.converter import (
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.thermo import compute_dof, compute_instantaneous_temperature
 from nanover.ase.wall_constraint import VelocityWallConstraint
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 from nanover.utilities.event import Event
 from nanover.imd.imd_force import calculate_contribution_to_work
 
@@ -31,7 +31,7 @@ class InitialState:
 
 
 class ASEAtomsToFrameData(Protocol):
-    def __call__(self, ase_atoms: Atoms, *, topology: bool, **kwargs) -> FrameData2: ...
+    def __call__(self, ase_atoms: Atoms, *, topology: bool, **kwargs) -> FrameData: ...
 
 
 class ASESimulation:

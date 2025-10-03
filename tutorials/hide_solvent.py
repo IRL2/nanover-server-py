@@ -4,12 +4,12 @@ Example of using selections to hide solvent by residue name.
 
 from nanover.websocket import NanoverImdClient
 from nanover.mdanalysis import frame_data_to_mdanalysis
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 SOLVENT_RESIDUE_NAME = "HOH"
 
 
-def get_selection_indices(frame: FrameData2, query: str):
+def get_selection_indices(frame: FrameData, query: str):
     # use frame's topology to construct an mdanalysis universe
     universe = frame_data_to_mdanalysis(frame)
     # query mdanalysis universe for desired atoms

@@ -14,8 +14,7 @@ from ase.md.velocitydistribution import _maxwellboltzmanndistribution
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd.imd_state import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.trajectory import FrameData2
-from nanover.trajectory.frame_data import MissingDataError
+from nanover.trajectory import FrameData, MissingDataError
 
 from . import converter
 
@@ -49,7 +48,7 @@ class ImdForceManager:
 
         return prev_interactions, next_interactions
 
-    def add_to_frame_data(self, frame_data: FrameData2):
+    def add_to_frame_data(self, frame_data: FrameData):
         """
         Add the iMD forces and energy to the frame data.
 
@@ -296,7 +295,7 @@ class ImdCalculator(Calculator):
         )
         self._reset_velocities(self._atoms, next_interactions, prev_interactions)
 
-    def add_to_frame_data(self, frame_data: FrameData2):
+    def add_to_frame_data(self, frame_data: FrameData):
         """
         Add the iMD forces and energy to the frame data via the
         ImdForceManager.
