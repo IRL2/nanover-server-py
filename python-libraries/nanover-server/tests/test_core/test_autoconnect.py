@@ -51,6 +51,7 @@ def test_autoconnect_app_server_default_ports():
             assert mock.call_count == 1
 
 
+@pytest.mark.serial
 def test_autoconnect_app_server(discoverable_imd_server: AppServer):
     """
     Tests that an iMD application server running on one port is discoverable and
