@@ -10,14 +10,13 @@ jobs:
         # This is necessary for the conda action. It replaces `conda init` as
         # the shell does not load ,profile or .bashrc.
         shell: bash -el {0}
+    env:
+      build_command: "conda-build --prefix-length=100 --no-test --no-anaconda-upload "
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # We need all the history to figure out the version number
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          auto-update-conda: true
-          miniforge-version: latest
+      - uses: s-weigand/setup-conda@v1
       - name: Set environment variables
         run: |
           echo NANOVER_DOC_URL="https://irl2.github.io/nanover-docs/" >> "$GITHUB_ENV"
@@ -28,12 +27,12 @@ jobs:
       - name: Test that the repo is sane and does not contain superfluous __init__ file
         run: bash ./maintainers/check_extra_init_files.sh
       - name: Install dependencies
-        run: conda install --solver=classic -y python conda-build "anaconda::grpcio-tools<1.62" conda-verify
+        run: conda install -y python conda-build "grpcio-tools<1.62" conda-verify
       - name: Compiling the prototypes
         run: python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-server/src
       - name: Building the Conda packages
         run: |
-          conda-build --prefix-length=100 --no-test --no-anaconda-upload python-libraries/nanover-server/conda --solver=classic
+          $build_command python-libraries/nanover-server/conda
       - run: |
           mkdir artifacts
           cp -r ${CONDA_PREFIX}/conda-bld ./artifacts
