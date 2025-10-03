@@ -183,7 +183,7 @@ class NanoverApplicationServer:
 
     def copy_state(self):
         """
-        Return a deep copy of the current state.
+        Return a shallow copy of the current state.
         """
         return self._state_service.copy_state()
 
