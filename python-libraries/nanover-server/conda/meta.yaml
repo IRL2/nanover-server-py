@@ -15,20 +15,15 @@ build:
     - nanover-multiplayer = nanover.multiplayer.cli:main
     - nanover-dump-state = nanover.recording.cli.dump_cli:main
     - nanover-split-recording = nanover.recording.cli.split_cli:main
-    - nanover-convert-recording = nanover.recording.cli.convert_cli:main
 
 requirements:
   build:
     - python >={{ MIN_PYTHON_VERSION }}
     - setuptools
-    - grpcio-tools
   run:
     - python >={{ MIN_PYTHON_VERSION }}
     - netifaces
-    - grpcio
     - numpy
-    - protobuf
-    - attrs
     - openmm
     - ase >=3.21
     - mdanalysis

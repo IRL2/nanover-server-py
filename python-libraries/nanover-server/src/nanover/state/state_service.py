@@ -2,11 +2,7 @@
 Module providing an implementation of the :class:`StateServicer`.
 """
 
-from typing import Set, ContextManager
-from nanover.utilities.protobuf_utilities import (
-    deep_copy_serializable_dict,
-    Serializable,
-)
+from typing import Set, ContextManager, Any
 from nanover.utilities.change_buffers import (
     DictionaryChange,
     DictionaryChangeBuffer,
@@ -25,27 +21,25 @@ class StateService:
     def __init__(self):
         super().__init__()
         self.state_dictionary = StateDictionary()
-        self.name: str = "service"
-        self._id = "service"
 
     def close(self):
         self.state_dictionary.freeze()
 
-    def lock_state(self) -> ContextManager[dict[str, Serializable]]:
+    def lock_state(self) -> ContextManager[dict[str, Any]]:
         """
         Context manager for reading the current state while delaying any changes
         to it.
         """
         return self.state_dictionary.lock_content()
 
-    def copy_state(self) -> dict[str, Serializable]:
+    def copy_state(self) -> dict[str, Any]:
         """
-        Return a deep copy of the current state.
+        Return a shallow copy of the current state.
         """
         with self.lock_state() as state:
-            return deep_copy_serializable_dict(state)
+            return state.copy()
 
-    def update_state(self, access_token: Serializable, change: DictionaryChange):
+    def update_state(self, access_token: Any, change: DictionaryChange):
         """
         Attempts an atomic update of the shared key/value store. If any key
         cannot be updated, no change will be made.
@@ -57,7 +51,7 @@ class StateService:
 
     def update_locks(
         self,
-        access_token: Serializable,
+        access_token: Any,
         acquire: dict[str, float] | None = None,
         release: Set[str] | None = None,
     ):

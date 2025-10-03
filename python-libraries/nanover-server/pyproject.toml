@@ -15,10 +15,7 @@ dependencies = [
     "numpy",
     "nglview",
     "netifaces",
-    "grpcio>=1.63.0",
-    "grpcio-tools>=1.63.0",
     "pytest",
-    "aiogrpc",
     "numpy",
     "hypothesis",
     "ase >= 3.21",
@@ -36,7 +33,6 @@ nanover-essd-list = "nanover.essd.list_cli:main"
 nanover-multiplayer = "nanover.multiplayer.cli:main"
 nanover-dump-state = "nanover.recording.cli.dump_cli:main"
 nanover-split-recording = "nanover.recording.cli.split_cli:main"
-nanover-convert-recording = "nanover.recording.cli.convert_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)

@@ -37,9 +37,6 @@ python -m pip install -r ./python-libraries/prototypes/requirements.txt ${user_o
 announce "Installing python test requirements"
 python -m pip install -r ./python-libraries/requirements.test ${user_option}
 
-announce "Compiling proto files to python"
-python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-server/src
-
 announce "Installing the python packages"
 python -m pip install ${edit_option} ${user_option}  (Convert-Path "./python-libraries/nanover-server/") --config-settings editable_mode=compat
 
