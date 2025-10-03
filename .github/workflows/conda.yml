@@ -33,7 +33,7 @@ jobs:
         run: python ./python-libraries/compile_proto.py --proto-dir=./protocol --python-dir=./python-libraries/nanover-server/src
       - name: Building the Conda packages
         run: |
-          conda-build --prefix-length=100 --no-test --no-anaconda-upload python-libraries/nanover-server/conda
+          conda-build --prefix-length=100 --no-test --no-anaconda-upload python-libraries/nanover-server/conda --solver=classic
       - run: |
           mkdir artifacts
           cp -r ${CONDA_PREFIX}/conda-bld ./artifacts
