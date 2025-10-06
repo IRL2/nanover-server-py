@@ -16,10 +16,10 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install nanover dependencies
+      - name: Install NanoVer & dependencies
         run: |
           conda install -y openmm
-          python -m pip install -e ./python-libraries/nanover-server/[dev] --config-settings editable_mode=compat
+          python -m pip install ./python-libraries/nanover-server/[dev]
       - name: Parallel tests
         run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial'
       - name: Serial tests
@@ -40,7 +40,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install dependencies
+      - name: Install NanoVer & dependencies
         run: |
           conda install -y openmm
           python -m pip install ./python-libraries/nanover-server/
@@ -76,7 +76,7 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install dependencies
+      - name: Install NanoVer & dependencies
         run: |
           conda install -y openmm
           python -m pip install ./python-libraries/nanover-server/
