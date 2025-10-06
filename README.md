@@ -159,6 +159,12 @@ trajectory. To serve the frames on port 54321, from the `nanover-server-py` dire
 
 If you are having trouble autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
+## Old recordings
+
+If you try to use the older .traj/.state recordings, you will find NanoVer complaining that they are not zip files.
+In this case you can use the [recording converter](https://github.com/IRL2/nanover-recording-converter) in conjunction
+with NanoVer to convert them to the new format.
+
 ## Citation and external libraries
 
 Any work that uses NanoVer should cite the following publications:
