@@ -65,6 +65,10 @@ jobs:
           name: conda-packages
       - name: Install NanoVer
         run: conda install -y -c conda-forge -c ./conda-bld nanover-server
+      - name: Install extra dependencies
+        run: |
+          pip install uv
+          uv pip install -r ./python-libraries/nanover-server/pyproject.toml --all-extras
       - name: Parallel tests
         run: python -m pytest python-libraries -n auto -m 'not serial'
       - name: Serial tests
