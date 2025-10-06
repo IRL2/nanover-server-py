@@ -28,9 +28,6 @@ if ($user)
     Announce "Installing requirements with pip for the user only."
 }
 
-announce "Installing python requirements"
-python -m pip install -r ./python-libraries/nanover-server/requirements.txt ${user_option}
-
 announce "Installing prototypes requirements"
 python -m pip install -r ./python-libraries/prototypes/requirements.txt ${user_option}
 

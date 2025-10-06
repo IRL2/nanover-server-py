@@ -40,9 +40,6 @@ if [[ ! -z "${edit_option}" ]]; then
 fi
 
 if [[ $with_python == true ]]; then
-	announce "Installing python requirements"
-	python -m pip install -r ./python-libraries/nanover-server/requirements.txt ${user_option}
-
 	announce "Installing python prototypes requirements"
 	python -m pip install -r ./python-libraries/prototypes/requirements.txt ${user_option}
 

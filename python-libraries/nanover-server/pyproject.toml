@@ -19,7 +19,6 @@ dependencies = [
     "numpy",
     "hypothesis",
     "ase >= 3.21",
-    "setuptools>=40.1.1",
     "websockets>=15.0.0",
     "msgpack>=1.0.0",
 ]
@@ -28,7 +27,6 @@ dynamic = ["version"]
 [project.scripts]
 nanover-omni = "nanover.omni.cli:main"
 nanover-record = "nanover.omni.recorder_cli:main"
-nanover-omm-server = "nanover.openmm.cli:main"
 nanover-essd-list = "nanover.essd.list_cli:main"
 nanover-multiplayer = "nanover.multiplayer.cli:main"
 nanover-dump-state = "nanover.recording.cli.dump_cli:main"
