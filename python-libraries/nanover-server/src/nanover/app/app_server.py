@@ -1,6 +1,5 @@
 """
-Module providing an out-of-the-box NanoVer application server,
-with an underyling gRPC server, discovery, multiplayer and commands.
+Module providing an out-of-the-box NanoVer application server supporting all the standard features.
 """
 
 import getpass
