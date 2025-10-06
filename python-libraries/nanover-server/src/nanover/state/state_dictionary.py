@@ -5,7 +5,7 @@ shared key/value store.
 
 from contextlib import contextmanager
 from threading import Lock
-from typing import ContextManager, Generator, Iterable
+from typing import ContextManager, Generator, Iterable, Any
 
 from nanover.utilities.change_buffers import (
     DictionaryChangeMultiView,
@@ -17,7 +17,6 @@ from nanover.utilities.key_lockable_map import (
     KeyLockableMap,
     ResourceLockedError,
 )
-from nanover.utilities.protobuf_utilities import Serializable
 
 
 class StateDictionary:
@@ -49,7 +48,7 @@ class StateDictionary:
             return dict(content)
 
     @contextmanager
-    def lock_content(self) -> Generator[dict[str, Serializable], None, None]:
+    def lock_content(self) -> Generator[dict[str, Any], None, None]:
         """
         Context manager for reading the current state while delaying any changes
         to it via an exclusive lock.
@@ -65,7 +64,7 @@ class StateDictionary:
 
     def update_state(
         self,
-        access_token: Serializable,
+        access_token: Any,
         change: DictionaryChange,
     ):
         """
@@ -85,7 +84,7 @@ class StateDictionary:
 
     def update_locks(
         self,
-        access_token: Serializable,
+        access_token: Any,
         acquire: dict[str, float] | None | None = None,
         release: Iterable[str] | None = None,
     ):

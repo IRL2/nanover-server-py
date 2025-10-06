@@ -7,7 +7,6 @@ from typing import Any, Mapping
 from nanover.state.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.utilities.protobuf_utilities import Serializable
 
 INTERACTION_PREFIX = "interaction."
 VELOCITY_RESET_KEY = "imd.velocity_reset_available"
@@ -96,7 +95,7 @@ class ImdStateWrapper:
                 self._interactions[key] = dict_to_interaction(value)
 
 
-def interaction_to_dict(interaction: ParticleInteraction) -> dict[str, Serializable]:
+def interaction_to_dict(interaction: ParticleInteraction) -> dict[str, Any]:
     try:
         # properties with the same key as the builtins will be discarded
         # dicussion: https://gitlab.com/intangiblerealities/nanover-server-py/-/merge_requests/182#note_374156050
