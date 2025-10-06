@@ -15,19 +15,16 @@ set -euo pipefail
 # A developer most likely want to install nanover's python packages in edit
 # mode. If not, they can supply the --no-edit argument.
 edit_option="-e"
-with_python=true
 for option in "$@"; do
 	if [[ "$option" == "--no-edit" ]]; then
 		edit_option=""
 	fi
 done
 
-if [[ $with_python == true ]]; then
-	announce "Installing the python packages"
-	python -m pip install ${edit_option} ./python-libraries/nanover-server/[dev] --config-settings editable_mode=compat
+announce "Installing the python packages"
+python -m pip install ${edit_option} ./python-libraries/nanover-server/[dev] --config-settings editable_mode=compat
 
-	python -c "import openmm" 2>&1 >/dev/null || {
-		announce "OpenMM is not installed."
-		announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
-	}
-fi
+python -c "import openmm" 2>&1 >/dev/null || {
+  announce "OpenMM is not installed."
+  announce "See <http://docs.openmm.org/latest/userguide/application.html#installing-openmm>."
+}
