@@ -1,16 +1,13 @@
 # Param statement must be first non-comment, non-blank line in the script
 param(
-    [switch][alias("n")]$noedit = $false,
-    [switch][alias("u")]$user = $false
+    [switch][alias("n")]$noedit = $false
 )
     
 function announce {
     Write-Host $args[0] -ForegroundColor Green
-
 }
 
 $edit_option = ""
-$user_option = "" 
 
 if ($noedit)
 {
@@ -22,20 +19,8 @@ else
     Announce "Installing nanover-server-py in edit mode."
 }
 
-if ($user) 
-{
-    $user_option = "--user"
-    Announce "Installing requirements with pip for the user only."
-}
-
-announce "Installing prototypes requirements"
-python -m pip install -r ./python-libraries/prototypes/requirements.txt ${user_option}
-
-announce "Installing python test requirements"
-python -m pip install -r ./python-libraries/requirements.test ${user_option}
-
 announce "Installing the python packages"
-python -m pip install ${edit_option} ${user_option}  (Convert-Path "./python-libraries/nanover-server/") --config-settings editable_mode=compat
+python -m pip install ${edit_option} "./python-libraries/nanover-server/[dev]" --config-settings editable_mode=compat
 
 python -c "import openmm"
 if ($LASTEXITCODE -ne 0)
