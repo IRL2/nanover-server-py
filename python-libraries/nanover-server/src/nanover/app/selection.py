@@ -48,7 +48,7 @@ class RenderingSelection:
         """
         Decode a dictionary into a selection.
 
-        :param dict: A dictionary, such as json or a protobuf value.
+        :param dict: A dictionary of selection data.
         :return: A selection decoded from the given dictionary
         """
         try:

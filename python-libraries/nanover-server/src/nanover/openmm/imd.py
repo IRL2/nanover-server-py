@@ -157,8 +157,6 @@ def _build_particle_interaction_index_set(
     """
     indices = (interaction.particles for interaction in interactions.values())
     flatten_indices = itertools.chain(*indices)
-    # We need to convert the indices to ints otherwise they are numpy types
-    # that protobuf do not support.
     set_of_ints = set(map(int, flatten_indices))
     return set_of_ints
 
