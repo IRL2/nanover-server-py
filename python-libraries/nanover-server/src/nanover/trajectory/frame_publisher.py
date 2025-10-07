@@ -85,8 +85,11 @@ class FramePublisher:
             if self.last_frame is not None:
                 yield self.last_frame
 
-    def send_frame(self, frame_index: int, frame: FrameData):
+    def send_frame(self, frame_index: int | None, frame: FrameData):
         assert isinstance(frame, FrameData), "Frame must be of type FrameData"
+
+        if frame_index is None:
+            frame_index = frame.frame_index
 
         frame.server_timestamp = time.monotonic()
         frame.frame_index = frame_index

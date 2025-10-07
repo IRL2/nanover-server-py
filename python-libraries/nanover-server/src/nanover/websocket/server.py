@@ -10,7 +10,7 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
-from nanover.trajectory.convert import pack_dict_frame
+from nanover.trajectory.convert import pack_dict_frame, unpack_dict_frame
 
 
 class WebSocketServer:
@@ -144,6 +144,9 @@ class WebSocketClientHandler:
                 response = {"request": request, "exception": str(e)}
             return response
 
+        def handle_frame_publish(frame):
+            self.frame_publisher.send_frame(None, FrameData(unpack_dict_frame(frame)))
+
         if "state" in message:
             handle_state_update(message["state"])
         if "command" in message:
@@ -152,6 +155,8 @@ class WebSocketClientHandler:
             )
             responses = [handle_command_request(request) for request in requests]
             self.send_message({"command": responses})
+        if "frame" in message:
+            handle_frame_publish(message["frame"])
 
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
         # TODO: error handling!!
