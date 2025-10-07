@@ -1,10 +1,8 @@
 import time
+from contextlib import contextmanager
 from threading import Lock
 
-from nanover.utilities.request_queues import (
-    DictOfQueues,
-    GetFrameResponseAggregatingQueue,
-)
+from nanover.utilities.queues import FrameMergingQueue
 from nanover.utilities.timing import yield_interval
 from nanover.trajectory import FrameData
 
@@ -17,46 +15,33 @@ class FramePublisher:
     to send data to clients when called by other python code.
     """
 
-    last_request_id: int
-    _frame_queue_lock: Lock
-    _last_frame_lock: Lock
-    _request_id_lock: Lock
-
     def __init__(self):
-        self.frame_queues = DictOfQueues()
         self.last_frame = FrameData()
-        self.last_request_id = 0
         self.simulation_counter = 0
+
+        self._frame_queues: set[FrameMergingQueue] = set()
+        self._frame_queues_lock = Lock()
         self._last_frame_lock = Lock()
         self._request_id_lock = Lock()
 
-    def subscribe_latest_frames(
-        self,
-        *,
-        frame_interval=1 / 30,
-        cancellation,
-        queue_class=GetFrameResponseAggregatingQueue
-    ):
+    def subscribe_latest_frames(self, *, frame_interval=1 / 30, cancellation):
         """
         Yield the most recent frame, if changed, at a regular interval. Terminates when cancellation token is
         cancelled.
         """
-        request_id = self._get_new_request_id()
 
-        with self.frame_queues.one_queue(
-            request_id,
-            queue_class=queue_class,
-        ) as queue:
-            if cancellation.is_cancelled:
-                return
+        if cancellation.is_cancelled:
+            return
 
-            with self._last_frame_lock:
-                initial_frame = self.last_frame
+        with self._last_frame_lock:
+            initial_frame = self.last_frame
 
+        with self._get_queue() as queue:
             if initial_frame is not None:
                 yield initial_frame
 
-            cancellation.subscribe_cancellation(lambda: queue.put(SENTINEL))
+            cancellation.subscribe_cancellation(lambda: queue.close())
+            cancellation.subscribe_cancellation(lambda: print("CANCELLED"))
 
             for dt in yield_interval(frame_interval):
                 item = queue.get(block=True)
@@ -64,14 +49,19 @@ class FramePublisher:
                     break
                 yield item
 
-    def _get_new_request_id(self) -> int:
-        """
-        Provide a new client id in a thread safe way.
-        """
-        with self._request_id_lock:
-            self.last_request_id += 1
-            client_id = self.last_request_id
-        return client_id
+    @contextmanager
+    def _get_queue(self):
+        queue = FrameMergingQueue()
+
+        try:
+            with self._frame_queues_lock:
+                self._frame_queues.add(queue)
+
+            yield queue
+        finally:
+            queue.close()
+            with self._frame_queues_lock:
+                self._frame_queues.discard(queue)
 
     def _yield_last_frame_if_any(self):
         """
@@ -98,9 +88,11 @@ class FramePublisher:
         with self._last_frame_lock:
             self.last_frame.update(frame)
 
-        for queue in self.frame_queues.iter_queues():
-            queue.put(frame)
+        with self._frame_queues_lock:
+            for queue in self._frame_queues:
+                queue.put(frame)
 
     def close(self):
-        for queue in self.frame_queues.iter_queues():
-            queue.put(SENTINEL)
+        with self._frame_queues_lock:
+            for queue in self._frame_queues:
+                queue.close()

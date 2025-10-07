@@ -61,7 +61,7 @@ class NanoverImdApplication(NanoverApplicationServer):
         address: str | None = None,
     ):
         super().__init__(discovery=discovery, name=name, address=address)
-        self._imd_state = ImdStateWrapper(self._state_service.state_dictionary)
+        self._imd_state = ImdStateWrapper(self._state_dictionary)
         add_multiuser_commands(self)
 
     def close(self):
