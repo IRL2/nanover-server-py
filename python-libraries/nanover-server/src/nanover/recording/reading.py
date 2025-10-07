@@ -6,7 +6,7 @@ from zipfile import ZipFile
 
 import msgpack
 
-from nanover.state.state_dictionary import StateDictionary
+from nanover.utilities.state_dictionary import StateDictionary
 from nanover.trajectory import FrameData
 from nanover.trajectory.convert import (
     unpack_dict_frame,

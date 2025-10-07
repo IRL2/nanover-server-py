@@ -6,11 +6,11 @@ import getpass
 from typing import Any
 
 from nanover.essd import DiscoveryServer, ServiceHub
-from nanover.state.state_service import StateService
 from nanover.trajectory import FramePublisher
 from nanover.utilities.change_buffers import DictionaryChange
 
 from .commands import CommandService, CommandHandler
+from nanover.utilities.state_dictionary import StateDictionary
 
 DEFAULT_SERVE_ADDRESS = "[::]"
 
@@ -46,7 +46,7 @@ class NanoverApplicationServer:
 
         self._address = address
         self._command_service = CommandService()
-        self._state_service = StateService()
+        self._state_dictionary = StateDictionary()
         self._frame_publisher = FramePublisher()
 
         self._discovery = discovery
@@ -131,7 +131,7 @@ class NanoverApplicationServer:
         """
         Close the application server and all services.
         """
-        self._state_service.close()
+        self._state_dictionary.freeze()
         self._frame_publisher.close()
         if self.running_discovery:
             self._discovery.close()  # type: ignore
@@ -178,30 +178,30 @@ class NanoverApplicationServer:
         Context manager for reading the current state while delaying any changes
         to it.
         """
-        return self._state_service.lock_state()
+        return self._state_dictionary.lock_content()
 
     def copy_state(self):
         """
         Return a shallow copy of the current state.
         """
-        return self._state_service.copy_state()
+        return self._state_dictionary.copy_content()
 
     def update_state(self, access_token: Any, change: DictionaryChange):
         """
         Attempts an atomic update of the shared key/value store. If any key
         cannot be updates, no change will be made.
         """
-        self._state_service.update_state(access_token, change)
+        self._state_dictionary.update_state(access_token, change)
 
     def clear_locks(self):
         """
         Forces the release all locks on all keys in the shared key/value store.
         """
-        self._state_service.clear_locks()
+        self._state_dictionary.clear_locks()
 
     @property
     def state_dictionary(self):
-        return self._state_service.state_dictionary
+        return self._state_dictionary
 
     def add_service(self, name: str, port: int):
         self._service_hub.add_service(name, port)

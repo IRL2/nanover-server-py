@@ -18,7 +18,7 @@ class InteractionClient(WebsocketClient):
 
     @property
     def interactions(self) -> dict[str, ParticleInteraction]:
-        with self._state_dictionary.lock_state() as state:
+        with self._state_dictionary.lock_content() as state:
             return {
                 key: dict_to_interaction(value)
                 for key, value in state.items()
