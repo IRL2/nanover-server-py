@@ -512,8 +512,6 @@ def test_sparse_user_forces_elements(
     expected_magnitude = carbon_mass
     expected_vector = expected_heading * expected_magnitude
 
-    print(frame.user_forces_index)
-
     assert set(frame.user_forces_index) == interaction_particles
     for i in range(len(frame.user_forces_index)):
         assert frame.user_forces_sparse[i] == pytest.approx(expected_vector, abs=1e-5)

@@ -75,8 +75,8 @@ class LastItemQueue:
 
 class FrameMergingQueue(LastItemQueue):
     """
-    SingleItemQueue specifically for GetFrameResponse items. Put items will be
-    aggregated with any existing item so that there is at most one item in the
+    SingleItemQueue specifically for FrameData items. Put frames will be
+    aggregated with any existing frame so that there is at most one frame in the
     queue at any time.
     """
 
@@ -86,8 +86,8 @@ class FrameMergingQueue(LastItemQueue):
     def put(self, item: FrameData | None, **kwargs):
         with self._lock:
             if item is None:
-                # None is the sentinel value to indicate that the queue user
-                # should terminate, so it is safe to discard aggregated frames.
+                # The None sentinel value indicates that the queue user should terminate,
+                # so it is safe to discard aggregated frames.
                 self._item = None
             else:
                 if self._item is None:

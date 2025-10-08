@@ -2,97 +2,100 @@ import time
 from contextlib import contextmanager
 from threading import Lock
 
+from nanover.utilities.cli import CancellationToken
 from nanover.utilities.queues import FrameMergingQueue
 from nanover.utilities.timing import yield_interval
 from nanover.trajectory import FrameData
 
-SENTINEL = None
-
 
 class FramePublisher:
-    """
-    An implementation of a trajectory service. Call send_frame
-    to send data to clients when called by other python code.
-    """
-
     def __init__(self):
-        self.last_frame = FrameData()
         self.simulation_counter = 0
+        self.next_frame_index = 0
 
+        self.current_frame: FrameData | None = None
         self._frame_queues: set[FrameMergingQueue] = set()
         self._frame_queues_lock = Lock()
-        self._last_frame_lock = Lock()
-        self._request_id_lock = Lock()
 
-    def subscribe_latest_frames(self, *, frame_interval=1 / 30, cancellation):
+    def close(self):
+        """
+        Terminate all frame subscriptions.
+        """
+        with self._frame_queues_lock:
+            for queue in self._frame_queues:
+                queue.close()
+
+    def send_clear(self):
+        """
+        Queue the start of a new sequence of frames that don't reuse the topology etc of the previous frames.
+        """
+        self.next_frame_index = 1
+
+        frame = FrameData()
+        frame.frame_index = 0
+        frame.simulation_counter = self.simulation_counter
+        self.simulation_counter += 1
+
+        self.current_frame = frame
+        self._queue_frame_for_all_subscribers(frame)
+
+    def send_frame(self, frame: FrameData):
+        """
+        Queue a frame for publishing.
+        """
+        if self.current_frame is None:
+            self.send_clear()
+
+        prev_frame = self.current_frame or FrameData()
+
+        frame.server_timestamp = time.monotonic()
+        frame.frame_index = self.next_frame_index
+        self.next_frame_index += 1
+
+        next_frame = FrameData()
+        next_frame.update(prev_frame)
+        next_frame.update(frame)
+
+        self.current_frame = next_frame
+        self._queue_frame_for_all_subscribers(frame)
+
+    def subscribe_latest_frames(
+        self, *, frame_interval=1 / 30, cancellation: CancellationToken
+    ):
         """
         Yield the most recent frame, if changed, at a regular interval. Terminates when cancellation token is
-        cancelled.
+        cancelled or this FramePublisher is closed.
         """
-
         if cancellation.is_cancelled:
             return
 
-        with self._last_frame_lock:
-            initial_frame = self.last_frame
-
         with self._get_queue() as queue:
-            if initial_frame is not None:
-                yield initial_frame
-
             cancellation.subscribe_cancellation(lambda: queue.close())
-            cancellation.subscribe_cancellation(lambda: print("CANCELLED"))
 
-            for dt in yield_interval(frame_interval):
+            for _ in yield_interval(frame_interval):
                 item = queue.get(block=True)
-                if cancellation.is_cancelled or item is SENTINEL:
+                if cancellation.is_cancelled or item is None:
                     break
                 yield item
+
+    def _queue_frame_for_all_subscribers(self, frame):
+        with self._frame_queues_lock:
+            for queue in self._frame_queues:
+                queue.put(frame)
 
     @contextmanager
     def _get_queue(self):
         queue = FrameMergingQueue()
 
+        # insert the current aggregate frame if it exists
+        if self.current_frame is not None:
+            queue.put(self.current_frame)
+
         try:
             with self._frame_queues_lock:
                 self._frame_queues.add(queue)
-
             yield queue
         finally:
-            queue.close()
             with self._frame_queues_lock:
                 self._frame_queues.discard(queue)
-
-    def _yield_last_frame_if_any(self):
-        """
-        Yields the last frame as a :class:`GetFrameResponse` object if there is
-        one.
-
-        This method places a lock on :attr:`last_frame` to prevent other threads modifying it as we
-        read them.
-        """
-        with self._last_frame_lock:
-            if self.last_frame is not None:
-                yield self.last_frame
-
-    def send_frame(self, frame_index: int, frame: FrameData):
-        assert isinstance(frame, FrameData), "Frame must be of type FrameData"
-
-        frame.server_timestamp = time.monotonic()
-        frame.frame_index = frame_index
-
-        if frame_index == 0:
-            frame.simulation_counter = self.simulation_counter
-            self.simulation_counter += 1
-
-        with self._last_frame_lock:
-            self.last_frame.update(frame)
-
-        with self._frame_queues_lock:
-            for queue in self._frame_queues:
-                queue.put(frame)
-
-    def close(self):
-        with self._frame_queues_lock:
-            for queue in self._frame_queues:
-                queue.close()
+            queue.close()

@@ -65,10 +65,10 @@ class ServerClientSetup:
         )
 
     def server_publish_frame_reset(self):
-        self.server_publish_frame(frame=FrameData(), frame_index=0)
+        self.app.frame_publisher.send_clear()
 
-    def server_publish_frame(self, frame: FrameData, frame_index: int):
-        self.app.frame_publisher.send_frame(frame=frame, frame_index=frame_index)
+    def server_publish_frame(self, frame: FrameData):
+        self.app.frame_publisher.send_frame(frame)
 
     @property
     def client_current_frame(self):
@@ -76,7 +76,7 @@ class ServerClientSetup:
 
     @property
     def server_current_frame(self):
-        return self.app.frame_publisher.last_frame
+        return self.app.frame_publisher.current_frame
 
     def server_update_state(self, change: DictionaryChange):
         self.app.state_dictionary.update_state(None, change)

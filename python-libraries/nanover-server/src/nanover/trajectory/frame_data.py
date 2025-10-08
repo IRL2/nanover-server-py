@@ -75,10 +75,19 @@ def _shortcut(*, key: str) -> Any:
 
 
 def merge_frame_dicts(a: dict, b: dict, ignore_reset=False):
+    a_reset = a.get(FRAME_INDEX, None) == 0
+    b_reset = b.get(FRAME_INDEX, None) == 0 and not ignore_reset
+
     merged = {}
-    if b.get(FRAME_INDEX, None) != 0 or ignore_reset:
+
+    if not b_reset:
         merged.update(a)
+
     merged.update(b)
+
+    if a_reset or b_reset:
+        merged[FRAME_INDEX] = 0
+
     return merged
 
 
@@ -93,6 +102,14 @@ def replace_shortcuts(cls):
 @replace_shortcuts
 class FrameData:
     _shortcuts: dict[str, _Shortcut]
+
+    @classmethod
+    def empty(cls):
+        return cls()
+
+    @classmethod
+    def from_dict(cls, frame_dict: FrameDict):
+        return cls(frame_dict)
 
     def __init__(self, frame_dict: FrameDict | None = None):
         self.frame_dict = frame_dict or {}

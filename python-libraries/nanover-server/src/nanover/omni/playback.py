@@ -1,3 +1,4 @@
+from contextlib import suppress
 from os import PathLike
 from pathlib import Path
 
@@ -6,8 +7,7 @@ from nanover.recording.reading import (
     RecordingIndexEntry,
     NanoverRecordingReader,
 )
-from nanover.trajectory import FrameData
-from nanover.trajectory.keys import FRAME_INDEX
+from nanover.trajectory import FrameData, MissingDataError
 from nanover.utilities.change_buffers import DictionaryChange
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
@@ -127,8 +127,10 @@ class PlaybackSimulation:
             return
 
         if frame is not None:
-            index = 0 if FRAME_INDEX not in frame else frame.frame_index
-            self.app_server.frame_publisher.send_frame(index, frame)
+            with suppress(MissingDataError):
+                if frame.frame_index == 0:
+                    self.app_server.frame_publisher.send_clear()
+            self.app_server.frame_publisher.send_frame(frame)
         if update is not None:
             self.app_server.clear_locks()
             self.app_server.update_state(None, update)
