@@ -12,8 +12,6 @@ from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 from nanover.trajectory.convert import pack_dict_frame
 
-from typing import Iterable
-
 
 DEFAULT_NANOVER_PORT = 38801
 
@@ -151,7 +149,7 @@ class WebSocketClientHandler:
         )
 
     def send_message(self, message):
-        self.websocket.send(msgpack.packb(message, default=default))
+        self.websocket.send(msgpack.packb(message, default=to_list))
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
@@ -212,7 +210,7 @@ def get_server_port(server: Server) -> int:
     return server.socket.getsockname()[1]
 
 
-def default(obj: npt.NDArray) -> list:
+def to_list(obj: npt.NDArray) -> list:
     """Converts `obj` to list, if of type `np.array` else raises `TypeError`."""
     if isinstance(obj, np.ndarray):
         return obj.tolist()
