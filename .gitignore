@@ -5,13 +5,6 @@ __pycache__
 .idea
 .DS_Store
 
-# Ignore the compiled files
-python-libraries/nanover-server/src/nanover/protocol
-csharp-libraries/NanoVer.Protocol/obj
-csharp-libraries/NanoVer.Protocol/bin
-csharp-libraries/NanoVer.Protocol.Test/obj
-csharp-libraries/NanoVer.Protocol.Test/bin
-
 # Ignore egg-info files
 *.egg-info/
 
@@ -24,16 +17,5 @@ htmlcov
 
 .hypothesis/
 *.DotSettings.user
-
-csharp-libraries/Essd.Test/bin/
-csharp-libraries/Essd.Test/obj/
-
-csharp-libraries/Essd/bin/
-
-csharp-libraries/Essd/obj/
-
-csharp-libraries/EssdClientCLI/bin/
-
-csharp-libraries/EssdClientCLI/obj/
 
 **/.ipynb_checkpoints/
