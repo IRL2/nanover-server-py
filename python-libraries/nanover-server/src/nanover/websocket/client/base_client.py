@@ -6,7 +6,7 @@ import msgpack
 from nanover.trajectory.convert import unpack_dict_frame
 from websockets.sync.client import connect, ClientConnection
 
-from nanover.state.state_dictionary import StateDictionary
+from nanover.utilities.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory import FrameData
 
