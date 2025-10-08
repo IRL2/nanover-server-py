@@ -286,7 +286,7 @@ class InternalRunner:
         def send_exception_frame(message):
             frame = FrameData()
             frame.simulation_exception = message
-            self.app_server.frame_publisher.send_frame(1, frame)
+            self.app_server.frame_publisher.send_frame(frame)
             self.logger.exception(message)
 
         try:
@@ -322,7 +322,7 @@ class InternalRunner:
             self.logger.exception(
                 f"{type(e)} loading simulation `{self.simulation.name}`"
             )
-            self.app_server.frame_publisher.send_frame(0, FrameData())
+            self.app_server.frame_publisher.send_clear()
             raise
 
     def handle_signals(self):

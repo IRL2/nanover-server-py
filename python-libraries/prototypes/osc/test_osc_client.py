@@ -88,7 +88,7 @@ def test_transmission(frame_osc_converter, simple_frame_data):
         recv_message = message
 
     osc_server.dispatcher.map(test_address, recv_test)
-    app_server.frame_publisher.send_frame(frame=simple_frame_data, frame_index=0)
+    app_server.frame_publisher.send_frame(frame=simple_frame_data)
 
     assert_equal_soon(
         lambda: recv_message,

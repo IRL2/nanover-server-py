@@ -2,8 +2,6 @@
 Unit tests for `nanover.trajectory.frame_publisher
 """
 
-from concurrent.futures import ThreadPoolExecutor
-import itertools
 import pytest
 
 from nanover.trajectory import FramePublisher, FrameData
@@ -12,10 +10,13 @@ from nanover.utilities.cli import CancellationToken
 
 
 def test_send_frame_data():
+    frame = FrameData()
+    frame.particle_count = 3
+
     publisher = FramePublisher()
-    publisher.send_frame(3, FrameData())
-    assert publisher.last_frame.frame_index == 3
-    assert SERVER_TIMESTAMP in publisher.last_frame
+    publisher.send_frame(frame)
+    assert publisher.current_frame.particle_count == 3
+    assert SERVER_TIMESTAMP in publisher.current_frame
 
 
 @pytest.mark.timeout(1)
@@ -50,8 +51,8 @@ def test_cancellation_ends_stream_immediately(count):
         cancellation=cancellation,
     )
 
-    for i in range(count):
-        publisher.send_frame(i, FrameData())
+    for _ in range(count):
+        publisher.send_frame(FrameData())
 
     cancellation.cancel()
 
@@ -74,12 +75,12 @@ def test_cancellation_ends_started_stream():
         cancellation=cancellation,
     )
 
-    for i in range(count):
-        publisher.send_frame(i, FrameData())
+    for _ in range(count):
+        publisher.send_frame(FrameData())
         next(stream)
 
     for _ in range(count):
-        publisher.send_frame(i, FrameData())
+        publisher.send_frame(FrameData())
 
     cancellation.cancel()
 
