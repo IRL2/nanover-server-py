@@ -3,14 +3,16 @@ from ssl import SSLContext
 
 import msgpack
 import numpy as np
+import numpy.typing as npt
 
 from nanover.app.types import AppServer
 from nanover.trajectory import FrameData2
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
-
 from nanover.trajectory.convert import pack_dict_frame
+
+from typing import Iterable
 
 
 DEFAULT_NANOVER_PORT = 38801
@@ -206,11 +208,12 @@ class WebSocketClientHandler:
         threads.shutdown(wait=True)
 
 
-def get_server_port(server: Server):
+def get_server_port(server: Server) -> int:
     return server.socket.getsockname()[1]
 
 
-def default(obj):
+def default(obj: npt.NDArray) -> list:
+    """Converts `obj` to list, if of type `np.array` else raises `TypeError`."""
     if isinstance(obj, np.ndarray):
         return obj.tolist()
     raise TypeError(f"Unknown type: {obj}")
