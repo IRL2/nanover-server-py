@@ -13,21 +13,29 @@ from websockets.sync.server import serve, ServerConnection, Server
 from nanover.trajectory.convert import pack_dict_frame
 
 
+DEFAULT_NANOVER_PORT = 38801
+
+
 class WebSocketServer:
     @classmethod
     def basic_server(
         cls,
         app_server: AppServer,
         *,
+        port: int = 0,
         ssl: SSLContext | None = None,
-        insecure=True,
+        insecure: bool = True,
     ):
         server = cls(app_server)
 
+        # TODO handle requesting the same port + proper reporting to user of the given port
+        # maybe use logging or at the least have some reporter property
+        # TODO consider only allowing non-priveldged ports? > 1023 + max (65535)
         if insecure:
-            server.serve_insecure()
+            server.create_ws_server(port=port)
         if ssl is not None:
-            server.serve_secure(ssl=ssl)
+            port = port + 1 if port != 0 else 0 # Attempt to use next consecutive port if available.
+            server.create_ws_server(port=port, ssl=ssl)
 
         return server
 
@@ -40,29 +48,45 @@ class WebSocketServer:
         self._ws_server: Server | None = None
         self._wss_server: Server | None = None
 
-    def serve_insecure(self):
-        if self._ws_server is None:
-            self._ws_server = serve(self._handle_client, "0.0.0.0", 0)
-            self._threads.submit(self._ws_server.serve_forever)
-            self.app_server.add_service("ws", self.ws_port)
+    def create_ws_server(self, *, port: int = 0, ssl: SSLContext | None = None) -> int:
+        """
+        Creates WebSocket and attaches to the current object. 
+        Will attempt to create a Websocket at the desired `port`, using a random number
+        if it is already in use. If an SSLContext `ssl` is provided, a SSL wrapped socket
+        is created instead.
 
-    def serve_secure(self, *, ssl: SSLContext):
-        if self._wss_server is None:
-            self._wss_server = serve(self._handle_client, "0.0.0.0", 0, ssl=ssl)
-            self._threads.submit(self._wss_server.serve_forever)
-            self.app_server.add_service("wss", self.wss_port)
+        # TODO params        
+        :return: Port number for the new WebSocket server.
+        """
+        if ssl is None:
+            type_, target = "ws", "_ws_server"
+        else:
+            type_, target = "wss", "_wss_server"
+
+        if self.__getattribute__(target) is None:
+            try:
+                self.__setattr__(target, serve(self._handle_client, "0.0.0.0", port, ssl=ssl))
+            except OSError as e:
+                # OSError 98 indicates the port is already in use, So instead get a random available one.
+                if e.errno != 98:
+                    raise
+                self.__setattr__(target, serve(self._handle_client, "0.0.0.0", 0, ssl=ssl))
+            self._threads.submit(self.__getattribute__(target).serve_forever)
+            self.app_server.add_service(type_, self.__getattribute__(type_ + "_port"))
+
+        return get_server_port(self.__getattribute__(target))
 
     @property
-    def ws_port(self):
+    def ws_port(self) -> int | None:
         return get_server_port(self._ws_server) if self._ws_server is not None else None
 
     @property
-    def wss_port(self):
+    def wss_port(self) -> int | None:
         return (
             get_server_port(self._wss_server) if self._wss_server is not None else None
         )
 
-    def close(self):
+    def close(self) -> None:
         self._cancellation.cancel()
 
         if self._wss_server is not None:
@@ -72,13 +96,13 @@ class WebSocketServer:
 
         self._threads.shutdown()
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.close()
 
-    def _handle_client(self, websocket: ServerConnection):
+    def _handle_client(self, websocket: ServerConnection) -> None:
         WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
 
