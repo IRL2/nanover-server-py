@@ -11,8 +11,8 @@ from typing import Any
 from nanover.app.app_server import NanoverApplicationServer
 from nanover.essd import DiscoveryServer
 from nanover.imd import ImdStateWrapper
-from .multiuser import add_multiuser_commands
-from ..websocket.server import DEFAULT_NANOVER_PORT
+from nanover.app.multiuser import add_multiuser_commands
+from nanover.websocket.server import DEFAULT_NANOVER_PORT
 
 
 class NanoverImdApplication(NanoverApplicationServer):
