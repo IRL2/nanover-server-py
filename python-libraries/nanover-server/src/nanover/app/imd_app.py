@@ -73,7 +73,7 @@ class NanoverImdApplication(NanoverApplicationServer):
         Returns first available Websocket port. 
         Insecure port will be returned if it exists else reports same as `secure_port`.
         """
-        return self._server_ws.ws_port if self._server_ws is not None else self._server_ws.wss_port
+        return self._server_ws.ws_port if self._server_ws is not None else self.secure_port
 
     @property
     def secure_port(self) -> int | None:

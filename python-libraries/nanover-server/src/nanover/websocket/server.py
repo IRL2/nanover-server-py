@@ -96,7 +96,7 @@ class WebSocketServer:
 
         self._threads.shutdown()
 
-    def __enter__(self) -> None:
+    def __enter__(self) -> "WebSocketServer":
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -149,7 +149,7 @@ class WebSocketClientHandler:
         )
 
     def send_message(self, message):
-        self.websocket.send(msgpack.packb(message, default=to_list))
+        self.websocket.send(msgpack.packb(message, default=to_list))  # type: ignore
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
