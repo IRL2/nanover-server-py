@@ -34,7 +34,9 @@ class WebSocketServer:
         if insecure:
             server.create_ws_server(port=port)
         if ssl is not None:
-            port = port + 1 if port != 0 else 0 # Attempt to use next consecutive port if available.
+            port = (
+                port + 1 if port != 0 else 0
+            )  # Attempt to use next consecutive port if available.
             server.create_ws_server(port=port, ssl=ssl)
 
         return server
@@ -50,12 +52,12 @@ class WebSocketServer:
 
     def create_ws_server(self, *, port: int = 0, ssl: SSLContext | None = None) -> int:
         """
-        Creates WebSocket and attaches to the current object. 
+        Creates WebSocket and attaches to the current object.
         Will attempt to create a Websocket at the desired `port`, using a random number
         if it is already in use. If an SSLContext `ssl` is provided, a SSL wrapped socket
         is created instead.
 
-        # TODO params        
+        # TODO params
         :return: Port number for the new WebSocket server.
         """
         if ssl is None:
@@ -65,12 +67,16 @@ class WebSocketServer:
 
         if self.__getattribute__(target) is None:
             try:
-                self.__setattr__(target, serve(self._handle_client, "0.0.0.0", port, ssl=ssl))
+                self.__setattr__(
+                    target, serve(self._handle_client, "0.0.0.0", port, ssl=ssl)
+                )
             except OSError as e:
                 # OSError 98 indicates the port is already in use, So instead get a random available one.
                 if e.errno != 98:
                     raise
-                self.__setattr__(target, serve(self._handle_client, "0.0.0.0", 0, ssl=ssl))
+                self.__setattr__(
+                    target, serve(self._handle_client, "0.0.0.0", 0, ssl=ssl)
+                )
             self._threads.submit(self.__getattribute__(target).serve_forever)
             self.app_server.add_service(type_, self.__getattribute__(type_ + "_port"))
 

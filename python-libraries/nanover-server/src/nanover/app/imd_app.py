@@ -70,10 +70,12 @@ class NanoverImdApplication(NanoverApplicationServer):
     @property
     def port(self) -> int | None:
         """
-        Returns first available Websocket port. 
+        Returns first available Websocket port.
         Insecure port will be returned if it exists else reports same as `secure_port`.
         """
-        return self._server_ws.ws_port if self._server_ws is not None else self.secure_port
+        return (
+            self._server_ws.ws_port if self._server_ws is not None else self.secure_port
+        )
 
     @property
     def secure_port(self) -> int | None:
@@ -85,10 +87,14 @@ class NanoverImdApplication(NanoverApplicationServer):
             self._server_ws.close()
         super().close()
 
-    def serve_websocket(self, *, insecure=True, ssl: SSLContext | None = None, port: int = 0):
+    def serve_websocket(
+        self, *, insecure=True, ssl: SSLContext | None = None, port: int = 0
+    ):
         from nanover.websocket.server import WebSocketServer
 
-        self._server_ws = WebSocketServer.basic_server(self, insecure=insecure, ssl=ssl, port=port)
+        self._server_ws = WebSocketServer.basic_server(
+            self, insecure=insecure, ssl=ssl, port=port
+        )
         return self._server_ws
 
     @property
