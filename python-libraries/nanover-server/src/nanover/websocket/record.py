@@ -31,7 +31,7 @@ def record_from_server(address, out_path):
     """
     Connect to the given address and record trajectory frames and state updates to a file
 
-    :param address: String protocol://host:port of server to connect to
+    :param address: Address (protocol://host:port) of server to connect to
     :param out_path: File to write recording to
     """
 

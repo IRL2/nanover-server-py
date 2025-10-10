@@ -46,8 +46,9 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
 
     parser.add_argument(
         "--address",
-        metavar="ADDRESS:PORT",
+        metavar="PROTOCOL://HOST:PORT",
         help="Connect to specific host address and port.",
+        default=f"ws://localhost:38801",
     )
 
     parser.add_argument(
@@ -66,11 +67,9 @@ def main():
     """
 
     arguments = handle_user_arguments()
-    address = "localhost:80"
+    address = arguments.address
 
-    if arguments.address is not None:
-        address = arguments.address
-    elif arguments.autoconnect is not None:
+    if arguments.autoconnect is not None:
         print(f"Using server discovery to find '{arguments.autoconnect}'")
         with DiscoveryClient() as discovery_client:
             for hub in discovery_client.search_for_services():
