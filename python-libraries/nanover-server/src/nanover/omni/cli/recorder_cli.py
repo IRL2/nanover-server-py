@@ -48,7 +48,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         "--address",
         metavar="PROTOCOL://HOST:PORT",
         help="Connect to specific host address and port.",
-        default=f"ws://localhost:38801",
+        default="ws://localhost:38801",
     )
 
     parser.add_argument(
