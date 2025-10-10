@@ -12,6 +12,10 @@ from nanover.websocket.client.base_client import WebsocketClient
 
 
 class InteractionClient(WebsocketClient):
+    """
+    Mixin of methods for managing iMD interactions with a WebSocketClient.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._local_interaction_ids = set()

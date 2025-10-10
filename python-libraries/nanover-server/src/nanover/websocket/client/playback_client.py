@@ -11,6 +11,10 @@ from nanover.websocket.client.base_client import WebsocketClient
 
 
 class PlaybackClient(WebsocketClient):
+    """
+    Mixin of methods for running playback commands with a WebSocketClient.
+    """
+
     def run_play(self):
         """
         Sends a request to start playing the trajectory to the trajectory service.

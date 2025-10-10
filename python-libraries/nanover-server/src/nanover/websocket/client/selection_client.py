@@ -8,6 +8,10 @@ from nanover.websocket.client.base_client import WebsocketClient
 
 
 class SelectionClient(WebsocketClient):
+    """
+    Mixin of methods for selection manipulation with a WebSocketClient.
+    """
+
     _next_selection_id = 0
 
     def __init__(self, *args, **kwargs):
