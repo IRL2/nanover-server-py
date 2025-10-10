@@ -22,7 +22,7 @@ class WebSocketServer:
         *,
         ssl: SSLContext | None = None,
         insecure=True,
-    ):
+    ) -> "WebSocketServer":
         """
         Create a server for the given AppServer, listening for connection over one or both of insecure (ws) and
         secure (wss) websockets.
@@ -45,7 +45,7 @@ class WebSocketServer:
         self._ws_server: Server | None = None
         self._wss_server: Server | None = None
 
-    def close(self):
+    def close(self) -> None:
         """
         Close all open connections, subscriptions, and stop listening for new connections.
         """
@@ -58,7 +58,7 @@ class WebSocketServer:
 
         self._threads.shutdown()
 
-    def serve_insecure(self, *, host="0.0.0.0", port=0):
+    def serve_insecure(self, *, host="0.0.0.0", port=0) -> Server:
         """
         Listen for insecure websocket (ws) connections on the given host and port.
         """
@@ -66,8 +66,9 @@ class WebSocketServer:
             self._ws_server = serve(self._handle_client, host, port)
             self._threads.submit(self._ws_server.serve_forever)
             self.app_server.add_service("ws", _get_server_port(self._ws_server))
+        return self._ws_server
 
-    def serve_secure(self, *, host="0.0.0.0", port=0, ssl: SSLContext):
+    def serve_secure(self, *, host="0.0.0.0", port=0, ssl: SSLContext) -> Server:
         """
         Listen for secure websocket (wss) connections on the given host and port using the given SSL context.
         """
@@ -75,8 +76,9 @@ class WebSocketServer:
             self._wss_server = serve(self._handle_client, host, port, ssl=ssl)
             self._threads.submit(self._wss_server.serve_forever)
             self.app_server.add_service("wss", _get_server_port(self._wss_server))
+        return self._wss_server
 
-    def _handle_client(self, websocket: ServerConnection):
+    def _handle_client(self, websocket: ServerConnection) -> None:
         _WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
     def __enter__(self) -> Self:
