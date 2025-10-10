@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
+from typing import Any, Self
 
 import msgpack
 import numpy as np
@@ -22,6 +23,10 @@ class WebSocketServer:
         ssl: SSLContext | None = None,
         insecure=True,
     ):
+        """
+        Create a server for the given AppServer, listening for connection over one or both of insecure (ws) and
+        secure (wss) websockets.
+        """
         server = cls(app_server)
 
         if insecure:
@@ -40,26 +45,34 @@ class WebSocketServer:
         self._ws_server: Server | None = None
         self._wss_server: Server | None = None
 
-    def serve_insecure(self):
+    def serve_insecure(self, *, host="0.0.0.0", port=0):
+        """
+        Listen for insecure websocket (ws) connections on the given host and port.
+        """
         if self._ws_server is None:
-            self._ws_server = serve(self._handle_client, "0.0.0.0", 0)
+            self._ws_server = serve(self._handle_client, host, port)
             self._threads.submit(self._ws_server.serve_forever)
-            self.app_server.add_service("ws", self.ws_port)
+            self.app_server.add_service("ws", _get_server_port(self._ws_server))
 
-    def serve_secure(self, *, ssl: SSLContext):
+    def serve_secure(self, *, host="0.0.0.0", port=0, ssl: SSLContext):
+        """
+        Listen for secure websocket (wss) connections on the given host and port using the given SSL context.
+        """
         if self._wss_server is None:
-            self._wss_server = serve(self._handle_client, "0.0.0.0", 0, ssl=ssl)
+            self._wss_server = serve(self._handle_client, host, port, ssl=ssl)
             self._threads.submit(self._wss_server.serve_forever)
-            self.app_server.add_service("wss", self.wss_port)
+            self.app_server.add_service("wss", _get_server_port(self._wss_server))
 
     @property
     def ws_port(self):
-        return get_server_port(self._ws_server) if self._ws_server is not None else None
+        return (
+            _get_server_port(self._ws_server) if self._ws_server is not None else None
+        )
 
     @property
     def wss_port(self):
         return (
-            get_server_port(self._wss_server) if self._wss_server is not None else None
+            _get_server_port(self._wss_server) if self._wss_server is not None else None
         )
 
     def close(self):
@@ -72,17 +85,22 @@ class WebSocketServer:
 
         self._threads.shutdown()
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
     def _handle_client(self, websocket: ServerConnection):
-        WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
+        _WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
 
-class WebSocketClientHandler:
+class _WebSocketClientHandler:
+    """
+    Handles the connection of a single client to the server, subscribing to the server's app server and passing on
+    state and frame updates, as well as handling incoming state updates and command requests.
+    """
+
     def __init__(
         self,
         app_server: AppServer,
@@ -125,7 +143,7 @@ class WebSocketClientHandler:
         )
 
     def send_message(self, message):
-        self.websocket.send(msgpack.packb(message, default=default))
+        self.websocket.send(msgpack.packb(message, default=_fallback_encoder))
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
@@ -182,11 +200,21 @@ class WebSocketClientHandler:
         threads.shutdown(wait=True)
 
 
-def get_server_port(server: Server):
+def _get_server_port(server: Server) -> int:
+    """
+    Returns the concrete port used by a given websocket server.
+    """
     return server.socket.getsockname()[1]
 
 
-def default(obj):
+def _fallback_encoder(obj: Any) -> Any:
+    """
+    Converts, if possible, a type msgpack doesn't understand into a basic type it can encode.
+
+    :param obj: object to be converted
+    :return: simplified object
+    """
+    # encode numpy arrays as simple lists
     if isinstance(obj, np.ndarray):
         return obj.tolist()
     raise TypeError(f"Unknown type: {obj}")
