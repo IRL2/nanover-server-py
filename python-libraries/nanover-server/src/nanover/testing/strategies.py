@@ -1,3 +1,7 @@
+"""
+Hypothesis strategies to generate common NanoVer data during testing.
+"""
+
 import numpy as np
 from hypothesis import strategies as st
 from nanover.trajectory import FrameData

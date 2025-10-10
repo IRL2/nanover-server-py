@@ -16,6 +16,10 @@ DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
 
 
 class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
+    """
+    Mixin of methods for selection manipulation with a WebSocketClient.
+    """
+
     @classmethod
     def from_runner(cls, runner: Any):
         return cls.from_app_server(runner.app_server)

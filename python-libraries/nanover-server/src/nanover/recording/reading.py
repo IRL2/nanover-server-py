@@ -129,9 +129,6 @@ class MessageZipReader:
     def close(self):
         self.zipfile.close()
 
-    def get_message_at_index(self, index):
-        return self.get_message_from_entry(self.index[index])
-
     def get_message_from_entry(self, entry: RecordingIndexEntry) -> dict[str, Any]:
         return msgpack.unpackb(entry.read_from(self.messagesfile))
 
