@@ -36,9 +36,7 @@ def make_websocket_server():
 
 @contextmanager
 def connect_client_to_server(websocket_server: WebSocketServer):
-    with NanoverImdClient.from_url(
-        f"ws://localhost:{websocket_server.ws_port}"
-    ) as client:
+    with NanoverImdClient.from_app_server(websocket_server.app_server) as client:
         yield client
 
 

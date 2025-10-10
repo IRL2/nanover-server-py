@@ -45,6 +45,19 @@ class WebSocketServer:
         self._ws_server: Server | None = None
         self._wss_server: Server | None = None
 
+    def close(self):
+        """
+        Close all open connections, subscriptions, and stop listening for new connections.
+        """
+        self._cancellation.cancel()
+
+        if self._wss_server is not None:
+            self._wss_server.shutdown()
+        if self._ws_server is not None:
+            self._ws_server.shutdown()
+
+        self._threads.shutdown()
+
     def serve_insecure(self, *, host="0.0.0.0", port=0):
         """
         Listen for insecure websocket (ws) connections on the given host and port.
@@ -63,36 +76,14 @@ class WebSocketServer:
             self._threads.submit(self._wss_server.serve_forever)
             self.app_server.add_service("wss", _get_server_port(self._wss_server))
 
-    @property
-    def ws_port(self):
-        return (
-            _get_server_port(self._ws_server) if self._ws_server is not None else None
-        )
-
-    @property
-    def wss_port(self):
-        return (
-            _get_server_port(self._wss_server) if self._wss_server is not None else None
-        )
-
-    def close(self):
-        self._cancellation.cancel()
-
-        if self._wss_server is not None:
-            self._wss_server.shutdown()
-        if self._ws_server is not None:
-            self._ws_server.shutdown()
-
-        self._threads.shutdown()
+    def _handle_client(self, websocket: ServerConnection):
+        _WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
     def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
-
-    def _handle_client(self, websocket: ServerConnection):
-        _WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
 
 class _WebSocketClientHandler:
