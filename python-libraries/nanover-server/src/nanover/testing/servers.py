@@ -42,6 +42,10 @@ def connect_client_to_server(websocket_server: WebSocketServer):
 
 @dataclass(kw_only=True)
 class ServerClientSetup:
+    """
+    Utility methods for working with a connected client/server pair.
+    """
+
     app: AppServer
     server: WebSocketServer
     client: NanoverImdClient
