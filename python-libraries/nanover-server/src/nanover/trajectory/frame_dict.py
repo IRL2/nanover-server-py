@@ -1,6 +1,6 @@
 from typing import Any
 
-from nanover.trajectory.packing import (
+from nanover.utilities.packing import (
     PackingPair,
     pack_identity,
     pack_vec3,
@@ -27,6 +27,7 @@ FRAME_PACKERS: dict[str, PackingPair] = {
     keys.USER_FORCES_INDEX: pack_uint32,
     keys.USER_FORCES_SPARSE: pack_vec3,
 }
+"""Mapping of framedata keys to the packer used to pack/unpack between rich data and data ready for MessagePack"""
 
 
 def merge_frame_dicts(a: FrameDict, b: FrameDict):
