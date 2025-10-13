@@ -57,56 +57,6 @@ class FrameData:
     Wrapper around a frame dict, providing shortcut for common fields and convenience methods.
     """
 
-    _shortcuts: dict[str, _Shortcut]
-
-    @classmethod
-    def empty(cls):
-        return cls()
-
-    @classmethod
-    def from_dict(cls, frame_dict: FrameDict):
-        """
-        Return a new FrameData from a dict of unpacked data.
-        """
-        return cls(frame_dict)
-
-    @classmethod
-    def unpack_from_dict(cls, frame_dict: FrameDict):
-        """
-        Return a new FrameData from a dict of packed data.
-        """
-        return cls.from_dict(frame_dict_packer.unpack(frame_dict))
-
-    def pack_to_dict(self):
-        """
-        Return a dict of packed data from this frame.
-        """
-        return frame_dict_packer.pack(self.frame_dict)
-
-    def __init__(self, frame_dict: FrameDict | None = None):
-        self.frame_dict = frame_dict or {}
-
-    def __bool__(self):
-        return bool(self.frame_dict)
-
-    def __contains__(self, key: str):
-        return key in self.frame_dict
-
-    def __getitem__(self, key: str):
-        return self.frame_dict[key]
-
-    def __setitem__(self, key: str, value: Any):
-        self.frame_dict[key] = value
-
-    def __delitem__(self, key: str):
-        del self.frame_dict[key]
-
-    def copy(self):
-        return FrameData(self.frame_dict.copy())
-
-    def update(self, other: "FrameData"):
-        self.frame_dict = merge_frame_dicts(self.frame_dict, other.frame_dict)
-
     frame_index: int = _shortcut(keys.FRAME_INDEX)
 
     box_vectors: FloatArray = _shortcut(keys.BOX_VECTORS)
@@ -145,3 +95,58 @@ class FrameData:
     simulation_exception: float = _shortcut(keys.SIMULATION_EXCEPTION)
 
     server_timestamp: float = _shortcut(keys.SERVER_TIMESTAMP)
+
+    @classmethod
+    def empty(cls):
+        return cls()
+
+    @classmethod
+    def from_dict(cls, frame_dict: FrameDict):
+        """
+        Return a new FrameData from a dict of unpacked data.
+        """
+        return cls(frame_dict)
+
+    @classmethod
+    def unpack_from_dict(cls, frame_dict: FrameDict):
+        """
+        Return a new FrameData from a dict of packed data.
+        """
+        return cls.from_dict(frame_dict_packer.unpack(frame_dict))
+
+    def pack_to_dict(self):
+        """
+        Return a dict of packed data from this frame.
+        """
+        return frame_dict_packer.pack(self.frame_dict)
+
+    def copy(self):
+        """
+        Return a shallow copy this FrameData; an independent container of uncloned data.
+        """
+        return FrameData(self.frame_dict.copy())
+
+    def update(self, other: "FrameData"):
+        """
+        Update this FrameData with another containing newer values. Ignores the previous data when frame index equals 0
+        (indicating frame reset).
+        """
+        self.frame_dict = merge_frame_dicts(self.frame_dict, other.frame_dict)
+
+    def __init__(self, frame_dict: FrameDict | None = None):
+        self.frame_dict = frame_dict or {}
+
+    def __bool__(self):
+        return bool(self.frame_dict)
+
+    def __contains__(self, key: str):
+        return key in self.frame_dict
+
+    def __getitem__(self, key: str):
+        return self.frame_dict[key]
+
+    def __setitem__(self, key: str, value: Any):
+        self.frame_dict[key] = value
+
+    def __delitem__(self, key: str):
+        del self.frame_dict[key]
