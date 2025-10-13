@@ -6,7 +6,7 @@ import numpy as np
 from hypothesis import strategies as st
 from nanover.trajectory import FrameData
 import nanover.trajectory.keys as keys
-from nanover.trajectory.convert import converters, pack_dict_frame
+from nanover.trajectory.convert import converters, frame_dict_packer
 
 
 def uint8s():
@@ -68,7 +68,7 @@ def frames(draw):
 @st.composite
 def packed_frame_dicts(draw):
     frame_dict = draw(dict_frames())
-    packed_dict = pack_dict_frame(frame_dict)
+    packed_dict = frame_dict_packer.pack(frame_dict)
     return packed_dict
 
 

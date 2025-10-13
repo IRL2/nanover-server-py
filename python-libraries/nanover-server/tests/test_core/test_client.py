@@ -6,15 +6,7 @@ from nanover.app import NanoverImdApplication
 from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ParticleInteraction
 from nanover.testing import assert_equal_soon, assert_in_soon
-from nanover.trajectory import FrameData
-
-from nanover.trajectory.frame_server import (
-    PLAY_COMMAND_KEY,
-    RESET_COMMAND_KEY,
-    STEP_COMMAND_KEY,
-    PAUSE_COMMAND_KEY,
-)
-from nanover.trajectory.keys import FRAME_INDEX
+from nanover.trajectory import FrameData, keys
 
 from .test_frame_server import simple_frame_data, disjoint_frame_data
 from nanover.websocket import NanoverImdClient
@@ -193,28 +185,28 @@ def test_set_multiplayer_value(client_server):
 
 def test_run_play(client_server, mock_callback):
     client, app_server = client_server
-    app_server.register_command(PLAY_COMMAND_KEY, mock_callback)
+    app_server.register_command(keys.PLAY_COMMAND, mock_callback)
     client.run_play()
     mock_callback.assert_called_once()
 
 
 def test_run_reset(client_server, mock_callback):
     client, app_server = client_server
-    app_server.register_command(RESET_COMMAND_KEY, mock_callback)
+    app_server.register_command(keys.RESET_COMMAND, mock_callback)
     client.run_reset()
     mock_callback.assert_called_once()
 
 
 def test_run_step(client_server, mock_callback):
     client, app_server = client_server
-    app_server.register_command(STEP_COMMAND_KEY, mock_callback)
+    app_server.register_command(keys.STEP_COMMAND, mock_callback)
     client.run_step()
     mock_callback.assert_called_once()
 
 
 def test_run_pause(client_server, mock_callback):
     client, app_server = client_server
-    app_server.register_command(PAUSE_COMMAND_KEY, mock_callback)
+    app_server.register_command(keys.PAUSE_COMMAND, mock_callback)
     client.run_pause()
     mock_callback.assert_called_once()
 
