@@ -20,9 +20,15 @@ class DictionaryChange:
     @classmethod
     def from_dict(cls, dict):
         return cls(
-            dict["updates"],
-            dict["removals"],
+            dict.get("updates", None),
+            dict.get("removals", None),
         )
+
+    def to_dict(self):
+        return {
+            "updates": self.updates,
+            "removals": list(self.removals),
+        }
 
     def __init__(
         self,
