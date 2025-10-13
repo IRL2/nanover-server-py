@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
+import errno
 from typing import Any, Self, Literal
 from types import TracebackType
 
@@ -92,8 +93,8 @@ class WebSocketServer:
                     target, serve(self._handle_client, "0.0.0.0", port, ssl=ssl)
                 )
             except OSError as e:
-                # OSError 98 indicates the port is already in use, so instead get a random available one.
-                if e.errno != 98:
+                # Check OSError relates to the port is already in use otherwise reraise exception.
+                if e.errno != errno.EADDRINUSE:
                     raise
                 self.__setattr__(
                     target, serve(self._handle_client, "0.0.0.0", 0, ssl=ssl)
