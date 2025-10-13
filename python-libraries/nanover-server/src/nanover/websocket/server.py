@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
-from typing import Any, Self
+from typing import Any, Self, Literal
+from types import TracebackType
 
 import msgpack
 import numpy as np
@@ -11,9 +12,6 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 from nanover.trajectory.convert import pack_dict_frame
-
-from types import TracebackType
-from typing import Literal
 
 
 DEFAULT_NANOVER_PORT = 38801
