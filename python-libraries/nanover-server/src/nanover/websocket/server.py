@@ -131,7 +131,7 @@ class WebSocketServer:
     def _handle_client(self, websocket: ServerConnection):
         _WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
-    def __enter__(self) -> "WebSocketServer":
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(
