@@ -1,12 +1,12 @@
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
+from typing import Any, Self
 
 import msgpack
 import numpy as np
-import numpy.typing as npt
 
 from nanover.app.types import AppServer
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
@@ -39,8 +39,12 @@ class WebSocketServer:
         *,
         port: int = 0,
         ssl: SSLContext | None = None,
-        insecure: bool = True,
-    ):
+        insecure=True,
+    ) -> "WebSocketServer":
+        """
+        Create a server for the given AppServer, listening for connection over one or both of insecure (ws) and
+        secure (wss) websockets.
+        """
         server = cls(app_server)
 
         # TODO handle requesting the same port + proper reporting to user of the given port
@@ -98,19 +102,24 @@ class WebSocketServer:
             self._threads.submit(self.__getattribute__(target).serve_forever)
             self.app_server.add_service(type_, self.__getattribute__(type_ + "_port"))
 
-        return get_server_port(self.__getattribute__(target))
+        return _get_server_port(self.__getattribute__(target))
 
     @property
     def ws_port(self) -> int | None:
-        return get_server_port(self._ws_server) if self._ws_server is not None else None
+        return (
+            _get_server_port(self._ws_server) if self._ws_server is not None else None
+        )
 
     @property
     def wss_port(self) -> int | None:
         return (
-            get_server_port(self._wss_server) if self._wss_server is not None else None
+            _get_server_port(self._wss_server) if self._wss_server is not None else None
         )
 
     def close(self) -> None:
+        """
+        Close all open connections, subscriptions, and stop listening for new connections.
+        """
         self._cancellation.cancel()
 
         if self._wss_server is not None:
@@ -119,6 +128,9 @@ class WebSocketServer:
             self._ws_server.shutdown()
 
         self._threads.shutdown()
+
+    def _handle_client(self, websocket: ServerConnection):
+        _WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
     def __enter__(self) -> "WebSocketServer":
         return self
@@ -132,11 +144,13 @@ class WebSocketServer:
         self.close()
         return False  # No attempt is made to handle exceptions so leave responsibility to caller.
 
-    def _handle_client(self, websocket: ServerConnection) -> None:
-        WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
+class _WebSocketClientHandler:
+    """
+    Handles the connection of a single client to the server, subscribing to the server's app server and passing on
+    state and frame updates, as well as handling incoming state updates and command requests.
+    """
 
-class WebSocketClientHandler:
     def __init__(
         self,
         app_server: AppServer,
@@ -165,7 +179,7 @@ class WebSocketClientHandler:
         results = self.app_server.run_command(name, arguments or {})
         return results
 
-    def send_frame(self, frame: FrameData2):
+    def send_frame(self, frame: FrameData):
         self.send_message({"frame": pack_dict_frame(frame.frame_dict)})
 
     def send_state_update(self, change: DictionaryChange):
@@ -179,7 +193,7 @@ class WebSocketClientHandler:
         )
 
     def send_message(self, message):
-        self.websocket.send(msgpack.packb(message, default=to_list))  # type: ignore
+        self.websocket.send(msgpack.packb(message, default=_fallback_encoder))
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
@@ -236,12 +250,21 @@ class WebSocketClientHandler:
         threads.shutdown(wait=True)
 
 
-def get_server_port(server: Server) -> int:
+def _get_server_port(server: Server) -> int:
+    """
+    Returns the concrete port used by a given websocket server.
+    """
     return server.socket.getsockname()[1]
 
 
-def to_list(obj: npt.NDArray) -> list:
-    """Converts `obj` to `list`, if of type `np.array` else raises `TypeError`."""
+def _fallback_encoder(obj: Any) -> Any:
+    """
+    Converts, if possible, a type msgpack doesn't understand into a basic type it can encode.
+
+    :param obj: object to be converted
+    :return: simplified object
+    """
+    # encode numpy arrays as simple lists
     if isinstance(obj, np.ndarray):
         return obj.tolist()
     raise TypeError(f"Unknown type: {obj}")

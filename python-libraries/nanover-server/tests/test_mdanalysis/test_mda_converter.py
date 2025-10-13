@@ -12,8 +12,8 @@ from nanover.mdanalysis.converter import (
     add_mda_topology_to_frame_data,
     _get_mda_attribute,
 )
-from nanover.trajectory.frame_data import PARTICLE_ELEMENTS, MissingDataError
-from nanover.trajectory import FrameData2
+from nanover.trajectory.keys import PARTICLE_ELEMENTS
+from nanover.trajectory import FrameData, MissingDataError
 
 TEST_SYSTEM_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -176,7 +176,7 @@ def test_framedata_to_mda_missing_data(frame_data_and_universe):
     with the resulting structure conforming to expectations.
     """
     frame, universe = frame_data_and_universe
-    new_frame = FrameData2()
+    new_frame = FrameData()
     new_frame.particle_count = frame.particle_count
     new_frame.particle_positions = frame.particle_positions
 
@@ -189,6 +189,6 @@ def test_framedata_to_mda_missing_data(frame_data_and_universe):
 
 
 def test_multiletter_element_symbols(metal_universe):
-    frame = FrameData2()
+    frame = FrameData()
     add_mda_topology_to_frame_data(metal_universe, frame)
     assert frame.particle_elements == [11, 17, 26]

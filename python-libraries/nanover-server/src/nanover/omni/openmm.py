@@ -87,7 +87,6 @@ class OpenMMSimulation:
         self.checkpoint: Any | None = None
         self.verbose_reporter: StateDataReporter | None = None
 
-        self.frame_index = 0
         self.imd_force_manager: ImdForceManager | None = None
 
         self.work_done: float = 0.0
@@ -143,8 +142,8 @@ class OpenMMSimulation:
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
-        self.app_server.frame_publisher.send_frame(0, frame_data)
-        self.frame_index = 1
+        self.app_server.frame_publisher.send_clear()
+        self.app_server.frame_publisher.send_frame(frame_data)
 
         # verbose reporter
         if (
@@ -237,8 +236,7 @@ class OpenMMSimulation:
             )
 
         # send the next frame
-        self.app_server.frame_publisher.send_frame(self.frame_index, frame_data)
-        self.frame_index += 1
+        self.app_server.frame_publisher.send_frame(frame_data)
 
         # Update previous step forces (saving them in their sparse form)
         self._prev_imd_forces = frame_data.user_forces_sparse

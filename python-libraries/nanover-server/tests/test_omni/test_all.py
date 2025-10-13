@@ -8,11 +8,7 @@ from nanover.imd import ParticleInteraction
 from nanover.omni.omni import CLEAR_PREFIXES
 from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
 from nanover.testing.asserts import assert_true_soon
-from nanover.trajectory.frame_data import (
-    SIMULATION_EXCEPTION,
-    FRAME_INDEX,
-    SERVER_TIMESTAMP,
-)
+from nanover.trajectory.keys import SIMULATION_EXCEPTION, SERVER_TIMESTAMP
 from nanover.utilities.change_buffers import DictionaryChange
 from test_openmm import make_example_openmm
 from test_ase import make_example_ase
@@ -170,8 +166,6 @@ def test_first_frame_topology(sim_factory):
         with make_connected_client_from_runner(runner) as client:
             runner.load(0)
             first_frame = client.wait_until_first_frame()
-
-            print(first_frame.frame_dict)
 
             # Currently the initial frame is the only frame containing the element
             # information, so this is equivalent to testing the frame in which the

@@ -16,12 +16,10 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install nanover dependancies
-        run: conda install -y openmm
-      - name: Install tests dependancies
-        run: python -m pip install -r python-libraries/requirements.test
-      - name: Compile
-        run: ./compile.sh --no-dotnet
+      - name: Install NanoVer & dependencies
+        run: |
+          conda install -y openmm
+          python -m pip install ./python-libraries/nanover-server/[dev]
       - name: Parallel tests
         run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial'
       - name: Serial tests
@@ -42,12 +40,11 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install nanover dependancies
-        run: conda install -y openmm
-      - name: Install tests dependancies
-        run: python -m pip install -r python-libraries/requirements.test
-      - name: Compile (mypy requires --no-edit)
-        run: ./compile.sh --no-dotnet --no-edit
+      - name: Install NanoVer & dependencies
+        run: |
+          conda install -y openmm
+          python -m pip install ./python-libraries/nanover-server/
+          python -m pip install mypy
       - name: mypy
         run: |
           # Mypy accepts paths, modules or packages as inputs. However, only
@@ -79,12 +76,11 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install nanover dependancies
-        run: conda install -y openmm
-      - name: Install ruff
-        run: python -m pip install ruff black
-      - name: Compile
-        run: ./compile.sh --no-dotnet
+      - name: Install NanoVer & dependencies
+        run: |
+          conda install -y openmm
+          python -m pip install ./python-libraries/nanover-server/
+          python -m pip install ruff black
       - name: Ruff
         run: ruff check ./python-libraries
       - name: Black

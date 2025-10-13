@@ -9,7 +9,7 @@ import nglview
 
 from nanover.websocket import NanoverImdClient
 from nanover.mdanalysis import frame_data_to_mdanalysis
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 from nglview import NGLWidget
 
 import MDAnalysis as mda
@@ -159,7 +159,7 @@ def mda_to_pdb_str(universe: mda.Universe):
     return pdb
 
 
-def frame_data_to_pdb(frame: FrameData2) -> str:
+def frame_data_to_pdb(frame: FrameData) -> str:
     """
     Converts a FrameData object to a PDB string, by first reading the frame as
     an MDAnalysis universe and then converting it to a PDB string.

@@ -12,7 +12,7 @@ from openmm.unit import angstrom, kilojoules_per_mole, kilojoule_per_mole, amu, 
 
 from nanover.ase.converter import KJMOL_TO_EV, ase_to_frame_data
 from nanover.openmm.converter import add_openmm_topology_to_frame_data
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 
 class OpenMMCalculator(Calculator):
@@ -121,7 +121,7 @@ class OpenMMCalculator(Calculator):
             *,
             topology: bool,
             **kwargs,
-        ) -> FrameData2:
+        ) -> FrameData:
             frame_data = ase_to_frame_data(
                 ase_atoms,
                 topology=False,

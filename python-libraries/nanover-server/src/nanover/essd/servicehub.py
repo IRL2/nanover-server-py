@@ -158,7 +158,7 @@ class ServiceHub:
         When broadcasting services, it is useful to be able to provide human-readable shortcuts for underlying addresses,
         but clients receiving broadcasting need to know the actual address the service hub is running at.
 
-        A typical use case is when using the '[::]' notation for defining a gRPC service, which means it will
+        A typical use case is when using the '[::]' notation for defining a service, which means it will
         listen on all interfaces. When it comes to broadcasting, the discovery server will broadcast on all interfaces
         with the correct address for that interface.
 

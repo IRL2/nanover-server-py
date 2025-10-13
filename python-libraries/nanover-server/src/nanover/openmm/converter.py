@@ -10,11 +10,11 @@ from openmm.unit import (
     picosecond,
     nanometer,
 )
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 
 def add_openmm_state_to_frame_data(
-    data: FrameData2,
+    data: FrameData,
     state: State,
     include_positions=True,
     include_energies=True,
@@ -70,7 +70,7 @@ def add_openmm_state_to_frame_data(
     data.simulation_time = simulation_time
 
 
-def add_openmm_topology_to_frame_data(data: FrameData2, topology: Topology) -> None:
+def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology) -> None:
     """
     Adds the OpenMM topology information to the given :class:`FrameData`,
     including residue, chain, atomic and bond information.
@@ -116,7 +116,7 @@ def openmm_to_frame_data(
     include_velocities=False,
     include_forces=False,
     state_excludes_imd=False,
-) -> FrameData2:
+) -> FrameData:
     """
     Converts the given OpenMM state and topology objects into a NanoVer :class:`FrameData`.
 
@@ -139,7 +139,7 @@ def openmm_to_frame_data(
     :return: A :class:`FrameData` with the state and topology information
         provided added to it.
     """
-    data = FrameData2()
+    data = FrameData()
     if state is not None:
         add_openmm_state_to_frame_data(
             data,

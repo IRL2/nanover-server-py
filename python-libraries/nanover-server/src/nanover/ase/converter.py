@@ -13,7 +13,7 @@ import numpy as np
 import numpy.typing as npt
 
 from nanover.ase.imd_calculator import ImdCalculator
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM
@@ -59,7 +59,7 @@ def ase_atoms_to_frame_data(
     *,
     topology: bool,
     **kwargs,
-) -> FrameData2:
+) -> FrameData:
     return ase_to_frame_data(ase_atoms, topology=topology, **kwargs)
 
 
@@ -72,7 +72,7 @@ def ase_to_frame_data(
     generate_bonds=True,
     include_velocities=False,
     include_forces=False,
-) -> FrameData2:
+) -> FrameData:
     """
     Constructs a NanoVer frame from the state of the atoms in an ASE simulation.
 
@@ -104,7 +104,7 @@ def ase_to_frame_data(
     [6, 8]
 
     """
-    data = FrameData2()
+    data = FrameData()
     if positions:
         add_ase_positions_to_frame_data(data, ase_atoms.get_positions(wrap=False))
     if topology:
@@ -122,7 +122,7 @@ def ase_to_frame_data(
 
 
 def frame_data_to_ase(
-    frame_data: FrameData2,
+    frame_data: FrameData,
     positions: bool = True,
     topology: bool = True,
     ase_atoms: Atoms | None = None,
@@ -161,7 +161,7 @@ def frame_data_to_ase(
     return ase_atoms
 
 
-def add_frame_data_topology_to_ase(frame_data: FrameData2, atoms: Atoms):
+def add_frame_data_topology_to_ase(frame_data: FrameData, atoms: Atoms):
     """
     Adds frame data topology information to ASE :class:`Atoms`.
 
@@ -186,7 +186,7 @@ def add_frame_data_positions_to_ase(frame_data, ase_atoms):
     ase_atoms.set_positions(np.array(frame_data.particle_positions) * NM_TO_ANG)
 
 
-def add_ase_positions_to_frame_data(data: FrameData2, positions: npt.NDArray):
+def add_ase_positions_to_frame_data(data: FrameData, positions: npt.NDArray):
     """
     Adds ASE positions to the frame data, converting to nanometers.
 
@@ -196,7 +196,7 @@ def add_ase_positions_to_frame_data(data: FrameData2, positions: npt.NDArray):
     data.particle_positions = (positions * ANG_TO_NM).astype(np.float32)
 
 
-def add_ase_velocities_to_frame_data(data: FrameData2, ase_atoms: Atoms):
+def add_ase_velocities_to_frame_data(data: FrameData, ase_atoms: Atoms):
     """
     Adds ASE velocities to the frame data, converting to nanometers per picosecond.
 
@@ -208,7 +208,7 @@ def add_ase_velocities_to_frame_data(data: FrameData2, ase_atoms: Atoms):
     ).astype(np.float32)
 
 
-def add_ase_forces_to_frame_data(data: FrameData2, ase_atoms: Atoms):
+def add_ase_forces_to_frame_data(data: FrameData, ase_atoms: Atoms):
     """
     Adds ASE forces to the frame data, converting to kJ mol-1 per nanometer. If the ASE
     calculator is an ImdCalculator, removes the iMD forces from the ASE forces to deliver
@@ -227,7 +227,7 @@ def add_ase_forces_to_frame_data(data: FrameData2, ase_atoms: Atoms):
         )
 
 
-def add_ase_box_vectors_to_frame_data(data: FrameData2, ase_atoms: Atoms):
+def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     """
     Adds the periodic box vectors from the given ASE :class:`Atoms`
     object to the given :class:`FrameData`.
@@ -239,7 +239,7 @@ def add_ase_box_vectors_to_frame_data(data: FrameData2, ase_atoms: Atoms):
 
 
 def add_ase_topology_to_frame_data(
-    frame_data: FrameData2, ase_atoms: Atoms, generate_bonds=True
+    frame_data: FrameData, ase_atoms: Atoms, generate_bonds=True
 ):
     """
     Generates a topology for the current state of the atoms and adds it to the frame.
@@ -271,7 +271,7 @@ def add_ase_topology_to_frame_data(
         frame_data.bond_pairs = bonds
 
 
-def add_ase_state_to_frame_data(frame_data: FrameData2, ase_atoms: Atoms):
+def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
     Adds simulation state information to the frame,
     consisting of the potential energy and kinetic energy of the

@@ -5,7 +5,7 @@ from nanover.app import NanoverImdApplication
 from nanover.app.types import AppServer
 from nanover.testing import assert_equal_soon
 from nanover.testing.utilities import simplify_numpy
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket import NanoverImdClient
 from nanover.websocket.server import WebSocketServer
@@ -36,14 +36,16 @@ def make_websocket_server():
 
 @contextmanager
 def connect_client_to_server(websocket_server: WebSocketServer):
-    with NanoverImdClient.from_url(
-        f"ws://localhost:{websocket_server.ws_port}"
-    ) as client:
+    with NanoverImdClient.from_app_server(websocket_server.app_server) as client:
         yield client
 
 
 @dataclass(kw_only=True)
 class ServerClientSetup:
+    """
+    Utility methods for working with a connected client/server pair.
+    """
+
     app: AppServer
     server: WebSocketServer
     client: NanoverImdClient
@@ -65,10 +67,10 @@ class ServerClientSetup:
         )
 
     def server_publish_frame_reset(self):
-        self.server_publish_frame(frame=FrameData2(), frame_index=0)
+        self.app.frame_publisher.send_clear()
 
-    def server_publish_frame(self, frame: FrameData2, frame_index: int):
-        self.app.frame_publisher.send_frame(frame=frame, frame_index=frame_index)
+    def server_publish_frame(self, frame: FrameData):
+        self.app.frame_publisher.send_frame(frame)
 
     @property
     def client_current_frame(self):
@@ -76,7 +78,7 @@ class ServerClientSetup:
 
     @property
     def server_current_frame(self):
-        return self.app.frame_publisher.last_frame
+        return self.app.frame_publisher.current_frame
 
     def server_update_state(self, change: DictionaryChange):
         self.app.state_dictionary.update_state(None, change)

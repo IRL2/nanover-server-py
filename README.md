@@ -1,11 +1,11 @@
-# NanoVer Python Server + gRPC Protocol
+# NanoVer Python Server
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-darkblue.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/Docs-latest-blue.svg)](https://irl2.github.io/nanover-docs) 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.08118/status.svg)](https://doi.org/10.21105/joss.08118) 
 [![Build Status](https://github.com/IRL2/nanover-server-py/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/IRL2/nanover-server-py/actions/workflows/tests.yml?query=branch%3Amain)
 
-Repository containing the gRPC protocol and python based implementations
+Repository containing the python based implementations
 of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
 
 This software is designed to be used with **NanoVer VR clients**, 
@@ -52,8 +52,6 @@ Please head to the [Tutorials page](https://irl2.github.io/nanover-docs/tutorial
 
 ### Exploring the code  
 
-The `protocol` folder contains the definitions of the gRPC services.
-
 The `python-libraries` folder contains the library to write NanoVer clients and
 servers in python, as well as the services implemented in python. The
 `python-libraries/prototypes` directory contains examples and (sometimes
@@ -81,7 +79,7 @@ page in our documentation for detailed instructions on installing NanoVer.
 * In the "Anaconda Powershell Prompt":
     * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
+    * Install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
 ### Mac and Linux
 
@@ -90,7 +88,7 @@ page in our documentation for detailed instructions on installing NanoVer.
 * In a terminal, in the repository root:
     * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Compile the protocol and install the NanoVer python libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
+    * Install the NanoVer python libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
 ## Running the tests
 
@@ -161,6 +159,12 @@ trajectory. To serve the frames on port 54321, from the `nanover-server-py` dire
 
 If you are having trouble autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
+## Old recordings
+
+If you try to use the older .traj/.state recordings, you will find NanoVer complaining that they are not zip files.
+In this case you can use the [recording converter](https://github.com/IRL2/nanover-recording-converter) in conjunction
+with NanoVer to convert them to the new format.
+
 ## Citation and external libraries
 
 Any work that uses NanoVer should cite the following publications:
@@ -173,7 +177,6 @@ Any work that uses NanoVer should cite the following publications:
 
 This project has been made possible by the following open source projects. We gratefully thank them for their efforts, and suggest that you use and cite them:
 
-* [gRPC](https://grpc.io/) (Apache v2) - Communication protocol.
 * [ASE](https://wiki.fysik.dtu.dk/ase/) (LGPLv3): Atomic simulation environment used for running simulations ([citation](https://iopscience.iop.org/article/10.1088/1361-648X/aa680e)).
 * [OpenMM](http://openmm.org/) (MIT, LGPLv3): GPU accelerated molecular mechanics library ([citation](https://simtk.org/plugins/publications/index.php/?group_id=161)).
 * [MDAnalysis](https://www.mdanalysis.org/) (GPLv2): Molecular dynamics analysis library ([citations](https://www.mdanalysis.org/pages/citations/)).

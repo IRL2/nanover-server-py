@@ -1,5 +1,5 @@
 """
-Module providing a wrapper class around the protobuf interaction message.
+Module providing a wrapper class around interaction data.
 """
 
 import math
@@ -13,11 +13,8 @@ DEFAULT_FORCE_TYPE = "gaussian"
 
 class ParticleInteraction:
     """
-    A wrapper around the protobuf representation of an interaction.
+    A wrapper around the plain data representation of an interaction.
     Provides easy to use getters and setters.
-
-    For convenience, the getters all copy the underlying data into numpy arrays,
-    rather than the low level containers used by protobuf.
 
     :param interaction_type: The type of interaction being used, default is
         'gaussian' for a Gaussian force.

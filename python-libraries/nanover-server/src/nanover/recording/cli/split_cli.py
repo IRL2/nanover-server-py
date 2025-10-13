@@ -9,44 +9,43 @@ Example when used as a cli:
     nanover-split-recording --help
 
     # split a recording whenever the frame resets
-    nanover-split-recording recording.traj recording.state
+    nanover-split-recording recording.nanover.zip
 
     # split a recording whenever the simulation counter key changes and include a custom key's value in the resulting filenames
-    nanover-split-recording recording.traj recording.state -s system.simulation.counter -n puppeteer.simulation-name
+    nanover-split-recording recording.nanover.zip -s system.simulation.counter -n puppeteer.simulation-name
 
 """
 
 import argparse
 from os import PathLike
 from pathlib import Path
-from typing import Callable, BinaryIO
+from typing import Callable
 
-from nanover.recording.utilities import RecordingEvent, iter_recording_max
-from nanover.recording.writing import write_header, write_entry
-from nanover.state.state_service import dictionary_change_to_state_update
-from nanover.trajectory.frame_data import SIMULATION_COUNTER
-from nanover.utilities.change_buffers import DictionaryChange
-
-from nanover.protocol.trajectory import GetFrameResponse
-from nanover.utilities.protobuf_utilities import struct_to_dict
+from nanover.recording.reading import (
+    RecordingEvent,
+    NanoverRecordingReader,
+    MessageEvent,
+)
+from nanover.recording.writing import NanoverRecordingWriter
+from nanover.trajectory.keys import SIMULATION_COUNTER, FRAME_INDEX
 
 
 def split_on_frame_reset(event: RecordingEvent):
     return (
         event.next_frame_event is not None
-        and event.next_frame_event.message.frame_index == 0
+        and event.next_frame_event.message[FRAME_INDEX] == 0
     )
 
 
 def make_key_change_predicate(key: str):
     def predicate(event: RecordingEvent):
         if event.next_frame_event is not None:
-            return (
-                key in event.next_frame_event.message.frame.values
-                or key in event.next_frame_event.message.frame.arrays
-            )
+            return key in event.next_frame_event.message
         if event.next_state_event is not None:
-            return key in struct_to_dict(event.next_state_event.message.changed_keys)
+            return (
+                key in event.next_state_event.message["updates"]
+                or key in event.next_state_event.message["removals"]
+            )
         return False
 
     return predicate
@@ -90,27 +89,25 @@ def get_value(event: RecordingEvent, key: str):
 
 
 def split_recording(
+    path: PathLike[str],
     *,
-    traj: PathLike[str] | None = None,
-    state: PathLike[str] | None = None,
     split_predicate: Callable[[RecordingEvent], bool] = split_on_frame_reset,
     name_template=name_basic,
 ):
     """
-    :param traj: Path of a NanoVer trajectory recording
-    :param state: Path of a NanoVer state recording
+    :param path: Path of a NanoVer recording
     :param split_predicate: Predicate function that takes information about the next frame and returns True if the
     recording should split at this point.
     :param name_template: Function that generates a filename for each recording.
     """
+    input_path = Path(path)
+
     split_count = 0
     last_event = None
     current_base_timestamp = 0
-    current_traj_out: BinaryIO | None = None
-    current_state_out: BinaryIO | None = None
+    current_writer: NanoverRecordingWriter | None = None
 
-    input_path = Path(traj if traj is not None else state)
-    temp_stem = f"{input_path.stem}--TEMP"
+    temp_path = f"{input_path.parent}/{input_path.stem}--TEMP.nanover.zip"
 
     def close_all():
         split_stem = name_template(
@@ -119,62 +116,39 @@ def split_recording(
             last_event=last_event,
         )
 
-        if current_traj_out is not None:
-            current_traj_out.close()
-            Path(f"{temp_stem}.traj").rename(input_path.parent / f"{split_stem}.traj")
-        if current_state_out is not None:
-            current_state_out.close()
-            Path(f"{temp_stem}.state").rename(input_path.parent / f"{split_stem}.state")
+        if current_writer is not None:
+            current_writer.close()
+            Path(temp_path).rename(input_path.parent / f"{split_stem}.nanover.zip")
 
     def open_all():
-        nonlocal current_traj_out, current_state_out
-        if traj is not None:
-            current_traj_out = open(f"{temp_stem}.traj", "wb")
-            write_header(current_traj_out)
-        if state is not None:
-            current_state_out = open(f"{temp_stem}.state", "wb")
-            write_header(current_state_out)
-
-    def dict_to_state_update(dict):
-        change = DictionaryChange(updates=dict)
-        state = dictionary_change_to_state_update(change)
-        return state
+        nonlocal current_writer
+        current_writer = NanoverRecordingWriter.from_path(temp_path)
 
     try:
         open_all()
 
-        for event in iter_recording_max(traj=traj, state=state):
-            last_event = event
+        with NanoverRecordingReader.from_path(path) as reader:
+            for event in reader.iter_max():
+                last_event = event
 
-            if split_predicate(event):
-                # end the previous recording
-                close_all()
+                if split_predicate(event):
+                    close_all()
+                    split_count += 1
+                    current_base_timestamp = event.timestamp
+                    open_all()
 
-                # start the next recording
-                split_count += 1
-                current_base_timestamp = event.timestamp
-                open_all()
+                if current_writer is not None:
+                    message = {}
+                    if event.next_frame_event is not None:
+                        message["frame"] = event.next_frame_event.message
+                    if event.next_state_event is not None:
+                        message["state"] = event.next_state_event.message
 
-                # start the next recording with the outcome of the current event
-                if current_traj_out is not None:
-                    write_entry(
-                        current_traj_out,
-                        0,
-                        GetFrameResponse(frame_index=0, frame=event.next_frame.raw),
-                    )
-                if current_state_out is not None:
-                    write_entry(
-                        current_state_out, 0, dict_to_state_update(event.next_state)
-                    )
-            else:
-                timestamp = event.timestamp - current_base_timestamp
-                if event.next_frame_event is not None:
-                    write_entry(
-                        current_traj_out, timestamp, event.next_frame_event.message
-                    )
-                if event.next_state_event is not None:
-                    write_entry(
-                        current_state_out, timestamp, event.next_state_event.message
+                    current_writer.write_message_event(
+                        MessageEvent(
+                            timestamp=event.timestamp - current_base_timestamp,
+                            message=message,
+                        )
                     )
     finally:
         close_all()
@@ -183,10 +157,9 @@ def split_recording(
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        dest="paths",
-        nargs="+",
+        dest="path",
         metavar="PATH",
-        help="Recording files to split (one or both of .traj and .state)",
+        help="Recording file to split",
     )
     parser.add_argument(
         "-s",
@@ -202,10 +175,6 @@ def main():
     )
     args = parser.parse_args()
 
-    paths = [Path(path) for path in args.paths]
-    traj_path = next((path for path in paths if path.suffix == ".traj"), None)
-    state_path = next((path for path in paths if path.suffix == ".state"), None)
-
     if args.split_by_key is not None:
         predicate = make_key_change_predicate(args.split_by_key)
     else:
@@ -217,8 +186,7 @@ def main():
         template = name_basic
 
     split_recording(
-        traj=traj_path,
-        state=state_path,
+        path=args.path,
         split_predicate=predicate,
         name_template=template,
     )

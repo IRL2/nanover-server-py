@@ -9,26 +9,20 @@ build:
   noarch: python
   number: 0
   entry_points:
-    - nanover-omni = nanover.omni.cli:main
-    - nanover-record = nanover.omni.recorder_cli:main
+    - nanover-omni = nanover.omni.cli.omni_cli:main
+    - nanover-record = nanover.omni.cli.recorder_cli:main
     - nanover-essd-list = nanover.essd.list_cli:main
-    - nanover-multiplayer = nanover.multiplayer.cli:main
     - nanover-dump-state = nanover.recording.cli.dump_cli:main
     - nanover-split-recording = nanover.recording.cli.split_cli:main
-    - nanover-check-recording = nanover.recording.cli.check_cli:main
 
 requirements:
   build:
     - python >={{ MIN_PYTHON_VERSION }}
     - setuptools
-    - grpcio-tools
   run:
     - python >={{ MIN_PYTHON_VERSION }}
     - netifaces
-    - grpcio
     - numpy
-    - protobuf
-    - attrs
     - openmm
     - ase >=3.21
     - mdanalysis

@@ -3,7 +3,7 @@ from typing import Any, Protocol
 from nanover.app.commands import CommandRegistration, CommandHandler
 from nanover.essd import ServiceHub, DiscoveryServer
 from nanover.imd import ImdStateWrapper
-from nanover.state.state_dictionary import StateDictionary
+from nanover.utilities.state_dictionary import StateDictionary
 from nanover.trajectory import FramePublisher
 from nanover.utilities.change_buffers import DictionaryChange
 

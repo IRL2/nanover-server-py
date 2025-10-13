@@ -15,7 +15,7 @@ from openmm.app import Simulation
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.trajectory import FrameData2
+from nanover.trajectory import FrameData
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 
@@ -71,7 +71,7 @@ class ImdForceManager:
             simulation.context,
         )
 
-    def add_to_frame_data(self, frame_data: FrameData2):
+    def add_to_frame_data(self, frame_data: FrameData):
         frame_data.user_energy = self.total_user_energy
         sparse_indices, sparse_forces = get_sparse_forces(self.user_forces)
         frame_data.user_forces_sparse = sparse_forces
@@ -157,8 +157,6 @@ def _build_particle_interaction_index_set(
     """
     indices = (interaction.particles for interaction in interactions.values())
     flatten_indices = itertools.chain(*indices)
-    # We need to convert the indices to ints otherwise they are numpy types
-    # that protobuf do not support.
     set_of_ints = set(map(int, flatten_indices))
     return set_of_ints
 
