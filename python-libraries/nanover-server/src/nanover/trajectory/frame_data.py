@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 
+from .convert import unpack_dict_frame, pack_dict_frame
 from .keys import (
     PARTICLE_POSITIONS,
     BOND_PAIRS,
@@ -110,6 +111,13 @@ class FrameData:
     @classmethod
     def from_dict(cls, frame_dict: FrameDict):
         return cls(frame_dict)
+
+    @classmethod
+    def unpack_from_dict(cls, frame_dict: FrameDict):
+        return cls.from_dict(unpack_dict_frame(frame_dict))
+
+    def pack_to_dict(self):
+        return pack_dict_frame(self.frame_dict)
 
     def __init__(self, frame_dict: FrameDict | None = None):
         self.frame_dict = frame_dict or {}

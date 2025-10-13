@@ -8,16 +8,7 @@ from typing import Protocol, List, Set
 from nanover.app import NanoverImdApplication, RenderingSelection
 from nanover.app.types import AppServer, basic_info_string
 from nanover.imd.imd_force import InvalidInteractionError
-from nanover.trajectory import FrameData
-from nanover.trajectory.frame_server import (
-    LOAD_COMMAND_KEY,
-    LIST_COMMAND_KEY,
-    NEXT_COMMAND_KEY,
-    RESET_COMMAND_KEY,
-    PAUSE_COMMAND_KEY,
-    PLAY_COMMAND_KEY,
-    STEP_COMMAND_KEY,
-)
+from nanover.trajectory import FrameData, keys
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
 
@@ -75,14 +66,14 @@ class OmniRunner:
         self._simulation_index = 0
         self.simulation_selections: dict[Simulation, Set[RenderingSelection]] = {}
 
-        app_server.register_command(LOAD_COMMAND_KEY, self.load)
-        app_server.register_command(NEXT_COMMAND_KEY, self.next)
-        app_server.register_command(LIST_COMMAND_KEY, self.list)
+        app_server.register_command(keys.LOAD_COMMAND, self.load)
+        app_server.register_command(keys.NEXT_COMMAND, self.next)
+        app_server.register_command(keys.LIST_COMMAND, self.list)
 
-        app_server.register_command(RESET_COMMAND_KEY, self.reset)
-        app_server.register_command(PAUSE_COMMAND_KEY, self.pause)
-        app_server.register_command(PLAY_COMMAND_KEY, self.play)
-        app_server.register_command(STEP_COMMAND_KEY, self.step)
+        app_server.register_command(keys.RESET_COMMAND, self.reset)
+        app_server.register_command(keys.PAUSE_COMMAND, self.pause)
+        app_server.register_command(keys.PLAY_COMMAND, self.play)
+        app_server.register_command(keys.STEP_COMMAND, self.step)
 
         self._threads = ThreadPoolExecutor(max_workers=1)
         self._runner: InternalRunner | None = None
