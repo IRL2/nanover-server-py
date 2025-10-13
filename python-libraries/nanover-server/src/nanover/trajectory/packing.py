@@ -1,10 +1,8 @@
 from dataclasses import dataclass
-from typing import Iterable, Callable, TypeVar, Generic, Any
+from typing import Iterable, Callable, TypeVar, Generic
 
 import numpy as np
 import numpy.typing as npt
-
-import nanover.trajectory.keys as keys
 
 P = TypeVar("P")
 U = TypeVar("U")
@@ -56,48 +54,3 @@ pack_uint8 = make_bytes_packer(np.uint8)
 
 pack_vec3 = make_bytes_packer(np.float32, shape=(-1, 3))
 pack_bond = make_bytes_packer(np.uint32, shape=(-1, 2))
-
-converters: dict[str, PackingPair] = {
-    keys.PARTICLE_POSITIONS: pack_vec3,
-    keys.PARTICLE_VELOCITIES: pack_vec3,
-    keys.PARTICLE_FORCES: pack_vec3,
-    keys.PARTICLE_FORCES_SYSTEM: pack_vec3,
-    keys.PARTICLE_ELEMENTS: pack_uint8,
-    keys.PARTICLE_RESIDUES: pack_uint32,
-    keys.BOND_PAIRS: pack_bond,
-    keys.BOND_ORDERS: pack_uint8,
-    keys.RESIDUE_CHAINS: pack_uint32,
-    keys.BOX_VECTORS: pack_vec3,
-    keys.USER_FORCES_INDEX: pack_uint32,
-    keys.USER_FORCES_SPARSE: pack_vec3,
-}
-
-
-def _pack_dict_frame(frame: dict) -> dict[str, Any]:
-    packed = {}
-
-    for key in frame:
-        converter = converters.get(key, pack_identity)
-        packed[key] = converter.pack(frame[key])
-
-    return packed
-
-
-def _unpack_dict_frame(frame: dict) -> dict[str, Any]:
-    unpacked = {}
-
-    for key in frame:
-        try:
-            converter = converters.get(key, pack_identity)
-            unpacked[key] = converter.unpack(frame[key])
-        except Exception as e:
-            raise RuntimeError(f"unpack {key} {type(frame[key])} failed {e}") from e
-
-    return unpacked
-
-
-frame_dict_packer = PackingPair(
-    pack=_pack_dict_frame,
-    unpack=_unpack_dict_frame,
-)
-"""Pair of functions for packing/unpacking frame data dictionaries of complex types into dictionaries of simpler MessagePack types."""
