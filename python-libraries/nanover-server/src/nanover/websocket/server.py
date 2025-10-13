@@ -90,7 +90,7 @@ class WebSocketServer:
                     target, serve(self._handle_client, "0.0.0.0", port, ssl=ssl)
                 )
             except OSError as e:
-                # OSError 98 indicates the port is already in use, So instead get a random available one.
+                # OSError 98 indicates the port is already in use, so instead get a random available one.
                 if e.errno != 98:
                     raise
                 self.__setattr__(
@@ -131,7 +131,7 @@ class WebSocketServer:
         exc_tb: TracebackType | None,
     ) -> bool:
         self.close()
-        return True
+        return False  # No attempt is made to handle exceptions so leave responsibility to caller.
 
     def _handle_client(self, websocket: ServerConnection) -> None:
         WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
@@ -242,7 +242,7 @@ def get_server_port(server: Server) -> int:
 
 
 def to_list(obj: npt.NDArray) -> list:
-    """Converts `obj` to list, if of type `np.array` else raises `TypeError`."""
+    """Converts `obj` to `list`, if of type `np.array` else raises `TypeError`."""
     if isinstance(obj, np.ndarray):
         return obj.tolist()
     raise TypeError(f"Unknown type: {obj}")
