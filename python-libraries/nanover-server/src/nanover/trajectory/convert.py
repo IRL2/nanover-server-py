@@ -12,11 +12,18 @@ U = TypeVar("U")
 
 @dataclass(kw_only=True)
 class PackingPair(Generic[U, P]):
+    """
+    Pair of functions for packing and unpacking rich data into and from simpler types understood by MessagePack.
+    """
+
     pack: Callable[[U], P]
     unpack: Callable[[P], U]
 
 
 def pack_array(values: Iterable, *, dtype: npt.DTypeLike) -> bytes:
+    """
+    Serialize an array of numbers into bytes of the given dtype.
+    """
     if isinstance(values, np.ndarray):
         return values.astype(dtype=dtype, copy=False).flatten().tobytes()
     else:
@@ -29,6 +36,9 @@ def pack_array(values: Iterable, *, dtype: npt.DTypeLike) -> bytes:
 
 
 def unpack_array(buffer: bytes, *, dtype: npt.DTypeLike) -> npt.NDArray:
+    """
+    Deserialize an array of numeric data of the given dtype from bytes.
+    """
     return np.frombuffer(buffer, dtype=dtype)
 
 
@@ -63,7 +73,7 @@ converters: dict[str, PackingPair] = {
 }
 
 
-def pack_dict_frame(frame: dict) -> dict[str, Any]:
+def _pack_dict_frame(frame: dict) -> dict[str, Any]:
     packed = {}
 
     for key in frame:
@@ -73,7 +83,7 @@ def pack_dict_frame(frame: dict) -> dict[str, Any]:
     return packed
 
 
-def unpack_dict_frame(frame: dict) -> dict[str, Any]:
+def _unpack_dict_frame(frame: dict) -> dict[str, Any]:
     unpacked = {}
 
     for key in frame:
@@ -84,3 +94,10 @@ def unpack_dict_frame(frame: dict) -> dict[str, Any]:
             raise RuntimeError(f"unpack {key} {type(frame[key])} failed {e}") from e
 
     return unpacked
+
+
+frame_dict_packer = PackingPair(
+    pack=_pack_dict_frame,
+    unpack=_unpack_dict_frame,
+)
+"""Pair of functions for packing/unpacking frame data dictionaries of complex types into dictionaries of simpler MessagePack types."""
