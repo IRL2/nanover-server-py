@@ -53,7 +53,7 @@ class WebSocketServer:
         if insecure:
             port = server.create_ws_server(port=port)
             # Update requested port number to next consecutive address to use if also making a secure Websocket.
-            port += 1
+            port = port + 1 if port != 65535 else port - 1
         if ssl is not None:
             server.create_ws_server(port=port, ssl=ssl)
 
