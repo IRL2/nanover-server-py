@@ -12,6 +12,8 @@ from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 from nanover.trajectory.convert import pack_dict_frame
 
+from types import TracebackType
+
 
 DEFAULT_NANOVER_PORT = 38801
 
@@ -105,8 +107,14 @@ class WebSocketServer:
     def __enter__(self) -> "WebSocketServer":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> bool:
         self.close()
+        return True
 
     def _handle_client(self, websocket: ServerConnection) -> None:
         WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
