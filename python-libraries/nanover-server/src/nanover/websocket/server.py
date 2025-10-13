@@ -18,6 +18,19 @@ from types import TracebackType
 DEFAULT_NANOVER_PORT = 38801
 
 
+def validate_port(port: int) -> bool:
+    """
+    Ensures that the given `port` is valid.
+    To be valid, the port must not use a protected address and must be accessible.
+
+    :param port: Port ID to validate.
+    :returns: True if valid port id else False.
+    """
+    if not isinstance(port, int):
+        return False
+    return port == 0 or (1023 < port < 65536)
+
+
 class WebSocketServer:
     @classmethod
     def basic_server(
@@ -32,7 +45,6 @@ class WebSocketServer:
 
         # TODO handle requesting the same port + proper reporting to user of the given port
         # maybe use logging or at the least have some reporter property
-        # TODO consider only allowing non-priveldged ports? > 1023 + max (65535)
         if insecure:
             server.create_ws_server(port=port)
         if ssl is not None:
@@ -55,13 +67,18 @@ class WebSocketServer:
     def create_ws_server(self, *, port: int = 0, ssl: SSLContext | None = None) -> int:
         """
         Creates WebSocket and attaches to the current object.
-        Will attempt to create a Websocket at the desired `port`, using a random number
+        Will attempt to create a Websocket at the desired `port`, using a random number (1023 < x < 65536)
         if it is already in use. If an SSLContext `ssl` is provided, a SSL wrapped socket
         is created instead.
 
-        # TODO params
+        :param port: Prefered port number to use when creating the new WebSocket. A value of 0 will use a random port instead.
+        :param ssl: `SSLContext` to use when verifying connections to the new WebSocket.
         :return: Port number for the new WebSocket server.
         """
+        if not validate_port(port):
+            raise ValueError(
+                f"Invalid {port=}, please specify a number with the range 1024 - 65535 or 0 for a randomly assigned port address."
+            )
         if ssl is None:
             type_, target = "ws", "_ws_server"
         else:
