@@ -26,7 +26,7 @@ class MissingDataError(KeyError):
 class _Shortcut:
     key: str
 
-    def make_property(shortcut):
+    def make_property(shortcut) -> property:
         def getter(self: "FrameData"):
             try:
                 return self.frame_dict[shortcut.key]
@@ -56,6 +56,8 @@ class FrameData:
     """
     Wrapper around a frame dict, providing shortcut for common fields and convenience methods.
     """
+
+    frame_dict: FrameDict
 
     frame_index: int = _shortcut(keys.FRAME_INDEX)
 
