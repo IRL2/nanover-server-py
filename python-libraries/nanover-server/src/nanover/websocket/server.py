@@ -44,13 +44,12 @@ class WebSocketServer:
         server = cls(app_server)
 
         # TODO handle requesting the same port + proper reporting to user of the given port
-        # maybe use logging or at the least have some reporter property
+        # maybe use logging or at the least have some reporter property?
         if insecure:
-            server.create_ws_server(port=port)
+            port = server.create_ws_server(port=port)
+            # Update requested port number to next consecutive address to use if also making a secure Websocket.
+            port += 1
         if ssl is not None:
-            port = (
-                port + 1 if port != 0 else 0
-            )  # Attempt to use next consecutive port if available.
             server.create_ws_server(port=port, ssl=ssl)
 
         return server
