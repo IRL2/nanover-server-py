@@ -11,8 +11,6 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
-from nanover.trajectory.convert import pack_dict_frame
-
 
 class WebSocketServer:
     @classmethod
@@ -123,28 +121,17 @@ class _WebSocketClientHandler:
         return results
 
     def send_frame(self, frame: FrameData):
-        self.send_message({"frame": pack_dict_frame(frame.frame_dict)})
+        self.send_message({"frame": frame.pack_to_dict()})
 
     def send_state_update(self, change: DictionaryChange):
-        self.send_message(
-            {
-                "state": {
-                    "updates": change.updates,
-                    "removals": list(change.removals),
-                },
-            }
-        )
+        self.send_message({"state": change.to_dict()})
 
     def send_message(self, message):
         self.websocket.send(msgpack.packb(message, default=_fallback_encoder))
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
-            change = DictionaryChange(
-                updates=update.get("updates", {}),
-                removals=update.get("removals", set()),
-            )
-            self.state_dictionary.update_state(None, change)
+            self.state_dictionary.update_state(None, DictionaryChange.from_dict(update))
 
         def handle_command_request(request):
             name, arguments = request.get("name"), request.get("arguments", {})

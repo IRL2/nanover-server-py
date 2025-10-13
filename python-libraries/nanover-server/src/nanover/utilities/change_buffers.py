@@ -17,6 +17,19 @@ class DictionaryChange:
     updates: KeyUpdates
     removals: KeyRemovals
 
+    @classmethod
+    def from_dict(cls, dict):
+        return cls(
+            dict.get("updates", None),
+            dict.get("removals", None),
+        )
+
+    def to_dict(self):
+        return {
+            "updates": self.updates,
+            "removals": list(self.removals),
+        }
+
     def __init__(
         self,
         updates: KeyUpdates | None = None,

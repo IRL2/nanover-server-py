@@ -5,37 +5,8 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 
-from .keys import (
-    PARTICLE_POSITIONS,
-    BOND_PAIRS,
-    BOND_ORDERS,
-    PARTICLE_VELOCITIES,
-    PARTICLE_FORCES,
-    PARTICLE_FORCES_SYSTEM,
-    PARTICLE_ELEMENTS,
-    PARTICLE_NAMES,
-    PARTICLE_RESIDUES,
-    PARTICLE_COUNT,
-    RESIDUE_NAMES,
-    RESIDUE_IDS,
-    RESIDUE_CHAINS,
-    RESIDUE_COUNT,
-    CHAIN_NAMES,
-    CHAIN_COUNT,
-    KINETIC_ENERGY,
-    POTENTIAL_ENERGY,
-    USER_ENERGY,
-    SYSTEM_TEMPERATURE,
-    USER_FORCES_SPARSE,
-    USER_FORCES_INDEX,
-    USER_WORK_DONE,
-    BOX_VECTORS,
-    SIMULATION_TIME,
-    SIMULATION_COUNTER,
-    SIMULATION_EXCEPTION,
-    SERVER_TIMESTAMP,
-    FRAME_INDEX,
-)
+from .convert import frame_dict_packer
+from . import keys
 
 FrameDict = dict[str, Any]
 
@@ -75,8 +46,8 @@ def _shortcut(*, key: str) -> Any:
 
 
 def merge_frame_dicts(a: dict, b: dict, ignore_reset=False):
-    a_reset = a.get(FRAME_INDEX, None) == 0
-    b_reset = b.get(FRAME_INDEX, None) == 0 and not ignore_reset
+    a_reset = a.get(keys.FRAME_INDEX, None) == 0
+    b_reset = b.get(keys.FRAME_INDEX, None) == 0 and not ignore_reset
 
     merged = {}
 
@@ -86,7 +57,7 @@ def merge_frame_dicts(a: dict, b: dict, ignore_reset=False):
     merged.update(b)
 
     if a_reset or b_reset:
-        merged[FRAME_INDEX] = 0
+        merged[keys.FRAME_INDEX] = 0
 
     return merged
 
@@ -109,7 +80,23 @@ class FrameData:
 
     @classmethod
     def from_dict(cls, frame_dict: FrameDict):
+        """
+        Return a new FrameData from a dict of unpacked data.
+        """
         return cls(frame_dict)
+
+    @classmethod
+    def unpack_from_dict(cls, frame_dict: FrameDict):
+        """
+        Return a new FrameData from a dict of packed data.
+        """
+        return cls.from_dict(frame_dict_packer.unpack(frame_dict))
+
+    def pack_to_dict(self):
+        """
+        Return a dict of packed data from this frame.
+        """
+        return frame_dict_packer.pack(self.frame_dict)
 
     def __init__(self, frame_dict: FrameDict | None = None):
         self.frame_dict = frame_dict or {}
@@ -137,41 +124,41 @@ class FrameData:
             self.frame_dict, other.frame_dict, ignore_reset=ignore_reset
         )
 
-    frame_index: int = _shortcut(key=FRAME_INDEX)
+    frame_index: int = _shortcut(key=keys.FRAME_INDEX)
 
-    box_vectors: FloatArray = _shortcut(key=BOX_VECTORS)
+    box_vectors: FloatArray = _shortcut(key=keys.BOX_VECTORS)
 
-    bond_pairs: IndexArray = _shortcut(key=BOND_PAIRS)
-    bond_orders: EnumArray = _shortcut(key=BOND_ORDERS)
+    bond_pairs: IndexArray = _shortcut(key=keys.BOND_PAIRS)
+    bond_orders: EnumArray = _shortcut(key=keys.BOND_ORDERS)
 
-    particle_count: int = _shortcut(key=PARTICLE_COUNT)
-    particle_positions: FloatArray = _shortcut(key=PARTICLE_POSITIONS)
-    particle_velocities: FloatArray = _shortcut(key=PARTICLE_VELOCITIES)
-    particle_forces: FloatArray = _shortcut(key=PARTICLE_FORCES)
-    particle_forces_system: FloatArray = _shortcut(key=PARTICLE_FORCES_SYSTEM)
-    particle_elements: EnumArray = _shortcut(key=PARTICLE_ELEMENTS)
-    particle_names: StringArray = _shortcut(key=PARTICLE_NAMES)
-    particle_residues: IndexArray = _shortcut(key=PARTICLE_RESIDUES)
+    particle_count: int = _shortcut(key=keys.PARTICLE_COUNT)
+    particle_positions: FloatArray = _shortcut(key=keys.PARTICLE_POSITIONS)
+    particle_velocities: FloatArray = _shortcut(key=keys.PARTICLE_VELOCITIES)
+    particle_forces: FloatArray = _shortcut(key=keys.PARTICLE_FORCES)
+    particle_forces_system: FloatArray = _shortcut(key=keys.PARTICLE_FORCES_SYSTEM)
+    particle_elements: EnumArray = _shortcut(key=keys.PARTICLE_ELEMENTS)
+    particle_names: StringArray = _shortcut(key=keys.PARTICLE_NAMES)
+    particle_residues: IndexArray = _shortcut(key=keys.PARTICLE_RESIDUES)
 
-    residue_count: int = _shortcut(key=RESIDUE_COUNT)
-    residue_names: StringArray = _shortcut(key=RESIDUE_NAMES)
-    residue_ids: StringArray = _shortcut(key=RESIDUE_IDS)
-    residue_chains: IndexArray = _shortcut(key=RESIDUE_CHAINS)
+    residue_count: int = _shortcut(key=keys.RESIDUE_COUNT)
+    residue_names: StringArray = _shortcut(key=keys.RESIDUE_NAMES)
+    residue_ids: StringArray = _shortcut(key=keys.RESIDUE_IDS)
+    residue_chains: IndexArray = _shortcut(key=keys.RESIDUE_CHAINS)
 
-    chain_count: int = _shortcut(key=CHAIN_COUNT)
-    chain_names: StringArray = _shortcut(key=CHAIN_NAMES)
+    chain_count: int = _shortcut(key=keys.CHAIN_COUNT)
+    chain_names: StringArray = _shortcut(key=keys.CHAIN_NAMES)
 
-    kinetic_energy: float = _shortcut(key=KINETIC_ENERGY)
-    potential_energy: float = _shortcut(key=POTENTIAL_ENERGY)
-    system_temperature: float = _shortcut(key=SYSTEM_TEMPERATURE)
+    kinetic_energy: float = _shortcut(key=keys.KINETIC_ENERGY)
+    potential_energy: float = _shortcut(key=keys.POTENTIAL_ENERGY)
+    system_temperature: float = _shortcut(key=keys.SYSTEM_TEMPERATURE)
 
-    user_energy: float = _shortcut(key=USER_ENERGY)
-    user_work_done: float = _shortcut(key=USER_WORK_DONE)
-    user_forces_sparse: FloatArray = _shortcut(key=USER_FORCES_SPARSE)
-    user_forces_index: IndexArray = _shortcut(key=USER_FORCES_INDEX)
+    user_energy: float = _shortcut(key=keys.USER_ENERGY)
+    user_work_done: float = _shortcut(key=keys.USER_WORK_DONE)
+    user_forces_sparse: FloatArray = _shortcut(key=keys.USER_FORCES_SPARSE)
+    user_forces_index: IndexArray = _shortcut(key=keys.USER_FORCES_INDEX)
 
-    simulation_time: float = _shortcut(key=SIMULATION_TIME)
-    simulation_counter: float = _shortcut(key=SIMULATION_COUNTER)
-    simulation_exception: float = _shortcut(key=SIMULATION_EXCEPTION)
+    simulation_time: float = _shortcut(key=keys.SIMULATION_TIME)
+    simulation_counter: float = _shortcut(key=keys.SIMULATION_COUNTER)
+    simulation_exception: float = _shortcut(key=keys.SIMULATION_EXCEPTION)
 
-    server_timestamp: float = _shortcut(key=SERVER_TIMESTAMP)
+    server_timestamp: float = _shortcut(key=keys.SERVER_TIMESTAMP)

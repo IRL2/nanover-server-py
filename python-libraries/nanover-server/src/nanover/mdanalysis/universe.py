@@ -54,7 +54,6 @@ from nanover.recording.reading import (
     RecordingIndexEntry,
     NanoverRecordingReader,
 )
-from ..trajectory.convert import unpack_dict_frame
 
 
 class KeyConversion(NamedTuple):
@@ -325,7 +324,7 @@ class NanoverReaderBase(ProtoReader):
             raise EOFError(err) from None
 
         message = self.reader.get_message_from_entry(entry)
-        frame_at_index = FrameData(unpack_dict_frame(message["frame"]))
+        frame_at_index = FrameData.unpack_from_dict(message["frame"])
         frame_at_index["elapsed"] = entry.metadata["timestamp"]
 
         return self._frame_to_timestep(frame, frame_at_index)
@@ -346,7 +345,7 @@ def _trim_start_frame_reader(reader: MessageZipReader) -> FrameData:
     for i, entry in enumerate(reader):
         message = reader.get_message_from_entry(entry)
         if "frame" in message:
-            first_frame.update(FrameData(unpack_dict_frame(message["frame"])))
+            first_frame.update(FrameData.unpack_from_dict(message["frame"]))
             if is_valid_first_frame(first_frame):
                 reader.index = reader.index[i:]
                 return first_frame
