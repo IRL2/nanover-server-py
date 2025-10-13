@@ -1,7 +1,10 @@
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import given, example, strategies as st
 from mock import Mock
+import ssl
 
+from nanover.websocket.server import WebSocketServer
+from nanover.app.imd_app import NanoverImdApplication
 from nanover.testing.servers import (
     make_connected_server_client_setup,
     connect_client_to_server,
@@ -16,6 +19,31 @@ from nanover.testing.strategies import (
     state_updates,
     frames,
 )
+
+
+@example(port=0, ssl_=True)
+@example(port=80, ssl_=True).xfail(raises=ValueError)
+@example(port=70000, ssl_=True).xfail(raises=ValueError)
+@given(st.integers(1024, 65535), st.booleans())
+def test_websocket_server_instantiation(port, ssl_):
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER) if ssl_ else None
+
+    with WebSocketServer.basic_server(
+        NanoverImdApplication(), port=port, ssl=ssl_context
+    ) as ws_server:
+        assert ws_server.ws_port is not None
+        port = ws_server.ws_port
+        if ssl_:
+            assert ws_server.wss_port is not None
+
+        with WebSocketServer.basic_server(
+            NanoverImdApplication(), port=port, ssl=ssl_context
+        ) as second_server:
+            assert second_server.ws_port is not None
+            assert second_server.ws_port != ws_server.ws_port
+
+            if ssl_:
+                assert second_server.wss_port is not None
 
 
 @pytest.fixture(scope="module")
