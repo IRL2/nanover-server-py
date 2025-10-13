@@ -13,6 +13,7 @@ from websockets.sync.server import serve, ServerConnection, Server
 from nanover.trajectory.convert import pack_dict_frame
 
 from types import TracebackType
+from typing import Literal
 
 
 DEFAULT_NANOVER_PORT = 38801
@@ -140,7 +141,7 @@ class WebSocketServer:
         exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
-    ) -> bool:
+    ) -> Literal[False]:
         self.close()
         return False  # No attempt is made to handle exceptions so leave responsibility to caller.
 
