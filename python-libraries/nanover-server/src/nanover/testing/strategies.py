@@ -5,8 +5,8 @@ Hypothesis strategies to generate common NanoVer data during testing.
 import numpy as np
 from hypothesis import strategies as st
 from nanover.trajectory import FrameData
+from nanover.trajectory.frame_dict import frame_dict_packer, FRAME_PACKERS
 import nanover.trajectory.keys as keys
-from nanover.trajectory.convert import converters, frame_dict_packer
 
 
 def uint8s():
@@ -127,7 +127,7 @@ def packable_structures(draw):
 
 @st.composite
 def custom_frame_keys(draw):
-    return draw(dictionary_keys().filter(lambda key: key not in converters))
+    return draw(dictionary_keys().filter(lambda key: key not in FRAME_PACKERS))
 
 
 @st.composite
