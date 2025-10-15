@@ -1,8 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
 import errno
-from typing import Any, Self, Literal
-from types import TracebackType
+from typing import Any, Self
 
 import msgpack
 import numpy as np
@@ -131,14 +130,8 @@ class WebSocketServer:
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> Literal[False]:
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
-        return False  # No attempt is made to handle exceptions so leave responsibility to caller.
 
 
 class _WebSocketClientHandler:
