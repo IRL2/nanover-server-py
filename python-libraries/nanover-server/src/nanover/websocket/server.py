@@ -140,16 +140,17 @@ class _WebSocketClientHandler:
                 response = {"request": request, "response": result}
             except Exception as e:
                 response = {"request": request, "exception": str(e)}
-            return response
+            self.send_message({"command": [response]})
 
         if "state" in message:
             handle_state_update(message["state"])
         if "command" in message:
-            requests = (
-                request.get("request", request) for request in message["command"]
-            )
-            responses = [handle_command_request(request) for request in requests]
-            self.send_message({"command": responses})
+            # old format
+            if isinstance(message["command"], list):
+                for submessage in message["command"]:
+                    handle_command_request(submessage["request"])
+            else:
+                handle_command_request(message["command"]["request"])
 
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
         # TODO: error handling!!
