@@ -21,31 +21,6 @@ from nanover.testing.strategies import (
 )
 
 
-@example(port=0, ssl_=True)
-@example(port=80, ssl_=True).xfail(raises=ValueError)
-@example(port=70000, ssl_=True).xfail(raises=ValueError)
-@given(st.integers(1024, 65535), st.booleans())
-def test_websocket_server_instantiation(port, ssl_):
-    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER) if ssl_ else None
-
-    with WebSocketServer.basic_server(
-        NanoverImdApplication(), port=port, ssl=ssl_context
-    ) as ws_server:
-        assert ws_server.ws_port is not None
-        port = ws_server.ws_port
-        if ssl_:
-            assert ws_server.wss_port is not None
-
-        with WebSocketServer.basic_server(
-            NanoverImdApplication(), port=port, ssl=ssl_context
-        ) as second_server:
-            assert second_server.ws_port is not None
-            assert second_server.ws_port != ws_server.ws_port
-
-            if ssl_:
-                assert second_server.wss_port is not None
-
-
 @pytest.fixture(scope="module")
 def reusable_setup():
     def echo(**arguments):

@@ -1,6 +1,6 @@
+import errno
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
-import errno
 from typing import Any, Self
 
 import msgpack
@@ -11,19 +11,6 @@ from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
-
-
-def validate_port(port: int) -> bool:
-    """
-    Ensures that the given `port` is valid.
-    To be valid, the port must not use a protected address and must be accessible.
-
-    :param port: Port ID to validate.
-    :returns: True if valid port id else False.
-    """
-    if not isinstance(port, int):
-        return False
-    return port == 0 or (1023 < port < 65536)
 
 
 class WebSocketServer:
@@ -42,74 +29,19 @@ class WebSocketServer:
         """
         server = cls(app_server)
 
-        # TODO handle requesting the same port + proper reporting to user of the given port
-        # maybe use logging or at the least have some reporter property?
-        if insecure:
-            port = server.create_ws_server(port=port)
-            # Update requested port number to next consecutive address to use if also making a secure Websocket.
-            port = port + 1 if port != 65535 else port - 1
         if ssl is not None:
-            server.create_ws_server(port=port, ssl=ssl)
+            server.serve(port=port, service="wss", ssl=ssl)
+            port = 0  # choose random port from now on
+        if insecure:
+            server.serve(port=port, service="ws")
 
         return server
 
     def __init__(self, app_server: AppServer):
         self.app_server = app_server
         self._cancellation = CancellationToken()
-        self._threads = ThreadPoolExecutor(
-            max_workers=2, thread_name_prefix="WebSocketServer"
-        )
-        self._ws_server: Server | None = None
-        self._wss_server: Server | None = None
-
-    def create_ws_server(self, *, port: int = 0, ssl: SSLContext | None = None) -> int:
-        """
-        Creates WebSocket and attaches to the current object.
-        Will attempt to create a Websocket at the desired `port`, using a random number (1023 < x < 65536)
-        if it is already in use. If an SSLContext `ssl` is provided, a SSL wrapped socket
-        is created instead.
-
-        :param port: Prefered port number to use when creating the new WebSocket. A value of 0 will use a random port instead.
-        :param ssl: `SSLContext` to use when verifying connections to the new WebSocket.
-        :return: Port number for the new WebSocket server.
-        """
-        if not validate_port(port):
-            raise ValueError(
-                f"Invalid {port=}, please specify a number with the range 1024 - 65535 or 0 for a randomly assigned port address."
-            )
-        if ssl is None:
-            type_, target = "ws", "_ws_server"
-        else:
-            type_, target = "wss", "_wss_server"
-
-        if self.__getattribute__(target) is None:
-            try:
-                self.__setattr__(
-                    target, serve(self._handle_client, "0.0.0.0", port, ssl=ssl)
-                )
-            except OSError as e:
-                # Check OSError relates to the port is already in use otherwise reraise exception.
-                if e.errno != errno.EADDRINUSE:
-                    raise
-                self.__setattr__(
-                    target, serve(self._handle_client, "0.0.0.0", 0, ssl=ssl)
-                )
-            self._threads.submit(self.__getattribute__(target).serve_forever)
-            self.app_server.add_service(type_, self.__getattribute__(type_ + "_port"))
-
-        return _get_server_port(self.__getattribute__(target))
-
-    @property
-    def ws_port(self) -> int | None:
-        return (
-            _get_server_port(self._ws_server) if self._ws_server is not None else None
-        )
-
-    @property
-    def wss_port(self) -> int | None:
-        return (
-            _get_server_port(self._wss_server) if self._wss_server is not None else None
-        )
+        self._threads = ThreadPoolExecutor(thread_name_prefix="WebSocketServer")
+        self._servers: list[Server] = []
 
     def close(self) -> None:
         """
@@ -117,14 +49,37 @@ class WebSocketServer:
         """
         self._cancellation.cancel()
 
-        if self._wss_server is not None:
-            self._wss_server.shutdown()
-        if self._ws_server is not None:
-            self._ws_server.shutdown()
+        for server in self._servers:
+            server.shutdown()
 
         self._threads.shutdown()
 
-    def _handle_client(self, websocket: ServerConnection):
+    def serve(
+        self,
+        *,
+        host="0.0.0.0",
+        port=0,
+        ssl: SSLContext | None = None,
+        service: str | None = None,
+    ) -> Server:
+        """
+        Listen for websocket connections on the given host and port, using SSL if a context is provided, and registering
+        under discovery if a service name is provided.
+        """
+        try:
+            server = serve(self._handle_client, host, port, ssl=ssl)
+        except IOError as e:
+            if e.errno == errno.EADDRINUSE:
+                raise IOError(f"Port {port} already in use.") from None
+            raise
+
+        self._servers.append(server)
+        self._threads.submit(server.serve_forever)
+        if service:
+            self.app_server.add_service(service, _get_server_port(server))
+        return server
+
+    def _handle_client(self, websocket: ServerConnection) -> None:
         _WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
     def __enter__(self) -> Self:

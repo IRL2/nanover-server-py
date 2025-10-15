@@ -45,8 +45,7 @@ class NanoverImdApplication(NanoverApplicationServer):
         :param name: Name of the server for the purposes of discovery.
         :param address: The address at which to bind the server to. If none given,
             the default address of
-        :param port: Optional port on which to run the NanoVer server. If none given,
-            will attempt to use the default port (38801) else a random port will be used.
+        :param port: Optional port on which to run the NanoVer server, defaulting to 38801 (the NanoVer default port).
         :param ssl: Optional SSLContext that if provided is used to host an additional
             secure websocket server on the WSS protocol.
         :return: An instantiation of a basic NanoVer server, registered with an
