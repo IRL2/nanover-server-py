@@ -67,21 +67,6 @@ class NanoverImdApplication(NanoverApplicationServer):
         self._imd_state = ImdStateWrapper(self._state_dictionary)
         add_multiuser_commands(self)
 
-    @property
-    def port(self) -> int | None:
-        """
-        Returns first available Websocket port.
-        Insecure port will be returned if it exists else reports same as `secure_port`.
-        """
-        return (
-            self._server_ws.ws_port if self._server_ws is not None else self.secure_port
-        )
-
-    @property
-    def secure_port(self) -> int | None:
-        """Returns SSL wrapped Websocket port, if available."""
-        return self._server_ws.wss_port if self._server_ws is not None else None
-
     def close(self):
         if self._server_ws is not None:
             self._server_ws.close()
