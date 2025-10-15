@@ -12,7 +12,9 @@ from nanover.app.app_server import NanoverApplicationServer
 from nanover.essd import DiscoveryServer
 from nanover.imd import ImdStateWrapper
 from nanover.app.multiuser import add_multiuser_commands
-from nanover.websocket.server import DEFAULT_NANOVER_PORT
+
+
+DEFAULT_NANOVER_PORT = 38801
 
 
 class NanoverImdApplication(NanoverApplicationServer):

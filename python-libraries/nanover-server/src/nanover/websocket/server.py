@@ -14,9 +14,6 @@ from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
 
-DEFAULT_NANOVER_PORT = 38801
-
-
 def validate_port(port: int) -> bool:
     """
     Ensures that the given `port` is valid.
