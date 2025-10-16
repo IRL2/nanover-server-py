@@ -21,6 +21,17 @@ class UniverseSimulation:
 
         return cls(name=name, universe=universe)
 
+    @classmethod
+    def from_universe(
+        cls,
+        *,
+        name: str | None = None,
+        universe: mda.Universe,
+    ):
+        name = name or universe.filename
+
+        return cls(name=name, universe=universe)
+
     def __init__(
         self,
         *,
