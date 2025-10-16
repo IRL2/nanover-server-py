@@ -1,9 +1,9 @@
 on: [push]
-name: "Conda packaging"
+name: "Conda"
 
 jobs:
   build-conda:
-    name: Build conda packages
+    name: Build packages
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -41,7 +41,7 @@ jobs:
           name: conda-packages
           path: ./artifacts
   test-conda:
-    name: Python tests
+    name: Test package
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -74,7 +74,7 @@ jobs:
       - name: Serial tests
         run: python -m pytest python-libraries -n 1 -m 'serial'
   publish-conda:
-    name: Publish the conda packages on Anaconda cloud
+    name: Publish packages
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: test-conda
