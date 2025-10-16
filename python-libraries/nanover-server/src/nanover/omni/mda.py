@@ -11,9 +11,9 @@ class UniverseSimulation:
     @classmethod
     def from_path(
         cls,
+        path: PathLike[str],
         *,
         name: str | None = None,
-        path: PathLike[str],
     ):
         path = Path(path)
         name = name or path.stem
@@ -24,9 +24,9 @@ class UniverseSimulation:
     @classmethod
     def from_universe(
         cls,
+        universe: mda.Universe,
         *,
         name: str | None = None,
-        universe: mda.Universe,
     ):
         name = name or universe.filename
 
