@@ -12,6 +12,7 @@ from glob import glob
 from typing import Iterable
 
 from nanover.omni import OmniRunner
+from nanover.omni.mda import UniverseSimulation
 from nanover.omni.openmm import OpenMMSimulation
 from nanover.omni.playback import PlaybackSimulation
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
@@ -40,6 +41,16 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         default=[],
         metavar="PATH",
         help="Simulation to run via OpenMM (XML format)",
+    )
+
+    parser.add_argument(
+        "--mda",
+        dest="mdanalysis_entries",
+        action="append",
+        nargs="+",
+        default=[],
+        metavar="PATH",
+        help="Structure to load via MDanalysis",
     )
 
     parser.add_argument(
@@ -129,6 +140,10 @@ def initialise_runner(arguments: argparse.Namespace):
             simulation = OpenMMSimulation.from_xml_path(path)
             simulation.include_velocities = arguments.include_velocities
             simulation.include_forces = arguments.include_forces
+            runner.add_simulation(simulation)
+
+        for path in get_all_paths(arguments.mdanalysis_entries):
+            simulation = UniverseSimulation.from_path(path=path)
             runner.add_simulation(simulation)
 
         if arguments.record_to_path is not None:

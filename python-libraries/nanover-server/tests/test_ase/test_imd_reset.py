@@ -146,7 +146,7 @@ def test_custom_temperature():
     """
     Tests handling temperature not set in constructor of IMD calculator.
     """
-    with NanoverImdApplication.basic_server() as app_server:
+    with NanoverImdApplication.basic_server(port=0) as app_server:
         atoms = fcc_atoms()
         calculator = LennardJones()
         imd_calculator = ImdCalculator(

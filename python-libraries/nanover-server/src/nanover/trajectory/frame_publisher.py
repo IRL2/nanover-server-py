@@ -9,6 +9,11 @@ from nanover.trajectory import FrameData
 
 
 class FramePublisher:
+    """
+    Manages a single FrameData and provides a means to update it and make multiple independent subscriptions to a
+    stream of those updates.
+    """
+
     def __init__(self):
         self.simulation_counter = 0
         self.next_frame_index = 0

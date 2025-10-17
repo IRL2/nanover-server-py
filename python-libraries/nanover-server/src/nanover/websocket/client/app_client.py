@@ -4,7 +4,6 @@ from typing import Any
 
 from nanover.app.types import AppServer
 from nanover.essd import DiscoveryClient, ServiceHub
-from nanover.trajectory.convert import unpack_dict_frame
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.playback_client import PlaybackClient
 from nanover.utilities.network import get_local_ip
@@ -82,7 +81,7 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
 
     def recv_frame(self, message: dict):
         super().recv_frame(message)
-        self._frames.append(FrameData(unpack_dict_frame(message)))
+        self._frames.append(FrameData.unpack_from_dict(message))
 
     @property
     def current_frame(self) -> FrameData:
@@ -136,6 +135,9 @@ def get_websocket_address_from_hub(hub: ServiceHub, *, host: str | None = None):
 
 
 def get_websocket_address_from_app_server(app_server: AppServer):
+    """
+    Retrieve the advertised address for connecting to a server over insecure websocket (ws) protocol.
+    """
     return get_websocket_address_from_hub(app_server.service_hub, host="localhost")
 
 

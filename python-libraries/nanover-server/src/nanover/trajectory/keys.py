@@ -38,3 +38,12 @@ USER_WORK_DONE = "forces.user.work_done"
 SYSTEM_TEMPERATURE = "system.temperature"
 
 SERVER_TIMESTAMP = "server.timestamp"
+
+PLAY_COMMAND = "playback/play"
+RESET_COMMAND = "playback/reset"
+STEP_COMMAND = "playback/step"
+STEP_BACK_COMMAND = "playback/step_back"
+PAUSE_COMMAND = "playback/pause"
+LIST_COMMAND = "playback/list"
+LOAD_COMMAND = "playback/load"
+NEXT_COMMAND = "playback/next"
