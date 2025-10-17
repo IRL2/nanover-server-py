@@ -1,3 +1,4 @@
+import errno
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
 from typing import Any, Self
@@ -18,6 +19,7 @@ class WebSocketServer:
         cls,
         app_server: AppServer,
         *,
+        port: int = 0,
         ssl: SSLContext | None = None,
         insecure=True,
     ) -> "WebSocketServer":
@@ -27,21 +29,19 @@ class WebSocketServer:
         """
         server = cls(app_server)
 
-        if insecure:
-            server.serve_insecure()
         if ssl is not None:
-            server.serve_secure(ssl=ssl)
+            server.serve(port=port, service="wss", ssl=ssl)
+            port = 0  # choose random port from now on
+        if insecure:
+            server.serve(port=port, service="ws")
 
         return server
 
     def __init__(self, app_server: AppServer):
         self.app_server = app_server
         self._cancellation = CancellationToken()
-        self._threads = ThreadPoolExecutor(
-            max_workers=2, thread_name_prefix="WebSocketServer"
-        )
-        self._ws_server: Server | None = None
-        self._wss_server: Server | None = None
+        self._threads = ThreadPoolExecutor(thread_name_prefix="WebSocketServer")
+        self._servers: list[Server] = []
 
     def close(self) -> None:
         """
@@ -49,32 +49,35 @@ class WebSocketServer:
         """
         self._cancellation.cancel()
 
-        if self._wss_server is not None:
-            self._wss_server.shutdown()
-        if self._ws_server is not None:
-            self._ws_server.shutdown()
+        for server in self._servers:
+            server.shutdown()
 
         self._threads.shutdown()
 
-    def serve_insecure(self, *, host="0.0.0.0", port=0) -> Server:
+    def serve(
+        self,
+        *,
+        host="0.0.0.0",
+        port=0,
+        ssl: SSLContext | None = None,
+        service: str | None = None,
+    ) -> Server:
         """
-        Listen for insecure websocket (ws) connections on the given host and port.
+        Listen for websocket connections on the given host and port, using SSL if a context is provided, and registering
+        under discovery if a service name is provided.
         """
-        if self._ws_server is None:
-            self._ws_server = serve(self._handle_client, host, port)
-            self._threads.submit(self._ws_server.serve_forever)
-            self.app_server.add_service("ws", _get_server_port(self._ws_server))
-        return self._ws_server
+        try:
+            server = serve(self._handle_client, host, port, ssl=ssl)
+        except IOError as e:
+            if e.errno == errno.EADDRINUSE:
+                raise IOError(f"Port {port} already in use.") from None
+            raise
 
-    def serve_secure(self, *, host="0.0.0.0", port=0, ssl: SSLContext) -> Server:
-        """
-        Listen for secure websocket (wss) connections on the given host and port using the given SSL context.
-        """
-        if self._wss_server is None:
-            self._wss_server = serve(self._handle_client, host, port, ssl=ssl)
-            self._threads.submit(self._wss_server.serve_forever)
-            self.app_server.add_service("wss", _get_server_port(self._wss_server))
-        return self._wss_server
+        self._servers.append(server)
+        self._threads.submit(server.serve_forever)
+        if service:
+            self.app_server.add_service(service, _get_server_port(server))
+        return server
 
     def _handle_client(self, websocket: ServerConnection) -> None:
         _WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()

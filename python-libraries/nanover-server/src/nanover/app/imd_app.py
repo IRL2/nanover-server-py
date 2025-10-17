@@ -16,6 +16,7 @@ from .multiuser import add_multiuser_commands
 from ..imd import ImdStateWrapper
 
 DEFAULT_SERVE_ADDRESS = "[::]"
+DEFAULT_NANOVER_PORT = 38801
 
 
 class NanoverImdApplication:
@@ -50,15 +51,16 @@ class NanoverImdApplication:
         :param name: Name of the server for the purposes of discovery.
         :param address: The address at which to bind the server to. If none given,
             the default address of
-        :param port: Optional port on which to run the NanoVer server. If none given,
-            default port will be used.
+        :param port: Optional port on which to run the NanoVer server, defaulting to 38801 (the NanoVer default port).
         :param ssl: Optional SSLContext that if provided is used to host an additional
             secure websocket server on the WSS protocol.
         :return: An instantiation of a basic NanoVer server, registered with an
             ESSD discovery server.
         """
+        port = DEFAULT_NANOVER_PORT if port is None else port
+
         app_server = cls(name=name, address=address, discovery=DiscoveryServer())
-        app_server.serve_websocket(ssl=ssl)
+        app_server.serve_websocket(ssl=ssl, port=port)
         return app_server
 
     def __init__(
@@ -136,6 +138,16 @@ class NanoverImdApplication:
         """
         return self._imd_state
 
+    def serve_websocket(
+        self, *, insecure=True, ssl: SSLContext | None = None, port: int = 0
+    ):
+        from nanover.websocket.server import WebSocketServer
+
+        self._server_ws = WebSocketServer.basic_server(
+            self, insecure=insecure, ssl=ssl, port=port
+        )
+        return self._server_ws
+
     def close(self):
         """
         Close the application server and all services.
@@ -146,12 +158,6 @@ class NanoverImdApplication:
             self._discovery.close()
         if self._server_ws is not None:
             self._server_ws.close()
-
-    def serve_websocket(self, *, insecure=True, ssl: SSLContext | None = None):
-        from nanover.websocket.server import WebSocketServer
-
-        self._server_ws = WebSocketServer.basic_server(self, insecure=insecure, ssl=ssl)
-        return self._server_ws
 
     @property
     def commands(self):

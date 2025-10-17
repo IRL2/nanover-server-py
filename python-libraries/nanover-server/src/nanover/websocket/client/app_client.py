@@ -135,6 +135,9 @@ def get_websocket_address_from_hub(hub: ServiceHub, *, host: str | None = None):
 
 
 def get_websocket_address_from_app_server(app_server: AppServer):
+    """
+    Retrieve the advertised address for connecting to a server over insecure websocket (ws) protocol.
+    """
     return get_websocket_address_from_hub(app_server.service_hub, host="localhost")
 
 
