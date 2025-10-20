@@ -50,7 +50,7 @@ def index2_arrays():
 
 
 known_types = {
-    keys.FRAME_INDEX: st.integers(min_value=1),
+    keys.FRAME_INDEX: st.integers(min_value=1, max_value=2**32 - 1),
     keys.BOX_VECTORS: vec3_arrays(),
     keys.PARTICLE_POSITIONS: vec3_arrays(),
     keys.PARTICLE_ELEMENTS: enum_arrays(),
