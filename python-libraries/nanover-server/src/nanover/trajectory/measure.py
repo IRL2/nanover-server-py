@@ -23,11 +23,13 @@ class UpdateStatus(IntEnum):
 class BaseMeasure(metaclass=ABCMeta):
     name: str
     value: float
+    unit: str
     _update_status: UpdateStatus
 
-    def __init__(self, name: str, value: float) -> None:
+    def __init__(self, name: str, value: float, unit: str = None) -> None:
         self.name = name
         self.value = value
+        self.unit = unit
         self._update_status = UpdateStatus.NEW
 
     @property

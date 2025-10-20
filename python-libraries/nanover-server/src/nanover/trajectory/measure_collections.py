@@ -19,10 +19,10 @@ MeasureMap = dict[MeasureKey, BaseMeasure]
 
 FRAMEDATA_MEASURE_FIELD_PREFIX = "measure"
 FRAMEDATA_MEASURE_FIELD_KEYS: dict[BaseMeasure, tuple[str, ...]] = {
-    Measure: ("name", "value"),
-    Distance: ("name", "atom_indices", "value"),
-    Angle: ("name", "atom_indices", "value"),
-    Dihedral: ("name", "atom_indices", "value"),
+    Measure: ("name", "value", "unit"),
+    Distance: ("name", "atom_indices", "value", "unit"),
+    Angle: ("name", "atom_indices", "value", "unit"),
+    Dihedral: ("name", "atom_indices", "value", "unit"),
 }
 
 
@@ -70,9 +70,6 @@ class MeasureCollection:
             measurements = [measurements]
 
         for measure, existing_measures in self._measure_iterator(measurements):
-            print(list(hash(el) for el in existing_measures))
-            print(hash(measure.key))
-            print(measure.key in existing_measures)
             if (m := existing_measures.get(measure.key, None)) is not None:
                 m.update(measure)
             else:
