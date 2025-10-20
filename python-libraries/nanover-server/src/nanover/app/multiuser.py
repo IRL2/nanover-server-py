@@ -6,7 +6,7 @@ experience.
 import math
 from functools import partial
 
-from .types import AppServerMinimal
+from nanover.core import AppServerMinimal
 from nanover.utilities.change_buffers import DictionaryChange
 
 RADIAL_ORIENT_COMMAND_KEY = "multiuser/radially-orient-origins"

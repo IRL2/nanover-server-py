@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 from websockets.sync.client import connect
 
-from nanover.app.types import AppServer
+from nanover.core import AppServer
 from nanover.utilities.network import get_local_ip
 
 

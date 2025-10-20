@@ -3,8 +3,8 @@ from pathlib import Path
 
 import MDAnalysis as mda
 
-from nanover.app.types import AppServer
-from nanover.mdanalysis import mdanalysis_to_frame_data
+from nanover.core import AppServer
+from .converter import mdanalysis_to_frame_data
 
 
 class UniverseSimulation:

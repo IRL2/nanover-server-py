@@ -2,7 +2,7 @@ from contextlib import suppress
 from os import PathLike
 from pathlib import Path
 
-from nanover.app.types import AppServer
+from nanover.core import AppServer
 from nanover.recording.reading import (
     RecordingIndexEntry,
     NanoverRecordingReader,

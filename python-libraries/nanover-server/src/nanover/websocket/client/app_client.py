@@ -2,7 +2,7 @@ import time
 from collections import deque
 from typing import Any
 
-from nanover.app.types import AppServer
+from nanover.core import AppServer
 from nanover.essd import DiscoveryClient, ServiceHub
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.playback_client import PlaybackClient

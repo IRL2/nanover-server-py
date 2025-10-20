@@ -6,7 +6,7 @@ from typing import Any, Self
 import msgpack
 import numpy as np
 
-from nanover.app.types import AppServer
+from nanover.core import AppServer
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken

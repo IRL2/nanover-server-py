@@ -12,9 +12,9 @@ from glob import glob
 from typing import Iterable
 
 from nanover.omni import OmniRunner
-from nanover.omni.mda import UniverseSimulation
-from nanover.omni.openmm import OpenMMSimulation
-from nanover.omni.playback import PlaybackSimulation
+from nanover.mdanalysis import UniverseSimulation
+from nanover.openmm import OpenMMSimulation
+from nanover.recording import PlaybackSimulation
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.discovery import DiscoveryClient
 from nanover.websocket.record import record_from_runner

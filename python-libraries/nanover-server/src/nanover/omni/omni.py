@@ -3,25 +3,16 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import suppress
 from queue import Queue, Empty
 from ssl import SSLContext
-from typing import Protocol, List, Set
+from typing import List, Set
 
 from nanover.app import NanoverImdApplication, RenderingSelection
-from nanover.app.types import AppServer, basic_info_string
+from nanover.core import AppServer, basic_info_string, Simulation
 from nanover.imd.imd_force import InvalidInteractionError
 from nanover.trajectory import FrameData, keys
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
 
 CLEAR_PREFIXES = {"avatar.", "play-area.", "selection.", "scene", "interaction."}
-
-
-class Simulation(Protocol):
-    name: str
-
-    def load(self): ...
-    def reset(self, app_server: AppServer): ...
-    def advance_by_one_step(self): ...
-    def advance_by_seconds(self, dt: float): ...
 
 
 class OmniRunner:

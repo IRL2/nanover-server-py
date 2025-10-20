@@ -7,15 +7,17 @@ import numpy as np
 from openmm.app import Simulation, StateDataReporter
 from openmm.unit import nanometer
 
-from nanover.app.types import AppServer
-from nanover.openmm import serializer, openmm_to_frame_data
-from nanover.openmm.imd import (
+from nanover.core import AppServer
+
+from .converter import openmm_to_frame_data
+from . import serializer
+from .imd import (
     create_imd_force,
     add_imd_force_to_system,
     ImdForceManager,
     NON_IMD_FORCES_GROUP_MASK,
 )
-from nanover.openmm.thermo import compute_instantaneous_temperature, compute_dof
+from .thermo import compute_instantaneous_temperature, compute_dof
 from nanover.imd.imd_force import calculate_contribution_to_work
 
 

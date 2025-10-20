@@ -7,7 +7,7 @@ from ase.calculators.calculator import Calculator
 from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
-from nanover.app.types import AppServer
+from nanover.core import AppServer
 from nanover.ase.converter import (
     EV_TO_KJMOL,
     ASE_TIME_UNIT_TO_PS,
