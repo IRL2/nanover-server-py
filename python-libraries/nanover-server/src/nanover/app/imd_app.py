@@ -10,7 +10,7 @@ from nanover.essd import DiscoveryServer, ServiceHub
 from nanover.trajectory import FramePublisher
 from nanover.utilities.change_buffers import DictionaryChange
 
-from .commands import CommandService, CommandHandler
+from nanover.core.commands import CommandService, CommandHandler
 from nanover.utilities.state_dictionary import StateDictionary
 from .multiuser import add_multiuser_commands
 from ..imd import ImdStateWrapper

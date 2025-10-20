@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 
 from nanover.app import NanoverImdApplication
-from nanover.app.types import AppServer
+from nanover.core import AppServer
 from nanover.testing import assert_equal_soon
 from nanover.testing.utilities import simplify_numpy
 from nanover.trajectory import FrameData

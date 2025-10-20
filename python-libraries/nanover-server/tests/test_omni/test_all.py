@@ -1,11 +1,10 @@
-import time
 from unittest.mock import patch
 
 import numpy
 import pytest
 from nanover.imd import ParticleInteraction
 
-from nanover.omni.omni import CLEAR_PREFIXES
+from nanover.app.omni import CLEAR_PREFIXES
 from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
 from nanover.testing.asserts import assert_true_soon
 from nanover.trajectory.keys import SIMULATION_EXCEPTION, SERVER_TIMESTAMP

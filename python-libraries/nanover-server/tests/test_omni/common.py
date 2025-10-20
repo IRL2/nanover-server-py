@@ -3,7 +3,7 @@ from pathlib import Path
 from nanover.app import (
     NanoverImdApplication,
 )
-from nanover.app.types import AppServer
+from nanover.core import AppServer
 from nanover.omni import OmniRunner
 from nanover.websocket import NanoverImdClient
 from nanover.trajectory import FrameData
