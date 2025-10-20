@@ -3,11 +3,14 @@ from dataclasses import dataclass
 from enum import IntEnum, auto
 
 from numbers import Real
-from typing import Any, Self
+from typing import TypeVar, Hashable, Any, Self
 
 
 # Convience for users to allow for wildcard importing without pulling abstract classes.
 __all__ = ("Measure", "Distance", "Angle", "Dihedral")
+
+
+MeasureKey = TypeVar("MeasureKey", bound=Hashable)
 
 
 class UpdateStatus(IntEnum):
@@ -27,8 +30,11 @@ class BaseMeasure(metaclass=ABCMeta):
         self.value = value
         self._update_status = UpdateStatus.NEW
 
+    @property
     @abstractmethod
-    def __hash__(self) -> int: ...
+    def key(self) -> MeasureKey:
+        """Returns hashable datastructure to be used as keys for mapping objects."""
+        ...
 
     def _to_comparible_type(self, value: Any) -> bool:
         """Converts `value` to a type usable for comparison to current `Measure` value."""
@@ -68,14 +74,21 @@ class BaseMeasure(metaclass=ABCMeta):
                 f"Can only update measurements with numeric values, not {type(value)}."
             )
         self._update_status = UpdateStatus.UPDATED
-        self.value = value
+        self.value = value.value
+
+    @abstractmethod
+    def to_fields(self) -> tuple[Any, ...]: ...
 
 
 class Measure(BaseMeasure):
     """Measurement class to handle scalar value measures."""
 
-    def __hash__(self) -> int:
-        return hash(self.name)  # Nothing else to use for hashing here.
+    @property
+    def key(self) -> MeasureKey:
+        return self.name  # Nothing else to use for hashing here.
+
+    def to_fields(self) -> tuple[Any, ...]:
+        return self.name, self.value
 
 
 class Distance(BaseMeasure):
@@ -84,19 +97,27 @@ class Distance(BaseMeasure):
     atom1: int
     atom2: int
 
-    def __hash__(self) -> int:
-        return hash((self.atom1, self.atom2))
+    @property
+    def key(self) -> MeasureKey:
+        return (self.atom1, self.atom2)
+
+    def to_fields(self) -> tuple[Any, ...]:
+        return self.name, [self.atom1, self.atom2], self.value
 
 
-class Angle(BaseMeasure):
+class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
     """Measurement class to handle angles between atoms."""
 
     atom1: int
     atom2: int
     atom3: int
 
-    def __hash__(self) -> int:
-        return hash((self.atom1, self.atom2, self.atom3))
+    @property
+    def key(self) -> MeasureKey:
+        return (self.atom1, self.atom2, self.atom3)
+
+    def to_fields(self) -> tuple[Any, ...]:
+        return self.name, [self.atom1, self.atom2, self.atom3], self.value
 
 
 class Dihedral(BaseMeasure):
@@ -107,5 +128,9 @@ class Dihedral(BaseMeasure):
     atom3: int
     atom4: int
 
-    def __hash__(self) -> int:
-        return hash((self.atom1, self.atom2, self.atom3, self.atom4))
+    @property
+    def key(self) -> MeasureKey:
+        return (self.atom1, self.atom2, self.atom3, self.atom4)
+
+    def to_fields(self) -> tuple[Any, ...]:
+        return self.name, [self.atom1, self.atom2, self.atom3, self.atom4], self.value
