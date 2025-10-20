@@ -56,7 +56,7 @@ class MeasureCollection:
             {el.key: el for el in dihedrals} if dihedrals is not None else MeasureMap()
         )
 
-        self._type_mapping: dict[type[BaseMeasure], Callable[[], MeasureMap]] = {
+        self._type_mapping: dict[type[BaseMeasure], Callable[[Any], MeasureMap]] = {
             Measure: operator.attrgetter("scalars"),
             Distance: operator.attrgetter("distances"),
             Angle: operator.attrgetter("angles"),
@@ -128,14 +128,14 @@ class MeasureCollection:
         self, measurements: MeasureMap, frame_dict: FrameDict
     ) -> None:
         measure_type = type(next(iter(measurements.values())))
-        if measure_type not in FRAMEDATA_MEASURE_FIELD_KEYS:
+        if (field_keys := FRAMEDATA_MEASURE_FIELD_KEYS.get(measure_type)) is None:
             raise KeyError(
                 f"Unsupported measurement type ({measure_type}), "
-                f"only {', '.join(FRAMEDATA_MEASURE_FIELD_KEYS)} are supported."
+                f"only {', '.join(map(str, FRAMEDATA_MEASURE_FIELD_KEYS))} are supported."
             )
 
         for field_name, data in zip(
-            FRAMEDATA_MEASURE_FIELD_KEYS.get(measure_type),
+            field_keys,
             zip(*self._measureset_to_tuples(measurements)),
         ):
             frame_dict.update(

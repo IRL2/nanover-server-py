@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from enum import IntEnum, auto
 
-from numbers import Real
 from typing import Hashable, Any, Self
 
 
@@ -26,7 +25,7 @@ class BaseMeasure(metaclass=ABCMeta):
     unit: str | None
     _update_status: UpdateStatus
 
-    def __init__(self, name: str, value: float, unit: str = None) -> None:
+    def __init__(self, name: str, value: float, unit: str | None = None) -> None:
         self.name = name
         self.value = value
         self.unit = unit
@@ -41,11 +40,11 @@ class BaseMeasure(metaclass=ABCMeta):
         """Returns hashable datastructure to be used as keys for mapping objects."""
         ...
 
-    def _to_comparible_type(self, value: Any) -> bool:
+    def _to_comparible_type(self, value: Any) -> float:
         """Converts `value` to a type usable for comparison to current `Measure` value."""
         if isinstance(value, type(self)):
             return value.value
-        elif isinstance(value, Real):
+        elif isinstance(value, (int, float)):
             return value
         else:
             raise TypeError(
