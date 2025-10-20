@@ -145,6 +145,12 @@ class _WebSocketClientHandler:
                 response = {"request": request, "exception": str(e)}
             self.send_message({"command": [response]})
 
+        def handle_frame_update(frame):
+            frame = FrameData.unpack_from_dict(frame)
+            if frame.frame_index == 0:
+                self.frame_publisher.send_clear()
+            self.frame_publisher.send_frame(frame)
+
         if "state" in message:
             handle_state_update(message["state"])
         if "command" in message:
@@ -154,6 +160,8 @@ class _WebSocketClientHandler:
                     handle_command_request(submessage["request"])
             else:
                 handle_command_request(message["command"]["request"])
+        if "frame" in message:
+            handle_frame_update(message["frame"])
 
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
         # TODO: error handling!!

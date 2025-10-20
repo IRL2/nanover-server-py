@@ -51,7 +51,7 @@ class ImdService(Closeable, Protocol):
 
 class DiscoveryService(Closeable, Protocol):
     @property
-    def discovery(self) -> DiscoveryServer: ...
+    def discovery(self) -> DiscoveryServer | None: ...
 
     def add_service(self, name: str, port: int) -> None: ...
 
@@ -73,7 +73,10 @@ def basic_info_string(app_server: AppServer):
         for protocol, port in app_server.service_hub.services.items()
     )
 
-    return (
-        f'Serving "{app_server.name}" ({protocols}), '
-        f"discoverable on all interfaces on port {app_server.discovery.port}"
+    discovery = app_server.discovery
+
+    return f'Serving "{app_server.name}" ({protocols}), ' + (
+        f"discoverable on all interfaces on port {discovery.port}"
+        if discovery
+        else "without discovery"
     )
