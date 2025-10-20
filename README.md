@@ -37,9 +37,9 @@ If you haven't installed NanoVer yet, please go to [User installation](#User-ins
 
 ### Running a server via the command line
 
-`nanover.omni` provides a command line interface for running OpenMM simulations. For example, from the `nanover-server-py` directory:
+`nanover` provides a command line interface for running OpenMM simulations. For example, from the `nanover-server-py` directory:
 
-    nanover-omni --omm examples/ase/openmm_files/nanotube.xml
+    nanover-server --omm examples/ase/openmm_files/nanotube.xml
 
 Learn more about running a NanoVer server 
 [here in our documentation](https://irl2.github.io/nanover-docs/tutorials/basics.html#running-a-server).
@@ -136,10 +136,10 @@ Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tuto
 
 ### OpenMM IMD Simulations
 
-`nanover.omni` provides a command line interface for running serialised OpenMM simulations. For example, from the 
+`nanover` provides a command line interface for running serialised OpenMM simulations. For example, from the 
 `nanover-server-py` directory:
 
-    nanover-omni --omm examples/ase/openmm_files/nanotube.xml
+    nanover-server --omm examples/ase/openmm_files/nanotube.xml
 
 ### ASE IMD Simulations Jupyter Notebooks
 
