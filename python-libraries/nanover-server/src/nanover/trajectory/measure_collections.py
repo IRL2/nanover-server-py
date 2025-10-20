@@ -25,15 +25,30 @@ class MeasureCollection:
             Dihedral: operator.attrgetter("dihedrals"),
         }
 
-    def update(self, new_measurements: Iterable[BaseMeasure]) -> None:
-        """Updates existing stored measurements with new data from `new_measurements`."""
-
-        for measure in new_measurements:
+    def _measure_iterator(
+        self, measurements: Iterable[BaseMeasure]
+    ) -> Iterable[tuple[BaseMeasure, set[BaseMeasure]]]:
+        for measure in measurements:
             target_getter = self._type_mapping.get(type(measure), None)
             if target_getter is None:
                 pass
 
-            existing_measures = target_getter(self)
+            yield measure, target_getter(self)
+
+    def update(self, measurements: Iterable[BaseMeasure] | BaseMeasure) -> None:
+        """Updates existing stored measurements with `measurements`."""
+        if not isinstance(measurements, Iterable):
+            measurements = [measurements]
+
+        for measure, existing_measures in self._measure_iterator(measurements):
             if measure in existing_measures:
                 existing_measures.pop(measure).update(measure)
             existing_measures.add(measure)
+
+    def remove(self, measurements: Iterable[BaseMeasure] | BaseMeasure) -> None:
+        """Removes measurement(s) from stored list, if they exist."""
+        if not isinstance(measurements, Iterable):
+            measurements = [measurements]
+
+        for measure, existing_measures in self._measure_iterator(measurements):
+            existing_measures.pop(measure)
