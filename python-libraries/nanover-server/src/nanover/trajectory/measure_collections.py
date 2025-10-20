@@ -1,6 +1,6 @@
 import operator
 
-from typing import Iterable, Callable, Any, TypeVar
+from typing import Iterable, Callable, Any
 
 from nanover.trajectory.measure import (
     MeasureKey,
@@ -18,6 +18,12 @@ MeasureMap = dict[MeasureKey, BaseMeasure]
 
 
 FRAMEDATA_MEASURE_FIELD_PREFIX = "measure"
+FRAMEDATA_MEASURE_LABELS: dict[BaseMeasure, str] = {
+    Measure: "scalar",
+    Distance: "distance",
+    Angle: "angle",
+    Dihedral: "dihedral",
+}
 FRAMEDATA_MEASURE_FIELD_KEYS: dict[BaseMeasure, tuple[str, ...]] = {
     Measure: ("name", "value", "unit"),
     Distance: ("name", "atom_indices", "value", "unit"),
@@ -85,13 +91,13 @@ class MeasureCollection:
 
     def _measureset_to_tuples(self, measurements: MeasureMap) -> Iterable[tuple[Any]]:
         """Yields each element in set of `Measure`s as relevant FrameData parameters."""
-        for el in measurements:
+        for el in measurements.values():
             yield el.to_fields()
 
     def _add_measureset_to_framedict(
-        self, measurements: set[BaseMeasure], frame_dict: FrameDict
+        self, measurements: MeasureMap, frame_dict: FrameDict
     ) -> None:
-        measure_type = type(next(iter(measurements)))
+        measure_type = type(next(iter(measurements.values())))
         if measure_type not in FRAMEDATA_MEASURE_FIELD_KEYS:
             raise KeyError(
                 f"Unsupported measurement type ({measure_type}), "
@@ -104,7 +110,9 @@ class MeasureCollection:
         ):
             frame_dict.update(
                 {
-                    f"{FRAMEDATA_MEASURE_FIELD_PREFIX}.{str(measure_type).lower()}.{field_name}": data,
+                    f"{FRAMEDATA_MEASURE_FIELD_PREFIX}.{FRAMEDATA_MEASURE_LABELS.get(measure_type)}.{field_name}": list(
+                        data
+                    ),
                 }
             )
 
