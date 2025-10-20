@@ -203,5 +203,16 @@ def main():
             print("Closing due to KeyboardInterrupt.")
 
 
+def deprecated():
+    import warnings
+
+    warnings.warn(
+        "use `nanover-server` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    main()
+
+
 if __name__ == "__main__":
     main()

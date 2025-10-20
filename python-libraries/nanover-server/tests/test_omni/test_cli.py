@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from nanover.omni.cli.omni_cli import initialise_runner, handle_user_arguments
+from nanover.app.cli.omni_cli import initialise_runner, handle_user_arguments
 from common import ARGON_XML_PATH, RECORDING_PATH
 
 
