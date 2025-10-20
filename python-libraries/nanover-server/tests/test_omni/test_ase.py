@@ -6,8 +6,7 @@ from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
 
 from nanover.imd import ParticleInteraction
-from nanover.websocket import NanoverImdClient
-from nanover.omni.ase import ASESimulation
+from nanover.ase import ASESimulation
 from nanover.ase.converter import ASE_TIME_UNIT_TO_PS, ANG_TO_NM, EV_TO_KJMOL
 
 from common import (

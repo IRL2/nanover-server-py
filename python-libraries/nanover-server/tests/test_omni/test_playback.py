@@ -1,9 +1,9 @@
-from unittest.mock import patch, call
+from unittest.mock import patch
 
 import pytest
 
-from nanover.omni.playback import SCENE_POSE_IDENTITY
-from nanover.omni.playback import PlaybackSimulation
+from nanover.recording.playback import SCENE_POSE_IDENTITY
+from nanover.recording import PlaybackSimulation
 
 from common import RECORDING_PATH, make_loaded_sim
 

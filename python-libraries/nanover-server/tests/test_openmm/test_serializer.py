@@ -8,7 +8,7 @@ from xml.dom.minidom import parseString
 import pytest
 from io import StringIO
 
-from openmm.unit import Quantity, nanometer
+from openmm.unit import nanometer
 
 from nanover.openmm.imd import create_imd_force
 from nanover.openmm.serializer import (
@@ -22,7 +22,7 @@ from simulation_utils import (
     build_basic_simulation,
     empty_imd_force,
 )
-from nanover.omni.openmm import OpenMMSimulation
+from nanover.openmm import OpenMMSimulation
 from nanover.app import NanoverImdApplication
 
 

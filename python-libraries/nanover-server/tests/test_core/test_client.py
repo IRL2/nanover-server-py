@@ -6,14 +6,7 @@ from nanover.app import NanoverImdApplication
 from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ParticleInteraction
 from nanover.testing import assert_equal_soon, assert_in_soon
-from nanover.trajectory import FrameData
-
-from nanover.trajectory.frame_server import (
-    PLAY_COMMAND_KEY,
-    RESET_COMMAND_KEY,
-    STEP_COMMAND_KEY,
-    PAUSE_COMMAND_KEY,
-)
+from nanover.trajectory import FrameData, keys
 
 from .test_frame_server import simple_frame_data, disjoint_frame_data
 from nanover.websocket import NanoverImdClient
@@ -47,21 +40,11 @@ def client_server():
             yield client, app_server
 
 
-def test_receive_frames(client_server, simple_frame_data):
-    client, app_server = client_server
-    app_server.frame_publisher.send_frame(0, simple_frame_data)
-
-    assert_equal_soon(
-        lambda: client.current_frame.frame_dict,
-        lambda: simple_frame_data.frame_dict,
-    )
-
-
 def test_receive_multiple_frames(client_server, simple_frame_data):
     client, app_server = client_server
-    app_server.frame_publisher.send_frame(0, simple_frame_data)
+    app_server.frame_publisher.send_frame(simple_frame_data)
     time.sleep(0.1)
-    app_server.frame_publisher.send_frame(1, simple_frame_data)
+    app_server.frame_publisher.send_frame(simple_frame_data)
     assert_equal_soon(
         lambda: len(client.frames),
         lambda: 2,
@@ -79,8 +62,8 @@ def test_current_frame_does_merge(client_server):
     second_frame["indices"] = [4, 6, 8]
     second_frame["bool"] = False
 
-    app_server.frame_publisher.send_frame(0, first_frame)
-    app_server.frame_publisher.send_frame(1, second_frame)
+    app_server.frame_publisher.send_frame(first_frame)
+    app_server.frame_publisher.send_frame(second_frame)
 
     assert_equal_soon(
         lambda: (
@@ -98,14 +81,16 @@ def test_current_frame_does_merge(client_server):
 
 def test_frame_reset(client_server, simple_frame_data, disjoint_frame_data):
     client, app_server = client_server
-    app_server.frame_publisher.send_frame(0, simple_frame_data)
+
+    app_server.frame_publisher.send_frame(simple_frame_data)
 
     assert_in_soon(
         lambda: "bool",
         lambda: client.current_frame,
     )
 
-    app_server.frame_publisher.send_frame(0, disjoint_frame_data)
+    app_server.frame_publisher.send_clear()
+    app_server.frame_publisher.send_frame(disjoint_frame_data)
 
     assert_in_soon(
         lambda: "number",
@@ -200,28 +185,28 @@ def test_set_multiplayer_value(client_server):
 
 def test_run_play(client_server, mock_callback):
     client, app_server = client_server
-    app_server.register_command(PLAY_COMMAND_KEY, mock_callback)
+    app_server.register_command(keys.PLAY_COMMAND, mock_callback)
     client.run_play()
     mock_callback.assert_called_once()
 
 
 def test_run_reset(client_server, mock_callback):
     client, app_server = client_server
-    app_server.register_command(RESET_COMMAND_KEY, mock_callback)
+    app_server.register_command(keys.RESET_COMMAND, mock_callback)
     client.run_reset()
     mock_callback.assert_called_once()
 
 
 def test_run_step(client_server, mock_callback):
     client, app_server = client_server
-    app_server.register_command(STEP_COMMAND_KEY, mock_callback)
+    app_server.register_command(keys.STEP_COMMAND, mock_callback)
     client.run_step()
     mock_callback.assert_called_once()
 
 
 def test_run_pause(client_server, mock_callback):
     client, app_server = client_server
-    app_server.register_command(PAUSE_COMMAND_KEY, mock_callback)
+    app_server.register_command(keys.PAUSE_COMMAND, mock_callback)
     client.run_pause()
     mock_callback.assert_called_once()
 

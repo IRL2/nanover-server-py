@@ -8,8 +8,7 @@ from contextlib import suppress
 from MDAnalysis import Universe
 from MDAnalysis.guesser.default_guesser import DefaultGuesser
 
-from nanover.trajectory import FrameData, MissingDataError
-import nanover.trajectory.keys as keys
+from nanover.trajectory import FrameData, MissingDataError, keys
 
 # tuple for storing a frame data key and whether it is required in conversion.
 FrameDataField = collections.namedtuple("FrameDataField", "key required")

@@ -1,16 +1,16 @@
+import errno
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
+from typing import Any, Self
 
 import msgpack
 import numpy as np
 
-from nanover.app.types import AppServer
+from nanover.core import AppServer
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
-
-from nanover.trajectory.convert import pack_dict_frame
 
 
 class WebSocketServer:
@@ -19,70 +19,82 @@ class WebSocketServer:
         cls,
         app_server: AppServer,
         *,
+        port: int = 0,
         ssl: SSLContext | None = None,
         insecure=True,
-    ):
+    ) -> "WebSocketServer":
+        """
+        Create a server for the given AppServer, listening for connection over one or both of insecure (ws) and
+        secure (wss) websockets.
+        """
         server = cls(app_server)
 
-        if insecure:
-            server.serve_insecure()
         if ssl is not None:
-            server.serve_secure(ssl=ssl)
+            server.serve(port=port, service="wss", ssl=ssl)
+            port = 0  # choose random port from now on
+        if insecure:
+            server.serve(port=port, service="ws")
 
         return server
 
     def __init__(self, app_server: AppServer):
         self.app_server = app_server
         self._cancellation = CancellationToken()
-        self._threads = ThreadPoolExecutor(
-            max_workers=2, thread_name_prefix="WebSocketServer"
-        )
-        self._ws_server: Server | None = None
-        self._wss_server: Server | None = None
+        self._threads = ThreadPoolExecutor(thread_name_prefix="WebSocketServer")
+        self._servers: list[Server] = []
 
-    def serve_insecure(self):
-        if self._ws_server is None:
-            self._ws_server = serve(self._handle_client, "0.0.0.0", 0)
-            self._threads.submit(self._ws_server.serve_forever)
-            self.app_server.add_service("ws", self.ws_port)
-
-    def serve_secure(self, *, ssl: SSLContext):
-        if self._wss_server is None:
-            self._wss_server = serve(self._handle_client, "0.0.0.0", 0, ssl=ssl)
-            self._threads.submit(self._wss_server.serve_forever)
-            self.app_server.add_service("wss", self.wss_port)
-
-    @property
-    def ws_port(self):
-        return get_server_port(self._ws_server) if self._ws_server is not None else None
-
-    @property
-    def wss_port(self):
-        return (
-            get_server_port(self._wss_server) if self._wss_server is not None else None
-        )
-
-    def close(self):
+    def close(self) -> None:
+        """
+        Close all open connections, subscriptions, and stop listening for new connections.
+        """
         self._cancellation.cancel()
 
-        if self._wss_server is not None:
-            self._wss_server.shutdown()
-        if self._ws_server is not None:
-            self._ws_server.shutdown()
+        for server in self._servers:
+            server.shutdown()
 
         self._threads.shutdown()
 
-    def __enter__(self):
+    def serve(
+        self,
+        *,
+        host="0.0.0.0",
+        port=0,
+        ssl: SSLContext | None = None,
+        service: str | None = None,
+    ) -> Server:
+        """
+        Listen for websocket connections on the given host and port, using SSL if a context is provided, and registering
+        under discovery if a service name is provided.
+        """
+        try:
+            server = serve(self._handle_client, host, port, ssl=ssl)
+        except IOError as e:
+            if e.errno == errno.EADDRINUSE:
+                raise IOError(f"Port {port} already in use.") from None
+            raise
+
+        self._servers.append(server)
+        self._threads.submit(server.serve_forever)
+        if service:
+            self.app_server.add_service(service, _get_server_port(server))
+        return server
+
+    def _handle_client(self, websocket: ServerConnection) -> None:
+        _WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
+
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def _handle_client(self, websocket: ServerConnection):
-        WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
 
+class _WebSocketClientHandler:
+    """
+    Handles the connection of a single client to the server, subscribing to the server's app server and passing on
+    state and frame updates, as well as handling incoming state updates and command requests.
+    """
 
-class WebSocketClientHandler:
     def __init__(
         self,
         app_server: AppServer,
@@ -112,28 +124,17 @@ class WebSocketClientHandler:
         return results
 
     def send_frame(self, frame: FrameData):
-        self.send_message({"frame": pack_dict_frame(frame.frame_dict)})
+        self.send_message({"frame": frame.pack_to_dict()})
 
     def send_state_update(self, change: DictionaryChange):
-        self.send_message(
-            {
-                "state": {
-                    "updates": change.updates,
-                    "removals": list(change.removals),
-                },
-            }
-        )
+        self.send_message({"state": change.to_dict()})
 
     def send_message(self, message):
-        self.websocket.send(msgpack.packb(message, default=default))
+        self.websocket.send(msgpack.packb(message, default=_fallback_encoder))
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
-            change = DictionaryChange(
-                updates=update.get("updates", {}),
-                removals=update.get("removals", set()),
-            )
-            self.state_dictionary.update_state(None, change)
+            self.state_dictionary.update_state(None, DictionaryChange.from_dict(update))
 
         def handle_command_request(request):
             name, arguments = request.get("name"), request.get("arguments", {})
@@ -142,16 +143,17 @@ class WebSocketClientHandler:
                 response = {"request": request, "response": result}
             except Exception as e:
                 response = {"request": request, "exception": str(e)}
-            return response
+            self.send_message({"command": [response]})
 
         if "state" in message:
             handle_state_update(message["state"])
         if "command" in message:
-            requests = (
-                request.get("request", request) for request in message["command"]
-            )
-            responses = [handle_command_request(request) for request in requests]
-            self.send_message({"command": responses})
+            # old format
+            if isinstance(message["command"], list):
+                for submessage in message["command"]:
+                    handle_command_request(submessage["request"])
+            else:
+                handle_command_request(message["command"]["request"])
 
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
         # TODO: error handling!!
@@ -182,11 +184,21 @@ class WebSocketClientHandler:
         threads.shutdown(wait=True)
 
 
-def get_server_port(server: Server):
+def _get_server_port(server: Server) -> int:
+    """
+    Returns the concrete port used by a given websocket server.
+    """
     return server.socket.getsockname()[1]
 
 
-def default(obj):
+def _fallback_encoder(obj: Any) -> Any:
+    """
+    Converts, if possible, a type msgpack doesn't understand into a basic type it can encode.
+
+    :param obj: object to be converted
+    :return: simplified object
+    """
+    # encode numpy arrays as simple lists
     if isinstance(obj, np.ndarray):
         return obj.tolist()
     raise TypeError(f"Unknown type: {obj}")
