@@ -1,4 +1,5 @@
 import operator
+import io
 
 from typing import Iterable, Callable, Any
 
@@ -43,16 +44,16 @@ class MeasureCollection:
         dihedrals: Iterable[Dihedral] | None = None,
     ):
         self.scalars: MeasureMap = (
-            {el.key: el for el in scalars} if scalars is not None else set()
+            {el.key: el for el in scalars} if scalars is not None else MeasureMap()
         )
         self.distances: MeasureMap = (
-            {el.key: el for el in distances} if distances is not None else set()
+            {el.key: el for el in distances} if distances is not None else MeasureMap()
         )
         self.angles: MeasureMap = (
-            {el.key: el for el in angles} if angles is not None else set()
+            {el.key: el for el in angles} if angles is not None else MeasureMap()
         )
         self.dihedrals: MeasureMap = (
-            {el.key: el for el in dihedrals} if dihedrals is not None else set()
+            {el.key: el for el in dihedrals} if dihedrals is not None else MeasureMap()
         )
 
         self._type_mapping: dict[BaseMeasure, Callable[[], MeasureMap]] = {
@@ -61,6 +62,33 @@ class MeasureCollection:
             Angle: operator.attrgetter("angles"),
             Dihedral: operator.attrgetter("dihedrals"),
         }
+
+    def __repr__(self) -> str:
+        with io.StringIO() as str_io:
+            str_io.write(f"{type(self).__name__} containing:\n")
+            m = {
+                "Scalars": self.scalars,
+                "Distances": self.distances,
+                "Angles": self.angles,
+                "Dihedrals": self.dihedrals,
+            }
+
+            for k, v in m.items():
+                if not v:
+                    continue
+                str_io.write(f"  {len(v)} {k}; {', '.join(map(str, v.values()))}\n")
+
+            out_str = str_io.getvalue()
+        return out_str
+
+    def __str__(self) -> str:
+        num_measures = [
+            len(el)
+            for el in (self.scalars, self.distances, self.angles, self.dihedrals)
+        ]
+        return "{} containing: {} scalar, {} distance, {} angle, and {} dihedral measurements.".format(
+            type(self).__name__, *num_measures
+        )
 
     def _measure_iterator(
         self, measurements: Iterable[BaseMeasure]

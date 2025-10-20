@@ -32,6 +32,9 @@ class BaseMeasure(metaclass=ABCMeta):
         self.unit = unit
         self._update_status = UpdateStatus.NEW
 
+    @abstractmethod
+    def __str__(self) -> str: ...
+
     @property
     @abstractmethod
     def key(self) -> MeasureKey:
@@ -85,6 +88,10 @@ class BaseMeasure(metaclass=ABCMeta):
 class Measure(BaseMeasure):
     """Measurement class to handle scalar value measures."""
 
+    def __str__(self) -> str:
+        unit = f" {self.unit if self.unit is not None else ''}"
+        return f"{self.name}: {self.value}{unit}"
+
     @property
     def key(self) -> MeasureKey:
         return self.name  # Nothing else to use for hashing here.
@@ -104,6 +111,10 @@ class Distance(BaseMeasure):
     ):
         super().__init__(name, distance, unit)
         self.atom1, self.atom2 = atom1_index, atom2_index
+
+    def __str__(self) -> str:
+        unit = f" {self.unit if self.unit is not None else ''}"
+        return f"(Distance) {self.name}: {self.value}{unit}"
 
     @property
     def key(self) -> MeasureKey:
@@ -132,6 +143,10 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
         unit = "radians" if radians else "degrees"
         super().__init__(name, angle, unit)
         self.atom1, self.atom2, self.atom3 = atom1_index, atom2_index, atom3_index
+
+    def __str__(self) -> str:
+        unit = f" {self.unit if self.unit is not None else ''}"
+        return f"(Angle) {self.name}: {self.value}{unit}"
 
     @property
     def key(self) -> MeasureKey:
@@ -167,6 +182,10 @@ class Dihedral(BaseMeasure):
             atom3_index,
             atom4_index,
         )
+
+    def __str__(self) -> str:
+        unit = f" {self.unit if self.unit is not None else ''}"
+        return f"(Dihedral) {self.name}: {self.value}{unit}"
 
     @property
     def key(self) -> MeasureKey:
