@@ -12,9 +12,9 @@ from glob import glob
 from typing import Iterable
 
 from nanover.omni import OmniRunner
-from nanover.omni.mda import UniverseSimulation
-from nanover.omni.openmm import OpenMMSimulation
-from nanover.omni.playback import PlaybackSimulation
+from nanover.mdanalysis import UniverseSimulation
+from nanover.openmm import OpenMMSimulation
+from nanover.recording import PlaybackSimulation
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.discovery import DiscoveryClient
 from nanover.websocket.record import record_from_runner
@@ -201,6 +201,17 @@ def main():
             runner.print_basic_info()
             cancellation.wait_cancellation()
             print("Closing due to KeyboardInterrupt.")
+
+
+def deprecated():
+    import warnings
+
+    warnings.warn(
+        "use `nanover-server` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    main()
 
 
 if __name__ == "__main__":

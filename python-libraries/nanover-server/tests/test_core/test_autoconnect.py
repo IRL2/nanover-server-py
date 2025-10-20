@@ -5,7 +5,7 @@ Tests for application level autoconnecting between client and server.
 import pytest
 from mock import Mock
 from nanover.app import NanoverImdApplication
-from nanover.app.types import AppServer
+from nanover.core import AppServer
 from nanover.essd import DiscoveryServer
 from nanover.essd.server import BROADCAST_PORT
 from nanover.essd.utils import get_broadcastable_ip
