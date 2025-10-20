@@ -1,3 +1,5 @@
+from nanover.app import OmniRunner as OmniRunner
+
 import warnings
 
 warnings.warn(
@@ -5,5 +7,3 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
-
-from nanover.app import OmniRunner

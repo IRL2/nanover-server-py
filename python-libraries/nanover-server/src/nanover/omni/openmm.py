@@ -1,3 +1,5 @@
+from nanover.openmm import OpenMMSimulation as OpenMMSimulation
+
 import warnings
 
 warnings.warn(
@@ -5,5 +7,3 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
-
-from nanover.openmm import OpenMMSimulation

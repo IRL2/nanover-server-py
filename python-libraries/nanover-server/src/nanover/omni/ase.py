@@ -1,3 +1,5 @@
+from nanover.ase import ASESimulation as ASESimulation
+
 import warnings
 
 warnings.warn(
@@ -5,5 +7,3 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
-
-from nanover.ase import ASESimulation
