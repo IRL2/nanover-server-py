@@ -5,7 +5,8 @@ from queue import Queue, Empty
 from ssl import SSLContext
 from typing import List, Set
 
-from nanover.app import NanoverImdApplication, RenderingSelection
+from .imd_app import NanoverImdApplication
+from .selection import RenderingSelection
 from nanover.core import AppServer, basic_info_string, Simulation
 from nanover.imd.imd_force import InvalidInteractionError
 from nanover.trajectory import FrameData, keys
