@@ -33,6 +33,8 @@ FRAMEDATA_MEASURE_FIELD_KEYS: dict[BaseMeasure, tuple[str, ...]] = {
 
 
 class MeasureCollection:
+    """Container class to handle sets of related measurements."""
+
     def __init__(
         self,
         scalars: Iterable[Measure] | None = None,
