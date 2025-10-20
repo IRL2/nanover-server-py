@@ -121,7 +121,6 @@ class MeasureCollection:
         new_data: FrameDict = {}
 
         for s in (self.scalars, self.distances, self.angles, self.dihedrals):
-            print(s)
             if not s:
                 continue  # Skip empty mappings.
             self._add_measureset_to_framedict(s, new_data)
