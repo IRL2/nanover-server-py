@@ -108,6 +108,8 @@ class _WebSocketClientHandler:
         self.cancellation.subscribe_cancellation(self.websocket.close)
         cancellation.subscribe_cancellation(self.close)
 
+        self.user_id: str | None = None
+
     def close(self):
         self.cancellation.cancel()
 
@@ -133,8 +135,16 @@ class _WebSocketClientHandler:
         self.websocket.send(msgpack.packb(message, default=_fallback_encoder))
 
     def recv_message(self, message: dict):
+        def find_user_id(change: DictionaryChange):
+            avatars = {key for key in change.updates if key.startswith("avatar.")}
+            if avatars:
+                self.user_id = avatars.pop().replace("avatar.", "")
+
         def handle_state_update(update):
-            self.state_dictionary.update_state(None, DictionaryChange.from_dict(update))
+            change = DictionaryChange.from_dict(update)
+            if self.user_id is None:
+                find_user_id(change)
+            self.state_dictionary.update_state(None, change)
 
         def handle_command_request(request):
             name, arguments = request.get("name"), request.get("arguments", {})
@@ -182,6 +192,23 @@ class _WebSocketClientHandler:
         threads.submit(send_updates)
         threads.submit(recv_all)
         threads.shutdown(wait=True)
+
+        self.cleanup()
+
+    def cleanup(self):
+        if self.user_id is None:
+            return
+
+        with self.state_dictionary.lock_content() as state:
+            keys = {key for key in state if f".{self.user_id}" in key}
+
+        keys |= {
+            key
+            for key, interaction in self.app_server.imd.active_interactions.items()
+            if interaction.properties.get("owner.id", None) == self.user_id
+        }
+
+        self.state_dictionary.update_state(None, DictionaryChange(removals=keys))
 
 
 def _get_server_port(server: Server) -> int:
