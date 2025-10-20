@@ -99,6 +99,12 @@ class Distance(BaseMeasure):
     atom1: int
     atom2: int
 
+    def __init__(
+        self, name: str, atom1_index: int, atom2_index: int, distance: float, unit=None
+    ):
+        super().__init__(name, distance, unit)
+        self.atom1, self.atom2 = atom1_index, atom2_index
+
     @property
     def key(self) -> MeasureKey:
         return (self.atom1, self.atom2)
@@ -113,6 +119,19 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
     atom1: int
     atom2: int
     atom3: int
+
+    def __init__(
+        self,
+        name: str,
+        atom1_index: int,
+        atom2_index: int,
+        atom3_index: int,
+        angle: float,
+        radians: bool = False,
+    ):
+        unit = "radians" if radians else "degrees"
+        super().__init__(name, angle, unit)
+        self.atom1, self.atom2, self.atom3 = atom1_index, atom2_index, atom3_index
 
     @property
     def key(self) -> MeasureKey:
@@ -129,6 +148,25 @@ class Dihedral(BaseMeasure):
     atom2: int
     atom3: int
     atom4: int
+
+    def __init__(
+        self,
+        name: str,
+        atom1_index: int,
+        atom2_index: int,
+        atom3_index: int,
+        atom4_index: int,
+        angle: float,
+        radians: bool = False,
+    ):
+        unit = "radians" if radians else "degrees"
+        super().__init__(name, angle, unit)
+        self.atom1, self.atom2, self.atom3, self.atom4 = (
+            atom1_index,
+            atom2_index,
+            atom3_index,
+            atom4_index,
+        )
 
     @property
     def key(self) -> MeasureKey:
