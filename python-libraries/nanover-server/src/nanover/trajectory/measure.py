@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import IntEnum, auto
 
 from numbers import Real
-from typing import Any
+from typing import Any, Self
 
 
 # Convience for users to allow for wildcard importing without pulling abstract classes.
@@ -16,11 +16,16 @@ class UpdateStatus(IntEnum):
     DELETE = auto()
 
 
-@dataclass
+@dataclass(init=False)
 class BaseMeasure(metaclass=ABCMeta):
     name: str
     value: float
-    update: UpdateStatus = UpdateStatus.NEW
+    _update_status: UpdateStatus
+
+    def __init__(self, name: str, value: float) -> None:
+        self.name = name
+        self.value = value
+        self._update_status = UpdateStatus.NEW
 
     @abstractmethod
     def __hash__(self) -> int: ...
@@ -57,12 +62,12 @@ class BaseMeasure(metaclass=ABCMeta):
     def __ge__(self, value: Any) -> bool:
         return self.value >= self._to_comparible_type(value)
 
-    def update(self, value: Real) -> None:
-        if not isinstance(value, Real):
+    def update(self, value: Self) -> None:
+        if not isinstance(value, (BaseMeasure)):
             raise TypeError(
                 f"Can only update measurements with numeric values, not {type(value)}."
             )
-        self.update = UpdateStatus.UPDATED
+        self._update_status = UpdateStatus.UPDATED
         self.value = value
 
 
