@@ -6,7 +6,7 @@ from ase import Atoms
 from nanover.app import NanoverImdApplication
 from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ImdStateWrapper
-from nanover.state.state_dictionary import StateDictionary
+from nanover.utilities.state_dictionary import StateDictionary
 
 
 @pytest.fixture

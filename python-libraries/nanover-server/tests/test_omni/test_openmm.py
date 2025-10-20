@@ -11,10 +11,8 @@ from openmm import CustomExternalForce
 from openmm.app import StateDataReporter
 from openmm.unit import nanometer
 
-from nanover.openmm import serializer
+from nanover.openmm import serializer, OpenMMSimulation
 from nanover.imd import ParticleInteraction
-from nanover.omni.openmm import OpenMMSimulation
-
 from nanover.trajectory import FrameData
 
 from common import (
@@ -511,8 +509,6 @@ def test_sparse_user_forces_elements(
     expected_heading = interaction_vector / np.linalg.norm(interaction_vector)
     expected_magnitude = carbon_mass
     expected_vector = expected_heading * expected_magnitude
-
-    print(frame.user_forces_index)
 
     assert set(frame.user_forces_index) == interaction_particles
     for i in range(len(frame.user_forces_index)):

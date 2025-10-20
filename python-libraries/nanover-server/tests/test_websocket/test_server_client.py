@@ -1,7 +1,10 @@
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import given, example, strategies as st
 from mock import Mock
+import ssl
 
+from nanover.websocket.server import WebSocketServer
+from nanover.app.imd_app import NanoverImdApplication
 from nanover.testing.servers import (
     make_connected_server_client_setup,
     connect_client_to_server,
@@ -35,12 +38,9 @@ def reusable_setup_two_clients():
             yield setup, client
 
 
-@given(
-    frame_index=st.integers(min_value=1, max_value=2**32 - 1),
-    frame=frames(),
-)
-def test_websocket_sends_frame(reusable_setup, frame, frame_index):
-    reusable_setup.server_publish_frame(frame_index=frame_index, frame=frame)
+@given(frame=frames())
+def test_websocket_sends_frame(reusable_setup, frame):
+    reusable_setup.server_publish_frame(frame)
     reusable_setup.assert_frames_synced_soon()
 
 
@@ -48,7 +48,7 @@ def test_websocket_sends_frame(reusable_setup, frame, frame_index):
 def test_websocket_sends_frame_two_clients(reusable_setup_two_clients, frame):
     reusable_setup, client2 = reusable_setup_two_clients
 
-    reusable_setup.server_publish_frame(frame_index=1, frame=frame)
+    reusable_setup.server_publish_frame(frame)
     reusable_setup.assert_frames_synced_soon()
 
     assert_equal_soon(
@@ -56,7 +56,7 @@ def test_websocket_sends_frame_two_clients(reusable_setup_two_clients, frame):
         lambda: simplify_numpy(client2.current_frame.frame_dict),
     )
 
-    reusable_setup.server_publish_frame(frame_index=0, frame=FrameData())
+    reusable_setup.server_publish_frame_reset()
     reusable_setup.assert_frames_synced_soon()
 
     assert_equal_soon(
@@ -96,9 +96,9 @@ def test_echo_command(reusable_setup, arguments):
     )
 
 
-@given(frame_index=st.integers(min_value=1, max_value=2**32 - 1), frame=frames())
-def test_client_frame_reset(reusable_setup, frame, frame_index):
-    reusable_setup.server_publish_frame(frame_index=frame_index, frame=frame)
+@given(frame=frames())
+def test_client_frame_reset(reusable_setup, frame):
+    reusable_setup.server_publish_frame(frame)
     reusable_setup.assert_frames_synced_soon()
 
     reusable_setup.server_publish_frame_reset()

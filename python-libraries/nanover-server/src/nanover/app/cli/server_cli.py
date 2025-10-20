@@ -12,8 +12,9 @@ from glob import glob
 from typing import Iterable
 
 from nanover.omni import OmniRunner
-from nanover.omni.openmm import OpenMMSimulation
-from nanover.omni.playback import PlaybackSimulation
+from nanover.mdanalysis import UniverseSimulation
+from nanover.openmm import OpenMMSimulation
+from nanover.recording import PlaybackSimulation
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.discovery import DiscoveryClient
 from nanover.websocket.record import record_from_runner
@@ -40,6 +41,16 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         default=[],
         metavar="PATH",
         help="Simulation to run via OpenMM (XML format)",
+    )
+
+    parser.add_argument(
+        "--mda",
+        dest="mdanalysis_entries",
+        action="append",
+        nargs="+",
+        default=[],
+        metavar="PATH",
+        help="Structure to load via MDanalysis",
     )
 
     parser.add_argument(
@@ -131,6 +142,10 @@ def initialise_runner(arguments: argparse.Namespace):
             simulation.include_forces = arguments.include_forces
             runner.add_simulation(simulation)
 
+        for path in get_all_paths(arguments.mdanalysis_entries):
+            simulation = UniverseSimulation.from_path(path=path)
+            runner.add_simulation(simulation)
+
         if arguments.record_to_path is not None:
             stem = arguments.record_to_path
             if stem == "":
@@ -186,6 +201,17 @@ def main():
             runner.print_basic_info()
             cancellation.wait_cancellation()
             print("Closing due to KeyboardInterrupt.")
+
+
+def deprecated():
+    import warnings
+
+    warnings.warn(
+        "use `nanover-server` instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    main()
 
 
 if __name__ == "__main__":

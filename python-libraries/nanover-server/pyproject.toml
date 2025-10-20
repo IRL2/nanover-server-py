@@ -16,9 +16,7 @@ dependencies = [
     "numpy",
     "nglview",
     "netifaces",
-    "pytest",
     "numpy",
-    "hypothesis",
     "ase >= 3.21",
     "websockets>=15.0.0",
     "msgpack>=1.0.0",
@@ -47,10 +45,10 @@ dev=[
 ]
 
 [project.scripts]
-nanover-omni = "nanover.omni.cli:main"
-nanover-record = "nanover.omni.recorder_cli:main"
+nanover-omni = "nanover.app.cli.server_cli:deprecated"
+nanover-server = "nanover.app.cli.server_cli:main"
+nanover-record = "nanover.omni.cli.recorder_cli:main"
 nanover-essd-list = "nanover.essd.list_cli:main"
-nanover-multiplayer = "nanover.multiplayer.cli:main"
 nanover-dump-state = "nanover.recording.cli.dump_cli:main"
 nanover-split-recording = "nanover.recording.cli.split_cli:main"
 

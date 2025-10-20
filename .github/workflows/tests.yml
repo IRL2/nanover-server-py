@@ -1,9 +1,9 @@
 on: [push]
-name: "Tests and validation"
+name: "Repo"
 
 jobs:
   python-tests:
-    name: Python unit and integration tests
+    name: Tests and Notebooks
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -27,7 +27,7 @@ jobs:
       - name: Jupyter notebooks
         run: python -m pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
   mypy:
-    name: Type analysis for python
+    name: Type checking
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -63,7 +63,7 @@ jobs:
             | tr '\n' ' ')
           mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages
   ruff:
-    name: Ruff to lint python code
+    name: Style checking
     runs-on: ubuntu-latest
     defaults:
       run:

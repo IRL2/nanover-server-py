@@ -6,12 +6,8 @@ from zipfile import ZipFile
 
 import msgpack
 
-from nanover.state.state_dictionary import StateDictionary
+from nanover.utilities.state_dictionary import StateDictionary
 from nanover.trajectory import FrameData
-from nanover.trajectory.convert import (
-    unpack_dict_frame,
-    convert_dict_state_to_dictionary_change,
-)
 from nanover.trajectory.keys import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -129,9 +125,6 @@ class MessageZipReader:
     def close(self):
         self.zipfile.close()
 
-    def get_message_at_index(self, index):
-        return self.get_message_from_entry(self.index[index])
-
     def get_message_from_entry(self, entry: RecordingIndexEntry) -> dict[str, Any]:
         return msgpack.unpackb(entry.read_from(self.messagesfile))
 
@@ -184,7 +177,7 @@ class NanoverRecordingReader(MessageZipReader):
             if state_message is not None:
                 prev_state = current_state.copy_content()
                 current_state.update_state(
-                    None, convert_dict_state_to_dictionary_change(state_message)
+                    None, DictionaryChange.from_dict(state_message)
                 )
 
                 next_state_event = StateRecordingEvent(
@@ -245,7 +238,7 @@ class NanoverRecordingReader(MessageZipReader):
         if "frame" not in message:
             return None
 
-        return FrameData(unpack_dict_frame(message["frame"]))
+        return FrameData.unpack_from_dict(message["frame"])
 
     def get_state_from_entry(
         self, entry: RecordingIndexEntry
@@ -258,7 +251,7 @@ class NanoverRecordingReader(MessageZipReader):
         if "state" not in message:
             return None
 
-        return convert_dict_state_to_dictionary_change(message["state"])
+        return DictionaryChange.from_dict(message["state"])
 
     def get_message_type_from_entry(
         self, entry: RecordingIndexEntry, type: str
@@ -306,9 +299,9 @@ def iter_recording_file(path: PathLike[str]):
             frame, update = None, None
             message = reader.get_message_from_entry(entry)
             if "frame" in message:
-                frame = FrameData(unpack_dict_frame(message["frame"]))
+                frame = FrameData.unpack_from_dict(message["frame"])
             if "state" in message:
-                update = convert_dict_state_to_dictionary_change(message["state"])
+                update = DictionaryChange.from_dict(message["state"])
 
             if frame is not None or update is not None:
                 yield entry.metadata["timestamp"], frame, update

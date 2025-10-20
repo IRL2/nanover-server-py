@@ -3,10 +3,9 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Any
 
 import msgpack
-from nanover.trajectory.convert import unpack_dict_frame
 from websockets.sync.client import connect, ClientConnection
 
-from nanover.state.state_dictionary import StateDictionary
+from nanover.utilities.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory import FrameData
 
@@ -100,7 +99,7 @@ class WebsocketClient:
                 self.recv_command(command)
 
     def recv_frame(self, message: dict):
-        self._current_frame.update(FrameData(unpack_dict_frame(message)))
+        self._current_frame.update(FrameData.unpack_from_dict(message))
 
     def recv_state(self, message: dict):
         change = DictionaryChange(
