@@ -19,13 +19,13 @@ MeasureMap = dict[MeasureKey, BaseMeasure]
 
 
 FRAMEDATA_MEASURE_FIELD_PREFIX = "measure"
-FRAMEDATA_MEASURE_LABELS: dict[BaseMeasure, str] = {
+FRAMEDATA_MEASURE_LABELS: dict[type[BaseMeasure], str] = {
     Measure: "scalar",
     Distance: "distance",
     Angle: "angle",
     Dihedral: "dihedral",
 }
-FRAMEDATA_MEASURE_FIELD_KEYS: dict[BaseMeasure, tuple[str, ...]] = {
+FRAMEDATA_MEASURE_FIELD_KEYS: dict[type[BaseMeasure], tuple[str, ...]] = {
     Measure: ("name", "value", "unit"),
     Distance: ("name", "atom_indices", "value", "unit"),
     Angle: ("name", "atom_indices", "value", "unit"),
@@ -56,7 +56,7 @@ class MeasureCollection:
             {el.key: el for el in dihedrals} if dihedrals is not None else MeasureMap()
         )
 
-        self._type_mapping: dict[BaseMeasure, Callable[[], MeasureMap]] = {
+        self._type_mapping: dict[type[BaseMeasure], Callable[[], MeasureMap]] = {
             Measure: operator.attrgetter("scalars"),
             Distance: operator.attrgetter("distances"),
             Angle: operator.attrgetter("angles"),

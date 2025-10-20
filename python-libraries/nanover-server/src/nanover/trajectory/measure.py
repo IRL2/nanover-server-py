@@ -3,14 +3,14 @@ from dataclasses import dataclass
 from enum import IntEnum, auto
 
 from numbers import Real
-from typing import TypeVar, Hashable, Any, Self
+from typing import Hashable, Any, Self
 
 
 # Convience for users to allow for wildcard importing without pulling abstract classes.
 __all__ = ("Measure", "Distance", "Angle", "Dihedral")
 
 
-MeasureKey = TypeVar("MeasureKey", bound=Hashable)
+MeasureKey = Hashable
 
 
 class UpdateStatus(IntEnum):
@@ -23,7 +23,7 @@ class UpdateStatus(IntEnum):
 class BaseMeasure(metaclass=ABCMeta):
     name: str
     value: float
-    unit: str
+    unit: str | None
     _update_status: UpdateStatus
 
     def __init__(self, name: str, value: float, unit: str = None) -> None:
