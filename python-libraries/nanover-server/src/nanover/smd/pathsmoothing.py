@@ -259,7 +259,7 @@ class PathSmoother:
                     c=original_u_values,
                     cmap=cmap,
                     s=50.0,
-                    alpha=0.05,
+                    alpha=0.02,
                 )
                 self.ax.set_xlabel(r"$x$ / nm")
                 self.ax.set_ylabel(r"$y$ / nm")
@@ -300,7 +300,7 @@ class PathSmoother:
                     c=original_u_values,
                     cmap=cmap,
                     s=50.0,
-                    alpha=0.05,
+                    alpha=0.02,
                 )
 
                 plt.draw()
