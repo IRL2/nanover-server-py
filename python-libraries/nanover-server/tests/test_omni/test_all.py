@@ -144,16 +144,18 @@ def test_simulation_switch_clears_state(runner_with_all_sims):
     with make_connected_client_from_runner(runner_with_all_sims) as client:
         client.update_state(DictionaryChange(updates=updates))
 
-    with make_connected_client_from_runner(runner_with_all_sims) as client:
-        for key in updates:
-            assert_in_soon(lambda: key, lambda: client._state_dictionary.copy_content())
+        with make_connected_client_from_runner(runner_with_all_sims) as client:
+            for key in updates:
+                assert_in_soon(
+                    lambda: key, lambda: client._state_dictionary.copy_content()
+                )
 
-        client.run_next()
+            client.run_next()
 
-        for key in updates:
-            assert_not_in_soon(
-                lambda: key, lambda: client._state_dictionary.copy_content()
-            )
+            for key in updates:
+                assert_not_in_soon(
+                    lambda: key, lambda: client._state_dictionary.copy_content()
+                )
 
 
 @pytest.mark.parametrize("sim_factory", SIMULATION_FACTORIES_IMD)

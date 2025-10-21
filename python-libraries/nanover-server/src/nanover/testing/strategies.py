@@ -49,6 +49,10 @@ def index2_arrays():
     return arrays2d(uint32s(), dtype=np.uint32, size=2)
 
 
+def user_ids():
+    return st.text(min_size=1, max_size=32)
+
+
 known_types = {
     keys.FRAME_INDEX: st.integers(min_value=1, max_value=2**32 - 1),
     keys.BOX_VECTORS: vec3_arrays(),

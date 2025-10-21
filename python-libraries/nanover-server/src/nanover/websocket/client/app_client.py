@@ -27,11 +27,11 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
     def from_app_server(cls, app_server: AppServer):
         try:
             return cls.from_url(
-                f"wss://localhost:{app_server.service_hub.services["wss"]}"
+                f"wss://127.0.0.1:{app_server.service_hub.services["wss"]}"
             )
         except KeyError:
             return cls.from_url(
-                f"ws://localhost:{app_server.service_hub.services["ws"]}"
+                f"ws://127.0.0.1:{app_server.service_hub.services["ws"]}"
             )
 
     @classmethod
