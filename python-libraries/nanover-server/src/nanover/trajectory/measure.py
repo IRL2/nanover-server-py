@@ -104,11 +104,16 @@ class Scalar(BaseMeasure):
 class Distance(BaseMeasure):
     """Measurement class to handle distances between atoms."""
 
-    atom1: int
+    atom1: int  # TODO ensure idx are correct/different atoms + >0
     atom2: int
 
     def __init__(
-        self, name: str, atom1_index: int, atom2_index: int, distance: float, unit=None
+        self,
+        name: str,
+        atom1_index: int,
+        atom2_index: int,
+        distance: float,  # TODO distance > 0
+        unit: str = "nm",  # TODO check unit + auto conversion
     ) -> None:
         super().__init__(name, distance, unit)
         self.atom1, self.atom2 = atom1_index, atom2_index
@@ -128,7 +133,7 @@ class Distance(BaseMeasure):
     def distance(self) -> float:
         return self.value
 
-    @property.setter
+    @distance.setter
     def distance(self, distance: float) -> None:
         self.value = distance
 
@@ -168,7 +173,7 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
     def angle(self) -> float:
         return self.value
 
-    @property.setter
+    @angle.setter
     def angle(self, angle: float) -> None:
         self.value = angle
 
@@ -215,6 +220,6 @@ class Dihedral(BaseMeasure):
     def dihedral(self) -> float:
         return self.value
 
-    @property.setter
+    @dihedral.setter
     def dihedral(self, dihedral: float) -> None:
         self.value = dihedral
