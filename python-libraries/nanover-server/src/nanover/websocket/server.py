@@ -108,6 +108,8 @@ class _WebSocketClientHandler:
         self.cancellation.subscribe_cancellation(self.websocket.close)
         cancellation.subscribe_cancellation(self.close)
 
+        self.user_id: str | None = None
+
     def close(self):
         self.cancellation.cancel()
 
@@ -134,7 +136,10 @@ class _WebSocketClientHandler:
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
-            self.state_dictionary.update_state(None, DictionaryChange.from_dict(update))
+            change = DictionaryChange.from_dict(update)
+            if self.user_id is None:
+                self.user_id = _find_user_id(change)
+            self.state_dictionary.update_state(None, change)
 
         def handle_command_request(request):
             name, arguments = request.get("name"), request.get("arguments", {})
@@ -182,6 +187,40 @@ class _WebSocketClientHandler:
         threads.submit(send_updates)
         threads.submit(recv_all)
         threads.shutdown(wait=True)
+
+        # remove keys owned by this user id
+        if self.user_id is not None:
+            removals = _find_user_owned_keys(self.app_server, self.user_id)
+            self.state_dictionary.update_state(
+                None, DictionaryChange(removals=removals)
+            )
+
+
+def _find_user_id(change: DictionaryChange):
+    avatars = {key for key in change.updates if key.startswith("avatar.")}
+    if avatars:
+        return avatars.pop().replace("avatar.", "")
+    return None
+
+
+def _find_user_owned_keys(app_server: AppServer, user_id: str):
+    """
+    Return a set of state keys that are annotated as owned by the given user id.
+    """
+    keys = set()
+
+    # user id as suffix
+    with app_server.state_dictionary.lock_content() as state:
+        keys |= {key for key in state if f".{user_id}" in key}
+
+    # user id in interaction owner
+    keys |= {
+        key
+        for key, interaction in app_server.imd.active_interactions.items()
+        if interaction.properties.get("owner.id", None) == user_id
+    }
+
+    return keys
 
 
 def _get_server_port(server: Server) -> int:
