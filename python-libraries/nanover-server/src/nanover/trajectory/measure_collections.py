@@ -119,11 +119,6 @@ class MeasureCollection:
         for measure, existing_measures in self._measure_iterator(measurements):
             existing_measures.pop(measure.key, None)
 
-    def _measureset_to_tuples(self, measurements: MeasureMap) -> Iterable[tuple[Any]]:
-        """Yields each element in set of `Measure`s as relevant FrameData parameters."""
-        for el in measurements.values():
-            yield el.to_fields()
-
     def _add_measureset_to_framedict(
         self, measurements: MeasureMap, frame_dict: FrameDict
     ) -> None:
@@ -134,9 +129,10 @@ class MeasureCollection:
                 f"only {', '.join(map(str, FRAMEDATA_MEASURE_FIELD_KEYS))} are supported."
             )
 
+        measure_fields = (el.to_fields() for el in measurements.values())
         for field_name, data in zip(
             field_keys,
-            zip(*self._measureset_to_tuples(measurements)),
+            zip(*measure_fields),
         ):
             frame_dict.update(
                 {
