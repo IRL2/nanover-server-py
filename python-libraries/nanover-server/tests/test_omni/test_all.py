@@ -9,10 +9,10 @@ from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soo
 from nanover.testing.asserts import assert_true_soon
 from nanover.trajectory.keys import SIMULATION_EXCEPTION, SERVER_TIMESTAMP
 from nanover.utilities.change_buffers import DictionaryChange
-from test_openmm import make_example_openmm
-from test_ase import make_example_ase
-from test_playback import make_example_playback
-from common import make_runner, make_connected_client_from_runner, make_app_server
+from .test_openmm import make_example_openmm
+from .test_ase import make_example_ase
+from .test_playback import make_example_playback
+from .common import make_runner, make_connected_client_from_runner, make_app_server
 
 SIMULATION_FACTORIES_IMD = [
     make_example_openmm,
