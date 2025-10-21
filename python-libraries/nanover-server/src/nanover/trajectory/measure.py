@@ -4,6 +4,8 @@ from enum import IntEnum, auto
 
 from typing import Hashable, Any, Self
 
+from openmm.unit import unit as omunit
+
 
 # Convience for users to allow for wildcard importing without pulling abstract classes.
 __all__ = ("Measure", "Distance", "Angle", "Dihedral")
@@ -22,13 +24,18 @@ class UpdateStatus(IntEnum):
 class BaseMeasure(metaclass=ABCMeta):
     name: str
     value: float
-    unit: str | None
+    unit: str
     _update_status: UpdateStatus
 
-    def __init__(self, name: str, value: float, unit: str | None = None) -> None:
+    def __init__(
+        self, name: str, value: float, unit: omunit.Unit | str | None = None
+    ) -> None:
         self.name = name
         self.value = value
-        self.unit = unit
+        if isinstance(unit, omunit.Unit):
+            self.unit = unit.get_symbol()
+        else:
+            self.unit = unit or ""
         self._update_status = UpdateStatus.NEW
 
     @abstractmethod
@@ -107,7 +114,7 @@ class Distance(BaseMeasure):
 
     def __init__(
         self, name: str, atom1_index: int, atom2_index: int, distance: float, unit=None
-    ):
+    ) -> None:
         super().__init__(name, distance, unit)
         self.atom1, self.atom2 = atom1_index, atom2_index
 
@@ -138,7 +145,7 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
         atom3_index: int,
         angle: float,
         radians: bool = False,
-    ):
+    ) -> None:
         unit = "radians" if radians else "degrees"
         super().__init__(name, angle, unit)
         self.atom1, self.atom2, self.atom3 = atom1_index, atom2_index, atom3_index
@@ -172,7 +179,7 @@ class Dihedral(BaseMeasure):
         atom4_index: int,
         angle: float,
         radians: bool = False,
-    ):
+    ) -> None:
         unit = "radians" if radians else "degrees"
         super().__init__(name, angle, unit)
         self.atom1, self.atom2, self.atom3, self.atom4 = (
