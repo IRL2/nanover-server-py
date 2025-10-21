@@ -6,7 +6,7 @@ from typing import Iterable, Callable, Any
 from nanover.trajectory.measure import (
     MeasureKey,
     BaseMeasure,
-    Measure,
+    Scalar,
     Distance,
     Angle,
     Dihedral,
@@ -20,13 +20,13 @@ MeasureMap = dict[MeasureKey, BaseMeasure]
 
 FRAMEDATA_MEASURE_FIELD_PREFIX = "measure"
 FRAMEDATA_MEASURE_LABELS: dict[type[BaseMeasure], str] = {
-    Measure: "scalar",
+    Scalar: "scalar",
     Distance: "distance",
     Angle: "angle",
     Dihedral: "dihedral",
 }
 FRAMEDATA_MEASURE_FIELD_KEYS: dict[type[BaseMeasure], tuple[str, ...]] = {
-    Measure: ("name", "value", "unit"),
+    Scalar: ("name", "value", "unit"),
     Distance: ("name", "atom_indices", "value", "unit"),
     Angle: ("name", "atom_indices", "value", "unit"),
     Dihedral: ("name", "atom_indices", "value", "unit"),
@@ -38,7 +38,7 @@ class MeasureCollection:
 
     def __init__(
         self,
-        scalars: Iterable[Measure] | None = None,
+        scalars: Iterable[Scalar] | None = None,
         distances: Iterable[Distance] | None = None,
         angles: Iterable[Angle] | None = None,
         dihedrals: Iterable[Dihedral] | None = None,
@@ -57,7 +57,7 @@ class MeasureCollection:
         )
 
         self._type_mapping: dict[type[BaseMeasure], Callable[[Any], MeasureMap]] = {
-            Measure: operator.attrgetter("scalars"),
+            Scalar: operator.attrgetter("scalars"),
             Distance: operator.attrgetter("distances"),
             Angle: operator.attrgetter("angles"),
             Dihedral: operator.attrgetter("dihedrals"),

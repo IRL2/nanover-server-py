@@ -8,7 +8,7 @@ from openmm.unit import unit as omunit
 
 
 # Convience for users to allow for wildcard importing without pulling abstract classes.
-__all__ = ("Measure", "Distance", "Angle", "Dihedral")
+__all__ = ("Scalar", "Distance", "Angle", "Dihedral")
 
 
 MeasureKey = Hashable
@@ -91,7 +91,7 @@ class BaseMeasure(metaclass=ABCMeta):
     def to_fields(self) -> tuple[Any, ...]: ...
 
 
-class Measure(BaseMeasure):
+class Scalar(BaseMeasure):
     """Measurement class to handle scalar value measures."""
 
     def __str__(self) -> str:
