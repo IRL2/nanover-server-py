@@ -129,6 +129,14 @@ class Distance(BaseMeasure):
     def to_fields(self) -> tuple[Any, ...]:
         return self.name, [self.atom1, self.atom2], self.value
 
+    @property
+    def distance(self) -> float:
+        return self.value
+
+    @property.setter
+    def distance(self, distance: float) -> None:
+        self.value = distance
+
 
 class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
     """Measurement class to handle angles between atoms."""
@@ -160,6 +168,14 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
 
     def to_fields(self) -> tuple[Any, ...]:
         return self.name, [self.atom1, self.atom2, self.atom3], self.value
+
+    @property
+    def angle(self) -> float:
+        return self.value
+
+    @property.setter
+    def angle(self, angle: float) -> None:
+        self.value = angle
 
 
 class Dihedral(BaseMeasure):
@@ -199,3 +215,11 @@ class Dihedral(BaseMeasure):
 
     def to_fields(self) -> tuple[Any, ...]:
         return self.name, [self.atom1, self.atom2, self.atom3, self.atom4], self.value
+
+    @property
+    def dihedral(self) -> float:
+        return self.value
+
+    @property.setter
+    def dihedral(self, dihedral: float) -> None:
+        self.value = dihedral
