@@ -93,6 +93,11 @@ class Scalar(BaseMeasure):
         unit = f" {self.unit if self.unit is not None else ''}"
         return f"{self.name}: {self.value}{unit}"
 
+    def __eq__(self, value):
+        if isinstance(value, Scalar):
+            return self.name == value.name and super().__eq__(value)
+        return super().__eq__(value)
+
     @property
     def key(self) -> MeasureKey:
         return self.name  # Nothing else to use for hashing here.
@@ -121,6 +126,14 @@ class Distance(BaseMeasure):
     def __str__(self) -> str:
         unit = f" {self.unit if self.unit is not None else ''}"
         return f"(Distance) {self.name}: {self.value}{unit}"
+
+    def __eq__(self, value):
+        if isinstance(value, Distance):
+            return (self.atom1, self.atom2) == (
+                value.atom1,
+                value.atom2,
+            ) and super().__eq__(value)
+        return super().__eq__(value)
 
     @property
     def key(self) -> MeasureKey:
@@ -161,6 +174,15 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
     def __str__(self) -> str:
         unit = f" {self.unit if self.unit is not None else ''}"
         return f"(Angle) {self.name}: {self.value}{unit}"
+
+    def __eq__(self, value):
+        if isinstance(value, Angle):
+            return (self.atom1, self.atom2, self.atom3) == (
+                value.atom1,
+                value.atom2,
+                value.atom3,
+            ) and super().__eq__(value)
+        return super().__eq__(value)
 
     @property
     def key(self) -> MeasureKey:
@@ -208,6 +230,16 @@ class Dihedral(BaseMeasure):
     def __str__(self) -> str:
         unit = f" {self.unit if self.unit is not None else ''}"
         return f"(Dihedral) {self.name}: {self.value}{unit}"
+
+    def __eq__(self, value):
+        if isinstance(value, Dihedral):
+            return (self.atom1, self.atom2, self.atom3, self.atom4) == (
+                value.atom1,
+                value.atom2,
+                value.atom3,
+                value.atom4,
+            ) and super().__eq__(value)
+        return super().__eq__(value)
 
     @property
     def key(self) -> MeasureKey:
