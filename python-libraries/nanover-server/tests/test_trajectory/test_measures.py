@@ -137,20 +137,20 @@ def test_distance_equality_distance(distance, value):
 
 
 @given(angle_measure(), st.floats())
-def test_angle_equality_number(distance, value):
-    _comparison_set(distance, value, distance.value, value)
+def test_angle_equality_number(angle, value):
+    _comparison_set(angle, value, angle.value, value)
 
 
 @given(angle_measure(), angle_measure())
-def test_angle_equality_angle(distance, value):
-    _comparison_set(distance, value, distance.value, value.value)
+def test_angle_equality_angle(angle, value):
+    _comparison_set(angle, value, angle.value, value.value)
 
 
 @given(dihedral_measure(), st.floats())
-def test_angle_equality_number(distance, value):
-    _comparison_set(distance, value, distance.value, value)
+def test_angle_equality_number(dihedral, value):
+    _comparison_set(dihedral, value, dihedral.value, value)
 
 
 @given(dihedral_measure(), dihedral_measure())
-def test_angle_equality_angle(distance, value):
-    _comparison_set(distance, value, distance.value, value.value)
+def test_angle_equality_angle(dihedral, value):
+    _comparison_set(dihedral, value, dihedral.value, value.value)
