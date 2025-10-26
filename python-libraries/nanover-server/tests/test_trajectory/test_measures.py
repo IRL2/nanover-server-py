@@ -9,12 +9,6 @@ from nanover.trajectory import measure
 # test ctr measures
 # test angle conversions
 
-# TODO collections
-# test ctr
-# test update
-# test keys properly inserted
-# test removal
-
 
 @st.composite
 def scalar_measure(draw, name="test_scalar", value=None):
@@ -133,7 +127,10 @@ def test_distance_equality_number(distance, value):
 
 @given(distance_measure(), distance_measure())
 def test_distance_equality_distance(distance, value):
-    _comparison_set(distance, value, distance.value, value.value)
+    if (distance.atom1, distance.atom2) == (value.atom1, value.atom2):
+        _comparison_set(distance, value, distance.value, value.value)
+    else:
+        assert distance != value
 
 
 @given(angle_measure(), st.floats())
@@ -143,7 +140,14 @@ def test_angle_equality_number(angle, value):
 
 @given(angle_measure(), angle_measure())
 def test_angle_equality_angle(angle, value):
-    _comparison_set(angle, value, angle.value, value.value)
+    if (angle.atom1, angle.atom2, angle.atom3) == (
+        value.atom1,
+        value.atom2,
+        value.atom3,
+    ):
+        _comparison_set(angle, value, angle.value, value.value)
+    else:
+        assert angle != value
 
 
 @given(dihedral_measure(), st.floats())
@@ -153,4 +157,12 @@ def test_angle_equality_number(dihedral, value):
 
 @given(dihedral_measure(), dihedral_measure())
 def test_angle_equality_angle(dihedral, value):
-    _comparison_set(dihedral, value, dihedral.value, value.value)
+    if (dihedral.atom1, dihedral.atom2, dihedral.atom3, dihedral.atom4) == (
+        value.atom1,
+        value.atom2,
+        value.atom3,
+        value.atom4,
+    ):
+        _comparison_set(dihedral, value, dihedral.value, value.value)
+    else:
+        assert dihedral != value
