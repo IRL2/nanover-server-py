@@ -14,18 +14,11 @@ __all__ = ("Scalar", "Distance", "Angle", "Dihedral")
 MeasureKey = Hashable
 
 
-class UpdateStatus(IntEnum):
-    NEW = auto()
-    UPDATED = auto()
-    DELETE = auto()
-
-
 @dataclass(init=False)
 class BaseMeasure(metaclass=ABCMeta):
     name: str
     value: float
     unit: str
-    _update_status: UpdateStatus
 
     def __init__(
         self, name: str, value: float, unit: omunit.Unit | str | None = None
@@ -36,7 +29,6 @@ class BaseMeasure(metaclass=ABCMeta):
             self.unit = unit.get_symbol()
         else:
             self.unit = unit or ""
-        self._update_status = UpdateStatus.NEW
 
     @abstractmethod
     def __str__(self) -> str: ...
@@ -79,7 +71,6 @@ class BaseMeasure(metaclass=ABCMeta):
             raise TypeError(
                 f"Can only update measurements with numeric values, not {type(value)}."
             )
-        self._update_status = UpdateStatus.UPDATED
         self.value = value.value
 
     @abstractmethod
