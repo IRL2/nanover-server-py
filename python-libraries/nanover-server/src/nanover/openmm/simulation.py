@@ -1,6 +1,6 @@
 from os import PathLike
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -20,6 +20,7 @@ from .imd import (
 from .thermo import compute_instantaneous_temperature, compute_dof
 from nanover.imd.imd_force import calculate_contribution_to_work
 
+from nanover.trajectory.frame_wrapper import FrameData
 
 class OpenMMSimulation:
     """
@@ -304,3 +305,182 @@ class OpenMMSimulation:
         self.imd_force_manager.add_to_frame_data(frame_data)
 
         return frame_data
+
+class HBondOpenMMSimulation(OpenMMSimulation):
+    def __init__(self,*args , **kwargs):
+        super().__init__(*args, **kwargs)
+        self._cfg_h_range: Optional[Tuple[int, int]] = None
+        self._cfg_a_range: Optional[Tuple[int, int]] = None
+        self._cfg_h_indices: Optional[np.ndarray] = None  
+        self._cfg_a_indices: Optional[np.ndarray] = None
+        self._particle_elements: Optional[np.ndarray] = None 
+        self._hydrogen_indices: Optional[np.ndarray] = None  
+        self._nof_indices: Optional[np.ndarray] = None  
+        self._last_hb_pairs: set[tuple[int, int]] = set()
+
+    def make_regular_frame(self, positions: np.ndarray | None = None):
+        """
+        Make a NanoVer FrameData corresponding to the current state of the simulation.
+
+        :param positions: Optionally provided particle positions to save fetching them again.
+        """
+        assert (
+            self.simulation is not None
+            and self.imd_force_manager is not None
+            and self._dof is not None
+        )
+
+        # fetch omm state
+        state = self.simulation.context.getState(
+            getPositions=positions is None,
+            getForces=self.include_forces,
+            getVelocities=self.include_velocities,
+            getEnergy=True,
+            enforcePeriodicBox=self.use_pbc_wrapping or False,
+            groups=NON_IMD_FORCES_GROUP_MASK,
+        )
+
+        # generate frame based on basic omm state
+        frame_data = openmm_to_frame_data(
+            state=state,
+            topology=self.simulation.topology,
+            include_positions=positions is None,
+            include_velocities=self.include_velocities,
+            include_forces=self.include_forces,
+            state_excludes_imd=True,
+        )
+
+        # Assume that the KE is always available, which is true for this case
+        frame_data.system_temperature = compute_instantaneous_temperature(
+            self.simulation, frame_data.kinetic_energy, self._dof
+        )
+
+        # add any provided positions
+        if positions is not None:
+            frame_data.particle_positions = positions.astype(np.float32)
+
+        # Add hydrogen bond calculation here
+        self.updateHydrogenbond(frame_data, cutoff=0.3)
+
+        # add imd force information
+        self.imd_force_manager.add_to_frame_data(frame_data)
+
+        return frame_data
+    
+    def set_hbond_selection(self,
+        *,
+        h_indices: Optional[Sequence[int]] = None,
+        acceptor_indices: Optional[Sequence[int]] = None,
+        h_index_range: Optional[Tuple[int, int]] = None,
+        a_index_range: Optional[Tuple[int, int]] = None,
+        ) -> None:
+        def _as_intp(arr: Optional[Sequence[int]]) -> Optional[np.ndarray]:
+            if arr is None:
+                return None
+            return np.asarray(arr, dtype=np.intp)
+        self._cfg_h_indices = _as_intp(h_indices)
+        self._cfg_a_indices = _as_intp(acceptor_indices)
+        self._cfg_h_range   = h_index_range
+        self._cfg_a_range   = a_index_range
+        self._hydrogen_indices = None
+        self._nof_indices = None
+
+    def _ensure_element_and_indices(self, N_hint: Optional[int] = None) -> bool:
+        if self._hydrogen_indices is not None and self._nof_indices is not None:
+            return (self._hydrogen_indices.size > 0 and self._nof_indices.size > 0)
+        #check if we have the hydrogen and acceptor indices
+        has_h = (self._cfg_h_indices is not None) or (self._cfg_h_range is not None)
+        has_a = (self._cfg_a_indices is not None) or (self._cfg_a_range is not None)
+        if not (has_h and has_a):
+            return False  
+        
+        #if we have ranges, we need to get the element types
+        need_elements = (self._cfg_h_range is not None) or (self._cfg_a_range is not None)
+        if need_elements and self._particle_elements is None:
+            if self.simulation is None or self.simulation.topology is None:
+                return False
+            topo = self.simulation.topology
+            elems = [a.element.atomic_number if a.element is not None else 0 for a in topo.atoms()]
+            self._particle_elements = np.asarray(elems, dtype=np.uint8)
+
+        N = N_hint if N_hint is not None else (
+            self._particle_elements.size if self._particle_elements is not None else None
+        )
+
+        #hydrogen 
+        if self._cfg_h_indices is not None:
+            H = self._cfg_h_indices
+            if N is not None:
+                H = H[(H >= 0) & (H < N)]
+            self._hydrogen_indices = H
+        elif self._cfg_h_range is not None:
+            if self._particle_elements is None:
+                return False
+            lo, hi = self._cfg_h_range
+            lo = max(0, min(lo, self._particle_elements.size))
+            hi = max(lo, min(hi, self._particle_elements.size))
+            H_local = np.where(self._particle_elements[lo:hi] == 1)[0]  # H=1
+            self._hydrogen_indices = (H_local + lo).astype(np.intp, copy=False)
+        else:
+            return False
+
+        # acceptor (N, O, F)
+        if self._cfg_a_indices is not None:
+            A = self._cfg_a_indices
+            if N is not None:
+                A = A[(A >= 0) & (A < N)]
+            self._nof_indices = A
+        elif self._cfg_a_range is not None:
+            if self._particle_elements is None:
+                return False
+            lo, hi = self._cfg_a_range
+            lo = max(0, min(lo, self._particle_elements.size))
+            hi = max(lo, min(hi, self._particle_elements.size))
+            A_local = np.where(np.isin(self._particle_elements[lo:hi], [7, 8, 9]))[0]  # N/O/F
+            self._nof_indices = (A_local + lo).astype(np.intp, copy=False)
+        else:
+            return False
+
+        return (self._hydrogen_indices.size > 0 and self._nof_indices.size > 0)
+
+
+    def updateHydrogenbond(self, data: FrameData, cutoff: float):
+        particle_positions = getattr(data, "particle_positions", None)
+        if particle_positions is None:
+            return
+        positions = np.asarray(particle_positions, dtype=np.float32)
+
+        if not self._ensure_element_and_indices(N_hint=positions.shape[0]):
+            return
+
+        H = self._hydrogen_indices
+        A = self._nof_indices
+
+        h_pos = positions[H] #shape (nH, 3)  
+        a_pos = positions[A] #shape (nA, 3)
+        d = np.linalg.norm(h_pos[:, None, :] - a_pos[None, :, :], axis=2)  
+        jmin = d.argmin(axis=1)
+        dmin = d[np.arange(H.size), jmin]
+        ok = dmin <= cutoff
+
+        hb_pairs = set()
+        for idx in np.where(ok)[0]:
+            hi = int(H[idx]); aj = int(A[jmin[idx]])
+            pair = (hi, aj) if hi < aj else (aj, hi)
+            hb_pairs.add(pair)
+
+        existing_pairs = np.asarray(data.bond_pairs, dtype=np.uint32).reshape(-1, 2)
+        existing_set = {(int(i), int(j)) for i, j in existing_pairs}
+        if not hasattr(self, "_last_hb_pairs"):
+            self._last_hb_pairs = set()
+        keep_set = existing_set - self._last_hb_pairs
+        keep_mask  = [(int(i), int(j)) in keep_set for i, j in existing_pairs]
+        kept_pairs = existing_pairs[keep_mask]
+        new_pairs = sorted(hb_pairs - keep_set)
+        if new_pairs:
+            new_pairs = np.asarray(new_pairs, dtype=np.uint32).reshape(-1, 2) 
+        else:
+            new_pairs = np.empty((0, 2), dtype=np.uint32)  
+        data.bond_pairs = np.vstack([kept_pairs, new_pairs]).astype(np.uint32)
+        self._last_hb_pairs = set(map(tuple, new_pairs.tolist()))
+    
