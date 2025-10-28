@@ -7,7 +7,7 @@ import numpy as np
 from openmm.app import Simulation, StateDataReporter
 from openmm.unit import nanometer
 
-from nanover.core import AppServer
+from nanover.core import AppServer, Simulation as NanoverSimulation
 
 from .converter import openmm_to_frame_data
 from . import serializer
@@ -21,7 +21,7 @@ from .thermo import compute_instantaneous_temperature, compute_dof
 from nanover.imd.imd_force import calculate_contribution_to_work
 
 
-class OpenMMSimulation:
+class OpenMMSimulation(NanoverSimulation):
     """
     A wrapper for OpenMM simulations to run inside the OmniRunner.
 

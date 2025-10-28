@@ -2,7 +2,7 @@ from contextlib import suppress
 from os import PathLike
 from pathlib import Path
 
-from nanover.core import AppServer
+from nanover.core import AppServer, Simulation
 from nanover.recording.reading import (
     RecordingIndexEntry,
     NanoverRecordingReader,
@@ -16,7 +16,7 @@ SCENE_POSE_IDENTITY = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
 Entry = tuple[float, RecordingIndexEntry]
 
 
-class PlaybackSimulation:
+class PlaybackSimulation(Simulation):
     @classmethod
     def from_path(
         cls,

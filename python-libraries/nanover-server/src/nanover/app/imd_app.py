@@ -13,13 +13,14 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.core.commands import CommandService, CommandHandler
 from nanover.utilities.state_dictionary import StateDictionary
 from .multiuser import add_multiuser_commands
+from ..core import AppServer
 from ..imd import ImdStateWrapper
 
 DEFAULT_SERVE_ADDRESS = "[::]"
 DEFAULT_NANOVER_PORT = 38801
 
 
-class NanoverImdApplication:
+class NanoverImdApplication(AppServer):
     """
     Application-level class for implementing a NanoVer iMD server, something that publishes
     :class:`FrameData` that can be consumed, e.g. simulation trajectories, and can receive
