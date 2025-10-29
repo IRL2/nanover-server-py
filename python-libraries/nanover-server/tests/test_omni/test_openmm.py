@@ -15,14 +15,14 @@ from nanover.openmm import serializer, OpenMMSimulation
 from nanover.imd import ParticleInteraction
 from nanover.trajectory import FrameData
 
-from common import (
+from .common import (
     make_app_server,
     connect_and_retrieve_first_frame_from_app_server,
     make_loaded_sim,
     make_loaded_sim_with_interactions,
 )
 
-from openmm_simulation_utils import (
+from .openmm_simulation_utils import (
     build_single_atom_simulation,
     build_basic_simulation,
     build_basic_simulation_periodic,
