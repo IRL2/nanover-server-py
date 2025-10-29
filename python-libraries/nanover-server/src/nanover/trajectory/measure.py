@@ -66,12 +66,14 @@ class BaseMeasure(metaclass=ABCMeta):
     def __ge__(self, value: Any) -> bool:
         return self.value >= self._to_comparible_type(value)
 
-    def update(self, value: Self) -> None:
-        if not isinstance(value, (BaseMeasure)):
+    def update(self, value: Self | float | int) -> None:
+        if not isinstance(value, (type(self), float, int)):
             raise TypeError(
                 f"Can only update measurements with numeric values, not {type(value)}."
             )
-        self.value = value.value
+
+        value = value.value if isinstance(value, BaseMeasure) else value
+        self.value = value
 
     @abstractmethod
     def to_fields(self) -> tuple[Any, ...]: ...
