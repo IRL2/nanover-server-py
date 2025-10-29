@@ -52,6 +52,57 @@ def calculate_pmf_second_cumulant_kJ_mol(
     beta = 1.0 / (kB_kJ_mol_K._value * temperature_K)
     return _calculate_pmf_second_cumulant(work_done_array_kJ_mol, beta)
 
+def calculate_reaction_coordinate_projections(
+    smd_com_coordinates_array: np.ndarray,
+    smd_reaction_coordinate: np.ndarray,
+    every_nth_point: int | None = None,
+) -> np.ndarray:
+    """
+    Calculate the values of the reaction coordinate for the atom/COM coordinates from
+    a set of SMD trajectories, via projection onto the reaction coordinate.
+    :param smd_com_coordinates_array: (N x k x 3) array of coordinates defining the trajectories of
+      the COM of the group pulled along a k-step SMD reaction coordinate during the N SMD simulations
+      (in nm)
+    :param smd_reaction_coordinate: (k x 3) array of points defining the SMD reaction coordinate (in nm).
+    :param every_nth_point: (int | None) only calculate variance in the value of the reaction coordinate
+      at every nth point on the trajectory.
+    :return: (N * k) array of projected reaction coordinate values
+    """
+    # Calculate displacement vectors along SMD reaction coordinate
+    displacements = calculate_displacements_along_reaction_coordinate(
+        smd_reaction_coordinate, every_nth_point=every_nth_point
+    )
+
+    # Calculate normalised displacement vectors
+    normalised_displacements = np.array(
+        [
+            displacements[i] / np.linalg.norm(displacements[i])
+            for i in range(displacements.shape[0])
+        ]
+    )
+
+    # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
+    restraint_vectors = (smd_com_coordinates_array - smd_reaction_coordinate)[:, :-1]
+    if every_nth_point is not None:
+        restraint_vectors = restraint_vectors[:, ::every_nth_point]
+
+    i_index_range = restraint_vectors.shape[1]
+    if abs(restraint_vectors.shape[1] - normalised_displacements.shape[0]) == 1:
+        i_index_range -= 1
+
+    reaction_coordinate_projections = np.array(
+        [
+            [
+                np.dot(restraint_vectors[j, i], normalised_displacements[i])
+                for i in range(i_index_range)
+            ]
+            for j in range(restraint_vectors.shape[0])
+        ]
+    )
+
+    return reaction_coordinate_projections
+
+
 
 def calculate_variance_of_reaction_coordinate(
     smd_com_coordinates_array: np.ndarray,
@@ -70,37 +121,40 @@ def calculate_variance_of_reaction_coordinate(
     :return: (N-1) array of the variance in the reaction coordinate as a function of the first N-1
       points of the reaction coordinate (in nm^2)
     """
-    # Calculate displacement vectors along SMD reaction coordinate
-    displacements = calculate_displacements_along_reaction_coordinate(
-        smd_reaction_coordinate, every_nth_point=every_nth_point
-    )
+    reaction_coordinate_projections = (
+        calculate_reaction_coordinate_projections(smd_com_coordinates_array, smd_reaction_coordinate, every_nth_point))
 
-    # Calculate normalised displacement vectors
-    normalised_displacements = np.array(
-        [
-            displacements[i] / np.linalg.norm(displacements[i])
-            for i in range(displacements.shape[0])
-        ]
-    )
-
-    # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
-    restraint_vectors = (smd_com_coordinates_array - smd_reaction_coordinate)[:-1]
-    if every_nth_point is not None:
-        restraint_vectors = restraint_vectors[:, ::every_nth_point]
-
-    i_index_range = restraint_vectors.shape[1]
-    if abs(restraint_vectors.shape[1] - normalised_displacements.shape[0]) == 1:
-        i_index_range -= 1
-
-    reaction_coordinate_projections = np.array(
-        [
-            [
-                np.dot(restraint_vectors[j, i], normalised_displacements[i])
-                for i in range(i_index_range)
-            ]
-            for j in range(restraint_vectors.shape[0])
-        ]
-    )
+    # # Calculate displacement vectors along SMD reaction coordinate
+    # displacements = calculate_displacements_along_reaction_coordinate(
+    #     smd_reaction_coordinate, every_nth_point=every_nth_point
+    # )
+    #
+    # # Calculate normalised displacement vectors
+    # normalised_displacements = np.array(
+    #     [
+    #         displacements[i] / np.linalg.norm(displacements[i])
+    #         for i in range(displacements.shape[0])
+    #     ]
+    # )
+    #
+    # # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
+    # restraint_vectors = (smd_com_coordinates_array - smd_reaction_coordinate)[:, :-1]
+    # if every_nth_point is not None:
+    #     restraint_vectors = restraint_vectors[:, ::every_nth_point]
+    #
+    # i_index_range = restraint_vectors.shape[1]
+    # if abs(restraint_vectors.shape[1] - normalised_displacements.shape[0]) == 1:
+    #     i_index_range -= 1
+    #
+    # reaction_coordinate_projections = np.array(
+    #     [
+    #         [
+    #             np.dot(restraint_vectors[j, i], normalised_displacements[i])
+    #             for i in range(i_index_range)
+    #         ]
+    #         for j in range(restraint_vectors.shape[0])
+    #     ]
+    # )
 
     return np.var(reaction_coordinate_projections, axis=0)
 
@@ -135,7 +189,7 @@ def calculate_distance_along_reaction_coordinate(
     :param smd_reaction_coordinate: (k x 3) array of points defining the SMD reaction coordinate (in nm).
     :param every_nth_point: (int | None) only return the distance travelled along the reaction coordinate
       for every nth point of the trajectory
-    :return: (N) array of distances defining the cumulative distance travelled by the SMD restraint
+    :return: (k) array of distances defining the cumulative distance travelled by the SMD restraint
       along the reaction coordinate (in nm)
     """
     distance_along_rc = np.zeros(smd_reaction_coordinate.shape[0])
