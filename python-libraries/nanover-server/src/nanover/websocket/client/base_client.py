@@ -25,9 +25,8 @@ class WebsocketClient:
 
         self._state_dictionary = StateDictionary()
         self._pending_commands: dict[int, Callable[..., Any]] = {}
+        self._next_command_id = 1
         self._current_frame = FrameData()
-
-        self.next_command_id = 1
 
         def listen():
             for bytes in self._connection:
@@ -62,8 +61,8 @@ class WebsocketClient:
         arguments: dict | None = None,
         callback: Callable[[dict], None] | None = None,
     ):
-        id = self.next_command_id
-        self.next_command_id += 1
+        id = self._next_command_id
+        self._next_command_id += 1
         request = {"name": name, "arguments": arguments or {}, "id": id}
         message = {"command": [{"request": request}]}
         self._pending_commands[id] = callback or (lambda _: ...)

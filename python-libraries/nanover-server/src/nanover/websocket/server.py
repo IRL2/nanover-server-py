@@ -12,6 +12,8 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
+from nanover.websocket.commands import CommandMessageHandler
+
 
 class WebSocketServer:
     @classmethod
@@ -110,6 +112,8 @@ class _WebSocketClientHandler:
 
         self.user_id: str | None = None
 
+        self._command_handler = CommandMessageHandler(app_server, websocket)
+
     def close(self):
         self.cancellation.cancel()
 
@@ -120,10 +124,6 @@ class _WebSocketClientHandler:
     @property
     def state_dictionary(self):
         return self.app_server.state_dictionary
-
-    def run_command(self, name: str, arguments: dict | None = None):
-        results = self.app_server.run_command(name, arguments or {})
-        return results
 
     def send_frame(self, frame: FrameData):
         self.send_message({"frame": frame.pack_to_dict()})
@@ -141,24 +141,10 @@ class _WebSocketClientHandler:
                 self.user_id = _find_user_id(change)
             self.state_dictionary.update_state(None, change)
 
-        def handle_command_request(request):
-            name, arguments = request.get("name"), request.get("arguments", {})
-            try:
-                result = self.run_command(name, arguments)
-                response = {"request": request, "response": result}
-            except Exception as e:
-                response = {"request": request, "exception": str(e)}
-            self.send_message({"command": [response]})
-
         if "state" in message:
             handle_state_update(message["state"])
         if "command" in message:
-            # old format
-            if isinstance(message["command"], list):
-                for submessage in message["command"]:
-                    handle_command_request(submessage["request"])
-            else:
-                handle_command_request(message["command"]["request"])
+            self._command_handler.recv_message(message["command"])
 
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
         # TODO: error handling!!
