@@ -1,8 +1,10 @@
+import time
 from typing import Callable, Any
 
 import msgpack
 from websockets.sync.connection import Connection
 from nanover.core.app_server import CommandService
+from nanover.core.commands import CommandHandler
 
 
 class CommandMessageHandler:
@@ -12,6 +14,17 @@ class CommandMessageHandler:
 
         self._pending_commands: dict[int, Callable[..., Any]] = {}
         self._next_command_id = 1
+
+    def register_command(
+        self,
+        name: str,
+        callback: CommandHandler,
+        default_arguments: dict | None = None,
+    ) -> None:
+        self._command_service.register_command(name, callback, default_arguments)
+        self.send_message(
+            {"register": {"name": name, "arguments": default_arguments}},
+        )
 
     def request_command(
         self,
@@ -31,6 +44,8 @@ class CommandMessageHandler:
                 self.handle_command_exception(message["request"], message["exception"])
             elif "response" in message:
                 self.handle_command_response(message["request"], message["response"])
+            elif "register" in message:
+                self.handle_command_registration(message["register"])
             else:
                 self.handle_command_request(message["request"])
 
@@ -60,5 +75,29 @@ class CommandMessageHandler:
             response = {"request": request, "exception": str(e)}
         self.send_message(response)
 
+    def handle_command_registration(self, register):
+        name, arguments = register.get("name"), register.get("arguments", {})
+
+        _UNRECEIVED = object()
+
+        def handle_call_blocking(**arguments):
+            returns = _UNRECEIVED
+
+            def receive(results):
+                nonlocal returns
+                returns = results
+
+            self.request_command(name, arguments, receive)
+
+            while returns is _UNRECEIVED:
+                time.sleep(0.1)
+
+            if isinstance(returns, Exception):
+                raise returns
+
+            return returns
+
+        self._command_service.register_command(name, handle_call_blocking, arguments)
+
     def send_message(self, message):
-        self._connection.send(msgpack.packb({"command": [message]}))
+        self._connection.send(msgpack.packb({"command": message}))

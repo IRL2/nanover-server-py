@@ -1,3 +1,4 @@
+import concurrent
 import errno
 from concurrent.futures import ThreadPoolExecutor
 from ssl import SSLContext
@@ -114,8 +115,12 @@ class _WebSocketClientHandler:
 
         self._command_handler = CommandMessageHandler(app_server, websocket)
 
+        self._threads = ThreadPoolExecutor(thread_name_prefix="WebSocketClientHandler")
+
     def close(self):
+        print("CLOSING")
         self.cancellation.cancel()
+        self._threads.shutdown()
 
     @property
     def frame_publisher(self):
@@ -144,7 +149,7 @@ class _WebSocketClientHandler:
         if "state" in message:
             handle_state_update(message["state"])
         if "command" in message:
-            self._command_handler.recv_message(message["command"])
+            self._threads.submit(self._command_handler.recv_message, message["command"])
 
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
         # TODO: error handling!!
@@ -166,13 +171,14 @@ class _WebSocketClientHandler:
                 self.recv_message(msgpack.unpackb(data))
             self.cancellation.cancel()
 
-        threads = ThreadPoolExecutor(
-            max_workers=3, thread_name_prefix="WebSocketClientHandler"
+        concurrent.futures.wait(
+            [
+                self._threads.submit(send_frames),
+                self._threads.submit(send_updates),
+                self._threads.submit(recv_all),
+            ]
         )
-        threads.submit(send_frames)
-        threads.submit(send_updates)
-        threads.submit(recv_all)
-        threads.shutdown(wait=True)
+        self._threads.shutdown(wait=True)
 
         # remove keys owned by this user id
         if self.user_id is not None:

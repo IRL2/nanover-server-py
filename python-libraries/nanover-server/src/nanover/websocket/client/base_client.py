@@ -5,7 +5,7 @@ from typing import Callable
 import msgpack
 from websockets.sync.client import connect, ClientConnection
 
-from nanover.core.commands import CommandService
+from nanover.core.commands import CommandService, CommandHandler
 from nanover.utilities.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory import FrameData
@@ -24,10 +24,8 @@ class WebsocketClient:
     def __init__(self, connection: ClientConnection):
         self._connection = connection
 
-        self._command_service = CommandService()
-
         self._state_dictionary = StateDictionary()
-        self._command_handler = CommandMessageHandler(self._command_service, connection)
+        self._command_handler = CommandMessageHandler(CommandService(), connection)
         self._current_frame = FrameData()
 
         def listen():
@@ -38,9 +36,7 @@ class WebsocketClient:
                 except Exception as e:
                     print(f"RECV FAILED ({set(message.keys())})", e)
 
-        self.threads = ThreadPoolExecutor(
-            max_workers=1, thread_name_prefix="WebSocketClient"
-        )
+        self.threads = ThreadPoolExecutor(thread_name_prefix="WebSocketClient")
         self.threads.submit(listen)
 
     def close(self):
@@ -64,6 +60,14 @@ class WebsocketClient:
         callback: Callable[[dict], None] | None = None,
     ):
         self._command_handler.request_command(name, arguments, callback)
+
+    def register_command(
+        self,
+        name: str,
+        callback: CommandHandler,
+        default_arguments: dict | None = None,
+    ) -> None:
+        self._command_handler.register_command(name, callback, default_arguments)
 
     def run_command_blocking(self, name: str, **arguments):
         returns = _UNRECEIVED
