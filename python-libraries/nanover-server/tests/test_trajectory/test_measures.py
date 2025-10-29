@@ -151,12 +151,12 @@ def test_angle_equality_angle(angle, value):
 
 
 @given(dihedral_measure(), st.floats())
-def test_angle_equality_number(dihedral, value):
+def test_dihedral_equality_number(dihedral, value):
     _comparison_set(dihedral, value, dihedral.value, value)
 
 
 @given(dihedral_measure(), dihedral_measure())
-def test_angle_equality_angle(dihedral, value):
+def test_dihedral_equality_dihedral(dihedral, value):
     if (dihedral.atom1, dihedral.atom2, dihedral.atom3, dihedral.atom4) == (
         value.atom1,
         value.atom2,
