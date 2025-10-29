@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from enum import IntEnum, auto
 
 from typing import Hashable, Any, Self
 

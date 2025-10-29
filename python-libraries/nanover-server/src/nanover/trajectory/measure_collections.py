@@ -42,7 +42,7 @@ def _create_unitype_measuremap(
     if check_type is None and map_:
         check_type = next(iter(map_))
 
-    if not all(type(el) == check_type for el in map_.values()):
+    if not all(type(el) is check_type for el in map_.values()):
         raise TypeError(
             f"Inconsistent type, all elements should be of type `{check_type}`."
         )
