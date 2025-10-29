@@ -54,16 +54,16 @@ class BaseMeasure(metaclass=ABCMeta):
         return not self == value
 
     def __lt__(self, value: Any) -> bool:
-        return self.value < self._to_comparible_type(value)
+        return value is not None and self.value < self._to_comparible_type(value)
 
     def __gt__(self, value: Any) -> bool:
-        return self.value > self._to_comparible_type(value)
+        return value is not None and self.value > self._to_comparible_type(value)
 
     def __le__(self, value: Any) -> bool:
-        return self.value <= self._to_comparible_type(value)
+        return value is not None and self.value <= self._to_comparible_type(value)
 
     def __ge__(self, value: Any) -> bool:
-        return self.value >= self._to_comparible_type(value)
+        return value is not None and self.value >= self._to_comparible_type(value)
 
     def update(self, value: Self | float | int) -> None:
         if not isinstance(value, (type(self), float, int)):
