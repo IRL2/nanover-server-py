@@ -33,6 +33,22 @@ FRAMEDATA_MEASURE_FIELD_KEYS: dict[type[BaseMeasure], tuple[str, ...]] = {
 }
 
 
+def _create_unitype_measuremap(
+    measures: Iterable[BaseMeasure] | None, check_type: type | None = None
+) -> MeasureMap:
+    """Creates a `MeasureMap`, ensuring all elements are the same (`check_type`)."""
+    map_ = {el.key: el for el in measures} if measures is not None else MeasureMap()
+
+    if check_type is None and map_:
+        check_type = next(iter(map_))
+
+    if not all(type(el) == check_type for el in map_.values()):
+        raise TypeError(
+            f"Inconsistent type, all elements should be of type `{check_type}`."
+        )
+    return map_
+
+
 class MeasureCollection:
     """Container class to handle sets of related measurements."""
 
@@ -43,18 +59,10 @@ class MeasureCollection:
         angles: Iterable[Angle] | None = None,
         dihedrals: Iterable[Dihedral] | None = None,
     ):
-        self.scalars: MeasureMap = (
-            {el.key: el for el in scalars} if scalars is not None else MeasureMap()
-        )
-        self.distances: MeasureMap = (
-            {el.key: el for el in distances} if distances is not None else MeasureMap()
-        )
-        self.angles: MeasureMap = (
-            {el.key: el for el in angles} if angles is not None else MeasureMap()
-        )
-        self.dihedrals: MeasureMap = (
-            {el.key: el for el in dihedrals} if dihedrals is not None else MeasureMap()
-        )
+        self.scalars: MeasureMap = _create_unitype_measuremap(scalars, Scalar)
+        self.distances: MeasureMap = _create_unitype_measuremap(distances, Distance)
+        self.angles: MeasureMap = _create_unitype_measuremap(angles, Angle)
+        self.dihedrals: MeasureMap = _create_unitype_measuremap(dihedrals, Dihedral)
 
         self._type_mapping: dict[type[BaseMeasure], Callable[[Any], MeasureMap]] = {
             Scalar: operator.attrgetter("scalars"),
@@ -89,6 +97,15 @@ class MeasureCollection:
         return "{} containing: {} scalar, {} distance, {} angle, and {} dihedral measurements.".format(
             type(self).__name__, *num_measures
         )
+
+    def __getitem__(self, key: BaseMeasure | Any) -> BaseMeasure:
+        """Returns relevant `key` from underlying `MeasureMap`s."""
+        if (target_getter := self._type_mapping.get(type(key), None)) is None:
+            raise KeyError(f"Invalid {key}, only accepts Measure types. ")
+        if (value := target_getter(self).get(key.key, None)) is None:
+            raise KeyError(f'Could not find "{key}" in collections.')
+
+        return value
 
     def _measure_iterator(
         self, measurements: Iterable[BaseMeasure]
