@@ -40,7 +40,7 @@ def _create_unitype_measuremap(
     map_ = {el.key: el for el in measures} if measures is not None else MeasureMap()
 
     if check_type is None and map_:
-        check_type = next(iter(map_))
+        check_type = type(next(iter(map_)))
 
     if not all(type(el) is check_type for el in map_.values()):
         raise TypeError(
