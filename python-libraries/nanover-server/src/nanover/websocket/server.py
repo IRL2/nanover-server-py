@@ -123,7 +123,6 @@ class _WebSocketClientHandler:
         self._threads = ThreadPoolExecutor(thread_name_prefix="WebSocketClientHandler")
 
     def close(self):
-        print("CLOSING")
         self.cancellation.cancel()
         self._threads.shutdown()
 

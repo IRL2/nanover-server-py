@@ -19,11 +19,12 @@ from nanover.testing.strategies import (
 from nanover.websocket.client.app_client import NanoverImdClient
 
 
+def echo(**arguments):
+    return arguments
+
+
 @pytest.fixture(scope="module")
 def reusable_setup():
-    def echo(**arguments):
-        return arguments
-
     with make_connected_server_client_setup() as setup:
         setup.app.register_command("test/identity", echo)
         yield setup
@@ -32,6 +33,7 @@ def reusable_setup():
 @pytest.fixture(scope="module")
 def reusable_setup_two_clients():
     with make_connected_server_client_setup() as setup:
+        setup.client.register_command("test/client_echo", echo)
         with connect_client_to_server(setup.server) as client:
             yield setup, client
 
@@ -91,6 +93,18 @@ def test_echo_command(reusable_setup, arguments):
     assert_equal_soon(
         lambda: mock_callback.call_args and mock_callback.call_args.args[0],
         lambda: arguments,
+    )
+
+
+@given(arguments=command_arguments())
+def test_websocket_register_command(reusable_setup_two_clients, arguments):
+    """
+    Test one client can call a function registered by another.
+    """
+    setup, extra_client = reusable_setup_two_clients
+
+    assert (
+        extra_client.run_command_blocking("test/client_echo", **arguments) == arguments
     )
 
 
