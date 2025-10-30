@@ -783,6 +783,7 @@ class OpenMMStringOptimiser:
 
         self.checkpoints = checkpoints
         self.node_positions = node_positions
+        self.node_position_history.append(self.node_positions)
         self.smd_simulation.reset()
 
     def calculate_tangent_vectors(self):
