@@ -1,8 +1,10 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Protocol
 from nanover.utilities.key_lockable_map import KeyLockableMap
 
-CommandHandler = Callable[..., dict | None] | Callable[[], dict | None]
+
+class CommandHandler(Protocol):
+    def __call__(self, **kwargs) -> dict | None: ...
 
 
 @dataclass(kw_only=True)

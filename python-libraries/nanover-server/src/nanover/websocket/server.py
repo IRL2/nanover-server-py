@@ -113,8 +113,11 @@ class _WebSocketClientHandler:
 
         self.user_id: str | None = None
 
+        def send_command(message):
+            self.websocket.send(msgpack.packb({"command": message}))
+
         self._command_handler = CommandMessageHandler(
-            websocket, command_service=app_server
+            send_command, command_service=app_server
         )
 
         self._threads = ThreadPoolExecutor(thread_name_prefix="WebSocketClientHandler")
