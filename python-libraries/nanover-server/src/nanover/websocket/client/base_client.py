@@ -24,8 +24,11 @@ class WebsocketClient:
     def __init__(self, connection: ClientConnection):
         self._connection = connection
 
+        def send_command(message):
+            connection.send(msgpack.packb({"command": message}))
+
         self._state_dictionary = StateDictionary()
-        self._command_handler = CommandMessageHandler(CommandService(), connection)
+        self._command_handler = CommandMessageHandler(send_command)
         self._current_frame = FrameData()
 
         def listen():
@@ -95,7 +98,7 @@ class WebsocketClient:
         if "state" in message:
             self.recv_state(message["state"])
         if "command" in message:
-            self._command_handler.recv_message(message["command"])
+            self._command_handler.handle_message(message["command"])
 
     def recv_frame(self, message: dict):
         self._current_frame.update(FrameData.unpack_from_dict(message))

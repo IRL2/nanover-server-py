@@ -113,7 +113,9 @@ class _WebSocketClientHandler:
 
         self.user_id: str | None = None
 
-        self._command_handler = CommandMessageHandler(app_server, websocket)
+        self._command_handler = CommandMessageHandler(
+            websocket, command_service=app_server
+        )
 
         self._threads = ThreadPoolExecutor(thread_name_prefix="WebSocketClientHandler")
 
@@ -149,7 +151,10 @@ class _WebSocketClientHandler:
         if "state" in message:
             handle_state_update(message["state"])
         if "command" in message:
-            self._threads.submit(self._command_handler.recv_message, message["command"])
+            # this can block waiting for another client to satisfy a command request
+            self._threads.submit(
+                self._command_handler.handle_message, message["command"]
+            )
 
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
         # TODO: error handling!!
