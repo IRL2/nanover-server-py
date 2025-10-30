@@ -234,9 +234,6 @@ class OpenMMSMDSimulation:
         )
 
         # Reset SMD force position
-        reset_smd_simulation_arrays = False
-        if self.current_smd_force_position_index != 0:
-            reset_smd_simulation_arrays=True
         self.current_smd_force_position = self.smd_path[0]
         self.current_smd_force_position_index = 0
         self.update_smd_force_position()
@@ -246,10 +243,9 @@ class OpenMMSMDSimulation:
         self.simulation.context.loadCheckpoint(self.checkpoint)
 
         # Reset or remove SMD simulation arrays
-        if reset_smd_simulation_arrays:
-            self.define_smd_simulation_atom_positions_array()
-            del self.smd_simulation_forces
-            del self.smd_simulation_work_done
+        self.define_smd_simulation_atom_positions_array()
+        del self.smd_simulation_forces
+        del self.smd_simulation_work_done
 
     def remove_smd_force_from_system(self):
         """
@@ -788,7 +784,7 @@ class OpenMMStringOptimiser:
         self.checkpoints = checkpoints
         self.node_positions = node_positions
         self.node_position_history.append(self.node_positions)
-        self.smd_simulation.reset()
+        # self.smd_simulation.reset()
 
     def calculate_tangent_vectors(self):
 
