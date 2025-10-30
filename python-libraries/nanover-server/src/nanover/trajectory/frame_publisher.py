@@ -1,147 +1,106 @@
 import time
-from queue import Queue
+from contextlib import contextmanager
 from threading import Lock
-from typing import Union, Callable
 
-from nanover.utilities.request_queues import (
-    DictOfQueues,
-    GetFrameResponseAggregatingQueue,
-)
+from nanover.utilities.cli import CancellationToken
+from nanover.utilities.queues import FrameMergingQueue
 from nanover.utilities.timing import yield_interval
-from nanover.protocol.trajectory import (
-    TrajectoryServiceServicer,
-    GetFrameResponse,
-    add_TrajectoryServiceServicer_to_server,
-)
-from nanover.protocol.trajectory import FrameData as RawFrameData
-from nanover.trajectory.frame_data import (
-    FrameData,
-    SERVER_TIMESTAMP,
-    SIMULATION_COUNTER,
-)
-
-SENTINEL = None
-
-FRAME_SERVICE_NAME = "trajectory"
+from nanover.trajectory import FrameData
 
 
-class FramePublisher(TrajectoryServiceServicer):
+class FramePublisher:
     """
-    An implementation of a trajectory service. Call send_frame
-    to send data to clients when called by other python code.
+    Manages a single FrameData and provides a means to update it and make multiple independent subscriptions to a
+    stream of those updates.
     """
-
-    frame_queues: DictOfQueues
-    last_frame: RawFrameData
-    last_frame_index: int
-    last_request_id: int
-    _frame_queue_lock: Lock
-    _last_frame_lock: Lock
-    _request_id_lock: Lock
 
     def __init__(self):
-        self.name: str = FRAME_SERVICE_NAME
-        self.add_to_server_method: Callable = add_TrajectoryServiceServicer_to_server
-        self.frame_queues = DictOfQueues()
-        self.last_frame = None
-        self.last_frame_index = 0
-        self.last_request_id = 0
         self.simulation_counter = 0
-        self._last_frame_lock = Lock()
-        self._request_id_lock = Lock()
+        self.next_frame_index = 0
 
-    def SubscribeFrames(self, request, context):
+        self.current_frame: FrameData | None = None
+        self._frame_queues: set[FrameMergingQueue] = set()
+        self._frame_queues_lock = Lock()
+
+    def close(self):
         """
-        Subscribe to all the frames produced by the service.
-
-        This method publishes all the frames produced by the trajectory service,
-        starting when the client subscribes.
+        Terminate all frame subscriptions.
         """
-        yield from self._subscribe_frame_base(request, context, queue_type=Queue)
+        with self._frame_queues_lock:
+            for queue in self._frame_queues:
+                queue.close()
 
-    def SubscribeLatestFrames(self, request, context):
+    def send_clear(self):
         """
-        Subscribe to the last produced frames produced by the service.
-
-        This method publishes the latest frame available at the time of
-        yielding.
+        Queue the start of a new sequence of frames that don't reuse the topology etc of the previous frames.
         """
-        yield from self._subscribe_frame_base(
-            request,
-            context,
-            queue_type=GetFrameResponseAggregatingQueue,
-        )
+        self.next_frame_index = 1
 
-    def _subscribe_frame_base(self, request, context, queue_type):
-        listen_for_cancellation = context.add_callback
-        request_id = self._get_new_request_id()
-        yield from self._yield_last_frame_if_any()
-        with self.frame_queues.one_queue(request_id, queue_class=queue_type) as queue:
-            if not listen_for_cancellation(lambda: queue.put(SENTINEL)):
-                return
-            for dt in yield_interval(request.frame_interval):
+        frame = FrameData()
+        frame.frame_index = 0
+        frame.simulation_counter = self.simulation_counter
+        self.simulation_counter += 1
+
+        self.current_frame = frame
+        self._queue_frame_for_all_subscribers(frame)
+
+    def send_frame(self, frame: FrameData):
+        """
+        Queue a frame for publishing.
+        """
+        if self.current_frame is None:
+            self.send_clear()
+
+        prev_frame = self.current_frame or FrameData()
+
+        frame.server_timestamp = time.monotonic()
+        frame.frame_index = self.next_frame_index
+        self.next_frame_index += 1
+
+        next_frame = FrameData()
+        next_frame.update(prev_frame)
+        next_frame.update(frame)
+
+        self.current_frame = next_frame
+        self._queue_frame_for_all_subscribers(frame)
+
+    def subscribe_latest_frames(
+        self, *, frame_interval=1 / 30, cancellation: CancellationToken
+    ):
+        """
+        Yield the most recent frame, if changed, at a regular interval. Terminates when cancellation token is
+        cancelled or this FramePublisher is closed.
+        """
+        if cancellation.is_cancelled:
+            return
+
+        with self._get_queue() as queue:
+            cancellation.subscribe_cancellation(lambda: queue.close())
+
+            for _ in yield_interval(frame_interval):
                 item = queue.get(block=True)
-                if item is SENTINEL:
+                if cancellation.is_cancelled or item is None:
                     break
                 yield item
 
-    def _get_new_request_id(self) -> int:
-        """
-        Provide a new client id in a thread safe way.
-        """
-        with self._request_id_lock:
-            self.last_request_id += 1
-            client_id = self.last_request_id
-        return client_id
+    def _queue_frame_for_all_subscribers(self, frame):
+        with self._frame_queues_lock:
+            for queue in self._frame_queues:
+                queue.put(frame)
 
-    def _yield_last_frame_if_any(self):
-        """
-        Yields the last frame as a :class:`GetFrameResponse` object if there is
-        one.
+    @contextmanager
+    def _get_queue(self):
+        queue = FrameMergingQueue()
 
-        This method places a lock on :attr:`last_frame` and
-        :attr:`last_frame_index` to prevent other threads to modify them as we
-        read them.
-        """
-        with self._last_frame_lock:
-            if self.last_frame is not None:
-                yield GetFrameResponse(
-                    frame_index=self.last_frame_index, frame=self.last_frame
-                )
+        # insert the current aggregate frame if it exists
+        if self.current_frame is not None:
+            queue.put(self.current_frame)
 
-    def send_frame(self, frame_index: int, frame: Union[FrameData, RawFrameData]):
-        now = time.monotonic()
-        if isinstance(frame, FrameData):
-            frame.server_timestamp = now
-            frame = frame.raw
-        else:
-            frame.values[SERVER_TIMESTAMP].number_value = now
-
-        if frame_index == 0:
-            frame.values[SIMULATION_COUNTER].number_value = self.simulation_counter
-            self.simulation_counter += 1
-
-        with self._last_frame_lock:
-            if self.last_frame is None:
-                self.last_frame = RawFrameData()
-            self.last_frame_index = frame_index
-
-            for key in frame.arrays.keys():
-                if key in self.last_frame.arrays:
-                    del self.last_frame.arrays[key]
-            for key in frame.values.keys():
-                if key in self.last_frame.values:
-                    del self.last_frame.values[key]
-
-            # repeated merging onto the same last_frame seems to cause a memory leak, so we start from a blank state each time
-            merged = RawFrameData()
-            merged.MergeFrom(self.last_frame)
-            merged.MergeFrom(frame)
-            self.last_frame = merged
-
-        for queue in self.frame_queues.iter_queues():
-            queue.put(GetFrameResponse(frame_index=frame_index, frame=frame))
-
-    def close(self):
-        for queue in self.frame_queues.iter_queues():
-            queue.put(SENTINEL)
+        try:
+            with self._frame_queues_lock:
+                self._frame_queues.add(queue)
+            yield queue
+        finally:
+            with self._frame_queues_lock:
+                self._frame_queues.discard(queue)
+            queue.close()

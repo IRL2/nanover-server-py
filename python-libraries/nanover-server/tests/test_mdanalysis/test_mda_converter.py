@@ -12,7 +12,8 @@ from nanover.mdanalysis.converter import (
     add_mda_topology_to_frame_data,
     _get_mda_attribute,
 )
-from nanover.trajectory.frame_data import PARTICLE_ELEMENTS, MissingDataError, FrameData
+from nanover.trajectory.keys import PARTICLE_ELEMENTS
+from nanover.trajectory import FrameData, MissingDataError
 
 TEST_SYSTEM_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -22,7 +23,7 @@ TEST_SYSTEM_PATH = os.path.join(
 
 @pytest.fixture
 def universe():
-    return Universe(TEST_SYSTEM_PATH, guess_bonds=True)
+    return Universe(TEST_SYSTEM_PATH, to_guess=("bonds",))
 
 
 @pytest.fixture()
@@ -86,7 +87,7 @@ def test_mdanalysis_particle_field(
     frame, universe = frame_data_and_universe
     # fetches the atoms, residues or chains object, then the attribute.
     attribute = _get_mda_attribute(universe, universe_attribute, mda_attribute)
-    field = frame.arrays[frame_field]
+    field = frame[frame_field]
     if frame_field == PARTICLE_ELEMENTS:
         field = [INDEX_ELEMENT[x] for x in field]
     assert all(a == b for a, b in zip(attribute, field))
@@ -104,7 +105,7 @@ def test_mdanalysis_positions(frame_data_and_universe):
 )
 def test_mdanalysis_counts(mda_attribute, frame_field, frame_data_and_universe):
     frame, universe = frame_data_and_universe
-    assert len(getattr(universe, mda_attribute)) == frame.values[frame_field]
+    assert len(getattr(universe, mda_attribute)) == frame[frame_field]
 
 
 def test_mdanalysis_bonds(frame_data_and_universe):

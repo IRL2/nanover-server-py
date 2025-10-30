@@ -67,8 +67,26 @@ def interaction_dictionaries(draw):
 
 
 @st.composite
+def extra_dictionaries(draw):
+    serializable_dict: dict = draw(serializable_dictionaries())
+
+    for key in {
+        "position",
+        "particles",
+        "reset_velocities",
+        "mass_weighted",
+        "scale",
+        "max_force",
+        "interaction_type",
+    }:
+        serializable_dict.pop(key, None)
+
+    return serializable_dict
+
+
+@st.composite
 def interactions(draw):
-    serializable_dict = draw(serializable_dictionaries())
+    extra = draw(extra_dictionaries())
     return ParticleInteraction(
         position=draw(positions()),
         particles=draw(particles()),
@@ -77,7 +95,7 @@ def interactions(draw):
         scale=draw(scale()),
         max_force=draw(max_force()),
         interaction_type=draw(interaction_type()),
-        **serializable_dict
+        **extra
     )
 
 
@@ -102,7 +120,7 @@ def test_save_then_load(interaction):
     scale(),
     max_force(),
     interaction_type(),
-    serializable_dictionaries(),
+    extra_dictionaries(),
 )
 def test_constructor(
     position,
@@ -191,7 +209,7 @@ def test_interaction_type(orig, new):
     assert interaction.interaction_type == new
 
 
-@given(serializable_dictionaries(), serializable_dictionaries())
+@given(extra_dictionaries(), extra_dictionaries())
 def test_extra(original_extra, new_extra):
     interaction = ParticleInteraction(**original_extra)
     for key, value in original_extra.items():

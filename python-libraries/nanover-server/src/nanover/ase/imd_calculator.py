@@ -3,7 +3,7 @@ Provides an implementation of IMD force field in ASE.
 """
 
 import math
-from typing import Optional, Dict, Set, Collection
+from typing import Set
 
 import numpy as np
 from ase import Atoms, units  # type: ignore
@@ -14,7 +14,7 @@ from ase.md.velocitydistribution import _maxwellboltzmanndistribution
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd.imd_state import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.trajectory.frame_data import MissingDataError, FrameData
+from nanover.trajectory import FrameData, MissingDataError
 
 from . import converter
 
@@ -36,7 +36,7 @@ class ImdForceManager:
         self.total_user_energy = 0.0
         self.user_forces: np.ndarray = np.zeros(self.atoms.positions.shape)
 
-        self._current_interactions: Dict[str, ParticleInteraction] = {}
+        self._current_interactions: dict[str, ParticleInteraction] = {}
 
     def update_interactions(self):
         """
@@ -56,10 +56,10 @@ class ImdForceManager:
         """
         frame_data.user_energy = self.total_user_energy * converter.EV_TO_KJMOL
         user_sparse_indices, user_sparse_forces = get_sparse_forces(self.user_forces)
-        frame_data.user_forces_sparse = user_sparse_forces * (
-            converter.EV_TO_KJMOL / converter.ANG_TO_NM
-        )
-        frame_data.user_forces_index = user_sparse_indices
+        frame_data.user_forces_sparse = (
+            user_sparse_forces * (converter.EV_TO_KJMOL / converter.ANG_TO_NM)
+        ).astype(np.float32)
+        frame_data.user_forces_index = user_sparse_indices.astype(np.uint32)
 
     def _update_forces(self, atoms):
         """
@@ -89,7 +89,7 @@ class ImdForceManager:
         self,
         atoms,
         positions: np.ndarray,
-        interactions: Dict[str, ParticleInteraction],
+        interactions: dict[str, ParticleInteraction],
     ):
         """
         A calculate the iMD forces and energies and convert
@@ -144,7 +144,7 @@ class ImdCalculator(Calculator):
         imd_state: ImdStateWrapper,
         calculator: Calculator,
         atoms: Atoms,
-        dynamics: Optional[MolecularDynamics] = None,
+        dynamics: MolecularDynamics | None = None,
         reset_scale=0.5,
         **kwargs,
     ):
@@ -235,7 +235,7 @@ class ImdCalculator(Calculator):
         return self._calculator
 
     @property
-    def interactions(self) -> Dict[str, ParticleInteraction]:
+    def interactions(self) -> dict[str, ParticleInteraction]:
         """
         Fetches a copy of the current interactions.
         """
@@ -244,7 +244,7 @@ class ImdCalculator(Calculator):
 
     def calculate(
         self,
-        atoms: Optional[Atoms] = None,
+        atoms: Atoms | None = None,
         properties=("energy", "forces"),
         system_changes=all_changes,
     ):
@@ -324,7 +324,7 @@ class ImdCalculator(Calculator):
         self._imd_state.velocity_reset_available = True
 
 
-def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
+def get_periodic_box_lengths(atoms: Atoms) -> np.ndarray | None:
     """
     Gets the periodic box lengths of an orthorhombic box, in nm, from an ASE atoms collection, if it exists.
 
@@ -350,7 +350,7 @@ def get_periodic_box_lengths(atoms: Atoms) -> Optional[np.ndarray]:
 
 def _get_cancelled_interactions(
     interactions, previous_interactions
-) -> Dict[object, ParticleInteraction]:
+) -> dict[object, ParticleInteraction]:
     old_keys = set(previous_interactions.keys())
     cancelled_interactions = old_keys.difference(interactions.keys())
     return {key: previous_interactions[key] for key in cancelled_interactions}
@@ -372,7 +372,7 @@ def _apply_velocities_reset(atoms, atoms_to_reset, temperature):
 
 
 def _reset_selection_to_boltzmann(
-    atoms: Atoms, selection: Collection[int], temperature: float
+    atoms: Atoms, selection: np.ndarray, temperature: float
 ):
     # TODO importing a private function here... reimplement?
     reset = _maxwellboltzmanndistribution(
@@ -382,7 +382,7 @@ def _reset_selection_to_boltzmann(
 
 
 def _scale_momentum_of_selection(
-    atoms: Atoms, selection: Collection[int], temperature: float
+    atoms: Atoms, selection: np.ndarray, temperature: float
 ):
     scaled_selection = _get_scaled_momentum(atoms[selection], temperature)
     _apply_momentum_to_selection(atoms, selection, scaled_selection)

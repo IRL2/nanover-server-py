@@ -4,7 +4,7 @@ A module containing a Extremely Simple Service Discovery client.
 
 import json
 import time
-from typing import Optional, Set, Iterable
+from typing import Set, Iterable
 
 import select
 
@@ -15,7 +15,7 @@ IP_ADDRESS_ANY = "0.0.0.0"
 
 
 class DiscoveryClient:
-    def __init__(self, address: Optional[str] = None, port: Optional[int] = None):
+    def __init__(self, address: str | None = None, port: int | None = None):
         if address is None:
             address = IP_ADDRESS_ANY
         if port is None:
@@ -57,7 +57,7 @@ class DiscoveryClient:
         deadline = time.monotonic() + search_time
         while time.monotonic() < deadline:
             time_before_recv = time.monotonic()
-            time_remaining = deadline - time.monotonic()
+            time_remaining = max(deadline - time.monotonic(), 0)
             if self._check_for_messages(timeout=time_remaining):
                 service = self._receive_service()
                 if service is not None and service not in services:

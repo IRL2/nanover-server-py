@@ -1,14 +1,14 @@
 import ipaddress
 import socket
-from typing import List, Optional, Iterable, Dict
+from typing import List, Iterable
 
 import netifaces
 
-InterfaceAddresses = Dict[str, str]
+InterfaceAddresses = dict[str, str]
 
 
 def get_ipv4_addresses(
-    interfaces: Optional[Iterable[str]] = None,
+    interfaces: Iterable[str] | None = None,
 ) -> List[InterfaceAddresses]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces.
@@ -31,7 +31,7 @@ def get_ipv4_addresses(
 
 
 def get_broadcast_addresses(
-    interfaces: Optional[Iterable[str]] = None,
+    interfaces: Iterable[str] | None = None,
 ) -> List[InterfaceAddresses]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces that have broadcast addresses.
@@ -61,7 +61,7 @@ def get_broadcast_addresses(
 
 def resolve_host_broadcast_address(
     host: str,
-    ipv4_addrs: Optional[List[InterfaceAddresses]] = None,
+    ipv4_addrs: List[InterfaceAddresses] | None = None,
 ):
     try:
         address = socket.gethostbyname(host)

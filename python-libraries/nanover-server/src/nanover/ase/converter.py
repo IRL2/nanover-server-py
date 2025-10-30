@@ -4,7 +4,7 @@ Module containing methods for converting between ASE simulations consisting of
 NanoVer clients.
 """
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 from ase import Atoms, Atom  # type: ignore
 from ase.units import fs as fs_in_ase_time_unit
@@ -125,7 +125,7 @@ def frame_data_to_ase(
     frame_data: FrameData,
     positions: bool = True,
     topology: bool = True,
-    ase_atoms: Optional[Atoms] = None,
+    ase_atoms: Atoms | None = None,
 ) -> Atoms:
     """
     Constructs an ASE :class:`Atoms` object from a NanoVer :class:`FrameData`.
@@ -193,7 +193,7 @@ def add_ase_positions_to_frame_data(data: FrameData, positions: npt.NDArray):
     :param data: :class:`FrameData` to add atom positions to.
     :param positions: Array of atomic positions, in angstroms.
     """
-    data.particle_positions = positions * ANG_TO_NM
+    data.particle_positions = (positions * ANG_TO_NM).astype(np.float32)
 
 
 def add_ase_velocities_to_frame_data(data: FrameData, ase_atoms: Atoms):
@@ -203,9 +203,9 @@ def add_ase_velocities_to_frame_data(data: FrameData, ase_atoms: Atoms):
     :param data: :class:`FrameData` to add atom velocities to.
     :param ase_atoms: ASE :class:`Atoms` to add particle positions to.
     """
-    data.particle_velocities = ase_atoms.get_velocities() * (
-        ANG_TO_NM / ASE_TIME_UNIT_TO_PS
-    )
+    data.particle_velocities = (
+        ase_atoms.get_velocities() * (ANG_TO_NM / ASE_TIME_UNIT_TO_PS)
+    ).astype(np.float32)
 
 
 def add_ase_forces_to_frame_data(data: FrameData, ase_atoms: Atoms):
@@ -218,7 +218,9 @@ def add_ase_forces_to_frame_data(data: FrameData, ase_atoms: Atoms):
     :param ase_atoms: ASE :class:`Atoms` to add particle positions to.
     """
 
-    data.particle_forces_system = ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+    data.particle_forces_system = (
+        ase_atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
+    ).astype(np.float32)
     if isinstance(ase_atoms.calc, ImdCalculator):
         data.particle_forces_system -= ase_atoms.calc.results["interactive_forces"] * (
             EV_TO_KJMOL / ANG_TO_NM
@@ -233,8 +235,7 @@ def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
     :param data: :class:`FrameData` upon which to add periodic box vectors.
     :param ase_atoms: :class:`Atoms` from which to extract periodic box vectors.
     """
-    box_vectors = ase_atoms.cell.copy() * ANG_TO_NM
-    data.box_vectors = box_vectors
+    data.box_vectors = ase_atoms.cell.copy() * ANG_TO_NM
 
 
 def add_ase_topology_to_frame_data(
@@ -251,24 +252,18 @@ def add_ase_topology_to_frame_data(
     """
     # TODO it would be nice to do dynamic molecule/chain detection here.
     frame_data.residue_names = ["ASE"]
-    frame_data.residue_chains = [0]
+    frame_data.residue_chains = np.array([0], dtype=np.uint32)
     frame_data.residue_count = 1
     frame_data.residue_ids = ["1"]
 
     frame_data.chain_names = ["A"]
     frame_data.chain_count = 1
 
-    atom_names = []
-    elements = []
-    residue_ids = []
-    for index, atom in enumerate(ase_atoms):
-        atom_names.append(str(atom.index))
-        elements.append(atom.number)
-        residue_ids.append(0)
-
-    frame_data.particle_names = atom_names
-    frame_data.particle_elements = elements
-    frame_data.particle_residues = residue_ids
+    frame_data.particle_names = [str(atom.index) for atom in ase_atoms]
+    frame_data.particle_elements = np.fromiter(
+        (atom.number for atom in ase_atoms), dtype=np.uint8
+    )
+    frame_data.particle_residues = np.fromiter((0 for _ in ase_atoms), dtype=np.uint32)
     frame_data.particle_count = len(ase_atoms)
 
     if generate_bonds:
@@ -345,7 +340,7 @@ def generate_bonds_from_ase(atoms: Atoms):
     monoxide molecule:
 
     >>> co = Atoms('CO', positions=[(0, 0, 0), (0, 0, 1.1)], cell=[2, 2, 2])
-    >>> generate_bonds(co)
+    >>> generate_bonds_from_ase(co)
     [[0, 1]]
 
     """
@@ -355,4 +350,4 @@ def generate_bonds_from_ase(atoms: Atoms):
         radii = [get_radius_of_element(atom.symbol) for atom in pair]
         if distance < _bond_threshold(radii):
             bonds.append([atom.index for atom in pair])
-    return bonds
+    return np.array(bonds, dtype=np.uint32)

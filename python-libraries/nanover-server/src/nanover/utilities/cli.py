@@ -2,6 +2,8 @@ import time
 from signal import signal, SIGINT
 from contextlib import contextmanager
 
+from nanover.utilities.event import Event
+
 
 @contextmanager
 def suppress_keyboard_interrupt_as_cancellation():
@@ -21,6 +23,15 @@ def suppress_keyboard_interrupt_as_cancellation():
 class CancellationToken:
     _cancelled = False
 
+    def __init__(self):
+        self._on_cancellation = Event()
+
+    def subscribe_cancellation(self, callback):
+        if self._cancelled:
+            callback()
+        else:
+            self._on_cancellation.add_callback(callback)
+
     @property
     def is_cancelled(self):
         """
@@ -32,7 +43,9 @@ class CancellationToken:
         """
         Cancel this token.
         """
-        self._cancelled = True
+        if not self._cancelled:
+            self._cancelled = True
+            self._on_cancellation.invoke()
 
     def wait_cancellation(self, interval=0.1):
         """

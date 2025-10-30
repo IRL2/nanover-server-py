@@ -4,27 +4,29 @@ Facilities to read a NanoVer trajectory recording into an MDAnalysis Universe.
 .. code:: python
 
     import MDAnalysis as mda
-    from nanover.mdanalysis import NanoverReader, NanoverParser
+    from nanover.mdanalysis import universe_from_recording
 
-    u = mda.Universe(
-        'input.traj',
-        format=NanoverReader,
-        topology_format=NanoverParser,
-    )
+    u = universe_from_recording('input.traj')
+
+    # or if there are multiple sessions in the recording:
+    universes = universes_from_recording('input.traj')
 
 .. note::
     A NanoVer trajectory recording can have its topology change over time. It
     can even contain trajectories for unrelated simulations. The topology in an
     MDAnalysis Universe is constant. Only the frames corresponding to the first
-    topology are read in a Universe.
+    topology are read in the singular `universe_from_recording` function.
+
 
 """
 
 import warnings
-from itertools import takewhile, chain, islice
+from contextlib import suppress
+from itertools import islice
 from os import PathLike
-from typing import NamedTuple, Type, Callable, Iterable
+from typing import NamedTuple, Type, Callable
 
+from MDAnalysis import Universe
 from MDAnalysis.coordinates.base import ProtoReader
 from MDAnalysis.coordinates.timestep import Timestep
 from MDAnalysis.lib.util import openany
@@ -43,30 +45,15 @@ from MDAnalysis.core.topology import Topology
 from MDAnalysis.topology.base import TopologyReaderBase
 import numpy as np
 
-from nanover.trajectory import FrameData
-from nanover.trajectory.frame_data import (
-    PARTICLE_COUNT,
-    RESIDUE_COUNT,
-    CHAIN_COUNT,
-    PARTICLE_ELEMENTS,
-    PARTICLE_NAMES,
-    PARTICLE_RESIDUES,
-    RESIDUE_NAMES,
-    RESIDUE_CHAINS,
-    RESIDUE_IDS,
-    CHAIN_NAMES,
-    MissingDataError,
-    PARTICLE_POSITIONS,
-)
+from nanover.trajectory import FrameData as FrameData, MissingDataError
+import nanover.trajectory.keys as keys
 
-from nanover.recording.reading import (
-    iter_trajectory_recording,
-    iter_trajectory_with_elapsed_integrated,
-    advance_to_first_particle_frame,
-    advance_to_first_coordinate_frame,
-    split_by_simulation_counter,
-)
 from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
+from nanover.recording.reading import (
+    MessageZipReader,
+    RecordingIndexEntry,
+    NanoverRecordingReader,
+)
 
 
 class KeyConversion(NamedTuple):
@@ -83,38 +70,86 @@ def _trimmed(value):
 
 
 KEY_TO_ATTRIBUTE = {
-    PARTICLE_NAMES: KeyConversion(Atomnames, _trimmed),
-    RESIDUE_NAMES: KeyConversion(Resnames, _as_is),
-    RESIDUE_IDS: KeyConversion(Resids, _as_is),
-    CHAIN_NAMES: KeyConversion(Segids, _as_is),
+    keys.PARTICLE_NAMES: KeyConversion(Atomnames, _trimmed),
+    keys.RESIDUE_NAMES: KeyConversion(Resnames, _as_is),
+    keys.RESIDUE_IDS: KeyConversion(Resids, _as_is),
+    keys.CHAIN_NAMES: KeyConversion(Segids, _as_is),
 }
 
 
-def universes_from_recording(*, traj: PathLike[str]):
-    """
-    Decompose a NanoVer trajectory recording into an mdanalysis Universe for each session of simulation (determined
-    by simulation counter).
-    """
-    universes = []
+FIRST_FRAME_REQUIRED = {
+    keys.PARTICLE_POSITIONS,
+    keys.PARTICLE_COUNT,
+}
 
-    for session in split_by_simulation_counter(traj=traj):
-        # universe from first frame of session containing initial positions
-        first_positions_frame = next(
-            frame
-            for (elapsed, frame, state) in session
-            if PARTICLE_POSITIONS in frame
-            and PARTICLE_COUNT in frame
-            and frame.particle_count > 0
-        )
-        universe = frame_data_to_mdanalysis(first_positions_frame)
-        # integrate time elapsed into frames
-        for elapsed, frame, state in session:
-            frame.values["elapsed"] = elapsed
-        # trajectory from all frames of session
-        universe.trajectory = NanoverFramesReader(
-            frame for (elapsed, frame, state) in session
-        )
-        universes.append(universe)
+
+def universe_from_recording(path: PathLike[str], *, convert_units=True):
+    """
+    Read and convert a NanoVer recording into an mdanalysis Universe, ignore all frames after a frame_index
+    reset.
+    """
+    return Universe(
+        path,
+        format=NanoverReader,
+        topology_format=NanoverParser,
+        convert_units=convert_units,
+    )
+
+
+def universes_from_recording(path: PathLike[str], *, convert_units=True):
+    """
+    Decompose a NanoVer trajectory into an mdanalysis Universe for each session of simulation (determined
+    by frame_index resets).
+    """
+    index_entries: list[RecordingIndexEntry] = []
+    universes: list[Universe] = []
+    first_particle_frame = FrameData()
+    first_frame = last_frame = None
+
+    def frame_begins_next_universe(frame: FrameData):
+        return frame.frame_dict.get(keys.FRAME_INDEX, None) == 0
+
+    def finalise_prev_universe():
+        nonlocal first_particle_frame, first_frame, last_frame
+
+        reader = MessageZipReader.from_path(path)
+        reader.index = list(index_entries)
+
+        try:
+            universe = frame_data_to_mdanalysis(first_particle_frame)
+            universe.trajectory = NanoverReaderBase(
+                reader, filename=path, convert_units=convert_units
+            )
+            universes.append(universe)
+        except Exception as e:
+            warnings.warn(
+                f"Failed to extract universe in frames #{first_frame}-{last_frame}: {e}"
+            )
+
+        index_entries.clear()
+        first_particle_frame = FrameData()
+        first_frame = last_frame = None
+
+    with NanoverRecordingReader.from_path(path) as reader:
+        for i, entry in enumerate(reader):
+            frame = reader.get_frame_from_entry(entry)
+
+            if frame is None:
+                continue
+
+            if first_frame is None:
+                first_frame = i
+            last_frame = i
+
+            if frame_begins_next_universe(frame) and index_entries:
+                finalise_prev_universe()
+            # aggregate initial frames until there is position and topology information
+            if not is_valid_first_frame(first_particle_frame):
+                first_particle_frame.update(frame)
+            index_entries.append(entry)
+
+    if is_valid_first_frame(first_particle_frame) and index_entries:
+        finalise_prev_universe()
 
     return universes
 
@@ -126,53 +161,48 @@ class NanoverParser(TopologyReaderBase):
             # count greater than 0. This will be true only most of the time.
             # TODO: implement a more reliable way to get the full topology
             try:
-                _, _, frame = next(
-                    advance_to_first_particle_frame(iter_trajectory_recording(infile))
-                )
+                reader = MessageZipReader.from_io(infile)
+                first_frame = _trim_start_frame_reader(reader)
             except StopIteration:
                 raise IOError("The file does not contain any frame.")
 
             attrs = []
             for frame_key, (attribute, converter) in KEY_TO_ATTRIBUTE.items():
-                try:
-                    values = frame.arrays[frame_key]
-                except MissingDataError:
-                    pass
-                else:
+                with suppress(MissingDataError):
+                    values = first_frame[frame_key]
                     attrs.append(attribute([converter(value) for value in values]))
 
-            try:
-                elements = frame.arrays[PARTICLE_ELEMENTS]
-            except MissingDataError:
-                pass
-            else:
-                converted_elements = _to_chemical_symbol(elements)
+            with suppress(MissingDataError):
+                converted_elements = _to_chemical_symbol(first_frame.particle_elements)
                 attrs.append(Atomtypes(converted_elements))
                 attrs.append(Elements(converted_elements))
 
             # TODO: generate these values if they are not part of the FrameData
-            residx = frame.arrays[PARTICLE_RESIDUES]
-            segidx = frame.arrays[RESIDUE_CHAINS]
-            n_atoms = int(frame.values[PARTICLE_COUNT])
-            n_residues = int(frame.values[RESIDUE_COUNT])
-            n_chains = int(frame.values[CHAIN_COUNT])
+            residx = first_frame.particle_residues
+            segidx = first_frame.residue_chains
+            n_atoms = first_frame.particle_count
+            n_residues = first_frame.residue_count
+            n_chains = first_frame.chain_count
 
-            try:
-                chain_ids_per_chain = frame.arrays[CHAIN_NAMES]
-            except MissingDataError:
-                pass
-            else:
+            with suppress(MissingDataError):
+                chain_ids_per_chain = first_frame.chain_names
                 chain_ids_per_particle = [
                     chain_ids_per_chain[segidx[residx[atom]]] for atom in range(n_atoms)
                 ]
                 attrs.append(ChainIDs(chain_ids_per_particle))
 
-            try:
+            with suppress(MissingDataError):
+                order = None
+                with suppress(MissingDataError):
+                    order = first_frame.bond_orders
+
                 attrs.append(
-                    Bonds(frame.bond_pairs, guessed=False, order=frame.bond_orders)
+                    Bonds(
+                        first_frame.bond_pairs,
+                        guessed=False,
+                        order=order,
+                    )
                 )
-            except MissingDataError:
-                pass
 
             return Topology(
                 n_atoms,
@@ -184,54 +214,60 @@ class NanoverParser(TopologyReaderBase):
             )
 
 
-class NanoverFramesReader(ProtoReader):
+class NanoverReaderBase(ProtoReader):
     units = {"time": "ps", "length": "nm", "velocity": "nm/ps", "force": "kJ/(mol*nm)"}
 
-    def __init__(self, frames: Iterable[FrameData], **kwargs):
+    def __init__(
+        self, reader: MessageZipReader, *, filename=None, convert_units=True, **kwargs
+    ):
         super().__init__()
 
-        self.filename = None
-        self.convert_units = True
+        self._current_frame_index: int | None = None
+        self.convert_units = convert_units
+        self.filename = filename
+        self.reader = reader
 
-        # use only frames with position updates for timestep information
-        self._frames = list(
-            frame for frame in frames if PARTICLE_POSITIONS in frame.arrays
-        )
-        self.n_frames = len(self._frames)
-        self.n_atoms = self._frames[0].particle_count
+        _strip_reader(self.reader)
+        first_frame = _trim_start_frame_reader(self.reader)
+        remainder = _trim_end_frame_reader(self.reader)
+        self.n_atoms = first_frame.particle_count
+
+        if remainder > 0:
+            warnings.warn(
+                f"The simulation contains changes to the topology after the "
+                f"first frame. Only the frames with the initial topology are "
+                f"accessible in this Universe. There are {remainder} "
+                f"unread frames with a potentially different topology."
+            )
+
         self._read_frame(0)
 
-    def _read_frame(self, frame):
-        self._current_frame_index = frame
-        try:
-            frame_at_index = self._frames[frame]
-        except IndexError as err:
-            raise EOFError(err) from None
+    @property
+    def n_frames(self):
+        return len(self.reader)
 
+    def _frame_to_timestep(self, frame: int, frame_at_index: FrameData):
         ts = Timestep(self.n_atoms)
         ts.frame = frame
-        ts.positions = frame_at_index.particle_positions
-        try:
-            ts.time = frame_at_index.simulation_time
-        except MissingDataError:
-            pass
-        try:
-            ts.triclinic_dimensions = frame_at_index.box_vectors
-        except MissingDataError:
-            pass
-        try:
-            ts.velocities = frame_at_index.particle_velocities
-        except MissingDataError:
-            pass
-        try:
-            try:
-                ts.forces = frame_at_index.particle_forces
-            except MissingDataError:
-                ts.forces = frame_at_index.particle_forces_system
-        except MissingDataError:
-            pass
 
-        ts.data.update(frame_at_index.values)
+        try:
+            ts.positions = frame_at_index.particle_positions
+        except MissingDataError as e:
+            raise Exception(f"No particle positions in trajectory frame {frame}") from e
+
+        with suppress(MissingDataError):
+            ts.time = frame_at_index.simulation_time
+        with suppress(MissingDataError):
+            ts.triclinic_dimensions = frame_at_index.box_vectors
+        with suppress(MissingDataError):
+            ts.velocities = frame_at_index.particle_velocities
+        try:
+            ts.forces = frame_at_index.particle_forces
+        except MissingDataError:
+            with suppress(MissingDataError):
+                ts.forces = frame_at_index.particle_forces_system
+
+        ts.data.update(frame_at_index.frame_dict)
         self._add_user_forces_to_ts(frame_at_index, ts)
 
         if self.convert_units:
@@ -259,64 +295,81 @@ class NanoverFramesReader(ProtoReader):
         return self._read_frame(frame)
 
     def _reopen(self):
+        # no current frame, next frame is 0
         self._current_frame_index = None
 
-    def _add_user_forces_to_ts(self, frame, ts):
+    def _add_user_forces_to_ts(self, frame: FrameData, ts):
         """
         Read the user forces from the frame if they are available and
         converts them to the units used by MDAnalysis if required.
         """
         try:
-            indices = frame.arrays["forces.user.index"]
-            sparse = frame.arrays["forces.user.sparse"]
-        except KeyError:
+            indices = frame.user_forces_index
+            sparse = frame.user_forces_sparse
+        except MissingDataError:
             return
         forces = np.zeros((self.n_atoms, 3), dtype=np.float32)
-        for index, force in zip(indices, batched(sparse, n=3)):
+        for index, force in zip(indices, sparse):
             forces[index, :] = force
         if self.convert_units:
             self.convert_forces_from_native(forces)
         ts.data["user_forces"] = forces
 
+    def _read_frame(self, frame: int):
+        self._current_frame_index = frame
 
-class NanoverReader(NanoverFramesReader):
-    def __init__(self, filename, convert_units=True, **kwargs):
-        with openany(filename, mode="rb") as infile:
-            recording = advance_to_first_coordinate_frame(
-                iter_trajectory_with_elapsed_integrated(
-                    iter_trajectory_recording(infile)
-                )
-            )
-            try:
-                _, _, first_frame = next(recording)
-            except StopIteration:
-                raise IOError("Empty trajectory.")
-            self.n_atoms = first_frame.particle_count
+        try:
+            entry = self.reader[frame]
+        except IndexError as err:
+            raise EOFError(err) from None
 
-            non_topology_frames = takewhile(
-                lambda frame: not has_topology(frame),
-                map(lambda record: record[2], recording),
-            )
+        message = self.reader.get_message_from_entry(entry)
+        frame_at_index = FrameData.unpack_from_dict(message["frame"])
+        frame_at_index["elapsed"] = entry.metadata["timestamp"]
 
-            frames = list(chain([first_frame], non_topology_frames))
-            reminder = list(recording)
+        return self._frame_to_timestep(frame, frame_at_index)
 
-        if reminder:
-            warnings.warn(
-                f"The simulation contains changes to the topology after the "
-                f"first frame. Only the frames with the initial topology are "
-                f"accessible in this Universe. There are {len(reminder)} "
-                f"unread frames with a different topology."
-            )
 
-        super().__init__(frames, **kwargs)
-        self.filename = filename
-        self.convert_units = convert_units
+def _strip_reader(reader: MessageZipReader) -> None:
+    reader.index = [
+        entry for entry in reader.index if "frame" in entry.metadata["types"]
+    ]
+
+
+def _trim_start_frame_reader(reader: MessageZipReader) -> FrameData:
+    """
+    Change reader index to ignore initial frames that don't contain positions
+    and return an aggregate of all skipped frames.
+    """
+    first_frame = FrameData()
+    for i, entry in enumerate(reader):
+        message = reader.get_message_from_entry(entry)
+        if "frame" in message:
+            first_frame.update(FrameData.unpack_from_dict(message["frame"]))
+            if is_valid_first_frame(first_frame):
+                reader.index = reader.index[i:]
+                return first_frame
+    raise ValueError("No valid first frame.")
+
+
+def _trim_end_frame_reader(reader: MessageZipReader):
+    """
+    Change reader index to ignore all frames after and including the next
+    frame_index reset.
+    """
+    for i, entry in enumerate(reader):
+        message = reader.get_message_from_entry(entry)
+        if "frame" in message:
+            if message["frame"].get(keys.FRAME_INDEX, None) == 0 and i > 0:
+                remainder = len(reader.index) - i
+                reader.index = reader.index[:i]
+                return remainder
+    return 0
 
 
 def has_topology(frame: FrameData) -> bool:
-    topology_keys = set(list(KEY_TO_ATTRIBUTE.keys()) + [PARTICLE_ELEMENTS])
-    return bool(topology_keys.intersection(frame.array_keys))
+    topology_keys = set(list(KEY_TO_ATTRIBUTE.keys()) + [keys.PARTICLE_ELEMENTS])
+    return bool(topology_keys.intersection(frame.frame_dict.keys()))
 
 
 # Copied from the documentation of itertools. See
@@ -380,3 +433,17 @@ def explosion_mask(trajectory, max_displacement):
         previous = ts.positions
         prev_reset = reset
     return mask
+
+
+def is_valid_first_frame(frame: FrameData):
+    return all(key in frame for key in FIRST_FRAME_REQUIRED)
+
+
+class NanoverReader(NanoverReaderBase):
+    def __init__(self, filename, convert_units=True, **kwargs):
+        super().__init__(
+            MessageZipReader.from_path(filename),
+            filename=filename,
+            convert_units=convert_units,
+            **kwargs,
+        )

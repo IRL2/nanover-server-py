@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import MDAnalysis as mda
 import ipywidgets as widgets
 
-from typing import Optional, Union, Tuple
+from typing import Union, Tuple
 from os import PathLike
 
 from scipy.interpolate import splprep, splev
@@ -31,11 +31,11 @@ class PathSmoother:
     """
 
     @classmethod
-    def from_traj_file(cls, filename: Union[str, PathLike]):
+    def from_recording(cls, filename: Union[str, PathLike]):
         """
-        Create a PathSmoother object from the data stored in a NanoVer trajectory file.
+        Create a PathSmoother object from the data stored in a NanoVer recording.
 
-        :param filename: Path to the trajectory file.
+        :param filename: Path to the NanoVer recording.
         """
         ps = cls()
         ps.filename = filename
@@ -91,36 +91,34 @@ class PathSmoother:
                 "interfaces."
             )
 
-
-
     def __init__(self):
-        self.filename: Optional[Union[str, PathLike]] = None
-        self.com_positions: Optional[np.ndarray] = None
-        self.atom_positions: Optional[np.ndarray] = None
-        self.atom_indices: Optional[np.ndarray] = None
-        self.n_interaction_frames: Optional[int] = None
+        self.filename: Union[str, PathLike] | None = None
+        self.com_positions: np.ndarray | None = None
+        self.atom_positions: np.ndarray | None = None
+        self.atom_indices: np.ndarray | None = None
+        self.n_interaction_frames: int | None = None
 
-        self.all_atom_positions: Optional[np.ndarray] = None
-        self.all_user_forces: Optional[np.ndarray] = None
-        self.all_atom_masses: Optional[np.ndarray] = None
+        self.all_atom_positions: np.ndarray | None = None
+        self.all_user_forces: np.ndarray | None = None
+        self.all_atom_masses: np.ndarray | None = None
 
-        self.universe: Optional[mda.Universe] = None
+        self.universe: mda.Universe | None = None
 
         # Plot smoothing properties
         self.fig = None
         self.ax = None
         self.scatter_curve = None
         self.scatter_points = None
-        self.smoothing_plot: Optional[plt.Figure] = None
-        self.smoothing_parameter: Optional[float] = None
-        self.n_points: Optional[int] = None
-        self.smoothing_start_index: Optional[int] = None
-        self.smoothing_end_index: Optional[int] = None
+        self.smoothing_plot: plt.Figure | None = None
+        self.smoothing_parameter: float | None = None
+        self.n_points: int | None = None
+        self.smoothing_start_index: int | None = None
+        self.smoothing_end_index: int | None = None
 
-        self.smoothed_com_trajectory: Optional[np.ndarray] = None
-        self.constant_speed_com_trajectory: Optional[np.ndarray] = None
-        self.constant_speed_nm_ps: Optional[float] = None
-        self.timestep_ps: Optional[float] = None
+        self.smoothed_com_trajectory: np.ndarray | None = None
+        self.constant_speed_com_trajectory: np.ndarray | None = None
+        self.constant_speed_nm_ps: float | None = None
+        self.timestep_ps: float | None = None
 
     def close_interactive_plots(self):
         """
@@ -156,7 +154,10 @@ class PathSmoother:
 
         # Retrieve atom elements and guess masses
         atom_elements = np.array(self.universe.atoms.types)
-        self.all_atom_masses = mda.topology.guessers.guess_masses(atom_elements)
+        # Old code: self.all_atom_masses = mda.topology.guessers.guess_masses(atom_elements)
+        self.all_atom_masses = np.array(
+            [mda.topology.guessers.get_atom_mass(atom_t) for atom_t in atom_elements]
+        )
 
         # Create empty arrays for atom positions and user forces
         n_atoms = atom_elements.size
@@ -231,7 +232,9 @@ class PathSmoother:
             pos_array_size = x_pos.size
             original_u_values = np.linspace(0, 1, pos_array_size)
 
-            interpolated_path, interpolated_u_values = interpolate_path(x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point)
+            interpolated_path, interpolated_u_values = interpolate_path(
+                x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point
+            )
 
             # Save current view if plot already exists
             if self.fig is None or self.ax is None:
@@ -242,7 +245,9 @@ class PathSmoother:
                 self.fig = plt.figure(figsize=(8, 8))
                 self.ax = plt.axes(111, projection="3d")
                 self.scatter_curve = self.ax.scatter3D(
-                    interpolated_path[:, 0], interpolated_path[:, 1], interpolated_path[:, 2],
+                    interpolated_path[:, 0],
+                    interpolated_path[:, 1],
+                    interpolated_path[:, 2],
                     c=interpolated_u_values,
                     cmap=cmap,
                     s=1.0,
@@ -254,7 +259,7 @@ class PathSmoother:
                     c=original_u_values,
                     cmap=cmap,
                     s=50.0,
-                    alpha=0.05,
+                    alpha=0.02,
                 )
                 self.ax.set_xlabel(r"$x$ / nm")
                 self.ax.set_ylabel(r"$y$ / nm")
@@ -281,17 +286,21 @@ class PathSmoother:
                 self.scatter_curve.remove()
                 self.scatter_points.remove()
                 self.scatter_curve = self.ax.scatter3D(
-                    interpolated_path[:, 0], interpolated_path[:, 1], interpolated_path[:, 2],
+                    interpolated_path[:, 0],
+                    interpolated_path[:, 1],
+                    interpolated_path[:, 2],
                     c=interpolated_u_values,
                     cmap=cmap,
                     s=1.0,
                 )
                 self.scatter_points = self.ax.scatter3D(
-                    x_pos, y_pos, z_pos,
+                    x_pos,
+                    y_pos,
+                    z_pos,
                     c=original_u_values,
                     cmap=cmap,
                     s=50.0,
-                    alpha=0.05,
+                    alpha=0.02,
                 )
 
                 plt.draw()
@@ -304,7 +313,7 @@ class PathSmoother:
             y_pos=fixed(self.com_positions[:, 1]),
             z_pos=fixed(self.com_positions[:, 2]),
             smoothing_value=widgets.FloatSlider(
-                min=0.0, max=10.0, step=0.001, value=0.0
+                min=0.0, max=10.0, step=0.0001, value=0.0
             ),
             n_points=widgets.IntSlider(min=1000, max=10000, step=100, value=1000),
             start_point=widgets.IntSlider(
@@ -366,11 +375,17 @@ class PathSmoother:
             self.constant_speed_com_trajectory, n_points, equal_aspect_ratio, cmap
         )
 
-    def calculate_constant_speed_trajectory(self, desired_speed_nm_ps: float, timestep_ps: float, rel_tolerance: float = 1e-5, max_iterations: int = 10):
+    def calculate_constant_speed_trajectory(
+        self,
+        desired_speed_nm_ps: float,
+        timestep_ps: float,
+        rel_tolerance: float = 1e-5,
+        max_iterations: int = 10,
+    ):
         """
         Calculate the coordinates that define a constant speed trajectory along a smoothed
         COM trajectory, given the desired speed in nm ps-1 and timestep of the simulation in ps.
-        
+
         :param desired_speed_nm_ps: The desired speed in nm ps-1
         :param timestep_ps: The timestep in ps
         :param rel_tolerance: The relative tolerance in the errors of the speed and distance between points
@@ -379,40 +394,67 @@ class PathSmoother:
 
         assert self.smoothed_com_trajectory is not None
         path_length = calculate_trajectory_length(self.smoothed_com_trajectory)
-        n_points_required = int(np.ceil(path_length / (desired_speed_nm_ps * timestep_ps)))# + 1
-        refined_path, _ = interpolate_path(self.smoothed_com_trajectory[:,0],self.smoothed_com_trajectory[:,1],self.smoothed_com_trajectory[:,2], 0.0, n_points=n_points_required)
+        n_points_required = int(
+            np.ceil(path_length / (desired_speed_nm_ps * timestep_ps))
+        )  # + 1
+        refined_path, _ = interpolate_path(
+            self.smoothed_com_trajectory[:, 0],
+            self.smoothed_com_trajectory[:, 1],
+            self.smoothed_com_trajectory[:, 2],
+            0.0,
+            n_points=n_points_required,
+        )
 
-        print(f"Starting iterative path refinement for trajectory of length {path_length} nm with desired speed {desired_speed_nm_ps} nm...\n")
+        print(
+            f"Starting iterative path refinement for trajectory of length {path_length} nm with desired speed {desired_speed_nm_ps} nm...\n"
+        )
 
         # Iterate until convergence criteria achieved
         for i in range(max_iterations):
             print(f"\n--------------\nIteration {i+1}\n--------------\n")
             n_points_required = int(
-                np.ceil(path_length / (desired_speed_nm_ps * timestep_ps)))# + 1
-            print(f"Number of points required to achieve desired speed along path: {n_points_required}\n")
-            refined_path, _ = interpolate_path(refined_path[:,0], refined_path[:,1], refined_path[:,2],
-                                                      0.0, n_points_required)
+                np.ceil(path_length / (desired_speed_nm_ps * timestep_ps))
+            )  # + 1
+            print(
+                f"Number of points required to achieve desired speed along path: {n_points_required}\n"
+            )
+            refined_path, _ = interpolate_path(
+                refined_path[:, 0],
+                refined_path[:, 1],
+                refined_path[:, 2],
+                0.0,
+                n_points_required,
+            )
             print("Path interpolation completed\n")
             path_length = calculate_trajectory_length(refined_path)
             speed_along_path_nm_ps = path_length / (n_points_required * timestep_ps)
             print(f"Total path length: {path_length} nm")
             print(f"Speed along path: {speed_along_path_nm_ps} nm ps-1")
             relative_speed_error = (
-                                       abs(speed_along_path_nm_ps - desired_speed_nm_ps)) / desired_speed_nm_ps
+                abs(speed_along_path_nm_ps - desired_speed_nm_ps)
+            ) / desired_speed_nm_ps
             distances = np.linalg.norm(np.diff(refined_path, axis=0), axis=1)
-            maximum_distance_error = (np.max(distances) - np.min(distances)) / np.average(distances)
-            if maximum_distance_error < rel_tolerance and relative_speed_error < rel_tolerance:
-                print("***\nRelative tolerance achieved, exiting iterative refinement...\n***\n\n")
-                print(f"Final path length: {path_length} Angstrom")
-                print(f"Final speed: {speed_along_path_nm_ps} Angstrom ps-1")
+            maximum_distance_error = (
+                np.max(distances) - np.min(distances)
+            ) / np.average(distances)
+            if (
+                maximum_distance_error < rel_tolerance
+                and relative_speed_error < rel_tolerance
+            ):
+                print(
+                    "***\nRelative tolerance achieved, exiting iterative refinement...\n***\n\n"
+                )
+                print(f"Final path length: {path_length} nm")
+                print(f"Final speed: {speed_along_path_nm_ps} nm ps-1")
                 self.constant_speed_com_trajectory = refined_path
                 self.constant_speed_nm_ps = speed_along_path_nm_ps
                 self.timestep_ps = timestep_ps
                 break
             elif i == max_iterations - 1:
-                print("***\nFailed to achieve relative tolerance, aborting iterative refinement...\n***\n\n")
+                print(
+                    "***\nFailed to achieve relative tolerance, aborting iterative refinement...\n***\n\n"
+                )
                 break
-
 
         return None
 
@@ -422,7 +464,11 @@ class PathSmoother:
         whose path is defined by the user.
         """
         assert output_filepath is not None
-        assert self.constant_speed_com_trajectory is not None and self.constant_speed_nm_ps is not None and self.timestep_ps is not None
+        assert (
+            self.constant_speed_com_trajectory is not None
+            and self.constant_speed_nm_ps is not None
+            and self.timestep_ps is not None
+        )
 
         print(f"Saving constant speed trajectory data to {output_filepath}")
 
@@ -433,7 +479,9 @@ class PathSmoother:
             if self.atom_indices is not None:
                 np.save(outfile, self.atom_indices)
             else:
-                print("Warning: atom indices not provided and hence not saved to output file.")
+                print(
+                    "Warning: atom indices not provided and hence not saved to output file."
+                )
 
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
@@ -762,6 +810,7 @@ def interpolate_path(
     x_fine, y_fine, z_fine = splev(u_fine, tck)
     return np.transpose(np.squeeze([x_fine, y_fine, z_fine])), u_fine
 
+
 def calculate_trajectory_length(path: np.ndarray):
     """
     Calculate the total length of an m frame trajectory defined by an mx3 array of
@@ -771,4 +820,3 @@ def calculate_trajectory_length(path: np.ndarray):
     """
 
     return np.sum(np.linalg.norm(np.diff(path, axis=0), axis=1))
-

@@ -3,8 +3,8 @@ import time
 
 import pytest
 
-from nanover.omni.cli import initialise_runner, handle_user_arguments
-from common import ARGON_XML_PATH, RECORDING_PATH_TRAJ, RECORDING_PATH_STATE
+from nanover.app.cli.server_cli import initialise_runner, handle_user_arguments
+from common import ARGON_XML_PATH, RECORDING_PATH
 
 
 @pytest.mark.serial
@@ -12,14 +12,12 @@ def test_record_writes_files(tmp_path):
     """
     Test that the expected files created during recording.
     """
-    arguments = handle_user_arguments(
-        ["--record", str(tmp_path / "test"), "--port", "0"]
-    )
+    arguments = handle_user_arguments(["--record", str(tmp_path / "test")])
 
     with initialise_runner(arguments):
         pass
 
-    assert set(os.listdir(tmp_path)) == {"test.traj", "test.state"}
+    assert set(os.listdir(tmp_path)) == {"test.nanover.zip"}
 
 
 @pytest.mark.serial
@@ -29,13 +27,10 @@ def test_cycle_multiple_sims():
     """
     arguments = handle_user_arguments(
         [
-            "--port",
-            "0",
             "--omm",
             str(ARGON_XML_PATH),
             "--playback",
-            str(RECORDING_PATH_TRAJ),
-            str(RECORDING_PATH_STATE),
+            str(RECORDING_PATH),
         ]
     )
 

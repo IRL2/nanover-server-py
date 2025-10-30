@@ -1,8 +1,0 @@
-setuptools>=40.1.1
-grpcio>=1.63.0
-grpcio-tools>=1.63.0
-pytest
-aiogrpc
-numpy
-hypothesis
-typing_extensions

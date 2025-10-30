@@ -1,9 +1,9 @@
 on: [push]
-name: "Tests and validation"
+name: "Repo"
 
 jobs:
   python-tests:
-    name: Python unit and integration tests
+    name: Tests and Notebooks
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -16,20 +16,18 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install nanover dependancies
-        run: conda install -y openmm
-      - name: Install tests dependancies
-        run: python -m pip install -r python-libraries/requirements.test
-      - name: Compile
-        run: ./compile.sh --no-dotnet
+      - name: Install NanoVer & dependencies
+        run: |
+          conda install -y openmm
+          python -m pip install ./python-libraries/nanover-server/[dev]
       - name: Parallel tests
         run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial'
       - name: Serial tests
-        run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial'
+        run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial' --cov-append
       - name: Jupyter notebooks
-        run: python -m pytest --nbval-lax ./tutorials --nbval-cell-timeout=30
+        run: python -m pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
   mypy:
-    name: Type analysis for python
+    name: Type checking
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -42,12 +40,11 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install nanover dependancies
-        run: conda install -y openmm
-      - name: Install tests dependancies
-        run: python -m pip install -r python-libraries/requirements.test
-      - name: Compile (mypy requires --no-edit)
-        run: ./compile.sh --no-dotnet --no-edit
+      - name: Install NanoVer & dependencies
+        run: |
+          conda install -y openmm
+          python -m pip install ./python-libraries/nanover-server/
+          python -m pip install mypy
       - name: mypy
         run: |
           # Mypy accepts paths, modules or packages as inputs. However, only
@@ -66,7 +63,7 @@ jobs:
             | tr '\n' ' ')
           mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages
   ruff:
-    name: Ruff to lint python code
+    name: Style checking
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -79,27 +76,12 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install nanover dependancies
-        run: conda install -y openmm
-      - name: Install ruff
-        run: python -m pip install ruff black
-      - name: Compile
-        run: ./compile.sh --no-dotnet
+      - name: Install NanoVer & dependencies
+        run: |
+          conda install -y openmm
+          python -m pip install ./python-libraries/nanover-server/
+          python -m pip install ruff black
       - name: Ruff
         run: ruff check ./python-libraries
       - name: Black
         run: black --diff --check ./python-libraries
-  csharp-tests:
-    name: C# unit and integration tests
-    runs-on: ubuntu-22.04
-    env:
-      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '2.1.x'
-      - name: Compile
-        run: ./compile.sh --no-python
-      - name: Tests
-        run: cd ./csharp-libraries && dotnet test

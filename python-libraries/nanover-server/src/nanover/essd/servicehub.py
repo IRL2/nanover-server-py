@@ -3,7 +3,7 @@ Module defining a Service.
 """
 
 import json
-from typing import Optional, Tuple
+from typing import Tuple
 from uuid import uuid4
 import nanover.essd
 
@@ -148,7 +148,7 @@ class ServiceHub:
         """
         self.services[name] = port
 
-    def to_message(self, override_address: Optional[str] = None) -> str:
+    def to_message(self, override_address: str | None = None) -> str:
         """
         Returns the JSON message representing this service hub, with the option to override this address.
 
@@ -158,7 +158,7 @@ class ServiceHub:
         When broadcasting services, it is useful to be able to provide human-readable shortcuts for underlying addresses,
         but clients receiving broadcasting need to know the actual address the service hub is running at.
 
-        A typical use case is when using the '[::]' notation for defining a gRPC service, which means it will
+        A typical use case is when using the '[::]' notation for defining a service, which means it will
         listen on all interfaces. When it comes to broadcasting, the discovery server will broadcast on all interfaces
         with the correct address for that interface.
 
@@ -177,7 +177,7 @@ class ServiceHub:
             hub = self
         return hub.message
 
-    def get_service_address(self, service_name: str) -> Optional[Tuple[str, int]]:
+    def get_service_address(self, service_name: str) -> Tuple[str, int] | None:
         """
         Gets the address and port of a service, if it exists.
         :param service_name: Service name

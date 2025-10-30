@@ -3,90 +3,69 @@ from pathlib import Path
 import pytest
 
 from nanover.recording.reading import (
-    iter_trajectory_file,
-    iter_state_file,
-    iter_recording_buffers,
-    iter_recording_files,
+    MessageZipReader,
+    iter_recording_file,
     iter_full_view,
     split_by_simulation_counter,
 )
 
-from nanover.protocol.trajectory import GetFrameResponse
-from nanover.protocol.state import StateUpdate
-
 EXAMPLES_PATH = Path(__file__).parent
-RECORDING_PATH_TRAJ = EXAMPLES_PATH / "nanotube-example-recording.traj"
-RECORDING_PATH_STATE = EXAMPLES_PATH / "nanotube-example-recording.state"
-
-RECORDING_PATH_TRAJ_SWITCHING = EXAMPLES_PATH / "sim-switching-test-recording.traj"
-RECORDING_PATH_STATE_SWITCHING = EXAMPLES_PATH / "sim-switching-test-recording.state"
+RECORDING_PATH = EXAMPLES_PATH / "nanotube-example-recording.nanover.zip"
+RECORDING_PATH_SWITCHING = EXAMPLES_PATH / "sim-switching-test-recording.nanover.zip"
 
 
-@pytest.mark.parametrize("path,count", ((RECORDING_PATH_TRAJ, 930),))
-def test_n_frames(path, count):
+@pytest.mark.parametrize("path,count", ((RECORDING_PATH, 1615),))
+def test_n_messages(path, count):
     """
-    Test an example recording has the expected number of frames.
+    Test examples recording have the expected number of messages.
     """
-    frames = list(iter_trajectory_file(path))
-    assert len(frames) == count
+    with MessageZipReader.from_path(path) as reader:
+        assert len(reader) == count
+        assert sum(1 for _ in reader) == count
 
 
-@pytest.mark.parametrize("path,count", ((RECORDING_PATH_STATE, 685),))
-def test_n_updates(path, count):
-    """
-    Test an example recording has the expected number of updates.
-    """
-    updates = list(iter_state_file(path))
-    assert len(updates) == count
-
-
-@pytest.mark.parametrize(
-    "traj_path,state_path,count", ((RECORDING_PATH_TRAJ, RECORDING_PATH_STATE, 1615),)
-)
-def test_n_entries(traj_path, state_path, count):
-    entries = list(iter_recording_files(traj=traj_path, state=state_path))
+@pytest.mark.parametrize("path,count", ((RECORDING_PATH, 1615),))
+def test_n_entries(path, count):
+    entries = list(iter_recording_file(path))
     assert len(entries) == count
 
 
-@pytest.mark.parametrize("path", (RECORDING_PATH_TRAJ, RECORDING_PATH_STATE))
+@pytest.mark.parametrize("path", (RECORDING_PATH, RECORDING_PATH_SWITCHING))
 def test_monotonic_timestamp(path):
     """
     Test the timestamps are read correctly such that they increase monotonically.
     """
-    with open(path, "rb") as infile:
+    with MessageZipReader.from_path(path) as reader:
         prev_time = 0
-        for next_time, _ in iter_recording_buffers(infile):
+        for entry in reader:
+            next_time = entry.metadata["timestamp"]
             assert next_time >= prev_time
             prev_time = next_time
 
 
-@pytest.mark.parametrize(
-    "traj_path,state_path", ((RECORDING_PATH_TRAJ, RECORDING_PATH_STATE),)
-)
-def test_full_view_independent(traj_path, state_path):
+@pytest.mark.parametrize("path", (RECORDING_PATH, RECORDING_PATH_SWITCHING))
+def test_full_view_independent(path):
     """
     Test that frames and state dictionaries returned are independent and mutations don't affect subsequent frames and
     state.
     """
     KEY = "__test"
 
-    for timestamp, frame, state in iter_full_view(traj=traj_path, state=state_path):
+    for timestamp, frame, state in iter_full_view(path):
         assert KEY not in frame
         assert KEY not in state
-        frame.values[KEY] = timestamp
+        frame[KEY] = timestamp
         state[KEY] = timestamp
 
 
-@pytest.mark.parametrize(
-    "traj_path,state_path", ((RECORDING_PATH_TRAJ, RECORDING_PATH_STATE),)
-)
-def test_full_view_no_gaps(traj_path, state_path):
+@pytest.mark.parametrize("path", (RECORDING_PATH, RECORDING_PATH_SWITCHING))
+def test_full_view_no_gaps(path):
     """
     Test that frames and state dictionaries are never None and continue to persist fields present only at the start
     of the recording.
     """
     # skip past initial setup
-    iterator = iter_full_view(traj=traj_path, state=state_path)
+    iterator = iter_full_view(path)
     next(iterator)
     next(iterator)
 
@@ -104,14 +83,13 @@ def test_split_by_simulation_counter():
     Test that splitting a known recording results in the correct number of parts with the expected length and expected
     properties e.g particle counts etc.
     """
-    traj_path = RECORDING_PATH_TRAJ_SWITCHING
-    state_path = RECORDING_PATH_STATE_SWITCHING
+    path = RECORDING_PATH_SWITCHING
 
     expected_count = 4
     expected_entry_counts = [104, 108, 127, 115]
     expected_particle_counts = [65, 173, 65, 173]
 
-    views = split_by_simulation_counter(traj=traj_path, state=state_path)
+    views = split_by_simulation_counter(path)
 
     assert len(views) == expected_count
 
