@@ -5,7 +5,7 @@ from typing import Callable
 import msgpack
 from websockets.sync.client import connect, ClientConnection
 
-from nanover.core.commands import CommandService, CommandHandler
+from nanover.core.commands import CommandHandler
 from nanover.utilities.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory import FrameData

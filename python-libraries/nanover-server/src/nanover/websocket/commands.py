@@ -2,6 +2,7 @@ import time
 from typing import Callable, Any, Protocol
 
 from nanover.core.app_server import CommandService
+from nanover.core.commands import CommandService as CommandServiceConcrete
 from nanover.core.commands import CommandHandler
 
 
@@ -21,7 +22,7 @@ class CommandMessageHandler:
         *,
         command_service: CommandService | None = None
     ):
-        self._command_service = command_service or CommandService()
+        self._command_service = command_service or CommandServiceConcrete()
         self._send_message = send_message
 
         self._pending_requests: dict[int, Callable[..., Any]] = {}
