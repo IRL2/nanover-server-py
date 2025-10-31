@@ -89,12 +89,15 @@ class CommandMessageHandler:
 
     def _handle_request(self, request):
         name, arguments = request.get("name"), request.get("arguments", {})
-        try:
-            result = self._command_service.run_command(name, arguments)
-            response = {"request": request, "response": result}
-        except Exception as e:
-            response = {"request": request, "exception": str(e)}
-        self._send_message(response)
+
+        def handle_future(future: Future):
+            try:
+                self._send_message({"request": request, "response": future.result()})
+            except Exception as e:
+                self._send_message({"request": request, "exception": str(e)})
+
+        future = self._command_service.run_command(name, arguments)
+        future.add_done_callback(handle_future)
 
     def _handle_command_registration(self, register):
         name, default_arguments = register.get("name"), register.get("arguments", {})
@@ -180,8 +183,16 @@ class CommandService:
         except KeyError:
             raise KeyError(f"Command {name} does not exist")
 
-    def run_command(self, name: str, arguments: dict):
+    def run_command(self, name: str, arguments: dict) -> Future:
         command = self._commands.get(name)
         if command is None:
             raise KeyError(f"Unknown command: {name}")
-        return command.run(arguments)
+
+        future = Future()
+
+        try:
+            future.set_result(command.run(arguments))
+        except Exception as e:
+            future.set_exception(e)
+
+        return future

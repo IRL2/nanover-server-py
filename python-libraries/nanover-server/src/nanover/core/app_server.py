@@ -1,3 +1,4 @@
+from concurrent.futures import Future
 from typing import Any, Protocol
 
 from .types import CommandRegistration, CommandHandler
@@ -29,7 +30,7 @@ class CommandService(Protocol):
     @property
     def commands(self) -> dict[str, CommandRegistration]: ...
 
-    def run_command(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]: ...
+    def run_command(self, name: str, arguments: dict[str, Any]) -> Future: ...
 
     def register_command(
         self,
