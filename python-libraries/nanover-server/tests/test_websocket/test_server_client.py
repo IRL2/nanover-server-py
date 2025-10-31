@@ -87,13 +87,8 @@ def test_echo_command(reusable_setup, arguments):
     Test that preprepared identity command successfully returns unaltered and arbitrary arguments the command
     is called with.
     """
-    mock_callback = Mock()
-    reusable_setup.client.run_command("test/identity", arguments, mock_callback)
-
-    assert_equal_soon(
-        lambda: mock_callback.call_args and mock_callback.call_args.args[0],
-        lambda: arguments,
-    )
+    result = reusable_setup.client.run_command("test/identity", arguments).result()
+    assert result == arguments
 
 
 @given(arguments=command_arguments())

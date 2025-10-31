@@ -1,15 +1,12 @@
-import time
-from concurrent.futures import ThreadPoolExecutor
-from typing import Callable
+from concurrent.futures import ThreadPoolExecutor, Future
 
 import msgpack
 from websockets.sync.client import connect, ClientConnection
 
-from nanover.core.commands import CommandHandler
+from nanover.core.commands import CommandHandler, CommandMessageHandler
 from nanover.utilities.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory import FrameData
-from nanover.websocket.commands import CommandMessageHandler
 
 MAX_MESSAGE_SIZE = 128 * 1024 * 1024
 
@@ -56,13 +53,15 @@ class WebsocketClient:
             }
         )
 
+    def run_command_blocking(self, name: str, **arguments):
+        return self.run_command(name, arguments).result()
+
     def run_command(
         self,
         name: str,
         arguments: dict | None = None,
-        callback: Callable[[dict], None] | None = None,
-    ):
-        self._command_handler.request_command(name, arguments, callback)
+    ) -> Future:
+        return self._command_handler.request_command(name, arguments)
 
     def register_command(
         self,
@@ -71,23 +70,6 @@ class WebsocketClient:
         default_arguments: dict | None = None,
     ) -> None:
         self._command_handler.register_command(name, callback, default_arguments)
-
-    def run_command_blocking(self, name: str, **arguments):
-        returns = _UNRECEIVED
-
-        def receive(results):
-            nonlocal returns
-            returns = results
-
-        self.run_command(name, arguments, receive)
-
-        while returns is _UNRECEIVED:
-            time.sleep(0.1)
-
-        if isinstance(returns, Exception):
-            raise returns
-
-        return returns
 
     def send_message(self, message: dict):
         self._connection.send(msgpack.packb(message))

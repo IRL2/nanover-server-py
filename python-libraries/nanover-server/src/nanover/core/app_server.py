@@ -1,6 +1,6 @@
 from typing import Any, Protocol
 
-from nanover.core.commands import CommandRegistration, CommandHandler
+from .types import CommandRegistration, CommandHandler
 from nanover.essd import ServiceHub, DiscoveryServer
 from nanover.imd import ImdStateWrapper
 from nanover.utilities.state_dictionary import StateDictionary

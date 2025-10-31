@@ -1,6 +1,7 @@
 import concurrent
 import errno
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import suppress
 from ssl import SSLContext
 from typing import Any, Self
 
@@ -9,11 +10,11 @@ import numpy as np
 
 from nanover.core import AppServer
 from nanover.trajectory import FrameData
-from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange, ObjectFrozenError
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
-from nanover.websocket.commands import CommandMessageHandler
+from nanover.core.commands import CommandMessageHandler
 
 
 class WebSocketServer:
@@ -176,6 +177,7 @@ class _WebSocketClientHandler:
         def recv_all():
             for data in self.websocket:
                 self.recv_message(msgpack.unpackb(data))
+
             self.cancellation.cancel()
 
         concurrent.futures.wait(
@@ -190,9 +192,10 @@ class _WebSocketClientHandler:
         # remove keys owned by this user id
         if self.user_id is not None:
             removals = _find_user_owned_keys(self.app_server, self.user_id)
-            self.state_dictionary.update_state(
-                None, DictionaryChange(removals=removals)
-            )
+            with suppress(ObjectFrozenError):
+                self.state_dictionary.update_state(
+                    None, DictionaryChange(removals=removals)
+                )
 
 
 def _find_user_id(change: DictionaryChange):
