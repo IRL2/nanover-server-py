@@ -182,13 +182,14 @@ class CommandService:
             raise KeyError(f"Command {name} does not exist")
 
     def run_command(self, name: str, arguments: dict) -> Future:
-        command = self._commands.get(name)
-        if command is None:
-            raise KeyError(f"Unknown command: {name}")
-
         future: Future = Future()
 
         try:
+            command = self._commands.get(name)
+
+            if command is None:
+                raise KeyError(f"Unknown command: {name}")
+
             result = command.run(arguments)
             if isinstance(result, Future):
                 return result
