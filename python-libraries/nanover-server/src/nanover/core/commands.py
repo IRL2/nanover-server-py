@@ -47,7 +47,7 @@ class CommandMessageHandler:
         arguments: dict | None = None,
     ) -> Future:
         """Request the invocation of a remote callback."""
-        future = Future()
+        future: Future = Future()
 
         id = self._next_command_id
         self._next_command_id += 1
