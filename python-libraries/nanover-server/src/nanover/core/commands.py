@@ -102,12 +102,10 @@ class CommandMessageHandler:
     def _handle_command_registration(self, register):
         name, default_arguments = register.get("name"), register.get("arguments", {})
 
-        def handle_call_blocking(**arguments):
-            return self.request_command(name, arguments).result()
+        def handle_call(**arguments):
+            return self.request_command(name, arguments)
 
-        self._command_service.register_command(
-            name, handle_call_blocking, default_arguments
-        )
+        self._command_service.register_command(name, handle_call, default_arguments)
 
 
 class CommandService:
@@ -188,11 +186,15 @@ class CommandService:
         if command is None:
             raise KeyError(f"Unknown command: {name}")
 
-        future = Future()
+        future: Future = Future()
 
         try:
-            future.set_result(command.run(arguments))
+            result = command.run(arguments)
+            if isinstance(result, Future):
+                return result
         except Exception as e:
             future.set_exception(e)
+        else:
+            future.set_result(result)
 
         return future
