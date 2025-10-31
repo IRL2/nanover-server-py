@@ -1,4 +1,3 @@
-import time
 from concurrent.futures import Future
 
 from typing import Any, Protocol
@@ -98,29 +97,14 @@ class CommandMessageHandler:
         self._send_message(response)
 
     def _handle_command_registration(self, register):
-        name, arguments = register.get("name"), register.get("arguments", {})
-
-        _UNRECEIVED = object()
+        name, default_arguments = register.get("name"), register.get("arguments", {})
 
         def handle_call_blocking(**arguments):
-            returns = _UNRECEIVED
+            return self.request_command(name, arguments).result()
 
-            def receive(future: Future):
-                nonlocal returns
-                returns = future.result()
-
-            future = self.request_command(name, arguments)
-            future.add_done_callback(receive)
-
-            while returns is _UNRECEIVED:
-                time.sleep(0.1)
-
-            if isinstance(returns, Exception):
-                raise returns
-
-            return returns
-
-        self._command_service.register_command(name, handle_call_blocking, arguments)
+        self._command_service.register_command(
+            name, handle_call_blocking, default_arguments
+        )
 
 
 class CommandService:
