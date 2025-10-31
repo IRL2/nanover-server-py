@@ -54,6 +54,13 @@ class CommandMessageHandler:
         self._send_message({"request": request})
 
     def handle_message(self, message):
+        """
+        Handle an incoming command message, which may be a request to register a new command, a request to invoke a
+        command, etc.
+
+        Note: for now this will block when fulfilling a command registered remotely.
+        """
+
         def handle_message(message):
             if "register" in message:
                 self._handle_command_registration(message["register"])
