@@ -1,14 +1,12 @@
-import time
-from concurrent.futures import ThreadPoolExecutor
-from typing import Callable, Any
+from concurrent.futures import ThreadPoolExecutor, Future
 
 import msgpack
 from websockets.sync.client import connect, ClientConnection
 
+from nanover.core.commands import CommandHandler, CommandMessageHandler
 from nanover.utilities.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory import FrameData
-
 
 MAX_MESSAGE_SIZE = 128 * 1024 * 1024
 
@@ -23,11 +21,12 @@ class WebsocketClient:
     def __init__(self, connection: ClientConnection):
         self._connection = connection
 
-        self._state_dictionary = StateDictionary()
-        self._pending_commands: dict[int, Callable[..., Any]] = {}
-        self._current_frame = FrameData()
+        def send_command(message):
+            connection.send(msgpack.packb({"command": message}))
 
-        self.next_command_id = 1
+        self._state_dictionary = StateDictionary()
+        self._command_handler = CommandMessageHandler(send_command)
+        self._current_frame = FrameData()
 
         def listen():
             for bytes in self._connection:
@@ -37,9 +36,7 @@ class WebsocketClient:
                 except Exception as e:
                     print(f"RECV FAILED ({set(message.keys())})", e)
 
-        self.threads = ThreadPoolExecutor(
-            max_workers=1, thread_name_prefix="WebSocketClient"
-        )
+        self.threads = ThreadPoolExecutor(thread_name_prefix="WebSocketClient")
         self.threads.submit(listen)
 
     def close(self):
@@ -56,35 +53,23 @@ class WebsocketClient:
             }
         )
 
+    def run_command_blocking(self, name: str, **arguments):
+        return self.run_command(name, arguments).result()
+
     def run_command(
         self,
         name: str,
         arguments: dict | None = None,
-        callback: Callable[[dict], None] | None = None,
-    ):
-        id = self.next_command_id
-        self.next_command_id += 1
-        request = {"name": name, "arguments": arguments or {}, "id": id}
-        message = {"command": [{"request": request}]}
-        self._pending_commands[id] = callback or (lambda _: ...)
-        self.send_message(message)
+    ) -> Future:
+        return self._command_handler.request_command(name, arguments)
 
-    def run_command_blocking(self, name: str, **arguments):
-        returns = _UNRECEIVED
-
-        def receive(results):
-            nonlocal returns
-            returns = results
-
-        self.run_command(name, arguments, receive)
-
-        while returns is _UNRECEIVED:
-            time.sleep(0.1)
-
-        if isinstance(returns, Exception):
-            raise returns
-
-        return returns
+    def register_command(
+        self,
+        name: str,
+        callback: CommandHandler,
+        default_arguments: dict | None = None,
+    ) -> None:
+        self._command_handler.register_command(name, callback, default_arguments)
 
     def send_message(self, message: dict):
         self._connection.send(msgpack.packb(message))
@@ -95,8 +80,7 @@ class WebsocketClient:
         if "state" in message:
             self.recv_state(message["state"])
         if "command" in message:
-            for command in message["command"]:
-                self.recv_command(command)
+            self._command_handler.handle_message(message["command"])
 
     def recv_frame(self, message: dict):
         self._current_frame.update(FrameData.unpack_from_dict(message))
@@ -107,17 +91,6 @@ class WebsocketClient:
             removals=message["removals"],
         )
         self._state_dictionary.update_state(None, change)
-
-    def recv_command(self, message: dict):
-        id = message["request"]["id"]
-
-        if "exception" in message:
-            response = RuntimeError(message["exception"])
-        else:
-            response = message["response"]
-
-        callback = self._pending_commands.pop(id)
-        callback(response)
 
     def __enter__(self):
         return self

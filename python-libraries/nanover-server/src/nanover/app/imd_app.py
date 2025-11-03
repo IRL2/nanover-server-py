@@ -3,6 +3,7 @@ Module providing an out-of-the-box NanoVer application server supporting all the
 """
 
 import getpass
+from concurrent.futures import Future
 from ssl import SSLContext
 from typing import Any
 
@@ -169,7 +170,7 @@ class NanoverImdApplication(AppServer):
         """
         return self._command_service.commands
 
-    def run_command(self, name: str, arguments: dict[str, Any]):
+    def run_command(self, name: str, arguments: dict[str, Any]) -> Future:
         return self._command_service.run_command(name, arguments)
 
     def register_command(
