@@ -960,7 +960,7 @@ class OpenMMStringOptimiser:
 
         print(f"Completed {n_iterations} iterations.")
 
-
+    # @jit(parallel=True)
     def optimise_string(self, n_sim_steps: int, n_iterations: int, smoothing_parameter: float, fix_initial_position: bool = True, fix_final_position: bool = True, max_update_distance_nm: float = 0.005):
 
         assert self.checkpoints is not None
@@ -996,6 +996,7 @@ class OpenMMStringOptimiser:
             self.calculate_tangent_vectors()
 
             for j in j_range:
+                print(j)
 
                 self.smd_simulation.simulation.context.reinitialize()
                 self.smd_simulation.simulation.context.loadCheckpoint(self.checkpoints[j])
