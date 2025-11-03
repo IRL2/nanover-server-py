@@ -1,5 +1,6 @@
 import operator
 import io
+import itertools
 
 from typing import Iterable, Callable, Any
 
@@ -51,6 +52,35 @@ def _create_unitype_measuremap(
     return map_
 
 
+def _flatten(fields: Iterable[Iterable[Any] | Any]) -> Iterable[Any]:
+    for el in fields:
+        if isinstance(el, (np.ndarray, list)):
+            yield from el
+        else:
+            yield el
+
+
+def _measures_from_framedata(
+    frame: FrameData, measure_type: type[BaseMeasure]
+) -> Iterable[BaseMeasure]:
+    if (
+        measure_type not in FRAMEDATA_MEASURE_LABELS
+        or measure_type not in FRAMEDATA_MEASURE_FIELD_KEYS
+    ):
+        raise TypeError(f"Unrecognised measure type: `{measure_type}`.")
+
+    fields = [
+        f"{FRAMEDATA_MEASURE_LABELS.get(measure_type)}.{el}"
+        for el in FRAMEDATA_MEASURE_FIELD_KEYS.get(measure_type, [])
+    ]
+    field_iterator = itertools.zip_longest(
+        *[frame.frame_dict.get(f, []) for f in fields], fillvalue=None
+    )
+
+    for values in field_iterator:
+        yield measure_type(*_flatten(values))
+
+
 class MeasureCollection:
     """Container class to handle sets of related measurements."""
 
@@ -73,6 +103,17 @@ class MeasureCollection:
             Dihedral: operator.attrgetter("dihedrals"),
         }
 
+    @classmethod
+    def from_framedata(cls, frame: FrameData) -> "MeasureCollection":
+        scalars = _measures_from_framedata(frame, Scalar)
+        distances = _measures_from_framedata(frame, Distance)
+        angles = _measures_from_framedata(frame, Angle)
+        dihedrals = _measures_from_framedata(frame, Dihedral)
+
+        return cls(
+            scalars=scalars, distances=distances, angles=angles, dihedrals=dihedrals
+        )
+
     def __repr__(self) -> str:
         with io.StringIO() as str_io:
             str_io.write(f"{type(self).__name__} containing:\n")
@@ -86,7 +127,7 @@ class MeasureCollection:
             for k, v in m.items():
                 if not v:
                     continue
-                str_io.write(f"  {len(v)} {k}; {', '.join(map(str, v.values()))}\n")
+                str_io.write(f"\t{len(v)} {k}; {', '.join(map(str, v.values()))}\n")
 
             out_str = str_io.getvalue()
         return out_str

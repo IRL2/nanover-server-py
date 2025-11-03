@@ -38,13 +38,14 @@ class BaseMeasure(metaclass=ABCMeta):
         """Returns hashable datastructure to be used as keys for mapping objects."""
         ...
 
-    def _to_comparible_type(self, value: Any) -> float | None:
+    def _to_comparible_type(self, value: Any) -> float:
         """Converts `value` to a type usable for comparison to current `Measure` value."""
         if isinstance(value, type(self)):
             return value.value
         elif isinstance(value, (int, float)):
             return value
-        return None
+
+        raise TypeError(f"Could not compare {value} of type `{type(value)}`")
 
     def __eq__(self, value: Any) -> bool:
         """Compares the value of the measure to the given `value`."""
@@ -83,7 +84,7 @@ class Scalar(BaseMeasure):
 
     def __str__(self) -> str:
         unit = f" {self.unit if self.unit is not None else ''}"
-        return f"{self.name}: {self.value}{unit}"
+        return f"<(Scalar) {self.name}: {self.value}{unit}>"
 
     def __eq__(self, value):
         if isinstance(value, Scalar):
@@ -117,7 +118,7 @@ class Distance(BaseMeasure):
 
     def __str__(self) -> str:
         unit = f" {self.unit if self.unit is not None else ''}"
-        return f"(Distance) {self.name}: {self.value}{unit}"
+        return f"<(Distance) {self.name}: {self.value}{unit}>"
 
     def __eq__(self, value):
         if isinstance(value, Distance):
@@ -165,7 +166,7 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
 
     def __str__(self) -> str:
         unit = f" {self.unit if self.unit is not None else ''}"
-        return f"(Angle) {self.name}: {self.value}{unit}"
+        return f"<(Angle) {self.name}: {self.value}{unit}>"
 
     def __eq__(self, value):
         if isinstance(value, Angle):
@@ -221,7 +222,7 @@ class Dihedral(BaseMeasure):
 
     def __str__(self) -> str:
         unit = f" {self.unit if self.unit is not None else ''}"
-        return f"(Dihedral) {self.name}: {self.value}{unit}"
+        return f"<(Dihedral) {self.name}: {self.value}{unit}>"
 
     def __eq__(self, value):
         if isinstance(value, Dihedral):
