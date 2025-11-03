@@ -3,6 +3,9 @@ import io
 
 from typing import Iterable, Callable, Any
 
+import numpy as np
+
+from nanover.trajectory import keys
 from nanover.trajectory.measure import (
     MeasureKey,
     BaseMeasure,
@@ -18,12 +21,11 @@ from nanover.trajectory.frame_dict import FrameDict
 MeasureMap = dict[MeasureKey, BaseMeasure]
 
 
-FRAMEDATA_MEASURE_FIELD_PREFIX = "measure"
 FRAMEDATA_MEASURE_LABELS: dict[type[BaseMeasure], str] = {
-    Scalar: "scalar",
-    Distance: "distance",
-    Angle: "angle",
-    Dihedral: "dihedral",
+    Scalar: keys.MEASURE_SCALAR,
+    Distance: keys.MEASURE_DISTANCE,
+    Angle: keys.MEASURE_ANGLE,
+    Dihedral: keys.MEASURE_DIHEDRAL,
 }
 FRAMEDATA_MEASURE_FIELD_KEYS: dict[type[BaseMeasure], tuple[str, ...]] = {
     Scalar: ("name", "value", "unit"),
@@ -151,11 +153,14 @@ class MeasureCollection:
             field_keys,
             zip(*measure_fields),
         ):
+            arr = (
+                np.array(data, dtype=np.float32)
+                if field_name.endswith("atom_indices")
+                else np.array(data)
+            )
             frame_dict.update(
                 {
-                    f"{FRAMEDATA_MEASURE_FIELD_PREFIX}.{FRAMEDATA_MEASURE_LABELS.get(measure_type)}.{field_name}": list(
-                        data
-                    ),
+                    f"{FRAMEDATA_MEASURE_LABELS.get(measure_type)}.{field_name}": arr,
                 }
             )
 
