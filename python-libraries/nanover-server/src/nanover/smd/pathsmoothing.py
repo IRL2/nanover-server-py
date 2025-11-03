@@ -313,7 +313,7 @@ class PathSmoother:
             y_pos=fixed(self.com_positions[:, 1]),
             z_pos=fixed(self.com_positions[:, 2]),
             smoothing_value=widgets.FloatSlider(
-                min=0.0, max=10.0, step=0.0001, value=0.0
+                min=0.0, max=10.0, step=0.0001, value=0.0, readout_format='.4f'
             ),
             n_points=widgets.IntSlider(min=1000, max=10000, step=100, value=1000),
             start_point=widgets.IntSlider(
