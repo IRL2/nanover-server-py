@@ -218,7 +218,7 @@ class MeasureCollection:
             zip(*measure_fields),
         ):
             arr = (
-                np.array(data, dtype=np.float32)
+                np.array(data, dtype=np.uint32)
                 if field_name.endswith("atom_indices")
                 else np.array(data)
             )
