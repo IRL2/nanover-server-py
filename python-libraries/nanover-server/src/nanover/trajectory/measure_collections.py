@@ -100,14 +100,37 @@ class MeasureCollection:
             type(self).__name__, *num_measures
         )
 
-    def __getitem__(self, key: BaseMeasure | Any) -> BaseMeasure:
-        """Returns relevant `key` from underlying `MeasureMap`s."""
+    def _get_measure_from_name(self, name: str) -> BaseMeasure | None:
+        """Finds the first corresponding `Measure` (if it exists) from the underlying `MeasureMaps`.
+
+        Will search from the list of `Scalars, Distances, Angles, Dihedrals` in that order.
+        """
+        for mapping in self._type_mapping.values():
+            for measure in mapping(self).values():
+                if measure.name == name:
+                    return measure
+
+        return None
+
+    def __getitem__(self, key: BaseMeasure | str | Any) -> BaseMeasure:
+        """Returns relevant `key` from underlying `MeasureMap`s.
+
+        TODO if using a str, will return the first matching measure of the given string from the list of:
+        Scalars, Distances, Angles, Dihedrals (in order).
+        """
+        if isinstance(key, str):
+            return self._get_measure_from_name(key)
+
         if (target_getter := self._type_mapping.get(type(key), None)) is None:
-            raise KeyError(f"Invalid {key}, only accepts Measure types. ")
+            raise KeyError(f"Invalid {key}, only accepts `Measure` types or `str`.")
         if (value := target_getter(self).get(key.key, None)) is None:
             raise KeyError(f'Could not find "{key}" in collections.')
 
         return value
+
+    def get_measure(self, measure: BaseMeasure | str) -> BaseMeasure:
+        """Returns relevant "measure" from the collection. If using a name str, will return the first matching element."""
+        return self[measure]
 
     def _measure_iterator(
         self, measurements: Iterable[BaseMeasure]
