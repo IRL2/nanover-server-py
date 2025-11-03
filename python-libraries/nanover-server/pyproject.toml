@@ -41,7 +41,7 @@ dev=[
     # jupyter notebooks
     "nbval",
     # ui
-    "gradio>=5.18.0",
+    #"gradio>=5.18.0",
 ]
 
 [project.scripts]

@@ -1,6 +1,7 @@
+from concurrent.futures import Future
 from typing import Any, Protocol
 
-from nanover.core.commands import CommandRegistration, CommandHandler
+from .types import CommandRegistration, CommandHandler
 from nanover.essd import ServiceHub, DiscoveryServer
 from nanover.imd import ImdStateWrapper
 from nanover.utilities.state_dictionary import StateDictionary
@@ -29,7 +30,7 @@ class CommandService(Protocol):
     @property
     def commands(self) -> dict[str, CommandRegistration]: ...
 
-    def run_command(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]: ...
+    def run_command(self, name: str, arguments: dict[str, Any]) -> Future: ...
 
     def register_command(
         self,

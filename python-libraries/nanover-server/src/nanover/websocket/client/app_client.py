@@ -5,11 +5,12 @@ from typing import Any
 from nanover.core import AppServer
 from nanover.essd import DiscoveryClient, ServiceHub
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.websocket.client.playback_client import PlaybackClient
 from nanover.utilities.network import get_local_ip
-from nanover.websocket.client.interaction_client import InteractionClient
-from nanover.websocket.client.selection_client import SelectionClient
 from nanover.trajectory import FrameData
+
+from .playback_client import PlaybackClient
+from .interaction_client import InteractionClient
+from .selection_client import SelectionClient
 
 DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
 
