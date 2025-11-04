@@ -88,6 +88,14 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
     def current_frame(self) -> FrameData:
         return self._current_frame
 
+    def publish_frame(self, frame: FrameData, *, frame_index=None):
+        """
+        Publish a frame to the server, replacing the frame_index if provided.
+        """
+        if frame_index is not None:
+            frame.frame_index = frame_index
+        self.send_message({"frame": frame.pack_to_dict()})
+
     @property
     def latest_multiplayer_values(self):
         return self._state_dictionary.copy_content()
