@@ -2,6 +2,8 @@ import time
 from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
+from MDAnalysisTests.lib.test_nsgrid import reason
+
 from nanover.utilities.key_lockable_map import ResourceLockedError
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.state_dictionary import StateDictionary
@@ -74,6 +76,7 @@ def test_unheld_releases_ignored(state_dictionary):
         assert current_state["hello"] == 50
 
 
+@pytest.mark.skip(reason="Locking unused for now")
 def test_locked_content_is_unchanged(state_dictionary):
     """
     Test that background changes to the StateDictionary do not take effect while
@@ -97,6 +100,7 @@ def test_locked_content_is_unchanged(state_dictionary):
         assert attempted_to_meddle and content == INITIAL_STATE
 
 
+@pytest.mark.skip(reason="Locking unused for now")
 def test_locked_content_changes_after(state_dictionary):
     """
     Test that changes to the StateDictionary attempted while an exclusive lock

@@ -8,6 +8,7 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.network import get_local_ip
 from nanover.trajectory import FrameData
 
+from .command_client import CommandClient
 from .playback_client import PlaybackClient
 from .interaction_client import InteractionClient
 from .selection_client import SelectionClient
@@ -15,7 +16,9 @@ from .selection_client import SelectionClient
 DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
 
 
-class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
+class NanoverImdClient(
+    InteractionClient, SelectionClient, PlaybackClient, CommandClient
+):
     """
     Mixin of methods for selection manipulation with a WebSocketClient.
     """
@@ -120,7 +123,7 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         return self.current_frame
 
     def update_available_commands(self):
-        return self.run_command_blocking("commands/list")["list"]
+        return self.commands
 
     def copy_state(self):
         return self._state_dictionary.copy_content()

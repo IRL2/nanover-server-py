@@ -41,7 +41,7 @@ def _radially_orient_server(*, server: AppServerMinimal, radius=1):
         }
         for avatar_id, angle in zip(avatar_ids, angles)
     }
-    server.update_state(None, DictionaryChange(updates))
+    server.update_state(DictionaryChange(updates))
 
 
 def add_multiuser_commands(server: AppServerMinimal):

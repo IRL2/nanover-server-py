@@ -143,7 +143,7 @@ class OmniRunner:
                 if any(key.startswith(prefix) for prefix in CLEAR_PREFIXES)
             }
         self.app_server.clear_locks()
-        self.app_server.update_state(None, DictionaryChange(removals=removals))
+        self.app_server.update_state(DictionaryChange(removals=removals))
 
     def _load_simulation_selections(self):
         with self.app_server.lock_state() as state:
@@ -161,7 +161,7 @@ class OmniRunner:
                 updates=next_selections,
                 removals=prev_selections,
             )
-        self.app_server.update_state(None, change)
+        self.app_server.update_state(change)
 
     def load(self, index: int):
         """
