@@ -1,6 +1,5 @@
 import pytest
 from hypothesis import given, strategies as st
-from mock import Mock
 
 from nanover.testing.servers import (
     make_connected_server_client_setup,
@@ -17,6 +16,7 @@ from nanover.testing.strategies import (
     user_ids,
 )
 from nanover.websocket.client.app_client import NanoverImdClient
+from nanover.trajectory import keys
 
 
 def echo(**arguments):
@@ -135,5 +135,27 @@ def test_disconnect_cleans_owned_keys(reusable_setup, user_id, fields):
     assert all(key not in reusable_setup.server_current_state for key in updates)
 
 
+@given(frame=frames())
+def test_client_frame(reusable_setup, frame):
+    """
+    Test that state updates made directly on the server are accurately reflected on the client.
+    """
+    reusable_setup.client.publish_frame(frame, frame_index=0)
+
+    def simplify(frame):
+        return simplify_numpy(
+            drop(frame.frame_dict, {keys.SIMULATION_COUNTER, keys.SERVER_TIMESTAMP})
+        )
+
+    assert_equal_soon(
+        lambda: simplify(reusable_setup.client.current_frame),
+        lambda: simplify(frame),
+    )
+
+
 def pick(dictionary, keys):
     return {key: value for key, value in dictionary.items() if key in keys}
+
+
+def drop(dictionary, keys):
+    return {key: value for key, value in dictionary.items() if key not in keys}
