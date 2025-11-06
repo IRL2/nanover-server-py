@@ -1,12 +1,10 @@
 import pytest
 from hypothesis import given, example, strategies as st
 
+import numpy as np
 from openmm.unit import angstrom
 
 from nanover.trajectory import measure
-
-# TODO
-# test angle conversions
 
 
 @st.composite
@@ -167,19 +165,79 @@ def test_dihedral_equality_dihedral(dihedral, value):
         assert dihedral != value
 
 
-@given(distance_measure(), st.floats(allow_nan=False))
+@given(distance_measure(), st.floats(0, 360, allow_nan=False, exclude_max=True))
 def test_distance_alternative_value_change(distance, new_value):
     distance.distance = new_value
     assert distance.distance == new_value
 
 
-@given(angle_measure(), st.floats(allow_nan=False))
+@given(angle_measure(), st.floats(0, 360, allow_nan=False, exclude_max=True))
 def test_angle_alternative_value_change(angle, new_value):
     angle.angle = new_value
     assert angle.angle == new_value
 
 
-@given(dihedral_measure(), st.floats(allow_nan=False))
+@given(dihedral_measure(), st.floats(0, 360, allow_nan=False, exclude_max=True))
 def test_dihedral_alternative_value_change(dihedral, new_value):
     dihedral.dihedral = new_value
     assert dihedral.dihedral == new_value
+
+
+def test_angle_periodicity():
+    # Check peroidicity for radians
+    angle_rad = measure.Angle("", 0, 1, 2, 0.5, True)
+    assert angle_rad.angle == 0.5
+
+    angle_rad.update(2 * np.pi + 0.1)
+    assert np.isclose(angle_rad.angle, 0.1)
+    angle_rad.angle = (2 * np.pi) + 0.3
+    assert np.isclose(angle_rad.angle, 0.3)
+
+    # Also check for degrees
+    angle_deg = measure.Angle("", 0, 1, 2, 50)
+    assert angle_deg.angle == 50
+
+    angle_deg.update(420)
+    assert np.isclose(angle_deg.angle, 60)
+    angle_deg.angle = 500
+    assert np.isclose(angle_deg.angle, 140)
+    angle_deg.angle = 740
+    assert np.isclose(angle_deg.angle, 20)
+
+
+def test_dihedral_periodicity():
+    # Check peroidicity for radians
+    dihedral_rad = measure.Dihedral("", 0, 1, 2, 3, 0.5, True)
+    assert dihedral_rad.dihedral == 0.5
+
+    dihedral_rad.update(2 * np.pi + 0.1)
+    assert np.isclose(dihedral_rad.dihedral, 0.1)
+    dihedral_rad.dihedral = (2 * np.pi) + 0.3
+    assert np.isclose(dihedral_rad.dihedral, 0.3)
+
+    # Also check for degrees
+    dihdedral_deg = measure.Dihedral("", 0, 1, 2, 3, 50)
+    assert dihdedral_deg.dihedral == 50
+
+    dihdedral_deg.update(420)
+    assert np.isclose(dihdedral_deg.dihedral, 60)
+    dihdedral_deg.dihedral = 500
+    assert np.isclose(dihdedral_deg.dihedral, 140)
+    dihdedral_deg.dihedral = 740
+    assert np.isclose(dihdedral_deg.dihedral, 20)
+
+
+def test_rad_and_deg_conversions():
+    angle = measure.Angle("", 0, 1, 2, np.pi, True)
+    dihedral = measure.Dihedral("", 0, 1, 2, 3, np.pi, True)
+
+    angle.to_degrees(), dihedral.to_degrees()
+    assert np.isclose(angle.angle, 180)
+    assert np.isclose(dihedral.dihedral, 180)
+
+    angle.angle = 90
+    dihedral.dihedral = 90
+    angle.to_radians(), dihedral.to_radians()
+
+    assert np.isclose(angle.angle, np.pi / 2)
+    assert np.isclose(dihedral.dihedral, np.pi / 2)
