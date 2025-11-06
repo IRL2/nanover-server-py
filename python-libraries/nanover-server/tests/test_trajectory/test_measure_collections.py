@@ -102,8 +102,11 @@ def test_measure_collection_item_access(create_measure_collection):
 
     assert len(collection.scalars) == 3
     assert collection[scalar] == scalar
+    assert collection[scalar.name] == scalar  # search by name should also be ok
     with pytest.raises(KeyError):
         collection[distance]  # Invalid entry should fail.
+    with pytest.raises(KeyError):
+        collection["this is not a proper key"]
 
 
 def test_measure_collection_update():
