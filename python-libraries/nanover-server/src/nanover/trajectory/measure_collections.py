@@ -160,9 +160,13 @@ class MeasureCollection:
         TODO if using a str, will return the first matching measure of the given string from the list of:
         Scalars, Distances, Angles, Dihedrals (in order).
         """
+        # Check if looking for measure based on name first.
         if isinstance(key, str):
-            return self._get_measure_from_name(key)
+            if (value := self._get_measure_from_name(key)) is None:
+                raise KeyError(f'Could not find "{key}" in collections.')
+            return value
 
+        # Now check for exact match as a provided measure.
         if (target_getter := self._type_mapping.get(type(key), None)) is None:
             raise KeyError(f"Invalid {key}, only accepts `Measure` types or `str`.")
         if (value := target_getter(self).get(key.key, None)) is None:
