@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 from typing import Hashable, Any, Self, overload, Literal
 
+import numpy as np
 from openmm.unit import unit as omunit
 
 
@@ -80,13 +81,12 @@ class BaseMeasure(metaclass=ABCMeta):
         return value is not None and self.value >= self._to_comparible_type(value)
 
     def update(self, value: Self | float | int) -> None:
-        if not isinstance(value, (type(self), float, int)):
+        if (new_val := self._to_comparible_type(value, False)) is None:
             raise TypeError(
                 f"Can only update measurements with numeric values, not {type(value)}."
             )
 
-        value = value.value if isinstance(value, BaseMeasure) else value
-        self.value = value
+        self.value = new_val
 
     @abstractmethod
     def to_fields(self) -> tuple[Any, ...]: ...
@@ -173,7 +173,7 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
         angle: float,
         radians: bool = False,
     ) -> None:
-        unit = "radians" if radians else "degrees"
+        unit = "rad" if radians else "deg"
         super().__init__(name, angle, unit)
         self.atom1, self.atom2, self.atom3 = atom1_index, atom2_index, atom3_index
 
@@ -203,7 +203,28 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
 
     @angle.setter
     def angle(self, angle: float) -> None:
-        self.value = angle
+        self.update(angle)
+
+    def update(self, value: Self | float | int) -> None:
+        periodicity = 2 * np.pi if self.unit == "rad" else 360.0
+        value = self._to_comparible_type(value) % periodicity
+        super().update(value)
+
+    def to_radians(self) -> Self:
+        if self.unit == "rad":
+            return self
+        self.unit = "rad"
+        self.value = np.deg2rad(self.value)
+
+        return self
+
+    def to_degrees(self) -> Self:
+        if self.unit == "deg":
+            return self
+        self.unit = "deg"
+        self.value = np.rad2deg(self.value)
+
+        return self
 
 
 class Dihedral(BaseMeasure):
@@ -224,7 +245,7 @@ class Dihedral(BaseMeasure):
         angle: float,
         radians: bool = False,
     ) -> None:
-        unit = "radians" if radians else "degrees"
+        unit = "rad" if radians else "deg"
         super().__init__(name, angle, unit)
         self.atom1, self.atom2, self.atom3, self.atom4 = (
             atom1_index,
@@ -265,4 +286,25 @@ class Dihedral(BaseMeasure):
 
     @dihedral.setter
     def dihedral(self, dihedral: float) -> None:
-        self.value = dihedral
+        self.update(dihedral)
+
+    def update(self, value: Self | float | int) -> None:
+        periodicity = 2 * np.pi if self.unit == "rad" else 360.0
+        value = self._to_comparible_type(value) % periodicity
+        super().update(value)
+
+    def to_radians(self) -> Self:
+        if self.unit == "rad":
+            return self
+        self.unit = "rad"
+        self.value = np.deg2rad(self.value)
+
+        return self
+
+    def to_degrees(self) -> Self:
+        if self.unit == "deg":
+            return self
+        self.unit = "deg"
+        self.value = np.rad2deg(self.value)
+
+        return self
