@@ -167,19 +167,19 @@ def test_dihedral_equality_dihedral(dihedral, value):
         assert dihedral != value
 
 
-@given(distance_measure(), st.floats())
+@given(distance_measure(), st.floats(allow_nan=False))
 def test_distance_alternative_value_change(distance, new_value):
     distance.distance = new_value
     assert distance.distance == new_value
 
 
-@given(angle_measure(), st.floats())
+@given(angle_measure(), st.floats(allow_nan=False))
 def test_angle_alternative_value_change(angle, new_value):
     angle.angle = new_value
     assert angle.angle == new_value
 
 
-@given(dihedral_measure(), st.floats())
+@given(dihedral_measure(), st.floats(allow_nan=False))
 def test_dihedral_alternative_value_change(dihedral, new_value):
     dihedral.dihedral = new_value
     assert dihedral.dihedral == new_value
