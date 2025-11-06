@@ -53,6 +53,7 @@ def _create_unitype_measuremap(
 
 
 def _flatten(fields: Iterable[Iterable[Any] | Any]) -> Iterable[Any]:
+    """Flattens and iterable of values (containing list/array) into a single level of values."""
     for el in fields:
         if isinstance(el, (np.ndarray, list)):
             yield from el
@@ -104,7 +105,7 @@ class MeasureCollection:
         }
 
     @classmethod
-    def from_framedata(cls, frame: FrameData) -> "MeasureCollection":
+    def from_frame(cls, frame: FrameData) -> "MeasureCollection":
         scalars = _measures_from_framedata(frame, Scalar)
         distances = _measures_from_framedata(frame, Distance)
         angles = _measures_from_framedata(frame, Angle)

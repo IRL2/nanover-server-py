@@ -109,7 +109,7 @@ class Scalar(BaseMeasure):
         return self.name  # Nothing else to use for hashing here.
 
     def to_fields(self) -> tuple[Any, ...]:
-        return self.name, self.value
+        return self.name, self.value, self.unit
 
 
 class Distance(BaseMeasure):
@@ -146,7 +146,7 @@ class Distance(BaseMeasure):
         return (self.atom1, self.atom2)
 
     def to_fields(self) -> tuple[Any, ...]:
-        return self.name, [self.atom1, self.atom2], self.value
+        return self.name, [self.atom1, self.atom2], self.value, self.unit
 
     @property
     def distance(self) -> float:
@@ -195,7 +195,7 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
         return (self.atom1, self.atom2, self.atom3)
 
     def to_fields(self) -> tuple[Any, ...]:
-        return self.name, [self.atom1, self.atom2, self.atom3], self.value
+        return self.name, [self.atom1, self.atom2, self.atom3], self.value, self.unit
 
     @property
     def angle(self) -> float:
@@ -252,7 +252,12 @@ class Dihedral(BaseMeasure):
         return (self.atom1, self.atom2, self.atom3, self.atom4)
 
     def to_fields(self) -> tuple[Any, ...]:
-        return self.name, [self.atom1, self.atom2, self.atom3, self.atom4], self.value
+        return (
+            self.name,
+            [self.atom1, self.atom2, self.atom3, self.atom4],
+            self.value,
+            self.unit,
+        )
 
     @property
     def dihedral(self) -> float:
