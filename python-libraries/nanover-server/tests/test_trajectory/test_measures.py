@@ -6,7 +6,6 @@ from openmm.unit import angstrom
 from nanover.trajectory import measure
 
 # TODO
-# test ctr measures
 # test angle conversions
 
 
@@ -116,7 +115,7 @@ def test_scalar_equality_scalar(first_measure, second_measure):
     "class_,num_atoms",
     [(measure.Distance, 2), (measure.Angle, 3), (measure.Dihedral, 4)],
 )
-def test_distance_explicit_examples(class_, num_atoms):
+def test_geometric_measure_explicit_examples(class_, num_atoms):
     _explicit_comparison_setup(class_, num_atoms)
 
 
@@ -166,3 +165,21 @@ def test_dihedral_equality_dihedral(dihedral, value):
         _comparison_set(dihedral, value, dihedral.value, value.value)
     else:
         assert dihedral != value
+
+
+@given(distance_measure(), st.floats())
+def test_distance_alternative_value_change(distance, new_value):
+    distance.distance = new_value
+    assert distance.distance == new_value
+
+
+@given(angle_measure(), st.floats())
+def test_angle_alternative_value_change(angle, new_value):
+    angle.angle = new_value
+    assert angle.angle == new_value
+
+
+@given(dihedral_measure(), st.floats())
+def test_dihedral_alternative_value_change(dihedral, new_value):
+    dihedral.dihedral = new_value
+    assert dihedral.dihedral == new_value
