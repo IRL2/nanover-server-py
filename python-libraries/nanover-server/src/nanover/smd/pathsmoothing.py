@@ -271,7 +271,7 @@ class PathSmoother:
         )
 
     def create_interactive_smoothing_plot(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
     ):
         """
         Create an interactive plot to smooth the trajectory of the centre of mass of the atoms defining
@@ -318,6 +318,18 @@ class PathSmoother:
                     s=50.0,
                     alpha=0.02,
                 )
+
+                if plot_atom_positions:
+                    self.retrieve_initial_selected_atom_positions(atom_selection)
+                    assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
+                    for atom in range(self._atom_selection_colours.shape[0]):
+                        self.ax.scatter3D(*self._atom_selection_positions[atom], color=self._atom_selection_colours[atom])
+                    if self._atom_selection_bond_indices is not None:
+                        for idx_pair in self._atom_selection_bond_indices:
+                            self.ax.plot(*np.transpose(
+                                [self._atom_selection_positions[idx_pair[0]], self._atom_selection_positions[idx_pair[1]]]),
+                                    color='gray', alpha=0.5, linewidth=2)
+
                 self.ax.set_xlabel(r"$x$ / nm")
                 self.ax.set_ylabel(r"$y$ / nm")
                 self.ax.set_zlabel(r"$z$ / nm")
@@ -402,7 +414,7 @@ class PathSmoother:
         )
 
     def plot_smoothed_com_trajectory(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
     ):
         """
         Plot the smoothed trajectory of the COM of the atoms defining the path.
@@ -412,12 +424,15 @@ class PathSmoother:
         """
         assert self.smoothed_com_trajectory is not None and self.n_points is not None
         self._make_plots_interactive()
+        if plot_atom_positions:
+            self.retrieve_initial_selected_atom_positions(atom_selection)
+            assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
         plot_com_trajectory(
-            self.smoothed_com_trajectory, self.n_points, equal_aspect_ratio, cmap
+            self.smoothed_com_trajectory, self.n_points, equal_aspect_ratio, cmap, self._atom_selection_positions, self._atom_selection_colours, self._atom_selection_bond_indices
         )
 
     def plot_constant_speed_trajectory(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
     ):
         """
         Plot the constant speed trajectory calculated using :func:`calculate_constant_speed_trajectory`.
@@ -427,9 +442,12 @@ class PathSmoother:
         """
         assert self.constant_speed_com_trajectory is not None
         self._make_plots_interactive()
+        if plot_atom_positions:
+            self.retrieve_initial_selected_atom_positions(atom_selection)
+            assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
         n_points = self.constant_speed_com_trajectory.shape[0]
         plot_com_trajectory(
-            self.constant_speed_com_trajectory, n_points, equal_aspect_ratio, cmap
+            self.constant_speed_com_trajectory, n_points, equal_aspect_ratio, cmap, self._atom_selection_positions, self._atom_selection_colours, self._atom_selection_bond_indices
         )
 
     def calculate_constant_speed_trajectory(
