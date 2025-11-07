@@ -332,14 +332,20 @@ class OpenMMSMDSimulation:
                     self.simulation, save_state=save_state
                 )
                 # Manually remove parameters for now...
-                # TODO: Work out how to deal with these unwanted parameters...
-                #  WARNING: this will not work if you have other parameters!
-                #  maybe change smd_k to a per bond parameter?
-                xml_string = "\n".join(
-                    x
-                    for x in xml_string.splitlines()
-                    if SMD_FORCE_CONSTANT_PARAMETER_NAME not in x
-                )
+                xml_string_lines = xml_string.splitlines()
+                for line in xml_string_lines:
+                    # Remove only parameter left over from SMD force
+                    if SMD_FORCE_CONSTANT_PARAMETER_NAME in line:
+                        line_index = xml_string_lines.index(line)
+                        n_tabs = line.index("<")
+                        param_string = line.split('/')
+                        param_string_list = sum([string.split() for string in param_string], [])
+                        for substring in param_string_list:
+                            if SMD_FORCE_CONSTANT_PARAMETER_NAME in substring:
+                                param_string_list.remove(substring)
+                        xml_string_lines[line_index] = n_tabs * "\t" + " ".join(param_string_list[:-1]) + "/" + \
+                                                       param_string_list[-1]
+                xml_string = "\n".join(xml_string_lines)
                 outfile.write(xml_string)
 
             # Add SMD force back to the system
@@ -581,6 +587,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
         smd_force.addParticle(self.smd_atom_indices, [x0, y0, z0])
         self.smd_force = smd_force
         self.simulation.system.addForce(self.smd_force)
+        self.simulation.context.reinitialize(preserveState=True)
 
     def update_smd_force_position(self):
 
@@ -654,6 +661,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         smd_force.addBond([0], [x0, y0, z0])
         self.smd_force = smd_force
         self.simulation.system.addForce(self.smd_force)
+        self.simulation.context.reinitialize(preserveState=True)
 
     def update_smd_force_position(self):
 
