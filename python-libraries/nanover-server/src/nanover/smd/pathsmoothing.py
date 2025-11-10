@@ -481,7 +481,7 @@ class PathSmoother:
         )
 
         print(
-            f"Starting iterative path refinement for trajectory of length {path_length} nm with desired speed {desired_speed_nm_ps} nm...\n"
+            f"Starting iterative path refinement for trajectory of length {path_length} nm with desired speed {desired_speed_nm_ps} nm ps-1...\n"
         )
 
         # Iterate until convergence criteria achieved
