@@ -1,31 +1,30 @@
 import pytest
-from hypothesis import given, example, strategies as st
-from mock import Mock
-import ssl
+from hypothesis import given, strategies as st
 
-from nanover.websocket.server import WebSocketServer
-from nanover.app.imd_app import NanoverImdApplication
 from nanover.testing.servers import (
     make_connected_server_client_setup,
     connect_client_to_server,
 )
 from nanover.testing.utilities import simplify_numpy
-from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 
-from nanover.testing import assert_equal_soon
+from nanover.testing import assert_equal_soon, assert_not_in_soon, assert_in_soon
 from nanover.testing.strategies import (
     command_arguments,
     state_updates,
     frames,
+    user_ids,
 )
+from nanover.websocket.client.app_client import NanoverImdClient
+from nanover.trajectory import keys
+
+
+def echo(**arguments):
+    return arguments
 
 
 @pytest.fixture(scope="module")
 def reusable_setup():
-    def echo(**arguments):
-        return arguments
-
     with make_connected_server_client_setup() as setup:
         setup.app.register_command("test/identity", echo)
         yield setup
@@ -34,6 +33,7 @@ def reusable_setup():
 @pytest.fixture(scope="module")
 def reusable_setup_two_clients():
     with make_connected_server_client_setup() as setup:
+        setup.client.register_command("test/client_echo", echo)
         with connect_client_to_server(setup.server) as client:
             yield setup, client
 
@@ -87,12 +87,19 @@ def test_echo_command(reusable_setup, arguments):
     Test that preprepared identity command successfully returns unaltered and arbitrary arguments the command
     is called with.
     """
-    mock_callback = Mock()
-    reusable_setup.client.run_command("test/identity", arguments, mock_callback)
+    result = reusable_setup.client.run_command("test/identity", arguments).result()
+    assert result == arguments
 
-    assert_equal_soon(
-        lambda: mock_callback.call_args and mock_callback.call_args.args[0],
-        lambda: arguments,
+
+@given(arguments=command_arguments())
+def test_websocket_register_command(reusable_setup_two_clients, arguments):
+    """
+    Test one client can call a function registered by another.
+    """
+    setup, extra_client = reusable_setup_two_clients
+
+    assert (
+        extra_client.run_command_blocking("test/client_echo", **arguments) == arguments
     )
 
 
@@ -105,5 +112,50 @@ def test_client_frame_reset(reusable_setup, frame):
     reusable_setup.assert_frames_synced_soon()
 
 
+@given(
+    user_id=user_ids(),
+    fields=st.sets(st.text(min_size=1, max_size=16), min_size=1, max_size=4),
+)
+def test_disconnect_cleans_owned_keys(reusable_setup, user_id, fields):
+    """
+    Test that client disconnecting causes server to clear keys "owned" by that client.
+    """
+    updates = {f"{field}.{user_id}": True for field in fields}
+    updates[f"avatar.{user_id}"] = True  # field used to establish user_id
+
+    first = next(iter(updates))
+
+    with NanoverImdClient.from_app_server(reusable_setup.app) as client:
+        client.update_state(DictionaryChange(updates=updates))
+
+        assert_in_soon(lambda: first, lambda: reusable_setup.server_current_state)
+        assert all(key in reusable_setup.server_current_state for key in updates)
+
+    assert_not_in_soon(lambda: first, lambda: reusable_setup.server_current_state)
+    assert all(key not in reusable_setup.server_current_state for key in updates)
+
+
+@given(frame=frames())
+def test_client_frame(reusable_setup, frame):
+    """
+    Test that state updates made directly on the server are accurately reflected on the client.
+    """
+    reusable_setup.client.publish_frame(frame, frame_index=0)
+
+    def simplify(frame):
+        return simplify_numpy(
+            drop(frame.frame_dict, {keys.SIMULATION_COUNTER, keys.SERVER_TIMESTAMP})
+        )
+
+    assert_equal_soon(
+        lambda: simplify(reusable_setup.client.current_frame),
+        lambda: simplify(frame),
+    )
+
+
 def pick(dictionary, keys):
     return {key: value for key, value in dictionary.items() if key in keys}
+
+
+def drop(dictionary, keys):
+    return {key: value for key, value in dictionary.items() if key not in keys}

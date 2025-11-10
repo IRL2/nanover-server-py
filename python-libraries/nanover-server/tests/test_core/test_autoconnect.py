@@ -27,7 +27,9 @@ def discoverable_imd_server():
     DISCOVERY_PORT = BROADCAST_PORT + 1
     address = get_broadcastable_ip()
     discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
-    with NanoverImdApplication(address=address, discovery=discovery) as app_server:
+    with NanoverImdApplication(
+        address=address, discovery=discovery, name="pytest"
+    ) as app_server:
         app_server.serve_websocket()
         yield app_server
 
@@ -43,10 +45,12 @@ def test_autoconnect_app_server_default_ports():
     address = get_broadcastable_ip()
     discovery = DiscoveryServer(delay=DISCOVERY_DELAY)
 
-    with NanoverImdApplication(discovery=discovery, address=address) as app_server:
+    with NanoverImdApplication(
+        name="pytest", discovery=discovery, address=address
+    ) as app_server:
         app_server.serve_websocket()
         app_server.register_command("test", mock)
-        with NanoverImdClient.from_discovery() as client:
+        with NanoverImdClient.from_discovery(server_name="pytest") as client:
             client.run_command_blocking("test")
             assert mock.call_count == 1
 
@@ -62,6 +66,7 @@ def test_autoconnect_app_server(discoverable_imd_server: AppServer):
 
     with NanoverImdClient.from_discovery(
         discovery_port=discoverable_imd_server.discovery.port,
+        server_name="pytest",
     ) as client:
         client.run_command_blocking("test")
         assert mock.call_count == 1

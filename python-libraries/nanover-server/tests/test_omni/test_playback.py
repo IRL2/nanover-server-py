@@ -5,7 +5,7 @@ import pytest
 from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.recording import PlaybackSimulation
 
-from common import RECORDING_PATH, make_loaded_sim
+from .common import RECORDING_PATH, make_loaded_sim
 
 
 @pytest.fixture

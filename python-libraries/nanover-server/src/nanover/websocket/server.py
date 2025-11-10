@@ -1,5 +1,7 @@
+import concurrent
 import errno
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import suppress
 from ssl import SSLContext
 from typing import Any, Self
 
@@ -8,9 +10,11 @@ import numpy as np
 
 from nanover.core import AppServer
 from nanover.trajectory import FrameData
-from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.change_buffers import DictionaryChange, ObjectFrozenError
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
+
+from nanover.core.commands import CommandMessageHandler
 
 
 class WebSocketServer:
@@ -108,8 +112,20 @@ class _WebSocketClientHandler:
         self.cancellation.subscribe_cancellation(self.websocket.close)
         cancellation.subscribe_cancellation(self.close)
 
+        self.user_id: str | None = None
+
+        def send_command(message):
+            self.websocket.send(msgpack.packb({"command": message}))
+
+        self._command_handler = CommandMessageHandler(
+            send_command, command_service=app_server
+        )
+
+        self._threads = ThreadPoolExecutor(thread_name_prefix="WebSocketClientHandler")
+
     def close(self):
         self.cancellation.cancel()
+        self._threads.shutdown()
 
     @property
     def frame_publisher(self):
@@ -118,10 +134,6 @@ class _WebSocketClientHandler:
     @property
     def state_dictionary(self):
         return self.app_server.state_dictionary
-
-    def run_command(self, name: str, arguments: dict | None = None):
-        results = self.app_server.run_command(name, arguments or {})
-        return results
 
     def send_frame(self, frame: FrameData):
         self.send_message({"frame": frame.pack_to_dict()})
@@ -134,26 +146,23 @@ class _WebSocketClientHandler:
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
-            self.state_dictionary.update_state(None, DictionaryChange.from_dict(update))
+            change = DictionaryChange.from_dict(update)
+            if self.user_id is None:
+                self.user_id = _find_user_id(change)
+            self.state_dictionary.update_state(None, change)
 
-        def handle_command_request(request):
-            name, arguments = request.get("name"), request.get("arguments", {})
-            try:
-                result = self.run_command(name, arguments)
-                response = {"request": request, "response": result}
-            except Exception as e:
-                response = {"request": request, "exception": str(e)}
-            self.send_message({"command": [response]})
+        def handle_frame_update(frame):
+            frame = FrameData.unpack_from_dict(frame)
+            if frame.frame_index == 0:
+                self.frame_publisher.send_clear()
+            self.frame_publisher.send_frame(frame)
 
         if "state" in message:
             handle_state_update(message["state"])
         if "command" in message:
-            # old format
-            if isinstance(message["command"], list):
-                for submessage in message["command"]:
-                    handle_command_request(submessage["request"])
-            else:
-                handle_command_request(message["command"]["request"])
+            self._command_handler.handle_message(message["command"])
+        if "frame" in message:
+            handle_frame_update(message["frame"])
 
     def listen(self, frame_interval=1 / 30, state_interval=1 / 30):
         # TODO: error handling!!
@@ -173,15 +182,52 @@ class _WebSocketClientHandler:
         def recv_all():
             for data in self.websocket:
                 self.recv_message(msgpack.unpackb(data))
+
             self.cancellation.cancel()
 
-        threads = ThreadPoolExecutor(
-            max_workers=3, thread_name_prefix="WebSocketClientHandler"
+        concurrent.futures.wait(
+            [
+                self._threads.submit(send_frames),
+                self._threads.submit(send_updates),
+                self._threads.submit(recv_all),
+            ]
         )
-        threads.submit(send_frames)
-        threads.submit(send_updates)
-        threads.submit(recv_all)
-        threads.shutdown(wait=True)
+        self._threads.shutdown(wait=True)
+
+        # remove keys owned by this user id
+        if self.user_id is not None:
+            removals = _find_user_owned_keys(self.app_server, self.user_id)
+            with suppress(ObjectFrozenError):
+                self.state_dictionary.update_state(
+                    None, DictionaryChange(removals=removals)
+                )
+
+
+def _find_user_id(change: DictionaryChange):
+    avatars = {key for key in change.updates if key.startswith("avatar.")}
+    if avatars:
+        return avatars.pop().replace("avatar.", "")
+    return None
+
+
+def _find_user_owned_keys(app_server: AppServer, user_id: str):
+    """
+    Return a set of state keys that are annotated as owned by the given user id.
+    """
+    keys = set()
+
+    # user id as suffix
+    with app_server.state_dictionary.lock_content() as state:
+        keys |= {key for key in state if f".{user_id}" in key}
+
+    # user id in interaction owner
+    keys |= {
+        key
+        for key, interaction in app_server.imd.active_interactions.items()
+        if interaction.properties.get("owner.id", None) == user_id
+    }
+
+    return keys
 
 
 def _get_server_port(server: Server) -> int:

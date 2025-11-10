@@ -7,7 +7,7 @@ from ase.calculators.calculator import Calculator
 from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
-from nanover.core import AppServer
+from nanover.core import AppServer, Simulation
 from nanover.ase.converter import (
     EV_TO_KJMOL,
     ASE_TIME_UNIT_TO_PS,
@@ -34,7 +34,7 @@ class ASEAtomsToFrameData(Protocol):
     def __call__(self, ase_atoms: Atoms, *, topology: bool, **kwargs) -> FrameData: ...
 
 
-class ASESimulation:
+class ASESimulation(Simulation):
     """
     A wrapper for ASE simulations so they can be run inside the OmniRunner.
     """

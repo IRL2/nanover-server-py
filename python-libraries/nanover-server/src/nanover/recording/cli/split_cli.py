@@ -79,13 +79,7 @@ def make_key_name_template(key: str):
 
 
 def get_value(event: RecordingEvent, key: str):
-    if key in event.prev_frame.value_keys:
-        return event.prev_frame.values[key]
-    elif key in event.prev_frame.array_keys:
-        return event.prev_frame.arrays[key]
-    elif key in event.prev_state:
-        return event.prev_state[key]
-    return None
+    return event.prev_frame.frame_dict.get(key, None) or event.prev_state.get(key, None)
 
 
 def split_recording(

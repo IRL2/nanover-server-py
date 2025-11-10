@@ -3,6 +3,7 @@ Module providing an out-of-the-box NanoVer application server supporting all the
 """
 
 import getpass
+from concurrent.futures import Future
 from ssl import SSLContext
 from typing import Any
 
@@ -13,13 +14,14 @@ from nanover.utilities.change_buffers import DictionaryChange
 from nanover.core.commands import CommandService, CommandHandler
 from nanover.utilities.state_dictionary import StateDictionary
 from .multiuser import add_multiuser_commands
+from ..core import AppServer
 from ..imd import ImdStateWrapper
 
 DEFAULT_SERVE_ADDRESS = "[::]"
 DEFAULT_NANOVER_PORT = 38801
 
 
-class NanoverImdApplication:
+class NanoverImdApplication(AppServer):
     """
     Application-level class for implementing a NanoVer iMD server, something that publishes
     :class:`FrameData` that can be consumed, e.g. simulation trajectories, and can receive
@@ -168,7 +170,7 @@ class NanoverImdApplication:
         """
         return self._command_service.commands
 
-    def run_command(self, name: str, arguments: dict[str, Any]):
+    def run_command(self, name: str, arguments: dict[str, Any]) -> Future:
         return self._command_service.run_command(name, arguments)
 
     def register_command(
