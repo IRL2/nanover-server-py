@@ -48,6 +48,10 @@ class NGLClient(NanoverImdClient):
         """
         Returns an NGLView widget to visualise the molecular system.
         """
+
+        if not self.has_basic_topology:
+            raise Exception("Topology not available yet.")
+
         if self._view is None or self.dynamic_bonds:
             self._view = frame_data_to_nglwidget(self.current_frame)
         return self._view
@@ -129,6 +133,8 @@ def fill_empty_fields(universe: mda.Universe):
             "altLocs": " ",
             "occupancies": 1.0,
             "tempfactors": 0.0,
+            "formalcharges": 0.0,
+            "record_types": "ATOM",
         },
         len(universe.atoms),
     )
