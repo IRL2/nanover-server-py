@@ -1,15 +1,25 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
+import copy
 
-from typing import Hashable, Any, Self, overload, Literal
+from typing import (
+    Hashable,
+    Any,
+    Self,
+    overload,
+    Literal,
+    TypeVar,
+    Sequence,
+    Iterable,
+    Iterator,
+)
 
 import numpy as np
 from openmm.unit import unit as omunit
 
 
 # Convience for users to allow for wildcard importing without pulling abstract classes.
-__all__ = ("Scalar", "Distance", "Angle", "Dihedral")
-
+__all__ = ("Scalar", "Distance", "Angle", "Dihedral", "MultiMeasure")
 
 MeasureKey = Hashable
 
@@ -80,13 +90,14 @@ class BaseMeasure(metaclass=ABCMeta):
     def __ge__(self, value: Any) -> bool:
         return value is not None and self.value >= self._to_comparible_type(value)
 
-    def update(self, value: Self | float | int) -> None:
+    def update(self, value: Self | float | int) -> Self:
         if (new_val := self._to_comparible_type(value, False)) is None:
             raise TypeError(
                 f"Can only update measurements with numeric values, not {type(value)}."
             )
 
         self.value = new_val
+        return self
 
     @abstractmethod
     def to_fields(self) -> tuple[Any, ...]: ...
@@ -205,10 +216,10 @@ class Angle(BaseMeasure):  # TODO handle angles in radians/degrees + periodicity
     def angle(self, angle: float) -> None:
         self.update(angle)
 
-    def update(self, value: Self | float | int) -> None:
+    def update(self, value: Self | float | int) -> Self:
         periodicity = 2 * np.pi if self.unit == "rad" else 360.0
         value = self._to_comparible_type(value) % periodicity
-        super().update(value)
+        return super().update(value)
 
     def to_radians(self) -> Self:
         if self.unit == "rad":
@@ -288,10 +299,10 @@ class Dihedral(BaseMeasure):
     def dihedral(self, dihedral: float) -> None:
         self.update(dihedral)
 
-    def update(self, value: Self | float | int) -> None:
+    def update(self, value: Self | float | int) -> Self:
         periodicity = 2 * np.pi if self.unit == "rad" else 360.0
         value = self._to_comparible_type(value) % periodicity
-        super().update(value)
+        return super().update(value)
 
     def to_radians(self) -> Self:
         if self.unit == "rad":
@@ -308,3 +319,39 @@ class Dihedral(BaseMeasure):
         self.value = np.rad2deg(self.value)
 
         return self
+
+
+_M = TypeVar("_M", bound=BaseMeasure)
+
+
+class MultiMeasure(Sequence[_M]):
+    def __init__(
+        self, initial_measure: _M, all_values: Iterable[float], copy: bool = False
+    ) -> None:
+        """
+        Constructs a new `MultiMeasure` class.
+
+        :param: initial_measure: Template `Measure` from which all subsequent values will be derived using.
+        :param: all_values: Iterable containing all values to draw from.
+        :param: copy: Whether to return a new instance of the `Measure` type when iterating over the data.
+        """
+        super().__init__()
+        if not isinstance(initial_measure, BaseMeasure):
+            raise TypeError(
+                f"`initial_measure` should be of type `BaseMeasure` not `{type(initial_measure)}`"
+            )
+
+        self._data = np.array(all_values)
+        self._measure_template = initial_measure
+        self.copy = copy
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __iter__(self) -> Iterator[_M]:
+        for el in self._data:
+            current_measure = self._measure_template.update(el)
+            if not self.copy:
+                yield current_measure
+            else:
+                copy.copy(current_measure)

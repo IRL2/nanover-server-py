@@ -2,7 +2,7 @@ import operator
 import io
 import itertools
 
-from typing import Iterable, Callable, Any
+from typing import Iterable, Callable, Any, TypeVar
 
 import numpy as np
 
@@ -19,7 +19,8 @@ from nanover.trajectory import FrameData
 from nanover.trajectory.frame_dict import FrameDict
 
 
-MeasureMap = dict[MeasureKey, BaseMeasure]
+BM = TypeVar("BM", bound=BaseMeasure)
+MeasureMap = dict[MeasureKey, BM]
 
 
 FRAMEDATA_MEASURE_LABELS: dict[type[BaseMeasure], str] = {
@@ -37,8 +38,8 @@ FRAMEDATA_MEASURE_FIELD_KEYS: dict[type[BaseMeasure], tuple[str, ...]] = {
 
 
 def _create_unitype_measuremap(
-    measures: Iterable[BaseMeasure] | None, check_type: type | None = None
-) -> MeasureMap:
+    measures: Iterable[BM] | None, check_type: type | None = None
+) -> MeasureMap[BM]:
     """Creates a `MeasureMap`, ensuring all elements are the same (`check_type`)."""
     map_ = {el.key: el for el in measures} if measures is not None else MeasureMap()
 
@@ -61,9 +62,7 @@ def _flatten(fields: Iterable[Iterable[Any] | Any]) -> Iterable[Any]:
             yield el
 
 
-def _measures_from_framedata(
-    frame: FrameData, measure_type: type[BaseMeasure]
-) -> Iterable[BaseMeasure]:
+def _measures_from_framedata(frame: FrameData, measure_type: type[BM]) -> Iterable[BM]:
     if (
         measure_type not in FRAMEDATA_MEASURE_LABELS
         or measure_type not in FRAMEDATA_MEASURE_FIELD_KEYS
