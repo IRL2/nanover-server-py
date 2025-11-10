@@ -1,8 +1,7 @@
-import operator
 import io
 import itertools
 
-from typing import Iterable, Callable, Any, TypeVar, overload, Iterator
+from typing import Iterable, Any, TypeVar, overload, Iterator
 
 import numpy as np
 
@@ -96,13 +95,11 @@ class MeasureCollection:
         self.angles = _create_unitype_measuremap(angles, Angle)
         self.dihedrals = _create_unitype_measuremap(dihedrals, Dihedral)
 
-        self._type_mapping: dict[
-            type[BaseMeasure], Callable[[MeasureCollection], MeasureMap]
-        ] = {
-            Scalar: operator.attrgetter("scalars"),
-            Distance: operator.attrgetter("distances"),
-            Angle: operator.attrgetter("angles"),
-            Dihedral: operator.attrgetter("dihedrals"),
+        self._type_mapping: dict[type[BaseMeasure], MeasureMap] = {
+            Scalar: getattr(self, "scalars"),
+            Distance: getattr(self, "distances"),
+            Angle: getattr(self, "angles"),
+            Dihedral: getattr(self, "dihedrals"),
         }
 
     @classmethod
@@ -119,17 +116,13 @@ class MeasureCollection:
     def __repr__(self) -> str:
         with io.StringIO() as str_io:
             str_io.write(f"{type(self).__name__} containing:\n")
-            m: dict[str, MeasureMap] = {
-                "Scalars": self.scalars,
-                "Distances": self.distances,
-                "Angles": self.angles,
-                "Dihedrals": self.dihedrals,
-            }
 
-            for k, v in m.items():
+            for k, v in self._type_mapping.items():
                 if not v:
                     continue
-                str_io.write(f"\t{len(v)} {k}; {', '.join(map(str, v.values()))}\n")
+                str_io.write(
+                    f"\t{len(v)} {k.__name__}; {', '.join(map(str, v.values()))}\n"
+                )
 
             out_str = str_io.getvalue()
         return out_str
@@ -145,7 +138,7 @@ class MeasureCollection:
 
     def __iter__(self) -> Iterator[BaseMeasure]:
         all_measures = itertools.chain.from_iterable(
-            el(self).values() for el in self._type_mapping.values()
+            el.values() for el in self._type_mapping.values()
         )
         yield from all_measures
 
@@ -155,7 +148,7 @@ class MeasureCollection:
         Will search from the list of `Scalars, Distances, Angles, Dihedrals` in that order.
         """
         for mapping in self._type_mapping.values():
-            for measure in mapping(self).values():
+            for measure in mapping.values():
                 if measure.name == name:
                     return measure
 
@@ -170,9 +163,9 @@ class MeasureCollection:
 
         # Now check for exact match as a provided measure.
         if isinstance(key, BaseMeasure):
-            if (target_getter := self._type_mapping.get(type(key), None)) is None:
+            if (target_mapping := self._type_mapping.get(type(key), None)) is None:
                 raise KeyError(f"Invalid {key}, only accepts `Measure` types or `str`.")
-            if (value := target_getter(self).get(key.key, None)) is None:
+            if (value := target_mapping.get(key.key, None)) is None:
                 raise KeyError(f'Could not find "{key}" in collections.')
             return value
 
@@ -180,7 +173,7 @@ class MeasureCollection:
         if isinstance(key, Iterable):
             key = tuple(key)
             for mapping in self._type_mapping.values():
-                if (value := mapping(self).get(key, None)) is not None:
+                if (value := mapping.get(key, None)) is not None:
                     return value
             else:
                 raise KeyError(
@@ -224,11 +217,11 @@ class MeasureCollection:
         self, measurements: Iterable[BaseMeasure]
     ) -> Iterable[tuple[BaseMeasure, MeasureMap]]:
         for measure in measurements:
-            target_getter = self._type_mapping.get(type(measure), None)
-            if target_getter is None:
+            target_map = self._type_mapping.get(type(measure), None)
+            if target_map is None:
                 continue
 
-            yield measure, target_getter(self)
+            yield measure, target_map
 
     def update(self, measurements: Iterable[BaseMeasure] | BaseMeasure) -> None:
         """Updates existing stored measurements with `measurements`."""
