@@ -9,7 +9,7 @@ from nanover.imd import ParticleInteraction
 from nanover.ase import ASESimulation
 from nanover.ase.converter import ASE_TIME_UNIT_TO_PS, ANG_TO_NM, EV_TO_KJMOL
 
-from common import (
+from .common import (
     make_app_server,
     make_loaded_sim,
     connect_and_retrieve_first_frame_from_app_server,

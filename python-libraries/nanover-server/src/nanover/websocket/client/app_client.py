@@ -5,11 +5,12 @@ from typing import Any
 from nanover.core import AppServer
 from nanover.essd import DiscoveryClient, ServiceHub
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.websocket.client.playback_client import PlaybackClient
 from nanover.utilities.network import get_local_ip
-from nanover.websocket.client.interaction_client import InteractionClient
-from nanover.websocket.client.selection_client import SelectionClient
 from nanover.trajectory import FrameData
+
+from .playback_client import PlaybackClient
+from .interaction_client import InteractionClient
+from .selection_client import SelectionClient
 
 DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
 
@@ -27,11 +28,11 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
     def from_app_server(cls, app_server: AppServer):
         try:
             return cls.from_url(
-                f"wss://localhost:{app_server.service_hub.services["wss"]}"
+                f"wss://127.0.0.1:{app_server.service_hub.services["wss"]}"
             )
         except KeyError:
             return cls.from_url(
-                f"ws://localhost:{app_server.service_hub.services["ws"]}"
+                f"ws://127.0.0.1:{app_server.service_hub.services["ws"]}"
             )
 
     @classmethod
@@ -86,6 +87,14 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
     @property
     def current_frame(self) -> FrameData:
         return self._current_frame
+
+    def publish_frame(self, frame: FrameData, *, frame_index=None):
+        """
+        Publish a frame to the server, replacing the frame_index if provided.
+        """
+        if frame_index is not None:
+            frame.frame_index = frame_index
+        self.send_message({"frame": frame.pack_to_dict()})
 
     @property
     def latest_multiplayer_values(self):
