@@ -104,11 +104,12 @@ def split_recording(
     temp_path = f"{input_path.parent}/{input_path.stem}--TEMP.nanover.zip"
 
     def close_all():
-        split_stem = name_template(
-            input_stem=input_path.stem,
-            index=split_count,
-            last_event=last_event,
-        )
+        if last_event is not None:
+            split_stem = name_template(
+                input_stem=input_path.stem,
+                index=split_count,
+                last_event=last_event,
+            )
 
         if current_writer is not None:
             current_writer.close()
