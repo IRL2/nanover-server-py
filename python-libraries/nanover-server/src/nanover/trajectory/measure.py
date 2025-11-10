@@ -354,4 +354,4 @@ class MultiMeasure(Sequence[_M]):
             if not self.copy:
                 yield current_measure
             else:
-                copy.copy(current_measure)
+                yield copy.copy(current_measure)
