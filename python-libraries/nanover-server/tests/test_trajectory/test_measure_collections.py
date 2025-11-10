@@ -102,11 +102,21 @@ def test_measure_collection_item_access(create_measure_collection):
 
     assert len(collection.scalars) == 3
     assert collection[scalar] == scalar
-    assert collection[scalar.name] == scalar  # search by name should also be ok
+    # `get_measure` is alternative access method
+    assert collection.get_measure(scalar) == scalar
+    assert (
+        collection.get_measure(scalar.name) == scalar
+    )  # search by name should also be ok
     with pytest.raises(KeyError):
-        collection[distance]  # Invalid entry should fail.
+        collection.get_measure(distance)  # Invalid entry should fail.
     with pytest.raises(KeyError):
-        collection["this is not a proper key"]
+        collection.get_measure("this is not a proper key")
+
+    # Now add distance and check accessibility using atom indices.
+    collection.update(distance)
+    collection.get_measure(
+        (distance.atom1, distance.atom2)
+    ) == distance  # Try to get distance from its atom indicies
 
 
 def test_measure_collection_update():

@@ -2,7 +2,7 @@ import operator
 import io
 import itertools
 
-from typing import Iterable, Callable, Any, TypeVar
+from typing import Iterable, Callable, Any, TypeVar, overload, Iterator
 
 import numpy as np
 
@@ -91,12 +91,14 @@ class MeasureCollection:
         angles: Iterable[Angle] | None = None,
         dihedrals: Iterable[Dihedral] | None = None,
     ):
-        self.scalars: MeasureMap = _create_unitype_measuremap(scalars, Scalar)
-        self.distances: MeasureMap = _create_unitype_measuremap(distances, Distance)
-        self.angles: MeasureMap = _create_unitype_measuremap(angles, Angle)
-        self.dihedrals: MeasureMap = _create_unitype_measuremap(dihedrals, Dihedral)
+        self.scalars = _create_unitype_measuremap(scalars, Scalar)
+        self.distances = _create_unitype_measuremap(distances, Distance)
+        self.angles = _create_unitype_measuremap(angles, Angle)
+        self.dihedrals = _create_unitype_measuremap(dihedrals, Dihedral)
 
-        self._type_mapping: dict[type[BaseMeasure], Callable[[Any], MeasureMap]] = {
+        self._type_mapping: dict[
+            type[BaseMeasure], Callable[[MeasureCollection], MeasureMap]
+        ] = {
             Scalar: operator.attrgetter("scalars"),
             Distance: operator.attrgetter("distances"),
             Angle: operator.attrgetter("angles"),
@@ -117,7 +119,7 @@ class MeasureCollection:
     def __repr__(self) -> str:
         with io.StringIO() as str_io:
             str_io.write(f"{type(self).__name__} containing:\n")
-            m = {
+            m: dict[str, MeasureMap] = {
                 "Scalars": self.scalars,
                 "Distances": self.distances,
                 "Angles": self.angles,
@@ -141,6 +143,12 @@ class MeasureCollection:
             type(self).__name__, *num_measures
         )
 
+    def __iter__(self) -> Iterator[BaseMeasure]:
+        all_measures = itertools.chain.from_iterable(
+            el(self).values() for el in self._type_mapping.values()
+        )
+        yield from all_measures
+
     def _get_measure_from_name(self, name: str) -> BaseMeasure | None:
         """Finds the first corresponding `Measure` (if it exists) from the underlying `MeasureMaps`.
 
@@ -153,12 +161,7 @@ class MeasureCollection:
 
         return None
 
-    def __getitem__(self, key: BaseMeasure | str | Any) -> BaseMeasure:
-        """Returns relevant `key` from underlying `MeasureMap`s.
-
-        TODO if using a str, will return the first matching measure of the given string from the list of:
-        Scalars, Distances, Angles, Dihedrals (in order).
-        """
+    def __getitem__(self, key: Any) -> BaseMeasure:
         # Check if looking for measure based on name first.
         if isinstance(key, str):
             if (value := self._get_measure_from_name(key)) is None:
@@ -166,15 +169,55 @@ class MeasureCollection:
             return value
 
         # Now check for exact match as a provided measure.
-        if (target_getter := self._type_mapping.get(type(key), None)) is None:
-            raise KeyError(f"Invalid {key}, only accepts `Measure` types or `str`.")
-        if (value := target_getter(self).get(key.key, None)) is None:
-            raise KeyError(f'Could not find "{key}" in collections.')
+        if isinstance(key, BaseMeasure):
+            if (target_getter := self._type_mapping.get(type(key), None)) is None:
+                raise KeyError(f"Invalid {key}, only accepts `Measure` types or `str`.")
+            if (value := target_getter(self).get(key.key, None)) is None:
+                raise KeyError(f'Could not find "{key}" in collections.')
+            return value
 
-        return value
+        # Lastly check if provided `key` is set of atom indices.
+        if isinstance(key, Iterable):
+            key = tuple(key)
+            for mapping in self._type_mapping.values():
+                if (value := mapping(self).get(key, None)) is not None:
+                    return value
+            else:
+                raise KeyError(
+                    f'Could not find measure with matching parameters of "{key}"'
+                )
 
-    def get_measure(self, measure: BaseMeasure | str) -> BaseMeasure:
-        """Returns relevant "measure" from the collection. If using a name str, will return the first matching element."""
+        # Nothing could be found.
+        raise KeyError(f'Could not find measure with given data: "{key}"')
+
+    @overload
+    def get_measure(self, measure: str) -> BaseMeasure:
+        """Returns relevant measure by matching against its name."""
+        ...
+
+    @overload
+    def get_measure(self, measure: tuple[int]) -> BaseMeasure:
+        """
+        Returns relevant measure by matching against the atom indices of a measure.
+        Only applicable for geometric measurement types, e.g. for a `Distance`.
+        """
+        ...
+
+    @overload
+    def get_measure(self, measure: BaseMeasure) -> BaseMeasure:
+        """Returns relevant measure by matching against the provided `key`."""
+        ...
+
+    def get_measure(self, measure: str | tuple[int] | BaseMeasure) -> BaseMeasure:
+        """
+        Returns relevant "measure" from the collection.
+
+        If `measure` is a:
+        - `str`, will return the first matching measure with the same "name".
+        - `tuple[int]`, will return the measure with the given set of (ordered) atom indices.
+
+        All matching will check for identity from the sets of: Scalars, Distances, Angles, Dihedrals (respectively).
+        """
         return self[measure]
 
     def _measure_iterator(
