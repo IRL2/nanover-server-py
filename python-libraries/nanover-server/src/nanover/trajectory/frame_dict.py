@@ -14,6 +14,13 @@ from . import keys
 FrameDict = dict[str, Any]
 
 
+BASIC_TOPOLOGY_KEYS = {
+    keys.PARTICLE_COUNT,
+    keys.PARTICLE_ELEMENTS,
+    keys.BOND_PAIRS,
+}
+
+
 FRAME_PACKERS: dict[str, PackingPair] = {
     keys.FRAME_INDEX: force_int,
     keys.PARTICLE_COUNT: force_int,
