@@ -27,7 +27,10 @@ from nanover.recording.reading import (
     MessageEvent,
 )
 from nanover.recording.writing import NanoverRecordingWriter
+from nanover.trajectory import FrameData
 from nanover.trajectory.keys import SIMULATION_COUNTER, FRAME_INDEX
+from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.state_dictionary import StateDictionary
 
 
 def split_on_frame_reset(event: RecordingEvent):
@@ -128,9 +131,23 @@ def split_recording(
 
                 if split_predicate(event):
                     close_all()
+                    open_all()
+
                     split_count += 1
                     current_base_timestamp = event.timestamp
-                    open_all()
+
+                    # initial frame/state is the previous carried over
+                    initial_frame = event.prev_frame_event.next_frame
+                    initial_state = event.prev_state_event.next_state
+
+                    initial_message = {
+                        "frame": initial_frame.pack_to_dict(),
+                        "state": DictionaryChange(updates=initial_state).to_dict(),
+                    }
+
+                    current_writer.write_message_event(
+                        MessageEvent(timestamp=0, message=initial_message)
+                    )
 
                 if current_writer is not None:
                     message = {}
