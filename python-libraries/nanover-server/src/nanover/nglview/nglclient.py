@@ -58,7 +58,10 @@ class NGLClient(NanoverImdClient):
         in the molecular system in Angstrom for visualisation using NGLView.
         """
         super().recv_frame(*args, **kwargs)
-        self.view.set_coordinates({0: self.current_frame.particle_positions * 10})
+
+        if self.has_basic_topology:
+            print(set(self.current_frame.frame_dict.keys()))
+            self.view.set_coordinates({0: self.current_frame.particle_positions * 10})
         # TODO: Add functionality to update callback functions to allow widget customisation
 
 
@@ -154,7 +157,7 @@ def mda_to_pdb_str(universe: mda.Universe):
     fill_empty_fields(universe)
     with StringIO() as str_io, mda.coordinates.PDB.PDBWriter(str_io) as writer:
         writer.filename = ""  # See https://github.com/MDAnalysis/mdanalysis/issues/2512
-        writer.write(universe.atoms)
+        writer.write(universe)
         pdb = str_io.getvalue()
     return pdb
 
