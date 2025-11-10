@@ -23,6 +23,27 @@ try:
 except:
     _in_notebook = False
 
+NANOVER_CPK_ELEMENT_COLOURS = {"H" : [0.8502581, 0.9008766, 0.9339623, 1],
+    "C": [0.38863602, 0.36231756, 0.4339623, 1],
+    "N": [0.14751692, 0.47027886, 0.8018868, 1],
+    "O": [0.9433962, 0.16464934, 0.42588678, 1],
+    "S": [0.9811321, 0.719641, 0, 1],
+    "He": [0.8509804, 1, 1, 1],
+    "Li": [0.8, 0.5019608, 1, 1],
+    "Be": [0.7607843, 1, 0, 1],
+    "B": [1, 0.70980394, 0.70980394, 1],
+    "F": [0.5647059, 0.8784314, 0.3137255, 1],
+    "Na": [0.67058825, 0.36078432, 0.9490196, 1],
+    "Cl": [0.12156863, 0.9411765, 0.12156863, 1],
+    "K": [0.56078434, 0.2509804, 0.83137256, 1],
+    "Cu": [0.7843138, 0.5019608, 0.20000002, 1],
+    "Pt": [0.81568635, 0.81568635, 0.87843144, 1],
+    "Co": [0.9411765, 0.5647059, 0.627451, 1],
+}
+DEFAULT_ELEMENT_COLOUR = [0.98039216, 0.08627451, 0.5686275, 1]
+
+get_element_colours = lambda x: NANOVER_CPK_ELEMENT_COLOURS.get(x, DEFAULT_ELEMENT_COLOUR)
+
 
 class PathSmoother:
     """
@@ -120,6 +141,11 @@ class PathSmoother:
         self.constant_speed_nm_ps: float | None = None
         self.timestep_ps: float | None = None
 
+        # Arrays for plotting initial positions of atom selection
+        self._atom_selection_positions: np.ndarray | None = None
+        self._atom_selection_bond_indices: np.ndarray | None = None
+        self._atom_selection_colours: np.ndarray | None = None
+
     def close_interactive_plots(self):
         """
         Function that closes any interactive plots that are currently open within a Jupyter
@@ -183,38 +209,69 @@ class PathSmoother:
         self.create_mda_universe()
         self.read_mda_universe_data()
 
+    def retrieve_initial_selected_atom_positions(self, selection: str | None = 'all', guess_bonds: bool = False):
+        """
+        Retrieve the initial atomic positions of all atoms included in an MDAnalysis selection
+        (selects all atoms by default), and saves their positions and corresponding colours.
+        """
+        assert self.universe is not None, ("Cannot load atomic positions because "
+                                           "no MDAnalysis universe has been loaded.")
+        if selection == None:
+            selection = 'all'
+        atom_selection = self.universe.select_atoms(selection)
+        self._atom_selection_positions = atom_selection.positions
+        self._atom_selection_colours = np.array([get_element_colours(atom_selection.elements[i]) for i in range(atom_selection.elements.size)])
+        # TODO: Figure out how to make this work (doesn't work with universe in NanoVer units...)
+        if guess_bonds:
+            atom_selection.guess_bonds()
+            self._atom_selection_bond_indices = atom_selection.bonds.indices
+
     def plot_com_trajectory(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
     ):
         """
         Plot the trajectory of the COM of the atoms defining the path.
 
         :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
         :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
+        :param plot_atom_positions: A bool defining whether to plot selected atomic positions (only valid
+          for PathSmoothers created from a recording)
+        :param atom_selection: A MDAnalysis-style string defining the selection of atoms to plot (only valid
+          for PathSmoothers created from a recording)
         """
         assert self.com_positions is not None and self.n_interaction_frames is not None
         self._make_plots_interactive()
+        if plot_atom_positions:
+            self.retrieve_initial_selected_atom_positions(atom_selection)
+            assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
         plot_com_trajectory(
-            self.com_positions, self.n_interaction_frames, equal_aspect_ratio, cmap
+            self.com_positions, self.n_interaction_frames, equal_aspect_ratio, cmap, self._atom_selection_positions, self._atom_selection_colours, self._atom_selection_bond_indices
         )
 
     def plot_atoms_trajectories(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
     ):
         """
         Plot the trajectories of the individual atoms defining the path.
 
         :param equal_aspect_ratio: A bool defining whether the axes should have equal aspect ratio
         :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
+        :param plot_atom_positions: A bool defining whether to plot selected atomic positions (only valid
+          for PathSmoothers created from a recording)
+        :param atom_selection: A MDAnalysis-style string defining the selection of atoms to plot (only valid
+          for PathSmoothers created from a recording)
         """
         assert self.atom_positions is not None and self.n_interaction_frames is not None
         self._make_plots_interactive()
+        if plot_atom_positions:
+            self.retrieve_initial_selected_atom_positions(atom_selection)
+            assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
         plot_atom_trajectories(
-            self.atom_positions, self.n_interaction_frames, equal_aspect_ratio, cmap
+            self.atom_positions, self.n_interaction_frames, equal_aspect_ratio, cmap, self._atom_selection_positions, self._atom_selection_colours, self._atom_selection_bond_indices
         )
 
     def create_interactive_smoothing_plot(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
     ):
         """
         Create an interactive plot to smooth the trajectory of the centre of mass of the atoms defining
@@ -261,6 +318,18 @@ class PathSmoother:
                     s=50.0,
                     alpha=0.02,
                 )
+
+                if plot_atom_positions:
+                    self.retrieve_initial_selected_atom_positions(atom_selection)
+                    assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
+                    for atom in range(self._atom_selection_colours.shape[0]):
+                        self.ax.scatter3D(*self._atom_selection_positions[atom], color=self._atom_selection_colours[atom])
+                    if self._atom_selection_bond_indices is not None:
+                        for idx_pair in self._atom_selection_bond_indices:
+                            self.ax.plot(*np.transpose(
+                                [self._atom_selection_positions[idx_pair[0]], self._atom_selection_positions[idx_pair[1]]]),
+                                    color='gray', alpha=0.5, linewidth=2)
+
                 self.ax.set_xlabel(r"$x$ / nm")
                 self.ax.set_ylabel(r"$y$ / nm")
                 self.ax.set_zlabel(r"$z$ / nm")
@@ -345,7 +414,7 @@ class PathSmoother:
         )
 
     def plot_smoothed_com_trajectory(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
     ):
         """
         Plot the smoothed trajectory of the COM of the atoms defining the path.
@@ -355,12 +424,15 @@ class PathSmoother:
         """
         assert self.smoothed_com_trajectory is not None and self.n_points is not None
         self._make_plots_interactive()
+        if plot_atom_positions:
+            self.retrieve_initial_selected_atom_positions(atom_selection)
+            assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
         plot_com_trajectory(
-            self.smoothed_com_trajectory, self.n_points, equal_aspect_ratio, cmap
+            self.smoothed_com_trajectory, self.n_points, equal_aspect_ratio, cmap, self._atom_selection_positions, self._atom_selection_colours, self._atom_selection_bond_indices
         )
 
     def plot_constant_speed_trajectory(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis"
+        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
     ):
         """
         Plot the constant speed trajectory calculated using :func:`calculate_constant_speed_trajectory`.
@@ -370,9 +442,12 @@ class PathSmoother:
         """
         assert self.constant_speed_com_trajectory is not None
         self._make_plots_interactive()
+        if plot_atom_positions:
+            self.retrieve_initial_selected_atom_positions(atom_selection)
+            assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
         n_points = self.constant_speed_com_trajectory.shape[0]
         plot_com_trajectory(
-            self.constant_speed_com_trajectory, n_points, equal_aspect_ratio, cmap
+            self.constant_speed_com_trajectory, n_points, equal_aspect_ratio, cmap, self._atom_selection_positions, self._atom_selection_colours, self._atom_selection_bond_indices
         )
 
     def calculate_constant_speed_trajectory(
@@ -406,7 +481,7 @@ class PathSmoother:
         )
 
         print(
-            f"Starting iterative path refinement for trajectory of length {path_length} nm with desired speed {desired_speed_nm_ps} nm...\n"
+            f"Starting iterative path refinement for trajectory of length {path_length} nm with desired speed {desired_speed_nm_ps} nm ps-1...\n"
         )
 
         # Iterate until convergence criteria achieved
@@ -705,6 +780,9 @@ def plot_com_trajectory(
     n_frames: int,
     equal_aspect_ratio: bool = False,
     cmap: str = "viridis",
+    initial_atom_positions: np.ndarray | None = None,
+    initial_atom_colours: np.ndarray | None = None,
+    initial_atom_bond_indices: np.ndarray | None = None,
 ) -> None:
     """
     Function that takes the trajectory of an atom as a NumPy array and the number of frames of the trajectory,
@@ -725,6 +803,14 @@ def plot_com_trajectory(
         cmap=cmap,
         s=1.0,
     )
+
+    if initial_atom_positions is not None and initial_atom_colours is not None:
+        for atom in range(initial_atom_colours.shape[0]):
+            ax.scatter3D(*initial_atom_positions[atom], color=initial_atom_colours[atom])
+        if initial_atom_bond_indices is not None:
+            for idx_pair in initial_atom_bond_indices:
+                ax.plot(*np.transpose([initial_atom_positions[idx_pair[0]], initial_atom_positions[idx_pair[1]]]), color='gray', alpha=0.5, linewidth=2)
+
     ax.set_xlabel(r"$x$ / nm")
     ax.set_ylabel(r"$y$ / nm")
     ax.set_zlabel(r"$z$ / nm")
@@ -741,6 +827,9 @@ def plot_atom_trajectories(
     n_frames: int,
     equal_aspect_ratio: bool = False,
     cmap: str = "viridis",
+    initial_atom_positions: np.ndarray | None = None,
+    initial_atom_colours: np.ndarray | None = None,
+    initial_atom_bond_indices: np.ndarray | None = None,
 ) -> None:
     """
     Function that takes the trajectory of an atom as a NumPy array and the number of frames of the trajectory,
@@ -762,6 +851,14 @@ def plot_atom_trajectories(
             cmap=cmap,
             s=1.0,
         )
+
+    if initial_atom_positions is not None and initial_atom_colours is not None:
+        for atom in range(initial_atom_colours.shape[0]):
+            ax.scatter3D(*initial_atom_positions[atom], color=initial_atom_colours[atom])
+        if initial_atom_bond_indices is not None:
+            for idx_pair in initial_atom_bond_indices:
+                ax.plot(*np.transpose([initial_atom_positions[idx_pair[0]], initial_atom_positions[idx_pair[1]]]), color='gray', alpha=0.5, linewidth=2)
+
     ax.set_xlabel(r"$x$ / nm")
     ax.set_ylabel(r"$y$ / nm")
     ax.set_zlabel(r"$z$ / nm")
