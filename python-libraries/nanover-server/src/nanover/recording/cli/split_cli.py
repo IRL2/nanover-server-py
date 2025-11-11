@@ -27,10 +27,8 @@ from nanover.recording.reading import (
     MessageEvent,
 )
 from nanover.recording.writing import NanoverRecordingWriter
-from nanover.trajectory import FrameData
 from nanover.trajectory.keys import SIMULATION_COUNTER, FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.utilities.state_dictionary import StateDictionary
 
 
 def split_on_frame_reset(event: RecordingEvent):
@@ -106,32 +104,35 @@ def split_recording(
 
     temp_path = f"{input_path.parent}/{input_path.stem}--TEMP.nanover.zip"
 
-    def close_all():
-        if last_event is not None:
-            split_stem = name_template(
-                input_stem=input_path.stem,
-                index=split_count,
-                last_event=last_event,
-            )
-
+    def close_section():
         if current_writer is not None:
             current_writer.close()
-            Path(temp_path).rename(input_path.parent / f"{split_stem}.nanover.zip")
 
-    def open_all():
+            if last_event is not None:
+                split_stem = name_template(
+                    input_stem=input_path.stem,
+                    index=split_count,
+                    last_event=last_event,
+                )
+
+                Path(temp_path).rename(input_path.parent / f"{split_stem}.nanover.zip")
+            else:
+                Path(temp_path).unlink()
+
+    def open_section():
         nonlocal current_writer
         current_writer = NanoverRecordingWriter.from_path(temp_path)
 
     try:
-        open_all()
+        open_section()
 
         with NanoverRecordingReader.from_path(path) as reader:
             for event in reader.iter_max():
                 last_event = event
 
                 if split_predicate(event):
-                    close_all()
-                    open_all()
+                    close_section()
+                    open_section()
 
                     split_count += 1
                     current_base_timestamp = event.timestamp
@@ -145,6 +146,7 @@ def split_recording(
                         "state": DictionaryChange(updates=initial_state).to_dict(),
                     }
 
+                    assert current_writer is not None
                     current_writer.write_message_event(
                         MessageEvent(timestamp=0, message=initial_message)
                     )
@@ -163,7 +165,7 @@ def split_recording(
                         )
                     )
     finally:
-        close_all()
+        close_section()
 
 
 def main():
