@@ -151,7 +151,9 @@ def split_recording(
                 if current_writer is not None:
                     if event.next_frame_event is not None:
                         emit_frame = emit_frame or FrameData()
-                        emit_frame.update(FrameData(event.next_frame_event.message))
+                        emit_frame.update(
+                            FrameData.unpack_from_dict(event.next_frame_event.message)
+                        )
                     if event.next_state_event is not None:
                         emit_state = emit_state or DictionaryChange()
                         emit_state.update(
