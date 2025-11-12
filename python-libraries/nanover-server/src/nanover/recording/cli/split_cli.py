@@ -27,6 +27,7 @@ from nanover.recording.reading import (
     MessageEvent,
 )
 from nanover.recording.writing import NanoverRecordingWriter
+from nanover.trajectory import FrameData
 from nanover.trajectory.keys import SIMULATION_COUNTER, FRAME_INDEX
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -130,6 +131,9 @@ def split_recording(
             for event in reader.iter_max():
                 last_event = event
 
+                emit_frame = None
+                emit_state = None
+
                 if split_predicate(event):
                     close_section()
                     open_section()
@@ -141,22 +145,26 @@ def split_recording(
                     initial_frame = event.prev_frame_event.next_frame
                     initial_state = event.prev_state_event.next_state
 
-                    initial_message = {
-                        "frame": initial_frame.pack_to_dict(),
-                        "state": DictionaryChange(updates=initial_state).to_dict(),
-                    }
-
-                    assert current_writer is not None
-                    current_writer.write_message_event(
-                        MessageEvent(timestamp=0, message=initial_message)
-                    )
+                    emit_frame = initial_frame.copy()
+                    emit_state = DictionaryChange(updates=initial_state)
 
                 if current_writer is not None:
-                    message = {}
                     if event.next_frame_event is not None:
-                        message["frame"] = event.next_frame_event.message
+                        emit_frame = emit_frame or FrameData()
+                        emit_frame.update(FrameData(event.next_frame_event.message))
                     if event.next_state_event is not None:
-                        message["state"] = event.next_state_event.message
+                        emit_state = emit_state or DictionaryChange()
+                        emit_state.update(
+                            DictionaryChange.from_dict(event.next_state_event.message)
+                        )
+
+                    message = {}
+
+                    if emit_frame is not None:
+                        message["frame"] = emit_frame.pack_to_dict()
+
+                    if emit_state is not None:
+                        message["state"] = emit_state.to_dict()
 
                     current_writer.write_message_event(
                         MessageEvent(
