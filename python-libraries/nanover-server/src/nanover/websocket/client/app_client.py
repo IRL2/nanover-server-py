@@ -11,6 +11,7 @@ from nanover.trajectory import FrameData
 from .playback_client import PlaybackClient
 from .interaction_client import InteractionClient
 from .selection_client import SelectionClient
+from ...trajectory.frame_dict import BASIC_TOPOLOGY_KEYS
 
 DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
 
@@ -100,6 +101,13 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
     def latest_multiplayer_values(self):
         return self._state_dictionary.copy_content()
 
+    @property
+    def has_basic_topology(self):
+        return (
+            self.current_frame is not None
+            and self.current_frame.frame_dict.keys() > BASIC_TOPOLOGY_KEYS
+        )
+
     def wait_until_first_frame(self, check_interval=0.01, timeout=1):
         """
         Wait until the first frame is received from the server.
@@ -115,6 +123,26 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         while not self.current_frame:
             if 0 < endtime < time.monotonic():
                 raise Exception("Timed out waiting for first frame.")
+            time.sleep(check_interval)
+
+        return self.current_frame
+
+    def wait_until_basic_topology(self, check_interval=0.01, timeout=1):
+        """
+        Wait until the client has basic topology information.
+
+        :param check_interval: Interval at which to check if a frame has been
+            received.
+        :param timeout: Timeout after which to stop waiting for a frame.
+        :return: The first :class:`FrameData` received.
+        :raises Exception: if no frame is received.
+        """
+        endtime = 0 if timeout is None else time.monotonic() + timeout
+
+        while not self.has_basic_topology:
+            if 0 < endtime < time.monotonic():
+                print(set(self.current_frame.frame_dict.keys()))
+                raise Exception("Timed out waiting for basic topology.")
             time.sleep(check_interval)
 
         return self.current_frame
