@@ -12,6 +12,7 @@ from typing import (
     Sequence,
     Iterable,
     Iterator,
+    NoReturn,
 )
 
 import numpy as np
@@ -326,12 +327,12 @@ _M = TypeVar("_M", bound=BaseMeasure)
 
 class MultiMeasure(Sequence[_M]):
     def __init__(
-        self, initial_measure: _M, all_values: Iterable[float], copy: bool = False
+        self, initial_measure: _M, all_values: Iterable[float], copy_: bool = False
     ) -> None:
         """
         Constructs a new `MultiMeasure` class.
 
-        :param: initial_measure: Template `Measure` from which all subsequent values will be derived using.
+        :param: initial_measure: Template `Measure` from which all subsequent values will be derived from.
         :param: all_values: Iterable containing all values to draw from.
         :param: copy: Whether to return a new instance of the `Measure` type when iterating over the data.
         """
@@ -341,9 +342,20 @@ class MultiMeasure(Sequence[_M]):
                 f"`initial_measure` should be of type `BaseMeasure` not `{type(initial_measure)}`"
             )
 
-        self._data = np.array(all_values)
-        self._measure_template = initial_measure
-        self.copy = copy
+        self._data = np.array(all_values, copy=copy_)
+        self._measure_template = copy.copy(initial_measure)
+        self.name = initial_measure.name
+
+    @overload
+    def __getitem__(self, index: int, /) -> _M: ...
+
+    @overload
+    def __getitem__(self, index: slice[Any, Any, Any], /) -> NoReturn: ...
+
+    def __getitem__(self, index: int | slice[Any, Any, Any], /) -> _M:
+        if isinstance(index, slice):
+            raise IndexError("`MultiMeasure` does not support slicing.")
+        return self._data[index]
 
     def __len__(self) -> int:
         return len(self._data)
@@ -351,7 +363,4 @@ class MultiMeasure(Sequence[_M]):
     def __iter__(self) -> Iterator[_M]:
         for el in self._data:
             current_measure = self._measure_template.update(el)
-            if not self.copy:
-                yield current_measure
-            else:
-                yield copy.copy(current_measure)
+            yield current_measure
