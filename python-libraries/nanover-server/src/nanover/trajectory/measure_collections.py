@@ -181,7 +181,9 @@ class MeasureCollection:
                 )
 
         # Nothing could be found.
-        raise KeyError(f'Could not find measure with given data: "{key}"')
+        raise TypeError(
+            f'Measures are not searchable with the given type "{type(key)}"'
+        )
 
     @overload
     def get_measure(self, measure: str) -> BaseMeasure:
@@ -201,7 +203,9 @@ class MeasureCollection:
         """Returns relevant measure by matching against the provided `key`."""
         ...
 
-    def get_measure(self, measure: str | tuple[int] | BaseMeasure) -> BaseMeasure:
+    def get_measure(
+        self, measure: str | tuple[int] | BaseMeasure
+    ) -> BaseMeasure | None:
         """
         Returns relevant "measure" from the collection.
 
@@ -211,7 +215,12 @@ class MeasureCollection:
 
         All matching will check for identity from the sets of: Scalars, Distances, Angles, Dihedrals (respectively).
         """
-        return self[measure]
+        try:
+            return self[measure]
+        except KeyError:
+            return None
+        except TypeError:
+            raise
 
     def _measure_iterator(
         self, measurements: Iterable[BaseMeasure]
@@ -242,6 +251,11 @@ class MeasureCollection:
         for measure, existing_measures in self._measure_iterator(measurements):
             existing_measures.pop(measure.key, None)
 
+    def clear(self) -> None:
+        """Clears all stored measurements."""
+        for m in self._type_mapping.values():
+            m.clear()
+
     def _add_measureset_to_framedict(
         self, measurements: MeasureMap, frame_dict: FrameDict
     ) -> None:
@@ -268,7 +282,7 @@ class MeasureCollection:
                 }
             )
 
-    def add_to_framedata(self, framedata: FrameData) -> FrameData:
+    def add_to_frame(self, framedata: FrameData) -> FrameData:
         """Adds currently stored measurements to the given `framedata`."""
         new_data: FrameDict = {}
 
