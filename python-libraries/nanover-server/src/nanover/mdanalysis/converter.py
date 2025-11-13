@@ -133,8 +133,9 @@ def update_universe_from_framedata(universe: Universe, frame: FrameData):
     _add_bonds_to_mda(universe, frame)
 
     # box vectors / unitcell
-    universe.triclinic_dimensions = frame.box_vectors
-    universe.trajectory.ts.triclinic_dimensions = frame.box_vectors
+    with suppress(MissingDataError):
+        universe.triclinic_dimensions = frame.box_vectors
+        universe.trajectory.ts.triclinic_dimensions = frame.box_vectors
 
     # chains
     def get_chain_name(particle_index):
@@ -142,13 +143,14 @@ def update_universe_from_framedata(universe: Universe, frame: FrameData):
         chain_index = frame.residue_chains[residue_index]
         return frame.chain_names[chain_index]
 
-    universe.add_TopologyAttr(
-        "chainIDs",
-        [
-            get_chain_name(particle_index)
-            for particle_index in range(frame.particle_count)
-        ],
-    )
+    with suppress(MissingDataError):
+        universe.add_TopologyAttr(
+            "chainIDs",
+            [
+                get_chain_name(particle_index)
+                for particle_index in range(frame.particle_count)
+            ],
+        )
 
 
 def frame_data_to_mdanalysis(frame: FrameData) -> Universe:
