@@ -123,6 +123,7 @@ class MessageZipReader:
         self.index = parse_index(zipfile)
 
     def close(self):
+        self.messagesfile.close()
         self.zipfile.close()
 
     def get_message_from_entry(self, entry: RecordingIndexEntry) -> dict[str, Any]:
@@ -166,7 +167,7 @@ class NanoverRecordingReader(MessageZipReader):
 
             if frame_message is not None:
                 prev_frame = current_frame.copy()
-                current_frame.update(FrameData(frame_message))
+                current_frame.update(FrameData.unpack_from_dict(frame_message))
 
                 next_frame_event = FrameRecordingEvent(
                     timestamp=timestamp,
