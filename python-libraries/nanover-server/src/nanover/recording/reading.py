@@ -123,6 +123,7 @@ class MessageZipReader:
         self.index = parse_index(zipfile)
 
     def close(self):
+        self.messagesfile.close()
         self.zipfile.close()
 
     def get_message_from_entry(self, entry: RecordingIndexEntry) -> dict[str, Any]:
