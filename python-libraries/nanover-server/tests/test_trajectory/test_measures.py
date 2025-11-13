@@ -241,3 +241,12 @@ def test_rad_and_deg_conversions():
 
     assert np.isclose(angle.angle, np.pi / 2)
     assert np.isclose(dihedral.dihedral, np.pi / 2)
+
+
+def test_multimeasure():
+    values = range(50)
+    timeresolved_measure = measure.MultiMeasure(measure.Distance("", 0, 1, 0), values)
+
+    for v1, v2 in zip(timeresolved_measure, values):
+        assert type(v1) is measure.Distance
+        assert v1.distance == v2
