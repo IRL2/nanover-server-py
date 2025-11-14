@@ -10,6 +10,7 @@ from nanover.utilities.packing import (
     pack_distance,
     pack_angle,
     pack_dihedral,
+    force_int,
 )
 from . import keys
 
@@ -17,6 +18,10 @@ FrameDict = dict[str, Any]
 
 
 FRAME_PACKERS: dict[str, PackingPair] = {
+    keys.FRAME_INDEX: force_int,
+    keys.PARTICLE_COUNT: force_int,
+    keys.RESIDUE_COUNT: force_int,
+    keys.CHAIN_COUNT: force_int,
     keys.PARTICLE_POSITIONS: pack_vec3,
     keys.PARTICLE_VELOCITIES: pack_vec3,
     keys.PARTICLE_FORCES: pack_vec3,

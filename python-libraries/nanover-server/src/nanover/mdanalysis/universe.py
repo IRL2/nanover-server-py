@@ -242,6 +242,10 @@ class NanoverReaderBase(ProtoReader):
 
         self._read_frame(0)
 
+    def close(self):
+        super().close()
+        self.reader.close()
+
     @property
     def n_frames(self):
         return len(self.reader)

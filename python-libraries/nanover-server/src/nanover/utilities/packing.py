@@ -37,7 +37,10 @@ def unpack_array(buffer: bytes, *, dtype: npt.DTypeLike) -> npt.NDArray:
     """
     Deserialize an array of numeric data of the given dtype from bytes.
     """
-    return np.frombuffer(buffer, dtype=dtype)
+    try:
+        return np.frombuffer(buffer, dtype=dtype)
+    except TypeError:
+        return np.fromiter(buffer, dtype=dtype)
 
 
 def make_bytes_packer(dtype: npt.DTypeLike, shape: tuple[int, ...] = (-1,)):
@@ -48,6 +51,8 @@ def make_bytes_packer(dtype: npt.DTypeLike, shape: tuple[int, ...] = (-1,)):
 
 
 pack_identity = PackingPair(pack=lambda value: value, unpack=lambda value: value)  # type: ignore
+
+force_int = PackingPair(pack=int, unpack=int)
 
 pack_uint32 = make_bytes_packer(np.uint32)
 pack_uint8 = make_bytes_packer(np.uint8)

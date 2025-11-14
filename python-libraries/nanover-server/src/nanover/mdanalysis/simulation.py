@@ -3,11 +3,11 @@ from pathlib import Path
 
 import MDAnalysis as mda
 
-from nanover.core import AppServer
+from nanover.core import AppServer, Simulation
 from .converter import mdanalysis_to_frame_data
 
 
-class UniverseSimulation:
+class UniverseSimulation(Simulation):
     @classmethod
     def from_path(
         cls,

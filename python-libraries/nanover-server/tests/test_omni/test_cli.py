@@ -4,7 +4,7 @@ import time
 import pytest
 
 from nanover.app.cli.server_cli import initialise_runner, handle_user_arguments
-from common import ARGON_XML_PATH, RECORDING_PATH
+from .common import ARGON_XML_PATH, RECORDING_PATH
 
 
 @pytest.mark.serial

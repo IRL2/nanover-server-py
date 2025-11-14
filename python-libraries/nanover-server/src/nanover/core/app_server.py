@@ -1,6 +1,7 @@
+from concurrent.futures import Future
 from typing import Any, Protocol
 
-from nanover.core.commands import CommandRegistration, CommandHandler
+from .types import CommandRegistration, CommandHandler
 from nanover.essd import ServiceHub, DiscoveryServer
 from nanover.imd import ImdStateWrapper
 from nanover.utilities.state_dictionary import StateDictionary
@@ -29,7 +30,7 @@ class CommandService(Protocol):
     @property
     def commands(self) -> dict[str, CommandRegistration]: ...
 
-    def run_command(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]: ...
+    def run_command(self, name: str, arguments: dict[str, Any]) -> Future: ...
 
     def register_command(
         self,
@@ -51,7 +52,7 @@ class ImdService(Closeable, Protocol):
 
 class DiscoveryService(Closeable, Protocol):
     @property
-    def discovery(self) -> DiscoveryServer: ...
+    def discovery(self) -> DiscoveryServer | None: ...
 
     def add_service(self, name: str, port: int) -> None: ...
 
@@ -73,7 +74,10 @@ def basic_info_string(app_server: AppServer):
         for protocol, port in app_server.service_hub.services.items()
     )
 
-    return (
-        f'Serving "{app_server.name}" ({protocols}), '
-        f"discoverable on all interfaces on port {app_server.discovery.port}"
+    discovery = app_server.discovery
+
+    return f'Serving "{app_server.name}" ({protocols}), ' + (
+        f"discoverable on all interfaces on port {discovery.port}"
+        if discovery
+        else "without discovery"
     )

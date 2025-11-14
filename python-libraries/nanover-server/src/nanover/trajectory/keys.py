@@ -1,3 +1,8 @@
+"""
+Keys used in NanoVer simulation frames.
+See: https://irl2.github.io/nanover-docs/concepts/applications.html#the-trajectory-application
+"""
+
 FRAME_INDEX = "frame.index"
 
 BOX_VECTORS = "system.box.vectors"
