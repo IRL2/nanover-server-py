@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 import copy
 
+from numbers import Integral
 from typing import (
     Hashable,
     Any,
@@ -59,14 +60,14 @@ class BaseMeasure(metaclass=ABCMeta):
     ) -> float | None: ...
 
     @overload
-    def _to_comparible_type(self, value: Self | float | int) -> float: ...
+    def _to_comparible_type(self, value: Self | float | Integral) -> float: ...
 
     def _to_comparible_type(self, value: Any, strict: bool = True) -> float | None:
         """Converts `value` to a type usable for comparison to current `Measure` value."""
         if isinstance(value, type(self)):
             return value.value
-        elif isinstance(value, (int, float)):
-            return value
+        elif isinstance(value, (int, float, np.integer)):
+            return float(value)
 
         if strict:
             raise TypeError(f"Could not compare {value} of type `{type(value)}`")
@@ -327,7 +328,10 @@ _M = TypeVar("_M", bound=BaseMeasure)
 
 class MultiMeasure(Sequence[_M]):
     def __init__(
-        self, initial_measure: _M, all_values: Iterable[float], copy_: bool = False
+        self,
+        initial_measure: _M,
+        all_values: Iterable[float],
+        copy_: bool | None = None,
     ) -> None:
         """
         Constructs a new `MultiMeasure` class.
@@ -350,9 +354,9 @@ class MultiMeasure(Sequence[_M]):
     def __getitem__(self, index: int, /) -> _M: ...
 
     @overload
-    def __getitem__(self, index: slice[Any, Any, Any], /) -> NoReturn: ...
+    def __getitem__(self, index: slice, /) -> NoReturn: ...
 
-    def __getitem__(self, index: int | slice[Any, Any, Any], /) -> _M:
+    def __getitem__(self, index: int | slice, /) -> _M:
         if isinstance(index, slice):
             raise IndexError("`MultiMeasure` does not support slicing.")
         return self._data[index]
