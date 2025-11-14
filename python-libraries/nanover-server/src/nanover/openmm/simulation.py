@@ -8,6 +8,7 @@ from openmm.app import Simulation, StateDataReporter
 from openmm.unit import nanometer
 
 from nanover.core import AppServer, Simulation as NanoverSimulation
+from nanover.trajectory import FrameData
 
 from .converter import openmm_to_frame_data
 from . import serializer
@@ -187,10 +188,7 @@ class OpenMMSimulation(NanoverSimulation):
         """
         self.advance_to_next_report()
 
-    def advance_to_next_report(self):
-        """
-        Step the simulation to the next point a frame should be reported, and send that frame.
-        """
+    def _advance_to_next_report(self):
         assert (
             self.simulation is not None
             and self.imd_force_manager is not None
@@ -204,9 +202,11 @@ class OpenMMSimulation(NanoverSimulation):
 
         # advance the simulation
         self.simulation.step(steps_to_next_frame)
+        return self.simulation
 
+    def _frame_from_simulation(self, current_timepoint: Simulation) -> FrameData:
         # fetch positions early, for updating imd
-        state = self.simulation.context.getState(
+        state = current_timepoint.context.getState(
             getPositions=True,
             enforcePeriodicBox=self.use_pbc_wrapping or False,
         )
@@ -219,9 +219,6 @@ class OpenMMSimulation(NanoverSimulation):
                 self._prev_imd_forces, affected_atom_positions
             )
 
-        # update imd forces and energies
-        self.imd_force_manager.update_interactions(self.simulation, positions)
-
         # generate the next frame with the existing (still valid) positions
         frame_data = self.make_regular_frame(positions)
 
@@ -229,20 +226,25 @@ class OpenMMSimulation(NanoverSimulation):
         self.work_done = self._work_done_intermediate
         frame_data.user_work_done = self.work_done
 
-        # Calculate previous-step contribution to work for the next time step
-        # (negative contribution, so subtract from the total work done)
-        if frame_data.user_forces_sparse is not None:
-            affected_atom_positions = positions[frame_data.user_forces_index]
-            self._work_done_intermediate -= calculate_contribution_to_work(
-                frame_data.user_forces_sparse, affected_atom_positions
-            )
+        if self.imd_force_manager is not None:
+            # update imd forces and energies
+            self.imd_force_manager.update_interactions(self.simulation, positions)
 
-        # send the next frame
-        self.app_server.frame_publisher.send_frame(frame_data)
+            # Calculate previous-step contribution to work for the next time step
+            # (negative contribution, so subtract from the total work done)
+            if frame_data.user_forces_sparse is not None:
+                affected_atom_positions = positions[frame_data.user_forces_index]
+                self._work_done_intermediate -= calculate_contribution_to_work(
+                    frame_data.user_forces_sparse, affected_atom_positions
+                )
 
-        # Update previous step forces (saving them in their sparse form)
-        self._prev_imd_forces = frame_data.user_forces_sparse
-        self._prev_imd_indices = frame_data.user_forces_index
+        return frame_data
+
+    def _cleanup(self, most_recent: FrameData | None = None) -> None:
+        if most_recent is not None:
+            # Update previous step forces (saving them in their sparse form)
+            self._prev_imd_forces = most_recent.user_forces_sparse
+            self._prev_imd_indices = most_recent.user_forces_index
 
     def make_topology_frame(self):
         """
