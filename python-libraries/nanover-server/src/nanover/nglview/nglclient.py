@@ -48,6 +48,10 @@ class NGLClient(NanoverImdClient):
         """
         Returns an NGLView widget to visualise the molecular system.
         """
+
+        if not self.has_minimum_usable_frame:
+            raise Exception("Topology not available yet.")
+
         if self._view is None or self.dynamic_bonds:
             self._view = frame_data_to_nglwidget(self.current_frame)
         return self._view
@@ -58,7 +62,9 @@ class NGLClient(NanoverImdClient):
         in the molecular system in Angstrom for visualisation using NGLView.
         """
         super().recv_frame(*args, **kwargs)
-        self.view.set_coordinates({0: self.current_frame.particle_positions * 10})
+
+        if self.has_minimum_usable_frame and self._view is not None:
+            self._view.set_coordinates({0: self.current_frame.particle_positions * 10})
         # TODO: Add functionality to update callback functions to allow widget customisation
 
 
@@ -127,6 +133,8 @@ def fill_empty_fields(universe: mda.Universe):
             "altLocs": " ",
             "occupancies": 1.0,
             "tempfactors": 0.0,
+            "formalcharges": 0.0,
+            "record_types": "ATOM",
         },
         len(universe.atoms),
     )
@@ -153,8 +161,7 @@ def mda_to_pdb_str(universe: mda.Universe):
     """
     fill_empty_fields(universe)
     with StringIO() as str_io, mda.coordinates.PDB.PDBWriter(str_io) as writer:
-        writer.filename = ""  # See https://github.com/MDAnalysis/mdanalysis/issues/2512
-        writer.write(universe.atoms)
+        writer.write(universe)
         pdb = str_io.getvalue()
     return pdb
 

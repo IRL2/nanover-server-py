@@ -84,6 +84,7 @@ FRAME_DATA_TO_MDANALYSIS = {
     "resnames": FrameDataFieldConversion(keys.RESIDUE_NAMES, _identity),
     "resids": FrameDataFieldConversion(keys.RESIDUE_IDS, _identity),
     "segids": FrameDataFieldConversion(keys.CHAIN_NAMES, _identity),
+    "elements": FrameDataFieldConversion(keys.PARTICLE_ELEMENTS, _to_chemical_symbol),
 }
 
 # dictionary of mdanalysis constructor fields to field in frame data, along with conversion methods.
@@ -130,6 +131,26 @@ def update_universe_from_framedata(universe: Universe, frame: FrameData):
     add_frame_positions_to_mda(universe, frame)
     _add_frame_attributes_to_mda(universe, frame)
     _add_bonds_to_mda(universe, frame)
+
+    # box vectors / unitcell
+    with suppress(MissingDataError):
+        universe.triclinic_dimensions = frame.box_vectors
+        universe.trajectory.ts.triclinic_dimensions = frame.box_vectors
+
+    # chains
+    def get_chain_name(particle_index):
+        residue_index = frame.particle_residues[particle_index]
+        chain_index = frame.residue_chains[residue_index]
+        return frame.chain_names[chain_index]
+
+    with suppress(MissingDataError):
+        universe.add_TopologyAttr(
+            "chainIDs",
+            [
+                get_chain_name(particle_index)
+                for particle_index in range(frame.particle_count)
+            ],
+        )
 
 
 def frame_data_to_mdanalysis(frame: FrameData) -> Universe:

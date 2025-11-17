@@ -55,7 +55,7 @@ def connect_and_retrieve_first_frame_from_app_server(
     app_server: AppServer,
 ) -> FrameData:
     with make_connected_client_from_app_server(app_server) as client:
-        return client.wait_until_first_frame()
+        return client.wait_until_minimum_usable_frame()
 
 
 @contextmanager
