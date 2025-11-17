@@ -38,6 +38,10 @@ class DictionaryChange:
         self.updates = updates or {}
         self.removals = removals or set()
 
+    def update(self, other: "DictionaryChange"):
+        self.updates = {**self.updates, **other.updates}
+        self.removals = {*self.removals, *other.removals}
+
     def __iter__(self):
         return iter((self.updates, self.removals))
 
