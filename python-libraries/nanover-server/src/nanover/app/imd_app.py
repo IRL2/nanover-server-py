@@ -62,7 +62,13 @@ class NanoverImdApplication(AppServer):
         port = DEFAULT_NANOVER_PORT if port is None else port
 
         app_server = cls(name=name, address=address, discovery=DiscoveryServer())
-        app_server.serve_websocket(ssl=ssl, port=port)
+
+        try:
+            app_server.serve_websocket(ssl=ssl, port=port)
+        except IOError:
+            app_server.close()
+            raise
+
         return app_server
 
     def __init__(
