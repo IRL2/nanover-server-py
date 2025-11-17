@@ -21,7 +21,7 @@ def get_selection_indices(frame: FrameData, query: str):
 
 with NanoverImdClient.from_discovery() as client:
     # wait for an initial frame in which topology will be available
-    first_frame = client.wait_until_first_frame(check_interval=0.5, timeout=10)
+    first_frame = client.wait_until_minimum_usable_frame(check_interval=0.5, timeout=10)
 
     print(
         f"Attempting to hide residue {SOLVENT_RESIDUE_NAME} (residues in frame: {', '.join(set(first_frame.residue_names))})"

@@ -1,6 +1,7 @@
 import time
 from collections import deque
 from typing import Any
+from warnings import deprecated
 
 from nanover.core import AppServer
 from nanover.essd import DiscoveryClient, ServiceHub
@@ -11,7 +12,7 @@ from nanover.trajectory import FrameData
 from .playback_client import PlaybackClient
 from .interaction_client import InteractionClient
 from .selection_client import SelectionClient
-from ...trajectory.frame_dict import BASIC_TOPOLOGY_KEYS
+from ...trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
 
 DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
 
@@ -102,46 +103,33 @@ class NanoverImdClient(InteractionClient, SelectionClient, PlaybackClient):
         return self._state_dictionary.copy_content()
 
     @property
-    def has_basic_topology(self):
-        return (
-            self.current_frame is not None
-            and self.current_frame.frame_dict.keys() > BASIC_TOPOLOGY_KEYS
+    def has_minimum_usable_frame(self):
+        """
+        True if the current frame contains basic topology and particle positions.
+        """
+        return MINIMUM_USABLE_FRAME_KEYS < self.current_frame.frame_dict.keys()
+
+    @deprecated("Use `wait_until_minimum_usable_frame` instead")
+    def wait_until_first_frame(self, check_interval=0.01, timeout=1):
+        return self.wait_until_minimum_usable_frame(
+            check_interval=check_interval, timeout=timeout
         )
 
-    def wait_until_first_frame(self, check_interval=0.01, timeout=1):
+    def wait_until_minimum_usable_frame(self, check_interval=0.01, timeout=1):
         """
-        Wait until the first frame is received from the server.
+        Wait until the client has basic topology information and particle
+        positions.
 
         :param check_interval: Interval at which to check if a frame has been
             received.
         :param timeout: Timeout after which to stop waiting for a frame.
-        :return: The first :class:`FrameData` received.
+        :return: The current :class:`FrameData` containing basic topology and positions.
         :raises Exception: if no frame is received.
         """
         endtime = 0 if timeout is None else time.monotonic() + timeout
 
-        while not self.current_frame:
+        while not self.has_minimum_usable_frame:
             if 0 < endtime < time.monotonic():
-                raise Exception("Timed out waiting for first frame.")
-            time.sleep(check_interval)
-
-        return self.current_frame
-
-    def wait_until_basic_topology(self, check_interval=0.01, timeout=1):
-        """
-        Wait until the client has basic topology information.
-
-        :param check_interval: Interval at which to check if a frame has been
-            received.
-        :param timeout: Timeout after which to stop waiting for a frame.
-        :return: The first :class:`FrameData` received.
-        :raises Exception: if no frame is received.
-        """
-        endtime = 0 if timeout is None else time.monotonic() + timeout
-
-        while not self.has_basic_topology:
-            if 0 < endtime < time.monotonic():
-                print(set(self.current_frame.frame_dict.keys()))
                 raise Exception("Timed out waiting for basic topology.")
             time.sleep(check_interval)
 

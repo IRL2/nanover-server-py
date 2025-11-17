@@ -49,7 +49,7 @@ class NGLClient(NanoverImdClient):
         Returns an NGLView widget to visualise the molecular system.
         """
 
-        if not self.has_basic_topology:
+        if not self.has_minimum_usable_frame:
             raise Exception("Topology not available yet.")
 
         if self._view is None or self.dynamic_bonds:
@@ -63,7 +63,7 @@ class NGLClient(NanoverImdClient):
         """
         super().recv_frame(*args, **kwargs)
 
-        if self.has_basic_topology and self._view is not None:
+        if self.has_minimum_usable_frame and self._view is not None:
             self._view.set_coordinates({0: self.current_frame.particle_positions * 10})
         # TODO: Add functionality to update callback functions to allow widget customisation
 
