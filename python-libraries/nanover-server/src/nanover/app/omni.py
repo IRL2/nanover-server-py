@@ -78,8 +78,8 @@ class OmniRunner:
         """
         Stop simulations and shut down server.
         """
-        self.app_server.close()
         self._cancel_run()
+        self.app_server.close()
 
     def print_basic_info(self):
         """

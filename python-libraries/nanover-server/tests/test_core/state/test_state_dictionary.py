@@ -2,7 +2,6 @@ import time
 from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
-from MDAnalysisTests.lib.test_nsgrid import reason
 
 from nanover.utilities.key_lockable_map import ResourceLockedError
 from nanover.utilities.change_buffers import DictionaryChange

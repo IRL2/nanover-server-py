@@ -138,6 +138,24 @@ class FrameData:
     def __init__(self, frame_dict: FrameDict | None = None):
         self.frame_dict = frame_dict or {}
 
+    def __repr__(self):
+        if not self.frame_dict:
+            return "<FrameData (empty)>"
+
+        def format_key(key, value):
+            if isinstance(value, np.ndarray):
+                return f"{key}{list(value.shape)}"
+            if isinstance(value, list):
+                return f"{key}[{len(value)}]"
+            return key
+
+        key_text = ", ".join(
+            format_key(key, self.frame_dict[key])
+            for key in sorted(self.frame_dict.keys())
+        )
+
+        return f"<FrameData of {key_text}>"
+
     def __bool__(self):
         return bool(self.frame_dict)
 
