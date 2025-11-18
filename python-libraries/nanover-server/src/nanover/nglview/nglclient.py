@@ -3,13 +3,14 @@ Provides an NGLView python client to connect to a NanoVer server in order to vis
 the molecular system from within a Jupyter notebook (or iPython interface).
 """
 
+from contextlib import suppress
 from io import StringIO
 
 import nglview
 
 from nanover.websocket import NanoverImdClient
 from nanover.mdanalysis import frame_data_to_mdanalysis
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData, keys, MissingDataError
 from nglview import NGLWidget
 
 import MDAnalysis as mda
@@ -38,7 +39,8 @@ class NGLClient(NanoverImdClient):
     """
 
     def __init__(self, *args, update_callback=None, dynamic_bonds=False, **kwargs):
-        self._view = None
+        self._view = NGLWidget()
+        self._structure = None
         super().__init__(*args, **kwargs)
         self.update_callback = update_callback
         self.dynamic_bonds = dynamic_bonds
@@ -48,24 +50,33 @@ class NGLClient(NanoverImdClient):
         """
         Returns an NGLView widget to visualise the molecular system.
         """
-
-        if not self.has_minimum_usable_frame:
-            raise Exception("Topology not available yet.")
-
-        if self._view is None or self.dynamic_bonds:
-            self._view = frame_data_to_nglwidget(self.current_frame)
         return self._view
 
-    def recv_frame(self, *args, **kwargs):
+    def recv_frame(self, message: dict):
         """
         On receiving the latest frame, defines the new coordinates of the atoms
         in the molecular system in Angstrom for visualisation using NGLView.
         """
-        super().recv_frame(*args, **kwargs)
+        super().recv_frame(message)
 
-        if self.has_minimum_usable_frame and self._view is not None:
-            self._view.set_coordinates({0: self.current_frame.particle_positions * 10})
+        if message.get(keys.FRAME_INDEX, None) == 0:
+            self.reset_structure()
+
+        if self.has_minimum_usable_frame and self._structure is None:
+            structure = FrameDataStructure(self.current_frame)
+            self._structure = self._view.add_structure(structure)
+
+        if self._structure is not None:
+            with suppress(MissingDataError):
+                self._view.set_coordinates(
+                    {0: self.current_frame.particle_positions * 10}
+                )
         # TODO: Add functionality to update callback functions to allow widget customisation
+
+    def reset_structure(self):
+        if self._structure is not None:
+            self._view.remove_component(self._structure)
+            self._structure = None
 
 
 class FrameDataStructure(nglview.Structure):
