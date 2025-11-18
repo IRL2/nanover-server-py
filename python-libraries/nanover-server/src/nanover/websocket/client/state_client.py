@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Generator
 
 from nanover.core.app_server import StateService
 from nanover.utilities.change_buffers import DictionaryChange
@@ -11,7 +11,7 @@ class StateClient(WebsocketClient, StateService):
     Mixin of methods for implementing StateService
     """
 
-    def lock_state(self) -> None:
+    def lock_state(self) -> Generator[dict[str, Any], None, None]:
         return self._state_dictionary.lock_content()
 
     def copy_state(self) -> dict[str, Any]:

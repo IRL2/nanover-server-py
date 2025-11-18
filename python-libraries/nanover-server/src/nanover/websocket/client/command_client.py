@@ -9,6 +9,7 @@ class CommandClient(WebsocketClient, CommandService):
     """
     Mixin of methods for implementing CommandService
     """
+
     @property
     def commands(self) -> dict[str, CommandRegistration]:
         return self.run_command_blocking("commands/list")["list"]
