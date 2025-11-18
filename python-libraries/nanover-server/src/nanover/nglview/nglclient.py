@@ -60,7 +60,9 @@ class NGLClient(NanoverImdClient):
         super().recv_frame(message)
 
         if message.get(keys.FRAME_INDEX, None) == 0:
-            self.reset_structure()
+            if self._structure is not None:
+                self._view.remove_component(self._structure)
+                self._structure = None
 
         if self.has_minimum_usable_frame and self._structure is None:
             structure = FrameDataStructure(self.current_frame)
@@ -72,11 +74,6 @@ class NGLClient(NanoverImdClient):
                     {0: self.current_frame.particle_positions * 10}
                 )
         # TODO: Add functionality to update callback functions to allow widget customisation
-
-    def reset_structure(self):
-        if self._structure is not None:
-            self._view.remove_component(self._structure)
-            self._structure = None
 
 
 class FrameDataStructure(nglview.Structure):
