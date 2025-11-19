@@ -5,7 +5,7 @@ shared key/value store between multiple clients.
 
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Iterator, Iterable, Generator, Mapping
+from typing import Any, Set, Iterator, Iterable, Mapping
 
 from .timing import yield_interval
 
@@ -73,7 +73,7 @@ class DictionaryChangeMultiView:
         self._views = set()
 
     @contextmanager
-    def create_view(self) -> Generator["DictionaryChangeBuffer", None, None]:
+    def create_view(self) -> Iterator["DictionaryChangeBuffer"]:
         """
         Returns a new DictionaryChangeBuffer that tracks changes to the
         shared dictionary, starting with the initial values.
