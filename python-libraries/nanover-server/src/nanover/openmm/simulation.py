@@ -240,6 +240,11 @@ class OpenMMSimulation(NanoverSimulation):
 
         return frame_data
 
+    def _send_frame(self, frame):
+        assert self.app_server is not None
+
+        self.app_server.frame_publisher.send_frame(frame)
+
     def _cleanup(self, most_recent: FrameData | None = None) -> None:
         if most_recent is not None:
             # Update previous step forces (saving them in their sparse form)
