@@ -26,8 +26,8 @@ class NGLClient(NanoverImdClient):
 
     .. code-block:: python
 
-        from nanover.nglview import NGLClient
-        client = NGLClient.autoconnect()
+        from nanover.jupyter import NGLClient
+        client = NGLClient.from_discovery()
         client.view
 
     :param dynamic_bonds: A boolean flag that dictates whether bonds should be dynamically updated
