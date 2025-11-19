@@ -5,7 +5,7 @@ shared key/value store.
 
 from contextlib import contextmanager
 from threading import Lock
-from typing import ContextManager, Generator, Iterable, Any
+from typing import ContextManager, Iterable, Any, Iterator
 
 from nanover.utilities.change_buffers import (
     DictionaryChangeMultiView,
@@ -48,7 +48,7 @@ class StateDictionary:
             return dict(content)
 
     @contextmanager
-    def lock_content(self) -> Generator[dict[str, Any], None, None]:
+    def lock_content(self) -> Iterator[dict[str, Any]]:
         """
         Context manager for reading the current state while delaying any changes
         to it via an exclusive lock.

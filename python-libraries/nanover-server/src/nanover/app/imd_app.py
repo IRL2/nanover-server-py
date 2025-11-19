@@ -217,12 +217,12 @@ class NanoverImdApplication(AppServer):
         """
         return self._state_dictionary.copy_content()
 
-    def update_state(self, access_token: Any, change: DictionaryChange):
+    def update_state(self, change: DictionaryChange):
         """
         Attempts an atomic update of the shared key/value store. If any key
-        cannot be updates, no change will be made.
+        cannot be updated, no change will be made.
         """
-        self._state_dictionary.update_state(access_token, change)
+        self._state_dictionary.update_state(None, change)
 
     def clear_locks(self):
         """

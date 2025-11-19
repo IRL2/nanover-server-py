@@ -1,5 +1,5 @@
 from concurrent.futures import Future
-from typing import Any, Protocol
+from typing import Any, Protocol, ContextManager
 
 from .types import CommandRegistration, CommandHandler
 from nanover.essd import ServiceHub, DiscoveryServer
@@ -14,11 +14,11 @@ class Closeable(Protocol):
 
 
 class StateService(Closeable, Protocol):
-    def lock_state(self) -> None: ...
+    def lock_state(self) -> ContextManager[dict[str, Any]]: ...
 
     def copy_state(self) -> dict[str, Any]: ...
 
-    def update_state(self, access_token: Any, change: DictionaryChange) -> None: ...
+    def update_state(self, change: DictionaryChange) -> None: ...
 
     def clear_locks(self) -> None: ...
 

@@ -1,8 +1,9 @@
 from nanover.trajectory import keys
-from nanover.websocket.client.base_client import WebsocketClient
+from .base_client import WebsocketClient
+from .command_client import CommandClient
 
 
-class PlaybackClient(WebsocketClient):
+class PlaybackClient(CommandClient, WebsocketClient):
     """
     Mixin of methods for running playback commands with a WebSocketClient.
     """
