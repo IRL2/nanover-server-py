@@ -198,8 +198,12 @@ class ASESimulation(Simulation):
 
         # advance the simulation
         self.dynamics.run(steps_to_next_frame)
+        return self.dynamics
 
+    def _frame_from_simulation(self, simulation: MolecularDynamics) -> FrameData:
         # Get positions to calculate work done (in NanoVer units)
+        assert self.imd_calculator is not None
+
         positions = self.atoms.get_positions(wrap=False) * ANG_TO_NM
 
         # Calculate on-step contribution to work
@@ -227,12 +231,17 @@ class ASESimulation(Simulation):
                 frame_data.user_forces_sparse, affected_atom_positions
             )
 
-        # send the next frame
-        self.app_server.frame_publisher.send_frame(frame_data)
+        return frame_data
 
+    def _send_frame(self, frame) -> None:
+        assert self.app_server is not None
+        # send the next frame
+        self.app_server.frame_publisher.send_frame(frame)
+
+    def _cleanup(self, most_recent: FrameData = None) -> None:
         # Update previous step forces (saving them in their sparse form)
-        self._prev_imd_forces = frame_data.user_forces_sparse
-        self._prev_imd_indices = frame_data.user_forces_index
+        self._prev_imd_forces = most_recent.user_forces_sparse
+        self._prev_imd_indices = most_recent.user_forces_index
 
         # check if excessive energy requires sim reset
         if self.reset_energy is not None and self.app_server is not None:
