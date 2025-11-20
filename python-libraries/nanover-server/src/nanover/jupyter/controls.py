@@ -3,8 +3,10 @@ from typing import Any
 from ipywidgets import interact
 import ipywidgets as widgets
 from IPython.display import display
+from nanover.core import AppServerMinimal
 
 from nanover.omni import OmniRunner
+from nanover.trajectory import keys
 from nanover.utilities.change_buffers import DictionaryChange
 
 
@@ -27,7 +29,15 @@ def make_toggle(setter, *, description: str):
 
 
 def show_runner_controls(imd_runner: OmniRunner):
-    app_server = imd_runner.app_server
+    def close_server(_):
+        imd_runner.close()
+
+    interact_button(close_server, description="Close Server"),
+
+    show_app_server_controls(imd_runner.app_server)
+
+
+def show_app_server_controls(app_server: AppServerMinimal):
     copied_box: Any = None
 
     def get_shared_value(key: str, default: Any = None):
@@ -70,11 +80,8 @@ def show_runner_controls(imd_runner: OmniRunner):
             ),
         )
 
-    def close_server(_):
-        imd_runner.close()
-
     def reset_molecule(_):
-        imd_runner.reset()
+        app_server.run_command(keys.RESET_COMMAND, {})
 
     def reset_box(_):
         set_shared_value("scene", [0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
@@ -92,24 +99,27 @@ def show_runner_controls(imd_runner: OmniRunner):
 
     def set_simulation_paused(paused=False):
         if not paused:
-            imd_runner.play()
+            app_server.run_command(keys.PLAY_COMMAND, {})
         else:
-            imd_runner.pause()
+            app_server.run_command(keys.PAUSE_COMMAND, {})
 
     def make_switch(i):
         def switch(_):
-            imd_runner.load(i)
+            app_server.run_command(keys.LOAD_COMMAND, {"index": i})
 
         return switch
 
+    simulation_names = app_server.run_command(keys.LIST_COMMAND, {}).result()[
+        "simulations"
+    ]
+
     switching = []
-    for i, simulation in enumerate(imd_runner.simulations):
-        button = widgets.Button(description=f"{simulation.name}")
+    for i, name in enumerate(simulation_names):
+        button = widgets.Button(description=f"{name}")
         button.on_click(make_switch(i))
         switching.append(button)
 
     control = [
-        make_button(close_server, description="Close Server"),
         make_button(reset_molecule, description="Reset Molecule"),
         make_toggle(set_simulation_paused, description="Pause Simulation"),
         make_state_toggle(
