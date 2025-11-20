@@ -60,6 +60,9 @@ class UniverseSimulation(Simulation):
     ):
         self.name = name
         self.universe = universe
+        self._universe_iterator = iter(self.universe)
+
+        self._time_to_step: float | None = None
 
         self.app_server: AppServer | None = None
 
@@ -69,7 +72,7 @@ class UniverseSimulation(Simulation):
 
     def reset(self, app_server: AppServer):
         self.app_server = app_server
-        self._next_frame()
+        self._universe_iterator = iter(self.universe)
 
         frame = self.make_topology_frame()
 
@@ -79,7 +82,14 @@ class UniverseSimulation(Simulation):
     def _next_frame(self, reset: bool = True) -> None:
         """Advances the internal `Universe` to the next frame or resets to the first timestep if `reset`."""
         try:
-            next(self._universe_iterator)
+            # Simply advance to next step if not advancing by a given amount of time.
+            if self._time_to_step is None:
+                next(self._universe_iterator)
+            else:
+                # Get number of frames to advance - will always slightly undershoot at best.
+                num_frames_to_advance = self._time_to_step // self._universe_iterator.dt
+                for _ in range(num_frames_to_advance):
+                    next(self._universe_iterator)
         except StopIteration:
             if reset:
                 self._universe_iterator = iter(self.universe)
@@ -91,9 +101,14 @@ class UniverseSimulation(Simulation):
         return mdanalysis_to_frame_data(self.universe, topology=False, positions=True)
 
     def advance_by_one_step(self):
+        self._time_to_step = None
+
         return self.advance_to_next_report()
 
     def advance_by_seconds(self, dt: float):
+        # Set the amount of time to step to, time should be in ps - same as MDAnalysis.
+        self._time_to_step = dt
+
         return self.advance_to_next_report()
 
     def advance_to_next_report(self) -> None:
