@@ -100,12 +100,12 @@ class UniverseSimulation(Simulation):
     def make_regular_frame(self) -> FrameData:
         return mdanalysis_to_frame_data(self.universe, topology=False, positions=True)
 
-    def advance_by_one_step(self):
+    def advance_by_one_step(self) -> None:
         self._time_to_step = None
 
         return self.advance_to_next_report()
 
-    def advance_by_seconds(self, dt: float):
+    def advance_by_seconds(self, dt: float) -> None:
         # Set the amount of time to step to, time should be in ps - same as MDAnalysis.
         self._time_to_step = dt
 
