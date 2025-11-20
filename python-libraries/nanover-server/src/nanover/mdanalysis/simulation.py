@@ -60,7 +60,7 @@ class UniverseSimulation(Simulation):
     ):
         self.name = name
         self.universe = universe
-        self._universe_iterator = iter(self.universe)
+        self._universe_iterator = iter(self.universe.trajectory)
 
         self._time_to_step: float | None = None
 
@@ -68,11 +68,11 @@ class UniverseSimulation(Simulation):
 
     def load(self):
         # Reset simulation to the beginning.
-        self._universe_iterator = iter(self.universe)
+        self._universe_iterator = iter(self.universe.trajectory)
 
     def reset(self, app_server: AppServer):
         self.app_server = app_server
-        self._universe_iterator = iter(self.universe)
+        self._universe_iterator = iter(self.universe.trajectory)
 
         frame = self.make_topology_frame()
 
@@ -92,7 +92,7 @@ class UniverseSimulation(Simulation):
                     next(self._universe_iterator)
         except StopIteration:
             if reset:
-                self._universe_iterator = iter(self.universe)
+                self._universe_iterator = iter(self.universe.trajectory)
 
     def make_topology_frame(self) -> FrameData:
         return mdanalysis_to_frame_data(self.universe, topology=True, positions=True)
