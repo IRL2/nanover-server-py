@@ -143,7 +143,7 @@ def initialise_runner(arguments: argparse.Namespace):
             runner.add_simulation(simulation)
 
         for path in get_all_paths(arguments.mdanalysis_entries):
-            simulation = UniverseSimulation.from_path(path=path)
+            simulation = UniverseSimulation.from_path(structure=path)
             runner.add_simulation(simulation)
 
         if arguments.record_to_path is not None:
