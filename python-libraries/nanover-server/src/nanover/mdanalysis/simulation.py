@@ -67,12 +67,14 @@ class UniverseSimulation(Simulation):
         self.app_server: AppServer | None = None
 
     def load(self):
-        # Reset simulation to the beginning.
+        # Reset simulation iterator to the beginning.
         self._universe_iterator = iter(self.universe.trajectory)
 
     def reset(self, app_server: AppServer):
+        """Reset the simulation to the first timestep then sends a frame."""
         self.app_server = app_server
         self._universe_iterator = iter(self.universe.trajectory)
+        next(self._universe_iterator)  # Advance to first frame.
 
         frame = self.make_topology_frame()
 
@@ -80,19 +82,23 @@ class UniverseSimulation(Simulation):
         self.app_server.frame_publisher.send_frame(frame)
 
     def _next_frame(self, reset: bool = True) -> None:
-        """Advances the internal `Universe` to the next frame or resets to the first timestep if `reset`."""
+        """
+        Advances the internal `Universe` to the next frame.
+        Resets to the first timestep if finished iterating over the simulation and `reset`.
+        """
         try:
             # Simply advance to next step if not advancing by a given amount of time.
             if self._time_to_step is None:
                 next(self._universe_iterator)
             else:
-                # Get number of frames to advance - will always slightly undershoot at best.
+                # Get number of frames to advance - may slightly undershoot if not exact multiple of `dt`.
                 num_frames_to_advance = self._time_to_step // self._universe_iterator.dt
                 for _ in range(num_frames_to_advance):
                     next(self._universe_iterator)
         except StopIteration:
             if reset:
                 self._universe_iterator = iter(self.universe.trajectory)
+                next(self._universe_iterator)  # Advance to first frame.
 
     def make_topology_frame(self) -> FrameData:
         return mdanalysis_to_frame_data(self.universe, topology=True, positions=True)
@@ -101,17 +107,24 @@ class UniverseSimulation(Simulation):
         return mdanalysis_to_frame_data(self.universe, topology=False, positions=True)
 
     def advance_by_one_step(self) -> None:
+        """Advance the simulation to the next timestep."""
         self._time_to_step = None
 
         return self.advance_to_next_report()
 
     def advance_by_seconds(self, dt: float) -> None:
+        """Advance the simulation by a given time change `dt` (in ps)."""
         # Set the amount of time to step to, time should be in ps - same as MDAnalysis.
         self._time_to_step = dt
 
         return self.advance_to_next_report()
 
     def advance_to_next_report(self) -> None:
+        """
+        Advances the simulation to the next desired time point and sends the new state as a frame.
+        If `advance_by_seconds` has been called, will attempt to progress to the timestep
+        corresponding to the given change in time. Otherwise sends the next timepoint.
+        """
         assert self.app_server is not None
 
         self._next_frame()
