@@ -158,17 +158,15 @@ class CommandService:
         """
         if default_arguments is None:
             default_arguments = {}
-        try:
-            self._commands.set_no_replace(
-                name,
-                CommandRegistration(
-                    name=name,
-                    arguments=default_arguments,
-                    handler=callback,
-                ),
-            )
-        except KeyError:
-            raise ValueError(f"Command with name {name} has already been registered.")
+        self._commands.set(
+            None,
+            name,
+            CommandRegistration(
+                name=name,
+                arguments=default_arguments,
+                handler=callback,
+            ),
+        )
 
     def unregister_command(self, name):
         """

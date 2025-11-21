@@ -151,7 +151,7 @@ class _WebSocketClientHandler:
                 self.user_id = _find_user_id(change)
             self.state_dictionary.update_state(None, change)
 
-        def handle_frame_update(frame):
+        def handle_frame_update(frame: dict):
             frame = FrameData.unpack_from_dict(frame)
             if frame.frame_index == 0:
                 self.frame_publisher.send_clear()

@@ -32,10 +32,10 @@ class ImdStateWrapper:
         self.state_dictionary = state_dictionary
         self.velocity_reset_available = velocity_reset_available
 
-        self.state_dictionary.update_locks(
-            self,
-            acquire={VELOCITY_RESET_KEY: None},
-        )
+        # self.state_dictionary.update_locks(
+        #     self,
+        #     acquire={VELOCITY_RESET_KEY: None},
+        # )
         self.state_dictionary.update_state(
             self,
             change=DictionaryChange(
