@@ -92,7 +92,9 @@ class UniverseSimulation(Simulation):
                 next(self._universe_iterator)
             else:
                 # Get number of frames to advance - may slightly undershoot if not exact multiple of `dt`.
-                num_frames_to_advance = self._time_to_step // self._universe_iterator.dt
+                num_frames_to_advance = int(
+                    self._time_to_step // self._universe_iterator.dt
+                )
                 for _ in range(num_frames_to_advance):
                     next(self._universe_iterator)
         except StopIteration:
