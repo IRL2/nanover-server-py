@@ -1,4 +1,3 @@
-import traceback
 from concurrent.futures import ThreadPoolExecutor
 
 import msgpack
@@ -36,7 +35,6 @@ class WebsocketClient:
                     self.recv_message(message)
                 except Exception as e:
                     print(f"RECV FAILED ({set(message.keys())})", e)
-                    traceback.print_exc()
 
         self.threads = ThreadPoolExecutor(thread_name_prefix="WebSocketClient")
         self.threads.submit(listen)

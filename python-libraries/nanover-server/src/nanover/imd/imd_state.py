@@ -2,6 +2,7 @@
 Module providing methods for storing ParticleInteractions in a StateDictionary.
 """
 
+import warnings
 from typing import Any, Mapping
 
 from nanover.utilities.state_dictionary import StateDictionary
@@ -32,10 +33,6 @@ class ImdStateWrapper:
         self.state_dictionary = state_dictionary
         self.velocity_reset_available = velocity_reset_available
 
-        # self.state_dictionary.update_locks(
-        #     self,
-        #     acquire={VELOCITY_RESET_KEY: None},
-        # )
         self.state_dictionary.update_state(
             self,
             change=DictionaryChange(
@@ -92,7 +89,10 @@ class ImdStateWrapper:
                 del self._interactions[removed_key]
         for key, value in change.updates.items():
             if key.startswith(INTERACTION_PREFIX):
-                self._interactions[key] = dict_to_interaction(value)
+                try:
+                    self._interactions[key] = dict_to_interaction(value)
+                except Exception:
+                    warnings.warn(f"Didn't understand '{value}' ({key}) as interaction")
 
 
 def interaction_to_dict(interaction: ParticleInteraction) -> dict[str, Any]:

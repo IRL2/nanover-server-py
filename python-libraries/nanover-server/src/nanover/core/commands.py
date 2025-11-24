@@ -1,7 +1,6 @@
 from concurrent.futures import Future
 
 from typing import Any, Protocol
-from nanover.utilities.key_lockable_map import KeyLockableMap
 from .app_server import CommandService as CommandServiceProtocol
 from .types import CommandHandler, CommandRegistration
 
@@ -117,7 +116,7 @@ class CommandService:
     def __init__(self, add_list_command=True):
         super().__init__()
         self.name: str = "command"
-        self._commands = KeyLockableMap()
+        self._commands = {}
         self._id = "service"
 
         def list_commands():
@@ -158,14 +157,10 @@ class CommandService:
         """
         if default_arguments is None:
             default_arguments = {}
-        self._commands.set(
-            None,
-            name,
-            CommandRegistration(
-                name=name,
-                arguments=default_arguments,
-                handler=callback,
-            ),
+        self._commands[name] = CommandRegistration(
+            name=name,
+            arguments=default_arguments,
+            handler=callback,
         )
 
     def unregister_command(self, name):
@@ -175,7 +170,7 @@ class CommandService:
         :param name: Name of the command to delete
         """
         try:
-            self._commands.delete(self._id, name)
+            del self._commands[name]
         except KeyError:
             raise KeyError(f"Command {name} does not exist")
 
@@ -183,7 +178,7 @@ class CommandService:
         future: Future = Future()
 
         try:
-            command = self._commands.get(name)
+            command = self._commands[name]
 
             if command is None:
                 raise KeyError(f"Unknown command: {name}")
