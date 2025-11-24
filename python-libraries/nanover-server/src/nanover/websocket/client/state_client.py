@@ -1,7 +1,6 @@
 from typing import Any, ContextManager
 
 from nanover.core.app_server import StateService
-from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.state_dictionary import StateDictionary
 from nanover.websocket.client.base_client import WebsocketClient
 
@@ -17,11 +16,8 @@ class StateClient(WebsocketClient, StateService):
     def copy_state(self) -> dict[str, Any]:
         return self.state_dictionary.copy_content()
 
-    def update_state(self, change: DictionaryChange) -> None:
-        self.state_dictionary.update_state(None, change)
-
     def clear_locks(self) -> None:
-        raise NotImplementedError()
+        pass
 
     @property
     def state_dictionary(self) -> StateDictionary:
