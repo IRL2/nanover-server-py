@@ -41,5 +41,4 @@ def test_unregister_command(service):
 
 
 def test_unregister_nonexisting_command(service):
-    with pytest.raises(KeyError):
-        service.unregister_command("test")
+    service.unregister_command("test")

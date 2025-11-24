@@ -138,7 +138,7 @@ class CommandService:
 
         :return: A copy of the dictionary of commands that have been registered.
         """
-        return self._commands.get_all()
+        return self._commands.copy()
 
     def register_command(
         self,
@@ -169,10 +169,7 @@ class CommandService:
 
         :param name: Name of the command to delete
         """
-        try:
-            del self._commands[name]
-        except KeyError:
-            raise KeyError(f"Command {name} does not exist")
+        self._commands.pop(name, None)
 
     def run_command(self, name: str, arguments: dict) -> Future:
         future: Future = Future()
