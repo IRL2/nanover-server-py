@@ -52,12 +52,19 @@ class OmniRunner:
         return omni
 
     @classmethod
-    def from_client(cls, client: NanoverImdApplication):
+    def from_client(
+        cls,
+        client: NanoverImdApplication,
+        *simulations: Simulation,
+    ):
         """
         Use an existing client as the endpoint for sending simulated frames, registering play/pause etc commands,
         and the source of state for iMD interactions.
         """
-        return cls(client)
+        omni = cls(client)
+        for simulation in simulations:
+            omni.add_simulation(simulation)
+        return omni
 
     def __init__(self, app_server: AppServer):
         self._app_server = app_server
