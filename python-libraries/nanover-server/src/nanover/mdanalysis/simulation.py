@@ -103,7 +103,7 @@ class UniverseSimulation(Simulation):
     @property
     def time_to_step(self) -> float | None:
         """
-        The default amount of time the simulation will attempt to step when advancing.
+        The default amount of time (ps) the simulation will attempt to step when advancing.
         Returns `None` if there is no target time, indicating it will advance to the next timestep instead.
         """
         return self._time_to_step.default_dt
