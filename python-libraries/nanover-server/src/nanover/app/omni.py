@@ -100,7 +100,8 @@ class OmniRunner:
         """
         Print out basic runner info to the terminal.
         """
-        print(basic_info_string(self.app_server))
+        with suppress(Exception):
+            print(basic_info_string(self.app_server))
 
         list = "\n".join(
             f'{index}: "{simulation.name}"'
