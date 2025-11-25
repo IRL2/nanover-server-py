@@ -5,6 +5,30 @@ from nanover.trajectory import FrameData
 from nanover.mdanalysis.converter import mdanalysis_to_frame_data
 
 
+class StepTracker:
+    """Class to store step sizes for Simulation class advancement."""
+
+    def __init__(self, dt: float | None = None):
+        self.default_dt: float | None = dt
+        "Target time to step in each advancement, `None` implies stepping 1 frame."
+        self.current_dt: float | None = None
+        "Target time to step for the next advancement only, `None` implies stepping 1 frame."
+
+    def next_ts(self) -> float | None:
+        """Returns the next target time step or `None` if stepping 1 frame."""
+        return self.current_dt or self.default_dt
+
+    def __next__(self) -> float | None:
+        """Yields next target time step."""
+        next_ts = self.default_dt
+
+        # Exhaust current_dt if it exists.
+        if self.current_dt is not None:
+            next_ts = self.current_dt
+            self.current_dt = None
+        return next_ts
+
+
 class UniverseSimulation(Simulation):
     @classmethod
     def from_universe(
@@ -26,8 +50,11 @@ class UniverseSimulation(Simulation):
         self.name = name
         self.universe = universe
         self._universe_iterator = iter(self.universe.trajectory)
-
-        self._time_to_step: float | None = None
+        self._time_to_step: StepTracker = StepTracker()
+        self.time_mapping_factor = (
+            1 / 3
+        )  # factor assumes rw and sim time are s and ps, respectively.
+        "Factor to map time elapsed in real world (s) and simulation (ps) when advancing by a given time."
 
         self.app_server: AppServer | None = None
 
@@ -53,12 +80,12 @@ class UniverseSimulation(Simulation):
         """
         try:
             # Simply advance to next step if not advancing by a given amount of time.
-            if self._time_to_step is None:
+            if (next_ts := next(self._time_to_step)) is None:
                 next(self._universe_iterator)
             else:
                 # Get number of frames to advance - may slightly undershoot if not exact multiple of `dt`.
                 num_frames_to_advance = int(
-                    self._time_to_step // self._universe_iterator.dt
+                    (next_ts / self.time_mapping_factor) // self._universe_iterator.dt
                 )
                 for _ in range(num_frames_to_advance):
                     next(self._universe_iterator)
@@ -73,17 +100,29 @@ class UniverseSimulation(Simulation):
     def make_regular_frame(self) -> FrameData:
         return mdanalysis_to_frame_data(self.universe, topology=False, positions=True)
 
+    @property
+    def time_to_step(self) -> float | None:
+        """
+        The default amount of time the simulation will attempt to step when advancing.
+        Returns `None` if there is no target time, indicating it will advance to the next timestep instead.
+        """
+        return self._time_to_step.default_dt
+
+    @time_to_step.setter
+    def time_to_step(self, dt: float) -> None:
+        self._time_to_step.default_dt = dt
+
     def advance_by_one_step(self) -> None:
         """Advance the simulation to the next timestep."""
-        self._time_to_step = None
-
+        self._time_to_step.current_dt = None
         return self.advance_to_next_report()
 
     def advance_by_seconds(self, dt: float) -> None:
-        """Advance the simulation by a given time change `dt` (in ps)."""
-        # Set the amount of time to step to, time should be in ps - same as MDAnalysis.
-        self._time_to_step = dt
-
+        """
+        Advance the simulation by a given time change `dt` in real world seconds.
+        This is mapped to a simulation time change with `time_mapping_factor` member.
+        """
+        self._time_to_step.current_dt = dt
         return self.advance_to_next_report()
 
     def advance_to_next_report(self) -> None:
