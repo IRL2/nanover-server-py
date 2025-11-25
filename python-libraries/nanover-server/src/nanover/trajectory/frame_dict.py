@@ -14,7 +14,7 @@ from . import keys
 FrameDict = dict[str, Any]
 
 
-BASIC_TOPOLOGY_KEYS = {
+MINIMUM_USABLE_FRAME_KEYS = {
     keys.PARTICLE_COUNT,
     keys.PARTICLE_ELEMENTS,
     keys.BOND_PAIRS,

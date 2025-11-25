@@ -133,4 +133,4 @@ class PlaybackSimulation(Simulation):
             self.app_server.frame_publisher.send_frame(frame)
         if update is not None:
             self.app_server.clear_locks()
-            self.app_server.update_state(None, update)
+            self.app_server.update_state(update)

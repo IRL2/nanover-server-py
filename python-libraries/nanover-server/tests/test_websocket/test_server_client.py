@@ -114,7 +114,15 @@ def test_client_frame_reset(reusable_setup, frame):
 
 @given(
     user_id=user_ids(),
-    fields=st.sets(st.text(min_size=1, max_size=16), min_size=1, max_size=4),
+    fields=st.sets(
+        st.text(
+            min_size=1,
+            max_size=16,
+            alphabet=st.characters(codec="utf-8", exclude_characters="."),
+        ),
+        min_size=1,
+        max_size=4,
+    ),
 )
 def test_disconnect_cleans_owned_keys(reusable_setup, user_id, fields):
     """

@@ -159,18 +159,15 @@ def test_simulation_switch_clears_state(runner_with_all_sims):
 
 
 @pytest.mark.parametrize("sim_factory", SIMULATION_FACTORIES_IMD)
-def test_first_frame_topology(sim_factory):
+def test_wait_until_minimum_usable_frame(sim_factory):
     """
-    Test that the first frame contains topology and position information.
+    Test that the minimum usable frame contains topology and position information.
     """
     with make_runner(sim_factory()) as runner:
         with make_connected_client_from_runner(runner) as client:
             runner.load(0)
-            first_frame = client.wait_until_first_frame()
+            first_frame = client.wait_until_minimum_usable_frame()
 
-            # Currently the initial frame is the only frame containing the element
-            # information, so this is equivalent to testing the frame in which the
-            # topology is sent (where relevant).
             assert (
                 len(first_frame.particle_positions) > 0
                 and len(first_frame.particle_elements) > 0
@@ -186,7 +183,7 @@ def test_interaction_invalid_particle_index(sim_factory):
     with make_runner(sim_factory()) as runner:
         with make_connected_client_from_runner(runner) as client:
             runner.load(0)
-            frame = client.wait_until_first_frame()
+            frame = client.wait_until_minimum_usable_frame()
 
             interaction_id = client.start_interaction(
                 ParticleInteraction(particles=[frame.particle_count + 10])

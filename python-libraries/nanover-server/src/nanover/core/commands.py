@@ -1,7 +1,6 @@
 from concurrent.futures import Future
 
 from typing import Any, Protocol
-from nanover.utilities.key_lockable_map import KeyLockableMap
 from .app_server import CommandService as CommandServiceProtocol
 from .types import CommandHandler, CommandRegistration
 
@@ -117,7 +116,7 @@ class CommandService:
     def __init__(self, add_list_command=True):
         super().__init__()
         self.name: str = "command"
-        self._commands = KeyLockableMap()
+        self._commands = {}
         self._id = "service"
 
         def list_commands():
@@ -139,7 +138,7 @@ class CommandService:
 
         :return: A copy of the dictionary of commands that have been registered.
         """
-        return self._commands.get_all()
+        return self._commands.copy()
 
     def register_command(
         self,
@@ -158,17 +157,11 @@ class CommandService:
         """
         if default_arguments is None:
             default_arguments = {}
-        try:
-            self._commands.set_no_replace(
-                name,
-                CommandRegistration(
-                    name=name,
-                    arguments=default_arguments,
-                    handler=callback,
-                ),
-            )
-        except KeyError:
-            raise ValueError(f"Command with name {name} has already been registered.")
+        self._commands[name] = CommandRegistration(
+            name=name,
+            arguments=default_arguments,
+            handler=callback,
+        )
 
     def unregister_command(self, name):
         """
@@ -176,16 +169,13 @@ class CommandService:
 
         :param name: Name of the command to delete
         """
-        try:
-            self._commands.delete(self._id, name)
-        except KeyError:
-            raise KeyError(f"Command {name} does not exist")
+        self._commands.pop(name, None)
 
     def run_command(self, name: str, arguments: dict) -> Future:
         future: Future = Future()
 
         try:
-            command = self._commands.get(name)
+            command = self._commands[name]
 
             if command is None:
                 raise KeyError(f"Unknown command: {name}")

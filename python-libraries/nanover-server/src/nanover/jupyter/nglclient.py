@@ -3,13 +3,14 @@ Provides an NGLView python client to connect to a NanoVer server in order to vis
 the molecular system from within a Jupyter notebook (or iPython interface).
 """
 
+from contextlib import suppress
 from io import StringIO
 
 import nglview
 
 from nanover.websocket import NanoverImdClient
 from nanover.mdanalysis import frame_data_to_mdanalysis
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData, keys, MissingDataError
 from nglview import NGLWidget
 
 import MDAnalysis as mda
@@ -25,8 +26,8 @@ class NGLClient(NanoverImdClient):
 
     .. code-block:: python
 
-        from nanover.nglview import NGLClient
-        client = NGLClient.autoconnect()
+        from nanover.jupyter import NGLClient
+        client = NGLClient.from_discovery()
         client.view
 
     :param dynamic_bonds: A boolean flag that dictates whether bonds should be dynamically updated
@@ -38,7 +39,8 @@ class NGLClient(NanoverImdClient):
     """
 
     def __init__(self, *args, update_callback=None, dynamic_bonds=False, **kwargs):
-        self._view = None
+        self._view = NGLWidget()
+        self._structure = None
         super().__init__(*args, **kwargs)
         self.update_callback = update_callback
         self.dynamic_bonds = dynamic_bonds
@@ -48,20 +50,29 @@ class NGLClient(NanoverImdClient):
         """
         Returns an NGLView widget to visualise the molecular system.
         """
-        if self._view is None or self.dynamic_bonds:
-            self._view = frame_data_to_nglwidget(self.current_frame)
         return self._view
 
-    def recv_frame(self, *args, **kwargs):
+    def recv_frame(self, message: dict):
         """
         On receiving the latest frame, defines the new coordinates of the atoms
         in the molecular system in Angstrom for visualisation using NGLView.
         """
-        super().recv_frame(*args, **kwargs)
+        super().recv_frame(message)
 
-        if self.has_basic_topology:
-            print(set(self.current_frame.frame_dict.keys()))
-            self.view.set_coordinates({0: self.current_frame.particle_positions * 10})
+        if message.get(keys.FRAME_INDEX, None) == 0:
+            if self._structure is not None:
+                self._view.remove_component(self._structure)
+                self._structure = None
+
+        if self.has_minimum_usable_frame and self._structure is None:
+            structure = FrameDataStructure(self.current_frame)
+            self._structure = self._view.add_structure(structure)
+
+        if self._structure is not None:
+            with suppress(MissingDataError):
+                self._view.set_coordinates(
+                    {0: self.current_frame.particle_positions * 10}
+                )
         # TODO: Add functionality to update callback functions to allow widget customisation
 
 
@@ -130,6 +141,8 @@ def fill_empty_fields(universe: mda.Universe):
             "altLocs": " ",
             "occupancies": 1.0,
             "tempfactors": 0.0,
+            "formalcharges": 0.0,
+            "record_types": "ATOM",
         },
         len(universe.atoms),
     )
@@ -156,7 +169,6 @@ def mda_to_pdb_str(universe: mda.Universe):
     """
     fill_empty_fields(universe)
     with StringIO() as str_io, mda.coordinates.PDB.PDBWriter(str_io) as writer:
-        writer.filename = ""  # See https://github.com/MDAnalysis/mdanalysis/issues/2512
         writer.write(universe)
         pdb = str_io.getvalue()
     return pdb

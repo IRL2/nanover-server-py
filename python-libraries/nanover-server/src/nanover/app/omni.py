@@ -51,6 +51,21 @@ class OmniRunner:
             omni.add_simulation(simulation)
         return omni
 
+    @classmethod
+    def from_client(
+        cls,
+        client: NanoverImdApplication,
+        *simulations: Simulation,
+    ):
+        """
+        Use an existing client as the endpoint for sending simulated frames, registering play/pause etc commands,
+        and the source of state for iMD interactions.
+        """
+        omni = cls(client)
+        for simulation in simulations:
+            omni.add_simulation(simulation)
+        return omni
+
     def __init__(self, app_server: AppServer):
         self._app_server = app_server
 
@@ -78,8 +93,8 @@ class OmniRunner:
         """
         Stop simulations and shut down server.
         """
-        self.app_server.close()
         self._cancel_run()
+        self.app_server.close()
 
     def print_basic_info(self):
         """
@@ -143,7 +158,7 @@ class OmniRunner:
                 if any(key.startswith(prefix) for prefix in CLEAR_PREFIXES)
             }
         self.app_server.clear_locks()
-        self.app_server.update_state(None, DictionaryChange(removals=removals))
+        self.app_server.update_state(DictionaryChange(removals=removals))
 
     def _load_simulation_selections(self):
         with self.app_server.lock_state() as state:
@@ -161,7 +176,7 @@ class OmniRunner:
                 updates=next_selections,
                 removals=prev_selections,
             )
-        self.app_server.update_state(None, change)
+        self.app_server.update_state(change)
 
     def load(self, index: int):
         """

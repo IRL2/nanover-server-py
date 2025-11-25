@@ -62,7 +62,13 @@ class NanoverImdApplication(AppServer):
         port = DEFAULT_NANOVER_PORT if port is None else port
 
         app_server = cls(name=name, address=address, discovery=DiscoveryServer())
-        app_server.serve_websocket(ssl=ssl, port=port)
+
+        try:
+            app_server.serve_websocket(ssl=ssl, port=port)
+        except IOError:
+            app_server.close()
+            raise
+
         return app_server
 
     def __init__(
@@ -211,12 +217,12 @@ class NanoverImdApplication(AppServer):
         """
         return self._state_dictionary.copy_content()
 
-    def update_state(self, access_token: Any, change: DictionaryChange):
+    def update_state(self, change: DictionaryChange):
         """
         Attempts an atomic update of the shared key/value store. If any key
-        cannot be updates, no change will be made.
+        cannot be updated, no change will be made.
         """
-        self._state_dictionary.update_state(access_token, change)
+        self._state_dictionary.update_state(None, change)
 
     def clear_locks(self):
         """

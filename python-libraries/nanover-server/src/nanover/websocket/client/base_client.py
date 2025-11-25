@@ -1,9 +1,9 @@
-from concurrent.futures import ThreadPoolExecutor, Future
+from concurrent.futures import ThreadPoolExecutor
 
 import msgpack
 from websockets.sync.client import connect, ClientConnection
 
-from nanover.core.commands import CommandHandler, CommandMessageHandler
+from nanover.core.commands import CommandMessageHandler
 from nanover.utilities.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory import FrameData
@@ -52,24 +52,6 @@ class WebsocketClient:
                 }
             }
         )
-
-    def run_command_blocking(self, name: str, **arguments):
-        return self.run_command(name, arguments).result()
-
-    def run_command(
-        self,
-        name: str,
-        arguments: dict | None = None,
-    ) -> Future:
-        return self._command_handler.request_command(name, arguments)
-
-    def register_command(
-        self,
-        name: str,
-        callback: CommandHandler,
-        default_arguments: dict | None = None,
-    ) -> None:
-        self._command_handler.register_command(name, callback, default_arguments)
 
     def send_message(self, message: dict):
         self._connection.send(msgpack.packb(message))
