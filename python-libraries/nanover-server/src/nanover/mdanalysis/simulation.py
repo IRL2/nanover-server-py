@@ -6,7 +6,7 @@ from nanover.mdanalysis.converter import mdanalysis_to_frame_data
 
 
 class StepTracker:
-    """Class to store step sizes for Simulation class advancement."""
+    """Store and manage amount of time to step for advancing a `Simulation`."""
 
     def __init__(self, dt: float | None = None):
         self.default_dt: float | None = dt
@@ -22,7 +22,7 @@ class StepTracker:
         """Yields next target time step."""
         next_ts = self.default_dt
 
-        # Exhaust current_dt if it exists.
+        # Exhaust `current_dt` if it exists.
         if self.current_dt is not None:
             next_ts = self.current_dt
             self.current_dt = None
