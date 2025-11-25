@@ -4,23 +4,39 @@ from contextlib import suppress
 from typing import Any
 from warnings import deprecated
 
-from nanover.core import AppServer
+from nanover.core import AppServer, AppServerMinimal
 from nanover.essd import DiscoveryClient, ServiceHub
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.network import get_local_ip
-from nanover.trajectory import FrameData
+from nanover.trajectory import FrameData, FramePublisher
 
 from .command_client import CommandClient
 from .playback_client import PlaybackClient
 from .interaction_client import InteractionClient
 from .selection_client import SelectionClient
+from .state_client import StateClient
+from ...imd import ImdStateWrapper
 from ...trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
 
 DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
 
 
+class FramePublisherShim(FramePublisher):
+    def __init__(self, client: "NanoverImdClient"):
+        super().__init__()
+        self.client = client
+
+    def _queue_frame_for_all_subscribers(self, frame):
+        self.client.publish_frame(frame)
+
+
 class NanoverImdClient(
-    InteractionClient, SelectionClient, PlaybackClient, CommandClient
+    InteractionClient,
+    SelectionClient,
+    PlaybackClient,
+    CommandClient,
+    StateClient,
+    AppServerMinimal,
 ):
     """
     Mixin of methods for selection manipulation with a WebSocketClient.
@@ -82,6 +98,9 @@ class NanoverImdClient(
     def __init__(self, *args, **kwargs):
         self._frames: deque[FrameData] = deque(maxlen=50)
         super().__init__(*args, **kwargs)
+
+        self.frame_publisher = FramePublisherShim(self)
+        self.imd = ImdStateWrapper(self.state_dictionary)
 
     @property
     def frames(self) -> list[FrameData]:
