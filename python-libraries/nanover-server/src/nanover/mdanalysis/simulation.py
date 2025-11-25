@@ -1,8 +1,3 @@
-from os import PathLike
-from pathlib import Path
-
-from typing import Iterable
-
 import MDAnalysis as mda
 
 from nanover.core import AppServer, Simulation
@@ -11,36 +6,6 @@ from nanover.mdanalysis.converter import mdanalysis_to_frame_data
 
 
 class UniverseSimulation(Simulation):
-    @classmethod
-    def from_path(
-        cls,
-        structure: PathLike[str],
-        *,
-        coordinates: Iterable[PathLike[str]] | PathLike[str] | None = None,
-        name: str | None = None,
-    ):
-        """
-        Creates UniverseSimulation from path(s).
-
-        :param structure: Path to structure file, such as .pdb or topology.
-        :param coordinates: Optional path to trajectory coordinates, if providing a topology to `structure`, this is required.
-        :param name: Name of simulation.
-        """
-        structure = Path(structure)
-        name = name or structure.stem
-
-        if coordinates is not None:
-            if not isinstance(coordinates, Iterable):
-                coordinates = [coordinates]
-            elif isinstance(coordinates, str):
-                coordinates = Path(coordinates)
-
-            universe = mda.Universe(structure, coordinates)
-        else:
-            universe = mda.Universe(structure)
-
-        return cls(name=name, universe=universe)
-
     @classmethod
     def from_universe(
         cls,
