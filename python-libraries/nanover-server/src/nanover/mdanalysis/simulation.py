@@ -5,7 +5,7 @@ from nanover.trajectory import FrameData
 from nanover.mdanalysis.converter import mdanalysis_to_frame_data
 
 
-class StepTracker:
+class StepManager:
     """Store and manage amount of time to step for advancing a `Simulation`."""
 
     def __init__(self, dt: float | None = None):
@@ -50,7 +50,7 @@ class UniverseSimulation(Simulation):
         self.name = name
         self.universe = universe
         self._universe_iterator = iter(self.universe.trajectory)
-        self._time_to_step: StepTracker = StepTracker()
+        self._time_to_step: StepManager = StepManager()
         self.playback_factor = 1
         """Factor to map time elapsed in real world (s) and simulation (ps) when advancing by a given time.
         For example using a factor of 30 will map `time_to_step` ps in the simulation to 1 s in the realworld (at 30fps)."""
