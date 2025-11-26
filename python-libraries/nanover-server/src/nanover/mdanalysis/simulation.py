@@ -51,11 +51,10 @@ class UniverseSimulation(Simulation):
         self.universe = universe
         self._universe_iterator = iter(self.universe.trajectory)
         self._time_to_step: StepTracker = StepTracker()
-        self.time_mapping_factor = (
-            1 / 3
-        )  # factor assumes rw and sim time are s and ps, respectively.
+        self.playback_factor = 1
         """Factor to map time elapsed in real world (s) and simulation (ps) when advancing by a given time.
-        For example using a factor of 1/3 alongside a framerate of 30FPS maps to a 1 ps timestep in the simulation."""
+        For example using a factor of 30 will map `time_to_step` ps in the simulation to 1 s in the realworld (at 30fps)."""
+        self._simulation_time = 0.0
 
         self.app_server: AppServer | None = None
 
@@ -67,12 +66,25 @@ class UniverseSimulation(Simulation):
         """Reset the simulation to the first timestep then sends a frame."""
         self.app_server = app_server
         self._universe_iterator = iter(self.universe.trajectory)
+        self._simulation_time = 0.0
         next(self._universe_iterator)  # Advance to first frame.
 
         frame = self.make_topology_frame()
 
         self.app_server.frame_publisher.send_clear()
         self.app_server.frame_publisher.send_frame(frame)
+
+    def seek_to_time(self, time: float) -> None:
+        """Moves the simulation to a given timepoint (ps), a time greater than the total simulation time resets the simulation."""
+        # Reset to start if time is greater than total sim time.
+        if time > (self._universe_iterator.totaltime):
+            self._universe_iterator = iter(self.universe.trajectory)
+            self._simulation_time = 0
+            return
+
+        next_frame = int(time // self._universe_iterator.dt)
+        self._simulation_time = time  # Update current sim time.
+        _ = self.universe.trajectory[next_frame]  # Move to target frame.
 
     def _next_frame(self, reset: bool = True) -> None:
         """
@@ -84,19 +96,14 @@ class UniverseSimulation(Simulation):
             if (next_ts := next(self._time_to_step)) is None:
                 next(self._universe_iterator)
             else:
-                # Get number of frames to advance - may slightly undershoot if not exact multiple of `dt`.
-                num_frames_to_advance = (
-                    int(
-                        (next_ts / self.time_mapping_factor)
-                        // self._universe_iterator.dt
-                    )
-                    or 1
-                )  # To account for situations where num_frames == 0.
-                for _ in range(num_frames_to_advance):
-                    next(self._universe_iterator)
+                # Otherwise seek to the target time.
+                self.seek_to_time(
+                    self._simulation_time + (next_ts * self.playback_factor)
+                )
         except StopIteration:
             if reset:
                 self._universe_iterator = iter(self.universe.trajectory)
+                self._simulation_time = 0.0
                 next(self._universe_iterator)  # Advance to first frame.
 
     def make_topology_frame(self) -> FrameData:
@@ -125,7 +132,7 @@ class UniverseSimulation(Simulation):
     def advance_by_seconds(self, dt: float) -> None:
         """
         Advance the simulation by a given time change `dt` in real world seconds.
-        This is mapped to a simulation time change with `time_mapping_factor` member.
+        This is mapped to a simulation time change with `playback_factor`.
         """
         self._time_to_step.current_dt = dt
         return self.advance_to_next_report()
@@ -133,8 +140,7 @@ class UniverseSimulation(Simulation):
     def advance_to_next_report(self) -> None:
         """
         Advances the simulation to the next desired time point and sends the new state as a frame.
-        If `advance_by_seconds` has been called, will attempt to progress to the timestep
-        corresponding to the given change in time. Otherwise sends the next timepoint.
+        Will advance the simulation by `time_to_step` ps or to the next frame if it is `None`.
         """
         assert self.app_server is not None
 
