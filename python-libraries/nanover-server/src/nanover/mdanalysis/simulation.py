@@ -54,7 +54,8 @@ class UniverseSimulation(Simulation):
         self.time_mapping_factor = (
             1 / 3
         )  # factor assumes rw and sim time are s and ps, respectively.
-        "Factor to map time elapsed in real world (s) and simulation (ps) when advancing by a given time."
+        """Factor to map time elapsed in real world (s) and simulation (ps) when advancing by a given time.
+        For example using a factor of 1/3 alongside a framerate of 30FPS maps to a 1 ps timestep in the simulation."""
 
         self.app_server: AppServer | None = None
 
@@ -84,9 +85,13 @@ class UniverseSimulation(Simulation):
                 next(self._universe_iterator)
             else:
                 # Get number of frames to advance - may slightly undershoot if not exact multiple of `dt`.
-                num_frames_to_advance = int(
-                    (next_ts / self.time_mapping_factor) // self._universe_iterator.dt
-                )
+                num_frames_to_advance = (
+                    int(
+                        (next_ts / self.time_mapping_factor)
+                        // self._universe_iterator.dt
+                    )
+                    or 1
+                )  # To account for situations where num_frames == 0.
                 for _ in range(num_frames_to_advance):
                     next(self._universe_iterator)
         except StopIteration:
