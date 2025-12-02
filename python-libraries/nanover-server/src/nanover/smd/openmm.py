@@ -249,12 +249,13 @@ class OpenMMSMDSimulation:
         forces = self.simulation.system.getForces()
         forces_to_remove = []
         for i in range(len(forces)):
-            if (
-                type(forces[i]) == type(self.smd_force)
-                and forces[i].getGlobalParameterName(0)
-                == SMD_FORCE_CONSTANT_PARAMETER_NAME
-            ):
-                forces_to_remove.append(i)
+            if (type(forces[i]) == type(self.smd_force)):
+                try:
+                    if forces[i].getGlobalParameterName(0) == SMD_FORCE_CONSTANT_PARAMETER_NAME:
+                        forces_to_remove.append(i)
+                except OpenMMException:
+                    continue
+                # forces_to_remove.append(i)
 
         # Remove any SMD forces, accounting for the changes in indices
         # as forces are removed
