@@ -59,7 +59,7 @@ class UniverseSimulation(Simulation):
         duration = frame_count * frame_length
 
         # determine previous frame from previous time then take the subsequent frame as next frame and time
-        prev_frame = int(self.simulation_time // duration)
+        prev_frame = math.floor(frame_count * self.simulation_time / duration)
         next_frame = (prev_frame + 1) % frame_count
         self.simulation_time = next_frame * frame_length
 
