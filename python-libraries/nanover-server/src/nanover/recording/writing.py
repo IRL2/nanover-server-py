@@ -5,6 +5,7 @@ from typing import Iterable, Any, BinaryIO
 from zipfile import ZipFile
 
 import msgpack
+import numpy as np
 
 from nanover.recording.reading import (
     RECORDING_INDEX_FILENAME,
@@ -40,7 +41,7 @@ class NanoverRecordingWriter:
         self.archive.close()
 
     def write_message_event(self, event: MessageEvent):
-        data = msgpack.packb(event.message)
+        data = msgpack.packb(event.message, default=_fallback_encoder)
         metadata = generate_metadata(event.message)
         metadata["timestamp"] = event.timestamp
         entry = RecordingIndexEntry(
@@ -73,3 +74,16 @@ def generate_metadata(message: dict[str, Any]) -> dict[str, Any]:
         metadata[FRAME_INDEX] = message["frame"][FRAME_INDEX]
 
     return metadata
+
+
+def _fallback_encoder(obj: Any) -> Any:
+    """
+    Converts, if possible, a type msgpack doesn't understand into a basic type it can encode.
+
+    :param obj: object to be converted
+    :return: simplified object
+    """
+    # encode numpy arrays as simple lists
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    raise TypeError(f"Unknown type: {obj}")
