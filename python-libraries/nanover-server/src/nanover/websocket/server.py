@@ -3,10 +3,9 @@ import errno
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from ssl import SSLContext
-from typing import Any, Self
+from typing import Self
 
 import msgpack
-import numpy as np
 
 from nanover.core import AppServer
 from nanover.trajectory import FrameData

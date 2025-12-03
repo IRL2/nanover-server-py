@@ -3,14 +3,16 @@ from os import PathLike
 from pathlib import Path
 
 from nanover.core import AppServer, Simulation
-from nanover.recording.reading import (
-    RecordingIndexEntry,
-    NanoverRecordingReader,
-)
 from nanover.trajectory import FrameData, MissingDataError
 from nanover.utilities.change_buffers import DictionaryChange
 
-MICROSECONDS_TO_SECONDS = 1 / 1000000
+from .reading import (
+    RecordingIndexEntry,
+    NanoverRecordingReader,
+    MICROSECONDS_TO_SECONDS,
+)
+
+
 SCENE_POSE_IDENTITY = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
 
 Entry = tuple[float, RecordingIndexEntry]

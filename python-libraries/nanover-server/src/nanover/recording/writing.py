@@ -5,7 +5,6 @@ from typing import Iterable, Any, BinaryIO
 from zipfile import ZipFile
 
 import msgpack
-import numpy as np
 
 from nanover.recording.reading import (
     RECORDING_INDEX_FILENAME,
