@@ -69,10 +69,12 @@ jobs:
         run: |
           pip install uv
           uv pip install -r ./python-libraries/nanover-server/pyproject.toml --all-extras
-      - name: Parallel tests
-        run: python -m pytest python-libraries -n auto -m 'not serial'
-      - name: Serial tests
-        run: python -m pytest python-libraries -n 1 -m 'serial'
+      - name: All tests
+        run: python -m pytest --cov nanover python-libraries --cov-append
+#      - name: Parallel tests
+#        run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial'
+#      - name: Serial tests
+#        run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial' --cov-append
   publish-conda:
     name: Publish packages
     if: github.ref == 'refs/heads/main'
