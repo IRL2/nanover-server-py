@@ -21,7 +21,7 @@ jobs:
           conda install -y openmm
           python -m pip install ./python-libraries/nanover-server/[dev]
       - name: All tests
-        run: python -m pytest --cov nanover python-libraries --cov-append
+        run: python -m pytest --cov nanover python-libraries
 #      - name: Parallel tests
 #        run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial'
 #      - name: Serial tests
