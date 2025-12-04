@@ -71,7 +71,7 @@ jobs:
           pip install uv
           uv pip install -r ./python-libraries/nanover-server/pyproject.toml --all-extras
       - name: All tests
-        run: python -m pytest python-libraries
+        run: python -m pytest python-libraries --timeout 30
 #      - name: Parallel tests
 #        run: python -m pytest python-libraries -n auto -m 'not serial'
 #      - name: Serial tests
