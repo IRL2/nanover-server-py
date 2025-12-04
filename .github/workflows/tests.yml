@@ -4,6 +4,7 @@ name: "Repo"
 jobs:
   python-tests:
     name: Tests and Notebooks
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     defaults:
       run:
