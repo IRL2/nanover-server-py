@@ -46,6 +46,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     continue-on-error: true
     needs: build-conda
     defaults:
@@ -69,10 +70,12 @@ jobs:
         run: |
           pip install uv
           uv pip install -r ./python-libraries/nanover-server/pyproject.toml --all-extras
+#      - name: All tests
+#        run: python -m pytest python-libraries --timeout 60
       - name: Parallel tests
-        run: python -m pytest python-libraries -n auto -m 'not serial'
+        run: python -m pytest python-libraries -n auto -m 'not serial' --timeout 60
       - name: Serial tests
-        run: python -m pytest python-libraries -n 1 -m 'serial'
+        run: python -m pytest python-libraries -n 1 -m 'serial' --timeout 60
   publish-conda:
     name: Publish packages
     if: github.ref == 'refs/heads/main'
