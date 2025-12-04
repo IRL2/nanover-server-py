@@ -87,7 +87,7 @@ jobs:
         # the shell does not load ,profile or .bashrc.
         shell: bash -el {0}
     env:
-      ANACONDA_API_TOKEN: secrets.ANACONDA_API_TOKEN
+      ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
