@@ -1,12 +1,10 @@
-import pytest
-
 from nanover.app import OmniRunner
 from nanover.testing import assert_equal_soon
+from nanover.testing.asserts import assert_true_soon
 from nanover.websocket.client.app_client import NanoverImdClient
 from .test_openmm import make_example_openmm
 
 
-@pytest.mark.skip(reason="hanging ci")
 def test_client_simulation_topology():
     """
     Test that an OmniRunner made from one client can be controlled via another and result in the expected topology
@@ -20,6 +18,8 @@ def test_client_simulation_topology():
         NanoverImdClient.from_runner(empty_runner) as observing_client,
         OmniRunner.from_client(simulating_client, *simulations),
     ):
+        assert_true_soon(lambda: observing_client.commands)
+
         for i, simulation in enumerate(simulations):
             observing_client.run_load(index=i)
             assert_equal_soon(
