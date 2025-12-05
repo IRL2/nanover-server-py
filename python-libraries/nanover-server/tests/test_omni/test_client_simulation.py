@@ -6,7 +6,6 @@ from nanover.websocket.client.app_client import NanoverImdClient
 from .test_openmm import make_example_openmm
 
 
-@pytest.mark.skip(reason="hanging ci")
 def test_client_simulation_topology():
     """
     Test that an OmniRunner made from one client can be controlled via another and result in the expected topology
