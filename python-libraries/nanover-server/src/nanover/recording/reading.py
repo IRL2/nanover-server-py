@@ -11,6 +11,8 @@ from nanover.trajectory import FrameData
 from nanover.trajectory.keys import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
 
+MICROSECONDS_TO_SECONDS = 1 / 1000000
+
 RECORDING_INDEX_FILENAME = "index.msgpack"
 RECORDING_MESSAGES_FILENAME = "messages.msgpack"
 
@@ -144,6 +146,15 @@ class MessageZipReader:
     def __getitem__(self, index):
         return self.index[index]
 
+    def __repr__(self):
+        filepart = (
+            f" filename='{self.zipfile.filename}'"
+            if self.zipfile.filename is not None
+            else ""
+        )
+
+        return f"<{self.__class__.__name__}{filepart}>"
+
 
 class NanoverRecordingReader(MessageZipReader):
     def iter_max(self):
@@ -261,6 +272,17 @@ class NanoverRecordingReader(MessageZipReader):
             return None
         message = self.get_message_from_entry(entry)
         return message.get(type, None)
+
+    def __repr__(self):
+        filepart = f" {self.zipfile.filename}" or ""
+        entriespart = f" with {len(self)} entries"
+
+        first_ts = self.index[0].metadata.get("timestamp")
+        last_ts = self.index[-1].metadata.get("timestamp")
+        duration = (last_ts - first_ts) * MICROSECONDS_TO_SECONDS
+        durationpart = f" spanning {duration}s"
+
+        return f"<{self.__class__.__name__}{filepart}{entriespart}{durationpart}>"
 
 
 def split_by_simulation_counter(path: PathLike[str]):

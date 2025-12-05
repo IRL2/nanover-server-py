@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Iterable, Callable, TypeVar, Generic
+from typing import Iterable, Callable, TypeVar, Generic, Any
 
 import numpy as np
 import numpy.typing as npt
@@ -48,6 +48,19 @@ def make_bytes_packer(dtype: npt.DTypeLike, shape: tuple[int, ...] = (-1,)):
         pack=lambda array: pack_array(array, dtype=dtype),
         unpack=lambda data: unpack_array(data, dtype=dtype).reshape(shape),
     )
+
+
+def fallback_encoder(obj: Any) -> Any:
+    """
+    Converts, if possible, a type msgpack doesn't understand into a basic type it can encode.
+
+    :param obj: object to be converted
+    :return: simplified object
+    """
+    # encode numpy arrays as simple lists
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    raise TypeError(f"Unknown type: {obj}")
 
 
 pack_identity = PackingPair(pack=lambda value: value, unpack=lambda value: value)  # type: ignore
