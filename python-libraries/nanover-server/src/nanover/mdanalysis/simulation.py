@@ -15,7 +15,7 @@ class UniverseSimulation(Simulation):
         *,
         name: str | None = None,
     ):
-        name = name or universe.filename
+        name = name or str(universe.filename)
 
         return cls(name=name, universe=universe)
 

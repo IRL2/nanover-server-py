@@ -12,6 +12,9 @@ EXAMPLES_PATH = Path(__file__).parent
 RECORDING_PATH = EXAMPLES_PATH / "nanotube-example-recording.nanover.zip"
 ARGON_XML_PATH = EXAMPLES_PATH / "argon_simulation.xml"
 
+PDB_PATH = EXAMPLES_PATH / "3TI6_ose_wt.pdb"
+DCD_PATH = EXAMPLES_PATH / "ose_wt.dcd"
+
 
 @contextmanager
 def make_loaded_sim(sim):
