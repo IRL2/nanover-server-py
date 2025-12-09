@@ -1,9 +1,11 @@
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator, TypeVar
+
 from nanover.app import (
     NanoverImdApplication,
 )
-from nanover.core import AppServer
+from nanover.core import AppServer, Simulation
 from nanover.omni import OmniRunner
 from nanover.websocket import NanoverImdClient
 from nanover.trajectory import FrameData
@@ -16,8 +18,11 @@ PDB_PATH = EXAMPLES_PATH / "3TI6_ose_wt.pdb"
 DCD_PATH = EXAMPLES_PATH / "ose_wt.dcd"
 
 
+TSim = TypeVar("TSim", bound="Simulation")
+
+
 @contextmanager
-def make_loaded_sim(sim):
+def make_loaded_sim(sim: TSim) -> Iterator[TSim]:
     with make_app_server() as app_server:
         sim.load()
         sim.reset(app_server)
