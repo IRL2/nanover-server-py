@@ -54,3 +54,18 @@ def test_loop_all_frames(example_playback_mda):
             frames.append(prev_frame)
 
     assert frames == list(range(len(trajectory)))
+
+
+def test_last_frame_duration(example_playback_mda):
+    """
+    Test that last frame lasts roughly the right amount of time.
+    """
+    trajectory = example_playback_mda.universe.trajectory
+
+    # skip to last frame
+    for _ in range(len(trajectory) - 1):
+        example_playback_mda.advance_by_one_step()
+    assert trajectory.ts.frame == len(trajectory) - 1
+
+    example_playback_mda.advance_by_seconds(trajectory.dt * 0.99)
+    assert trajectory.ts.frame == len(trajectory) - 1
