@@ -919,7 +919,7 @@ def calculate_trajectory_length(path: np.ndarray):
     return np.sum(np.linalg.norm(np.diff(path, axis=0), axis=1))
 
 
-def load_smd_path_data(filepath: PathLike | str) -> tuple(np.ndarray):
+def load_smd_path_data(filepath: PathLike | str):
     """
     Load the SMD path, speed of restraint, timestep for simulation and
     (if available) the atoms to which the restraint should be applied.
