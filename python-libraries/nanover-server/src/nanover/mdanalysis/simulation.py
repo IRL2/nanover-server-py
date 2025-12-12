@@ -45,6 +45,11 @@ class UniverseSimulation(Simulation):
 
     def load(self): ...
 
+    def seek(self, index: int):
+        _ = self.universe.trajectory[index]
+        frame = mdanalysis_to_frame_data(self.universe, topology=False)
+        self.app_server.frame_publisher.send_frame(frame)
+
     def reset(self, app_server: AppServer):
         self.app_server = app_server
 
