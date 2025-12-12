@@ -934,7 +934,7 @@ def load_smd_path_data(filepath: PathLike | str):
         smd_speed_nm_ps = np.load(f)
         smd_timestep_ps = np.load(f)
         try:
-            smd_atom_indices = np.load(infile)
+            smd_atom_indices = np.load(f)
             return smd_path, smd_speed_nm_ps, smd_timestep_ps, smd_atom_indices
         except Exception:
             raise Warning("Atom indices not present in file and could not be loaded.")
