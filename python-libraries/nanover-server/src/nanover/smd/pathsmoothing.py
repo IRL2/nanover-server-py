@@ -316,7 +316,7 @@ class PathSmoother:
                     c=original_u_values,
                     cmap=cmap,
                     s=50.0,
-                    alpha=0.02,
+                    alpha=0.05,
                 )
 
                 if plot_atom_positions:
@@ -369,7 +369,7 @@ class PathSmoother:
                     c=original_u_values,
                     cmap=cmap,
                     s=50.0,
-                    alpha=0.02,
+                    alpha=0.05,
                 )
 
                 plt.draw()
@@ -917,3 +917,27 @@ def calculate_trajectory_length(path: np.ndarray):
     """
 
     return np.sum(np.linalg.norm(np.diff(path, axis=0), axis=1))
+
+
+def load_smd_path_data(filepath: PathLike | str) -> tuple(np.ndarray):
+    """
+    Load the SMD path, speed of restraint, timestep for simulation and
+    (if available) the atoms to which the restraint should be applied.
+    :param filepath: A string defining the path to the .npy file defining the SMD path
+    :return: A tuple containing the SMD path, restraint speed, timestep and
+      (if available) atom indices
+    """
+    assert ".npy" in filepath
+
+    with open(filepath, "rb") as f:
+        smd_path = np.load(f)
+        smd_speed_nm_ps = np.load(f)
+        smd_timestep_ps = np.load(f)
+        try:
+            smd_atom_indices = np.load(infile)
+            return smd_path, smd_speed_nm_ps, smd_timestep_ps, smd_atom_indices
+        except Exception:
+            raise Warning("Atom indices not present in file and could not be loaded.")
+            return smd_path, smd_speed_nm_ps, smd_timestep_ps
+
+
