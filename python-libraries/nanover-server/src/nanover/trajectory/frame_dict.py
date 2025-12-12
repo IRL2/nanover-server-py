@@ -7,6 +7,9 @@ from nanover.utilities.packing import (
     pack_uint8,
     pack_uint32,
     pack_bond,
+    pack_distance,
+    pack_angle,
+    pack_dihedral,
     force_int,
 )
 from . import keys
@@ -38,6 +41,10 @@ FRAME_PACKERS: dict[str, PackingPair] = {
     keys.BOX_VECTORS: pack_vec3,
     keys.USER_FORCES_INDEX: pack_uint32,
     keys.USER_FORCES_SPARSE: pack_vec3,
+    # Measure keys
+    f"{keys.MEASURE_DISTANCE}.atom_indices": pack_distance,
+    f"{keys.MEASURE_ANGLE}.atom_indices": pack_angle,
+    f"{keys.MEASURE_DIHEDRAL}.atom_indices": pack_dihedral,
 }
 """Mapping of framedata keys to the packer used to pack/unpack between rich data and data ready for MessagePack"""
 
