@@ -244,7 +244,10 @@ class OmniRunner:
 
         if self._run_task is not None:
             with suppress(Exception):
-                self._run_task.result()
+                try:
+                    self._run_task.result(timeout=5)
+                except TimeoutError:
+                    self.logging.warning(f"Timed out waiting for run task.")
             self._run_task = None
 
     def __enter__(self):
