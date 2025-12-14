@@ -1,5 +1,6 @@
-from nanover.app import OmniRunner
+from nanover.app import OmniRunner, NanoverImdApplication
 from nanover.testing import assert_equal_soon
+from nanover.testing.asserts import assert_true_soon
 from nanover.websocket.client.app_client import NanoverImdClient
 from .test_openmm import make_example_openmm
 
@@ -12,11 +13,13 @@ def test_client_simulation_topology():
     simulations = [make_example_openmm()]
 
     with (
-        OmniRunner.with_basic_server(port=0) as empty_runner,
-        NanoverImdClient.from_runner(empty_runner) as simulating_client,
-        NanoverImdClient.from_runner(empty_runner) as observing_client,
+        NanoverImdApplication.basic_server(port=0) as empty_server,
+        NanoverImdClient.from_app_server(empty_server) as simulating_client,
+        NanoverImdClient.from_app_server(empty_server) as observing_client,
         OmniRunner.from_client(simulating_client, *simulations),
     ):
+        assert_true_soon(lambda: observing_client.commands)
+
         for i, simulation in enumerate(simulations):
             observing_client.run_load(index=i)
             assert_equal_soon(
