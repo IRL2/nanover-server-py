@@ -14,7 +14,7 @@ import time
 from nanover.essd import DiscoveryClient
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.client.app_client import get_websocket_address_from_hub
-from nanover.websocket.record import record_from_server
+from nanover.websocket.record import BackgroundRecordingContext
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:
@@ -48,7 +48,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         "--address",
         metavar="PROTOCOL://HOST:PORT",
         help="Connect to specific host address and port.",
-        default="ws://localhost:38801",
+        default="ws://127.0.0.1:38801",
     )
 
     parser.add_argument(
@@ -92,18 +92,25 @@ def main():
 
         print(f"Connecting to {address}.")
 
-        with suppress_keyboard_interrupt_as_cancellation() as cancellation:
-            executor, websocket = record_from_server(address, outfile)
+        interrupted = False
 
-            try:
+        with suppress_keyboard_interrupt_as_cancellation() as cancellation:
+            with BackgroundRecordingContext.from_address_to_path(
+                address=address, path=outfile
+            ) as recording:
                 print(f"Recording from server to {outfile}. Press Ctrl-C to stop.")
+                recording.future.add_done_callback(lambda _: cancellation.cancel())
                 cancellation.wait_cancellation(interval=0.01)
-            finally:
-                websocket.close()
-                executor.shutdown()
+                interrupted = not recording.future.done()
+
+        if not interrupted:
+            print("Recording ended by disconnection.")
+            break
 
         try:
-            input("Done. Press Ctrl-C to quit or Return to begin recording again.")
+            input(
+                "Recording ended by Ctrl-C. Press Ctrl-C to quit or Return to begin recording again."
+            )
         except KeyboardInterrupt:
             break
         except EOFError:
