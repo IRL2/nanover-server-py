@@ -33,17 +33,24 @@ class BackgroundRecordingContext:
         self._connection = connection
         self._writer = writer
         self._threads = ThreadPoolExecutor(max_workers=1)
+        self._open = True
 
         self.future = self._threads.submit(self._record)
+        self.future.add_done_callback(lambda _: self.close)
 
     def _record(self):
-        for event in message_events_from_websocket(self._connection):
-            self._writer.write_message_event(event)
+        with self._writer:
+            for event in message_events_from_websocket(self._connection):
+                self._writer.write_message_event(event)
 
     def close(self):
         """
         End recording by disconnection and close writer.
         """
+        if not self._open:
+            return
+
+        self._open = False
         self._connection.close()
         self._writer.close()
         self._threads.shutdown()
