@@ -100,7 +100,8 @@ class OmniRunner:
         """
         Print out basic runner info to the terminal.
         """
-        print(basic_info_string(self.app_server))
+        with suppress(Exception):
+            print(basic_info_string(self.app_server))
 
         list = "\n".join(
             f'{index}: "{simulation.name}"'
@@ -244,7 +245,10 @@ class OmniRunner:
 
         if self._run_task is not None:
             with suppress(Exception):
-                self._run_task.result()
+                try:
+                    self._run_task.result(timeout=5)
+                except TimeoutError:
+                    self.logging.warning("Timed out waiting for run task.")
             self._run_task = None
 
     def __enter__(self):
