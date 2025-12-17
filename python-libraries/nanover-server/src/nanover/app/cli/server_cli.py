@@ -11,6 +11,8 @@ from contextlib import contextmanager
 from glob import glob
 from typing import Iterable
 
+from MDAnalysis import Universe
+
 from nanover.omni import OmniRunner
 from nanover.mdanalysis import UniverseSimulation
 from nanover.openmm import OpenMMSimulation
@@ -51,7 +53,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         nargs="+",
         default=[],
         metavar="PATH",
-        help="Structures to load via MDanalysis",
+        help="Independent structures to load via MDanalysis",
     )
 
     parser.add_argument(
@@ -163,7 +165,8 @@ def initialise_runner(arguments: argparse.Namespace):
             runner.add_simulation(simulation)
 
         for path in get_all_paths(arguments.mdanalysis_entries):
-            simulation = UniverseSimulation.from_path(path=path)
+            universe = Universe(path)
+            simulation = UniverseSimulation.from_universe(universe)
             runner.add_simulation(simulation)
 
         if arguments.record_to_path is not None:

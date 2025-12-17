@@ -12,6 +12,7 @@ from nanover.utilities.change_buffers import DictionaryChange
 from .test_openmm import make_example_openmm
 from .test_ase import make_example_ase
 from .test_playback import make_example_playback
+from .test_playback_mda import make_example_playback_mda
 from .common import make_runner, make_connected_client_from_runner, make_app_server
 
 SIMULATION_FACTORIES_IMD = [
@@ -19,7 +20,12 @@ SIMULATION_FACTORIES_IMD = [
     make_example_ase,
 ]
 
-SIMULATION_FACTORIES_ALL = SIMULATION_FACTORIES_IMD + [make_example_playback]
+SIMULATION_FACTORIES_PLAYBACK = [
+    make_example_playback,
+    make_example_playback_mda,
+]
+
+SIMULATION_FACTORIES_ALL = SIMULATION_FACTORIES_IMD + SIMULATION_FACTORIES_PLAYBACK
 
 
 TIMING_TOLERANCE = 0.05
