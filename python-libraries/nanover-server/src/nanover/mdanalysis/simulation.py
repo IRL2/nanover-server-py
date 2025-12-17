@@ -40,17 +40,21 @@ class UniverseSimulation(Simulation):
     def reset(self, app_server: AppServer) -> None:
         self.app_server = app_server
 
-        self.seek_to_time(0)
+        self.simulation_time = 0
+        _ = self.universe.trajectory[0]
+
         self.app_server.frame_publisher.send_clear()
         self.app_server.frame_publisher.send_frame(self.make_topology_frame())
 
     def advance_by_one_step(self) -> None:
-        self.seek_to_next_frame()
+        if len(self.universe.trajectory) > 1:
+            self._seek_to_next_frame()
 
     def advance_by_seconds(self, dt: float) -> None:
-        self.seek_to_time(self.simulation_time + dt * self.playback_factor)
+        if len(self.universe.trajectory) > 1:
+            self._seek_to_time(self.simulation_time + dt * self.playback_factor)
 
-    def seek_to_next_frame(self) -> None:
+    def _seek_to_next_frame(self) -> None:
         """Advance simulation time to the time of the next frame and publish it."""
         assert self.app_server is not None
 
@@ -67,7 +71,7 @@ class UniverseSimulation(Simulation):
         _ = self.universe.trajectory[next_frame]
         self.app_server.frame_publisher.send_frame(self.make_regular_frame())
 
-    def seek_to_time(self, time: float) -> None:
+    def _seek_to_time(self, time: float) -> None:
         """Advance simulation time to a specific time and publish the corresponding frame."""
         assert self.app_server is not None
 

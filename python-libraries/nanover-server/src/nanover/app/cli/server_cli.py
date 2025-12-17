@@ -9,10 +9,9 @@ import textwrap
 import argparse
 from contextlib import contextmanager
 from glob import glob
-from itertools import zip_longest
 from typing import Iterable
 
-import MDAnalysis as mda
+from MDAnalysis import Universe
 
 from nanover.omni import OmniRunner
 from nanover.mdanalysis import UniverseSimulation
@@ -49,22 +48,12 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
 
     parser.add_argument(
         "--mda",
-        dest="mdanalysis_structures",
+        dest="mdanalysis_entries",
         action="append",
         nargs="+",
         default=[],
         metavar="PATH",
-        help="Structures (topologies) to load via MDanalysis",
-    )
-    parser.add_argument(
-        "--mda-traj",
-        dest="mdanalysis_trajectories",
-        action="append",
-        nargs="+",
-        default=[],
-        metavar="PATH",
-        help="Trajectories to load via MDAnalysis. "
-        "Accepts wildcard expressions which are attempted to be sorted via natural numbering",
+        help="Independent structures to load via MDanalysis",
     )
 
     parser.add_argument(
@@ -175,31 +164,10 @@ def initialise_runner(arguments: argparse.Namespace):
             simulation.include_forces = arguments.include_forces
             runner.add_simulation(simulation)
 
-        for top, traj_list in zip_longest(
-            get_all_paths(arguments.mdanalysis_structures),
-            arguments.mdanalysis_trajectories,
-        ):
-            if not top:
-                logging.error(
-                    "Cannot create a `Universe` without a topology (structure). "
-                    "If only providing a .pdb (or similar) file, this should be passed to --mda."
-                )
-                continue
-
-            try:  # Try to create the universe from the given arguments.
-                if traj_list:
-                    universe = mda.Universe(top, *get_all_paths([traj_list]))
-                else:
-                    universe = mda.Universe(top)
-
-                simulation = UniverseSimulation.from_universe(universe)
-                runner.add_simulation(simulation)
-            except Exception:
-                traj_str = "','".join(traj_list) if traj_list else ""
-                logging.error(
-                    f"Failed to create `Universe` with topology='{top}' and trajectories='{traj_str}'"
-                )
-                raise
+        for path in get_all_paths(arguments.mdanalysis_entries):
+            universe = Universe(path)
+            simulation = UniverseSimulation.from_universe(universe)
+            runner.add_simulation(simulation)
 
         if arguments.record_to_path is not None:
             stem = arguments.record_to_path
