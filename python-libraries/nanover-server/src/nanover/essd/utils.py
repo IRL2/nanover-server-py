@@ -107,8 +107,8 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
         # time being.
         # TODO: Fix this line as the types seem to be incorrect.
         ip_network = ipaddress.ip_network(
-            (network_address, interface_address_entry["netmask"])
-        )  # type: ignore
+            (network_address, interface_address_entry["netmask"])  # type: ignore
+        )
     except ValueError:
         raise ValueError(
             f"Given address {interface_address_entry} is not a valid IP network address."

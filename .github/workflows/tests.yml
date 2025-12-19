@@ -29,8 +29,8 @@ jobs:
         run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial' --cov-append --timeout 30
       - name: Jupyter notebooks
         run: python -m pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
-  mypy:
-    name: Type checking
+  analysis:
+    name: Static analysis
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -47,8 +47,13 @@ jobs:
         run: |
           conda install -y openmm
           python -m pip install ./python-libraries/nanover-server/
+          python -m pip install ruff
           python -m pip install mypy
-      - name: mypy
+      - name: Ruff lint
+        run: ruff check ./python-libraries
+      - name: Ruff format
+        run: ruff format --check ./python-libraries
+      - name: mypy types
         run: |
           # Mypy accepts paths, modules or packages as inputs. However, only
           # packages work reasonably well with packages. So we need to generate
@@ -65,26 +70,3 @@ jobs:
             | grep -v '\..*\.' \
             | tr '\n' ' ')
           mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages
-  ruff:
-    name: Style checking
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        # This is necessary for the conda action. It replaces `conda init` as
-        # the shell does not load ,profile or .bashrc.
-        shell: bash -el {0}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          auto-update-conda: true
-          miniforge-version: latest
-      - name: Install NanoVer & dependencies
-        run: |
-          conda install -y openmm
-          python -m pip install ./python-libraries/nanover-server/
-          python -m pip install ruff black
-      - name: Ruff lint
-        run: ruff check ./python-libraries
-      - name: Ruff format
-        run: ruff format --check ./python-libraries
