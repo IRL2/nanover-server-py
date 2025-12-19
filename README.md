@@ -77,7 +77,7 @@ page in our documentation for detailed instructions on installing NanoVer.
 * Install Anaconda
 * Clone the nanover-server-py repository
 * In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase`
+    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.12" openmm MDAnalysis MDAnalysisTests ase`
     * Activate the conda environment: `conda activate nanover-dev`
     * Install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
