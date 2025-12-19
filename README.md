@@ -113,10 +113,12 @@ The formatting and linting tests check code style, and require ruff:
 
     python -m pip install ruff
     python -m ruff check python-libraries
+    python -m ruff format --check python-libraries
 
-ruff can also automatically reformat the files for you:
+ruff can also automatically fix and reformat the files for you:
 
     python -m ruff check --fix python-libraries
+    python -m ruff format python-libraries
 
 ### Type Checks
 

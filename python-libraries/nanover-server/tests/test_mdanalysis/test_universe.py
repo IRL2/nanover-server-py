@@ -5,10 +5,10 @@ from pathlib import Path
 import pytest
 import numpy as np
 import MDAnalysis as mda
-from nanover.mdanalysis import (
+from nanover.mdanalysis import universes_from_recording
+from nanover.mdanalysis.universe import (
     NanoverParser,
     NanoverReader,
-    universes_from_recording,
 )
 
 SINGLE_TOPOLOGY_TRAJ = os.path.join(
