@@ -1,9 +1,0 @@
-[lint]
-# Never enforce `E501` (line length violations).
-# Most of them will be handled by black. The others are likely in docstrings
-# were fixing them may not necessarily improve readability.
-ignore = ["E501"]
-
-[lint.per-file-ignores]
-"test*" = ["F401", "F811"]
-"__init__.py" = ["F401"]
