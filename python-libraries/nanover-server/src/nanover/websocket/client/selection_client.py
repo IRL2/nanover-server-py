@@ -1,7 +1,11 @@
 from typing import Iterable
 from uuid import uuid4
 
-from nanover.app import RenderingSelection, SELECTION_ROOT_ID, SELECTION_ROOT_NAME
+from nanover.app import (
+    RenderingSelection,
+    SELECTION_ROOT_ID,
+    SELECTION_ROOT_NAME,
+)
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.base_client import WebsocketClient
 

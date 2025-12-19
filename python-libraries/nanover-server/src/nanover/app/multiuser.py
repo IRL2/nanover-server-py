@@ -34,9 +34,12 @@ def _radially_orient_server(*, server: AppServerMinimal, radius=1):
     count = len(avatar_ids)
     angles = [i * FULL_CIRCLE / count for i in range(count)]
     updates = {
-        MULTIUSER_ORIGIN_PREFIX
-        + avatar_id: {
-            "position": [radius * math.cos(angle), 0, radius * math.sin(angle)],
+        MULTIUSER_ORIGIN_PREFIX + avatar_id: {
+            "position": [
+                radius * math.cos(angle),
+                0,
+                radius * math.sin(angle),
+            ],
             "rotation": _angle_axis_quaternion_y(-angle - FULL_CIRCLE / 4),
         }
         for avatar_id, angle in zip(avatar_ids, angles)

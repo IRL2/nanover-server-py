@@ -108,7 +108,9 @@ class OpenMMSimulation(NanoverSimulation):
         with open(self.xml_path) as infile:
             self.imd_force = create_imd_force()
             self.simulation = serializer.deserialize_simulation(
-                infile, imd_force=self.imd_force, platform_name=self.platform_name
+                infile,
+                imd_force=self.imd_force,
+                platform_name=self.platform_name,
             )
 
         self.determine_pbcs()

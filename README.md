@@ -109,16 +109,14 @@ Optionally, you can run most of the tests in parallel with pytest-xdist:
 
 ### Formatting & Linting Tests
 
-The formatting and linting tests check code style, and require ruff and black:
+The formatting and linting tests check code style, and require ruff:
 
     python -m pip install ruff
-    python -m pip install black
     python -m ruff check python-libraries
-    python -m black --diff --check python-libraries
 
-black can automatically reformat the files for you:
+ruff can also automatically reformat the files for you:
 
-    python -m black python-libraries
+    python -m ruff check --fix python-libraries
 
 ### Type Checks
 

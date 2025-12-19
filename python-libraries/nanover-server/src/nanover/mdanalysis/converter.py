@@ -238,7 +238,10 @@ def _get_universe_constructor_params(frame: FrameData):
     """
     params = {
         param_name: converter(frame.frame_dict.get(field, None))
-        for param_name, (field, converter) in MDA_UNIVERSE_PARAMS_TO_FRAME_DATA.items()
+        for param_name, (
+            field,
+            converter,
+        ) in MDA_UNIVERSE_PARAMS_TO_FRAME_DATA.items()
     }
 
     # strip unused arguments

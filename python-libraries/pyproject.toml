@@ -2,13 +2,9 @@
 asyncio_mode = "auto"
 markers = ["serial"]
 
-[tool.ruff.lint]
-# Never enforce `E501` (line length violations).
-# Most of them will be handled by black. The others are likely in docstrings
-# were fixing them may not necessarily improve readability.
-ignore = ["E501"]
-
 [tool.ruff.lint.per-file-ignores]
-"test*" = ["F401", "F811"]
-"__init__.py" = ["F401"]
+# F401 F811 breaks with importing pytest fixtures
+"test_*" = ["F401", "F811"]
+
+#"__init__.py" = ["F401"]
 

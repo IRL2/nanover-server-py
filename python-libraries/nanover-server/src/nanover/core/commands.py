@@ -99,7 +99,10 @@ class CommandMessageHandler:
         future.add_done_callback(handle_future)
 
     def _handle_command_registration(self, register):
-        name, default_arguments = register.get("name"), register.get("arguments", {})
+        name, default_arguments = (
+            register.get("name"),
+            register.get("arguments", {}),
+        )
 
         def handle_call(**arguments):
             return self.request_command(name, arguments)

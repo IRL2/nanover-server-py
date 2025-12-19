@@ -84,7 +84,7 @@ jobs:
           conda install -y openmm
           python -m pip install ./python-libraries/nanover-server/
           python -m pip install ruff black
-      - name: Ruff
+      - name: Ruff lint
         run: ruff check ./python-libraries
-      - name: Black
-        run: black --diff --check ./python-libraries
+      - name: Ruff format
+        run: ruff format --check ./python-libraries

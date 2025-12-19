@@ -215,10 +215,20 @@ class NanoverParser(TopologyReaderBase):
 
 
 class NanoverReaderBase(ProtoReader):
-    units = {"time": "ps", "length": "nm", "velocity": "nm/ps", "force": "kJ/(mol*nm)"}
+    units = {
+        "time": "ps",
+        "length": "nm",
+        "velocity": "nm/ps",
+        "force": "kJ/(mol*nm)",
+    }
 
     def __init__(
-        self, reader: MessageZipReader, *, filename=None, convert_units=True, **kwargs
+        self,
+        reader: MessageZipReader,
+        *,
+        filename=None,
+        convert_units=True,
+        **kwargs,
     ):
         super().__init__()
 

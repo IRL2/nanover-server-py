@@ -81,7 +81,8 @@ class PlaybackSimulation(Simulation):
         self.emit(
             frame=FrameData(),
             update=DictionaryChange(
-                updates={"scene": SCENE_POSE_IDENTITY}, removals=self.changed_keys
+                updates={"scene": SCENE_POSE_IDENTITY},
+                removals=self.changed_keys,
             ),
         )
 

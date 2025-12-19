@@ -9,7 +9,10 @@ import msgpack
 
 from nanover.core import AppServer
 from nanover.trajectory import FrameData
-from nanover.utilities.change_buffers import DictionaryChange, ObjectFrozenError
+from nanover.utilities.change_buffers import (
+    DictionaryChange,
+    ObjectFrozenError,
+)
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 

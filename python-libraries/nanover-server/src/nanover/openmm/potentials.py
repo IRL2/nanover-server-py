@@ -11,7 +11,9 @@ from openmm.unit import Quantity, kilojoule_per_mole, nanometer
 DEFAULT_RESTRAINT_FORCE_CONSTANT = 100 * kilojoule_per_mole / nanometer**2
 
 
-def restraint_force(force_constant: Quantity = DEFAULT_RESTRAINT_FORCE_CONSTANT):
+def restraint_force(
+    force_constant: Quantity = DEFAULT_RESTRAINT_FORCE_CONSTANT,
+):
     """
     Generate an OpenMM force for position restraints.
 
