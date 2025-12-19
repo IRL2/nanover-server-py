@@ -77,7 +77,7 @@ page in our documentation for detailed instructions on installing NanoVer.
 * Install Anaconda
 * Clone the nanover-server-py repository
 * In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase`
+    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.12" openmm MDAnalysis MDAnalysisTests ase`
     * Activate the conda environment: `conda activate nanover-dev`
     * Install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
@@ -109,16 +109,16 @@ Optionally, you can run most of the tests in parallel with pytest-xdist:
 
 ### Formatting & Linting Tests
 
-The formatting and linting tests check code style, and require ruff and black:
+The formatting and linting tests check code style, and require ruff:
 
     python -m pip install ruff
-    python -m pip install black
     python -m ruff check python-libraries
-    python -m black --diff --check python-libraries
+    python -m ruff format --check python-libraries
 
-black can automatically reformat the files for you:
+ruff can also automatically fix and reformat the files for you:
 
-    python -m black python-libraries
+    python -m ruff check --fix python-libraries
+    python -m ruff format python-libraries
 
 ### Type Checks
 

@@ -96,7 +96,8 @@ def test_autoconnect_no_named_server(discoverable_imd_server):
     """
     Test that autoconnecting to a named server that doesn't exist fails.
     """
-    with pytest.raises(ConnectionError), NanoverImdClient.from_discovery(
-        server_name=NEVER_USED_HUB_NAME
+    with (
+        pytest.raises(ConnectionError),
+        NanoverImdClient.from_discovery(server_name=NEVER_USED_HUB_NAME),
     ):
         pass

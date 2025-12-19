@@ -12,7 +12,10 @@ def assert_selections_base_equal(selection, name, particle_ids):
 
     The method test both the name and the selected particles in one go.
     """
-    selection_tuple = (selection.selection_name, selection.selected_particle_ids)
+    selection_tuple = (
+        selection.selection_name,
+        selection.selected_particle_ids,
+    )
     expectation_tuple = (name, particle_ids)
     assert selection_tuple == expectation_tuple
 

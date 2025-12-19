@@ -1,6 +1,6 @@
-from nanover.essd.server import DiscoveryServer
-from nanover.essd.client import DiscoveryClient
-from nanover.essd.servicehub import ServiceHub
+from nanover.essd.server import DiscoveryServer as DiscoveryServer
+from nanover.essd.client import DiscoveryClient as DiscoveryClient
+from nanover.essd.servicehub import ServiceHub as ServiceHub
 
 """
 Module providing extremely simple service discovery over UDP.

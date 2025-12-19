@@ -13,7 +13,13 @@ from nanover.trajectory import FrameData, keys
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
 
-CLEAR_PREFIXES = {"avatar.", "play-area.", "selection.", "scene", "interaction."}
+CLEAR_PREFIXES = {
+    "avatar.",
+    "play-area.",
+    "selection.",
+    "scene",
+    "interaction.",
+}
 
 
 class OmniRunner:

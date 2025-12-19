@@ -2,8 +2,8 @@
 Interface between NanoVer and OpenMM.
 """
 
-from .simulation import OpenMMSimulation
-from .converter import openmm_to_frame_data
+from .simulation import OpenMMSimulation as OpenMMSimulation
+from .converter import openmm_to_frame_data as openmm_to_frame_data
 
 GET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/get-frame-interval"
 SET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/set-frame-interval"

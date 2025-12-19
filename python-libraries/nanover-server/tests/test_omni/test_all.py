@@ -5,7 +5,11 @@ import pytest
 from nanover.imd import ParticleInteraction
 
 from nanover.app.omni import CLEAR_PREFIXES
-from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
+from nanover.testing import (
+    assert_equal_soon,
+    assert_in_soon,
+    assert_not_in_soon,
+)
 from nanover.testing.asserts import assert_true_soon
 from nanover.trajectory.keys import SIMULATION_EXCEPTION, SERVER_TIMESTAMP
 from nanover.utilities.change_buffers import DictionaryChange
@@ -13,7 +17,11 @@ from .test_openmm import make_example_openmm
 from .test_ase import make_example_ase
 from .test_playback import make_example_playback
 from .test_playback_mda import make_example_playback_mda
-from .common import make_runner, make_connected_client_from_runner, make_app_server
+from .common import (
+    make_runner,
+    make_connected_client_from_runner,
+    make_app_server,
+)
 
 SIMULATION_FACTORIES_IMD = [
     make_example_openmm,
@@ -153,14 +161,16 @@ def test_simulation_switch_clears_state(runner_with_all_sims):
         with make_connected_client_from_runner(runner_with_all_sims) as client:
             for key in updates:
                 assert_in_soon(
-                    lambda: key, lambda: client._state_dictionary.copy_content()
+                    lambda: key,
+                    lambda: client._state_dictionary.copy_content(),
                 )
 
             client.run_next()
 
             for key in updates:
                 assert_not_in_soon(
-                    lambda: key, lambda: client._state_dictionary.copy_content()
+                    lambda: key,
+                    lambda: client._state_dictionary.copy_content(),
                 )
 
 

@@ -231,7 +231,9 @@ def test_particle_forces_system_single_atom(
         assert f_i == pytest.approx(0.0, abs=5e-6)
 
 
-def test_velocity_unit_conversion(example_ase_app_sim_constant_force_interaction):
+def test_velocity_unit_conversion(
+    example_ase_app_sim_constant_force_interaction,
+):
     """
     Test that the units of velocity are correctly converted to NanoVer units
     when delivered in the frame data.
@@ -277,7 +279,9 @@ def test_system_force_unit_conversion(multiple_atom_ase_app_sim):
         )
 
 
-def test_imd_force_unit_conversion(example_ase_app_sim_constant_force_interaction):
+def test_imd_force_unit_conversion(
+    example_ase_app_sim_constant_force_interaction,
+):
     """
     Test that the units of force are correctly converted to NanoVer units
     when delivered in the frame data for the iMD forces.
@@ -319,7 +323,9 @@ def test_work_done_frame(example_ase_app_sim_constant_force_interaction):
         assert frame.user_work_done == sim.work_done
 
 
-def test_work_done_server_reset(example_ase_app_sim_constant_force_interaction):
+def test_work_done_server_reset(
+    example_ase_app_sim_constant_force_interaction,
+):
     """
     Test that the calculated user work done on a single atom system gives the
     expected numerical result within the code, and doesn't accumulate across
@@ -360,7 +366,9 @@ def test_work_done_server_reset(example_ase_app_sim_constant_force_interaction):
         assert sim.work_done == 0
 
 
-def test_instantaneous_temperature(example_ase_app_sim_constant_force_interaction):
+def test_instantaneous_temperature(
+    example_ase_app_sim_constant_force_interaction,
+):
     """
     Test that the instantaneous temperature calculated by NanoVer is equal to the
     instantaneous temperature calculated by ASE internally.

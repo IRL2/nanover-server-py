@@ -318,7 +318,9 @@ def _minimum_image(diff, periodic_box_lengths: np.ndarray | None = None) -> np.n
 
 
 def _calculate_diff_and_sqr_distance(
-    u: np.ndarray, v: np.ndarray, periodic_box_lengths: np.ndarray | None = None
+    u: np.ndarray,
+    v: np.ndarray,
+    periodic_box_lengths: np.ndarray | None = None,
 ) -> Tuple[np.ndarray, float]:
     """
     Calculates the difference and square of the distance between two vectors.
@@ -335,7 +337,9 @@ def _calculate_diff_and_sqr_distance(
     return diff, dist_sqr
 
 
-def get_sparse_forces(user_forces: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray]:
+def get_sparse_forces(
+    user_forces: npt.NDArray,
+) -> Tuple[npt.NDArray, npt.NDArray]:
     """
     Takes in an array of user forces acting on the system containing N particles
     and outputs two arrays that describe these user forces in a sparse form:

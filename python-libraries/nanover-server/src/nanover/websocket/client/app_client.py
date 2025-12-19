@@ -48,11 +48,11 @@ class NanoverImdClient(
     @classmethod
     def from_app_server(cls, app_server: AppServer):
         with suppress(KeyError):
-            url = f"ws://127.0.0.1:{app_server.service_hub.services["ws"]}"
+            url = f"ws://127.0.0.1:{app_server.service_hub.services['ws']}"
             return cls.from_url(url)
 
         with suppress(KeyError):
-            url = f"wss://127.0.0.1:{app_server.service_hub.services["wss"]}"
+            url = f"wss://127.0.0.1:{app_server.service_hub.services['wss']}"
             return cls.from_url(url)
 
         raise Exception("Neither ws or wss service found in AppServer")

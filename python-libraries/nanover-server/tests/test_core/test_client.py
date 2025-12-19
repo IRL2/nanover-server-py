@@ -165,7 +165,8 @@ def test_update_interaction(client_server, interaction):
     )
 
     assert np.allclose(
-        list(app_server.imd.active_interactions.values())[0].position, (2, 2, 2)
+        list(app_server.imd.active_interactions.values())[0].position,
+        (2, 2, 2),
     )
 
 

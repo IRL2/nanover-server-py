@@ -70,7 +70,7 @@ class InteractionClient(WebsocketClient):
         """
         if interaction_id not in self._local_interaction_ids:
             raise KeyError(
-                "Attempted to update an interaction with an " "unknown interaction ID."
+                "Attempted to update an interaction with an unknown interaction ID."
             )
         change = DictionaryChange(
             updates={
@@ -97,7 +97,7 @@ class InteractionClient(WebsocketClient):
         """
         if interaction_id not in self._local_interaction_ids:
             raise KeyError(
-                "Attempted to stop an interaction with an unknown " "interaction ID."
+                "Attempted to stop an interaction with an unknown interaction ID."
             )
         self._local_interaction_ids.remove(interaction_id)
         change = DictionaryChange(removals={interaction_id})
