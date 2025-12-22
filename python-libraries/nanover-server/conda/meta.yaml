@@ -19,7 +19,7 @@ build:
 requirements:
   build:
     - python >={{ MIN_PYTHON_VERSION }}
-    - setuptools
+#    - setuptools
   run:
     - python >={{ MIN_PYTHON_VERSION }}
     - netifaces
