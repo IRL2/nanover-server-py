@@ -20,15 +20,16 @@ jobs:
       - name: Install NanoVer & dependencies
         run: |
           conda install -y openmm
-          python -m pip install ./python-libraries/nanover-server/[dev]
+          pip install uv
+          uv pip install ./python-libraries/nanover-server/[dev]
 #      - name: All tests
 #        run: python -m pytest --cov nanover python-libraries --timeout 30
       - name: Parallel tests
-        run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial' --timeout 30
+        run: pytest --cov nanover python-libraries -n auto -m 'not serial' --timeout 30
       - name: Serial tests
-        run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial' --cov-append --timeout 30
+        run: pytest --cov nanover python-libraries -n 1 -m 'serial' --cov-append --timeout 30
       - name: Jupyter notebooks
-        run: python -m pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
+        run: pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
   analysis:
     name: Static analysis
     runs-on: ubuntu-latest
@@ -46,9 +47,8 @@ jobs:
       - name: Install NanoVer & dependencies
         run: |
           conda install -y openmm
-          python -m pip install ./python-libraries/nanover-server/
-          python -m pip install ruff
-          python -m pip install mypy
+          pip install uv
+          uv pip install ./python-libraries/nanover-server/[dev] ruff mypy
       - name: Ruff lint
         run: ruff check ./python-libraries
       - name: Ruff format

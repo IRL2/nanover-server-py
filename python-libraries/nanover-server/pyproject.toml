@@ -42,6 +42,8 @@ dev=[
     "nbval",
     # ui
     #"gradio>=5.18.0",
+    # types
+    "types-netifaces",
 ]
 
 [project.scripts]
