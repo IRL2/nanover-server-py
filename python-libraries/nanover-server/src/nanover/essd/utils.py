@@ -1,6 +1,5 @@
 import ipaddress
 import socket
-from typing import List, Optional
 
 import psutil
 from psutil._common import snicaddr
@@ -18,7 +17,7 @@ def snicaddr_with_computed_broadcast_address(addr: snicaddr):
         return addr
 
 
-def get_ipv4_addresses() -> List[snicaddr]:
+def get_ipv4_addresses() -> list[snicaddr]:
     """
     Gets all the IPV4 addresses currently available on all interfaces.
 
@@ -42,7 +41,7 @@ def get_ipv4_addresses() -> List[snicaddr]:
     return ipv4_addrs
 
 
-def get_broadcast_addresses() -> List[snicaddr]:
+def get_broadcast_addresses() -> list[snicaddr]:
     """
     Gets all the IPV4 addresses currently available on all interfaces that have broadcast addresses.
 
@@ -72,7 +71,7 @@ def get_broadcast_addresses() -> List[snicaddr]:
 
 def resolve_host_broadcast_address(
     host: str,
-    ipv4_addrs: Optional[List[snicaddr]] = None,
+    ipv4_addrs: list[snicaddr] | None = None,
 ):
     try:
         address = socket.gethostbyname(host)
@@ -117,7 +116,9 @@ def is_in_network(address: str, interface_address_entry: snicaddr) -> bool:
         # ipaddress.ip_network, but this is well tested so we accept it for the
         # time being.
         # TODO: Fix this line as the types seem to be incorrect.
-        ip_network = ipaddress.ip_network((network_address, interface_address_entry.netmask))  # type: ignore
+        ip_network = ipaddress.ip_network(
+            (network_address, interface_address_entry.netmask)  # type: ignore
+        )
     except ValueError:
         raise ValueError(
             f"Given address {interface_address_entry} is not a valid IP network address."

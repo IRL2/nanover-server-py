@@ -18,8 +18,14 @@ import logging
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
-from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
-from typing import Optional, Dict, List
+from socket import (
+    socket,
+    AF_INET,
+    SOCK_DGRAM,
+    SOL_SOCKET,
+    SO_BROADCAST,
+    SO_REUSEADDR,
+)
 
 from psutil._common import snicaddr
 
@@ -57,10 +63,10 @@ def configure_reusable_socket() -> socket:
 
 
 class DiscoveryServer:
-    services: Dict[ServiceHub, List[snicaddr]]
+    services: dict[ServiceHub, list[snicaddr]]
     _socket: socket
 
-    def __init__(self, broadcast_port: Optional[int] = None, delay=0.5):
+    def __init__(self, broadcast_port: int | None = None, delay=0.5):
         if broadcast_port is None:
             broadcast_port = BROADCAST_PORT
         self.logger = logging.getLogger(__name__)
@@ -77,7 +83,7 @@ class DiscoveryServer:
         self._cancel = False
 
         self._threads = ThreadPoolExecutor(max_workers=1)
-        self._broadcast_task: Optional[Future] = None
+        self._broadcast_task: Future | None = None
 
         self.start()
 
@@ -167,7 +173,7 @@ class DiscoveryServer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def get_broadcast_addresses_for_service(self, service) -> List[snicaddr]:
+    def get_broadcast_addresses_for_service(self, service) -> list[snicaddr]:
         address = service.address
         if address == "[::]":
             return self.broadcast_addresses

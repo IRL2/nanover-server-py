@@ -6,11 +6,14 @@ from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
 
 from nanover.imd import ParticleInteraction
-from nanover.app import NanoverImdClient
-from nanover.omni.ase import ASESimulation
+from nanover.ase import ASESimulation
 from nanover.ase.converter import ASE_TIME_UNIT_TO_PS, ANG_TO_NM, EV_TO_KJMOL
 
-from common import make_app_server, make_loaded_sim
+from .common import (
+    make_app_server,
+    make_loaded_sim,
+    connect_and_retrieve_first_frame_from_app_server,
+)
 
 
 @pytest.fixture
@@ -166,12 +169,8 @@ def test_simulation_time(example_ase_app_sim):
 
     # Check that time delivered to client is the same as the time elapsed
     # in the simulation
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.simulation_time == time_elapsed_ps
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    assert frame.simulation_time == time_elapsed_ps
 
 
 def test_sparse_user_forces(multiple_atom_ase_app_sim_multiple_interactions):
@@ -186,18 +185,12 @@ def test_sparse_user_forces(multiple_atom_ase_app_sim_multiple_interactions):
     for _ in range(30):
         sim.advance_by_one_step()
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        frame = client.current_frame
-        assert frame.user_forces_sparse
-        assert frame.user_forces_index
-        assert len(frame.user_forces_index) == 5
-        assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
-        for f_i in np.array(frame.user_forces_sparse).flatten():
-            assert f_i != 0.0
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    assert len(frame.user_forces_index) == 5
+    assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
+    for f_i in frame.user_forces_sparse.flatten():
+        assert f_i != 0.0
 
 
 def test_user_energy(example_ase_app_sim_constant_force_interaction):
@@ -212,16 +205,10 @@ def test_user_energy(example_ase_app_sim_constant_force_interaction):
     for _ in range(30):
         sim.advance_by_one_step()
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        frame = client.current_frame
-        assert frame.user_energy
-        assert frame.user_energy == pytest.approx(
-            np.sqrt(np.sum(np.square(frame.user_forces_sparse))), abs=1e-6
-        )
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    assert frame.user_energy == pytest.approx(
+        np.sqrt(np.sum(np.square(frame.user_forces_sparse))), abs=1e-6
+    )
 
 
 def test_particle_forces_system_single_atom(
@@ -236,21 +223,17 @@ def test_particle_forces_system_single_atom(
     for _ in range(30):
         sim.advance_by_one_step()
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        frame = client.current_frame
-        assert frame.particle_forces_system
-        assert frame.user_forces_sparse
-        # Assert elements are approximately zero (allow for small
-        # numerical error)
-        for f_i in np.squeeze(frame.particle_forces_system):
-            assert f_i == pytest.approx(0.0, abs=5e-6)
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    assert len(frame.user_forces_sparse) > 0
+    # Assert elements are approximately zero (allow for small
+    # numerical error)
+    for f_i in np.squeeze(frame.particle_forces_system):
+        assert f_i == pytest.approx(0.0, abs=5e-6)
 
 
-def test_velocity_unit_conversion(example_ase_app_sim_constant_force_interaction):
+def test_velocity_unit_conversion(
+    example_ase_app_sim_constant_force_interaction,
+):
     """
     Test that the units of velocity are correctly converted to NanoVer units
     when delivered in the frame data.
@@ -264,18 +247,12 @@ def test_velocity_unit_conversion(example_ase_app_sim_constant_force_interaction
         sim.atoms.get_velocities() * (ANG_TO_NM / ASE_TIME_UNIT_TO_PS)
     ).flatten()
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        frame = client.current_frame
-        assert frame.particle_velocities
-        particle_velocities_frame = np.array(frame.particle_velocities).flatten()
-        for v_i in range(len(particle_velocities_frame)):
-            assert particle_velocities[v_i] == pytest.approx(
-                particle_velocities_frame[v_i], rel=1e-7
-            )
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    particle_velocities_frame = frame.particle_velocities.flatten()
+    for v_i in range(len(particle_velocities_frame)):
+        assert particle_velocities[v_i] == pytest.approx(
+            particle_velocities_frame[v_i], rel=1e-7
+        )
 
 
 def test_system_force_unit_conversion(multiple_atom_ase_app_sim):
@@ -294,21 +271,17 @@ def test_system_force_unit_conversion(multiple_atom_ase_app_sim):
         sim.atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
     ).flatten()
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        frame = client.current_frame
-        assert frame.particle_forces_system
-        particle_forces_frame = np.array(frame.particle_forces_system).flatten()
-        for f_i in range(len(particle_forces_frame)):
-            assert particle_forces[f_i] == pytest.approx(
-                particle_forces_frame[f_i], rel=1e-7
-            )
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    particle_forces_frame = frame.particle_forces_system.flatten()
+    for f_i in range(len(particle_forces_frame)):
+        assert particle_forces[f_i] == pytest.approx(
+            particle_forces_frame[f_i], rel=1e-7
+        )
 
 
-def test_imd_force_unit_conversion(example_ase_app_sim_constant_force_interaction):
+def test_imd_force_unit_conversion(
+    example_ase_app_sim_constant_force_interaction,
+):
     """
     Test that the units of force are correctly converted to NanoVer units
     when delivered in the frame data for the iMD forces.
@@ -324,24 +297,39 @@ def test_imd_force_unit_conversion(example_ase_app_sim_constant_force_interactio
         sim.atoms.get_forces() * (EV_TO_KJMOL / ANG_TO_NM)
     ).flatten()
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        frame = client.current_frame
-        assert frame.user_forces_sparse
-        particle_forces_frame = np.array(frame.user_forces_sparse).flatten()
-        for f_i in range(len(particle_forces_frame)):
-            assert particle_forces[f_i] == pytest.approx(
-                particle_forces_frame[f_i], rel=1e-7
-            )
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    particle_forces_frame = frame.user_forces_sparse.flatten()
+    for f_i in range(len(particle_forces_frame)):
+        assert particle_forces[f_i] == pytest.approx(
+            particle_forces_frame[f_i], rel=1e-7
+        )
 
 
-def test_work_done_server(example_ase_app_sim_constant_force_interaction):
+def test_work_done_frame(example_ase_app_sim_constant_force_interaction):
+    """
+    Test that the calculated user work done on a single atom system that appears
+    in the frame is equal to the user work done as calculated in the ASESimulation,
+    even after resets.
+    """
+    app, sim = example_ase_app_sim_constant_force_interaction
+
+    for _ in range(5):
+        sim.reset(app)
+
+        for _ in range(11):
+            sim.advance_to_next_report()
+
+        frame = connect_and_retrieve_first_frame_from_app_server(app)
+        assert frame.user_work_done == sim.work_done
+
+
+def test_work_done_server_reset(
+    example_ase_app_sim_constant_force_interaction,
+):
     """
     Test that the calculated user work done on a single atom system gives the
-    expected numerical result within the code.
+    expected numerical result within the code, and doesn't accumulate across
+    resets.
     """
 
     # For a simulation with a frame interval of 5 simulation steps and a simulation
@@ -353,35 +341,34 @@ def test_work_done_server(example_ase_app_sim_constant_force_interaction):
     app, sim = example_ase_app_sim_constant_force_interaction
 
     # Add step to account for zeroth (topology) frame where force is not applied
-    for _ in range(401):
-        sim.advance_to_next_report()
+    test_steps = 400 + 1
 
-    # Check that 1.0025 ps have passed (and hence that force has been applied for 1 ps)
-    assert sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS == pytest.approx(
-        1.0025, abs=10e-12
-    )
-    assert sim.work_done == pytest.approx(20.0, abs=1e-6)
+    # Passing 1.0025 ps will apply force for 1 ps
+    test_time = test_steps * 0.0025
 
+    expected_work = 20.0
 
-def test_work_done_frame(example_ase_app_sim_constant_force_interaction):
-    """
-    Test that the calculated user work done on a single atom system that appears
-    in the frame is equal to the user work done as calculated in the ASESimulation.
-    """
-    app, sim = example_ase_app_sim_constant_force_interaction
+    for i in range(3):
+        for _ in range(test_steps):
+            sim.advance_to_next_report()
 
-    for _ in range(11):
-        sim.advance_to_next_report()
+        # Time accumulates across resets
+        expected_dynamics_time = (i + 1) * test_time
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.user_work_done == sim.work_done
+        actual_dynamics_time = sim.dynamics.get_time() * ASE_TIME_UNIT_TO_PS
+
+        # Check that 1.0025 ps have passed (and hence that force has been applied for 1 ps)
+        assert actual_dynamics_time == pytest.approx(expected_dynamics_time, abs=10e-12)
+        assert sim.work_done == pytest.approx(expected_work, abs=1e-6)
+
+        # Reset simulation and check work done is now zero
+        sim.reset(app)
+        assert sim.work_done == 0
 
 
-def test_instantaneous_temperature(example_ase_app_sim_constant_force_interaction):
+def test_instantaneous_temperature(
+    example_ase_app_sim_constant_force_interaction,
+):
     """
     Test that the instantaneous temperature calculated by NanoVer is equal to the
     instantaneous temperature calculated by ASE internally.
@@ -394,11 +381,5 @@ def test_instantaneous_temperature(example_ase_app_sim_constant_force_interactio
     # Calculate temperature using method in ASE Atoms class
     ase_temp = sim.atoms.get_temperature()
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.system_temperature == pytest.approx(
-            ase_temp, abs=1e-12
-        )
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    assert frame.system_temperature == pytest.approx(ase_temp, abs=1e-12)

@@ -9,6 +9,7 @@ from nanover.imd.imd_force import (
     apply_single_interaction_force,
     calculate_imd_force,
     calculate_constant_force,
+    InvalidInteractionError,
 )
 from nanover.imd.particle_interaction import ParticleInteraction
 
@@ -102,7 +103,25 @@ def test_multiple_interactions(particles):
     assert np.allclose(forces, expected_forces)
 
 
-@pytest.mark.parametrize("scale", [np.nan, np.infty, -np.infty])
+@pytest.mark.parametrize("particle_count", (1, 2))
+def test_interaction_invalid_particle_index(particles, particle_count):
+    """
+    Test that attempting to calculate iMD forces for interactions with out of bounds particles raises InvalidInteractionError.
+    """
+    positions, masses = particles
+    single_forces = np.zeros((len(positions), 3))
+    indexes = [len(positions) + i for i in range(particle_count)]
+
+    interaction = ParticleInteraction(particles=indexes)
+
+    with pytest.raises(InvalidInteractionError):
+        apply_single_interaction_force(positions, masses, interaction, single_forces)
+
+    with pytest.raises(InvalidInteractionError):
+        calculate_imd_force(positions, masses, [interaction])
+
+
+@pytest.mark.parametrize("scale", [np.nan, np.inf, -np.inf])
 def test_interaction_force_invalid_scale(particles, single_interaction, scale):
     with pytest.raises(ValueError):
         single_interaction.scale = scale
@@ -124,7 +143,9 @@ def test_interaction_force_single(particles, single_interaction, scale):
 
     expected_energy = -EXP_3 * scale * masses[single_interaction.particles[0]]
     expected_energy = np.clip(
-        expected_energy, -single_interaction.max_force, single_interaction.max_force
+        expected_energy,
+        -single_interaction.max_force,
+        single_interaction.max_force,
     )
     expected_forces[1, :] = np.array(
         [-EXP_3 * scale * masses[single_interaction.particles[0]]] * 3
@@ -145,7 +166,7 @@ def test_invalid_max_force(single_interaction, max_force):
         single_interaction.max_force = max_force
 
 
-@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.infty, -np.infty])
+@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.inf, -np.inf])
 def test_interaction_force_max_energy(particles, single_interaction, max_energy):
     """
     Tests that setting the max energy field results in the energy being clamped as expected
@@ -161,7 +182,9 @@ def test_interaction_force_max_energy(particles, single_interaction, max_energy)
 
     expected_energy = -EXP_3 * masses[single_interaction.particles[0]]
     expected_energy = np.clip(
-        expected_energy, -single_interaction.max_force, single_interaction.max_force
+        expected_energy,
+        -single_interaction.max_force,
+        single_interaction.max_force,
     )
     expected_forces[1, :] = np.array(
         [-EXP_3 * masses[single_interaction.particles[0]]] * 3
@@ -176,7 +199,7 @@ def test_interaction_force_max_energy(particles, single_interaction, max_energy)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
 
-@pytest.mark.parametrize("mass", [-1.0, 100, np.nan, np.infty, -np.infty])
+@pytest.mark.parametrize("mass", [-1.0, 100, np.nan, np.inf, -np.inf])
 def test_interaction_force_mass(particles, single_interaction, mass):
     """
     tests that the interaction force calculation gives the expected result on a single atom, at a particular position,
@@ -191,7 +214,9 @@ def test_interaction_force_mass(particles, single_interaction, mass):
     )
 
     expected_energy = np.clip(
-        -EXP_3 * mass, -single_interaction.max_force, single_interaction.max_force
+        -EXP_3 * mass,
+        -single_interaction.max_force,
+        single_interaction.max_force,
     )
     expected_forces[1, :] = np.clip(
         np.array([-EXP_3 * mass] * 3),
@@ -413,7 +438,10 @@ def test_get_com_subset_pbc(positions_pbc):
     )
 
     com = get_center_of_mass_subset(
-        positions_periodic, masses, subset, periodic_box_lengths=periodic_box_lengths
+        positions_periodic,
+        masses,
+        subset,
+        periodic_box_lengths=periodic_box_lengths,
     )
 
     assert np.allclose(com, expected_com)

@@ -1,39 +1,51 @@
 import os
 import warnings
+from pathlib import Path
 
 import pytest
-import itertools
 import numpy as np
 import MDAnalysis as mda
-from nanover.mdanalysis import NanoverParser, NanoverReader
+from nanover.mdanalysis import universes_from_recording
+from nanover.mdanalysis.universe import (
+    NanoverParser,
+    NanoverReader,
+)
 
 SINGLE_TOPOLOGY_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello.traj",
+    "test.nanover.zip",
 )
 MULTI_TOPOLOGY_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello_multi.traj",
+    "test_multi.nanover.zip",
 )
 USER_FORCES_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello_force.traj",
+    "test_force.nanover.zip",
 )
 FORCES_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello_all_forces.traj",
+    "test_all_forces.nanover.zip",
 )
 VELOCITIES_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello_vel.traj",
+    "test_vel.nanover.zip",
 )
 VELOCITIES_FORCES_TRAJ = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "hello_vel_force.traj",
+    "test_vel_force.nanover.zip",
 )
 REFERENCE_PDB = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     "17-ala.pdb",
+)
+
+
+EXAMPLES_PATH = Path(__file__).parent
+RECORDING_PATH_TRAJ = (
+    EXAMPLES_PATH
+    / "../test_core/recording"
+    / "sim-switching-test-recording.nanover.zip"
 )
 
 
@@ -96,6 +108,29 @@ def feature_universe_and_features(request):
 @pytest.fixture
 def reference_topology_universe():
     return mda.Universe(REFERENCE_PDB)
+
+
+def test_universes_from_recording():
+    """
+    Test that a recording with simulation switching is split into the correct number of universes with expected atom
+    counts and frame counts.
+    """
+    universes = universes_from_recording(RECORDING_PATH_TRAJ)
+
+    expected_frames_atoms = [
+        [104, 65],
+        [108, 173],
+        [127, 65],
+        [115, 173],
+    ]
+
+    assert len(expected_frames_atoms) == len(universes)
+
+    for i in range(len(expected_frames_atoms)):
+        frames, atoms = expected_frames_atoms[i]
+        universe = universes[i]
+        assert frames == len(universe.trajectory)
+        assert atoms == len(universe.atoms)
 
 
 def test_n_frames(single_topology_universe):

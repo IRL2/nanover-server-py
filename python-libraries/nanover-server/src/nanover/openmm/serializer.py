@@ -32,7 +32,7 @@ a function :func:`deserialize_simulation` that creates an instance of simulation
 from an XML file.
 """
 
-from typing import Optional, List, Tuple, Union, TextIO
+from typing import List, Tuple, Union, TextIO
 from io import StringIO
 from xml.dom.minidom import (
     getDOMImplementation,
@@ -50,12 +50,15 @@ from .imd import populate_imd_force
 ROOT_TAG = "OpenMMSimulation"
 
 
-def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
+def serialize_simulation(
+    simulation: app.Simulation, save_state=False, pbc_wrapping=False
+) -> str:
     """
     Generate an XML string from a simulation.
 
     :param simulation: The simulation to serialize.
     :param save_state: Save the present state of the simulation too.
+    :param pbc_wrapping: Enforce periodic boundary conditions.
     :return: A string with the content of an XML file describing the simulation.
     """
     implementation = getDOMImplementation()
@@ -64,7 +67,9 @@ def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
     document = implementation.createDocument(None, ROOT_TAG, None)
 
     # Extract the PDB
-    positions = simulation.context.getState(getPositions=True).getPositions()
+    positions = simulation.context.getState(
+        getPositions=True, enforcePeriodicBox=pbc_wrapping
+    ).getPositions()
     pdb_content = StringIO()
     app.PDBxFile.writeFile(simulation.topology, positions, pdb_content)
     pdb_node = document.createElement("pdbx")
@@ -72,17 +77,21 @@ def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
 
     # Extract the system
     system_xml_str = XmlSerializer.serialize(simulation.system)
-    system_document = parseString(system_xml_str)
+    system_document = parseString(system_xml_str).documentElement
 
     # Extract the integrator
     integrator_xml_str = XmlSerializer.serialize(simulation.integrator)
-    integrator_document = parseString(integrator_xml_str)
+    integrator_document = parseString(integrator_xml_str).documentElement
 
     # Combine the element in a single
     root = document.documentElement
+    assert root is not None
+    assert system_document is not None
+    assert integrator_document is not None
+
     root.appendChild(pdb_node)
-    root.appendChild(system_document.documentElement)
-    root.appendChild(integrator_document.documentElement)
+    root.appendChild(system_document)
+    root.appendChild(integrator_document)
 
     # Extract and append the state
     if save_state:
@@ -91,18 +100,20 @@ def serialize_simulation(simulation: app.Simulation, save_state=False) -> str:
                 getVelocities=True,
                 getParameters=True,
                 getIntegratorParameters=True,
+                enforcePeriodicBox=pbc_wrapping,
             )
         )
-        state_document = parseString(state_xml_str)
-        root.appendChild(state_document.documentElement)
+        state_document = parseString(state_xml_str).documentElement
+        assert state_document is not None
+        root.appendChild(state_document)
 
     return root.toprettyxml()
 
 
 def deserialize_simulation(
     xml_content: Union[str | TextIO],
-    imd_force: Optional[CustomExternalForce] = None,
-    platform_name: Optional[str] = None,
+    imd_force: CustomExternalForce | None = None,
+    platform_name: str | None = None,
     ignore_state=False,
 ) -> app.Simulation:
     """

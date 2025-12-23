@@ -3,37 +3,57 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
+dynamic = ["version"]
 name = "nanover-server"
 authors = [
     {name = "Intangible Realities Lab"},
 ]
 description = "Python servers for NanoVer."
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "openmm",
     "MDAnalysis",
     "numpy",
     "nglview",
     "psutil",
-    "grpcio>=1.63.0",
-    "grpcio-tools>=1.63.0",
-    "pytest",
-    "aiogrpc",
     "numpy",
-    "hypothesis",
-    "typing_extensions",
     "ase >= 3.21",
-    "setuptools>=40.1.1",
+    "websockets>=15.0.0",
+    "msgpack>=1.0.0",
 ]
-dynamic = ["version"]
+
+[project.optional-dependencies]
+dev=[
+    # Requirement files for running the tests.
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-timeout",
+    "pytest-xdist",
+    "hypothesis",
+    # python-osc is needed to test an example
+    "python-osc",
+    # mock is required for some core tests
+    "mock",
+    # type checking
+    "mypy",
+    "typing_extensions",
+    # jupyter notebooks
+    "nbval",
+    # ui
+    #"gradio>=5.18.0",
+    # types
+    "types-netifaces",
+]
 
 [project.scripts]
-nanover-omni = "nanover.omni.cli:main"
-nanover-record = "nanover.omni.recorder_cli:main"
-nanover-omm-server = "nanover.openmm.cli:main"
+nanover-omni = "nanover.app.cli.server_cli:deprecated"
+nanover-server = "nanover.app.cli.server_cli:main"
+nanover-record = "nanover.app.cli.recorder_cli:main"
 nanover-essd-list = "nanover.essd.list_cli:main"
-nanover-multiplayer = "nanover.multiplayer.cli:main"
+nanover-dump-state = "nanover.recording.cli.dump_cli:main"
+nanover-split-recording = "nanover.recording.cli.split_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
-include = ["nanover.*", "nanover.protocol"]  # package names should match these glob patterns (["*"] by default)
+include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)

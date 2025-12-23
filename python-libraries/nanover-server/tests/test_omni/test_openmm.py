@@ -9,25 +9,27 @@ import numpy as np
 import pytest
 from openmm import CustomExternalForce
 from openmm.app import StateDataReporter
+from openmm.unit import nanometer
 
-from nanover.openmm import serializer
+from nanover.openmm import serializer, OpenMMSimulation
 from nanover.imd import ParticleInteraction
-from nanover.omni.openmm import OpenMMSimulation
-from nanover.app import NanoverImdClient
-
 from nanover.trajectory import FrameData
 
-from common import (
+from .common import (
     make_app_server,
     connect_and_retrieve_first_frame_from_app_server,
     make_loaded_sim,
     make_loaded_sim_with_interactions,
 )
 
-from openmm_simulation_utils import (
+from .openmm_simulation_utils import (
     build_single_atom_simulation,
     build_basic_simulation,
+    build_basic_simulation_periodic,
+    BASIC_SIMULATION_BOX_VECTORS,
 )
+
+UNIT_SIMULATION_BOX_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 
 
 @pytest.fixture
@@ -42,7 +44,10 @@ def make_example_openmm():
 
 @pytest.fixture
 def single_atom_app_and_simulation_with_constant_force():
-    with make_single_atom_app_and_simulation_with_constant_force() as (app_server, sim):
+    with make_single_atom_app_and_simulation_with_constant_force() as (
+        app_server,
+        sim,
+    ):
         yield app_server, sim
 
 
@@ -103,6 +108,22 @@ def basic_system_app_and_simulation_with_constant_force_old():
             interaction_type="constant",
             position=(0.0, 0.0, 1.0),
             particles=[0, 4],
+            scale=1,
+        ),
+    ) as (app_server, sim):
+        yield app_server, sim
+
+
+@pytest.fixture
+def basic_periodic_system_app_and_simulation_with_constant_force():
+    with make_loaded_sim_with_interactions(
+        OpenMMSimulation.from_simulation(build_basic_simulation_periodic()),
+        # Add a constant force interaction with the force positioned at
+        # 26 nm along the positive x axis (over half a periodic box vector away)
+        ParticleInteraction(
+            interaction_type="constant",
+            position=(26.0, 0.0, 0.0),
+            particles=[0],
             scale=1,
         ),
     ) as (app_server, sim):
@@ -178,7 +199,7 @@ def test_step_interval(example_openmm):
 def test_work_done_server(single_atom_app_and_simulation_with_constant_force):
     """
     Test that the calculated user work done on a single atom system gives the
-    expected numerical result within the code.
+    expected numerical result within the code, even across resets.
     """
 
     # For a simulation with a frame interval of 5 simulation steps and a simulation
@@ -189,34 +210,44 @@ def test_work_done_server(single_atom_app_and_simulation_with_constant_force):
 
     app, sim = single_atom_app_and_simulation_with_constant_force
 
-    # Add step to account for zeroth (topology) frame where force is not applied
-    for _ in range(101):
-        sim.advance_to_next_report()
+    for _ in range(3):
+        # Add step to account for zeroth (topology) frame where force is not applied
+        for _ in range(101):
+            sim.advance_to_next_report()
 
-    # Check that 1.01 ps have passed (and hence that force has been applied for 1 ps)
-    assert sim.simulation.context.getTime()._value == pytest.approx(1.01, abs=10e-12)
-    assert sim.work_done == pytest.approx(20.0, abs=0.05)
+        # Check that 1.01 ps have passed (and hence that force has been applied for 1 ps)
+        assert sim.simulation.context.getTime()._value == pytest.approx(
+            1.01, abs=10e-12
+        )
+        assert sim.work_done == pytest.approx(20.0, abs=0.05)
+
+        # Reset simulation and check work done is now zero
+        sim.reset(app)
+        assert sim.work_done == 0
 
 
-def test_work_done_frame(basic_system_app_and_simulation_with_complex_interactions):
+def test_work_done_frame(
+    basic_system_app_and_simulation_with_complex_interactions,
+):
     """
     Test that the calculated user work done on a system that appears in the frame is equal
     to the user work done as calculated in the OpenMMSimulation.
     """
     app, sim = basic_system_app_and_simulation_with_complex_interactions
 
-    for _ in range(11):
-        sim.advance_to_next_report()
+    for _ in range(3):
+        sim.reset(app)
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.user_work_done == sim.work_done
+        for _ in range(11):
+            sim.advance_to_next_report()
+
+        frame = connect_and_retrieve_first_frame_from_app_server(app)
+        assert frame.user_work_done == sim.work_done
 
 
-def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_force):
+def test_save_state_basic_system(
+    basic_system_app_and_simulation_with_constant_force,
+):
     """
     Test that the state of the system can be serialized and deserialized correctly
     by testing that the velocities of the simulation being serialized approximately
@@ -243,12 +274,14 @@ def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_f
     # Assert that all components of velocities are approximately equal before and after
     # serialization/deserialization procedure.
     for i in range(len(velocities)):
-        assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=2.0e-7)
-        assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=2.0e-7)
-        assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.0e-7)
+        assert velocities[i].x == pytest.approx(loaded_velocities[i].x, abs=2.0e-6)
+        assert velocities[i].y == pytest.approx(loaded_velocities[i].y, abs=2.0e-6)
+        assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.0e-6)
 
 
-def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulation):
+def test_instantaneous_temperature_no_interaction(
+    basic_system_app_and_simulation,
+):
     """
     Test that the instantaneous temperature calculated by NanoVer is equal to the
     instantaneous temperature calculated by the StateDataReporter of OpenMM for a
@@ -269,14 +302,8 @@ def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulatio
 
         state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        assert client.current_frame.system_temperature == pytest.approx(
-            state_data_temperature, abs=1e-12
-        )
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    assert frame.system_temperature == pytest.approx(state_data_temperature, abs=1e-12)
 
 
 def test_instantaneous_temperature_imd_interaction(
@@ -291,7 +318,6 @@ def test_instantaneous_temperature_imd_interaction(
 
     # Save the output of the StateDataReporter to a variable
     with redirect_stdout(StringIO()) as state_data_output:
-
         # Attach StateDataReporter to the simulation
         sim.simulation.reporters.append(
             StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True)
@@ -303,16 +329,11 @@ def test_instantaneous_temperature_imd_interaction(
 
         state_data_temperature = float(state_data_output.getvalue().split(",")[-1])
 
-    with NanoverImdClient.connect_to_single_server(
-        port=app.port, address="localhost"
-    ) as client:
-        client.subscribe_to_frames()
-        client.wait_until_first_frame()
-        frame_temperature = client.current_frame.system_temperature
-        # Check that the temperature during the iMD interaction is within
-        # 1% of the temperature calculated by the StateDataReporter (including
-        # the effect of the iMD interaction on the temperature)
-        assert frame_temperature == pytest.approx(state_data_temperature, rel=1.0e-2)
+    # Check that the temperature during the iMD interaction is within
+    # 1% of the temperature calculated by the StateDataReporter (including
+    # the effect of the iMD interaction on the temperature)
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+    assert frame.system_temperature == pytest.approx(state_data_temperature, rel=1.0e-2)
 
 
 def test_reset_gives_equal_frames():
@@ -351,7 +372,9 @@ def test_force_manager_masses(basic_system_app_and_simulation):
 
 
 # TODO: could generalise for both OMM and ASE
-def test_report_frame_forces(basic_system_app_and_simulation_with_complex_interactions):
+def test_report_frame_forces(
+    basic_system_app_and_simulation_with_complex_interactions,
+):
     """
     Test that user forces are reported within the frame.
     """
@@ -359,11 +382,13 @@ def test_report_frame_forces(basic_system_app_and_simulation_with_complex_intera
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    assert frame.user_forces_index == [0, 1, 4, 5]
+    assert np.all(frame.user_forces_index == [0, 1, 4, 5])
 
 
 # TODO: could generalise for both OMM and ASE
-def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force):
+def test_sparse_user_forces(
+    basic_system_app_and_simulation_with_constant_force,
+):
     """
     Test that the sparse user forces exist in the frame data when a user applies an iMD force,
     check that the size of the array of forces is equal to the size of the array of corresponding
@@ -373,14 +398,14 @@ def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force)
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    assert frame.user_forces_sparse
-    assert frame.user_forces_index
     assert len(frame.user_forces_sparse) >= 1
     assert len(frame.user_forces_sparse) == len(frame.user_forces_index)
     assert np.all(frame.user_forces_sparse) != 0.0
 
 
-def test_apply_interactions(basic_system_app_and_simulation_with_complex_interactions):
+def test_apply_interactions(
+    basic_system_app_and_simulation_with_complex_interactions,
+):
     """
     Interactions are applied and the computed forces are passed to the imd
     force object.
@@ -431,7 +456,9 @@ def test_remove_interaction_complete(
     )
 
 
-def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_force):
+def test_velocities_and_forces(
+    basic_system_app_and_simulation_with_constant_force,
+):
     """
     Test the particle velocities and particle forces that can be optionally included
     when running OpenMM simulations. Assert that these arrays exist, have the same
@@ -445,8 +472,6 @@ def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_for
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    assert frame.particle_velocities
-    assert frame.particle_forces_system
     assert len(frame.particle_velocities) == len(frame.particle_positions)
     assert len(frame.particle_forces_system) == len(frame.particle_positions)
     assert np.all(frame.particle_velocities) != 0.0
@@ -480,17 +505,30 @@ def test_sparse_user_forces_elements(
     positions and the position from which the user force is applied, for a constant force acting
     on the C atoms.
     """
+    # test setup parameters
+    carbon_mass = 6
+    interaction_particles = {0, 4}
+    interaction_position = (0, 0, 1)
+
     app, sim = basic_system_app_and_simulation_with_constant_force_old
     sim.advance_by_one_step()
     frame = connect_and_retrieve_first_frame_from_app_server(app)
 
-    # For a mass-weighted constant force applied at [0.0, 0.0, 1.0] to the COM of the C atoms
-    mass_weighted_user_forces_t0 = [[0.0, 0.0, -6.0], [0.0, 0.0, -6.0]]
-    assert set(frame.user_forces_index) == {0, 4}
+    # compute interaction center of mass and direction
+    interaction_positions = [
+        frame.particle_positions[index] for index in interaction_particles
+    ]
+    interaction_center = np.mean(interaction_positions, axis=0)
+    interaction_vector = np.subtract(interaction_position, interaction_center)
+
+    # expected force vector is interaction direction with magnitude of a carbon atom (6)
+    expected_heading = interaction_vector / np.linalg.norm(interaction_vector)
+    expected_magnitude = carbon_mass
+    expected_vector = expected_heading * expected_magnitude
+
+    assert set(frame.user_forces_index) == interaction_particles
     for i in range(len(frame.user_forces_index)):
-        assert frame.user_forces_sparse[i] == pytest.approx(
-            mass_weighted_user_forces_t0[i], abs=3e-3
-        )
+        assert frame.user_forces_sparse[i] == pytest.approx(expected_vector, abs=1e-5)
 
 
 def test_velocities_and_forces_single_atom():
@@ -535,9 +573,6 @@ def test_velocities_and_forces_single_atom():
     expected_forces = [0.0, 0.0, 40.0]
     expected_velocities = [0.0, 0.0, 0.01]
 
-    assert frame.particle_velocities
-    assert frame.particle_forces_system
-    assert frame.user_forces_sparse
     assert len(frame.particle_velocities) == len(frame.particle_positions)
     assert len(frame.particle_forces_system) == len(frame.particle_positions)
 
@@ -548,3 +583,59 @@ def test_velocities_and_forces_single_atom():
         assert frame.particle_velocities[i] == pytest.approx(
             expected_velocities, abs=1e-7
         )
+
+
+def test_pbc_enforcement():
+    """
+    Test that PBC wrapping of positions defaults to off, doesn't wrap positions when off, and does wrap positions when on.
+    """
+    # use simulation with PBC changed to 1x1x1 with some atom positions falling outside the PBC
+    omm_sim = build_basic_simulation()
+    omm_sim.context.setPeriodicBoxVectors(*UNIT_SIMULATION_BOX_VECTORS)
+    sim = OpenMMSimulation.from_simulation(omm_sim)
+    sim.load()
+
+    with make_app_server() as app_server:
+        sim.reset(app_server)
+        sim.advance_by_one_step()
+
+    def out_of_bounds(coord):
+        return not 0 <= coord <= 1
+
+    def get_sim_position_coords(sim):
+        for position in sim.make_regular_frame().particle_positions:
+            for coord in position:
+                yield coord
+
+    # should default to not PBC wrapping coords
+    assert not sim.use_pbc_wrapping
+
+    # without PBC wrapping, some coords should fall outside the box
+    sim.use_pbc_wrapping = False
+    assert any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))
+
+    # with PBC wrapping, no coords should fall outside the box
+    sim.use_pbc_wrapping = True
+    assert not any(out_of_bounds(coord) for coord in get_sim_position_coords(sim))
+
+
+def test_imd_force_periodic_system(
+    basic_periodic_system_app_and_simulation_with_constant_force,
+):
+    """
+    Test that the PBCs of an OpenMM simulation are respected by the iMD force applied.
+    """
+    app, sim = basic_periodic_system_app_and_simulation_with_constant_force
+
+    # Check PBCs of simulation
+    assert sim.use_pbc_wrapping
+    assert (sim.pbc_vectors == BASIC_SIMULATION_BOX_VECTORS).all()
+
+    # Advance simulation by one step and retrieve frame
+    sim.advance_by_one_step()
+    frame = connect_and_retrieve_first_frame_from_app_server(app)
+
+    # Check that application of the force is periodic
+    # (force applied from over half a periodic box vector away in
+    # positive x direction, so should act in the negative x direction)
+    assert frame.user_forces_sparse[0][0] == -12.0

@@ -12,8 +12,14 @@ class NullCalculator(Calculator):
         self.implemented_properties = ["forces", "energy"]
 
     def calculate(
-        self, atoms=None, properties=("forces", "energy"), system_changes=all_changes
+        self,
+        atoms=None,
+        properties=("forces", "energy"),
+        system_changes=all_changes,
     ):
         super().calculate(atoms, properties, system_changes)
         assert self.atoms is not None
-        self.results = {"forces": np.zeros((len(self.atoms), 3)), "energy": 0.0}
+        self.results = {
+            "forces": np.zeros((len(self.atoms), 3)),
+            "energy": 0.0,
+        }

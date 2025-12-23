@@ -6,6 +6,9 @@ Tests for :mod:`nanover.openmm.serializer`.
 # pylint: disable=redefined-outer-name,unused-import
 from xml.dom.minidom import parseString
 import pytest
+from io import StringIO
+
+from openmm.unit import nanometer
 
 from nanover.openmm.imd import create_imd_force
 from nanover.openmm.serializer import (
@@ -15,10 +18,12 @@ from nanover.openmm.serializer import (
 )
 
 from simulation_utils import (
-    basic_simulation,
     basic_simulation_xml,
+    build_basic_simulation,
     empty_imd_force,
 )
+from nanover.openmm import OpenMMSimulation
+from nanover.app import NanoverImdApplication
 
 
 def remove_xml_tag(simulation_xml: str, tag_to_remove: str) -> str:
@@ -124,3 +129,47 @@ def test_platform(basic_simulation_xml, platform):
     simulation = deserialize_simulation(basic_simulation_xml, platform_name=platform)
     effective_platform_name = simulation.context.getPlatform().getName()
     assert effective_platform_name == platform
+
+
+def test_serializer_pbc():
+    """
+    Check if the periodic boundary conditions are correctly serialized.
+    The test deserializes two simulations with different setting of pbc and check if the positions are correct.
+    """
+    omm_sim = build_basic_simulation()
+    UNIT_SIMULATION_BOX_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    omm_sim.context.setPeriodicBoxVectors(*UNIT_SIMULATION_BOX_VECTORS)
+
+    def out_of_bounds(coord):
+        return not 0 <= coord <= 1
+
+    def get_sim_position_coords(sim):
+        for position in sim.make_regular_frame().particle_positions:
+            for coord in position:
+                yield coord
+
+    with StringIO() as xml_pbc:
+        xml_pbc.write(serialize_simulation(omm_sim, pbc_wrapping=True))
+        xml_pbc.seek(0)
+        sim_pbc_obj = deserialize_simulation(xml_pbc.read())
+
+    openmm_sim = OpenMMSimulation.from_simulation(sim_pbc_obj)
+    openmm_sim.load()
+    with NanoverImdApplication.basic_server(port=0) as app_server:
+        openmm_sim.reset(app_server)
+
+    assert not any(
+        out_of_bounds(coord) for coord in get_sim_position_coords(openmm_sim)
+    )
+
+    with StringIO() as xml_no_pbc:
+        xml_no_pbc.write(serialize_simulation(omm_sim, pbc_wrapping=False))
+        xml_no_pbc.seek(0)
+        sim_no_pbc_obj = deserialize_simulation(xml_no_pbc.read())
+
+    openmm_sim = OpenMMSimulation.from_simulation(sim_no_pbc_obj)
+    openmm_sim.load()
+    with NanoverImdApplication.basic_server(port=0) as app_server:
+        openmm_sim.reset(app_server)
+
+    assert any(out_of_bounds(coord) for coord in get_sim_position_coords(openmm_sim))

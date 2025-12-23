@@ -1,58 +1,80 @@
-from time import perf_counter_ns
-from typing import BinaryIO, Protocol, Optional, Iterable
+from dataclasses import asdict
+from io import BytesIO
+from os import PathLike
+from typing import Iterable, Any, BinaryIO
+from zipfile import ZipFile
 
-from nanover.recording.reading import MAGIC_NUMBER
+import msgpack
 
-WRITE_VERSION = 2
-
-
-class Serializable(Protocol):
-    def SerializeToString(self) -> bytes: ...
-
-
-def record_messages_to_file(path, messages: Iterable[Serializable]):
-    """
-    Write a sequence of messages to a recording file.
-
-    :param path: Path of recording file to write to.
-    :param messages: Iterable sequence of messages to record.
-    """
-    with open(path, "wb") as outfile:
-        yield from record_messages(outfile, messages)
+from nanover.recording.reading import (
+    RECORDING_INDEX_FILENAME,
+    RECORDING_MESSAGES_FILENAME,
+    MessageEvent,
+    RecordingIndexEntry,
+)
+from nanover.trajectory.keys import FRAME_INDEX
+from nanover.utilities.packing import fallback_encoder
 
 
-def record_messages(io: BinaryIO, messages, start_time: Optional[int] = None):
-    if start_time is None:
-        start_time = perf_counter_ns()
+class NanoverRecordingWriter:
+    @classmethod
+    def from_path(cls, path: PathLike[str] | str):
+        return cls(path)
 
-    def timestamp():
-        return int((perf_counter_ns() - start_time) / 1000)
+    def __init__(self, outfile: BinaryIO | PathLike[str] | str):
+        self.offset = 0
+        self.archive = ZipFile(outfile, "w")
+        self.messages_file = self.archive.open(
+            RECORDING_MESSAGES_FILENAME, "w", force_zip64=True
+        )
+        self.index: list[RecordingIndexEntry] = []
+        self.open = True
 
-    entries = ((timestamp(), message) for message in messages)
-    record_entries(io, entries)
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        if not self.open:
+            return
+        self.open = False
+        self.messages_file.close()
+        self.write_index()
+        self.archive.close()
+
+    def write_message_event(self, event: MessageEvent):
+        data = msgpack.packb(event.message, default=fallback_encoder)
+        metadata = generate_metadata(event.message)
+        metadata["timestamp"] = event.timestamp
+        entry = RecordingIndexEntry(
+            offset=self.offset,
+            length=len(data),
+            metadata=metadata,
+        )
+        self.index.append(entry)
+        self.messages_file.write(data)
+        self.offset += entry.length
+
+    def write_index(self):
+        with self.archive.open(RECORDING_INDEX_FILENAME, "w") as index_file:
+            data = [asdict(entry) for entry in self.index]
+            index_file.write(msgpack.packb(data))
 
 
-def record_entries(io: BinaryIO, entries):
-    write_header(io)
-    for timestamp, message in entries:
-        write_entry(io, timestamp, message)
+def record_messages(outfile: str | BytesIO, messages: Iterable[MessageEvent]):
+    with NanoverRecordingWriter(outfile) as writer:
+        for event in messages:
+            writer.write_message_event(event)
 
 
-def write_header(io: BinaryIO):
-    write_u64(io, MAGIC_NUMBER)
-    write_u64(io, WRITE_VERSION)
+def generate_metadata(message: dict[str, Any]) -> dict[str, Any]:
+    metadata = {
+        "types": list(message.keys()),
+    }
 
+    if "frame" in message and FRAME_INDEX in message["frame"]:
+        metadata[FRAME_INDEX] = message["frame"][FRAME_INDEX]
 
-def write_entry(io: BinaryIO, timestamp: int, message: Serializable):
-    buffer = message.SerializeToString()
-    write_u128(io, timestamp)
-    write_u64(io, len(buffer))
-    io.write(buffer)
-
-
-def write_u64(io: BinaryIO, value: int):
-    io.write(value.to_bytes(8, "little", signed=False))
-
-
-def write_u128(io: BinaryIO, value: int):
-    io.write(value.to_bytes(16, "little", signed=False))
+    return metadata

@@ -94,9 +94,10 @@ def test_attach_to_md(atoms, tmp_dir):
     file = os.path.join(tmp_dir, "atoms" + ".xyz")
 
     ase_traj_file = os.path.join(tmp_dir, "test.traj")
-    with Trajectory(ase_traj_file, "w", atoms) as ase_trajectory, TrajectoryLogger(
-        atoms, file
-    ) as logger:
+    with (
+        Trajectory(ase_traj_file, "w", atoms) as ase_trajectory,
+        TrajectoryLogger(atoms, file) as logger,
+    ):
         path = logger.current_path
         md = Langevin(
             atoms, 0.5, temperature_K=300, friction=0.001, trajectory=ase_trajectory

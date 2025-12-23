@@ -10,11 +10,12 @@ from nanover.utilities.timing import yield_interval, wait_busy
 
 TIMING_TOLERANCE = 0.01  # 10ms
 COMMON_INTERVALS = (1 / 10, 1 / 30, 1 / 60)
+WORK_FACTORS = (0.75, 0.25, 0)
 
 
 @pytest.mark.serial  # we want accurate timing so run without any parallel load
 @pytest.mark.parametrize("interval", COMMON_INTERVALS)
-@pytest.mark.parametrize("work_factor", (0.75, 0.5, 0.25, 0))
+@pytest.mark.parametrize("work_factor", WORK_FACTORS)
 def test_yield_interval(interval, work_factor):
     """
     Test that yield_interval yields on average at the correct interval when time is spent between resuming iteration.
@@ -32,7 +33,7 @@ def test_yield_interval(interval, work_factor):
 
 
 @pytest.mark.parametrize("interval", COMMON_INTERVALS)
-@pytest.mark.parametrize("work_factor", (0.75, 0.5, 0.25, 0))
+@pytest.mark.parametrize("work_factor", WORK_FACTORS)
 def test_yield_interval_dt(interval, work_factor):
     """
     Test that yield_interval yields the actual time between yields.

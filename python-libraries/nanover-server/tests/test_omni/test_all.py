@@ -1,23 +1,39 @@
-import time
 from unittest.mock import patch
 
 import numpy
 import pytest
+from nanover.imd import ParticleInteraction
 
-from nanover.omni.omni import CLEAR_PREFIXES
-from nanover.testing import assert_equal_soon, assert_in_soon, assert_not_in_soon
+from nanover.app.omni import CLEAR_PREFIXES
+from nanover.testing import (
+    assert_equal_soon,
+    assert_in_soon,
+    assert_not_in_soon,
+)
+from nanover.testing.asserts import assert_true_soon
+from nanover.trajectory.keys import SIMULATION_EXCEPTION, SERVER_TIMESTAMP
 from nanover.utilities.change_buffers import DictionaryChange
-from test_openmm import make_example_openmm
-from test_ase import make_example_ase
-from test_playback import make_example_playback
-from common import make_runner, make_connected_client_from_runner, make_app_server
+from .test_openmm import make_example_openmm
+from .test_ase import make_example_ase
+from .test_playback import make_example_playback
+from .test_playback_mda import make_example_playback_mda
+from .common import (
+    make_runner,
+    make_connected_client_from_runner,
+    make_app_server,
+)
 
 SIMULATION_FACTORIES_IMD = [
     make_example_openmm,
     make_example_ase,
 ]
 
-SIMULATION_FACTORIES_ALL = SIMULATION_FACTORIES_IMD + [make_example_playback]
+SIMULATION_FACTORIES_PLAYBACK = [
+    make_example_playback,
+    make_example_playback_mda,
+]
+
+SIMULATION_FACTORIES_ALL = SIMULATION_FACTORIES_IMD + SIMULATION_FACTORIES_PLAYBACK
 
 
 TIMING_TOLERANCE = 0.05
@@ -91,11 +107,8 @@ def test_next_simulation_increments_counter(runner_with_imd_sims):
     Test each next command increments the simulation counter to the correct value.
     """
     with make_connected_client_from_runner(runner_with_imd_sims) as client:
-        client.subscribe_to_frames()
-
         for i in range(5):
             client.run_next()
-            client.wait_until_first_frame()
             assert_equal_soon(
                 lambda: client.current_frame.simulation_counter, lambda: i
             )
@@ -113,16 +126,18 @@ def test_play_step_interval(runner_with_imd_sims, fps):
     play_step_interval = 1 / fps
 
     with make_connected_client_from_runner(runner_with_imd_sims) as client:
-        client.subscribe_to_all_frames()
         runner_with_imd_sims.next()
         runner_with_imd_sims.runner.play_step_interval = play_step_interval
 
-        while len(client.frames) < test_frames:
-            time.sleep(0.1)
+        assert_true_soon(
+            lambda: len(client.frames) >= test_frames,
+            timeout=play_step_interval * test_frames * 2,
+            interval=play_step_interval * 0.5,
+        )
         runner_with_imd_sims.pause()
 
         # first frame (topology) isn't subject to intervals
-        timestamps = [frame.server_timestamp for frame in client.frames[1:]]
+        timestamps = [frame[SERVER_TIMESTAMP] for frame in client.frames[1:]]
         deltas = numpy.diff(timestamps)
 
     # The interval is not very accurate. We only check that the observed
@@ -139,40 +154,61 @@ def test_simulation_switch_clears_state(runner_with_all_sims):
     key = "pytest"
 
     updates = {prefix + key: {} for prefix in CLEAR_PREFIXES}
-    locks = {key: 10 for key in updates}
 
     with make_connected_client_from_runner(runner_with_all_sims) as client:
-        client.attempt_update_multiplayer_state(DictionaryChange(updates=updates))
-        client.attempt_update_multiplayer_locks(locks)
+        client.update_state(DictionaryChange(updates=updates))
 
-    with make_connected_client_from_runner(runner_with_all_sims) as client:
-        client.subscribe_multiplayer()
+        with make_connected_client_from_runner(runner_with_all_sims) as client:
+            for key in updates:
+                assert_in_soon(
+                    lambda: key,
+                    lambda: client._state_dictionary.copy_content(),
+                )
 
-        for key in updates:
-            assert_in_soon(lambda: key, lambda: client._multiplayer_client.copy_state())
+            client.run_next()
 
-        client.run_next()
+            for key in updates:
+                assert_not_in_soon(
+                    lambda: key,
+                    lambda: client._state_dictionary.copy_content(),
+                )
 
-        for key in updates:
-            assert_not_in_soon(
-                lambda: key, lambda: client._multiplayer_client.copy_state()
+
+@pytest.mark.parametrize("sim_factory", SIMULATION_FACTORIES_IMD)
+def test_wait_until_minimum_usable_frame(sim_factory):
+    """
+    Test that the minimum usable frame contains topology and position information.
+    """
+    with make_runner(sim_factory()) as runner:
+        with make_connected_client_from_runner(runner) as client:
+            runner.load(0)
+            first_frame = client.wait_until_minimum_usable_frame()
+
+            assert (
+                len(first_frame.particle_positions) > 0
+                and len(first_frame.particle_elements) > 0
             )
 
 
 @pytest.mark.parametrize("sim_factory", SIMULATION_FACTORIES_IMD)
-def test_first_frame_topology(sim_factory):
+def test_interaction_invalid_particle_index(sim_factory):
     """
-    Test that the first frame contains topology and position information.
+    Test that attempting to calculate iMD forces for interactions with out of bounds particles adds an exception to the
+    frame and removes all interactions.
     """
     with make_runner(sim_factory()) as runner:
         with make_connected_client_from_runner(runner) as client:
-            client.subscribe_to_frames()
             runner.load(0)
-            client.wait_until_first_frame()
-            # Currently the initial frame is the only frame containing the element
-            # information, so this is equivalent to testing the frame in which the
-            # topology is sent (where relevant).
-            assert (
-                len(client.first_frame.particle_positions) > 0
-                and len(client.first_frame.particle_elements) > 0
+            frame = client.wait_until_minimum_usable_frame()
+
+            interaction_id = client.start_interaction(
+                ParticleInteraction(particles=[frame.particle_count + 10])
+            )
+
+            # exception exists in frame
+            assert_in_soon(lambda: SIMULATION_EXCEPTION, lambda: client.current_frame)
+            # interaction no longer exists in state
+            assert_not_in_soon(
+                lambda: interaction_id,
+                lambda: runner.app_server.imd.active_interactions,
             )

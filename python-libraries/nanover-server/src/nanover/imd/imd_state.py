@@ -2,14 +2,13 @@
 Module providing methods for storing ParticleInteractions in a StateDictionary.
 """
 
-from typing import Dict, Any, Mapping
+import warnings
+from typing import Any, Mapping
 
-from nanover.state.state_dictionary import StateDictionary
+from nanover.utilities.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.utilities.protobuf_utilities import Serializable
 
-IMD_SERVICE_NAME = "imd"
 INTERACTION_PREFIX = "interaction."
 VELOCITY_RESET_KEY = "imd.velocity_reset_available"
 
@@ -24,7 +23,7 @@ class ImdStateWrapper:
         used in allows velocity reset.
     """
 
-    _interactions: Dict[str, ParticleInteraction]
+    _interactions: dict[str, ParticleInteraction]
 
     def __init__(
         self,
@@ -34,10 +33,6 @@ class ImdStateWrapper:
         self.state_dictionary = state_dictionary
         self.velocity_reset_available = velocity_reset_available
 
-        self.state_dictionary.update_locks(
-            self,
-            acquire={VELOCITY_RESET_KEY: None},
-        )
         self.state_dictionary.update_state(
             self,
             change=DictionaryChange(
@@ -69,11 +64,15 @@ class ImdStateWrapper:
 
     def remove_interaction(self, interaction_id: str):
         assert interaction_id.startswith(INTERACTION_PREFIX)
-        change = DictionaryChange(removals=set([interaction_id]))
+        change = DictionaryChange(removals={interaction_id})
         self.state_dictionary.update_state(None, change)
 
+    def clear_interactions(self):
+        for interaction_id in self.active_interactions.keys():
+            self.remove_interaction(interaction_id)
+
     @property
-    def active_interactions(self) -> Dict[str, ParticleInteraction]:
+    def active_interactions(self) -> dict[str, ParticleInteraction]:
         """
         The current dictionary of active interactions, keyed by interaction id.
 
@@ -90,13 +89,16 @@ class ImdStateWrapper:
                 del self._interactions[removed_key]
         for key, value in change.updates.items():
             if key.startswith(INTERACTION_PREFIX):
-                self._interactions[key] = dict_to_interaction(value)
+                try:
+                    self._interactions[key] = dict_to_interaction(value)
+                except Exception:
+                    warnings.warn(f"Didn't understand '{value}' ({key}) as interaction")
 
 
-def interaction_to_dict(interaction: ParticleInteraction) -> Dict[str, Serializable]:
+def interaction_to_dict(interaction: ParticleInteraction) -> dict[str, Any]:
     try:
         # properties with the same key as the builtins will be discarded
-        # dicussion: https://gitlab.com/intangiblerealities/nanover-server-py/-/merge_requests/182#note_374156050
+        # discussion: https://gitlab.com/intangiblerealities/nanover-server-py/-/merge_requests/182#note_374156050
         return {
             **interaction.properties,
             "position": [float(f) for f in interaction.position],
@@ -112,7 +114,7 @@ def interaction_to_dict(interaction: ParticleInteraction) -> Dict[str, Serializa
 
 
 def dict_to_interaction(dictionary: Mapping[str, Any]) -> ParticleInteraction:
-    kwargs = dict(**dictionary)
+    kwargs: dict = dict(**dictionary)
     if "particles" in kwargs:
         kwargs["particles"] = [int(i) for i in kwargs["particles"]]
     return ParticleInteraction(**kwargs)

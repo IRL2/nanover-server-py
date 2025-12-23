@@ -1,9 +1,10 @@
 on: [push]
-name: "Tests and validation"
+name: "Repo"
 
 jobs:
   python-tests:
-    name: Python unit and integration tests
+    name: Tests and Notebooks
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -16,20 +17,21 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install nanover dependancies
-        run: conda install -y openmm
-      - name: Install tests dependancies
-        run: python -m pip install -r python-libraries/requirements.test
-      - name: Compile
-        run: ./compile.sh --no-dotnet
+      - name: Install NanoVer & dependencies
+        run: |
+          conda install -y openmm
+          pip install uv
+          uv pip install ./python-libraries/nanover-server/[dev]
+#      - name: All tests
+#        run: python -m pytest --cov nanover python-libraries --timeout 30
       - name: Parallel tests
-        run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial'
+        run: pytest --cov nanover python-libraries -n auto -m 'not serial' --timeout 30
       - name: Serial tests
-        run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial'
+        run: pytest --cov nanover python-libraries -n 1 -m 'serial' --cov-append --timeout 30
       - name: Jupyter notebooks
-        run: python -m pytest --nbval-lax examples --nbval-cell-timeout=30
-  mypy:
-    name: Type analysis for python
+        run: pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
+  analysis:
+    name: Static analysis
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -42,13 +44,16 @@ jobs:
         with:
           auto-update-conda: true
           miniforge-version: latest
-      - name: Install nanover dependancies
-        run: conda install -y openmm
-      - name: Install tests dependancies
-        run: python -m pip install -r python-libraries/requirements.test
-      - name: Compile (mypy requires --no-edit)
-        run: ./compile.sh --no-dotnet --no-edit
-      - name: mypy
+      - name: Install NanoVer & dependencies
+        run: |
+          conda install -y openmm
+          pip install uv
+          uv pip install ./python-libraries/nanover-server/[dev] ruff mypy
+      - name: Ruff lint
+        run: ruff check ./python-libraries
+      - name: Ruff format
+        run: ruff format --check ./python-libraries
+      - name: mypy types
         run: |
           # Mypy accepts paths, modules or packages as inputs. However, only
           # packages work reasonably well with packages. So we need to generate
@@ -65,45 +70,3 @@ jobs:
             | grep -v '\..*\.' \
             | tr '\n' ' ')
           mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages
-  ruff:
-    name: Ruff to lint python code
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        # This is necessary for the conda action. It replaces `conda init` as
-        # the shell does not load ,profile or .bashrc.
-        shell: bash -el {0}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          auto-update-conda: true
-          miniforge-version: latest
-      - name: Install nanover dependancies
-        run: conda install -y openmm
-      - name: Install ruff
-        run: python -m pip install ruff black
-      - name: Compile
-        run: ./compile.sh --no-dotnet
-      - name: Ruff
-        run: ruff check ./python-libraries
-      - name: Black
-        run: black --diff --check ./python-libraries
-  csharp-tests:
-    name: C# unit and integration tests
-    runs-on: ubuntu-24.04
-    env:
-      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '2.1.x'
-      - name: Install OpenSSL 1.1
-        run: |
-          wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
-          sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
-      - name: Compile
-        run: ./compile.sh --no-python
-      - name: Tests
-        run: cd ./csharp-libraries && dotnet test

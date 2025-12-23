@@ -10,9 +10,9 @@ from nanover.essd.utils import (
 )
 from nanover.essd.servicehub import ServiceHub
 from test_essd_service import (
-    properties,
     get_broadcastable_test_ip,
     properties_unique_id,
+    properties,
 )
 
 
@@ -70,7 +70,6 @@ def test_get_ipv4_addresses():
 
 def test_get_broadcast_addresses():
     broadcast_addresses = get_broadcast_addresses()
-    print(broadcast_addresses)
     assert len(broadcast_addresses) > 0
 
 

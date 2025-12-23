@@ -33,7 +33,7 @@ def test_buffer_flush_reflects_removal(change_buffer):
     change_buffer.update({"hello": "test"})
     change_buffer.update(removals=["hello"])
     changes, removals = change_buffer.flush_changed_blocking()
-    assert removals == set(["hello"])
+    assert removals == {"hello"}
 
 
 def test_buffer_flush_empties_changes(change_buffer):
@@ -75,7 +75,7 @@ def test_buffer_flush_merges_removals(change_buffer):
     change_buffer.update(removals=["hello"])
     change_buffer.update(removals=["foo"])
     changes, removals = change_buffer.flush_changed_blocking()
-    assert removals == set(["hello", "foo"])
+    assert removals == {"hello", "foo"}
 
 
 def test_buffer_flush_merges_same_change_key(change_buffer):
@@ -146,7 +146,9 @@ def test_frozen_multiview_cant_update(change_multiview):
 
 
 @pytest.mark.timeout(1)
-def test_frozen_multiview_view_gives_last_values_and_no_removals(change_multiview):
+def test_frozen_multiview_view_gives_last_values_and_no_removals(
+    change_multiview,
+):
     """
     Test that views can still be created on a frozen multiview but that they
     only provide the initial values and then raise the correct exception on
@@ -165,7 +167,9 @@ def test_frozen_multiview_view_gives_last_values_and_no_removals(change_multivie
 
 
 @pytest.mark.timeout(1)
-def test_frozen_multiview_subscribe_gives_last_values_and_no_removals(change_multiview):
+def test_frozen_multiview_subscribe_gives_last_values_and_no_removals(
+    change_multiview,
+):
     """
     Test that subscribing a frozen multiview provides the initial values and
     then ends.

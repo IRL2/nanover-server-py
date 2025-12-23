@@ -1,205 +1,346 @@
-import math
+from dataclasses import dataclass, field
+from itertools import groupby
 from os import PathLike
-from typing import (
-    Tuple,
-    Iterable,
-    BinaryIO,
-    Protocol,
-    Callable,
-    TypeVar,
-    Optional,
-    Iterator,
-)
-from nanover.protocol.trajectory import GetFrameResponse
-from nanover.protocol.state import StateUpdate
-from nanover.state.state_service import state_update_to_dictionary_change
-from nanover.trajectory import FrameData, MissingDataError
+from typing import Any, IO, BinaryIO
+from zipfile import ZipFile
+
+import msgpack
+
+from nanover.utilities.state_dictionary import StateDictionary
+from nanover.trajectory import FrameData
+from nanover.trajectory.keys import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
 
-MAGIC_NUMBER = 6661355757386708963
+MICROSECONDS_TO_SECONDS = 1 / 1000000
 
-FrameEntry = Tuple[int, int, FrameData]
-
-
-def iter_recording_files(
-    *, traj: Optional[PathLike[str]] = None, state: Optional[PathLike[str]] = None
-):
-    """
-    Iterate one or both of trajectory and state recording files, yield a timestamp and one or both of frame and update
-    that occurred at that instant. Frame index is included in frame data under the key "index".
-    """
-    frames: Iterator[Tuple[int, int, FrameData]] = (
-        iter([]) if traj is None else iter_trajectory_file(traj)
-    )
-    updates: Iterator[Tuple[int, StateUpdate]] = (
-        iter([]) if state is None else iter_state_file(state)
-    )
-
-    next_frame = next(frames, None)
-    next_update = next(updates, None)
-
-    def get_time(entry):
-        return math.inf if entry is None else entry[0]
-
-    while next_frame is not None or next_update is not None:
-        frame: Optional[FrameData] = None
-        update: Optional[DictionaryChange] = None
-
-        time = min(get_time(next_frame), get_time(next_update))
-        if next_frame is not None and get_time(next_frame) == time:
-            _, index, frame = next_frame
-            frame.values["index"] = index
-            next_frame = next(frames, None)
-        if next_update is not None and get_time(next_update) == time:
-            _, update = next_update
-            next_update = next(updates, None)
-
-        yield time, frame, update
+RECORDING_INDEX_FILENAME = "index.msgpack"
+RECORDING_MESSAGES_FILENAME = "messages.msgpack"
 
 
-def iter_trajectory_file(path):
-    """
-    Iterate over all frame updates in a recording file.
-
-    :param path: Path of recording file to read from.
-    """
-    with open(path, "rb") as infile:
-        yield from iter_trajectory_recording(infile)
+@dataclass(kw_only=True)
+class MessageEvent:
+    timestamp: int | None
+    message: dict[str, Any]
 
 
-def iter_state_file(path):
-    """
-    Iterate over all state updates in a recording file.
+@dataclass(kw_only=True)
+class FrameRecordingEvent(MessageEvent):
+    prev_frame: FrameData
+    next_frame: FrameData
 
-    :param path: Path of recording file to read from.
-    """
-    with open(path, "rb") as infile:
-        yield from iter_state_recording(infile)
-
-
-class InvalidMagicNumber(Exception):
-    """
-    The magic number read from a file is not the expected one.
-
-    The file may not be in the correct format, or it may be corrupted.
-    """
-
-
-class UnsupportedFormatVersion(Exception):
-    """
-    The version of the file format is not supported by the parser.
-    """
-
-    def __init__(self, format_version: int, supported_format_versions: tuple[int]):
-        self._format_version = format_version
-        self._supported_format_versions = supported_format_versions
-
-    def __str__(self) -> str:
-        return (
-            f"Version {self._format_version} of the format is not supported "
-            f"by this parser. The supported versions are "
-            f"{self._supported_format_versions}."
+    @classmethod
+    def make_empty(cls):
+        return cls(
+            timestamp=0,
+            message={},
+            prev_frame=FrameData(),
+            next_frame=FrameData(),
         )
 
 
-class Parseable(Protocol):
-    def ParseFromString(self, _: bytes) -> bytes: ...
+@dataclass(kw_only=True)
+class StateRecordingEvent(MessageEvent):
+    prev_state: dict
+    next_state: dict
+
+    @classmethod
+    def make_empty(cls):
+        return cls(
+            timestamp=0,
+            message={},
+            prev_state={},
+            next_state={},
+        )
 
 
-TMessage = TypeVar("TMessage", bound=Parseable)
+@dataclass(kw_only=True)
+class RecordingEvent:
+    prev_frame_event: FrameRecordingEvent
+    prev_state_event: StateRecordingEvent
+    next_frame_event: FrameRecordingEvent | None
+    next_state_event: StateRecordingEvent | None
+
+    @property
+    def timestamp(self) -> int | None:
+        if self.next_frame_event is not None:
+            return self.next_frame_event.timestamp
+        elif self.next_state_event is not None:
+            return self.next_state_event.timestamp
+        return None
+
+    @property
+    def prev_frame(self):
+        return self.prev_frame_event.next_frame
+
+    @property
+    def next_frame(self):
+        return (
+            self.next_frame_event.next_frame
+            if self.next_frame_event is not None
+            else self.prev_frame
+        )
+
+    @property
+    def prev_state(self):
+        return self.prev_state_event.next_state
+
+    @property
+    def next_state(self):
+        return (
+            self.next_state_event.next_state
+            if self.next_state_event is not None
+            else self.prev_state
+        )
 
 
-def iter_recording_entries(io: BinaryIO, message_type: Callable[[], TMessage]):
-    for elapsed, buffer in iter_recording_buffers(io):
-        instance = message_type()
-        instance.ParseFromString(buffer)
-        yield elapsed, instance
+@dataclass(kw_only=True)
+class RecordingIndexEntry:
+    offset: int
+    length: int
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def read_from(self, io: IO[bytes]):
+        io.seek(self.offset)
+        return io.read(self.length)
 
 
-def iter_recording_buffers(io: BinaryIO):
-    """
-    Iterate over elements of a recording, yielding pairs of a timestamp in microseconds and a buffer of bytes.
+class MessageZipReader:
+    @classmethod
+    def from_path(cls, path: PathLike[str]):
+        """
+        Read a recording from a filepath.
+        """
+        return cls(ZipFile(path, "r"))
 
-    :param io: Stream of bytes to read.
-    """
-    supported_format_versions = (2,)
+    @classmethod
+    def from_io(cls, io: BinaryIO):
+        """
+        Read a recording from binary data source.
+        """
+        return cls(ZipFile(io, "r"))
 
-    magic_number = read_u64(io)
-    if magic_number != MAGIC_NUMBER:
-        raise InvalidMagicNumber
-    format_version = read_u64(io)
-    if format_version not in supported_format_versions:
-        raise UnsupportedFormatVersion(format_version, supported_format_versions)
-    while True:
-        try:
-            elapsed = read_u128(io)
-            record_size = read_u64(io)
-            buffer = io.read(record_size)
-        except EOFError:
-            break
-        yield elapsed, buffer
+    def __init__(self, zipfile: ZipFile):
+        self.zipfile = zipfile
+        self.messagesfile = zipfile.open(RECORDING_MESSAGES_FILENAME)
+        self.index = parse_index(zipfile)
 
+    def close(self):
+        self.messagesfile.close()
+        self.zipfile.close()
 
-def iter_trajectory_recording(io: BinaryIO):
-    for elapsed, get_frame_response in iter_recording_entries(io, GetFrameResponse):
-        frame_index: int = get_frame_response.frame_index
-        frame = FrameData(get_frame_response.frame)
-        yield (elapsed, frame_index, frame)
+    def get_message_from_entry(self, entry: RecordingIndexEntry) -> dict[str, Any]:
+        return msgpack.unpackb(entry.read_from(self.messagesfile))
 
+    def __enter__(self):
+        return self
 
-def iter_state_recording(io: BinaryIO):
-    for elapsed, state_update in iter_recording_entries(io, StateUpdate):
-        dictionary_change = state_update_to_dictionary_change(state_update)
-        yield (elapsed, dictionary_change)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
+    def __iter__(self):
+        yield from self.index
 
-def iter_trajectory_with_elapsed_integrated(frames: Iterable[FrameEntry]):
-    for elapsed, frame_index, frame in frames:
-        frame.values["elapsed"] = elapsed
-        yield (elapsed, frame_index, frame)
+    def __len__(self):
+        return len(self.index)
 
+    def __getitem__(self, index):
+        return self.index[index]
 
-def advance_to_first_particle_frame(frames: Iterable[FrameEntry]):
-    for elapsed, frame_index, frame in frames:
-        try:
-            particle_count = frame.particle_count
-        except MissingDataError:
-            pass
-        else:
-            if particle_count > 0:
-                break
-    else:
-        return
+    def __repr__(self):
+        filepart = (
+            f" filename='{self.zipfile.filename}'"
+            if self.zipfile.filename is not None
+            else ""
+        )
 
-    yield (elapsed, frame_index, frame)
-    yield from frames
+        return f"<{self.__class__.__name__}{filepart}>"
 
 
-def advance_to_first_coordinate_frame(frames: Iterable[FrameEntry]):
-    for elapsed, frame_index, frame in frames:
-        try:
-            frame.particle_positions
-        except MissingDataError:
-            pass
-        else:
-            break
-    else:
-        return
+class NanoverRecordingReader(MessageZipReader):
+    def iter_max(self):
+        """
+        Iterate recording yielding recording events in timestamp order, with each event containing the full
+        information of previous frame, previous state, current message, next frame, and next state.
+        """
+        current_frame = FrameData()
+        current_state = StateDictionary()
 
-    yield (elapsed, frame_index, frame)
-    yield from frames
+        prev_frame_event = FrameRecordingEvent.make_empty()
+        prev_state_event = StateRecordingEvent.make_empty()
+
+        for entry in self.index:
+            next_frame_event: FrameRecordingEvent | None = None
+            next_state_event: StateRecordingEvent | None = None
+
+            timestamp: int | None = entry.metadata.get("timestamp", None)
+            frame_message = self.get_message_type_from_entry(entry, "frame")
+            state_message = self.get_message_type_from_entry(entry, "state")
+
+            if frame_message is not None:
+                prev_frame = current_frame.copy()
+                current_frame.update(FrameData.unpack_from_dict(frame_message))
+
+                next_frame_event = FrameRecordingEvent(
+                    timestamp=timestamp,
+                    message=frame_message,
+                    prev_frame=prev_frame,
+                    next_frame=current_frame,
+                )
+            if state_message is not None:
+                prev_state = current_state.copy_content()
+                current_state.update_state(
+                    None, DictionaryChange.from_dict(state_message)
+                )
+
+                next_state_event = StateRecordingEvent(
+                    timestamp=timestamp,
+                    message=state_message,
+                    prev_state=prev_state,
+                    next_state=current_state.copy_content(),
+                )
+
+            yield RecordingEvent(
+                prev_frame_event=prev_frame_event,
+                prev_state_event=prev_state_event,
+                next_frame_event=next_frame_event,
+                next_state_event=next_state_event,
+            )
+
+            prev_frame_event = next_frame_event or prev_frame_event
+            prev_state_event = next_state_event or prev_state_event
+
+    def iter_frames_full(self):
+        current = FrameData()
+        for entry, frame in self.iter_frame_updates():
+            current.update(frame)
+            yield entry, current.copy()
+
+    def iter_states_full(self):
+        current = StateDictionary()
+        for entry, change in self.iter_state_updates():
+            current.update_state(None, change)
+            yield entry, current.copy_content()
+
+    def iter_frame_updates(self):
+        for entry in self:
+            frame = self.get_frame_from_entry(entry)
+            if frame is not None:
+                yield entry, frame
+
+    def iter_state_updates(self):
+        for entry in self:
+            state = self.get_state_from_entry(entry)
+            if state is not None:
+                yield entry, state
+
+    def iter_message_events(self):
+        for entry in self:
+            message = self.get_message_from_entry(entry)
+            yield MessageEvent(
+                timestamp=entry.metadata["timestamp"],
+                message=message,
+            )
+
+    def get_frame_from_entry(self, entry: RecordingIndexEntry) -> FrameData | None:
+        if "frame" not in entry.metadata.get("types", ("frame",)):
+            return None
+
+        message = self.get_message_from_entry(entry)
+
+        if "frame" not in message:
+            return None
+
+        return FrameData.unpack_from_dict(message["frame"])
+
+    def get_state_from_entry(
+        self, entry: RecordingIndexEntry
+    ) -> DictionaryChange | None:
+        if "state" not in entry.metadata.get("types", ("state",)):
+            return None
+
+        message = self.get_message_from_entry(entry)
+
+        if "state" not in message:
+            return None
+
+        return DictionaryChange.from_dict(message["state"])
+
+    def get_message_type_from_entry(
+        self, entry: RecordingIndexEntry, type: str
+    ) -> Any | None:
+        if type not in entry.metadata.get("types", (type,)):
+            return None
+        message = self.get_message_from_entry(entry)
+        return message.get(type, None)
+
+    def __repr__(self):
+        filepart = f" {self.zipfile.filename}" or ""
+        entriespart = f" with {len(self)} entries"
+
+        first_ts = self.index[0].metadata.get("timestamp")
+        last_ts = self.index[-1].metadata.get("timestamp")
+        duration = (last_ts - first_ts) * MICROSECONDS_TO_SECONDS
+        durationpart = f" spanning {duration}s"
+
+        return f"<{self.__class__.__name__}{filepart}{entriespart}{durationpart}>"
 
 
-def read_u64(io: BinaryIO):
-    return int.from_bytes(read(io, 8), "little", signed=False)
+def split_by_simulation_counter(path: PathLike[str]):
+    def get_simulation_counter(triplet):
+        _, frame, _ = triplet
+        return frame.frame_dict.get(SIMULATION_COUNTER)
+
+    full_view = iter_full_view(path)
+    sessions = [
+        list(session)
+        for simulation_counter, session in groupby(
+            full_view, key=get_simulation_counter
+        )
+        if simulation_counter is not None
+    ]
+
+    return sessions
 
 
-def read_u128(io: BinaryIO):
-    return int.from_bytes(read(io, 16), "little", signed=False)
+def iter_full_view(path: PathLike[str]):
+    full_frame = FrameData()
+    full_state = StateDictionary()
+
+    for time, frame, update in iter_recording_file(path):
+        if frame is not None:
+            full_frame.update(frame)
+
+        if update is not None:
+            full_state.update_state(None, update)
+
+        yield time, full_frame.copy(), full_state.copy_content()
 
 
-def read(io: BinaryIO, count: int):
-    buffer = io.read(count)
-    if len(buffer) < count:
-        raise EOFError
-    return buffer
+def iter_recording_file(path: PathLike[str]):
+    with MessageZipReader.from_path(path) as reader:
+        for entry in reader:
+            frame, update = None, None
+            message = reader.get_message_from_entry(entry)
+            if "frame" in message:
+                frame = FrameData.unpack_from_dict(message["frame"])
+            if "state" in message:
+                update = DictionaryChange.from_dict(message["state"])
+
+            if frame is not None or update is not None:
+                yield entry.metadata["timestamp"], frame, update
+
+
+def message_events_from_recording(path: PathLike[str]):
+    with MessageZipReader.from_path(path) as reader:
+        for entry in reader:
+            yield MessageEvent(
+                timestamp=entry.metadata["timestamp"],
+                message=reader.get_message_from_entry(entry),
+            )
+
+
+def parse_index(zipfile: ZipFile):
+    with zipfile.open(RECORDING_INDEX_FILENAME) as index_file:
+        return [
+            RecordingIndexEntry(**entry) for entry in msgpack.unpackb(index_file.read())
+        ]

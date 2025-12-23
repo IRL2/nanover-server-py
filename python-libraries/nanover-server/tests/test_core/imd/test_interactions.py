@@ -15,7 +15,9 @@ def nparrays(draw, elements):
 @st.composite
 def positions(draw):
     python_list = st.lists(
-        st.floats(allow_nan=False, allow_infinity=False), min_size=3, max_size=3
+        st.floats(allow_nan=False, allow_infinity=False),
+        min_size=3,
+        max_size=3,
     )
     return draw(st.one_of(python_list, nparrays(python_list)))
 
@@ -67,8 +69,26 @@ def interaction_dictionaries(draw):
 
 
 @st.composite
+def extra_dictionaries(draw):
+    serializable_dict: dict = draw(serializable_dictionaries())
+
+    for key in {
+        "position",
+        "particles",
+        "reset_velocities",
+        "mass_weighted",
+        "scale",
+        "max_force",
+        "interaction_type",
+    }:
+        serializable_dict.pop(key, None)
+
+    return serializable_dict
+
+
+@st.composite
 def interactions(draw):
-    serializable_dict = draw(serializable_dictionaries())
+    extra = draw(extra_dictionaries())
     return ParticleInteraction(
         position=draw(positions()),
         particles=draw(particles()),
@@ -77,7 +97,7 @@ def interactions(draw):
         scale=draw(scale()),
         max_force=draw(max_force()),
         interaction_type=draw(interaction_type()),
-        **serializable_dict
+        **extra,
     )
 
 
@@ -102,7 +122,7 @@ def test_save_then_load(interaction):
     scale(),
     max_force(),
     interaction_type(),
-    serializable_dictionaries(),
+    extra_dictionaries(),
 )
 def test_constructor(
     position,
@@ -122,7 +142,7 @@ def test_constructor(
         scale=scale,
         max_force=max_force,
         interaction_type=interaction_type,
-        **extra
+        **extra,
     )
     assert np.allclose(interaction.position, np.array(position))
     assert np.all(interaction.particles == np.array(particles))
@@ -146,8 +166,6 @@ def test_position(orig, new):
 @given(particles(), particles())
 def test_particles(orig, new):
     interaction = ParticleInteraction(particles=orig)
-    print(np.array(orig))
-    print(interaction.particles)
     assert np.all(interaction.particles == np.array(orig))
     interaction.particles = new
     assert np.all(interaction.particles == np.array(new))
@@ -193,7 +211,7 @@ def test_interaction_type(orig, new):
     assert interaction.interaction_type == new
 
 
-@given(serializable_dictionaries(), serializable_dictionaries())
+@given(extra_dictionaries(), extra_dictionaries())
 def test_extra(original_extra, new_extra):
     interaction = ParticleInteraction(**original_extra)
     for key, value in original_extra.items():
