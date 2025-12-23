@@ -8,7 +8,7 @@ from nanover.app import NanoverImdApplication
 from nanover.core import AppServer
 from nanover.essd import DiscoveryServer
 from nanover.essd.server import BROADCAST_PORT
-from nanover.essd.utils import get_broadcastable_ip
+from nanover.essd.utils import get_broadcastable_test_ip
 from nanover.websocket import NanoverImdClient
 
 DISCOVERY_DELAY = 0.05
@@ -25,7 +25,7 @@ def discoverable_imd_server():
     # Use unique non-default port for discovery. This avoids interference
     # with other tests and other servers on the network.
     DISCOVERY_PORT = BROADCAST_PORT + 1
-    address = get_broadcastable_ip()
+    address = get_broadcastable_test_ip()
     discovery = DiscoveryServer(broadcast_port=DISCOVERY_PORT, delay=DISCOVERY_DELAY)
     with NanoverImdApplication(
         address=address, discovery=discovery, name="pytest"
@@ -42,7 +42,7 @@ def test_autoconnect_app_server_default_ports():
     """
     mock = Mock(return_value={})
 
-    address = get_broadcastable_ip()
+    address = get_broadcastable_test_ip()
     discovery = DiscoveryServer(delay=DISCOVERY_DELAY)
 
     with NanoverImdApplication(
@@ -78,7 +78,7 @@ def test_autoconnect_named_server():
     Test autoconnecting to a named server.
     """
     SERVER_NAME = "pytest baby yoda"
-    address = get_broadcastable_ip()
+    address = get_broadcastable_test_ip()
     discovery = DiscoveryServer(delay=DISCOVERY_DELAY)
 
     with NanoverImdApplication(
