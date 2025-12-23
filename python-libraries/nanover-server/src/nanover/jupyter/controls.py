@@ -32,7 +32,7 @@ def show_runner_controls(imd_runner: OmniRunner):
     def close_server(_):
         imd_runner.close()
 
-    interact_button(close_server, description="Close Server"),
+    interact_button(close_server, description="Close Server")
 
     show_app_server_controls(imd_runner.app_server)
 

@@ -3,18 +3,21 @@ import errno
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from ssl import SSLContext
-from typing import Any, Self
+from typing import Self
 
 import msgpack
-import numpy as np
 
 from nanover.core import AppServer
 from nanover.trajectory import FrameData
-from nanover.utilities.change_buffers import DictionaryChange, ObjectFrozenError
+from nanover.utilities.change_buffers import (
+    DictionaryChange,
+    ObjectFrozenError,
+)
 from nanover.utilities.cli import CancellationToken
 from websockets.sync.server import serve, ServerConnection, Server
 
 from nanover.core.commands import CommandMessageHandler
+from nanover.utilities.packing import fallback_encoder
 
 
 class WebSocketServer:
@@ -142,7 +145,7 @@ class _WebSocketClientHandler:
         self.send_message({"state": change.to_dict()})
 
     def send_message(self, message):
-        self.websocket.send(msgpack.packb(message, default=_fallback_encoder))
+        self.websocket.send(msgpack.packb(message, default=fallback_encoder))
 
     def recv_message(self, message: dict):
         def handle_state_update(update):
@@ -235,16 +238,3 @@ def _get_server_port(server: Server) -> int:
     Returns the concrete port used by a given websocket server.
     """
     return server.socket.getsockname()[1]
-
-
-def _fallback_encoder(obj: Any) -> Any:
-    """
-    Converts, if possible, a type msgpack doesn't understand into a basic type it can encode.
-
-    :param obj: object to be converted
-    :return: simplified object
-    """
-    # encode numpy arrays as simple lists
-    if isinstance(obj, np.ndarray):
-        return obj.tolist()
-    raise TypeError(f"Unknown type: {obj}")

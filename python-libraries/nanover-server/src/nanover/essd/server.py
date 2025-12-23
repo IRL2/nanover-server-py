@@ -18,7 +18,14 @@ import logging
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
-from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
+from socket import (
+    socket,
+    AF_INET,
+    SOCK_DGRAM,
+    SOL_SOCKET,
+    SO_BROADCAST,
+    SO_REUSEADDR,
+)
 from typing import List
 
 from nanover.essd.utils import (
@@ -154,7 +161,7 @@ class DiscoveryServer:
             else:
                 message = service.to_message()
             self.logger.debug(
-                f'Sending service {service} to {broadcast_address["broadcast"]}:{self.port}'
+                f"Sending service {service} to {broadcast_address['broadcast']}:{self.port}"
             )
             self._socket.sendto(
                 message.encode(), (broadcast_address["broadcast"], self.port)

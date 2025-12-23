@@ -13,6 +13,7 @@ from nanover.recording.reading import (
     RecordingIndexEntry,
 )
 from nanover.trajectory.keys import FRAME_INDEX
+from nanover.utilities.packing import fallback_encoder
 
 
 class NanoverRecordingWriter:
@@ -27,6 +28,7 @@ class NanoverRecordingWriter:
             RECORDING_MESSAGES_FILENAME, "w", force_zip64=True
         )
         self.index: list[RecordingIndexEntry] = []
+        self.open = True
 
     def __enter__(self):
         return self
@@ -35,12 +37,15 @@ class NanoverRecordingWriter:
         self.close()
 
     def close(self):
+        if not self.open:
+            return
+        self.open = False
         self.messages_file.close()
         self.write_index()
         self.archive.close()
 
     def write_message_event(self, event: MessageEvent):
-        data = msgpack.packb(event.message)
+        data = msgpack.packb(event.message, default=fallback_encoder)
         metadata = generate_metadata(event.message)
         metadata["timestamp"] = event.timestamp
         entry = RecordingIndexEntry(

@@ -25,7 +25,10 @@ def test_split_recording(tmp_path_factory):
     )
     next_path = tmp_path_factory.mktemp("recording") / "recording.nanover.zip"
 
-    with open(prev_path, "rb") as prev_file, open(next_path, "wb") as next_file:
+    with (
+        open(prev_path, "rb") as prev_file,
+        open(next_path, "wb") as next_file,
+    ):
         next_file.write(prev_file.read())
 
     assert (

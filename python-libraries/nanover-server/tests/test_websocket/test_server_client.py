@@ -8,7 +8,11 @@ from nanover.testing.servers import (
 from nanover.testing.utilities import simplify_numpy
 from nanover.utilities.change_buffers import DictionaryChange
 
-from nanover.testing import assert_equal_soon, assert_not_in_soon, assert_in_soon
+from nanover.testing import (
+    assert_equal_soon,
+    assert_not_in_soon,
+    assert_in_soon,
+)
 from nanover.testing.strategies import (
     command_arguments,
     state_updates,
@@ -152,7 +156,10 @@ def test_client_frame(reusable_setup, frame):
 
     def simplify(frame):
         return simplify_numpy(
-            drop(frame.frame_dict, {keys.SIMULATION_COUNTER, keys.SERVER_TIMESTAMP})
+            drop(
+                frame.frame_dict,
+                {keys.SIMULATION_COUNTER, keys.SERVER_TIMESTAMP},
+            )
         )
 
     assert_equal_soon(

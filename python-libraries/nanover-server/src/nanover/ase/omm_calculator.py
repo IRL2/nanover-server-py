@@ -8,7 +8,13 @@ from ase import Atoms, Atom  # type: ignore
 from ase.calculators.calculator import Calculator, all_changes
 from openmm import System, State
 from openmm.app import Topology, Simulation
-from openmm.unit import angstrom, kilojoules_per_mole, kilojoule_per_mole, amu, Quantity
+from openmm.unit import (
+    angstrom,
+    kilojoules_per_mole,
+    kilojoule_per_mole,
+    amu,
+    Quantity,
+)
 
 from nanover.ase.converter import KJMOL_TO_EV, ase_to_frame_data
 from nanover.openmm.converter import add_openmm_topology_to_frame_data

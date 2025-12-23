@@ -21,7 +21,11 @@ def assert_true_soon(
 
 
 def assert_equal_soon(
-    a: Callable, b: Callable, *, interval=DEFAULT_INTERVAL, timeout=DEFAULT_TIMEOUT
+    a: Callable,
+    b: Callable,
+    *,
+    interval=DEFAULT_INTERVAL,
+    timeout=DEFAULT_TIMEOUT,
 ):
     __tracebackhide__ = True  # hide this function in the test traceback
     deadline = time.monotonic() + timeout
@@ -34,7 +38,11 @@ def assert_equal_soon(
 
 
 def assert_in_soon(
-    a: Callable, b: Callable, *, interval=DEFAULT_INTERVAL, timeout=DEFAULT_TIMEOUT
+    a: Callable,
+    b: Callable,
+    *,
+    interval=DEFAULT_INTERVAL,
+    timeout=DEFAULT_TIMEOUT,
 ):
     __tracebackhide__ = True  # hide this function in the test traceback
     deadline = time.monotonic() + timeout
@@ -47,7 +55,11 @@ def assert_in_soon(
 
 
 def assert_not_in_soon(
-    a: Callable, b: Callable, *, interval=DEFAULT_INTERVAL, timeout=DEFAULT_TIMEOUT
+    a: Callable,
+    b: Callable,
+    *,
+    interval=DEFAULT_INTERVAL,
+    timeout=DEFAULT_TIMEOUT,
 ):
     __tracebackhide__ = True  # hide this function in the test traceback
     deadline = time.monotonic() + timeout

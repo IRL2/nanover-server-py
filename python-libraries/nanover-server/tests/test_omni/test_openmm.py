@@ -44,7 +44,10 @@ def make_example_openmm():
 
 @pytest.fixture
 def single_atom_app_and_simulation_with_constant_force():
-    with make_single_atom_app_and_simulation_with_constant_force() as (app_server, sim):
+    with make_single_atom_app_and_simulation_with_constant_force() as (
+        app_server,
+        sim,
+    ):
         yield app_server, sim
 
 
@@ -223,7 +226,9 @@ def test_work_done_server(single_atom_app_and_simulation_with_constant_force):
         assert sim.work_done == 0
 
 
-def test_work_done_frame(basic_system_app_and_simulation_with_complex_interactions):
+def test_work_done_frame(
+    basic_system_app_and_simulation_with_complex_interactions,
+):
     """
     Test that the calculated user work done on a system that appears in the frame is equal
     to the user work done as calculated in the OpenMMSimulation.
@@ -240,7 +245,9 @@ def test_work_done_frame(basic_system_app_and_simulation_with_complex_interactio
         assert frame.user_work_done == sim.work_done
 
 
-def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_force):
+def test_save_state_basic_system(
+    basic_system_app_and_simulation_with_constant_force,
+):
     """
     Test that the state of the system can be serialized and deserialized correctly
     by testing that the velocities of the simulation being serialized approximately
@@ -272,7 +279,9 @@ def test_save_state_basic_system(basic_system_app_and_simulation_with_constant_f
         assert velocities[i].z == pytest.approx(loaded_velocities[i].z, abs=2.0e-6)
 
 
-def test_instantaneous_temperature_no_interaction(basic_system_app_and_simulation):
+def test_instantaneous_temperature_no_interaction(
+    basic_system_app_and_simulation,
+):
     """
     Test that the instantaneous temperature calculated by NanoVer is equal to the
     instantaneous temperature calculated by the StateDataReporter of OpenMM for a
@@ -309,7 +318,6 @@ def test_instantaneous_temperature_imd_interaction(
 
     # Save the output of the StateDataReporter to a variable
     with redirect_stdout(StringIO()) as state_data_output:
-
         # Attach StateDataReporter to the simulation
         sim.simulation.reporters.append(
             StateDataReporter(sys.stdout, 1, step=True, temperature=True, append=True)
@@ -364,7 +372,9 @@ def test_force_manager_masses(basic_system_app_and_simulation):
 
 
 # TODO: could generalise for both OMM and ASE
-def test_report_frame_forces(basic_system_app_and_simulation_with_complex_interactions):
+def test_report_frame_forces(
+    basic_system_app_and_simulation_with_complex_interactions,
+):
     """
     Test that user forces are reported within the frame.
     """
@@ -376,7 +386,9 @@ def test_report_frame_forces(basic_system_app_and_simulation_with_complex_intera
 
 
 # TODO: could generalise for both OMM and ASE
-def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force):
+def test_sparse_user_forces(
+    basic_system_app_and_simulation_with_constant_force,
+):
     """
     Test that the sparse user forces exist in the frame data when a user applies an iMD force,
     check that the size of the array of forces is equal to the size of the array of corresponding
@@ -391,7 +403,9 @@ def test_sparse_user_forces(basic_system_app_and_simulation_with_constant_force)
     assert np.all(frame.user_forces_sparse) != 0.0
 
 
-def test_apply_interactions(basic_system_app_and_simulation_with_complex_interactions):
+def test_apply_interactions(
+    basic_system_app_and_simulation_with_complex_interactions,
+):
     """
     Interactions are applied and the computed forces are passed to the imd
     force object.
@@ -442,7 +456,9 @@ def test_remove_interaction_complete(
     )
 
 
-def test_velocities_and_forces(basic_system_app_and_simulation_with_constant_force):
+def test_velocities_and_forces(
+    basic_system_app_and_simulation_with_constant_force,
+):
     """
     Test the particle velocities and particle forces that can be optionally included
     when running OpenMM simulations. Assert that these arrays exist, have the same

@@ -2,7 +2,6 @@ import time
 from collections import deque
 from contextlib import suppress
 from typing import Any
-from warnings import deprecated
 
 from nanover.core import AppServer, AppServerMinimal
 from nanover.essd import DiscoveryClient, ServiceHub
@@ -49,11 +48,11 @@ class NanoverImdClient(
     @classmethod
     def from_app_server(cls, app_server: AppServer):
         with suppress(KeyError):
-            url = f"ws://127.0.0.1:{app_server.service_hub.services["ws"]}"
+            url = f"ws://127.0.0.1:{app_server.service_hub.services['ws']}"
             return cls.from_url(url)
 
         with suppress(KeyError):
-            url = f"wss://127.0.0.1:{app_server.service_hub.services["wss"]}"
+            url = f"wss://127.0.0.1:{app_server.service_hub.services['wss']}"
             return cls.from_url(url)
 
         raise Exception("Neither ws or wss service found in AppServer")
@@ -133,8 +132,15 @@ class NanoverImdClient(
         """
         return MINIMUM_USABLE_FRAME_KEYS < self.current_frame.frame_dict.keys()
 
-    @deprecated("Use `wait_until_minimum_usable_frame` instead")
     def wait_until_first_frame(self, check_interval=0.01, timeout=1):
+        import warnings
+
+        warnings.warn(
+            "Use `wait_until_minimum_usable_frame` instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         return self.wait_until_minimum_usable_frame(
             check_interval=check_interval, timeout=timeout
         )

@@ -11,11 +11,14 @@ from contextlib import contextmanager
 from glob import glob
 from typing import Iterable
 
+from MDAnalysis import Universe
+
 from nanover.omni import OmniRunner
 from nanover.mdanalysis import UniverseSimulation
 from nanover.openmm import OpenMMSimulation
 from nanover.recording import PlaybackSimulation
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
+from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.discovery import DiscoveryClient
 from nanover.websocket.record import record_from_runner
 
@@ -50,7 +53,7 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         nargs="+",
         default=[],
         metavar="PATH",
-        help="Structures to load via MDanalysis",
+        help="Independent structures to load via MDanalysis",
     )
 
     parser.add_argument(
@@ -104,6 +107,14 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--remote",
+        nargs="?",
+        metavar="PROTOCOL://HOST:PORT",
+        help="Publish to remote server at specific host address and port.",
+        const="ws://localhost:38801",
+    )
+
+    parser.add_argument(
         "-n",
         "--name",
         help="Give a friendly name to the server.",
@@ -127,12 +138,23 @@ def get_all_paths(path_sets: Iterable[Iterable[str]]):
 
 @contextmanager
 def initialise_runner(arguments: argparse.Namespace):
-    with OmniRunner.with_basic_server(
-        name=arguments.name,
-        address=arguments.address,
-        port=arguments.port,
-        ssl=initialise_ssl(arguments),
-    ) as runner:
+    @contextmanager
+    def make_runner():
+        if arguments.remote is None:
+            with OmniRunner.with_basic_server(
+                name=arguments.name,
+                address=arguments.address,
+                port=arguments.port,
+                ssl=initialise_ssl(arguments),
+            ) as runner:
+                yield runner
+        else:
+            with NanoverImdClient.from_url(arguments.remote) as client:
+                print(f"Serving as client of remote server at {arguments.remote}")
+                with OmniRunner.from_client(client) as runner:
+                    yield runner
+
+    with make_runner() as runner:
         for path in get_all_paths(arguments.recording_entries):
             runner.add_simulation(PlaybackSimulation.from_path(path=path))
 
@@ -143,7 +165,8 @@ def initialise_runner(arguments: argparse.Namespace):
             runner.add_simulation(simulation)
 
         for path in get_all_paths(arguments.mdanalysis_entries):
-            simulation = UniverseSimulation.from_path(path=path)
+            universe = Universe(path)
+            simulation = UniverseSimulation.from_universe(universe)
             runner.add_simulation(simulation)
 
         if arguments.record_to_path is not None:

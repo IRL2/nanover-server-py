@@ -146,7 +146,9 @@ def test_frozen_multiview_cant_update(change_multiview):
 
 
 @pytest.mark.timeout(1)
-def test_frozen_multiview_view_gives_last_values_and_no_removals(change_multiview):
+def test_frozen_multiview_view_gives_last_values_and_no_removals(
+    change_multiview,
+):
     """
     Test that views can still be created on a frozen multiview but that they
     only provide the initial values and then raise the correct exception on
@@ -165,7 +167,9 @@ def test_frozen_multiview_view_gives_last_values_and_no_removals(change_multivie
 
 
 @pytest.mark.timeout(1)
-def test_frozen_multiview_subscribe_gives_last_values_and_no_removals(change_multiview):
+def test_frozen_multiview_subscribe_gives_last_values_and_no_removals(
+    change_multiview,
+):
     """
     Test that subscribing a frozen multiview provides the initial values and
     then ends.

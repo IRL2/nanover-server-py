@@ -45,7 +45,7 @@ class ASESimulation(Simulation):
         dynamics: MolecularDynamics,
         *,
         name: str | None = None,
-        ase_atoms_to_frame_data: ASEAtomsToFrameData = ase_atoms_to_frame_data
+        ase_atoms_to_frame_data: ASEAtomsToFrameData = ase_atoms_to_frame_data,
     ):
         """
         Construct this from an existing ASE dynamics.
