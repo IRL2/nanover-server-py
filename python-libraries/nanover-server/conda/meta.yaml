@@ -22,7 +22,7 @@ requirements:
     - setuptools
   run:
     - python >={{ MIN_PYTHON_VERSION }}
-    - netifaces
+    - psutil
     - numpy
     - openmm
     - ase >=3.21

@@ -1,4 +1,5 @@
 import pytest
+from psutil._common import snicaddr
 
 from nanover.essd.server import DiscoveryServer
 from nanover.essd.utils import (
@@ -8,11 +9,10 @@ from nanover.essd.utils import (
     resolve_host_broadcast_address,
 )
 from nanover.essd.servicehub import ServiceHub
-import netifaces
 from test_essd_service import (
-    properties,
-    get_broadcastable_ip,
+    get_broadcastable_test_ip,
     properties_unique_id,
+    properties,
 )
 
 
@@ -68,25 +68,7 @@ def test_get_ipv4_addresses():
     assert len(ipv4_addresses) > 0
 
 
-def test_get_ipv4_addresses_per_interface():
-    """
-    Test that each interface returns the correct list of ipv4 addresses or empty
-    if none exist on the interface.
-    """
-    for interface in netifaces.interfaces():
-        ipv4_addresses = get_ipv4_addresses([interface])
-        if_addresses = netifaces.ifaddresses(interface)
-        try:
-            expected_addresses = if_addresses[netifaces.AF_INET]
-            assert ipv4_addresses == expected_addresses
-        except KeyError:
-            assert len(ipv4_addresses) == 0
-
-
 def test_get_broadcast_addresses():
-    interfaces = netifaces.interfaces()
-    if interfaces is None or len(interfaces) == 0:
-        return
     broadcast_addresses = get_broadcast_addresses()
     assert len(broadcast_addresses) > 0
 
@@ -103,10 +85,13 @@ def test_get_broadcast_addresses():
     ],
 )
 def test_is_in_network(address, netmask, broadcast_address, expected_result):
-    network_interface_addresses = {
-        "netmask": netmask,
-        "broadcast": broadcast_address,
-    }
+    network_interface_addresses = snicaddr(
+        netmask=netmask,
+        broadcast=broadcast_address,
+        ptp=None,
+        address=None,
+        family=None,
+    )
     assert expected_result == is_in_network(address, network_interface_addresses)
 
 
@@ -120,21 +105,15 @@ def test_is_in_network(address, netmask, broadcast_address, expected_result):
     ],
 )
 def test_is_in_network_invalid_addresses(address, netmask, broadcast_address):
-    network_interface_addresses = {
-        "netmask": netmask,
-        "broadcast": broadcast_address,
-    }
+    network_interface_addresses = snicaddr(
+        netmask=netmask,
+        broadcast=broadcast_address,
+        ptp=None,
+        address=None,
+        family=None,
+    )
     with pytest.raises(ValueError):
         _ = is_in_network(address, network_interface_addresses)
-
-
-@pytest.mark.parametrize(
-    "entry",
-    [({"broadcast": "192.168.255.255"}), ({"netmask": "255.255.255.0"}), ({})],
-)
-def test_is_in_network_missing_fields(entry):
-    with pytest.raises(KeyError):
-        _ = is_in_network("192.168.0.1", entry)
 
 
 def test_resolve_address():
@@ -143,11 +122,11 @@ def test_resolve_address():
     The resolve address function is primarily used with 'localhost', but that
     does not exist on the CI, so we test what we can.
     """
-    ip = get_broadcastable_ip()
+    ip = get_broadcastable_test_ip()
     addr = resolve_host_broadcast_address(ip)
     assert addr is not None
-    assert addr["addr"] == ip
-    assert "broadcast" in addr
+    assert addr.address == ip
+    assert addr.broadcast is not None
 
 
 def test_resolve_invalid_address():
