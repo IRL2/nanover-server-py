@@ -42,6 +42,12 @@ USER_WORK_DONE = "forces.user.work_done"
 
 SYSTEM_TEMPERATURE = "system.temperature"
 
+MEASURE_BASE_KEY = "measure"
+MEASURE_SCALAR = "measure.scalar"
+MEASURE_DISTANCE = "measure.distance"
+MEASURE_ANGLE = "measure.angle"
+MEASURE_DIHEDRAL = "measure.dihedral"
+
 SERVER_TIMESTAMP = "server.timestamp"
 
 PLAY_COMMAND = "playback/play"
