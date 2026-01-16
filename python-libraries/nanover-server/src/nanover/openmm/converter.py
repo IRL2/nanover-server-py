@@ -94,7 +94,10 @@ def add_openmm_topology_to_frame_data(data: FrameData, topology: Topology) -> No
     data.particle_names = [atom.name for atom in topology.atoms()]
 
     data.particle_elements = np.fromiter(
-        (atom.element.atomic_number for atom in topology.atoms()),
+        (
+            atom.element.atomic_number if atom.element is not None else 0
+            for atom in topology.atoms()
+        ),  # if condition handles atoms without defined elements, e.g virtual sites
         dtype=np.uint8,
     )
     data.particle_residues = np.fromiter(
