@@ -12,7 +12,7 @@ from scipy.interpolate import splprep, splev
 from nanover.mdanalysis import NanoverParser, NanoverReader
 
 try:
-    from ipywidgets import interact, interactive, fixed, interact_manual, VBox, HBox
+    from ipywidgets import interact, interactive, interactive_output, fixed, interact_manual, VBox, HBox
     from IPython import get_ipython
     from IPython.display import display
 
@@ -374,35 +374,92 @@ class PathSmoother:
 
                 plt.draw()
 
+            # Save current parameters
+            self.smoothing_parameter = smoothing_value
+            self.n_points = n_points
+            self.smoothing_start_index = start_point
+            self.smoothing_end_index = end_point
+
             return smoothing_value, n_points, start_point, end_point
 
-        self.smoothing_plot = interactive(
-            interactive_smoothing_plot,
-            x_pos=fixed(self.com_positions[:, 0]),
-            y_pos=fixed(self.com_positions[:, 1]),
-            z_pos=fixed(self.com_positions[:, 2]),
-            smoothing_value=widgets.FloatSlider(
-                min=0.0, max=10.0, step=0.0001, value=0.0, readout_format='.4f'
-            ),
-            n_points=widgets.IntSlider(min=1000, max=10000, step=100, value=1000),
-            start_point=widgets.IntSlider(
-                min=0, max=int((self.com_positions[:, 0].size / 2) - 2), step=1, value=0
-            ),
-            end_point=widgets.IntSlider(
-                min=0, max=int((self.com_positions[:, 0].size / 2) - 2), step=1, value=0
-            ),
+        smoothing_slider = widgets.FloatSlider(
+            min=0.0, max=10.0, step=0.0001, value=0.0, readout_format=".4f", description="Smoothing"
+        )
+        n_points_slider = widgets.IntSlider(
+            min=1000, max=10000, step=100, value=1000, description="N Points"
+        )
+        start_point_slider = widgets.IntSlider(
+            min=0,
+            max=int((self.com_positions[:, 0].size / 2) - 2),
+            step=1,
+            value=0,
+            description="Start",
+        )
+        end_point_slider = widgets.IntSlider(
+            min=0,
+            max=int((self.com_positions[:, 0].size / 2) - 2),
+            step=1,
+            value=0,
+            description="End",
         )
 
-        return self.smoothing_plot
+        # Define minimum number of points for spline (assume cubic)
+        MIN_POINTS = 4
+
+        def update_start_range(change):
+            # Dynamically update the start point range
+            max_start = max(0, self.com_positions.shape[0] - end_point_slider.value - MIN_POINTS)
+            start_point_slider.max = max_start
+            if start_point_slider.value > max_start:
+                start_point_slider.value = max_start
+
+        def update_end_range(change):
+            # Dynamically update the end point range
+            max_end = max(0, self.com_positions.shape[0] - start_point_slider.value - MIN_POINTS)
+            end_point_slider.max = max_end
+            if end_point_slider.value > max_end:
+                end_point_slider.value = max_end
+
+        # Attach observers to the start and end point sliders
+        end_point_slider.observe(update_start_range, names="value")
+        start_point_slider.observe(update_end_range, names="value")
+
+        # Sync values of start and end point sliders
+        update_start_range(None)
+        update_end_range(None)
+
+        self.smoothing_plot = interactive_output(
+            interactive_smoothing_plot,
+            {
+            "x_pos": fixed(self.com_positions[:, 0]),
+            "y_pos": fixed(self.com_positions[:, 1]),
+            "z_pos": fixed(self.com_positions[:, 2]),
+            "smoothing_value": smoothing_slider,
+            "n_points": n_points_slider,
+            "start_point": start_point_slider,
+            "end_point": end_point_slider,
+        })
+        # return self.smoothing_plot
+
+        controls_box = VBox([
+            smoothing_slider,
+            n_points_slider,
+            start_point_slider,
+            end_point_slider,
+        ])
+        controls_box.layout = widgets.Layout(
+            width="300px",
+            align_items="flex-start",  # left-align items within the VBox
+            justify_content="center",  # <- THIS centers vertically inside the HBox
+        )
+        self.smoothing_plot.layout = {"width": "800px"}
+
+        full_layout = HBox([controls_box, self.smoothing_plot])
+
+        return full_layout
 
     def save_smoothing_plot_result(self):
         assert self.smoothing_plot is not None
-        (
-            self.smoothing_parameter,
-            self.n_points,
-            self.smoothing_start_index,
-            self.smoothing_end_index,
-        ) = self.smoothing_plot.result
         self.smoothed_com_trajectory, _ = interpolate_path(
             self.com_positions[:, 0],
             self.com_positions[:, 1],
