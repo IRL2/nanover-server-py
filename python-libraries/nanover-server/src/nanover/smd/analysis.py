@@ -28,12 +28,25 @@ def _calculate_pmf_second_cumulant(
     work_done_array: np.ndarray, beta: float
 ) -> np.ndarray:
     """
-    Calculate the PMF irreversible work done via the second cumulant expansion of the
-    Jarzynski equality. WARNING: the irreversible work and beta must have compatible units!
+    Calculate the PMF from the irreversible work done via the second cumulant expansion
+    of the Jarzynski equality. This uses the inbuilt Bessel correction in NumPy to unbias
+    the calculated variance, assuming that the set of work profiles used to compute the
+    PMF is a sample of the (true) larger population.
+    WARNING: the irreversible work and beta must have compatible units!
     """
     return np.average(work_done_array, axis=0) - 0.5 * beta * np.var(
-        work_done_array, axis=0
+        work_done_array, axis=0, ddof=1
     )
+
+
+def calculate_pmf_exponential_average(
+    work_done_array_kJ_mol: np.ndarray, temperature_K: float
+):
+    """
+    Calculate the PMF from the irreversible work done via the exponential average
+    """
+    beta = calculate_beta_mol_kJ(temperature_K)
+    return - (1. / beta) * np.log(np.average(np.exp(- beta * work_done_array_kJ_mol), axis=0))
 
 
 def calculate_pmf_second_cumulant_kJ_mol(
@@ -49,7 +62,7 @@ def calculate_pmf_second_cumulant_kJ_mol(
     :param temperature_K: Temperature (in K)
     """
     kB_kJ_mol_K = boltzmann_constant_in_kJ_mol_K()
-    beta = 1.0 / (kB_kJ_mol_K._value * temperature_K)
+    beta = calculate_beta_mol_kJ(temperature_K)
     return _calculate_pmf_second_cumulant(work_done_array_kJ_mol, beta)
 
 def calculate_reaction_coordinate_projections(
@@ -70,8 +83,12 @@ def calculate_reaction_coordinate_projections(
     """
     # Calculate displacement vectors along SMD reaction coordinate
     displacements = calculate_displacements_along_reaction_coordinate(
-        smd_reaction_coordinate, every_nth_point=every_nth_point
+        smd_reaction_coordinate
     )
+
+    # Assume "displacement" from final simulated point is equal to the
+    # final explicit displacement (restraint has same velocity)
+    displacements = np.array([*displacements, displacements[-1]])
 
     # Calculate normalised displacement vectors
     normalised_displacements = np.array(
@@ -82,8 +99,9 @@ def calculate_reaction_coordinate_projections(
     )
 
     # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
-    restraint_vectors = (smd_com_coordinates_array - smd_reaction_coordinate)[:, :-1]
+    restraint_vectors = (smd_com_coordinates_array - smd_reaction_coordinate)
     if every_nth_point is not None:
+        displacements = displacements[::every_nth_point]
         restraint_vectors = restraint_vectors[:, ::every_nth_point]
 
     i_index_range = restraint_vectors.shape[1]
