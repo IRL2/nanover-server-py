@@ -38,16 +38,14 @@ def _calculate_pmf_second_cumulant(
         work_done_array, axis=0, ddof=1
     )
 
-
-def calculate_pmf_exponential_average(
-    work_done_array_kJ_mol: np.ndarray, temperature_K: float
+def _calculate_pmf_exponential_average(
+    work_done_array: np.ndarray, beta: float
 ):
     """
-    Calculate the PMF from the irreversible work done via the exponential average
+    Calculate the PMF from the irreversible work done via the exponential average.
+    WARNING: the irreversible work and beta must have compatible units!
     """
-    beta = calculate_beta_mol_kJ(temperature_K)
-    return - (1. / beta) * np.log(np.average(np.exp(- beta * work_done_array_kJ_mol), axis=0))
-
+    return - (1. / beta) * np.log(np.average(np.exp(- beta * work_done_array), axis=0))
 
 def calculate_pmf_second_cumulant_kJ_mol(
     work_done_array_kJ_mol: np.ndarray, temperature_K: float
@@ -64,6 +62,21 @@ def calculate_pmf_second_cumulant_kJ_mol(
     kB_kJ_mol_K = boltzmann_constant_in_kJ_mol_K()
     beta = calculate_beta_mol_kJ(temperature_K)
     return _calculate_pmf_second_cumulant(work_done_array_kJ_mol, beta)
+
+def calculate_pmf_exponential_average_kJ_mol(
+    work_done_array_kJ_mol: np.ndarray, temperature_K: float
+):
+    """
+    Calculate the PMF in kJ mol-1 from the irreversible work done (also in kJ mol-1)
+    via the exponential average.
+
+    :param work_done_array_kJ_mol: N x k array of irreversible work done from a set of
+      N SMD simulations performed using a reaction coordinate defined by k positions
+      (in kJ mol-1).
+    :param temperature_K: Temperature (in K)
+    """
+    beta = calculate_beta_mol_kJ(temperature_K)
+    return _calculate_pmf_exponential_average(work_done_array_kJ_mol, beta)
 
 def calculate_reaction_coordinate_projections(
     smd_com_coordinates_array: np.ndarray,
