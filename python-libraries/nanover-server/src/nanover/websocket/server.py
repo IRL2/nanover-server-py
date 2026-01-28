@@ -19,6 +19,8 @@ from websockets.sync.server import serve, ServerConnection, Server
 from nanover.core.commands import CommandMessageHandler
 from nanover.utilities.packing import fallback_encoder
 
+MAX_MESSAGE_SIZE = 128 * 1024 * 1024
+
 
 class WebSocketServer:
     @classmethod
@@ -74,7 +76,9 @@ class WebSocketServer:
         under discovery if a service name is provided.
         """
         try:
-            server = serve(self._handle_client, host, port, ssl=ssl)
+            server = serve(
+                self._handle_client, host, port, ssl=ssl, max_size=MAX_MESSAGE_SIZE
+            )
         except IOError as e:
             if e.errno == errno.EADDRINUSE:
                 raise IOError(f"Port {port} already in use.") from None
