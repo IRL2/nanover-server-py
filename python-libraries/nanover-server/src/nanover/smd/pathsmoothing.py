@@ -283,7 +283,7 @@ class PathSmoother:
         self._make_plots_interactive()
 
         def interactive_smoothing_plot(
-            x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point
+            x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point, ref_alpha
         ):
 
             pos_array_size = x_pos.size
@@ -292,6 +292,13 @@ class PathSmoother:
             interpolated_path, interpolated_u_values = interpolate_path(
                 x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point
             )
+
+            # Format start and end as strings
+            start_coords = np.round(interpolated_path[0], 3)
+            end_coords = np.round(interpolated_path[-1], 3)
+
+            start_label.value = f"Start: {start_coords.tolist()}"
+            end_label.value = f"End: {end_coords.tolist()}"
 
             # Save current view if plot already exists
             if self.fig is None or self.ax is None:
@@ -316,7 +323,7 @@ class PathSmoother:
                     c=original_u_values,
                     cmap=cmap,
                     s=50.0,
-                    alpha=0.05,
+                    alpha=ref_alpha,
                 )
 
                 if plot_atom_positions:
@@ -369,7 +376,7 @@ class PathSmoother:
                     c=original_u_values,
                     cmap=cmap,
                     s=50.0,
-                    alpha=0.05,
+                    alpha=ref_alpha,
                 )
 
                 plt.draw()
@@ -403,6 +410,15 @@ class PathSmoother:
             description="End",
         )
 
+        ref_alpha_slider = widgets.FloatSlider(
+            value=0.05,
+            min=0.0,
+            max=1.0,
+            step=0.01,
+            description="Original points opacity",
+            continuous_update=True
+        )
+
         # Define minimum number of points for spline (assume cubic)
         MIN_POINTS = 4
 
@@ -424,6 +440,10 @@ class PathSmoother:
         end_point_slider.observe(update_start_range, names="value")
         start_point_slider.observe(update_end_range, names="value")
 
+        # Add start and end coordinates of the smoothed plot to the output
+        start_label = widgets.Label(value="Start: [---, ---, ---]")
+        end_label = widgets.Label(value="End: [---, ---, ---]")
+
         # Sync values of start and end point sliders
         update_start_range(None)
         update_end_range(None)
@@ -438,6 +458,7 @@ class PathSmoother:
             "n_points": n_points_slider,
             "start_point": start_point_slider,
             "end_point": end_point_slider,
+            "ref_alpha": ref_alpha_slider,
         })
         # return self.smoothing_plot
 
@@ -446,6 +467,9 @@ class PathSmoother:
             n_points_slider,
             start_point_slider,
             end_point_slider,
+            ref_alpha_slider,
+            start_label,
+            end_label,
         ])
         controls_box.layout = widgets.Layout(
             width="300px",
