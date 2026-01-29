@@ -254,12 +254,13 @@ class OpenMMSMDSimulation:
         forces = self.simulation.system.getForces()
         forces_to_remove = []
         for i in range(len(forces)):
-            if (
-                type(forces[i]) == type(self.smd_force)
-                and forces[i].getGlobalParameterName(0)
-                == SMD_FORCE_CONSTANT_PARAMETER_NAME
-            ):
-                forces_to_remove.append(i)
+            if (type(forces[i]) == type(self.smd_force)):
+                try:
+                    if forces[i].getGlobalParameterName(0) == SMD_FORCE_CONSTANT_PARAMETER_NAME:
+                        forces_to_remove.append(i)
+                except OpenMMException:
+                    continue
+                # forces_to_remove.append(i)
 
         # Remove any SMD forces, accounting for the changes in indices
         # as forces are removed
@@ -479,7 +480,12 @@ class OpenMMSMDSimulation:
             )
         self.smd_simulation_work_done = np.cumsum(work_done_array, axis=0)
 
-    def save_smd_simulation_data(self, path: PathLike[str] = None):
+    def save_smd_simulation_data(self,
+                                 path: PathLike[str] = None,
+                                 save_work_done: bool = True,
+                                 save_atom_positions: bool = True,
+                                 work_done_dtype: np.dtype = np.float32,
+                                 atom_positions_dtype: np.dtype = np.float32):
         """
         Save the data produced by the SMD simulation in binary form that can be read
         into NumPy arrays. The following data are saved, in the order listed below:
@@ -488,6 +494,10 @@ class OpenMMSMDSimulation:
         - Work done along the reaction coordinate defined by the path of the SMD force, in kJ mol-1
 
         :param path: Path to the file to which the data will be saved.
+        :param save_work_done: Bool determining whether to save the work done
+        :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
+        :param work_done_dtype: Data type of the work done array to save.
+        :param atom_positions_dtype: Data type of the atom positions array to save.
         """
 
         if path is None:
@@ -510,8 +520,12 @@ class OpenMMSMDSimulation:
             )
 
         with open(path, "wb") as outfile:
-            np.save(outfile, self.smd_simulation_atom_positions)
-            np.save(outfile, self.smd_simulation_work_done)
+            if save_atom_positions:
+                np.save(outfile, self.smd_simulation_atom_positions.astype(atom_positions_dtype))
+                print("Atom positions saved to simulation data file.")
+            if save_work_done:
+                np.save(outfile, self.smd_simulation_work_done.astype(work_done_dtype))
+                print("Work done saved to simulation data file.")
 
     def save_general_smd_data(self, path: PathLike[str] = None):
         """
@@ -716,6 +730,47 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         self._calculate_com_trajectory()
         self._calculate_smd_forces(self.com_positions)
         self._calculate_work_done()
+
+    def save_smd_simulation_data(self,
+                                 path: PathLike[str] = None,
+                                 save_com_positions: bool = True,
+                                 com_positions_dtype: np.dtype = np.float32,
+                                 **kwargs):
+
+        """
+        Save the data produced by the SMD simulation in binary form that can be read
+        into NumPy arrays. The following data can be saved (optionally), in the order listed below:
+
+        - Trajectories of the atoms to which the SMD force was applied, in nm
+        - Work done along the reaction coordinate defined by the path of the SMD force, in kJ mol-1
+        - Trajectories of the COM of the atoms to which the SMD force was applied, in nm
+
+        :param path: Path to the file to which the data will be saved.
+        :param save_work_done: Bool determining whether to save the work done
+        :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
+        :param save_com_positions: Bool determining whether to save the positions of the COM
+        :param work_done_dtype: Data type of the work done array to save.
+        :param atom_positions_dtype: Data type of the atom positions array to save.
+        :param com_positions_dtype: Data type of the COM positions array to save.
+        """
+        #TODO: Think about whether there is a cleaner way to achieve this
+
+        # Optionally save work done and atomic coordinates
+        super().save_smd_simulation_data(path, **kwargs)
+
+        if self.com_positions is None or np.all(
+            self.com_positions == 0.0
+        ):
+            raise ValueError(
+                "Missing values for the atom positions. This data can only be saved after"
+                "the SMD calculation is completed."
+            )
+
+        # Optionally save COM positions
+        with open(path, "ab+") as outfile:
+            if save_com_positions:
+                np.save(outfile, self.com_positions.astype(com_positions_dtype))
+                print("COM positions saved to simulation data file.")
 
 
 class OpenMMStringOptimiser:
