@@ -209,7 +209,7 @@ class PathSmoother:
         self.create_mda_universe()
         self.read_mda_universe_data()
 
-    def retrieve_initial_selected_atom_positions(self, selection: str | None = 'all', guess_bonds: bool = False):
+    def retrieve_initial_selected_atom_positions(self, selection: str | None = 'all', guess_bonds: bool = True):
         """
         Retrieve the initial atomic positions of all atoms included in an MDAnalysis selection
         (selects all atoms by default), and saves their positions and corresponding colours.
@@ -221,9 +221,7 @@ class PathSmoother:
         atom_selection = self.universe.select_atoms(selection)
         self._atom_selection_positions = atom_selection.positions
         self._atom_selection_colours = np.array([get_element_colours(atom_selection.elements[i]) for i in range(atom_selection.elements.size)])
-        # TODO: Figure out how to make this work (doesn't work with universe in NanoVer units...)
         if guess_bonds:
-            atom_selection.guess_bonds()
             self._atom_selection_bond_indices = atom_selection.bonds.indices
 
     def plot_com_trajectory(
