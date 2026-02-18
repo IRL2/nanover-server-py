@@ -7,8 +7,7 @@ from nanover.core.commands import CommandMessageHandler
 from nanover.utilities.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory import FrameData
-
-MAX_MESSAGE_SIZE = 128 * 1024 * 1024
+from nanover.websocket.server import MAX_MESSAGE_SIZE
 
 
 class WebsocketClient:
