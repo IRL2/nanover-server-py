@@ -1,6 +1,5 @@
-import random
 from dataclasses import dataclass
-from typing import Optional, Any, Protocol, Tuple
+from typing import Any, Protocol, Tuple
 
 import numpy as np
 from ase import Atoms
