@@ -32,7 +32,7 @@ a function :func:`deserialize_simulation` that creates an instance of simulation
 from an XML file.
 """
 
-from typing import Optional, List, Tuple, Union, TextIO
+from typing import List, Tuple, Union, TextIO
 from io import StringIO
 from xml.dom.minidom import (
     getDOMImplementation,
@@ -112,8 +112,8 @@ def serialize_simulation(
 
 def deserialize_simulation(
     xml_content: Union[str | TextIO],
-    imd_force: Optional[CustomExternalForce] = None,
-    platform_name: Optional[str] = None,
+    imd_force: CustomExternalForce | None = None,
+    platform_name: str | None = None,
     ignore_state=False,
 ) -> app.Simulation:
     """

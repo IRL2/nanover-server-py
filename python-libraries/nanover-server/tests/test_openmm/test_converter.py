@@ -4,9 +4,7 @@ import itertools
 
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal
 from nanover.openmm import openmm_to_frame_data
-from nanover.trajectory import frame_data
 
 from openmm.app.element import Element
 from openmm.app.topology import Topology
@@ -31,104 +29,68 @@ def simple_openmm_topology():
     return topology
 
 
-# In the following tests, we refer to the raw GRPC FrameData rather than the
-# wrapped one to make sure we catch errors due to changes in the wrapper.
-# Ultimately, we want to know if we can communicate with the client.
 def test_topology_bonds(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.arrays[frame_data.BOND_PAIRS].index_values.values == [0, 1, 1, 2]
+    assert np.all(data.bond_pairs.flatten() == [0, 1, 1, 2])
 
 
 def test_topology_atom_elements(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.arrays[frame_data.PARTICLE_ELEMENTS].index_values.values == [
-        1,
-        2,
-        3,
-    ]
+    assert np.all(data.particle_elements == [1, 2, 3])
 
 
 def test_topology_atom_names(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.arrays[frame_data.PARTICLE_NAMES].string_values.values == [
-        "Atom1",
-        "Atom2",
-        "Atom3",
-    ]
+    assert data.particle_names == ["Atom1", "Atom2", "Atom3"]
 
 
 def test_topology_particle_count(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert (
-        data.raw.values[frame_data.PARTICLE_COUNT]
-        == simple_openmm_topology.getNumAtoms()
-    )
+    assert data.particle_count == simple_openmm_topology.getNumAtoms()
 
 
 def test_topology_residues(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.arrays[frame_data.RESIDUE_NAMES].string_values.values == ["RES"]
+    assert data.residue_names == ["RES"]
 
 
 def test_topology_residue_count(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    frame_count = data.raw.values[frame_data.RESIDUE_COUNT]
-    frame_count = int(frame_count.number_value)
-    assert frame_count == simple_openmm_topology.getNumResidues()
+    assert data.residue_count == simple_openmm_topology.getNumResidues()
 
 
 def test_topology_chain_count(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    frame_count = data.raw.values[frame_data.CHAIN_COUNT]
-    frame_count = int(frame_count.number_value)
-    assert frame_count == simple_openmm_topology.getNumChains()
+    assert data.chain_count == simple_openmm_topology.getNumChains()
 
 
 def test_topology_chain_names(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.arrays[frame_data.CHAIN_NAMES].string_values.values == ["A"]
+    assert data.chain_names == ["A"]
 
 
 def test_topology_particle_residues(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    frame_residues = data.raw.arrays[frame_data.PARTICLE_RESIDUES].index_values.values
-    openmm_residues = [0, 0, 0]
-    assert frame_residues == openmm_residues
+    assert np.all(data.particle_residues == [0, 0, 0])
 
 
 def test_topology_residue_ids(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.arrays[frame_data.RESIDUE_IDS].string_values.values == ["0"]
+    assert data.residue_ids == ["0"]
 
 
 def test_topology_residue_chains(simple_openmm_topology):
     data = openmm_to_frame_data(topology=simple_openmm_topology)
-    frame_chains = data.raw.arrays[frame_data.RESIDUE_CHAINS].index_values.values
-    openmm_chains = [0]
-    assert frame_chains == openmm_chains
+    assert np.all(data.residue_chains == [0])
 
 
 def test_box_vectors(basic_simulation):
-    expected = list(itertools.chain(BASIC_SIMULATION_BOX_VECTORS))
     state = basic_simulation.context.getState(getPositions=True)
     data = openmm_to_frame_data(state=state, include_energies=False)
-    assert_almost_equal(
-        data.raw.arrays[frame_data.BOX_VECTORS].float_values.values,
-        np.asarray(expected).flatten(),
-    )
+    np.allclose(data.box_vectors, np.asarray(BASIC_SIMULATION_BOX_VECTORS))
 
 
 def test_positions(basic_simulation):
-    expected = BASIC_SIMULATION_POSITIONS
     state = basic_simulation.context.getState(getPositions=True)
     data = openmm_to_frame_data(state=state, include_energies=False)
-    assert_almost_equal(
-        data.raw.arrays[frame_data.PARTICLE_POSITIONS].float_values.values,
-        np.asarray(expected).flatten(),
-        decimal=6,
-    )
-
-
-def test_topology_particle_count(simple_openmm_topology):
-    data = openmm_to_frame_data(topology=simple_openmm_topology)
-    assert data.raw.values[frame_data.PARTICLE_COUNT].number_value == 3
+    np.allclose(data.particle_positions, np.asarray(BASIC_SIMULATION_POSITIONS))

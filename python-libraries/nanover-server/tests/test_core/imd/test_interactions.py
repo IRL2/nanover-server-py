@@ -15,7 +15,9 @@ def nparrays(draw, elements):
 @st.composite
 def positions(draw):
     python_list = st.lists(
-        st.floats(allow_nan=False, allow_infinity=False), min_size=3, max_size=3
+        st.floats(allow_nan=False, allow_infinity=False),
+        min_size=3,
+        max_size=3,
     )
     return draw(st.one_of(python_list, nparrays(python_list)))
 
@@ -71,7 +73,7 @@ def extra_dictionaries(draw):
     serializable_dict: dict = draw(serializable_dictionaries())
 
     for key in {
-        "positon",
+        "position",
         "particles",
         "reset_velocities",
         "mass_weighted",
@@ -86,7 +88,7 @@ def extra_dictionaries(draw):
 
 @st.composite
 def interactions(draw):
-    serializable_dict = draw(serializable_dictionaries())
+    extra = draw(extra_dictionaries())
     return ParticleInteraction(
         position=draw(positions()),
         particles=draw(particles()),
@@ -95,7 +97,7 @@ def interactions(draw):
         scale=draw(scale()),
         max_force=draw(max_force()),
         interaction_type=draw(interaction_type()),
-        **serializable_dict
+        **extra,
     )
 
 
@@ -140,7 +142,7 @@ def test_constructor(
         scale=scale,
         max_force=max_force,
         interaction_type=interaction_type,
-        **extra
+        **extra,
     )
     assert np.allclose(interaction.position, np.array(position))
     assert np.all(interaction.particles == np.array(particles))

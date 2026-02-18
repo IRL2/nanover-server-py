@@ -6,7 +6,6 @@ portable trajectory files from an ASE molecular dynamics simulation.
 import datetime
 import os
 from io import TextIOWrapper
-from typing import Optional
 
 import ase.io
 from ase import Atoms  # type: ignore
@@ -85,13 +84,13 @@ class TrajectoryLogger:
     atoms: Atoms
     base_path: str
     parallel: bool
-    _file_descriptor: Optional[TextIOWrapper]
+    _file_descriptor: TextIOWrapper | None
 
     def __init__(
         self,
         atoms: Atoms,
         filename: str,
-        format: Optional[str] = None,
+        format: str | None = None,
         timestamp=True,
         parallel=True,
         **kwargs,

@@ -2,7 +2,7 @@
 Manage an OpenMM CustomExternalForce in conjunction with NanoVer IMD
 """
 
-from typing import Dict, Set, Optional, Tuple
+from typing import Set, Tuple
 import itertools
 
 import numpy as np
@@ -15,7 +15,7 @@ from openmm.app import Simulation
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.trajectory.frame_data import FrameData
+from nanover.trajectory import FrameData
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 
@@ -26,11 +26,16 @@ NON_IMD_FORCES_GROUP_MASK = ALL_FORCES_GROUP_MASK ^ IMD_FORCES_GROUP_MASK
 
 
 class ImdForceManager:
-    def __init__(self, imd_state: ImdStateWrapper, imd_force: CustomExternalForce):
+    def __init__(
+        self,
+        imd_state: ImdStateWrapper,
+        imd_force: CustomExternalForce,
+        pbc_vectors: np.ndarray | None,
+    ):
         self.imd_state = imd_state
         self.imd_force = imd_force
 
-        self.masses: Optional[np.ndarray] = None
+        self.masses: np.ndarray | None = None
         self.user_forces: np.ndarray = np.empty(0)
         self.total_user_energy = 0.0
 
@@ -38,11 +43,25 @@ class ImdForceManager:
         self._previous_force_index: Set[int] = set()
         self._total_user_energy = 0.0
 
+        self.periodic_box_lengths: np.ndarray | None = None
+        if pbc_vectors is not None:
+            # Check that the periodic cell vectors define an orthorhombic cell
+            assert np.all(pbc_vectors == np.diagflat(np.diag(pbc_vectors))), (
+                "The periodic box vectors do not correspond to an orthorhombic cell. "
+                "Periodic boundary conditions are currently only implemented "
+                "for orthorhombic systems."
+            )
+            self.periodic_box_lengths = np.diag(pbc_vectors)
+
         # clear any residual forces in external force
         for particle in range(self.imd_force.getNumParticles()):
             self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
 
-    def update_interactions(self, simulation: Simulation, positions: np.ndarray):
+    def update_interactions(
+        self,
+        simulation: Simulation,
+        positions: np.ndarray,
+    ):
         if self.masses is None:
             self._update_masses(simulation.system)
 
@@ -69,7 +88,7 @@ class ImdForceManager:
     def _update_forces(
         self,
         positions: np.ndarray,
-        interactions: Dict[str, ParticleInteraction],
+        interactions: dict[str, ParticleInteraction],
         context: Context,
     ) -> Tuple[float, npt.NDArray]:
         """
@@ -97,7 +116,7 @@ class ImdForceManager:
     def _apply_forces(
         self,
         positions: np.ndarray,
-        interactions: Dict[str, ParticleInteraction],
+        interactions: dict[str, ParticleInteraction],
     ) -> Tuple[float, npt.NDArray]:
         """
         Set the iMD forces based on the user interactions.
@@ -107,6 +126,7 @@ class ImdForceManager:
             positions,
             self.masses,
             interactions.values(),
+            self.periodic_box_lengths,
         )
         affected_particles = _build_particle_interaction_index_set(interactions)
         to_reset_particles = self._previous_force_index - affected_particles
@@ -130,15 +150,13 @@ class ImdForceManager:
 
 
 def _build_particle_interaction_index_set(
-    interactions: Dict[str, ParticleInteraction],
+    interactions: dict[str, ParticleInteraction],
 ) -> Set[int]:
     """
     Get a set of the indices of the particles involved in interactions.
     """
     indices = (interaction.particles for interaction in interactions.values())
     flatten_indices = itertools.chain(*indices)
-    # We need to convert the indices to ints otherwise they are numpy types
-    # that protobuf do not support.
     set_of_ints = set(map(int, flatten_indices))
     return set_of_ints
 

@@ -18,8 +18,15 @@ import logging
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
-from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
-from typing import Optional, Dict, List
+from socket import (
+    socket,
+    AF_INET,
+    SOCK_DGRAM,
+    SOL_SOCKET,
+    SO_BROADCAST,
+    SO_REUSEADDR,
+)
+from typing import List
 
 from nanover.essd.utils import (
     get_broadcast_addresses,
@@ -56,10 +63,10 @@ def configure_reusable_socket() -> socket:
 
 
 class DiscoveryServer:
-    services: Dict[ServiceHub, List[InterfaceAddresses]]
+    services: dict[ServiceHub, List[InterfaceAddresses]]
     _socket: socket
 
-    def __init__(self, broadcast_port: Optional[int] = None, delay=0.5):
+    def __init__(self, broadcast_port: int | None = None, delay=0.5):
         if broadcast_port is None:
             broadcast_port = BROADCAST_PORT
         self.logger = logging.getLogger(__name__)
@@ -76,7 +83,7 @@ class DiscoveryServer:
         self._cancel = False
 
         self._threads = ThreadPoolExecutor(max_workers=1)
-        self._broadcast_task: Optional[Future] = None
+        self._broadcast_task: Future | None = None
 
         self.start()
 
@@ -154,7 +161,7 @@ class DiscoveryServer:
             else:
                 message = service.to_message()
             self.logger.debug(
-                f'Sending service {service} to {broadcast_address["broadcast"]}:{self.port}'
+                f"Sending service {service} to {broadcast_address['broadcast']}:{self.port}"
             )
             self._socket.sendto(
                 message.encode(), (broadcast_address["broadcast"], self.port)

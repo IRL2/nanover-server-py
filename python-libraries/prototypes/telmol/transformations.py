@@ -1776,6 +1776,7 @@ def vector_norm(data, axis=None, out=None):
         data *= data
         numpy.sum(data, axis=axis, out=out)
         numpy.sqrt(out, out)
+        return out
 
 
 def unit_vector(data, axis=None, out=None):

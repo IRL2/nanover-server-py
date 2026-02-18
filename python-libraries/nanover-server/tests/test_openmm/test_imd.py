@@ -2,30 +2,14 @@
 Tests for :mod:`nanover.openmm.imd`.
 """
 
-from queue import Queue
-import numpy as np
-
-import pytest
 import openmm as mm
 from openmm.unit import nanometer
 from nanover.openmm import imd
-from nanover.app import NanoverImdApplication
-from nanover.openmm.serializer import deserialize_simulation
-from nanover.trajectory import FrameData
-from nanover.imd.particle_interaction import ParticleInteraction
 
 from simulation_utils import (
     basic_system,
     basic_simulation,
-    basic_simulation_with_imd_force,
-    BASIC_SIMULATION_POSITIONS,
     empty_imd_force,
-    assert_basic_simulation_topology,
-    single_atom_system,
-    single_atom_simulation,
-    single_atom_simulation_with_imd_force,
-    ARGON_SIMULATION_POSITION,
-    assert_single_atom_simulation_topology,
 )
 
 

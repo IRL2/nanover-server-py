@@ -5,7 +5,7 @@ shared key/value store between multiple clients.
 
 from contextlib import contextmanager
 from threading import Lock, Condition
-from typing import Any, Set, Dict, Iterator, Iterable, Optional, Generator, Mapping
+from typing import Any, Set, Iterator, Iterable, Mapping
 
 from .timing import yield_interval
 
@@ -17,13 +17,30 @@ class DictionaryChange:
     updates: KeyUpdates
     removals: KeyRemovals
 
+    @classmethod
+    def from_dict(cls, dict):
+        return cls(
+            dict.get("updates", None),
+            dict.get("removals", None),
+        )
+
+    def to_dict(self):
+        return {
+            "updates": self.updates,
+            "removals": list(self.removals),
+        }
+
     def __init__(
         self,
-        updates: Optional[KeyUpdates] = None,
-        removals: Optional[KeyRemovals] = None,
+        updates: KeyUpdates | None = None,
+        removals: KeyRemovals | None = None,
     ):
         self.updates = updates or {}
         self.removals = removals or set()
+
+    def update(self, other: "DictionaryChange"):
+        self.updates = {**self.updates, **other.updates}
+        self.removals = {*self.removals, *other.removals}
 
     def __iter__(self):
         return iter((self.updates, self.removals))
@@ -44,7 +61,7 @@ class DictionaryChangeMultiView:
     tracking a shared dictionary.
     """
 
-    _content: Dict[str, Any]
+    _content: dict[str, Any]
     _frozen: bool
     _lock: Lock
     _views: Set["DictionaryChangeBuffer"]
@@ -56,7 +73,7 @@ class DictionaryChangeMultiView:
         self._views = set()
 
     @contextmanager
-    def create_view(self) -> Generator["DictionaryChangeBuffer", None, None]:
+    def create_view(self) -> Iterator["DictionaryChangeBuffer"]:
         """
         Returns a new DictionaryChangeBuffer that tracks changes to the
         shared dictionary, starting with the initial values.
@@ -89,8 +106,8 @@ class DictionaryChangeMultiView:
 
     def update(
         self,
-        updates: Optional[KeyUpdates] = None,
-        removals: Optional[KeyRemovals] = None,
+        updates: KeyUpdates | None = None,
+        removals: KeyRemovals | None = None,
     ):
         """
         Updates the shared dictionary with key values pairs from :updates: and
@@ -115,7 +132,7 @@ class DictionaryChangeMultiView:
             for view in self._views:
                 view.freeze()
 
-    def copy_content(self) -> Dict[str, Any]:
+    def copy_content(self) -> dict[str, Any]:
         """
         Return a shallow copy of the dictionary at this instant.
         """
@@ -150,7 +167,7 @@ class DictionaryChangeBuffer:
     _frozen: bool
     _lock: Lock
     _any_changes: Condition
-    _pending_changes: Dict[str, Any]
+    _pending_changes: dict[str, Any]
     _pending_removals: Set[str]
 
     def __init__(self):
@@ -174,8 +191,8 @@ class DictionaryChangeBuffer:
 
     def update(
         self,
-        updates: Optional[KeyUpdates] = None,
-        removals: Optional[KeyRemovals] = None,
+        updates: KeyUpdates | None = None,
+        removals: KeyRemovals | None = None,
     ):
         """
         Update the known changes from a dictionary of keys that have changed

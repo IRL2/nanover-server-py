@@ -143,7 +143,9 @@ def test_interaction_force_single(particles, single_interaction, scale):
 
     expected_energy = -EXP_3 * scale * masses[single_interaction.particles[0]]
     expected_energy = np.clip(
-        expected_energy, -single_interaction.max_force, single_interaction.max_force
+        expected_energy,
+        -single_interaction.max_force,
+        single_interaction.max_force,
     )
     expected_forces[1, :] = np.array(
         [-EXP_3 * scale * masses[single_interaction.particles[0]]] * 3
@@ -180,7 +182,9 @@ def test_interaction_force_max_energy(particles, single_interaction, max_energy)
 
     expected_energy = -EXP_3 * masses[single_interaction.particles[0]]
     expected_energy = np.clip(
-        expected_energy, -single_interaction.max_force, single_interaction.max_force
+        expected_energy,
+        -single_interaction.max_force,
+        single_interaction.max_force,
     )
     expected_forces[1, :] = np.array(
         [-EXP_3 * masses[single_interaction.particles[0]]] * 3
@@ -210,7 +214,9 @@ def test_interaction_force_mass(particles, single_interaction, mass):
     )
 
     expected_energy = np.clip(
-        -EXP_3 * mass, -single_interaction.max_force, single_interaction.max_force
+        -EXP_3 * mass,
+        -single_interaction.max_force,
+        single_interaction.max_force,
     )
     expected_forces[1, :] = np.clip(
         np.array([-EXP_3 * mass] * 3),
@@ -432,7 +438,10 @@ def test_get_com_subset_pbc(positions_pbc):
     )
 
     com = get_center_of_mass_subset(
-        positions_periodic, masses, subset, periodic_box_lengths=periodic_box_lengths
+        positions_periodic,
+        masses,
+        subset,
+        periodic_box_lengths=periodic_box_lengths,
     )
 
     assert np.allclose(com, expected_com)

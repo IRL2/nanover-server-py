@@ -1,9 +1,9 @@
 """
-Module providing a wrapper class around the protobuf interaction message.
+Module providing a wrapper class around interaction data.
 """
 
 import math
-from typing import Dict, Any, Iterable, Union
+from typing import Any, Iterable, Union
 import numpy as np
 import numpy.typing as npt
 
@@ -13,11 +13,8 @@ DEFAULT_FORCE_TYPE = "gaussian"
 
 class ParticleInteraction:
     """
-    A wrapper around the protobuf representation of an interaction.
+    A wrapper around the plain data representation of an interaction.
     Provides easy to use getters and setters.
-
-    For convenience, the getters all copy the underlying data into numpy arrays,
-    rather than the low level containers used by protobuf.
 
     :param interaction_type: The type of interaction being used, default is
         'gaussian' for a Gaussian force.
@@ -153,14 +150,14 @@ class ParticleInteraction:
         self._reset_velocities = value
 
     @property
-    def properties(self) -> Dict[str, Any]:
+    def properties(self) -> dict[str, Any]:
         """
         Gets the other properties for this interaction
         """
         return self._properties
 
     @properties.setter
-    def properties(self, value: Dict[str, Any]):
+    def properties(self, value: dict[str, Any]):
         self._properties = value
 
     def __eq__(self, other):

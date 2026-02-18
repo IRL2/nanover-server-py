@@ -1,11 +1,11 @@
-# NanoVer Python Server + gRPC Protocol
+# NanoVer Python Server
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-darkblue.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/Docs-latest-blue.svg)](https://irl2.github.io/nanover-docs) 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.08118/status.svg)](https://doi.org/10.21105/joss.08118) 
 [![Build Status](https://github.com/IRL2/nanover-server-py/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/IRL2/nanover-server-py/actions/workflows/tests.yml?query=branch%3Amain)
 
-Repository containing the gRPC protocol and python based implementations
+Repository containing the python based implementations
 of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
 
 This software is designed to be used with **NanoVer VR clients**, 
@@ -37,9 +37,9 @@ If you haven't installed NanoVer yet, please go to [User installation](#User-ins
 
 ### Running a server via the command line
 
-`nanover.omni` provides a command line interface for running OpenMM simulations. For example, from the `nanover-server-py` directory:
+`nanover` provides a command line interface for running OpenMM simulations. For example, from the `nanover-server-py` directory:
 
-    nanover-omni --omm examples/ase/openmm_files/nanotube.xml
+    nanover-server --omm examples/ase/openmm_files/nanotube.xml
 
 Learn more about running a NanoVer server 
 [here in our documentation](https://irl2.github.io/nanover-docs/tutorials/basics.html#running-a-server).
@@ -52,14 +52,10 @@ Please head to the [Tutorials page](https://irl2.github.io/nanover-docs/tutorial
 
 ### Exploring the code  
 
-The `protocol` folder contains the definitions of the gRPC services.
-
 The `python-libraries` folder contains the library to write NanoVer clients and
 servers in python, as well as the services implemented in python. The
 `python-libraries/prototypes` directory contains examples and (sometimes
 unmaintained) prototypes using the python libraries.
-
-The `csharp-libraries/NanoVer.Protocol` folder contains C# implementations of clients for receiving trajectories and structures.
 
 ## User installation
 
@@ -79,12 +75,11 @@ page in our documentation for detailed instructions on installing NanoVer.
 ### Windows
 
 * Install Anaconda
-* Install the .NET core SDK (see <https://dotnet.microsoft.com/download>)
 * Clone the nanover-server-py repository
 * In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase`
+    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.12" openmm MDAnalysis MDAnalysisTests ase`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Compile the protocol and install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
+    * Install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
 ### Mac and Linux
 
@@ -93,12 +88,7 @@ page in our documentation for detailed instructions on installing NanoVer.
 * In a terminal, in the repository root:
     * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Compile the protocol and install the NanoVer python libraries in your conda environment: `./compile.sh --no-dotnet`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit --no-dotnet` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
-
-Here, we installed only the python library. Using the `--no-dotnet` argument, we skipped building the C# libraries for NanoVer. Would you want to work on these library, you would need to:
-
-* Install dotnet 2.11. This is an old version of the framework that is not maintained anymore. However, Unity still relies on it.
-* Run the compile script: `./compile.sh --no-python` to skip installing the python libraries, or just `./compile.sh` to build the python libraries as well.
+    * Install the NanoVer python libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
 ## Running the tests
 
@@ -119,16 +109,16 @@ Optionally, you can run most of the tests in parallel with pytest-xdist:
 
 ### Formatting & Linting Tests
 
-The formatting and linting tests check code style, and require ruff and black:
+The formatting and linting tests check code style, and require ruff:
 
     python -m pip install ruff
-    python -m pip install black
     python -m ruff check python-libraries
-    python -m black --diff --check python-libraries
+    python -m ruff format --check python-libraries
 
-black can automatically reformat the files for you:
+ruff can also automatically fix and reformat the files for you:
 
-    python -m black python-libraries
+    python -m ruff check --fix python-libraries
+    python -m ruff format python-libraries
 
 ### Type Checks
 
@@ -146,10 +136,10 @@ Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tuto
 
 ### OpenMM IMD Simulations
 
-`nanover.omni` provides a command line interface for running serialised OpenMM simulations. For example, from the 
+`nanover` provides a command line interface for running serialised OpenMM simulations. For example, from the 
 `nanover-server-py` directory:
 
-    nanover-omni --omm examples/ase/openmm_files/nanotube.xml
+    nanover-server --omm examples/ase/openmm_files/nanotube.xml
 
 ### ASE IMD Simulations Jupyter Notebooks
 
@@ -169,6 +159,12 @@ trajectory. To serve the frames on port 54321, from the `nanover-server-py` dire
 
 If you are having trouble autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
+## Old recordings
+
+If you try to use the older .traj/.state recordings, you will find NanoVer complaining that they are not zip files.
+In this case you can use the [recording converter](https://github.com/IRL2/nanover-recording-converter) in conjunction
+with NanoVer to convert them to the new format.
+
 ## Citation and external libraries
 
 Any work that uses NanoVer should cite the following publications:
@@ -181,7 +177,6 @@ Any work that uses NanoVer should cite the following publications:
 
 This project has been made possible by the following open source projects. We gratefully thank them for their efforts, and suggest that you use and cite them:
 
-* [gRPC](https://grpc.io/) (Apache v2) - Communication protocol.
 * [ASE](https://wiki.fysik.dtu.dk/ase/) (LGPLv3): Atomic simulation environment used for running simulations ([citation](https://iopscience.iop.org/article/10.1088/1361-648X/aa680e)).
 * [OpenMM](http://openmm.org/) (MIT, LGPLv3): GPU accelerated molecular mechanics library ([citation](https://simtk.org/plugins/publications/index.php/?group_id=161)).
 * [MDAnalysis](https://www.mdanalysis.org/) (GPLv2): Molecular dynamics analysis library ([citations](https://www.mdanalysis.org/pages/citations/)).

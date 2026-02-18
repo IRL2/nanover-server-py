@@ -63,7 +63,7 @@ def distance(position_a, position_b):
 
 
 def build_frame_generator(osc_client):
-    first_frame = osc_client.frame_client.wait_until_first_frame()
+    first_frame = osc_client.frame_client.wait_until_minimum_usable_frame()
     atom_listing = topology.atom_listing_from_frame(first_frame)
 
     # find the methane's single carbon, knowing it to be the single neighbour of

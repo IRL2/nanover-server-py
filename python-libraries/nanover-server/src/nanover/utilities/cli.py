@@ -1,4 +1,3 @@
-import asyncio
 import time
 from signal import signal, SIGINT
 from contextlib import contextmanager
@@ -23,7 +22,9 @@ def suppress_keyboard_interrupt_as_cancellation():
 
 class CancellationToken:
     _cancelled = False
-    _on_cancellation = Event()
+
+    def __init__(self):
+        self._on_cancellation = Event()
 
     def subscribe_cancellation(self, callback):
         if self._cancelled:
@@ -54,12 +55,3 @@ class CancellationToken:
         """
         while not self._cancelled:
             time.sleep(interval)
-
-    async def wait_cancellation_async(self, interval=0.1):
-        """
-        Sleep until this token is cancelled.
-
-        :param interval: the interval in seconds between waking up to check cancellation.
-        """
-        while not self._cancelled:
-            await asyncio.sleep(interval)

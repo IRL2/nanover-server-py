@@ -1,14 +1,14 @@
 import ipaddress
 import socket
-from typing import List, Optional, Iterable, Dict
+from typing import List, Iterable
 
 import netifaces
 
-InterfaceAddresses = Dict[str, str]
+InterfaceAddresses = dict[str, str]
 
 
 def get_ipv4_addresses(
-    interfaces: Optional[Iterable[str]] = None,
+    interfaces: Iterable[str] | None = None,
 ) -> List[InterfaceAddresses]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces.
@@ -31,7 +31,7 @@ def get_ipv4_addresses(
 
 
 def get_broadcast_addresses(
-    interfaces: Optional[Iterable[str]] = None,
+    interfaces: Iterable[str] | None = None,
 ) -> List[InterfaceAddresses]:
     """
     Gets all the IPV4 addresses currently available on all the given interfaces that have broadcast addresses.
@@ -61,7 +61,7 @@ def get_broadcast_addresses(
 
 def resolve_host_broadcast_address(
     host: str,
-    ipv4_addrs: Optional[List[InterfaceAddresses]] = None,
+    ipv4_addrs: List[InterfaceAddresses] | None = None,
 ):
     try:
         address = socket.gethostbyname(host)
@@ -106,7 +106,9 @@ def is_in_network(address: str, interface_address_entry: InterfaceAddresses) -> 
         # ipaddress.ip_network, but this is well tested so we accept it for the
         # time being.
         # TODO: Fix this line as the types seem to be incorrect.
-        ip_network = ipaddress.ip_network((network_address, interface_address_entry["netmask"]))  # type: ignore
+        ip_network = ipaddress.ip_network(
+            (network_address, interface_address_entry["netmask"])  # type: ignore
+        )
     except ValueError:
         raise ValueError(
             f"Given address {interface_address_entry} is not a valid IP network address."

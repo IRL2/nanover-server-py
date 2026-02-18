@@ -2,15 +2,19 @@
 ASE calculator for use with OpenMM.
 """
 
-from typing import Optional
-
 import nanover.openmm.serializer as serializer
 import numpy as np
 from ase import Atoms, Atom  # type: ignore
 from ase.calculators.calculator import Calculator, all_changes
 from openmm import System, State
 from openmm.app import Topology, Simulation
-from openmm.unit import angstrom, kilojoules_per_mole, kilojoule_per_mole, amu, Quantity
+from openmm.unit import (
+    angstrom,
+    kilojoules_per_mole,
+    kilojoule_per_mole,
+    amu,
+    Quantity,
+)
 
 from nanover.ase.converter import KJMOL_TO_EV, ase_to_frame_data
 from nanover.openmm.converter import add_openmm_topology_to_frame_data
@@ -33,14 +37,14 @@ class OpenMMCalculator(Calculator):
     simulation: Simulation
     implemented_properties = ["energy", "forces"]
 
-    def __init__(self, simulation, atoms: Optional[Atoms] = None, **kwargs):
+    def __init__(self, simulation, atoms: Atoms | None = None, **kwargs):
         super().__init__(**kwargs)
         self.simulation = simulation
         self.context = self.simulation.context
         self.atoms = atoms
 
     @classmethod
-    def from_xml(cls, input_xml, atoms: Optional[Atoms] = None, **kwargs):
+    def from_xml(cls, input_xml, atoms: Atoms | None = None, **kwargs):
         """
         Initialises an :class: OpenMMCalculator from a simulation serialised to
         XML with :module serializer.
@@ -57,7 +61,7 @@ class OpenMMCalculator(Calculator):
 
     def calculate(
         self,
-        atoms: Optional[Atoms] = None,
+        atoms: Atoms | None = None,
         properties=("energy", "forces"),
         system_changes=all_changes,
     ):

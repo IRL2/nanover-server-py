@@ -1,7 +1,7 @@
 import argparse
 import textwrap
 
-from nanover.app import NanoverImdClient
+from nanover.websocket import NanoverImdClient
 from osc_client import OscClient, DEFAULT_OSC_ADDRESS
 
 
@@ -38,12 +38,11 @@ class OscApp:
     def _create_client(self, args):
         arguments = self._argument_parser.parse_args(args)
         osc_client = OscClient(
-            nanover_client=NanoverImdClient.autoconnect(),
+            nanover_client=NanoverImdClient.from_discovery(),
             osc_address=(arguments.osc_host, arguments.osc_port),
             osc_send_interval=arguments.send_interval,
             verbose=arguments.verbose,
         )
-        osc_client.nanover_client.subscribe_multiplayer()
         return osc_client
 
     def run(self, args=None):

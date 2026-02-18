@@ -7,6 +7,9 @@ Tests for :mod:`nanover.openmm.serializer`.
 from xml.dom.minidom import parseString
 import pytest
 from io import StringIO
+
+from openmm.unit import nanometer
+
 from nanover.openmm.imd import create_imd_force
 from nanover.openmm.serializer import (
     serialize_simulation,
@@ -15,17 +18,12 @@ from nanover.openmm.serializer import (
 )
 
 from simulation_utils import (
-    basic_simulation,
     basic_simulation_xml,
     build_basic_simulation,
     empty_imd_force,
 )
-from nanover.omni.openmm import OpenMMSimulation
-from nanover.app import (
-    NanoverImdClient,
-    NanoverApplicationServer,
-    NanoverImdApplication,
-)
+from nanover.openmm import OpenMMSimulation
+from nanover.app import NanoverImdApplication
 
 
 def remove_xml_tag(simulation_xml: str, tag_to_remove: str) -> str:
@@ -143,7 +141,7 @@ def test_serializer_pbc():
     omm_sim.context.setPeriodicBoxVectors(*UNIT_SIMULATION_BOX_VECTORS)
 
     def out_of_bounds(coord):
-        return coord < 0 or coord > 1
+        return not 0 <= coord <= 1
 
     def get_sim_position_coords(sim):
         for position in sim.make_regular_frame().particle_positions:

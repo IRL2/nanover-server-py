@@ -1,7 +1,12 @@
 from contextlib import contextmanager
-from typing import Dict, Iterable, Set, Union, TypeVar, Optional, cast
+from typing import Dict, Iterable, Set, Union, TypeVar, cast
 
 from nanover.utilities.event import Event
+
+# ID of the root selection
+SELECTION_ROOT_ID = "selection.root"
+# Name of the root selection
+SELECTION_ROOT_NAME = "Root Selection"
 
 INTERACTION_SINGLE = "single"
 INTERACTION_GROUP = "group"
@@ -43,7 +48,7 @@ class RenderingSelection:
         """
         Decode a dictionary into a selection.
 
-        :param dict: A dictionary, such as json or a protobuf value.
+        :param dict: A dictionary of selection data.
         :return: A selection decoded from the given dictionary
         """
         try:
@@ -101,7 +106,7 @@ class RenderingSelection:
         """
         self.selected_particle_ids.clear()
 
-    def set_particles(self, particle_ids: Optional[Iterable[int]] = None):
+    def set_particles(self, particle_ids: Iterable[int] | None = None):
         """
         Set the particles in this selection, replacing the previous selection.
 

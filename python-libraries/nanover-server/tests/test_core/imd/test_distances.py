@@ -109,7 +109,13 @@ def points_in_periodic_box(draw):
     point1_periodic = point1 + images1 * periodic_box_lengths
     point2_periodic = point2 + images2 * periodic_box_lengths
 
-    return point1_periodic, point2_periodic, periodic_box_lengths, diff, dist_sqr
+    return (
+        point1_periodic,
+        point2_periodic,
+        periodic_box_lengths,
+        diff,
+        dist_sqr,
+    )
 
 
 @given(points_in_periodic_box())
