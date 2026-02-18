@@ -99,6 +99,7 @@ class ASESimulation(Simulation):
 
         self._dof: int | None = None
 
+        self.dynamic_bonds: bool = False
         self.previous_bonds: Tuple[int, int] | None = None
 
     def load(self):
@@ -270,12 +271,16 @@ class ASESimulation(Simulation):
 
         # Calculate bonds and determine whether topology needs updating
         update_topology = False
-        current_bonds = generate_bonds_from_ase(self.atoms)
-        if self.previous_bonds is not None and (current_bonds.shape != self.previous_bonds.shape or (current_bonds != self.previous_bonds).any()):
-            update_topology = True
-            self.previous_bonds = current_bonds
-        elif self.previous_bonds is None:
-            self.previous_bonds = current_bonds
+        if self.dynamic_bonds:
+            current_bonds = generate_bonds_from_ase(self.atoms)
+            if self.previous_bonds is not None and (
+                current_bonds.shape != self.previous_bonds.shape
+                or (current_bonds != self.previous_bonds).any()
+            ):
+                update_topology = True
+                self.previous_bonds = current_bonds
+            elif self.previous_bonds is None:
+                self.previous_bonds = current_bonds
 
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,

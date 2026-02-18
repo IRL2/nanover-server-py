@@ -256,9 +256,11 @@ def add_ase_topology_to_frame_data(
     frame_data.chain_names = molecule_strings
     frame_data.chain_count = len(molecule_strings)
     frame_data.residue_names = molecule_strings
-    frame_data.residue_chains = np.fromiter((i for i in range(len(molecule_strings))), dtype=np.uint32)
+    frame_data.residue_chains = np.fromiter(
+        (i for i in range(len(molecule_strings))), dtype=np.uint32
+    )
     frame_data.residue_count = len(molecule_strings)
-    frame_data.residue_ids = [str(i+1) for i in range(len(molecule_strings))]
+    frame_data.residue_ids = [str(i + 1) for i in range(len(molecule_strings))]
 
     atom_names = []
     elements = []
@@ -280,7 +282,8 @@ def add_ase_topology_to_frame_data(
         bonds = generate_bonds_from_ase(ase_atoms)
         frame_data.bond_pairs = bonds
 
-def determine_molecules(ase_atoms: Atoms, bonds: Tuple[int, int] | None=None):
+
+def determine_molecules(ase_atoms: Atoms, bonds: Tuple[int, int] | None = None):
     """
     Determines the molecules in the system based on the topology
     from :func:`generate_bonds_from_ase`.
@@ -306,7 +309,7 @@ def determine_molecules(ase_atoms: Atoms, bonds: Tuple[int, int] | None=None):
 
     # Calculate "molecular connectivity matrix" as (n_atoms-1)th power
     # of adjacency matrix, and set all non-zero elements to 1
-    mol_connect_mat = np.linalg.matrix_power(adj_mat, n_atoms-1)
+    mol_connect_mat = np.linalg.matrix_power(adj_mat, n_atoms - 1)
     mol_connect_mat[mol_connect_mat != 0] = 1
 
     # Retrieve unique vectors defining molecules
@@ -327,6 +330,7 @@ def determine_molecules(ase_atoms: Atoms, bonds: Tuple[int, int] | None=None):
         molecule_strings.append(molecule_string)
 
     return bonds, molecule_strings, molecule_indices
+
 
 def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     """
