@@ -4,7 +4,7 @@ Module containing methods for converting between ASE simulations consisting of
 NanoVer clients.
 """
 
-from typing import Iterable, Tuple
+from typing import Iterable
 
 from ase import Atoms, Atom  # type: ignore
 from ase.units import fs as fs_in_ase_time_unit
@@ -289,7 +289,7 @@ def determine_molecules(ase_atoms: Atoms, bonds: np.ndarray | None = None):
     from :func:`generate_bonds_from_ase`.
 
     :param ase_atoms: ASE atoms to extract topology information from.
-    :param bonds: [Optional] Tuple of bonds defining the topology (saves
+    :param bonds: [Optional] numpy array of bonds defining the topology (saves
       recalculating if they have already been calculated)
     """
     # Retrieve number of atoms

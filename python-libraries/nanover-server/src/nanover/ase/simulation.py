@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Protocol, Tuple
+from typing import Any, Protocol
 
 import numpy as np
 from ase import Atoms
