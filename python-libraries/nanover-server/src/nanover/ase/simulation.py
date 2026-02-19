@@ -99,7 +99,7 @@ class ASESimulation(Simulation):
         self._dof: int | None = None
 
         self.dynamic_bonds: bool = False
-        self.previous_bonds: Tuple[int, int] | None = None
+        self.previous_bonds: np.ndarray | None = None
 
     def load(self):
         """

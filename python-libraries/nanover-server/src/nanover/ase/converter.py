@@ -283,7 +283,7 @@ def add_ase_topology_to_frame_data(
         frame_data.bond_pairs = bonds
 
 
-def determine_molecules(ase_atoms: Atoms, bonds: Tuple[int, int] | None = None):
+def determine_molecules(ase_atoms: Atoms, bonds: np.ndarray | None = None):
     """
     Determines the molecules in the system based on the topology
     from :func:`generate_bonds_from_ase`.
@@ -384,7 +384,7 @@ def _bond_threshold(radii: Iterable):
     return 0.6 * sum(radii)
 
 
-def generate_bonds_from_ase(atoms: Atoms):
+def generate_bonds_from_ase(atoms: Atoms) -> np.ndarray:
     """
     Generates bonds for the given configuration of ASE atoms using a distance criterion.
 
