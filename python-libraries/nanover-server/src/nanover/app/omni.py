@@ -16,7 +16,7 @@ from nanover.utilities.timing import VariableIntervalGenerator
 CLEAR_PREFIXES = {
     "avatar.",
     "play-area.",
-    "selection.",
+    # "selection.",
     "scene",
     "interaction.",
 }
@@ -194,7 +194,7 @@ class OmniRunner:
         self._cancel_run()
         self._simulation_index = int(index) % len(self.simulations)
         self._clear_state()
-        self._load_simulation_selections()
+        # self._load_simulation_selections()
         self._start_run()
 
     def next(self):
