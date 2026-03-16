@@ -302,6 +302,10 @@ class InternalRunner:
             self.simulation.reset(self.app_server)
             self.omni.failed_simulations.discard(self.simulation)
 
+            self.app_server.update_state(
+                DictionaryChange(updates={"simulation.name": self.simulation.name})
+            )
+
             for dt in self.variable_interval_generator.yield_interval():
                 try:
                     self.handle_signals()

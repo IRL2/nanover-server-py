@@ -41,6 +41,7 @@ class BackgroundRecordingContext:
     def _record(self):
         with self._writer:
             for event in message_events_from_websocket(self._connection):
+                event.message.pop("frame", None)  # discard frames
                 self._writer.write_message_event(event)
 
     def close(self):
