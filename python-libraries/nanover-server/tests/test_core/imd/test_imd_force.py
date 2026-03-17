@@ -356,25 +356,15 @@ def test_interaction_force_no_mass_weighting(
     expected_energy_per_particle = expected_energy / np.sum(
         (masses[selection] != 0).astype(int)
     )
-    print((masses[selection] != 0).astype(int))
-    print((masses[selection] != np.nan).astype(int).shape)
     expected_forces = np.zeros((len(positions), 3))
     for index in selection:
-        print((masses[index] != 0).astype(int))
         expected_forces[index, :] = (
             diff * expected_energy_per_particle * (masses[index] != 0).astype(int)
         )
-    print(expected_forces)
 
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
     assert np.allclose(energy, expected_energy, equal_nan=True)
-    print(forces)
     assert np.allclose(forces, expected_forces, equal_nan=True)
-
-    # energy = apply_single_interaction_force(positions, masses, interaction, forces)
-    # assert np.allclose(energy, expected_energy, equal_nan=True)
-    # assert np.allclose(forces, expected_forces, equal_nan=True)
-
 
 def test_interaction_force_unknown_type(particles, single_interaction):
     single_interaction.interaction_type = "unknown_type"
