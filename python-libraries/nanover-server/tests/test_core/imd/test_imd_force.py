@@ -366,6 +366,7 @@ def test_interaction_force_no_mass_weighting(
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
+
 def test_interaction_force_unknown_type(particles, single_interaction):
     single_interaction.interaction_type = "unknown_type"
     positions, masses = particles
