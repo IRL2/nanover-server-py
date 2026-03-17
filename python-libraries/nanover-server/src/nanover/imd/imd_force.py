@@ -150,7 +150,9 @@ def _apply_force_to_particles(
     total_energy = scale * raw_energy
     # add the force for each particle, adjusted by mass and scale factor.
     # TODO: Figure out how to correctly mass-weight the forces
-    force_to_apply = scale * (mass[:, np.newaxis] / total_mass) * raw_force[np.newaxis, :]
+    force_to_apply = (
+        scale * (mass[:, np.newaxis] / total_mass) * raw_force[np.newaxis, :]
+    )
     # clip the forces into maximum force range.
     force_to_apply_clipped = np.clip(force_to_apply, -max_force, max_force)
     # this is technically incorrect, but deriving the actual energy of a clip will involve a lot of maths
