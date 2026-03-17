@@ -148,8 +148,9 @@ def _apply_force_to_particles(
         return total_energy
 
     if not interaction.mass_weighted:
-        mass = np.ones(len(particles))
-        total_mass = len(particles)
+        # Only apply forces to particles with non-zero mass
+        mass = (mass != 0.0).astype(int)
+        total_mass = np.sum(mass)
 
     # TODO: Check what correct energy for mass-weighting should be (should just be the total
     #  energy from the total force multiplied by the appropriate scaling factor)

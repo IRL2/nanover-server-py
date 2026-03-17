@@ -278,6 +278,7 @@ def test_interaction_force_zero_mass_multiatom(
         ([1, 1, 1], [0, 1], [1, 2]),
         ([2, 2, 2], [0, 1], [1, 2]),
         ([0, 0, 0], [0, 1], [1, 2]),
+        ([0, 0, 0], [0, 1, 49], [1, 2, 0]),
         ([0, 0, 0], [0, 1, 49], [1, 2, 10]),
         ([-5, -5, -5], [0, 1, 49], [1, 2, 10]),
         ([np.nan, np.nan, np.nan], [0, 1], [1, 2]),
@@ -308,7 +309,7 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     selection_mass = np.sum(masses[selection])
     for index in selection:
         expected_forces[index, :] = (
-            1 * diff * (masses[index] / selection_mass) * expected_energy
+            diff * (masses[index] / selection_mass) * expected_energy
         )
 
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
@@ -322,6 +323,7 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
         ([1, 1, 1], [0, 1], [1, 2]),
         ([2, 2, 2], [0, 1], [1, 2]),
         ([0, 0, 0], [0, 1], [1, 2]),
+        ([0, 0, 0], [0, 1, 49], [1, 2, 0]),
         ([0, 0, 0], [0, 1, 49], [1, 2, 10]),
         ([-5, -5, -5], [0, 1, 49], [1, 2, 10]),
         ([np.nan, np.nan, np.nan], [0, 1], [1, 2]),
@@ -350,15 +352,24 @@ def test_interaction_force_no_mass_weighting(
     com = get_center_of_mass_subset(positions, masses, selection)
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
-    expected_energy_per_particle = exp(-dist_sqr / 2) / len(selection)
-    expected_energy = -sum((expected_energy_per_particle for _ in selection))
+    expected_energy = - exp(-dist_sqr / 2)
+    expected_energy_per_particle = expected_energy / np.sum((masses[selection] != 0).astype(int))
+    print((masses[selection] != 0).astype(int))
+    print((masses[selection] != np.nan).astype(int).shape)
     expected_forces = np.zeros((len(positions), 3))
     for index in selection:
-        expected_forces[index, :] = -1 * diff * expected_energy_per_particle
+        print((masses[index] != 0).astype(int))
+        expected_forces[index, :] = diff * expected_energy_per_particle * (masses[index] != 0).astype(int)
+    print(expected_forces)
 
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
     assert np.allclose(energy, expected_energy, equal_nan=True)
+    print(forces)
     assert np.allclose(forces, expected_forces, equal_nan=True)
+
+    # energy = apply_single_interaction_force(positions, masses, interaction, forces)
+    # assert np.allclose(energy, expected_energy, equal_nan=True)
+    # assert np.allclose(forces, expected_forces, equal_nan=True)
 
 
 def test_interaction_force_unknown_type(particles, single_interaction):
