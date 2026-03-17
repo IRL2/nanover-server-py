@@ -117,7 +117,7 @@ def apply_single_interaction_force(
 def _apply_force_to_particles(
     forces: np.ndarray,
     raw_energy: float,
-    raw_force: np.ndarray,
+    raw_force: float,
     interaction: ParticleInteraction,
     masses: np.ndarray,
 ) -> float:
