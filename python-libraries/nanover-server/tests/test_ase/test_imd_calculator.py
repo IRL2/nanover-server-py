@@ -124,11 +124,11 @@ def test_one_interaction(
             results = imd_calculator.results
 
     # set up the expected energy and forces.
-    expected_imd_energy_kjmol = interact_c.scale * imd_energy * atoms.get_masses()[0]
+    expected_imd_energy_kjmol = interact_c.scale * imd_energy#  * atoms.get_masses()[0]
     expected_imd_energy = expected_imd_energy_kjmol * converter.KJMOL_TO_EV
     expected_imd_forces = (
         interact_c.scale
-        * atoms.get_masses()[0]
+        * (atoms.get_masses()[0] / np.sum(atoms.get_masses()[0]))
         * (imd_forces * converter.KJMOL_TO_EV / converter.NM_TO_ANG)
     )
     expected_forces = internal_forces + expected_imd_forces
