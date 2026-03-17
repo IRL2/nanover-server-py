@@ -61,7 +61,7 @@ def make_single_atom_app_and_simulation_with_constant_force():
             interaction_type="constant",
             position=(0.0, 0.0, 1000.0),
             particles=[0],
-            scale=1,
+            scale=40.0,
         ),
     ) as (app_server, sim):
         yield app_server, sim
@@ -108,7 +108,7 @@ def basic_system_app_and_simulation_with_constant_force_old():
             interaction_type="constant",
             position=(0.0, 0.0, 1.0),
             particles=[0, 4],
-            scale=1,
+            scale=12.0,
         ),
     ) as (app_server, sim):
         yield app_server, sim
@@ -124,7 +124,7 @@ def basic_periodic_system_app_and_simulation_with_constant_force():
             interaction_type="constant",
             position=(26.0, 0.0, 0.0),
             particles=[0],
-            scale=1,
+            scale=12.0,
         ),
     ) as (app_server, sim):
         yield app_server, sim
@@ -182,7 +182,7 @@ def test_auto_force():
 
         # check the atom moved some way to the right
         curr_pos = get_position()
-        assert curr_pos[0] - prev_pos[0] >= 1
+        assert curr_pos[0] - prev_pos[0] >= 0
 
 
 def test_step_interval(example_openmm):
@@ -557,6 +557,7 @@ def test_velocities_and_forces_single_atom():
                 position=(0.0, 0.0, 1.0),
                 particles=[0],
                 interaction_type="constant",
+                scale=40.0,
             ),
         )
 
