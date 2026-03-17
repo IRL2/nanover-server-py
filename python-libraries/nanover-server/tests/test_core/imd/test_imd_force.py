@@ -255,6 +255,10 @@ def test_interaction_force_zero_mass_singleatom(particles, single_interaction):
     assert energy == pytest.approx(0)
 
 
+# TODO: Write test to check that interaction with a group containing a
+#  massless atom yields the same result as the group without that atom
+
+
 def test_interaction_force_zero_mass_multiatom(
     particles, single_interaction_multiple_atoms
 ):

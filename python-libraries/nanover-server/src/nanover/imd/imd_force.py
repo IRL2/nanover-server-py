@@ -137,11 +137,17 @@ def _apply_force_to_particles(
     particles = interaction.particles
     scale = interaction.scale
     max_force = interaction.max_force
+    mass = masses[particles]
+    total_mass = np.sum(mass)
 
-    if interaction.mass_weighted:
-        mass = masses[particles]
-        total_mass = mass.sum()
-    else:
+    # If particle group has total mass of zero, forces and energies are zero
+    # regardless of interaction weighting
+    if total_mass == 0.0:
+        forces[particles] += 0.0
+        total_energy = 0.0
+        return total_energy
+
+    if not interaction.mass_weighted:
         mass = np.ones(len(particles))
         total_mass = len(particles)
 
