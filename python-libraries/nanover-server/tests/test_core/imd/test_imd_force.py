@@ -352,14 +352,18 @@ def test_interaction_force_no_mass_weighting(
     com = get_center_of_mass_subset(positions, masses, selection)
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
-    expected_energy = - exp(-dist_sqr / 2)
-    expected_energy_per_particle = expected_energy / np.sum((masses[selection] != 0).astype(int))
+    expected_energy = -exp(-dist_sqr / 2)
+    expected_energy_per_particle = expected_energy / np.sum(
+        (masses[selection] != 0).astype(int)
+    )
     print((masses[selection] != 0).astype(int))
     print((masses[selection] != np.nan).astype(int).shape)
     expected_forces = np.zeros((len(positions), 3))
     for index in selection:
         print((masses[index] != 0).astype(int))
-        expected_forces[index, :] = diff * expected_energy_per_particle * (masses[index] != 0).astype(int)
+        expected_forces[index, :] = (
+            diff * expected_energy_per_particle * (masses[index] != 0).astype(int)
+        )
     print(expected_forces)
 
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
