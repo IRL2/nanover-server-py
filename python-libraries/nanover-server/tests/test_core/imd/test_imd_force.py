@@ -148,7 +148,15 @@ def test_interaction_force_single(particles, single_interaction, scale):
         single_interaction.max_force,
     )
     expected_forces[1, :] = np.array(
-        [-EXP_3 * scale * (masses[single_interaction.particles[0]] / np.sum(masses[single_interaction.particles[0]]))] * 3
+        [
+            -EXP_3
+            * scale
+            * (
+                masses[single_interaction.particles[0]]
+                / np.sum(masses[single_interaction.particles[0]])
+            )
+        ]
+        * 3
     )
     expected_forces[1, :] = np.clip(
         expected_forces[1, :],
@@ -187,7 +195,14 @@ def test_interaction_force_max_energy(particles, single_interaction, max_energy)
         single_interaction.max_force,
     )
     expected_forces[1, :] = np.array(
-        [-EXP_3 * (masses[single_interaction.particles[0]] / np.sum(masses[single_interaction.particles[0]]))] * 3
+        [
+            -EXP_3
+            * (
+                masses[single_interaction.particles[0]]
+                / np.sum(masses[single_interaction.particles[0]])
+            )
+        ]
+        * 3
     )
     expected_forces[1, :] = np.clip(
         expected_forces[1, :],
@@ -284,7 +299,7 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     com = get_center_of_mass_subset(positions, masses, selection)
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
-    expected_energy = - exp(-dist_sqr / 2)
+    expected_energy = -exp(-dist_sqr / 2)
     expected_forces = np.zeros((len(positions), 3))
     selection_mass = np.sum(masses[selection])
     for index in selection:
