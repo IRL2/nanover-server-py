@@ -1,5 +1,4 @@
 import subprocess
-import argparse
 from pathlib import Path
 
 from nanover.app.cli.server_cli import initialise_runner, handle_user_arguments
