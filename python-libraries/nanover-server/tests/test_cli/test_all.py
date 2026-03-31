@@ -71,6 +71,32 @@ def test_load_mda_trajectory():
 
     with initialise_runner(args) as runner:
         assert len(runner.simulations) == 1
+        assert runner.simulations[0].universe.trajectory.n_frames == 24
+        runner.close()
+
+
+def test_load_mulitple_coordinate_files():
+    topology_path = (
+        Path(__file__).parent.parent.parent.parent.parent
+        / "tutorials/mdanalysis/files/3TI6_ose_wt.pdb"
+    )
+    trajectory_path = topology_path.with_name("ose_wt.dcd")
+    assert topology_path.exists(), "Path is incorrect, this file should exist."
+    assert trajectory_path.exists(), "Path is incorrect, this file should exist."
+
+    args = handle_user_arguments(
+        args=[
+            "--mda",
+            str(topology_path),
+            "--mda-traj",
+            str(trajectory_path),
+            str(trajectory_path),
+        ]
+    )
+
+    with initialise_runner(args) as runner:
+        assert len(runner.simulations) == 1
+        assert runner.simulations[0].universe.trajectory.n_frames == 48
         runner.close()
 
 
