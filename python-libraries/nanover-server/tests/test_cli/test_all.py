@@ -75,6 +75,7 @@ def test_load_mda_trajectory():
 
 
 def test_load_mulitple_coordinate_files():
+    """Check that trajectories using multiple coordinate files can be loaded from commandline."""
     topology_path = (
         Path(__file__).parent.parent.parent.parent.parent
         / "tutorials/mdanalysis/files/3TI6_ose_wt.pdb"
