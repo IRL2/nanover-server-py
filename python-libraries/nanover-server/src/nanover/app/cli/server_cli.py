@@ -194,10 +194,11 @@ def initialise_runner(arguments: argparse.Namespace):
 
                 simulation = UniverseSimulation.from_universe(universe)
                 runner.add_simulation(simulation)
+                logging.info(f"Added simulation: {simulation.name}.")
             except Exception:
                 traj_str = "','".join(traj_list) if traj_list else ""
                 logging.error(
-                    f"Failed to create `Universe` with topology='{top}' and trajectories='{traj_str}'"
+                    f"Failed to create `Universe` with topology='{top}' and trajectorie(s)='{traj_str}'"
                 )
                 raise
 
