@@ -14,6 +14,36 @@ CLIS = [
 ]
 
 
+@pytest.fixture
+def pdb_path():
+    pdb_path = Path(__file__).parent.parent / "test_mdanalysis/17-ala.pdb"
+    assert pdb_path.exists(), "Path is incorrect, this file should exist."
+
+    return pdb_path
+
+
+@pytest.fixture
+def topology_path():
+    topology_path = (
+        Path(__file__).parent.parent.parent.parent.parent
+        / "tutorials/mdanalysis/files/3TI6_ose_wt.pdb"
+    )
+    assert topology_path.exists(), "Path is incorrect, this file should exist."
+
+    return topology_path
+
+
+@pytest.fixture
+def trajectory_path():
+    trajectory_path = (
+        Path(__file__).parent.parent.parent.parent.parent
+        / "tutorials/mdanalysis/files/ose_wt.dcd"
+    )
+    assert trajectory_path.exists(), "Path is incorrect, this file should exist."
+
+    return trajectory_path
+
+
 @pytest.mark.parametrize("cli", CLIS)
 def test_cli_help(cli):
     assert subprocess.run([cli, "--help"]).returncode == 0
@@ -41,28 +71,17 @@ def test_split_recording(tmp_path_factory):
     )
 
 
-def test_load_mda_structure():
+def test_load_mda_structure(pdb_path):
     """Check that static structures can be loaded from commandline."""
-    pdb_path = Path(__file__).parent.parent / "test_mdanalysis/17-ala.pdb"
-    assert pdb_path.exists(), "Path is incorrect, this file should exist."
-
     args = handle_user_arguments(args=["--mda", str(pdb_path)])
 
-    print(args)
     with initialise_runner(args) as runner:
         assert len(runner.simulations) == 1
         runner.close()
 
 
-def test_load_mda_trajectory():
+def test_load_mda_trajectory(topology_path, trajectory_path):
     """Check that trajectories can be loaded from commandline."""
-    topology_path = (
-        Path(__file__).parent.parent.parent.parent.parent
-        / "tutorials/mdanalysis/files/3TI6_ose_wt.pdb"
-    )
-    trajectory_path = topology_path.with_name("ose_wt.dcd")
-    assert topology_path.exists(), "Path is incorrect, this file should exist."
-    assert trajectory_path.exists(), "Path is incorrect, this file should exist."
 
     args = handle_user_arguments(
         args=["--mda", str(topology_path), "--mda-traj", str(trajectory_path)]
@@ -74,15 +93,8 @@ def test_load_mda_trajectory():
         runner.close()
 
 
-def test_load_mulitple_coordinate_files():
+def test_load_mulitple_coordinate_files(topology_path, trajectory_path):
     """Check that trajectories using multiple coordinate files can be loaded from commandline."""
-    topology_path = (
-        Path(__file__).parent.parent.parent.parent.parent
-        / "tutorials/mdanalysis/files/3TI6_ose_wt.pdb"
-    )
-    trajectory_path = topology_path.with_name("ose_wt.dcd")
-    assert topology_path.exists(), "Path is incorrect, this file should exist."
-    assert trajectory_path.exists(), "Path is incorrect, this file should exist."
 
     args = handle_user_arguments(
         args=[
@@ -100,19 +112,8 @@ def test_load_mulitple_coordinate_files():
         runner.close()
 
 
-def test_load_multiple_mda_trajectories():
+def test_load_multiple_mda_trajectories(pdb_path, topology_path, trajectory_path):
     """Checks that mixed sets of trajectories and static structures can be loaded."""
-    pdb_path = Path(__file__).parent.parent / "test_mdanalysis/17-ala.pdb"
-    topology_path = (
-        Path(__file__).parent.parent.parent.parent.parent
-        / "tutorials/mdanalysis/files/3TI6_ose_wt.pdb"
-    )
-    trajectory_path = topology_path.with_name("ose_wt.dcd")
-
-    assert topology_path.exists(), "Path is incorrect, this file should exist."
-    assert trajectory_path.exists(), "Path is incorrect, this file should exist."
-    assert pdb_path.exists(), "Path is incorrect, this file should exist."
-
     args = handle_user_arguments(
         args=[
             "--mda",
