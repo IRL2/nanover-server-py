@@ -82,7 +82,6 @@ def test_load_mda_structure(pdb_path):
 
 def test_load_mda_trajectory(topology_path, trajectory_path):
     """Check that trajectories can be loaded from commandline."""
-
     args = handle_user_arguments(
         args=["--mda", str(topology_path), "--mda-traj", str(trajectory_path)]
     )
@@ -95,7 +94,6 @@ def test_load_mda_trajectory(topology_path, trajectory_path):
 
 def test_load_mulitple_coordinate_files(topology_path, trajectory_path):
     """Check that trajectories using multiple coordinate files can be loaded from commandline."""
-
     args = handle_user_arguments(
         args=[
             "--mda",
