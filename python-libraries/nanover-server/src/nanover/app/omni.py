@@ -122,7 +122,11 @@ class OmniRunner:
             print(f'Switched to [{index}]: "{name}"')
 
         self.simulation_changed.add_callback(print_simulation_change)
-        print_simulation_change(index=self._simulation_index, name=self.simulation.name)
+
+        if self.simulation is not None:
+            print_simulation_change(
+                index=self._simulation_index, name=self.simulation.name
+            )
 
     @property
     def app_server(self):
@@ -210,6 +214,15 @@ class OmniRunner:
             index=self._simulation_index,
             name=self.simulation.name,
             simulation=self.simulation,
+        )
+
+        self.app_server.update_state(
+            DictionaryChange(
+                updates={
+                    "simulation.name": self.simulation.name,
+                    "simulation.index": self._simulation_index,
+                }
+            )
         )
 
     def next(self):
@@ -316,10 +329,6 @@ class InternalRunner:
             self.simulation.load()
             self.simulation.reset(self.app_server)
             self.omni.failed_simulations.discard(self.simulation)
-
-            self.app_server.update_state(
-                DictionaryChange(updates={"simulation.name": self.simulation.name})
-            )
 
             for dt in self.variable_interval_generator.yield_interval():
                 try:
