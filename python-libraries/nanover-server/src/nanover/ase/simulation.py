@@ -14,6 +14,7 @@ from nanover.ase.converter import (
     ase_atoms_to_frame_data,
     ANG_TO_NM,
     KJMOL_TO_EV,
+    generate_bonds_from_ase,
 )
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.thermo import compute_dof, compute_instantaneous_temperature
@@ -96,6 +97,9 @@ class ASESimulation(Simulation):
         self._prev_imd_indices: np.ndarray | None = None
 
         self._dof: int | None = None
+
+        self.dynamic_bonds: bool = False
+        self.previous_bonds: np.ndarray | None = None
 
     def load(self):
         """
@@ -265,9 +269,22 @@ class ASESimulation(Simulation):
             and self._dof is not None
         )
 
+        # Calculate bonds and determine whether topology needs updating
+        update_topology = False
+        if self.dynamic_bonds:
+            current_bonds = generate_bonds_from_ase(self.atoms)
+            if self.previous_bonds is not None and (
+                current_bonds.shape != self.previous_bonds.shape
+                or (current_bonds != self.previous_bonds).any()
+            ):
+                update_topology = True
+                self.previous_bonds = current_bonds
+            elif self.previous_bonds is None:
+                self.previous_bonds = current_bonds
+
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
-            topology=False,
+            topology=update_topology,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
