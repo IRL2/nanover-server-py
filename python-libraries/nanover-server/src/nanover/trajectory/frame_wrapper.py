@@ -92,6 +92,7 @@ class FrameData:
     user_forces_sparse: FloatArray = _shortcut(keys.USER_FORCES_SPARSE)
     user_forces_index: IndexArray = _shortcut(keys.USER_FORCES_INDEX)
 
+    simulation_name: str = _shortcut(keys.SIMULATION_NAME)
     simulation_time: float = _shortcut(keys.SIMULATION_TIME)
     simulation_counter: float = _shortcut(keys.SIMULATION_COUNTER)
     simulation_exception: float = _shortcut(keys.SIMULATION_EXCEPTION)

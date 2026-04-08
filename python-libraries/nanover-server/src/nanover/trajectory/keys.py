@@ -6,6 +6,7 @@ See: https://irl2.github.io/nanover-docs/concepts/applications.html#the-trajecto
 FRAME_INDEX = "frame.index"
 
 BOX_VECTORS = "system.box.vectors"
+SIMULATION_NAME = "system.simulation.name"
 SIMULATION_TIME = "system.simulation.time"
 SIMULATION_COUNTER = "system.simulation.counter"
 SIMULATION_EXCEPTION = "system.simulation.exception"

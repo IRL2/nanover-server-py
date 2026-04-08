@@ -150,6 +150,7 @@ class ASESimulation(Simulation):
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
+        frame_data.simulation_name = self.name
         self.app_server.frame_publisher.send_clear()
         self.app_server.frame_publisher.send_frame(frame_data)
 

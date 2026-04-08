@@ -27,7 +27,7 @@ class PlaybackSimulation(Simulation):
         path: PathLike[str],
     ):
         path = Path(path)
-        name = name or path.stem
+        name = name or path.stem.strip(".nanover")
 
         return cls(name=name, path=path)
 
@@ -133,6 +133,7 @@ class PlaybackSimulation(Simulation):
             with suppress(MissingDataError):
                 if frame.frame_index == 0:
                     self.app_server.frame_publisher.send_clear()
+                    frame.simulation_name = self.name
             self.app_server.frame_publisher.send_frame(frame)
         if update is not None:
             self.app_server.clear_locks()

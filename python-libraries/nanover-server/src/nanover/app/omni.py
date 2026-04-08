@@ -12,6 +12,7 @@ from nanover.imd.imd_force import InvalidInteractionError
 from nanover.trajectory import FrameData, keys
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
+from ..utilities.event import Event
 
 CLEAR_PREFIXES = {
     "avatar.",
@@ -79,6 +80,8 @@ class OmniRunner:
         self._simulation_index = 0
         self.simulation_selections: dict[Simulation, Set[RenderingSelection]] = {}
 
+        self.simulation_changed = Event()
+
         app_server.register_command(keys.LOAD_COMMAND, self.load)
         app_server.register_command(keys.NEXT_COMMAND, self.next)
         app_server.register_command(keys.LIST_COMMAND, self.list)
@@ -110,10 +113,20 @@ class OmniRunner:
             print(basic_info_string(self.app_server))
 
         list = "\n".join(
-            f'{index}: "{simulation.name}"'
+            f'[{index}]: "{simulation.name}"'
             for index, simulation in enumerate(self.simulations)
         )
         print(f"Available simulations:\n{list}")
+
+        def print_simulation_change(*, index, name, **kwargs):
+            print(f'Switched to [{index}]: "{name}"')
+
+        self.simulation_changed.add_callback(print_simulation_change)
+
+        if self.simulation is not None:
+            print_simulation_change(
+                index=self._simulation_index, name=self.simulation.name
+            )
 
     @property
     def app_server(self):
@@ -196,6 +209,21 @@ class OmniRunner:
         self._clear_state()
         self._load_simulation_selections()
         self._start_run()
+
+        self.simulation_changed.invoke(
+            index=self._simulation_index,
+            name=self.simulation.name,
+            simulation=self.simulation,
+        )
+
+        self.app_server.update_state(
+            DictionaryChange(
+                updates={
+                    "simulation.name": self.simulation.name,
+                    "simulation.index": self._simulation_index,
+                }
+            )
+        )
 
     def next(self):
         """
