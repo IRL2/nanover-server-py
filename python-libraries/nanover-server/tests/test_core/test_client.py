@@ -3,7 +3,7 @@ import pytest
 from mock import Mock
 
 from nanover.app import NanoverImdApplication
-from nanover.essd.utils import get_broadcastable_ip
+from nanover.essd.utils import get_broadcastable_test_ip
 from nanover.imd import ParticleInteraction
 from nanover.testing import assert_equal_soon, assert_in_soon
 from nanover.trajectory import FrameData, keys
@@ -34,7 +34,7 @@ def mock_callback(default_args):
 @pytest.fixture
 def client_server():
     with NanoverImdApplication.basic_server(
-        address=get_broadcastable_ip(), port=0
+        address=get_broadcastable_test_ip(), port=0
     ) as app_server:
         with NanoverImdClient.from_app_server(app_server) as client:
             yield client, app_server

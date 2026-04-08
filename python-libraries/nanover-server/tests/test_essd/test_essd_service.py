@@ -10,11 +10,11 @@ from nanover.essd.servicehub import (
     SERVICE_ID_KEY,
     ESSD_VERSION_KEY,
 )
-from nanover.essd.utils import get_broadcastable_ip
+from nanover.essd.utils import get_broadcastable_test_ip
 
 EXAMPLE_SERVICE_PROPERTIES = {
     SERVICE_NAME_KEY: "test service",
-    SERVICE_ADDRESS_KEY: get_broadcastable_ip(),
+    SERVICE_ADDRESS_KEY: get_broadcastable_test_ip(),
     SERVICE_SERVICES_KEY: {
         "trajectory": 54321,
         "imd": 54322,

@@ -15,7 +15,7 @@ dependencies = [
     "MDAnalysis",
     "numpy",
     "nglview",
-    "netifaces",
+    "psutil",
     "numpy",
     "ase >= 3.21",
     "websockets>=15.0.0",
