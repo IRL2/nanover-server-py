@@ -187,14 +187,49 @@ def initialise_runner(arguments: argparse.Namespace):
                 continue
 
             try:  # Try to create the universe from the given arguments.
+                # If using a PDB as topology, allow MDA to guess bonds.
+                to_guess = ("bonds",) if top.endswith(".pdb") else ()
+
                 if traj_list:
-                    universe = mda.Universe(top, *get_all_paths([traj_list]))
+                    # Should not be necessary to guess bonds in
+                    universe = mda.Universe(
+                        top, *get_all_paths([traj_list]), to_guess=to_guess
+                    )
                 else:
-                    universe = mda.Universe(top)
+                    universe = mda.Universe(top, to_guess=to_guess)
 
                 simulation = UniverseSimulation.from_universe(universe)
                 runner.add_simulation(simulation)
                 logging.info(f"Added simulation: {simulation.name}.")
+
+                # Now set some default visualisation settings which make sense.
+                # By default set to cartoon for proteins, hide solvent, and make any other ligands visible.
+                # TODO use flag too set whether these can be set?
+                client = NanoverImdClient.from_runner(runner)
+                with client.root_selection.modify() as root_sele:
+                    root_sele.renderer = "cartoon"
+                solvent = universe.select_atoms("resname HOH or resname WAT")
+                with client.create_selection("solvent").modify() as sol_sele:
+                    sol_sele.add_particles(map(int, solvent.indices))
+                    sol_sele.hide = True
+                    sol_sele.interaction_method = "none"
+                with client.create_selection("ligand", []).modify() as lig_sele:
+                    lig_sele.set_particles(
+                        map(
+                            int,
+                            universe.select_atoms(
+                                "not (protein or group solvent)", solvent=solvent
+                            ).indices,
+                        )
+                    )
+                    lig_sele.renderer = {
+                        "scale": 0.1,
+                        "render": "liquorice",
+                        "color": "cpk",
+                    }
+                runner.set_simulation_selections(
+                    simulation, root_sele, sol_sele, lig_sele
+                )
             except Exception:
                 traj_str = "','".join(traj_list) if traj_list else ""
                 logging.error(
