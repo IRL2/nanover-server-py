@@ -66,6 +66,13 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         help="Trajectories to load via MDAnalysis. "
         "Accepts wildcard expressions which are attempted to be sorted via natural numbering",
     )
+    parser.add_argument(
+        "--no-mda-default-visualisation",
+        dest="no_extra_vis",
+        action="store_false",
+        help="If set, will not set additional default visualisation options when loading"
+        " files using MDAnalysis.",
+    )
 
     parser.add_argument(
         "--playback",
@@ -204,7 +211,9 @@ def initialise_runner(arguments: argparse.Namespace):
 
                 # Now set some default visualisation settings which make sense.
                 # By default set to cartoon for proteins, hide solvent, and make any other ligands visible.
-                # TODO use flag too set whether these can be set?
+                if arguments.no_extra_vis:
+                    continue
+
                 client = NanoverImdClient.from_runner(runner)
                 with client.root_selection.modify() as root_sele:
                     root_sele.renderer = "cartoon"
