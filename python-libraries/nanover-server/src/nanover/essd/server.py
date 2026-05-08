@@ -132,22 +132,22 @@ class DiscoveryServer:
     def start(self):
         if self._broadcast_task is not None:
             raise RuntimeError("Discovery service already running!")
+        self._threads = ThreadPoolExecutor(max_workers=1)
+        self._cancel = False
         self._broadcast_task = self._threads.submit(self._broadcast_until_cancel)
 
     def close(self):
         if self._broadcast_task:
             self._cancel = True
             self._threads.shutdown(wait=True)
+            self._broadcast_task = None
 
     def _broadcast_until_cancel(self):
-        self._cancel = False
         self._socket = configure_reusable_socket()
-        try:
+        with self._socket:
             while not self._cancel:
                 self._broadcast_services()
                 time.sleep(self.delay)
-        finally:
-            self._socket.close()
 
     def _broadcast_services(self):
         with self._lock:
