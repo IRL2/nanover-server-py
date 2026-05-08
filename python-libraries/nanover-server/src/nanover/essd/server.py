@@ -132,21 +132,22 @@ class DiscoveryServer:
     def start(self):
         if self._broadcast_task is not None:
             raise RuntimeError("Discovery service already running!")
-        self._socket = configure_reusable_socket()
-        self._broadcast_task = self._threads.submit(self._broadcast)
+        self._threads = ThreadPoolExecutor(max_workers=1)
+        self._cancel = False
+        self._broadcast_task = self._threads.submit(self._broadcast_until_cancel)
 
     def close(self):
         if self._broadcast_task:
             self._cancel = True
-            self._broadcast_task.result()
+            self._threads.shutdown(wait=True)
             self._broadcast_task = None
-            self._cancel = False
-            self._socket.close()
 
-    def _broadcast(self):
-        while not self._cancel:
-            self._broadcast_services()
-            time.sleep(self.delay)
+    def _broadcast_until_cancel(self):
+        self._socket = configure_reusable_socket()
+        with self._socket:
+            while not self._cancel:
+                self._broadcast_services()
+                time.sleep(self.delay)
 
     def _broadcast_services(self):
         with self._lock:
@@ -163,9 +164,15 @@ class DiscoveryServer:
             self.logger.debug(
                 f"Sending service {service} to {broadcast_address['broadcast']}:{self.port}"
             )
-            self._socket.sendto(
-                message.encode(), (broadcast_address["broadcast"], self.port)
-            )
+
+            try:
+                self._socket.sendto(
+                    message.encode(), (broadcast_address["broadcast"], self.port)
+                )
+            except OSError:
+                self.logger.error(
+                    f"Failed broadcast to {broadcast_address['broadcast']}:{self.port}"
+                )
 
     def __enter__(self):
         return self
