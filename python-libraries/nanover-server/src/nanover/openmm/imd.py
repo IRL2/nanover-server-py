@@ -115,7 +115,7 @@ class ImdForceManager:
             for particle in velocity_resets:
                 mass = unit.Quantity(self.masses[particle], unit.dalton)
                 force = mass * -velocities[particle] / timestep
-                self.user_forces[particle] = force.value_in_unit(
+                self.user_forces[particle] += force.value_in_unit(
                     unit.kilojoules_per_mole / unit.nanometer
                 )
 
