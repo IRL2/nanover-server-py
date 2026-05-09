@@ -11,7 +11,7 @@ from openmm import unit
 from openmm.app import Simulation
 
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
-from nanover.imd import ImdStateWrapper
+from nanover.imd import ImdStateWrapper, ParticleInteraction
 from nanover.trajectory import FrameData
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
@@ -42,6 +42,7 @@ class ImdForceManager:
         self.total_user_energy = 0.0
 
         self._resets: dict[int, ResetType] = {}
+        self._prev_interactions: dict[str, ParticleInteraction] = {}
 
         self.periodic_box_lengths: np.ndarray | None = None
         if pbc_vectors is not None:
@@ -90,6 +91,18 @@ class ImdForceManager:
             for particle, reset in self._resets.items()
             if reset == ResetType.VELOCITY
         } - current_particles
+
+        # reset velocities for interactions that ended even if there are still being interacted with
+        ended_interactions = {
+            interaction
+            for key, interaction in self._prev_interactions.items()
+            if key not in self.imd_state.active_interactions
+        }
+        self._prev_interactions = {**self.imd_state.active_interactions}
+
+        for interaction in ended_interactions:
+            if interaction.reset_velocities:
+                velocity_resets.update(interaction.particles)
 
         if force_resets:
             zero = np.zeros(3)
