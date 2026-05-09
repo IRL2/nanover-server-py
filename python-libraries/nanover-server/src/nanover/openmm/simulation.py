@@ -213,7 +213,7 @@ class OpenMMSimulation(NanoverSimulation):
             getPositions=True,
             enforcePeriodicBox=self.use_pbc_wrapping or False,
         )
-        positions = state.getPositions(asNumpy=True)
+        positions = state.getPositions(asNumpy=True).value_in_unit(nanometer)
 
         # Calculate on-step contribution to work
         if self._prev_imd_forces is not None:
@@ -223,7 +223,9 @@ class OpenMMSimulation(NanoverSimulation):
             )
 
         # update imd forces and energies
-        self.imd_force_manager.update_interactions(self.simulation, positions)
+        self.imd_force_manager.update_interactions(
+            self.simulation, positions, steps_to_next_frame
+        )
 
         # generate the next frame with the existing (still valid) positions
         frame_data = self.make_regular_frame(positions)

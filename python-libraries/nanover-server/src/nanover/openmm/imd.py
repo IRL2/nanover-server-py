@@ -2,19 +2,16 @@
 Manage an OpenMM CustomExternalForce in conjunction with NanoVer IMD
 """
 
-from typing import Set, Tuple
-import itertools
+from enum import Enum
 
 import numpy as np
-import numpy.typing as npt
 
-from openmm import CustomExternalForce, System, Context
+from openmm import CustomExternalForce, System
 from openmm import unit
 from openmm.app import Simulation
 
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd import ImdStateWrapper
-from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.trajectory import FrameData
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
@@ -23,6 +20,11 @@ ALL_FORCES_GROUP_MASK = 0xFFFFFFFF
 IMD_FORCES_GROUP = 31
 IMD_FORCES_GROUP_MASK = 1 << IMD_FORCES_GROUP
 NON_IMD_FORCES_GROUP_MASK = ALL_FORCES_GROUP_MASK ^ IMD_FORCES_GROUP_MASK
+
+
+class ResetType(Enum):
+    FORCE = 0
+    VELOCITY = 1
 
 
 class ImdForceManager:
@@ -36,12 +38,10 @@ class ImdForceManager:
         self.imd_force = imd_force
 
         self.masses: np.ndarray | None = None
-        self.user_forces: np.ndarray = np.empty(0)
+        self.user_forces: np.ndarray = np.empty(self.imd_force.getNumParticles())
         self.total_user_energy = 0.0
 
-        self._is_force_dirty = False
-        self._previous_force_index: Set[int] = set()
-        self._total_user_energy = 0.0
+        self._resets: dict[int, ResetType] = {}
 
         self.periodic_box_lengths: np.ndarray | None = None
         if pbc_vectors is not None:
@@ -61,15 +61,76 @@ class ImdForceManager:
         self,
         simulation: Simulation,
         positions: np.ndarray,
+        steps=1,
     ):
         if self.masses is None:
             self._update_masses(simulation.system)
 
-        self._update_forces(
-            positions.astype(float),
-            self.imd_state.active_interactions,
-            simulation.context,
+        interactions = self.imd_state.active_interactions.values()
+
+        current_particles = {
+            index for interaction in interactions for index in interaction.particles
+        }
+
+        assert self.masses is not None
+        self.total_user_energy, self.user_forces = calculate_imd_force(
+            positions,
+            self.masses,
+            interactions,
+            self.periodic_box_lengths,
         )
+
+        force_resets = {
+            particle
+            for particle, reset in self._resets.items()
+            if reset == ResetType.FORCE
+        } - current_particles
+        velocity_resets = {
+            particle
+            for particle, reset in self._resets.items()
+            if reset == ResetType.VELOCITY
+        } - current_particles
+
+        if force_resets:
+            zero = np.zeros(3)
+            for particle in force_resets:
+                self.user_forces[particle] = zero
+
+        if velocity_resets:
+            timestep = simulation.integrator.getStepSize() * steps
+            velocities = simulation.context.getState(getVelocities=True).getVelocities()
+            for particle in velocity_resets:
+                mass = unit.Quantity(self.masses[particle], unit.dalton)
+                force = mass * -velocities[particle] / timestep
+                self.user_forces[particle] = force.value_in_unit(
+                    unit.kilojoules_per_mole / unit.nanometer
+                )
+
+        # update particles with changed forces
+        particle_updates = current_particles | force_resets | velocity_resets
+
+        for particle in particle_updates:
+            self.imd_force.setParticleParameters(
+                particle, particle, self.user_forces[particle]
+            )
+
+        if particle_updates:
+            self.imd_force.updateParametersInContext(simulation.context)
+
+        # track which particles need to be reset
+        self._resets.clear()
+
+        # velocity resets create forces that should be cleaned up
+        for particle in velocity_resets:
+            self._resets[particle] = ResetType.FORCE
+
+        # interactions create forces that should be cleaned up
+        for interaction in interactions:
+            reset = (
+                ResetType.VELOCITY if interaction.reset_velocities else ResetType.FORCE
+            )
+            for particle in interaction.particles:
+                self._resets[particle] = reset
 
     def add_to_frame_data(self, frame_data: FrameData):
         frame_data.user_energy = self.total_user_energy
@@ -84,81 +145,6 @@ class ImdForceManager:
                 for particle in range(system.getNumParticles())
             ]
         )
-
-    def _update_forces(
-        self,
-        positions: np.ndarray,
-        interactions: dict[str, ParticleInteraction],
-        context: Context,
-    ) -> Tuple[float, npt.NDArray]:
-        """
-        Get the forces to apply from the iMD service and communicate them to
-        OpenMM.
-        """
-        energy = 0.0
-        forces_kjmol = np.zeros(positions.shape)
-        context_needs_update = False
-        if interactions:
-            energy, forces_kjmol = self._apply_forces(positions, interactions)
-            context_needs_update = True
-        elif self._is_force_dirty:
-            self._reset_forces()
-            context_needs_update = True
-
-        if context_needs_update:
-            self.imd_force.updateParametersInContext(context)
-
-        self.total_user_energy = energy
-        self.user_forces = forces_kjmol
-
-        return energy, forces_kjmol
-
-    def _apply_forces(
-        self,
-        positions: np.ndarray,
-        interactions: dict[str, ParticleInteraction],
-    ) -> Tuple[float, npt.NDArray]:
-        """
-        Set the iMD forces based on the user interactions.
-        """
-        assert self.masses is not None
-        energy, forces_kjmol = calculate_imd_force(
-            positions,
-            self.masses,
-            interactions.values(),
-            self.periodic_box_lengths,
-        )
-        affected_particles = _build_particle_interaction_index_set(interactions)
-        to_reset_particles = self._previous_force_index - affected_particles
-        for particle in affected_particles:
-            force = forces_kjmol[particle]
-            self.imd_force.setParticleParameters(particle, particle, force)
-        for particle in to_reset_particles:
-            self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
-        self._is_force_dirty = True
-        self._previous_force_index = affected_particles
-        return energy, forces_kjmol
-
-    def _reset_forces(self):
-        """
-        Set all the iMD forces to 0.
-        """
-        for particle in self._previous_force_index:
-            self.imd_force.setParticleParameters(particle, particle, (0, 0, 0))
-        self._is_force_dirty = False
-        self._previous_force_index = set()
-
-
-def _build_particle_interaction_index_set(
-    interactions: dict[str, ParticleInteraction],
-) -> Set[int]:
-    """
-    Get a set of the indices of the particles involved in interactions.
-    """
-    indices = (interaction.particles for interaction in interactions.values())
-    flatten_indices = itertools.chain(*indices)
-    set_of_ints = set(map(int, flatten_indices))
-    return set_of_ints
 
 
 def create_imd_force() -> CustomExternalForce:
