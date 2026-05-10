@@ -162,10 +162,10 @@ class NanoverImdApplication(AppServer):
         """
         self._state_dictionary.freeze()
         self._frame_publisher.close()
-        if self._discovery is not None:
-            self._discovery.close()
         if self._server_ws is not None:
             self._server_ws.close()
+        if self._discovery is not None:
+            self._discovery.close()
 
     @property
     def commands(self):
