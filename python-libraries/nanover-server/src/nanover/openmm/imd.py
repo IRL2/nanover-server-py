@@ -2,8 +2,6 @@
 Manage an OpenMM CustomExternalForce in conjunction with NanoVer IMD
 """
 
-from enum import Enum
-
 import numpy as np
 
 from openmm import CustomExternalForce, System
@@ -22,11 +20,6 @@ IMD_FORCES_GROUP_MASK = 1 << IMD_FORCES_GROUP
 NON_IMD_FORCES_GROUP_MASK = ALL_FORCES_GROUP_MASK ^ IMD_FORCES_GROUP_MASK
 
 
-class ResetType(Enum):
-    FORCE = 0
-    VELOCITY = 1
-
-
 class ImdForceManager:
     def __init__(
         self,
@@ -41,7 +34,7 @@ class ImdForceManager:
         self.user_forces: np.ndarray = np.empty(self.imd_force.getNumParticles())
         self.total_user_energy = 0.0
 
-        self._resets: dict[int, ResetType] = {}
+        self._prev_particles: set[int] = set()
         self._prev_interactions: dict[str, ParticleInteraction] = {}
 
         self.periodic_box_lengths: np.ndarray | None = None
@@ -66,84 +59,63 @@ class ImdForceManager:
     ):
         if self.masses is None:
             self._update_masses(simulation.system)
+            assert self.masses is not None
 
-        interactions = self.imd_state.active_interactions.values()
-
-        current_particles = {
-            index for interaction in interactions for index in interaction.particles
+        # which particles and interactions are now active?
+        next_interactions = {**self.imd_state.active_interactions}
+        next_particles = {
+            index
+            for interaction in next_interactions.values()
+            for index in interaction.particles
         }
 
-        assert self.masses is not None
+        # which previous interactions ended and require velocity reset?
+        velocity_resets_interactions = [
+            interaction
+            for key, interaction in self._prev_interactions.items()
+            if key not in next_interactions and interaction.reset_velocities
+        ]
+
+        # compute energy and forces for active interactions
         self.total_user_energy, self.user_forces = calculate_imd_force(
             positions,
             self.masses,
-            interactions,
+            next_interactions.values(),
             self.periodic_box_lengths,
         )
 
-        force_resets = {
-            particle
-            for particle, reset in self._resets.items()
-            if reset == ResetType.FORCE
-        } - current_particles
-        velocity_resets = {
-            particle
-            for particle, reset in self._resets.items()
-            if reset == ResetType.VELOCITY
-        } - current_particles
-
-        # reset velocities for interactions that ended even if there are still being interacted with
-        ended_interactions = {
-            interaction
-            for key, interaction in self._prev_interactions.items()
-            if key not in self.imd_state.active_interactions
-        }
-        self._prev_interactions = {**self.imd_state.active_interactions}
-
-        for interaction in ended_interactions:
-            if interaction.reset_velocities:
-                velocity_resets.update(interaction.particles)
-
-        if force_resets:
-            zero = np.zeros(3)
-            for particle in force_resets:
-                self.user_forces[particle] = zero
-
-        if velocity_resets:
-            timestep = simulation.integrator.getStepSize() * steps
-            velocities = simulation.context.getState(getVelocities=True).getVelocities()
-            for particle in velocity_resets:
-                mass = unit.Quantity(self.masses[particle], unit.dalton)
-                force = mass * -velocities[particle] / timestep
-                self.user_forces[particle] += force.value_in_unit(
-                    unit.kilojoules_per_mole / unit.nanometer
-                )
-
-        # update particles with changed forces
-        particle_updates = current_particles | force_resets | velocity_resets
-
-        for particle in particle_updates:
-            self.imd_force.setParticleParameters(
-                particle, particle, self.user_forces[particle]
+        # add velocity reset forces
+        if velocity_resets_interactions:
+            timestep = (
+                simulation.integrator.getStepSize().value_in_unit(unit.picosecond)
+                * steps
             )
+            velocities = (
+                simulation.context.getState(getVelocities=True)
+                .getVelocities(asNumpy=True)
+                .value_in_unit(unit.nanometer / unit.picosecond)
+            )
+            for interaction in velocity_resets_interactions:
+                next_particles.update(interaction.particles)
+                average = np.average(velocities[interaction.particles], axis=0)
+                masses = np.transpose([self.masses[interaction.particles]])
+                forces = masses * -average / timestep
+                self.user_forces[interaction.particles] += forces
 
-        if particle_updates:
+        # update forces that have changes
+        force_resets = self._prev_particles - next_particles
+        force_changes = next_particles | force_resets
+
+        if force_changes:
+            for particle in force_changes:
+                self.imd_force.setParticleParameters(
+                    particle, particle, self.user_forces[particle]
+                )
             self.imd_force.updateParametersInContext(simulation.context)
 
-        # track which particles need to be reset
-        self._resets.clear()
-
-        # velocity resets create forces that should be cleaned up
-        for particle in velocity_resets:
-            self._resets[particle] = ResetType.FORCE
-
-        # interactions create forces that should be cleaned up
-        for interaction in interactions:
-            reset = (
-                ResetType.VELOCITY if interaction.reset_velocities else ResetType.FORCE
-            )
-            for particle in interaction.particles:
-                self._resets[particle] = reset
+        # remember previous interactions and particles
+        self._prev_interactions = next_interactions
+        self._prev_particles = next_particles
 
     def add_to_frame_data(self, frame_data: FrameData):
         frame_data.user_energy = self.total_user_energy
