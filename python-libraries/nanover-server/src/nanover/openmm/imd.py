@@ -101,6 +101,7 @@ class ImdForceManager:
                 masses = np.transpose([self.masses[interaction.particles]])
                 forces = masses * -average / timestep
                 self.user_forces[interaction.particles] += forces
+                self.total_user_energy += 0  # TODO: what is the energy
 
         # update forces that have changes
         force_resets = self._prev_particles - next_particles
