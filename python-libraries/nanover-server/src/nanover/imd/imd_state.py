@@ -87,7 +87,7 @@ class ImdStateWrapper:
     def _on_state_updated(self, access_token, change: DictionaryChange):
         for removed_key in change.removals:
             if removed_key.startswith(INTERACTION_PREFIX):
-                interaction = self._interactions.pop(removed_key)
+                interaction = self._interactions.pop(removed_key, None)
                 if interaction is not None:
                     self.interaction_stopped.invoke(
                         key=removed_key, interaction=interaction
@@ -96,7 +96,7 @@ class ImdStateWrapper:
             if key.startswith(INTERACTION_PREFIX):
                 try:
                     interaction = dict_to_interaction(value)
-                    started = key in self._interactions
+                    started = key not in self._interactions
                     self._interactions[key] = interaction
                     if started:
                         self.interaction_started.invoke(
