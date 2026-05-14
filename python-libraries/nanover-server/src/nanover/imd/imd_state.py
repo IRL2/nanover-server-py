@@ -5,6 +5,7 @@ Module providing methods for storing ParticleInteractions in a StateDictionary.
 import warnings
 from typing import Any, Mapping
 
+from nanover.utilities.event import Event
 from nanover.utilities.state_dictionary import StateDictionary
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.imd.particle_interaction import ParticleInteraction
@@ -42,6 +43,9 @@ class ImdStateWrapper:
 
         self.state_dictionary.content_updated.add_callback(self._on_state_updated)
         self._interactions = {}
+
+        self.interaction_started = Event()
+        self.interaction_stopped = Event()
 
     @property
     def velocity_reset_available(self):
@@ -82,15 +86,22 @@ class ImdStateWrapper:
 
     def _on_state_updated(self, access_token, change: DictionaryChange):
         for removed_key in change.removals:
-            if (
-                removed_key.startswith(INTERACTION_PREFIX)
-                and removed_key in self._interactions
-            ):
-                del self._interactions[removed_key]
+            if removed_key.startswith(INTERACTION_PREFIX):
+                interaction = self._interactions.pop(removed_key, None)
+                if interaction is not None:
+                    self.interaction_stopped.invoke(
+                        key=removed_key, interaction=interaction
+                    )
         for key, value in change.updates.items():
             if key.startswith(INTERACTION_PREFIX):
                 try:
-                    self._interactions[key] = dict_to_interaction(value)
+                    interaction = dict_to_interaction(value)
+                    started = key not in self._interactions
+                    self._interactions[key] = interaction
+                    if started:
+                        self.interaction_started.invoke(
+                            key=key, interaction=interaction
+                        )
                 except Exception:
                     warnings.warn(f"Didn't understand '{value}' ({key}) as interaction")
 
