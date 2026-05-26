@@ -46,6 +46,7 @@ class ImdStateWrapper:
 
         self.interaction_started = Event()
         self.interaction_stopped = Event()
+        self.interaction_updated = Event()
 
     @property
     def velocity_reset_available(self):
@@ -102,6 +103,7 @@ class ImdStateWrapper:
                         self.interaction_started.invoke(
                             key=key, interaction=interaction
                         )
+                    self.interaction_updated.invoke(key=key, interaction=interaction)
                 except Exception:
                     warnings.warn(f"Didn't understand '{value}' ({key}) as interaction")
 
