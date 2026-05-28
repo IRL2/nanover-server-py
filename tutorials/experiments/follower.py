@@ -1,3 +1,5 @@
+from itertools import combinations
+
 import numpy as np
 import numpy.typing as npt
 
@@ -104,6 +106,88 @@ class Follower:
                         )
                     else:
                         imd.remove_interaction(key)
+
+        self._task = self._threads.submit(run)
+
+    def stop(self):
+        self._cancellation.cancel()
+        self._threads.shutdown(wait=True)
+        for key in self._interactions:
+            self._runner.app_server.imd.remove_interaction(key)
+
+
+class DistanceFollower:
+    @classmethod
+    def from_runner(cls, runner: OmniRunner):
+        return cls(runner)
+
+    def __init__(self, runner: OmniRunner):
+        self._runner = runner
+        self._threads = ThreadPoolExecutor(max_workers=1)
+        self._cancellation = CancellationToken()
+        self._task = None
+        self._interactions: set[str] = set()
+
+    def start(self, checkpoint: Checkpoint, speed: float, output):
+        if self._task is not None:
+            return
+
+        publisher = self._runner.app_server.frame_publisher
+        imd = self._runner.app_server.imd
+        stream = publisher.subscribe_latest_frames(
+            frame_interval=0, cancellation=self._cancellation
+        )
+
+        def run():
+            distance = 0
+
+            target_centroids = [pin.position for pin in checkpoint.pins]
+            index_pairs = list(combinations(range(len(checkpoint.pins)), 2))
+            target_distances = [
+                np.linalg.norm(target_centroids[a] - target_centroids[b])
+                for a, b in index_pairs
+            ]
+
+            for frame in stream:
+                distance += speed
+
+                prev_centroids = [
+                    np.average(frame.particle_positions[pin.particles], axis=0)
+                    for pin in checkpoint.pins
+                ]
+                prev_distances = [
+                    np.linalg.norm(prev_centroids[a] - prev_centroids[b])
+                    for a, b in index_pairs
+                ]
+                next_centroids = [c.copy() for c in prev_centroids]
+
+                for i, (a, b) in enumerate(index_pairs):
+                    error = target_distances[i] - prev_distances[i]
+                    forward = next_centroids[a] - next_centroids[b]
+                    next_centroids[a] += error / 2 * forward
+                    next_centroids[b] -= error / 2 * forward
+
+                for i, pin in enumerate(checkpoint.pins):
+                    key = f"interaction.REPLAYER.{i}"
+                    self._interactions.add(key)
+
+                    delta = next_centroids[i] - prev_centroids[i]
+                    length = np.linalg.norm(delta)
+
+                    if length > 0.0001:
+                        unit = delta / length
+                        capped = unit * min(length, speed)
+                        target = prev_centroids[i] + capped
+
+                        imd.insert_interaction(
+                            key,
+                            ParticleInteraction(
+                                particles=pin.particles,
+                                position=list(target),
+                                interaction_type="spring",
+                                scale=500,
+                            ),
+                        )
 
         self._task = self._threads.submit(run)
 
