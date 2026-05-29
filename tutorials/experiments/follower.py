@@ -1,3 +1,4 @@
+import traceback
 from itertools import combinations
 
 import numpy as np
@@ -155,6 +156,14 @@ class DistanceFollower:
                     np.average(frame.particle_positions[pin.particles], axis=0)
                     for pin in checkpoint.pins
                 ]
+
+                with output:
+                    try:
+                        output.clear_output()
+                        svd_test(target_centroids, prev_centroids)
+                    except Exception:
+                        print(traceback.format_exc())
+
                 prev_distances = [
                     np.linalg.norm(prev_centroids[a] - prev_centroids[b])
                     for a, b in index_pairs
@@ -166,6 +175,133 @@ class DistanceFollower:
                     forward = next_centroids[a] - next_centroids[b]
                     next_centroids[a] += error / 2 * forward
                     next_centroids[b] -= error / 2 * forward
+
+                for i, pin in enumerate(checkpoint.pins):
+                    key = f"interaction.REPLAYER.{i}"
+                    self._interactions.add(key)
+
+                    delta = next_centroids[i] - prev_centroids[i]
+                    length = np.linalg.norm(delta)
+
+                    if length > 0.0001:
+                        unit = delta / length
+                        capped = unit * min(length, speed)
+                        target = prev_centroids[i] + capped
+
+                        imd.insert_interaction(
+                            key,
+                            ParticleInteraction(
+                                particles=pin.particles,
+                                position=list(target),
+                                interaction_type="spring",
+                                scale=500,
+                            ),
+                        )
+
+        self._task = self._threads.submit(run)
+
+    def stop(self):
+        self._cancellation.cancel()
+        self._threads.shutdown(wait=True)
+        for key in self._interactions:
+            self._runner.app_server.imd.remove_interaction(key)
+
+
+MIN = 10000
+MAX = 0
+
+
+def svd_test(target_points: npt.NDArray, current_points: npt.NDArray):
+    # q: target
+    q = np.array(target_points).transpose()
+    # p: current
+    p = np.array(current_points).transpose()
+
+    # centroids
+    cen_P = np.mean(p, axis=1).reshape(-1, 1)
+    cen_Q = np.mean(q, axis=1).reshape(-1, 1)
+
+    # positions relative to centroids ("centered vectors")
+    X = p - cen_P
+    Y = q - cen_Q
+
+    # covariance matrix
+    S = X @ Y.T
+    U, sigma, Vt = np.linalg.svd(S)
+
+    # diagonal matrix
+    d = np.eye(Vt.T.shape[1])
+    d[-1, -1] = np.linalg.det(Vt.T @ U.T)
+
+    # rotation and translation
+    R = Vt.T @ d @ U.T
+    t = cen_Q - R @ cen_P
+
+    error = (R @ p + t) - q
+    print(np.abs(error).sum())
+    print(error)
+
+
+class SVDFollower:
+    @classmethod
+    def from_runner(cls, runner: OmniRunner):
+        return cls(runner)
+
+    def __init__(self, runner: OmniRunner):
+        self._runner = runner
+        self._threads = ThreadPoolExecutor(max_workers=1)
+        self._cancellation = CancellationToken()
+        self._task = None
+        self._interactions: set[str] = set()
+
+    def start(self, checkpoint: Checkpoint, speed: float, output):
+        if self._task is not None:
+            return
+
+        publisher = self._runner.app_server.frame_publisher
+        imd = self._runner.app_server.imd
+        stream = publisher.subscribe_latest_frames(
+            frame_interval=0, cancellation=self._cancellation
+        )
+
+        def run():
+            distance = 0
+
+            target_centroids = [pin.position for pin in checkpoint.pins]
+            index_pairs = list(combinations(range(len(checkpoint.pins)), 2))
+            target_distances = [
+                np.linalg.norm(target_centroids[a] - target_centroids[b])
+                for a, b in index_pairs
+            ]
+
+            P = np.array(target_centroids)
+
+            for frame in stream:
+                distance += speed
+
+                prev_centroids = [
+                    np.average(frame.particle_positions[pin.particles], axis=0)
+                    for pin in checkpoint.pins
+                ]
+                next_centroids = [c.copy() for c in prev_centroids]
+
+                Q = np.array(prev_centroids)
+
+                cen_P = np.mean(P, axis=1).reshape(-1, 1)
+                cen_Q = np.mean(Q, axis=1).reshape(-1, 1)
+
+                X = P - cen_P
+                Y = Q - cen_Q
+
+                S = X @ Y.T
+
+                U, sigma, Vt = np.linalg.svd(S)
+
+                d = np.eye(Vt.T.shape[1])
+                d[-1, -1] = np.linalg.det(Vt.T @ U.T)
+
+                R = Vt.T @ d @ U.T
+                t = cen_Q - R @ cen_P
 
                 for i, pin in enumerate(checkpoint.pins):
                     key = f"interaction.REPLAYER.{i}"
