@@ -156,14 +156,6 @@ class DistanceFollower:
                     np.average(frame.particle_positions[pin.particles], axis=0)
                     for pin in checkpoint.pins
                 ]
-
-                with output:
-                    try:
-                        output.clear_output()
-                        svd_test(target_centroids, prev_centroids)
-                    except Exception:
-                        print(traceback.format_exc())
-
                 prev_distances = [
                     np.linalg.norm(prev_centroids[a] - prev_centroids[b])
                     for a, b in index_pairs
@@ -211,11 +203,10 @@ MIN = 10000
 MAX = 0
 
 
-def svd_test(target_points: npt.NDArray, current_points: npt.NDArray):
-    # q: target
-    q = np.array(target_points).transpose()
-    # p: current
-    p = np.array(current_points).transpose()
+def fit_template_points_to_observed(template_points: npt.NDArray, observed_points: npt.NDArray):
+    # minimise (Rp+t - q)**2 -- fit template points onto observed points
+    p = template_points.transpose()
+    q = observed_points.transpose()
 
     # centroids
     cen_P = np.mean(p, axis=1).reshape(-1, 1)
@@ -237,9 +228,7 @@ def svd_test(target_points: npt.NDArray, current_points: npt.NDArray):
     R = Vt.T @ d @ U.T
     t = cen_Q - R @ cen_P
 
-    error = (R @ p + t) - q
-    print(np.abs(error).sum())
-    print(error)
+    return (R @ p + t).transpose()
 
 
 class SVDFollower:
@@ -264,44 +253,28 @@ class SVDFollower:
             frame_interval=0, cancellation=self._cancellation
         )
 
+        with output:
+            print("HELLO")
+
         def run():
-            distance = 0
-
-            target_centroids = [pin.position for pin in checkpoint.pins]
-            index_pairs = list(combinations(range(len(checkpoint.pins)), 2))
-            target_distances = [
-                np.linalg.norm(target_centroids[a] - target_centroids[b])
-                for a, b in index_pairs
-            ]
-
-            P = np.array(target_centroids)
+            target_centroids = np.array([pin.position for pin in checkpoint.pins])
 
             for frame in stream:
-                distance += speed
-
-                prev_centroids = [
+                prev_centroids = np.array([
                     np.average(frame.particle_positions[pin.particles], axis=0)
                     for pin in checkpoint.pins
-                ]
-                next_centroids = [c.copy() for c in prev_centroids]
+                ])
 
-                Q = np.array(prev_centroids)
+                with output:
+                    try:
+                        next_centroids = fit_template_points_to_observed(target_centroids, prev_centroids)
 
-                cen_P = np.mean(P, axis=1).reshape(-1, 1)
-                cen_Q = np.mean(Q, axis=1).reshape(-1, 1)
+                        error = np.abs(next_centroids - prev_centroids).sum()
 
-                X = P - cen_P
-                Y = Q - cen_Q
-
-                S = X @ Y.T
-
-                U, sigma, Vt = np.linalg.svd(S)
-
-                d = np.eye(Vt.T.shape[1])
-                d[-1, -1] = np.linalg.det(Vt.T @ U.T)
-
-                R = Vt.T @ d @ U.T
-                t = cen_Q - R @ cen_P
+                        output.clear_output()
+                        print(error)
+                    except Exception as e:
+                        print(traceback.format_exc())
 
                 for i, pin in enumerate(checkpoint.pins):
                     key = f"interaction.REPLAYER.{i}"
