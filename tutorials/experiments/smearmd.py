@@ -51,7 +51,7 @@ class SmearAgent:
             try:
                 for frame in stream:
                     prev_centroids = np.array([
-                        np.average(frame.particle_positions[target.particles], axis=0)
+                        np.mean(frame.particle_positions[target.particles], axis=0)
                         for target in keyframe.targets
                     ])
 
@@ -63,7 +63,7 @@ class SmearAgent:
                     error = np.sum(deltas)
 
                     # cap motions by speed
-                    lengths = np.array([np.linalg.norm(deltas, axis=1)]).transpose()
+                    lengths = np.linalg.norm(deltas, axis=1).reshape(-1, 1)
                     cappeds = deltas / lengths
                     np.clip(lengths, max=speed, out=lengths)
                     cappeds *= lengths
