@@ -1,24 +1,11 @@
 import numpy as np
 import numpy.typing as npt
 
-from nanover.app import OmniRunner
-from nanover.imd import ParticleInteraction
-
-
 from dataclasses import dataclass, field
-from concurrent.futures import ThreadPoolExecutor
-from nanover.utilities.cli import CancellationToken
 
-
-@dataclass(kw_only=True, eq=False)
-class Pin:
-    particles: list[int] = field(default_factory=list)
-    position: npt.NDArray[np.float32]
-
-
-@dataclass(kw_only=True, eq=False)
-class Checkpoint:
-    pins: list[Pin] = field(default_factory=list)
+from nanover.imd import ParticleInteraction
+from nanover.trajectory import FrameData
+from tutorials.experiments.imdagent import ImdAgent
 
 
 class Path:
@@ -54,61 +41,34 @@ class Group:
     path: Path = field(default_factory=Path)
 
 
-class Follower:
-    @classmethod
-    def from_runner(cls, runner: OmniRunner):
-        return cls(runner)
+class Follower(ImdAgent):
+    groups: list[Group] | None = None
+    speed = .1
+    release = True
+    distance = 0
 
-    def __init__(self, runner: OmniRunner):
-        self._runner = runner
-        self._threads = ThreadPoolExecutor(max_workers=1)
-        self._cancellation = CancellationToken()
-        self._task = None
-        self._interactions: set[str] = set()
-
-    def start(self, groups: list[Group], speed: float, release=True):
-        if self._task is not None:
+    def update_interactions(self, frame: FrameData):
+        if self.groups is None:
             return
 
-        publisher = self._runner.app_server.frame_publisher
-        imd = self._runner.app_server.imd
-        stream = publisher.subscribe_latest_frames(
-            frame_interval=0, cancellation=self._cancellation
-        )
+        self.distance += self.speed
 
-        def run():
-            distance = 0
+        for i, group in enumerate(self.groups):
+            key = f"interaction.REPLAYER.{i}"
+            target = group.path.get_point_at_distance(self.distance)
 
-            for frame in stream:
-                distance += speed
+            if target is None and not self.release:
+                target = group.path.points[-1]
 
-                for i, group in enumerate(groups):
-                    key = f"interaction.REPLAYER.{i}"
-                    self._interactions.add(key)
-                    # centroid = np.average(frame.particle_positions[group.particles], axis=0)
-
-                    target = group.path.get_point_at_distance(distance)
-
-                    if target is None and not release:
-                        target = group.path.points[-1]
-
-                    if target is not None:
-                        imd.insert_interaction(
-                            key,
-                            ParticleInteraction(
-                                particles=group.particles,
-                                position=list(target),
-                                interaction_type="spring",
-                                scale=500,
-                            ),
-                        )
-                    else:
-                        imd.remove_interaction(key)
-
-        self._task = self._threads.submit(run)
-
-    def stop(self):
-        self._cancellation.cancel()
-        self._threads.shutdown(wait=True)
-        for key in self._interactions:
-            self._runner.app_server.imd.remove_interaction(key)
+            if target is not None:
+                self.update_interaction(
+                    key,
+                    ParticleInteraction(
+                        particles=group.particles,
+                        position=list(target),
+                        interaction_type="spring",
+                        scale=500,
+                    ),
+                )
+            else:
+                self.remove_interaction(key)

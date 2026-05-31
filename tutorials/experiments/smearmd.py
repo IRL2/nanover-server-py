@@ -1,30 +1,10 @@
-import traceback
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
-
 import numpy as np
 import numpy.typing as npt
 
-from nanover.app import OmniRunner
 from nanover.imd import ParticleInteraction
 from nanover.trajectory import FrameData
-from nanover.utilities.cli import CancellationToken
-
-
-@dataclass(kw_only=True, eq=False)
-class TargetGroup:
-    particles: list[int] = field(default_factory=list)
-    position: npt.NDArray[np.float32]
-    centroid: npt.NDArray[np.float32]
-
-
-@dataclass(kw_only=True, eq=False)
-class KeyFrame:
-    targets: list[TargetGroup] = field(default_factory=list)
-    centroids: npt.NDArray[np.float32] = field(init=False)
-
-    def __post_init__(self):
-        self.centroids = np.array([target.centroid for target in self.targets])
+from imdagent import ImdAgent
+from keyframes import KeyFrame
 
 
 def fit_keyframe_to_frame(keyframe: KeyFrame, frame: FrameData):
@@ -38,24 +18,16 @@ def fit_keyframe_to_frame(keyframe: KeyFrame, frame: FrameData):
     return current, targets
 
 
-class SmearAgent:
-    @classmethod
-    def from_runner(cls, runner: OmniRunner):
-        return cls(runner)
+class SmearAgent(ImdAgent):
+    speed = .1
+    keyframe: KeyFrame | None = None
 
-    def __init__(self, runner: OmniRunner):
-        self._runner = runner
-        self._threads = ThreadPoolExecutor(max_workers=1)
-        self._cancellation = CancellationToken()
-        self._task = None
-        self._interactions: set[str] = set()
-        self.speed = .1
-
-    def update_interactions(self, keyframe, frame):
-        imd = self._runner.app_server.imd
+    def update_interactions(self, frame: FrameData):
+        if self.keyframe is None:
+            return
 
         # fit keyframe targets to actual positions
-        prev_centroids, next_centroids = fit_keyframe_to_frame(keyframe, frame)
+        prev_centroids, next_centroids = fit_keyframe_to_frame(self.keyframe, frame)
 
         # find necessary motions
         deltas = next_centroids - prev_centroids
@@ -69,10 +41,7 @@ class SmearAgent:
         # determine final interaction positions
         target_centroids = prev_centroids + cappeds
 
-        for i, target in enumerate(keyframe.targets):
-            key = f"interaction.REPLAYER.{i}"
-            self._interactions.add(key)
-
+        for i, target in enumerate(self.keyframe.targets):
             if lengths[i] < 0.0001:
                 continue
 
@@ -83,32 +52,7 @@ class SmearAgent:
                 scale=1000,
                 max_force=50,
             )
-            imd.insert_interaction(key, interaction)
-
-    def start(self, keyframe: KeyFrame, output):
-        if self._task is not None:
-            return
-
-        publisher = self._runner.app_server.frame_publisher
-        stream = publisher.subscribe_latest_frames(
-            frame_interval=0, cancellation=self._cancellation
-        )
-
-        def run():
-            try:
-                for frame in stream:
-                    self.update_interactions(keyframe, frame)
-            except Exception as e:
-                with output:
-                    print(traceback.print_exc())
-
-        self._task = self._threads.submit(run)
-
-    def stop(self):
-        self._cancellation.cancel()
-        self._threads.shutdown(wait=True)
-        for key in self._interactions:
-            self._runner.app_server.imd.remove_interaction(key)
+            self.update_interaction(f"interaction.REPLAYER.{i}", interaction)
 
 
 def fit_template_points_to_observed(
