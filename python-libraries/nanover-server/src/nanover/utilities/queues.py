@@ -6,7 +6,7 @@ from nanover.trajectory import FrameData
 
 
 # adapted from https://github.com/python/cpython/blob/master/Lib/queue.py
-class LastItemQueue:
+class LastItemQueue[T]:
     """
     Mimics the basic interface of a :class:`Queue` but only stores one item.
     """
@@ -17,12 +17,12 @@ class LastItemQueue:
             :class:`Queue`.
         """
         self._lock = Lock()
-        self._item = None
+        self._item: T | None = None
         self._has_item = False
 
         self.not_empty = Condition(self._lock)
 
-    def put(self, item, **kwargs):
+    def put(self, item: T, **kwargs):
         """
         Store a value, replace the previous one if any.
 
@@ -37,7 +37,7 @@ class LastItemQueue:
             self._has_item = True
             self.not_empty.notify()
 
-    def get(self, block=True, timeout=None):
+    def get(self, block=True, timeout=None) -> T | None:
         """
         Get the stored value, and remove it from storage.
 
@@ -73,7 +73,7 @@ class LastItemQueue:
             return item
 
 
-class FrameMergingQueue(LastItemQueue):
+class FrameMergingQueue(LastItemQueue[FrameData]):
     """
     SingleItemQueue specifically for FrameData items. Put frames will be
     aggregated with any existing frame so that there is at most one frame in the
