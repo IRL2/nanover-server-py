@@ -1,15 +1,12 @@
 from dataclasses import dataclass
-from typing import Iterable, Callable, TypeVar, Generic, Any
+from typing import Iterable, Callable, Any
 
 import numpy as np
 import numpy.typing as npt
 
-P = TypeVar("P")
-U = TypeVar("U")
-
 
 @dataclass(kw_only=True)
-class PackingPair(Generic[U, P]):
+class PackingPair[U, P]:
     """
     Pair of functions for packing and unpacking rich data into and from simpler types understood by MessagePack.
     """

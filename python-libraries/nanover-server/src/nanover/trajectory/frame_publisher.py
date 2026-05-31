@@ -78,7 +78,7 @@ class FramePublisher:
             cancellation.subscribe_cancellation(lambda: queue.close())
 
             for _ in yield_interval(frame_interval):
-                item: FrameData = queue.get(block=True)
+                item = queue.get(block=True)
                 if cancellation.is_cancelled or item is None:
                     break
                 yield item
