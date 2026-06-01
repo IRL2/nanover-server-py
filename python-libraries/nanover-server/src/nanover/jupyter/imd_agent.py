@@ -81,7 +81,10 @@ class ImdAgent:
             for frame_update in stream:
                 full_frame.update(frame_update)
                 if not self.paused:
-                    self.update_interactions(full_frame, frame_update)
+                    self.update_interactions(
+                        full_frame=full_frame,
+                        frame_update=frame_update,
+                    )
                 else:
                     self.clear_interactions()
 
@@ -94,3 +97,9 @@ class ImdAgent:
         self._cancellation.cancel()
         self._threads.shutdown(wait=True)
         self.clear_interactions()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
