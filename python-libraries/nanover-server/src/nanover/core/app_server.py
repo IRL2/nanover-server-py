@@ -63,6 +63,9 @@ class DiscoveryService(Closeable, Protocol):
 class AppServerMinimal(CommandService, StateService, Protocol): ...
 
 
+class AppServerMinimalImd(CommandService, StateService, ImdService, Protocol): ...
+
+
 class AppServer(CommandService, StateService, ImdService, DiscoveryService, Protocol):
     @property
     def name(self) -> str: ...
