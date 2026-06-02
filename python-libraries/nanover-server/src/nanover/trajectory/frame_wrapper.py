@@ -157,6 +157,9 @@ class FrameData:
 
         return f"<FrameData of {key_text}>"
 
+    def __eq__(self, other):
+        return self.frame_dict == other.frame_dict
+
     def __bool__(self):
         return bool(self.frame_dict)
 

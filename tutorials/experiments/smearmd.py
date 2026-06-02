@@ -3,15 +3,17 @@ import numpy.typing as npt
 
 from nanover.imd import ParticleInteraction
 from nanover.trajectory import FrameData
-from imdagent import ImdAgent
+from nanover.jupyter import ImdAgent
 from keyframes import KeyFrame
 
 
 def fit_keyframe_to_frame(keyframe: KeyFrame, frame: FrameData):
-    current = np.array([
-        np.mean(frame.particle_positions[target.particles], axis=0)
-        for target in keyframe.targets
-    ])
+    current = np.array(
+        [
+            np.mean(frame.particle_positions[target.particles], axis=0)
+            for target in keyframe.targets
+        ]
+    )
 
     targets = fit_template_points_to_observed(keyframe.centroids, current)
 
@@ -19,15 +21,17 @@ def fit_keyframe_to_frame(keyframe: KeyFrame, frame: FrameData):
 
 
 class SmearAgent(ImdAgent):
-    speed = .1
+    speed = 0.1
     keyframe: KeyFrame | None = None
 
-    def update_interactions(self, frame: FrameData):
+    def update_interactions(self, full_frame: FrameData, frame_update: FrameData):
         if self.keyframe is None:
             return
 
         # fit keyframe targets to actual positions
-        prev_centroids, next_centroids = fit_keyframe_to_frame(self.keyframe, frame)
+        prev_centroids, next_centroids = fit_keyframe_to_frame(
+            self.keyframe, full_frame
+        )
 
         # find necessary motions
         deltas = next_centroids - prev_centroids

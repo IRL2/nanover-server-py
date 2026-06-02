@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 from nanover.imd import ParticleInteraction
 from nanover.trajectory import FrameData
-from tutorials.experiments.imdagent import ImdAgent
+from nanover.jupyter import ImdAgent
 
 
 class Path:
@@ -43,11 +43,11 @@ class Group:
 
 class Follower(ImdAgent):
     groups: list[Group] | None = None
-    speed = .1
+    speed = 0.1
     release = True
     distance = 0
 
-    def update_interactions(self, frame: FrameData):
+    def update_interactions(self, full_frame: FrameData, frame_update: FrameData):
         if self.groups is None:
             return
 
