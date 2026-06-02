@@ -3,7 +3,7 @@ from collections import deque
 from contextlib import suppress
 from typing import Any
 
-from nanover.core import AppServer, AppServerMinimal
+from nanover.core import AppServer, AppServerMinimalImd
 from nanover.essd import DiscoveryClient, ServiceHub
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.network import get_local_ip
@@ -35,7 +35,7 @@ class NanoverImdClient(
     PlaybackClient,
     CommandClient,
     StateClient,
-    AppServerMinimal,
+    AppServerMinimalImd,
 ):
     """
     Mixin of methods for selection manipulation with a WebSocketClient.
@@ -98,8 +98,16 @@ class NanoverImdClient(
         self._frames: deque[FrameData] = deque(maxlen=50)
         super().__init__(*args, **kwargs)
 
-        self.frame_publisher = FramePublisherShim(self)
-        self.imd = ImdStateWrapper(self.state_dictionary)
+        self._frame_publisher = FramePublisherShim(self)
+        self._imd = ImdStateWrapper(self.state_dictionary)
+
+    @property
+    def frame_publisher(self) -> FramePublisher:
+        return self._frame_publisher
+
+    @property
+    def imd(self) -> ImdStateWrapper:
+        return self._imd
 
     @property
     def frames(self) -> list[FrameData]:
