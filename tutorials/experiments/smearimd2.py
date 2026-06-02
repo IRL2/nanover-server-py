@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import numpy as np
 import numpy.typing as npt
 
@@ -7,26 +9,21 @@ from nanover.jupyter import ImdAgent
 from keyframes import KeyFrame
 
 
-def fit_keyframe_to_frame(keyframe: KeyFrame, frame: FrameData):
-    current = np.array(
-        [
-            np.mean(frame.particle_positions[target.particles], axis=0)
-            for target in keyframe.targets
-        ]
-    )
-
-    targets = fit_template_points_to_observed(keyframe.centroids, current)
-
-    return current, targets
+@dataclass(kw_only=True)
+class SmearProgress:
+    progress = 0.0
+    lengths: npt.NDArray
 
 
 class SmearAgent(ImdAgent):
-    speed = 0.1
+    speed = 0.01
     keyframe: KeyFrame | None = None
+    progress: SmearProgress | None = None
 
     def set_keyframe(self, keyframe: KeyFrame):
         self.clear_interactions()
         self.keyframe = keyframe
+        self.progress = None
 
     def update_interactions(self, full_frame: FrameData, frame_update: FrameData):
         if self.keyframe is None:
@@ -40,27 +37,51 @@ class SmearAgent(ImdAgent):
         # find necessary motions
         deltas = next_centroids - prev_centroids
 
-        # cap motions by speed
-        lengths = np.linalg.norm(deltas, axis=1).reshape(-1, 1)
-        cappeds = deltas / lengths
-        np.clip(lengths, max=self.speed, out=lengths)
-        cappeds *= lengths
+        # if this is a new keyframe, compute initial distances
+        if self.progress is None:
+            self.progress = SmearProgress(
+                lengths=np.linalg.norm(deltas, axis=1).reshape(-1, 1),
+            )
 
-        # determine final interaction positions
-        target_centroids = prev_centroids + cappeds
+        # advance time
+        self.progress.progress += self.speed
+
+        # actual distance
+        actual_lengths = np.linalg.norm(deltas, axis=1).reshape(-1, 1)
+
+        # intended distance
+        target_lengths = np.clip(
+            self.progress.lengths - self.progress.progress, min=0, max=actual_lengths
+        )
+
+        target_centroids = next_centroids - deltas * (target_lengths / actual_lengths)
 
         for i, target in enumerate(self.keyframe.targets):
-            if lengths[i] < 0.0001:
-                continue
+            name = f"interaction.REPLAYER.{i}"
+            if target_lengths[i] < 0.0001:
+                self.remove_interaction(name)
 
             interaction = ParticleInteraction(
                 particles=target.particles,
                 position=list(target_centroids[i]),
                 interaction_type="spring",
-                scale=500,
-                max_force=1000,
+                scale=1000,
+                max_force=2000,
             )
-            self.update_interaction(f"interaction.REPLAYER.{i}", interaction)
+            self.update_interaction(name, interaction)
+
+
+def fit_keyframe_to_frame(keyframe: KeyFrame, frame: FrameData):
+    current = np.array(
+        [
+            np.mean(frame.particle_positions[target.particles], axis=0)
+            for target in keyframe.targets
+        ]
+    )
+
+    targets = fit_template_points_to_observed(keyframe.centroids, current)
+
+    return current, targets
 
 
 def fit_template_points_to_observed(
