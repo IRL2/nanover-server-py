@@ -5,6 +5,7 @@ from nanover.imd import ParticleInteraction
 from nanover.trajectory import FrameData
 from nanover.jupyter import ImdAgent
 from keyframes import KeyFrame
+from nanover.utilities.event import Event
 
 
 def fit_keyframe_to_frame(keyframe: KeyFrame, frame: FrameData):
@@ -23,6 +24,10 @@ def fit_keyframe_to_frame(keyframe: KeyFrame, frame: FrameData):
 class SmearAgent(ImdAgent):
     speed = 0.1
     keyframe: KeyFrame | None = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.update = Event()
 
     def set_keyframe(self, keyframe: KeyFrame):
         self.clear_interactions()
@@ -49,7 +54,11 @@ class SmearAgent(ImdAgent):
         # determine final interaction positions
         target_centroids = prev_centroids + cappeds
 
+        errors = []
+
         for i, target in enumerate(self.keyframe.targets):
+            errors.append((target, lengths.flatten()[i]))
+
             if lengths[i] < 0.0001:
                 continue
 
@@ -61,6 +70,8 @@ class SmearAgent(ImdAgent):
                 max_force=1000,
             )
             self.update_interaction(f"interaction.REPLAYER.{i}", interaction)
+
+        self.update.invoke(errors=errors)
 
 
 def fit_template_points_to_observed(
