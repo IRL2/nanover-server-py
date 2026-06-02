@@ -57,7 +57,7 @@ class SmearAgent(ImdAgent):
         errors = []
 
         for i, target in enumerate(self.keyframe.targets):
-            errors.append((target, lengths.flatten()[i]))
+            errors.append((target, np.linalg.norm(deltas, axis=1)[i]))
 
             if lengths[i] < 0.0001:
                 continue
