@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 import numpy.typing as npt
+from MDAnalysis import Universe
 
 from nanover.imd.imd_state import dict_to_interaction
 from nanover.recording import NanoverRecordingReader
@@ -54,6 +55,38 @@ def extract_keyframes(reader: NanoverRecordingReader):
                     position=np.array(restraint.position),
                 )
                 targets.append(target)
+
+        if targets:
+            keyframes.append(KeyFrame(targets=targets))
+
+    return keyframes
+
+
+def extract_keyframes_brute(reader: NanoverRecordingReader, universe: Universe):
+    keyframes = []
+
+    for event in reader.iter_max():
+        if event.next_state_event is None:
+            continue
+
+        change = DictionaryChange.from_dict(event.next_state_event.message)
+
+        if CHECKPOINT_KEY not in change.updates:
+            continue
+
+        targets = []
+        positions = event.next_frame.particle_positions
+
+        for residue in universe.residues:
+            particles = [int(i) for i in residue.atoms.indices]
+            centroid = np.average(positions[particles], axis=0)
+
+            target = TargetGroup(
+                particles=particles,
+                centroid=centroid,
+                position=centroid,
+            )
+            targets.append(target)
 
         if targets:
             keyframes.append(KeyFrame(targets=targets))

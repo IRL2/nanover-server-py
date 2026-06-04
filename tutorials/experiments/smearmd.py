@@ -66,8 +66,8 @@ class SmearAgent(ImdAgent):
                 particles=target.particles,
                 position=list(target_centroids[i]),
                 interaction_type="spring",
-                scale=500,
-                max_force=1000,
+                scale=200,
+                max_force=300,
             )
             self.update_interaction(f"interaction.REPLAYER.{i}", interaction)
 
