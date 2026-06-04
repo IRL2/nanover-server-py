@@ -8,8 +8,8 @@
 Repository containing the python based implementations
 of servers for NanoVer, providing a framework for developing interactive molecular dynamics simulations.
 
-This software is designed to be used with **NanoVer VR clients**, 
-e.g. [NanoVer iMD-VR](https://github.com/IRL2/nanover-imd-vr).
+This software is designed to be used with **NanoVer XR clients**, 
+e.g. [NanoVer iMD-XR](https://github.com/IRL2/nanover-imd-xr).
 
 This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostela,
 and is distributed under the [MIT](LICENSE) license.
@@ -81,12 +81,24 @@ page in our documentation for detailed instructions on installing NanoVer.
     * Activate the conda environment: `conda activate nanover-dev`
     * Install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
+#### Troubleshooting
+
+Network discovery depends on the `netifaces` package which requires Microsoft C++ Build Tools to install. You will likely see one of the follow errors if you are missing this dependency:
+```
+× Failed to build installable wheels for some pyproject.toml based projects
+╰─> netifaces
+```
+```
+error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools": https://visualstudio.microsoft.com/visual-cpp-build-tools/
+```
+If after attempting to install the build tools it still complains that they are missing, launch "Visual Studio Installer", find the listing for your installation of "Visual Studio Build Tools" and click "Modify". Check the box for "Desktop development with C++" and then "Modify" to start the installation. After this the necessary dependency should be correctly installed and you can rerun `./win_compile.ps1`.
+
 ### Mac and Linux
 
 * Install Anaconda
 * Clone the nanover-server-py repository
 * In a terminal, in the repository root:
-    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.11" openmm MDAnalysis MDAnalysisTests ase`
+    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.12" openmm MDAnalysis MDAnalysisTests ase`
     * Activate the conda environment: `conda activate nanover-dev`
     * Install the NanoVer python libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
