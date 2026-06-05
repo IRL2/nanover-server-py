@@ -39,6 +39,7 @@ Things to test:
 - smd_single_atom_force works as expected [√]
 - OpenMMSMDSimulation correctly loads the state of a simulation [√]
 """
+# TODO: Write tests that check the parallel and perpendicular force constants individually in the case that they are different
 
 import tempfile
 from io import StringIO
@@ -80,6 +81,9 @@ TEST_SMD_SINGLE_INDEX = np.array(0)
 TEST_SMD_MULTIPLE_INDICES = np.array([0, 1, 2, 3])
 TEST_SMD_PATH = np.array(
     [np.linspace(0.05, 1.05, 101), np.zeros(101), np.zeros(101)]
+).transpose()
+TEST_SMD_PATH_TANGENTS = np.array(
+    [np.ones(101), np.zeros(101), np.zeros(101)]
 ).transpose()
 TEST_SMD_FORCE_CONSTANT = 3011.0
 
@@ -532,7 +536,9 @@ def test_smd_force_attaches_to_correct_atom(index):
     # Attaches force to single atom, so index of atom within force is zero
     p_index, p_params = smd_sim.smd_force.getParticleParameters(0)
     assert p_index == index
-    assert np.array_equal(np.array(p_params), TEST_SMD_PATH[0])
+    assert np.array_equal(
+        np.array(p_params), np.array([*TEST_SMD_PATH[0], *TEST_SMD_PATH_TANGENTS[0]])
+    )
 
 
 @pytest.mark.parametrize(
@@ -727,7 +733,9 @@ def test_smd_force_removed_from_system(indices):
     # TODO: Figure out if it's possible to remove the force constant
     #  associated with the force from global parameters (doesn't seem
     #  to be implemented in OpenMM right now)
-    assert smd_sim.simulation.context.getParameter("smd_k") == TEST_SMD_FORCE_CONSTANT
+    assert (
+        smd_sim.simulation.context.getParameter("smd_k_par") == TEST_SMD_FORCE_CONSTANT
+    )
 
 
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
@@ -749,12 +757,14 @@ def test_smd_force_updates_correctly(indices):
     # the SMD path
     new_force_position_index = TEST_SMD_PATH.shape[0] - 1
     new_force_position = TEST_SMD_PATH[new_force_position_index]
+    new_force_tangent = TEST_SMD_PATH_TANGENTS[new_force_position_index]
 
     # Update the force position and check the relevant class parameters
     # update accordingly
     smd_sim.current_smd_force_position_index = new_force_position_index
     smd_sim.update_smd_force_position()
     assert np.array_equal(smd_sim.current_smd_force_position, new_force_position)
+    assert np.array_equal(smd_sim.current_smd_force_tangent, new_force_tangent)
 
     # Check the subclass-specific force parameters in both the class and the system
     # which should be identical
@@ -763,25 +773,34 @@ def test_smd_force_updates_correctly(indices):
         # OpenMMSMDSimulationAtom force parameters
         index, position = smd_sim.smd_force.getParticleParameters(0)
         assert index == indices
-        assert np.array_equal(np.array(position), new_force_position)
+        assert np.array_equal(
+            np.array(position), np.array([*new_force_position, *new_force_tangent])
+        )
 
         # Force parameters from system
         sys_index, sys_position = smd_sim.simulation.system.getForce(
             n_system_forces - 1
         ).getParticleParameters(0)
         assert sys_index == indices
-        assert np.array_equal(np.array(sys_position), new_force_position)
+        assert np.array_equal(
+            np.array(sys_position), np.array([*new_force_position, *new_force_tangent])
+        )
 
     elif type(smd_sim.smd_force) == CustomCentroidBondForce:
         # OpenMMSMDSimulationCOM force parameters
         _, bond_params = smd_sim.smd_force.getBondParameters(0)
-        assert np.array_equal(np.array(bond_params), new_force_position)
+        assert np.array_equal(
+            np.array(bond_params), np.array([*new_force_position, *new_force_tangent])
+        )
 
         # Force parameters from system
         _, sys_bond_params = smd_sim.simulation.system.getForce(
             n_system_forces - 1
         ).getBondParameters(0)
-        assert np.array_equal(np.array(sys_bond_params), new_force_position)
+        assert np.array_equal(
+            np.array(sys_bond_params),
+            np.array([*new_force_position, *new_force_tangent]),
+        )
 
 
 def test_error_for_non_initial_restraint_during_equilibration():
@@ -884,6 +903,7 @@ def test_calculate_smd_forces(position_shifts, indices):
       test one single index and one set of indices)
     """
     test_positions = TEST_SMD_PATH + position_shifts
+    #TODO: Generalise to cases with different parallel and perpendicular force constants
     expected_forces = (
         np.zeros(TEST_SMD_PATH.shape) - TEST_SMD_FORCE_CONSTANT * position_shifts
     )
@@ -984,9 +1004,9 @@ def test_save_smd_simulation_data(indices):
         filename = "test_simulation_data.npy"
         file_path = output_path.joinpath(filename)
         # Save as float64 (currently arrays are dtype float64 internally)
-        smd_sim.save_smd_simulation_data(file_path,
-                                         atom_positions_dtype=np.float64,
-                                         work_done_dtype=np.float64)
+        smd_sim.save_smd_simulation_data(
+            file_path, atom_positions_dtype=np.float64, work_done_dtype=np.float64
+        )
         assert file_path.exists()
 
         with open(file_path, "rb") as infile:
@@ -1138,16 +1158,28 @@ def test_smd_com_force(pbcs):
     Check that the force produced by the function smd_com_force returns
     a force with the correct properties.
     """
-    smd_force = smd_com_force(TEST_SMD_FORCE_CONSTANT, uses_pbcs=pbcs)
+    smd_force = smd_com_force(
+        TEST_SMD_FORCE_CONSTANT, TEST_SMD_FORCE_CONSTANT, uses_pbcs=pbcs
+    )
     assert type(smd_force) == CustomCentroidBondForce
     assert smd_force.usesPeriodicBoundaryConditions() == pbcs
     assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_COM
-    assert smd_force.getGlobalParameterName(0) == SMD_FORCE_CONSTANT_PARAMETER_NAME
+    assert (
+        smd_force.getGlobalParameterName(0)
+        == SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
+    )
+    assert (
+        smd_force.getGlobalParameterName(1)
+        == SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
+    )
     assert smd_force.getGlobalParameterDefaultValue(0) == TEST_SMD_FORCE_CONSTANT
-    assert smd_force.getNumPerBondParameters() == 3
+    assert smd_force.getNumPerBondParameters() == 6
     assert smd_force.getPerBondParameterName(0) == "x0"
     assert smd_force.getPerBondParameterName(1) == "y0"
     assert smd_force.getPerBondParameterName(2) == "z0"
+    assert smd_force.getPerBondParameterName(3) == "tx"
+    assert smd_force.getPerBondParameterName(4) == "ty"
+    assert smd_force.getPerBondParameterName(5) == "tz"
     assert smd_force.getForceGroup() == 31
 
 
@@ -1157,19 +1189,31 @@ def test_smd_single_atom_force(pbcs):
     Check that the force produced by the function smd_single_atom_force
     returns a force with the correct properties.
     """
-    smd_force = smd_single_atom_force(TEST_SMD_FORCE_CONSTANT, uses_pbcs=pbcs)
+    smd_force = smd_single_atom_force(
+        TEST_SMD_FORCE_CONSTANT, TEST_SMD_FORCE_CONSTANT, uses_pbcs=pbcs
+    )
     assert type(smd_force) == CustomExternalForce
     assert smd_force.usesPeriodicBoundaryConditions() == pbcs
     if pbcs:
         assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_ATOM_PERIODIC
     else:
         assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC
-    assert smd_force.getGlobalParameterName(0) == SMD_FORCE_CONSTANT_PARAMETER_NAME
+    assert (
+        smd_force.getGlobalParameterName(0)
+        == SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
+    )
+    assert (
+        smd_force.getGlobalParameterName(1)
+        == SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
+    )
     assert smd_force.getGlobalParameterDefaultValue(0) == TEST_SMD_FORCE_CONSTANT
-    assert smd_force.getNumPerParticleParameters() == 3
+    assert smd_force.getNumPerParticleParameters() == 6
     assert smd_force.getPerParticleParameterName(0) == "x0"
     assert smd_force.getPerParticleParameterName(1) == "y0"
     assert smd_force.getPerParticleParameterName(2) == "z0"
+    assert smd_force.getPerParticleParameterName(3) == "tx"
+    assert smd_force.getPerParticleParameterName(4) == "ty"
+    assert smd_force.getPerParticleParameterName(5) == "tz"
     assert smd_force.getForceGroup() == 31
 
 
@@ -1298,7 +1342,6 @@ def test_load_openmm_state(apply_pbcs, save_smd_force, indices):
                 TEST_SMD_PATH,
                 TEST_SMD_FORCE_CONSTANT,
             )
-
             # Retrieve and compare velocities
             loaded_velocities = loaded_smd_sim.simulation.context.getState(
                 getVelocities=True

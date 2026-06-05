@@ -12,11 +12,21 @@ from openmm.app import Simulation
 from nanover.openmm import serializer
 
 SMD_FORCE_CONSTANT_PARAMETER_NAME = "smd_k"
-SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC = (
-    f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)"
+SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME = f"{SMD_FORCE_CONSTANT_PARAMETER_NAME}_par"
+SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME = (
+    f"{SMD_FORCE_CONSTANT_PARAMETER_NAME}_perp"
 )
-SMD_FORCE_EXPRESSION_ATOM_PERIODIC = f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * periodicdistance(x, y, z, x0, y0, z0)^2"
-SMD_FORCE_EXPRESSION_COM = f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * pointdistance(x1, y1, z1, x0, y0, z0)^2"
+SMD_FORCE_EXPRESSION_SPHERICAL = (
+    f"0.5 * {SMD_FORCE_CONSTANT_PARAMETER_NAME} * (dx^2 + dy^2 + dz^2)"
+)
+# tx, ty, tz are components of the unit tangent to the SMD path at the point x0, y0, z0
+SMD_FORCE_EXPRESSION_PARALLEL = (
+    f"0.5 * {SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME} * (tx*dx + ty*dy + tz*dz)^2"
+)
+SMD_FORCE_EXPRESSION_PERPENDICULAR = f"0.5 * {SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME} * ((dx^2 + dy^2 + dz^2) - (tx*dx + ty*dy + tz*dz)^2)"
+SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC = f"{SMD_FORCE_EXPRESSION_PARALLEL} + {SMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(x-x0); dy=(y-y0); dz=(x-z0)"
+SMD_FORCE_EXPRESSION_ATOM_PERIODIC = f"{SMD_FORCE_EXPRESSION_PARALLEL} + {SMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=periodicdistance(x, 0, 0, x0, 0, 0); dy=periodicdistance(0, y, 0, 0, y0, 0); dz=periodicdistance(0, 0, z, 0, 0, z0)"
+SMD_FORCE_EXPRESSION_COM = f"{SMD_FORCE_EXPRESSION_PARALLEL} + {SMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=pointdistance(x1, 0, 0, x0, 0, 0); dy=pointdistance(0, y1, 0, 0, y0, 0); dz=pointdistance(0, 0, z1, 0, 0, z0)"
 
 
 class OpenMMSMDSimulation:
@@ -35,7 +45,7 @@ class OpenMMSMDSimulation:
         simulation: Simulation,
         smd_atom_indices: np.ndarray,
         smd_path: np.ndarray,
-        smd_force_constant: float,
+        smd_force_constant: float | np.ndarray,
         *,
         name: str | None = None,
     ):
@@ -78,7 +88,7 @@ class OpenMMSMDSimulation:
         path: PathLike[str],
         smd_atom_indices: np.ndarray,
         smd_path: np.ndarray,
-        smd_force_constant: float,
+        smd_force_constant: float | np.ndarray,
         *,
         name: str | None = None,
     ):
@@ -129,7 +139,10 @@ class OpenMMSMDSimulation:
         self.simulation: Simulation | None = None
         self.smd_atom_indices: np.ndarray | None = None
         self.smd_path: np.ndarray | None = None
+        self.smd_path_tangents: np.ndarray | None = None
         self.smd_force_constant: float | None = None
+        self.smd_force_constant_parallel: float | None = None
+        self.smd_force_constant_perpendicular: float | None = None
 
         self.loaded_smd_force_from_sim: bool = False
         self.n_smd_atom_indices: int | None = None
@@ -141,6 +154,7 @@ class OpenMMSMDSimulation:
         self.checkpoint: Any | None = None
 
         self.current_smd_force_position: np.ndarray | None = None
+        self.current_smd_force_tangent: np.ndarray | None = None
         self.current_smd_force_position_index: int | None = None
         self.smd_simulation_atom_positions: np.ndarray | None = None
         self.smd_simulation_forces: np.ndarray | None = None
@@ -201,11 +215,23 @@ class OpenMMSMDSimulation:
         self.smd_atom_indices = smd_atom_indices
         self.n_smd_atom_indices = self.smd_atom_indices.size
         self.smd_path = smd_path
-        self.smd_force_constant = smd_force_constant
+        if type(smd_force_constant) == np.ndarray and smd_force_constant.shape[0] == 2:
+            self.smd_force_constant = self.smd_force_constant_parallel = (
+                smd_force_constant[0]
+            )
+            self.smd_force_constant_perpendicular = smd_force_constant[1]
+        else:
+            self.smd_force_constant = self.smd_force_constant_parallel = (
+                self.smd_force_constant_perpendicular
+            ) = smd_force_constant
+
         self.define_smd_simulation_atom_positions_array()
 
         self.current_smd_force_position = self.smd_path[0]
         self.current_smd_force_position_index = 0
+
+        self.calculate_smd_path_tangents()
+        self.current_smd_force_tangent = self.smd_path_tangents[0]
 
         # Check whether SMD force is already present
         self.check_for_existing_smd_force()
@@ -249,9 +275,12 @@ class OpenMMSMDSimulation:
         forces = self.simulation.system.getForces()
         forces_to_remove = []
         for i in range(len(forces)):
-            if (type(forces[i]) == type(self.smd_force)):
+            if type(forces[i]) == type(self.smd_force):
                 try:
-                    if forces[i].getGlobalParameterName(0) == SMD_FORCE_CONSTANT_PARAMETER_NAME:
+                    if (
+                        forces[i].getGlobalParameterName(0)
+                        == SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
+                    ):
                         forces_to_remove.append(i)
                 except OpenMMException:
                     continue
@@ -261,6 +290,28 @@ class OpenMMSMDSimulation:
         # as forces are removed
         for j in range(len(forces_to_remove)):
             self.simulation.system.removeForce(forces_to_remove[j] - j)
+
+    def calculate_smd_path_tangents(self):
+        """
+        Calculate the unit tangent vectors of the SMD path using the forward
+        difference approximation.
+        """
+        # TODO: Write test to make sure this works!
+
+        # Initialise empty array
+        assert self.smd_path is not None
+        smd_path_tangents = np.zeros(self.smd_path.shape)
+
+        # Calculate normalised tangent vectors
+        smd_force_displacements = np.diff(self.smd_path, axis=0)
+        smd_force_displacements /= np.linalg.norm(
+            smd_force_displacements, axis=1, keepdims=True
+        )
+
+        # Set path tangents (final tangent assumed to continue in same direction)
+        smd_path_tangents[:-1] = smd_force_displacements
+        smd_path_tangents[-1] = smd_force_displacements[-1]
+        self.smd_path_tangents = smd_path_tangents
 
     def get_smd_atom_positions(self):
         """
@@ -331,16 +382,37 @@ class OpenMMSMDSimulation:
                 xml_string_lines = xml_string.splitlines()
                 for line in xml_string_lines:
                     # Remove only parameter left over from SMD force
-                    if SMD_FORCE_CONSTANT_PARAMETER_NAME in line:
+                    if (
+                        SMD_FORCE_CONSTANT_PARAMETER_NAME in line
+                        or SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME in line
+                        or SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME in line
+                    ):
                         line_index = xml_string_lines.index(line)
                         n_tabs = line.index("<")
-                        param_string = line.split('/')
-                        param_string_list = sum([string.split() for string in param_string], [])
+                        param_string = line.split("/")
+                        param_string_list = sum(
+                            [string.split() for string in param_string], []
+                        )
                         for substring in param_string_list:
                             if SMD_FORCE_CONSTANT_PARAMETER_NAME in substring:
                                 param_string_list.remove(substring)
-                        xml_string_lines[line_index] = n_tabs * "\t" + " ".join(param_string_list[:-1]) + "/" + \
-                                                       param_string_list[-1]
+                        # TODO: make more efficient
+                        for substring in param_string_list:
+                            if SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME in substring:
+                                param_string_list.remove(substring)
+                        for substring in param_string_list:
+                            if (
+                                SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
+                                in substring
+                            ):
+                                param_string_list.remove(substring)
+                        print(param_string_list)
+                        xml_string_lines[line_index] = (
+                            n_tabs * "\t"
+                            + " ".join(param_string_list[:-1])
+                            + "/"
+                            + param_string_list[-1]
+                        )
                 xml_string = "\n".join(xml_string_lines)
                 outfile.write(xml_string)
 
@@ -385,7 +457,6 @@ class OpenMMSMDSimulation:
         )
 
         for i in range(n_structures):
-
             # Run set of simulation steps to generate next structure
             self.simulation.step(n_steps_struct_interval)
 
@@ -426,7 +497,6 @@ class OpenMMSMDSimulation:
 
         print("Starting SMD simulation...")
         for step in range(1, n_steps):
-
             # Perform single simulation step
             self.simulation.step(1)
 
@@ -457,10 +527,32 @@ class OpenMMSMDSimulation:
         :param interaction_centre_positions: Array of positions defining the centre
           (single atom or COM of group of atoms) with which the SMD force interacted during the simulation.
         """
+        # TODO: Update SMD force calculation to reflect new parallel/perpendicular force implementation
         assert np.all(self.smd_path.shape == interaction_centre_positions.shape)
-        self.smd_simulation_forces = -self.smd_force_constant * (
-            interaction_centre_positions - self.smd_path
+        displacements = interaction_centre_positions - self.smd_path
+        # Calculate force component along RC
+        parallel_forces = (
+            -self.smd_force_constant_parallel
+            * (
+                np.linalg.vecdot(displacements, self.smd_path_tangents, axis=1)
+                / np.linalg.norm(self.smd_path_tangents, axis=1)
+            ).reshape((self.smd_path_tangents.shape[0], 1))
+            * self.smd_path_tangents
         )
+        perpendicular_forces = -self.smd_force_constant_perpendicular * (
+            displacements
+            - (
+                (
+                    np.linalg.vecdot(displacements, self.smd_path_tangents, axis=1)
+                    / np.linalg.norm(self.smd_path_tangents, axis=1)
+                ).reshape((self.smd_path_tangents.shape[0], 1))
+                * self.smd_path_tangents
+            )
+        )
+        # self.smd_simulation_forces = -self.smd_force_constant * (
+        #     interaction_centre_positions - self.smd_path
+        # )
+        self.smd_simulation_forces = parallel_forces + perpendicular_forces
 
     def _calculate_work_done(self):
         """
@@ -475,12 +567,14 @@ class OpenMMSMDSimulation:
             )
         self.smd_simulation_work_done = np.cumsum(work_done_array, axis=0)
 
-    def save_smd_simulation_data(self,
-                                 path: PathLike[str] = None,
-                                 save_work_done: bool = True,
-                                 save_atom_positions: bool = True,
-                                 work_done_dtype: np.dtype = np.float32,
-                                 atom_positions_dtype: np.dtype = np.float32):
+    def save_smd_simulation_data(
+        self,
+        path: PathLike[str] = None,
+        save_work_done: bool = True,
+        save_atom_positions: bool = True,
+        work_done_dtype: np.dtype = np.float32,
+        atom_positions_dtype: np.dtype = np.float32,
+    ):
         """
         Save the data produced by the SMD simulation in binary form that can be read
         into NumPy arrays. The following data are saved, in the order listed below:
@@ -516,7 +610,10 @@ class OpenMMSMDSimulation:
 
         with open(path, "wb") as outfile:
             if save_atom_positions:
-                np.save(outfile, self.smd_simulation_atom_positions.astype(atom_positions_dtype))
+                np.save(
+                    outfile,
+                    self.smd_simulation_atom_positions.astype(atom_positions_dtype),
+                )
                 print("Atom positions saved to simulation data file.")
             if save_work_done:
                 np.save(outfile, self.smd_simulation_work_done.astype(work_done_dtype))
@@ -544,7 +641,21 @@ class OpenMMSMDSimulation:
         with open(path, "wb") as outfile:
             np.save(outfile, self.smd_atom_indices)
             np.save(outfile, self.smd_path)
-            np.save(outfile, self.smd_force_constant)
+            if (
+                self.smd_force_constant_parallel
+                != self.smd_force_constant_perpendicular
+            ):
+                np.save(
+                    outfile,
+                    np.array(
+                        [
+                            self.smd_force_constant_parallel,
+                            self.smd_force_constant_perpendicular,
+                        ]
+                    ),
+                )
+            else:
+                np.save(outfile, self.smd_force_constant)
             np.save(outfile, self.simulation.integrator.getTemperature()._value)
             np.save(outfile, self.simulation.integrator.getStepSize()._value)
 
@@ -556,14 +667,15 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
     """
 
     def __init__(self, name: str | None = None):
-
         super().__init__(name)
 
     def check_for_existing_smd_force(self):
-
         try:
-            force_constant = self.simulation.context.getParameter(
-                SMD_FORCE_CONSTANT_PARAMETER_NAME
+            force_constant_parallel = self.simulation.context.getParameter(
+                SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
+            )
+            force_constant_perpendicular = self.simulation.context.getParameter(
+                SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
             )
             n_forces = self.simulation.system.getNumForces()
             smd_force = self.simulation.system.getForce(n_forces - 1)
@@ -575,9 +687,15 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
                 == SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC
             )
             assert smd_force.getNumParticles() == 1
-            assert force_constant == self.smd_force_constant
+            assert force_constant_parallel == self.smd_force_constant_parallel
+            assert force_constant_perpendicular == self.smd_force_constant_perpendicular
             assert params[0] == self.smd_atom_indices
-            assert np.all(params[1] == self.current_smd_force_position)
+            assert np.all(
+                params[1]
+                == np.array(
+                    [*self.current_smd_force_position, *self.current_smd_force_tangent]
+                )
+            )
             print("SMD force already present in loaded simulation.")
             self.smd_force = smd_force
             self.loaded_smd_force_from_sim = True
@@ -592,19 +710,26 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
         """
 
         x0, y0, z0 = self.current_smd_force_position
-        smd_force = smd_single_atom_force(self.smd_force_constant, self._sim_uses_pbcs)
-        smd_force.addParticle(self.smd_atom_indices, [x0, y0, z0])
+        tx, ty, tz = self.current_smd_force_tangent
+        smd_force = smd_single_atom_force(
+            self.smd_force_constant_parallel,
+            self.smd_force_constant_perpendicular,
+            self._sim_uses_pbcs,
+        )
+        smd_force.addParticle(self.smd_atom_indices, [x0, y0, z0, tx, ty, tz])
         self.smd_force = smd_force
         self.simulation.system.addForce(self.smd_force)
         self.simulation.context.reinitialize(preserveState=True)
 
     def update_smd_force_position(self):
-
         self.current_smd_force_position = self.smd_path[
             self.current_smd_force_position_index
         ]
         x0, y0, z0 = self.current_smd_force_position
-        self.smd_force.setParticleParameters(0, self.smd_atom_indices, [x0, y0, z0])
+        tx, ty, tz = self.current_smd_force_tangent
+        self.smd_force.setParticleParameters(
+            0, self.smd_atom_indices, [x0, y0, z0, tx, ty, tz]
+        )
         self.smd_force.updateParametersInContext(self.simulation.context)
 
     def define_smd_simulation_atom_positions_array(self):
@@ -630,26 +755,32 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
     """
 
     def __init__(self, name: str | None = None):
-
         super().__init__(name)
         self.com_positions: np.ndarray | None = None
 
     def check_for_existing_smd_force(self):
         try:
-            force_constant = self.simulation.context.getParameter(
-                SMD_FORCE_CONSTANT_PARAMETER_NAME
+            force_constant_parallel = self.simulation.context.getParameter(
+                SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
+            )
+            force_constant_perpendicular = self.simulation.context.getParameter(
+                SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
             )
             n_forces = self.simulation.system.getNumForces()
             smd_force = self.simulation.system.getForce(n_forces - 1)
             assert type(smd_force) == CustomCentroidBondForce
             assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_COM
             assert smd_force.getNumGroups() == 1
-            assert force_constant == self.smd_force_constant
+            assert force_constant_parallel == self.smd_force_constant_parallel
+            assert force_constant_perpendicular == self.smd_force_constant_perpendicular
             assert np.all(
                 (smd_force.getGroupParameters(0)[0] == self.smd_atom_indices) == True
             )
             assert np.all(
-                smd_force.getBondParameters(0)[1] == self.current_smd_force_position
+                smd_force.getBondParameters(0)[1]
+                == np.array(
+                    [*self.current_smd_force_position, *self.current_smd_force_tangent]
+                )
             )
             print("SMD force already present in loaded simulation.")
             self.smd_force = smd_force
@@ -665,20 +796,28 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         """
 
         x0, y0, z0 = self.current_smd_force_position
-        smd_force = smd_com_force(self.smd_force_constant, self._sim_uses_pbcs)
+        tx, ty, tz = self.current_smd_force_tangent
+        smd_force = smd_com_force(
+            self.smd_force_constant_parallel,
+            self.smd_force_constant_perpendicular,
+            self._sim_uses_pbcs,
+        )
         smd_force.addGroup(self.smd_atom_indices)
-        smd_force.addBond([0], [x0, y0, z0])
+        smd_force.addBond([0], [x0, y0, z0, tx, ty, tz])
         self.smd_force = smd_force
         self.simulation.system.addForce(self.smd_force)
         self.simulation.context.reinitialize(preserveState=True)
 
     def update_smd_force_position(self):
-
         self.current_smd_force_position = self.smd_path[
             self.current_smd_force_position_index
         ]
+        self.current_smd_force_tangent = self.smd_path_tangents[
+            self.current_smd_force_position_index
+        ]
         x0, y0, z0 = self.current_smd_force_position
-        self.smd_force.setBondParameters(0, [0], [x0, y0, z0])
+        tx, ty, tz = self.current_smd_force_tangent
+        self.smd_force.setBondParameters(0, [0], [x0, y0, z0, tx, ty, tz])
         self.smd_force.updateParametersInContext(self.simulation.context)
 
     def define_smd_simulation_atom_positions_array(self):
@@ -726,12 +865,13 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         self._calculate_smd_forces(self.com_positions)
         self._calculate_work_done()
 
-    def save_smd_simulation_data(self,
-                                 path: PathLike[str] = None,
-                                 save_com_positions: bool = True,
-                                 com_positions_dtype: np.dtype = np.float32,
-                                 **kwargs):
-
+    def save_smd_simulation_data(
+        self,
+        path: PathLike[str] = None,
+        save_com_positions: bool = True,
+        com_positions_dtype: np.dtype = np.float32,
+        **kwargs,
+    ):
         """
         Save the data produced by the SMD simulation in binary form that can be read
         into NumPy arrays. The following data can be saved (optionally), in the order listed below:
@@ -748,14 +888,12 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
         :param atom_positions_dtype: Data type of the atom positions array to save.
         :param com_positions_dtype: Data type of the COM positions array to save.
         """
-        #TODO: Think about whether there is a cleaner way to achieve this
+        # TODO: Think about whether there is a cleaner way to achieve this
 
         # Optionally save work done and atomic coordinates
         super().save_smd_simulation_data(path, **kwargs)
 
-        if self.com_positions is None or np.all(
-            self.com_positions == 0.0
-        ):
+        if self.com_positions is None or np.all(self.com_positions == 0.0):
             raise ValueError(
                 "Missing values for the atom positions. This data can only be saved after"
                 "the SMD calculation is completed."
@@ -768,12 +906,16 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
                 print("COM positions saved to simulation data file.")
 
 
-def smd_com_force(force_constant: float, uses_pbcs: bool):
+def smd_com_force(
+    parallel_force_constant: float, perpendicular_force_constant: float, uses_pbcs: bool
+):
     """
     Defines a harmonic restraint force for the COM of a group of atoms for performing SMD.
 
-    :param force_constant: Force constant of the harmonic restraint to be applied to the
-      COM of the group of atoms in units kJ mol-1 nm-2
+    :param parallel_force_constant: Force constant of the harmonic restraint to be applied to the
+      COM of the group of atoms in the direction tangential to the RC, in units kJ mol-1 nm-2
+    :param perpendicular_force_constant: Force constant of the harmonic restraint to be applied to the
+      COM of the group of atoms in the direction perpendicular to the RC, in units kJ mol-1 nm-2
     :param uses_pbcs: Bool specifying whether to use periodic boundary conditions for the
       harmonic restraint
     :return: CustomCentroidBondForce defining the harmonic SMD force that interacts with
@@ -781,22 +923,35 @@ def smd_com_force(force_constant: float, uses_pbcs: bool):
     """
 
     smd_force = CustomCentroidBondForce(1, SMD_FORCE_EXPRESSION_COM)
-    smd_force.addGlobalParameter(SMD_FORCE_CONSTANT_PARAMETER_NAME, force_constant)
+    smd_force.addGlobalParameter(
+        f"{SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME}", parallel_force_constant
+    )
+    smd_force.addGlobalParameter(
+        f"{SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME}",
+        perpendicular_force_constant,
+    )
     smd_force.addPerBondParameter("x0")
     smd_force.addPerBondParameter("y0")
     smd_force.addPerBondParameter("z0")
+    smd_force.addPerBondParameter("tx")
+    smd_force.addPerBondParameter("ty")
+    smd_force.addPerBondParameter("tz")
     smd_force.setUsesPeriodicBoundaryConditions(uses_pbcs)
     smd_force.setForceGroup(31)
 
     return smd_force
 
 
-def smd_single_atom_force(force_constant: float, uses_pbcs: bool):
+def smd_single_atom_force(
+    parallel_force_constant: float, perpendicular_force_constant: float, uses_pbcs: bool
+):
     """
     Defines a harmonic restraint force for a single atom for performing SMD.
 
-    :param force_constant: Force constant of the harmonic restraint to be applied to the
-      specified atom in units kJ mol-1 nm-2
+    :param parallel_force_constant: Force constant of the harmonic restraint to be applied to the
+      specified atom in the direction tangential to the RC, in units kJ mol-1 nm-2
+    :param perpendicular_force_constant: Force constant of the harmonic restraint to be applied to the
+      specified atom in the direction perpendicular to the RC, in units kJ mol-1 nm-2
     :param uses_pbcs: Bool specifying whether to use periodic boundary conditions for the
       harmonic restraint
     :return: CustomExternalForce defining the harmonic SMD force that interacts with the
@@ -806,10 +961,19 @@ def smd_single_atom_force(force_constant: float, uses_pbcs: bool):
         smd_force = CustomExternalForce(SMD_FORCE_EXPRESSION_ATOM_PERIODIC)
     else:
         smd_force = CustomExternalForce(SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC)
-    smd_force.addGlobalParameter(SMD_FORCE_CONSTANT_PARAMETER_NAME, force_constant)
+    smd_force.addGlobalParameter(
+        f"{SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME}", parallel_force_constant
+    )
+    smd_force.addGlobalParameter(
+        f"{SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME}",
+        perpendicular_force_constant,
+    )
     smd_force.addPerParticleParameter("x0")
     smd_force.addPerParticleParameter("y0")
     smd_force.addPerParticleParameter("z0")
+    smd_force.addPerParticleParameter("tx")
+    smd_force.addPerParticleParameter("ty")
+    smd_force.addPerParticleParameter("tz")
     smd_force.setForceGroup(31)
 
     return smd_force
