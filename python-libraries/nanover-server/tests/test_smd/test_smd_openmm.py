@@ -760,7 +760,6 @@ def test_smd_force_updates_correctly(indices):
     # which should be identical
     n_system_forces = smd_sim.simulation.system.getNumForces()
     if type(smd_sim.smd_force) == CustomExternalForce:
-
         # OpenMMSMDSimulationAtom force parameters
         index, position = smd_sim.smd_force.getParticleParameters(0)
         assert index == indices
@@ -774,7 +773,6 @@ def test_smd_force_updates_correctly(indices):
         assert np.array_equal(np.array(sys_position), new_force_position)
 
     elif type(smd_sim.smd_force) == CustomCentroidBondForce:
-
         # OpenMMSMDSimulationCOM force parameters
         _, bond_params = smd_sim.smd_force.getBondParameters(0)
         assert np.array_equal(np.array(bond_params), new_force_position)
@@ -827,7 +825,6 @@ def test_generate_starting_structures(n_structures, interval_ps):
     structure_file_prefix = "starting_structure"
     with redirect_stdout(StringIO()) as _:
         with tempfile.TemporaryDirectory() as tmpdir:
-
             output_path = Path(tmpdir)
 
             smd_sim.generate_starting_structures(
@@ -986,7 +983,10 @@ def test_save_smd_simulation_data(indices):
         output_path = Path(tmpdir)
         filename = "test_simulation_data.npy"
         file_path = output_path.joinpath(filename)
-        smd_sim.save_smd_simulation_data(file_path)
+        # Save as float64 (currently arrays are dtype float64 internally)
+        smd_sim.save_smd_simulation_data(file_path,
+                                         atom_positions_dtype=np.float64,
+                                         work_done_dtype=np.float64)
         assert file_path.exists()
 
         with open(file_path, "rb") as infile:
