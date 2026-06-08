@@ -24,9 +24,10 @@ SMD_FORCE_EXPRESSION_PARALLEL = (
     f"0.5 * {SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME} * (tx*dx + ty*dy + tz*dz)^2"
 )
 SMD_FORCE_EXPRESSION_PERPENDICULAR = f"0.5 * {SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME} * ((dx^2 + dy^2 + dz^2) - (tx*dx + ty*dy + tz*dz)^2)"
-SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC = f"{SMD_FORCE_EXPRESSION_PARALLEL} + {SMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(x-x0); dy=(y-y0); dz=(x-z0)"
-SMD_FORCE_EXPRESSION_ATOM_PERIODIC = f"{SMD_FORCE_EXPRESSION_PARALLEL} + {SMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=periodicdistance(x, 0, 0, x0, 0, 0); dy=periodicdistance(0, y, 0, 0, y0, 0); dz=periodicdistance(0, 0, z, 0, 0, z0)"
-SMD_FORCE_EXPRESSION_COM = f"{SMD_FORCE_EXPRESSION_PARALLEL} + {SMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=pointdistance(x1, 0, 0, x0, 0, 0); dy=pointdistance(0, y1, 0, 0, y0, 0); dz=pointdistance(0, 0, z1, 0, 0, z0)"
+SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC = f"{SMD_FORCE_EXPRESSION_PARALLEL} + {SMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(x-x0); dy=(y-y0); dz=(z-z0)"
+SMD_FORCE_EXPRESSION_ATOM_PERIODIC = f"{SMD_FORCE_EXPRESSION_PARALLEL} + {SMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(raw_dx - Lx*floor((raw_dx/Lx) + 0.5)); raw_dx=(x-x0); dy=(raw_dy - Ly*floor((raw_dy/Ly) + 0.5)); raw_dy=(y-y0); dz=(raw_dz - Lz*floor((raw_dz/Lz) + 0.5)); raw_dz=(z-z0)"
+SMD_FORCE_EXPRESSION_COM_NONPERIODIC = f"{SMD_FORCE_EXPRESSION_PARALLEL} + {SMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(x1-x0); dy=(y1-y0); dz=(z1-z0)"
+SMD_FORCE_EXPRESSION_COM_PERIODIC = f"{SMD_FORCE_EXPRESSION_PARALLEL} + {SMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(raw_dx - Lx*floor((raw_dx/Lx) + 0.5)); raw_dx=(x1-x0); dy=(raw_dy - Ly*floor((raw_dy/Ly) + 0.5)); raw_dy=(y1-y0); dz=(raw_dz - Lz*floor((raw_dz/Lz) + 0.5)); raw_dz=(z1-z0)"
 
 
 class OpenMMSMDSimulation:
@@ -72,7 +73,11 @@ class OpenMMSMDSimulation:
         sim.simulation = simulation
 
         # Check if simulation employs periodic boundary conditions
+        sim._pbc_box_lengths = None
         sim._sim_uses_pbcs = sim.simulation.system.usesPeriodicBoundaryConditions()
+        if sim._sim_uses_pbcs:
+            #TODO: only works with orthorhombic PBCs at the moment, need to generalise
+            sim._pbc_box_lengths = np.diag(sim.simulation.context.getState().getPeriodicBoxVectors(asNumpy=True)._value)
 
         # Initialise all objects relevant to the SMD simulation
         sim._initialise_smd_simulation(smd_atom_indices, smd_path, smd_force_constant)
@@ -121,7 +126,11 @@ class OpenMMSMDSimulation:
             sim.simulation = serializer.deserialize_simulation(infile)
 
         # Check if simulation employs periodic boundary conditions
+        sim._pbc_box_lengths = None
         sim._sim_uses_pbcs = sim.simulation.system.usesPeriodicBoundaryConditions()
+        if sim._sim_uses_pbcs:
+            #TODO: only works with orthorhombic PBCs at the moment, need to generalise
+            sim._pbc_box_lengths = np.diag(sim.simulation.context.getState().getPeriodicBoxVectors(asNumpy=True)._value)
 
         # Initialise all objects relevant to the SMD simulation
         sim._initialise_smd_simulation(smd_atom_indices, smd_path, smd_force_constant)
@@ -161,6 +170,7 @@ class OpenMMSMDSimulation:
         self.smd_simulation_work_done: np.ndarray | None = None
 
         self._sim_uses_pbcs: bool | None = None
+        self._pbc_box_lengths: np.array | None = None
 
     @abstractmethod
     def define_smd_simulation_atom_positions_array(self):
@@ -318,9 +328,11 @@ class OpenMMSMDSimulation:
         Retrieve the positions of the atoms with which the SMD force is
         interacting, and add them to the array of positions to save.
         """
-        positions = self.simulation.context.getState(getPositions=True).getPositions(
+        positions = self.simulation.context.getState(getPositions=True, enforcePeriodicBox=False).getPositions(
             asNumpy=True
         )
+        #TODO: Check that the above correctly returns unwrapped coordinates for
+        # correct position continuity w.r.t. the reaction coordinate
         self.smd_simulation_atom_positions[self.current_smd_force_position_index] = (
             positions[self.smd_atom_indices]
         )
@@ -406,7 +418,16 @@ class OpenMMSMDSimulation:
                                 in substring
                             ):
                                 param_string_list.remove(substring)
-                        print(param_string_list)
+                        if self._sim_uses_pbcs:
+                            for substring in param_string_list:
+                                if "Lx" in substring:
+                                    param_string_list.remove(substring)
+                            for substring in param_string_list:
+                                if "Ly" in substring:
+                                    param_string_list.remove(substring)
+                            for substring in param_string_list:
+                                if "Lz" in substring:
+                                    param_string_list.remove(substring)
                         xml_string_lines[line_index] = (
                             n_tabs * "\t"
                             + " ".join(param_string_list[:-1])
@@ -535,7 +556,7 @@ class OpenMMSMDSimulation:
             -self.smd_force_constant_parallel
             * (
                 np.linalg.vecdot(displacements, self.smd_path_tangents, axis=1)
-                / np.linalg.norm(self.smd_path_tangents, axis=1)
+                / np.linalg.vecdot(self.smd_path_tangents, self.smd_path_tangents, axis=1)
             ).reshape((self.smd_path_tangents.shape[0], 1))
             * self.smd_path_tangents
         )
@@ -544,7 +565,7 @@ class OpenMMSMDSimulation:
             - (
                 (
                     np.linalg.vecdot(displacements, self.smd_path_tangents, axis=1)
-                    / np.linalg.norm(self.smd_path_tangents, axis=1)
+                    / np.linalg.vecdot(self.smd_path_tangents, self.smd_path_tangents, axis=1)
                 ).reshape((self.smd_path_tangents.shape[0], 1))
                 * self.smd_path_tangents
             )
@@ -715,6 +736,7 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
             self.smd_force_constant_parallel,
             self.smd_force_constant_perpendicular,
             self._sim_uses_pbcs,
+            self._pbc_box_lengths,
         )
         smd_force.addParticle(self.smd_atom_indices, [x0, y0, z0, tx, ty, tz])
         self.smd_force = smd_force
@@ -725,6 +747,10 @@ class OpenMMSMDSimulationAtom(OpenMMSMDSimulation):
         self.current_smd_force_position = self.smd_path[
             self.current_smd_force_position_index
         ]
+        self.current_smd_force_tangent = self.smd_path_tangents[
+            self.current_smd_force_position_index
+        ]
+
         x0, y0, z0 = self.current_smd_force_position
         tx, ty, tz = self.current_smd_force_tangent
         self.smd_force.setParticleParameters(
@@ -769,7 +795,11 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
             n_forces = self.simulation.system.getNumForces()
             smd_force = self.simulation.system.getForce(n_forces - 1)
             assert type(smd_force) == CustomCentroidBondForce
-            assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_COM
+            assert (
+                smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_COM_NONPERIODIC
+                or smd_force.getEnergyFunction()
+                == SMD_FORCE_EXPRESSION_COM_PERIODIC
+            )
             assert smd_force.getNumGroups() == 1
             assert force_constant_parallel == self.smd_force_constant_parallel
             assert force_constant_perpendicular == self.smd_force_constant_perpendicular
@@ -801,6 +831,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
             self.smd_force_constant_parallel,
             self.smd_force_constant_perpendicular,
             self._sim_uses_pbcs,
+            self._pbc_box_lengths,
         )
         smd_force.addGroup(self.smd_atom_indices)
         smd_force.addBond([0], [x0, y0, z0, tx, ty, tz])
@@ -907,7 +938,7 @@ class OpenMMSMDSimulationCOM(OpenMMSMDSimulation):
 
 
 def smd_com_force(
-    parallel_force_constant: float, perpendicular_force_constant: float, uses_pbcs: bool
+    parallel_force_constant: float, perpendicular_force_constant: float, uses_pbcs: bool, pbc_box_lengths: np.ndarray | None = None
 ):
     """
     Defines a harmonic restraint force for the COM of a group of atoms for performing SMD.
@@ -922,7 +953,11 @@ def smd_com_force(
       the COM of the specified atoms.
     """
 
-    smd_force = CustomCentroidBondForce(1, SMD_FORCE_EXPRESSION_COM)
+    if uses_pbcs:
+        smd_force = CustomCentroidBondForce(1, SMD_FORCE_EXPRESSION_COM_PERIODIC)
+    else:
+        smd_force = CustomCentroidBondForce(1, SMD_FORCE_EXPRESSION_COM_NONPERIODIC)
+
     smd_force.addGlobalParameter(
         f"{SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME}", parallel_force_constant
     )
@@ -930,6 +965,10 @@ def smd_com_force(
         f"{SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME}",
         perpendicular_force_constant,
     )
+    if uses_pbcs and pbc_box_lengths is not None:
+        smd_force.addGlobalParameter("Lx", pbc_box_lengths[0])
+        smd_force.addGlobalParameter("Ly", pbc_box_lengths[1])
+        smd_force.addGlobalParameter("Lz", pbc_box_lengths[2])
     smd_force.addPerBondParameter("x0")
     smd_force.addPerBondParameter("y0")
     smd_force.addPerBondParameter("z0")
@@ -943,7 +982,7 @@ def smd_com_force(
 
 
 def smd_single_atom_force(
-    parallel_force_constant: float, perpendicular_force_constant: float, uses_pbcs: bool
+    parallel_force_constant: float, perpendicular_force_constant: float, uses_pbcs: bool, pbc_box_lengths: np.ndarray | None = None
 ):
     """
     Defines a harmonic restraint force for a single atom for performing SMD.
@@ -968,6 +1007,10 @@ def smd_single_atom_force(
         f"{SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME}",
         perpendicular_force_constant,
     )
+    if uses_pbcs and pbc_box_lengths is not None:
+        smd_force.addGlobalParameter("Lx", pbc_box_lengths[0])
+        smd_force.addGlobalParameter("Ly", pbc_box_lengths[1])
+        smd_force.addGlobalParameter("Lz", pbc_box_lengths[2])
     smd_force.addPerParticleParameter("x0")
     smd_force.addPerParticleParameter("y0")
     smd_force.addPerParticleParameter("z0")
