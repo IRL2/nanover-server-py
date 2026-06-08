@@ -4,3 +4,4 @@ from .controls import (
 )
 from .nglclient import NGLClient as NGLClient
 from .imd_agent import ImdAgent as ImdAgent
+from .utilities import NanoverJupyterUtilities as NanoverJupyterUtilities, Mode as Mode
