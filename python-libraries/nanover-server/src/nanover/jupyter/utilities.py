@@ -13,11 +13,11 @@ class Mode:
 
 
 class NanoverJupyterUtilities:
-    _recording_path = None
+    _recording_path: str | None = None
     _recording_count = 0
     _recorder: BackgroundRecordingContext | None = None
     _next_checkpoint_index = 0
-    _active_mode = None
+    _active_mode = Mode()
 
     @classmethod
     def from_runner(cls, runner: OmniRunner):
