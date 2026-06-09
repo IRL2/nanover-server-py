@@ -66,12 +66,12 @@ class SmearAgent(ImdAgent):
                 particles=target.particles,
                 position=list(target_centroids[i]),
                 interaction_type="spring",
-                scale=200,
-                max_force=300,
+                scale=300,
+                max_force=500,
             )
             self.update_interaction(f"interaction.REPLAYER.{i}", interaction)
 
-        self.update.invoke(errors=errors)
+        self.update.invoke(errors=errors, targets=next_centroids)
 
 
 def fit_template_points_to_observed(

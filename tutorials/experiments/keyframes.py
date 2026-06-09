@@ -57,6 +57,7 @@ def extract_keyframes(reader: NanoverRecordingReader):
                 targets.append(target)
 
         if targets:
+            targets.sort(key=lambda target: min(target.particles))
             keyframes.append(KeyFrame(targets=targets))
 
     return keyframes
