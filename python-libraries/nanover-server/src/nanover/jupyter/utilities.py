@@ -3,6 +3,7 @@ from typing import Any
 from nanover.app import OmniRunner
 from nanover.core.app_server import StateService
 from nanover.utilities.change_buffers import DictionaryChange
+from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import record_from_runner, BackgroundRecordingContext
 from nanover.imd.imd_state import ParticleInteraction
 
@@ -90,6 +91,14 @@ class NanoverJupyterUtilities:
 
 
 class SceneObjectsUtility:
+    @classmethod
+    def from_runner(cls, runner: OmniRunner):
+        return cls(runner.app_server)
+
+    @classmethod
+    def from_client(cls, client: NanoverImdClient):
+        return cls(client)
+
     def __init__(self, state: StateService):
         self._state = state
         self._buffer = DictionaryChange()
