@@ -3,9 +3,8 @@ import numpy.typing as npt
 
 from nanover.imd import ParticleInteraction
 from nanover.trajectory import FrameData
-from nanover.jupyter import ImdAgent
+from nanover.jupyter import ImdAgent, SceneObjectsUtility
 from keyframes import KeyFrame
-from nanover.utilities.event import Event
 
 
 def fit_keyframe_to_frame(keyframe: KeyFrame, frame: FrameData):
@@ -27,10 +26,15 @@ class SmearAgent(ImdAgent):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.update = Event()
+        self.objects = SceneObjectsUtility(self._app_server)
+
+    def close(self):
+        super().close()
+        self.objects.clear()
 
     def set_keyframe(self, keyframe: KeyFrame):
-        self.clear_interactions()
+        self.interactions.clear()
+        self.objects.clear()
         self.keyframe = keyframe
 
     def update_interactions(self, full_frame: FrameData, frame_update: FrameData):
@@ -54,24 +58,37 @@ class SmearAgent(ImdAgent):
         # determine final interaction positions
         target_centroids = prev_centroids + cappeds
 
-        errors = []
+        with (
+            self.interactions as interactions,
+            self.objects as objects,
+        ):
+            points = [target_centroids[i] for i in range(len(self.keyframe.targets))]
+            white = [1.0, 1.0, 1.0, 1.0]
 
-        for i, target in enumerate(self.keyframe.targets):
-            errors.append((target, np.linalg.norm(deltas, axis=1)[i]))
+            objects.update_line("backbone", positions=points, color=white, size=0.05)
 
-            if lengths[i] < 0.0001:
-                continue
+            for i, target in enumerate(self.keyframe.targets):
+                error = min(1.0, np.linalg.norm(deltas, axis=1)[i])
+                label = f"error: {error:.2g}"
+                color = [1.0, 1.0 - error, 1.0 - error, 1.0]
+                position = points[i]
 
-            interaction = ParticleInteraction(
-                particles=target.particles,
-                position=list(target_centroids[i]),
-                interaction_type="spring",
-                scale=300,
-                max_force=500,
-            )
-            self.update_interaction(f"interaction.REPLAYER.{i}", interaction)
+                objects.update_shape(i, shape="sphere", position=position, color=color)
+                objects.update_label(i, text=label, position=position, color=color)
 
-        self.update.invoke(errors=errors, targets=next_centroids)
+                if lengths[i] < 0.0001:
+                    continue
+
+                interaction = ParticleInteraction(
+                    particles=target.particles,
+                    position=list(target_centroids[i]),
+                    interaction_type="spring",
+                    scale=300,
+                    max_force=500,
+                )
+                interactions.update_interaction(
+                    f"interaction.REPLAYER.{i}", interaction
+                )
 
 
 def fit_template_points_to_observed(
