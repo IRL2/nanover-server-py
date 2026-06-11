@@ -87,12 +87,14 @@ def test_interaction_cleanup(setup):
     assert len(setup.imd_runner.app_server.imd.active_interactions) == 0
 
     for i in range(32):
-        setup.imd_agent.update_interaction(f"test.{i}", ParticleInteraction())
+        setup.imd_agent.interactions.update_interaction(
+            f"test.{i}", ParticleInteraction()
+        )
 
     assert len(setup.imd_runner.app_server.imd.active_interactions) == 32
 
     for i in range(16):
-        setup.imd_agent.remove_interaction(f"test.{i}")
+        setup.imd_agent.interactions.remove_interaction(f"test.{i}")
 
     assert len(setup.imd_runner.app_server.imd.active_interactions) == 16
 
