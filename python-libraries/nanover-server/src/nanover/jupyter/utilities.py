@@ -123,6 +123,7 @@ class StateKeysUtility:
         self.check_flush()
 
     def remove_object(self, key: str):
+        self._buffer.updates.pop(key, None)
         self._buffer.removals = {key, *self._buffer.removals}
         self.check_flush()
 
@@ -153,10 +154,12 @@ class InteractionsUtility(StateKeysUtility):
         self.check_flush()
 
     def update_interaction(self, key: str, interaction: ParticleInteraction):
-        self.update_object(f"interaction.{key}", interaction_to_dict(interaction))
+        self.update_object(
+            f"{INTERACTION_PREFIX}{key}", interaction_to_dict(interaction)
+        )
 
     def remove_interaction(self, key: str):
-        self.remove_object(f"{INTERACTION_PREFIX}.{key}")
+        self.remove_object(f"{INTERACTION_PREFIX}{key}")
 
 
 class SceneObjectsUtility(StateKeysUtility):
