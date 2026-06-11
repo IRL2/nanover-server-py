@@ -9,8 +9,8 @@ from typing import Any, Set, Iterator, Iterable, Mapping
 
 from .timing import yield_interval
 
-KeyUpdates = Mapping[str, Any]
-KeyRemovals = Iterable[str]
+KeyUpdates = dict[str, Any]
+KeyRemovals = set[str]
 
 
 class DictionaryChange:
@@ -18,10 +18,10 @@ class DictionaryChange:
     removals: KeyRemovals
 
     @classmethod
-    def from_dict(cls, dict):
+    def from_dict(cls, dict_: dict):
         return cls(
-            dict.get("updates", None),
-            dict.get("removals", None),
+            dict_.get("updates", None),
+            dict_.get("removals", None),
         )
 
     def to_dict(self):
@@ -32,11 +32,16 @@ class DictionaryChange:
 
     def __init__(
         self,
-        updates: KeyUpdates | None = None,
-        removals: KeyRemovals | None = None,
+        updates: Mapping[str, Any] | None = None,
+        removals: Iterable[str] | None = None,
     ):
-        self.updates = updates or {}
-        self.removals = removals or set()
+        self.updates = {}
+        self.removals = set()
+
+        if updates is not None:
+            self.updates.update(updates)
+        if removals is not None:
+            self.removals.update(removals)
 
     def update(self, other: "DictionaryChange"):
         self.updates = {**self.updates, **other.updates}

@@ -9,6 +9,8 @@ import pytest
 from nanover.app import OmniRunner
 from nanover.imd import ParticleInteraction
 from nanover.jupyter import ImdAgent
+from nanover.testing import assert_equal_soon
+from nanover.testing.asserts import assert_true_soon
 from nanover.trajectory import FrameData
 
 FRAMES = [FrameData() for i in range(3)]
@@ -86,16 +88,24 @@ def test_interaction_cleanup(setup):
 
     assert len(setup.imd_runner.app_server.imd.active_interactions) == 0
 
-    for i in range(32):
-        setup.imd_agent.update_interaction(f"test.{i}", ParticleInteraction())
+    with setup.imd_agent.interactions as interactions:
+        for i in range(32):
+            interactions.update_interaction(f"test.{i}", ParticleInteraction())
 
-    assert len(setup.imd_runner.app_server.imd.active_interactions) == 32
+    assert_equal_soon(
+        lambda: len(setup.imd_runner.app_server.imd.active_interactions), lambda: 32
+    )
 
-    for i in range(16):
-        setup.imd_agent.remove_interaction(f"test.{i}")
+    with setup.imd_agent.interactions as interactions:
+        for i in range(16):
+            interactions.remove_interaction(f"test.{i}")
 
-    assert len(setup.imd_runner.app_server.imd.active_interactions) == 16
+    assert_equal_soon(
+        lambda: len(setup.imd_runner.app_server.imd.active_interactions), lambda: 16
+    )
 
     setup.imd_agent.close()
 
-    assert len(setup.imd_runner.app_server.imd.active_interactions) == 0
+    assert_equal_soon(
+        lambda: len(setup.imd_runner.app_server.imd.active_interactions), lambda: 0
+    )
