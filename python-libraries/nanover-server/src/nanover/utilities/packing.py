@@ -57,6 +57,9 @@ def fallback_encoder(obj: Any) -> Any:
     # encode numpy arrays as simple lists
     if isinstance(obj, np.ndarray):
         return obj.tolist()
+    # convert numpy numbers to python floats
+    if isinstance(obj, np.number):
+        return float(obj)
     raise TypeError(f"Unknown type: {obj}")
 
 
