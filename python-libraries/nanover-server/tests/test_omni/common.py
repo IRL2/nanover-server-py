@@ -4,9 +4,9 @@ from typing import Iterator, TypeVar
 
 from nanover.app import (
     NanoverImdApplication,
+    OmniRunner,
 )
 from nanover.core import AppServer, Simulation
-from nanover.omni import OmniRunner
 from nanover.websocket import NanoverImdClient
 from nanover.trajectory import FrameData
 

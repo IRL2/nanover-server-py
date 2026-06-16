@@ -1,5 +1,5 @@
 """
-Command line interface for nanover.omni.
+Command line interface for nanover-server.
 """
 
 import logging
@@ -13,7 +13,7 @@ from typing import Iterable
 
 from MDAnalysis import Universe
 
-from nanover.omni import OmniRunner
+from nanover.app import OmniRunner
 from nanover.mdanalysis import UniverseSimulation
 from nanover.openmm import OpenMMSimulation
 from nanover.recording import PlaybackSimulation
@@ -224,17 +224,6 @@ def main():
             runner.print_basic_info()
             cancellation.wait_cancellation()
             print("Closing due to KeyboardInterrupt.")
-
-
-def deprecated():
-    import warnings
-
-    warnings.warn(
-        "use `nanover-server` instead",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    main()
 
 
 if __name__ == "__main__":

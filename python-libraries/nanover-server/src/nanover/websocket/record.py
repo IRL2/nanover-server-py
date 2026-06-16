@@ -7,7 +7,7 @@ from websockets import ConnectionClosed
 from websockets.sync.client import connect
 from websockets.sync.connection import Connection
 
-from nanover.omni import OmniRunner
+from nanover.app import OmniRunner
 from nanover.recording.reading import MessageEvent
 from nanover.recording.writing import NanoverRecordingWriter
 
