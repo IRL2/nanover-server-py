@@ -20,10 +20,10 @@ class DiscoveryClient:
 
         services = app_server.service_hub.properties["services"]
 
-        if "wss" in services:
-            data["wss"] = f"wss://{ip}:{services['wss']}"
-        if "ws" in services:
-            data["ws"] = f"ws://{ip}:{services['ws']}"
+        for protocol in ("wss", "ws", "https"):
+            if protocol in services:
+                port = services[protocol]
+                data[protocol] = f"{protocol}://{ip}:{port}"
 
         discovery = DiscoveryClient(endpoint)
         with discovery.advertise(data) as init:
