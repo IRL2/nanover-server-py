@@ -1,9 +1,10 @@
 import concurrent
 import errno
+from socket import socket
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from ssl import SSLContext
-from typing import Self
+from typing import Self, Protocol
 
 import msgpack
 
@@ -18,8 +19,15 @@ from websockets.sync.server import serve, ServerConnection, Server
 
 from nanover.core.commands import CommandMessageHandler
 from nanover.utilities.packing import fallback_encoder
+from nanover.websocket.landing import make_landing_page_server
 
 MAX_MESSAGE_SIZE = 128 * 1024 * 1024
+
+
+class ServerLike(Protocol):
+    socket: socket
+
+    def shutdown(self): ...
 
 
 class WebSocketServer:
@@ -40,6 +48,7 @@ class WebSocketServer:
 
         if ssl is not None:
             server.serve(port=port, service="wss", ssl=ssl)
+            server.serve_landing_page(service="https", ssl=ssl)
             port = 0  # choose random port from now on
         if insecure:
             server.serve(port=port, service="ws")
@@ -50,7 +59,7 @@ class WebSocketServer:
         self.app_server = app_server
         self._cancellation = CancellationToken()
         self._threads = ThreadPoolExecutor(thread_name_prefix="WebSocketServer")
-        self._servers: list[Server] = []
+        self._servers: list[ServerLike] = []
 
     def close(self) -> None:
         """
@@ -89,6 +98,26 @@ class WebSocketServer:
         if service:
             self.app_server.add_service(service, _get_server_port(server))
         return server
+
+    def serve_landing_page(
+        self,
+        *,
+        host="0.0.0.0",
+        port=0,
+        ssl: SSLContext | None = None,
+        service: str | None = None,
+    ):
+        try:
+            server = make_landing_page_server(host=host, port=port, ssl=ssl)
+        except IOError as e:
+            if e.errno == errno.EADDRINUSE:
+                raise IOError(f"Port {port} already in use.") from None
+            raise
+
+        self._servers.append(server)
+        self._threads.submit(server.serve_forever)
+        if service:
+            self.app_server.add_service(service, _get_server_port(server))
 
     def _handle_client(self, websocket: ServerConnection) -> None:
         _WebSocketClientHandler(self.app_server, websocket, self._cancellation).listen()
@@ -237,7 +266,7 @@ def _find_user_owned_keys(app_server: AppServer, user_id: str):
     return keys
 
 
-def _get_server_port(server: Server) -> int:
+def _get_server_port(server: ServerLike) -> int:
     """
     Returns the concrete port used by a given websocket server.
     """
