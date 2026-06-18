@@ -47,7 +47,6 @@ dev=[
 ]
 
 [project.scripts]
-nanover-omni = "nanover.app.cli.server_cli:deprecated"
 nanover-server = "nanover.app.cli.server_cli:main"
 nanover-record = "nanover.app.cli.recorder_cli:main"
 nanover-essd-list = "nanover.essd.list_cli:main"

@@ -5,7 +5,7 @@ import ipywidgets as widgets
 from IPython.display import display
 from nanover.core import AppServerMinimal
 
-from nanover.omni import OmniRunner
+from nanover.app import OmniRunner
 from nanover.trajectory import keys
 from nanover.utilities.change_buffers import DictionaryChange
 
