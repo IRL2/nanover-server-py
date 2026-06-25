@@ -1,8 +1,11 @@
 from typing import Any
 
+
 from nanover.app import OmniRunner
 from nanover.core.app_server import StateService
+from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.transforms import Transform
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import record_from_runner, BackgroundRecordingContext
 from nanover.imd.imd_state import (
@@ -38,6 +41,12 @@ class NanoverJupyterUtilities:
         self.runner = runner
         self.objects = SceneObjectsUtility(runner.app_server)
         self.interactions = InteractionsUtility(runner.app_server)
+
+    @property
+    def scene_transform(self) -> Transform:
+        state = self.runner.app_server.state_dictionary.copy_content()
+        scene = state.get("scene", SCENE_POSE_IDENTITY)
+        return Transform.from_scene_pose(scene)
 
     def notify_all(self, message: str):
         for command in self.runner.app_server.commands:
