@@ -14,25 +14,30 @@ class Transform:
         scale = np.diagflat((-sx, sy, sz, 1.0))
 
         # compose in TRS order
-        return cls(local_to_parent=translation @ rotation @ scale)
+        return cls.from_local_to_parent_matrix(translation @ rotation @ scale)
+
+    @classmethod
+    def from_local_to_parent_matrix(cls, local_to_parent: npt.NDArray):
+        return cls(
+            local_to_parent=local_to_parent,
+            parent_to_local=np.linalg.inv(local_to_parent),
+        )
+
+    @classmethod
+    def from_parent_to_local_matrix(cls, parent_to_local: npt.NDArray):
+        return cls(
+            parent_to_local=parent_to_local,
+            local_to_parent=np.linalg.inv(parent_to_local),
+        )
 
     def __init__(
         self,
         *,
-        local_to_parent: npt.NDArray[float] | None = None,
-        parent_to_local: npt.NDArray[float] | None = None,
+        local_to_parent: npt.NDArray,
+        parent_to_local: npt.NDArray,
     ):
-        assert local_to_parent is None or parent_to_local is None
-        self._local_to_parent = (
-            local_to_parent
-            if local_to_parent is not None
-            else np.linalg.inv(parent_to_local)
-        )
-        self._parent_to_local = (
-            parent_to_local
-            if parent_to_local is not None
-            else np.linalg.inv(local_to_parent)
-        )
+        self._local_to_parent = local_to_parent
+        self._parent_to_local = parent_to_local
 
     def point_local_to_parent(self, point):
         return _transform_vec3(self._local_to_parent, point)
