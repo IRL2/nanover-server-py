@@ -13,6 +13,9 @@ from nanover.imd.imd_state import (
 
 
 class Mode:
+    def on_cursor_update(self, *, key: str, cursor: dict):
+        pass
+
     def on_interaction_started(self, *, key: str, interaction: ParticleInteraction):
         pass
 
@@ -77,11 +80,23 @@ class NanoverJupyterUtilities:
         def on_interaction_stopped(*, key: str, interaction: ParticleInteraction):
             self._active_mode.on_interaction_stopped(key=key, interaction=interaction)
 
+        def on_cursor_updated(*, key: str, cursor: dict):
+            self._active_mode.on_cursor_update(key=key, cursor=cursor)
+
         self.runner.app_server.imd.interaction_started.add_callback(
             on_interaction_started
         )
         self.runner.app_server.imd.interaction_stopped.add_callback(
             on_interaction_stopped
+        )
+
+        def on_state_updated(*, access_token: str, change: DictionaryChange):
+            for key, value in change.updates.items():
+                if key.startswith("cursor"):
+                    on_cursor_updated(key=key, cursor=value)
+
+        self.runner.app_server.state_dictionary.content_updated.add_callback(
+            on_state_updated
         )
 
         self._active_mode = Mode()
