@@ -32,6 +32,9 @@ class Mode:
     def on_interaction_stopped(self, *, key: str, interaction: ParticleInteraction):
         pass
 
+    def on_interaction_updated(self, *, key: str, interaction: ParticleInteraction):
+        pass
+
 
 class NanoverJupyterUtilities:
     _recording_path: str | None = None
@@ -99,6 +102,9 @@ class NanoverJupyterUtilities:
         def on_interaction_stopped(*, key: str, interaction: ParticleInteraction):
             self._active_mode.on_interaction_stopped(key=key, interaction=interaction)
 
+        def on_interaction_updated(*, key: str, interaction: ParticleInteraction):
+            self._active_mode.on_interaction_updated(key=key, interaction=interaction)
+
         def on_cursor_updated(*, key: str, cursor: dict):
             prev_cursor = prev_cursors.get(key, {})
             prev_cursors[key] = cursor
@@ -126,7 +132,9 @@ class NanoverJupyterUtilities:
             on_interaction_stopped
         )
 
-        # zzzzz
+        self.runner.app_server.imd.interaction_updated.add_callback(
+            on_interaction_updated
+        )
 
         def on_state_updated(*, access_token: str, change: DictionaryChange):
             for key, value in change.updates.items():
