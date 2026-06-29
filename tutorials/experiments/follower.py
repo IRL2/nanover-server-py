@@ -7,20 +7,37 @@ from nanover.trajectory import FrameData
 
 class Path:
     @classmethod
-    def from_points(cls, points: list):
-        return cls(points)
+    def empty(cls):
+        return cls([])
 
-    def __init__(self, points: list):
-        assert len(points) >= 2
-        self._points = points
-        self._lengths = np.linalg.norm(np.diff(points, axis=0), axis=1)
-        self._length = np.sum(self._lengths)
+    @classmethod
+    def from_positions(cls, positions: list):
+        return cls(positions)
 
-    def point_at_distance(self, distance: float):
+    def __init__(self, positions: list):
+        self.positions = positions
+        self.lengths = (
+            np.linalg.norm(np.diff(positions, axis=0), axis=1)
+            if len(positions) >= 2
+            else []
+        )
+
+    def append_position(self, position: list):
+        if self.positions:
+            length = np.linalg.norm(np.subtract(self.positions[-1], position))
+            self.lengths.append(length)
+        self.positions.append(position)
+
+    def position_at_distance(self, distance: float):
+        if len(self.positions) == 0:
+            return None
+        elif len(self.positions) == 1 and distance == 0:
+            return self.positions[0]
+
         target = distance
-        for i, length in enumerate(self._lengths):
+        for i, length in enumerate(self.lengths):
             if length > target:
-                a, b = self._points[i], self._points[i + 1]
+                a, b = self.positions[i], self.positions[i + 1]
                 delta = np.subtract(b, a)
                 direction = delta / np.linalg.norm(delta)
                 return np.add(a, direction * target)
@@ -35,18 +52,18 @@ class PathFollowerAgent(ImdAgent):
     force_max = 10000.0
 
     particles: list[int] = []
-    path: Path = Path.from_points([[0, 0, 0], [0, 0, 0]])
+    path = Path.empty()
     distance = 0
 
     def set_particles(self, particles: list[int]):
         self.particles = particles
 
-    def set_path(self, path: list):
-        self.path = Path.from_points(path)
+    def set_path(self, path: Path):
+        self.path = path
         self.distance = 0
 
     def update_interactions(self, full_frame: FrameData, frame_update: FrameData):
-        target = self.path.point_at_distance(self.distance)
+        target = self.path.position_at_distance(self.distance)
 
         if target is not None:
             self.interactions.update_interaction(
