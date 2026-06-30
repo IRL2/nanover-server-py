@@ -5,7 +5,6 @@ from nanover.app import OmniRunner
 from nanover.core.app_server import StateService
 from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.utilities.event import Event
 from nanover.utilities.transforms import Transform
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import record_from_runner, BackgroundRecordingContext
@@ -51,7 +50,6 @@ class NanoverJupyterUtilities:
         self.runner = runner
         self.objects = SceneObjectsUtility(runner.app_server)
         self.interactions = InteractionsUtility(runner.app_server)
-        self.cursors = CursorsUtility(runner.app_server)
 
     @property
     def scene_transform(self) -> Transform:
@@ -94,7 +92,7 @@ class NanoverJupyterUtilities:
         )
 
     def use_interaction_modes(self):
-        prev_cursors = {}
+        prev_cursors: dict[str, dict] = {}
 
         def on_interaction_started(*, key: str, interaction: ParticleInteraction):
             self._active_mode.on_interaction_started(key=key, interaction=interaction)
@@ -154,47 +152,6 @@ class NanoverJupyterUtilities:
             self.notify_all(f"INTERACTION MODE {name}")
 
         self.runner.app_server.register_command(f"user/interaction/{name}", enter)
-
-
-class CursorsUtility:
-    @classmethod
-    def from_runner(cls, runner: OmniRunner):
-        return cls(runner.app_server)
-
-    @classmethod
-    def from_client(cls, client: NanoverImdClient):
-        return cls(client)
-
-    def __init__(self, state: StateService):
-        self._state = state
-        self._prev_cursors = {}
-
-        self.cursor_updated = Event()
-        self.button_pressed = Event()
-        self.button_released = Event()
-
-        def on_cursor_updated(*, key: str, cursor: dict):
-            prev_cursor = self._prev_cursors.get(key, {})
-            self._prev_cursors[key] = cursor
-
-            prev_held = set(prev_cursor.get("heldbuttons", []))
-            next_held = set(cursor.get("heldbuttons", []))
-            pressed = next_held - prev_held
-            released = prev_held - next_held
-
-            for button in pressed:
-                self.button_pressed.invoke(key=key, cursor=cursor, button=button)
-            for button in released:
-                self.button_released.invoke(key=key, cursor=cursor, button=button)
-
-            self.cursor_updated.invoke(key, cursor=cursor)
-
-        def on_updated(access_token: str, change: DictionaryChange):
-            for key, value in change.updates.items():
-                if key.startswith("cursor."):
-                    on_cursor_updated(key=key, cursor=value)
-
-        self._state.state_dictionary.content_updated.add_callback(on_updated)
 
 
 class StateKeysUtility:
