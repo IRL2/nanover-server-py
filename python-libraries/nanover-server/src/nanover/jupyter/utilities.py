@@ -1,8 +1,11 @@
 from typing import Any
 
+
 from nanover.app import OmniRunner
 from nanover.core.app_server import StateService
+from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.transforms import Transform
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import record_from_runner, BackgroundRecordingContext
 from nanover.imd.imd_state import (
@@ -13,10 +16,22 @@ from nanover.imd.imd_state import (
 
 
 class Mode:
+    def on_button_pressed(self, *, key: str, cursor: dict, button: str):
+        pass
+
+    def on_button_released(self, *, key: str, cursor: dict, button: str):
+        pass
+
+    def on_cursor_updated(self, *, key: str, cursor: dict):
+        pass
+
     def on_interaction_started(self, *, key: str, interaction: ParticleInteraction):
         pass
 
     def on_interaction_stopped(self, *, key: str, interaction: ParticleInteraction):
+        pass
+
+    def on_interaction_updated(self, *, key: str, interaction: ParticleInteraction):
         pass
 
 
@@ -35,6 +50,12 @@ class NanoverJupyterUtilities:
         self.runner = runner
         self.objects = SceneObjectsUtility(runner.app_server)
         self.interactions = InteractionsUtility(runner.app_server)
+
+    @property
+    def scene_transform(self) -> Transform:
+        state = self.runner.app_server.state_dictionary.copy_content()
+        scene = state.get("scene", SCENE_POSE_IDENTITY)
+        return Transform.from_scene_pose(scene)
 
     def notify_all(self, message: str):
         for command in self.runner.app_server.commands:
@@ -71,17 +92,55 @@ class NanoverJupyterUtilities:
         )
 
     def use_interaction_modes(self):
+        prev_cursors: dict[str, dict] = {}
+
         def on_interaction_started(*, key: str, interaction: ParticleInteraction):
             self._active_mode.on_interaction_started(key=key, interaction=interaction)
 
         def on_interaction_stopped(*, key: str, interaction: ParticleInteraction):
             self._active_mode.on_interaction_stopped(key=key, interaction=interaction)
 
+        def on_interaction_updated(*, key: str, interaction: ParticleInteraction):
+            self._active_mode.on_interaction_updated(key=key, interaction=interaction)
+
+        def on_cursor_updated(*, key: str, cursor: dict):
+            prev_cursor = prev_cursors.get(key, {})
+            prev_cursors[key] = cursor
+
+            self._active_mode.on_cursor_updated(key=key, cursor=cursor)
+
+            prev_held = set(prev_cursor.get("heldbuttons", []))
+            next_held = set(cursor.get("heldbuttons", []))
+            pressed = next_held - prev_held
+            released = prev_held - next_held
+
+            for button in pressed:
+                self._active_mode.on_button_pressed(
+                    key=key, cursor=cursor, button=button
+                )
+            for button in released:
+                self._active_mode.on_button_released(
+                    key=key, cursor=cursor, button=button
+                )
+
         self.runner.app_server.imd.interaction_started.add_callback(
             on_interaction_started
         )
         self.runner.app_server.imd.interaction_stopped.add_callback(
             on_interaction_stopped
+        )
+
+        self.runner.app_server.imd.interaction_updated.add_callback(
+            on_interaction_updated
+        )
+
+        def on_state_updated(*, access_token: str, change: DictionaryChange):
+            for key, value in change.updates.items():
+                if key.startswith("cursor"):
+                    on_cursor_updated(key=key, cursor=value)
+
+        self.runner.app_server.state_dictionary.content_updated.add_callback(
+            on_state_updated
         )
 
         self._active_mode = Mode()
