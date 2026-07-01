@@ -8,7 +8,6 @@ class Event:
     """
 
     def __init__(self):
-        self._logger = logging.getLogger(__name__)
         self._callbacks = []
 
     def add_callback(self, callback: Callable[..., None]):
@@ -33,9 +32,11 @@ class Event:
 
         :param args: Positional arguments for the event, passed on to each callback.
         :param kwargs: Keywords arguments for the event, passed on to each callback.
+
+        Exceptions in callbacks are caught, logged, and suppressed.
         """
         for callback in self._callbacks:
             try:
                 callback(*args, **kwargs)
             except Exception:
-                self._logger.exception("Exception in Event callback:")
+                logging.getLogger(__name__).exception("Exception in Event callback:")
