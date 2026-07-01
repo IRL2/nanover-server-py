@@ -1,3 +1,4 @@
+import logging
 from typing import Callable
 
 
@@ -7,6 +8,7 @@ class Event:
     """
 
     def __init__(self):
+        self._logger = logging.getLogger(__name__)
         self._callbacks = []
 
     def add_callback(self, callback: Callable[..., None]):
@@ -33,4 +35,7 @@ class Event:
         :param kwargs: Keywords arguments for the event, passed on to each callback.
         """
         for callback in self._callbacks:
-            callback(*args, **kwargs)
+            try:
+                callback(*args, **kwargs)
+            except Exception:
+                self._logger.exception("Exception in Event callback:")
