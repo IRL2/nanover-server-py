@@ -49,6 +49,7 @@ def example_ase_app_sim_constant_force_interaction(example_ase_app_sim):
             position=(1.0, 2.0, 10.0),
             particles=[0],
             interaction_type="constant",
+            scale=40.0,
         ),
     )
     yield app, sim
@@ -135,6 +136,7 @@ def test_dynamics_interaction(example_ase_loaded):
             position=(0.0, 0.0, 10.0),
             particles=[0],
             interaction_type="constant",
+            scale=40.0,
         ),
     )
     for _ in range(31):
