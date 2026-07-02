@@ -1,5 +1,6 @@
+import logging
 from typing import Any
-
+from ipywidgets import Output
 
 from nanover.app import OmniRunner
 from nanover.core.app_server import StateService
@@ -56,6 +57,17 @@ class NanoverJupyterUtilities:
         state = self.runner.app_server.state_dictionary.copy_content()
         scene = state.get("scene", SCENE_POSE_IDENTITY)
         return Transform.from_scene_pose(scene)
+
+    def show_logging(self):
+        output = Output()
+
+        class Handler(logging.Handler):
+            def emit(self, record: logging.LogRecord):
+                with output:
+                    print(self.format(record))
+
+        logging.getLogger().addHandler(Handler())
+        return output
 
     def notify_all(self, message: str):
         for command in self.runner.app_server.commands:
