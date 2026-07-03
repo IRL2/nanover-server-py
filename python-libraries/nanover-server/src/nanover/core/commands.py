@@ -31,12 +31,31 @@ class CommandMessageHandler:
         self,
         name: str,
         callback: CommandHandler,
+        *,
+        label: str | None = None,
+        icon: str | None = None,
         default_arguments: dict | None = None,
     ) -> None:
         """Register a local callback that can be invoked by a remote party."""
-        self._command_service.register_command(name, callback, default_arguments)
+        label = label or name
+        icon = icon or "❓"
+        print(id, icon)
+        self._command_service.register_command(
+            name,
+            callback,
+            default_arguments,
+            icon=icon,
+            label=label,
+        )
         self._send_message(
-            {"register": {"name": name, "arguments": default_arguments}},
+            {
+                "register": {
+                    "name": name,
+                    "arguments": default_arguments,
+                    "label": label,
+                    "icon": icon,
+                }
+            },
         )
 
     def request_command(
@@ -118,16 +137,15 @@ class CommandService:
 
     def __init__(self, add_list_command=True):
         super().__init__()
-        self.name: str = "command"
         self._commands = {}
-        self._id = "service"
 
         def list_commands():
             return {
                 "list": {
-                    name: registration.arguments
-                    for name, registration in self.commands.items()
-                }
+                    registration.name: registration.arguments
+                    for registration in self.commands.values()
+                },
+                "commands": [command.to_dict() for command in self.commands.values()],
             }
 
         if add_list_command:
@@ -148,6 +166,8 @@ class CommandService:
         name: str,
         callback: CommandHandler,
         default_arguments: dict | None = None,
+        label: str | None = None,
+        icon: str | None = None,
     ):
         """
         Registers a command with this service
@@ -158,10 +178,14 @@ class CommandService:
 
         :raises ValueError: Raised when a command with the same name already exists.
         """
+        label = label or name
+        icon = icon or "❓"
         if default_arguments is None:
             default_arguments = {}
         self._commands[name] = CommandRegistration(
             name=name,
+            label=label,
+            icon=icon,
             arguments=default_arguments,
             handler=callback,
         )
