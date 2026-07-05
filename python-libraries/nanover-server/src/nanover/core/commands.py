@@ -39,11 +39,11 @@ class CommandMessageHandler:
         """Register a local callback that can be invoked by a remote party."""
         label = label or name
         icon = icon or "❓"
-        print(id, icon)
+
         self._command_service.register_command(
             name,
             callback,
-            default_arguments,
+            default_arguments=default_arguments,
             icon=icon,
             label=label,
         )
@@ -118,15 +118,18 @@ class CommandMessageHandler:
         future.add_done_callback(handle_future)
 
     def _handle_command_registration(self, register):
-        name, default_arguments = (
-            register.get("name"),
-            register.get("arguments", {}),
-        )
+        name = register.get("name")
 
         def handle_call(**arguments):
             return self.request_command(name, arguments)
 
-        self._command_service.register_command(name, handle_call, default_arguments)
+        self._command_service.register_command(
+            name,
+            handle_call,
+            default_arguments=register.get("arguments", None),
+            label=register.get("label", None),
+            icon=register.get("icon", None),
+        )
 
 
 class CommandService:
@@ -165,18 +168,19 @@ class CommandService:
         self,
         name: str,
         callback: CommandHandler,
-        default_arguments: dict | None = None,
+        *,
         label: str | None = None,
         icon: str | None = None,
+        default_arguments: dict | None = None,
     ):
         """
         Registers a command with this service
 
         :param name: Name of the command to register
         :param callback: Method to be called whenever the given command name is run by a client.
-        :param default_arguments: A dictionary of the arguments of the callback and their default values.
-
-        :raises ValueError: Raised when a command with the same name already exists.
+        :param label: A human friendly name for the command.
+        :param icon: An emoji representing the command.
+        :param default_arguments: A description of the arguments of the callback and their default values.
         """
         label = label or name
         icon = icon or "❓"
