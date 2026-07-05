@@ -27,6 +27,9 @@ class CommandMessageHandler:
         self._pending_requests: dict[int, Future] = {}
         self._next_command_id = 1
 
+    def unregister_all(self):
+        self._command_service.unregister_all(owner=self)
+
     def register_command(
         self,
         name: str,
@@ -129,6 +132,7 @@ class CommandMessageHandler:
             default_arguments=register.get("arguments", None),
             label=register.get("label", None),
             icon=register.get("icon", None),
+            owner=self,
         )
 
 
@@ -141,6 +145,7 @@ class CommandService:
     def __init__(self, add_list_command=True):
         super().__init__()
         self._commands = {}
+        self._owners = {}
 
         def list_commands():
             return {
@@ -172,6 +177,7 @@ class CommandService:
         label: str | None = None,
         icon: str | None = None,
         default_arguments: dict | None = None,
+        owner: Any = None,
     ):
         """
         Registers a command with this service
@@ -181,11 +187,13 @@ class CommandService:
         :param label: A human friendly name for the command.
         :param icon: An emoji representing the command.
         :param default_arguments: A description of the arguments of the callback and their default values.
+        :param owner: Unique value representing the owner of this registration for later cleanup.
         """
         label = label or name
         icon = icon or "❓"
         if default_arguments is None:
             default_arguments = {}
+        self._owners[name] = owner
         self._commands[name] = CommandRegistration(
             name=name,
             label=label,
@@ -194,13 +202,22 @@ class CommandService:
             handler=callback,
         )
 
-    def unregister_command(self, name):
+    def unregister_command(self, name, owner: Any = None):
         """
         Deletes a command from this service.
 
         :param name: Name of the command to delete
+        :param owner: If not None, limit to commands owned by this owner
         """
-        self._commands.pop(name, None)
+        if owner is None or self._owners.get(name, None) == owner:
+            self._owners.pop(name, None)
+            self._commands.pop(name, None)
+
+    def unregister_all(self, owner: Any):
+        owned = {name for name, other in self._owners.items()}
+        for name in owned:
+            self._owners.pop(name)
+            self._commands.pop(name)
 
     def run_command(self, name: str, arguments: dict) -> Future:
         future: Future = Future()

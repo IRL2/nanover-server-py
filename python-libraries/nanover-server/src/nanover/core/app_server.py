@@ -40,9 +40,12 @@ class CommandService(Protocol):
         label: str | None = None,
         icon: str | None = None,
         default_arguments: dict | None = None,
+        owner: Any = None,
     ) -> None: ...
 
-    def unregister_command(self, name: str) -> None: ...
+    def unregister_command(self, name: str, owner: Any = None) -> None: ...
+
+    def unregister_all(self, owner: Any) -> None: ...
 
 
 class ImdService(Closeable, Protocol):
