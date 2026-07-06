@@ -36,6 +36,9 @@ class CommandService(Protocol):
         self,
         name: str,
         callback: CommandHandler,
+        *,
+        label: str | None = None,
+        icon: str | None = None,
         default_arguments: dict | None = None,
     ) -> None: ...
 
