@@ -18,17 +18,9 @@ def test_register_command(service):
 
 def test_register_command_with_args(service):
     mock = Mock()
-    service.register_command("test", mock.callback, {"a": 2})
+    service.register_command("test", mock.callback, default_arguments={"a": 2})
     assert len(service.commands) == 1
     assert service.commands["test"].arguments == {"a": 2}
-
-
-@pytest.mark.skip(reason="Allow command overwriting")
-def test_register_existing_command(service):
-    mock = Mock()
-    service.register_command("test", mock.callback)
-    with pytest.raises(ValueError):
-        service.register_command("test", mock.callback)
 
 
 def test_unregister_command(service):
