@@ -94,13 +94,19 @@ class NanoverJupyterUtilities:
 
     def use_recording_commands(self):
         self.runner.app_server.register_command(
-            "user/recording/start", self.start_recording
+            "user/recording/start",
+            self.start_recording,
+            icon="⏺️",
         )
         self.runner.app_server.register_command(
-            "user/recording/stop", self.stop_recording
+            "user/recording/stop",
+            self.stop_recording,
+            icon="⏹️",
         )
         self.runner.app_server.register_command(
-            "user/recording/checkpoint", self.mark_checkpoint
+            "user/recording/checkpoint",
+            self.mark_checkpoint,
+            icon="🚩",
         )
 
     def use_interaction_modes(self):
@@ -158,12 +164,14 @@ class NanoverJupyterUtilities:
         self._active_mode = Mode()
         self.add_interaction_mode(Mode, "normal")
 
-    def add_interaction_mode[T: type[Mode]](self, mode: T, name: str):
+    def add_interaction_mode[T: type[Mode]](self, mode: T, name: str, icon="👆"):
         def enter():
             self._active_mode = mode()
             self.notify_all(f"INTERACTION MODE {name}")
 
-        self.runner.app_server.register_command(f"user/interaction/{name}", enter)
+        self.runner.app_server.register_command(
+            f"user/interaction/{name}", enter, icon=icon
+        )
 
 
 class StateKeysUtility:
