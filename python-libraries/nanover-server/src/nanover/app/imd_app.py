@@ -183,6 +183,9 @@ class NanoverImdApplication(AppServer):
         self,
         name: str,
         callback: CommandHandler,
+        *,
+        label: str | None = None,
+        icon: str | None = None,
         default_arguments: dict | None = None,
     ):
         """
@@ -190,11 +193,17 @@ class NanoverImdApplication(AppServer):
 
         :param name: Name of the command to register
         :param callback: Method to be called whenever the given command name is run by a client.
+        :param label: A human friendly name for the command.
+        :param icon: An emoji representing the command.
         :param default_arguments: A description of the arguments of the callback and their default values.
-
-        :raises ValueError: Raised when a command with the same name already exists.
         """
-        self._command_service.register_command(name, callback, default_arguments)
+        self._command_service.register_command(
+            name,
+            callback,
+            label=label,
+            icon=icon,
+            default_arguments=default_arguments,
+        )
 
     def unregister_command(self, name):
         """

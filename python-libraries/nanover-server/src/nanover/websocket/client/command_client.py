@@ -28,9 +28,17 @@ class CommandClient(WebsocketClient, CommandService):
         self,
         name: str,
         callback: CommandHandler,
+        label: str | None = None,
+        icon: str | None = None,
         default_arguments: dict | None = None,
     ) -> None:
-        self._command_handler.register_command(name, callback, default_arguments)
+        self._command_handler.register_command(
+            name,
+            callback,
+            default_arguments=default_arguments,
+            icon=icon,
+            label=label,
+        )
 
     def unregister_command(self, name: str) -> None:
         raise NotImplementedError()
