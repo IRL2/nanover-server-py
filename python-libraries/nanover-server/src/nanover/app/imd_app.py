@@ -30,7 +30,7 @@ class NanoverImdApplication(AppServer):
 
     DEFAULT_SERVER_NAME: str = "NanoVer iMD Server"
     _imd_state: ImdStateWrapper
-    _server_ws: Any | None = None
+    _server_ws: Any = None
 
     @classmethod
     def null_server(cls):
@@ -187,7 +187,7 @@ class NanoverImdApplication(AppServer):
         label: str | None = None,
         icon: str | None = None,
         default_arguments: dict | None = None,
-        owner: Any | None = None,
+        owner: Any = None,
     ):
         """
         Adds a command on this server.
@@ -197,6 +197,7 @@ class NanoverImdApplication(AppServer):
         :param label: A human friendly name for the command.
         :param icon: An emoji representing the command.
         :param default_arguments: A description of the arguments of the callback and their default values.
+        :param owner: Owner to associate this command with.
         """
         self._command_service.register_command(
             name,
@@ -207,11 +208,12 @@ class NanoverImdApplication(AppServer):
             owner=owner,
         )
 
-    def unregister_command(self, name, owner: Any | None = None):
+    def unregister_command(self, name, owner: Any = None):
         """
         Deletes a command from this server.
 
         :param name: Name of the command to delete
+        :param owner: If not None, only unregister command by this owner.
         """
         self._command_service.unregister_command(name, owner=owner)
 

@@ -38,7 +38,7 @@ class CommandMessageHandler:
         label: str | None = None,
         icon: str | None = None,
         default_arguments: dict | None = None,
-        owner: Any | None = None,
+        owner: Any = None,
     ) -> None:
         """Register a local callback that can be invoked by a remote party."""
         self._command_service.register_command(

@@ -265,9 +265,7 @@ class NanoverRecordingReader(MessageZipReader):
 
         return DictionaryChange.from_dict(message["state"])
 
-    def get_message_type_from_entry(
-        self, entry: RecordingIndexEntry, type: str
-    ) -> Any | None:
+    def get_message_type_from_entry(self, entry: RecordingIndexEntry, type: str) -> Any:
         if type not in entry.metadata.get("types", (type,)):
             return None
         message = self.get_message_from_entry(entry)
