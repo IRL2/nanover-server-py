@@ -13,10 +13,10 @@ class CommandRegistration:
     arguments: dict | None = None
     handler: CommandHandler
 
-    def run(self, arguments: dict):
+    def run(self, arguments: dict | None = None):
         args = {}
-        args.update(self.arguments)
-        args.update(arguments)
+        args.update(self.arguments or {})
+        args.update(arguments or {})
         return self.handler(**args)
 
     def to_dict(self):

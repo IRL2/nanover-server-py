@@ -173,7 +173,7 @@ class NanoverJupyterUtilities:
             self.notify_all(f"INTERACTION MODE {name}")
 
         self.runner.app_server.register_command(
-            f"user/interaction/{name}",
+            f"user/mode/{name}",
             enter,
             icon=icon,
             label=f"{name} mode",
