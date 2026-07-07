@@ -8,9 +8,9 @@ CommandHandler = Callable[..., dict | None]
 @dataclass(kw_only=True)
 class CommandRegistration:
     name: str
-    label: str
-    icon: str = "❓"
-    arguments: dict
+    label: str | None = None
+    icon: str | None = None
+    arguments: dict | None = None
     handler: CommandHandler
 
     def run(self, arguments: dict):
@@ -20,9 +20,10 @@ class CommandRegistration:
         return self.handler(**args)
 
     def to_dict(self):
-        return {
+        value = {
             "name": self.name,
             "label": self.label,
             "icon": self.icon,
             "arguments": self.arguments,
         }
+        return {k: v for k, v in value.items() if v is not None}
