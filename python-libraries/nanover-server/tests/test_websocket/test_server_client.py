@@ -107,6 +107,15 @@ def test_websocket_register_command(reusable_setup_two_clients, arguments):
     )
 
 
+def test_cleanup_commands():
+    name = "test/command_to_remove"
+    with make_connected_server_client_setup() as setup:
+        with make_connected_server_client_setup() as setup:
+            setup.client.register_command(name, echo)
+            assert_in_soon(lambda: name, lambda: setup.app.commands)
+        assert_not_in_soon(lambda: name, lambda: setup.app.commands)
+
+
 @given(frame=frames())
 def test_client_frame_reset(reusable_setup, frame):
     reusable_setup.server_publish_frame(frame)

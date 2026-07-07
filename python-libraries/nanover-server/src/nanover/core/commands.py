@@ -209,7 +209,7 @@ class CommandService:
             self._commands.pop(name, None)
 
     def unregister_all(self, owner: Any):
-        owned = {name for name, other in self._owners.items()}
+        owned = {name for name, other in self._owners.items() if other == owner}
         for name in owned:
             self._owners.pop(name)
             self._commands.pop(name)

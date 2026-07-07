@@ -215,6 +215,9 @@ class NanoverImdApplication(AppServer):
         """
         self._command_service.unregister_command(name, owner=owner)
 
+    def unregister_all(self, owner: Any):
+        return self._command_service.unregister_all(owner=owner)
+
     def lock_state(self):
         """
         Context manager for reading the current state while delaying any changes
