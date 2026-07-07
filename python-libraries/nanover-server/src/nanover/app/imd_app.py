@@ -187,6 +187,7 @@ class NanoverImdApplication(AppServer):
         label: str | None = None,
         icon: str | None = None,
         default_arguments: dict | None = None,
+        owner: Any | None = None,
     ):
         """
         Adds a command on this server.
@@ -203,15 +204,16 @@ class NanoverImdApplication(AppServer):
             label=label,
             icon=icon,
             default_arguments=default_arguments,
+            owner=owner,
         )
 
-    def unregister_command(self, name):
+    def unregister_command(self, name, owner: Any | None = None):
         """
         Deletes a command from this server.
 
         :param name: Name of the command to delete
         """
-        self._command_service.unregister_command(name)
+        self._command_service.unregister_command(name, owner=owner)
 
     def lock_state(self):
         """
