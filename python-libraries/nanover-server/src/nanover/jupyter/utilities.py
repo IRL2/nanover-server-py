@@ -97,16 +97,19 @@ class NanoverJupyterUtilities:
             "user/recording/start",
             self.start_recording,
             icon="⏺️",
+            label="start recording",
         )
         self.runner.app_server.register_command(
             "user/recording/stop",
             self.stop_recording,
             icon="⏹️",
+            label="stop recording",
         )
         self.runner.app_server.register_command(
             "user/recording/checkpoint",
             self.mark_checkpoint,
             icon="🚩",
+            label="mark checkpoint",
         )
 
     def use_interaction_modes(self):
@@ -170,7 +173,10 @@ class NanoverJupyterUtilities:
             self.notify_all(f"INTERACTION MODE {name}")
 
         self.runner.app_server.register_command(
-            f"user/interaction/{name}", enter, icon=icon
+            f"user/mode/{name}",
+            enter,
+            icon=icon,
+            label=f"{name} mode",
         )
 
 
