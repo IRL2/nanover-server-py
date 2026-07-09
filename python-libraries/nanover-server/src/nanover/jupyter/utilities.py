@@ -242,7 +242,7 @@ class PanelsUtility(StateKeysUtility):
     def button(
         label="button",
         command="test/hello",
-        arguments=dict[str, Any],
+        arguments={},
     ):
         return dict(
             type="button",
@@ -256,18 +256,22 @@ class PanelsUtility(StateKeysUtility):
         label="slider",
         variable="variable.dummy",
         range=(0.0, 1.0),
+        integer=False,
+        step=None,
     ):
         return dict(
             type="slider",
             label=label,
             variable=variable,
             range=range,
+            integer=integer,
+            step=step,
         )
 
     def update_panel(
         self,
         key: str,
-        *content: Any,
+        *elements: Any,
         position=(0.0, 0.0, 0.0),
         label="Unnamed panel",
         **kwargs,
@@ -277,13 +281,14 @@ class PanelsUtility(StateKeysUtility):
             {
                 "position": position,
                 "label": label,
-                "content": content,
+                "elements": elements,
                 **kwargs,
             },
         )
 
     def remove_panel(self, key: str):
         self.remove_object(f"panel.{key}")
+
 
 class InteractionsUtility(StateKeysUtility):
     def clear_all(self):
