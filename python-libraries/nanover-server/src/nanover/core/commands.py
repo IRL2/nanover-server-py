@@ -31,12 +31,28 @@ class CommandMessageHandler:
         self,
         name: str,
         callback: CommandHandler,
+        *,
+        label: str | None = None,
+        icon: str | None = None,
         default_arguments: dict | None = None,
     ) -> None:
         """Register a local callback that can be invoked by a remote party."""
-        self._command_service.register_command(name, callback, default_arguments)
+        self._command_service.register_command(
+            name,
+            callback,
+            default_arguments=default_arguments,
+            icon=icon,
+            label=label,
+        )
         self._send_message(
-            {"register": {"name": name, "arguments": default_arguments}},
+            {
+                "register": {
+                    "name": name,
+                    "arguments": default_arguments,
+                    "label": label,
+                    "icon": icon,
+                }
+            },
         )
 
     def request_command(
@@ -99,15 +115,18 @@ class CommandMessageHandler:
         future.add_done_callback(handle_future)
 
     def _handle_command_registration(self, register):
-        name, default_arguments = (
-            register.get("name"),
-            register.get("arguments", {}),
-        )
+        name = register.get("name")
 
         def handle_call(**arguments):
             return self.request_command(name, arguments)
 
-        self._command_service.register_command(name, handle_call, default_arguments)
+        self._command_service.register_command(
+            name,
+            handle_call,
+            default_arguments=register.get("arguments", None),
+            label=register.get("label", None),
+            icon=register.get("icon", None),
+        )
 
 
 class CommandService:
@@ -118,16 +137,15 @@ class CommandService:
 
     def __init__(self, add_list_command=True):
         super().__init__()
-        self.name: str = "command"
         self._commands = {}
-        self._id = "service"
 
         def list_commands():
             return {
                 "list": {
-                    name: registration.arguments
-                    for name, registration in self.commands.items()
-                }
+                    registration.name: registration.arguments
+                    for registration in self.commands.values()
+                },
+                "commands": [command.to_dict() for command in self.commands.values()],
             }
 
         if add_list_command:
@@ -147,6 +165,9 @@ class CommandService:
         self,
         name: str,
         callback: CommandHandler,
+        *,
+        label: str | None = None,
+        icon: str | None = None,
         default_arguments: dict | None = None,
     ):
         """
@@ -154,14 +175,16 @@ class CommandService:
 
         :param name: Name of the command to register
         :param callback: Method to be called whenever the given command name is run by a client.
-        :param default_arguments: A dictionary of the arguments of the callback and their default values.
-
-        :raises ValueError: Raised when a command with the same name already exists.
+        :param label: A human friendly name for the command.
+        :param icon: An emoji representing the command.
+        :param default_arguments: A description of the arguments of the callback and their default values.
         """
         if default_arguments is None:
             default_arguments = {}
         self._commands[name] = CommandRegistration(
             name=name,
+            label=label,
+            icon=icon,
             arguments=default_arguments,
             handler=callback,
         )
