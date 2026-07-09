@@ -50,6 +50,7 @@ class NanoverJupyterUtilities:
     def __init__(self, runner: OmniRunner):
         self.runner = runner
         self.objects = SceneObjectsUtility(runner.app_server)
+        self.panels = PanelsUtility(runner.app_server)
         self.interactions = InteractionsUtility(runner.app_server)
 
     @property
@@ -225,6 +226,68 @@ class StateKeysUtility:
         self._buffer = DictionaryChange(removals=self._keys)
         self._keys = set()
         self.check_flush()
+
+
+class PanelsUtility(StateKeysUtility):
+    @staticmethod
+    def header(
+        label="header",
+    ):
+        return dict(
+            type="header",
+            label=label,
+        )
+
+    @staticmethod
+    def button(
+        label="button",
+        command="test/hello",
+        arguments={},
+    ):
+        return dict(
+            type="button",
+            label=label,
+            command=command,
+            arguments=arguments,
+        )
+
+    @staticmethod
+    def slider(
+        label="slider",
+        variable="variable.dummy",
+        range=(0.0, 1.0),
+        integer=False,
+        step=None,
+    ):
+        return dict(
+            type="slider",
+            label=label,
+            variable=variable,
+            range=range,
+            integer=integer,
+            step=step,
+        )
+
+    def update_panel(
+        self,
+        key: str,
+        *elements: Any,
+        position=(0.0, 0.0, 0.0),
+        label="Unnamed panel",
+        **kwargs,
+    ):
+        self.update_object(
+            f"panel.{key}",
+            {
+                "position": position,
+                "label": label,
+                "elements": elements,
+                **kwargs,
+            },
+        )
+
+    def remove_panel(self, key: str):
+        self.remove_object(f"panel.{key}")
 
 
 class InteractionsUtility(StateKeysUtility):
