@@ -3,6 +3,15 @@ from typing import Any
 from ipywidgets import Output
 
 from nanover.app import OmniRunner
+from nanover.app.selection import (
+    KEY_PROPERTY_RENDERER,
+    KEY_PROPERTY_INTERACTION_METHOD,
+    RENDERER_DEFAULT,
+    INTERACTION_METHOD_DEFAULT,
+    KEY_PROPERTY_HIDE,
+    KEY_SELECTED_PARTICLE_IDS,
+    KEY_PROPERTY_VELOCITY_RESET,
+)
 from nanover.core.app_server import StateService
 from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.utilities.change_buffers import DictionaryChange
@@ -52,6 +61,7 @@ class NanoverJupyterUtilities:
         self.objects = SceneObjectsUtility(runner.app_server)
         self.panels = PanelsUtility(runner.app_server)
         self.interactions = InteractionsUtility(runner.app_server)
+        self.selections = SelectionsUtility(runner.app_server)
 
     @property
     def scene_transform(self) -> Transform:
@@ -226,6 +236,39 @@ class StateKeysUtility:
         self._buffer = DictionaryChange(removals=self._keys)
         self._keys = set()
         self.check_flush()
+
+
+class SelectionsUtility(StateKeysUtility):
+    def update_selection(
+        self,
+        key: str,
+        *,
+        particle_ids=[0],
+        renderer=RENDERER_DEFAULT,
+        interaction_method=INTERACTION_METHOD_DEFAULT,
+        velocity_reset=False,
+        hide=False,
+    ):
+        self.update_object(
+            f"selection.{key}",
+            dict(
+                selected={
+                    KEY_SELECTED_PARTICLE_IDS: particle_ids,
+                },
+                properties={
+                    KEY_PROPERTY_RENDERER: renderer,
+                    KEY_PROPERTY_INTERACTION_METHOD: interaction_method,
+                    KEY_PROPERTY_VELOCITY_RESET: velocity_reset,
+                    KEY_PROPERTY_HIDE: hide,
+                },
+            ),
+        )
+
+    def remove_selection(
+        self,
+        key: str,
+    ):
+        self.remove_object(f"selection.{key}")
 
 
 class PanelsUtility(StateKeysUtility):
