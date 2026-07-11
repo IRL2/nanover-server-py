@@ -243,7 +243,7 @@ class SelectionsUtility(StateKeysUtility):
         self,
         key: str,
         *,
-        particle_ids=[0],
+        particle_ids: list[int] = [],
         renderer=RENDERER_DEFAULT,
         interaction_method=INTERACTION_METHOD_DEFAULT,
         velocity_reset=False,
@@ -252,6 +252,7 @@ class SelectionsUtility(StateKeysUtility):
         self.update_object(
             f"selection.{key}",
             dict(
+                id=f"selection.{key}",
                 selected={
                     KEY_SELECTED_PARTICLE_IDS: particle_ids,
                 },
