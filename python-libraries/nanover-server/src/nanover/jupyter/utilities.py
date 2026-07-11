@@ -1,4 +1,6 @@
 import logging
+from functools import partial
+from itertools import count
 from typing import Any
 from ipywidgets import Output
 
@@ -434,3 +436,7 @@ class SceneObjectsUtility(StateKeysUtility):
 
     def remove_label(self, key: str):
         self.remove_object(f"object.label.{key}")
+
+
+def make_id_generator(prefix=""):
+    return partial(next, (f"{prefix}{i}" for i in count()))
