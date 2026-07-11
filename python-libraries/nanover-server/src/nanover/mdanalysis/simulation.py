@@ -54,6 +54,19 @@ class UniverseSimulation(Simulation):
         if len(self.universe.trajectory) > 1:
             self._seek_to_time(self.simulation_time + dt * self.playback_factor)
 
+    def seek_to_frame_index(self, index: int) -> None:
+        assert self.app_server is not None
+
+        next_frame = index
+        frame_length = self.universe.trajectory.dt
+
+        # align time to start of target frame
+        self.simulation_time = next_frame * frame_length
+
+        # update universe frame and publish
+        _ = self.universe.trajectory[next_frame]
+        self.app_server.frame_publisher.send_frame(self.make_regular_frame())
+
     def _seek_to_next_frame(self) -> None:
         """Advance simulation time to the time of the next frame and publish it."""
         assert self.app_server is not None
@@ -62,14 +75,10 @@ class UniverseSimulation(Simulation):
         frame_length = self.universe.trajectory.dt
         duration = frame_count * frame_length
 
-        # determine previous frame from previous time then take the subsequent frame as next frame and time
+        # determine previous frame from previous time then seek to the subsequent frame
         prev_frame = math.floor(frame_count * self.simulation_time / duration)
         next_frame = (prev_frame + 1) % frame_count
-        self.simulation_time = next_frame * frame_length
-
-        # update universe frame and publish
-        _ = self.universe.trajectory[next_frame]
-        self.app_server.frame_publisher.send_frame(self.make_regular_frame())
+        self.seek_to_frame_index(next_frame)
 
     def _seek_to_time(self, time: float) -> None:
         """Advance simulation time to a specific time and publish the corresponding frame."""
