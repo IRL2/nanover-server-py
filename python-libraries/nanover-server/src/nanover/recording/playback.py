@@ -24,7 +24,7 @@ class PlaybackSimulation(Simulation):
         cls,
         *,
         name: str | None = None,
-        path: PathLike[str],
+        path: str | PathLike[str],
     ):
         path = Path(path)
         name = name or path.stem.strip(".nanover")
@@ -35,7 +35,7 @@ class PlaybackSimulation(Simulation):
         self,
         *,
         name: str,
-        path: PathLike[str],
+        path: str | PathLike[str],
     ):
         self.name = name
         self.path = path

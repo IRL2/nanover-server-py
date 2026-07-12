@@ -51,15 +51,16 @@ class OpenMMSimulation(NanoverSimulation):
         return sim
 
     @classmethod
-    def from_xml_path(cls, path: PathLike[str], *, name: str | None = None):
+    def from_xml_path(cls, path: str | PathLike[str], *, name: str | None = None):
         """
         Construct this from an existing NanoVer OpenMM XML file at a given path.
 
         :param path: Path of the NanoVer OpenMM XML file
         :param name: An optional name for the simulation instead of filename
         """
+        path = Path(path)
         if name is None:
-            name = Path(path).stem
+            name = path.stem
         sim = cls(name)
         sim.xml_path = path
         return sim
