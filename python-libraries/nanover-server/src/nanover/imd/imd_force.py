@@ -77,6 +77,8 @@ def apply_single_interaction_force(
     :return: energy in kJ/mol.
     """
 
+    periodic_box_lengths = None
+
     particle_count = len(interaction.particles)
 
     if particle_count > 1:
