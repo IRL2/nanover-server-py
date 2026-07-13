@@ -34,7 +34,7 @@ def closest_point_on_polyline(points: list, target):
 
     return ClosestPointResult(
         point=points[index],
-        distance=np.sqrt(ptpcdot[index]),
-        index=index,
+        distance=float(np.sqrt(ptpcdot[index])),
+        index=int(index),
         t=t,
     )
