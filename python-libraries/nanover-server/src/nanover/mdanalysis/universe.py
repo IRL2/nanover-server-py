@@ -83,7 +83,7 @@ FIRST_FRAME_REQUIRED = {
 }
 
 
-def universe_from_recording(path: PathLike[str], *, convert_units=True):
+def universe_from_recording(path: str | PathLike[str], *, convert_units=True):
     """
     Read and convert a NanoVer recording into an mdanalysis Universe, ignore all frames after a frame_index
     reset.
@@ -96,7 +96,7 @@ def universe_from_recording(path: PathLike[str], *, convert_units=True):
     )
 
 
-def universes_from_recording(path: PathLike[str], *, convert_units=True):
+def universes_from_recording(path: str | PathLike[str], *, convert_units=True):
     """
     Decompose a NanoVer trajectory into an mdanalysis Universe for each session of simulation (determined
     by frame_index resets).

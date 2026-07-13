@@ -37,9 +37,6 @@ class CommandMessageHandler:
         default_arguments: dict | None = None,
     ) -> None:
         """Register a local callback that can be invoked by a remote party."""
-        label = label or name
-        icon = icon or "❓"
-
         self._command_service.register_command(
             name,
             callback,
@@ -182,8 +179,6 @@ class CommandService:
         :param icon: An emoji representing the command.
         :param default_arguments: A description of the arguments of the callback and their default values.
         """
-        label = label or name
-        icon = icon or "❓"
         if default_arguments is None:
             default_arguments = {}
         self._commands[name] = CommandRegistration(
