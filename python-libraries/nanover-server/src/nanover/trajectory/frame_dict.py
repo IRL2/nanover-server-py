@@ -7,6 +7,7 @@ from nanover.utilities.packing import (
     pack_uint8,
     pack_uint32,
     pack_bond,
+    pack_color,
     force_int,
 )
 from . import keys
@@ -31,6 +32,7 @@ FRAME_PACKERS: dict[str, PackingPair] = {
     keys.PARTICLE_FORCES: pack_vec3,
     keys.PARTICLE_FORCES_SYSTEM: pack_vec3,
     keys.PARTICLE_ELEMENTS: pack_uint8,
+    keys.PARTICLE_COLORS: pack_color,
     keys.PARTICLE_RESIDUES: pack_uint32,
     keys.BOND_PAIRS: pack_bond,
     keys.BOND_ORDERS: pack_uint8,

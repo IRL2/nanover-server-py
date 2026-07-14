@@ -11,6 +11,7 @@ from . import keys
 EnumArray = npt.NDArray[np.uint8]
 IndexArray = npt.NDArray[np.uint32]
 FloatArray = npt.NDArray[np.float32]
+ColorArray = npt.NDArray[np.uint8]
 StringArray = list[str]
 
 
@@ -72,6 +73,7 @@ class FrameData:
     particle_forces: FloatArray = _shortcut(keys.PARTICLE_FORCES)
     particle_forces_system: FloatArray = _shortcut(keys.PARTICLE_FORCES_SYSTEM)
     particle_elements: EnumArray = _shortcut(keys.PARTICLE_ELEMENTS)
+    particle_colors: ColorArray = _shortcut(keys.PARTICLE_COLORS)
     particle_names: StringArray = _shortcut(keys.PARTICLE_NAMES)
     particle_residues: IndexArray = _shortcut(keys.PARTICLE_RESIDUES)
 
