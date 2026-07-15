@@ -72,3 +72,4 @@ pack_uint8 = make_bytes_packer(np.uint8)
 
 pack_vec3 = make_bytes_packer(np.float32, shape=(-1, 3))
 pack_bond = make_bytes_packer(np.uint32, shape=(-1, 2))
+pack_color = make_bytes_packer(np.uint8, shape=(-1, 4))
