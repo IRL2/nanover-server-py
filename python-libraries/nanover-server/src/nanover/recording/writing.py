@@ -18,7 +18,7 @@ from nanover.utilities.packing import fallback_encoder
 
 class NanoverRecordingWriter:
     @classmethod
-    def from_path(cls, path: PathLike[str] | str):
+    def from_path(cls, path: str | PathLike[str]):
         return cls(path)
 
     def __init__(self, outfile: BinaryIO | PathLike[str] | str):

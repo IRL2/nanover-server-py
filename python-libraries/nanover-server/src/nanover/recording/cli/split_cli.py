@@ -85,7 +85,7 @@ def get_value(event: RecordingEvent, key: str):
 
 
 def split_recording(
-    path: PathLike[str],
+    path: str | PathLike[str],
     *,
     split_predicate: Callable[[RecordingEvent], bool] = split_on_frame_reset,
     name_template=name_basic,

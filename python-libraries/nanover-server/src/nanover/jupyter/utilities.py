@@ -1,8 +1,19 @@
 import logging
+from functools import partial
+from itertools import count
 from typing import Any
 from ipywidgets import Output
 
 from nanover.app import OmniRunner
+from nanover.app.selection import (
+    KEY_PROPERTY_RENDERER,
+    KEY_PROPERTY_INTERACTION_METHOD,
+    RENDERER_DEFAULT,
+    INTERACTION_METHOD_DEFAULT,
+    KEY_PROPERTY_HIDE,
+    KEY_SELECTED_PARTICLE_IDS,
+    KEY_PROPERTY_VELOCITY_RESET,
+)
 from nanover.core.app_server import StateService
 from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.utilities.change_buffers import DictionaryChange
@@ -50,7 +61,9 @@ class NanoverJupyterUtilities:
     def __init__(self, runner: OmniRunner):
         self.runner = runner
         self.objects = SceneObjectsUtility(runner.app_server)
+        self.panels = PanelsUtility(runner.app_server)
         self.interactions = InteractionsUtility(runner.app_server)
+        self.selections = SelectionsUtility(runner.app_server)
 
     @property
     def scene_transform(self) -> Transform:
@@ -227,6 +240,102 @@ class StateKeysUtility:
         self.check_flush()
 
 
+class SelectionsUtility(StateKeysUtility):
+    def update_selection(
+        self,
+        key: str,
+        *,
+        particle_ids: list[int] = [],
+        renderer=RENDERER_DEFAULT,
+        interaction_method=INTERACTION_METHOD_DEFAULT,
+        velocity_reset=False,
+        hide=False,
+    ):
+        self.update_object(
+            f"selection.{key}",
+            dict(
+                id=f"selection.{key}",
+                selected={
+                    KEY_SELECTED_PARTICLE_IDS: particle_ids,
+                },
+                properties={
+                    KEY_PROPERTY_RENDERER: renderer,
+                    KEY_PROPERTY_INTERACTION_METHOD: interaction_method,
+                    KEY_PROPERTY_VELOCITY_RESET: velocity_reset,
+                    KEY_PROPERTY_HIDE: hide,
+                },
+            ),
+        )
+
+    def remove_selection(
+        self,
+        key: str,
+    ):
+        self.remove_object(f"selection.{key}")
+
+
+class PanelsUtility(StateKeysUtility):
+    @staticmethod
+    def header(
+        label="header",
+    ):
+        return dict(
+            type="header",
+            label=label,
+        )
+
+    @staticmethod
+    def button(
+        label="button",
+        command="test/hello",
+        arguments={},
+    ):
+        return dict(
+            type="button",
+            label=label,
+            command=command,
+            arguments=arguments,
+        )
+
+    @staticmethod
+    def slider(
+        label="slider",
+        variable="variable.dummy",
+        range=(0.0, 1.0),
+        integer=False,
+        step=None,
+    ):
+        return dict(
+            type="slider",
+            label=label,
+            variable=variable,
+            range=range,
+            integer=integer,
+            step=step,
+        )
+
+    def update_panel(
+        self,
+        key: str,
+        *elements: Any,
+        position=(0.0, 0.0, 0.0),
+        label="Unnamed panel",
+        **kwargs,
+    ):
+        self.update_object(
+            f"panel.{key}",
+            {
+                "position": position,
+                "label": label,
+                "elements": elements,
+                **kwargs,
+            },
+        )
+
+    def remove_panel(self, key: str):
+        self.remove_object(f"panel.{key}")
+
+
 class InteractionsUtility(StateKeysUtility):
     def clear_all(self):
         keys = {
@@ -327,3 +436,7 @@ class SceneObjectsUtility(StateKeysUtility):
 
     def remove_label(self, key: str):
         self.remove_object(f"object.label.{key}")
+
+
+def make_id_generator(prefix=""):
+    return partial(next, (f"{prefix}{i}" for i in count()))

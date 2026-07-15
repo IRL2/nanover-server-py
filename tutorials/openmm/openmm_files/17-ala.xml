@@ -1,183 +1,216 @@
 <OpenMMSimulation>
-	<pdb>REMARK   1 CREATED WITH OPENMM 7.3.1, 2019-11-26
-CRYST1  100.000  100.000  100.000  90.00  90.00  90.00 P 1           1 
-ATOM      1  N   ALA A   1      -2.099   0.051  -1.094  1.00  0.00           N  
-ATOM      2  CA  ALA A   1      -0.717   0.050  -1.534  1.00  0.00           C  
-ATOM      3  C   ALA A   1       0.028   1.196  -0.727  1.00  0.00           C  
-ATOM      4  O   ALA A   1      -0.593   2.009  -0.062  1.00  0.00           O  
-ATOM      5  CB  ALA A   1      -0.601   0.189  -3.075  1.00  0.00           C  
-ATOM      6  H1  ALA A   1      -2.408  -0.893  -1.164  1.00  0.00           H  
-ATOM      7  H2  ALA A   1      -2.155   0.265  -0.137  1.00  0.00           H  
-ATOM      8  H3  ALA A   1      -2.713   0.654  -1.637  1.00  0.00           H  
-ATOM      9  HA  ALA A   1      -0.199  -0.904  -1.183  1.00  0.00           H  
-ATOM     10  HB1 ALA A   1      -1.345  -0.515  -3.493  1.00  0.00           H  
-ATOM     11  HB2 ALA A   1      -1.071   1.153  -3.306  1.00  0.00           H  
-ATOM     12  HB3 ALA A   1       0.382   0.113  -3.552  1.00  0.00           H  
-ATOM     13  N   ALA A   2       1.345   1.263  -0.748  1.00  0.00           N  
-ATOM     14  CA  ALA A   2       2.151   2.271  -0.059  1.00  0.00           C  
-ATOM     15  C   ALA A   2       3.301   2.672  -0.993  1.00  0.00           C  
-ATOM     16  O   ALA A   2       3.433   2.146  -2.120  1.00  0.00           O  
-ATOM     17  CB  ALA A   2       2.698   1.625   1.211  1.00  0.00           C  
-ATOM     18  H   ALA A   2       1.850   0.533  -1.272  1.00  0.00           H  
-ATOM     19  HA  ALA A   2       1.516   3.138   0.158  1.00  0.00           H  
-ATOM     20  HB1 ALA A   2       1.946   1.380   1.912  1.00  0.00           H  
-ATOM     21  HB2 ALA A   2       3.296   0.776   1.046  1.00  0.00           H  
-ATOM     22  HB3 ALA A   2       3.259   2.375   1.777  1.00  0.00           H  
-ATOM     23  N   ALA A   3       4.052   3.639  -0.616  1.00  0.00           N  
-ATOM     24  CA  ALA A   3       5.117   4.179  -1.507  1.00  0.00           C  
-ATOM     25  C   ALA A   3       6.523   3.656  -1.103  1.00  0.00           C  
-ATOM     26  O   ALA A   3       6.733   2.989  -0.120  1.00  0.00           O  
-ATOM     27  CB  ALA A   3       4.995   5.681  -1.430  1.00  0.00           C  
-ATOM     28  H   ALA A   3       4.034   3.988   0.311  1.00  0.00           H  
-ATOM     29  HA  ALA A   3       5.022   3.909  -2.534  1.00  0.00           H  
-ATOM     30  HB1 ALA A   3       4.132   6.084  -1.931  1.00  0.00           H  
-ATOM     31  HB2 ALA A   3       4.894   5.952  -0.386  1.00  0.00           H  
-ATOM     32  HB3 ALA A   3       5.854   6.187  -1.836  1.00  0.00           H  
-ATOM     33  N   ALA A   4       7.540   3.955  -1.888  1.00  0.00           N  
-ATOM     34  CA  ALA A   4       8.917   3.528  -1.669  1.00  0.00           C  
-ATOM     35  C   ALA A   4       9.934   4.583  -2.181  1.00  0.00           C  
-ATOM     36  O   ALA A   4       9.617   5.353  -3.148  1.00  0.00           O  
-ATOM     37  CB  ALA A   4       9.067   2.182  -2.483  1.00  0.00           C  
-ATOM     38  H   ALA A   4       7.385   4.675  -2.548  1.00  0.00           H  
-ATOM     39  HA  ALA A   4       9.136   3.312  -0.573  1.00  0.00           H  
-ATOM     40  HB1 ALA A   4       8.418   1.406  -2.070  1.00  0.00           H  
-ATOM     41  HB2 ALA A   4       8.803   2.380  -3.556  1.00  0.00           H  
-ATOM     42  HB3 ALA A   4      10.079   1.919  -2.491  1.00  0.00           H  
-ATOM     43  N   ALA A   5      11.061   4.608  -1.533  1.00  0.00           N  
-ATOM     44  CA  ALA A   5      12.083   5.587  -1.782  1.00  0.00           C  
-ATOM     45  C   ALA A   5      13.460   5.053  -1.369  1.00  0.00           C  
-ATOM     46  O   ALA A   5      13.490   4.174  -0.520  1.00  0.00           O  
-ATOM     47  CB  ALA A   5      11.719   6.794  -0.913  1.00  0.00           C  
-ATOM     48  H   ALA A   5      11.173   3.902  -0.771  1.00  0.00           H  
-ATOM     49  HA  ALA A   5      12.177   5.915  -2.826  1.00  0.00           H  
-ATOM     50  HB1 ALA A   5      10.656   6.904  -0.955  1.00  0.00           H  
-ATOM     51  HB2 ALA A   5      11.887   6.682   0.126  1.00  0.00           H  
-ATOM     52  HB3 ALA A   5      12.111   7.696  -1.300  1.00  0.00           H  
-ATOM     53  N   ALA A   6      14.527   5.477  -2.059  1.00  0.00           N  
-ATOM     54  CA  ALA A   6      15.972   5.345  -1.773  1.00  0.00           C  
-ATOM     55  C   ALA A   6      16.645   6.755  -1.731  1.00  0.00           C  
-ATOM     56  O   ALA A   6      16.223   7.621  -2.507  1.00  0.00           O  
-ATOM     57  CB  ALA A   6      16.618   4.365  -2.807  1.00  0.00           C  
-ATOM     58  H   ALA A   6      14.314   6.143  -2.822  1.00  0.00           H  
-ATOM     59  HA  ALA A   6      16.138   4.919  -0.767  1.00  0.00           H  
-ATOM     60  HB1 ALA A   6      15.965   3.448  -2.722  1.00  0.00           H  
-ATOM     61  HB2 ALA A   6      16.629   4.915  -3.727  1.00  0.00           H  
-ATOM     62  HB3 ALA A   6      17.580   4.077  -2.403  1.00  0.00           H  
-ATOM     63  N   ALA A   7      17.565   6.970  -0.846  1.00  0.00           N  
-ATOM     64  CA  ALA A   7      18.225   8.290  -0.647  1.00  0.00           C  
-ATOM     65  C   ALA A   7      19.762   8.149  -0.342  1.00  0.00           C  
-ATOM     66  O   ALA A   7      20.238   7.183   0.262  1.00  0.00           O  
-ATOM     67  CB  ALA A   7      17.585   9.141   0.490  1.00  0.00           C  
-ATOM     68  H   ALA A   7      17.780   6.202  -0.182  1.00  0.00           H  
-ATOM     69  HA  ALA A   7      18.136   8.867  -1.584  1.00  0.00           H  
-ATOM     70  HB1 ALA A   7      16.539   9.296   0.338  1.00  0.00           H  
-ATOM     71  HB2 ALA A   7      17.603   8.547   1.405  1.00  0.00           H  
-ATOM     72  HB3 ALA A   7      18.090  10.121   0.448  1.00  0.00           H  
-ATOM     73  N   ALA A   8      20.539   9.122  -0.799  1.00  0.00           N  
-ATOM     74  CA  ALA A   8      22.043   9.125  -0.776  1.00  0.00           C  
-ATOM     75  C   ALA A   8      22.583  10.604  -0.883  1.00  0.00           C  
-ATOM     76  O   ALA A   8      21.842  11.415  -1.449  1.00  0.00           O  
-ATOM     77  CB  ALA A   8      22.537   8.243  -1.951  1.00  0.00           C  
-ATOM     78  H   ALA A   8      20.153   9.926  -1.313  1.00  0.00           H  
-ATOM     79  HA  ALA A   8      22.277   8.694   0.194  1.00  0.00           H  
-ATOM     80  HB1 ALA A   8      22.290   7.232  -1.702  1.00  0.00           H  
-ATOM     81  HB2 ALA A   8      21.950   8.555  -2.869  1.00  0.00           H  
-ATOM     82  HB3 ALA A   8      23.577   8.396  -2.090  1.00  0.00           H  
-ATOM     83  N   ALA A   9      23.731  10.853  -0.271  1.00  0.00           N  
-ATOM     84  CA  ALA A   9      24.406  12.087  -0.259  1.00  0.00           C  
-ATOM     85  C   ALA A   9      25.942  11.957  -0.057  1.00  0.00           C  
-ATOM     86  O   ALA A   9      26.356  11.095   0.717  1.00  0.00           O  
-ATOM     87  CB  ALA A   9      23.797  13.063   0.841  1.00  0.00           C  
-ATOM     88  H   ALA A   9      24.206  10.047   0.071  1.00  0.00           H  
-ATOM     89  HA  ALA A   9      24.300  12.613  -1.283  1.00  0.00           H  
-ATOM     90  HB1 ALA A   9      22.751  13.109   0.940  1.00  0.00           H  
-ATOM     91  HB2 ALA A   9      24.222  12.666   1.827  1.00  0.00           H  
-ATOM     92  HB3 ALA A   9      24.174  14.021   0.549  1.00  0.00           H  
-ATOM     93  N   ALA A  10      26.739  12.848  -0.684  1.00  0.00           N  
-ATOM     94  CA  ALA A  10      28.241  12.878  -0.495  1.00  0.00           C  
-ATOM     95  C   ALA A  10      28.816  14.247  -0.881  1.00  0.00           C  
-ATOM     96  O   ALA A  10      28.242  14.910  -1.740  1.00  0.00           O  
-ATOM     97  CB  ALA A  10      28.798  11.734  -1.382  1.00  0.00           C  
-ATOM     98  H   ALA A  10      26.366  13.573  -1.298  1.00  0.00           H  
-ATOM     99  HA  ALA A  10      28.489  12.714   0.555  1.00  0.00           H  
-ATOM    100  HB1 ALA A  10      28.413  10.750  -1.159  1.00  0.00           H  
-ATOM    101  HB2 ALA A  10      28.688  11.985  -2.387  1.00  0.00           H  
-ATOM    102  HB3 ALA A  10      29.795  11.660  -0.981  1.00  0.00           H  
-ATOM    103  N   ALA A  11      29.927  14.631  -0.360  1.00  0.00           N  
-ATOM    104  CA  ALA A  11      30.664  15.917  -0.605  1.00  0.00           C  
-ATOM    105  C   ALA A  11      32.182  15.746  -0.167  1.00  0.00           C  
-ATOM    106  O   ALA A  11      32.455  14.801   0.622  1.00  0.00           O  
-ATOM    107  CB  ALA A  11      30.010  17.074   0.024  1.00  0.00           C  
-ATOM    108  H   ALA A  11      30.405  13.967   0.266  1.00  0.00           H  
-ATOM    109  HA  ALA A  11      30.587  16.044  -1.710  1.00  0.00           H  
-ATOM    110  HB1 ALA A  11      28.963  17.230  -0.315  1.00  0.00           H  
-ATOM    111  HB2 ALA A  11      29.886  17.027   1.147  1.00  0.00           H  
-ATOM    112  HB3 ALA A  11      30.630  17.933  -0.140  1.00  0.00           H  
-ATOM    113  N   ALA A  12      33.096  16.381  -0.858  1.00  0.00           N  
-ATOM    114  CA  ALA A  12      34.520  16.454  -0.601  1.00  0.00           C  
-ATOM    115  C   ALA A  12      35.039  17.769  -1.188  1.00  0.00           C  
-ATOM    116  O   ALA A  12      34.527  18.211  -2.214  1.00  0.00           O  
-ATOM    117  CB  ALA A  12      35.205  15.273  -1.273  1.00  0.00           C  
-ATOM    118  H   ALA A  12      32.796  16.860  -1.682  1.00  0.00           H  
-ATOM    119  HA  ALA A  12      34.668  16.423   0.491  1.00  0.00           H  
-ATOM    120  HB1 ALA A  12      34.678  14.300  -1.133  1.00  0.00           H  
-ATOM    121  HB2 ALA A  12      35.123  15.461  -2.326  1.00  0.00           H  
-ATOM    122  HB3 ALA A  12      36.222  15.154  -0.974  1.00  0.00           H  
-ATOM    123  N   ALA A  13      36.086  18.325  -0.622  1.00  0.00           N  
-ATOM    124  CA  ALA A  13      36.754  19.573  -1.098  1.00  0.00           C  
-ATOM    125  C   ALA A  13      38.258  19.418  -1.212  1.00  0.00           C  
-ATOM    126  O   ALA A  13      38.790  18.559  -0.518  1.00  0.00           O  
-ATOM    127  CB  ALA A  13      36.471  20.769  -0.086  1.00  0.00           C  
-ATOM    128  H   ALA A  13      36.516  17.828   0.200  1.00  0.00           H  
-ATOM    129  HA  ALA A  13      36.346  19.920  -2.065  1.00  0.00           H  
-ATOM    130  HB1 ALA A  13      35.380  20.933   0.011  1.00  0.00           H  
-ATOM    131  HB2 ALA A  13      36.952  20.587   0.885  1.00  0.00           H  
-ATOM    132  HB3 ALA A  13      37.030  21.631  -0.484  1.00  0.00           H  
-ATOM    133  N   ALA A  14      38.918  20.160  -2.061  1.00  0.00           N  
-ATOM    134  CA  ALA A  14      40.463  20.264  -2.203  1.00  0.00           C  
-ATOM    135  C   ALA A  14      41.051  21.602  -1.738  1.00  0.00           C  
-ATOM    136  O   ALA A  14      40.250  22.528  -1.540  1.00  0.00           O  
-ATOM    137  CB  ALA A  14      40.736  19.938  -3.695  1.00  0.00           C  
-ATOM    138  H   ALA A  14      38.412  20.859  -2.518  1.00  0.00           H  
-ATOM    139  HA  ALA A  14      40.886  19.496  -1.583  1.00  0.00           H  
-ATOM    140  HB1 ALA A  14      40.242  19.008  -3.961  1.00  0.00           H  
-ATOM    141  HB2 ALA A  14      40.125  20.651  -4.226  1.00  0.00           H  
-ATOM    142  HB3 ALA A  14      41.766  19.977  -4.104  1.00  0.00           H  
-ATOM    143  N   ALA A  15      42.409  21.698  -1.660  1.00  0.00           N  
-ATOM    144  CA  ALA A  15      43.209  22.893  -1.532  1.00  0.00           C  
-ATOM    145  C   ALA A  15      44.174  23.118  -2.754  1.00  0.00           C  
-ATOM    146  O   ALA A  15      44.573  22.149  -3.401  1.00  0.00           O  
-ATOM    147  CB  ALA A  15      43.986  22.852  -0.225  1.00  0.00           C  
-ATOM    148  H   ALA A  15      42.924  20.813  -1.999  1.00  0.00           H  
-ATOM    149  HA  ALA A  15      42.429  23.670  -1.552  1.00  0.00           H  
-ATOM    150  HB1 ALA A  15      43.382  22.346   0.605  1.00  0.00           H  
-ATOM    151  HB2 ALA A  15      45.005  22.544  -0.335  1.00  0.00           H  
-ATOM    152  HB3 ALA A  15      43.976  23.871   0.099  1.00  0.00           H  
-ATOM    153  N   ALA A  16      44.556  24.347  -2.970  1.00  0.00           N  
-ATOM    154  CA  ALA A  16      45.659  24.777  -3.752  1.00  0.00           C  
-ATOM    155  C   ALA A  16      46.757  25.317  -2.753  1.00  0.00           C  
-ATOM    156  O   ALA A  16      46.414  25.813  -1.686  1.00  0.00           O  
-ATOM    157  CB  ALA A  16      45.124  25.719  -4.847  1.00  0.00           C  
-ATOM    158  H   ALA A  16      44.406  24.993  -2.155  1.00  0.00           H  
-ATOM    159  HA  ALA A  16      46.046  23.896  -4.272  1.00  0.00           H  
-ATOM    160  HB1 ALA A  16      44.300  25.262  -5.483  1.00  0.00           H  
-ATOM    161  HB2 ALA A  16      44.725  26.579  -4.411  1.00  0.00           H  
-ATOM    162  HB3 ALA A  16      46.016  26.040  -5.465  1.00  0.00           H  
-ATOM    163  N   ALA A  17      48.059  25.209  -3.212  1.00  0.00           N  
-ATOM    164  CA  ALA A  17      49.206  25.945  -2.613  1.00  0.00           C  
-ATOM    165  C   ALA A  17      50.192  26.248  -3.776  1.00  0.00           C  
-ATOM    166  O   ALA A  17      50.166  25.410  -4.725  1.00  0.00           O  
-ATOM    167  CB  ALA A  17      49.834  25.142  -1.469  1.00  0.00           C  
-ATOM    168  O2  ALA A  17      50.899  27.241  -3.669  1.00  0.00           O
-ATOM    169  H   ALA A  17      48.282  24.866  -4.141  1.00  0.00           H  
-ATOM    170  HA  ALA A  17      48.860  26.860  -2.131  1.00  0.00           H  
-ATOM    171  HB1 ALA A  17      49.034  24.920  -0.755  1.00  0.00           H  
-ATOM    172  HB2 ALA A  17      50.222  24.242  -1.819  1.00  0.00           H  
-ATOM    173  HB3 ALA A  17      50.581  25.741  -0.924  1.00  0.00           H  
-TER     174      ALA A  17
-END
-</pdb>
-	<System openmmVersion="7.3.1" type="System" version="1">
+	<pdbx>data_cell
+# Created with OpenMM 8.4, 2026-07-12
+#
+_cell.length_a       100.0000
+_cell.length_b       100.0000
+_cell.length_c       100.0000
+_cell.angle_alpha     90.0000
+_cell.angle_beta      90.0000
+_cell.angle_gamma     90.0000
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+_atom_site.Cartn_x_esd
+_atom_site.Cartn_y_esd
+_atom_site.Cartn_z_esd
+_atom_site.occupancy_esd
+_atom_site.B_iso_or_equiv_esd
+_atom_site.pdbx_formal_charge
+_atom_site.auth_seq_id
+_atom_site.auth_comp_id
+_atom_site.auth_asym_id
+_atom_site.auth_atom_id
+_atom_site.pdbx_PDB_model_num
+ATOM      1 N   N    . ALA  A ?     1 .    23.4916    37.5781    50.3418  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A    N     1
+ATOM      2 C   CA   . ALA  A ?     1 .    24.8759    37.7585    49.8436  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A   CA     1
+ATOM      3 C   C    . ALA  A ?     1 .    25.5661    38.8405    50.7468  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A    C     1
+ATOM      4 O   O    . ALA  A ?     1 .    24.8596    39.6891    51.3111  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A    O     1
+ATOM      5 C   CB   . ALA  A ?     1 .    24.8891    38.1082    48.3568  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A   CB     1
+ATOM      6 H   H    . ALA  A ?     1 .    23.0882    36.6952    50.0820  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A    H     1
+ATOM      7 H   H2   . ALA  A ?     1 .    23.4579    37.7428    51.3476  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A   H2     1
+ATOM      8 H   H3   . ALA  A ?     1 .    22.9594    38.3312    49.9250  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A   H3     1
+ATOM      9 H   HA   . ALA  A ?     1 .    25.4260    36.7952    49.9162  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A   HA     1
+ATOM     10 H   HB1  . ALA  A ?     1 .    24.5898    37.2846    47.6896  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A  HB1     1
+ATOM     11 H   HB2  . ALA  A ?     1 .    24.2758    38.9830    48.1156  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A  HB2     1
+ATOM     12 H   HB3  . ALA  A ?     1 .    25.9320    38.3962    48.1351  0.0  0.0  ?  ?  ?  ?  ?  .      1  ALA A  HB3     1
+ATOM     13 N   N    . ALA  A ?     2 .    26.8895    38.8538    50.7855  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A    N     1
+ATOM     14 C   CA   . ALA  A ?     2 .    27.7459    39.9469    51.3148  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A   CA     1
+ATOM     15 C   C    . ALA  A ?     2 .    28.6889    40.4434    50.2608  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A    C     1
+ATOM     16 O   O    . ALA  A ?     2 .    28.7404    39.8921    49.1489  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A    O     1
+ATOM     17 C   CB   . ALA  A ?     2 .    28.4064    39.3929    52.5894  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A   CB     1
+ATOM     18 H   H    . ALA  A ?     2 .    27.4538    38.1988    50.2797  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A    H     1
+ATOM     19 H   HA   . ALA  A ?     2 .    27.0398    40.7760    51.5956  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A   HA     1
+ATOM     20 H   HB1  . ALA  A ?     2 .    27.6186    39.2133    53.3319  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A  HB1     1
+ATOM     21 H   HB2  . ALA  A ?     2 .    28.8267    38.4336    52.2834  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A  HB2     1
+ATOM     22 H   HB3  . ALA  A ?     2 .    29.0874    40.0763    53.0349  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A  HB3     1
+ATOM     23 N   N    . ALA  A ?     3 .    29.5010    41.4705    50.6130  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A    N     1
+ATOM     24 C   CA   . ALA  A ?     3 .    30.4816    42.0872    49.7240  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A   CA     1
+ATOM     25 C   C    . ALA  A ?     3 .    31.8372    41.6603    50.2154  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A    C     1
+ATOM     26 O   O    . ALA  A ?     3 .    32.0421    41.3286    51.3893  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A    O     1
+ATOM     27 C   CB   . ALA  A ?     3 .    30.3057    43.6198    49.8586  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A   CB     1
+ATOM     28 H   H    . ALA  A ?     3 .    29.4832    41.8588    51.5360  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A    H     1
+ATOM     29 H   HA   . ALA  A ?     3 .    30.2272    41.8013    48.7109  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A   HA     1
+ATOM     30 H   HB1  . ALA  A ?     3 .    29.2589    43.9246    49.9615  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A  HB1     1
+ATOM     31 H   HB2  . ALA  A ?     3 .    30.7702    43.9235    50.7880  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A  HB2     1
+ATOM     32 H   HB3  . ALA  A ?     3 .    30.7352    44.1041    48.9978  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A  HB3     1
+ATOM     33 N   N    . ALA  A ?     4 .    32.8355    41.7222    49.3579  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A    N     1
+ATOM     34 C   CA   . ALA  A ?     4 .    34.2329    41.2743    49.6799  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A   CA     1
+ATOM     35 C   C    . ALA  A ?     4 .    35.2742    42.1440    48.9865  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A    C     1
+ATOM     36 O   O    . ALA  A ?     4 .    35.0641    42.6152    47.8350  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A    O     1
+ATOM     37 C   CB   . ALA  A ?     4 .    34.4153    39.7890    49.3125  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A   CB     1
+ATOM     38 H   H    . ALA  A ?     4 .    32.6885    42.1792    48.4494  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A    H     1
+ATOM     39 H   HA   . ALA  A ?     4 .    34.3798    41.2780    50.7623  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A   HA     1
+ATOM     40 H   HB1  . ALA  A ?     4 .    33.5746    39.2650    49.7459  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A  HB1     1
+ATOM     41 H   HB2  . ALA  A ?     4 .    34.2197    39.6255    48.2855  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A  HB2     1
+ATOM     42 H   HB3  . ALA  A ?     4 .    35.3756    39.3642    49.5855  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A  HB3     1
+ATOM     43 N   N    . ALA  A ?     5 .    36.4187    42.3962    49.6392  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A    N     1
+ATOM     44 C   CA   . ALA  A ?     5 .    37.5231    43.2813    49.2347  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A   CA     1
+ATOM     45 C   C    . ALA  A ?     5 .    38.9130    42.8407    49.7442  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A    C     1
+ATOM     46 O   O    . ALA  A ?     5 .    39.0075    41.9550    50.5898  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A    O     1
+ATOM     47 C   CB   . ALA  A ?     5 .    37.1749    44.6871    49.7470  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A   CB     1
+ATOM     48 H   H    . ALA  A ?     5 .    36.5530    41.9636    50.5277  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A    H     1
+ATOM     49 H   HA   . ALA  A ?     5 .    37.5842    43.2515    48.1288  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A   HA     1
+ATOM     50 H   HB1  . ALA  A ?     5 .    36.3305    45.0256    49.1798  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A  HB1     1
+ATOM     51 H   HB2  . ALA  A ?     5 .    36.8576    44.6089    50.7970  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A  HB2     1
+ATOM     52 H   HB3  . ALA  A ?     5 .    38.0392    45.3550    49.6552  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A  HB3     1
+ATOM     53 N   N    . ALA  A ?     6 .    39.9572    43.5489    49.3334  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A    N     1
+ATOM     54 C   CA   . ALA  A ?     6 .    41.3690    43.4202    49.7740  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A   CA     1
+ATOM     55 C   C    . ALA  A ?     6 .    42.0550    44.7732    49.5614  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A    C     1
+ATOM     56 O   O    . ALA  A ?     6 .    41.4787    45.6412    48.8498  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A    O     1
+ATOM     57 C   CB   . ALA  A ?     6 .    42.0825    42.2724    49.0401  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A   CB     1
+ATOM     58 H   H    . ALA  A ?     6 .    39.7327    44.4096    48.8322  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A    H     1
+ATOM     59 H   HA   . ALA  A ?     6 .    41.4385    43.1439    50.8230  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A   HA     1
+ATOM     60 H   HB1  . ALA  A ?     6 .    41.7170    41.3061    49.3262  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A  HB1     1
+ATOM     61 H   HB2  . ALA  A ?     6 .    41.9925    42.4437    47.9308  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A  HB2     1
+ATOM     62 H   HB3  . ALA  A ?     6 .    43.1249    42.1589    49.3071  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A  HB3     1
+ATOM     63 N   N    . ALA  A ?     7 .    43.1915    45.0099    50.1899  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A    N     1
+ATOM     64 C   CA   . ALA  A ?     7 .    44.0136    46.2408    50.0036  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A   CA     1
+ATOM     65 C   C    . ALA  A ?     7 .    45.5289    45.9208    50.2579  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A    C     1
+ATOM     66 O   O    . ALA  A ?     7 .    45.8263    44.8986    50.8564  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A    O     1
+ATOM     67 C   CB   . ALA  A ?     7 .    43.5432    47.3059    51.0064  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A   CB     1
+ATOM     68 H   H    . ALA  A ?     7 .    43.5775    44.2103    50.7392  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A    H     1
+ATOM     69 H   HA   . ALA  A ?     7 .    43.8331    46.5112    48.9364  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A   HA     1
+ATOM     70 H   HB1  . ALA  A ?     7 .    42.4437    47.5345    50.7987  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A  HB1     1
+ATOM     71 H   HB2  . ALA  A ?     7 .    43.5251    46.9815    52.0571  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A  HB2     1
+ATOM     72 H   HB3  . ALA  A ?     7 .    44.0524    48.2635    50.8287  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A  HB3     1
+ATOM     73 N   N    . ALA  A ?     8 .    46.4035    46.8153    49.8731  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A    N     1
+ATOM     74 C   CA   . ALA  A ?     8 .    47.8542    46.8047    50.1413  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A   CA     1
+ATOM     75 C   C    . ALA  A ?     8 .    48.3655    48.2707    50.2382  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A    C     1
+ATOM     76 O   O    . ALA  A ?     8 .    47.6540    49.2155    49.7853  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A    O     1
+ATOM     77 C   CB   . ALA  A ?     8 .    48.6422    46.0951    49.0048  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A   CB     1
+ATOM     78 H   H    . ALA  A ?     8 .    46.0977    47.6520    49.3916  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A    H     1
+ATOM     79 H   HA   . ALA  A ?     8 .    47.9850    46.3611    51.1090  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A   HA     1
+ATOM     80 H   HB1  . ALA  A ?     8 .    48.2133    45.0982    48.8540  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A  HB1     1
+ATOM     81 H   HB2  . ALA  A ?     8 .    48.4458    46.5853    48.0477  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A  HB2     1
+ATOM     82 H   HB3  . ALA  A ?     8 .    49.7286    46.1762    49.1974  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A  HB3     1
+ATOM     83 N   N    . ALA  A ?     9 .    49.4920    48.5164    50.9109  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A    N     1
+ATOM     84 C   CA   . ALA  A ?     9 .    50.1232    49.8158    51.0132  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A   CA     1
+ATOM     85 C   C    . ALA  A ?     9 .    51.6112    49.6961    51.4234  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A    C     1
+ATOM     86 O   O    . ALA  A ?     9 .    51.9366    48.9243    52.3201  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A    O     1
+ATOM     87 C   CB   . ALA  A ?     9 .    49.3946    50.6832    52.0270  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A   CB     1
+ATOM     88 H   H    . ALA  A ?     9 .    50.1161    47.7882    51.2836  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A    H     1
+ATOM     89 H   HA   . ALA  A ?     9 .    50.1127    50.3655    50.0235  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A   HA     1
+ATOM     90 H   HB1  . ALA  A ?     9 .    48.4528    51.0292    51.5713  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A  HB1     1
+ATOM     91 H   HB2  . ALA  A ?     9 .    49.2450    50.1013    52.9011  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A  HB2     1
+ATOM     92 H   HB3  . ALA  A ?     9 .    49.9965    51.5535    52.1453  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A  HB3     1
+ATOM     93 N   N    . ALA  A ?    10 .    52.4694    50.5289    50.8355  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A    N     1
+ATOM     94 C   CA   . ALA  A ?    10 .    53.9464    50.4524    50.9842  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A   CA     1
+ATOM     95 C   C    . ALA  A ?    10 .    54.5835    51.8118    50.5399  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A    C     1
+ATOM     96 O   O    . ALA  A ?    10 .    54.0634    52.4342    49.5744  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A    O     1
+ATOM     97 C   CB   . ALA  A ?    10 .    54.5772    49.3201    50.1571  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A   CB     1
+ATOM     98 H   H    . ALA  A ?    10 .    52.0854    50.9879    50.0202  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A    H     1
+ATOM     99 H   HA   . ALA  A ?    10 .    54.2071    50.3493    52.0319  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A   HA     1
+ATOM    100 H   HB1  . ALA  A ?    10 .    54.4992    48.3266    50.6010  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A  HB1     1
+ATOM    101 H   HB2  . ALA  A ?    10 .    54.1585    49.3713    49.1478  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A  HB2     1
+ATOM    102 H   HB3  . ALA  A ?    10 .    55.6218    49.5876    50.1111  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A  HB3     1
+ATOM    103 N   N    . ALA  A ?    11 .    55.6366    52.3140    51.2003  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A    N     1
+ATOM    104 C   CA   . ALA  A ?    11 .    56.2398    53.6064    51.0666  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A   CA     1
+ATOM    105 C   C    . ALA  A ?    11 .    57.7395    53.4577    51.2003  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A    C     1
+ATOM    106 O   O    . ALA  A ?    11 .    58.2049    52.5730    51.9740  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A    O     1
+ATOM    107 C   CB   . ALA  A ?    11 .    55.6457    54.5989    52.0702  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A   CB     1
+ATOM    108 H   H    . ALA  A ?    11 .    56.0406    51.7292    51.9501  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A    H     1
+ATOM    109 H   HA   . ALA  A ?    11 .    56.0123    53.9746    50.0670  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A   HA     1
+ATOM    110 H   HB1  . ALA  A ?    11 .    54.6257    54.5629    51.8978  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A  HB1     1
+ATOM    111 H   HB2  . ALA  A ?    11 .    55.8363    54.3835    53.1043  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A  HB2     1
+ATOM    112 H   HB3  . ALA  A ?    11 .    56.1802    55.5304    51.8644  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A  HB3     1
+ATOM    113 N   N    . ALA  A ?    12 .    58.5697    54.3218    50.6392  0.0  0.0  ?  ?  ?  ?  ?  .     12  ALA A    N     1
+ATOM    114 C   CA   . ALA  A ?    12 .    60.0412    54.2644    50.6856  0.0  0.0  ?  ?  ?  ?  ?  .     12  ALA A   CA     1
+ATOM    115 C   C    . ALA  A ?    12 .    60.6327    55.6570    50.5142  0.0  0.0  ?  ?  ?  ?  ?  .     12  ALA A    C     1
+ATOM    116 O   O    . ALA  A ?    12 .    59.8564    56.5553    50.0932  0.0  0.0  ?  ?  ?  ?  ?  .     12  ALA A    O     1
+ATOM    117 C   CB   . ALA  A ?    12 .    60.4415    53.3242    49.5804  0.0  0.0  ?  ?  ?  ?  ?  .     12  ALA A   CB     1
+ATOM    118 H   H    . ALA  A ?    12 .    58.2234    55.1899    50.2136  0.0  0.0  ?  ?  ?  ?  ?  .     12  ALA A    H     1
+ATOM    119 H   HA   . ALA  A ?    12 .    60.3652    53.8642    51.6705  0.0  0.0  ?  ?  ?  ?  ?  .     12  ALA A   HA     1
+ATOM    120 H   HB1  . ALA  A ?    12 .    60.0773    52.3224    49.7482  0.0  0.0  ?  ?  ?  ?  ?  .     12  ALA A  HB1     1
+ATOM    121 H   HB2  . ALA  A ?    12 .    60.0006    53.7321    48.6501  0.0  0.0  ?  ?  ?  ?  ?  .     12  ALA A  HB2     1
+ATOM    122 H   HB3  . ALA  A ?    12 .    61.4983    53.2673    49.4803  0.0  0.0  ?  ?  ?  ?  ?  .     12  ALA A  HB3     1
+ATOM    123 N   N    . ALA  A ?    13 .    61.9378    55.7836    50.6885  0.0  0.0  ?  ?  ?  ?  ?  .     13  ALA A    N     1
+ATOM    124 C   CA   . ALA  A ?    13 .    62.6116    57.0696    50.5302  0.0  0.0  ?  ?  ?  ?  ?  .     13  ALA A   CA     1
+ATOM    125 C   C    . ALA  A ?    13 .    64.0468    56.7571    50.1651  0.0  0.0  ?  ?  ?  ?  ?  .     13  ALA A    C     1
+ATOM    126 O   O    . ALA  A ?    13 .    64.5749    55.6633    50.3158  0.0  0.0  ?  ?  ?  ?  ?  .     13  ALA A    O     1
+ATOM    127 C   CB   . ALA  A ?    13 .    62.4845    57.9384    51.8262  0.0  0.0  ?  ?  ?  ?  ?  .     13  ALA A   CB     1
+ATOM    128 H   H    . ALA  A ?    13 .    62.5622    54.9700    50.8592  0.0  0.0  ?  ?  ?  ?  ?  .     13  ALA A    H     1
+ATOM    129 H   HA   . ALA  A ?    13 .    62.1903    57.6196    49.6542  0.0  0.0  ?  ?  ?  ?  ?  .     13  ALA A   HA     1
+ATOM    130 H   HB1  . ALA  A ?    13 .    61.5206    57.8685    52.2913  0.0  0.0  ?  ?  ?  ?  ?  .     13  ALA A  HB1     1
+ATOM    131 H   HB2  . ALA  A ?    13 .    63.0605    57.4958    52.6224  0.0  0.0  ?  ?  ?  ?  ?  .     13  ALA A  HB2     1
+ATOM    132 H   HB3  . ALA  A ?    13 .    62.8267    58.9388    51.6744  0.0  0.0  ?  ?  ?  ?  ?  .     13  ALA A  HB3     1
+ATOM    133 N   N    . ALA  A ?    14 .    64.6898    57.7152    49.5608  0.0  0.0  ?  ?  ?  ?  ?  .     14  ALA A    N     1
+ATOM    134 C   CA   . ALA  A ?    14 .    66.0984    57.7744    49.2547  0.0  0.0  ?  ?  ?  ?  ?  .     14  ALA A   CA     1
+ATOM    135 C   C    . ALA  A ?    14 .    66.5709    59.2197    49.5439  0.0  0.0  ?  ?  ?  ?  ?  .     14  ALA A    C     1
+ATOM    136 O   O    . ALA  A ?    14 .    65.8165    60.1687    49.3769  0.0  0.0  ?  ?  ?  ?  ?  .     14  ALA A    O     1
+ATOM    137 C   CB   . ALA  A ?    14 .    66.2584    57.3093    47.7960  0.0  0.0  ?  ?  ?  ?  ?  .     14  ALA A   CB     1
+ATOM    138 H   H    . ALA  A ?    14 .    64.2437    58.6311    49.5378  0.0  0.0  ?  ?  ?  ?  ?  .     14  ALA A    H     1
+ATOM    139 H   HA   . ALA  A ?    14 .    66.7124    57.1163    49.8898  0.0  0.0  ?  ?  ?  ?  ?  .     14  ALA A   HA     1
+ATOM    140 H   HB1  . ALA  A ?    14 .    65.8137    56.3312    47.6685  0.0  0.0  ?  ?  ?  ?  ?  .     14  ALA A  HB1     1
+ATOM    141 H   HB2  . ALA  A ?    14 .    65.9086    58.0815    47.0794  0.0  0.0  ?  ?  ?  ?  ?  .     14  ALA A  HB2     1
+ATOM    142 H   HB3  . ALA  A ?    14 .    67.3189    57.1291    47.6900  0.0  0.0  ?  ?  ?  ?  ?  .     14  ALA A  HB3     1
+ATOM    143 N   N    . ALA  A ?    15 .    67.8611    59.4498    49.7970  0.0  0.0  ?  ?  ?  ?  ?  .     15  ALA A    N     1
+ATOM    144 C   CA   . ALA  A ?    15 .    68.5458    60.7438    49.8847  0.0  0.0  ?  ?  ?  ?  ?  .     15  ALA A   CA     1
+ATOM    145 C   C    . ALA  A ?    15 .    69.8699    60.7703    49.0996  0.0  0.0  ?  ?  ?  ?  ?  .     15  ALA A    C     1
+ATOM    146 O   O    . ALA  A ?    15 .    70.4599    59.7573    48.6797  0.0  0.0  ?  ?  ?  ?  ?  .     15  ALA A    O     1
+ATOM    147 C   CB   . ALA  A ?    15 .    68.7652    60.9732    51.3901  0.0  0.0  ?  ?  ?  ?  ?  .     15  ALA A   CB     1
+ATOM    148 H   H    . ALA  A ?    15 .    68.4163    58.6977    50.1264  0.0  0.0  ?  ?  ?  ?  ?  .     15  ALA A    H     1
+ATOM    149 H   HA   . ALA  A ?    15 .    67.8501    61.4751    49.4602  0.0  0.0  ?  ?  ?  ?  ?  .     15  ALA A   HA     1
+ATOM    150 H   HB1  . ALA  A ?    15 .    67.8513    61.3044    51.8293  0.0  0.0  ?  ?  ?  ?  ?  .     15  ALA A  HB1     1
+ATOM    151 H   HB2  . ALA  A ?    15 .    69.1823    60.0309    51.8753  0.0  0.0  ?  ?  ?  ?  ?  .     15  ALA A  HB2     1
+ATOM    152 H   HB3  . ALA  A ?    15 .    69.5302    61.7957    51.5004  0.0  0.0  ?  ?  ?  ?  ?  .     15  ALA A  HB3     1
+ATOM    153 N   N    . ALA  A ?    16 .    70.4522    61.9733    48.8471  0.0  0.0  ?  ?  ?  ?  ?  .     16  ALA A    N     1
+ATOM    154 C   CA   . ALA  A ?    16 .    71.6504    62.2259    48.1010  0.0  0.0  ?  ?  ?  ?  ?  .     16  ALA A   CA     1
+ATOM    155 C   C    . ALA  A ?    16 .    72.5886    63.1325    48.9564  0.0  0.0  ?  ?  ?  ?  ?  .     16  ALA A    C     1
+ATOM    156 O   O    . ALA  A ?    16 .    72.1732    63.7116    49.9468  0.0  0.0  ?  ?  ?  ?  ?  .     16  ALA A    O     1
+ATOM    157 C   CB   . ALA  A ?    16 .    71.3543    62.7832    46.7321  0.0  0.0  ?  ?  ?  ?  ?  .     16  ALA A   CB     1
+ATOM    158 H   H    . ALA  A ?    16 .    70.0186    62.7730    49.3183  0.0  0.0  ?  ?  ?  ?  ?  .     16  ALA A    H     1
+ATOM    159 H   HA   . ALA  A ?    16 .    72.2738    61.3669    48.0279  0.0  0.0  ?  ?  ?  ?  ?  .     16  ALA A   HA     1
+ATOM    160 H   HB1  . ALA  A ?    16 .    70.7560    62.0433    46.1708  0.0  0.0  ?  ?  ?  ?  ?  .     16  ALA A  HB1     1
+ATOM    161 H   HB2  . ALA  A ?    16 .    70.7833    63.7008    46.7358  0.0  0.0  ?  ?  ?  ?  ?  .     16  ALA A  HB2     1
+ATOM    162 H   HB3  . ALA  A ?    16 .    72.3217    63.0491    46.2580  0.0  0.0  ?  ?  ?  ?  ?  .     16  ALA A  HB3     1
+ATOM    163 N   N    . ALA  A ?    17 .    73.8512    63.1163    48.4887  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A    N     1
+ATOM    164 C   CA   . ALA  A ?    17 .    74.9260    63.9871    48.8649  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A   CA     1
+ATOM    165 C   C    . ALA  A ?    17 .    75.6749    64.3537    47.5413  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A    C     1
+ATOM    166 O   O    . ALA  A ?    17 .    75.3193    63.7640    46.4986  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A    O     1
+ATOM    167 C   CB   . ALA  A ?    17 .    75.7610    63.3387    49.9315  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A   CB     1
+ATOM    168 O   OXT  . ALA  A ?    17 .    76.5871    65.1924    47.6082  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A  OXT     1
+ATOM    169 H   H    . ALA  A ?    17 .    74.0877    62.5947    47.6668  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A    H     1
+ATOM    170 H   HA   . ALA  A ?    17 .    74.5467    64.9410    49.2750  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A   HA     1
+ATOM    171 H   HB1  . ALA  A ?    17 .    75.1559    63.0691    50.7732  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A  HB1     1
+ATOM    172 H   HB2  . ALA  A ?    17 .    76.2360    62.4353    49.5209  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A  HB2     1
+ATOM    173 H   HB3  . ALA  A ?    17 .    76.4561    64.0974    50.2066  0.0  0.0  ?  ?  ?  ?  ?  .     17  ALA A  HB3     1
+</pdbx>
+	<System openmmVersion="8.4" type="System" version="1">
 		
 	
 		<PeriodicBoxVectors>
@@ -726,7 +759,7 @@ END
 		<Forces>
 			
 		
-			<Force forceGroup="0" type="HarmonicBondForce" usesPeriodic="0" version="2">
+			<Force forceGroup="0" name="HarmonicBondForce" type="HarmonicBondForce" usesPeriodic="0" version="2">
 				
 			
 				<Bonds>
@@ -1254,7 +1287,7 @@ END
 			</Force>
 			
 		
-			<Force forceGroup="0" type="HarmonicAngleForce" usesPeriodic="0" version="2">
+			<Force forceGroup="0" name="HarmonicAngleForce" type="HarmonicAngleForce" usesPeriodic="0" version="2">
 				
 			
 				<Angles>
@@ -2193,7 +2226,7 @@ END
 			</Force>
 			
 		
-			<Force forceGroup="0" type="PeriodicTorsionForce" usesPeriodic="0" version="2">
+			<Force forceGroup="0" name="PeriodicTorsionForce" type="PeriodicTorsionForce" usesPeriodic="0" version="2">
 				
 			
 				<Torsions>
@@ -3639,7 +3672,7 @@ END
 			</Force>
 			
 		
-			<Force alpha="0" cutoff="1" dispersionCorrection="1" ewaldTolerance=".0005" forceGroup="0" ljAlpha="0" ljnx="0" ljny="0" ljnz="0" method="2" nx="0" ny="0" nz="0" recipForceGroup="-1" rfDielectric="78.3" switchingDistance="-1" type="NonbondedForce" useSwitchingFunction="0" version="3">
+			<Force alpha="0" cutoff="1" dispersionCorrection="1" ewaldTolerance=".0005" exceptionsUsePeriodic="0" forceGroup="0" includeDirectSpace="1" ljAlpha="0" ljnx="0" ljny="0" ljnz="0" method="2" name="NonbondedForce" nx="0" ny="0" nz="0" recipForceGroup="-1" rfDielectric="78.3" switchingDistance="-1" type="NonbondedForce" useSwitchingFunction="0" version="4">
 				
 			
 				<GlobalParameters/>
@@ -6899,10 +6932,559 @@ END
 		
 			</Force>
 			
+		
+			<Force energy="-fx * x - fy * y - fz * z" forceGroup="31" name="CustomExternalForce" type="CustomExternalForce" version="1">
+				
+			
+				<PerParticleParameters>
+					
+				
+					<Parameter name="fx"/>
+					
+				
+					<Parameter name="fy"/>
+					
+				
+					<Parameter name="fz"/>
+					
+			
+				</PerParticleParameters>
+				
+			
+				<GlobalParameters/>
+				
+			
+				<Particles>
+					
+				
+					<Particle index="0" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="1" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="2" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="3" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="4" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="5" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="6" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="7" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="8" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="9" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="10" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="11" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="12" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="13" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="14" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="15" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="16" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="17" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="18" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="19" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="20" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="21" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="22" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="23" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="24" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="25" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="26" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="27" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="28" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="29" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="30" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="31" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="32" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="33" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="34" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="35" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="36" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="37" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="38" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="39" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="40" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="41" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="42" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="43" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="44" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="45" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="46" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="47" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="48" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="49" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="50" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="51" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="52" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="53" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="54" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="55" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="56" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="57" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="58" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="59" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="60" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="61" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="62" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="63" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="64" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="65" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="66" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="67" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="68" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="69" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="70" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="71" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="72" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="73" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="74" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="75" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="76" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="77" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="78" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="79" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="80" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="81" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="82" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="83" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="84" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="85" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="86" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="87" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="88" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="89" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="90" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="91" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="92" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="93" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="94" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="95" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="96" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="97" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="98" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="99" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="100" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="101" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="102" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="103" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="104" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="105" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="106" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="107" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="108" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="109" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="110" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="111" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="112" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="113" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="114" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="115" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="116" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="117" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="118" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="119" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="120" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="121" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="122" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="123" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="124" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="125" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="126" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="127" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="128" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="129" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="130" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="131" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="132" param1="-25.189895629882812" param2="9.382128715515137" param3="-7.168140888214111"/>
+					
+				
+					<Particle index="133" param1="-21.600366592407227" param2="8.045186996459961" param3="-6.1466898918151855"/>
+					
+				
+					<Particle index="134" param1="-21.600366592407227" param2="8.045186996459961" param3="-6.1466898918151855"/>
+					
+				
+					<Particle index="135" param1="-28.77361488342285" param2="10.716906547546387" param3="-8.187938690185547"/>
+					
+				
+					<Particle index="136" param1="-21.600366592407227" param2="8.045186996459961" param3="-6.1466898918151855"/>
+					
+				
+					<Particle index="137" param1="-1.8127070665359497" param2=".6751536726951599" param3="-.5158314108848572"/>
+					
+				
+					<Particle index="138" param1="-1.8127070665359497" param2=".6751536726951599" param3="-.5158314108848572"/>
+					
+				
+					<Particle index="139" param1="-1.8127070665359497" param2=".6751536726951599" param3="-.5158314108848572"/>
+					
+				
+					<Particle index="140" param1="-1.8127070665359497" param2=".6751536726951599" param3="-.5158314108848572"/>
+					
+				
+					<Particle index="141" param1="-1.8127070665359497" param2=".6751536726951599" param3="-.5158314108848572"/>
+					
+				
+					<Particle index="142" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="143" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="144" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="145" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="146" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="147" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="148" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="149" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="150" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="151" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="152" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="153" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="154" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="155" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="156" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="157" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="158" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="159" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="160" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="161" param1="0" param2="0" param3="0"/>
+					
+				
+					<Particle index="162" param1="-6.125458717346191" param2="-28.837604522705078" param3="6.715795993804932"/>
+					
+				
+					<Particle index="163" param1="-5.252588748931885" param2="-24.728281021118164" param3="5.758803367614746"/>
+					
+				
+					<Particle index="164" param1="-5.252588748931885" param2="-24.728281021118164" param3="5.758803367614746"/>
+					
+				
+					<Particle index="165" param1="-6.9969162940979" param2="-32.940277099609375" param3="7.671239852905273"/>
+					
+				
+					<Particle index="166" param1="-5.252588748931885" param2="-24.728281021118164" param3="5.758803367614746"/>
+					
+				
+					<Particle index="167" param1="-6.9969162940979" param2="-32.940277099609375" param3="7.671239852905273"/>
+					
+				
+					<Particle index="168" param1="-.44079825282096863" param2="-2.075202226638794" param3=".48327991366386414"/>
+					
+				
+					<Particle index="169" param1="-.44079825282096863" param2="-2.075202226638794" param3=".48327991366386414"/>
+					
+				
+					<Particle index="170" param1="-.44079825282096863" param2="-2.075202226638794" param3=".48327991366386414"/>
+					
+				
+					<Particle index="171" param1="-.44079825282096863" param2="-2.075202226638794" param3=".48327991366386414"/>
+					
+				
+					<Particle index="172" param1="-.44079825282096863" param2="-2.075202226638794" param3=".48327991366386414"/>
+					
+			
+				</Particles>
+				
+		
+			</Force>
+			
 	
 		</Forces>
 		
 
 	</System>
-	<Integrator constraintTolerance="1e-05" friction="1" randomSeed="0" stepSize=".002" temperature="300" type="LangevinIntegrator" version="1"/>
+	<Integrator constraintTolerance="1e-05" friction="1" integrationForceGroups="-1" randomSeed="0" stepSize=".002" temperature="300" type="LangevinIntegrator" version="1"/>
 </OpenMMSimulation>
