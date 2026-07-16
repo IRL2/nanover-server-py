@@ -4,7 +4,7 @@ from hypothesis import strategies as st, given
 from MDAnalysis.lib import transformations
 from nanover.utilities.transforms import (
     Transform,
-    find_transformation_between_points,
+    find_transformation_between_point_patterns,
 )
 
 
@@ -45,7 +45,7 @@ def test_cube_alignment_valid(transformation):
     a = CUBE_POINTS
     b = np.array([transform.point_parent_to_local(point) for point in a])
     guess = Transform.from_parent_to_local_matrix(
-        find_transformation_between_points(a, b)
+        find_transformation_between_point_patterns(a, b)
     )
     c = np.array([guess.point_parent_to_local(point) for point in a])
 

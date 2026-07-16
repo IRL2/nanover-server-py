@@ -50,7 +50,7 @@ def _transform_vec3(matrix, vector):
     return (matrix @ np.array([*vector[:3], 1]).reshape(4, 1)).reshape(4)[:3]
 
 
-def find_transformation_between_points(
+def find_transformation_between_point_patterns(
     start_points: npt.NDArray,
     final_points: npt.NDArray,
 ):
