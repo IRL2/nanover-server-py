@@ -21,12 +21,9 @@ def vec3s():
     return st.lists(coords(), min_size=3, max_size=3)
 
 
-CUBE_POINTS = np.array([
-    (x, y, z)
-    for x in range(2)
-    for y in range(2)
-    for z in range(2)
-])
+CUBE_POINTS = np.array(
+    [(x, y, z) for x in range(2) for y in range(2) for z in range(2)]
+)
 
 
 @st.composite
@@ -47,7 +44,9 @@ def test_cube_alignment_valid(transformation):
 
     a = CUBE_POINTS
     b = np.array([transform.point_parent_to_local(point) for point in a])
-    guess = Transform.from_parent_to_local_matrix(find_transformation_between_points(a, b))
+    guess = Transform.from_parent_to_local_matrix(
+        find_transformation_between_points(a, b)
+    )
     c = np.array([guess.point_parent_to_local(point) for point in a])
 
     assert np.allclose(b, c)

@@ -87,4 +87,3 @@ def find_transformation_between_points(
     transform[:3, :3] = R
 
     return transform
-
