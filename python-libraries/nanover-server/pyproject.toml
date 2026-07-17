@@ -14,7 +14,7 @@ dependencies = [
     "openmm",
     "MDAnalysis",
     "numpy",
-    "nglview",
+    "nglview>=4.0.0",
     "netifaces",
     "numpy",
     "ase >= 3.21",
