@@ -16,7 +16,6 @@ dependencies = [
     "numpy",
     "nglview>=4.0.0",
     "netifaces",
-    "numpy",
     "ase >= 3.21",
     "websockets>=15.0.0",
     "msgpack>=1.0.0",
