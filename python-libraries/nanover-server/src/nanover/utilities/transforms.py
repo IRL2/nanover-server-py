@@ -57,7 +57,7 @@ def _transform_vec3(matrix, vector):
 
 
 def _transform_vec3s(matrix, vectors):
-    v = np.array(vectors).T
+    v = np.asarray(vectors).T
     expanded = np.vstack((v, np.ones([1, v.shape[1]], v.dtype)))
     return (matrix @ expanded)[:-1].T
 
