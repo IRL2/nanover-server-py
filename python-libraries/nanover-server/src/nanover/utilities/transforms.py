@@ -42,12 +42,24 @@ class Transform:
     def point_local_to_parent(self, point):
         return _transform_vec3(self._local_to_parent, point)
 
+    def points_local_to_parent(self, points):
+        return _transform_vec3s(self._local_to_parent, points)
+
     def point_parent_to_local(self, point):
         return _transform_vec3(self._parent_to_local, point)
+
+    def points_parent_to_local(self, points):
+        return _transform_vec3s(self._parent_to_local, points)
 
 
 def _transform_vec3(matrix, vector):
     return (matrix @ np.array([*vector[:3], 1]).reshape(4, 1)).reshape(4)[:3]
+
+
+def _transform_vec3s(matrix, vectors):
+    v = np.asarray(vectors).T
+    expanded = np.vstack((v, np.ones([1, v.shape[1]], v.dtype)))
+    return (matrix @ expanded)[:-1].T
 
 
 def find_transformation_between_point_patterns(

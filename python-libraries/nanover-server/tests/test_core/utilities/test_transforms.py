@@ -38,15 +38,30 @@ def transformation(draw):
     return translation @ rotation
 
 
+@given(transformation=transformation(), points=st.lists(vec3s(), min_size=1))
+def test_transform_points_equals_transform_point(transformation, points):
+    transform = Transform.from_parent_to_local_matrix(transformation)
+
+    a = transform.points_parent_to_local(points)
+    b = [transform.point_parent_to_local(point) for point in points]
+
+    assert np.allclose(a, b)
+
+    a = transform.points_local_to_parent(points)
+    b = [transform.point_local_to_parent(point) for point in points]
+
+    assert np.allclose(a, b)
+
+
 @given(transformation=transformation())
 def test_cube_alignment_valid(transformation):
     transform = Transform.from_parent_to_local_matrix(transformation)
 
     a = CUBE_POINTS
-    b = np.array([transform.point_parent_to_local(point) for point in a])
+    b = transform.points_parent_to_local(a)
     guess = Transform.from_parent_to_local_matrix(
         find_transformation_between_point_patterns(a, b)
     )
-    c = np.array([guess.point_parent_to_local(point) for point in a])
+    c = guess.points_parent_to_local(a)
 
     assert np.allclose(b, c)
