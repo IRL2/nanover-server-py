@@ -2,6 +2,8 @@ import logging
 from functools import partial
 from itertools import count
 from typing import Any
+
+from MDAnalysis.lib.transformations import quaternion_from_matrix, decompose_matrix
 from ipywidgets import Output
 
 from nanover.app import OmniRunner
@@ -64,6 +66,7 @@ class NanoverJupyterUtilities:
         self.panels = PanelsUtility(runner.app_server)
         self.interactions = InteractionsUtility(runner.app_server)
         self.selections = SelectionsUtility(runner.app_server)
+        self.transforms = TransformsUtility(runner.app_server)
 
     @property
     def scene_transform(self) -> Transform:
@@ -356,6 +359,28 @@ class InteractionsUtility(StateKeysUtility):
         self.remove_object(f"{INTERACTION_PREFIX}{key}")
 
 
+class TransformsUtility(StateKeysUtility):
+    def update_transform(
+        self,
+        key: str,
+        *,
+        transform: Transform,
+        parent: str | None = None,
+    ):
+        matrix = transform._parent_to_local
+        r = quaternion_from_matrix(matrix)
+        r = [*r[1:], r[0]]
+        s, _, _, t, _ = decompose_matrix(matrix)
+
+        self.update_object(
+            f"transform.{key}",
+            dict(
+                transform=[*t, *r, *s],
+                parent=parent,
+            ),
+        )
+
+
 class SceneObjectsUtility(StateKeysUtility):
     def clear_all(self):
         keys = {
@@ -375,6 +400,7 @@ class SceneObjectsUtility(StateKeysUtility):
         position=(0.0, 0.0, 0.0),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.1,
+        parent: str | None = None,
         **kwargs,
     ):
         self.update_object(
@@ -384,6 +410,7 @@ class SceneObjectsUtility(StateKeysUtility):
                 "position": position,
                 "color": color,
                 "size": size,
+                "parent": parent,
                 **kwargs,
             },
         )
@@ -395,6 +422,7 @@ class SceneObjectsUtility(StateKeysUtility):
         positions=((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
+        parent: str | None = None,
         **kwargs,
     ):
         self.update_object(
@@ -403,6 +431,7 @@ class SceneObjectsUtility(StateKeysUtility):
                 "positions": positions,
                 "color": color,
                 "size": size,
+                "parent": parent,
                 **kwargs,
             },
         )
@@ -415,6 +444,7 @@ class SceneObjectsUtility(StateKeysUtility):
         position=(0.0, 0.0, 0.0),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
+        parent: str | None = None,
         **kwargs,
     ):
         self.update_object(
@@ -424,6 +454,7 @@ class SceneObjectsUtility(StateKeysUtility):
                 "position": position,
                 "color": color,
                 "size": size,
+                "parent": parent,
                 **kwargs,
             },
         )
