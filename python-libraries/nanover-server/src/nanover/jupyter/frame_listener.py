@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor, Future
+from logging import getLogger
 
 from nanover.app import OmniRunner
 from nanover.core import AppServerMinimalImd
@@ -41,10 +42,13 @@ class FrameListener:
             full_frame = FrameData()
             for frame_update in stream:
                 full_frame.update(frame_update)
-                self.on_frame_update(
-                    full_frame=full_frame,
-                    frame_update=frame_update,
-                )
+                try:
+                    self.on_frame_update(
+                        full_frame=full_frame,
+                        frame_update=frame_update,
+                    )
+                except Exception:
+                    getLogger().exception("Exception in `on_frame_update`")
 
         self._task = self._threads.submit(run)
 

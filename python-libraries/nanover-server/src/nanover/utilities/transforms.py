@@ -1,10 +1,17 @@
 import numpy as np
 import numpy.typing as npt
+from MDAnalysis import AtomGroup, Universe
 
 from MDAnalysis.lib import transformations
 
+from nanover.trajectory import FrameData
+
 
 class Transform:
+    @classmethod
+    def identity(cls):
+        return cls.from_local_to_parent_matrix(np.identity(4))
+
     @classmethod
     def from_scene_pose(cls, pose: list[float]):
         tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = pose
@@ -60,6 +67,41 @@ def _transform_vec3s(matrix, vectors):
     v = np.asarray(vectors).T
     expanded = np.vstack((v, np.ones([1, v.shape[1]], v.dtype)))
     return (matrix @ expanded)[:-1].T
+
+
+class StructureAlignment:
+    @classmethod
+    def from_atom_group(cls, atom_group: AtomGroup):
+        return cls(
+            atoms=atom_group.indices,
+            positions=atom_group.positions / 10,  # angstrom -> nm
+        )
+
+    @classmethod
+    def from_atoms_and_framedata(cls, atoms: list[int], framedata: FrameData):
+        return cls(
+            atoms=atoms,
+            positions=framedata.particle_positions[atoms],
+        )
+
+    def __init__(self, *, atoms: list[int], positions: npt.NDArray):
+        self.atoms = atoms
+        self.positions = positions
+
+    def calculate_transform_to_universe(self, universe: Universe):
+        return self.calculate_transform_to_positions(
+            universe.atoms.positions[self.atoms] / 10  # angstrom -> nm
+        )
+
+    def calculate_transform_to_framedata(self, framedata: FrameData):
+        return self.calculate_transform_to_positions(
+            framedata.particle_positions[self.atoms]
+        )
+
+    def calculate_transform_to_positions(self, positions: npt.NDArray):
+        return Transform.from_parent_to_local_matrix(
+            find_transformation_between_point_patterns(self.positions, positions)
+        )
 
 
 def find_transformation_between_point_patterns(
