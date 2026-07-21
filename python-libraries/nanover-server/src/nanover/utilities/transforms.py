@@ -6,6 +6,10 @@ from MDAnalysis.lib import transformations
 
 class Transform:
     @classmethod
+    def identity(cls):
+        return cls.from_local_to_parent_matrix(np.identity(4))
+
+    @classmethod
     def from_scene_pose(cls, pose: list[float]):
         tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = pose
 
