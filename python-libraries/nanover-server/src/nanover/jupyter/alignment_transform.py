@@ -1,7 +1,9 @@
+import numpy as np
+
 from .utilities import TransformsUtility
 from .frame_listener import FrameListener
-from nanover.trajectory import FrameData
-from nanover.utilities.transforms import StructureAlignment
+from nanover.trajectory import FrameData, MissingDataError
+from nanover.utilities.transforms import StructureAlignment, Transform
 
 
 class AlignmentTransform(FrameListener):
@@ -17,8 +19,14 @@ class AlignmentTransform(FrameListener):
         self.alignment = alignment
 
     def on_frame_update(self, full_frame: FrameData, frame_update: FrameData):
-        if self.key is not None and self.alignment is not None:
+        if self.key is None or self.alignment is None:
+            return
+
+        try:
             transform = self.alignment.calculate_transform_to_framedata(full_frame)
-            self.transforms.update_transform(
-                self.key, transform=transform, parent="simulation"
-            )
+        except MissingDataError:
+            transform = Transform.from_parent_to_local_matrix(np.identity(4))
+
+        self.transforms.update_transform(
+            self.key, transform=transform, parent="simulation"
+        )
