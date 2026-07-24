@@ -367,7 +367,7 @@ class TransformsUtility(StateKeysUtility):
         transform: Transform,
         parent: str | None = None,
     ):
-        matrix = transform._parent_to_local
+        matrix = transform._local_to_parent
         r = quaternion_from_matrix(matrix)
         r = [*r[1:], r[0]]
         s, _, _, t, _ = decompose_matrix(matrix)
