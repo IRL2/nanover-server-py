@@ -1,17 +1,15 @@
 import os
-import time
 import re
-from typing import List
+import time
 
+import numpy as np
 import pytest
 from ase import Atoms
 from ase.calculators.lj import LennardJones
+from ase.io import Trajectory, read
 from ase.md import Langevin
-
 from nanover.ase.trajectory_logger import TrajectoryLogger, UnsupportedFormatError
 from test_imd_reset import fcc_atoms
-from ase.io import read, write, Trajectory
-import numpy as np
 
 SUPPORTED_EXTENSIONS = ["xyz"]
 NONEXISTANT_EXTENSION = "babyyoda"
@@ -32,7 +30,7 @@ def tmp_dir(tmpdir_factory):
 
 
 def check_file_images(
-    images: List[Atoms], file, symbols=True, positions=True, cell=True
+    images: list[Atoms], file, symbols=True, positions=True, cell=True
 ):
     """
 

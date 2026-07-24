@@ -2,7 +2,7 @@ import argparse
 import textwrap
 
 from nanover.websocket import NanoverImdClient
-from osc_client import OscClient, DEFAULT_OSC_ADDRESS
+from osc_client import DEFAULT_OSC_ADDRESS, OscClient
 
 
 class OscApp:

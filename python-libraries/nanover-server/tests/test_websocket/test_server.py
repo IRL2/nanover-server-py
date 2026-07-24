@@ -1,7 +1,6 @@
-from pytest import raises
-
 from nanover.app import NanoverImdApplication
 from nanover.websocket.server import WebSocketServer, _get_server_port
+from pytest import raises
 
 
 def test_port_in_use():

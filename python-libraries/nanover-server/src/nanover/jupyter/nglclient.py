@@ -6,14 +6,12 @@ the molecular system from within a Jupyter notebook (or iPython interface).
 from contextlib import suppress
 from io import StringIO
 
-import nglview
-
-from nanover.websocket import NanoverImdClient
-from nanover.mdanalysis import frame_data_to_mdanalysis
-from nanover.trajectory import FrameData, keys, MissingDataError
-from nglview import NGLWidget
-
 import MDAnalysis as mda
+import nglview
+from nanover.mdanalysis import frame_data_to_mdanalysis
+from nanover.trajectory import FrameData, MissingDataError, keys
+from nanover.websocket import NanoverImdClient
+from nglview import NGLWidget
 
 
 class NGLClient(NanoverImdClient):
@@ -59,10 +57,9 @@ class NGLClient(NanoverImdClient):
         """
         super().recv_frame(message)
 
-        if message.get(keys.FRAME_INDEX, None) == 0:
-            if self._structure is not None:
-                self._view.remove_component(self._structure)
-                self._structure = None
+        if message.get(keys.FRAME_INDEX, None) == 0 and self._structure is not None:
+            self._view.remove_component(self._structure)
+            self._structure = None
 
         if self.has_minimum_usable_frame and self._structure is None:
             structure = FrameDataStructure(self.current_frame)
@@ -90,7 +87,9 @@ class FrameDataStructure(nglview.Structure):
         to NGLView (see parent class).
     """
 
-    def __init__(self, frame, ext="pdb", params={}):
+    def __init__(self, frame, ext="pdb", params=None):
+        if params is None:
+            params = {}
         super().__init__()
         self.path = ""
         self.ext = ext

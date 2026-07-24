@@ -1,13 +1,13 @@
 from concurrent.futures import ThreadPoolExecutor
+from logging import getLogger
 
 import msgpack
-from websockets.sync.client import connect, ClientConnection
-
 from nanover.core.commands import CommandMessageHandler
-from nanover.utilities.state_dictionary import StateDictionary
-from nanover.utilities.change_buffers import DictionaryChange
 from nanover.trajectory import FrameData
+from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.state_dictionary import StateDictionary
 from nanover.websocket.server import MAX_MESSAGE_SIZE
+from websockets.sync.client import ClientConnection, connect
 
 
 class WebsocketClient:
@@ -32,8 +32,10 @@ class WebsocketClient:
                 message = msgpack.unpackb(bytes)
                 try:
                     self.recv_message(message)
-                except Exception as e:
-                    print(f"RECV FAILED ({set(message.keys())})", e)
+                except Exception:
+                    getLogger(__name__).exception(
+                        f"RECV FAILED ({set(message.keys())})"
+                    )
 
         self.threads = ThreadPoolExecutor(thread_name_prefix="WebSocketClient")
         self.threads.submit(listen)

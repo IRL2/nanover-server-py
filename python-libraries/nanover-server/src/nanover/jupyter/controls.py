@@ -1,11 +1,10 @@
 from typing import Any
 
-from ipywidgets import interact
 import ipywidgets as widgets
 from IPython.display import display
-from nanover.core import AppServerMinimal
-
+from ipywidgets import interact
 from nanover.app import OmniRunner
+from nanover.core import AppServerMinimal
 from nanover.trajectory import keys
 from nanover.utilities.change_buffers import DictionaryChange
 

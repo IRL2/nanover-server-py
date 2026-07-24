@@ -14,7 +14,7 @@ CLIS = [
 
 @pytest.mark.parametrize("cli", CLIS)
 def test_cli_help(cli):
-    assert subprocess.run([cli, "--help"]).returncode == 0
+    assert subprocess.run([cli, "--help"], check=False).returncode == 0
 
 
 def test_split_recording(tmp_path_factory):
@@ -33,7 +33,7 @@ def test_split_recording(tmp_path_factory):
 
     assert (
         subprocess.run(
-            ["nanover-split-recording", next_path, "-n", "frame.index"]
+            ["nanover-split-recording", next_path, "-n", "frame.index"], check=False
         ).returncode
         == 0
     )

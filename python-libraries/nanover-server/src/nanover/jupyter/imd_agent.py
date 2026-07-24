@@ -26,7 +26,6 @@ class ImdAgent(FrameListener):
         """
         Update this agent's interactions based on a given frame.
         """
-        pass
 
     def close(self):
         """

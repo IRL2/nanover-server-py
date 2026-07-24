@@ -1,5 +1,6 @@
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Iterable, Callable, Any
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt

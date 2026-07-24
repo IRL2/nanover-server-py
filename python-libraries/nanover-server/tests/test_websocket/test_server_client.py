@@ -1,26 +1,24 @@
 import pytest
 from hypothesis import given, strategies as st
-
-from nanover.testing.servers import (
-    make_connected_server_client_setup,
-    connect_client_to_server,
-)
-from nanover.testing.utilities import simplify_numpy
-from nanover.utilities.change_buffers import DictionaryChange
-
 from nanover.testing import (
     assert_equal_soon,
-    assert_not_in_soon,
     assert_in_soon,
+    assert_not_in_soon,
+)
+from nanover.testing.servers import (
+    connect_client_to_server,
+    make_connected_server_client_setup,
 )
 from nanover.testing.strategies import (
     command_arguments,
-    state_updates,
     frames,
+    state_updates,
     user_ids,
 )
-from nanover.websocket.client.app_client import NanoverImdClient
+from nanover.testing.utilities import simplify_numpy
 from nanover.trajectory import keys
+from nanover.utilities.change_buffers import DictionaryChange
+from nanover.websocket.client.app_client import NanoverImdClient
 
 
 def echo(**arguments):
@@ -100,7 +98,7 @@ def test_websocket_register_command(reusable_setup_two_clients, arguments):
     """
     Test one client can call a function registered by another.
     """
-    setup, extra_client = reusable_setup_two_clients
+    _, extra_client = reusable_setup_two_clients
 
     assert (
         extra_client.run_command_blocking("test/client_echo", **arguments) == arguments

@@ -1,9 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 from MDAnalysis import AtomGroup, Universe
-
 from MDAnalysis.lib import transformations
-
 from nanover.trajectory import FrameData
 
 
@@ -114,7 +112,7 @@ class StructureAlignment:
         )
 
     def calculate_transform_to_positions(self, positions: npt.NDArray):
-        return Transform.from_parent_to_local_matrix(
+        return Transform.from_local_to_parent_matrix(
             find_transformation_between_point_patterns(self.positions, positions)
         )
 
@@ -150,7 +148,7 @@ def find_transformation_between_point_patterns(
     Y = q - cen_Q
 
     # svd
-    U, sigma, Vt = np.linalg.svd(X @ Y.T)
+    U, _sigma, Vt = np.linalg.svd(X @ Y.T)
 
     # reflection correction
     d = np.identity(Vt.T.shape[1])
