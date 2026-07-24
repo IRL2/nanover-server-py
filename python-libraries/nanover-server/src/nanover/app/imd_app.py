@@ -7,15 +7,15 @@ from concurrent.futures import Future
 from ssl import SSLContext
 from typing import Any
 
+from nanover.core.commands import CommandHandler, CommandService
 from nanover.essd import DiscoveryServer, ServiceHub
 from nanover.trajectory import FramePublisher
 from nanover.utilities.change_buffers import DictionaryChange
-
-from nanover.core.commands import CommandService, CommandHandler
 from nanover.utilities.state_dictionary import StateDictionary
-from .multiuser import add_multiuser_commands
+
 from ..core import AppServer
 from ..imd import ImdStateWrapper
+from .multiuser import add_multiuser_commands
 
 DEFAULT_SERVE_ADDRESS = "[::]"
 DEFAULT_NANOVER_PORT = 38801
@@ -65,7 +65,7 @@ class NanoverImdApplication(AppServer):
 
         try:
             app_server.serve_websocket(ssl=ssl, port=port)
-        except IOError:
+        except OSError:
             app_server.close()
             raise
 

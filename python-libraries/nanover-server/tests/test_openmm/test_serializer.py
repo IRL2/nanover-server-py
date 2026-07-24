@@ -4,26 +4,24 @@ Tests for :mod:`nanover.openmm.serializer`.
 
 # Pylint does not recognize pytest fixtures which creates fake warnings.
 # pylint: disable=redefined-outer-name,unused-import
-from xml.dom.minidom import parseString
-import pytest
 from io import StringIO
+from xml.dom.minidom import parseString
 
-from openmm.unit import nanometer
-
+import pytest
+from nanover.app import NanoverImdApplication
+from nanover.openmm import OpenMMSimulation
 from nanover.openmm.imd import create_imd_force
 from nanover.openmm.serializer import (
-    serialize_simulation,
-    deserialize_simulation,
     ROOT_TAG,
+    deserialize_simulation,
+    serialize_simulation,
 )
-
+from openmm.unit import nanometer
 from simulation_utils import (
     basic_simulation_xml,
     build_basic_simulation,
     empty_imd_force,
 )
-from nanover.openmm import OpenMMSimulation
-from nanover.app import NanoverImdApplication
 
 
 def remove_xml_tag(simulation_xml: str, tag_to_remove: str) -> str:
@@ -145,8 +143,7 @@ def test_serializer_pbc():
 
     def get_sim_position_coords(sim):
         for position in sim.make_regular_frame().particle_positions:
-            for coord in position:
-                yield coord
+            yield from position
 
     with StringIO() as xml_pbc:
         xml_pbc.write(serialize_simulation(omm_sim, pbc_wrapping=True))

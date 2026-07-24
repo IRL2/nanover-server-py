@@ -1,7 +1,8 @@
-from nanover.app import OmniRunner, NanoverImdApplication
+from nanover.app import NanoverImdApplication, OmniRunner
 from nanover.testing import assert_equal_soon
 from nanover.testing.asserts import assert_true_soon
 from nanover.websocket.client.app_client import NanoverImdClient
+
 from .test_openmm import make_example_openmm
 
 
@@ -24,5 +25,5 @@ def test_client_simulation_topology():
             observing_client.run_load(index=i)
             assert_equal_soon(
                 lambda: observing_client.current_frame.particle_elements.all(),
-                lambda: simulation.make_topology_frame().particle_elements.all(),
+                lambda: simulation.make_topology_frame().particle_elements.all(),  # noqa: B023
             )

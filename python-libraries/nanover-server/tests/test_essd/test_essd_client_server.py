@@ -1,18 +1,16 @@
 import time
 
 import pytest
-
 from nanover.essd import DiscoveryServer
 from nanover.essd.client import DiscoveryClient
-from nanover.testing import assert_not_in_soon, assert_in_soon
+from nanover.essd.servicehub import ServiceHub
+from nanover.testing import assert_in_soon, assert_not_in_soon
 from test_essd_server import service
 from test_essd_service import (
+    EXAMPLE_SERVICE_PROPERTIES,
     properties,
     properties_unique_id,
-    EXAMPLE_SERVICE_PROPERTIES,
 )
-
-from nanover.essd.servicehub import ServiceHub
 
 TEST_SEARCH_TIME = 1
 TEST_INTERVAL_TIME = 0.1
@@ -56,15 +54,17 @@ def test_send_service(client_server, service):
 
 
 def test_send_service_different_port(service):
-    with DiscoveryServer(broadcast_port=8923) as server:
-        with DiscoveryClient(port=8923) as client:
-            server.register_service(service)
-            services = set(
-                client.search_for_services(
-                    search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
-                )
+    with (
+        DiscoveryServer(broadcast_port=8923) as server,
+        DiscoveryClient(port=8923) as client,
+    ):
+        server.register_service(service)
+        services = set(
+            client.search_for_services(
+                search_time=TEST_SEARCH_TIME, interval=TEST_INTERVAL_TIME
             )
-            assert service in services
+        )
+        assert service in services
 
 
 def test_remove_service(client_server, service):

@@ -2,9 +2,9 @@ import os
 import warnings
 from pathlib import Path
 
-import pytest
-import numpy as np
 import MDAnalysis as mda
+import numpy as np
+import pytest
 from nanover.mdanalysis import universes_from_recording
 from nanover.mdanalysis.universe import (
     NanoverParser,
@@ -163,7 +163,7 @@ def test_topology_attributes(
 ):
     actual_attribute = getattr(single_topology_universe.atoms, attribute)
     expected_attribute = getattr(reference_topology_universe.atoms, attribute)
-    assert all(actual_attribute == expected_attribute)
+    assert np.all(actual_attribute == expected_attribute)
 
 
 def test_user_forces_all_frames(user_forces_universe):
@@ -199,7 +199,7 @@ def test_user_forces(user_forces_universe):
 
 def ts_has_velocities(ts):
     try:
-        ts.velocities
+        _ = ts.velocities
     except mda.exceptions.NoDataError:
         return False
     else:
@@ -208,7 +208,7 @@ def ts_has_velocities(ts):
 
 def ts_has_forces(ts):
     try:
-        ts.forces
+        _ = ts.forces
     except mda.exceptions.NoDataError:
         return False
     else:
@@ -219,7 +219,7 @@ def test_velocities(feature_universe_and_features):
     """
     Velocities are optional in the recording.
     """
-    universe, with_velocities, with_forces = feature_universe_and_features
+    universe, with_velocities, _with_forces = feature_universe_and_features
     all_frame_have_velocities = all(ts_has_velocities(ts) for ts in universe.trajectory)
     assert with_velocities == all_frame_have_velocities
 
@@ -228,7 +228,7 @@ def test_forces(feature_universe_and_features):
     """
     Forces are optional in the recording.
     """
-    universe, with_velocities, with_forces = feature_universe_and_features
+    universe, _with_velocities, with_forces = feature_universe_and_features
     all_frame_have_forces = all(ts_has_forces(ts) for ts in universe.trajectory)
     assert with_forces == all_frame_have_forces
 

@@ -3,14 +3,15 @@ Module providing `StateDictionary`, a class for tracking and making changes to a
 shared key/value store.
 """
 
-from contextlib import contextmanager
+from collections.abc import Iterable, Iterator
+from contextlib import AbstractContextManager, contextmanager
 from threading import Lock
-from typing import ContextManager, Iterable, Any, Iterator
+from typing import Any
 
 from nanover.utilities.change_buffers import (
-    DictionaryChangeMultiView,
-    DictionaryChangeBuffer,
     DictionaryChange,
+    DictionaryChangeBuffer,
+    DictionaryChangeMultiView,
 )
 from nanover.utilities.event import Event
 from nanover.utilities.key_lockable_map import (
@@ -56,7 +57,7 @@ class StateDictionary:
         with self._lock:
             yield self._change_views.copy_content()
 
-    def get_change_buffer(self) -> ContextManager[DictionaryChangeBuffer]:
+    def get_change_buffer(self) -> AbstractContextManager[DictionaryChangeBuffer]:
         """
         Return a DictionaryChangeBuffer that tracks changes to this dictionary.
         """

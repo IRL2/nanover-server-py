@@ -3,7 +3,9 @@ Module providing a wrapper class around interaction data.
 """
 
 import math
-from typing import Any, Iterable, Union
+from collections.abc import Iterable
+from typing import Any
+
 import numpy as np
 import numpy.typing as npt
 
@@ -102,7 +104,7 @@ class ParticleInteraction:
         return self._particles
 
     @particles.setter
-    def particles(self, particles: Union[list[int], tuple[int]]):
+    def particles(self, particles: list[int] | tuple[int]):
         # We would like to type the `particles` argument as `Collection` and it
         # should be precise enough. However, it appears not to be compatible
         # with `npt.ArrayLike` in the context `np.unique`; and `ArrayLike`

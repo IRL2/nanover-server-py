@@ -1,8 +1,9 @@
-import numpy as np
 import hypothesis.strategies as st
+import numpy as np
 import pytest
 from nanover.imd.particle_interaction import ParticleInteraction
-from .. import MAX_INT32, MAX_FLOAT32, EXACT_SINGLE_VALUE_STRATEGY
+
+from .. import EXACT_SINGLE_VALUE_STRATEGY, MAX_FLOAT32, MAX_INT32
 
 
 @pytest.fixture

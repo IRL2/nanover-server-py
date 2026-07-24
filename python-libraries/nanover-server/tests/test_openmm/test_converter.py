@@ -5,13 +5,11 @@ import itertools
 import numpy as np
 import pytest
 from nanover.openmm import openmm_to_frame_data
-
 from openmm.app.element import Element
 from openmm.app.topology import Topology
-
 from simulation_utils import (
-    BASIC_SIMULATION_POSITIONS,
     BASIC_SIMULATION_BOX_VECTORS,
+    BASIC_SIMULATION_POSITIONS,
     basic_simulation,
 )
 

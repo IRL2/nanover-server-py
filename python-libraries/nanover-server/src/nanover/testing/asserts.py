@@ -1,7 +1,6 @@
 import time
+from collections.abc import Callable
 from contextlib import suppress
-from typing import Callable
-
 
 DEFAULT_INTERVAL = 0.1
 DEFAULT_TIMEOUT = 0.25

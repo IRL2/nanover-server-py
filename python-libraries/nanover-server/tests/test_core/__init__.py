@@ -1,6 +1,7 @@
 import sys
-from hypothesis import strategies as st
+
 import numpy as np
+from hypothesis import strategies as st
 
 MAX_DOUBLE = sys.float_info.max
 MIN_DOUBLE = sys.float_info.min

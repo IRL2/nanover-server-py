@@ -1,15 +1,14 @@
 from dataclasses import dataclass, field
 from itertools import groupby
 from os import PathLike
-from typing import Any, IO, BinaryIO
+from typing import IO, Any, BinaryIO
 from zipfile import ZipFile
 
 import msgpack
-
-from nanover.utilities.state_dictionary import StateDictionary
 from nanover.trajectory import FrameData
 from nanover.trajectory.keys import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.state_dictionary import StateDictionary
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 
@@ -274,7 +273,7 @@ class NanoverRecordingReader(MessageZipReader):
         return message.get(type, None)
 
     def __repr__(self):
-        filepart = f" {self.zipfile.filename}" or ""
+        filepart = f" {self.zipfile.filename}"
         entriespart = f" with {len(self)} entries"
 
         first_ts = self.index[0].metadata.get("timestamp")

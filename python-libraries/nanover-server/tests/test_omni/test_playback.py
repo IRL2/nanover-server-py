@@ -1,9 +1,8 @@
 from unittest.mock import patch
 
 import pytest
-
-from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.recording import PlaybackSimulation
+from nanover.recording.playback import SCENE_POSE_IDENTITY
 
 from .common import RECORDING_PATH, make_loaded_sim
 
@@ -29,7 +28,6 @@ def test_step_loops(example_playback):
     """
     Test that stepping past the last entry loops back to the beginning, emitting the first entry as expected.
     """
-    first_time, first_entry = example_playback.entries[0]
     example_playback.next_entry_index = len(example_playback.entries) - 1
 
     with patch.object(example_playback, "emit", autospec=True) as emit:

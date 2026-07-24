@@ -1,16 +1,16 @@
 import time
-import pytest
-from mock import Mock
+from unittest.mock import Mock
 
+import numpy as np
+import pytest
 from nanover.app import NanoverImdApplication
 from nanover.essd.utils import get_broadcastable_ip
 from nanover.imd import ParticleInteraction
 from nanover.testing import assert_equal_soon, assert_in_soon
 from nanover.trajectory import FrameData, keys
-
-from .test_frame_server import simple_frame_data, disjoint_frame_data
 from nanover.websocket import NanoverImdClient
-import numpy as np
+
+from .test_frame_server import disjoint_frame_data, simple_frame_data
 
 TEST_KEY = "test"
 TEST_VALUE = "hi"
@@ -33,11 +33,13 @@ def mock_callback(default_args):
 
 @pytest.fixture
 def client_server():
-    with NanoverImdApplication.basic_server(
-        address=get_broadcastable_ip(), port=0
-    ) as app_server:
-        with NanoverImdClient.from_app_server(app_server) as client:
-            yield client, app_server
+    with (
+        NanoverImdApplication.basic_server(
+            address=get_broadcastable_ip(), port=0
+        ) as app_server,
+        NanoverImdClient.from_app_server(app_server) as client,
+    ):
+        yield client, app_server
 
 
 def test_receive_multiple_frames(client_server, simple_frame_data):
@@ -160,12 +162,12 @@ def test_update_interaction(client_server, interaction):
     client.update_interaction(id, interaction)
 
     assert_equal_soon(
-        lambda: list(app_server.imd.active_interactions.values())[0].scale,
+        lambda: next(iter(app_server.imd.active_interactions.values())).scale,
         lambda: 0,
     )
 
     assert np.allclose(
-        list(app_server.imd.active_interactions.values())[0].position,
+        next(iter(app_server.imd.active_interactions.values())).position,
         (2, 2, 2),
     )
 
@@ -174,7 +176,7 @@ def test_set_multiplayer_value(client_server):
     """
     tests that setting multiplayer value works correctly.
     """
-    client, app_server = client_server
+    client, _app_server = client_server
 
     client.set_shared_value(TEST_KEY, TEST_VALUE)
 
@@ -248,6 +250,6 @@ def run_client_server_command_test(client, server):
 
 
 def test_unknown_command(client_server):
-    client, app_server = client_server
+    client, _app_server = client_server
     with pytest.raises(RuntimeError):
         client.run_command_blocking("unknown")
