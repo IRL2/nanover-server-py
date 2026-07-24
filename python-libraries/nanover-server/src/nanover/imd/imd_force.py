@@ -100,23 +100,24 @@ def apply_single_interaction_force(
             f"Unknown interactive force type {interaction.interaction_type}."
         )
 
-    # calculate the overall force to be applied
-    energy, force = potential_method(
+    # calculate the raw (unscaled and unclipped) force to be applied and associated energy
+    raw_energy, raw_force = potential_method(
         center, interaction.position, periodic_box_lengths=periodic_box_lengths
     )
     # apply the appropriate force to each particle in the selection.
-    force_per_particle = force / particle_count
-    energy_per_particle = energy / particle_count
+    # TODO: See if passing forces per particle makes sense here
+    # force_per_particle = force / particle_count
+    # energy_per_particle = energy / particle_count
     total_energy = _apply_force_to_particles(
-        forces, energy_per_particle, force_per_particle, interaction, masses
+        forces, raw_energy, raw_force, interaction, masses
     )
     return total_energy
 
 
 def _apply_force_to_particles(
     forces: np.ndarray,
-    energy_per_particle: float,
-    force_per_particle: np.ndarray,
+    raw_energy: float,
+    raw_force: np.ndarray,
     interaction: ParticleInteraction,
     masses: np.ndarray,
 ) -> float:
@@ -126,8 +127,8 @@ def _apply_force_to_particles(
     if specified in the interaction.
 
     :param forces: array of N particle forces. Interaction force will be added to this array, mutating it.
-    :param energy_per_particle: Interaction energy per particle.
-    :param force_per_particle: Force to apply to each particle.
+    :param raw_energy: Raw (unclipped) total interaction energy.
+    :param raw_force: Raw (unclipped) total force.
     :param interaction: The interaction being computed.
     :param masses: Array of N masses of the particles.
     :return: The total energy applied.
@@ -136,21 +137,32 @@ def _apply_force_to_particles(
     particles = interaction.particles
     scale = interaction.scale
     max_force = interaction.max_force
+    mass = masses[particles]
+    total_mass = np.sum(mass)
 
-    if interaction.mass_weighted:
-        mass = masses[particles]
-        total_mass = mass.sum()
-    else:
-        mass = np.ones(len(particles))
-        total_mass = len(particles)
+    # If particle group has total mass of zero, forces and energies are zero
+    # regardless of interaction weighting
+    if total_mass == 0.0:
+        forces[particles] += 0.0
+        total_energy = 0.0
+        return total_energy
 
-    total_energy = scale * energy_per_particle * total_mass
+    if not interaction.mass_weighted:
+        # Only apply forces to particles with non-zero mass
+        mass = (mass != 0.0).astype(int)
+        total_mass = np.sum(mass)
+
+    # TODO: Check what correct energy for mass-weighting should be (should just be the total
+    #  energy from the total force multiplied by the appropriate scaling factor)
+    total_energy = scale * raw_energy
     # add the force for each particle, adjusted by mass and scale factor.
-    force_to_apply = scale * mass[:, np.newaxis] * force_per_particle[np.newaxis, :]
+    # TODO: Figure out how to correctly mass-weight the forces
+    force_to_apply = scale * (mass[:, np.newaxis] / total_mass) * raw_force
     # clip the forces into maximum force range.
     force_to_apply_clipped = np.clip(force_to_apply, -max_force, max_force)
     # this is technically incorrect, but deriving the actual energy of a clip will involve a lot of maths
     # for what is essentially just, too much energy.
+    # TODO: Fix incorrect clipping of energy
     total_energy = np.clip(total_energy, -max_force, max_force)
     forces[particles] += force_to_apply_clipped
     return total_energy
