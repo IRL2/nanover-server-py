@@ -18,7 +18,8 @@ class Transform:
 
         translation = transformations.translation_matrix((tx, ty, tz))
         rotation = transformations.quaternion_matrix((rw, rx, ry, rz))
-        scale = np.diagflat((-sx, sy, sz, 1.0))
+        # INVERT X OR NOT????
+        scale = np.diagflat((sx, sy, sz, 1.0))
 
         # compose in TRS order
         return cls.from_local_to_parent_matrix(translation @ rotation @ scale)
