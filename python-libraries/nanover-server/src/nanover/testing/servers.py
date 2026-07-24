@@ -13,13 +13,15 @@ from nanover.websocket.server import WebSocketServer
 
 @contextmanager
 def make_connected_server_client_setup():
-    with make_websocket_server() as (app_server, ws):
-        with connect_client_to_server(ws) as client:
-            yield ServerClientSetup(
-                app=app_server,
-                server=ws,
-                client=client,
-            )
+    with (
+        make_websocket_server() as (app_server, ws),
+        connect_client_to_server(ws) as client,
+    ):
+        yield ServerClientSetup(
+            app=app_server,
+            server=ws,
+            client=client,
+        )
 
 
 @contextmanager

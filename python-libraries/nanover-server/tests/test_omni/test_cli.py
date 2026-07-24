@@ -2,8 +2,8 @@ import os
 import time
 
 import pytest
+from nanover.app.cli.server_cli import handle_user_arguments, initialise_runner
 
-from nanover.app.cli.server_cli import initialise_runner, handle_user_arguments
 from .common import ARGON_XML_PATH, RECORDING_PATH
 
 

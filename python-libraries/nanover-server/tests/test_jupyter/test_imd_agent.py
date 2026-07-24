@@ -1,11 +1,10 @@
 import time
 from contextlib import contextmanager
-from unittest.mock import patch, ThreadingMock
 from dataclasses import dataclass
+from unittest import mock
+from unittest.mock import ThreadingMock, patch
 
-import mock
 import pytest
-
 from nanover.app import OmniRunner
 from nanover.imd import ParticleInteraction
 from nanover.jupyter import ImdAgent

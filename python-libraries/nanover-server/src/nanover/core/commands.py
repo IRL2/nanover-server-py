@@ -1,6 +1,7 @@
 from concurrent.futures import Future
-
+from logging import getLogger
 from typing import Any, Protocol
+
 from .app_server import CommandService as CommandServiceProtocol
 from .types import CommandHandler, CommandRegistration
 
@@ -109,6 +110,9 @@ class CommandMessageHandler:
             try:
                 self._send_message({"request": request, "response": future.result()})
             except Exception as e:
+                getLogger(__name__).exception(
+                    f"Exception in command handling {name}({arguments})"
+                )
                 self._send_message({"request": request, "exception": str(e)})
 
         future = self._command_service.run_command(name, arguments)
@@ -210,6 +214,7 @@ class CommandService:
             if isinstance(result, Future):
                 return result
         except Exception as e:
+            getLogger(__name__).exception(f"Exception in command {name}({arguments})")
             future.set_exception(e)
         else:
             future.set_result(result)

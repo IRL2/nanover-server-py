@@ -1,6 +1,7 @@
 import time
-import pytest
+
 import numpy as np
+import pytest
 from ase.calculators.lj import LennardJones
 from nanover.ase import converter
 from nanover.ase.imd_calculator import (
@@ -10,7 +11,7 @@ from nanover.ase.imd_calculator import (
 from nanover.ase.null_calculator import NullCalculator
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.websocket.client.app_client import NanoverImdClient
-from util import co_atoms, app_server, client_interaction, state_wrapper, c_atoms
+from util import app_server, c_atoms, client_interaction, co_atoms, state_wrapper
 
 
 @pytest.fixture
@@ -67,7 +68,7 @@ def test_imd_calculator_one_dimension_pbc(state_wrapper):
 
 
 def test_imd_calculator_no_pbc(imd_calculator_co):
-    imd_calculator, atoms, _ = imd_calculator_co
+    _imd_calculator, atoms, _ = imd_calculator_co
     atoms.set_pbc((False, False, False))
     assert get_periodic_box_lengths(atoms) is None
 
@@ -114,14 +115,16 @@ def test_one_interaction(
 
     # perform the calculation with interaction applied.
     interact_c.position = position
-    with NanoverImdClient.from_app_server(app_server) as client:
-        with client_interaction(client, interact_c):
-            time.sleep(0.1)
-            assert len(imd_calculator.interactions) == 1
-            # Update interactions
-            imd_calculator.update_interactions()
-            imd_calculator.calculate(properties=properties)
-            results = imd_calculator.results
+    with (
+        NanoverImdClient.from_app_server(app_server) as client,
+        client_interaction(client, interact_c),
+    ):
+        time.sleep(0.1)
+        assert len(imd_calculator.interactions) == 1
+        # Update interactions
+        imd_calculator.update_interactions()
+        imd_calculator.calculate(properties=properties)
+        results = imd_calculator.results
 
     # set up the expected energy and forces.
     expected_imd_energy_kjmol = interact_c.scale * imd_energy * atoms.get_masses()[0]

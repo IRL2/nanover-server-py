@@ -1,6 +1,6 @@
 import time
-from signal import signal, SIGINT
 from contextlib import contextmanager
+from signal import SIGINT, signal
 
 from nanover.utilities.event import Event
 

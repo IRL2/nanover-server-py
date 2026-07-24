@@ -1,5 +1,5 @@
-from nanover.websocket import NanoverImdClient
 from nanover.utilities.timing import yield_interval
+from nanover.websocket import NanoverImdClient
 from pythonosc import udp_client
 
 # doesn't support both IPv4 and IPv6 at once, so we probably want IPv4

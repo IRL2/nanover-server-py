@@ -3,18 +3,17 @@ Provides an implementation of IMD force field in ASE.
 """
 
 import math
-from typing import Set
 
 import numpy as np
-from ase import Atoms, units  # type: ignore
-from ase.calculators.calculator import Calculator, all_changes
-from ase.md.md import MolecularDynamics
-from ase.md.velocitydistribution import _maxwellboltzmanndistribution
-
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd.imd_state import ImdStateWrapper
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.trajectory import FrameData, MissingDataError
+
+from ase import Atoms, units  # type: ignore
+from ase.calculators.calculator import Calculator, all_changes
+from ase.md.md import MolecularDynamics
+from ase.md.velocitydistribution import _maxwellboltzmanndistribution
 
 from . import converter
 
@@ -356,9 +355,9 @@ def _get_cancelled_interactions(
     return {key: previous_interactions[key] for key in cancelled_interactions}
 
 
-def _get_atoms_to_reset(cancelled_interactions) -> Set[int]:
-    atoms_to_reset: Set[int] = set()
-    for key, interaction in cancelled_interactions.items():
+def _get_atoms_to_reset(cancelled_interactions) -> set[int]:
+    atoms_to_reset: set[int] = set()
+    for interaction in cancelled_interactions.values():
         if interaction.reset_velocities:
             atoms_to_reset = atoms_to_reset.union(interaction.particles)
     return atoms_to_reset

@@ -1,9 +1,9 @@
 import numpy as np
-
-from .utilities import TransformsUtility
-from .frame_listener import FrameListener
 from nanover.trajectory import FrameData, MissingDataError
 from nanover.utilities.transforms import StructureAlignment, Transform
+
+from .frame_listener import FrameListener
+from .utilities import TransformsUtility
 
 
 class AlignmentTransform(FrameListener):

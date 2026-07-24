@@ -17,24 +17,23 @@ Example
 import logging
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, Future
+from concurrent.futures import Future, ThreadPoolExecutor
 from socket import (
-    socket,
     AF_INET,
-    SOCK_DGRAM,
-    SOL_SOCKET,
     SO_BROADCAST,
     SO_REUSEADDR,
+    SOCK_DGRAM,
+    SOL_SOCKET,
+    socket,
 )
-from typing import List
 
+from nanover.essd.servicehub import ServiceHub
 from nanover.essd.utils import (
+    InterfaceAddresses,
     get_broadcast_addresses,
     is_in_network,
     resolve_host_broadcast_address,
-    InterfaceAddresses,
 )
-from nanover.essd.servicehub import ServiceHub
 
 BROADCAST_PORT = 54545
 
@@ -63,7 +62,7 @@ def configure_reusable_socket() -> socket:
 
 
 class DiscoveryServer:
-    services: dict[ServiceHub, List[InterfaceAddresses]]
+    services: dict[ServiceHub, list[InterfaceAddresses]]
     _socket: socket
 
     def __init__(self, broadcast_port: int | None = None, delay=0.5):
@@ -78,7 +77,7 @@ class DiscoveryServer:
         self.broadcast_addresses = get_broadcast_addresses()
         self.log_addresses(level=logging.INFO)
         self.delay = delay
-        self.services = dict()
+        self.services = {}
         self._lock = threading.RLock()
         self._cancel = False
 
@@ -180,7 +179,7 @@ class DiscoveryServer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def get_broadcast_addresses_for_service(self, service) -> List[InterfaceAddresses]:
+    def get_broadcast_addresses_for_service(self, service) -> list[InterfaceAddresses]:
         address = service.address
         if address == "[::]":
             return self.broadcast_addresses

@@ -1,15 +1,16 @@
+from math import exp
+
 import numpy as np
 import pytest
-from hypothesis import strategies, given
-from math import exp
+from hypothesis import given, strategies
 from nanover.imd.imd_force import (
-    get_center_of_mass_subset,
-    calculate_spring_force,
-    calculate_gaussian_force,
-    apply_single_interaction_force,
-    calculate_imd_force,
-    calculate_constant_force,
     InvalidInteractionError,
+    apply_single_interaction_force,
+    calculate_constant_force,
+    calculate_gaussian_force,
+    calculate_imd_force,
+    calculate_spring_force,
+    get_center_of_mass_subset,
 )
 from nanover.imd.particle_interaction import ParticleInteraction
 
@@ -285,7 +286,7 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     dist_sqr = np.dot(diff, diff)
     expected_energy_per_particle = exp(-dist_sqr / 2) / len(selection)
     expected_energy = sum(
-        (-expected_energy_per_particle * masses[index] for index in selection)
+        -expected_energy_per_particle * masses[index] for index in selection
     )
     expected_forces = np.zeros((len(positions), 3))
     for index in selection:
@@ -333,7 +334,7 @@ def test_interaction_force_no_mass_weighting(
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
     expected_energy_per_particle = exp(-dist_sqr / 2) / len(selection)
-    expected_energy = -sum((expected_energy_per_particle for _ in selection))
+    expected_energy = -sum(expected_energy_per_particle for _ in selection)
     expected_forces = np.zeros((len(positions), 3))
     for index in selection:
         expected_forces[index, :] = -1 * diff * expected_energy_per_particle

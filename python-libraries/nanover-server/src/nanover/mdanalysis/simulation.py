@@ -1,10 +1,9 @@
 import math
 
 import MDAnalysis as mda
-
 from nanover.core import AppServer, Simulation
-from nanover.trajectory import FrameData
 from nanover.mdanalysis.converter import mdanalysis_to_frame_data
+from nanover.trajectory import FrameData
 
 
 class UniverseSimulation(Simulation):

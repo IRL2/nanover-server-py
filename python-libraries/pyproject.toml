@@ -8,3 +8,7 @@ markers = ["serial"]
 
 #"__init__.py" = ["F401"]
 
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+

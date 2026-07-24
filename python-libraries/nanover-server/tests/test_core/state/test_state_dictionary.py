@@ -2,11 +2,9 @@ import time
 from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
-
-from nanover.utilities.key_lockable_map import ResourceLockedError
 from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.key_lockable_map import ResourceLockedError
 from nanover.utilities.state_dictionary import StateDictionary
-
 
 BACKGROUND_THREAD_ACTION_TIME = 0.1
 

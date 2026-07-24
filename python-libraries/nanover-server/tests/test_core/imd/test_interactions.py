@@ -1,6 +1,6 @@
-from hypothesis import given
 import hypothesis.strategies as st
 import numpy as np
+from hypothesis import given
 from nanover.imd.imd_state import dict_to_interaction, interaction_to_dict
 from nanover.imd.particle_interaction import ParticleInteraction
 
@@ -72,7 +72,7 @@ def interaction_dictionaries(draw):
 def extra_dictionaries(draw):
     serializable_dict: dict = draw(serializable_dictionaries())
 
-    for key in {
+    for key in (
         "position",
         "particles",
         "reset_velocities",
@@ -80,7 +80,7 @@ def extra_dictionaries(draw):
         "scale",
         "max_force",
         "interaction_type",
-    }:
+    ):
         serializable_dict.pop(key, None)
 
     return serializable_dict

@@ -2,8 +2,8 @@
 Calculate thermodynamic quantities associated with the simulation.
 """
 
+from openmm import CMMotionRemover, unit
 from openmm.app import Simulation
-from openmm import unit, CMMotionRemover
 
 
 def compute_instantaneous_temperature(
@@ -46,7 +46,7 @@ def compute_dof(system):
         if system.getParticleMass(i) > 0 * unit.dalton:
             dof += 3
     for i in range(system.getNumConstraints()):
-        p1, p2, distance = system.getConstraintParameters(i)
+        p1, p2, _distance = system.getConstraintParameters(i)
         if (
             system.getParticleMass(p1) > 0 * unit.dalton
             or system.getParticleMass(p2) > 0 * unit.dalton

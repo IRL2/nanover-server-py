@@ -4,9 +4,8 @@ Hypothesis strategies to generate common NanoVer data during testing.
 
 import numpy as np
 from hypothesis import strategies as st
-from nanover.trajectory import FrameData
-from nanover.trajectory.frame_dict import frame_dict_packer, FRAME_PACKERS
-import nanover.trajectory.keys as keys
+from nanover.trajectory import FrameData, keys
+from nanover.trajectory.frame_dict import FRAME_PACKERS, frame_dict_packer
 
 
 def uint8s():

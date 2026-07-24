@@ -1,4 +1,4 @@
-from concurrent.futures import ThreadPoolExecutor, Future
+from concurrent.futures import Future, ThreadPoolExecutor
 from logging import getLogger
 
 from nanover.app import OmniRunner
