@@ -3,8 +3,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import numpy.typing as npt
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 from nanover.utilities.intersection import ClosestPointResult, closest_point_on_polyline
 from nanover.utilities.transforms import Transform
 

@@ -3,8 +3,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from nanover.core import AppServer
-from nanover.core import Simulation as NanoverSimulation
+from nanover.core import AppServer, Simulation as NanoverSimulation
 from nanover.imd.imd_force import calculate_contribution_to_work
 
 from openmm.app import Simulation, StateDataReporter

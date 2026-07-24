@@ -1,6 +1,5 @@
 import numpy as np
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 from MDAnalysis.lib import transformations
 from nanover.utilities.transforms import (
     Transform,

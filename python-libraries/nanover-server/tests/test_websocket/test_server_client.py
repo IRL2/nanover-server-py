@@ -1,6 +1,5 @@
 import pytest
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 from nanover.testing import (
     assert_equal_soon,
     assert_in_soon,

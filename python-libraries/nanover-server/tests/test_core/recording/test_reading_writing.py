@@ -1,8 +1,7 @@
 from io import BytesIO
 from itertools import zip_longest
 
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 from nanover.recording.reading import NanoverRecordingReader
 from nanover.recording.writing import MessageEvent, record_messages
 from nanover.testing.strategies import packed_frame_dicts, state_updates
