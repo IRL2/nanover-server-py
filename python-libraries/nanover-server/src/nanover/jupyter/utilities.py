@@ -23,7 +23,7 @@ from nanover.imd.imd_state import (
 )
 from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.utilities.transforms import Transform
+from nanover.utilities.transforms import Transform, quaternion_wxyz_to_xyzw
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
@@ -370,9 +370,9 @@ class TransformsUtility(StateKeysUtility):
         transform: Transform,
         parent: str | None = None,
     ):
-        matrix = transform._local_to_parent
+        matrix = transform.local_to_parent_matrix
         r = quaternion_from_matrix(matrix)
-        r = [*r[1:], r[0]]
+        r = quaternion_wxyz_to_xyzw(r)
         s, _, _, t, _ = decompose_matrix(matrix)
 
         self.update_object(

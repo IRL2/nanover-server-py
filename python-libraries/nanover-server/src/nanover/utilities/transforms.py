@@ -43,6 +43,14 @@ class Transform:
             local_to_parent=np.linalg.inv(parent_to_local),
         )
 
+    @property
+    def local_to_parent_matrix(self):
+        return self._local_to_parent
+
+    @property
+    def parent_to_local_matrix(self):
+        return self._parent_to_local
+
     def __init__(
         self,
         *,
