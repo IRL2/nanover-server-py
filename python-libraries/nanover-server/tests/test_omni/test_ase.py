@@ -1,18 +1,17 @@
-import pytest
-import numpy as np
-from ase import Atoms
 import ase.units as ase_units
+import numpy as np
+import pytest
+from ase import Atoms
 from ase.calculators.lj import LennardJones
 from ase.md import VelocityVerlet
-
-from nanover.imd import ParticleInteraction
 from nanover.ase import ASESimulation
-from nanover.ase.converter import ASE_TIME_UNIT_TO_PS, ANG_TO_NM, EV_TO_KJMOL
+from nanover.ase.converter import ANG_TO_NM, ASE_TIME_UNIT_TO_PS, EV_TO_KJMOL
+from nanover.imd import ParticleInteraction
 
 from .common import (
+    connect_and_retrieve_first_frame_from_app_server,
     make_app_server,
     make_loaded_sim,
-    connect_and_retrieve_first_frame_from_app_server,
 )
 
 
@@ -141,7 +140,7 @@ def test_dynamics_interaction(example_ase_loaded):
         example_ase_loaded.advance_by_one_step()
 
     positions = example_ase_loaded.atoms.get_positions()
-    (x, y, z) = positions[0]
+    _x, _y, z = positions[0]
 
     # Applying a force of 1 kJ mol-1 nm-1 for
     # t = (0.5 fs * 5 simulation steps per advance * 30 advances) = 75 fs

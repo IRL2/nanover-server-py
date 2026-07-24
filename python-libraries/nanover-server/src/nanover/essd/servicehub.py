@@ -3,8 +3,8 @@ Module defining a Service.
 """
 
 import json
-from typing import Tuple
 from uuid import uuid4
+
 import nanover.essd
 
 MAXIMUM_MESSAGE_SIZE = 1024
@@ -177,7 +177,7 @@ class ServiceHub:
             hub = self
         return hub.message
 
-    def get_service_address(self, service_name: str) -> Tuple[str, int] | None:
+    def get_service_address(self, service_name: str) -> tuple[str, int] | None:
         """
         Gets the address and port of a service, if it exists.
         :param service_name: Service name

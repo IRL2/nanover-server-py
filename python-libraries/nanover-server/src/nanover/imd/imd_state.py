@@ -2,13 +2,14 @@
 Module providing methods for storing ParticleInteractions in a StateDictionary.
 """
 
-import warnings
-from typing import Any, Mapping
+from collections.abc import Mapping
+from logging import getLogger
+from typing import Any
 
+from nanover.imd.particle_interaction import ParticleInteraction
+from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.event import Event
 from nanover.utilities.state_dictionary import StateDictionary
-from nanover.utilities.change_buffers import DictionaryChange
-from nanover.imd.particle_interaction import ParticleInteraction
 
 INTERACTION_PREFIX = "interaction."
 VELOCITY_RESET_KEY = "imd.velocity_reset_available"
@@ -73,7 +74,7 @@ class ImdStateWrapper:
         self.state_dictionary.update_state(None, change)
 
     def clear_interactions(self):
-        for interaction_id in self.active_interactions.keys():
+        for interaction_id in self.active_interactions:
             self.remove_interaction(interaction_id)
 
     @property
@@ -105,7 +106,9 @@ class ImdStateWrapper:
                         )
                     self.interaction_updated.invoke(key=key, interaction=interaction)
                 except Exception:
-                    warnings.warn(f"Didn't understand '{value}' ({key}) as interaction")
+                    getLogger().exception(
+                        f"Didn't understand '{value}' ({key}) as interaction"
+                    )
 
 
 def interaction_to_dict(interaction: ParticleInteraction) -> dict[str, Any]:

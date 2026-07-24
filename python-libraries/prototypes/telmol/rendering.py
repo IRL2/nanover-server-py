@@ -1,6 +1,8 @@
 import curses
 import itertools
-from typing import Tuple, Iterable, Iterator, Sequence, Dict, Any, Protocol
+from collections.abc import Iterable, Iterator, Sequence
+from typing import Any, Protocol
+
 import numpy as np
 from bresenham import get_line
 
@@ -22,10 +24,10 @@ element_colors = {
 }
 
 ColorPair = Any  # curses.color_pair
-Position = Tuple[float, float, float, float]
-Fragment = Tuple[int, int, int, float]
-BondPair = Tuple[int, int]
-AtomInfo = Tuple[int, Position, int]
+Position = tuple[float, float, float, float]
+Fragment = tuple[int, int, int, float]
+BondPair = tuple[int, int]
+AtomInfo = tuple[int, Position, int]
 
 
 # Mypy does not allow to assign to a method. Though, it is confused and thinks
@@ -33,7 +35,7 @@ AtomInfo = Tuple[int, Position, int]
 # Renreder class in curse_client.py. This is a workaround described in
 # https://github.com/python/mypy/issues/708#issuecomment-667989040
 class Shader(Protocol):
-    def __call__(self, frame: Dict, color_count: int) -> Iterator[Fragment]: ...
+    def __call__(self, frame: dict, color_count: int) -> Iterator[Fragment]: ...
 
 
 def iterate_frame_atoms(frame) -> Iterator[AtomInfo]:

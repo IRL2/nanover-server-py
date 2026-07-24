@@ -1,6 +1,5 @@
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from ssl import SSLContext
-
 
 LANDING_HTML = """<dialog open style="inset: 0;"><button onclick="window.history.back(); window.close()" style="font-size: 10rem;">DONE</button></dialog>"""
 

@@ -21,43 +21,42 @@ Facilities to read a NanoVer trajectory recording into an MDAnalysis Universe.
 """
 
 import warnings
+from collections.abc import Callable
 from contextlib import suppress
 from itertools import islice
 from os import PathLike
-from typing import NamedTuple, Type, Callable
+from typing import ClassVar, NamedTuple
 
+import numpy as np
 from MDAnalysis import Universe
 from MDAnalysis.coordinates.base import ProtoReader
 from MDAnalysis.coordinates.timestep import Timestep
-from MDAnalysis.lib.util import openany
+from MDAnalysis.core.topology import Topology
 from MDAnalysis.core.topologyattrs import (
     Atomnames,
     Atomtypes,
     Bonds,
+    ChainIDs,
     Elements,
     Resids,
     Resnames,
     Segids,
-    ChainIDs,
     TopologyAttr,
 )
-from MDAnalysis.core.topology import Topology
+from MDAnalysis.lib.util import openany
 from MDAnalysis.topology.base import TopologyReaderBase
-import numpy as np
-
-from nanover.trajectory import FrameData as FrameData, MissingDataError
-import nanover.trajectory.keys as keys
-
-from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
 from nanover.recording.reading import (
     MessageZipReader,
-    RecordingIndexEntry,
     NanoverRecordingReader,
+    RecordingIndexEntry,
 )
+from nanover.trajectory import FrameData, MissingDataError, keys
+
+from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
 
 
 class KeyConversion(NamedTuple):
-    attribute: Type[TopologyAttr]
+    attribute: type[TopologyAttr]
     conversion: Callable
 
 
@@ -121,7 +120,7 @@ def universes_from_recording(path: str | PathLike[str], *, convert_units=True):
                 reader, filename=path, convert_units=convert_units
             )
             universes.append(universe)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             warnings.warn(
                 f"Failed to extract universe in frames #{first_frame}-{last_frame}: {e}"
             )
@@ -164,7 +163,7 @@ class NanoverParser(TopologyReaderBase):
                 reader = MessageZipReader.from_io(infile)
                 first_frame = _trim_start_frame_reader(reader)
             except StopIteration:
-                raise IOError("The file does not contain any frame.")
+                raise OSError("The file does not contain any frame.")
 
             attrs = []
             for frame_key, (attribute, converter) in KEY_TO_ATTRIBUTE.items():
@@ -215,7 +214,7 @@ class NanoverParser(TopologyReaderBase):
 
 
 class NanoverReaderBase(ProtoReader):
-    units = {
+    units: ClassVar = {
         "time": "ps",
         "length": "nm",
         "velocity": "nm/ps",
@@ -267,7 +266,9 @@ class NanoverReaderBase(ProtoReader):
         try:
             ts.positions = frame_at_index.particle_positions
         except MissingDataError as e:
-            raise Exception(f"No particle positions in trajectory frame {frame}") from e
+            raise ValueError(
+                f"No particle positions in trajectory frame {frame}"
+            ) from e
 
         with suppress(MissingDataError):
             ts.time = frame_at_index.simulation_time
@@ -373,11 +374,10 @@ def _trim_end_frame_reader(reader: MessageZipReader):
     """
     for i, entry in enumerate(reader):
         message = reader.get_message_from_entry(entry)
-        if "frame" in message:
-            if message["frame"].get(keys.FRAME_INDEX, None) == 0 and i > 0:
-                remainder = len(reader.index) - i
-                reader.index = reader.index[:i]
-                return remainder
+        if message.get("frame", {}).get(keys.FRAME_INDEX, None) == 0 and i > 0:
+            remainder = len(reader.index) - i
+            reader.index = reader.index[:i]
+            return remainder
     return 0
 
 

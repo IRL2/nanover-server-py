@@ -1,6 +1,8 @@
 from itertools import pairwise
+
 import pytest
 from nanover.recording.reading import NanoverRecordingReader
+
 from .test_reading import RECORDING_PATH, RECORDING_PATH_SWITCHING
 
 

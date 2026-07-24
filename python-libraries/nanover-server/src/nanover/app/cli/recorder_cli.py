@@ -94,14 +94,16 @@ def main():
 
         interrupted = False
 
-        with suppress_keyboard_interrupt_as_cancellation() as cancellation:
-            with BackgroundRecordingContext.from_address_to_path(
+        with (
+            suppress_keyboard_interrupt_as_cancellation() as cancellation,
+            BackgroundRecordingContext.from_address_to_path(
                 address=address, path=outfile
-            ) as recording:
-                print(f"Recording from server to {outfile}. Press Ctrl-C to stop.")
-                recording.future.add_done_callback(lambda _: cancellation.cancel())
-                cancellation.wait_cancellation(interval=0.01)
-                interrupted = not recording.future.done()
+            ) as recording,
+        ):
+            print(f"Recording from server to {outfile}. Press Ctrl-C to stop.")
+            recording.future.add_done_callback(lambda _: cancellation.cancel())
+            cancellation.wait_cancellation(interval=0.01)
+            interrupted = not recording.future.done()
 
         if not interrupted:
             print("Recording ended by disconnection.")

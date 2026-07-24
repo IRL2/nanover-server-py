@@ -2,23 +2,23 @@
 ASE calculator for use with OpenMM.
 """
 
-import nanover.openmm.serializer as serializer
 import numpy as np
-from ase import Atoms, Atom  # type: ignore
-from ase.calculators.calculator import Calculator, all_changes
-from openmm import System, State
-from openmm.app import Topology, Simulation
-from openmm.unit import (
-    angstrom,
-    kilojoules_per_mole,
-    kilojoule_per_mole,
-    amu,
-    Quantity,
-)
-
 from nanover.ase.converter import KJMOL_TO_EV, ase_to_frame_data
+from nanover.openmm import serializer
 from nanover.openmm.converter import add_openmm_topology_to_frame_data
 from nanover.trajectory import FrameData
+from openmm import State, System
+from openmm.app import Simulation, Topology
+from openmm.unit import (
+    Quantity,
+    amu,
+    angstrom,
+    kilojoule_per_mole,
+    kilojoules_per_mole,
+)
+
+from ase import Atom, Atoms  # type: ignore
+from ase.calculators.calculator import Calculator, all_changes
 
 
 class OpenMMCalculator(Calculator):
@@ -35,7 +35,7 @@ class OpenMMCalculator(Calculator):
     """
 
     simulation: Simulation
-    implemented_properties = ["energy", "forces"]
+    implemented_properties = ["energy", "forces"]  # noqa: RUF012
 
     def __init__(self, simulation, atoms: Atoms | None = None, **kwargs):
         super().__init__(**kwargs)

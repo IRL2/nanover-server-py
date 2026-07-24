@@ -7,7 +7,8 @@ into the terminal.
 
 import sys
 import textwrap
-from typing import Callable, Sequence, Any
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from nanover.trajectory import MissingDataError
 
@@ -20,16 +21,14 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 import argparse
-
-import math
-import numpy as np
 import colorsys
+import math
 import time
 
-from nanover.websocket import NanoverImdClient
-
-from transformations import rotation_matrix, scale_matrix
+import numpy as np
 import rendering
+from nanover.websocket import NanoverImdClient
+from transformations import rotation_matrix, scale_matrix
 
 
 class Camera:
@@ -137,11 +136,11 @@ class Renderer:
             }
 
             if not self.show_hydrogens:
-                frame["skip_atoms"] = set(
+                frame["skip_atoms"] = {
                     index
                     for index, element in enumerate(frame["elements"])
                     if element == 1
-                )
+                }
 
             pixels = self.shader(frame, len(self.colors) - 1)
             rendering.render_pixels_to_window(
@@ -243,8 +242,8 @@ class CursesFrontend:
 
         self._fps_timer.checkpoint()
 
-        h, w = self.stdscr.getmaxyx()
-        self.stdscr.addstr(h - 1, 0, "{} fps".format(round(self._fps_timer.fps)))
+        h, _ = self.stdscr.getmaxyx()
+        self.stdscr.addstr(h - 1, 0, f"{round(self._fps_timer.fps)} fps")
         self.stdscr.noutrefresh()
         curses.doupdate()
 

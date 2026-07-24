@@ -3,8 +3,7 @@ Unit tests for `nanover.trajectory.frame_publisher
 """
 
 import pytest
-
-from nanover.trajectory import FramePublisher, FrameData
+from nanover.trajectory import FrameData, FramePublisher
 from nanover.trajectory.keys import SERVER_TIMESTAMP
 from nanover.utilities.cli import CancellationToken
 

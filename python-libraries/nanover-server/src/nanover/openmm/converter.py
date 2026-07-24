@@ -3,14 +3,15 @@ Module providing conversion methods between NanoVer and OpenMM.
 """
 
 import numpy as np
+from nanover.trajectory import FrameData
+
 from openmm import State
 from openmm.app.topology import Topology
 from openmm.unit import (
     kilojoule_per_mole,
-    picosecond,
     nanometer,
+    picosecond,
 )
-from nanover.trajectory import FrameData
 
 
 def add_openmm_state_to_frame_data(

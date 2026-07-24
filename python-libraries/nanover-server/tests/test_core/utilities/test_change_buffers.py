@@ -1,5 +1,4 @@
 import pytest
-
 from nanover.utilities.change_buffers import (
     DictionaryChangeBuffer,
     DictionaryChangeMultiView,
@@ -22,7 +21,7 @@ def test_buffer_flush_reflects_changes(change_buffer):
     Test that flushing reflects the previous update.
     """
     change_buffer.update({"hello": "test"})
-    changes, removals = change_buffer.flush_changed_blocking()
+    changes, _removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test"
 
 
@@ -31,8 +30,8 @@ def test_buffer_flush_reflects_removal(change_buffer):
     Test that flushing reflects the previous key removal.
     """
     change_buffer.update({"hello": "test"})
-    change_buffer.update(removals=["hello"])
-    changes, removals = change_buffer.flush_changed_blocking()
+    change_buffer.update(removals={"hello"})
+    _changes, removals = change_buffer.flush_changed_blocking()
     assert removals == {"hello"}
 
 
@@ -51,7 +50,7 @@ def test_buffer_flush_empties_removals(change_buffer):
     Test that flushing empties the buffer of removals.
     """
     change_buffer.update({"hello": "test"})
-    change_buffer.update(removals=["hello"])
+    change_buffer.update(removals={"hello"})
     assert change_buffer._pending_removals
     change_buffer.flush_changed_blocking()
     assert not change_buffer._pending_removals
@@ -63,7 +62,7 @@ def test_buffer_flush_merges_updates(change_buffer):
     """
     change_buffer.update({"hello": "test"})
     change_buffer.update({"foo": "bar"})
-    changes, removals = change_buffer.flush_changed_blocking()
+    changes, _removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test" and changes["foo"] == "bar"
 
 
@@ -72,9 +71,9 @@ def test_buffer_flush_merges_removals(change_buffer):
     Test that flushing after two removals gives a single combined removal.
     """
     change_buffer.update({"hello": "test", "foo": "bar"})
-    change_buffer.update(removals=["hello"])
-    change_buffer.update(removals=["foo"])
-    changes, removals = change_buffer.flush_changed_blocking()
+    change_buffer.update(removals={"hello"})
+    change_buffer.update(removals={"foo"})
+    _changes, removals = change_buffer.flush_changed_blocking()
     assert removals == {"hello", "foo"}
 
 
@@ -85,7 +84,7 @@ def test_buffer_flush_merges_same_change_key(change_buffer):
     """
     change_buffer.update({"hello": "test"})
     change_buffer.update({"hello": "bar"})
-    changes, removals = change_buffer.flush_changed_blocking()
+    changes, _removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "bar"
 
 
@@ -94,8 +93,8 @@ def test_change_then_removal_discards_change(change_buffer):
     Test that flushing after adding a key then removing the key gives no change.
     """
     change_buffer.update({"hello": "test"})
-    change_buffer.update(removals=["hello"])
-    changes, removals = change_buffer.flush_changed_blocking()
+    change_buffer.update(removals={"hello"})
+    changes, _removals = change_buffer.flush_changed_blocking()
     assert not changes
 
 
@@ -131,7 +130,7 @@ def test_frozen_buffer_update_ignored(change_buffer):
         change_buffer.update({"foo": "bar"})
     except ObjectFrozenError:
         pass
-    changes, removals = change_buffer.flush_changed_blocking()
+    changes, _removals = change_buffer.flush_changed_blocking()
     assert changes["hello"] == "test" and "foo" not in changes
 
 

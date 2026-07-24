@@ -32,18 +32,18 @@ a function :func:`deserialize_simulation` that creates an instance of simulation
 from an XML file.
 """
 
-from typing import List, Tuple, Union, TextIO
 from io import StringIO
+from typing import TextIO
 from xml.dom.minidom import (
-    getDOMImplementation,
-    parseString,
     Document,
     Element,
-    parse,
     Text,
+    getDOMImplementation,
+    parse,
+    parseString,
 )
 
-from openmm import app, XmlSerializer, CustomExternalForce, Platform
+from openmm import CustomExternalForce, Platform, XmlSerializer, app
 
 from .imd import populate_imd_force
 
@@ -111,7 +111,7 @@ def serialize_simulation(
 
 
 def deserialize_simulation(
-    xml_content: Union[str | TextIO],
+    xml_content: str | TextIO,
     imd_force: CustomExternalForce | None = None,
     platform_name: str | None = None,
     ignore_state=False,
@@ -138,7 +138,7 @@ def deserialize_simulation(
     tag, pdb_node = _get_one_exclusive(document, ["pdbx", "pdb"])
     node = pdb_node.firstChild
     if node is None:
-        raise IOError("No structure content.")
+        raise OSError("No structure content.")
 
     assert isinstance(node, Text)
     pdb_content = StringIO(node.nodeValue)
@@ -147,7 +147,7 @@ def deserialize_simulation(
     elif tag == "pdbx":
         pdb = app.PDBxFile(pdb_content)
     else:
-        raise IOError("Invalid structure tag: {tag}")
+        raise OSError("Invalid structure tag: {tag}")
 
     system_node = _get_node_and_raise_if_more_than_one(document, "System")
     system_content = system_node.toprettyxml()
@@ -187,18 +187,18 @@ def deserialize_simulation(
 def _get_node_and_raise_if_more_than_one(document: Document, tag_name: str) -> Element:
     nodes = document.getElementsByTagName(tag_name)
     if not nodes:
-        raise IOError("No {} tag defined in the XML.".format(tag_name))
+        raise OSError(f"No {tag_name} tag defined in the XML.")
     if len(nodes) != 1:
-        raise IOError("More than one {} tag defined in the XML.".format(tag_name))
+        raise OSError(f"More than one {tag_name} tag defined in the XML.")
     return nodes[0]
 
 
-def _get_one_exclusive(document: Document, tag_names: List[str]) -> Tuple[str, Element]:
-    content: List[Tuple[str, Element]] = []
+def _get_one_exclusive(document: Document, tag_names: list[str]) -> tuple[str, Element]:
+    content: list[tuple[str, Element]] = []
     for name in tag_names:
         content.extend((name, node) for node in document.getElementsByTagName(name))
     if not content:
-        raise IOError(f"No data for any of these tags: {tag_names}")
+        raise OSError(f"No data for any of these tags: {tag_names}")
     if len(content) > 1:
-        raise IOError(f"More than one of these tags defined in the XML: {tag_names}")
+        raise OSError(f"More than one of these tags defined in the XML: {tag_names}")
     return content[0]
