@@ -97,7 +97,7 @@ class StructureAlignment:
         )
 
     def calculate_transform_to_positions(self, positions: npt.NDArray):
-        return Transform.from_parent_to_local_matrix(
+        return Transform.from_local_to_parent_matrix(
             find_transformation_between_point_patterns(self.positions, positions)
         )
 
