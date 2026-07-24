@@ -238,6 +238,9 @@ class _WebSocketClientHandler:
                     None, DictionaryChange(removals=removals)
                 )
 
+        # remove remote commands
+        self._command_handler.unregister_all()
+
 
 def _find_user_id(change: DictionaryChange):
     avatars = {key for key in change.updates if key.startswith("avatar.")}

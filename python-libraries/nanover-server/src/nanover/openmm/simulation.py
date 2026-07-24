@@ -87,7 +87,7 @@ class OpenMMSimulation(NanoverSimulation):
 
         self.imd_force = create_imd_force()
         self.simulation: Simulation | None = None
-        self.checkpoint: Any | None = None
+        self.checkpoint: Any = None
         self.verbose_reporter: StateDataReporter | None = None
 
         self.imd_force_manager: ImdForceManager | None = None
