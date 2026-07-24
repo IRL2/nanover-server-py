@@ -624,7 +624,7 @@ def test_imd_force_periodic_system(
 
     # Check PBCs of simulation
     assert sim.use_pbc_wrapping
-    assert np.allclose(sim.pbc_vectors == BASIC_SIMULATION_BOX_VECTORS)
+    assert np.allclose(sim.pbc_vectors, BASIC_SIMULATION_BOX_VECTORS)
 
     # Advance simulation by one step and retrieve frame
     sim.advance_by_one_step()
