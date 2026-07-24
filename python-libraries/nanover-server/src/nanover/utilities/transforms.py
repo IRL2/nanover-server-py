@@ -24,6 +24,14 @@ class Transform:
         return cls.from_local_to_parent_matrix(translation @ rotation @ scale)
 
     @classmethod
+    def from_position_rotation(cls, position, rotation):
+        translation = transformations.translation_matrix(position)
+        rotation = transformations.quaternion_matrix(rotation)
+
+        # compose in TR order
+        return cls.from_local_to_parent_matrix(translation @ rotation)
+
+    @classmethod
     def from_local_to_parent_matrix(cls, local_to_parent: npt.NDArray):
         return cls(
             local_to_parent=local_to_parent,
@@ -52,11 +60,17 @@ class Transform:
     def points_local_to_parent(self, points):
         return _transform_vec3s(self._local_to_parent, points)
 
+    def matrix_local_to_parent(self, matrix):
+        return matrix @ self._local_to_parent
+
     def point_parent_to_local(self, point):
         return _transform_vec3(self._parent_to_local, point)
 
     def points_parent_to_local(self, points):
         return _transform_vec3s(self._parent_to_local, points)
+
+    def matrix_parent_to_local(self, matrix):
+        return matrix @ self._parent_to_local
 
 
 def _transform_vec3(matrix, vector):
@@ -102,6 +116,16 @@ class StructureAlignment:
         return Transform.from_parent_to_local_matrix(
             find_transformation_between_point_patterns(self.positions, positions)
         )
+
+
+def quaternion_xyzw_to_wxyz(xyzw):
+    x, y, z, w = xyzw
+    return np.array((w, x, y, z))
+
+
+def quaternion_wxyz_to_xyzw(wxyz):
+    w, x, y, z = wxyz
+    return np.array((x, y, z, w))
 
 
 def find_transformation_between_point_patterns(
