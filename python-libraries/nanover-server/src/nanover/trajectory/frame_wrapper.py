@@ -5,8 +5,8 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 
+from .frame_dict import frame_dict_packer, merge_frame_dicts, FrameDict
 from . import keys
-from .frame_dict import FrameDict, frame_dict_packer, merge_frame_dicts
 
 EnumArray = npt.NDArray[np.uint8]
 IndexArray = npt.NDArray[np.uint32]
@@ -19,6 +19,8 @@ class MissingDataError(KeyError):
     """
     A shortcut does not contain data to return.
     """
+
+    pass
 
 
 @dataclass

@@ -5,8 +5,7 @@ from threading import Lock
 from nanover.utilities.cli import CancellationToken
 from nanover.utilities.queues import FrameMergingQueue
 from nanover.utilities.timing import yield_interval
-
-from .frame_wrapper import FrameData
+from nanover.trajectory import FrameData
 
 
 class FramePublisher:

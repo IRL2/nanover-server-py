@@ -2,15 +2,14 @@ from typing import Any
 
 from nanover.utilities.packing import (
     PackingPair,
-    force_int,
-    pack_bond,
-    pack_color,
     pack_identity,
+    pack_vec3,
     pack_uint8,
     pack_uint32,
-    pack_vec3,
+    pack_bond,
+    pack_color,
+    force_int,
 )
-
 from . import keys
 
 FrameDict = dict[str, Any]
