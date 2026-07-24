@@ -1,32 +1,28 @@
 import sys
+from contextlib import contextmanager, redirect_stdout
 from io import StringIO
-from contextlib import redirect_stdout, contextmanager
-
 from pathlib import Path
-from typing import Set
 
 import numpy as np
 import pytest
+from nanover.imd import ParticleInteraction
+from nanover.openmm import OpenMMSimulation, serializer
+from nanover.trajectory import FrameData
 from openmm import CustomExternalForce
 from openmm.app import StateDataReporter
 from openmm.unit import nanometer
 
-from nanover.openmm import serializer, OpenMMSimulation
-from nanover.imd import ParticleInteraction
-from nanover.trajectory import FrameData
-
 from .common import (
-    make_app_server,
     connect_and_retrieve_first_frame_from_app_server,
+    make_app_server,
     make_loaded_sim,
     make_loaded_sim_with_interactions,
 )
-
 from .openmm_simulation_utils import (
-    build_single_atom_simulation,
+    BASIC_SIMULATION_BOX_VECTORS,
     build_basic_simulation,
     build_basic_simulation_periodic,
-    BASIC_SIMULATION_BOX_VECTORS,
+    build_single_atom_simulation,
 )
 
 UNIT_SIMULATION_BOX_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
@@ -253,7 +249,7 @@ def test_save_state_basic_system(
     by testing that the velocities of the simulation being serialized approximately
     equal those of the simulation loaded after serialization/deserialization.
     """
-    app, sim = basic_system_app_and_simulation_with_constant_force
+    _, sim = basic_system_app_and_simulation_with_constant_force
 
     # Run the simulation for a few steps
     for _ in range(11):
@@ -410,7 +406,7 @@ def test_apply_interactions(
     Interactions are applied and the computed forces are passed to the imd
     force object.
     """
-    app, sim = basic_system_app_and_simulation_with_complex_interactions
+    _, sim = basic_system_app_and_simulation_with_complex_interactions
     sim.advance_by_one_step()
 
     assert_imd_force_affected_particles(
@@ -479,7 +475,7 @@ def test_velocities_and_forces(
 
 
 def assert_imd_force_affected_particles(
-    imd_force: CustomExternalForce, expected_affected_indices: Set[int]
+    imd_force: CustomExternalForce, expected_affected_indices: set[int]
 ):
     """
     Assert that the given imd force is applying force only to the expected particle indices.
@@ -604,8 +600,7 @@ def test_pbc_enforcement():
 
     def get_sim_position_coords(sim):
         for position in sim.make_regular_frame().particle_positions:
-            for coord in position:
-                yield coord
+            yield from position
 
     # should default to not PBC wrapping coords
     assert not sim.use_pbc_wrapping
@@ -629,7 +624,7 @@ def test_imd_force_periodic_system(
 
     # Check PBCs of simulation
     assert sim.use_pbc_wrapping
-    assert (sim.pbc_vectors == BASIC_SIMULATION_BOX_VECTORS).all()
+    assert np.allclose(sim.pbc_vectors == BASIC_SIMULATION_BOX_VECTORS)
 
     # Advance simulation by one step and retrieve frame
     sim.advance_by_one_step()

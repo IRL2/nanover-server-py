@@ -3,13 +3,12 @@ from contextlib import suppress
 from time import perf_counter_ns
 
 import msgpack
-from websockets import ConnectionClosed
-from websockets.sync.client import connect
-from websockets.sync.connection import Connection
-
 from nanover.app import OmniRunner
 from nanover.recording.reading import MessageEvent
 from nanover.recording.writing import NanoverRecordingWriter
+from websockets import ConnectionClosed
+from websockets.sync.client import connect
+from websockets.sync.connection import Connection
 
 from .client.app_client import get_websocket_address_from_app_server
 from .client.base_client import MAX_MESSAGE_SIZE

@@ -1,5 +1,5 @@
-from nanover.essd.server import DiscoveryServer as DiscoveryServer
 from nanover.essd.client import DiscoveryClient as DiscoveryClient
+from nanover.essd.server import DiscoveryServer as DiscoveryServer
 from nanover.essd.servicehub import ServiceHub as ServiceHub
 
 """

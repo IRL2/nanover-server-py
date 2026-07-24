@@ -136,7 +136,7 @@ class TrajectoryLogger:
 
         if self._format_supports_file_descriptor:
             if not self._file_descriptor:
-                self._file_descriptor = open(self.current_path, "w")
+                self._file_descriptor = open(self.current_path, "w")  # noqa: SIM115
             file = self._file_descriptor
         else:
             file = self.current_path
@@ -184,7 +184,7 @@ class TrajectoryLogger:
 
 
 def _get_timestamp():
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(tz=datetime.UTC)
     timestamp = f"{now:%Y_%m_%d__%H_%M_%S}_{int(now.microsecond / 10000):02d}"
     return timestamp
 

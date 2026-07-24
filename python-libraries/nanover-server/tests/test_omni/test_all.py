@@ -2,26 +2,26 @@ from unittest.mock import patch
 
 import numpy
 import pytest
-from nanover.imd import ParticleInteraction
-
 from nanover.app.omni import CLEAR_PREFIXES
+from nanover.imd import ParticleInteraction
 from nanover.testing import (
     assert_equal_soon,
     assert_in_soon,
     assert_not_in_soon,
 )
 from nanover.testing.asserts import assert_true_soon
-from nanover.trajectory.keys import SIMULATION_EXCEPTION, SERVER_TIMESTAMP
+from nanover.trajectory.keys import SERVER_TIMESTAMP, SIMULATION_EXCEPTION
 from nanover.utilities.change_buffers import DictionaryChange
-from .test_openmm import make_example_openmm
+
+from .common import (
+    make_app_server,
+    make_connected_client_from_runner,
+    make_runner,
+)
 from .test_ase import make_example_ase
+from .test_openmm import make_example_openmm
 from .test_playback import make_example_playback
 from .test_playback_mda import make_example_playback_mda
-from .common import (
-    make_runner,
-    make_connected_client_from_runner,
-    make_app_server,
-)
 
 SIMULATION_FACTORIES_IMD = [
     make_example_openmm,
@@ -110,7 +110,8 @@ def test_next_simulation_increments_counter(runner_with_imd_sims):
         for i in range(5):
             client.run_next()
             assert_equal_soon(
-                lambda: client.current_frame.simulation_counter, lambda: i
+                lambda: client.current_frame.simulation_counter,
+                lambda: i,  # noqa: B023
             )
 
 
@@ -161,7 +162,7 @@ def test_simulation_switch_clears_state(runner_with_all_sims):
         with make_connected_client_from_runner(runner_with_all_sims) as client:
             for key in updates:
                 assert_in_soon(
-                    lambda: key,
+                    lambda: key,  # noqa: B023
                     lambda: client._state_dictionary.copy_content(),
                 )
 
@@ -169,7 +170,7 @@ def test_simulation_switch_clears_state(runner_with_all_sims):
 
             for key in updates:
                 assert_not_in_soon(
-                    lambda: key,
+                    lambda: key,  # noqa: B023
                     lambda: client._state_dictionary.copy_content(),
                 )
 
@@ -179,15 +180,17 @@ def test_wait_until_minimum_usable_frame(sim_factory):
     """
     Test that the minimum usable frame contains topology and position information.
     """
-    with make_runner(sim_factory()) as runner:
-        with make_connected_client_from_runner(runner) as client:
-            runner.load(0)
-            first_frame = client.wait_until_minimum_usable_frame()
+    with (
+        make_runner(sim_factory()) as runner,
+        make_connected_client_from_runner(runner) as client,
+    ):
+        runner.load(0)
+        first_frame = client.wait_until_minimum_usable_frame()
 
-            assert (
-                len(first_frame.particle_positions) > 0
-                and len(first_frame.particle_elements) > 0
-            )
+        assert (
+            len(first_frame.particle_positions) > 0
+            and len(first_frame.particle_elements) > 0
+        )
 
 
 @pytest.mark.parametrize("sim_factory", SIMULATION_FACTORIES_IMD)
@@ -196,19 +199,21 @@ def test_interaction_invalid_particle_index(sim_factory):
     Test that attempting to calculate iMD forces for interactions with out of bounds particles adds an exception to the
     frame and removes all interactions.
     """
-    with make_runner(sim_factory()) as runner:
-        with make_connected_client_from_runner(runner) as client:
-            runner.load(0)
-            frame = client.wait_until_minimum_usable_frame()
+    with (
+        make_runner(sim_factory()) as runner,
+        make_connected_client_from_runner(runner) as client,
+    ):
+        runner.load(0)
+        frame = client.wait_until_minimum_usable_frame()
 
-            interaction_id = client.start_interaction(
-                ParticleInteraction(particles=[frame.particle_count + 10])
-            )
+        interaction_id = client.start_interaction(
+            ParticleInteraction(particles=[frame.particle_count + 10])
+        )
 
-            # exception exists in frame
-            assert_in_soon(lambda: SIMULATION_EXCEPTION, lambda: client.current_frame)
-            # interaction no longer exists in state
-            assert_not_in_soon(
-                lambda: interaction_id,
-                lambda: runner.app_server.imd.active_interactions,
-            )
+        # exception exists in frame
+        assert_in_soon(lambda: SIMULATION_EXCEPTION, lambda: client.current_frame)
+        # interaction no longer exists in state
+        assert_not_in_soon(
+            lambda: interaction_id,
+            lambda: runner.app_server.imd.active_interactions,
+        )

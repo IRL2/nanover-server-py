@@ -1,6 +1,6 @@
-import pytest
-from mock import Mock
+from unittest.mock import Mock
 
+import pytest
 from nanover.core.commands import CommandService
 
 

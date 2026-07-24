@@ -3,10 +3,10 @@ Helpers around useful potentials that can
 be applied to OpenMM systems.
 """
 
-from typing import Iterable
+from collections.abc import Iterable
+
 import openmm as mm
 from openmm.unit import Quantity, kilojoule_per_mole, nanometer
-
 
 DEFAULT_RESTRAINT_FORCE_CONSTANT = 100 * kilojoule_per_mole / nanometer**2
 

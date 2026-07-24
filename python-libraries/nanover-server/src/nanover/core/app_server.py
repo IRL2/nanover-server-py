@@ -1,12 +1,14 @@
 from concurrent.futures import Future
-from typing import Any, Protocol, ContextManager
+from contextlib import AbstractContextManager
+from typing import Any, Protocol
 
-from .types import CommandRegistration, CommandHandler
-from nanover.essd import ServiceHub, DiscoveryServer
+from nanover.essd import DiscoveryServer, ServiceHub
 from nanover.imd import ImdStateWrapper
-from nanover.utilities.state_dictionary import StateDictionary
 from nanover.trajectory import FramePublisher
 from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.state_dictionary import StateDictionary
+
+from .types import CommandHandler, CommandRegistration
 
 
 class Closeable(Protocol):
@@ -14,7 +16,7 @@ class Closeable(Protocol):
 
 
 class StateService(Closeable, Protocol):
-    def lock_state(self) -> ContextManager[dict[str, Any]]: ...
+    def lock_state(self) -> AbstractContextManager[dict[str, Any]]: ...
 
     def copy_state(self) -> dict[str, Any]: ...
 

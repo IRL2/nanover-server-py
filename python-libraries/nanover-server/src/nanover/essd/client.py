@@ -3,13 +3,12 @@ A module containing a Extremely Simple Service Discovery client.
 """
 
 import json
-import time
-from typing import Set, Iterable
-
 import select
+import time
+from collections.abc import Iterable
 
 from nanover.essd.server import BROADCAST_PORT, configure_reusable_socket
-from nanover.essd.servicehub import ServiceHub, MAXIMUM_MESSAGE_SIZE
+from nanover.essd.servicehub import MAXIMUM_MESSAGE_SIZE, ServiceHub
 
 IP_ADDRESS_ANY = "0.0.0.0"
 
@@ -39,7 +38,7 @@ class DiscoveryClient:
         return len(readable) > 0
 
     def _receive_service(self):
-        (message, address) = self._socket.recvfrom(MAXIMUM_MESSAGE_SIZE)
+        (message, _address) = self._socket.recvfrom(MAXIMUM_MESSAGE_SIZE)
         properties = json.loads(message.decode())
         return ServiceHub(**properties)
 
@@ -53,7 +52,7 @@ class DiscoveryClient:
         :param interval: Interval in seconds to wait between checking for new service broadcasts.
         :return: A set of services discovered over the duration.
         """
-        services: Set[ServiceHub] = set()
+        services: set[ServiceHub] = set()
         deadline = time.monotonic() + search_time
         while time.monotonic() < deadline:
             time_before_recv = time.monotonic()

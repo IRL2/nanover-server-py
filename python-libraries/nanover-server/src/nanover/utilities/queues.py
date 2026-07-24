@@ -1,5 +1,5 @@
 from queue import Empty
-from threading import Lock, Condition
+from threading import Condition, Lock
 from time import monotonic as time
 
 from nanover.trajectory import FrameData

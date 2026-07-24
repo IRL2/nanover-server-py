@@ -1,9 +1,8 @@
 import pytest
 from MDAnalysis import Universe
-
 from nanover.mdanalysis import UniverseSimulation
 
-from .common import make_loaded_sim, PDB_PATH, DCD_PATH
+from .common import DCD_PATH, PDB_PATH, make_loaded_sim
 
 
 @pytest.fixture

@@ -3,12 +3,12 @@ from dataclasses import dataclass
 
 import numpy as np
 import numpy.typing as npt
-from hypothesis import strategies as st, given
-
-from nanover.utilities.intersection import closest_point_on_polyline, ClosestPointResult
+from hypothesis import given
+from hypothesis import strategies as st
+from nanover.utilities.intersection import ClosestPointResult, closest_point_on_polyline
 from nanover.utilities.transforms import Transform
-from .test_transforms import transformation
 
+from .test_transforms import transformation
 
 POINT_COUNT = 32
 ARC_POINTS = np.array(

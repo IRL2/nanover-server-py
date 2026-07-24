@@ -1,10 +1,10 @@
-from typing import Mapping
+from collections.abc import Mapping
 from uuid import uuid4
 
 from nanover.imd import ParticleInteraction
 from nanover.imd.imd_state import (
-    dict_to_interaction,
     INTERACTION_PREFIX,
+    dict_to_interaction,
     interaction_to_dict,
 )
 from nanover.utilities.change_buffers import DictionaryChange

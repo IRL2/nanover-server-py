@@ -1,7 +1,7 @@
 from hypothesis import given
+from nanover.testing.strategies import dict_frames
 from nanover.testing.utilities import simplify_numpy
 from nanover.trajectory.frame_dict import frame_dict_packer
-from nanover.testing.strategies import dict_frames
 
 
 @given(dict_frames())

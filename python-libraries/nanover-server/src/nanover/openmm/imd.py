@@ -2,20 +2,17 @@
 Manage an OpenMM CustomExternalForce in conjunction with NanoVer IMD
 """
 
-from typing import Set, Tuple
 import itertools
 
 import numpy as np
 import numpy.typing as npt
-
-from openmm import CustomExternalForce, System, Context
-from openmm import unit
-from openmm.app import Simulation
-
-from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd import ImdStateWrapper
+from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.trajectory import FrameData
+
+from openmm import Context, CustomExternalForce, System, unit
+from openmm.app import Simulation
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 
@@ -40,7 +37,7 @@ class ImdForceManager:
         self.total_user_energy = 0.0
 
         self._is_force_dirty = False
-        self._previous_force_index: Set[int] = set()
+        self._previous_force_index: set[int] = set()
         self._total_user_energy = 0.0
 
         self.periodic_box_lengths: np.ndarray | None = None
@@ -90,7 +87,7 @@ class ImdForceManager:
         positions: np.ndarray,
         interactions: dict[str, ParticleInteraction],
         context: Context,
-    ) -> Tuple[float, npt.NDArray]:
+    ) -> tuple[float, npt.NDArray]:
         """
         Get the forces to apply from the iMD service and communicate them to
         OpenMM.
@@ -117,7 +114,7 @@ class ImdForceManager:
         self,
         positions: np.ndarray,
         interactions: dict[str, ParticleInteraction],
-    ) -> Tuple[float, npt.NDArray]:
+    ) -> tuple[float, npt.NDArray]:
         """
         Set the iMD forces based on the user interactions.
         """
@@ -151,7 +148,7 @@ class ImdForceManager:
 
 def _build_particle_interaction_index_set(
     interactions: dict[str, ParticleInteraction],
-) -> Set[int]:
+) -> set[int]:
     """
     Get a set of the indices of the particles involved in interactions.
     """
