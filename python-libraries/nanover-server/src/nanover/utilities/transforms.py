@@ -1,9 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 from MDAnalysis import AtomGroup, Universe
-
 from MDAnalysis.lib import transformations
-
 from nanover.trajectory import FrameData
 
 
@@ -125,7 +123,7 @@ def find_transformation_between_point_patterns(
     Y = q - cen_Q
 
     # svd
-    U, sigma, Vt = np.linalg.svd(X @ Y.T)
+    U, _sigma, Vt = np.linalg.svd(X @ Y.T)
 
     # reflection correction
     d = np.identity(Vt.T.shape[1])

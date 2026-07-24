@@ -3,30 +3,29 @@ from functools import partial
 from itertools import count
 from typing import Any
 
-from MDAnalysis.lib.transformations import quaternion_from_matrix, decompose_matrix
 from ipywidgets import Output
-
+from MDAnalysis.lib.transformations import decompose_matrix, quaternion_from_matrix
 from nanover.app import OmniRunner
 from nanover.app.selection import (
-    KEY_PROPERTY_RENDERER,
-    KEY_PROPERTY_INTERACTION_METHOD,
-    RENDERER_DEFAULT,
     INTERACTION_METHOD_DEFAULT,
     KEY_PROPERTY_HIDE,
-    KEY_SELECTED_PARTICLE_IDS,
+    KEY_PROPERTY_INTERACTION_METHOD,
+    KEY_PROPERTY_RENDERER,
     KEY_PROPERTY_VELOCITY_RESET,
+    KEY_SELECTED_PARTICLE_IDS,
+    RENDERER_DEFAULT,
 )
 from nanover.core.app_server import StateService
+from nanover.imd.imd_state import (
+    INTERACTION_PREFIX,
+    ParticleInteraction,
+    interaction_to_dict,
+)
 from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.transforms import Transform
 from nanover.websocket.client.app_client import NanoverImdClient
-from nanover.websocket.record import record_from_runner, BackgroundRecordingContext
-from nanover.imd.imd_state import (
-    ParticleInteraction,
-    interaction_to_dict,
-    INTERACTION_PREFIX,
-)
+from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
 
 class Mode:
@@ -88,7 +87,7 @@ class NanoverJupyterUtilities:
     def notify_all(self, message: str):
         for command in self.runner.app_server.commands:
             if command.endswith("/notify"):
-                self.runner.app_server.run_command(command, dict(message=message))
+                self.runner.app_server.run_command(command, {"message": message})
 
     def start_recording(self):
         self._recording_path = f"RECORDING-{self._recording_count}-{self.runner.simulation.name}.nanover.zip"
@@ -248,26 +247,28 @@ class SelectionsUtility(StateKeysUtility):
         self,
         key: str,
         *,
-        particle_ids: list[int] = [],
+        particle_ids: list[int] | None = None,
         renderer=RENDERER_DEFAULT,
         interaction_method=INTERACTION_METHOD_DEFAULT,
         velocity_reset=False,
         hide=False,
     ):
+        if particle_ids is None:
+            particle_ids = []
         self.update_object(
             f"selection.{key}",
-            dict(
-                id=f"selection.{key}",
-                selected={
+            {
+                "id": f"selection.{key}",
+                "selected": {
                     KEY_SELECTED_PARTICLE_IDS: particle_ids,
                 },
-                properties={
+                "properties": {
                     KEY_PROPERTY_RENDERER: renderer,
                     KEY_PROPERTY_INTERACTION_METHOD: interaction_method,
                     KEY_PROPERTY_VELOCITY_RESET: velocity_reset,
                     KEY_PROPERTY_HIDE: hide,
                 },
-            ),
+            },
         )
 
     def remove_selection(
@@ -282,23 +283,25 @@ class PanelsUtility(StateKeysUtility):
     def header(
         label="header",
     ):
-        return dict(
-            type="header",
-            label=label,
-        )
+        return {
+            "type": "header",
+            "label": label,
+        }
 
     @staticmethod
     def button(
         label="button",
         command="test/hello",
-        arguments={},
+        arguments=None,
     ):
-        return dict(
-            type="button",
-            label=label,
-            command=command,
-            arguments=arguments,
-        )
+        if arguments is None:
+            arguments = {}
+        return {
+            "type": "button",
+            "label": label,
+            "command": command,
+            "arguments": arguments,
+        }
 
     @staticmethod
     def slider(
@@ -308,14 +311,14 @@ class PanelsUtility(StateKeysUtility):
         integer=False,
         step=None,
     ):
-        return dict(
-            type="slider",
-            label=label,
-            variable=variable,
-            range=range,
-            integer=integer,
-            step=step,
-        )
+        return {
+            "type": "slider",
+            "label": label,
+            "variable": variable,
+            "range": range,
+            "integer": integer,
+            "step": step,
+        }
 
     def update_panel(
         self,
@@ -374,10 +377,10 @@ class TransformsUtility(StateKeysUtility):
 
         self.update_object(
             f"transform.{key}",
-            dict(
-                transform=[*t, *r, *s],
-                parent=parent,
-            ),
+            {
+                "transform": [*t, *r, *s],
+                "parent": parent,
+            },
         )
 
 
