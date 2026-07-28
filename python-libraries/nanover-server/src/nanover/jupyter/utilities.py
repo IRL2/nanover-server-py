@@ -70,10 +70,13 @@ class NanoverJupyterUtilities:
     def scene_transform(self) -> Transform:
         state = self.runner.app_server.state_dictionary.copy_content()
         scene = state.get("scene", SCENE_POSE_IDENTITY)
-        return Transform.from_scene_pose(scene)
+        tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = scene
+        # invert x axis for now
+        sx *= -1
+        return Transform.from_state_transform((tx, ty, tz, rx, ry, rz, rw, sx, sy, sz))
 
     @property
-    def get_scene_scale(self):
+    def scene_transform_scale(self):
         state = self.runner.app_server.state_dictionary.copy_content()
         scene = state.get("scene", SCENE_POSE_IDENTITY)
         return scene[-1]

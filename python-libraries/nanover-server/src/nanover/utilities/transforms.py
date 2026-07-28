@@ -13,12 +13,6 @@ class Transform:
         return cls.from_local_to_parent_matrix(np.identity(4))
 
     @classmethod
-    def from_scene_pose(cls, pose: list[float]):
-        tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = pose
-        # invert x axis for now
-        return cls.from_state_transform((tx, ty, tz, rx, ry, rz, rw, -sx, sy, sz))
-
-    @classmethod
     def from_state_transform(cls, transform: Iterable[float]):
         tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = transform
 
