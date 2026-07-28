@@ -73,6 +73,12 @@ class NanoverJupyterUtilities:
         scene = state.get("scene", SCENE_POSE_IDENTITY)
         return Transform.from_scene_pose(scene)
 
+    @property
+    def get_scene_scale(self):
+        state = self.runner.app_server.state_dictionary.copy_content()
+        scene = state.get("scene", SCENE_POSE_IDENTITY)
+        return scene[-1]
+
     def show_logging(self):
         output = Output()
 
