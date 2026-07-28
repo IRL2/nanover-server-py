@@ -429,6 +429,7 @@ class SceneObjectsUtility(StateKeysUtility):
         key: str,
         *,
         positions=((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)),
+        colors=None,
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
         parent: str | None = None,
@@ -438,6 +439,7 @@ class SceneObjectsUtility(StateKeysUtility):
             f"object.line.{key}",
             {
                 "positions": positions,
+                "colors": colors,
                 "color": color,
                 "size": size,
                 "parent": parent,
