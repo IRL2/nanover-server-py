@@ -61,8 +61,8 @@ class Transform:
         self._parent_to_local = parent_to_local
 
     def to_state_transform(self):
-        w, x, y, z = transformations.quaternion_from_matrix(self.local_to_parent_matrix)
-        s, _, _, t, _ = transformations.decompose_matrix(self.local_to_parent_matrix)
+        s, _, a, t, _ = transformations.decompose_matrix(self.local_to_parent_matrix)
+        w, x, y, z = transformations.quaternion_from_euler(*a)
         return *t, x, y, z, w, *s
 
     def point_local_to_parent(self, point):
