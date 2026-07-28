@@ -4,7 +4,6 @@ from itertools import count
 from typing import Any
 
 from ipywidgets import Output
-from MDAnalysis.lib.transformations import decompose_matrix, quaternion_from_matrix
 from nanover.app import OmniRunner
 from nanover.app.selection import (
     INTERACTION_METHOD_DEFAULT,
@@ -23,7 +22,7 @@ from nanover.imd.imd_state import (
 )
 from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.utilities.transforms import Transform, quaternion_wxyz_to_xyzw
+from nanover.utilities.transforms import Transform
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
@@ -376,15 +375,10 @@ class TransformsUtility(StateKeysUtility):
         transform: Transform,
         parent: str | None = None,
     ):
-        matrix = transform.local_to_parent_matrix
-        r = quaternion_from_matrix(matrix)
-        r = quaternion_wxyz_to_xyzw(r)
-        s, _, _, t, _ = decompose_matrix(matrix)
-
         self.update_object(
             f"transform.{key}",
             {
-                "transform": [*t, *r, *s],
+                "transform": transform.to_state_transform(),
                 "parent": parent,
             },
         )
