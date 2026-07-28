@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 import numpy as np
 import numpy.typing as npt
 from MDAnalysis import AtomGroup, Universe
@@ -13,21 +15,19 @@ class Transform:
     @classmethod
     def from_scene_pose(cls, pose: list[float]):
         tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = pose
+        # invert x axis for now
+        return cls.from_state_transform((tx, ty, tz, rx, ry, rz, rw, -sx, sy, sz))
+
+    @classmethod
+    def from_state_transform(cls, transform: Iterable[float]):
+        tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = transform
 
         translation = transformations.translation_matrix((tx, ty, tz))
         rotation = transformations.quaternion_matrix((rw, rx, ry, rz))
-        scale = np.diagflat((-sx, sy, sz, 1.0))
+        scale = np.diagflat((sx, sy, sz, 1.0))
 
         # compose in TRS order
         return cls.from_local_to_parent_matrix(translation @ rotation @ scale)
-
-    @classmethod
-    def from_position_rotation(cls, position, rotation):
-        translation = transformations.translation_matrix(position)
-        rotation = transformations.quaternion_matrix(rotation)
-
-        # compose in TR order
-        return cls.from_local_to_parent_matrix(translation @ rotation)
 
     @classmethod
     def from_local_to_parent_matrix(cls, local_to_parent: npt.NDArray):
