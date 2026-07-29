@@ -4,7 +4,6 @@ from itertools import count
 from typing import Any
 
 from ipywidgets import Output
-from MDAnalysis.lib.transformations import decompose_matrix, quaternion_from_matrix
 from nanover.app import OmniRunner
 from nanover.app.selection import (
     INTERACTION_METHOD_DEFAULT,
@@ -71,7 +70,16 @@ class NanoverJupyterUtilities:
     def scene_transform(self) -> Transform:
         state = self.runner.app_server.state_dictionary.copy_content()
         scene = state.get("scene", SCENE_POSE_IDENTITY)
-        return Transform.from_scene_pose(scene)
+        tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = scene
+        # invert x axis for now
+        sx *= -1
+        return Transform.from_state_transform((tx, ty, tz, rx, ry, rz, rw, sx, sy, sz))
+
+    @property
+    def scene_transform_scale(self):
+        state = self.runner.app_server.state_dictionary.copy_content()
+        scene = state.get("scene", SCENE_POSE_IDENTITY)
+        return scene[-1]
 
     def show_logging(self):
         output = Output()
@@ -370,15 +378,10 @@ class TransformsUtility(StateKeysUtility):
         transform: Transform,
         parent: str | None = None,
     ):
-        matrix = transform._local_to_parent
-        r = quaternion_from_matrix(matrix)
-        r = [*r[1:], r[0]]
-        s, _, _, t, _ = decompose_matrix(matrix)
-
         self.update_object(
             f"transform.{key}",
             {
-                "transform": [*t, *r, *s],
+                "transform": transform.to_state_transform(),
                 "parent": parent,
             },
         )

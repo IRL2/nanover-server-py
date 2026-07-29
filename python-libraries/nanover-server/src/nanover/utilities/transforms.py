@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 import numpy as np
 import numpy.typing as npt
 from MDAnalysis import AtomGroup, Universe
@@ -11,15 +13,21 @@ class Transform:
         return cls.from_local_to_parent_matrix(np.identity(4))
 
     @classmethod
-    def from_scene_pose(cls, pose: list[float]):
-        tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = pose
+    def from_state_transform(cls, transform: Iterable[float]):
+        tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = transform
 
         translation = transformations.translation_matrix((tx, ty, tz))
         rotation = transformations.quaternion_matrix((rw, rx, ry, rz))
-        scale = np.diagflat((-sx, sy, sz, 1.0))
+        scale = np.diagflat((sx, sy, sz, 1.0))
 
         # compose in TRS order
         return cls.from_local_to_parent_matrix(translation @ rotation @ scale)
+
+    @classmethod
+    def from_state_cursor(cls, cursor):
+        return cls.from_state_transform(
+            (*cursor["position"], *cursor["rotation"], 1, 1, 1)
+        )
 
     @classmethod
     def from_local_to_parent_matrix(cls, local_to_parent: npt.NDArray):
@@ -35,6 +43,14 @@ class Transform:
             local_to_parent=np.linalg.inv(parent_to_local),
         )
 
+    @property
+    def local_to_parent_matrix(self):
+        return self._local_to_parent
+
+    @property
+    def parent_to_local_matrix(self):
+        return self._parent_to_local
+
     def __init__(
         self,
         *,
@@ -43,6 +59,11 @@ class Transform:
     ):
         self._local_to_parent = local_to_parent
         self._parent_to_local = parent_to_local
+
+    def to_state_transform(self):
+        s, _, a, t, _ = transformations.decompose_matrix(self.local_to_parent_matrix)
+        w, x, y, z = transformations.quaternion_from_euler(*a)
+        return *t, x, y, z, w, *s
 
     def point_local_to_parent(self, point):
         return _transform_vec3(self._local_to_parent, point)
