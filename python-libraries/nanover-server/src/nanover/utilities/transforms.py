@@ -25,7 +25,9 @@ class Transform:
 
     @classmethod
     def from_state_cursor(cls, cursor):
-        return cls.from_state_transform((*cursor["position"], *cursor["rotation"], 1, 1, 1))
+        return cls.from_state_transform(
+            (*cursor["position"], *cursor["rotation"], 1, 1, 1)
+        )
 
     @classmethod
     def from_local_to_parent_matrix(cls, local_to_parent: npt.NDArray):
