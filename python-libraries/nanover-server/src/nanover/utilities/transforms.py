@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 
 import numpy as np
 import numpy.typing as npt
@@ -6,28 +6,49 @@ from MDAnalysis import AtomGroup, Universe
 from MDAnalysis.lib import transformations
 from nanover.trajectory import FrameData
 
+# position[x,y,z], rotation[x,y,z,w], scale[x,y,z]
+STATE_TRANSFORM_IDENTITY = (0, 0, 0, 0, 0, 0, 1, 1, 1, 1)
+
+
+def unpack_partial_state_transform(transform: Iterable[float]):
+    """Pad partial state transform iterable up to full length with components of identity state transform."""
+    i = -1
+    for i, value in enumerate(transform):
+        yield value
+    for j in range(i + 1, len(STATE_TRANSFORM_IDENTITY)):
+        yield STATE_TRANSFORM_IDENTITY[j]
+
+
+def matrix_from_state_transform(transform: Iterable[float]):
+    tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = unpack_partial_state_transform(transform)
+
+    translation = transformations.translation_matrix((tx, ty, tz))
+    rotation = transformations.quaternion_matrix((rw, rx, ry, rz))
+    scale = np.diagflat((sx, sy, sz, 1.0))
+
+    return translation @ rotation @ scale
+
+
+def state_transform_from_matrix(matrix: npt.NDArray) -> Sequence[float]:
+    s, _, a, t, _ = transformations.decompose_matrix(matrix)
+    w, x, y, z = transformations.quaternion_from_euler(*a)
+    return *t, x, y, z, w, *s
+
 
 class Transform:
+    """Convenience wrapper around transformation matrix."""
+
     @classmethod
     def identity(cls):
         return cls.from_local_to_parent_matrix(np.identity(4))
 
     @classmethod
-    def from_state_transform(cls, transform: Iterable[float]):
-        tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = transform
-
-        translation = transformations.translation_matrix((tx, ty, tz))
-        rotation = transformations.quaternion_matrix((rw, rx, ry, rz))
-        scale = np.diagflat((sx, sy, sz, 1.0))
-
-        # compose in TRS order
-        return cls.from_local_to_parent_matrix(translation @ rotation @ scale)
+    def from_state_transform(cls, transform: Sequence[float]):
+        return cls.from_local_to_parent_matrix(matrix_from_state_transform(transform))
 
     @classmethod
     def from_state_cursor(cls, cursor):
-        return cls.from_state_transform(
-            (*cursor["position"], *cursor["rotation"], 1, 1, 1)
-        )
+        return cls.from_state_transform((*cursor["position"], *cursor["rotation"]))
 
     @classmethod
     def from_local_to_parent_matrix(cls, local_to_parent: npt.NDArray):
@@ -60,10 +81,8 @@ class Transform:
         self._local_to_parent = local_to_parent
         self._parent_to_local = parent_to_local
 
-    def to_state_transform(self):
-        s, _, a, t, _ = transformations.decompose_matrix(self.local_to_parent_matrix)
-        w, x, y, z = transformations.quaternion_from_euler(*a)
-        return *t, x, y, z, w, *s
+    def to_state_transform(self) -> Sequence[float]:
+        return state_transform_from_matrix(self.local_to_parent_matrix)
 
     def point_local_to_parent(self, point):
         return _transform_vec3(self._local_to_parent, point)
@@ -78,11 +97,11 @@ class Transform:
         return _transform_vec3s(self._parent_to_local, points)
 
 
-def _transform_vec3(matrix, vector):
+def _transform_vec3(matrix: npt.NDArray, vector) -> npt.NDArray:
     return (matrix @ np.array([*vector[:3], 1]).reshape(4, 1)).reshape(4)[:3]
 
 
-def _transform_vec3s(matrix, vectors):
+def _transform_vec3s(matrix: npt.NDArray, vectors) -> npt.NDArray:
     v = np.asarray(vectors).T
     expanded = np.vstack((v, np.ones([1, v.shape[1]], v.dtype)))
     return (matrix @ expanded)[:-1].T

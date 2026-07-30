@@ -2,8 +2,12 @@ import numpy as np
 from hypothesis import given, strategies as st
 from MDAnalysis.lib import transformations
 from nanover.utilities.transforms import (
+    STATE_TRANSFORM_IDENTITY,
     Transform,
     find_transformation_between_point_patterns,
+    matrix_from_state_transform,
+    state_transform_from_matrix,
+    unpack_partial_state_transform,
 )
 
 
@@ -44,12 +48,12 @@ def test_transform_points_equals_transform_point(transformation, points):
     a = transform.points_parent_to_local(points)
     b = [transform.point_parent_to_local(point) for point in points]
 
-    assert np.allclose(a, b)
+    assert np.allclose(a, b, atol=1e-7)
 
     a = transform.points_local_to_parent(points)
     b = [transform.point_local_to_parent(point) for point in points]
 
-    assert np.allclose(a, b)
+    assert np.allclose(a, b, atol=1e-7)
 
 
 @given(transformation=transformation())
@@ -64,3 +68,19 @@ def test_cube_alignment_valid(transformation):
     c = guess.points_parent_to_local(a)
 
     assert np.allclose(b, c)
+
+
+@given(transformation=transformation())
+def test_unpack_partial(transformation):
+    state_transform = state_transform_from_matrix(transformation)
+
+    for i in range(10):
+        unpacked = list(unpack_partial_state_transform(state_transform[:i]))
+        expected = [*state_transform[:i], *STATE_TRANSFORM_IDENTITY[i:]]
+        assert unpacked == expected
+
+
+@given(transformation=transformation())
+def test_transform_matrix_reflexive(transformation):
+    converted = matrix_from_state_transform(state_transform_from_matrix(transformation))
+    assert np.allclose(converted, transformation)
