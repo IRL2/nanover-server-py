@@ -402,7 +402,7 @@ class TransformsUtility(StateKeysUtility):
             else default
         )
 
-    def fetch_transform_global(self, key: str):
+    def fetch_transform_root(self, key: str):
         matrix = np.identity(4)
 
         with self._state.lock_state() as state:
