@@ -415,7 +415,7 @@ class TransformsUtility(StateKeysUtility):
                 matrix = matrix_from_state_transform(entry["transform"]) @ matrix
                 key = entry["parent"]
 
-        return matrix
+        return Transform.from_local_to_parent_matrix(matrix)
 
 
 class SceneObjectsUtility(StateKeysUtility):

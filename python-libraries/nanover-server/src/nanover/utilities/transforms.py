@@ -81,6 +81,20 @@ class Transform:
         self._local_to_parent = local_to_parent
         self._parent_to_local = parent_to_local
 
+    def __repr__(self):
+        s, _, a, t, _ = transformations.decompose_matrix(self.local_to_parent_matrix)
+        parts = []
+
+        if not np.allclose(t, [0, 0, 0]):
+            parts.append(f"translate[{t[0]:.1f}, {t[1]:.1f}, {t[2]:.1f}]")
+        if not np.allclose(a, [0, 0, 0]):
+            a = np.rad2deg(a)
+            parts.append(f"rotate[{a[0]:.1f}deg, {a[1]:.1f}deg, {a[2]:.1f}deg]")
+        if not np.allclose(s, [1, 1, 1]):
+            parts.append(f"scale[{s[0]:.1f}, {s[1]:.1f}, {s[2]:.1f}]")
+
+        return f"<Transform of {' '.join(parts)}>"
+
     def to_state_transform(self) -> Sequence[float]:
         return state_transform_from_matrix(self.local_to_parent_matrix)
 
