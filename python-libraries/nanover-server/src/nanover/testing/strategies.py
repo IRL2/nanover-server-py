@@ -4,6 +4,7 @@ Hypothesis strategies to generate common NanoVer data during testing.
 
 import numpy as np
 from hypothesis import strategies as st
+from MDAnalysis.lib import transformations
 from nanover.trajectory import FrameData, keys
 from nanover.trajectory.frame_dict import FRAME_PACKERS, frame_dict_packer
 
@@ -149,3 +150,28 @@ def packable_primitives(draw):
     )
 
     return draw(primitive)
+
+
+def coords():
+    return st.floats(
+        allow_nan=False,
+        allow_infinity=False,
+        min_value=-1.0e8,
+        max_value=1.0e8,
+    )
+
+
+def vec3s():
+    return st.lists(coords(), min_size=3, max_size=3)
+
+
+@st.composite
+def transformation(draw):
+    translation = draw(vec3s())
+    axis = draw(vec3s().filter(lambda vec: np.sum(vec) > 0.01))
+    angle = draw(coords())
+
+    translation = transformations.translation_matrix(translation)
+    rotation = transformations.rotation_matrix(angle, axis)
+
+    return translation @ rotation

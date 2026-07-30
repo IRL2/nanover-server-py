@@ -1,8 +1,10 @@
 import logging
+from collections.abc import Sequence
 from functools import partial
 from itertools import count
-from typing import Any
+from typing import Any, TypedDict
 
+import numpy as np
 from ipywidgets import Output
 from nanover.app import OmniRunner
 from nanover.app.selection import (
@@ -22,7 +24,7 @@ from nanover.imd.imd_state import (
 )
 from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.utilities.transforms import Transform
+from nanover.utilities.transforms import Transform, matrix_from_state_transform
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
@@ -370,6 +372,11 @@ class InteractionsUtility(StateKeysUtility):
         self.remove_object(f"{INTERACTION_PREFIX}{key}")
 
 
+class StateTransformEntry(TypedDict):
+    transform: Sequence[float]
+    parent: str | None
+
+
 class TransformsUtility(StateKeysUtility):
     def update_transform(
         self,
@@ -385,6 +392,30 @@ class TransformsUtility(StateKeysUtility):
                 "parent": parent,
             },
         )
+
+    def fetch_transform(self, key: str, *, default: Transform | None = None):
+        with self._state.lock_state() as state:
+            entry: StateTransformEntry | None = state.get(f"transform.{key}", None)
+        return (
+            Transform.from_state_transform(entry["transform"])
+            if entry is not None
+            else default
+        )
+
+    def fetch_transform_root(self, key: str):
+        matrix = np.identity(4)
+
+        with self._state.lock_state() as state:
+            while key is not None:
+                entry: StateTransformEntry | None = state.get(f"transform.{key}", None)
+
+                if not entry:
+                    break
+
+                matrix = matrix_from_state_transform(entry["transform"]) @ matrix
+                key = entry["parent"]
+
+        return Transform.from_local_to_parent_matrix(matrix)
 
 
 class SceneObjectsUtility(StateKeysUtility):
