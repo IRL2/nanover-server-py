@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.special import logsumexp
 
 import openmm.unit as unit
 from openmm.unit.quantity import Quantity
@@ -38,14 +39,14 @@ def _calculate_pmf_second_cumulant(
         work_done_array, axis=0, ddof=1
     )
 
-def _calculate_pmf_exponential_average(
-    work_done_array: np.ndarray, beta: float
-):
+
+def _calculate_pmf_exponential_average(work_done_array: np.ndarray, beta: float):
     """
     Calculate the PMF from the irreversible work done via the exponential average.
     WARNING: the irreversible work and beta must have compatible units!
     """
-    return - (1. / beta) * np.log(np.average(np.exp(- beta * work_done_array), axis=0))
+    return -(1.0 / beta) * (logsumexp(-beta * work_done_array, axis=0) - np.log(work_done_array.shape[0]))
+
 
 def calculate_pmf_second_cumulant_kJ_mol(
     work_done_array_kJ_mol: np.ndarray, temperature_K: float
@@ -63,6 +64,7 @@ def calculate_pmf_second_cumulant_kJ_mol(
     beta = calculate_beta_mol_kJ(temperature_K)
     return _calculate_pmf_second_cumulant(work_done_array_kJ_mol, beta)
 
+
 def calculate_pmf_exponential_average_kJ_mol(
     work_done_array_kJ_mol: np.ndarray, temperature_K: float
 ):
@@ -77,6 +79,7 @@ def calculate_pmf_exponential_average_kJ_mol(
     """
     beta = calculate_beta_mol_kJ(temperature_K)
     return _calculate_pmf_exponential_average(work_done_array_kJ_mol, beta)
+
 
 def calculate_reaction_coordinate_projections(
     smd_com_coordinates_array: np.ndarray,
@@ -112,7 +115,7 @@ def calculate_reaction_coordinate_projections(
     )
 
     # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
-    restraint_vectors = (smd_com_coordinates_array - smd_reaction_coordinate)
+    restraint_vectors = smd_com_coordinates_array - smd_reaction_coordinate
     if every_nth_point is not None:
         displacements = displacements[::every_nth_point]
         restraint_vectors = restraint_vectors[:, ::every_nth_point]
@@ -134,7 +137,6 @@ def calculate_reaction_coordinate_projections(
     return reaction_coordinate_projections
 
 
-
 def calculate_variance_of_reaction_coordinate(
     smd_com_coordinates_array: np.ndarray,
     smd_reaction_coordinate: np.ndarray,
@@ -152,8 +154,9 @@ def calculate_variance_of_reaction_coordinate(
     :return: (N-1) array of the variance in the reaction coordinate as a function of the first N-1
       points of the reaction coordinate (in nm^2)
     """
-    reaction_coordinate_projections = (
-        calculate_reaction_coordinate_projections(smd_com_coordinates_array, smd_reaction_coordinate, every_nth_point))
+    reaction_coordinate_projections = calculate_reaction_coordinate_projections(
+        smd_com_coordinates_array, smd_reaction_coordinate, every_nth_point
+    )
 
     # # Calculate displacement vectors along SMD reaction coordinate
     # displacements = calculate_displacements_along_reaction_coordinate(
