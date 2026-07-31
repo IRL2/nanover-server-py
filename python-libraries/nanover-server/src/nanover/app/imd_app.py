@@ -295,7 +295,11 @@ def add_scene_update_shim(app: NanoverImdApplication):
             d[-3] *= -1
             app.state_dictionary.update_state(
                 _SHIM_TOKEN,
-                DictionaryChange(updates={"transform.simulation": {"transform": d}}),
+                DictionaryChange(
+                    updates={
+                        "transform.simulation": {"transform": d, "parent": "calibrated"}
+                    }
+                ),
             )
         elif "transform.simulation" in change.updates:
             d = list(change.updates["transform.simulation"]["transform"])
