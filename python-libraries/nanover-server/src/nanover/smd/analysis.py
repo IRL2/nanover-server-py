@@ -5,6 +5,36 @@ import openmm.unit as unit
 from openmm.unit.quantity import Quantity
 
 
+def get_every_nth(array: np.ndarray, axis: int, every_nth: int, include_end: bool = True) -> np.ndarray:
+    """
+    Returns a reduced version of the input array composed of every nth
+    value of the original array along a defined axis. By default the
+    final entry of the axis is also included, regardless of the value
+    of the stride (every_nth).
+    :param array: Original array to be reduced
+    :param axis: Axis along which to reduce the array
+    :param every_nth_point: (int | None) only calculate variance in the value of the reaction coordinate
+      at every nth point on the trajectory.
+    :param include_end: Bool defining whether to include the last entry of the array
+    :return: Reduced version of original array
+    """
+    # TODO: Write a test to check that this works as expected
+    # Assert array has the dimensions required
+    assert len(array.shape) - 1 >= axis
+
+    if every_nth == 1:
+        return array
+
+    # Define which entries of the array to take
+    indices = np.arange(0, array.shape[axis], every_nth)
+
+    # Optionally include the final element if not automatically included
+    if (array.shape[axis] - 1) % every_nth != 0 and include_end:
+        indices = np.append(indices, array.shape[axis] - 1)
+
+    return np.take(array, indices, axis=axis)
+
+
 def boltzmann_constant_in_kJ_mol_K() -> Quantity:
     """
     Returns the Boltzmann constant in units of kJ mol-1 K-1
@@ -85,6 +115,7 @@ def calculate_reaction_coordinate_projections(
     smd_com_coordinates_array: np.ndarray,
     smd_reaction_coordinate: np.ndarray,
     every_nth_point: int | None = None,
+    include_end_point: bool = True,
 ) -> np.ndarray:
     """
     Calculate the values of the reaction coordinate for the atom/COM coordinates from
@@ -95,9 +126,11 @@ def calculate_reaction_coordinate_projections(
     :param smd_reaction_coordinate: (k x 3) array of points defining the SMD reaction coordinate (in nm).
     :param every_nth_point: (int | None) only calculate variance in the value of the reaction coordinate
       at every nth point on the trajectory.
+    :param include_end_point: (Bool) whether to also calculate the variance for the final value of
+      the RC regardless of stride defined by every nth
     :return: (N * k) array of projected reaction coordinate values
     """
-    # Calculate displacement vectors along SMD reaction coordinate
+    # Calculate displacement vectors along full SMD reaction coordinate
     displacements = calculate_displacements_along_reaction_coordinate(
         smd_reaction_coordinate
     )
@@ -117,8 +150,8 @@ def calculate_reaction_coordinate_projections(
     # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
     restraint_vectors = smd_com_coordinates_array - smd_reaction_coordinate
     if every_nth_point is not None:
-        displacements = displacements[::every_nth_point]
-        restraint_vectors = restraint_vectors[:, ::every_nth_point]
+        displacements = get_every_nth(displacements, 0, every_nth_point, include_end_point)
+        restraint_vectors = get_every_nth(restraint_vectors, 1, every_nth_point, include_end_point)
 
     i_index_range = restraint_vectors.shape[1]
     if abs(restraint_vectors.shape[1] - normalised_displacements.shape[0]) == 1:
@@ -141,6 +174,7 @@ def calculate_variance_of_reaction_coordinate(
     smd_com_coordinates_array: np.ndarray,
     smd_reaction_coordinate: np.ndarray,
     every_nth_point: int | None = None,
+    include_end_point: bool = True,
 ) -> np.ndarray:
     """
     Calculates the variance in the reaction coordinate value for a set of SMD simulations.
@@ -151,11 +185,13 @@ def calculate_variance_of_reaction_coordinate(
     :param smd_reaction_coordinate: (k x 3) array of points defining the SMD reaction coordinate (in nm).
     :param every_nth_point: (int | None) only calculate variance in the value of the reaction coordinate
       at every nth point on the trajectory.
+    :param include_end_point: (Bool) whether to also calculate the variance for the final value of
+      the RC regardless of stride defined by every nth
     :return: (N-1) array of the variance in the reaction coordinate as a function of the first N-1
       points of the reaction coordinate (in nm^2)
     """
     reaction_coordinate_projections = calculate_reaction_coordinate_projections(
-        smd_com_coordinates_array, smd_reaction_coordinate, every_nth_point
+        smd_com_coordinates_array, smd_reaction_coordinate, every_nth_point, include_end_point
     )
 
     # # Calculate displacement vectors along SMD reaction coordinate
@@ -196,6 +232,7 @@ def calculate_variance_of_reaction_coordinate(
 def calculate_displacements_along_reaction_coordinate(
     smd_reaction_coordinate: np.ndarray,
     every_nth_point: int | None = None,
+    include_end_point: bool = True,
 ) -> np.ndarray:
     """
     Calculates the displacements along the reaction coordinate (in nm)
@@ -203,6 +240,8 @@ def calculate_displacements_along_reaction_coordinate(
     :param smd_reaction_coordinate: (k x 3) array of points defining the SMD reaction coordinate (in nm).
     :param every_nth_point: (int | None) only return the displacement from one point to the next for
       every nth point of the trajectory
+    :param include_end_point: (Bool) whether to also calculate the variance for the final value of
+      the RC regardless of stride defined by every nth
     :return: ((N-1) x 3) array of the displacements between the consecutive points defining the
       SMD reaction coordinate (in nm)
     """
@@ -210,12 +249,13 @@ def calculate_displacements_along_reaction_coordinate(
     if every_nth_point is None:
         return displacements_along_rc
     else:
-        return displacements_along_rc[::every_nth_point]
+        return get_every_nth(displacements_along_rc, 0, every_nth_point, include_end_point)
 
 
 def calculate_distance_along_reaction_coordinate(
     smd_reaction_coordinate: np.ndarray,
     every_nth_point: int | None = None,
+    include_end_point: bool = True,
 ) -> np.ndarray:
     """
     Calculates the cumulative distance travelled along the reaction coordinate (in nm)
@@ -223,6 +263,8 @@ def calculate_distance_along_reaction_coordinate(
     :param smd_reaction_coordinate: (k x 3) array of points defining the SMD reaction coordinate (in nm).
     :param every_nth_point: (int | None) only return the distance travelled along the reaction coordinate
       for every nth point of the trajectory
+    :param include_end_point: (Bool) whether to also calculate the variance for the final value of
+      the RC regardless of stride defined by every nth
     :return: (k) array of distances defining the cumulative distance travelled by the SMD restraint
       along the reaction coordinate (in nm)
     """
@@ -234,4 +276,4 @@ def calculate_distance_along_reaction_coordinate(
     if every_nth_point is None:
         return distance_along_rc
     else:
-        return distance_along_rc[::every_nth_point]
+        return get_every_nth(distance_along_rc, 0, every_nth_point, include_end_point)
