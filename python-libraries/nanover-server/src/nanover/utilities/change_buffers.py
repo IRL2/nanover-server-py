@@ -3,9 +3,10 @@ Module providing utility classes used by the multiplayer service to create a
 shared key/value store between multiple clients.
 """
 
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
-from threading import Lock, Condition
-from typing import Any, Set, Iterator, Iterable, Mapping
+from threading import Condition, Lock
+from typing import Any
 
 from .timing import yield_interval
 
@@ -57,8 +58,6 @@ class ObjectFrozenError(Exception):
     object has been frozen.
     """
 
-    pass
-
 
 class DictionaryChangeMultiView:
     """
@@ -69,7 +68,7 @@ class DictionaryChangeMultiView:
     _content: dict[str, Any]
     _frozen: bool
     _lock: Lock
-    _views: Set["DictionaryChangeBuffer"]
+    _views: set["DictionaryChangeBuffer"]
 
     def __init__(self):
         self._content = {}
@@ -173,7 +172,7 @@ class DictionaryChangeBuffer:
     _lock: Lock
     _any_changes: Condition
     _pending_changes: dict[str, Any]
-    _pending_removals: Set[str]
+    _pending_removals: set[str]
 
     def __init__(self):
         self._frozen = False
@@ -230,7 +229,7 @@ class DictionaryChangeBuffer:
                     raise ObjectFrozenError()
                 self._any_changes.wait()
             changes, removals = self._pending_changes, self._pending_removals
-            self._pending_changes, self._pending_removals = dict(), set()
+            self._pending_changes, self._pending_removals = {}, set()
             return DictionaryChange(changes, removals)
 
     def subscribe_changes(self, interval: float = 0) -> Iterator[DictionaryChange]:

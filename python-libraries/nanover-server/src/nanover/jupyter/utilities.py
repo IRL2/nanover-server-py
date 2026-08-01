@@ -1,30 +1,32 @@
 import logging
+from collections.abc import Sequence
 from functools import partial
 from itertools import count
-from typing import Any
-from ipywidgets import Output
+from typing import Any, TypedDict
 
+import numpy as np
+from ipywidgets import Output
 from nanover.app import OmniRunner
 from nanover.app.selection import (
-    KEY_PROPERTY_RENDERER,
-    KEY_PROPERTY_INTERACTION_METHOD,
-    RENDERER_DEFAULT,
     INTERACTION_METHOD_DEFAULT,
     KEY_PROPERTY_HIDE,
-    KEY_SELECTED_PARTICLE_IDS,
+    KEY_PROPERTY_INTERACTION_METHOD,
+    KEY_PROPERTY_RENDERER,
     KEY_PROPERTY_VELOCITY_RESET,
+    KEY_SELECTED_PARTICLE_IDS,
+    RENDERER_DEFAULT,
 )
 from nanover.core.app_server import StateService
-from nanover.recording.playback import SCENE_POSE_IDENTITY
-from nanover.utilities.change_buffers import DictionaryChange
-from nanover.utilities.transforms import Transform
-from nanover.websocket.client.app_client import NanoverImdClient
-from nanover.websocket.record import record_from_runner, BackgroundRecordingContext
 from nanover.imd.imd_state import (
+    INTERACTION_PREFIX,
     ParticleInteraction,
     interaction_to_dict,
-    INTERACTION_PREFIX,
 )
+from nanover.recording.playback import SCENE_POSE_IDENTITY
+from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.transforms import Transform, matrix_from_state_transform
+from nanover.websocket.client.app_client import NanoverImdClient
+from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
 
 class Mode:
@@ -64,12 +66,22 @@ class NanoverJupyterUtilities:
         self.panels = PanelsUtility(runner.app_server)
         self.interactions = InteractionsUtility(runner.app_server)
         self.selections = SelectionsUtility(runner.app_server)
+        self.transforms = TransformsUtility(runner.app_server)
 
     @property
     def scene_transform(self) -> Transform:
         state = self.runner.app_server.state_dictionary.copy_content()
         scene = state.get("scene", SCENE_POSE_IDENTITY)
-        return Transform.from_scene_pose(scene)
+        tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = scene
+        # invert x axis for now
+        sx *= -1
+        return Transform.from_state_transform((tx, ty, tz, rx, ry, rz, rw, sx, sy, sz))
+
+    @property
+    def scene_transform_scale(self):
+        state = self.runner.app_server.state_dictionary.copy_content()
+        scene = state.get("scene", SCENE_POSE_IDENTITY)
+        return scene[-1]
 
     def show_logging(self):
         output = Output()
@@ -85,7 +97,7 @@ class NanoverJupyterUtilities:
     def notify_all(self, message: str):
         for command in self.runner.app_server.commands:
             if command.endswith("/notify"):
-                self.runner.app_server.run_command(command, dict(message=message))
+                self.runner.app_server.run_command(command, {"message": message})
 
     def start_recording(self):
         self._recording_path = f"RECORDING-{self._recording_count}-{self.runner.simulation.name}.nanover.zip"
@@ -245,26 +257,28 @@ class SelectionsUtility(StateKeysUtility):
         self,
         key: str,
         *,
-        particle_ids: list[int] = [],
+        particle_ids: list[int] | None = None,
         renderer=RENDERER_DEFAULT,
         interaction_method=INTERACTION_METHOD_DEFAULT,
         velocity_reset=False,
         hide=False,
     ):
+        if particle_ids is None:
+            particle_ids = []
         self.update_object(
             f"selection.{key}",
-            dict(
-                id=f"selection.{key}",
-                selected={
+            {
+                "id": f"selection.{key}",
+                "selected": {
                     KEY_SELECTED_PARTICLE_IDS: particle_ids,
                 },
-                properties={
+                "properties": {
                     KEY_PROPERTY_RENDERER: renderer,
                     KEY_PROPERTY_INTERACTION_METHOD: interaction_method,
                     KEY_PROPERTY_VELOCITY_RESET: velocity_reset,
                     KEY_PROPERTY_HIDE: hide,
                 },
-            ),
+            },
         )
 
     def remove_selection(
@@ -279,23 +293,25 @@ class PanelsUtility(StateKeysUtility):
     def header(
         label="header",
     ):
-        return dict(
-            type="header",
-            label=label,
-        )
+        return {
+            "type": "header",
+            "label": label,
+        }
 
     @staticmethod
     def button(
         label="button",
         command="test/hello",
-        arguments={},
+        arguments=None,
     ):
-        return dict(
-            type="button",
-            label=label,
-            command=command,
-            arguments=arguments,
-        )
+        if arguments is None:
+            arguments = {}
+        return {
+            "type": "button",
+            "label": label,
+            "command": command,
+            "arguments": arguments,
+        }
 
     @staticmethod
     def slider(
@@ -305,14 +321,14 @@ class PanelsUtility(StateKeysUtility):
         integer=False,
         step=None,
     ):
-        return dict(
-            type="slider",
-            label=label,
-            variable=variable,
-            range=range,
-            integer=integer,
-            step=step,
-        )
+        return {
+            "type": "slider",
+            "label": label,
+            "variable": variable,
+            "range": range,
+            "integer": integer,
+            "step": step,
+        }
 
     def update_panel(
         self,
@@ -356,6 +372,52 @@ class InteractionsUtility(StateKeysUtility):
         self.remove_object(f"{INTERACTION_PREFIX}{key}")
 
 
+class StateTransformEntry(TypedDict):
+    transform: Sequence[float]
+    parent: str | None
+
+
+class TransformsUtility(StateKeysUtility):
+    def update_transform(
+        self,
+        key: str,
+        *,
+        transform: Transform,
+        parent: str | None = None,
+    ):
+        self.update_object(
+            f"transform.{key}",
+            {
+                "transform": transform.to_state_transform(),
+                "parent": parent,
+            },
+        )
+
+    def fetch_transform(self, key: str, *, default: Transform | None = None):
+        with self._state.lock_state() as state:
+            entry: StateTransformEntry | None = state.get(f"transform.{key}", None)
+        return (
+            Transform.from_state_transform(entry["transform"])
+            if entry is not None
+            else default
+        )
+
+    def fetch_transform_root(self, key: str):
+        matrix = np.identity(4)
+
+        with self._state.lock_state() as state:
+            while key is not None:
+                entry: StateTransformEntry | None = state.get(f"transform.{key}", None)
+
+                if not entry:
+                    break
+
+                matrix = matrix_from_state_transform(entry["transform"]) @ matrix
+                key = entry["parent"]
+
+        return Transform.from_local_to_parent_matrix(matrix)
+
+
 class SceneObjectsUtility(StateKeysUtility):
     def clear_all(self):
         keys = {
@@ -375,6 +437,7 @@ class SceneObjectsUtility(StateKeysUtility):
         position=(0.0, 0.0, 0.0),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.1,
+        parent: str | None = None,
         **kwargs,
     ):
         self.update_object(
@@ -384,6 +447,7 @@ class SceneObjectsUtility(StateKeysUtility):
                 "position": position,
                 "color": color,
                 "size": size,
+                "parent": parent,
                 **kwargs,
             },
         )
@@ -393,16 +457,20 @@ class SceneObjectsUtility(StateKeysUtility):
         key: str,
         *,
         positions=((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)),
+        colors=None,
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
+        parent: str | None = None,
         **kwargs,
     ):
         self.update_object(
             f"object.line.{key}",
             {
                 "positions": positions,
+                "colors": colors,
                 "color": color,
                 "size": size,
+                "parent": parent,
                 **kwargs,
             },
         )
@@ -415,6 +483,7 @@ class SceneObjectsUtility(StateKeysUtility):
         position=(0.0, 0.0, 0.0),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
+        parent: str | None = None,
         **kwargs,
     ):
         self.update_object(
@@ -424,6 +493,7 @@ class SceneObjectsUtility(StateKeysUtility):
                 "position": position,
                 "color": color,
                 "size": size,
+                "parent": parent,
                 **kwargs,
             },
         )

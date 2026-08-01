@@ -3,22 +3,21 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from nanover.core import AppServer, Simulation as NanoverSimulation
+from nanover.imd.imd_force import calculate_contribution_to_work
 
 from openmm.app import Simulation, StateDataReporter
 from openmm.unit import nanometer
 
-from nanover.core import AppServer, Simulation as NanoverSimulation
-
-from .converter import openmm_to_frame_data
 from . import serializer
+from .converter import openmm_to_frame_data
 from .imd import (
-    create_imd_force,
-    add_imd_force_to_system,
-    ImdForceManager,
     NON_IMD_FORCES_GROUP_MASK,
+    ImdForceManager,
+    add_imd_force_to_system,
+    create_imd_force,
 )
-from .thermo import compute_instantaneous_temperature, compute_dof
-from nanover.imd.imd_force import calculate_contribution_to_work
+from .thermo import compute_dof, compute_instantaneous_temperature
 
 
 class OpenMMSimulation(NanoverSimulation):
@@ -214,7 +213,7 @@ class OpenMMSimulation(NanoverSimulation):
             getPositions=True,
             enforcePeriodicBox=self.use_pbc_wrapping or False,
         )
-        positions = state.getPositions(asNumpy=True).value_in_unit(nanometer)
+        positions = state.getPositions(asNumpy=True)
 
         # Calculate on-step contribution to work
         if self._prev_imd_forces is not None:
@@ -224,9 +223,7 @@ class OpenMMSimulation(NanoverSimulation):
             )
 
         # update imd forces and energies
-        self.imd_force_manager.update_interactions(
-            self.simulation, positions, steps_to_next_frame
-        )
+        self.imd_force_manager.update_interactions(self.simulation, positions)
 
         # generate the next frame with the existing (still valid) positions
         frame_data = self.make_regular_frame(positions)

@@ -20,8 +20,7 @@ Tests minimum image convention and distance calculations.
 
 import numpy as np
 import pytest
-from hypothesis import strategies, given, example
-
+from hypothesis import example, given, strategies
 from nanover.imd.imd_force import _calculate_diff_and_sqr_distance
 
 

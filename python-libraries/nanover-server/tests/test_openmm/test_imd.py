@@ -3,12 +3,11 @@ Tests for :mod:`nanover.openmm.imd`.
 """
 
 import openmm as mm
-from openmm.unit import nanometer
 from nanover.openmm import imd
-
+from openmm.unit import nanometer
 from simulation_utils import (
-    basic_system,
     basic_simulation,
+    basic_system,
     empty_imd_force,
 )
 

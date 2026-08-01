@@ -3,9 +3,10 @@ from contextlib import contextmanager
 from threading import Lock
 
 from nanover.utilities.cli import CancellationToken
-from nanover.utilities.queues import FrameMergingQueue
 from nanover.utilities.timing import yield_interval
-from nanover.trajectory import FrameData
+
+from .frame_queue import FrameMergingQueue
+from .frame_wrapper import FrameData
 
 
 class FramePublisher:

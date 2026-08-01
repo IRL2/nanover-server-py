@@ -2,11 +2,11 @@
 Unit tests of the IMD service, without any connections.
 """
 
-from mock import Mock
+from unittest.mock import Mock
 
 from nanover.imd.imd_state import (
-    ImdStateWrapper,
     VELOCITY_RESET_KEY,
+    ImdStateWrapper,
     interaction_to_dict,
 )
 from nanover.imd.particle_interaction import ParticleInteraction

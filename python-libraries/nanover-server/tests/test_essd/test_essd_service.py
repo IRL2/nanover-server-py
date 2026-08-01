@@ -1,14 +1,14 @@
 import json
-import pytest
 
 import nanover.essd
+import pytest
 from nanover.essd.servicehub import (
-    ServiceHub,
-    SERVICE_NAME_KEY,
-    SERVICE_ADDRESS_KEY,
-    SERVICE_SERVICES_KEY,
-    SERVICE_ID_KEY,
     ESSD_VERSION_KEY,
+    SERVICE_ADDRESS_KEY,
+    SERVICE_ID_KEY,
+    SERVICE_NAME_KEY,
+    SERVICE_SERVICES_KEY,
+    ServiceHub,
 )
 from nanover.essd.utils import get_broadcastable_ip
 

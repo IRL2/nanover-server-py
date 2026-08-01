@@ -1,25 +1,23 @@
 import concurrent
 import errno
-from socket import socket
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
+from socket import socket
 from ssl import SSLContext
-from typing import Self, Protocol
+from typing import Protocol, Self
 
 import msgpack
-
 from nanover.core import AppServer
+from nanover.core.commands import CommandMessageHandler
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import (
     DictionaryChange,
     ObjectFrozenError,
 )
 from nanover.utilities.cli import CancellationToken
-from websockets.sync.server import serve, ServerConnection, Server
-
-from nanover.core.commands import CommandMessageHandler
 from nanover.utilities.packing import fallback_encoder
 from nanover.websocket.landing import make_landing_page_server
+from websockets.sync.server import Server, ServerConnection, serve
 
 MAX_MESSAGE_SIZE = 128 * 1024 * 1024
 
@@ -88,9 +86,9 @@ class WebSocketServer:
             server = serve(
                 self._handle_client, host, port, ssl=ssl, max_size=MAX_MESSAGE_SIZE
             )
-        except IOError as e:
+        except OSError as e:
             if e.errno == errno.EADDRINUSE:
-                raise IOError(f"Port {port} already in use.") from None
+                raise OSError(f"Port {port} already in use.") from None
             raise
 
         self._servers.append(server)
@@ -109,9 +107,9 @@ class WebSocketServer:
     ):
         try:
             server = make_landing_page_server(host=host, port=port, ssl=ssl)
-        except IOError as e:
+        except OSError as e:
             if e.errno == errno.EADDRINUSE:
-                raise IOError(f"Port {port} already in use.") from None
+                raise OSError(f"Port {port} already in use.") from None
             raise
 
         self._servers.append(server)

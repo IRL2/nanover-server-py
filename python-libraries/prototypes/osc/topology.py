@@ -3,10 +3,10 @@ Functions for extracting topology from nanover frames into per-atom dictionaries
 """
 
 from nanover.trajectory.frame_data import (
-    PARTICLE_ELEMENTS,
-    PARTICLE_RESIDUES,
-    PARTICLE_NAMES,
     BOND_PAIRS,
+    PARTICLE_ELEMENTS,
+    PARTICLE_NAMES,
+    PARTICLE_RESIDUES,
 )
 
 ATOM_PROPERTIES = {
@@ -35,7 +35,7 @@ def atom_listing_from_frame(frame):
     atoms = []
     neighbour_map = neighbour_map_from_frame(frame)
 
-    for index in range(0, atom_count):
+    for index in range(atom_count):
         atom = {"index": index, "neighbours": neighbour_map.get(index)}
 
         for key, array in atom_arrays.items():

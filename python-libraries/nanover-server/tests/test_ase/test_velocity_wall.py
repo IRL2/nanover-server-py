@@ -1,14 +1,13 @@
 import functools
-import pytest
+
 import numpy as np
+import pytest
 from ase import Atoms, units
 from ase.cell import Cell
 from ase.md import VelocityVerlet
 from nanover.ase.null_calculator import NullCalculator
 from nanover.ase.omm_calculator import OpenMMCalculator
 from nanover.ase.wall_constraint import VelocityWallConstraint
-
-
 from omm_simulation_utils import basic_simulation
 
 
@@ -112,12 +111,11 @@ def test_validate_box(broken_cell):
 
 
 def test_chaining_calculators(walled_atoms, openmm_calculator_and_atoms):
-    reference_calculator, reference_atoms = openmm_calculator_and_atoms
+    _reference_calculator, reference_atoms = openmm_calculator_and_atoms
     velocities = np.ones((len(reference_atoms), 3)) * units.Ang / units.fs
     reference_atoms.set_velocities(velocities)
     reference_dynamics = VelocityVerlet(atoms=reference_atoms, timestep=1 * units.fs)
 
-    walled_atoms = walled_atoms
     walled_atoms.set_velocities(velocities)
     walled_dynamics = VelocityVerlet(atoms=walled_atoms, timestep=1 * units.fs)
 
