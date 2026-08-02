@@ -237,6 +237,10 @@ class StateKeysUtility:
         self._buffer.removals = {key, *self._buffer.removals}
         self.check_flush()
 
+    def all_with_prefix(self, prefix: str):
+        with self._state.lock_state() as state:
+            return { key: value for key, value in state.items() if key.startswith(prefix) }
+
     def check_flush(self):
         if self._depth == 0:
             self.flush()
