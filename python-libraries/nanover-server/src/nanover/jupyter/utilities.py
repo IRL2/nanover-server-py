@@ -18,7 +18,6 @@ from nanover.app.selection import (
 )
 from nanover.core.app_server import StateService
 from nanover.imd.imd_state import (
-    INTERACTION_PREFIX,
     ParticleInteraction,
     interaction_to_dict,
 )
@@ -69,13 +68,7 @@ class NanoverJupyterUtilities:
 
     @property
     def scene_transform(self) -> Transform:
-        return self.transforms.fetch_transform("simulation")
-
-    @property
-    def scene_transform_scale(self):
-        return abs(
-            self.transforms.fetch_transform("simulation").to_state_transform()[-1]
-        )
+        return self.transforms.fetch_transform("simulation") or Transform.identity()
 
     def show_logging(self):
         output = Output()
@@ -205,6 +198,8 @@ class NanoverJupyterUtilities:
 
 
 class StateKeysUtility:
+    prefix = ""
+
     @classmethod
     def from_runner(cls, runner: OmniRunner):
         return cls(runner.app_server)
@@ -236,6 +231,14 @@ class StateKeysUtility:
         self._buffer.removals = {key, *self._buffer.removals}
         self.check_flush()
 
+    def all_prefixed(self):
+        with self._state.lock_state() as state:
+            return {
+                key.removeprefix(self.prefix)
+                for key in state
+                if key.startswith(self.prefix)
+            }
+
     def check_flush(self):
         if self._depth == 0:
             self.flush()
@@ -250,8 +253,15 @@ class StateKeysUtility:
         self._keys = set()
         self.check_flush()
 
+    def clear_all(self):
+        self._buffer = DictionaryChange(removals=self.all_prefixed())
+        self._keys = set()
+        self.check_flush()
+
 
 class SelectionsUtility(StateKeysUtility):
+    prefix = "selection."
+
     def update_selection(
         self,
         key: str,
@@ -262,14 +272,14 @@ class SelectionsUtility(StateKeysUtility):
         velocity_reset=False,
         hide=False,
     ):
-        if particle_ids is None:
-            particle_ids = []
         self.update_object(
-            f"selection.{key}",
+            f"{self.prefix}{key}",
             {
-                "id": f"selection.{key}",
+                "id": f"{self.prefix}{key}",
                 "selected": {
-                    KEY_SELECTED_PARTICLE_IDS: particle_ids,
+                    KEY_SELECTED_PARTICLE_IDS: particle_ids
+                    if particle_ids is not None
+                    else [],
                 },
                 "properties": {
                     KEY_PROPERTY_RENDERER: renderer,
@@ -280,14 +290,13 @@ class SelectionsUtility(StateKeysUtility):
             },
         )
 
-    def remove_selection(
-        self,
-        key: str,
-    ):
-        self.remove_object(f"selection.{key}")
+    def remove_selection(self, key: str):
+        self.remove_object(f"{self.prefix}{key}")
 
 
 class PanelsUtility(StateKeysUtility):
+    prefix = "panel."
+
     @staticmethod
     def header(
         label="header",
@@ -348,27 +357,17 @@ class PanelsUtility(StateKeysUtility):
         )
 
     def remove_panel(self, key: str):
-        self.remove_object(f"panel.{key}")
+        self.remove_object(f"{self.prefix}{key}")
 
 
 class InteractionsUtility(StateKeysUtility):
-    def clear_all(self):
-        keys = {
-            key
-            for key in self._state.state_dictionary.copy_content()
-            if key.startswith("interaction.")
-        }
-        self._buffer = DictionaryChange(removals=keys)
-        self._keys = set()
-        self.check_flush()
+    prefix = "interaction."
 
     def update_interaction(self, key: str, interaction: ParticleInteraction):
-        self.update_object(
-            f"{INTERACTION_PREFIX}{key}", interaction_to_dict(interaction)
-        )
+        self.update_object(f"{self.prefix}{key}", interaction_to_dict(interaction))
 
     def remove_interaction(self, key: str):
-        self.remove_object(f"{INTERACTION_PREFIX}{key}")
+        self.remove_object(f"{self.prefix}{key}")
 
 
 class StateTransformEntry(TypedDict):
@@ -377,6 +376,8 @@ class StateTransformEntry(TypedDict):
 
 
 class TransformsUtility(StateKeysUtility):
+    prefix = "transform."
+
     def update_transform(
         self,
         key: str,
@@ -385,20 +386,12 @@ class TransformsUtility(StateKeysUtility):
         parent="simulation",
     ):
         self.update_object(
-            f"transform.{key}",
+            f"{self.prefix}{key}",
             {
                 "transform": transform.to_state_transform(),
                 "parent": parent,
             },
         )
-
-    def keys(self):
-        with self._state.lock_state() as state:
-            return {
-                key.removeprefix("transform.")
-                for key in state
-                if key.startswith("transform.")
-            }
 
     def get_parent(self, key: str, *, default=None):
         entry = self.fetch_transform_entry(key)
@@ -406,7 +399,7 @@ class TransformsUtility(StateKeysUtility):
 
     def fetch_transform_entry(self, key: str) -> StateTransformEntry | None:
         with self._state.lock_state() as state:
-            return state.get(f"transform.{key}", None)
+            return state.get(f"{self.prefix}{key}", None)
 
     def fetch_transform(self, key: str, *, default: Transform | None = None):
         entry = self.fetch_transform_entry(key)
@@ -421,7 +414,9 @@ class TransformsUtility(StateKeysUtility):
 
         with self._state.lock_state() as state:
             while key is not None:
-                entry: StateTransformEntry | None = state.get(f"transform.{key}", None)
+                entry: StateTransformEntry | None = state.get(
+                    f"{self.prefix}{key}", None
+                )
 
                 if not entry:
                     break
@@ -433,15 +428,7 @@ class TransformsUtility(StateKeysUtility):
 
 
 class SceneObjectsUtility(StateKeysUtility):
-    def clear_all(self):
-        keys = {
-            key
-            for key in self._state.state_dictionary.copy_content()
-            if key.startswith("object.")
-        }
-        self._buffer = DictionaryChange(removals=keys)
-        self._keys = set()
-        self.check_flush()
+    prefix = "object."
 
     def update_shape(
         self,

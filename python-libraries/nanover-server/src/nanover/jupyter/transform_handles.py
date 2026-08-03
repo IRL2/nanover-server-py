@@ -3,13 +3,13 @@ from nanover.utilities.transforms import Transform
 
 from . import Mode, NanoverJupyterUtilities
 
-CURSOR_GRABBED_OBJECT: dict[str, str] = {}
-CURSOR_GRABBED_MATRIX: dict = {}
-
 
 def use_transform_handles(utilities: NanoverJupyterUtilities):
+    cursor_grabbed_object: dict[str, str] = {}
+    cursor_grabbed_matrix: dict = {}
+
     def intersect_all_transforms(point):
-        for key in utilities.transforms.keys():  # noqa: SIM118
+        for key in utilities.transforms.all_prefixed():
             object_to_root = utilities.transforms.fetch_transform_root(key)
             local_point = object_to_root.points_parent_to_local(point)
             if np.linalg.norm(local_point) < 0.25:
@@ -28,7 +28,7 @@ def use_transform_handles(utilities: NanoverJupyterUtilities):
         def on_button_pressed(self, *, key: str, cursor: dict, button: str):
             hovered = intersect_all_transforms(cursor["position"])
             available = (
-                hovered not in CURSOR_GRABBED_OBJECT.values() and hovered is not None
+                hovered not in cursor_grabbed_object.values() and hovered is not None
             )
 
             # grab hovered object if not already grabbed
@@ -42,24 +42,24 @@ def use_transform_handles(utilities: NanoverJupyterUtilities):
                 # matrix transforming cursor to object
                 offset_matrix = np.linalg.inv(cursor_in_parent) @ object_in_parent
 
-                CURSOR_GRABBED_OBJECT[key] = hovered
-                CURSOR_GRABBED_MATRIX[key] = offset_matrix
+                cursor_grabbed_object[key] = hovered
+                cursor_grabbed_matrix[key] = offset_matrix
 
         def on_button_released(self, *, key: str, cursor: dict, button: str):
             # release grabbed
             if button == "primary":
-                CURSOR_GRABBED_OBJECT.pop(key, None)
-                CURSOR_GRABBED_MATRIX.pop(key, None)
+                cursor_grabbed_object.pop(key, None)
+                cursor_grabbed_matrix.pop(key, None)
 
         def on_cursor_updated(self, *, key: str, cursor: dict):
             # if this cursor has grabbed an object, update the object pose from cursor pose
-            grabbed = CURSOR_GRABBED_OBJECT.get(key, None)
+            grabbed = cursor_grabbed_object.get(key, None)
             if grabbed is not None:
                 object_parent = utilities.transforms.get_parent(grabbed, default="root")
                 # cursor matrix relative to object parent
                 cursor_in_parent = cursor_in_object_parent_matrix(cursor, grabbed)
                 # matrix transforming cursor to object
-                offset_matrix = CURSOR_GRABBED_MATRIX.get(key, np.identity(4))
+                offset_matrix = cursor_grabbed_matrix.get(key, np.identity(4))
                 # object matrix relative to object parent
                 object_in_parent = cursor_in_parent @ offset_matrix
 
