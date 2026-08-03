@@ -377,7 +377,7 @@ class TransformsUtility(StateKeysUtility):
         key: str,
         *,
         transform: Transform,
-        parent: str | None = None,
+        parent="simulation",
     ):
         self.update_object(
             f"transform.{key}",
@@ -431,7 +431,7 @@ class SceneObjectsUtility(StateKeysUtility):
         position=(0.0, 0.0, 0.0),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.1,
-        parent: str | None = None,
+        parent="simulation",
         **kwargs,
     ):
         self.update_object(
@@ -454,7 +454,7 @@ class SceneObjectsUtility(StateKeysUtility):
         colors=None,
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
-        parent: str | None = None,
+        parent="simulation",
         **kwargs,
     ):
         self.update_object(
@@ -477,7 +477,7 @@ class SceneObjectsUtility(StateKeysUtility):
         position=(0.0, 0.0, 0.0),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
-        parent: str | None = None,
+        parent="simulation",
         **kwargs,
     ):
         self.update_object(

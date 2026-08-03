@@ -27,4 +27,4 @@ class AlignmentTransform(FrameListener):
         except MissingDataError:
             transform = Transform.from_parent_to_local_matrix(np.identity(4))
 
-        self.transforms.update_transform(self.key, transform=transform, parent="scene")
+        self.transforms.update_transform(self.key, transform=transform)
