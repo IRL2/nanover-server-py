@@ -22,7 +22,6 @@ from nanover.imd.imd_state import (
     ParticleInteraction,
     interaction_to_dict,
 )
-from nanover.recording.playback import SCENE_POSE_IDENTITY
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.transforms import Transform, matrix_from_state_transform
 from nanover.websocket.client.app_client import NanoverImdClient
@@ -70,18 +69,13 @@ class NanoverJupyterUtilities:
 
     @property
     def scene_transform(self) -> Transform:
-        state = self.runner.app_server.state_dictionary.copy_content()
-        scene = state.get("scene", SCENE_POSE_IDENTITY)
-        tx, ty, tz, rx, ry, rz, rw, sx, sy, sz = scene
-        # invert x axis for now
-        sx *= -1
-        return Transform.from_state_transform((tx, ty, tz, rx, ry, rz, rw, sx, sy, sz))
+        return self.transforms.fetch_transform("simulation")
 
     @property
     def scene_transform_scale(self):
-        state = self.runner.app_server.state_dictionary.copy_content()
-        scene = state.get("scene", SCENE_POSE_IDENTITY)
-        return scene[-1]
+        return abs(
+            self.transforms.fetch_transform("simulation").to_state_transform()[-1]
+        )
 
     def show_logging(self):
         output = Output()
@@ -383,7 +377,7 @@ class TransformsUtility(StateKeysUtility):
         key: str,
         *,
         transform: Transform,
-        parent: str | None = None,
+        parent="simulation",
     ):
         self.update_object(
             f"transform.{key}",
@@ -437,7 +431,7 @@ class SceneObjectsUtility(StateKeysUtility):
         position=(0.0, 0.0, 0.0),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.1,
-        parent: str | None = None,
+        parent="simulation",
         **kwargs,
     ):
         self.update_object(
@@ -460,7 +454,7 @@ class SceneObjectsUtility(StateKeysUtility):
         colors=None,
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
-        parent: str | None = None,
+        parent="simulation",
         **kwargs,
     ):
         self.update_object(
@@ -483,7 +477,7 @@ class SceneObjectsUtility(StateKeysUtility):
         position=(0.0, 0.0, 0.0),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
-        parent: str | None = None,
+        parent="simulation",
         **kwargs,
     ):
         self.update_object(

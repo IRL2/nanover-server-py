@@ -94,6 +94,7 @@ class NanoverImdApplication(AppServer):
 
         self._imd_state = ImdStateWrapper(self._state_dictionary)
         add_multiuser_commands(self)
+        add_scene_update_shim(self)
 
     @property
     def name(self):
@@ -275,3 +276,37 @@ def qualified_server_name(base_name: str):
         getpass.getuser()
     )  # OS agnostic method that uses a few different metrics to get the username
     return f"{username}: {base_name}"
+
+
+_SHIM_TOKEN = "SCENE_UPDATE_SHIM"
+
+
+def add_scene_update_shim(app: NanoverImdApplication):
+    """Keep old and new scene pose/transform in sync for compatibility."""
+
+    def on_update(*, access_token, change: DictionaryChange):
+        # ignore changes made by this shim
+        if access_token == _SHIM_TOKEN:
+            return
+
+        # if old scene pose or new scene transform are updated, update the other one with flipped x scale
+        if "scene" in change.updates:
+            d = list(change.updates["scene"])
+            d[-3] *= -1
+            app.state_dictionary.update_state(
+                _SHIM_TOKEN,
+                DictionaryChange(
+                    updates={
+                        "transform.simulation": {"transform": d, "parent": "calibrated"}
+                    }
+                ),
+            )
+        elif "transform.simulation" in change.updates:
+            d = list(change.updates["transform.simulation"]["transform"])
+            d[-3] *= -1
+            app.state_dictionary.update_state(
+                _SHIM_TOKEN,
+                DictionaryChange(updates={"scene": d}),
+            )
+
+    app.state_dictionary.content_updated.add_callback(on_update)
