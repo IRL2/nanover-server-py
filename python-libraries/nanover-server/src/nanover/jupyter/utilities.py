@@ -387,9 +387,16 @@ class TransformsUtility(StateKeysUtility):
             },
         )
 
-    def fetch_transform(self, key: str, *, default: Transform | None = None):
+    def keys(self):
         with self._state.lock_state() as state:
-            entry: StateTransformEntry | None = state.get(f"transform.{key}", None)
+            return {key for key in state if key.startswith("transform.")}
+
+    def fetch_transform_entry(self, key: str) -> StateTransformEntry | None:
+        with self._state.lock_state() as state:
+            return state.get(f"transform.{key}", None)
+
+    def fetch_transform(self, key: str, *, default: Transform | None = None):
+        entry = self.fetch_transform_entry(key)
         return (
             Transform.from_state_transform(entry["transform"])
             if entry is not None
