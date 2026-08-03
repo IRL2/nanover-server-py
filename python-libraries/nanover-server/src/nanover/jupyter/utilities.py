@@ -400,6 +400,10 @@ class TransformsUtility(StateKeysUtility):
                 if key.startswith("transform.")
             }
 
+    def get_parent(self, key: str, *, default=None):
+        entry = self.fetch_transform_entry(key)
+        return default if entry is None else entry.get("parent", default)
+
     def fetch_transform_entry(self, key: str) -> StateTransformEntry | None:
         with self._state.lock_state() as state:
             return state.get(f"transform.{key}", None)

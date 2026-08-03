@@ -17,9 +17,7 @@ def use_transform_handles(utilities: NanoverJupyterUtilities):
         return None
 
     def cursor_in_object_parent_matrix(cursor: dict, object: str):
-        object_parent = utilities.transforms.fetch_transform_entry(object).get(
-            "parent", "root"
-        )
+        object_parent = utilities.transforms.get_parent(object, default="root")
         cursor_to_root = Transform.from_state_cursor(cursor).local_to_parent_matrix
         parent_to_root = utilities.transforms.fetch_transform_root(
             object_parent
@@ -57,9 +55,7 @@ def use_transform_handles(utilities: NanoverJupyterUtilities):
             # if this cursor has grabbed an object, update the object pose from cursor pose
             grabbed = CURSOR_GRABBED_OBJECT.get(key, None)
             if grabbed is not None:
-                object_parent = utilities.transforms.fetch_transform_entry(grabbed).get(
-                    "parent", "root"
-                )
+                object_parent = utilities.transforms.get_parent(grabbed, default="root")
                 # cursor matrix relative to object parent
                 cursor_in_parent = cursor_in_object_parent_matrix(cursor, grabbed)
                 # matrix transforming cursor to object
