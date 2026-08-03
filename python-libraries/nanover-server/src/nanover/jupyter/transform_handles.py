@@ -9,7 +9,7 @@ CURSOR_GRABBED_MATRIX: dict = {}
 
 def use_transform_handles(utilities: NanoverJupyterUtilities):
     def intersect_all_transforms(point):
-        for key in utilities.transforms.keys():
+        for key in utilities.transforms.keys():  # noqa: SIM118
             object_to_root = utilities.transforms.fetch_transform_root(key)
             local_point = object_to_root.points_parent_to_local(point)
             if np.linalg.norm(local_point) < 0.25:
