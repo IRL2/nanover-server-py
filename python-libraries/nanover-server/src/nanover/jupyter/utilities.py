@@ -198,6 +198,11 @@ class NanoverJupyterUtilities:
             label=f"{name} mode",
         )
 
+    def use_transform_handles(self):
+        from .transform_handles import use_transform_handles
+
+        use_transform_handles(self)
+
 
 class StateKeysUtility:
     @classmethod
@@ -389,7 +394,11 @@ class TransformsUtility(StateKeysUtility):
 
     def keys(self):
         with self._state.lock_state() as state:
-            return {key for key in state if key.startswith("transform.")}
+            return {
+                key.removeprefix("transform.")
+                for key in state
+                if key.startswith("transform.")
+            }
 
     def fetch_transform_entry(self, key: str) -> StateTransformEntry | None:
         with self._state.lock_state() as state:

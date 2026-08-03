@@ -116,7 +116,7 @@ def _transform_vec3(matrix: npt.NDArray, vector) -> npt.NDArray:
 
 
 def _transform_vec3s(matrix: npt.NDArray, vectors) -> npt.NDArray:
-    v = np.asarray(vectors).T
+    v = np.atleast_2d(vectors).T
     expanded = np.vstack((v, np.ones([1, v.shape[1]], v.dtype)))
     return (matrix @ expanded)[:-1].T
 
