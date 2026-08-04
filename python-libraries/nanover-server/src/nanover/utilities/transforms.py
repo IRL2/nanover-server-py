@@ -43,6 +43,10 @@ class Transform:
         return cls.from_local_to_parent_matrix(np.identity(4))
 
     @classmethod
+    def from_translation(cls, translation: Sequence[float]):
+        return cls.from_state_transform(translation[:3])
+
+    @classmethod
     def from_state_transform(cls, transform: Sequence[float]):
         return cls.from_local_to_parent_matrix(matrix_from_state_transform(transform))
 
@@ -116,7 +120,7 @@ def _transform_vec3(matrix: npt.NDArray, vector) -> npt.NDArray:
 
 
 def _transform_vec3s(matrix: npt.NDArray, vectors) -> npt.NDArray:
-    v = np.asarray(vectors).T
+    v = np.atleast_2d(vectors).T
     expanded = np.vstack((v, np.ones([1, v.shape[1]], v.dtype)))
     return (matrix @ expanded)[:-1].T
 
