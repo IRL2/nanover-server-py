@@ -65,6 +65,7 @@ class NanoverJupyterUtilities:
         self.interactions = InteractionsUtility(runner.app_server)
         self.selections = SelectionsUtility(runner.app_server)
         self.transforms = TransformsUtility(runner.app_server)
+        self.handles = TransformHandlesUtility(runner.app_server)
 
     @property
     def scene_transform(self) -> Transform:
@@ -238,6 +239,14 @@ class StateKeysUtility:
                 for key in state
                 if key.startswith(self.prefix)
             }
+
+    def all_prefixed_items(self):
+        with self._state.lock_state() as state:
+            return {
+                key.removeprefix(self.prefix): value
+                for key, value in state.items()
+                if key.startswith(self.prefix)
+            }.items()
 
     def check_flush(self):
         if self._depth == 0:
@@ -425,6 +434,36 @@ class TransformsUtility(StateKeysUtility):
                 key = entry["parent"]
 
         return Transform.from_local_to_parent_matrix(matrix)
+
+
+class TransformHandlesUtility(StateKeysUtility):
+    prefix = "handle."
+
+    def update_handle(
+        self,
+        key: str,
+        *,
+        parent: str,
+        sphere=((0, 0, 0), 0.25),
+        translate=True,
+        rotate=True,
+        scale=False,
+        **kwargs,
+    ):
+        self.update_object(
+            f"{self.prefix}{key}",
+            dict(
+                parent=parent,
+                sphere=sphere,
+                translate=translate,
+                rotate=rotate,
+                scale=scale,
+                **kwargs,
+            ),
+        )
+
+    def remove_handle(self, key: str):
+        self.remove_object(f"{self.prefix}{key}")
 
 
 class SceneObjectsUtility(StateKeysUtility):
