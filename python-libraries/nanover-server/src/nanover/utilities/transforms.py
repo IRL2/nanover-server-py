@@ -43,6 +43,10 @@ class Transform:
         return cls.from_local_to_parent_matrix(np.identity(4))
 
     @classmethod
+    def from_translation(cls, translation: Sequence[float]):
+        return cls.from_state_transform(translation[:3])
+
+    @classmethod
     def from_state_transform(cls, transform: Sequence[float]):
         return cls.from_local_to_parent_matrix(matrix_from_state_transform(transform))
 
