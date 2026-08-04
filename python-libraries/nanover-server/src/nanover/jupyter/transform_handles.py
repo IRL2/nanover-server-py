@@ -23,11 +23,11 @@ def use_transform_handles(utilities: NanoverJupyterUtilities):
         """
 
         object_parent = utilities.transforms.get_parent(object, default="root")
-        parent_to_root = utilities.transforms.fetch_transform_root(
+        root_to_parent = utilities.transforms.fetch_transform_root(
             object_parent
-        ).local_to_parent_matrix
+        ).parent_to_local_matrix
         cursor_to_root = Transform.from_state_cursor(cursor).local_to_parent_matrix
-        return np.linalg.inv(parent_to_root) @ cursor_to_root
+        return root_to_parent @ cursor_to_root
 
     def filter_matrix_update(next_matrix, prev_matrix, handle: dict):
         """
