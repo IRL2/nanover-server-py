@@ -197,6 +197,15 @@ class NanoverJupyterUtilities:
 
         use_transform_handles(self)
 
+    def intersect_transform_handles(self, point):
+        for key, handle in self.handles.all_prefixed_items():
+            object_to_root = self.transforms.fetch_transform_root(handle["parent"])
+            local_point = object_to_root.points_parent_to_local(point)
+            center, radius = handle["sphere"]
+            if np.linalg.norm(np.subtract(local_point, center)) < radius:
+                return handle
+        return None
+
 
 class StateKeysUtility:
     prefix = ""
