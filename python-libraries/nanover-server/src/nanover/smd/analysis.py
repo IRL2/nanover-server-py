@@ -4,6 +4,37 @@ from scipy.special import logsumexp
 import openmm.unit as unit
 from openmm.unit.quantity import Quantity
 
+from os import PathLike
+
+def load_general_iguessmd_data(filepath: PathLike | str) -> dict:
+    """
+    Load the SMD path, speed of restraint, timestep for simulation and
+    (if available) the atoms to which the restraint should be applied.
+    :param filepath: A string defining the path to the .npy output file
+      containing the general iGUESSMD data
+    :return: A dictionary containing the SMD path, restraint speed, timestep and
+      (if available) atom indices
+    """
+
+    assert ".npy" in filepath
+
+    with open(filepath, 'rb') as general_iguessmd_data_file:
+        smd_atom_indices = np.load(general_iguessmd_data_file)
+        smd_path = np.load(general_iguessmd_data_file)
+        smd_force_constant = np.load(general_iguessmd_data_file)
+        temperature = np.load(general_iguessmd_data_file)
+        timestep_ps = np.load(general_iguessmd_data_file)
+
+        general_iguessmd_data = {
+            'smd_atom_indices': smd_atom_indices,
+            'smd_path': smd_path,
+            'smd_force_constant': smd_force_constant,
+            'temperature': temperature,
+            'timestep_ps': timestep_ps,
+        }
+
+        return general_iguessmd_data
+
 
 def get_every_nth(array: np.ndarray, axis: int, every_nth: int, include_end: bool = True) -> np.ndarray:
     """
@@ -13,8 +44,8 @@ def get_every_nth(array: np.ndarray, axis: int, every_nth: int, include_end: boo
     of the stride (every_nth).
     :param array: Original array to be reduced
     :param axis: Axis along which to reduce the array
-    :param every_nth_point: (int | None) only calculate variance in the value of the reaction coordinate
-      at every nth point on the trajectory.
+    :param every_nth_point: (int | None) Defines the stride for which to retrieve
+      every nth point of the array
     :param include_end: Bool defining whether to include the last entry of the array
     :return: Reduced version of original array
     """
@@ -22,6 +53,7 @@ def get_every_nth(array: np.ndarray, axis: int, every_nth: int, include_end: boo
     # Assert array has the dimensions required
     assert len(array.shape) - 1 >= axis
 
+    # Return original array if requested stride is 1
     if every_nth == 1:
         return array
 
