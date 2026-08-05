@@ -87,6 +87,13 @@ class NanoverJupyterUtilities:
             if command.endswith("/notify"):
                 self.runner.app_server.run_command(command, {"message": message})
 
+    def get_shared_state_value(self, key: str, default=None):
+        with self.runner.app_server.lock_state() as state:
+            return state.get(key, default)
+
+    def set_shared_state_value(self, key: str, value):
+        self.runner.app_server.update_state(DictionaryChange(updates={key: value}))
+
     def start_recording(self):
         self._recording_path = f"RECORDING-{self._recording_count}-{self.runner.simulation.name}.nanover.zip"
         self._recorder = record_from_runner(self.runner, self._recording_path)
@@ -197,7 +204,7 @@ class NanoverJupyterUtilities:
 
         use_transform_handles(self)
 
-    def intersect_transform_handles(self, point):
+    def intersect_transform_handles(self, point) -> dict | None:
         for key, handle in self.handles.all_prefixed_items():
             object_to_root = self.transforms.fetch_transform_root(handle["parent"])
             local_point = object_to_root.points_parent_to_local(point)
