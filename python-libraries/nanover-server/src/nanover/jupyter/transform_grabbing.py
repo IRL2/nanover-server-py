@@ -67,7 +67,7 @@ class TransformGrabbingContext[TData]:
         # matrix transforming cursor to object
         offset_matrix = np.linalg.inv(cursor_in_parent) @ object_in_parent
 
-        grab = TransformGrabData(
+        grab = TransformGrabData[TData](
             transform_id=transform_id,
             transform_initial_matrix=object_in_parent,
             offset_matrix=offset_matrix,

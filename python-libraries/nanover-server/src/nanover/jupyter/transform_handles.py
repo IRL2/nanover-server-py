@@ -21,7 +21,7 @@ def use_transform_handles(utilities: NanoverJupyterUtilities):
         def on_button_pressed(self, *, key: str, cursor: dict, button: str):
             hovered = utilities.intersect_transform_handles(cursor["position"])
             # try grab hovered handle
-            if button == "primary":
+            if button == "primary" and hovered is not None:
                 grab = context.start_grab_from_cursor(
                     key, transform_id=hovered["parent"], cursor=cursor
                 )
