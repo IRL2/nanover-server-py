@@ -3,12 +3,14 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-dynamic = ["version"]
+#dynamic = ["version"]
+version = "0.0.1"
 name = "nanover-server"
 authors = [
     {name = "Intangible Realities Lab"},
 ]
 description = "Python servers for NanoVer."
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "openmm",
@@ -22,6 +24,10 @@ dependencies = [
     # mdanalysis will include this soon anyway
     "pooch",
 ]
+
+[project.urls]
+Homepage = "https://github.com/IRL2/nanover-server-py"
+Issues = "https://github.com/IRL2/nanover-server-py/issues"
 
 [project.optional-dependencies]
 dev=[
