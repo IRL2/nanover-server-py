@@ -3,14 +3,29 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-#dynamic = ["version"]
-version = "0.0.1"
+dynamic = ["version"]
 name = "nanover-server"
 authors = [
     {name = "Intangible Realities Lab"},
 ]
 description = "Python servers for NanoVer."
 license = "MIT"
+keywords = ["molecular dynamics", "interactive molecular dynamics", "imd", "imd-vr", "imd-xr", "virtual reality", "vr", "extended reality", "xr"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Jupyter",
+    "Programming Language :: Python :: 3 :: Only",
+
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+
 requires-python = ">=3.12"
 dependencies = [
     "openmm",
@@ -26,8 +41,12 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/IRL2/nanover-server-py"
-Issues = "https://github.com/IRL2/nanover-server-py/issues"
+homepage = "https://github.com/IRL2/nanover-server-py"
+source = "https://github.com/IRL2/nanover-server-py"
+documentation = "https://irl2.github.io/nanover-docs/"
+issues = "https://github.com/IRL2/nanover-server-py/issues"
+funding = "https://irl2.github.io/nanover-docs/#current-sponsors"
+changelog = "https://github.com/IRL2/nanover-server-py/commits/main/"
 
 [project.optional-dependencies]
 dev=[
