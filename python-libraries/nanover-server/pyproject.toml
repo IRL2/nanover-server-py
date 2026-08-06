@@ -9,6 +9,23 @@ authors = [
     {name = "Intangible Realities Lab"},
 ]
 description = "Python servers for NanoVer."
+license = "MIT"
+keywords = ["molecular dynamics", "interactive molecular dynamics", "imd", "imd-vr", "imd-xr", "virtual reality", "vr", "extended reality", "xr"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Jupyter",
+    "Programming Language :: Python :: 3 :: Only",
+
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+
 requires-python = ">=3.12"
 dependencies = [
     "openmm",
@@ -22,6 +39,14 @@ dependencies = [
     # mdanalysis will include this soon anyway
     "pooch",
 ]
+
+[project.urls]
+homepage = "https://github.com/IRL2/nanover-server-py"
+source = "https://github.com/IRL2/nanover-server-py"
+documentation = "https://irl2.github.io/nanover-docs/"
+issues = "https://github.com/IRL2/nanover-server-py/issues"
+funding = "https://irl2.github.io/nanover-docs/#current-sponsors"
+changelog = "https://github.com/IRL2/nanover-server-py/commits/main/"
 
 [project.optional-dependencies]
 dev=[
@@ -57,3 +82,6 @@ nanover-split-recording = "nanover.recording.cli.split_cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
 include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION.txt"}
