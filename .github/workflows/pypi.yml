@@ -1,0 +1,80 @@
+on: [push]
+name: "PyPI"
+
+jobs:
+  build-pypi:
+    name: Build packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # We need all the history to figure out the version number
+      - name: Set environment variables
+        run: |
+          echo "0.1.$(git rev-list --count HEAD)" > VERSION.txt
+          echo NANOVER_LICENSE_PATH="$(readlink -f LICENSE)" >> "$GITHUB_ENV"
+      - name: Test that the repo is sane and does not contain superfluous __init__ file
+        run: bash ./maintainers/check_extra_init_files.sh
+      - name: Building the PyPI packages
+        run: |
+          pip install build
+          python -m build ./python-libraries/nanover-server
+      - run: |
+          mkdir artifacts
+          cp -r ./python-libraries/nanover-server/dist ./artifacts
+          ls ./artifacts
+      - name: Save the artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-packages
+          path: ./artifacts
+  test-pypi:
+    name: Test package
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    continue-on-error: true
+    needs: build-pypi
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v9.0.0
+      - name: Retrieve PyPI packages
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-packages
+      - name: Install NanoVer
+        run: |
+          ls ./dist
+          uv venv
+          uv pip install ./dist/*.tar.gz
+      - name: Install extra dependencies
+        run: |
+          uv pip install -r ./python-libraries/nanover-server/pyproject.toml --all-extras
+#      - name: All tests
+#        run: python -m pytest python-libraries --timeout 60
+      - name: Parallel tests
+        run: uv run pytest python-libraries -n auto -m 'not serial' --timeout 60
+      - name: Serial tests
+        run: uv run pytest python-libraries -n 1 -m 'serial' --timeout 60
+  publish-pypi:
+    name: Publish packages
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: test-pypi
+    env:
+      ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve PyPI packages
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-packages
+      - name: Upload packages
+        # Anaconda will complain if the given version of a package is already
+        # there. Until we have some versioning, we force the upload.
+        run: anaconda upload --user irl conda-bld/noarch/nanover-*.conda --force
+      - name: Disconnect from Anaconda cloud
+        #  Do not fail the build if we cannot logout.
+        run: anaconda logout || echo "Could not logout. Too bad."
