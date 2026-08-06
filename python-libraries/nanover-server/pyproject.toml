@@ -82,3 +82,6 @@ nanover-split-recording = "nanover.recording.cli.split_cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
 include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION.txt"}
