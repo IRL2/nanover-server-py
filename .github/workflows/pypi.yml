@@ -60,7 +60,7 @@ jobs:
         run: uv run pytest python-libraries -n 1 -m 'serial' --timeout 60
   publish-pypi:
     name: Publish packages
-    #if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: test-pypi
     environment:
