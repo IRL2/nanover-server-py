@@ -11,8 +11,7 @@ jobs:
           fetch-depth: 0  # We need all the history to figure out the version number
       - name: Set environment variables
         run: |
-          echo "0.1.$(git rev-list --count HEAD)" > VERSION.txt
-          echo NANOVER_LICENSE_PATH="$(readlink -f LICENSE)" >> "$GITHUB_ENV"
+          echo "0.1.$(git rev-list --count HEAD)" > ./python-libraries/nanover-server/VERSION.txt
       - name: Test that the repo is sane and does not contain superfluous __init__ file
         run: bash ./maintainers/check_extra_init_files.sh
       - name: Building the PyPI packages
@@ -22,6 +21,7 @@ jobs:
       - run: |
           mkdir artifacts
           cp -r ./python-libraries/nanover-server/dist ./artifacts
+          ls -1 ./artifacts/dist/*.tar.gz | xargs -L1 -I{} cp {} ./artifacts/dist/nanover_server.tar.gz 
           ls ./artifacts
       - name: Save the artifacts
         uses: actions/upload-artifact@v4
@@ -47,8 +47,8 @@ jobs:
       - name: Install NanoVer
         run: |
           ls ./dist
-          uv venv
-          uv pip install ./dist/*.tar.gz
+          uv venv --python 3.14
+          uv pip install ./dist/nanover_server.tar.gz
       - name: Install extra dependencies
         run: |
           uv pip install -r ./python-libraries/nanover-server/pyproject.toml --all-extras
@@ -60,21 +60,22 @@ jobs:
         run: uv run pytest python-libraries -n 1 -m 'serial' --timeout 60
   publish-pypi:
     name: Publish packages
-    if: github.ref == 'refs/heads/main'
+    #if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: test-pypi
-    env:
-      ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+    environment:
+      name: pypi
+      url: https://pypi.org/p/nanover-server
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
-      - uses: actions/checkout@v4
       - name: Retrieve PyPI packages
         uses: actions/download-artifact@v4
         with:
           name: pypi-packages
-      - name: Upload packages
-        # Anaconda will complain if the given version of a package is already
-        # there. Until we have some versioning, we force the upload.
-        run: anaconda upload --user irl conda-bld/noarch/nanover-*.conda --force
-      - name: Disconnect from Anaconda cloud
-        #  Do not fail the build if we cannot logout.
-        run: anaconda logout || echo "Could not logout. Too bad."
+      - name: Remove windows hack
+        run: |
+          rm ./dist/nanover_server.tar.gz
+          ls ./dist
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
