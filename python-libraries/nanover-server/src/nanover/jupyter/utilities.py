@@ -17,6 +17,7 @@ from nanover.app.selection import (
     RENDERER_DEFAULT,
 )
 from nanover.core.app_server import StateService
+from nanover.core.types import CommandHandler
 from nanover.imd.imd_state import (
     ParticleInteraction,
     interaction_to_dict,
@@ -94,6 +95,13 @@ class NanoverJupyterUtilities:
     def set_shared_state_value(self, key: str, value):
         self.runner.app_server.update_state(DictionaryChange(updates={key: value}))
 
+    def define_command(
+        self, key: str, *, handler: CommandHandler, icon="❓", label="unnamed command"
+    ):
+        self.runner.app_server.register_command(
+            key, callback=handler, icon=icon, label=label
+        )
+
     def start_recording(self):
         self._recording_path = f"RECORDING-{self._recording_count}-{self.runner.simulation.name}.nanover.zip"
         self._recorder = record_from_runner(self.runner, self._recording_path)
@@ -113,21 +121,21 @@ class NanoverJupyterUtilities:
         self._next_checkpoint_index += 1
 
     def use_recording_commands(self):
-        self.runner.app_server.register_command(
+        self.define_command(
             "user/recording/start",
-            self.start_recording,
+            handler=self.start_recording,
             icon="⏺️",
             label="start recording",
         )
-        self.runner.app_server.register_command(
+        self.define_command(
             "user/recording/stop",
-            self.stop_recording,
+            handler=self.stop_recording,
             icon="⏹️",
             label="stop recording",
         )
-        self.runner.app_server.register_command(
+        self.define_command(
             "user/recording/checkpoint",
-            self.mark_checkpoint,
+            handler=self.mark_checkpoint,
             icon="🚩",
             label="mark checkpoint",
         )
@@ -192,9 +200,9 @@ class NanoverJupyterUtilities:
             self._active_mode = mode()
             self.notify_all(f"INTERACTION MODE {name}")
 
-        self.runner.app_server.register_command(
+        self.define_command(
             f"user/mode/{name}",
-            enter,
+            handler=enter,
             icon=icon,
             label=f"{name} mode",
         )
@@ -372,7 +380,7 @@ class PanelsUtility(StateKeysUtility):
         **kwargs,
     ):
         self.update_object(
-            f"panel.{key}",
+            f"{self.prefix}{key}",
             {
                 "position": position,
                 "label": label,
@@ -552,6 +560,29 @@ class SceneObjectsUtility(StateKeysUtility):
                 "parent": parent,
                 **kwargs,
             },
+        )
+
+    def update_sprite(
+        self,
+        key: str,
+        *,
+        texture: str,
+        position=(0.0, 0.0, 0.0),
+        color=(1.0, 1.0, 1.0, 1.0),
+        size=1.0,
+        parent="simulation",
+        **kwargs,
+    ):
+        self.update_object(
+            f"object.sprite.{key}",
+            dict(
+                texture=texture,
+                position=position,
+                color=color,
+                size=size,
+                parent=parent,
+                **kwargs,
+            ),
         )
 
     def remove_shape(self, key: str):
