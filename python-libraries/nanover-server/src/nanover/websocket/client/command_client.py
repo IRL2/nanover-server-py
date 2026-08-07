@@ -1,4 +1,5 @@
 from concurrent.futures import Future
+from typing import Any
 
 from nanover.core.app_server import CommandService
 from nanover.core.types import CommandHandler, CommandRegistration
@@ -14,7 +15,7 @@ class CommandClient(WebsocketClient, CommandService):
     def commands(self) -> dict[str, CommandRegistration]:
         return self.run_command_blocking("commands/list")["list"]
 
-    def run_command_blocking(self, name: str, **arguments):
+    def run_command_blocking(self, name: str, /, **arguments):
         return self.run_command(name, arguments).result()
 
     def run_command(
@@ -31,6 +32,7 @@ class CommandClient(WebsocketClient, CommandService):
         label: str | None = None,
         icon: str | None = None,
         default_arguments: dict | None = None,
+        owner: Any = None,
     ) -> None:
         self._command_handler.register_command(
             name,
@@ -40,5 +42,5 @@ class CommandClient(WebsocketClient, CommandService):
             label=label,
         )
 
-    def unregister_command(self, name: str) -> None:
+    def unregister_command(self, name: str, owner: Any = None) -> None:
         raise NotImplementedError()
