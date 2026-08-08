@@ -1,5 +1,6 @@
-from nanover.utilities.event import Event
 from unittest.mock import Mock
+
+from nanover.utilities.event import Event
 
 
 def test_invoke_nocallbacks():

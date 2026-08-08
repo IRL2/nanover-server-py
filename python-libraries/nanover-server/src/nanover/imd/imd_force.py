@@ -7,8 +7,9 @@ For details, and if you find these functions helpful, please cite [1]_.
        from quantum chemistry to drug binding”, arXiv:1902.01827, 2019
 """
 
+from collections.abc import Iterable
 from math import exp
-from typing import Tuple, Iterable, Protocol
+from typing import Protocol
 
 import numpy as np
 import numpy.typing as npt
@@ -25,7 +26,7 @@ class ForceCalculator(Protocol):
         particle_position: npt.NDArray,
         interaction_position: npt.NDArray,
         periodic_box_lengths: npt.NDArray | None,
-    ) -> Tuple[float, npt.NDArray]: ...
+    ) -> tuple[float, npt.NDArray]: ...
 
 
 def calculate_imd_force(
@@ -33,7 +34,7 @@ def calculate_imd_force(
     masses: npt.NDArray,
     interactions: Iterable[ParticleInteraction],
     periodic_box_lengths: npt.NDArray | None = None,
-) -> Tuple[float, npt.NDArray]:
+) -> tuple[float, npt.NDArray]:
     """
     Reference implementation of the NanoVer IMD force.
 
@@ -216,7 +217,7 @@ def calculate_gaussian_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
     periodic_box_lengths: npt.NDArray | None = None,
-) -> Tuple[float, npt.NDArray]:
+) -> tuple[float, npt.NDArray]:
     """
     Computes the interactive Gaussian force.
 
@@ -248,7 +249,7 @@ def calculate_spring_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
     periodic_box_lengths: npt.NDArray | None = None,
-) -> Tuple[float, npt.NDArray]:
+) -> tuple[float, npt.NDArray]:
     """
     Computes the interactive harmonic potential (or spring) force.
 
@@ -278,7 +279,7 @@ def calculate_constant_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
     periodic_box_lengths: npt.NDArray | None = None,
-) -> Tuple[float, npt.NDArray]:
+) -> tuple[float, npt.NDArray]:
     """
     Applies a constant force that is independent of the distance between the particle and the interaction site. Applies
     no force when the two overlap.
@@ -321,7 +322,7 @@ def _calculate_diff_and_sqr_distance(
     u: np.ndarray,
     v: np.ndarray,
     periodic_box_lengths: np.ndarray | None = None,
-) -> Tuple[np.ndarray, float]:
+) -> tuple[np.ndarray, float]:
     """
     Calculates the difference and square of the distance between two vectors.
     A utility function for computing gradients based on this distance.
@@ -339,7 +340,7 @@ def _calculate_diff_and_sqr_distance(
 
 def get_sparse_forces(
     user_forces: npt.NDArray,
-) -> Tuple[npt.NDArray, npt.NDArray]:
+) -> tuple[npt.NDArray, npt.NDArray]:
     """
     Takes in an array of user forces acting on the system containing N particles
     and outputs two arrays that describe these user forces in a sparse form:

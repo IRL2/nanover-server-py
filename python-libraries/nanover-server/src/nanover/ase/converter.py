@@ -4,16 +4,16 @@ Module containing methods for converting between ASE simulations consisting of
 NanoVer clients.
 """
 
-from typing import Iterable
-
-from ase import Atoms, Atom  # type: ignore
-from ase.units import fs as fs_in_ase_time_unit
 import itertools
+from collections.abc import Iterable
+
 import numpy as np
 import numpy.typing as npt
-
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.trajectory import FrameData
+
+from ase import Atom, Atoms  # type: ignore
+from ase.units import fs as fs_in_ase_time_unit
 
 ANG_TO_NM = 0.1
 NM_TO_ANG = 1.0 / ANG_TO_NM

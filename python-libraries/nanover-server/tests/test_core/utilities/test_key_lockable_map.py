@@ -1,8 +1,8 @@
+import pytest
 from nanover.utilities.key_lockable_map import (
     KeyLockableMap,
     ResourceLockedError,
 )
-import pytest
 
 
 @pytest.fixture

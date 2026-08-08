@@ -1,24 +1,23 @@
 import contextlib
 
+import numpy as np
 import pytest
-from ase.lattice.cubic import FaceCenteredCubic
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.calculators.lj import LennardJones
+from ase.lattice.cubic import FaceCenteredCubic
 from ase.md import Langevin
 from ase.md.md import MolecularDynamics
 from ase.md.nvtberendsen import NVTBerendsen
-from hypothesis import strategies, given
-
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
+from hypothesis import given, strategies
 from nanover.app import NanoverImdApplication
 from nanover.ase.imd_calculator import (
     ImdCalculator,
-    _get_cancelled_interactions,
     _get_atoms_to_reset,
+    _get_cancelled_interactions,
     _scale_momentum_of_selection,
 )
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.trajectory import MissingDataError
-import numpy as np
 from test_imd_calculator import imd_calculator_co
 from util import app_server
 
@@ -35,7 +34,7 @@ INTERACTIONS_RESET = {
 }
 
 # the set of atoms that should be reset based on atoms selected in INTERACTIONS_RESET
-ATOMS_TO_RESET = set(i for i in range(1, NUM_INTERACTIONS + 2))
+ATOMS_TO_RESET = set(range(1, NUM_INTERACTIONS + 2))
 ALL_INTERACTIONS = dict(INTERACTIONS_NO_RESET)
 ALL_INTERACTIONS.update(INTERACTIONS_RESET)
 
@@ -137,7 +136,7 @@ def test_temperature_not_set(imd_calculator_co):
     """
     Tests handling of temperature not set in an IMD calculator.
     """
-    calculator, atoms, _ = imd_calculator_co
+    calculator, _atoms, _ = imd_calculator_co
     with pytest.raises(MissingDataError):
         _ = calculator.temperature
 
@@ -173,7 +172,7 @@ def test_temperature_berendsen(imd_calculator_berendsen_dynamics):
     Tests that berendsen NVT dynamics produces a temperature that
     can be used by IMD.
     """
-    calculator, atoms, dynamics = imd_calculator_berendsen_dynamics
+    calculator, _atoms, dynamics = imd_calculator_berendsen_dynamics
     assert calculator.temperature == dynamics.temperature
 
 
@@ -182,7 +181,7 @@ def test_temperature_langevin(imd_calculator_langevin_dynamics):
     Tests that langevin NVT dynamics produces a temperature that
     can be used by IMD.
     """
-    calculator, atoms, dynamics = imd_calculator_langevin_dynamics
+    calculator, _atoms, dynamics = imd_calculator_langevin_dynamics
     assert calculator.temperature == dynamics.temp
 
 
@@ -191,7 +190,7 @@ def test_temperature_custom(imd_calculator_co):
     Tests that setting a custom temperature enables use of a temperature
     in IMD.
     """
-    calculator, atoms, _ = imd_calculator_co
+    calculator, _atoms, _ = imd_calculator_co
     calculator.temperature = TEST_TEMPERATURE
     assert calculator.temperature == TEST_TEMPERATURE
 
@@ -238,7 +237,7 @@ def test_temperature_scaling_selection(
 
 
 def test_no_reset(imd_calculator_berendsen_dynamics):
-    calculator, atoms, dyn = imd_calculator_berendsen_dynamics
+    calculator, atoms, _dyn = imd_calculator_berendsen_dynamics
     MaxwellBoltzmannDistribution(atoms, temperature_K=300)
     velocities = atoms.get_velocities()
     calculator._reset_velocities(atoms, {}, INTERACTIONS_NO_RESET)
@@ -272,7 +271,7 @@ def test_reset_velocities(atom_selection):
     selection, _ = atom_selection
     selection = np.array(list(selection))
     with imd_calculator_berendsen_dynamics_context() as imd_calculator:
-        calculator, atoms, dyn = imd_calculator
+        calculator, atoms, _dyn = imd_calculator
         MaxwellBoltzmannDistribution(atoms, temperature_K=300)
 
         not_selected = inverse_selection(atoms, selection)
@@ -294,7 +293,7 @@ def test_reset_calculator(imd_calculator_berendsen_dynamics):
     """
     imd_calculator = imd_calculator_berendsen_dynamics
 
-    calculator, atoms, dyn = imd_calculator
+    calculator, atoms, _dyn = imd_calculator
     atoms.calc = calculator
 
     # TODO: not sure why we set this to none

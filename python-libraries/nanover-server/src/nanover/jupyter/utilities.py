@@ -1,19 +1,31 @@
 import logging
-from typing import Any
-from ipywidgets import Output
+from collections.abc import Sequence
+from functools import partial
+from itertools import count
+from typing import Any, TypedDict
 
+import numpy as np
+from ipywidgets import Output
 from nanover.app import OmniRunner
+from nanover.app.selection import (
+    INTERACTION_METHOD_DEFAULT,
+    KEY_PROPERTY_HIDE,
+    KEY_PROPERTY_INTERACTION_METHOD,
+    KEY_PROPERTY_RENDERER,
+    KEY_PROPERTY_VELOCITY_RESET,
+    KEY_SELECTED_PARTICLE_IDS,
+    RENDERER_DEFAULT,
+)
 from nanover.core.app_server import StateService
-from nanover.recording.playback import SCENE_POSE_IDENTITY
-from nanover.utilities.change_buffers import DictionaryChange
-from nanover.utilities.transforms import Transform
-from nanover.websocket.client.app_client import NanoverImdClient
-from nanover.websocket.record import record_from_runner, BackgroundRecordingContext
+from nanover.core.types import CommandHandler
 from nanover.imd.imd_state import (
     ParticleInteraction,
     interaction_to_dict,
-    INTERACTION_PREFIX,
 )
+from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.transforms import Transform, matrix_from_state_transform
+from nanover.websocket.client.app_client import NanoverImdClient
+from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
 
 class Mode:
@@ -50,13 +62,15 @@ class NanoverJupyterUtilities:
     def __init__(self, runner: OmniRunner):
         self.runner = runner
         self.objects = SceneObjectsUtility(runner.app_server)
+        self.panels = PanelsUtility(runner.app_server)
         self.interactions = InteractionsUtility(runner.app_server)
+        self.selections = SelectionsUtility(runner.app_server)
+        self.transforms = TransformsUtility(runner.app_server)
+        self.handles = TransformHandlesUtility(runner.app_server)
 
     @property
     def scene_transform(self) -> Transform:
-        state = self.runner.app_server.state_dictionary.copy_content()
-        scene = state.get("scene", SCENE_POSE_IDENTITY)
-        return Transform.from_scene_pose(scene)
+        return self.transforms.fetch_transform("simulation") or Transform.identity()
 
     def show_logging(self):
         output = Output()
@@ -72,7 +86,21 @@ class NanoverJupyterUtilities:
     def notify_all(self, message: str):
         for command in self.runner.app_server.commands:
             if command.endswith("/notify"):
-                self.runner.app_server.run_command(command, dict(message=message))
+                self.runner.app_server.run_command(command, {"message": message})
+
+    def get_shared_state_value(self, key: str, default=None):
+        with self.runner.app_server.lock_state() as state:
+            return state.get(key, default)
+
+    def set_shared_state_value(self, key: str, value):
+        self.runner.app_server.update_state(DictionaryChange(updates={key: value}))
+
+    def define_command(
+        self, key: str, *, handler: CommandHandler, icon="❓", label="unnamed command"
+    ):
+        self.runner.app_server.register_command(
+            key, callback=handler, icon=icon, label=label
+        )
 
     def start_recording(self):
         self._recording_path = f"RECORDING-{self._recording_count}-{self.runner.simulation.name}.nanover.zip"
@@ -93,21 +121,21 @@ class NanoverJupyterUtilities:
         self._next_checkpoint_index += 1
 
     def use_recording_commands(self):
-        self.runner.app_server.register_command(
+        self.define_command(
             "user/recording/start",
-            self.start_recording,
+            handler=self.start_recording,
             icon="⏺️",
             label="start recording",
         )
-        self.runner.app_server.register_command(
+        self.define_command(
             "user/recording/stop",
-            self.stop_recording,
+            handler=self.stop_recording,
             icon="⏹️",
             label="stop recording",
         )
-        self.runner.app_server.register_command(
+        self.define_command(
             "user/recording/checkpoint",
-            self.mark_checkpoint,
+            handler=self.mark_checkpoint,
             icon="🚩",
             label="mark checkpoint",
         )
@@ -172,15 +200,31 @@ class NanoverJupyterUtilities:
             self._active_mode = mode()
             self.notify_all(f"INTERACTION MODE {name}")
 
-        self.runner.app_server.register_command(
+        self.define_command(
             f"user/mode/{name}",
-            enter,
+            handler=enter,
             icon=icon,
             label=f"{name} mode",
         )
 
+    def use_transform_handles(self):
+        from .transform_handles import use_transform_handles
+
+        use_transform_handles(self)
+
+    def intersect_transform_handles(self, point) -> dict | None:
+        for key, handle in self.handles.all_prefixed_items():
+            object_to_root = self.transforms.fetch_transform_root(handle["parent"])
+            local_point = object_to_root.points_parent_to_local(point)
+            center, radius = handle["sphere"]
+            if np.linalg.norm(np.subtract(local_point, center)) < radius:
+                return handle
+        return None
+
 
 class StateKeysUtility:
+    prefix = ""
+
     @classmethod
     def from_runner(cls, runner: OmniRunner):
         return cls(runner.app_server)
@@ -212,6 +256,22 @@ class StateKeysUtility:
         self._buffer.removals = {key, *self._buffer.removals}
         self.check_flush()
 
+    def all_prefixed(self):
+        with self._state.lock_state() as state:
+            return {
+                key.removeprefix(self.prefix)
+                for key in state
+                if key.startswith(self.prefix)
+            }
+
+    def all_prefixed_items(self):
+        with self._state.lock_state() as state:
+            return {
+                key.removeprefix(self.prefix): value
+                for key, value in state.items()
+                if key.startswith(self.prefix)
+            }.items()
+
     def check_flush(self):
         if self._depth == 0:
             self.flush()
@@ -226,37 +286,212 @@ class StateKeysUtility:
         self._keys = set()
         self.check_flush()
 
-
-class InteractionsUtility(StateKeysUtility):
     def clear_all(self):
-        keys = {
-            key
-            for key in self._state.state_dictionary.copy_content()
-            if key.startswith("interaction.")
-        }
-        self._buffer = DictionaryChange(removals=keys)
+        self._buffer = DictionaryChange(removals=self.all_prefixed())
         self._keys = set()
         self.check_flush()
 
-    def update_interaction(self, key: str, interaction: ParticleInteraction):
+
+class SelectionsUtility(StateKeysUtility):
+    prefix = "selection."
+
+    def update_selection(
+        self,
+        key: str,
+        *,
+        particle_ids: list[int] | None = None,
+        renderer=RENDERER_DEFAULT,
+        interaction_method=INTERACTION_METHOD_DEFAULT,
+        velocity_reset=False,
+        hide=False,
+    ):
         self.update_object(
-            f"{INTERACTION_PREFIX}{key}", interaction_to_dict(interaction)
+            f"{self.prefix}{key}",
+            {
+                "id": f"{self.prefix}{key}",
+                "selected": {
+                    KEY_SELECTED_PARTICLE_IDS: particle_ids
+                    if particle_ids is not None
+                    else [],
+                },
+                "properties": {
+                    KEY_PROPERTY_RENDERER: renderer,
+                    KEY_PROPERTY_INTERACTION_METHOD: interaction_method,
+                    KEY_PROPERTY_VELOCITY_RESET: velocity_reset,
+                    KEY_PROPERTY_HIDE: hide,
+                },
+            },
         )
 
+    def remove_selection(self, key: str):
+        self.remove_object(f"{self.prefix}{key}")
+
+
+class PanelsUtility(StateKeysUtility):
+    prefix = "panel."
+
+    @staticmethod
+    def header(
+        label="header",
+    ):
+        return {
+            "type": "header",
+            "label": label,
+        }
+
+    @staticmethod
+    def button(
+        label="button",
+        command="test/hello",
+        arguments=None,
+    ):
+        if arguments is None:
+            arguments = {}
+        return {
+            "type": "button",
+            "label": label,
+            "command": command,
+            "arguments": arguments,
+        }
+
+    @staticmethod
+    def slider(
+        label="slider",
+        variable="variable.dummy",
+        range=(0.0, 1.0),
+        integer=False,
+        step=None,
+    ):
+        return {
+            "type": "slider",
+            "label": label,
+            "variable": variable,
+            "range": range,
+            "integer": integer,
+            "step": step,
+        }
+
+    def update_panel(
+        self,
+        key: str,
+        *elements: Any,
+        position=(0.0, 0.0, 0.0),
+        label="Unnamed panel",
+        **kwargs,
+    ):
+        self.update_object(
+            f"{self.prefix}{key}",
+            {
+                "position": position,
+                "label": label,
+                "elements": elements,
+                **kwargs,
+            },
+        )
+
+    def remove_panel(self, key: str):
+        self.remove_object(f"{self.prefix}{key}")
+
+
+class InteractionsUtility(StateKeysUtility):
+    prefix = "interaction."
+
+    def update_interaction(self, key: str, interaction: ParticleInteraction):
+        self.update_object(f"{self.prefix}{key}", interaction_to_dict(interaction))
+
     def remove_interaction(self, key: str):
-        self.remove_object(f"{INTERACTION_PREFIX}{key}")
+        self.remove_object(f"{self.prefix}{key}")
+
+
+class StateTransformEntry(TypedDict):
+    transform: Sequence[float]
+    parent: str | None
+
+
+class TransformsUtility(StateKeysUtility):
+    prefix = "transform."
+
+    def update_transform(
+        self,
+        key: str,
+        *,
+        transform: Transform,
+        parent="simulation",
+    ):
+        self.update_object(
+            f"{self.prefix}{key}",
+            {
+                "transform": transform.to_state_transform(),
+                "parent": parent,
+            },
+        )
+
+    def get_parent(self, key: str, *, default=None):
+        entry = self.fetch_transform_entry(key)
+        return default if entry is None else entry.get("parent", default)
+
+    def fetch_transform_entry(self, key: str) -> StateTransformEntry | None:
+        with self._state.lock_state() as state:
+            return state.get(f"{self.prefix}{key}", None)
+
+    def fetch_transform(self, key: str, *, default: Transform | None = None):
+        entry = self.fetch_transform_entry(key)
+        return (
+            Transform.from_state_transform(entry["transform"])
+            if entry is not None
+            else default
+        )
+
+    def fetch_transform_root(self, key: str):
+        matrix = np.identity(4)
+
+        with self._state.lock_state() as state:
+            while key is not None:
+                entry: StateTransformEntry | None = state.get(
+                    f"{self.prefix}{key}", None
+                )
+
+                if not entry:
+                    break
+
+                matrix = matrix_from_state_transform(entry["transform"]) @ matrix
+                key = entry["parent"]
+
+        return Transform.from_local_to_parent_matrix(matrix)
+
+
+class TransformHandlesUtility(StateKeysUtility):
+    prefix = "handle."
+
+    def update_handle(
+        self,
+        key: str,
+        *,
+        parent: str,
+        sphere=((0, 0, 0), 0.25),
+        translate=True,
+        rotate=True,
+        scale=False,
+        **kwargs,
+    ):
+        self.update_object(
+            f"{self.prefix}{key}",
+            dict(
+                parent=parent,
+                sphere=sphere,
+                translate=translate,
+                rotate=rotate,
+                scale=scale,
+                **kwargs,
+            ),
+        )
+
+    def remove_handle(self, key: str):
+        self.remove_object(f"{self.prefix}{key}")
 
 
 class SceneObjectsUtility(StateKeysUtility):
-    def clear_all(self):
-        keys = {
-            key
-            for key in self._state.state_dictionary.copy_content()
-            if key.startswith("object.")
-        }
-        self._buffer = DictionaryChange(removals=keys)
-        self._keys = set()
-        self.check_flush()
+    prefix = "object."
 
     def update_shape(
         self,
@@ -266,6 +501,7 @@ class SceneObjectsUtility(StateKeysUtility):
         position=(0.0, 0.0, 0.0),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.1,
+        parent="simulation",
         **kwargs,
     ):
         self.update_object(
@@ -275,6 +511,7 @@ class SceneObjectsUtility(StateKeysUtility):
                 "position": position,
                 "color": color,
                 "size": size,
+                "parent": parent,
                 **kwargs,
             },
         )
@@ -284,16 +521,20 @@ class SceneObjectsUtility(StateKeysUtility):
         key: str,
         *,
         positions=((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)),
+        colors=None,
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
+        parent="simulation",
         **kwargs,
     ):
         self.update_object(
             f"object.line.{key}",
             {
                 "positions": positions,
+                "colors": colors,
                 "color": color,
                 "size": size,
+                "parent": parent,
                 **kwargs,
             },
         )
@@ -306,6 +547,7 @@ class SceneObjectsUtility(StateKeysUtility):
         position=(0.0, 0.0, 0.0),
         color=(1.0, 1.0, 1.0, 1.0),
         size=0.05,
+        parent="simulation",
         **kwargs,
     ):
         self.update_object(
@@ -315,8 +557,32 @@ class SceneObjectsUtility(StateKeysUtility):
                 "position": position,
                 "color": color,
                 "size": size,
+                "parent": parent,
                 **kwargs,
             },
+        )
+
+    def update_sprite(
+        self,
+        key: str,
+        *,
+        texture: str,
+        position=(0.0, 0.0, 0.0),
+        color=(1.0, 1.0, 1.0, 1.0),
+        size=1.0,
+        parent="simulation",
+        **kwargs,
+    ):
+        self.update_object(
+            f"object.sprite.{key}",
+            dict(
+                texture=texture,
+                position=position,
+                color=color,
+                size=size,
+                parent=parent,
+                **kwargs,
+            ),
         )
 
     def remove_shape(self, key: str):
@@ -327,3 +593,7 @@ class SceneObjectsUtility(StateKeysUtility):
 
     def remove_label(self, key: str):
         self.remove_object(f"object.label.{key}")
+
+
+def make_id_generator(prefix=""):
+    return partial(next, (f"{prefix}{i}" for i in count()))

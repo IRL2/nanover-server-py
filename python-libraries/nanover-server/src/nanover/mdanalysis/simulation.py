@@ -1,10 +1,9 @@
 import math
 
 import MDAnalysis as mda
-
 from nanover.core import AppServer, Simulation
-from nanover.trajectory import FrameData
 from nanover.mdanalysis.converter import mdanalysis_to_frame_data
+from nanover.trajectory import FrameData
 
 
 class UniverseSimulation(Simulation):
@@ -47,41 +46,56 @@ class UniverseSimulation(Simulation):
         self.app_server.frame_publisher.send_frame(self.make_topology_frame())
 
     def advance_by_one_step(self) -> None:
-        if len(self.universe.trajectory) > 1:
+        if self.frame_count > 1:
             self._seek_to_next_frame()
 
     def advance_by_seconds(self, dt: float) -> None:
-        if len(self.universe.trajectory) > 1:
+        if self.frame_count > 1:
             self._seek_to_time(self.simulation_time + dt * self.playback_factor)
 
-    def _seek_to_next_frame(self) -> None:
-        """Advance simulation time to the time of the next frame and publish it."""
+    @property
+    def frame_count(self):
+        return len(self.universe.trajectory)
+
+    @property
+    def frame_length(self):
+        return self.universe.trajectory.dt
+
+    @property
+    def duration(self):
+        return self.frame_count * self.frame_length
+
+    @property
+    def prev_frame(self):
+        return math.floor(self.frame_count * self.simulation_time / self.duration)
+
+    def seek_to_frame_index(self, index: int) -> None:
         assert self.app_server is not None
 
-        frame_count = len(self.universe.trajectory)
-        frame_length = self.universe.trajectory.dt
-        duration = frame_count * frame_length
+        next_frame = index
 
-        # determine previous frame from previous time then take the subsequent frame as next frame and time
-        prev_frame = math.floor(frame_count * self.simulation_time / duration)
-        next_frame = (prev_frame + 1) % frame_count
-        self.simulation_time = next_frame * frame_length
+        # align time to start of target frame
+        self.simulation_time = next_frame * self.frame_length
 
         # update universe frame and publish
         _ = self.universe.trajectory[next_frame]
         self.app_server.frame_publisher.send_frame(self.make_regular_frame())
 
+    def _seek_to_next_frame(self) -> None:
+        """Advance simulation time to the time of the next frame and publish it."""
+        assert self.app_server is not None
+
+        # determine next frame index then seek to it
+        next_frame = (self.prev_frame + 1) % self.frame_count
+        self.seek_to_frame_index(next_frame)
+
     def _seek_to_time(self, time: float) -> None:
         """Advance simulation time to a specific time and publish the corresponding frame."""
         assert self.app_server is not None
 
-        frame_count = len(self.universe.trajectory)
-        frame_length = self.universe.trajectory.dt
-        duration = frame_count * frame_length
-
         # update simulation time and determine corresponding frame
-        self.simulation_time = time % duration
-        next_frame = math.floor(self.simulation_time / duration * frame_count)
+        self.simulation_time = time % self.duration
+        next_frame = math.floor(self.simulation_time / self.duration * self.frame_count)
 
         # update universe frame and publish
         _ = self.universe.trajectory[next_frame]

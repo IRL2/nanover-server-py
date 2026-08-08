@@ -1,12 +1,10 @@
+import itertools
 import time
 
 import numpy
 import pytest
-import itertools
-
+from nanover.utilities.timing import wait_busy, yield_interval
 from numpy import average
-
-from nanover.utilities.timing import yield_interval, wait_busy
 
 TIMING_TOLERANCE = 0.01  # 10ms
 COMMON_INTERVALS = (1 / 10, 1 / 30, 1 / 60)

@@ -2,10 +2,9 @@ import json
 import urllib
 from contextlib import contextmanager
 
-from websockets.sync.client import connect
-
 from nanover.core import AppServer
 from nanover.utilities.network import get_local_ip
+from websockets.sync.client import connect
 
 
 class DiscoveryClient:

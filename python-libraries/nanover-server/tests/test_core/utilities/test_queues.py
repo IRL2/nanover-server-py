@@ -2,12 +2,12 @@
 Unit tests for :mod:`nanover.core.request_queues`.
 """
 
+import itertools
 import time
 from concurrent.futures import ThreadPoolExecutor
 from queue import Empty
-import pytest
-import itertools
 
+import pytest
 from nanover.utilities.queues import LastItemQueue
 
 

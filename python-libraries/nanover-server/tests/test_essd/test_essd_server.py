@@ -1,17 +1,16 @@
+import netifaces
 import pytest
-
 from nanover.essd.server import DiscoveryServer
+from nanover.essd.servicehub import ServiceHub
 from nanover.essd.utils import (
-    get_ipv4_addresses,
     get_broadcast_addresses,
+    get_ipv4_addresses,
     is_in_network,
     resolve_host_broadcast_address,
 )
-from nanover.essd.servicehub import ServiceHub
-import netifaces
 from test_essd_service import (
-    properties,
     get_broadcastable_ip,
+    properties,
     properties_unique_id,
 )
 
@@ -115,7 +114,6 @@ def test_is_in_network(address, netmask, broadcast_address, expected_result):
     [
         ("192.168.1.x", "255.255.0.0", "192.168.255.255"),
         ("192.168.1.2", "255.255.x", "192.168.255.255"),
-        ("192.168.1.2", "255.255.255.0", "192.168.xx.255"),
         ("192.168.1.2", "255.255.255.0", "192.168.xx.255"),
     ],
 )

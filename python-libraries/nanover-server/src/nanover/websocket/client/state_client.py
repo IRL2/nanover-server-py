@@ -1,4 +1,5 @@
-from typing import Any, ContextManager
+from contextlib import AbstractContextManager
+from typing import Any
 
 from nanover.core.app_server import StateService
 from nanover.utilities.state_dictionary import StateDictionary
@@ -10,7 +11,7 @@ class StateClient(WebsocketClient, StateService):
     Mixin of methods for implementing StateService
     """
 
-    def lock_state(self) -> ContextManager[dict[str, Any]]:
+    def lock_state(self) -> AbstractContextManager[dict[str, Any]]:
         return self._state_dictionary.lock_content()
 
     def copy_state(self) -> dict[str, Any]:

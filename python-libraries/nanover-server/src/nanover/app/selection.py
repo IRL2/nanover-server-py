@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from contextlib import contextmanager
-from typing import Dict, Iterable, Set, Union, TypeVar, cast
+from typing import TypeVar, cast
 
 from nanover.utilities.event import Event
 
@@ -44,7 +45,7 @@ class RenderingSelection:
     """
 
     @classmethod
-    def from_dictionary(cls, dict: Dict) -> "RenderingSelection":
+    def from_dictionary(cls, dict: dict) -> "RenderingSelection":
         """
         Decode a dictionary into a selection.
 
@@ -125,7 +126,7 @@ class RenderingSelection:
         """
         self.selected_particle_ids.update(particle_ids)
 
-    def to_dictionary(self) -> Dict:
+    def to_dictionary(self) -> dict:
         """
         Encode this selection into a nested dictionary.
 
@@ -172,14 +173,14 @@ class RenderingSelection:
         self._selection_name = value
 
     @property
-    def selected_particle_ids(self) -> Set[int]:
+    def selected_particle_ids(self) -> set[int]:
         """
         Set of particles indices that are in this selection
         """
         return self._selected_particle_ids
 
     @selected_particle_ids.setter
-    def selected_particle_ids(self, value: Set[int]):
+    def selected_particle_ids(self, value: set[int]):
         self._selected_particle_ids = set(value)
 
     @property
@@ -230,7 +231,7 @@ class RenderingSelection:
         self._hide = value
 
     @property
-    def renderer(self) -> Union[str, Dict]:
+    def renderer(self) -> str | dict:
         """
         The renderer to be used for this selection. Either a string name of a predefined visualiser,
         or a dictionary describing one.
@@ -238,17 +239,17 @@ class RenderingSelection:
         return self._renderer
 
     @renderer.setter
-    def renderer(self, value: Union[str, Dict]):
+    def renderer(self, value: str | dict):
         self._renderer = value
 
-    def read_from_dictionary(self, dict: Dict):
+    def read_from_dictionary(self, dict: dict):
         self.read_selected_particles_from_dictionary(dict)
         self.read_interaction_method_from_dictionary(dict)
         self.read_velocity_reset_from_dictionary(dict)
         self.read_renderer_from_dictionary(dict)
         self.read_hide_from_dictionary(dict)
 
-    def read_selected_particles_from_dictionary(self, dict: Dict):
+    def read_selected_particles_from_dictionary(self, dict: dict):
         self.set_particles(
             get_nested_or_default(
                 dict,
@@ -258,7 +259,7 @@ class RenderingSelection:
             )
         )
 
-    def read_interaction_method_from_dictionary(self, dict: Dict):
+    def read_interaction_method_from_dictionary(self, dict: dict):
         self.interaction_method = get_nested_or_default(
             dict,
             INTERACTION_METHOD_DEFAULT,
@@ -266,7 +267,7 @@ class RenderingSelection:
             KEY_PROPERTY_INTERACTION_METHOD,
         )
 
-    def read_velocity_reset_from_dictionary(self, dict: Dict):
+    def read_velocity_reset_from_dictionary(self, dict: dict):
         self.velocity_reset = get_nested_or_default(
             dict,
             VELOCITY_RESET_DEFAULT,
@@ -274,7 +275,7 @@ class RenderingSelection:
             KEY_PROPERTY_VELOCITY_RESET,
         )
 
-    def read_renderer_from_dictionary(self, dict: Dict):
+    def read_renderer_from_dictionary(self, dict: dict):
         self.renderer = get_nested_or_default(
             dict,
             RENDERER_DEFAULT,
@@ -282,7 +283,7 @@ class RenderingSelection:
             KEY_PROPERTY_RENDERER,
         )
 
-    def read_hide_from_dictionary(self, dict: Dict):
+    def read_hide_from_dictionary(self, dict: dict):
         self.hide = get_nested_or_default(
             dict,
             False,
@@ -294,7 +295,7 @@ class RenderingSelection:
 T = TypeVar("T")
 
 
-def get_nested_or_default(dict: Dict, default: T, *keys: Iterable[str]) -> T:
+def get_nested_or_default(dict: dict, default: T, *keys: Iterable[str]) -> T:
     """
     Iterate down a nested dictionary by accessing subsequent keys, returning the default if at any point a key is not found.
 

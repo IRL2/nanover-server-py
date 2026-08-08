@@ -2,17 +2,16 @@
 Command line interface for nanover-server.
 """
 
+import argparse
 import logging
 import ssl
-import time
 import textwrap
-import argparse
+import time
+from collections.abc import Iterable
 from contextlib import contextmanager
 from glob import glob
-from typing import Iterable
 
 from MDAnalysis import Universe
-
 from nanover.app import OmniRunner
 from nanover.mdanalysis import UniverseSimulation
 from nanover.openmm import OpenMMSimulation
@@ -133,7 +132,9 @@ def get_all_paths(path_sets: Iterable[Iterable[str]]):
             if files:
                 yield from files
             else:
-                logging.warning(f'Path "{pattern}" yielded 0 files.')
+                logging.getLogger(__name__).warning(
+                    f'Path "{pattern}" yielded 0 files.'
+                )
 
 
 @contextmanager
@@ -216,14 +217,16 @@ def main():
 
     arguments = handle_user_arguments()
 
-    with suppress_keyboard_interrupt_as_cancellation() as cancellation:
-        with initialise_runner(arguments) as runner:
-            if len(runner.simulations) > 0:
-                runner.load(0)
+    with (
+        suppress_keyboard_interrupt_as_cancellation() as cancellation,
+        initialise_runner(arguments) as runner,
+    ):
+        if len(runner.simulations) > 0:
+            runner.load(0)
 
-            runner.print_basic_info()
-            cancellation.wait_cancellation()
-            print("Closing due to KeyboardInterrupt.")
+        runner.print_basic_info()
+        cancellation.wait_cancellation()
+        print("Closing due to KeyboardInterrupt.")
 
 
 if __name__ == "__main__":

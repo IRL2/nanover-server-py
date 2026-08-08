@@ -1,12 +1,11 @@
-import pytest
 import threading
 
+import pytest
 from nanover.app import NanoverImdApplication
 from nanover.testing import assert_equal_soon
+from nanover.trajectory import FrameData
 from nanover.websocket import NanoverImdClient
 from osc_client import OscClient
-from nanover.trajectory import FrameData
-
 from pythonosc import dispatcher
 from pythonosc.osc_server import ThreadingOSCUDPServer
 
@@ -75,7 +74,7 @@ def test_transmission(frame_osc_converter, simple_frame_data):
     """
     Test that OscClient receiving frames can trigger the sending OSC messages.
     """
-    app_server, osc_server, osc_client = frame_osc_converter
+    app_server, osc_server, _ = frame_osc_converter
 
     test_address = "/test"
     send_message = "hello"

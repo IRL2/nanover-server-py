@@ -3,22 +3,21 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from nanover.core import AppServer, Simulation as NanoverSimulation
+from nanover.imd.imd_force import calculate_contribution_to_work
 
 from openmm.app import Simulation, StateDataReporter
 from openmm.unit import nanometer
 
-from nanover.core import AppServer, Simulation as NanoverSimulation
-
-from .converter import openmm_to_frame_data
 from . import serializer
+from .converter import openmm_to_frame_data
 from .imd import (
-    create_imd_force,
-    add_imd_force_to_system,
-    ImdForceManager,
     NON_IMD_FORCES_GROUP_MASK,
+    ImdForceManager,
+    add_imd_force_to_system,
+    create_imd_force,
 )
-from .thermo import compute_instantaneous_temperature, compute_dof
-from nanover.imd.imd_force import calculate_contribution_to_work
+from .thermo import compute_dof, compute_instantaneous_temperature
 
 
 class OpenMMSimulation(NanoverSimulation):
@@ -51,15 +50,16 @@ class OpenMMSimulation(NanoverSimulation):
         return sim
 
     @classmethod
-    def from_xml_path(cls, path: PathLike[str], *, name: str | None = None):
+    def from_xml_path(cls, path: str | PathLike[str], *, name: str | None = None):
         """
         Construct this from an existing NanoVer OpenMM XML file at a given path.
 
         :param path: Path of the NanoVer OpenMM XML file
         :param name: An optional name for the simulation instead of filename
         """
+        path = Path(path)
         if name is None:
-            name = Path(path).stem
+            name = path.stem
         sim = cls(name)
         sim.xml_path = path
         return sim

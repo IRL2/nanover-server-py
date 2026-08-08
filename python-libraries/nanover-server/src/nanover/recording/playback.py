@@ -7,11 +7,10 @@ from nanover.trajectory import FrameData, MissingDataError
 from nanover.utilities.change_buffers import DictionaryChange
 
 from .reading import (
-    RecordingIndexEntry,
-    NanoverRecordingReader,
     MICROSECONDS_TO_SECONDS,
+    NanoverRecordingReader,
+    RecordingIndexEntry,
 )
-
 
 SCENE_POSE_IDENTITY = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
 
@@ -24,10 +23,10 @@ class PlaybackSimulation(Simulation):
         cls,
         *,
         name: str | None = None,
-        path: PathLike[str],
+        path: str | PathLike[str],
     ):
         path = Path(path)
-        name = name or path.stem.strip(".nanover")
+        name = name or path.stem.removesuffix(".nanover")
 
         return cls(name=name, path=path)
 
@@ -35,7 +34,7 @@ class PlaybackSimulation(Simulation):
         self,
         *,
         name: str,
-        path: PathLike[str],
+        path: str | PathLike[str],
     ):
         self.name = name
         self.path = path
@@ -64,7 +63,7 @@ class PlaybackSimulation(Simulation):
             key
             for update in updates
             if update is not None
-            for key in update.updates.keys()
+            for key in update.updates
             if key != "scene"
         }
 

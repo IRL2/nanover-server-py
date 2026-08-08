@@ -6,23 +6,20 @@ Fixtures and utilities for tests that requires OpenMM simulations.
 
 # Pylint does not recognize pytest fixtures, which causes some false warnings.
 # pylint: disable=unused-argument,redefined-outer-name
-import pytest
-
 import numpy as np
-
 import openmm as mm
+import pytest
+from nanover.openmm import serializer
 from openmm import app
 
 # Prefixed units in `openmm.unit` are added programmatically and are not
 # recognized by pylint and PyCharm.
 from openmm.unit import (
-    kelvin,
-    picosecond,
     femtosecond,
+    kelvin,
     nanometer,
+    picosecond,
 )  # pylint: disable=no-name-in-module
-
-from nanover.openmm import serializer
 
 
 def build_basic_simulation():

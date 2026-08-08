@@ -19,6 +19,7 @@ PARTICLE_VELOCITIES = "particle.velocities"
 PARTICLE_FORCES = "particle.forces"
 PARTICLE_FORCES_SYSTEM = "particle.forces.system"
 PARTICLE_ELEMENTS = "particle.elements"
+PARTICLE_COLORS = "particle.colors"
 PARTICLE_NAMES = "particle.names"
 PARTICLE_RESIDUES = (
     "particle.residues"  # Index of the residue each particle belongs to.
