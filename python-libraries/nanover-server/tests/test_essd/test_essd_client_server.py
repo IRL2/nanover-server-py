@@ -42,6 +42,7 @@ def test_client_timeout(client):
     assert duration < TEST_SEARCH_TIME + tolerance
 
 
+
 def test_send_service(client_server, service):
     client, server = client_server
     server.register_service(service)

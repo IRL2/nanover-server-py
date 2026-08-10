@@ -10,7 +10,7 @@ from nanover.essd.servicehub import (
     SERVICE_SERVICES_KEY,
     ServiceHub,
 )
-from nanover.essd.utils import get_broadcastable_ip
+from nanover.essd.utils import get_broadcastable_ip, get_broadcast_addresses, get_ipv4_addresses
 
 EXAMPLE_SERVICE_PROPERTIES = {
     SERVICE_NAME_KEY: "test service",
@@ -37,6 +37,15 @@ def properties():
 @pytest.fixture
 def properties_unique_id(properties):
     return dict(EXAMPLE_SERVICE_PROPERTIES)
+
+
+def test_broadcast_stuff():
+    print("\n".join(str(x) for x in (
+        "DEBUG",
+        get_ipv4_addresses(),
+        get_broadcast_addresses(),
+        get_broadcastable_ip(),
+    )))
 
 
 def test_service_message(properties):
