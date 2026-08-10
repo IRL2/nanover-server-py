@@ -54,6 +54,8 @@ jobs:
           uv pip install -r ./python-libraries/nanover-server/pyproject.toml --all-extras
 #      - name: All tests
 #        run: python -m pytest python-libraries --timeout 60
+      - name: ESSD tests
+        run: uv run pytest ./python-libraries/nanover-server/tests/test_essd/ -rP
       - name: Parallel tests
         run: uv run pytest python-libraries -n auto -m 'not serial' --timeout 60
       - name: Serial tests

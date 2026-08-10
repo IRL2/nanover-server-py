@@ -27,6 +27,7 @@ def get_ipv4_addresses(
             ipv4_addrs += addrs[netifaces.AF_INET]
         except KeyError:
             continue
+    print("IPV4\n", ipv4_addrs)
     return ipv4_addrs
 
 

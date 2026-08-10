@@ -156,6 +156,7 @@ class DiscoveryServer:
     def _broadcast_one_service(self, service: ServiceHub, addresses):
         address = service.address
         for broadcast_address in addresses:
+            print("BROADCAST\n", broadcast_address)
             if address == "[::]" or address == "localhost":
                 message = service.to_message(override_address=broadcast_address["addr"])
             else:
