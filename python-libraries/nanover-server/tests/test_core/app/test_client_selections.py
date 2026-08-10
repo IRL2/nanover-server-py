@@ -1,5 +1,4 @@
 import pytest
-
 from nanover.app import NanoverImdApplication
 from nanover.testing import assert_equal_soon, assert_in_soon
 from nanover.testing.asserts import assert_true_soon
@@ -61,7 +60,7 @@ def server_clients_with_selection(server_clients):
 
 
 def test_client_key_sharing(server_clients):
-    server, client1, client2 = server_clients
+    _server, client1, _client2 = server_clients
 
     value = "value"
     client1.set_shared_value("key", value)
@@ -73,7 +72,7 @@ def test_client_key_sharing(server_clients):
 
 
 def test_create_selection(server_clients):
-    server, client1, client2 = server_clients
+    _server, client1, client2 = server_clients
 
     client1.create_selection("Selection 1", [0, 1, 2])
 
@@ -82,7 +81,7 @@ def test_create_selection(server_clients):
 
 
 def test_create_empty_selection(server_clients):
-    server, client1, client2 = server_clients
+    _server, client1, client2 = server_clients
 
     client1.create_selection("Empty Selection")
 
@@ -91,7 +90,7 @@ def test_create_empty_selection(server_clients):
 
 
 def test_update_selection(server_clients_with_selection):
-    server, client1, client2 = server_clients_with_selection
+    _server, client1, client2 = server_clients_with_selection
 
     selection = assert_number_and_get_first_selection(client2, 1)
     selection.selection_name = "Selection 2"
@@ -103,7 +102,7 @@ def test_update_selection(server_clients_with_selection):
 
 
 def test_update_selection_with(server_clients_with_selection):
-    server, client1, client2 = server_clients_with_selection
+    _server, client1, client2 = server_clients_with_selection
 
     selection = assert_number_and_get_first_selection(client2, 1)
     with selection.modify():
@@ -115,7 +114,7 @@ def test_update_selection_with(server_clients_with_selection):
 
 
 def test_remove_selection(server_clients_with_selection):
-    server, client1, client2 = server_clients_with_selection
+    _server, client1, client2 = server_clients_with_selection
 
     selection = assert_number_and_get_first_selection(client2, 1)
     client2.remove_selection(selection)
@@ -127,7 +126,7 @@ def test_remove_selection(server_clients_with_selection):
 
 
 def test_remove_selection_remove_method(server_clients_with_selection):
-    server, client1, client2 = server_clients_with_selection
+    _server, client1, client2 = server_clients_with_selection
 
     selection = assert_number_and_get_first_selection(client2, 1)
     selection.remove()
@@ -139,7 +138,7 @@ def test_remove_selection_remove_method(server_clients_with_selection):
 
 
 def test_clear_selections(server_clients_with_selection):
-    server, client1, client2 = server_clients_with_selection
+    _server, client1, client2 = server_clients_with_selection
 
     client1.create_selection("Selection 2", [3, 4])
 
@@ -160,7 +159,7 @@ def test_clear_selections(server_clients_with_selection):
 
 
 def test_get_selection(server_clients_with_selection):
-    server, client1, client2 = server_clients_with_selection
+    _server, client1, client2 = server_clients_with_selection
 
     selection = assert_number_and_get_first_selection(client1, 1)
     id_ = selection.selection_id
@@ -179,20 +178,20 @@ def test_get_selection(server_clients_with_selection):
 
 
 def test_get_selection_missing(server_clients_with_selection):
-    server, client1, client2 = server_clients_with_selection
+    _server, _client1, client2 = server_clients_with_selection
     with pytest.raises(KeyError):
         _ = client2.get_selection("selection.invalid_id")
 
 
 def test_root_selection_fields(server_clients):
-    server, client1, client2 = server_clients
+    _server, client1, _client2 = server_clients
 
     selection = client1.root_selection
     assert not selection.selected_particle_ids
 
 
 def test_root_selection_set_field(server_clients):
-    server, client1, client2 = server_clients
+    _server, client1, client2 = server_clients
 
     selection = client1.root_selection
     with selection.modify():
@@ -202,7 +201,7 @@ def test_root_selection_set_field(server_clients):
 
 
 def test_remove_selection_while_in_use(server_clients_with_selection):
-    server, client1, client2 = server_clients_with_selection
+    _server, client1, client2 = server_clients_with_selection
 
     selection = assert_number_and_get_first_selection(client1, 1)
     with selection.modify():

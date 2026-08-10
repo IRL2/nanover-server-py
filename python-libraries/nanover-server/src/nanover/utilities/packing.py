@@ -1,15 +1,13 @@
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Iterable, Callable, TypeVar, Generic, Any
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 
-P = TypeVar("P")
-U = TypeVar("U")
-
 
 @dataclass(kw_only=True)
-class PackingPair(Generic[U, P]):
+class PackingPair[U, P]:
     """
     Pair of functions for packing and unpacking rich data into and from simpler types understood by MessagePack.
     """
@@ -60,6 +58,9 @@ def fallback_encoder(obj: Any) -> Any:
     # encode numpy arrays as simple lists
     if isinstance(obj, np.ndarray):
         return obj.tolist()
+    # convert numpy numbers to python floats
+    if isinstance(obj, np.number):
+        return float(obj)
     raise TypeError(f"Unknown type: {obj}")
 
 
@@ -72,3 +73,4 @@ pack_uint8 = make_bytes_packer(np.uint8)
 
 pack_vec3 = make_bytes_packer(np.float32, shape=(-1, 3))
 pack_bond = make_bytes_packer(np.uint32, shape=(-1, 2))
+pack_color = make_bytes_packer(np.uint8, shape=(-1, 4))

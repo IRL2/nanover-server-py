@@ -1,18 +1,17 @@
 import pytest
-from psutil._common import snicaddr
-
 from nanover.essd.server import DiscoveryServer
+from nanover.essd.servicehub import ServiceHub
 from nanover.essd.utils import (
-    get_ipv4_addresses,
     get_broadcast_addresses,
+    get_ipv4_addresses,
     is_in_network,
     resolve_host_broadcast_address,
 )
-from nanover.essd.servicehub import ServiceHub
+from psutil._ntuples import snicaddr
 from test_essd_service import (
     get_broadcastable_test_ip,
-    properties_unique_id,
     properties,
+    properties_unique_id,
 )
 
 
@@ -100,7 +99,6 @@ def test_is_in_network(address, netmask, broadcast_address, expected_result):
     [
         ("192.168.1.x", "255.255.0.0", "192.168.255.255"),
         ("192.168.1.2", "255.255.x", "192.168.255.255"),
-        ("192.168.1.2", "255.255.255.0", "192.168.xx.255"),
         ("192.168.1.2", "255.255.255.0", "192.168.xx.255"),
     ],
 )

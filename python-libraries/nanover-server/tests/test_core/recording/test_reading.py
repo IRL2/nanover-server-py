@@ -1,11 +1,10 @@
 from pathlib import Path
 
 import pytest
-
 from nanover.recording.reading import (
     MessageZipReader,
-    iter_recording_file,
     iter_full_view,
+    iter_recording_file,
     split_by_simulation_counter,
 )
 
@@ -95,7 +94,7 @@ def test_split_by_simulation_counter():
 
     for i in range(expected_count):
         view = views[i]
-        timestamp, frame, state = view[-1]
+        _timestamp, frame, _state = view[-1]
 
         assert frame.simulation_counter == i
         assert len(view) == expected_entry_counts[i]

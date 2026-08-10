@@ -1,11 +1,11 @@
+from collections.abc import Iterable
 from dataclasses import asdict
 from io import BytesIO
 from os import PathLike
-from typing import Iterable, Any, BinaryIO
+from typing import Any, BinaryIO
 from zipfile import ZipFile
 
 import msgpack
-
 from nanover.recording.reading import (
     RECORDING_INDEX_FILENAME,
     RECORDING_MESSAGES_FILENAME,
@@ -18,7 +18,7 @@ from nanover.utilities.packing import fallback_encoder
 
 class NanoverRecordingWriter:
     @classmethod
-    def from_path(cls, path: PathLike[str] | str):
+    def from_path(cls, path: str | PathLike[str]):
         return cls(path)
 
     def __init__(self, outfile: BinaryIO | PathLike[str] | str):

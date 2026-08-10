@@ -6,6 +6,7 @@ See: https://irl2.github.io/nanover-docs/concepts/applications.html#the-trajecto
 FRAME_INDEX = "frame.index"
 
 BOX_VECTORS = "system.box.vectors"
+SIMULATION_NAME = "system.simulation.name"
 SIMULATION_TIME = "system.simulation.time"
 SIMULATION_COUNTER = "system.simulation.counter"
 SIMULATION_EXCEPTION = "system.simulation.exception"
@@ -18,6 +19,7 @@ PARTICLE_VELOCITIES = "particle.velocities"
 PARTICLE_FORCES = "particle.forces"
 PARTICLE_FORCES_SYSTEM = "particle.forces.system"
 PARTICLE_ELEMENTS = "particle.elements"
+PARTICLE_COLORS = "particle.colors"
 PARTICLE_NAMES = "particle.names"
 PARTICLE_RESIDUES = (
     "particle.residues"  # Index of the residue each particle belongs to.

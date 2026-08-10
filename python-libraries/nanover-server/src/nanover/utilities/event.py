@@ -1,4 +1,5 @@
-from typing import Callable
+import logging
+from collections.abc import Callable
 
 
 class Event:
@@ -31,6 +32,11 @@ class Event:
 
         :param args: Positional arguments for the event, passed on to each callback.
         :param kwargs: Keywords arguments for the event, passed on to each callback.
+
+        Exceptions in callbacks are caught, logged, and suppressed.
         """
         for callback in self._callbacks:
-            callback(*args, **kwargs)
+            try:
+                callback(*args, **kwargs)
+            except Exception:
+                logging.getLogger(__name__).exception("Exception in Event callback:")

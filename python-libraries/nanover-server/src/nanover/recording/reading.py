@@ -1,15 +1,14 @@
 from dataclasses import dataclass, field
 from itertools import groupby
 from os import PathLike
-from typing import Any, IO, BinaryIO
+from typing import IO, Any, BinaryIO
 from zipfile import ZipFile
 
 import msgpack
-
-from nanover.utilities.state_dictionary import StateDictionary
 from nanover.trajectory import FrameData
 from nanover.trajectory.keys import SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.state_dictionary import StateDictionary
 
 MICROSECONDS_TO_SECONDS = 1 / 1000000
 
@@ -106,7 +105,7 @@ class RecordingIndexEntry:
 
 class MessageZipReader:
     @classmethod
-    def from_path(cls, path: PathLike[str]):
+    def from_path(cls, path: str | PathLike[str]):
         """
         Read a recording from a filepath.
         """
@@ -274,7 +273,7 @@ class NanoverRecordingReader(MessageZipReader):
         return message.get(type, None)
 
     def __repr__(self):
-        filepart = f" {self.zipfile.filename}" or ""
+        filepart = f" {self.zipfile.filename}"
         entriespart = f" with {len(self)} entries"
 
         first_ts = self.index[0].metadata.get("timestamp")
@@ -285,7 +284,7 @@ class NanoverRecordingReader(MessageZipReader):
         return f"<{self.__class__.__name__}{filepart}{entriespart}{durationpart}>"
 
 
-def split_by_simulation_counter(path: PathLike[str]):
+def split_by_simulation_counter(path: str | PathLike[str]):
     def get_simulation_counter(triplet):
         _, frame, _ = triplet
         return frame.frame_dict.get(SIMULATION_COUNTER)
@@ -302,7 +301,7 @@ def split_by_simulation_counter(path: PathLike[str]):
     return sessions
 
 
-def iter_full_view(path: PathLike[str]):
+def iter_full_view(path: str | PathLike[str]):
     full_frame = FrameData()
     full_state = StateDictionary()
 
@@ -316,7 +315,7 @@ def iter_full_view(path: PathLike[str]):
         yield time, full_frame.copy(), full_state.copy_content()
 
 
-def iter_recording_file(path: PathLike[str]):
+def iter_recording_file(path: str | PathLike[str]):
     with MessageZipReader.from_path(path) as reader:
         for entry in reader:
             frame, update = None, None
@@ -330,7 +329,7 @@ def iter_recording_file(path: PathLike[str]):
                 yield entry.metadata["timestamp"], frame, update
 
 
-def message_events_from_recording(path: PathLike[str]):
+def message_events_from_recording(path: str | PathLike[str]):
     with MessageZipReader.from_path(path) as reader:
         for entry in reader:
             yield MessageEvent(

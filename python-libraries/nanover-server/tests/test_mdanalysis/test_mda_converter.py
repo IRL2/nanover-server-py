@@ -4,16 +4,16 @@ import numpy as np
 import pytest
 from MDAnalysis import Universe
 from nanover.mdanalysis.converter import (
+    ALL_MDA_ATTRIBUTES,
     INDEX_ELEMENT,
     MDANALYSIS_COUNTS_TO_FRAME_DATA,
-    ALL_MDA_ATTRIBUTES,
-    mdanalysis_to_frame_data,
-    frame_data_to_mdanalysis,
-    add_mda_topology_to_frame_data,
     _get_mda_attribute,
+    add_mda_topology_to_frame_data,
+    frame_data_to_mdanalysis,
+    mdanalysis_to_frame_data,
 )
-from nanover.trajectory.keys import PARTICLE_ELEMENTS
 from nanover.trajectory import FrameData, MissingDataError
+from nanover.trajectory.keys import PARTICLE_ELEMENTS
 
 TEST_SYSTEM_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),

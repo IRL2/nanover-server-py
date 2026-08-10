@@ -9,14 +9,13 @@ Run with:
     python nanotube.py --osc-port 9000
 """
 
-from osc_app import OscApp
-
-import topology
 import itertools
 import math
 
-from numpy import arccos, array, dot, pi, cross
+import topology
+from numpy import arccos, array, cross, dot, pi
 from numpy.linalg import norm
+from osc_app import OscApp
 
 
 # from: https://gist.github.com/nim65s/5e9902cd67f094ce65b0

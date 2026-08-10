@@ -1,10 +1,10 @@
-from typing import Iterable
+from collections.abc import Iterable
 from uuid import uuid4
 
 from nanover.app import (
-    RenderingSelection,
     SELECTION_ROOT_ID,
     SELECTION_ROOT_NAME,
+    RenderingSelection,
 )
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket.client.base_client import WebsocketClient
@@ -98,7 +98,7 @@ class SelectionClient(WebsocketClient):
 
         :return: An iterable of all the selections stored in the shared key store.
         """
-        for key, _ in self._state_dictionary.copy_content().items():  # type: ignore
+        for key in self._state_dictionary.copy_content():  # type: ignore
             if key.startswith("selection."):
                 yield self.get_selection(key)
 

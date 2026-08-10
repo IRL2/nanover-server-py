@@ -2,7 +2,7 @@ import ipaddress
 import socket
 
 import psutil
-from psutil._common import snicaddr
+from psutil._ntuples import snicaddr
 
 
 def snicaddr_with_computed_broadcast_address(addr: snicaddr):
@@ -75,7 +75,7 @@ def resolve_host_broadcast_address(
 ):
     try:
         address = socket.gethostbyname(host)
-    except socket.error:
+    except OSError:
         return None
     if ipv4_addrs is None:
         ipv4_addrs = get_ipv4_addresses()

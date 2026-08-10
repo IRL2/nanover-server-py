@@ -5,12 +5,13 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 
-from .frame_dict import frame_dict_packer, merge_frame_dicts, FrameDict
 from . import keys
+from .frame_dict import FrameDict, frame_dict_packer, merge_frame_dicts
 
 EnumArray = npt.NDArray[np.uint8]
 IndexArray = npt.NDArray[np.uint32]
 FloatArray = npt.NDArray[np.float32]
+ColorArray = npt.NDArray[np.uint8]
 StringArray = list[str]
 
 
@@ -18,8 +19,6 @@ class MissingDataError(KeyError):
     """
     A shortcut does not contain data to return.
     """
-
-    pass
 
 
 @dataclass
@@ -72,6 +71,7 @@ class FrameData:
     particle_forces: FloatArray = _shortcut(keys.PARTICLE_FORCES)
     particle_forces_system: FloatArray = _shortcut(keys.PARTICLE_FORCES_SYSTEM)
     particle_elements: EnumArray = _shortcut(keys.PARTICLE_ELEMENTS)
+    particle_colors: ColorArray = _shortcut(keys.PARTICLE_COLORS)
     particle_names: StringArray = _shortcut(keys.PARTICLE_NAMES)
     particle_residues: IndexArray = _shortcut(keys.PARTICLE_RESIDUES)
 
@@ -92,6 +92,7 @@ class FrameData:
     user_forces_sparse: FloatArray = _shortcut(keys.USER_FORCES_SPARSE)
     user_forces_index: IndexArray = _shortcut(keys.USER_FORCES_INDEX)
 
+    simulation_name: str = _shortcut(keys.SIMULATION_NAME)
     simulation_time: float = _shortcut(keys.SIMULATION_TIME)
     simulation_counter: float = _shortcut(keys.SIMULATION_COUNTER)
     simulation_exception: float = _shortcut(keys.SIMULATION_EXCEPTION)
@@ -155,6 +156,9 @@ class FrameData:
         )
 
         return f"<FrameData of {key_text}>"
+
+    def __eq__(self, other):
+        return self.frame_dict == other.frame_dict
 
     def __bool__(self):
         return bool(self.frame_dict)

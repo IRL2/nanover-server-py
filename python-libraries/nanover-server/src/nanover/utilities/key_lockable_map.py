@@ -22,9 +22,9 @@ class KeyLockableMap:
 
     def __init__(self):
         self._lock = RLock()
-        self._key_lock_owners = dict()
-        self._key_lock_timeouts = dict()
-        self._values = dict()
+        self._key_lock_owners = {}
+        self._key_lock_timeouts = {}
+        self._values = {}
 
     def _remove_lock(self, key):
         with self._lock:

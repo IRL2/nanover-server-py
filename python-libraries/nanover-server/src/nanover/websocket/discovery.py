@@ -2,10 +2,9 @@ import json
 import urllib
 from contextlib import contextmanager
 
-from websockets.sync.client import connect
-
 from nanover.core import AppServer
 from nanover.utilities.network import get_local_ip
+from websockets.sync.client import connect
 
 
 class DiscoveryClient:
@@ -20,10 +19,10 @@ class DiscoveryClient:
 
         services = app_server.service_hub.properties["services"]
 
-        if "wss" in services:
-            data["wss"] = f"wss://{ip}:{services['wss']}"
-        if "ws" in services:
-            data["ws"] = f"ws://{ip}:{services['ws']}"
+        for protocol in ("wss", "ws", "https"):
+            if protocol in services:
+                port = services[protocol]
+                data[protocol] = f"{protocol}://{ip}:{port}"
 
         discovery = DiscoveryClient(endpoint)
         with discovery.advertise(data) as init:

@@ -3,19 +3,19 @@ from collections import deque
 from contextlib import suppress
 from typing import Any
 
-from nanover.core import AppServer, AppServerMinimal
+from nanover.core import AppServer, AppServerMinimalImd
 from nanover.essd import DiscoveryClient, ServiceHub
+from nanover.trajectory import FrameData, FramePublisher
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.network import get_local_ip
-from nanover.trajectory import FrameData, FramePublisher
 
-from .command_client import CommandClient
-from .playback_client import PlaybackClient
-from .interaction_client import InteractionClient
-from .selection_client import SelectionClient
-from .state_client import StateClient
 from ...imd import ImdStateWrapper
 from ...trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
+from .command_client import CommandClient
+from .interaction_client import InteractionClient
+from .playback_client import PlaybackClient
+from .selection_client import SelectionClient
+from .state_client import StateClient
 
 DEFAULT_DISCOVERY_SEARCH_TIME = 10.0
 
@@ -35,7 +35,7 @@ class NanoverImdClient(
     PlaybackClient,
     CommandClient,
     StateClient,
-    AppServerMinimal,
+    AppServerMinimalImd,
 ):
     """
     Mixin of methods for selection manipulation with a WebSocketClient.
@@ -55,7 +55,7 @@ class NanoverImdClient(
             url = f"wss://127.0.0.1:{app_server.service_hub.services['wss']}"
             return cls.from_url(url)
 
-        raise Exception("Neither ws or wss service found in AppServer")
+        raise ValueError("Neither ws or wss service found in AppServer")
 
     @classmethod
     def from_discovery(
@@ -98,8 +98,16 @@ class NanoverImdClient(
         self._frames: deque[FrameData] = deque(maxlen=50)
         super().__init__(*args, **kwargs)
 
-        self.frame_publisher = FramePublisherShim(self)
-        self.imd = ImdStateWrapper(self.state_dictionary)
+        self._frame_publisher = FramePublisherShim(self)
+        self._imd = ImdStateWrapper(self.state_dictionary)
+
+    @property
+    def frame_publisher(self) -> FramePublisher:
+        return self._frame_publisher
+
+    @property
+    def imd(self) -> ImdStateWrapper:
+        return self._imd
 
     @property
     def frames(self) -> list[FrameData]:
@@ -160,7 +168,7 @@ class NanoverImdClient(
 
         while not self.has_minimum_usable_frame:
             if 0 < endtime < time.monotonic():
-                raise Exception("Timed out waiting for basic topology.")
+                raise TimeoutError("Timed out waiting for basic topology.")
             time.sleep(check_interval)
 
         return self.current_frame

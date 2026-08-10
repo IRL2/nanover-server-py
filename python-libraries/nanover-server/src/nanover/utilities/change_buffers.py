@@ -3,14 +3,15 @@ Module providing utility classes used by the multiplayer service to create a
 shared key/value store between multiple clients.
 """
 
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
-from threading import Lock, Condition
-from typing import Any, Set, Iterator, Iterable, Mapping
+from threading import Condition, Lock
+from typing import Any
 
 from .timing import yield_interval
 
-KeyUpdates = Mapping[str, Any]
-KeyRemovals = Iterable[str]
+KeyUpdates = dict[str, Any]
+KeyRemovals = set[str]
 
 
 class DictionaryChange:
@@ -18,10 +19,10 @@ class DictionaryChange:
     removals: KeyRemovals
 
     @classmethod
-    def from_dict(cls, dict):
+    def from_dict(cls, dict_: dict):
         return cls(
-            dict.get("updates", None),
-            dict.get("removals", None),
+            dict_.get("updates", None),
+            dict_.get("removals", None),
         )
 
     def to_dict(self):
@@ -32,11 +33,16 @@ class DictionaryChange:
 
     def __init__(
         self,
-        updates: KeyUpdates | None = None,
-        removals: KeyRemovals | None = None,
+        updates: Mapping[str, Any] | None = None,
+        removals: Iterable[str] | None = None,
     ):
-        self.updates = updates or {}
-        self.removals = removals or set()
+        self.updates = {}
+        self.removals = set()
+
+        if updates is not None:
+            self.updates.update(updates)
+        if removals is not None:
+            self.removals.update(removals)
 
     def update(self, other: "DictionaryChange"):
         self.updates = {**self.updates, **other.updates}
@@ -52,8 +58,6 @@ class ObjectFrozenError(Exception):
     object has been frozen.
     """
 
-    pass
-
 
 class DictionaryChangeMultiView:
     """
@@ -64,7 +68,7 @@ class DictionaryChangeMultiView:
     _content: dict[str, Any]
     _frozen: bool
     _lock: Lock
-    _views: Set["DictionaryChangeBuffer"]
+    _views: set["DictionaryChangeBuffer"]
 
     def __init__(self):
         self._content = {}
@@ -168,7 +172,7 @@ class DictionaryChangeBuffer:
     _lock: Lock
     _any_changes: Condition
     _pending_changes: dict[str, Any]
-    _pending_removals: Set[str]
+    _pending_removals: set[str]
 
     def __init__(self):
         self._frozen = False
@@ -225,7 +229,7 @@ class DictionaryChangeBuffer:
                     raise ObjectFrozenError()
                 self._any_changes.wait()
             changes, removals = self._pending_changes, self._pending_removals
-            self._pending_changes, self._pending_removals = dict(), set()
+            self._pending_changes, self._pending_removals = {}, set()
             return DictionaryChange(changes, removals)
 
     def subscribe_changes(self, interval: float = 0) -> Iterator[DictionaryChange]:

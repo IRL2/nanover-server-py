@@ -2,8 +2,9 @@
 Tests for application level autoconnecting between client and server.
 """
 
+from unittest.mock import Mock
+
 import pytest
-from mock import Mock
 from nanover.app import NanoverImdApplication
 from nanover.core import AppServer
 from nanover.essd import DiscoveryServer

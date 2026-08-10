@@ -17,18 +17,18 @@ Example when used as a cli:
 """
 
 import argparse
+from collections.abc import Callable
 from os import PathLike
 from pathlib import Path
-from typing import Callable
 
 from nanover.recording.reading import (
-    RecordingEvent,
-    NanoverRecordingReader,
     MessageEvent,
+    NanoverRecordingReader,
+    RecordingEvent,
 )
 from nanover.recording.writing import NanoverRecordingWriter
 from nanover.trajectory import FrameData
-from nanover.trajectory.keys import SIMULATION_COUNTER, FRAME_INDEX
+from nanover.trajectory.keys import FRAME_INDEX, SIMULATION_COUNTER
 from nanover.utilities.change_buffers import DictionaryChange
 
 
@@ -85,7 +85,7 @@ def get_value(event: RecordingEvent, key: str):
 
 
 def split_recording(
-    path: PathLike[str],
+    path: str | PathLike[str],
     *,
     split_predicate: Callable[[RecordingEvent], bool] = split_on_frame_reset,
     name_template=name_basic,

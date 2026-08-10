@@ -1,8 +1,8 @@
 import numpy
 import pytest
 from nanover.app.multiuser import (
-    RADIAL_ORIENT_COMMAND_KEY,
     MULTIUSER_ORIGIN_PREFIX,
+    RADIAL_ORIENT_COMMAND_KEY,
 )
 from nanover.testing import assert_in_soon
 from nanover.testing.asserts import assert_true_soon

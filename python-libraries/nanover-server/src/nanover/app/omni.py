@@ -1,17 +1,18 @@
 import logging
-from concurrent.futures import ThreadPoolExecutor, Future
+from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import suppress
-from queue import Queue, Empty
+from queue import Empty, Queue
 from ssl import SSLContext
-from typing import List, Set
 
-from .imd_app import NanoverImdApplication
-from .selection import RenderingSelection
-from nanover.core import AppServer, basic_info_string, Simulation
+from nanover.core import AppServer, Simulation, basic_info_string
 from nanover.imd.imd_force import InvalidInteractionError
 from nanover.trajectory import FrameData, keys
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
+
+from ..utilities.event import Event
+from .imd_app import NanoverImdApplication
+from .selection import RenderingSelection
 
 CLEAR_PREFIXES = {
     "avatar.",
@@ -75,9 +76,11 @@ class OmniRunner:
     def __init__(self, app_server: AppServer):
         self._app_server = app_server
 
-        self.simulations: List[Simulation] = []
+        self.simulations: list[Simulation] = []
         self._simulation_index = 0
-        self.simulation_selections: dict[Simulation, Set[RenderingSelection]] = {}
+        self.simulation_selections: dict[Simulation, set[RenderingSelection]] = {}
+
+        self.simulation_changed = Event()
 
         app_server.register_command(keys.LOAD_COMMAND, self.load)
         app_server.register_command(keys.NEXT_COMMAND, self.next)
@@ -92,7 +95,7 @@ class OmniRunner:
         self._runner: InternalRunner | None = None
         self._run_task: Future | None = None
 
-        self.failed_simulations: Set[Simulation] = set()
+        self.failed_simulations: set[Simulation] = set()
         self.logging = logging.getLogger(__name__)
 
     def close(self):
@@ -110,10 +113,20 @@ class OmniRunner:
             print(basic_info_string(self.app_server))
 
         list = "\n".join(
-            f'{index}: "{simulation.name}"'
+            f'[{index}]: "{simulation.name}"'
             for index, simulation in enumerate(self.simulations)
         )
         print(f"Available simulations:\n{list}")
+
+        def print_simulation_change(*, index, name, **kwargs):
+            print(f'Switched to [{index}]: "{name}"')
+
+        self.simulation_changed.add_callback(print_simulation_change)
+
+        if self.simulation is not None:
+            print_simulation_change(
+                index=self._simulation_index, name=self.simulation.name
+            )
 
     @property
     def app_server(self):
@@ -161,7 +174,7 @@ class OmniRunner:
         with self.app_server.lock_state() as state:
             removals = {
                 key
-                for key in state.keys()
+                for key in state
                 if any(key.startswith(prefix) for prefix in CLEAR_PREFIXES)
             }
         self.app_server.clear_locks()
@@ -175,7 +188,7 @@ class OmniRunner:
             }
             prev_selections = {
                 key
-                for key in state.keys()
+                for key in state
                 if key.startswith("selection.")
                 if key not in next_selections
             }
@@ -196,6 +209,21 @@ class OmniRunner:
         self._clear_state()
         self._load_simulation_selections()
         self._start_run()
+
+        self.simulation_changed.invoke(
+            index=self._simulation_index,
+            name=self.simulation.name,
+            simulation=self.simulation,
+        )
+
+        self.app_server.update_state(
+            DictionaryChange(
+                updates={
+                    "simulation.name": self.simulation.name,
+                    "simulation.index": self._simulation_index,
+                }
+            )
+        )
 
     def next(self):
         """
@@ -318,6 +346,9 @@ class InternalRunner:
                     )
                     self.app_server.imd.clear_interactions()
                 except Exception as e:
+                    self.logger.exception(
+                        f"Exception during simulation `{self.simulation.name}`"
+                    )
                     send_exception_frame(
                         f"{type(e).__name__} during simulation `{self.simulation.name}`"
                     )
@@ -325,11 +356,9 @@ class InternalRunner:
                     self.is_paused = True
                     self.logger.warning("Simulation paused due to exception.")
 
-        except Exception as e:
+        except Exception:
             self.omni.failed_simulations.add(self.simulation)
-            self.logger.exception(
-                f"{type(e)} loading simulation `{self.simulation.name}`"
-            )
+            self.logger.exception(f"Couldn't load simulation `{self.simulation.name}`")
             self.app_server.frame_publisher.send_clear()
             raise
 

@@ -2,25 +2,25 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 import numpy as np
-from ase import Atoms
-from ase.calculators.calculator import Calculator
-from ase.md import MDLogger
-from ase.md.md import MolecularDynamics
-
-from nanover.core import AppServer, Simulation
 from nanover.ase.converter import (
-    EV_TO_KJMOL,
-    ASE_TIME_UNIT_TO_PS,
-    ase_atoms_to_frame_data,
     ANG_TO_NM,
+    ASE_TIME_UNIT_TO_PS,
+    EV_TO_KJMOL,
     KJMOL_TO_EV,
+    ase_atoms_to_frame_data,
 )
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.thermo import compute_dof, compute_instantaneous_temperature
 from nanover.ase.wall_constraint import VelocityWallConstraint
+from nanover.core import AppServer, Simulation
+from nanover.imd.imd_force import calculate_contribution_to_work
 from nanover.trajectory import FrameData
 from nanover.utilities.event import Event
-from nanover.imd.imd_force import calculate_contribution_to_work
+
+from ase import Atoms
+from ase.calculators.calculator import Calculator
+from ase.md import MDLogger
+from ase.md.md import MolecularDynamics
 
 
 @dataclass
@@ -150,6 +150,7 @@ class ASESimulation(Simulation):
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
+        frame_data.simulation_name = self.name
         self.app_server.frame_publisher.send_clear()
         self.app_server.frame_publisher.send_frame(frame_data)
 

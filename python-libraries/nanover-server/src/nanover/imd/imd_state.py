@@ -2,12 +2,14 @@
 Module providing methods for storing ParticleInteractions in a StateDictionary.
 """
 
-import warnings
-from typing import Any, Mapping
+from collections.abc import Mapping
+from logging import getLogger
+from typing import Any
 
-from nanover.utilities.state_dictionary import StateDictionary
-from nanover.utilities.change_buffers import DictionaryChange
 from nanover.imd.particle_interaction import ParticleInteraction
+from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.event import Event
+from nanover.utilities.state_dictionary import StateDictionary
 
 INTERACTION_PREFIX = "interaction."
 VELOCITY_RESET_KEY = "imd.velocity_reset_available"
@@ -43,6 +45,10 @@ class ImdStateWrapper:
         self.state_dictionary.content_updated.add_callback(self._on_state_updated)
         self._interactions = {}
 
+        self.interaction_started = Event()
+        self.interaction_stopped = Event()
+        self.interaction_updated = Event()
+
     @property
     def velocity_reset_available(self):
         with self.state_dictionary.lock_content() as state:
@@ -68,7 +74,7 @@ class ImdStateWrapper:
         self.state_dictionary.update_state(None, change)
 
     def clear_interactions(self):
-        for interaction_id in self.active_interactions.keys():
+        for interaction_id in self.active_interactions:
             self.remove_interaction(interaction_id)
 
     @property
@@ -82,17 +88,27 @@ class ImdStateWrapper:
 
     def _on_state_updated(self, access_token, change: DictionaryChange):
         for removed_key in change.removals:
-            if (
-                removed_key.startswith(INTERACTION_PREFIX)
-                and removed_key in self._interactions
-            ):
-                del self._interactions[removed_key]
+            if removed_key.startswith(INTERACTION_PREFIX):
+                interaction = self._interactions.pop(removed_key, None)
+                if interaction is not None:
+                    self.interaction_stopped.invoke(
+                        key=removed_key, interaction=interaction
+                    )
         for key, value in change.updates.items():
             if key.startswith(INTERACTION_PREFIX):
                 try:
-                    self._interactions[key] = dict_to_interaction(value)
+                    interaction = dict_to_interaction(value)
+                    started = key not in self._interactions
+                    self._interactions[key] = interaction
+                    if started:
+                        self.interaction_started.invoke(
+                            key=key, interaction=interaction
+                        )
+                    self.interaction_updated.invoke(key=key, interaction=interaction)
                 except Exception:
-                    warnings.warn(f"Didn't understand '{value}' ({key}) as interaction")
+                    getLogger().exception(
+                        f"Didn't understand '{value}' ({key}) as interaction"
+                    )
 
 
 def interaction_to_dict(interaction: ParticleInteraction) -> dict[str, Any]:

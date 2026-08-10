@@ -1,11 +1,10 @@
 from typing import Any
 
-from ipywidgets import interact
 import ipywidgets as widgets
 from IPython.display import display
+from ipywidgets import interact
+from nanover.app import OmniRunner
 from nanover.core import AppServerMinimal
-
-from nanover.omni import OmniRunner
 from nanover.trajectory import keys
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -141,6 +140,18 @@ def show_app_server_controls(app_server: AppServerMinimal):
         ),
     ]
 
+    def make_user_command_button(command):
+        def run(_):
+            app_server.run_command(command, {})
+
+        return make_button(run, description=command)
+
+    commands = [
+        make_user_command_button(command)
+        for command in app_server.commands
+        if command.startswith("user/")
+    ]
+
     interact(
         set_force_type,
         type=widgets.Dropdown(
@@ -184,6 +195,7 @@ def show_app_server_controls(app_server: AppServerMinimal):
                 widgets.VBox(control),
                 widgets.VBox(switching),
                 widgets.VBox(box),
+                widgets.VBox(commands),
             ]
         )
     )

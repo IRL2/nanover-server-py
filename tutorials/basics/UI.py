@@ -3,7 +3,7 @@ from os.path import basename
 import gradio as gr
 
 from nanover.core import basic_info_string
-from nanover.omni import OmniRunner
+from nanover.app import OmniRunner
 from nanover.recording import PlaybackSimulation
 from nanover.openmm import OpenMMSimulation
 from nanover.websocket.record import record_from_runner

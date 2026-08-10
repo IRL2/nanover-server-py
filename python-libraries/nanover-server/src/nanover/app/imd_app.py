@@ -7,15 +7,15 @@ from concurrent.futures import Future
 from ssl import SSLContext
 from typing import Any
 
+from nanover.core.commands import CommandHandler, CommandService
 from nanover.essd import DiscoveryServer, ServiceHub
 from nanover.trajectory import FramePublisher
 from nanover.utilities.change_buffers import DictionaryChange
-
-from nanover.core.commands import CommandService, CommandHandler
 from nanover.utilities.state_dictionary import StateDictionary
-from .multiuser import add_multiuser_commands
+
 from ..core import AppServer
 from ..imd import ImdStateWrapper
+from .multiuser import add_multiuser_commands
 
 DEFAULT_SERVE_ADDRESS = "[::]"
 DEFAULT_NANOVER_PORT = 38801
@@ -65,7 +65,7 @@ class NanoverImdApplication(AppServer):
 
         try:
             app_server.serve_websocket(ssl=ssl, port=port)
-        except IOError:
+        except OSError:
             app_server.close()
             raise
 
@@ -94,6 +94,7 @@ class NanoverImdApplication(AppServer):
 
         self._imd_state = ImdStateWrapper(self._state_dictionary)
         add_multiuser_commands(self)
+        add_scene_update_shim(self)
 
     @property
     def name(self):
@@ -162,10 +163,10 @@ class NanoverImdApplication(AppServer):
         """
         self._state_dictionary.freeze()
         self._frame_publisher.close()
-        if self._discovery is not None:
-            self._discovery.close()
         if self._server_ws is not None:
             self._server_ws.close()
+        if self._discovery is not None:
+            self._discovery.close()
 
     @property
     def commands(self):
@@ -183,6 +184,9 @@ class NanoverImdApplication(AppServer):
         self,
         name: str,
         callback: CommandHandler,
+        *,
+        label: str | None = None,
+        icon: str | None = None,
         default_arguments: dict | None = None,
     ):
         """
@@ -190,11 +194,17 @@ class NanoverImdApplication(AppServer):
 
         :param name: Name of the command to register
         :param callback: Method to be called whenever the given command name is run by a client.
+        :param label: A human friendly name for the command.
+        :param icon: An emoji representing the command.
         :param default_arguments: A description of the arguments of the callback and their default values.
-
-        :raises ValueError: Raised when a command with the same name already exists.
         """
-        self._command_service.register_command(name, callback, default_arguments)
+        self._command_service.register_command(
+            name,
+            callback,
+            label=label,
+            icon=icon,
+            default_arguments=default_arguments,
+        )
 
     def unregister_command(self, name):
         """
@@ -266,3 +276,35 @@ def qualified_server_name(base_name: str):
         getpass.getuser()
     )  # OS agnostic method that uses a few different metrics to get the username
     return f"{username}: {base_name}"
+
+
+_SHIM_TOKEN = "SCENE_UPDATE_SHIM"
+
+
+def add_scene_update_shim(app: NanoverImdApplication):
+    """Keep old and new scene pose/transform in sync for compatibility."""
+
+    def on_update(*, access_token, change: DictionaryChange):
+        # ignore changes made by this shim
+        if access_token == _SHIM_TOKEN:
+            return
+
+        # if old scene pose or new scene transform are updated, update the other one with flipped x scale
+        if "scene" in change.updates:
+            d = list(change.updates["scene"])
+            d[-3] *= -1
+            app.state_dictionary.update_state(
+                _SHIM_TOKEN,
+                DictionaryChange(
+                    updates={"transform.simulation": {"transform": d, "parent": "root"}}
+                ),
+            )
+        elif "transform.simulation" in change.updates:
+            d = list(change.updates["transform.simulation"]["transform"])
+            d[-3] *= -1
+            app.state_dictionary.update_state(
+                _SHIM_TOKEN,
+                DictionaryChange(updates={"scene": d}),
+            )
+
+    app.state_dictionary.content_updated.add_callback(on_update)
