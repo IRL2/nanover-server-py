@@ -5,7 +5,13 @@ import psutil
 from psutil._ntuples import snicaddr
 
 
-def snicaddr_with_computed_broadcast_address(addr: snicaddr):
+# TODO: will be fixed in psutils>=8.0.0
+def fix_broadcast_windows(addr: snicaddr):
+    import sys
+
+    if sys.platform != "win32":
+        return addr
+
     if addr.broadcast is None and addr.ptp is None:
         broadcast = str(
             ipaddress.IPv4Network(
@@ -32,7 +38,7 @@ def get_ipv4_addresses() -> list[snicaddr]:
     }
 
     ipv4_addrs = [
-        snicaddr_with_computed_broadcast_address(addr)
+        fix_broadcast_windows(addr)
         for name, addrs in valid_ifs.items()
         for addr in addrs
         if addr.family == socket.AddressFamily.AF_INET
@@ -132,15 +138,9 @@ def is_in_network(address: str, interface_address_entry: snicaddr) -> bool:
 
 
 def get_broadcastable_test_ip():
-    # don't understand why this needs to be avoided
-    broadcast_addresses = [
-        address.address
-        for address in get_broadcast_addresses()
-        if address.address != "127.0.0.1"
-    ]
-    if len(broadcast_addresses) == 0:
+    try:
+        return get_broadcast_addresses()[0].address
+    except IndexError:
         raise RuntimeError(
             "No broadcastable IP addresses could be found on the system!"
         )
-
-    return broadcast_addresses[0]

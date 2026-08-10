@@ -21,7 +21,7 @@ requirements:
     - setuptools
   run:
     - python >={{ MIN_PYTHON_VERSION }}
-    - psutil
+    - psutil >=7.2.0
     - numpy
     - openmm
     - ase >=3.21
