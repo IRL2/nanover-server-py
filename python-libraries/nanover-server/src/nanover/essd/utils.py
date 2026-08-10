@@ -61,7 +61,7 @@ def get_broadcast_addresses() -> list[snicaddr]:
     """
 
     ipv4_addrs = get_ipv4_addresses()
-    print(ipv4_addrs)
+
     return [
         address_entry
         for address_entry in ipv4_addrs
@@ -132,10 +132,15 @@ def is_in_network(address: str, interface_address_entry: snicaddr) -> bool:
 
 
 def get_broadcastable_test_ip():
-    broadcast_addresses = get_broadcast_addresses()
+    # don't understand why this needs to be avoided
+    broadcast_addresses = [
+        address.address
+        for address in get_broadcast_addresses()
+        if address.address != "127.0.0.1"
+    ]
     if len(broadcast_addresses) == 0:
         raise RuntimeError(
             "No broadcastable IP addresses could be found on the system!"
         )
 
-    return broadcast_addresses[0].address
+    return broadcast_addresses[0]
