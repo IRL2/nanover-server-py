@@ -28,12 +28,12 @@ classifiers = [
 
 requires-python = ">=3.12"
 dependencies = [
-    "openmm",
-    "MDAnalysis",
-    "numpy",
-    "psutil >= 7.2.0",
+    "openmm>=8.1.0",
+    "MDAnalysis>=2.8.0",
+    "numpy>=1.26.4",
+    "psutil>=7.2.0",
     "nglview>=4.0.1",
-    "ase >= 3.21",
+    "ase>=3.21",
     "websockets>=15.0.0",
     "msgpack>=1.0.0",
     # mdanalysis will include this soon anyway
