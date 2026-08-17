@@ -79,7 +79,7 @@ page in our documentation for detailed instructions on installing NanoVer.
 * In the "Anaconda Powershell Prompt":
     * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.12" openmm MDAnalysis MDAnalysisTests ase`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Install the NanoVer libraries in your conda environment: `./win_compile.ps1`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
+    * Install the NanoVer libraries in your conda environment: `./install-dev.bat`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
 ### Mac and Linux
 
@@ -88,7 +88,7 @@ page in our documentation for detailed instructions on installing NanoVer.
 * In a terminal, in the repository root:
     * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.12" openmm MDAnalysis MDAnalysisTests ase`
     * Activate the conda environment: `conda activate nanover-dev`
-    * Install the NanoVer python libraries in your conda environment: `./compile.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
+    * Install the NanoVer python libraries in your conda environment: `./install-dev.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
 
 ## Running the tests
 
@@ -182,7 +182,7 @@ This project has been made possible by the following open source projects. We gr
 * [MDAnalysis](https://www.mdanalysis.org/) (GPLv2): Molecular dynamics analysis library ([citations](https://www.mdanalysis.org/pages/citations/)).
 * [NGLView](https://nglviewer.org/#nglview) (MIT): IPython/Jupyter widget to interactively view structures and trajectories ([citations](http://nglviewer.org/nglview/latest/#cite)).
 * [python-osc](https://pypi.org/project/python-osc/) (Public domain) - Open sound control library.
-* [Numpy](https://numpy.org/) (BSD) - Numerical computation library.
-* [Netifaces](https://pypi.org/project/netifaces/) (MIT) - Portable library for accessing network interface information.
-* [Pytest](https://docs.pytest.org/en/latest/) (MIT) - Python testing framework
+* [NumPy](https://numpy.org/) (BSD) - Numerical computation library.
+* [psutil](https://pypi.org/project/netifaces/) (BSD) - Cross-platform lib for process and system monitoring in Python.
+* [pytest](https://docs.pytest.org/en/latest/) (MIT) - Python testing framework
 * [Hypothesis](https://hypothesis.readthedocs.io/en/latest/) ([Mozilla Public License 2.0](https://github.com/HypothesisWorks/hypothesis/blob/master/hypothesis-python/LICENSE.txt)) - Python testing framework.
