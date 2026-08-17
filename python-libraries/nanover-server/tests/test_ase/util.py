@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import pytest
 from ase import Atoms
 from nanover.app import NanoverImdApplication
-from nanover.essd.utils import get_broadcastable_ip
+from nanover.essd.utils import get_broadcastable_test_ip
 from nanover.imd import ImdStateWrapper
 from nanover.utilities.state_dictionary import StateDictionary
 
@@ -11,7 +11,7 @@ from nanover.utilities.state_dictionary import StateDictionary
 @pytest.fixture
 def app_server():
     with NanoverImdApplication.basic_server(
-        address=get_broadcastable_ip(), port=0
+        address=get_broadcastable_test_ip(), port=0
     ) as server:
         yield server
 

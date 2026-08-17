@@ -29,11 +29,11 @@ from socket import (
 
 from nanover.essd.servicehub import ServiceHub
 from nanover.essd.utils import (
-    InterfaceAddresses,
     get_broadcast_addresses,
     is_in_network,
     resolve_host_broadcast_address,
 )
+from psutil._ntuples import snicaddr
 
 BROADCAST_PORT = 54545
 
@@ -62,7 +62,7 @@ def configure_reusable_socket() -> socket:
 
 
 class DiscoveryServer:
-    services: dict[ServiceHub, list[InterfaceAddresses]]
+    services: dict[ServiceHub, list[snicaddr]]
     _socket: socket
 
     def __init__(self, broadcast_port: int | None = None, delay=0.5):
@@ -157,20 +157,19 @@ class DiscoveryServer:
         address = service.address
         for broadcast_address in addresses:
             if address == "[::]" or address == "localhost":
-                message = service.to_message(override_address=broadcast_address["addr"])
+                message = service.to_message(override_address=broadcast_address.address)
             else:
                 message = service.to_message()
             self.logger.debug(
-                f"Sending service {service} to {broadcast_address['broadcast']}:{self.port}"
+                f"Sending service {service} to {broadcast_address.broadcast}:{self.port}"
             )
-
             try:
                 self._socket.sendto(
-                    message.encode(), (broadcast_address["broadcast"], self.port)
+                    message.encode(), (broadcast_address.broadcast, self.port)
                 )
             except OSError:
                 self.logger.error(
-                    f"Failed broadcast to {broadcast_address['broadcast']}:{self.port}"
+                    f"Failed broadcast to {broadcast_address.broadcast}:{self.port}"
                 )
 
     def __enter__(self):
@@ -179,7 +178,7 @@ class DiscoveryServer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def get_broadcast_addresses_for_service(self, service) -> list[InterfaceAddresses]:
+    def get_broadcast_addresses_for_service(self, service) -> list[snicaddr]:
         address = service.address
         if address == "[::]":
             return self.broadcast_addresses

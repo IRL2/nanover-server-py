@@ -1,9 +1,9 @@
 import time
 
 import pytest
-from nanover.essd import DiscoveryServer
+from nanover.essd import DiscoveryServer, ServiceHub
 from nanover.essd.client import DiscoveryClient
-from nanover.essd.servicehub import ServiceHub
+from nanover.essd.utils import get_broadcastable_test_ip
 from nanover.testing import assert_in_soon, assert_not_in_soon
 from test_essd_server import service
 from test_essd_service import (
