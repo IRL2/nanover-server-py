@@ -221,6 +221,16 @@ class NanoverJupyterUtilities:
                 return handle
         return None
 
+    def make_ghost_from_mdanalysis(self, key: str, *, atoms, positions=None):
+        from nanover.jupyter.ghosts import GhostMolecule
+
+        return GhostMolecule.from_mdanalysis(
+            key=key,
+            utilities=self,
+            atoms=atoms,
+            positions=positions,
+        )
+
 
 class StateKeysUtility:
     prefix = ""
@@ -425,6 +435,12 @@ class TransformsUtility(StateKeysUtility):
                 "parent": parent,
             },
         )
+
+    def remove_transform(
+        self,
+        key: str,
+    ):
+        self.remove_object(f"{self.prefix}{key}")
 
     def get_parent(self, key: str, *, default=None):
         entry = self.fetch_transform_entry(key)
