@@ -69,4 +69,5 @@ jobs:
             | sed 's/^/-p /g' \
             | grep -v '\..*\.' \
             | tr '\n' ' ')
+          echo "$packages"
           mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages

@@ -74,21 +74,45 @@ page in our documentation for detailed instructions on installing NanoVer.
 
 ### Windows
 
-* Install Anaconda
-* Clone the nanover-server-py repository
-* In the "Anaconda Powershell Prompt":
-    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.12" openmm MDAnalysis MDAnalysisTests ase`
-    * Activate the conda environment: `conda activate nanover-dev`
-    * Install the NanoVer libraries in your conda environment: `./install-dev.bat`.  If you do not plan on modifying the python packages, run `./win_compile.ps1 -noedit` instead. Otherwise, by default, the nanover packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
+* Install [Miniforge](https://conda-forge.org/download/) (or other conda variant) and run the remaining steps from inside "Anaconda Powershell Prompt"
+* Create a conda environment (we choose the name "nanover-dev"):
+```shell
+conda create -n nanover-dev -c conda-forge irl::nanover-server
+```
+* Activate the environment:
+```shell
+conda activate nanover-dev
+```
+* Clone the nanover-server-py repository:
+```shell
+git clone https://github.com/IRL2/nanover-server-py.git
+cd nanover-server-py
+```
+* Reinstall the nanover-server package directly from the source code:
+```shell
+./install-dev.bat
+```
 
 ### Mac and Linux
 
-* Install Anaconda
-* Clone the nanover-server-py repository
-* In a terminal, in the repository root:
-    * Create a conda environment (here we call the environment "nanover-dev") with the required depencies: `conda create -n nanover-dev -c conda-forge "python>3.12" openmm MDAnalysis MDAnalysisTests ase`
-    * Activate the conda environment: `conda activate nanover-dev`
-    * Install the NanoVer python libraries in your conda environment: `./install-dev.sh`.  If you do not plan on modifying the python packages, you may run `./compile.sh --no-edit` instead. Otherwise, by default, the NanoVer packages will be installed in edit mode (`pip install -e`) meaning that changes in the `nanover-server-py` directory will be directly reflected in your python environment.
+* Install [Miniforge](https://conda-forge.org/download/) (or other conda variant) and run the remaing steps from inside a terminal:
+* Create a conda environment (we choose the name "nanover-dev"):
+```shell
+conda create -n nanover-dev -c conda-forge irl::nanover-server
+```
+* Activate the environment:
+```shell
+conda activate nanover-dev
+```
+* Clone the nanover-server-py repository:
+```shell
+git clone https://github.com/IRL2/nanover-server-py.git
+cd nanover-server-py
+```
+* Reinstall the nanover-server package directly from the source code:
+```shell
+./install-dev.sh
+```
 
 ## Running the tests
 
