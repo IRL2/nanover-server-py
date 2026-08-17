@@ -12,7 +12,15 @@ from scipy.interpolate import splprep, splev
 from nanover.mdanalysis import NanoverParser, NanoverReader
 
 try:
-    from ipywidgets import interact, interactive, interactive_output, fixed, interact_manual, VBox, HBox
+    from ipywidgets import (
+        interact,
+        interactive,
+        interactive_output,
+        fixed,
+        interact_manual,
+        VBox,
+        HBox,
+    )
     from IPython import get_ipython
     from IPython.display import display
 
@@ -23,7 +31,8 @@ try:
 except:
     _in_notebook = False
 
-NANOVER_CPK_ELEMENT_COLOURS = {"H" : [0.8502581, 0.9008766, 0.9339623, 1],
+NANOVER_CPK_ELEMENT_COLOURS = {
+    "H": [0.8502581, 0.9008766, 0.9339623, 1],
     "C": [0.38863602, 0.36231756, 0.4339623, 1],
     "N": [0.14751692, 0.47027886, 0.8018868, 1],
     "O": [0.9433962, 0.16464934, 0.42588678, 1],
@@ -42,7 +51,9 @@ NANOVER_CPK_ELEMENT_COLOURS = {"H" : [0.8502581, 0.9008766, 0.9339623, 1],
 }
 DEFAULT_ELEMENT_COLOUR = [0.98039216, 0.08627451, 0.5686275, 1]
 
-get_element_colours = lambda x: NANOVER_CPK_ELEMENT_COLOURS.get(x, DEFAULT_ELEMENT_COLOUR)
+get_element_colours = lambda x: NANOVER_CPK_ELEMENT_COLOURS.get(
+    x, DEFAULT_ELEMENT_COLOUR
+)
 
 
 class PathSmoother:
@@ -209,23 +220,36 @@ class PathSmoother:
         self.create_mda_universe()
         self.read_mda_universe_data()
 
-    def retrieve_initial_selected_atom_positions(self, selection: str | None = 'all', guess_bonds: bool = True):
+    def retrieve_initial_selected_atom_positions(
+        self, selection: str | None = "all", guess_bonds: bool = True
+    ):
         """
         Retrieve the initial atomic positions of all atoms included in an MDAnalysis selection
         (selects all atoms by default), and saves their positions and corresponding colours.
         """
-        assert self.universe is not None, ("Cannot load atomic positions because "
-                                           "no MDAnalysis universe has been loaded.")
+        assert self.universe is not None, (
+            "Cannot load atomic positions because "
+            "no MDAnalysis universe has been loaded."
+        )
         if selection == None:
-            selection = 'all'
+            selection = "all"
         atom_selection = self.universe.select_atoms(selection)
         self._atom_selection_positions = atom_selection.positions
-        self._atom_selection_colours = np.array([get_element_colours(atom_selection.elements[i]) for i in range(atom_selection.elements.size)])
+        self._atom_selection_colours = np.array(
+            [
+                get_element_colours(atom_selection.elements[i])
+                for i in range(atom_selection.elements.size)
+            ]
+        )
         if guess_bonds:
             self._atom_selection_bond_indices = atom_selection.bonds.indices
 
     def plot_com_trajectory(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
+        self,
+        equal_aspect_ratio: bool = False,
+        cmap: str = "viridis",
+        plot_atom_positions: bool = False,
+        atom_selection: str | None = None,
     ):
         """
         Plot the trajectory of the COM of the atoms defining the path.
@@ -241,13 +265,26 @@ class PathSmoother:
         self._make_plots_interactive()
         if plot_atom_positions:
             self.retrieve_initial_selected_atom_positions(atom_selection)
-            assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
+            assert (
+                self._atom_selection_positions is not None
+                and self._atom_selection_colours is not None
+            )
         plot_com_trajectory(
-            self.com_positions, self.n_interaction_frames, equal_aspect_ratio, cmap, self._atom_selection_positions, self._atom_selection_colours, self._atom_selection_bond_indices
+            self.com_positions,
+            self.n_interaction_frames,
+            equal_aspect_ratio,
+            cmap,
+            self._atom_selection_positions,
+            self._atom_selection_colours,
+            self._atom_selection_bond_indices,
         )
 
     def plot_atoms_trajectories(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
+        self,
+        equal_aspect_ratio: bool = False,
+        cmap: str = "viridis",
+        plot_atom_positions: bool = False,
+        atom_selection: str | None = None,
     ):
         """
         Plot the trajectories of the individual atoms defining the path.
@@ -263,13 +300,26 @@ class PathSmoother:
         self._make_plots_interactive()
         if plot_atom_positions:
             self.retrieve_initial_selected_atom_positions(atom_selection)
-            assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
+            assert (
+                self._atom_selection_positions is not None
+                and self._atom_selection_colours is not None
+            )
         plot_atom_trajectories(
-            self.atom_positions, self.n_interaction_frames, equal_aspect_ratio, cmap, self._atom_selection_positions, self._atom_selection_colours, self._atom_selection_bond_indices
+            self.atom_positions,
+            self.n_interaction_frames,
+            equal_aspect_ratio,
+            cmap,
+            self._atom_selection_positions,
+            self._atom_selection_colours,
+            self._atom_selection_bond_indices,
         )
 
     def create_interactive_smoothing_plot(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
+        self,
+        equal_aspect_ratio: bool = False,
+        cmap: str = "viridis",
+        plot_atom_positions: bool = False,
+        atom_selection: str | None = None,
     ):
         """
         Create an interactive plot to smooth the trajectory of the centre of mass of the atoms defining
@@ -281,9 +331,15 @@ class PathSmoother:
         self._make_plots_interactive()
 
         def interactive_smoothing_plot(
-            x_pos, y_pos, z_pos, smoothing_value, n_points, start_point, end_point, ref_alpha
+            x_pos,
+            y_pos,
+            z_pos,
+            smoothing_value,
+            n_points,
+            start_point,
+            end_point,
+            ref_alpha,
         ):
-
             pos_array_size = x_pos.size
             original_u_values = np.linspace(0, 1, pos_array_size)
 
@@ -300,7 +356,6 @@ class PathSmoother:
 
             # Save current view if plot already exists
             if self.fig is None or self.ax is None:
-
                 # Close the old figure to avoid duplicates
                 plt.close(self.fig)
 
@@ -326,14 +381,28 @@ class PathSmoother:
 
                 if plot_atom_positions:
                     self.retrieve_initial_selected_atom_positions(atom_selection)
-                    assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
+                    assert (
+                        self._atom_selection_positions is not None
+                        and self._atom_selection_colours is not None
+                    )
                     for atom in range(self._atom_selection_colours.shape[0]):
-                        self.ax.scatter3D(*self._atom_selection_positions[atom], color=self._atom_selection_colours[atom])
+                        self.ax.scatter3D(
+                            *self._atom_selection_positions[atom],
+                            color=self._atom_selection_colours[atom],
+                        )
                     if self._atom_selection_bond_indices is not None:
                         for idx_pair in self._atom_selection_bond_indices:
-                            self.ax.plot(*np.transpose(
-                                [self._atom_selection_positions[idx_pair[0]], self._atom_selection_positions[idx_pair[1]]]),
-                                    color='gray', alpha=0.5, linewidth=2)
+                            self.ax.plot(
+                                *np.transpose(
+                                    [
+                                        self._atom_selection_positions[idx_pair[0]],
+                                        self._atom_selection_positions[idx_pair[1]],
+                                    ]
+                                ),
+                                color="gray",
+                                alpha=0.5,
+                                linewidth=2,
+                            )
 
                 self.ax.set_xlabel(r"$x$ / nm")
                 self.ax.set_ylabel(r"$y$ / nm")
@@ -388,7 +457,12 @@ class PathSmoother:
             return smoothing_value, n_points, start_point, end_point
 
         smoothing_slider = widgets.FloatSlider(
-            min=0.0, max=10.0, step=0.0001, value=0.0, readout_format=".4f", description="Smoothing"
+            min=0.0,
+            max=10.0,
+            step=0.0001,
+            value=0.0,
+            readout_format=".4f",
+            description="Smoothing",
         )
         n_points_slider = widgets.IntSlider(
             min=1000, max=10000, step=100, value=1000, description="N Points"
@@ -414,7 +488,7 @@ class PathSmoother:
             max=1.0,
             step=0.01,
             description="Original points opacity",
-            continuous_update=True
+            continuous_update=True,
         )
 
         # Define minimum number of points for spline (assume cubic)
@@ -422,14 +496,18 @@ class PathSmoother:
 
         def update_start_range(change):
             # Dynamically update the start point range
-            max_start = max(0, self.com_positions.shape[0] - end_point_slider.value - MIN_POINTS)
+            max_start = max(
+                0, self.com_positions.shape[0] - end_point_slider.value - MIN_POINTS
+            )
             start_point_slider.max = max_start
             if start_point_slider.value > max_start:
                 start_point_slider.value = max_start
 
         def update_end_range(change):
             # Dynamically update the end point range
-            max_end = max(0, self.com_positions.shape[0] - start_point_slider.value - MIN_POINTS)
+            max_end = max(
+                0, self.com_positions.shape[0] - start_point_slider.value - MIN_POINTS
+            )
             end_point_slider.max = max_end
             if end_point_slider.value > max_end:
                 end_point_slider.value = max_end
@@ -449,26 +527,29 @@ class PathSmoother:
         self.smoothing_plot = interactive_output(
             interactive_smoothing_plot,
             {
-            "x_pos": fixed(self.com_positions[:, 0]),
-            "y_pos": fixed(self.com_positions[:, 1]),
-            "z_pos": fixed(self.com_positions[:, 2]),
-            "smoothing_value": smoothing_slider,
-            "n_points": n_points_slider,
-            "start_point": start_point_slider,
-            "end_point": end_point_slider,
-            "ref_alpha": ref_alpha_slider,
-        })
+                "x_pos": fixed(self.com_positions[:, 0]),
+                "y_pos": fixed(self.com_positions[:, 1]),
+                "z_pos": fixed(self.com_positions[:, 2]),
+                "smoothing_value": smoothing_slider,
+                "n_points": n_points_slider,
+                "start_point": start_point_slider,
+                "end_point": end_point_slider,
+                "ref_alpha": ref_alpha_slider,
+            },
+        )
         # return self.smoothing_plot
 
-        controls_box = VBox([
-            smoothing_slider,
-            n_points_slider,
-            start_point_slider,
-            end_point_slider,
-            ref_alpha_slider,
-            start_label,
-            end_label,
-        ])
+        controls_box = VBox(
+            [
+                smoothing_slider,
+                n_points_slider,
+                start_point_slider,
+                end_point_slider,
+                ref_alpha_slider,
+                start_label,
+                end_label,
+            ]
+        )
         controls_box.layout = widgets.Layout(
             width="300px",
             align_items="flex-start",  # left-align items within the VBox
@@ -493,7 +574,11 @@ class PathSmoother:
         )
 
     def plot_smoothed_com_trajectory(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
+        self,
+        equal_aspect_ratio: bool = False,
+        cmap: str = "viridis",
+        plot_atom_positions: bool = False,
+        atom_selection: str | None = None,
     ):
         """
         Plot the smoothed trajectory of the COM of the atoms defining the path.
@@ -505,13 +590,26 @@ class PathSmoother:
         self._make_plots_interactive()
         if plot_atom_positions:
             self.retrieve_initial_selected_atom_positions(atom_selection)
-            assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
+            assert (
+                self._atom_selection_positions is not None
+                and self._atom_selection_colours is not None
+            )
         plot_com_trajectory(
-            self.smoothed_com_trajectory, self.n_points, equal_aspect_ratio, cmap, self._atom_selection_positions, self._atom_selection_colours, self._atom_selection_bond_indices
+            self.smoothed_com_trajectory,
+            self.n_points,
+            equal_aspect_ratio,
+            cmap,
+            self._atom_selection_positions,
+            self._atom_selection_colours,
+            self._atom_selection_bond_indices,
         )
 
     def plot_constant_speed_trajectory(
-        self, equal_aspect_ratio: bool = False, cmap: str = "viridis", plot_atom_positions: bool = False, atom_selection: str | None = None
+        self,
+        equal_aspect_ratio: bool = False,
+        cmap: str = "viridis",
+        plot_atom_positions: bool = False,
+        atom_selection: str | None = None,
     ):
         """
         Plot the constant speed trajectory calculated using :func:`calculate_constant_speed_trajectory`.
@@ -523,10 +621,19 @@ class PathSmoother:
         self._make_plots_interactive()
         if plot_atom_positions:
             self.retrieve_initial_selected_atom_positions(atom_selection)
-            assert self._atom_selection_positions is not None and self._atom_selection_colours is not None
+            assert (
+                self._atom_selection_positions is not None
+                and self._atom_selection_colours is not None
+            )
         n_points = self.constant_speed_com_trajectory.shape[0]
         plot_com_trajectory(
-            self.constant_speed_com_trajectory, n_points, equal_aspect_ratio, cmap, self._atom_selection_positions, self._atom_selection_colours, self._atom_selection_bond_indices
+            self.constant_speed_com_trajectory,
+            n_points,
+            equal_aspect_ratio,
+            cmap,
+            self._atom_selection_positions,
+            self._atom_selection_colours,
+            self._atom_selection_bond_indices,
         )
 
     def calculate_constant_speed_trajectory(
@@ -565,7 +672,7 @@ class PathSmoother:
 
         # Iterate until convergence criteria achieved
         for i in range(max_iterations):
-            print(f"\n--------------\nIteration {i+1}\n--------------\n")
+            print(f"\n--------------\nIteration {i + 1}\n--------------\n")
             n_points_required = int(
                 np.ceil(path_length / (desired_speed_nm_ps * timestep_ps))
             )  # + 1
@@ -885,10 +992,22 @@ def plot_com_trajectory(
 
     if initial_atom_positions is not None and initial_atom_colours is not None:
         for atom in range(initial_atom_colours.shape[0]):
-            ax.scatter3D(*initial_atom_positions[atom], color=initial_atom_colours[atom])
+            ax.scatter3D(
+                *initial_atom_positions[atom], color=initial_atom_colours[atom]
+            )
         if initial_atom_bond_indices is not None:
             for idx_pair in initial_atom_bond_indices:
-                ax.plot(*np.transpose([initial_atom_positions[idx_pair[0]], initial_atom_positions[idx_pair[1]]]), color='gray', alpha=0.5, linewidth=2)
+                ax.plot(
+                    *np.transpose(
+                        [
+                            initial_atom_positions[idx_pair[0]],
+                            initial_atom_positions[idx_pair[1]],
+                        ]
+                    ),
+                    color="gray",
+                    alpha=0.5,
+                    linewidth=2,
+                )
 
     ax.set_xlabel(r"$x$ / nm")
     ax.set_ylabel(r"$y$ / nm")
@@ -933,10 +1052,22 @@ def plot_atom_trajectories(
 
     if initial_atom_positions is not None and initial_atom_colours is not None:
         for atom in range(initial_atom_colours.shape[0]):
-            ax.scatter3D(*initial_atom_positions[atom], color=initial_atom_colours[atom])
+            ax.scatter3D(
+                *initial_atom_positions[atom], color=initial_atom_colours[atom]
+            )
         if initial_atom_bond_indices is not None:
             for idx_pair in initial_atom_bond_indices:
-                ax.plot(*np.transpose([initial_atom_positions[idx_pair[0]], initial_atom_positions[idx_pair[1]]]), color='gray', alpha=0.5, linewidth=2)
+                ax.plot(
+                    *np.transpose(
+                        [
+                            initial_atom_positions[idx_pair[0]],
+                            initial_atom_positions[idx_pair[1]],
+                        ]
+                    ),
+                    color="gray",
+                    alpha=0.5,
+                    linewidth=2,
+                )
 
     ax.set_xlabel(r"$x$ / nm")
     ax.set_ylabel(r"$y$ / nm")
@@ -1018,5 +1149,3 @@ def load_smd_path_data(filepath: PathLike | str):
         except Exception:
             raise Warning("Atom indices not present in file and could not be loaded.")
             return smd_path, smd_speed_nm_ps, smd_timestep_ps
-
-
