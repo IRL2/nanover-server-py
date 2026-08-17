@@ -63,25 +63,41 @@ class GhostMolecule:
         return ghost
 
     def redraw(self):
-        # add transparent spheres and lines to scene at positions relative to nanotube in first frame:
-        for i, position in enumerate(self.positions):
-            self.visuals.update_shape(
-                f"{self.key}.{i}",
-                position=position,
-                size=0.1,
-                color=[1.0, 1.0, 1.0, 0.5],
-                parent=self.key,
-            )
-        for i, (a, b) in enumerate(self.bond_pairs):
-            self.visuals.update_line(
-                f"{self.key}.{i}",
-                positions=self.positions[[a, b]],
-                size=0.05,
-                color=[1.0, 1.0, 1.0, 0.5],
-                parent=self.key,
-            )
+        draw_ghost(
+            self.key,
+            visuals=self.visuals,
+            positions=self.positions,
+            bond_pairs=self.bond_pairs,
+            parent=self.key,
+        )
 
     def clear(self):
         self.utilities.transforms.remove_transform(self.key)
         self.utilities.handles.remove_handle(self.key)
         self.visuals.clear()
+
+
+def draw_ghost(
+    key: str,
+    *,
+    visuals: SceneObjectsUtility,
+    positions: npt.NDArray,
+    bond_pairs: Sequence[Sequence[int]],
+    parent="simulation",
+):
+    for i, position in enumerate(positions):
+        visuals.update_shape(
+            f"{key}.{i}",
+            position=position,
+            size=0.1,
+            color=[1.0, 1.0, 1.0, 0.5],
+            parent=parent,
+        )
+    for i, (a, b) in enumerate(bond_pairs):
+        visuals.update_line(
+            f"{key}.{i}",
+            positions=positions[[a, b]],
+            size=0.05,
+            color=[1.0, 1.0, 1.0, 0.5],
+            parent=parent,
+        )
