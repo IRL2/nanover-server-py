@@ -43,11 +43,12 @@ class Transform:
         return cls.from_local_to_parent_matrix(np.identity(4))
 
     @classmethod
-    def from_translation(cls, translation: Sequence[float]):
-        return cls.from_state_transform(translation[:3])
+    def from_translation(cls, translation: Iterable[float]):
+        tx, ty, tz, *_ = translation
+        return cls.from_state_transform((tx, ty, tz))
 
     @classmethod
-    def from_state_transform(cls, transform: Sequence[float]):
+    def from_state_transform(cls, transform: Iterable[float]):
         return cls.from_local_to_parent_matrix(matrix_from_state_transform(transform))
 
     @classmethod
@@ -75,6 +76,12 @@ class Transform:
     @property
     def parent_to_local_matrix(self):
         return self._parent_to_local
+
+    def inverted(self):
+        return Transform(
+            local_to_parent=self.parent_to_local_matrix,
+            parent_to_local=self.local_to_parent_matrix,
+        )
 
     def __init__(
         self,
