@@ -77,6 +77,12 @@ class Transform:
     def parent_to_local_matrix(self):
         return self._parent_to_local
 
+    def inverted(self):
+        return Transform(
+            local_to_parent=self.parent_to_local_matrix,
+            parent_to_local=self.local_to_parent_matrix,
+        )
+
     def __init__(
         self,
         *,
