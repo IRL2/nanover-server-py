@@ -2,14 +2,14 @@ import numpy as np
 from nanover.core import AppServerMinimalImd
 from nanover.imd import ParticleInteraction
 from nanover.jupyter import ImdAgent
-from nanover.jupyter.ghosts import GhostMolecule
+from nanover.jupyter.ghosts import GhostMoleculeObject
 from nanover.jupyter.utilities import TransformsUtility
 from nanover.trajectory import FrameData
 
 
 class GhostFollowerAgent(ImdAgent):
     key: str
-    ghost: GhostMolecule
+    ghost: GhostMoleculeObject
 
     def __init__(self, app_server: AppServerMinimalImd):
         super().__init__(app_server)
@@ -18,11 +18,14 @@ class GhostFollowerAgent(ImdAgent):
     def update_interactions(self, full_frame: FrameData, frame_update: FrameData):
         key = self.key
 
+        ghost_data = self.ghost.ghost_data
+        atom_indices = ghost_data.system_atom_indices
+
         # target positions are original ghost positions transformed by ghost transform
         target_positions = self.transforms.fetch_transform(
             self.ghost.key
-        ).points_local_to_parent(self.ghost.positions)
-        real_positions = full_frame.particle_positions[self.ghost.atom_indices]
+        ).points_local_to_parent(ghost_data.ghost_atom_positions)
+        real_positions = full_frame.particle_positions[atom_indices]
 
         target_centroid = target_positions.mean(axis=0)
         real_centroid = real_positions.mean(axis=0)
@@ -37,7 +40,7 @@ class GhostFollowerAgent(ImdAgent):
             f"{key}.follow.centroid",
             ParticleInteraction(
                 position=target_centroid,
-                particles=[int(x) for x in self.ghost.atom_indices],
+                particles=[int(x) for x in atom_indices],
                 type="spring",
                 scale=500,
                 max_force=100,
@@ -52,7 +55,7 @@ class GhostFollowerAgent(ImdAgent):
         rotational_real = real_positions - real_centroid
         rotational = real_positions + (rotational_target - rotational_real)
 
-        for i, index in enumerate(self.ghost.atom_indices):
+        for i, index in enumerate(atom_indices):
             if close:
                 self.ghost.visuals.update_line(
                     f"{key}.follow.{i}",

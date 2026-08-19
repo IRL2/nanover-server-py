@@ -9,37 +9,81 @@ from nanover.trajectory import FrameData
 from nanover.utilities.transforms import Transform
 
 
+@dataclass(kw_only=True)
+class GhostMoleculeData:
+    system_atom_indices: Sequence[int]
+    ghost_atom_positions: npt.NDArray
+    ghost_bond_pairs: Sequence[Sequence[int]]
+
+    @classmethod
+    def from_frame_data(
+        cls, frame_data: FrameData, *, atom_indices: Iterable[int] | None = None
+    ):
+        if atom_indices is None:
+            atom_indices = range(frame_data.particle_count)
+        atom_indices = list(atom_indices)
+
+        atom_to_index = {atom: index for index, atom in enumerate(atom_indices)}
+        ghost_atom_positions = frame_data.particle_positions[atom_indices]
+        ghost_bond_pairs = [
+            (atom_to_index[a], atom_to_index[b])
+            for a, b in frame_data.bond_pairs
+            if a in atom_to_index and b in atom_to_index
+        ]
+
+        return cls(
+            system_atom_indices=atom_indices,
+            ghost_atom_positions=ghost_atom_positions,
+            ghost_bond_pairs=ghost_bond_pairs,
+        )
+
+    @classmethod
+    def from_atom_group(cls, atom_group: mda.AtomGroup):
+        ghost_universe = mda.Merge(atom_group)
+        return cls(
+            system_atom_indices=atom_group.atoms.indices,
+            ghost_atom_positions=ghost_universe.atoms.positions / 10,  # angstrom -> nm
+            ghost_bond_pairs=ghost_universe.bonds.indices,
+        )
+
+    def draw(
+        self,
+        key,
+        *,
+        visuals: SceneObjectsUtility,
+        parent="simulation",
+    ):
+        draw_ghost(
+            key=key,
+            visuals=visuals,
+            positions=self.ghost_atom_positions,
+            bond_pairs=self.ghost_bond_pairs,
+            parent=parent,
+        )
+
+
 @dataclass
-class GhostMolecule:
+class GhostMoleculeObject:
     key: str
-    positions: npt.NDArray
-    atom_indices: Sequence[int]  # global indices
-    bond_pairs: Sequence[Sequence[int]]  # ghost indices
+    ghost_data: GhostMoleculeData
     utilities: NanoverJupyterUtilities
     visuals: SceneObjectsUtility
 
     @classmethod
-    def from_mdanalysis(
+    def from_ghost_data(
         cls,
         key: str,
         *,
-        utilities: NanoverJupyterUtilities,
-        atoms: mda.AtomGroup,
-        positions: npt.NDArray | None = None,
+        utilities,
+        ghost_data: GhostMoleculeData,
         parent="simulation",
     ):
         prefix = f"ghost.{key}"
 
-        # extract ghost molecule
-        ghost_universe = mda.Merge(atoms)
-        ghost_positions = (
-            positions if positions is not None else ghost_universe.atoms.positions / 10
-        )  # angstrom -> nm
-
         # normalise around centroid, determine bounding radius
-        centroid = np.mean(ghost_positions, axis=0)
-        ghost_positions -= centroid
-        radius = np.linalg.norm(ghost_positions, axis=0).max()
+        centroid = np.mean(ghost_data.ghost_atom_positions, axis=0)
+        ghost_data.ghost_atom_positions -= centroid
+        radius = np.linalg.norm(ghost_data.ghost_atom_positions, axis=0).max()
 
         # transform + handle for manipulating it
         utilities.transforms.update_transform(
@@ -55,9 +99,7 @@ class GhostMolecule:
 
         ghost = cls(
             key=prefix,
-            positions=ghost_positions,
-            atom_indices=atoms.indices,
-            bond_pairs=ghost_universe.bonds.indices,
+            ghost_data=ghost_data,
             utilities=utilities,
             visuals=visuals,
         )
@@ -65,62 +107,12 @@ class GhostMolecule:
         return ghost
 
     def redraw(self):
-        draw_ghost(
-            self.key,
-            visuals=self.visuals,
-            positions=self.positions,
-            bond_pairs=self.bond_pairs,
-            parent=self.key,
-        )
+        self.ghost_data.draw(self.key, visuals=self.visuals, parent=self.key)
 
     def clear(self):
         self.utilities.transforms.remove_transform(self.key)
         self.utilities.handles.remove_handle(self.key)
         self.visuals.clear()
-
-
-def draw_ghost_from_atom_group(
-    key: str,
-    *,
-    visuals: SceneObjectsUtility,
-    atom_group: mda.AtomGroup,
-    parent="simulation",
-):
-    universe = mda.Merge(atom_group)
-    positions = universe.atoms.positions / 10
-    bond_pairs = universe.bonds.indices
-
-    draw_ghost(
-        key,
-        visuals=visuals,
-        positions=positions,
-        bond_pairs=bond_pairs,
-        parent=parent,
-    )
-
-
-def draw_ghost_from_frame_data(
-    key: str,
-    *,
-    visuals: SceneObjectsUtility,
-    frame_data: FrameData,
-    atoms: Iterable[int],
-    parent="simulation",
-):
-    atom_to_index = {atom: index for index, atom in enumerate(atoms)}
-    bond_pairs = [
-        (atom_to_index[a], atom_to_index[b])
-        for a, b in frame_data.bond_pairs
-        if a in atom_to_index and b in atom_to_index
-    ]
-
-    draw_ghost(
-        key,
-        visuals=visuals,
-        positions=frame_data.particle_positions[np.asarray(atoms)],
-        bond_pairs=bond_pairs,
-        parent=parent,
-    )
 
 
 def draw_ghost(
