@@ -15,6 +15,10 @@ class GhostFollowerAgent(ImdAgent):
         super().__init__(app_server)
         self.transforms = TransformsUtility(app_server)
 
+    def setup(self, *, key: str, ghost: GhostMoleculeObject):
+        self.key = key
+        self.ghost = ghost
+
     def update_interactions(self, full_frame: FrameData, frame_update: FrameData):
         key = self.key
 
