@@ -1,5 +1,5 @@
 import logging
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from functools import partial
 from itertools import count
 from typing import Any, TypedDict
@@ -22,6 +22,7 @@ from nanover.imd.imd_state import (
     ParticleInteraction,
     interaction_to_dict,
 )
+from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.transforms import Transform, matrix_from_state_transform
 from nanover.websocket.client.app_client import NanoverImdClient
@@ -221,14 +222,28 @@ class NanoverJupyterUtilities:
                 return handle
         return None
 
-    def make_ghost_from_mdanalysis(self, key: str, *, atoms, positions=None):
-        from nanover.jupyter.ghosts import GhostMolecule
+    def make_ghost_from_mdanalysis(self, key: str, *, atoms):
+        from nanover.jupyter.ghosts import GhostMoleculeData, GhostMoleculeObject
 
-        return GhostMolecule.from_mdanalysis(
-            key=key,
+        return GhostMoleculeObject.from_ghost_data(
+            key,
+            ghost_data=GhostMoleculeData.from_atom_group(atoms),
             utilities=self,
-            atoms=atoms,
-            positions=positions,
+        )
+
+    def make_ghost_from_frame_data(
+        self, key: str, *, frame_data: FrameData, atom_indices: Iterable[int]
+    ):
+        from nanover.jupyter.ghosts import GhostMoleculeData, GhostMoleculeObject
+
+        ghost_data = GhostMoleculeData.from_frame_data(
+            frame_data, atom_indices=atom_indices
+        )
+
+        return GhostMoleculeObject.from_ghost_data(
+            key,
+            ghost_data=ghost_data,
+            utilities=self,
         )
 
 
