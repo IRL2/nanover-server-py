@@ -4,10 +4,10 @@ from .controls import (
 )
 from .frame_listener import FrameListener as FrameListener
 from .imd_agent import ImdAgent as ImdAgent
+from .modes import Mode as Mode
 from .nglclient import NGLClient as NGLClient
 from .utilities import (
     InteractionsUtility as InteractionsUtility,
-    Mode as Mode,
     NanoverJupyterUtilities as NanoverJupyterUtilities,
     SceneObjectsUtility as SceneObjectsUtility,
 )

@@ -18,35 +18,15 @@ from nanover.app.selection import (
 )
 from nanover.core.app_server import StateService
 from nanover.core.types import CommandHandler
-from nanover.imd.imd_state import (
-    ParticleInteraction,
-    interaction_to_dict,
-)
+from nanover.imd import ParticleInteraction
+from nanover.imd.imd_state import interaction_to_dict
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.transforms import Transform, matrix_from_state_transform
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
-
-class Mode:
-    def on_button_pressed(self, *, key: str, cursor: dict, button: str):
-        pass
-
-    def on_button_released(self, *, key: str, cursor: dict, button: str):
-        pass
-
-    def on_cursor_updated(self, *, key: str, cursor: dict):
-        pass
-
-    def on_interaction_started(self, *, key: str, interaction: ParticleInteraction):
-        pass
-
-    def on_interaction_stopped(self, *, key: str, interaction: ParticleInteraction):
-        pass
-
-    def on_interaction_updated(self, *, key: str, interaction: ParticleInteraction):
-        pass
+from .modes import Mode
 
 
 class NanoverJupyterUtilities:
@@ -68,6 +48,7 @@ class NanoverJupyterUtilities:
         self.selections = SelectionsUtility(runner.app_server)
         self.transforms = TransformsUtility(runner.app_server)
         self.handles = TransformHandlesUtility(runner.app_server)
+        self.modes = ModesManager(self)
 
     @property
     def scene_transform(self) -> Transform:
@@ -141,72 +122,21 @@ class NanoverJupyterUtilities:
             label="mark checkpoint",
         )
 
-    def use_interaction_modes(self):
-        prev_cursors: dict[str, dict] = {}
+    def add_interaction_mode(self, mode: Mode, name: str, icon="👆"):
+        # handle old case
+        import inspect
 
-        def on_interaction_started(*, key: str, interaction: ParticleInteraction):
-            self._active_mode.on_interaction_started(key=key, interaction=interaction)
+        if inspect.isclass(mode):
+            import warnings
 
-        def on_interaction_stopped(*, key: str, interaction: ParticleInteraction):
-            self._active_mode.on_interaction_stopped(key=key, interaction=interaction)
+            mode = mode()
+            warnings.warn(
+                "Interaction modes should be instances not classes",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
-        def on_interaction_updated(*, key: str, interaction: ParticleInteraction):
-            self._active_mode.on_interaction_updated(key=key, interaction=interaction)
-
-        def on_cursor_updated(*, key: str, cursor: dict):
-            prev_cursor = prev_cursors.get(key, {})
-            prev_cursors[key] = cursor
-
-            self._active_mode.on_cursor_updated(key=key, cursor=cursor)
-
-            prev_held = set(prev_cursor.get("heldbuttons", []))
-            next_held = set(cursor.get("heldbuttons", []))
-            pressed = next_held - prev_held
-            released = prev_held - next_held
-
-            for button in pressed:
-                self._active_mode.on_button_pressed(
-                    key=key, cursor=cursor, button=button
-                )
-            for button in released:
-                self._active_mode.on_button_released(
-                    key=key, cursor=cursor, button=button
-                )
-
-        self.runner.app_server.imd.interaction_started.add_callback(
-            on_interaction_started
-        )
-        self.runner.app_server.imd.interaction_stopped.add_callback(
-            on_interaction_stopped
-        )
-
-        self.runner.app_server.imd.interaction_updated.add_callback(
-            on_interaction_updated
-        )
-
-        def on_state_updated(*, access_token: str, change: DictionaryChange):
-            for key, value in change.updates.items():
-                if key.startswith("cursor"):
-                    on_cursor_updated(key=key, cursor=value)
-
-        self.runner.app_server.state_dictionary.content_updated.add_callback(
-            on_state_updated
-        )
-
-        self._active_mode = Mode()
-        self.add_interaction_mode(Mode, "normal")
-
-    def add_interaction_mode[T: type[Mode]](self, mode: T, name: str, icon="👆"):
-        def enter():
-            self._active_mode = mode()
-            self.notify_all(f"INTERACTION MODE {name}")
-
-        self.define_command(
-            f"user/mode/{name}",
-            handler=enter,
-            icon=icon,
-            label=f"{name} mode",
-        )
+        self.modes.add_mode(mode, name, icon)
 
     def use_transform_handles(self):
         from .transform_handles import use_transform_handles
@@ -245,6 +175,96 @@ class NanoverJupyterUtilities:
             ghost_data=ghost_data,
             utilities=self,
         )
+
+
+class ModesManager:
+    def __init__(self, utilities: NanoverJupyterUtilities):
+        self._utilities = utilities
+        self._active_mode = Mode()
+        self._modes = {"normal": Mode()}
+
+        prev_cursors: dict[str, dict] = {}
+
+        def on_interaction_started(*, key: str, interaction: ParticleInteraction):
+            self._active_mode.on_interaction_started(key=key, interaction=interaction)
+
+        def on_interaction_stopped(*, key: str, interaction: ParticleInteraction):
+            self._active_mode.on_interaction_stopped(key=key, interaction=interaction)
+
+        def on_interaction_updated(*, key: str, interaction: ParticleInteraction):
+            self._active_mode.on_interaction_updated(key=key, interaction=interaction)
+
+        def on_cursor_updated(*, key: str, cursor: dict):
+            prev_cursor = prev_cursors.get(key, {})
+            prev_cursors[key] = cursor
+
+            self._active_mode.on_cursor_updated(key=key, cursor=cursor)
+
+            prev_held = set(prev_cursor.get("heldbuttons", []))
+            next_held = set(cursor.get("heldbuttons", []))
+            pressed = next_held - prev_held
+            released = prev_held - next_held
+
+            for button in pressed:
+                self._active_mode.on_button_pressed(
+                    key=key, cursor=cursor, button=button
+                )
+            for button in released:
+                self._active_mode.on_button_released(
+                    key=key, cursor=cursor, button=button
+                )
+
+        self._utilities.runner.app_server.imd.interaction_started.add_callback(
+            on_interaction_started
+        )
+        self._utilities.runner.app_server.imd.interaction_stopped.add_callback(
+            on_interaction_stopped
+        )
+
+        self._utilities.runner.app_server.imd.interaction_updated.add_callback(
+            on_interaction_updated
+        )
+
+        def on_state_updated(*, access_token: str, change: DictionaryChange):
+            for key, value in change.updates.items():
+                if key.startswith("cursor"):
+                    on_cursor_updated(key=key, cursor=value)
+
+        self._utilities.runner.app_server.state_dictionary.content_updated.add_callback(
+            on_state_updated
+        )
+
+    def enter_mode(self, name="normal"):
+        self._utilities.notify_all(f"MODE {name}")
+        self._active_mode.on_exit()
+        self._active_mode = self._modes[name]
+        self._active_mode.on_enter()
+
+    def add_normal_mode(self):
+        self.add_mode(Mode(), "normal")
+
+    def add_mode(self, mode: Mode, name: str, icon="👆"):
+        self._modes[name] = mode
+        self._utilities.define_command(
+            f"user/mode/{name}",
+            handler=lambda: self.enter_mode(name),
+            icon=icon,
+            label=f"{name} mode",
+        )
+
+    def remove_mode(self, name: str):
+        mode = self._modes.pop(name, None)
+
+        if mode is not None:
+            self._utilities.runner.app_server.unregister_command(f"user/mode/{name}")
+
+    def clear_all_modes(self):
+        for mode in set(self._modes.keys()):
+            self.remove_mode(mode)
+
+        self._modes.clear()
+        self._modes["normal"] = Mode()
+        self.enter_mode()
 
 
 class StateKeysUtility:
