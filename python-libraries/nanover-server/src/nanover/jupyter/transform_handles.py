@@ -57,4 +57,4 @@ def use_transform_handles(utilities: NanoverJupyterUtilities):
                     parent=hovered["parent"],
                 )
 
-    utilities.add_interaction_mode(MoveObjectMode, "move object", icon="✊")
+    utilities.modes.add_mode(MoveObjectMode(), "move object", icon="✊")
