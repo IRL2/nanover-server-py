@@ -72,9 +72,22 @@ page in our documentation for detailed instructions on installing NanoVer.
 
 ## Developer installation
 
-### Windows
+### PyPI
 
-* Install [Miniforge](https://conda-forge.org/download/) (or other conda variant) and run the remaining steps from inside "Anaconda Powershell Prompt"
+* Clone the nanover-server-py repository:
+```shell
+git clone https://github.com/IRL2/nanover-server-py.git
+cd nanover-server-py
+```
+* Install the nanover-server package directly from the source code:
+```shell
+pip install -e .[dev]
+```
+
+### Conda
+
+* Install [Miniforge](https://conda-forge.org/download/) (or other conda variant)
+  * On Windows, run the remaining steps in the provided terminal (e.g "Miniforge Prompt", "Anaconda Powershell Prompt", etc)
 * Create a conda environment (we choose the name "nanover-dev"):
 ```shell
 conda create -n nanover-dev -c conda-forge irl::nanover-server
@@ -90,27 +103,11 @@ cd nanover-server-py
 ```
 * Reinstall the nanover-server package directly from the source code:
 ```shell
-./install-dev.bat
+# windows
+.\install-dev.bat
 ```
-
-### Mac and Linux
-
-* Install [Miniforge](https://conda-forge.org/download/) (or other conda variant) and run the remaing steps from inside a terminal:
-* Create a conda environment (we choose the name "nanover-dev"):
 ```shell
-conda create -n nanover-dev -c conda-forge irl::nanover-server
-```
-* Activate the environment:
-```shell
-conda activate nanover-dev
-```
-* Clone the nanover-server-py repository:
-```shell
-git clone https://github.com/IRL2/nanover-server-py.git
-cd nanover-server-py
-```
-* Reinstall the nanover-server package directly from the source code:
-```shell
+# linux and mac
 ./install-dev.sh
 ```
 
