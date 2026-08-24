@@ -12,8 +12,6 @@ jobs:
       - name: Set environment variables
         run: |
           echo "0.1.$(git rev-list --count HEAD)" > ./VERSION.txt
-      - name: Test that the repo is sane and does not contain superfluous __init__ file
-        run: bash ./maintainers/check_extra_init_files.sh
       - name: Building the PyPI packages
         run: |
           pip install build

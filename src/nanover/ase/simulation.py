@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 import numpy as np
-
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
+
 from nanover.ase.converter import (
     ANG_TO_NM,
     ASE_TIME_UNIT_TO_PS,

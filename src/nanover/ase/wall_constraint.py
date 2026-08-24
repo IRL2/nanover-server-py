@@ -1,5 +1,4 @@
 import numpy as np
-
 from ase.atoms import Atoms
 from ase.cell import Cell
 

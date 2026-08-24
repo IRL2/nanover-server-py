@@ -73,20 +73,4 @@ jobs:
       - name: Ruff format
         run: uv run ruff format --check ./src
       - name: mypy types
-        run: |
-          # Mypy accepts paths, modules or packages as inputs. However, only
-          # packages work reasonably well with packages. So we need to generate
-          # a list of the packages we want to test.
-          packages=$(find . -name __init__.py \
-            | sed 's/__init__.py//g' \
-            | awk '{split($0, a, /src/); print(a[2])}' \
-            | sed 's#/#.#g' \
-            | cut -c 2- \
-            | sed 's/\.$//g' \
-            | grep -v '^$' \
-            | grep -v protocol \
-            | sed 's/^/-p /g' \
-            | grep -v '\..*\.' \
-            | tr '\n' ' ')
-          echo "$packages"
-          mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages
+        run: uv run mypy --ignore-missing-imports --check-untyped-defs --allow-redefinition src

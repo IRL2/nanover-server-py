@@ -6,13 +6,13 @@ import itertools
 
 import numpy as np
 import numpy.typing as npt
+from openmm import Context, CustomExternalForce, System, unit
+from openmm.app import Simulation
 
 from nanover.imd import ImdStateWrapper
 from nanover.imd.imd_force import calculate_imd_force, get_sparse_forces
 from nanover.imd.particle_interaction import ParticleInteraction
 from nanover.trajectory import FrameData
-from openmm import Context, CustomExternalForce, System, unit
-from openmm.app import Simulation
 
 IMD_FORCE_EXPRESSION = "-fx * x - fy * y - fz * z"
 

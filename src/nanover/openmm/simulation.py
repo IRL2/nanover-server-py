@@ -3,11 +3,11 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from openmm.app import Simulation, StateDataReporter
+from openmm.unit import nanometer
 
 from nanover.core import AppServer, Simulation as NanoverSimulation
 from nanover.imd.imd_force import calculate_contribution_to_work
-from openmm.app import Simulation, StateDataReporter
-from openmm.unit import nanometer
 
 from . import serializer
 from .converter import openmm_to_frame_data

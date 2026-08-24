@@ -3,6 +3,8 @@ ASE calculator for use with OpenMM.
 """
 
 import numpy as np
+from ase import Atom, Atoms  # type: ignore
+from ase.calculators.calculator import Calculator, all_changes
 from openmm import State, System
 from openmm.app import Simulation, Topology
 from openmm.unit import (
@@ -13,8 +15,6 @@ from openmm.unit import (
     kilojoules_per_mole,
 )
 
-from ase import Atom, Atoms  # type: ignore
-from ase.calculators.calculator import Calculator, all_changes
 from nanover.ase.converter import KJMOL_TO_EV, ase_to_frame_data
 from nanover.openmm import serializer
 from nanover.openmm.converter import add_openmm_topology_to_frame_data

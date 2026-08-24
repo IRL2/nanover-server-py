@@ -9,9 +9,9 @@ from collections.abc import Iterable
 
 import numpy as np
 import numpy.typing as npt
-
 from ase import Atom, Atoms  # type: ignore
 from ase.units import fs as fs_in_ase_time_unit
+
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.trajectory import FrameData
 
