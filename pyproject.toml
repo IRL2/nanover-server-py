@@ -9,7 +9,9 @@ authors = [
     {name = "Intangible Realities Lab"},
 ]
 description = "Python servers for NanoVer."
+readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE"]
 keywords = ["molecular dynamics", "interactive molecular dynamics", "imd", "imd-vr", "imd-xr", "virtual reality", "vr", "extended reality", "xr"]
 
 classifiers = [
