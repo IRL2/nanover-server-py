@@ -44,7 +44,7 @@ jobs:
         run: |
           uv pip install tomli-w
           uv pip install setuptools
-          python ./maintainers/minimum-deps.py ./pyproject.toml
+          python ./.github/minimum-deps.py ./pyproject.toml
           uv pip install ./[dev]
       - name: Parallel tests
         run: pytest tests -n auto -m 'not serial' --timeout 30
@@ -73,4 +73,4 @@ jobs:
       - name: Ruff format
         run: uv run ruff format --check ./src
       - name: mypy types
-        run: uv run mypy --ignore-missing-imports --check-untyped-defs --allow-redefinition src
+        run: uv run mypy ./src

@@ -80,9 +80,28 @@ nanover-essd-list = "nanover.essd.list_cli:main"
 nanover-dump-state = "nanover.recording.cli.dump_cli:main"
 nanover-split-recording = "nanover.recording.cli.split_cli:main"
 
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = true
+allow_redefinition = true
+
 [tool.setuptools.packages.find]
 where = ["src"]  # list of folders that contain the packages (["."] by default)
 include = ["nanover.*"]  # package names should match these glob patterns (["*"] by default)
 
 [tool.setuptools.dynamic]
 version = {file = "VERSION.txt"}
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = ["serial"]
+
+[tool.ruff]
+extend-exclude = ["build/lib/**/*.py"]
+
+[tool.ruff.lint.per-file-ignores]
+# F401 F811 breaks with importing pytest fixtures
+"test_*" = ["F401", "F811"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true

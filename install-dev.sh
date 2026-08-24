@@ -1,1 +1,1 @@
-python -m pip install -e "./[dev]" --config-settings editable_mode=compat
+pip install -e ".[dev]"
