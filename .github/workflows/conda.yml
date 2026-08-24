@@ -30,7 +30,7 @@ jobs:
         run: conda install -y python conda-build conda-verify
       - name: Building the Conda packages
         run: |
-          $build_command python-libraries/nanover-server/conda
+          $build_command conda
       - run: |
           mkdir artifacts
           cp -r ${CONDA_PREFIX}/conda-bld ./artifacts
@@ -69,13 +69,13 @@ jobs:
       - name: Install extra dependencies
         run: |
           pip install uv
-          uv pip install -r ./python-libraries/nanover-server/pyproject.toml --all-extras
+          uv pip install -r ./pyproject.toml --all-extras
 #      - name: All tests
 #        run: python -m pytest python-libraries --timeout 60
       - name: Parallel tests
-        run: pytest python-libraries -n auto -m 'not serial' --timeout 60
+        run: pytest tests -n auto -m 'not serial' --timeout 60
       - name: Serial tests
-        run: pytest python-libraries -n 1 -m 'serial' --timeout 60
+        run: pytest tests -n 1 -m 'serial' --timeout 60
   publish-conda:
     name: Publish packages
     if: github.ref == 'refs/heads/main'

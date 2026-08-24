@@ -11,16 +11,16 @@ jobs:
           fetch-depth: 0  # We need all the history to figure out the version number
       - name: Set environment variables
         run: |
-          echo "0.1.$(git rev-list --count HEAD)" > ./python-libraries/nanover-server/VERSION.txt
+          echo "0.1.$(git rev-list --count HEAD)" > ./VERSION.txt
       - name: Test that the repo is sane and does not contain superfluous __init__ file
         run: bash ./maintainers/check_extra_init_files.sh
       - name: Building the PyPI packages
         run: |
           pip install build
-          python -m build ./python-libraries/nanover-server
+          python -m build .
       - run: |
           mkdir artifacts
-          cp -r ./python-libraries/nanover-server/dist ./artifacts
+          cp -r ./dist ./artifacts
           ls -1 ./artifacts/dist/*.tar.gz | xargs -L1 -I{} cp {} ./artifacts/dist/nanover_server.tar.gz 
           ls ./artifacts
       - name: Save the artifacts
@@ -51,13 +51,11 @@ jobs:
           uv pip install ./dist/nanover_server.tar.gz
       - name: Install extra dependencies
         run: |
-          uv pip install -r ./python-libraries/nanover-server/pyproject.toml --all-extras
-#      - name: All tests
-#        run: python -m pytest python-libraries --timeout 60
+          uv pip install -r ./pyproject.toml --all-extras
       - name: Parallel tests
-        run: uv run pytest python-libraries -n auto -m 'not serial' --timeout 60
+        run: uv run pytest tests -n auto -m 'not serial' --timeout 60
       - name: Serial tests
-        run: uv run pytest python-libraries -n 1 -m 'serial' --timeout 60
+        run: uv run pytest tests -n 1 -m 'serial' --timeout 60
   publish-pypi:
     name: Publish packages
     if: github.ref == 'refs/heads/main'

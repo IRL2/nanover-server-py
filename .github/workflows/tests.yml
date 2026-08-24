@@ -18,11 +18,11 @@ jobs:
           python-version: 3.14
           activate-environment: "true"
       - name: Install NanoVer & dependencies
-        run: uv pip install ./python-libraries/nanover-server/[dev]
+        run: uv pip install ./[dev]
       - name: Parallel tests
-        run: uv run pytest --cov nanover python-libraries -n auto -m 'not serial' --timeout 30
+        run: uv run pytest --cov nanover tests -n auto -m 'not serial' --timeout 30
       - name: Serial tests
-        run: uv run pytest --cov nanover python-libraries -n 1 -m 'serial' --cov-append --timeout 30
+        run: uv run pytest --cov nanover tests -n 1 -m 'serial' --cov-append --timeout 30
       - name: Jupyter notebooks
         run: uv run pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
   python-tests-minimum:
@@ -44,12 +44,12 @@ jobs:
         run: |
           uv pip install tomli-w
           uv pip install setuptools
-          python ./maintainers/minimum-deps.py ./python-libraries/nanover-server/pyproject.toml
-          uv pip install ./python-libraries/nanover-server/[dev]
+          python ./maintainers/minimum-deps.py ./pyproject.toml
+          uv pip install ./[dev]
       - name: Parallel tests
-        run: pytest python-libraries -n auto -m 'not serial' --timeout 30
+        run: pytest tests -n auto -m 'not serial' --timeout 30
       - name: Serial tests
-        run: pytest python-libraries -n 1 -m 'serial' --timeout 30
+        run: pytest tests -n 1 -m 'serial' --timeout 30
       - name: Jupyter notebooks
         run: pytest --nbval-lax ./tutorials --nbval-cell-timeout=30
   analysis:
@@ -67,17 +67,17 @@ jobs:
           python-version: 3.14
           activate-environment: "true"
       - name: Install NanoVer & dependencies
-        run: uv pip install ./python-libraries/nanover-server/[dev] ruff mypy
+        run: uv pip install ./[dev] ruff mypy
       - name: Ruff lint
-        run: uv run ruff check ./python-libraries
+        run: uv run ruff check ./src
       - name: Ruff format
-        run: uv run ruff format --check ./python-libraries
+        run: uv run ruff format --check ./src
       - name: mypy types
         run: |
           # Mypy accepts paths, modules or packages as inputs. However, only
           # packages work reasonably well with packages. So we need to generate
           # a list of the packages we want to test.
-          packages=$(find python-libraries -name __init__.py \
+          packages=$(find . -name __init__.py \
             | sed 's/__init__.py//g' \
             | awk '{split($0, a, /src/); print(a[2])}' \
             | sed 's#/#.#g' \
@@ -89,4 +89,4 @@ jobs:
             | grep -v '\..*\.' \
             | tr '\n' ' ')
           echo "$packages"
-          uv run mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages
+          mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages
