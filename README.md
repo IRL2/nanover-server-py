@@ -52,9 +52,9 @@ Please head to the [Tutorials page](https://irl2.github.io/nanover-docs/tutorial
 
 ### Exploring the code  
 
-The `python-libraries` folder contains the library to write NanoVer clients and
+The `src` folder contains the library to write NanoVer clients and
 servers in python, as well as the services implemented in python. The
-`python-libraries/prototypes` directory contains examples and (sometimes
+`prototypes` directory contains examples and (sometimes
 unmaintained) prototypes using the python libraries.
 
 ## User installation
@@ -123,33 +123,33 @@ continued functionality of the project. You can run these locally to verify your
 
 The unit tests check code functionality of the python libraries. To run them:
 
-    python -m pytest python-libraries
+    python -m pytest tests
 
 Optionally, you can run most of the tests in parallel with pytest-xdist:
 
     python -m pip install pytest-xdist
-    python -m pytest python-libraries -n auto -m 'not serial'
-    python -m pytest python-libraries -n0 -m 'serial'
+    python -m pytest tests -n auto -m 'not serial'
+    python -m pytest tests -n0 -m 'serial'
 
 ### Formatting & Linting Tests
 
 The formatting and linting tests check code style, and require ruff:
 
     python -m pip install ruff
-    python -m ruff check python-libraries
-    python -m ruff format --check python-libraries
+    python -m ruff check src
+    python -m ruff format --check src
 
 ruff can also automatically fix and reformat the files for you:
 
-    python -m ruff check --fix python-libraries
-    python -m ruff format python-libraries
+    python -m ruff check --fix src
+    python -m ruff format src
 
 ### Type Checks
 
 The type checks look at the type hints in the code to make sure they are consistent and help find potential errors:
 
     python -m pip install mypy
-    mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition nanover-server
+    mypy src
 ## Running the tutorials
 
 The [tutorials](tutorials) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 

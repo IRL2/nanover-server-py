@@ -20,3 +20,4 @@ prof
 *.DotSettings.user
 
 **/.ipynb_checkpoints/
+/build/
