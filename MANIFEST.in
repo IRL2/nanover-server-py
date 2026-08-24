@@ -1,0 +1,4 @@
+prune *
+graft src
+include LICENSE
+include README.md
