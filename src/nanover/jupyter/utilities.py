@@ -235,8 +235,9 @@ class ModesManager:
             on_state_updated
         )
 
-    def enter_mode(self, name="normal"):
-        self._utilities.notify_all(f"MODE {name}")
+    def enter_mode(self, name="normal", *, notify=True):
+        if notify:
+            self._utilities.notify_all(f"MODE {name}")
         self._active_mode.on_exit()
         self._active_mode = self._modes[name]
         self._active_mode.on_enter()
