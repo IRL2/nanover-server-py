@@ -8,6 +8,7 @@ source:
 build:
   noarch: python
   number: 0
+  script: $PYTHON -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv
   entry_points:
     - nanover-server = nanover.app.cli.server_cli:main
     - nanover-record = nanover.app.cli.recorder_cli:main
