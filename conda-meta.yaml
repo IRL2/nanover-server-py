@@ -18,10 +18,10 @@ build:
 
 requirements:
   build:
-    - python >={{ MIN_PYTHON_VERSION }}
+    - python >=3.13
     - setuptools
   run:
-    - python >={{ MIN_PYTHON_VERSION }}
+    - python >=3.13
     - psutil >=7.2.0
     - numpy >=1.26.4
     - mdanalysis >=2.8.0
@@ -32,12 +32,12 @@ requirements:
     - msgpack-python >=1.0.0
 
 about:
-  home: {{ NANOVER_DOC_URL }}
+  home: https://github.com/IRL2/nanover-server-py
   license: MIT
-  license_file: {{ NANOVER_LICENSE_PATH }}
+  license_file: LICENSE
   summary: Python servers for NanoVer.
   description: |
     NanoVer is a framework for interactive molecular dynamics simulation in
     virtual reality. This package cause all the python servers to be installed.
-  doc_url: {{ NANOVER_DOC_URL }}
-  dev_url: {{ NANOVER_REPO_URL }}
+  doc_url: https://irl2.github.io/nanover-docs/
+  dev_url: https://github.com/IRL2/nanover-server-py

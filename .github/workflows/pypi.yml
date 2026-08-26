@@ -48,8 +48,7 @@ jobs:
           uv venv --python 3.14
           uv pip install ./dist/nanover_server.tar.gz
       - name: Install extra dependencies
-        run: |
-          uv pip install -r ./pyproject.toml --all-extras
+        run: uv pip install -r ./pyproject.toml --all-extras
       - name: Parallel tests
         run: uv run pytest tests -n auto -m 'not serial' --timeout 60
       - name: Serial tests
