@@ -16,16 +16,14 @@ jobs:
           fetch-depth: 0  # We need all the history to figure out the version number
       - uses: s-weigand/setup-conda@v1
       - name: Set environment variables
-        run: |
-          echo NANOVER_DOC_URL="https://irl2.github.io/nanover-docs/" >> "$GITHUB_ENV"
-          echo NANOVER_REPO_URL="https://github.com/IRL2/nanover-server-py" >> "$GITHUB_ENV"
-          echo NANOVER_BUILD_VERSION="0.1.$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
-          echo NANOVER_LICENSE_PATH="$(readlink -f LICENSE)" >> "$GITHUB_ENV"
-          echo MIN_PYTHON_VERSION=3.13 >> "$GITHUB_ENV"
+        run: echo NANOVER_BUILD_VERSION="0.1.$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: conda install -y python conda-build conda-verify
       - name: Building the Conda packages
-        run: conda-build --prefix-length=100 --no-test --no-anaconda-upload conda
+        run: |
+          mkdir conda
+          mv conda-meta.yaml conda/meta.yaml
+          conda-build --prefix-length=100 --no-test --no-anaconda-upload conda
       - run: |
           mkdir artifacts
           cp -r ${CONDA_PREFIX}/conda-bld ./artifacts
@@ -65,8 +63,6 @@ jobs:
         run: |
           pip install uv
           uv pip install -r ./pyproject.toml --all-extras
-#      - name: All tests
-#        run: python -m pytest python-libraries --timeout 60
       - name: Parallel tests
         run: pytest tests -n auto -m 'not serial' --timeout 60
       - name: Serial tests
@@ -100,9 +96,7 @@ jobs:
       - name: Install Anaconda
         run: conda install -y anaconda-client
       - name: Upload packages
-        # Anaconda will complain if the given version of a package is already
-        # there. Until we have some versioning, we force the upload.
-        run: anaconda upload --user irl conda-bld/noarch/nanover-*.conda --force
+        run: anaconda upload --user irl conda-bld/noarch/nanover-*.conda
       - name: Disconnect from Anaconda cloud
         #  Do not fail the build if we cannot logout.
         run: anaconda logout || echo "Could not logout. Too bad."
