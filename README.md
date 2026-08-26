@@ -20,12 +20,11 @@ For more information please take a look at [the project's documentation](https:/
 ## Contents
 
 1. [Getting started](#Getting-started)
-2. [User installation](#User-installation)
-3. [Developer installation](#Developer-installation)
-4. [Running the tests](#Running-the-tests)
-5. [Running the tutorials](#Running-the-tutorials)
-6. [Troubleshooting](#Troubleshooting)
-7. [Citation and external libraries](#Citation-and-external-libraries)
+1. [Troubleshooting](#Troubleshooting)
+1. [User installation](#User-installation)
+1. [Developer installation](#Developer-installation)
+1. [Running the tests](#Running-the-tests)
+1. [Citation and external libraries](#Citation-and-external-libraries)
 
 ----
 
@@ -35,20 +34,39 @@ Here are some quick notes to get you started with NanoVer!
 If you haven't installed NanoVer yet, please go to [User installation](#User-installation) or 
 [Developer installation](#Developer-installation).
 
-### Running a server via the command line
+### Running the command line servers
 
 `nanover` provides a command line interface for running OpenMM simulations. For example, from the `nanover-server-py` directory:
 
-    nanover-server --omm examples/ase/openmm_files/nanotube.xml
+```shell
+# live openmm simulation
+nanover-server --omm ./tutorials/ase/openmm_files/nanotube.xml
+```
+
+```shell
+# static pdb structure
+nanover-server --mda ./tutorials/openmm/openmm_files/17-ala.pdb
+```
+
+```shell
+# nanover format recording
+nanover-server --playback ./tutorials/recordings/nanotube-example-recording.nanover.zip
+```
 
 Learn more about running a NanoVer server 
 [here in our documentation](https://irl2.github.io/nanover-docs/tutorials/basics.html#running-a-server).
 
 ### Tutorials
 
-The [examples](tutorials) folder contains [Jupyter notebooks](https://jupyter.org/) that demostrate how to get started NanoVer. 
+The [tutorials](tutorials) folder contains [Jupyter notebooks](https://jupyter.org/) that demostrate how to get started NanoVer. 
 Please head to the [Tutorials page](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) of the 
 [project's documentation](https://irl2.github.io/nanover-docs) for more information!
+
+## Troubleshooting
+
+### Autoconnect
+
+If you are having trouble autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
 ## User installation
 
@@ -160,39 +178,6 @@ The type checker looks at the type hints in the code to make sure they are consi
 ```shell
 mypy src
 ```
-
-## Running the tutorials
-
-The [tutorials](tutorials) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 
-Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) or
-[how to run a NanoVer server](https://irl2.github.io/nanover-docs/tutorials/basics.html#running-a-server) in this
-[project's documentation](https://irl2.github.io/nanover-docs).
-
-
-### OpenMM iMD Simulations
-
-`nanover` provides a command line interface for running serialised OpenMM simulations. For example, from the 
-`nanover-server-py` directory:
-
-    nanover-server --omm examples/ase/openmm_files/nanotube.xml
-
-### ASE iMD Simulations Jupyter Notebooks
-
-The [`examples/ase`](tutorials/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
-from a notebook.
-
-### MDAnalysis Trajectories
-
-`nanover.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
-trajectory. To serve the frames on port 54321, from the `nanover-server-py` directory, run
-
-    python ./examples/mdanalysis/example.py
-
-## Troubleshooting
-
-### Autoconnect
-
-If you are having trouble autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
 
 ## Citation and external libraries
 
