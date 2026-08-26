@@ -116,42 +116,51 @@ uv pip install -e .[dev]
 **NOTE:** You should repeat this step whenever the dependencies or available command line apps are changed. If in doubt
 after pulling updates, rerun this installation step.
 
-## Running the tests
+## Running the tests locally
 
 All code changes have to pass a series of automatic tests ("the CI") that attempt to verify code quality and
 continued functionality of the project. You can run these locally to verify your changes in advance.
 
-### Unit Tests
+### Running the unit tests
 
 The unit tests check code functionality of the python libraries. To run them:
 
-    python -m pytest tests
+```shell
+pytest tests
+```
 
-Optionally, you can run most of the tests in parallel with pytest-xdist:
+Optionally, you can run most of the tests in parallel with `pytest-xdist`:
 
-    python -m pip install pytest-xdist
-    python -m pytest tests -n auto -m 'not serial'
-    python -m pytest tests -n0 -m 'serial'
+```shell
+pip install pytest-xdist
+pytest tests -n auto -m 'not serial'
+pytest tests -n0 -m 'serial'
+```
 
-### Formatting & Linting Tests
+### Running the linting and reformatting
 
-The formatting and linting tests check code style, and require ruff:
+The linting checks code style using ruff:
 
-    python -m pip install ruff
-    python -m ruff check src
-    python -m ruff format --check src
+```shell
+ruff check src
+ruff format --check src
+```
 
-ruff can also automatically fix and reformat the files for you:
+Ruff can also automatically fix and reformat the files:
 
-    python -m ruff check --fix src
-    python -m ruff format src
+```shell
+ruff check --fix src
+ruff format src
+```
 
-### Type Checks
+### Running the type checker
 
-The type checks look at the type hints in the code to make sure they are consistent and help find potential errors:
+The type checker looks at the type hints in the code to make sure they are consistent and help find potential errors:
 
-    python -m pip install mypy
-    mypy src
+```shell
+mypy src
+```
+
 ## Running the tutorials
 
 The [tutorials](tutorials) folder contains [Jupyter notebooks](https://jupyter.org/) for examples of how to use NanoVer. 
@@ -160,19 +169,19 @@ Learn about these [Tutorials](https://irl2.github.io/nanover-docs/tutorials/tuto
 [project's documentation](https://irl2.github.io/nanover-docs).
 
 
-### OpenMM IMD Simulations
+### OpenMM iMD Simulations
 
 `nanover` provides a command line interface for running serialised OpenMM simulations. For example, from the 
 `nanover-server-py` directory:
 
     nanover-server --omm examples/ase/openmm_files/nanotube.xml
 
-### ASE IMD Simulations Jupyter Notebooks
+### ASE iMD Simulations Jupyter Notebooks
 
 The [`examples/ase`](tutorials/ase) folder contains several Jupyter notebooks that demonstrate visualisation and interaction 
 from a notebook.
 
-### MD Analysis Trajectories
+### MDAnalysis Trajectories
 
 `nanover.mdanalysis` provides a server for the trajectory service that infinitely loops over the frames of an example
 trajectory. To serve the frames on port 54321, from the `nanover-server-py` directory, run
@@ -184,12 +193,6 @@ trajectory. To serve the frames on port 54321, from the `nanover-server-py` dire
 ### Autoconnect
 
 If you are having trouble autoconnecting to servers, you can run `nanover-essd-list` to verify which local network servers are visible to your machine.
-
-## Old recordings
-
-If you try to use the older .traj/.state recordings, you will find NanoVer complaining that they are not zip files.
-In this case you can use the [recording converter](https://github.com/IRL2/nanover-recording-converter) in conjunction
-with NanoVer to convert them to the new format.
 
 ## Citation and external libraries
 
@@ -207,7 +210,6 @@ This project has been made possible by the following open source projects. We gr
 * [OpenMM](http://openmm.org/) (MIT, LGPLv3): GPU accelerated molecular mechanics library ([citation](https://simtk.org/plugins/publications/index.php/?group_id=161)).
 * [MDAnalysis](https://www.mdanalysis.org/) (GPLv2): Molecular dynamics analysis library ([citations](https://www.mdanalysis.org/pages/citations/)).
 * [NGLView](https://nglviewer.org/#nglview) (MIT): IPython/Jupyter widget to interactively view structures and trajectories ([citations](http://nglviewer.org/nglview/latest/#cite)).
-* [python-osc](https://pypi.org/project/python-osc/) (Public domain) - Open sound control library.
 * [NumPy](https://numpy.org/) (BSD) - Numerical computation library.
 * [psutil](https://pypi.org/project/netifaces/) (BSD) - Cross-platform lib for process and system monitoring in Python.
 * [pytest](https://docs.pytest.org/en/latest/) (MIT) - Python testing framework
