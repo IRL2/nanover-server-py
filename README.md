@@ -50,66 +50,71 @@ The [examples](tutorials) folder contains [Jupyter notebooks](https://jupyter.or
 Please head to the [Tutorials page](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) of the 
 [project's documentation](https://irl2.github.io/nanover-docs) for more information!
 
-### Exploring the code  
-
-The `src` folder contains the library to write NanoVer clients and
-servers in python, as well as the services implemented in python. The
-`prototypes` directory contains examples and (sometimes
-unmaintained) prototypes using the python libraries.
-
 ## User installation
 
-Check out the [Installation & Getting Started](https://irl2.github.io/nanover-docs/installation) 
-page in our documentation for detailed instructions on installing NanoVer.
+NanoVer is available as a [PyPI package](https://pypi.org/project/nanover-server/) and as an
+[Anaconda package](https://anaconda.org/channels/irl/packages/nanover-server/overview). The two packages are identical
+but when using conda you should prefer the Anaconda package to ensure that dependencies are installed in the manner
+most compatible with your conda environment.
 
-### Updating the conda package
+Check out the [Installation & Getting Started](https://irl2.github.io/nanover-docs/installation) page in our
+documentation for more complete instructions on installing NanoVer for those not familiar with conda or python.
 
-* Run `conda list nanover-server` to determine the currently installed version
-* Run `conda update nanover-server` to attempt to update to latest version
-* If you can't seem to update to the latest version, run `python --version` to check your python version is at least 
-  as recent as in the installation instructions. 
-  If it isn't you will need to create a new conda environment with a newer version of python.
+### Installing the PyPI package
+
+```shell
+# with pip
+pip install nanover-server
+```
+
+```shell
+# with uv
+uv pip install nanover-server
+```
+
+### Installing the Anaconda package
+
+```shell
+# in a fresh environment
+conda create -n nanover -c conda-forge irl::nanover-server
+```
+
+```shell
+# in an existing environment
+conda install -c conda-forge irl::nanover-server
+```
 
 ## Developer installation
 
-### PyPI
+To install for development, first follow the user installation instructions for either the PyPI or the Anaconda package,
+and then these additional steps to reinstall the package from the source code in editable mode and install additional
+development dependencies.
 
-* Clone the nanover-server-py repository:
+### Clone the nanover-server-py repository
+
 ```shell
 git clone https://github.com/IRL2/nanover-server-py.git
+```
+
+### Enter the nanover-server-py directory 
+```shell
 cd nanover-server-py
 ```
-* Install the nanover-server package directly from the source code:
+
+### Install the package from source code
+
 ```shell
+# with pip
 pip install -e .[dev]
 ```
 
-### Conda
+```shell
+# with uv
+uv pip install -e .[dev]
+```
 
-* Install [Miniforge](https://conda-forge.org/download/) (or other conda variant)
-  * On Windows, run the remaining steps in the provided terminal (e.g "Miniforge Prompt", "Anaconda Powershell Prompt", etc)
-* Create a conda environment (we choose the name "nanover-dev"):
-```shell
-conda create -n nanover-dev -c conda-forge irl::nanover-server
-```
-* Activate the environment:
-```shell
-conda activate nanover-dev
-```
-* Clone the nanover-server-py repository:
-```shell
-git clone https://github.com/IRL2/nanover-server-py.git
-cd nanover-server-py
-```
-* Reinstall the nanover-server package directly from the source code:
-```shell
-# windows
-.\install-dev.bat
-```
-```shell
-# linux and mac
-./install-dev.sh
-```
+**NOTE:** You should repeat this step whenever the dependencies or available command line apps are changed. If in doubt
+after pulling updates, rerun this installation step.
 
 ## Running the tests
 
