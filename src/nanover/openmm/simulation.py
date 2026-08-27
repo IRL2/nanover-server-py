@@ -10,6 +10,7 @@ from nanover.core import AppServer, Simulation as NanoverSimulation
 from nanover.imd.imd_force import calculate_contribution_to_work
 
 from . import serializer
+from .bundle import unbundle_openmm_simulation
 from .converter import openmm_to_frame_data
 from .imd import (
     NON_IMD_FORCES_GROUP_MASK,
@@ -48,6 +49,10 @@ class OpenMMSimulation(NanoverSimulation):
         sim.checkpoint = sim.simulation.context.createCheckpoint()
 
         return sim
+
+    @classmethod
+    def from_bundle_path(cls, path: str | PathLike[str], *, name : str | None = None):
+        return cls.from_xml_path(path, name=name)
 
     @classmethod
     def from_xml_path(cls, path: str | PathLike[str], *, name: str | None = None):
@@ -105,10 +110,18 @@ class OpenMMSimulation(NanoverSimulation):
         if self.xml_path is None or self.simulation is not None:
             return
 
-        with open(self.xml_path) as infile:
-            self.imd_force = create_imd_force()
-            self.simulation = serializer.deserialize_simulation(
-                infile,
+        self.imd_force = create_imd_force()
+
+        if str(self.xml_path).endswith(".xml"):
+            with open(self.xml_path) as infile:
+                self.simulation = serializer.deserialize_simulation(
+                    infile,
+                    imd_force=self.imd_force,
+                    platform_name=self.platform_name,
+                )
+        elif str(self.xml_path).endswith(".openmm.zip"):
+            self.simulation = unbundle_openmm_simulation(
+                self.xml_path,
                 imd_force=self.imd_force,
                 platform_name=self.platform_name,
             )
