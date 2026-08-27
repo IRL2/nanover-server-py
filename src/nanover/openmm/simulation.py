@@ -51,7 +51,7 @@ class OpenMMSimulation(NanoverSimulation):
         return sim
 
     @classmethod
-    def from_bundle_path(cls, path: str | PathLike[str], *, name : str | None = None):
+    def from_bundle_path(cls, path: str | PathLike[str], *, name: str | None = None):
         return cls.from_xml_path(path, name=name)
 
     @classmethod
@@ -112,19 +112,19 @@ class OpenMMSimulation(NanoverSimulation):
 
         self.imd_force = create_imd_force()
 
-        if str(self.xml_path).endswith(".xml"):
+        if str(self.xml_path).endswith(".openmm.zip"):
+            self.simulation = unbundle_openmm_simulation(
+                self.xml_path,
+                imd_force=self.imd_force,
+                platform_name=self.platform_name,
+            )
+        else:
             with open(self.xml_path) as infile:
                 self.simulation = serializer.deserialize_simulation(
                     infile,
                     imd_force=self.imd_force,
                     platform_name=self.platform_name,
                 )
-        elif str(self.xml_path).endswith(".openmm.zip"):
-            self.simulation = unbundle_openmm_simulation(
-                self.xml_path,
-                imd_force=self.imd_force,
-                platform_name=self.platform_name,
-            )
 
         self.determine_pbcs()
         self.checkpoint = self.simulation.context.createCheckpoint()

@@ -13,8 +13,8 @@ def bundle_openmm_simulation(
     simulation: Simulation,
     *,
     outfile: BinaryIO | PathLike[str] | str,
-    include_state = False,
-    pbc_wrapping = False,
+    include_state=False,
+    pbc_wrapping=False,
 ) -> None:
     """
     Bundle an OpenMM simulation into zip archive.
@@ -37,8 +37,7 @@ def bundle_openmm_simulation(
         ).getPositions()
 
         with TextIOWrapper(
-            bundle.open("topology.pdbx", mode="w"),
-            encoding="utf8"
+            bundle.open("topology.pdbx", mode="w"), encoding="utf8"
         ) as topology:
             PDBxFile.writeFile(
                 topology=simulation.topology,
