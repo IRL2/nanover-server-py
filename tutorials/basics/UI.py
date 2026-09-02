@@ -18,7 +18,7 @@ def initialize_simulation_files(
     if input_files:
         input_files = input_files["files"]
         for file in input_files:
-            if file.endswith(".xml"):
+            if file.endswith(".xml") or file.endswith(".openmm.zip"):
                 simulation = OpenMMSimulation.from_xml_path(
                     file, name=str(basename(file))
                 )
