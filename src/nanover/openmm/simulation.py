@@ -10,7 +10,7 @@ from nanover.core import AppServer, Simulation as NanoverSimulation
 from nanover.imd.imd_force import calculate_contribution_to_work
 
 from . import serializer
-from .bundle import unbundle_openmm_simulation
+from .bundles import unbundle_openmm_simulation
 from .converter import openmm_to_frame_data
 from .imd import (
     NON_IMD_FORCES_GROUP_MASK,

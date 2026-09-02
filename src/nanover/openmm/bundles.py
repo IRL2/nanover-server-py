@@ -61,6 +61,9 @@ def bundle_openmm_simulation(
             )
 
 
+REQUIRED_FILES = {"topology.pdbx", "system.xml", "integrator.xml"}
+
+
 def unbundle_openmm_simulation(
     bundle_file: BinaryIO | PathLike[str] | str,
     *,
@@ -80,6 +83,14 @@ def unbundle_openmm_simulation(
     """
 
     with ZipFile(bundle_file) as bundle:
+        present_files = {info.filename for info in bundle.filelist}
+        missing_files = REQUIRED_FILES - present_files
+
+        if missing_files:
+            raise ValueError(
+                f"Bundle missing required file(s) <{', '.join(missing_files)}>"
+            )
+
         with TextIOWrapper(bundle.open("topology.pdbx")) as pdbfile:
             pdb = PDBxFile(pdbfile)
 
