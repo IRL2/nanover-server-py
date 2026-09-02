@@ -2,13 +2,11 @@
 Fixtures and utilities for tests that requires OpenMM simulations.
 """
 
-# Pylint does not recognize pytest fixtures, which causes some false warnings.
-# pylint: disable=unused-argument,redefined-outer-name
-import nanover.openmm.imd
+from io import BytesIO
+
 import numpy as np
 import openmm as mm
 import pytest
-from nanover.openmm import serializer
 from openmm import app
 
 # Prefixed units in `openmm.unit` are added programmatically and are not
@@ -19,6 +17,13 @@ from openmm.unit import (
     nanometer,
     picosecond,
 )  # pylint: disable=no-name-in-module
+
+import nanover.openmm.imd
+from nanover.openmm import serializer
+
+# Pylint does not recognize pytest fixtures, which causes some false warnings.
+# pylint: disable=unused-argument,redefined-outer-name
+from nanover.openmm.bundles import bundle_openmm_simulation
 
 BASIC_SIMULATION_BOX_VECTORS = [[50, 0, 0], [0, 50, 0], [0, 0, 50]]
 BASIC_SIMULATION_POSITIONS = [
@@ -135,6 +140,13 @@ def basic_simulation_xml():
         build_basic_simulation(), save_state=True
     )
     return xml_string
+
+
+@pytest.fixture
+def basic_simulation_bundle():
+    with BytesIO() as file:
+        bundle_openmm_simulation(build_basic_simulation(), outfile=file)
+        yield file
 
 
 @pytest.fixture

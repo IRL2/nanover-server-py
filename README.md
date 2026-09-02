@@ -86,17 +86,17 @@ directory:
 
 ```shell
 # live openmm simulation
-nanover-server --omm ./tutorials/ase/openmm_files/nanotube.xml
+nanover-server --omm ./tutorials/example_systems/nanotube.xml
 ```
 
 ```shell
 # static pdb structure
-nanover-server --mda ./tutorials/openmm/openmm_files/17-ala.pdb
+nanover-server --mda ./tutorials/example_systems/17-ala.pdb
 ```
 
 ```shell
 # nanover format recording
-nanover-server --playback ./tutorials/recordings/nanotube-example-recording.nanover.zip
+nanover-server --playback ./tutorials/example_systems/nanotube-example-recording.nanover.zip
 ```
 
 Learn more about running a NanoVer server
