@@ -344,7 +344,7 @@ def test_reset_gives_equal_frames():
             "forces": np.array(frame_data.particle_forces_system).flatten(),
         }
 
-    sim = OpenMMSimulation.from_xml_path(Path(__file__).parent / "hiv1_complex.xml")
+    sim = OpenMMSimulation.from_bundle_path(Path("tutorials/example_systems") / "hiv1_complex.openmm.zip")
     sim.include_forces = True
     sim.include_velocities = True
 
