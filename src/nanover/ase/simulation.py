@@ -1,7 +1,9 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Protocol
 
 import numpy as np
+import openmm.app
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.md import MDLogger
@@ -15,6 +17,7 @@ from nanover.ase.converter import (
     ase_atoms_to_frame_data,
 )
 from nanover.ase.imd_calculator import ImdCalculator
+from nanover.ase.omm_calculator import OpenMMCalculator
 from nanover.ase.thermo import compute_dof, compute_instantaneous_temperature
 from nanover.ase.wall_constraint import VelocityWallConstraint
 from nanover.core import AppServer, Simulation
@@ -38,6 +41,32 @@ class ASESimulation(Simulation):
     """
     A wrapper for ASE simulations so they can be run inside the OmniRunner.
     """
+
+    @classmethod
+    def from_openmm_simulation(
+        cls,
+        simulation: openmm.app.Simulation,
+        make_dynamics: Callable[[Atoms], MolecularDynamics],
+        *,
+        name: str | None = None,
+    ):
+        """
+        Construct from an existing OpenMM simulation.
+
+        :param simulation: An OpenMM simulation
+        :param make_dynamics: A function that takes atoms and returns the desired dynamics.
+        :param name: An optional name for the simulation instead of default
+        """
+        calc = OpenMMCalculator(simulation)
+        atoms = calc.generate_atoms()
+        atoms.calc = calc
+        dynamics = make_dynamics(atoms)
+
+        return cls.from_ase_dynamics(
+            dynamics,
+            name=name,
+            ase_atoms_to_frame_data=calc.make_frame_converter(),
+        )
 
     @classmethod
     def from_ase_dynamics(
