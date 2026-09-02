@@ -24,7 +24,7 @@ jobs:
       - name: Serial tests
         run: uv run pytest --cov nanover tests -n 1 -m 'serial' --cov-append --timeout 30
       - name: Jupyter notebooks
-        run: uv run pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
+        run: uv run pytest --cov nanover --nbval-lax ./notebooks --nbval-cell-timeout=30 --cov-append
   python-tests-minimum:
     name: Tests and Notebooks (minimum versions)
     timeout-minutes: 15
@@ -51,7 +51,7 @@ jobs:
       - name: Serial tests
         run: pytest tests -n 1 -m 'serial' --timeout 30
       - name: Jupyter notebooks
-        run: pytest --nbval-lax ./tutorials --nbval-cell-timeout=30
+        run: pytest --nbval-lax ./notebooks --nbval-cell-timeout=30
   analysis:
     name: Static analysis
     runs-on: ubuntu-latest
