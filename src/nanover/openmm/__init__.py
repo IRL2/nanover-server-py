@@ -4,6 +4,8 @@ Interface between NanoVer and OpenMM.
 
 from .converter import openmm_to_frame_data as openmm_to_frame_data
 from .simulation import OpenMMSimulation as OpenMMSimulation
+from .bundles import bundle_openmm_simulation as bundle_openmm_simulation
+from .bundles import unbundle_openmm_simulation as unbundle_openmm_simulation
 
 GET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/get-frame-interval"
 SET_FRAME_INTERVAL_COMMAND_KEY = "trajectory/set-frame-interval"
