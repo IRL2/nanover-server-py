@@ -2,6 +2,10 @@
 Interface between NanoVer and OpenMM.
 """
 
+from .bundles import (
+    bundle_openmm_simulation as bundle_openmm_simulation,
+    unbundle_openmm_simulation as unbundle_openmm_simulation,
+)
 from .converter import openmm_to_frame_data as openmm_to_frame_data
 from .simulation import OpenMMSimulation as OpenMMSimulation
 

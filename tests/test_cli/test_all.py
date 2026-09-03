@@ -19,7 +19,7 @@ def test_cli_help(cli):
 
 def test_split_recording(tmp_path_factory):
     prev_path = (
-        Path("tutorials/example_systems") / "nanotube-example-recording.nanover.zip"
+        Path("notebooks/systems/recordings") / "nanotube-example-recording.nanover.zip"
     )
     next_path = tmp_path_factory.mktemp("recording") / "recording.nanover.zip"
 
