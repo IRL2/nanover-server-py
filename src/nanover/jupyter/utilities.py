@@ -27,8 +27,8 @@ from nanover.utilities.transforms import Transform, matrix_from_state_transform
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
-from .modes import Mode
 from ..mdanalysis import frame_data_to_mdanalysis
+from .modes import Mode
 
 
 class NanoverJupyterUtilities:
