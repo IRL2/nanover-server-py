@@ -647,6 +647,9 @@ class SceneObjectsUtility(StateKeysUtility):
     def remove_label(self, key: str):
         self.remove_object(f"object.label.{key}")
 
+    def remove_sprite(self, key: str):
+        self.remove_object(f"object.sprite.{key}")
+
 
 def make_id_generator(prefix=""):
     return partial(next, (f"{prefix}{i}" for i in count()))
