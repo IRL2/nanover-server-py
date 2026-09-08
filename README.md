@@ -86,7 +86,7 @@ directory:
 
 ```shell
 # live openmm simulation
-nanover-server --omm ./tutorials/systems/openmm/nanotube.xml
+nanover-server --omm ./tutorials/systems/openmm/nanotube.openmm.zip
 ```
 
 ```shell
