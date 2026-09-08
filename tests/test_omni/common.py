@@ -10,12 +10,11 @@ from nanover.core import AppServer, Simulation
 from nanover.trajectory import FrameData
 from nanover.websocket import NanoverImdClient
 
-RECORDING_PATH = Path(__file__).parent / "test-recording.nanover.zip"
-EXAMPLES_PATH = Path("./tutorials/example_systems")
-ARGON_XML_PATH = EXAMPLES_PATH / "argon_simulation.xml"
+ARGON_XML_PATH = "argon_simulation.xml"
 
-PDB_PATH = EXAMPLES_PATH / "3TI6_ose_wt.pdb"
-DCD_PATH = EXAMPLES_PATH / "ose_wt.dcd"
+RECORDING_PATH = Path(__file__).parent / "test-recording.nanover.zip"
+PDB_PATH = Path("./tutorials/systems/3TI6_ose_wt.pdb")
+DCD_PATH = Path("./tutorials/systems/ose_wt.dcd")
 
 
 @contextmanager

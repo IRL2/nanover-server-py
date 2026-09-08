@@ -27,6 +27,8 @@ from nanover.utilities.transforms import Transform, matrix_from_state_transform
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
+from ..mdanalysis import frame_data_to_mdanalysis
+from . import show_runner_controls
 from .modes import Mode
 
 
@@ -84,6 +86,15 @@ class NanoverJupyterUtilities:
         self.runner.app_server.register_command(
             key, callback=handler, icon=icon, label=label
         )
+
+    def hide_solvent(self):
+        frame_data = self.runner.app_server.frame_publisher.current_frame
+        universe = frame_data_to_mdanalysis(frame_data)
+        indices = universe.select_atoms("resname HOH").indices
+        self.selections.update_selection("solvent", particle_ids=indices, hide=True)
+
+    def show_controls(self):
+        show_runner_controls(self.runner)
 
     def start_recording(self):
         self._recording_path = f"RECORDING-{self._recording_count}-{self.runner.simulation.name}.nanover.zip"
