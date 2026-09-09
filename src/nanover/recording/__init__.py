@@ -1,3 +1,4 @@
 from .playback import PlaybackSimulation as PlaybackSimulation
 from .reading import NanoverRecordingReader as NanoverRecordingReader
+from .trajectory import trajectories_from_recording as trajectories_from_recording
 from .writing import NanoverRecordingWriter as NanoverRecordingWriter
