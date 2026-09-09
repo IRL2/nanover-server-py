@@ -46,14 +46,14 @@ from MDAnalysis.core.topologyattrs import (
 from MDAnalysis.lib.util import openany
 from MDAnalysis.topology.base import TopologyReaderBase
 
-from nanover.recording.reading import (
-    MessageZipReader,
-    NanoverRecordingReader,
-    RecordingIndexEntry,
+from nanover.recording.reading import MessageZipReader
+from nanover.recording.trajectory import (
+    is_valid_first_frame,
+    trajectories_from_recording,
 )
 from nanover.trajectory import FrameData, MissingDataError, keys
 
-from .converter import _to_chemical_symbol, frame_data_to_mdanalysis
+from .converter import _to_chemical_symbol
 
 
 class KeyConversion(NamedTuple):
@@ -77,12 +77,6 @@ KEY_TO_ATTRIBUTE = {
 }
 
 
-FIRST_FRAME_REQUIRED = {
-    keys.PARTICLE_POSITIONS,
-    keys.PARTICLE_COUNT,
-}
-
-
 def universe_from_recording(path: str | PathLike[str], *, convert_units=True):
     """
     Read and convert a NanoVer recording into an mdanalysis Universe, ignore all frames after a frame_index
@@ -101,57 +95,10 @@ def universes_from_recording(path: str | PathLike[str], *, convert_units=True):
     Decompose a NanoVer trajectory into an mdanalysis Universe for each session of simulation (determined
     by frame_index resets).
     """
-    index_entries: list[RecordingIndexEntry] = []
-    universes: list[Universe] = []
-    first_particle_frame = FrameData()
-    first_frame = last_frame = None
-
-    def frame_begins_next_universe(frame: FrameData):
-        return frame.frame_dict.get(keys.FRAME_INDEX, None) == 0
-
-    def finalise_prev_universe():
-        nonlocal first_particle_frame, first_frame, last_frame
-
-        reader = MessageZipReader.from_path(path)
-        reader.index = list(index_entries)
-
-        try:
-            universe = frame_data_to_mdanalysis(first_particle_frame)
-            universe.trajectory = NanoverReaderBase(
-                reader, filename=path, convert_units=convert_units
-            )
-            universes.append(universe)
-        except Exception as e:  # noqa: BLE001
-            warnings.warn(
-                f"Failed to extract universe in frames #{first_frame}-{last_frame}: {e}"
-            )
-
-        index_entries.clear()
-        first_particle_frame = FrameData()
-        first_frame = last_frame = None
-
-    with NanoverRecordingReader.from_path(path) as reader:
-        for i, entry in enumerate(reader):
-            frame = reader.get_frame_from_entry(entry)
-
-            if frame is None:
-                continue
-
-            if first_frame is None:
-                first_frame = i
-            last_frame = i
-
-            if frame_begins_next_universe(frame) and index_entries:
-                finalise_prev_universe()
-            # aggregate initial frames until there is position and topology information
-            if not is_valid_first_frame(first_particle_frame):
-                first_particle_frame.update(frame)
-            index_entries.append(entry)
-
-    if is_valid_first_frame(first_particle_frame) and index_entries:
-        finalise_prev_universe()
-
-    return universes
+    return [
+        reader.to_universe(convert_units=convert_units)
+        for reader in trajectories_from_recording(path)
+    ]
 
 
 class NanoverParser(TopologyReaderBase):
@@ -448,10 +395,6 @@ def explosion_mask(trajectory, max_displacement):
         previous = ts.positions
         prev_reset = reset
     return mask
-
-
-def is_valid_first_frame(frame: FrameData):
-    return all(key in frame for key in FIRST_FRAME_REQUIRED)
 
 
 class NanoverReader(NanoverReaderBase):
