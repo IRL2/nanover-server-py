@@ -101,6 +101,26 @@ class NanoverTrajectory:
         self.reader = reader
         self.first_frame = first_frame
 
+    def __getitem__(self, key: slice | int):
+        if isinstance(key, int):
+            entry = self.reader.index[key]
+            frame = self.first_frame.copy()
+            frame.update(self.reader.get_frame_from_entry(entry))
+            return frame
+        elif isinstance(key, slice):
+            entries = self.reader.index[key]
+
+            def iterate():
+                for entry in entries:
+                    frame = self.first_frame.copy()
+                    frame.update(self.reader.get_frame_from_entry(entry))
+                    yield frame
+
+            return iterate()
+
+    def __len__(self):
+        return len(self.reader)
+
     def __iter__(self):
         current = FrameData()
         current.update(self.first_frame)
