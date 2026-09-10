@@ -53,6 +53,7 @@ from nanover.recording.trajectory import (
 )
 from nanover.trajectory import FrameData, MissingDataError, keys
 
+from ..imd.imd_force import expand_sparse_forces
 from .converter import _to_chemical_symbol
 
 
@@ -271,9 +272,7 @@ class NanoverReaderBase(ProtoReader):
             sparse = frame.user_forces_sparse
         except MissingDataError:
             return
-        forces = np.zeros((self.n_atoms, 3), dtype=np.float32)
-        for index, force in zip(indices, sparse):
-            forces[index, :] = force
+        forces = expand_sparse_forces(self.n_atoms, indices, sparse)
         if self.convert_units:
             self.convert_forces_from_native(forces)
         ts.data["user_forces"] = forces

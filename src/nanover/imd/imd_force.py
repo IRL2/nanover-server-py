@@ -362,6 +362,20 @@ def get_sparse_forces(
     return sparse_indices, sparse_forces
 
 
+def expand_sparse_forces(
+    atom_count: int,
+    sparse_indices: npt.NDArray,
+    sparse_forces: npt.NDArray,
+) -> npt.NDArray:
+    """
+    Convert sparse forces of `get_sparse_forces` back into a full array of force per particle.
+    """
+    user_forces = np.zeros((atom_count, 3), dtype=np.float32)
+    for index, force in zip(sparse_indices, sparse_forces):
+        user_forces[index, :] = force
+    return user_forces
+
+
 def calculate_contribution_to_work(forces: npt.NDArray, positions: npt.NDArray):
     r"""
     The expression for the work done on the system by the user is
