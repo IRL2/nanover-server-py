@@ -381,6 +381,38 @@ class SelectionsUtility(StateKeysUtility):
             },
         )
 
+    def modify_selection(
+        self,
+        key: str,
+        *,
+        particle_ids: list[int] | None = None,
+        renderer: dict | str | None = None,
+        interaction_method: str | None = None,
+        velocity_reset: bool | None = False,
+        hide: bool | None = None,
+    ):
+        with self._state.lock_state() as state:
+            selection = {**state[f"{self.prefix}{key}"]}
+
+        if particle_ids is not None:
+            selection["selected"] = particle_ids
+
+        if renderer is not None:
+            selection["properties"][KEY_PROPERTY_RENDERER] = renderer
+
+        if interaction_method is not None:
+            selection["properties"][KEY_PROPERTY_INTERACTION_METHOD] = (
+                interaction_method
+            )
+
+        if velocity_reset is not None:
+            selection["properties"][KEY_PROPERTY_VELOCITY_RESET] = velocity_reset
+
+        if hide is not None:
+            selection["properties"][KEY_PROPERTY_HIDE] = hide
+
+        self.update_object(f"{self.prefix}{key}", selection)
+
     def remove_selection(self, key: str):
         self.remove_object(f"{self.prefix}{key}")
 
