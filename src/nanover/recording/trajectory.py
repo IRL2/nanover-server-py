@@ -1,4 +1,6 @@
+from collections.abc import Sequence
 from os import PathLike
+from typing import overload
 
 from nanover.recording import NanoverRecordingReader
 from nanover.recording.reading import RecordingIndexEntry
@@ -62,7 +64,7 @@ def trajectories_from_recording(path: str | PathLike[str]):
     return readers
 
 
-class NanoverTrajectory:
+class NanoverTrajectory(Sequence[FrameData]):
     @classmethod
     def from_components(
         cls,
@@ -74,7 +76,9 @@ class NanoverTrajectory:
     ):
         reader = NanoverRecordingReader.from_path(path)
         reader.index = index
+
         return cls(
+            path=path,
             reader=reader,
             first_frame=first_frame,
             name=name,
@@ -93,13 +97,21 @@ class NanoverTrajectory:
     def __init__(
         self,
         *,
+        path: str | PathLike[str],
         reader: NanoverRecordingReader,
         first_frame: FrameData,
         name: str,
     ):
         self.name = name
+        self.path = path
         self.reader = reader
         self.first_frame = first_frame
+
+    @overload
+    def __getitem__(self, key: int) -> FrameData: ...
+
+    @overload
+    def __getitem__(self, key: slice) -> Sequence[FrameData]: ...
 
     def __getitem__(self, key: slice | int):
         if isinstance(key, int):
@@ -108,15 +120,14 @@ class NanoverTrajectory:
             frame.update(self.reader.get_frame_from_entry(entry))
             return frame
         elif isinstance(key, slice):
-            entries = self.reader.index[key]
+            return NanoverTrajectory.from_components(
+                path=self.path,
+                first_frame=self.first_frame,
+                index=self.reader.index[key],
+                name=f"{self.name}[{key}]",
+            )
 
-            def iterate():
-                for entry in entries:
-                    frame = self.first_frame.copy()
-                    frame.update(self.reader.get_frame_from_entry(entry))
-                    yield frame
-
-            return iterate()
+        raise TypeError("trajectory indices must be integers or slices, not type")
 
     def __len__(self):
         return len(self.reader)
