@@ -129,14 +129,6 @@ class NanoverTrajectory(Sequence[FrameData]):
     def __len__(self):
         return len(self.reader)
 
-    def __iter__(self):
-        current = FrameData()
-        current.update(self.first_frame)
-
-        for entry, frame in self.reader.iter_frame_updates():
-            current.update(frame)
-            yield current.copy()
-
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.name} with {len(self.reader)} frames of {self.first_frame.particle_count} atoms>"
 
