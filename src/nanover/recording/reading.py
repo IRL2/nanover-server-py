@@ -110,7 +110,7 @@ class MessageZipReader:
         """
         Read a recording from a filepath.
         """
-        return cls(ZipFile(path, "r"))
+        return cls(ZipFile(path, "r"), name=str(path))
 
     @classmethod
     def from_io(cls, io: BinaryIO):
@@ -119,10 +119,32 @@ class MessageZipReader:
         """
         return cls(ZipFile(io, "r"))
 
-    def __init__(self, zipfile: ZipFile):
+    @classmethod
+    def from_zipfile(
+        cls, zipfile: ZipFile, *, index: list[RecordingIndexEntry] | None = None
+    ):
+        """
+        Read an open ZipFile.
+        """
+        return cls(zipfile, index=index)
+
+    def __init__(
+        self,
+        zipfile: ZipFile,
+        *,
+        index: list[RecordingIndexEntry] | None = None,
+        name: str | None = None,
+    ):
+        self.name = name
         self.zipfile = zipfile
         self.messagesfile = zipfile.open(RECORDING_MESSAGES_FILENAME)
-        self.index = parse_index(zipfile)
+        self.index = index if index is not None else parse_index(zipfile)
+
+    def with_index(self, index: list[RecordingIndexEntry]):
+        return self.from_zipfile(self.zipfile, index=index)
+
+    def with_index_sliced(self, key: slice):
+        return self.with_index(self.index[key])
 
     def close(self):
         self.messagesfile.close()
@@ -277,8 +299,8 @@ class NanoverRecordingReader(MessageZipReader):
         filepart = f" {self.zipfile.filename}"
         entriespart = f" with {len(self)} entries"
 
-        first_ts = self.index[0].metadata.get("timestamp")
-        last_ts = self.index[-1].metadata.get("timestamp")
+        first_ts = self.index[0].metadata.get("timestamp", 0)
+        last_ts = self.index[-1].metadata.get("timestamp", 0)
         duration = (last_ts - first_ts) * MICROSECONDS_TO_SECONDS
         durationpart = f" spanning {duration}s"
 

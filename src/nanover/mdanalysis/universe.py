@@ -176,6 +176,7 @@ class NanoverReaderBase(ProtoReader):
         *,
         filename=None,
         convert_units=True,
+        first_frame: FrameData | None = None,
         **kwargs,
     ):
         super().__init__()
@@ -186,7 +187,8 @@ class NanoverReaderBase(ProtoReader):
         self.reader = reader
 
         _strip_reader(self.reader)
-        first_frame = _trim_start_frame_reader(self.reader)
+        if first_frame is None:
+            first_frame = _trim_start_frame_reader(self.reader)
         remainder = _trim_end_frame_reader(self.reader)
         self.n_atoms = first_frame.particle_count
 
