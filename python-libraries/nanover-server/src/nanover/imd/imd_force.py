@@ -105,9 +105,6 @@ def apply_single_interaction_force(
         center, interaction.position, periodic_box_lengths=periodic_box_lengths
     )
     # apply the appropriate force to each particle in the selection.
-    # TODO: See if passing forces per particle makes sense here
-    # force_per_particle = force / particle_count
-    # energy_per_particle = energy / particle_count
     total_energy = _apply_force_to_particles(
         forces, raw_energy, raw_force, interaction, masses
     )
@@ -152,11 +149,9 @@ def _apply_force_to_particles(
         mass = (mass != 0.0).astype(int)
         total_mass = np.sum(mass)
 
-    # TODO: Check what correct energy for mass-weighting should be (should just be the total
-    #  energy from the total force multiplied by the appropriate scaling factor)
+    # Adjust energy by scale factor
     total_energy = scale * raw_energy
     # add the force for each particle, adjusted by mass and scale factor.
-    # TODO: Figure out how to correctly mass-weight the forces
     force_to_apply = scale * (mass[:, np.newaxis] / total_mass) * raw_force
     # clip the forces into maximum force range.
     force_to_apply_clipped = np.clip(force_to_apply, -max_force, max_force)

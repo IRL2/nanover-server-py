@@ -243,7 +243,6 @@ def test_interaction_force_mass(particles, single_interaction, mass):
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
 
-# TODO: Decide if zero-mass tests make sense anymore, and what their behaviour should be
 def test_interaction_force_zero_mass_singleatom(particles, single_interaction):
     positions, masses = particles
     forces = np.zeros((len(positions), 3))
