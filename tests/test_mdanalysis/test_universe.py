@@ -1,0 +1,243 @@
+import os
+import warnings
+from pathlib import Path
+
+import MDAnalysis as mda
+import numpy as np
+import pytest
+from nanover.mdanalysis import universes_from_recording
+from nanover.mdanalysis.universe import (
+    NanoverParser,
+    NanoverReader,
+)
+
+SINGLE_TOPOLOGY_TRAJ = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test.nanover.zip",
+)
+MULTI_TOPOLOGY_TRAJ = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_multi.nanover.zip",
+)
+USER_FORCES_TRAJ = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_force.nanover.zip",
+)
+FORCES_TRAJ = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_all_forces.nanover.zip",
+)
+VELOCITIES_TRAJ = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_vel.nanover.zip",
+)
+VELOCITIES_FORCES_TRAJ = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_vel_force.nanover.zip",
+)
+REFERENCE_PDB = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "17-ala.pdb",
+)
+
+
+EXAMPLES_PATH = Path(__file__).parent
+RECORDING_PATH_TRAJ = (
+    EXAMPLES_PATH
+    / "../test_core/recording"
+    / "sim-switching-test-recording.nanover.zip"
+)
+
+
+@pytest.fixture
+def single_topology_universe():
+    return mda.Universe(
+        SINGLE_TOPOLOGY_TRAJ,
+        format=NanoverReader,
+        topology_format=NanoverParser,
+    )
+
+
+@pytest.fixture
+def multi_topology_universe():
+    with warnings.catch_warnings(action="ignore", category=UserWarning):
+        return mda.Universe(
+            MULTI_TOPOLOGY_TRAJ,
+            format=NanoverReader,
+            topology_format=NanoverParser,
+        )
+
+
+@pytest.fixture
+def user_forces_universe():
+    return mda.Universe(
+        USER_FORCES_TRAJ,
+        format=NanoverReader,
+        topology_format=NanoverParser,
+    )
+
+
+@pytest.fixture(
+    params=(
+        (True, True),
+        (False, False),
+        (True, False),
+        (False, True),
+    )
+)
+def feature_universe_and_features(request):
+    with_velocities, with_forces = request.param
+    possible_paths = {
+        (True, True): VELOCITIES_FORCES_TRAJ,
+        (False, False): SINGLE_TOPOLOGY_TRAJ,
+        (True, False): VELOCITIES_TRAJ,
+        (False, True): FORCES_TRAJ,
+    }
+    file_path = possible_paths[(with_velocities, with_forces)]
+    return (
+        mda.Universe(
+            file_path,
+            format=NanoverReader,
+            topology_format=NanoverParser,
+        ),
+        with_velocities,
+        with_forces,
+    )
+
+
+@pytest.fixture
+def reference_topology_universe():
+    return mda.Universe(REFERENCE_PDB)
+
+
+def test_universes_from_recording():
+    """
+    Test that a recording with simulation switching is split into the correct number of universes with expected atom
+    counts and frame counts.
+    """
+    universes = universes_from_recording(RECORDING_PATH_TRAJ)
+
+    expected_frames_atoms = [
+        [104, 65],
+        [108, 173],
+        [127, 65],
+        [115, 173],
+    ]
+
+    assert len(expected_frames_atoms) == len(universes)
+
+    for i in range(len(expected_frames_atoms)):
+        frames, atoms = expected_frames_atoms[i]
+        universe = universes[i]
+        assert frames == len(universe.trajectory)
+        assert atoms == len(universe.atoms)
+
+
+def test_n_frames(single_topology_universe):
+    assert single_topology_universe.trajectory.n_frames == 624
+
+
+def test_n_frames_multi_topology(multi_topology_universe):
+    assert multi_topology_universe.trajectory.n_frames == 2024
+
+
+def test_n_atoms(single_topology_universe):
+    assert len(single_topology_universe.atoms) == 173
+
+
+@pytest.mark.parametrize(
+    "attribute",
+    (
+        "names",
+        "resnames",
+        "resindices",
+        "chainIDs",
+        "segids",
+        "elements",
+        "types",
+        "segindices",
+    ),
+)
+def test_topology_attributes(
+    attribute, single_topology_universe, reference_topology_universe
+):
+    actual_attribute = getattr(single_topology_universe.atoms, attribute)
+    expected_attribute = getattr(reference_topology_universe.atoms, attribute)
+    assert np.all(actual_attribute == expected_attribute)
+
+
+def test_user_forces_all_frames(user_forces_universe):
+    """
+    When forces are available, they are for all the frames.
+    """
+    assert all("user_forces" in ts.data for ts in user_forces_universe.trajectory)
+
+
+def test_user_forces_shape(user_forces_universe):
+    """
+    When forces are available, the shape of the array is correct.
+    """
+    shape = (len(user_forces_universe.atoms), 3)
+    assert all(
+        ts.data["user_forces"].shape == shape for ts in user_forces_universe.trajectory
+    )
+
+
+def test_user_forces(user_forces_universe):
+    """
+    There are the expected number of frames with non zero forces.
+
+    This is a regression test, the expected number is obtained from running the
+    code.
+    """
+    expected = 415
+    actual = sum(
+        np.any(ts.data["user_forces"]) for ts in user_forces_universe.trajectory
+    )
+    assert actual == expected
+
+
+def ts_has_velocities(ts):
+    try:
+        _ = ts.velocities
+    except mda.exceptions.NoDataError:
+        return False
+    else:
+        return True
+
+
+def ts_has_forces(ts):
+    try:
+        _ = ts.forces
+    except mda.exceptions.NoDataError:
+        return False
+    else:
+        return True
+
+
+def test_velocities(feature_universe_and_features):
+    """
+    Velocities are optional in the recording.
+    """
+    universe, with_velocities, _with_forces = feature_universe_and_features
+    all_frame_have_velocities = all(ts_has_velocities(ts) for ts in universe.trajectory)
+    assert with_velocities == all_frame_have_velocities
+
+
+def test_forces(feature_universe_and_features):
+    """
+    Forces are optional in the recording.
+    """
+    universe, _with_velocities, with_forces = feature_universe_and_features
+    all_frame_have_forces = all(ts_has_forces(ts) for ts in universe.trajectory)
+    assert with_forces == all_frame_have_forces
+
+
+def test_elapsed(single_topology_universe):
+    """
+    The elapsed time is included in the TimeStep and is different for each frame.
+    """
+    all_elapsed = [ts.data["elapsed"] for ts in single_topology_universe.trajectory]
+    unique_elapsed = set(map(int, all_elapsed))
+    assert len(unique_elapsed) == len(all_elapsed)
+    assert all_elapsed  # we do not have a case with no frame

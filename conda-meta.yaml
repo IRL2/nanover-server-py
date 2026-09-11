@@ -1,0 +1,44 @@
+package:
+  name: nanover-server
+  version: {{ NANOVER_BUILD_VERSION }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  number: 0
+  script: $PYTHON -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv
+  entry_points:
+    - nanover-server = nanover.app.cli.server_cli:main
+    - nanover-record = nanover.app.cli.recorder_cli:main
+    - nanover-essd-list = nanover.essd.list_cli:main
+    - nanover-dump-state = nanover.recording.cli.dump_cli:main
+    - nanover-split-recording = nanover.recording.cli.split_cli:main
+
+requirements:
+  build:
+    - python >=3.13
+    - setuptools
+  run:
+    - python >=3.13
+    - psutil >=7.2.0
+    - numpy >=1.26.4
+    - mdanalysis >=2.8.0
+    - ase >=3.21
+    - openmm >=8.4.0
+    - nglview >=4.0.1
+    - websockets >=15.0.0
+    - msgpack-python >=1.0.0
+    - pandas >=2.0.3
+
+about:
+  home: https://github.com/IRL2/nanover-server-py
+  license: MIT
+  license_file: LICENSE
+  summary: Python servers for NanoVer.
+  description: |
+    NanoVer is a framework for interactive molecular dynamics simulation in
+    virtual reality. This package cause all the python servers to be installed.
+  doc_url: https://irl2.github.io/nanover-docs/
+  dev_url: https://github.com/IRL2/nanover-server-py
