@@ -132,35 +132,38 @@ def _apply_force_to_particles(
     :param masses: Array of N masses of the particles.
     :return: The total energy applied.
     """
-
     particles = interaction.particles
-    scale = interaction.scale
-    max_force = interaction.max_force
-    mass = masses[particles]
-    total_mass = np.sum(mass)
+    force_scale = interaction.scale
+    force_limit = interaction.max_force
 
-    # If particle group has total mass of zero, forces and energies are zero
-    # regardless of interaction weighting
-    if total_mass == 0.0:
-        forces[particles] += 0.0
+    if interaction.mass_weighted:
+        # distribute weight by particle mass
+        weights = masses[particles]
+    else:
+        # distribute weight equally over particles with non-zero mass
+        weights = (masses[particles] != 0.0).astype(int)
+
+    total_weight = np.sum(weights)
+
+    # apply nothing if no particles were weighted
+    if total_weight == 0.0:
         total_energy = 0.0
         return total_energy
 
-    if not interaction.mass_weighted:
-        # Only apply forces to particles with non-zero mass
-        mass = (mass != 0.0).astype(int)
-        total_mass = np.sum(mass)
+    # normalise weights to unit column vector
+    weights = weights.reshape(-1, 1) / total_weight
 
-    # Adjust energy by scale factor
-    total_energy = scale * raw_energy
-    # add the force for each particle, adjusted by mass and scale factor.
-    force_to_apply = scale * (mass[:, np.newaxis] / total_mass) * raw_force
-    # clip the forces into maximum force range.
-    force_to_apply_clipped = np.clip(force_to_apply, -max_force, max_force)
-    # this is technically incorrect, but deriving the actual energy of a clip will involve a lot of maths
-    # for what is essentially just, too much energy.
+    # scale energy by scale factor
+    total_energy = force_scale * raw_energy
+    # scale force and distribute over each particle according to weighting
+    force_to_apply = force_scale * weights * raw_force
+
+    # clip the forces into maximum force range
+    force_to_apply_clipped = np.clip(force_to_apply, -force_limit, force_limit)
     # TODO: Fix incorrect clipping of energy
-    total_energy = np.clip(total_energy, -max_force, max_force)
+    # clip the energy approximately (incorrect, but you should avoid exceeding the force limit anyway)
+    total_energy = np.clip(total_energy, -force_limit, force_limit)
+
     forces[particles] += force_to_apply_clipped
     return total_energy
 
