@@ -21,36 +21,55 @@ from nanover.core.app_server import StateService
 from nanover.core.types import CommandHandler
 from nanover.imd import ParticleInteraction
 from nanover.imd.imd_state import interaction_to_dict
+from nanover.mdanalysis import frame_data_to_mdanalysis
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.transforms import Transform, matrix_from_state_transform
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
-from ..mdanalysis import frame_data_to_mdanalysis
+from ..core import AppServerMinimalImd
 from . import show_runner_controls
 from .modes import Mode
 
 
-class NanoverJupyterUtilities:
+class NanoverSharedUtilities:
+    def __init__(self, app_server: AppServerMinimalImd):
+        self.objects = SceneObjectsUtility(app_server)
+        self.panels = PanelsUtility(app_server)
+        self.interactions = InteractionsUtility(app_server)
+        self.selections = SelectionsUtility(app_server)
+        self.transforms = TransformsUtility(app_server)
+        self.handles = TransformHandlesUtility(app_server)
+
+
+class NanoverClientUtilities(NanoverSharedUtilities):
+    @classmethod
+    def from_client(cls, client: NanoverImdClient):
+        return cls(client)
+
+    def __init__(self, client: NanoverImdClient):
+        super().__init__(client)
+        self.client = client
+
+
+class NanoverServerUtilities(NanoverSharedUtilities):
     _recording_path: str | None = None
     _recording_count = 0
     _recorder: BackgroundRecordingContext | None = None
     _next_checkpoint_index = 0
-    _active_mode = Mode()
+
+    @staticmethod
+    def from_client(client: NanoverImdClient):
+        return NanoverClientUtilities.from_client(client)
 
     @classmethod
     def from_runner(cls, runner: OmniRunner):
         return cls(runner)
 
     def __init__(self, runner: OmniRunner):
+        super().__init__(runner.app_server)
         self.runner = runner
-        self.objects = SceneObjectsUtility(runner.app_server)
-        self.panels = PanelsUtility(runner.app_server)
-        self.interactions = InteractionsUtility(runner.app_server)
-        self.selections = SelectionsUtility(runner.app_server)
-        self.transforms = TransformsUtility(runner.app_server)
-        self.handles = TransformHandlesUtility(runner.app_server)
         self.modes = ModesManager(self)
 
     @property
@@ -190,7 +209,7 @@ class NanoverJupyterUtilities:
 
 
 class ModesManager:
-    def __init__(self, utilities: NanoverJupyterUtilities):
+    def __init__(self, utilities: NanoverServerUtilities):
         self._utilities = utilities
         self._active_mode = Mode()
         self._modes = {"normal": Mode()}

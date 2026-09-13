@@ -7,6 +7,7 @@ from websockets.sync.client import ClientConnection, connect
 from nanover.core.commands import CommandMessageHandler
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
+from nanover.utilities.packing import fallback_encoder
 from nanover.utilities.state_dictionary import StateDictionary
 from nanover.websocket.server import MAX_MESSAGE_SIZE
 
@@ -56,7 +57,7 @@ class WebsocketClient:
         )
 
     def send_message(self, message: dict):
-        self._connection.send(msgpack.packb(message))
+        self._connection.send(msgpack.packb(message, default=fallback_encoder))
 
     def recv_message(self, message: dict):
         if "frame" in message:

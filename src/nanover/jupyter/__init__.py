@@ -8,6 +8,8 @@ from .modes import Mode as Mode
 from .nglclient import NGLClient as NGLClient
 from .utilities import (
     InteractionsUtility as InteractionsUtility,
-    NanoverJupyterUtilities as NanoverJupyterUtilities,
+    NanoverClientUtilities as NanoverClientUtilities,
+    NanoverServerUtilities as NanoverJupyterUtilities,  # noqa: F401
+    NanoverServerUtilities as NanoverServerUtilities,
     SceneObjectsUtility as SceneObjectsUtility,
 )
