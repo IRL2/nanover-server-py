@@ -59,6 +59,10 @@ class NanoverServerUtilities(NanoverSharedUtilities):
     _recorder: BackgroundRecordingContext | None = None
     _next_checkpoint_index = 0
 
+    @staticmethod
+    def from_client(client: NanoverImdClient):
+        return NanoverClientUtilities.from_client(client)
+
     @classmethod
     def from_runner(cls, runner: OmniRunner):
         return cls(runner)
