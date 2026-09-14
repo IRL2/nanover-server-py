@@ -179,6 +179,7 @@ def rescale_force_to_limit(force_limit, forces, energy):
         scale = force_limit / max_force_magnitude
         forces *= scale
         energy *= scale
+    return energy
 
 
 def rescale_energy_to_limit(energy_limit, forces, energy):
