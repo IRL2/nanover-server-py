@@ -139,33 +139,35 @@ def _apply_force_to_particles(
 
     if interaction.mass_weighted:
         # distribute weight by particle mass
-        weights = masses[particles]
+        interaction_weights = masses[particles]
     else:
         # distribute weight equally over particles with non-zero mass
-        weights = (masses[particles] != 0.0).astype(int)
+        interaction_weights = (masses[particles] != 0.0).astype(int)
 
-    total_weight = np.sum(weights)
+    total_weight = np.sum(interaction_weights)
 
     # apply nothing if no particles were weighted
     if total_weight == 0.0:
-        total_energy = 0.0
-        return total_energy
+        interaction_energy = 0.0
+        return interaction_energy
 
     # normalise weights to unit column vector
-    weights = weights.reshape(-1, 1) / total_weight
+    interaction_weights = interaction_weights.reshape(-1, 1) / total_weight
 
     # scale energy by scale factor
-    total_energy = force_scale * raw_energy
+    interaction_energy = force_scale * raw_energy
     # scale force and distribute over each particle according to weighting
-    force_to_apply = force_scale * weights * raw_force
+    interaction_forces = force_scale * raw_force * interaction_weights
 
     # bring energy/forces within limit
-    total_energy = clip_both_by_limit(force_limit, force_to_apply, total_energy)
-    # total_energy = rescale_force_to_limit(force_limit, force_to_apply, total_energy)
-    # total_energy = rescale_energy_to_limit(force_limit, force_to_apply, total_energy)
+    interaction_energy = clip_both_by_limit(
+        force_limit, interaction_forces, interaction_energy
+    )
+    # interaction_energy = rescale_force_to_limit(force_limit, interaction_forces, interaction_energy)
+    # interaction_energy = rescale_energy_to_limit(force_limit, interaction_forces, interaction_energy)
 
-    forces[particles] += force_to_apply
-    return total_energy
+    forces[particles] += interaction_forces
+    return interaction_energy
 
 
 def rescale_force_to_limit(force_limit, forces, energy):
