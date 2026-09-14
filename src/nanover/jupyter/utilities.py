@@ -35,6 +35,7 @@ from .modes import Mode
 
 class NanoverSharedUtilities:
     def __init__(self, app_server: AppServerMinimalImd):
+        self.app_server = app_server
         self.objects = SceneObjectsUtility(app_server)
         self.panels = PanelsUtility(app_server)
         self.interactions = InteractionsUtility(app_server)
@@ -71,6 +72,10 @@ class NanoverServerUtilities(NanoverSharedUtilities):
         super().__init__(runner.app_server)
         self.runner = runner
         self.modes = ModesManager(self)
+
+    @property
+    def current_frame(self) -> FrameData | None:
+        return self.app_server.frame_publisher.current_frame
 
     @property
     def scene_transform(self) -> Transform:
