@@ -168,7 +168,7 @@ def test_auto_force():
             interaction_type="constant",
             position=next_pos,
             particles=[0],
-            scale=10,
+            scale=400,
         )
         app_server.imd.insert_interaction("interaction.test", interaction)
 
@@ -178,7 +178,7 @@ def test_auto_force():
 
         # check the atom moved some way to the right
         curr_pos = get_position()
-        assert curr_pos[0] - prev_pos[0] >= 0
+        assert curr_pos[0] - prev_pos[0] >= 1
 
 
 def test_step_interval(example_openmm):
