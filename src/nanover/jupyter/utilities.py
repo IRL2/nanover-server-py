@@ -53,6 +53,10 @@ class NanoverClientUtilities(NanoverSharedUtilities):
         super().__init__(client)
         self.client = client
 
+    @property
+    def current_frame(self) -> FrameData:
+        return self.client.current_frame
+
 
 class NanoverServerUtilities(NanoverSharedUtilities):
     _recording_path: str | None = None
@@ -74,8 +78,8 @@ class NanoverServerUtilities(NanoverSharedUtilities):
         self.modes = ModesManager(self)
 
     @property
-    def current_frame(self) -> FrameData | None:
-        return self.app_server.frame_publisher.current_frame
+    def current_frame(self) -> FrameData:
+        return self.app_server.frame_publisher.current_frame or FrameData()
 
     @property
     def scene_transform(self) -> Transform:
