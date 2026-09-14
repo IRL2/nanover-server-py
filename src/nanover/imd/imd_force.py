@@ -7,6 +7,7 @@ For details, and if you find these functions helpful, please cite [1]_.
        from quantum chemistry to drug binding”, arXiv:1902.01827, 2019
 """
 
+import math
 from collections.abc import Iterable
 from math import exp
 from typing import Protocol
@@ -102,23 +103,21 @@ def apply_single_interaction_force(
             f"Unknown interactive force type {interaction.interaction_type}."
         )
 
-    # calculate the overall force to be applied
-    energy, force = potential_method(
+    # calculate the raw (unscaled and unclipped) force to be applied and associated energy
+    raw_energy, raw_force = potential_method(
         center, interaction.position, periodic_box_lengths=periodic_box_lengths
     )
     # apply the appropriate force to each particle in the selection.
-    force_per_particle = force / particle_count
-    energy_per_particle = energy / particle_count
     total_energy = _apply_force_to_particles(
-        forces, energy_per_particle, force_per_particle, interaction, masses
+        forces, raw_energy, raw_force, interaction, masses
     )
     return total_energy
 
 
 def _apply_force_to_particles(
     forces: np.ndarray,
-    energy_per_particle: float,
-    force_per_particle: np.ndarray,
+    raw_energy: float,
+    raw_force: np.ndarray,
     interaction: ParticleInteraction,
     masses: np.ndarray,
 ) -> float:
@@ -128,34 +127,73 @@ def _apply_force_to_particles(
     if specified in the interaction.
 
     :param forces: array of N particle forces. Interaction force will be added to this array, mutating it.
-    :param energy_per_particle: Interaction energy per particle.
-    :param force_per_particle: Force to apply to each particle.
+    :param raw_energy: Raw (unclipped) total interaction energy.
+    :param raw_force: Raw (unclipped) total force.
     :param interaction: The interaction being computed.
     :param masses: Array of N masses of the particles.
     :return: The total energy applied.
     """
-
     particles = interaction.particles
-    scale = interaction.scale
-    max_force = interaction.max_force
+    force_scale = interaction.scale
+    force_limit = interaction.max_force
 
     if interaction.mass_weighted:
-        mass = masses[particles]
-        total_mass = mass.sum()
+        # distribute weight by particle mass
+        interaction_weights = masses[particles]
     else:
-        mass = np.ones(len(particles))
-        total_mass = len(particles)
+        # distribute weight equally over particles with non-zero mass
+        interaction_weights = (masses[particles] != 0.0).astype(int)
 
-    total_energy = scale * energy_per_particle * total_mass
-    # add the force for each particle, adjusted by mass and scale factor.
-    force_to_apply = scale * mass[:, np.newaxis] * force_per_particle[np.newaxis, :]
-    # clip the forces into maximum force range.
-    force_to_apply_clipped = np.clip(force_to_apply, -max_force, max_force)
-    # this is technically incorrect, but deriving the actual energy of a clip will involve a lot of maths
-    # for what is essentially just, too much energy.
-    total_energy = np.clip(total_energy, -max_force, max_force)
-    forces[particles] += force_to_apply_clipped
-    return total_energy
+    total_weight = np.sum(interaction_weights)
+
+    # apply nothing if no particles were weighted
+    if total_weight == 0.0:
+        interaction_energy = 0.0
+        return interaction_energy
+
+    # normalise weights to unit column vector
+    interaction_weights = interaction_weights.reshape(-1, 1) / total_weight
+
+    # scale energy by scale factor
+    interaction_energy = force_scale * raw_energy
+    # scale force and distribute over each particle according to weighting
+    interaction_forces = force_scale * raw_force * interaction_weights
+
+    # bring energy/forces within limit
+    interaction_energy = clip_both_by_limit(
+        force_limit, interaction_forces, interaction_energy
+    )
+    # interaction_energy = rescale_force_to_limit(force_limit, interaction_forces, interaction_energy)
+    # interaction_energy = rescale_energy_to_limit(force_limit, interaction_forces, interaction_energy)
+
+    forces[particles] += interaction_forces
+    return interaction_energy
+
+
+def rescale_force_to_limit(force_limit, forces, energy):
+    # find largest magnitude among forces
+    force_magnitudes_squared = np.square(forces).sum(axis=1)
+    max_force_magnitude = math.sqrt(np.max(force_magnitudes_squared))
+
+    if max_force_magnitude > force_limit:
+        scale = force_limit / max_force_magnitude
+        forces *= scale
+        energy *= scale
+    return energy
+
+
+def rescale_energy_to_limit(energy_limit, forces, energy):
+    if energy > energy_limit:
+        scale = energy_limit / energy
+        forces *= scale
+        energy *= scale
+    return energy
+
+
+def clip_both_by_limit(limit, forces, energy):
+    np.clip(forces, -limit, limit, out=forces)
+    energy = np.clip(energy, -limit, limit)
+    return energy
 
 
 def wrap_pbc(positions: np.ndarray, periodic_box_lengths: np.ndarray):
