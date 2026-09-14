@@ -3,6 +3,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import suppress
 from queue import Empty, Queue
 from ssl import SSLContext
+from typing import ClassVar
 
 from nanover.core import AppServer, Simulation, basic_info_string
 from nanover.imd.imd_force import InvalidInteractionError
@@ -27,6 +28,19 @@ class OmniRunner:
     """
     Provides a NanoVer server that supports switching between multiple simulations.
     """
+
+    _instances: ClassVar[list["OmniRunner"]] = []
+
+    @classmethod
+    def close_all_runners(cls):
+        """
+        Close all open runners.
+
+        Useful in Jupyter notebooks when re-running cells.
+        """
+        for instance in list(cls._instances):
+            instance.close()
+        cls._instances = []
 
     @classmethod
     def with_basic_server(
@@ -97,6 +111,7 @@ class OmniRunner:
 
         self.failed_simulations: set[Simulation] = set()
         self.logging = logging.getLogger(__name__)
+        self._instances.append(self)
 
     def close(self):
         """
@@ -104,6 +119,7 @@ class OmniRunner:
         """
         self._cancel_run()
         self.app_server.close()
+        self._instances.remove(self)
 
     def print_basic_info(self):
         """
