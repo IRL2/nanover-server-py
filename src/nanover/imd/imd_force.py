@@ -7,6 +7,7 @@ For details, and if you find these functions helpful, please cite [1]_.
        from quantum chemistry to drug binding”, arXiv:1902.01827, 2019
 """
 
+import math
 from collections.abc import Iterable
 from math import exp
 from typing import Protocol
@@ -158,14 +159,38 @@ def _apply_force_to_particles(
     # scale force and distribute over each particle according to weighting
     force_to_apply = force_scale * weights * raw_force
 
-    # clip the forces into maximum force range
-    force_to_apply_clipped = np.clip(force_to_apply, -force_limit, force_limit)
-    # TODO: Fix incorrect clipping of energy
-    # clip the energy approximately (incorrect, but you should avoid exceeding the force limit anyway)
-    total_energy = np.clip(total_energy, -force_limit, force_limit)
+    # bring energy/forces within limit
+    total_energy = clip_both_by_limit(force_limit, force_to_apply, total_energy)
+    # total_energy = rescale_force_to_limit(force_limit, force_to_apply, total_energy)
+    # total_energy = rescale_energy_to_limit(force_limit, force_to_apply, total_energy)
 
-    forces[particles] += force_to_apply_clipped
+    forces[particles] += force_to_apply
     return total_energy
+
+
+def rescale_force_to_limit(force_limit, forces, energy):
+    # find largest magnitude among forces
+    force_magnitudes_squared = np.square(forces).sum(axis=1)
+    max_force_magnitude = math.sqrt(np.max(force_magnitudes_squared))
+
+    if max_force_magnitude > force_limit:
+        scale = force_limit / max_force_magnitude
+        forces *= scale
+        energy *= scale
+
+
+def rescale_energy_to_limit(energy_limit, forces, energy):
+    if energy > energy_limit:
+        scale = energy_limit / energy
+        forces *= scale
+        energy *= scale
+    return energy
+
+
+def clip_both_by_limit(limit, forces, energy):
+    np.clip(forces, -limit, limit, out=forces)
+    energy = np.clip(energy, -limit, limit)
+    return energy
 
 
 def wrap_pbc(positions: np.ndarray, periodic_box_lengths: np.ndarray):
