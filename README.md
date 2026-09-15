@@ -190,10 +190,17 @@ ruff format src
 
 ### Running the type checker
 
-The type checker looks at the type hints in the code to make sure they are consistent and help find potential errors:
+The mypy type checker looks at the type hints in the code to make sure they are consistent and help find potential
+errors:
 
 ```shell
 mypy src
+```
+
+We're also trying out ty:
+
+```shell
+ty check src
 ```
 
 ## Citation and external libraries
