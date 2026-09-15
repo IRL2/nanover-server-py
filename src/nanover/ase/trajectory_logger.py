@@ -8,7 +8,7 @@ import os
 from io import TextIOWrapper
 
 import ase.io
-from ase import Atoms  # type: ignore
+from ase import Atoms
 from ase.io.formats import filetype, ioformats
 
 

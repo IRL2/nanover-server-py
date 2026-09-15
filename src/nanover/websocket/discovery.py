@@ -1,5 +1,5 @@
 import json
-import urllib
+import urllib.request
 from contextlib import contextmanager
 
 from websockets.sync.client import connect

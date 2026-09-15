@@ -15,6 +15,7 @@ Example
 """
 
 import logging
+import sys
 import threading
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -52,12 +53,10 @@ def configure_reusable_socket() -> socket:
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 
     # Necessary for multiple client on Mac, acceptable on Linux, but doesn't exist on Windows.
-    try:
-        from socket import SO_REUSEPORT  # type: ignore
+    if sys.platform != "win32":
+        from socket import SO_REUSEPORT
 
         s.setsockopt(SOL_SOCKET, SO_REUSEPORT, 1)
-    except ImportError:
-        pass
 
     return s
 

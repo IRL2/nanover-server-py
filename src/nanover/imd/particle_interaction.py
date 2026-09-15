@@ -3,7 +3,7 @@ Module providing a wrapper class around interaction data.
 """
 
 import math
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Any
 
 import numpy as np
@@ -97,19 +97,14 @@ class ParticleInteraction:
         self._position = converted
 
     @property
-    def particles(self) -> np.ndarray:
+    def particles(self) -> npt.NDArray:
         """
         The list of particles this interaction applies to.
         """
         return self._particles
 
     @particles.setter
-    def particles(self, particles: list[int] | tuple[int]):
-        # We would like to type the `particles` argument as `Collection` and it
-        # should be precise enough. However, it appears not to be compatible
-        # with `npt.ArrayLike` in the context `np.unique`; and `ArrayLike`
-        # allows scalar that do not have a `len` method. Therefore we use a
-        # type hint that is likely more restrictive than needed.
+    def particles(self, particles: Sequence[int] | npt.NDArray):
         if len(particles) < 2:
             self._particles = np.array(particles)
         else:

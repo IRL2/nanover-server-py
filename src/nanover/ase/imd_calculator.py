@@ -5,7 +5,7 @@ Provides an implementation of IMD force field in ASE.
 import math
 
 import numpy as np
-from ase import Atoms, units  # type: ignore
+from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.md.md import MolecularDynamics
 from ase.md.velocitydistribution import _maxwellboltzmanndistribution

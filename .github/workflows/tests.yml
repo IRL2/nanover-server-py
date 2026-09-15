@@ -67,10 +67,12 @@ jobs:
           python-version: 3.14
           activate-environment: "true"
       - name: Install NanoVer & dependencies
-        run: uv pip install ./[dev] ruff mypy
+        run: uv pip install ./[dev] ruff mypy ty
       - name: Ruff lint
         run: uv run ruff check ./src
       - name: Ruff format
         run: uv run ruff format --check ./src
       - name: mypy types
         run: uv run mypy ./src
+      - name: ty types
+        run: uv run ty check ./src

@@ -1,4 +1,4 @@
-import concurrent
+import concurrent.futures
 import errno
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress

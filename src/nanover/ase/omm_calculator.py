@@ -3,7 +3,7 @@ ASE calculator for use with OpenMM.
 """
 
 import numpy as np
-from ase import Atom, Atoms  # type: ignore
+from ase import Atom, Atoms
 from ase.calculators.calculator import Calculator, all_changes
 from openmm import State, System
 from openmm.app import Simulation, Topology

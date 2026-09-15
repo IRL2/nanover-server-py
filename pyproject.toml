@@ -67,6 +67,8 @@ dev=[
     # type checking
     "ruff",
     "mypy",
+    "ty",
+    "rich",
     "typing_extensions",
     # jupyter notebooks
     "nbval",
@@ -87,6 +89,9 @@ nanover-split-recording = "nanover.recording.cli.split_cli:main"
 ignore_missing_imports = true
 check_untyped_defs = true
 allow_redefinition = true
+
+[tool.ty.analysis]
+replace-imports-with-any = ["MDAnalysis.**", "openmm.unit"]
 
 [tool.setuptools.dynamic]
 version = {file = "VERSION.txt"}
