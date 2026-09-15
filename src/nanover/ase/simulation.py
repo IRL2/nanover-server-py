@@ -117,7 +117,7 @@ class ASESimulation(Simulation):
 
         self.imd_calculator: ImdCalculator | None = None
 
-        self.ase_atoms_to_frame_data = ase_atoms_to_frame_data
+        self.ase_atoms_to_frame_data: ASEAtomsToFrameData = ase_atoms_to_frame_data
 
         self.work_done: float = 0.0
         self._work_done_intermediate: float = 0.0

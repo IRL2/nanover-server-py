@@ -420,7 +420,7 @@ class SelectionsUtility(StateKeysUtility):
         hide: bool | None = None,
     ):
         with self._state.lock_state() as state:
-            selection = {**state[f"{self.prefix}{key}"]}
+            selection: dict[str, Any] = {**state[f"{self.prefix}{key}"]}
 
         if particle_ids is not None:
             selection["selected"] = particle_ids
@@ -566,7 +566,7 @@ class TransformsUtility(StateKeysUtility):
             else default
         )
 
-    def fetch_transform_root(self, key: str):
+    def fetch_transform_root(self, key: str | None):
         matrix = np.identity(4)
 
         with self._state.lock_state() as state:
@@ -575,7 +575,7 @@ class TransformsUtility(StateKeysUtility):
                     f"{self.prefix}{key}", None
                 )
 
-                if not entry:
+                if entry is None:
                     break
 
                 matrix = matrix_from_state_transform(entry["transform"]) @ matrix

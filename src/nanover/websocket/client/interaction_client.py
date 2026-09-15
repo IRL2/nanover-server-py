@@ -45,7 +45,7 @@ class InteractionClient(WebsocketClient):
 
         :raises: ValueError, if the there is no IMD connection available.
         """
-        interaction_id = INTERACTION_PREFIX + str(uuid4())  # type: ignore
+        interaction_id = INTERACTION_PREFIX + str(uuid4())
         self._local_interaction_ids.add(interaction_id)
         if interaction is not None:
             self.update_interaction(interaction_id, interaction)

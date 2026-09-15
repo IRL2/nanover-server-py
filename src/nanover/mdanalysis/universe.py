@@ -21,11 +21,11 @@ Facilities to read a NanoVer trajectory recording into an MDAnalysis Universe.
 """
 
 import warnings
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from contextlib import suppress
 from itertools import islice
 from os import PathLike
-from typing import ClassVar, NamedTuple
+from typing import NamedTuple
 
 import numpy as np
 from MDAnalysis import Universe
@@ -163,7 +163,7 @@ class NanoverParser(TopologyReaderBase):
 
 
 class NanoverReaderBase(ProtoReader):
-    units: ClassVar = {
+    units: Mapping[str, str] = {
         "time": "ps",
         "length": "nm",
         "velocity": "nm/ps",
