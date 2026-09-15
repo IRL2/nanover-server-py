@@ -105,11 +105,6 @@ class ParticleInteraction:
 
     @particles.setter
     def particles(self, particles: Sequence[int] | npt.NDArray):
-        # We would like to type the `particles` argument as `Collection` and it
-        # should be precise enough. However, it appears not to be compatible
-        # with `npt.ArrayLike` in the context `np.unique`; and `ArrayLike`
-        # allows scalar that do not have a `len` method. Therefore we use a
-        # type hint that is likely more restrictive than needed.
         if len(particles) < 2:
             self._particles = np.array(particles)
         else:
