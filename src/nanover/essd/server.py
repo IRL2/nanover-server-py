@@ -53,7 +53,9 @@ def configure_reusable_socket() -> socket:
 
     # Necessary for multiple client on Mac, acceptable on Linux, but doesn't exist on Windows.
     try:
-        from socket import SO_REUSEPORT  # type: ignore
+        from socket import (  # type: ignore[attr-defined, ty:unused-ignore-comment, ty:unused-ignore-comment]
+            SO_REUSEPORT,  # ty: ignore[unresolved-import, unused-ignore-comment, unused-ignore-comment]
+        )
 
         s.setsockopt(SOL_SOCKET, SO_REUSEPORT, 1)
     except ImportError:
