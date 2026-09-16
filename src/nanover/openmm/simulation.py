@@ -226,7 +226,7 @@ class OpenMMSimulation(NanoverSimulation):
             getPositions=True,
             enforcePeriodicBox=self.use_pbc_wrapping or False,
         )
-        positions = state.getPositions(asNumpy=True)
+        positions = state.getPositions(asNumpy=True).value_in_unit(nanometer)
 
         # Calculate on-step contribution to work
         if self._prev_imd_forces is not None:
