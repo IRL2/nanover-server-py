@@ -4,6 +4,7 @@ name: "Repo"
 jobs:
   python-tests:
     name: Tests and Notebooks
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -12,22 +13,21 @@ jobs:
         shell: bash -el {0}
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: astral-sh/setup-uv@v9.0.0
         with:
-          auto-update-conda: true
-          miniforge-version: latest
+          python-version: 3.14
+          activate-environment: "true"
       - name: Install NanoVer & dependencies
-        run: |
-          conda install -y openmm
-          python -m pip install ./python-libraries/nanover-server/[dev]
+        run: uv pip install ./[dev]
       - name: Parallel tests
-        run: python -m pytest --cov nanover python-libraries -n auto -m 'not serial'
+        run: uv run pytest --cov nanover tests -n auto -m 'not serial' --timeout 30
       - name: Serial tests
-        run: python -m pytest --cov nanover python-libraries -n 1 -m 'serial' --cov-append
+        run: uv run pytest --cov nanover tests -n 1 -m 'serial' --cov-append --timeout 30
       - name: Jupyter notebooks
-        run: python -m pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
-  mypy:
-    name: Type checking
+        run: uv run pytest --cov nanover --nbval-lax ./tutorials --nbval-cell-timeout=30 --cov-append
+  python-tests-minimum:
+    name: Tests and Notebooks (minimum versions)
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -36,34 +36,24 @@ jobs:
         shell: bash -el {0}
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: astral-sh/setup-uv@v9.0.0
         with:
-          auto-update-conda: true
-          miniforge-version: latest
+          python-version: 3.13
+          activate-environment: "true"
       - name: Install NanoVer & dependencies
         run: |
-          conda install -y openmm
-          python -m pip install ./python-libraries/nanover-server/
-          python -m pip install mypy
-      - name: mypy
-        run: |
-          # Mypy accepts paths, modules or packages as inputs. However, only
-          # packages work reasonably well with packages. So we need to generate
-          # a list of the packages we want to test.
-          packages=$(find python-libraries -name __init__.py \
-            | sed 's/__init__.py//g' \
-            | awk '{split($0, a, /src/); print(a[2])}' \
-            | sed 's#/#.#g' \
-            | cut -c 2- \
-            | sed 's/\.$//g' \
-            | grep -v '^$' \
-            | grep -v protocol \
-            | sed 's/^/-p /g' \
-            | grep -v '\..*\.' \
-            | tr '\n' ' ')
-          mypy --ignore-missing-imports --namespace-packages --check-untyped-defs --allow-redefinition $packages
-  ruff:
-    name: Style checking
+          uv pip install tomli-w
+          uv pip install setuptools
+          python ./.github/minimum-deps.py ./pyproject.toml
+          uv pip install ./[dev]
+      - name: Parallel tests
+        run: pytest tests -n auto -m 'not serial' --timeout 30
+      - name: Serial tests
+        run: pytest tests -n 1 -m 'serial' --timeout 30
+      - name: Jupyter notebooks
+        run: pytest --nbval-lax ./tutorials --nbval-cell-timeout=30
+  analysis:
+    name: Static analysis
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -72,16 +62,17 @@ jobs:
         shell: bash -el {0}
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: astral-sh/setup-uv@v9.0.0
         with:
-          auto-update-conda: true
-          miniforge-version: latest
+          python-version: 3.14
+          activate-environment: "true"
       - name: Install NanoVer & dependencies
-        run: |
-          conda install -y openmm
-          python -m pip install ./python-libraries/nanover-server/
-          python -m pip install ruff black
-      - name: Ruff
-        run: ruff check ./python-libraries
-      - name: Black
-        run: black --diff --check ./python-libraries
+        run: uv pip install ./[dev] ruff mypy ty
+      - name: Ruff lint
+        run: uv run ruff check ./src
+      - name: Ruff format
+        run: uv run ruff format --check ./src
+      - name: mypy types
+        run: uv run mypy ./src
+      - name: ty types
+        run: uv run ty check ./src
