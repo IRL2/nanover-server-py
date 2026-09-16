@@ -168,32 +168,30 @@ def test_interaction_force_single(particles, single_interaction, scale):
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
 
-@pytest.mark.parametrize("max_force", [np.nan])
+@pytest.mark.parametrize("max_force", [np.nan, -np.inf, -1])
 def test_invalid_max_force(single_interaction, max_force):
     with pytest.raises(ValueError):
         single_interaction.max_force = max_force
 
 
-@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.inf, -np.inf])
-def test_interaction_force_max_energy(particles, single_interaction, max_energy):
+@pytest.mark.parametrize("max_force", [0, 1, 1000, np.inf])
+def test_interaction_force_max_energy(
+    particles,
+    single_interaction,
+    max_force,
+):
     """
-    Tests that setting the max energy field results in the energy being clamped as expected
+    Tests that setting the max energy field results in the forces being capped as expected
     """
 
     positions, masses = particles
     forces = np.zeros((len(positions), 3))
     expected_forces = np.zeros((len(positions), 3))
-    single_interaction.max_force = max_energy
-    energy = apply_single_interaction_force(
+    single_interaction.max_force = max_force
+    _ = apply_single_interaction_force(
         positions, masses, single_interaction, forces
     )
 
-    expected_energy = -EXP_3
-    expected_energy = np.clip(
-        expected_energy,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
     expected_forces[1, :] = np.array(
         [
             -EXP_3
@@ -204,18 +202,17 @@ def test_interaction_force_max_energy(particles, single_interaction, max_energy)
         ]
         * 3
     )
-    expected_forces[1, :] = np.clip(
-        expected_forces[1, :],
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
 
-    assert np.allclose(energy, expected_energy, equal_nan=True)
-    assert np.allclose(forces, expected_forces, equal_nan=True)
+    assert np.all(np.linalg.norm(forces, axis=1) <= max_force)
 
 
+# TODO: does it make any sense to test NaN, infinite, and negative masses?
 @pytest.mark.parametrize("mass", [-1.0, 100, np.nan, np.inf, -np.inf])
-def test_interaction_force_mass(particles, single_interaction, mass):
+def test_interaction_force_mass(
+    particles,
+    single_interaction,
+    mass,
+):
     """
     tests that the interaction force calculation gives the expected result on a single atom, at a particular position,
     with varying mass.

@@ -17,6 +17,8 @@ import numpy.typing as npt
 
 from nanover.imd.particle_interaction import ParticleInteraction
 
+_E_SQR = math.sqrt(math.e)
+
 
 class InvalidInteractionError(ValueError):
     pass
@@ -27,7 +29,8 @@ class ForceCalculator(Protocol):
         self,
         particle_position: npt.NDArray,
         interaction_position: npt.NDArray,
-        periodic_box_lengths: npt.NDArray | None,
+        periodic_box_lengths: npt.NDArray | None = None,
+        force_magnitude_limit: float | None = None,
     ) -> tuple[float, npt.NDArray]: ...
 
 
@@ -103,10 +106,20 @@ def apply_single_interaction_force(
             f"Unknown interactive force type {interaction.interaction_type}."
         )
 
-    # calculate the raw (unscaled and unclipped) force to be applied and associated energy
+    # scale force magnitude limit to account for later scaling
+    if np.isfinite(interaction.max_force) and interaction.scale > 0:
+        force_magnitude_limit = interaction.max_force / interaction.scale
+    else:
+        force_magnitude_limit = None
+
+    # calculate the raw (unscaled) force to be applied and associated energy
     raw_energy, raw_force = potential_method(
-        center, interaction.position, periodic_box_lengths=periodic_box_lengths
+        particle_position=center,
+        interaction_position=interaction.position,
+        periodic_box_lengths=periodic_box_lengths,
+        force_magnitude_limit=force_magnitude_limit,
     )
+
     # apply the appropriate force to each particle in the selection.
     total_energy = _apply_force_to_particles(
         forces, raw_energy, raw_force, interaction, masses
@@ -127,15 +140,14 @@ def _apply_force_to_particles(
     if specified in the interaction.
 
     :param forces: array of N particle forces. Interaction force will be added to this array, mutating it.
-    :param raw_energy: Raw (unclipped) total interaction energy.
-    :param raw_force: Raw (unclipped) total force.
+    :param raw_energy: Raw (unscaled) total interaction energy.
+    :param raw_force: Raw (unscaled) total force.
     :param interaction: The interaction being computed.
     :param masses: Array of N masses of the particles.
     :return: The total energy applied.
     """
     particles = interaction.particles
     force_scale = interaction.scale
-    force_limit = interaction.max_force
 
     if interaction.mass_weighted:
         # distribute weight by particle mass
@@ -159,41 +171,8 @@ def _apply_force_to_particles(
     # scale force and distribute over each particle according to weighting
     interaction_forces = force_scale * raw_force * interaction_weights
 
-    # bring energy/forces within limit
-    interaction_energy = clip_both_by_limit(
-        force_limit, interaction_forces, interaction_energy
-    )
-    # interaction_energy = rescale_force_to_limit(force_limit, interaction_forces, interaction_energy)
-    # interaction_energy = rescale_energy_to_limit(force_limit, interaction_forces, interaction_energy)
-
     forces[particles] += interaction_forces
     return interaction_energy
-
-
-def rescale_force_to_limit(force_limit, forces, energy):
-    # find largest magnitude among forces
-    force_magnitudes_squared = np.square(forces).sum(axis=1)
-    max_force_magnitude = math.sqrt(np.max(force_magnitudes_squared))
-
-    if max_force_magnitude > force_limit:
-        scale = force_limit / max_force_magnitude
-        forces *= scale
-        energy *= scale
-    return energy
-
-
-def rescale_energy_to_limit(energy_limit, forces, energy):
-    if energy > energy_limit:
-        scale = energy_limit / energy
-        forces *= scale
-        energy *= scale
-    return energy
-
-
-def clip_both_by_limit(limit, forces, energy):
-    np.clip(forces, -limit, limit, out=forces)
-    energy = np.clip(energy, -limit, limit)
-    return energy
 
 
 def wrap_pbc(positions: np.ndarray, periodic_box_lengths: np.ndarray):
@@ -256,6 +235,7 @@ def calculate_gaussian_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
     periodic_box_lengths: npt.NDArray | None = None,
+    force_magnitude_limit: float | None = None,
 ) -> tuple[float, npt.NDArray]:
     """
     Computes the interactive Gaussian force.
@@ -265,7 +245,8 @@ def calculate_gaussian_force(
 
     :param particle_position: The position of the particle.
     :param interaction_position: The position of the interaction.
-    :param periodic_box_lengths: The periodic box vectors. If passed,
+    :param periodic_box_lengths: Vector of periodic boundary lengths.
+    :param force_magnitude_limit: Maximum magnitude permitted for this force.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
     # The width of the Gaussian. Increasing this results in a more diffuse, but longer reaching interaction.
@@ -281,6 +262,16 @@ def calculate_gaussian_force(
     energy = -gauss
     # force is negative derivative of energy wrt to position. The minus in the energy cancels with the derivative.
     force = -(diff / sigma_sqr) * gauss
+
+    if force_magnitude_limit is not None:
+        # maximum possible force with any distance
+        force_magnitude_max = 1 / (sigma * _E_SQR)
+
+        if force_magnitude_max > force_magnitude_limit:
+            limit_scale = force_magnitude_limit / force_magnitude_max
+            energy *= limit_scale
+            force *= limit_scale
+
     return energy, force
 
 
@@ -288,6 +279,7 @@ def calculate_spring_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
     periodic_box_lengths: npt.NDArray | None = None,
+    force_magnitude_limit: float | None = None,
 ) -> tuple[float, npt.NDArray]:
     """
     Computes the interactive harmonic potential (or spring) force.
@@ -297,8 +289,8 @@ def calculate_spring_force(
 
     :param particle_position: The position of the particle.
     :param interaction_position: The position of the interaction.
-    :param k: The spring constant. A higher value results in a stronger force.
     :param periodic_box_lengths: Vector of periodic boundary lengths.
+    :param force_magnitude_limit: Maximum magnitude permitted for this force.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
     # The spring constant. A higher value results in a stronger force.
@@ -308,9 +300,20 @@ def calculate_spring_force(
     g = interaction_position
 
     diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
+
+    if force_magnitude_limit is not None:
+        # distance at which maximum force is reached
+        max_force_distance = force_magnitude_limit / k
+
+        # if distance exceeds max distance, cap distance to max
+        if dist_sqr > max_force_distance * max_force_distance:
+            diff *= max_force_distance / np.sqrt(dist_sqr)
+            dist_sqr = max_force_distance * max_force_distance
+
     energy = 0.5 * k * dist_sqr
     # force is negative derivative of energy wrt to position.
     force = -k * diff
+
     return energy, force
 
 
@@ -318,6 +321,7 @@ def calculate_constant_force(
     particle_position: npt.NDArray,
     interaction_position: npt.NDArray,
     periodic_box_lengths: npt.NDArray | None = None,
+    force_magnitude_limit: float | None = None,
 ) -> tuple[float, npt.NDArray]:
     """
     Applies a constant force that is independent of the distance between the particle and the interaction site. Applies
@@ -326,6 +330,7 @@ def calculate_constant_force(
     :param particle_position: The position of the particle.
     :param interaction_position: The position of the interaction.
     :param periodic_box_lengths: Vector of periodic boundary lengths.
+    :param force_magnitude_limit: Maximum magnitude permitted for this force.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
     distance_vector = _minimum_image(
@@ -334,7 +339,11 @@ def calculate_constant_force(
     distance_magnitude = np.linalg.norm(distance_vector)
 
     if distance_magnitude > 0:
-        force = distance_vector / distance_magnitude
+        unit_force = distance_vector / distance_magnitude
+        magnitude = (
+            1 if force_magnitude_limit is None else min(1, force_magnitude_limit)
+        )
+        force = unit_force * magnitude
         energy = 1
     else:
         force = distance_vector * 0
