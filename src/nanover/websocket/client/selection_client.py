@@ -21,7 +21,7 @@ class SelectionClient(WebsocketClient):
         super().__init__(*args, **kwargs)
         self._player_id = str(uuid4())
 
-    @property  # type: ignore
+    @property
     def root_selection(self) -> RenderingSelection:
         """
         Get the root selection, creating it if it does not exist yet.
@@ -91,14 +91,14 @@ class SelectionClient(WebsocketClient):
         for selection in selections:
             self.remove_selection(selection)
 
-    @property  # type: ignore
+    @property
     def selections(self) -> Iterable[RenderingSelection]:
         """
         Get all selections which are stored in the shared key store.
 
         :return: An iterable of all the selections stored in the shared key store.
         """
-        for key in self._state_dictionary.copy_content():  # type: ignore
+        for key in self._state_dictionary.copy_content():
             if key.startswith("selection."):
                 yield self.get_selection(key)
 
@@ -111,7 +111,7 @@ class SelectionClient(WebsocketClient):
         :param selection_id: The id of the selection
         :return: The selection if it is present
         """
-        value = self._state_dictionary.copy_content()[selection_id]  # type: ignore
+        value = self._state_dictionary.copy_content()[selection_id]
         return self._create_selection_from_dict(value)
 
     def _create_selection_from_dict(self, value) -> RenderingSelection:

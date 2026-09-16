@@ -126,7 +126,7 @@ def is_in_network(address: str, interface_address_entry: snicaddr) -> bool:
         # time being.
         # TODO: Fix this line as the types seem to be incorrect.
         ip_network = ipaddress.ip_network(
-            (network_address, interface_address_entry.netmask)  # type: ignore
+            (network_address, interface_address_entry.netmask)  # type: ignore[arg-type, ty:invalid-argument-type, ty:unused-ignore-comment, ty:unused-ignore-comment]
         )
     except ValueError:
         raise ValueError(

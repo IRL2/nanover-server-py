@@ -64,7 +64,9 @@ def fallback_encoder(obj: Any) -> Any:
     raise TypeError(f"Unknown type: {obj}")
 
 
-pack_identity = PackingPair(pack=lambda value: value, unpack=lambda value: value)  # type: ignore
+pack_identity = PackingPair[Any, Any](
+    pack=lambda value: value, unpack=lambda value: value
+)
 
 force_int = PackingPair(pack=int, unpack=int)
 
