@@ -119,6 +119,8 @@ class ParticleInteraction:
 
     @max_force.setter
     def max_force(self, value: float):
+        if value < 0:
+            raise ValueError("Max force must be positive")
         if math.isnan(value):
             raise ValueError("Max force cannot be nan")
         self._max_force = float(value)
