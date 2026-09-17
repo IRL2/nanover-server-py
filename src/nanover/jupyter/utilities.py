@@ -368,12 +368,16 @@ class StateKeysUtility:
         self._buffer = DictionaryChange()
 
     def clear(self):
+        """Clear all keys modified by this instance."""
         self._buffer = DictionaryChange(removals=self._keys)
         self._keys = set()
         self.check_flush()
 
     def clear_all(self):
-        self._buffer = DictionaryChange(removals=self.all_prefixed())
+        """Clear all keys of this type."""
+        self._buffer = DictionaryChange(
+            removals={f"{self.prefix}{key}" for key in self.all_prefixed()}
+        )
         self._keys = set()
         self.check_flush()
 
