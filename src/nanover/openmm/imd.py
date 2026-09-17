@@ -2,7 +2,10 @@
 Manage an OpenMM CustomExternalForce in conjunction with NanoVer IMD
 """
 
+from collections.abc import Iterable
+
 import numpy as np
+import numpy.typing as npt
 from openmm import CustomExternalForce, System, unit
 from openmm.app import Simulation
 
@@ -89,9 +92,19 @@ class ImdForceManager:
                 unit.nanometer / unit.picosecond
             )
 
-            for interaction in velocity_resets_interactions:
-                mean_velocity = np.average(velocities[interaction.particles], axis=0)
-                velocities[interaction.particles] -= mean_velocity
+            apply_velocity_resets_mean_velocity_removal(
+                interactions=velocity_resets_interactions,
+                velocities=velocities,
+            )
+
+            _ = simulation.integrator.getTemperature()
+
+            # apply_velocity_resets_maxwellboltzmann(
+            #     interactions=velocity_resets_interactions,
+            #     velocities=velocities,
+            #     masses=self.masses,
+            #     temperature=simulation.integrator.getTemperature(),
+            # )
 
             simulation.context.setVelocities(velocities)
 
@@ -123,6 +136,36 @@ class ImdForceManager:
                 for particle in range(system.getNumParticles())
             ]
         )
+
+
+def apply_velocity_resets_maxwellboltzmann(
+    *,
+    interactions: Iterable[ParticleInteraction],
+    velocities: npt.NDArray,
+    masses: npt.NDArray,
+    temperature: float,
+):
+    """Randomise velocities to a certain temperature using a Maxwell-Boltzmann distribution."""
+    particles: list[int] = list(
+        {particle for interaction in interactions for particle in interaction.particles}
+    )
+
+    # TODO: implement
+    _ = velocities[particles]
+    _ = masses[particles]
+
+    velocities[particles] *= 0
+
+
+def apply_velocity_resets_mean_velocity_removal(
+    *,
+    interactions: Iterable[ParticleInteraction],
+    velocities: npt.NDArray,
+):
+    """For each interaction, subtract the mean velocity of those particles."""
+    for interaction in interactions:
+        mean_velocity = np.average(velocities[interaction.particles], axis=0)
+        velocities[interaction.particles] -= mean_velocity
 
 
 def create_imd_force() -> CustomExternalForce:
