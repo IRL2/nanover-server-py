@@ -297,7 +297,7 @@ def calculate_constant_force(
 
     if distance_magnitude > 0:
         force = distance_vector / distance_magnitude
-        energy = distance_magnitude
+        energy = float(distance_magnitude)
     else:
         force = distance_vector * 0
         energy = 0
