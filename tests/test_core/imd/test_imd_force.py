@@ -379,14 +379,12 @@ def test_interaction_force_no_mass_weighting(
     expected_energy = 1 - exponential
 
     # Calculate weights for user forces (and energies)
-    weights = np.zeros(len(positions))
-    weights[selection] = (masses[selection] != 0).astype(int) / np.sum(
-        (masses[selection] != 0).astype(int)
-    )
+    weights = (masses[selection] != 0).astype(int)
+    weights = weights / np.sum(weights)
 
     # Calculate expected forces
     expected_forces = np.zeros((len(positions), 3))
-    expected_forces[selection, :] = - exponential * np.outer(weights[selection], diff)
+    expected_forces[selection, :] = - exponential * np.outer(weights, diff)
 
     # Retrieve and check energy and forces
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
