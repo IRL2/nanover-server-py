@@ -7,8 +7,17 @@ from contextlib import suppress
 from io import StringIO
 
 import MDAnalysis as mda
-import nglview
-from nglview import NGLWidget
+from ipywidgets import HTML
+
+try:
+    import nglview
+    from nglview import NGLWidget
+except ImportError as error:
+    nglview = None
+    NGLWidget = None
+    _NGLVIEW_IMPORT_ERROR = error
+else:
+    _NGLVIEW_IMPORT_ERROR = None
 
 from nanover.mdanalysis import frame_data_to_mdanalysis
 from nanover.trajectory import FrameData, MissingDataError, keys
@@ -38,7 +47,7 @@ class NGLClient(NanoverImdClient):
     """
 
     def __init__(self, *args, update_callback=None, dynamic_bonds=False, **kwargs):
-        self._view = NGLWidget()
+        self._view = NGLWidget() if nglview is not None else _make_missing_nglview_widget()
         self._structure = None
         super().__init__(*args, **kwargs)
         self.update_callback = update_callback
@@ -57,8 +66,19 @@ class NGLClient(NanoverImdClient):
         in the molecular system in Angstrom for visualisation using NGLView.
         """
         super().recv_frame(message)
+        self.refresh_view(reset_structure=message.get(keys.FRAME_INDEX, None) == 0)
 
-        if message.get(keys.FRAME_INDEX, None) == 0 and self._structure is not None:
+    def refresh_view(self, *, reset_structure=False) -> bool:
+        """
+        Refreshes the view from the latest frame data if possible.
+
+        :param reset_structure: If true, clears existing structure component before update.
+        :return: True if coordinates were updated, False otherwise.
+        """
+        if nglview is None:
+            return False
+
+        if reset_structure and self._structure is not None:
             self._view.remove_component(self._structure)
             self._structure = None
 
@@ -71,42 +91,68 @@ class NGLClient(NanoverImdClient):
                 self._view.set_coordinates(
                     {0: self.current_frame.particle_positions * 10}
                 )
+                return True
+        return False
         # TODO: Add functionality to update callback functions to allow widget customisation
 
 
-class FrameDataStructure(nglview.Structure):
-    """
-    Subclass of the nglview.Structure class that converts FrameData
-    objects to formatted strings that can be read by NGLView to
-    visualise the molecular system.
+if nglview is not None:
 
-    :param frame: The FrameData object containing the data from the
-        molecular simulation.
-    :param ext: The file extension for the structure representation
-        that is passed to NGLView, which defaults to PDB.
-    :param params: A dictionary of loading parameters that are passed
-        to NGLView (see parent class).
-    """
-
-    def __init__(self, frame, ext="pdb", params=None):
-        if params is None:
-            params = {}
-        super().__init__()
-        self.path = ""
-        self.ext = ext
-        self.params = params
-        self._frame = frame
-
-    def get_structure_string(self):
+    class FrameDataStructure(nglview.Structure):
         """
-        A function that overrides the get_structure_string function of
-        the parent class to convert the frame to a PDB formatted
-        string to be read by NGLView.
+        Subclass of the nglview.Structure class that converts FrameData
+        objects to formatted strings that can be read by NGLView to
+        visualise the molecular system.
 
-        :return: A PDB string of the molecular structure defined in the
-            frame.
+        :param frame: The FrameData object containing the data from the
+            molecular simulation.
+        :param ext: The file extension for the structure representation
+            that is passed to NGLView, which defaults to PDB.
+        :param params: A dictionary of loading parameters that are passed
+            to NGLView (see parent class).
         """
-        return frame_data_to_pdb(self._frame)
+
+        def __init__(self, frame, ext="pdb", params=None):
+            if params is None:
+                params = {}
+            super().__init__()
+            self.path = ""
+            self.ext = ext
+            self.params = params
+            self._frame = frame
+
+        def get_structure_string(self):
+            """
+            A function that overrides the get_structure_string function of
+            the parent class to convert the frame to a PDB formatted
+            string to be read by NGLView.
+
+            :return: A PDB string of the molecular structure defined in the
+                frame.
+            """
+            return frame_data_to_pdb(self._frame)
+
+else:
+
+    class FrameDataStructure:
+        def __init__(self, *_args, **_kwargs):
+            raise ModuleNotFoundError(
+                "NGLView is required for structure visualisation."
+            ) from _NGLVIEW_IMPORT_ERROR
+
+
+def _make_missing_nglview_widget():
+    return HTML(
+        "<pre>NGLView is not installed in this environment.\n"
+        "Install it with `pip install nglview` to enable molecular visualisation.</pre>"
+    )
+
+
+def is_nglview_available() -> bool:
+    """
+    Returns true if NGLView can be used in the current environment.
+    """
+    return nglview is not None
 
 
 def frame_data_to_nglwidget(frame, **kwargs):
@@ -122,6 +168,8 @@ def frame_data_to_nglwidget(frame, **kwargs):
     :return: An NGLView widget to visualise the molecular system
         described by the frame.
     """
+    if nglview is None:
+        return _make_missing_nglview_widget()
     structure = FrameDataStructure(frame)
     return NGLWidget(structure, **kwargs)
 

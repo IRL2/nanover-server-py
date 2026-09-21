@@ -108,6 +108,26 @@ The [tutorials](tutorials) folder contains [Jupyter notebooks](https://jupyter.o
 NanoVer. Please head to the [Tutorials page](https://irl2.github.io/nanover-docs/tutorials/tutorials.html) of the
 [project's documentation][nanover-docs] for more information!
 
+### Live simulation view in Jupyter (NGLView)
+
+Use `nanover.jupyter.NGLClient` to display the current server simulation frame in a notebook and keep it updated as
+the simulation advances:
+
+```python
+from nanover.jupyter import NGLClient
+
+client = NGLClient.from_discovery()
+client.view  # NGL widget
+```
+
+The widget refreshes automatically on incoming frame updates, and can be refreshed manually with:
+
+```python
+client.refresh_view()
+```
+
+If NGLView is unavailable in your environment, `client.view` shows an informative message instead of raising.
+
 ## Troubleshooting
 
 ### Connecting to servers
