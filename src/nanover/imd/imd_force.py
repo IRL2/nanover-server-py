@@ -252,21 +252,24 @@ def calculate_gaussian_force(
     # The width of the Gaussian. Increasing this results in a more diffuse, but longer reaching interaction.
     sigma = 1
 
-    # switch to math symbols used in publications.
+    # vector between particle and interaction, accounting for periodic boundaries
     r = particle_position
     g = interaction_position
     diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
-    sigma_sqr = sigma * sigma
 
+    # energy and force for a gaussian potential
+    sigma_sqr = sigma * sigma
     gauss = exp(-dist_sqr / (2 * sigma_sqr))
     energy = 1 - gauss
     # force is negative derivative of energy wrt to position. The minus in the energy cancels with the derivative.
     force = -(diff / sigma_sqr) * gauss
 
+    # scale the entire potential down to limit its peak force
     if force_magnitude_limit is not None:
-        # maximum possible force with any distance
+        # peak force of this potential
         force_magnitude_max = 1 / (sigma * _E_SQR)
 
+        # scale everything down if necessary
         if force_magnitude_max > force_magnitude_limit:
             limit_scale = force_magnitude_limit / force_magnitude_max
             energy *= limit_scale
@@ -296,11 +299,12 @@ def calculate_spring_force(
     # The spring constant. A higher value results in a stronger force.
     k = 2
 
+    # vector between particle and interaction, accounting for periodic boundaries
     r = particle_position
     g = interaction_position
-
     diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
 
+    # limit force by capping the modeled length of the spring
     if force_magnitude_limit is not None:
         # distance at which maximum force is reached
         max_force_distance = force_magnitude_limit / k
@@ -310,8 +314,8 @@ def calculate_spring_force(
             diff *= max_force_distance / np.sqrt(dist_sqr)
             dist_sqr = max_force_distance * max_force_distance
 
+    # energy and force for a harmonic potential
     energy = 0.5 * k * dist_sqr
-    # force is negative derivative of energy wrt to position.
     force = -k * diff
 
     return energy, force
@@ -333,21 +337,29 @@ def calculate_constant_force(
     :param force_magnitude_limit: Maximum magnitude permitted for this force.
     :return: The energy of the interaction, and the force to be applied to the particle.
     """
-    distance_vector = _minimum_image(
-        interaction_position - particle_position, periodic_box_lengths
-    )
-    distance_magnitude = np.linalg.norm(distance_vector)
+    # vector between particle and interaction, accounting for periodic boundaries
+    r = particle_position
+    g = interaction_position
+    diff, dist_sqr = _calculate_diff_and_sqr_distance(r, g, periodic_box_lengths)
 
-    if distance_magnitude > 0:
-        unit_force = distance_vector / distance_magnitude
-        magnitude = (
-            1 if force_magnitude_limit is None else min(1, force_magnitude_limit)
-        )
-        force = unit_force * magnitude
-        energy = float(distance_magnitude * magnitude)
-    else:
-        force = distance_vector * 0
+    # no energy and force with overlap
+    if dist_sqr <= 0:
+        force = diff * 0
         energy = 0
+        return energy, force
+
+    # force direction
+    distance = np.sqrt(dist_sqr)
+    unit_force = diff / distance
+
+    # cap force magnitude by limit
+    force_magnitude = 1
+    if force_magnitude_limit is not None:
+        force_magnitude = min(force_magnitude, force_magnitude_limit)
+
+    # energy and force
+    energy = float(distance * force_magnitude)
+    force = unit_force * force_magnitude
 
     return energy, force
 
