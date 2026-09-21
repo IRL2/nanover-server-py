@@ -127,7 +127,7 @@ client.refresh_view()
 ```
 
 If NGLView is unavailable in your environment, `NGLClient` raises an informative install error. For one-off frame
-display, `frame_data_to_nglwidget` falls back to an informative HTML message widget.
+display, `frame_data_to_nglwidget` falls back to an informative text widget.
 
 ## Troubleshooting
 
