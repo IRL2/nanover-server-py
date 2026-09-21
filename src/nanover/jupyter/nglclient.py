@@ -154,7 +154,9 @@ def _make_missing_nglview_widget():
 
 def is_nglview_available() -> bool:
     """
-    Returns true if NGLView can be used in the current environment.
+    Returns true if the nglview Python package was imported successfully.
+
+    This does not validate notebook frontend widget/extension availability.
     """
     return nglview is not None
 
