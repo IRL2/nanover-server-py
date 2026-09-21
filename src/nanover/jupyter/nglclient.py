@@ -170,7 +170,8 @@ def frame_data_to_nglwidget(frame, **kwargs):
     :param kwargs: Additional keyword arguments passed to the
         NGLWidget constructor.
     :return: An NGLView widget to visualise the molecular system
-        described by the frame.
+        described by the frame. If NGLView is unavailable, returns an
+        informative ipywidgets Label instead.
     """
     if nglview is None:
         return _make_missing_nglview_widget()
