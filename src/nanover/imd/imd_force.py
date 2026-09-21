@@ -240,7 +240,7 @@ def calculate_gaussian_force(
     sigma_sqr = sigma * sigma
 
     gauss = exp(-dist_sqr / (2 * sigma_sqr))
-    energy = -gauss
+    energy = 1 - gauss
     # force is negative derivative of energy wrt to position. The minus in the energy cancels with the derivative.
     force = -(diff / sigma_sqr) * gauss
     return energy, force
@@ -297,7 +297,7 @@ def calculate_constant_force(
 
     if distance_magnitude > 0:
         force = distance_vector / distance_magnitude
-        energy = 1
+        energy = float(distance_magnitude)
     else:
         force = distance_vector * 0
         energy = 0
