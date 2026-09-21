@@ -148,7 +148,7 @@ else:
 def _make_missing_nglview_widget():
     return Label(
         "NGLView is not installed in this environment. "
-        "Install it with `pip install nglview` to enable molecular visualisation."
+        "Install it with pip install nglview to enable molecular visualisation."
     )
 
 
