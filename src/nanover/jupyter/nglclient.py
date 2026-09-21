@@ -7,7 +7,7 @@ from contextlib import suppress
 from io import StringIO
 
 import MDAnalysis as mda
-from ipywidgets import HTML
+from ipywidgets import Label
 
 try:
     import nglview
@@ -146,9 +146,9 @@ else:
 
 
 def _make_missing_nglview_widget():
-    return HTML(
-        "<pre>NGLView is not installed in this environment.\n"
-        "Install it with `pip install nglview` to enable molecular visualisation.</pre>"
+    return Label(
+        "NGLView is not installed in this environment. "
+        "Install it with `pip install nglview` to enable molecular visualisation."
     )
 
 

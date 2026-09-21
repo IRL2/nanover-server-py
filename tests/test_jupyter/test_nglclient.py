@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from ipywidgets import HTML
+from ipywidgets import Label
 
 from nanover.jupyter import nglclient
 from nanover.trajectory import FrameData
@@ -84,7 +84,7 @@ def test_frame_data_to_nglwidget_without_nglview(monkeypatch):
 
     widget = nglclient.frame_data_to_nglwidget(FrameData())
 
-    assert isinstance(widget, HTML)
+    assert isinstance(widget, Label)
     assert "NGLView is not installed" in widget.value
     assert nglclient.is_nglview_available() is False
 
