@@ -126,7 +126,8 @@ The widget refreshes automatically on incoming frame updates, and can be refresh
 client.refresh_view()
 ```
 
-If NGLView is unavailable in your environment, `client.view` shows an informative message instead of raising.
+If NGLView is unavailable in your environment, `NGLClient` raises an informative install error. For one-off frame
+display, `frame_data_to_nglwidget` falls back to an informative HTML message widget.
 
 ## Troubleshooting
 

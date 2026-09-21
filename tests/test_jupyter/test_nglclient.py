@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from ipywidgets import HTML
 
 from nanover.jupyter import nglclient
@@ -86,3 +87,10 @@ def test_frame_data_to_nglwidget_without_nglview(monkeypatch):
     assert isinstance(widget, HTML)
     assert "NGLView is not installed" in widget.value
     assert nglclient.is_nglview_available() is False
+
+
+def test_nglclient_requires_nglview(monkeypatch):
+    monkeypatch.setattr(nglclient, "nglview", None)
+
+    with pytest.raises(ModuleNotFoundError, match="NGLView is required for NGLClient"):
+        nglclient.NGLClient()

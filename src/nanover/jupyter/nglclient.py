@@ -47,7 +47,11 @@ class NGLClient(NanoverImdClient):
     """
 
     def __init__(self, *args, update_callback=None, dynamic_bonds=False, **kwargs):
-        self._view = NGLWidget() if nglview is not None else _make_missing_nglview_widget()
+        if nglview is None:
+            raise ModuleNotFoundError(
+                "NGLView is required for NGLClient. Install it with `pip install nglview`."
+            ) from _NGLVIEW_IMPORT_ERROR
+        self._view = NGLWidget()
         self._structure = None
         super().__init__(*args, **kwargs)
         self.update_callback = update_callback
