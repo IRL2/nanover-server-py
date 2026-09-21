@@ -359,7 +359,7 @@ def calculate_constant_force(
 
     # energy and force
     energy = float(distance * force_magnitude)
-    force = unit_force * force_magnitude
+    force = -unit_force * force_magnitude
 
     return energy, force
 
