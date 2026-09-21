@@ -203,7 +203,7 @@ def test_interaction_force_max_energy(
         * 3
     )
 
-    assert np.all(np.linalg.norm(forces, axis=1) <= max_force)
+    assert np.sum(np.linalg.norm(forces, axis=1)) <= max_force
 
 
 # TODO: does it make any sense to test NaN, infinite, and negative masses?
