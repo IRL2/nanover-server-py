@@ -1,7 +1,19 @@
+import math
 from dataclasses import dataclass
+
+import numpy as np
 
 from . import Mode, NanoverJupyterUtilities
 from .transform_grabbing import TransformGrabbingContext
+
+_HOVER_CIRCLE_POINTS = 16
+_HOVER_CIRCLE_ANGLES = [
+    math.pi * 2 * i / (_HOVER_CIRCLE_POINTS - 1) for i in range(_HOVER_CIRCLE_POINTS)
+]
+
+_HOVER_CIRCLE = np.array(
+    [[math.cos(angle) / 2, 0, math.sin(angle) / 2] for angle in _HOVER_CIRCLE_ANGLES]
+)
 
 
 @dataclass(kw_only=True)
@@ -46,15 +58,25 @@ def use_transform_handles(utilities: NanoverJupyterUtilities):
                 else utilities.intersect_transform_handles(cursor["position"])
             )
             if hovered is None:
-                utilities.objects.update_shape(f"hovered.{key}")
+                utilities.objects.remove_line(f"hovered.{key}")
+                utilities.objects.remove_shape(f"hovered.{key}")
             else:
                 center, radius = hovered["sphere"]
-                utilities.objects.update_shape(
-                    f"hovered.{key}",
-                    position=center,
-                    color=[1.0, 1.0, 0.0, 0.5],
-                    size=radius * 2,
-                    parent=hovered["parent"],
-                )
+
+                if hovered.get("minimal", False):
+                    utilities.objects.update_line(
+                        f"hovered.{key}",
+                        positions=_HOVER_CIRCLE * radius + center,
+                        color=[1.0, 1.0, 0.0, 0.5],
+                        parent=hovered["parent"],
+                    )
+                else:
+                    utilities.objects.update_shape(
+                        f"hovered.{key}",
+                        position=center,
+                        color=[1.0, 1.0, 0.0, 0.5],
+                        size=radius * 2,
+                        parent=hovered["parent"],
+                    )
 
     utilities.modes.add_mode(MoveObjectMode(), "move object", icon="✊")

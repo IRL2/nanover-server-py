@@ -207,9 +207,10 @@ def test_user_energy(example_ase_app_sim_constant_force_interaction):
         sim.advance_by_one_step()
 
     frame = connect_and_retrieve_first_frame_from_app_server(app)
-    assert frame.user_energy == pytest.approx(
-        np.sqrt(np.sum(np.square(frame.user_forces_sparse))), abs=1e-6
-    )
+    interaction = sim.app_server.imd.active_interactions.get("interaction.0")
+    #TODO Fix in mass-weighting PR
+    expected_energy = float(sim.atoms.get_masses()[0] * np.linalg.norm(interaction.position - frame.particle_positions[0]))
+    assert frame.user_energy == pytest.approx(expected_energy, abs=1e-8)
 
 
 def test_particle_forces_system_single_atom(

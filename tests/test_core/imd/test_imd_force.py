@@ -141,7 +141,7 @@ def test_interaction_force_single(particles, single_interaction, scale):
         positions, masses, single_interaction, forces
     )
 
-    expected_energy = -EXP_3 * scale
+    expected_energy = (1 - EXP_3) * scale
     expected_energy = np.clip(
         expected_energy,
         -single_interaction.max_force,
@@ -226,7 +226,7 @@ def test_interaction_force_mass(
     )
 
     expected_energy = np.clip(
-        -EXP_3,
+        1 - EXP_3,
         -single_interaction.max_force,
         single_interaction.max_force,
     )
@@ -326,12 +326,13 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     com = get_center_of_mass_subset(positions, masses, selection)
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
-    expected_energy = -exp(-dist_sqr / 2)
+    exponential = exp(-dist_sqr / 2)
+    expected_energy = 1 - exponential
     expected_forces = np.zeros((len(positions), 3))
     selection_mass = np.sum(masses[selection])
     for index in selection:
         expected_forces[index, :] = (
-            diff * (masses[index] / selection_mass) * expected_energy
+            -diff * masses[index] / selection_mass * exponential
         )
 
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
@@ -374,15 +375,15 @@ def test_interaction_force_no_mass_weighting(
     com = get_center_of_mass_subset(positions, masses, selection)
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
-    expected_energy = -exp(-dist_sqr / 2)
+    exponential = np.exp(-dist_sqr / 2)
+    expected_energy = 1 - exponential
     expected_energy_per_particle = expected_energy / np.sum(
         (masses[selection] != 0).astype(int)
     )
+    expected_energy = sum(expected_energy_per_particle for _ in selection)
     expected_forces = np.zeros((len(positions), 3))
     for index in selection:
-        expected_forces[index, :] = (
-            diff * expected_energy_per_particle * (masses[index] != 0).astype(int)
-        )
+        expected_forces[index, :] = diff * exponential * (masses[index] != 0).astype(int)
 
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
     assert np.allclose(energy, expected_energy, equal_nan=True)
@@ -512,15 +513,15 @@ def test_get_com_different_array_lengths(particles):
 @pytest.mark.parametrize(
     "position, interaction_position, expected_energy, expected_force",
     [
-        ([1, 0, 0], [0, 0, 0], -EXP_1, [-EXP_1, 0, 0]),
-        ([0, 0, 0], [1, 0, 0], -EXP_1, [EXP_1, 0, 0]),
-        ([1, 3, 0], [1, 2, 0], -EXP_1, [0, -EXP_1, 0]),
-        ([1, 3, 3], [1, 3, 2], -EXP_1, [0, 0, -EXP_1]),
-        (UNIT, [0, 0, 0], -EXP_1, np.multiply(UNIT, [-EXP_1, -EXP_1, -EXP_1])),
-        ([1, 2, 3], [1, 2, 3], -1, [0, 0, 0]),
-        ([1, 1, 1], [0, 0, 0], -EXP_3, [-EXP_3] * 3),
-        ([1, 0, 0], [1, 0, 0], -1, [0, 0, 0]),
-        ([-1, -1, -1], [0, 0, 0], -EXP_3, [EXP_3] * 3),
+        ([1, 0, 0], [0, 0, 0], 1 - EXP_1, [-EXP_1, 0, 0]),
+        ([0, 0, 0], [1, 0, 0], 1 - EXP_1, [EXP_1, 0, 0]),
+        ([1, 3, 0], [1, 2, 0], 1 - EXP_1, [0, -EXP_1, 0]),
+        ([1, 3, 3], [1, 3, 2], 1 - EXP_1, [0, 0, -EXP_1]),
+        (UNIT, [0, 0, 0], 1 - EXP_1, np.multiply(UNIT, [-EXP_1, -EXP_1, -EXP_1])),
+        ([1, 2, 3], [1, 2, 3], 1 - 1, [0, 0, 0]),
+        ([1, 1, 1], [0, 0, 0], 1 - EXP_3, [-EXP_3] * 3),
+        ([1, 0, 0], [1, 0, 0], 1 - 1, [0, 0, 0]),
+        ([-1, -1, -1], [0, 0, 0], 1 - EXP_3, [EXP_3] * 3),
     ],
 )
 def test_gaussian_force(
@@ -557,7 +558,7 @@ CONSTANT_TESTS = [
     (
         position,
         interaction,
-        1,
+        np.linalg.norm(np.subtract(interaction, position)),
         np.subtract(interaction, position)
         / np.linalg.norm(np.subtract(interaction, position)),
     )
