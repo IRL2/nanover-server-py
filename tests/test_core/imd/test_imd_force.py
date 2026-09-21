@@ -175,13 +175,13 @@ def test_invalid_max_force(single_interaction, max_force):
 
 
 @pytest.mark.parametrize("max_force", [0, 1, 1000, np.inf])
-def test_interaction_force_max_energy(
+def test_interaction_force_max_force(
     particles,
     single_interaction,
     max_force,
 ):
     """
-    Tests that setting the max energy field results in the forces being capped as expected
+    Tests that setting the max force field results in the forces being capped as expected
     """
 
     positions, masses = particles
