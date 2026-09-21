@@ -378,7 +378,7 @@ def test_interaction_force_no_mass_weighting(
     exponential = np.exp(-dist_sqr / 2)
     expected_energy = 1 - exponential
 
-    # Calculate weights for user forces (and energies)
+    # Calculate normalised weights for user forces (and energies)
     weights = (masses[selection] != 0).astype(int)
     weights = weights / np.sum(weights)
 
