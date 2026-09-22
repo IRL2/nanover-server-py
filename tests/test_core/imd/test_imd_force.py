@@ -142,11 +142,6 @@ def test_interaction_force_single(particles, single_interaction, scale):
     )
 
     expected_energy = (1 - EXP_3) * scale
-    expected_energy = np.clip(
-        expected_energy,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
     expected_forces[1, :] = np.array(
         [
             -EXP_3
@@ -157,11 +152,6 @@ def test_interaction_force_single(particles, single_interaction, scale):
             )
         ]
         * 3
-    )
-    expected_forces[1, :] = np.clip(
-        expected_forces[1, :],
-        -single_interaction.max_force,
-        single_interaction.max_force,
     )
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
@@ -225,16 +215,8 @@ def test_interaction_force_mass(
         positions, masses, single_interaction, forces
     )
 
-    expected_energy = np.clip(
-        1 - EXP_3,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
-    expected_forces[1, :] = np.clip(
-        np.array([-EXP_3 * (mass / mass)] * 3),
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
+    expected_energy = 1 - EXP_3
+    expected_forces[1, :] = np.array([-EXP_3 * (mass / mass)] * 3)
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
