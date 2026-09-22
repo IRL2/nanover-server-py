@@ -115,6 +115,9 @@ class NanoverServerUtilities(NanoverSharedUtilities):
             key, callback=handler, icon=icon, label=label
         )
 
+    def remove_command(self, key):
+        self.runner.app_server.unregister_command(key)
+
     def hide_solvent(self):
         frame_data = self.runner.app_server.frame_publisher.current_frame
         universe = frame_data_to_mdanalysis(frame_data)
