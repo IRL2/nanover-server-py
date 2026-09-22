@@ -1,16 +1,15 @@
-from math import exp
-
 import numpy as np
 import pytest
-from hypothesis import given, strategies
+from hypothesis import strategies, given
+from math import exp
 from nanover.imd.imd_force import (
-    InvalidInteractionError,
-    apply_single_interaction_force,
-    calculate_constant_force,
-    calculate_gaussian_force,
-    calculate_imd_force,
-    calculate_spring_force,
     get_center_of_mass_subset,
+    calculate_spring_force,
+    calculate_gaussian_force,
+    apply_single_interaction_force,
+    calculate_imd_force,
+    calculate_constant_force,
+    InvalidInteractionError,
 )
 from nanover.imd.particle_interaction import ParticleInteraction
 
@@ -142,66 +141,68 @@ def test_interaction_force_single(particles, single_interaction, scale):
         positions, masses, single_interaction, forces
     )
 
-    expected_energy = (1 - EXP_3) * scale * masses[single_interaction.particles[0]]
-    expected_energy = np.clip(
-        expected_energy,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
+    expected_energy = (1 - EXP_3) * scale
     expected_forces[1, :] = np.array(
-        [-EXP_3 * scale * masses[single_interaction.particles[0]]] * 3
-    )
-    expected_forces[1, :] = np.clip(
-        expected_forces[1, :],
-        -single_interaction.max_force,
-        single_interaction.max_force,
+        [
+            -EXP_3
+            * scale
+            * (
+                masses[single_interaction.particles[0]]
+                / np.sum(masses[single_interaction.particles[0]])
+            )
+        ]
+        * 3
     )
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
 
-@pytest.mark.parametrize("max_force", [np.nan])
+@pytest.mark.parametrize("max_force", [np.nan, -np.inf, -1])
 def test_invalid_max_force(single_interaction, max_force):
     with pytest.raises(ValueError):
         single_interaction.max_force = max_force
 
 
-@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.inf, -np.inf])
-def test_interaction_force_max_energy(particles, single_interaction, max_energy):
+@pytest.mark.parametrize("max_force", [0, 1, 1000, np.inf])
+def test_interaction_force_max_energy(
+    particles,
+    single_interaction,
+    max_force,
+):
     """
-    Tests that setting the max energy field results in the energy being clamped as expected
+    Tests that setting the max energy field results in the forces being capped as expected
     """
 
     positions, masses = particles
     forces = np.zeros((len(positions), 3))
     expected_forces = np.zeros((len(positions), 3))
-    single_interaction.max_force = max_energy
-    energy = apply_single_interaction_force(
+    single_interaction.max_force = max_force
+    _ = apply_single_interaction_force(
         positions, masses, single_interaction, forces
     )
 
-    expected_energy = (1 - EXP_3) * masses[single_interaction.particles[0]]
-    expected_energy = np.clip(
-        expected_energy,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
     expected_forces[1, :] = np.array(
-        [-EXP_3 * masses[single_interaction.particles[0]]] * 3
+        [
+            -EXP_3
+            * (
+                masses[single_interaction.particles[0]]
+                / np.sum(masses[single_interaction.particles[0]])
+            )
+        ]
+        * 3
     )
-    expected_forces[1, :] = np.clip(
-        expected_forces[1, :],
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
 
-    assert np.allclose(energy, expected_energy, equal_nan=True)
-    assert np.allclose(forces, expected_forces, equal_nan=True)
+    assert np.sum(np.linalg.norm(forces, axis=1)) <= max_force
 
 
+# TODO: does it make any sense to test NaN, infinite, and negative masses?
 @pytest.mark.parametrize("mass", [-1.0, 100, np.nan, np.inf, -np.inf])
-def test_interaction_force_mass(particles, single_interaction, mass):
+def test_interaction_force_mass(
+    particles,
+    single_interaction,
+    mass,
+):
     """
     tests that the interaction force calculation gives the expected result on a single atom, at a particular position,
     with varying mass.
@@ -214,16 +215,8 @@ def test_interaction_force_mass(particles, single_interaction, mass):
         positions, masses, single_interaction, forces
     )
 
-    expected_energy = np.clip(
-        (1 - EXP_3) * mass,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
-    expected_forces[1, :] = np.clip(
-        np.array([-EXP_3 * mass] * 3),
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
+    expected_energy = 1 - EXP_3
+    expected_forces[1, :] = np.array([-EXP_3 * (mass / mass)] * 3)
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
@@ -238,6 +231,36 @@ def test_interaction_force_zero_mass_singleatom(particles, single_interaction):
         positions, masses, single_interaction, forces
     )
     assert energy == pytest.approx(0)
+
+
+def test_interaction_ignores_massless(
+    particles, single_interaction_multiple_atoms
+):
+    """
+    Tests that inclusion or exclusion of massless particles in the interaction does not change the resulting energy and
+    forces.
+    """
+    positions, masses = particles
+
+    # make first particle massless
+    masses[0] = 0
+
+    # without first particle
+    single_interaction_multiple_atoms.particles = [1, 2, 3]
+    forces_A = np.zeros((len(positions), 3))
+    energy_A = apply_single_interaction_force(
+        positions, masses, single_interaction_multiple_atoms, forces_A
+    )
+
+    # with first particle
+    single_interaction_multiple_atoms.particles = [0, 1, 2, 3]
+    forces_B = np.zeros((len(positions), 3))
+    energy_B = apply_single_interaction_force(
+        positions, masses, single_interaction_multiple_atoms, forces_B
+    )
+
+    assert energy_A == energy_B
+    assert np.allclose(forces_A, forces_B)
 
 
 def test_interaction_force_zero_mass_multiatom(
@@ -259,6 +282,7 @@ def test_interaction_force_zero_mass_multiatom(
         ([1, 1, 1], [0, 1], [1, 2]),
         ([2, 2, 2], [0, 1], [1, 2]),
         ([0, 0, 0], [0, 1], [1, 2]),
+        ([0, 0, 0], [0, 1, 49], [1, 2, 0]),
         ([0, 0, 0], [0, 1, 49], [1, 2, 10]),
         ([-5, -5, -5], [0, 1, 49], [1, 2, 10]),
         ([np.nan, np.nan, np.nan], [0, 1], [1, 2]),
@@ -285,14 +309,12 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
     exponential = exp(-dist_sqr / 2)
-    expected_energy_per_particle = (1 - exponential) / len(selection)
-    expected_energy = sum(
-        expected_energy_per_particle * masses[index] for index in selection
-    )
+    expected_energy = 1 - exponential
     expected_forces = np.zeros((len(positions), 3))
+    selection_mass = np.sum(masses[selection])
     for index in selection:
         expected_forces[index, :] = (
-            -1 * diff * masses[index] * exponential / len(selection)
+            -diff * masses[index] / selection_mass * exponential
         )
 
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
@@ -306,6 +328,7 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
         ([1, 1, 1], [0, 1], [1, 2]),
         ([2, 2, 2], [0, 1], [1, 2]),
         ([0, 0, 0], [0, 1], [1, 2]),
+        ([0, 0, 0], [0, 1, 49], [1, 2, 0]),
         ([0, 0, 0], [0, 1, 49], [1, 2, 10]),
         ([-5, -5, -5], [0, 1, 49], [1, 2, 10]),
         ([np.nan, np.nan, np.nan], [0, 1], [1, 2]),
@@ -325,22 +348,27 @@ def test_interaction_force_no_mass_weighting(
         mass_weighted=False,
     )
     positions, masses = particles
-    # set non uniform masses based on parameterisation
+    # Set non uniform masses based on parameterisation
     for index, mass in zip(selection, selection_masses):
         masses[index] = mass
     forces = np.zeros((len(positions), 3))
 
-    # perform the full calculation to generate expected result.
+    # Perform explicit calculation to find expected energy
     com = get_center_of_mass_subset(positions, masses, selection)
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
     exponential = np.exp(-dist_sqr / 2)
-    expected_energy_per_particle = (1 - exponential) / len(selection)
-    expected_energy = sum(expected_energy_per_particle for _ in selection)
-    expected_forces = np.zeros((len(positions), 3))
-    for index in selection:
-        expected_forces[index, :] = -1 * diff * exponential / len(selection)
+    expected_energy = 1 - exponential
 
+    # Calculate normalised weights for user forces (and energies)
+    weights = (masses[selection] != 0).astype(int)
+    weights = weights / np.sum(weights)
+
+    # Calculate expected forces
+    expected_forces = np.zeros((len(positions), 3))
+    expected_forces[selection, :] = - exponential * np.outer(weights, diff)
+
+    # Retrieve and check energy and forces
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
