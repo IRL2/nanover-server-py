@@ -186,21 +186,9 @@ def test_interaction_force_max_force(
 
     positions, masses = particles
     forces = np.zeros((len(positions), 3))
-    expected_forces = np.zeros((len(positions), 3))
     single_interaction.max_force = max_force
     _ = apply_single_interaction_force(
         positions, masses, single_interaction, forces
-    )
-
-    expected_forces[1, :] = np.array(
-        [
-            -EXP_3
-            * (
-                masses[single_interaction.particles[0]]
-                / np.sum(masses[single_interaction.particles[0]])
-            )
-        ]
-        * 3
     )
 
     assert np.all(np.linalg.norm(forces, axis=1) <= max_force)
@@ -230,8 +218,9 @@ def test_interaction_force_mass(
         -single_interaction.max_force,
         single_interaction.max_force,
     )
+    diff = positions[1, :] - single_interaction.position
     expected_forces[1, :] = np.clip(
-        np.array([-EXP_3 * (mass / mass)] * 3),
+        np.array([- diff * EXP_3 * (mass / mass)]),
         -single_interaction.max_force,
         single_interaction.max_force,
     )
