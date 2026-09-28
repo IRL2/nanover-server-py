@@ -56,7 +56,7 @@ from openmm.unit import (
     nanometer,
 )
 
-from nanover.smd.openmm import *
+from nanover.iguessmd.openmm import *
 
 # Very basic thing to test entire class as it would be used: tutorial notebook that can be tested
 
