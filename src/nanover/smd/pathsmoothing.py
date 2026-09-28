@@ -9,7 +9,7 @@ from os import PathLike
 
 from scipy.interpolate import splprep, splev
 
-from nanover.mdanalysis import NanoverParser, NanoverReader
+from nanover.mdanalysis.universe import NanoverParser, NanoverReader
 
 try:
     from ipywidgets import (
@@ -129,6 +129,7 @@ class PathSmoother:
         self.atom_positions: np.ndarray | None = None
         self.atom_indices: np.ndarray | None = None
         self.n_interaction_frames: int | None = None
+        self.constrained_atoms: np.ndarray | None = None
 
         self.all_atom_positions: np.ndarray | None = None
         self.all_user_forces: np.ndarray | None = None
@@ -156,6 +157,8 @@ class PathSmoother:
         self._atom_selection_positions: np.ndarray | None = None
         self._atom_selection_bond_indices: np.ndarray | None = None
         self._atom_selection_colours: np.ndarray | None = None
+        self._atom_selection_interacted_atoms: np.ndarray | None = None
+        self._atom_selection_constrained_atoms: np.ndarray | None = None
 
     def close_interactive_plots(self):
         """
@@ -213,6 +216,12 @@ class PathSmoother:
                 self.all_atom_positions[index] = self.universe.atoms.positions
                 self.all_user_forces[index] = timestep.data["user_forces"]
 
+        cumulative_distances = np.zeros(n_atoms)
+        for timestep in range(self.all_atom_positions.shape[0]-10):
+            cumulative_distances += np.linalg.norm(self.all_atom_positions[timestep+1] - self.all_atom_positions[timestep], axis=1)
+        if np.any(cumulative_distances == 0.0):
+            self.constrained_atoms = np.where(cumulative_distances == 0.0)[0]
+
     def retrieve_traj_data(self):
         """
         Retrieve data about the trajectory from the given trajectory file.
@@ -241,6 +250,10 @@ class PathSmoother:
                 for i in range(atom_selection.elements.size)
             ]
         )
+        if np.intersect1d(atom_selection.indices, self.atom_indices).size > 0:
+            self._atom_selection_interacted_atoms = np.intersect1d(atom_selection.indices, self.atom_indices)
+        if np.intersect1d(atom_selection.indices, self.constrained_atoms).size > 0:
+            self._atom_selection_constrained_atoms = np.intersect1d(atom_selection.indices, self.constrained_atoms)
         if guess_bonds:
             self._atom_selection_bond_indices = atom_selection.bonds.indices
 
@@ -277,6 +290,8 @@ class PathSmoother:
             self._atom_selection_positions,
             self._atom_selection_colours,
             self._atom_selection_bond_indices,
+            self.atom_indices,
+            self.constrained_atoms
         )
 
     def plot_atoms_trajectories(
@@ -312,6 +327,8 @@ class PathSmoother:
             self._atom_selection_positions,
             self._atom_selection_colours,
             self._atom_selection_bond_indices,
+            self.atom_indices,
+            self.constrained_atoms
         )
 
     def create_interactive_smoothing_plot(
@@ -390,6 +407,22 @@ class PathSmoother:
                             *self._atom_selection_positions[atom],
                             color=self._atom_selection_colours[atom],
                         )
+                    if self._atom_selection_interacted_atoms is not None:
+                        for atom in self._atom_selection_interacted_atoms:
+                            self.ax.scatter3D(
+                                *self._atom_selection_positions[atom],
+                                s=60,
+                                color='orange',
+                                alpha=0.4,
+                            )
+                    if self._atom_selection_constrained_atoms is not None:
+                        for atom in self._atom_selection_constrained_atoms:
+                            self.ax.scatter3D(
+                                *self._atom_selection_positions[atom],
+                                s=60,
+                                color='blue',
+                                alpha=0.4,
+                            )
                     if self._atom_selection_bond_indices is not None:
                         for idx_pair in self._atom_selection_bond_indices:
                             self.ax.plot(
@@ -602,6 +635,8 @@ class PathSmoother:
             self._atom_selection_positions,
             self._atom_selection_colours,
             self._atom_selection_bond_indices,
+            self.atom_indices,
+            self.constrained_atoms
         )
 
     def plot_constant_speed_trajectory(
@@ -969,6 +1004,8 @@ def plot_com_trajectory(
     initial_atom_positions: np.ndarray | None = None,
     initial_atom_colours: np.ndarray | None = None,
     initial_atom_bond_indices: np.ndarray | None = None,
+    interacted_atoms: np.ndarray | None = None,
+    constrained_atoms: np.ndarray | None = None,
 ) -> None:
     """
     Function that takes the trajectory of an atom as a NumPy array and the number of frames of the trajectory,
@@ -995,6 +1032,22 @@ def plot_com_trajectory(
             ax.scatter3D(
                 *initial_atom_positions[atom], color=initial_atom_colours[atom]
             )
+        if interacted_atoms is not None:
+            for atom in interacted_atoms:
+                ax.scatter3D(
+                    *initial_atom_positions[atom],
+                    s=60,
+                    color='orange',
+                    alpha=0.4,
+                )
+        if constrained_atoms is not None:
+            for atom in constrained_atoms:
+                ax.scatter3D(
+                    *initial_atom_positions[atom],
+                    s=60,
+                    color='blue',
+                    alpha=0.4,
+                )
         if initial_atom_bond_indices is not None:
             for idx_pair in initial_atom_bond_indices:
                 ax.plot(
@@ -1028,6 +1081,8 @@ def plot_atom_trajectories(
     initial_atom_positions: np.ndarray | None = None,
     initial_atom_colours: np.ndarray | None = None,
     initial_atom_bond_indices: np.ndarray | None = None,
+    interacted_atoms: np.ndarray | None = None,
+    constrained_atoms: np.ndarray | None = None,
 ) -> None:
     """
     Function that takes the trajectory of an atom as a NumPy array and the number of frames of the trajectory,
@@ -1055,6 +1110,22 @@ def plot_atom_trajectories(
             ax.scatter3D(
                 *initial_atom_positions[atom], color=initial_atom_colours[atom]
             )
+        if interacted_atoms is not None:
+            for atom in interacted_atoms:
+                ax.scatter3D(
+                    *initial_atom_positions[atom],
+                    s=60,
+                    color='orange',
+                    alpha=0.4,
+                )
+        if constrained_atoms is not None:
+            for atom in constrained_atoms:
+                ax.scatter3D(
+                    *initial_atom_positions[atom],
+                    s=60,
+                    color='blue',
+                    alpha=0.4,
+                )
         if initial_atom_bond_indices is not None:
             for idx_pair in initial_atom_bond_indices:
                 ax.plot(
