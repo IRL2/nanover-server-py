@@ -1214,9 +1214,15 @@ def load_iguessmd_path_data(filepath: PathLike | str):
         iguessmd_path = np.load(f)
         iguessmd_speed_nm_ps = np.load(f)
         iguessmd_timestep_ps = np.load(f)
+        results_dict = {
+            "iguessmd_path": iguessmd_path,
+            "iguessmd_speed_nm_ps": iguessmd_speed_nm_ps,
+            "iguessmd_timestep_ps": iguessmd_timestep_ps,
+        }
         try:
             iguessmd_atom_indices = np.load(f)
-            return iguessmd_path, iguessmd_speed_nm_ps, iguessmd_timestep_ps, iguessmd_atom_indices
+            results_dict["iguessmd_atom_indices"] = iguessmd_atom_indices
+            return results_dict
         except Exception:
             raise Warning("Atom indices not present in file and could not be loaded.")
-            return iguessmd_path, iguessmd_speed_nm_ps, iguessmd_timestep_ps
+            return results_dict
