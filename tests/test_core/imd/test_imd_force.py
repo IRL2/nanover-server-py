@@ -142,11 +142,6 @@ def test_interaction_force_single(particles, single_interaction, scale):
     )
 
     expected_energy = (1 - EXP_3) * scale
-    expected_energy = np.clip(
-        expected_energy,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
     expected_forces[1, :] = np.array(
         [
             -EXP_3
@@ -157,11 +152,6 @@ def test_interaction_force_single(particles, single_interaction, scale):
             )
         ]
         * 3
-    )
-    expected_forces[1, :] = np.clip(
-        expected_forces[1, :],
-        -single_interaction.max_force,
-        single_interaction.max_force,
     )
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
@@ -191,7 +181,7 @@ def test_interaction_force_max_force(
         positions, masses, single_interaction, forces
     )
 
-    assert np.all(np.linalg.norm(forces, axis=1) <= max_force)
+    assert np.sum(np.linalg.norm(forces, axis=1)) <= max_force
 
 
 # TODO: does it make any sense to test NaN, infinite, and negative masses?
@@ -213,17 +203,9 @@ def test_interaction_force_mass(
         positions, masses, single_interaction, forces
     )
 
-    expected_energy = np.clip(
-        1 - EXP_3,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
+    expected_energy = 1 - EXP_3
     diff = positions[1, :] - single_interaction.position
-    expected_forces[1, :] = np.clip(
-        np.array([- diff * EXP_3 * (mass / mass)]),
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
+    expected_forces[1, :] = np.array([- diff * EXP_3 * (mass / mass)])
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
