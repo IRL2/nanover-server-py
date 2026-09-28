@@ -570,8 +570,8 @@ class OpenMMSMDSimulation:
                 * self.smd_path_tangents
             )
         )
-        # self.smd_simulation_forces = -self.smd_force_constant * (
-        #     interaction_centre_positions - self.smd_path
+        # self.iguessmd_simulation_forces = -self.iguessmd_force_constant * (
+        #     interaction_centre_positions - self.iguessmd_path
         # )
         self.smd_simulation_forces = parallel_forces + perpendicular_forces
 

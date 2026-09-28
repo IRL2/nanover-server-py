@@ -25,7 +25,7 @@ Things to test:
 - The class can generate the correct number of starting structures in the specified
   time interval, and that these are saved to the correct location [√]
 - Running an SMD simulation produces reasonable results for the cumulative work done [√]
-- _calculate_smd_forces works as expected [√]
+- _calculate_iguessmd_forces works as expected [√]
 - _calculate_work_done works as expected [√]
 - Simulation data is saved in the correct format to the correct location, and can be
   subsequently loaded back into python correctly [√]
@@ -35,8 +35,8 @@ Things to test:
 - For OpenMMSMDSimulationCOM, the COM of the specified atoms is correctly calculated [√]
 - For OpenMMSMDSimulationCOM, the trajectory of the COM of the specified atoms is
   correctly calculated [√]
-- smd_com_force works as expected [√]
-- smd_single_atom_force works as expected [√]
+- iguessmd_com_force works as expected [√]
+- iguessmd_single_atom_force works as expected [√]
 - OpenMMSMDSimulation correctly loads the state of a simulation [√]
 """
 # TODO: Write tests that check the parallel and perpendicular force constants individually in the case that they are different
@@ -310,53 +310,53 @@ def make_basic_simulation_xml(tmp_path):
 
 @pytest.fixture
 def make_basic_smd_simulation_with_atom_smd_force_xml(tmp_path):
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         TEST_SMD_SINGLE_INDEX,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
     xml_path = tmp_path / "basic_smd_simulation.xml"
-    smd_sim.save_simulation(xml_path, save_state=True, save_smd_force=True)
+    smd_sim.save_simulation(xml_path, save_state=True, save_iguessmd_force=True)
     return xml_path
 
 
 @pytest.fixture
 def make_basic_smd_simulation_with_com_smd_force_xml(tmp_path):
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         TEST_SMD_MULTIPLE_INDICES,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
     xml_path = tmp_path / "basic_smd_simulation.xml"
-    smd_sim.save_simulation(xml_path, save_state=True, save_smd_force=True)
+    smd_sim.save_simulation(xml_path, save_state=True, save_iguessmd_force=True)
     return xml_path
 
 
 @pytest.fixture
 def make_basic_smd_simulation_without_atom_smd_force_xml(tmp_path):
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         TEST_SMD_SINGLE_INDEX,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
     xml_path = tmp_path / "basic_smd_simulation.xml"
-    smd_sim.save_simulation(xml_path, save_state=True, save_smd_force=False)
+    smd_sim.save_simulation(xml_path, save_state=True, save_iguessmd_force=False)
     return xml_path
 
 
 @pytest.fixture
 def make_basic_smd_simulation_without_com_smd_force_xml(tmp_path):
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         TEST_SMD_MULTIPLE_INDICES,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
     xml_path = tmp_path / "basic_smd_simulation.xml"
-    smd_sim.save_simulation(xml_path, save_state=True, save_smd_force=False)
+    smd_sim.save_simulation(xml_path, save_state=True, save_iguessmd_force=False)
     return xml_path
 
 
@@ -364,7 +364,7 @@ def test_load_smd_sim_from_simulation():
     """
     Test that an OpenMMSMDSimulation can be correctly loaded from an OpenMM simulation.
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         TEST_SMD_SINGLE_INDEX,
         TEST_SMD_PATH,
@@ -372,16 +372,16 @@ def test_load_smd_sim_from_simulation():
     )
     assert smd_sim
     assert smd_sim.simulation
-    assert np.array_equal(smd_sim.smd_path, TEST_SMD_PATH)
-    assert np.array_equal(smd_sim.smd_atom_indices, TEST_SMD_SINGLE_INDEX)
-    assert smd_sim.smd_force_constant == TEST_SMD_FORCE_CONSTANT
+    assert np.array_equal(smd_sim.iguessmd_path, TEST_SMD_PATH)
+    assert np.array_equal(smd_sim.iguessmd_atom_indices, TEST_SMD_SINGLE_INDEX)
+    assert smd_sim.iguessmd_force_constant == TEST_SMD_FORCE_CONSTANT
 
 
 def test_load_smd_sim_from_xml_path(make_basic_simulation_xml):
     """
     Test that an OpenMMSMDSimulation can be correctly loaded from a NanoVer OpenMM XML file.
     """
-    smd_sim = OpenMMSMDSimulation.from_xml_path(
+    smd_sim = OMMiGUESSMDSimulation.from_xml_path(
         make_basic_simulation_xml,
         TEST_SMD_SINGLE_INDEX,
         TEST_SMD_PATH,
@@ -390,9 +390,9 @@ def test_load_smd_sim_from_xml_path(make_basic_simulation_xml):
     assert smd_sim
     assert smd_sim.xml_path == make_basic_simulation_xml
     assert smd_sim.simulation
-    assert np.array_equal(smd_sim.smd_path, TEST_SMD_PATH)
-    assert np.array_equal(smd_sim.smd_atom_indices, TEST_SMD_SINGLE_INDEX)
-    assert smd_sim.smd_force_constant == TEST_SMD_FORCE_CONSTANT
+    assert np.array_equal(smd_sim.iguessmd_path, TEST_SMD_PATH)
+    assert np.array_equal(smd_sim.iguessmd_atom_indices, TEST_SMD_SINGLE_INDEX)
+    assert smd_sim.iguessmd_force_constant == TEST_SMD_FORCE_CONSTANT
 
 
 def test_load_smd_simulation_with_atom_smd_force_from_xml_path(
@@ -401,17 +401,17 @@ def test_load_smd_simulation_with_atom_smd_force_from_xml_path(
     """
     Check that when an input file containing a single atom SMD force is passed to the
     OpenMMSMDSimulation class, the SMD force is loaded correctly from the file using
-    check_for_existing_smd_force(), and that the parameters for the SMD force match
+    check_for_existing_iguessmd_force(), and that the parameters for the SMD force match
     those that are passed via the file.
     """
     with redirect_stdout(StringIO()) as _:
-        smd_sim = OpenMMSMDSimulation.from_xml_path(
+        smd_sim = OMMiGUESSMDSimulation.from_xml_path(
             make_basic_smd_simulation_with_atom_smd_force_xml,
             TEST_SMD_SINGLE_INDEX,
             TEST_SMD_PATH,
             TEST_SMD_FORCE_CONSTANT,
         )
-        assert smd_sim.loaded_smd_force_from_sim
+        assert smd_sim.loaded_iguessmd_force_from_sim
 
 
 def test_load_smd_simulation_with_com_smd_force_from_xml_path(
@@ -420,17 +420,17 @@ def test_load_smd_simulation_with_com_smd_force_from_xml_path(
     """
     Check that when an input file containing a COM SMD force is passed to the
     OpenMMSMDSimulation class, the SMD force is loaded correctly from the file using
-    check_for_existing_smd_force(), and that the parameters for the SMD force match
+    check_for_existing_iguessmd_force(), and that the parameters for the SMD force match
     those that are passed via the file.
     """
     with redirect_stdout(StringIO()) as _:
-        smd_sim = OpenMMSMDSimulation.from_xml_path(
+        smd_sim = OMMiGUESSMDSimulation.from_xml_path(
             make_basic_smd_simulation_with_com_smd_force_xml,
             TEST_SMD_MULTIPLE_INDICES,
             TEST_SMD_PATH,
             TEST_SMD_FORCE_CONSTANT,
         )
-        assert smd_sim.loaded_smd_force_from_sim
+        assert smd_sim.loaded_iguessmd_force_from_sim
 
 
 def test_load_smd_simulation_without_atom_smd_force_from_xml_path(
@@ -440,13 +440,13 @@ def test_load_smd_simulation_without_atom_smd_force_from_xml_path(
     Check that when an xml input file is saved from an OpenMMSMDSimulationAtom class
     without the SMD force, the SMD force is not loaded from the file.
     """
-    smd_sim = OpenMMSMDSimulation.from_xml_path(
+    smd_sim = OMMiGUESSMDSimulation.from_xml_path(
         make_basic_smd_simulation_without_atom_smd_force_xml,
         TEST_SMD_SINGLE_INDEX,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
-    assert not smd_sim.loaded_smd_force_from_sim
+    assert not smd_sim.loaded_iguessmd_force_from_sim
 
 
 def test_load_smd_simulation_without_com_smd_force_from_xml_path(
@@ -456,20 +456,20 @@ def test_load_smd_simulation_without_com_smd_force_from_xml_path(
     Check that when an xml input file is saved from an OpenMMSMDSimulationCOM class
     without the SMD force, the SMD force is not loaded from the file.
     """
-    smd_sim = OpenMMSMDSimulation.from_xml_path(
+    smd_sim = OMMiGUESSMDSimulation.from_xml_path(
         make_basic_smd_simulation_without_com_smd_force_xml,
         TEST_SMD_MULTIPLE_INDICES,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
-    assert not smd_sim.loaded_smd_force_from_sim
+    assert not smd_sim.loaded_iguessmd_force_from_sim
 
 
 @pytest.mark.parametrize(
     "indices, sim_type",
     [
-        (TEST_SMD_SINGLE_INDEX, OpenMMSMDSimulationAtom),
-        (TEST_SMD_MULTIPLE_INDICES, OpenMMSMDSimulationCOM),
+        (TEST_SMD_SINGLE_INDEX, OMMiGUESSMDSimulationAtom),
+        (TEST_SMD_MULTIPLE_INDICES, OMMiGUESSMDSimulationCOM),
     ],
 )
 def test_return_correct_smd_sim_type(indices, sim_type):
@@ -482,7 +482,7 @@ def test_return_correct_smd_sim_type(indices, sim_type):
       test one single index and one set of indices)
     :param sim_type: Type of simulation to expect for the indices given
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
@@ -506,7 +506,7 @@ def test_simulation_pbcs_are_respected(apply_pbcs, indices):
     """
     sim = build_basic_simulation(pbcs=apply_pbcs)
     uses_pbcs = sim.system.usesPeriodicBoundaryConditions()
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         sim,
         indices,
         TEST_SMD_PATH,
@@ -529,14 +529,14 @@ def test_smd_force_attaches_to_correct_atom(index):
     :param index: Indices of atoms to apply the SMD force to (should be arrays containing
       a single index)
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         index,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
     # Attaches force to single atom, so index of atom within force is zero
-    p_index, p_params = smd_sim.smd_force.getParticleParameters(0)
+    p_index, p_params = smd_sim.iguessmd_force.getParticleParameters(0)
     assert p_index == index
     assert np.array_equal(
         np.array(p_params), np.array([*TEST_SMD_PATH[0], *TEST_SMD_PATH_TANGENTS[0]])
@@ -560,14 +560,14 @@ def test_smd_force_attaches_to_correct_atoms(indices):
     :param indices: Indices of atoms to apply the SMD force to (should be arrays of multiple
       indices)
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
     # Only one centroid force added, index of force is zero
-    p_indices, _ = smd_sim.smd_force.getGroupParameters(0)
+    p_indices, _ = smd_sim.iguessmd_force.getGroupParameters(0)
     assert np.array_equal(np.array(p_indices), indices)
 
 
@@ -580,7 +580,7 @@ def test_reset(indices):
     :param indices: Indices of atoms to apply the SMD force to (should at least
       test one single index and one set of indices)
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
@@ -588,11 +588,11 @@ def test_reset(indices):
     )
 
     with redirect_stdout(StringIO()) as _:
-        smd_sim.run_smd()
+        smd_sim.run_iguessmd()
         smd_sim.reset()
 
     # Create a fresh copy of the SMD simulation
-    smd_sim_copy = OpenMMSMDSimulation.from_simulation(
+    smd_sim_copy = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
@@ -602,7 +602,7 @@ def test_reset(indices):
     # Check that the attributes that were created during the SMD simulation
     # are no longer present in the class
     try:
-        assert smd_sim.smd_simulation_forces or smd_sim_copy.smd_simulation_work_done
+        assert smd_sim.iguessmd_simulation_forces or smd_sim_copy.iguessmd_simulation_work_done
     except AttributeError:
         pass
 
@@ -628,44 +628,44 @@ def test_reset(indices):
     assert smd_sim_state.getKineticEnergy() == smd_sim_copy_state.getKineticEnergy()
     assert smd_sim_state.getPotentialEnergy() == smd_sim_copy_state.getPotentialEnergy()
     assert np.array_equal(
-        smd_sim.smd_simulation_atom_positions,
-        smd_sim_copy.smd_simulation_atom_positions,
+        smd_sim.iguessmd_simulation_atom_positions,
+        smd_sim_copy.iguessmd_simulation_atom_positions,
     )
 
     # Check the arguments passed to the OpenMMSMDSimulation class are unchanged by the reset
-    assert np.array_equal(smd_sim.smd_atom_indices, smd_sim_copy.smd_atom_indices)
-    assert np.array_equal(smd_sim.smd_path, smd_sim_copy.smd_path)
-    assert np.array_equal(smd_sim.smd_force_constant, smd_sim_copy.smd_force_constant)
+    assert np.array_equal(smd_sim.iguessmd_atom_indices, smd_sim_copy.iguessmd_atom_indices)
+    assert np.array_equal(smd_sim.iguessmd_path, smd_sim_copy.iguessmd_path)
+    assert np.array_equal(smd_sim.iguessmd_force_constant, smd_sim_copy.iguessmd_force_constant)
 
     # Check that the SMD force attached to the simulation is correctly reset
     assert np.array_equal(
-        smd_sim.current_smd_force_position, smd_sim_copy.current_smd_force_position
+        smd_sim.current_iguessmd_force_position, smd_sim_copy.current_iguessmd_force_position
     )
     assert (
-        smd_sim.current_smd_force_position_index
-        == smd_sim_copy.current_smd_force_position_index
+        smd_sim.current_iguessmd_force_position_index
+        == smd_sim_copy.current_iguessmd_force_position_index
     )
     assert (
-        smd_sim.smd_force.getEnergyFunction()
-        == smd_sim_copy.smd_force.getEnergyFunction()
+        smd_sim.iguessmd_force.getEnergyFunction()
+        == smd_sim_copy.iguessmd_force.getEnergyFunction()
     )
     # Class-specific checks
-    if type(smd_sim) == OpenMMSMDSimulationAtom:
-        assert smd_sim.smd_force.getParticleParameters(
+    if type(smd_sim) == OMMiGUESSMDSimulationAtom:
+        assert smd_sim.iguessmd_force.getParticleParameters(
             0
-        ) == smd_sim_copy.smd_force.getParticleParameters(0)
-        assert smd_sim.smd_force.getNumParticles() == 1
-    elif type(smd_sim) == OpenMMSMDSimulationCOM:
-        assert smd_sim.smd_force.getGroupParameters(
+        ) == smd_sim_copy.iguessmd_force.getParticleParameters(0)
+        assert smd_sim.iguessmd_force.getNumParticles() == 1
+    elif type(smd_sim) == OMMiGUESSMDSimulationCOM:
+        assert smd_sim.iguessmd_force.getGroupParameters(
             0
-        ) == smd_sim_copy.smd_force.getGroupParameters(0)
-        assert smd_sim.smd_force.getNumBonds() == 1
+        ) == smd_sim_copy.iguessmd_force.getGroupParameters(0)
+        assert smd_sim.iguessmd_force.getNumBonds() == 1
 
     # Check other relevant properties of the OpenMMSMDSimulation class match those of the
     # fresh copy after the reset
     assert np.array_equal(
-        smd_sim.smd_simulation_atom_positions,
-        smd_sim_copy.smd_simulation_atom_positions,
+        smd_sim.iguessmd_simulation_atom_positions,
+        smd_sim_copy.iguessmd_simulation_atom_positions,
     )
 
 
@@ -678,33 +678,33 @@ def test_smd_force_added_to_system(indices):
     :param indices: Indices of atoms to apply the SMD force to (should at least
       test one single index and one set of indices)
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
     last_force = smd_sim.simulation.system.getForces()[-1]
-    assert type(last_force) == type(smd_sim.smd_force)
-    assert last_force.getEnergyFunction() == smd_sim.smd_force.getEnergyFunction()
+    assert type(last_force) == type(smd_sim.iguessmd_force)
+    assert last_force.getEnergyFunction() == smd_sim.iguessmd_force.getEnergyFunction()
     assert last_force.getForceGroup() == 31
     # Subclass-specific force type check
-    if type(smd_sim) == OpenMMSMDSimulationAtom:
-        assert type(smd_sim.smd_force) == CustomExternalForce
-    elif type(smd_sim) == OpenMMSMDSimulationCOM:
-        assert type(smd_sim.smd_force) == CustomCentroidBondForce
+    if type(smd_sim) == OMMiGUESSMDSimulationAtom:
+        assert type(smd_sim.iguessmd_force) == CustomExternalForce
+    elif type(smd_sim) == OMMiGUESSMDSimulationCOM:
+        assert type(smd_sim.iguessmd_force) == CustomCentroidBondForce
 
 
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
 def test_smd_force_removed_from_system(indices):
     """
     Check that the SMD force is correctly removed from the OpenMM simulation upon calling
-    remove_smd_force_from_system().
+    remove_iguessmd_force_from_system().
 
     :param indices: Indices of atoms to apply the SMD force to (should at least
       test one single index and one set of indices)
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
@@ -720,7 +720,7 @@ def test_smd_force_removed_from_system(indices):
     # Check that the number of forces before and after removal of the SMD
     # force make sense (that only a single SMD force is removed)
     n_forces_before_removal = smd_sim.simulation.system.getNumForces()
-    smd_sim.remove_smd_force_from_system()
+    smd_sim.remove_iguessmd_force_from_system()
     n_forces_after_removal = smd_sim.simulation.system.getNumForces()
     assert n_forces_before_removal == n_forces_after_removal + 1
 
@@ -729,7 +729,7 @@ def test_smd_force_removed_from_system(indices):
     system_forces = smd_sim.simulation.system.getForces()
     for force in system_forces:
         try:
-            assert force.getEnergyFunction() != smd_sim.smd_force.getEnergyFunction()
+            assert force.getEnergyFunction() != smd_sim.iguessmd_force.getEnergyFunction()
         except AttributeError:
             pass
     # TODO: Figure out if it's possible to remove the force constant
@@ -744,12 +744,12 @@ def test_smd_force_removed_from_system(indices):
 def test_smd_force_updates_correctly(indices):
     """
     Check that the position of the SMD force is correctly updated upon calling
-    update_smd_force_position().
+    update_iguessmd_force_position().
 
     :param indices: Indices of atoms to apply the SMD force to (should at least
       test one single index and one set of indices)
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
@@ -763,17 +763,17 @@ def test_smd_force_updates_correctly(indices):
 
     # Update the force position and check the relevant class parameters
     # update accordingly
-    smd_sim.current_smd_force_position_index = new_force_position_index
-    smd_sim.update_smd_force_position()
-    assert np.array_equal(smd_sim.current_smd_force_position, new_force_position)
-    assert np.array_equal(smd_sim.current_smd_force_tangent, new_force_tangent)
+    smd_sim.current_iguessmd_force_position_index = new_force_position_index
+    smd_sim.update_iguessmd_force_position()
+    assert np.array_equal(smd_sim.current_iguessmd_force_position, new_force_position)
+    assert np.array_equal(smd_sim.current_iguessmd_force_tangent, new_force_tangent)
 
     # Check the subclass-specific force parameters in both the class and the system
     # which should be identical
     n_system_forces = smd_sim.simulation.system.getNumForces()
-    if type(smd_sim.smd_force) == CustomExternalForce:
+    if type(smd_sim.iguessmd_force) == CustomExternalForce:
         # OpenMMSMDSimulationAtom force parameters
-        index, position = smd_sim.smd_force.getParticleParameters(0)
+        index, position = smd_sim.iguessmd_force.getParticleParameters(0)
         assert index == indices
         assert np.array_equal(
             np.array(position), np.array([*new_force_position, *new_force_tangent])
@@ -788,9 +788,9 @@ def test_smd_force_updates_correctly(indices):
             np.array(sys_position), np.array([*new_force_position, *new_force_tangent])
         )
 
-    elif type(smd_sim.smd_force) == CustomCentroidBondForce:
+    elif type(smd_sim.iguessmd_force) == CustomCentroidBondForce:
         # OpenMMSMDSimulationCOM force parameters
-        _, bond_params = smd_sim.smd_force.getBondParameters(0)
+        _, bond_params = smd_sim.iguessmd_force.getBondParameters(0)
         assert np.array_equal(
             np.array(bond_params), np.array([*new_force_position, *new_force_tangent])
         )
@@ -810,14 +810,14 @@ def test_error_for_non_initial_restraint_during_equilibration():
     Check that the SMD simulation throws an error if the user attempts to perform an
     equilibration after updating the position of the SMD force.
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         TEST_SMD_SINGLE_INDEX,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
-    smd_sim.current_smd_force_position_index = 1
-    smd_sim.update_smd_force_position()
+    smd_sim.current_iguessmd_force_position_index = 1
+    smd_sim.update_iguessmd_force_position()
     try:
         smd_sim.run_equilibration_with_initial_restraint(n_steps=10)
     except AssertionError:
@@ -836,7 +836,7 @@ def test_generate_starting_structures(n_structures, interval_ps):
     :param interval_ps: Simulation time interval (in picoseconds) in which to
       generate the structures
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         TEST_SMD_SINGLE_INDEX,
         TEST_SMD_PATH,
@@ -853,7 +853,7 @@ def test_generate_starting_structures(n_structures, interval_ps):
                 n_structures=n_structures,
                 output_directory=output_path,
                 filename_prefix=structure_file_prefix,
-                save_smd_force=False,
+                save_iguessmd_force=False,
             )
 
             # Check that correct number of files are generated
@@ -887,7 +887,7 @@ def test_generate_starting_structures(n_structures, interval_ps):
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
 def test_calculate_smd_forces(position_shifts, indices):
     """
-    Test that the function _calculate_smd_forces correctly calculates the SMD forces
+    Test that the function _calculate_iguessmd_forces correctly calculates the SMD forces
     for a given set of positions that is passed to it. As the SMD force is harmonic,
     we expect the force to take the form
 
@@ -909,14 +909,14 @@ def test_calculate_smd_forces(position_shifts, indices):
     expected_forces = (
         np.zeros(TEST_SMD_PATH.shape) - TEST_SMD_FORCE_CONSTANT * position_shifts
     )
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
-    smd_sim._calculate_smd_forces(test_positions)
-    assert np.allclose(smd_sim.smd_simulation_forces, expected_forces, atol=1e-16)
+    smd_sim._calculate_iguessmd_forces(test_positions)
+    assert np.allclose(smd_sim.iguessmd_simulation_forces, expected_forces, atol=1e-16)
 
 
 @pytest.mark.parametrize(
@@ -955,20 +955,20 @@ def test_calculate_work_done(position_shifts, indices):
         atol=1e-16,
     )
 
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
-    smd_sim._calculate_smd_forces(test_positions)
+    smd_sim._calculate_iguessmd_forces(test_positions)
 
     # Calculate expected work done as a function of time, based on forces and
     # the vector between successive points defining the SMD coordinate. Zeroth
     # value corresponds to work done at t=0 (i.e. zero), so non-zero values
     # start at index 1. SMD paths are straight lines in the current examples,
     # so work done between each step is the same.
-    smd_force = smd_sim.smd_simulation_forces[0]
+    smd_force = smd_sim.iguessmd_simulation_forces[0]
     work_per_step = np.dot(diff, smd_force)
     expected_work_done = np.array(
         [i * work_per_step for i in range(test_positions.shape[0])]
@@ -977,13 +977,13 @@ def test_calculate_work_done(position_shifts, indices):
     # Calculate work done using function and check that the values match the
     # expected values
     smd_sim._calculate_work_done()
-    assert np.allclose(smd_sim.smd_simulation_work_done, expected_work_done, atol=1e-16)
+    assert np.allclose(smd_sim.iguessmd_simulation_work_done, expected_work_done, atol=1e-16)
 
 
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
 def test_save_smd_simulation_data(indices):
     """
-    Check that the function save_smd_simulation_data correctly saves the
+    Check that the function save_iguessmd_simulation_data correctly saves the
     data from the specific SMD simulation in the correct format to the
     correct location, and that the data can be subsequently loaded into
     Python, giving the same results as before saving
@@ -992,21 +992,21 @@ def test_save_smd_simulation_data(indices):
       test one single index and one set of indices)
     """
 
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
     with redirect_stdout(StringIO()) as _:
-        smd_sim.run_smd()
+        smd_sim.run_iguessmd()
 
     with tempfile.TemporaryDirectory() as tmpdir:
         output_path = Path(tmpdir)
         filename = "test_simulation_data.npy"
         file_path = output_path.joinpath(filename)
         # Save as float64 (currently arrays are dtype float64 internally)
-        smd_sim.save_smd_simulation_data(
+        smd_sim.save_iguessmd_simulation_data(
             file_path, atom_positions_dtype=np.float64, work_done_dtype=np.float64
         )
         assert file_path.exists()
@@ -1016,18 +1016,18 @@ def test_save_smd_simulation_data(indices):
             loaded_smd_simulation_work_done = np.load(infile)
 
             assert np.array_equal(
-                smd_sim.smd_simulation_atom_positions,
+                smd_sim.iguessmd_simulation_atom_positions,
                 loaded_smd_simulation_atom_positions,
             )
             assert np.array_equal(
-                smd_sim.smd_simulation_work_done, loaded_smd_simulation_work_done
+                smd_sim.iguessmd_simulation_work_done, loaded_smd_simulation_work_done
             )
 
 
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
 def test_save_general_smd_data(indices):
     """
-    Check that the function save_general_smd_data correctly saves the
+    Check that the function save_general_iguessmd_data correctly saves the
     data from the SMD simulation in the correct format to the
     correct location, and that the data can be subsequently loaded into
     Python, giving the same results as before saving
@@ -1035,20 +1035,20 @@ def test_save_general_smd_data(indices):
     :param indices: Indices of atoms to apply the SMD force to (should at least
       test one single index and one set of indices)
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_SMD_PATH,
         TEST_SMD_FORCE_CONSTANT,
     )
     with redirect_stdout(StringIO()) as _:
-        smd_sim.run_smd()
+        smd_sim.run_iguessmd()
 
     with tempfile.TemporaryDirectory() as tmpdir:
         output_path = Path(tmpdir)
         filename = "test_simulation_data.npy"
         file_path = output_path.joinpath(filename)
-        smd_sim.save_general_smd_data(file_path)
+        smd_sim.save_general_iguessmd_data(file_path)
         assert file_path.exists()
 
         with open(file_path, "rb") as infile:
@@ -1058,9 +1058,9 @@ def test_save_general_smd_data(indices):
             loaded_temperature = np.load(infile)
             loaded_timestep_ps = np.load(infile)
 
-            assert np.array_equal(smd_sim.smd_atom_indices, loaded_smd_atom_indices)
-            assert np.array_equal(smd_sim.smd_path, loaded_smd_path)
-            assert np.array_equal(smd_sim.smd_force_constant, loaded_smd_force_constant)
+            assert np.array_equal(smd_sim.iguessmd_atom_indices, loaded_smd_atom_indices)
+            assert np.array_equal(smd_sim.iguessmd_path, loaded_smd_path)
+            assert np.array_equal(smd_sim.iguessmd_force_constant, loaded_smd_force_constant)
             assert (
                 smd_sim.simulation.integrator.getTemperature()._value
                 == loaded_temperature
@@ -1101,7 +1101,7 @@ def test_calculate_com_smd_simulation_class(positions, masses, com):
     indices = np.array([i for i in range(masses.size)])
 
     # Create the SMD simulation
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         simulation,
         indices,
         TEST_SMD_PATH,
@@ -1128,7 +1128,7 @@ def test_calculate_com_trajectory_smd_simulation_class(positions, masses, com):
     indices = np.array([i for i in range(masses.size)])
 
     # Create the SMD simulation
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         simulation,
         indices,
         TEST_SMD_PATH,
@@ -1146,7 +1146,7 @@ def test_calculate_com_trajectory_smd_simulation_class(positions, masses, com):
         expected_com_array[i] = com + TEST_SMD_PATH[i]
 
     # Set SMD atom positions equal to the trajectory of calculated atom positions
-    smd_sim.smd_simulation_atom_positions = atom_positions
+    smd_sim.iguessmd_simulation_atom_positions = atom_positions
 
     # Calculate COM trajectory using internal function and check the calculated
     # COMs match the predicted COMs
@@ -1157,22 +1157,22 @@ def test_calculate_com_trajectory_smd_simulation_class(positions, masses, com):
 @pytest.mark.parametrize("pbcs", [True, False])
 def test_smd_com_force(pbcs):
     """
-    Check that the force produced by the function smd_com_force returns
+    Check that the force produced by the function iguessmd_com_force returns
     a force with the correct properties.
     """
-    smd_force = smd_com_force(
+    smd_force = iguessmd_com_force(
         TEST_SMD_FORCE_CONSTANT, TEST_SMD_FORCE_CONSTANT, uses_pbcs=pbcs
     )
     assert type(smd_force) == CustomCentroidBondForce
     assert smd_force.usesPeriodicBoundaryConditions() == pbcs
-    assert (smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_COM_NONPERIODIC or smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_COM_PERIODIC)
+    assert (smd_force.getEnergyFunction() == iGUESSMD_FORCE_EXPRESSION_COM_NONPERIODIC or smd_force.getEnergyFunction() == iGUESSMD_FORCE_EXPRESSION_COM_PERIODIC)
     assert (
-        smd_force.getGlobalParameterName(0)
-        == SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
+            smd_force.getGlobalParameterName(0)
+            == iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
     )
     assert (
-        smd_force.getGlobalParameterName(1)
-        == SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
+            smd_force.getGlobalParameterName(1)
+            == iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
     )
     assert smd_force.getGlobalParameterDefaultValue(0) == TEST_SMD_FORCE_CONSTANT
     assert smd_force.getNumPerBondParameters() == 6
@@ -1188,27 +1188,27 @@ def test_smd_com_force(pbcs):
 @pytest.mark.parametrize("pbcs", [True, False])
 def test_smd_single_atom_force(pbcs):
     """
-    Check that the force produced by the function smd_single_atom_force
+    Check that the force produced by the function iguessmd_single_atom_force
     returns a force with the correct properties.
     """
-    smd_force = smd_single_atom_force(
+    smd_force = iguessmd_single_atom_force(
         TEST_SMD_FORCE_CONSTANT, TEST_SMD_FORCE_CONSTANT, uses_pbcs=pbcs
     )
     assert type(smd_force) == CustomExternalForce
     #TODO: Assert commented out below no longer reflects
     # periodicity of implemented expression
-    #assert smd_force.usesPeriodicBoundaryConditions() == pbcs
+    #assert iguessmd_force.usesPeriodicBoundaryConditions() == pbcs
     if pbcs:
-        assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_ATOM_PERIODIC
+        assert smd_force.getEnergyFunction() == iGUESSMD_FORCE_EXPRESSION_ATOM_PERIODIC
     else:
-        assert smd_force.getEnergyFunction() == SMD_FORCE_EXPRESSION_ATOM_NONPERIODIC
+        assert smd_force.getEnergyFunction() == iGUESSMD_FORCE_EXPRESSION_ATOM_NONPERIODIC
     assert (
-        smd_force.getGlobalParameterName(0)
-        == SMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
+            smd_force.getGlobalParameterName(0)
+            == iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
     )
     assert (
-        smd_force.getGlobalParameterName(1)
-        == SMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
+            smd_force.getGlobalParameterName(1)
+            == iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
     )
     assert smd_force.getGlobalParameterDefaultValue(0) == TEST_SMD_FORCE_CONSTANT
     assert smd_force.getNumPerParticleParameters() == 6
@@ -1285,7 +1285,7 @@ def test_calculate_cumulative_work_done(fc_multiplier):
     assert TEST_SMD_ARGON_PATH.shape == (3, 3)
     assert TEST_SMD_ARGON_FORCE_CONSTANT == 100.0
     # Create the SMD simulation
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_single_atom_simulation(),
         TEST_SMD_ARGON_INDEX,
         TEST_SMD_ARGON_PATH,
@@ -1294,17 +1294,17 @@ def test_calculate_cumulative_work_done(fc_multiplier):
 
     # Run SMD procedure
     with redirect_stdout(StringIO()) as _:
-        smd_sim.run_smd()
+        smd_sim.run_iguessmd()
 
     # Check values of work done
-    assert smd_sim.smd_simulation_work_done[-1] == fc_multiplier * 0.01
+    assert smd_sim.iguessmd_simulation_work_done[-1] == fc_multiplier * 0.01
     assert np.array_equal(
-        smd_sim.smd_simulation_work_done, fc_multiplier * np.array([0.0, 0.0, 0.01])
+        smd_sim.iguessmd_simulation_work_done, fc_multiplier * np.array([0.0, 0.0, 0.01])
     )
 
 
 @pytest.mark.parametrize("apply_pbcs", [True, False])
-@pytest.mark.parametrize("save_smd_force", [True, False])
+@pytest.mark.parametrize("save_iguessmd_force", [True, False])
 @pytest.mark.parametrize("indices", [TEST_SMD_SINGLE_INDEX, TEST_SMD_MULTIPLE_INDICES])
 def test_load_openmm_state(apply_pbcs, save_smd_force, indices):
     """
@@ -1313,7 +1313,7 @@ def test_load_openmm_state(apply_pbcs, save_smd_force, indices):
     correct. This also implicitly tests the save_simulation
     function.
     """
-    smd_sim = OpenMMSMDSimulation.from_simulation(
+    smd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(apply_pbcs),
         indices,
         TEST_SMD_PATH,
@@ -1335,12 +1335,12 @@ def test_load_openmm_state(apply_pbcs, save_smd_force, indices):
             smd_sim.save_simulation(
                 output_filepath=file_path,
                 save_state=True,
-                save_smd_force=save_smd_force,
+                save_iguessmd_force=save_smd_force,
             )
             assert file_path.exists()
 
             # Load saved simulation
-            loaded_smd_sim = OpenMMSMDSimulation.from_xml_path(
+            loaded_smd_sim = OMMiGUESSMDSimulation.from_xml_path(
                 file_path,
                 indices,
                 TEST_SMD_PATH,

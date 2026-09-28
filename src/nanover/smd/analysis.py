@@ -12,23 +12,23 @@ def load_general_iguessmd_data(filepath: PathLike | str) -> dict:
     (if available) the atoms to which the restraint should be applied.
     :param filepath: A string defining the path to the .npy output file
       containing the general iGUESSMD data
-    :return: A dictionary containing the SMD path, restraint speed, timestep and
+    :return: A dictionary containing the iGUESSMD path, restraint speed, timestep and
       (if available) atom indices
     """
 
     assert ".npy" in filepath
 
     with open(filepath, 'rb') as general_iguessmd_data_file:
-        smd_atom_indices = np.load(general_iguessmd_data_file)
-        smd_path = np.load(general_iguessmd_data_file)
-        smd_force_constant = np.load(general_iguessmd_data_file)
+        iguessmd_atom_indices = np.load(general_iguessmd_data_file)
+        iguessmd_path = np.load(general_iguessmd_data_file)
+        iguessmd_force_constant = np.load(general_iguessmd_data_file)
         temperature = np.load(general_iguessmd_data_file)
         timestep_ps = np.load(general_iguessmd_data_file)
 
         general_iguessmd_data = {
-            'smd_atom_indices': smd_atom_indices,
-            'smd_path': smd_path,
-            'smd_force_constant': smd_force_constant,
+            'iguessmd_atom_indices': iguessmd_atom_indices,
+            'iguessmd_path': iguessmd_path,
+            'iguessmd_force_constant': iguessmd_force_constant,
             'temperature': temperature,
             'timestep_ps': timestep_ps,
         }
@@ -118,7 +118,7 @@ def calculate_pmf_second_cumulant_kJ_mol(
     via the second cumulant expansion of the Jarzynski equality.
 
     :param work_done_array_kJ_mol: N x k array of irreversible work done from a set of
-      N SMD simulations performed using a reaction coordinate defined by k positions
+      N iGUESSMD simulations performed using a reaction coordinate defined by k positions
       (in kJ mol-1).
     :param temperature_K: Temperature (in K)
     """
@@ -135,7 +135,7 @@ def calculate_pmf_exponential_average_kJ_mol(
     via the exponential average.
 
     :param work_done_array_kJ_mol: N x k array of irreversible work done from a set of
-      N SMD simulations performed using a reaction coordinate defined by k positions
+      N iGUESSMD simulations performed using a reaction coordinate defined by k positions
       (in kJ mol-1).
     :param temperature_K: Temperature (in K)
     """
@@ -144,27 +144,27 @@ def calculate_pmf_exponential_average_kJ_mol(
 
 
 def calculate_reaction_coordinate_projections(
-    smd_com_coordinates_array: np.ndarray,
-    smd_reaction_coordinate: np.ndarray,
+    iguessmd_com_coordinates_array: np.ndarray,
+    iguessmd_reaction_coordinate: np.ndarray,
     every_nth_point: int | None = None,
     include_end_point: bool = True,
 ) -> np.ndarray:
     """
     Calculate the values of the reaction coordinate for the atom/COM coordinates from
-    a set of SMD trajectories, via projection onto the reaction coordinate.
-    :param smd_com_coordinates_array: (N x k x 3) array of coordinates defining the trajectories of
-      the COM of the group pulled along a k-step SMD reaction coordinate during the N SMD simulations
+    a set of iGUESSMD trajectories, via projection onto the reaction coordinate.
+    :param iguessmd_com_coordinates_array: (N x k x 3) array of coordinates defining the trajectories of
+      the COM of the group pulled along a k-step iGUESSMD reaction coordinate during the N iGUESSMD simulations
       (in nm)
-    :param smd_reaction_coordinate: (k x 3) array of points defining the SMD reaction coordinate (in nm).
+    :param iguessmd_reaction_coordinate: (k x 3) array of points defining the iGUESSMD reaction coordinate (in nm).
     :param every_nth_point: (int | None) only calculate variance in the value of the reaction coordinate
       at every nth point on the trajectory.
     :param include_end_point: (Bool) whether to also calculate the variance for the final value of
       the RC regardless of stride defined by every nth
     :return: (N * k) array of projected reaction coordinate values
     """
-    # Calculate displacement vectors along full SMD reaction coordinate
+    # Calculate displacement vectors along full iGUESSMD reaction coordinate
     displacements = calculate_displacements_along_reaction_coordinate(
-        smd_reaction_coordinate
+        iguessmd_reaction_coordinate
     )
 
     # Assume "displacement" from final simulated point is equal to the
@@ -180,7 +180,7 @@ def calculate_reaction_coordinate_projections(
     )
 
     # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
-    restraint_vectors = smd_com_coordinates_array - smd_reaction_coordinate
+    restraint_vectors = iguessmd_com_coordinates_array - iguessmd_reaction_coordinate
     if every_nth_point is not None:
         displacements = get_every_nth(displacements, 0, every_nth_point, include_end_point)
         restraint_vectors = get_every_nth(restraint_vectors, 1, every_nth_point, include_end_point)
@@ -203,18 +203,18 @@ def calculate_reaction_coordinate_projections(
 
 
 def calculate_variance_of_reaction_coordinate(
-    smd_com_coordinates_array: np.ndarray,
-    smd_reaction_coordinate: np.ndarray,
+    iguessmd_com_coordinates_array: np.ndarray,
+    iguessmd_reaction_coordinate: np.ndarray,
     every_nth_point: int | None = None,
     include_end_point: bool = True,
 ) -> np.ndarray:
     """
-    Calculates the variance in the reaction coordinate value for a set of SMD simulations.
+    Calculates the variance in the reaction coordinate value for a set of iGUESSMD simulations.
 
-    :param smd_com_coordinates_array: (N x k x 3) array of coordinates defining the trajectories of
-      the COM of the group pulled along a k-step SMD reaction coordinate during the N SMD simulations
+    :param iguessmd_com_coordinates_array: (N x k x 3) array of coordinates defining the trajectories of
+      the COM of the group pulled along a k-step iGUESSMD reaction coordinate during the N iGUESSMD simulations
       (in nm)
-    :param smd_reaction_coordinate: (k x 3) array of points defining the SMD reaction coordinate (in nm).
+    :param iguessmd_reaction_coordinate: (k x 3) array of points defining the iGUESSMD reaction coordinate (in nm).
     :param every_nth_point: (int | None) only calculate variance in the value of the reaction coordinate
       at every nth point on the trajectory.
     :param include_end_point: (Bool) whether to also calculate the variance for the final value of
@@ -223,12 +223,12 @@ def calculate_variance_of_reaction_coordinate(
       points of the reaction coordinate (in nm^2)
     """
     reaction_coordinate_projections = calculate_reaction_coordinate_projections(
-        smd_com_coordinates_array, smd_reaction_coordinate, every_nth_point, include_end_point
+        iguessmd_com_coordinates_array, iguessmd_reaction_coordinate, every_nth_point, include_end_point
     )
 
-    # # Calculate displacement vectors along SMD reaction coordinate
+    # # Calculate displacement vectors along iGUESSMD reaction coordinate
     # displacements = calculate_displacements_along_reaction_coordinate(
-    #     smd_reaction_coordinate, every_nth_point=every_nth_point
+    #     iguessmd_reaction_coordinate, every_nth_point=every_nth_point
     # )
     #
     # # Calculate normalised displacement vectors
@@ -240,7 +240,7 @@ def calculate_variance_of_reaction_coordinate(
     # )
     #
     # # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
-    # restraint_vectors = (smd_com_coordinates_array - smd_reaction_coordinate)[:, :-1]
+    # restraint_vectors = (iguessmd_com_coordinates_array - iguessmd_reaction_coordinate)[:, :-1]
     # if every_nth_point is not None:
     #     restraint_vectors = restraint_vectors[:, ::every_nth_point]
     #
@@ -262,22 +262,22 @@ def calculate_variance_of_reaction_coordinate(
 
 
 def calculate_displacements_along_reaction_coordinate(
-    smd_reaction_coordinate: np.ndarray,
+    iguessmd_reaction_coordinate: np.ndarray,
     every_nth_point: int | None = None,
     include_end_point: bool = True,
 ) -> np.ndarray:
     """
     Calculates the displacements along the reaction coordinate (in nm)
 
-    :param smd_reaction_coordinate: (k x 3) array of points defining the SMD reaction coordinate (in nm).
+    :param iguessmd_reaction_coordinate: (k x 3) array of points defining the iGUESSMD reaction coordinate (in nm).
     :param every_nth_point: (int | None) only return the displacement from one point to the next for
       every nth point of the trajectory
     :param include_end_point: (Bool) whether to also calculate the variance for the final value of
       the RC regardless of stride defined by every nth
     :return: ((N-1) x 3) array of the displacements between the consecutive points defining the
-      SMD reaction coordinate (in nm)
+      iGUESSMD reaction coordinate (in nm)
     """
-    displacements_along_rc = np.diff(smd_reaction_coordinate, axis=0)
+    displacements_along_rc = np.diff(iguessmd_reaction_coordinate, axis=0)
     if every_nth_point is None:
         return displacements_along_rc
     else:
@@ -285,24 +285,24 @@ def calculate_displacements_along_reaction_coordinate(
 
 
 def calculate_distance_along_reaction_coordinate(
-    smd_reaction_coordinate: np.ndarray,
+    iguessmd_reaction_coordinate: np.ndarray,
     every_nth_point: int | None = None,
     include_end_point: bool = True,
 ) -> np.ndarray:
     """
     Calculates the cumulative distance travelled along the reaction coordinate (in nm)
 
-    :param smd_reaction_coordinate: (k x 3) array of points defining the SMD reaction coordinate (in nm).
+    :param iguessmd_reaction_coordinate: (k x 3) array of points defining the iGUESSMD reaction coordinate (in nm).
     :param every_nth_point: (int | None) only return the distance travelled along the reaction coordinate
       for every nth point of the trajectory
     :param include_end_point: (Bool) whether to also calculate the variance for the final value of
       the RC regardless of stride defined by every nth
-    :return: (k) array of distances defining the cumulative distance travelled by the SMD restraint
+    :return: (k) array of distances defining the cumulative distance travelled by the iGUESSMD restraint
       along the reaction coordinate (in nm)
     """
-    distance_along_rc = np.zeros(smd_reaction_coordinate.shape[0])
+    distance_along_rc = np.zeros(iguessmd_reaction_coordinate.shape[0])
     displacements_along_rc = calculate_displacements_along_reaction_coordinate(
-        smd_reaction_coordinate
+        iguessmd_reaction_coordinate
     )
     distance_along_rc[1:] = np.cumsum(np.linalg.norm(displacements_along_rc, axis=1))
     if every_nth_point is None:
