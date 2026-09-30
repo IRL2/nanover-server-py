@@ -224,7 +224,7 @@ class OMMiGUESSMDSimulation:
         self.iguessmd_atom_indices = iguessmd_atom_indices
         self.n_iguessmd_atom_indices = self.iguessmd_atom_indices.size
         self.iguessmd_path = iguessmd_path
-        if type(iguessmd_force_constant) == np.ndarray and iguessmd_force_constant.shape[0] == 2:
+        if isinstance(iguessmd_force_constant, np.ndarray) and iguessmd_force_constant.size == 2:
             self.iguessmd_force_constant = self.iguessmd_force_constant_parallel = (
                 iguessmd_force_constant[0]
             )
