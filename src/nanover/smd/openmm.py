@@ -224,7 +224,7 @@ class OpenMMSMDSimulation:
         self.smd_atom_indices = smd_atom_indices
         self.n_smd_atom_indices = self.smd_atom_indices.size
         self.smd_path = smd_path
-        if type(smd_force_constant) == np.ndarray and smd_force_constant.shape[0] == 2:
+        if type(smd_force_constant) == np.ndarray and smd_force_constant.size == 2:
             self.smd_force_constant = self.smd_force_constant_parallel = (
                 smd_force_constant[0]
             )
