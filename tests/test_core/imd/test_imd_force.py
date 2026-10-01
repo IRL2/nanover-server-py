@@ -1,3 +1,4 @@
+import hypothesis
 import numpy as np
 import pytest
 from hypothesis import strategies, given
@@ -9,9 +10,10 @@ from nanover.imd.imd_force import (
     apply_single_interaction_force,
     calculate_imd_force,
     calculate_constant_force,
-    InvalidInteractionError,
+    InvalidInteractionError, INTERACTION_METHOD_MAP, ForceCalculator,
 )
 from nanover.imd.particle_interaction import ParticleInteraction
+from nanover.testing.strategies import vec3s
 
 # precomputed results of gaussian force.
 EXP_1 = exp(-1 / 2)
@@ -397,19 +399,25 @@ def test_get_com_subset(particles):
 
 
 @strategies.composite
-def random_positions_pbc(draw):
-    """
-    Generates a random periodic box, and 50 random positions.
-    """
-
+def random_periodic_box_lengths(draw):
     # Generate random polar coordinates and convert them to euclidean
     # coordinates to get a periodic box.
     # box length has to nonzero.
     length = strategies.floats(
-        min_value=0.01, max_value=100, allow_nan=False, allow_infinity=False
+        min_value=0.01, max_value=100,
+        allow_nan=False, allow_infinity=False
     )
 
-    periodic_box_lengths = np.array([draw(length) for x in range(3)])
+    return np.array([draw(length) for _ in range(3)])
+
+
+@strategies.composite
+def random_positions_pbc(draw):
+    """
+    Generates a random periodic box, and 50 random positions.
+    """
+    periodic_box_lengths = draw(random_periodic_box_lengths())
+
     # pick two random points in lowest quadrant of the box.
     # TODO positions at or very near zero cause problems, as the wrap can flip between 0 and box length.
     lengths = np.array(
@@ -426,7 +434,11 @@ def random_positions_pbc(draw):
 
     num_particles = 4
 
-    masses = np.array([draw(length) for _ in range(num_particles)])
+    random_masses = strategies.floats(
+        min_value=0.01, max_value=100,
+        allow_nan=False, allow_infinity=False
+    )
+    masses = np.array([draw(random_masses) for _ in range(num_particles)])
 
     positions = np.zeros((num_particles, 3))
     for i in range(num_particles):
@@ -557,11 +569,51 @@ def test_constant_force(position, interaction, expected_energy, expected_force):
     assert np.allclose(force, expected_force, equal_nan=True)
 
 
-@pytest.mark.parametrize(
-    "position, interaction",
-    [([0, 0, 0], [0, 0, 0]), ([1, 2, 3], [1, 2, 3])],
+FORCE_CALCULATORS = list(INTERACTION_METHOD_MAP.values())
+
+@hypothesis.given(
+    position=vec3s(),
+    calculator=strategies.sampled_from(FORCE_CALCULATORS),
+    periodic_box_lengths=random_periodic_box_lengths(),
+    force_magnitude_limit=strategies.floats(min_value=0, allow_nan=False),
 )
-def test_constant_force_overlap(position, interaction):
-    energy, force = calculate_constant_force(np.array(position), np.array(interaction))
-    assert np.allclose(energy, 0, equal_nan=True)
-    assert np.allclose(force, 0, equal_nan=True)
+def test_overlap_no_force(
+    position,
+    calculator: ForceCalculator,
+    periodic_box_lengths,
+    force_magnitude_limit: float,
+):
+    """Test that overlapping interaction and position results in no force for all interaction types."""
+    energy, force = calculator(
+        particle_position=np.array(position),
+        interaction_position=np.array(position),
+        periodic_box_lengths=periodic_box_lengths,
+        force_magnitude_limit=force_magnitude_limit,
+    )
+    assert energy == 0
+    assert np.allclose(force, 0)
+
+
+@hypothesis.given(
+    particle_position=vec3s(),
+    interaction_position=vec3s(),
+    calculator=strategies.sampled_from(FORCE_CALCULATORS),
+    periodic_box_lengths=random_periodic_box_lengths(),
+    force_magnitude_limit=strategies.floats(min_value=0, allow_nan=False),
+)
+def test_force_magnitude_limit(
+    particle_position,
+    interaction_position,
+    calculator: ForceCalculator,
+    periodic_box_lengths,
+    force_magnitude_limit: float,
+):
+    """Tests that the force magnitude limit is never exceeded for all interaction types."""
+    _, force = calculator(
+        particle_position=np.array(particle_position),
+        interaction_position=np.array(interaction_position),
+        periodic_box_lengths=periodic_box_lengths,
+        force_magnitude_limit=force_magnitude_limit,
+    )
+    force_magnitude = np.sum(np.linalg.norm(force))
+    assert force_magnitude <= force_magnitude_limit or np.isclose(force_magnitude, force_magnitude_limit)
