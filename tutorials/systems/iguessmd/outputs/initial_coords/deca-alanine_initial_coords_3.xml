@@ -1,0 +1,4816 @@
+<OpenMMSimulation>
+	<pdbx>data_cell
+# Created with OpenMM 8.6.1, 2026-09-30
+#
+loop_
+_struct_conn.id
+_struct_conn.conn_type_id
+_struct_conn.ptnr1_label_asym_id
+_struct_conn.ptnr1_label_comp_id
+_struct_conn.ptnr1_label_seq_id
+_struct_conn.ptnr1_label_atom_id
+_struct_conn.ptnr2_label_asym_id
+_struct_conn.ptnr2_label_comp_id
+_struct_conn.ptnr2_label_seq_id
+_struct_conn.ptnr2_label_atom_id
+bond1 covale A ACE      1 C    A ACE      1 CH3 
+bond2 covale A ACE      1 C    A ACE      1 O   
+bond3 covale A ACE      1 CH3  A ACE      1 H1  
+bond4 covale A ACE      1 CH3  A ACE      1 H2  
+bond5 covale A ACE      1 CH3  A ACE      1 H3  
+bond6 covale A ACE      1 C    A ALA      2 N   
+bond7 covale A ALA     11 C    A NH2     12 N   
+bond8 covale A NH2     12 HN1  A NH2     12 N   
+bond9 covale A NH2     12 HN2  A NH2     12 N   
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+_atom_site.Cartn_x_esd
+_atom_site.Cartn_y_esd
+_atom_site.Cartn_z_esd
+_atom_site.occupancy_esd
+_atom_site.B_iso_or_equiv_esd
+_atom_site.pdbx_formal_charge
+_atom_site.auth_seq_id
+_atom_site.auth_comp_id
+_atom_site.auth_asym_id
+_atom_site.auth_atom_id
+_atom_site.pdbx_PDB_model_num
+HETATM      1 H   H1   . ACE  A ?     1 .     9.7746     0.4045    -3.6363  0.0  0.0  ?  ?  ?  ?  ?  .      1  ACE A   H1     1
+HETATM      2 C   CH3  . ACE  A ?     1 .     9.2518     1.1838    -3.0288  0.0  0.0  ?  ?  ?  ?  ?  .      1  ACE A  CH3     1
+HETATM      3 H   H2   . ACE  A ?     1 .     9.6926     2.2119    -3.0736  0.0  0.0  ?  ?  ?  ?  ?  .      1  ACE A   H2     1
+HETATM      4 H   H3   . ACE  A ?     1 .     9.3650     0.9685    -1.9240  0.0  0.0  ?  ?  ?  ?  ?  .      1  ACE A   H3     1
+HETATM      5 C   C    . ACE  A ?     1 .     7.7535     1.1656    -3.4017  0.0  0.0  ?  ?  ?  ?  ?  .      1  ACE A    C     1
+HETATM      6 O   O    . ACE  A ?     1 .     7.3384     1.2162    -4.5559  0.0  0.0  ?  ?  ?  ?  ?  .      1  ACE A    O     1
+ATOM      7 N   N    . ALA  A ?     2 .     6.8260     0.9990    -2.4150  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A    N     1
+ATOM      8 H   H    . ALA  A ?     2 .     7.2122     1.0340    -1.5113  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A    H     1
+ATOM      9 C   CA   . ALA  A ?     2 .     5.3702     0.8082    -2.6804  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A   CA     1
+ATOM     10 H   HA   . ALA  A ?     2 .     5.2192    -0.1166    -3.2216  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A   HA     1
+ATOM     11 C   CB   . ALA  A ?     2 .     4.6466     0.4070    -1.3622  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A   CB     1
+ATOM     12 H   HB1  . ALA  A ?     2 .     4.4779     1.2923    -0.7283  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A  HB1     1
+ATOM     13 H   HB2  . ALA  A ?     2 .     3.6062     0.1519    -1.5940  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A  HB2     1
+ATOM     14 H   HB3  . ALA  A ?     2 .     5.0714    -0.4490    -0.8854  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A  HB3     1
+ATOM     15 C   C    . ALA  A ?     2 .     4.7364     1.9465    -3.3873  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A    C     1
+ATOM     16 O   O    . ALA  A ?     2 .     3.6648     1.7630    -3.9698  0.0  0.0  ?  ?  ?  ?  ?  .      2  ALA A    O     1
+ATOM     17 N   N    . ALA  A ?     3 .     5.3216     3.1647    -3.2816  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A    N     1
+ATOM     18 H   H    . ALA  A ?     3 .     6.2512     3.3117    -2.8743  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A    H     1
+ATOM     19 C   CA   . ALA  A ?     3 .     4.7825     4.2216    -4.1241  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A   CA     1
+ATOM     20 H   HA   . ALA  A ?     3 .     3.6781     4.3030    -4.0812  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A   HA     1
+ATOM     21 C   CB   . ALA  A ?     3 .     5.3563     5.5523    -3.5392  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A   CB     1
+ATOM     22 H   HB1  . ALA  A ?     3 .     4.9738     5.7083    -2.5856  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A  HB1     1
+ATOM     23 H   HB2  . ALA  A ?     3 .     6.4431     5.5959    -3.4318  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A  HB2     1
+ATOM     24 H   HB3  . ALA  A ?     3 .     5.0424     6.3040    -4.2263  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A  HB3     1
+ATOM     25 C   C    . ALA  A ?     3 .     5.0406     4.0271    -5.6149  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A    C     1
+ATOM     26 O   O    . ALA  A ?     3 .     4.1900     4.5482    -6.3814  0.0  0.0  ?  ?  ?  ?  ?  .      3  ALA A    O     1
+ATOM     27 N   N    . ALA  A ?     4 .     6.0345     3.2352    -6.0366  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A    N     1
+ATOM     28 H   H    . ALA  A ?     4 .     6.8106     2.9352    -5.4754  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A    H     1
+ATOM     29 C   CA   . ALA  A ?     4 .     6.2011     2.8732    -7.4768  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A   CA     1
+ATOM     30 H   HA   . ALA  A ?     4 .     5.8991     3.7585    -8.1419  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A   HA     1
+ATOM     31 C   CB   . ALA  A ?     4 .     7.7026     2.6195    -7.7687  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A   CB     1
+ATOM     32 H   HB1  . ALA  A ?     4 .     8.1241     1.9268    -7.1001  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A  HB1     1
+ATOM     33 H   HB2  . ALA  A ?     4 .     7.7433     2.2492    -8.7906  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A  HB2     1
+ATOM     34 H   HB3  . ALA  A ?     4 .     8.2280     3.5097    -7.5560  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A  HB3     1
+ATOM     35 C   C    . ALA  A ?     4 .     5.4476     1.6839    -7.9090  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A    C     1
+ATOM     36 O   O    . ALA  A ?     4 .     5.1773     1.4574    -9.1051  0.0  0.0  ?  ?  ?  ?  ?  .      4  ALA A    O     1
+ATOM     37 N   N    . ALA  A ?     5 .     5.0907     0.8700    -6.9295  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A    N     1
+ATOM     38 H   H    . ALA  A ?     5 .     5.6473     0.9858    -6.0615  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A    H     1
+ATOM     39 C   CA   . ALA  A ?     5 .     4.2720    -0.3378    -7.0717  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A   CA     1
+ATOM     40 H   HA   . ALA  A ?     5 .     4.5901    -0.9018    -7.9955  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A   HA     1
+ATOM     41 C   CB   . ALA  A ?     5 .     4.4882    -1.3275    -5.9389  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A   CB     1
+ATOM     42 H   HB1  . ALA  A ?     5 .     3.9138    -2.2116    -6.1647  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A  HB1     1
+ATOM     43 H   HB2  . ALA  A ?     5 .     5.5519    -1.5225    -5.8708  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A  HB2     1
+ATOM     44 H   HB3  . ALA  A ?     5 .     4.0727    -0.9076    -4.9827  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A  HB3     1
+ATOM     45 C   C    . ALA  A ?     5 .     2.8706     0.0928    -7.3424  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A    C     1
+ATOM     46 O   O    . ALA  A ?     5 .     2.3145    -0.3324    -8.3411  0.0  0.0  ?  ?  ?  ?  ?  .      5  ALA A    O     1
+ATOM     47 N   N    . ALA  A ?     6 .     2.3686     1.1182    -6.6194  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A    N     1
+ATOM     48 H   H    . ALA  A ?     6 .     2.9576     1.3560    -5.8202  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A    H     1
+ATOM     49 C   CA   . ALA  A ?     6 .     1.0644     1.7177    -6.7851  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A   CA     1
+ATOM     50 H   HA   . ALA  A ?     6 .     0.2213     1.0113    -6.5677  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A   HA     1
+ATOM     51 C   CB   . ALA  A ?     6 .     0.9160     2.7307    -5.6258  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A   CB     1
+ATOM     52 H   HB1  . ALA  A ?     6 .     0.8657     2.2722    -4.6267  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A  HB1     1
+ATOM     53 H   HB2  . ALA  A ?     6 .     1.7590     3.4663    -5.7962  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A  HB2     1
+ATOM     54 H   HB3  . ALA  A ?     6 .     0.0074     3.3205    -5.8520  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A  HB3     1
+ATOM     55 C   C    . ALA  A ?     6 .     0.9869     2.4524    -8.1047  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A    C     1
+ATOM     56 O   O    . ALA  A ?     6 .    -0.0710     2.5031    -8.7046  0.0  0.0  ?  ?  ?  ?  ?  .      6  ALA A    O     1
+ATOM     57 N   N    . ALA  A ?     7 .     2.0619     2.9188    -8.6587  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A    N     1
+ATOM     58 H   H    . ALA  A ?     7 .     2.9513     2.7617    -8.1322  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A    H     1
+ATOM     59 C   CA   . ALA  A ?     7 .     2.0920     3.4349   -10.0486  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A   CA     1
+ATOM     60 H   HA   . ALA  A ?     7 .     1.1648     3.9748   -10.2595  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A   HA     1
+ATOM     61 C   CB   . ALA  A ?     7 .     3.3292     4.3206   -10.3616  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A   CB     1
+ATOM     62 H   HB1  . ALA  A ?     7 .     3.1787     5.4063   -10.1786  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A  HB1     1
+ATOM     63 H   HB2  . ALA  A ?     7 .     4.1184     4.0543    -9.6868  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A  HB2     1
+ATOM     64 H   HB3  . ALA  A ?     7 .     3.4976     4.3056   -11.4566  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A  HB3     1
+ATOM     65 C   C    . ALA  A ?     7 .     2.0031     2.3039   -11.0394  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A    C     1
+ATOM     66 O   O    . ALA  A ?     7 .     1.1156     2.3486   -11.8744  0.0  0.0  ?  ?  ?  ?  ?  .      7  ALA A    O     1
+ATOM     67 N   N    . ALA  A ?     8 .     2.7681     1.2263   -10.9787  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A    N     1
+ATOM     68 H   H    . ALA  A ?     8 .     3.5588     1.2657   -10.3775  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A    H     1
+ATOM     69 C   CA   . ALA  A ?     8 .     2.7006     0.1468   -11.9440  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A   CA     1
+ATOM     70 H   HA   . ALA  A ?     8 .     2.8910     0.5211   -12.9671  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A   HA     1
+ATOM     71 C   CB   . ALA  A ?     8 .     3.9323    -0.6758   -11.5008  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A   CB     1
+ATOM     72 H   HB1  . ALA  A ?     8 .     4.7614    -0.0007   -11.4037  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A  HB1     1
+ATOM     73 H   HB2  . ALA  A ?     8 .     3.7590    -1.2051   -10.5614  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A  HB2     1
+ATOM     74 H   HB3  . ALA  A ?     8 .     4.2224    -1.3790   -12.2788  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A  HB3     1
+ATOM     75 C   C    . ALA  A ?     8 .     1.4229    -0.6075   -11.8224  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A    C     1
+ATOM     76 O   O    . ALA  A ?     8 .     0.9638    -1.0197   -12.8677  0.0  0.0  ?  ?  ?  ?  ?  .      8  ALA A    O     1
+ATOM     77 N   N    . ALA  A ?     9 .     0.7543    -0.7016   -10.6816  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A    N     1
+ATOM     78 H   H    . ALA  A ?     9 .     1.1951    -0.1855    -9.8582  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A    H     1
+ATOM     79 C   CA   . ALA  A ?     9 .    -0.6292    -1.2849   -10.6119  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A   CA     1
+ATOM     80 H   HA   . ALA  A ?     9 .    -0.6401    -2.1975   -11.2321  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A   HA     1
+ATOM     81 C   CB   . ALA  A ?     9 .    -0.7663    -1.7891    -9.1386  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A   CB     1
+ATOM     82 H   HB1  . ALA  A ?     9 .    -0.2160    -2.7690    -9.0555  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A  HB1     1
+ATOM     83 H   HB2  . ALA  A ?     9 .    -0.4448    -1.0930    -8.3765  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A  HB2     1
+ATOM     84 H   HB3  . ALA  A ?     9 .    -1.8196    -1.9865    -8.9218  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A  HB3     1
+ATOM     85 C   C    . ALA  A ?     9 .    -1.6845    -0.2656   -11.1353  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A    C     1
+ATOM     86 O   O    . ALA  A ?     9 .    -2.8976    -0.4664   -10.9400  0.0  0.0  ?  ?  ?  ?  ?  .      9  ALA A    O     1
+ATOM     87 N   N    . ALA  A ?    10 .    -1.2829     0.8381   -11.7642  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A    N     1
+ATOM     88 H   H    . ALA  A ?    10 .    -0.2906     1.0382   -11.7104  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A    H     1
+ATOM     89 C   CA   . ALA  A ?    10 .    -2.1478     1.7759   -12.4246  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A   CA     1
+ATOM     90 H   HA   . ALA  A ?    10 .    -3.1016     1.2925   -12.4402  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A   HA     1
+ATOM     91 C   CB   . ALA  A ?    10 .    -2.1913     3.0361   -11.5774  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A   CB     1
+ATOM     92 H   HB1  . ALA  A ?    10 .    -1.2182     3.3834   -11.6600  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A  HB1     1
+ATOM     93 H   HB2  . ALA  A ?    10 .    -2.8950     3.7832   -11.9358  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A  HB2     1
+ATOM     94 H   HB3  . ALA  A ?    10 .    -2.3365     2.9050   -10.5394  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A  HB3     1
+ATOM     95 C   C    . ALA  A ?    10 .    -1.8183     2.0319   -13.9321  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A    C     1
+ATOM     96 O   O    . ALA  A ?    10 .    -2.6790     2.3225   -14.7963  0.0  0.0  ?  ?  ?  ?  ?  .     10  ALA A    O     1
+ATOM     97 N   N    . ALA  A ?    11 .    -0.5450     1.8599   -14.2971  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A    N     1
+ATOM     98 H   H    . ALA  A ?    11 .     0.1795     1.6202   -13.6400  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A    H     1
+ATOM     99 C   CA   . ALA  A ?    11 .    -0.0735     2.1307   -15.6281  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A   CA     1
+ATOM    100 H   HA   . ALA  A ?    11 .    -0.9968     2.1734   -16.2115  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A   HA     1
+ATOM    101 C   CB   . ALA  A ?    11 .     0.7771     3.4186   -15.5916  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A   CB     1
+ATOM    102 H   HB1  . ALA  A ?    11 .     1.5468     3.2221   -14.8798  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A  HB1     1
+ATOM    103 H   HB2  . ALA  A ?    11 .     1.1014     3.7066   -16.6443  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A  HB2     1
+ATOM    104 H   HB3  . ALA  A ?    11 .     0.3007     4.2424   -15.0601  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A  HB3     1
+ATOM    105 C   C    . ALA  A ?    11 .     0.8037     1.0078   -16.2022  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A    C     1
+ATOM    106 O   O    . ALA  A ?    11 .     1.6380     1.2031   -17.0949  0.0  0.0  ?  ?  ?  ?  ?  .     11  ALA A    O     1
+HETATM    107 N   N    . NH2  A ?    12 .     0.8506    -0.0970   -15.5209  0.0  0.0  ?  ?  ?  ?  ?  .     12  NH2 A    N     1
+HETATM    108 H   HN1  . NH2  A ?    12 .     0.2490    -0.3112   -14.7575  0.0  0.0  ?  ?  ?  ?  ?  .     12  NH2 A  HN1     1
+HETATM    109 H   HN2  . NH2  A ?    12 .     1.3508    -0.9155   -15.8400  0.0  0.0  ?  ?  ?  ?  ?  .     12  NH2 A  HN2     1
+</pdbx>
+	<System openmmVersion="8.6.1" type="System" version="1">
+		
+	
+		<PeriodicBoxVectors>
+			
+		
+			<A x="2" y="0" z="0"/>
+			
+		
+			<B x="0" y="2" z="0"/>
+			
+		
+			<C x="0" y="0" z="2"/>
+			
+	
+		</PeriodicBoxVectors>
+		
+	
+		<Particles>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="0"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="14.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="14.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="14.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="14.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="14.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="14.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="14.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="14.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="14.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="12.01"/>
+			
+		
+			<Particle mass="16"/>
+			
+		
+			<Particle mass="14.01"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+		
+			<Particle mass="1.008"/>
+			
+	
+		</Particles>
+		
+	
+		<Constraints/>
+		
+	
+		<Forces>
+			
+		
+			<Force forceGroup="0" name="HarmonicBondForce" type="HarmonicBondForce" usesPeriodic="0" version="2">
+				
+			
+				<Bonds>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="4" p2="1"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="4" p2="5"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="1" p2="0"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="1" p2="2"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="1" p2="3"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="4" p2="6"/>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="14" p2="8"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="14" p2="15"/>
+					
+				
+					<Bond d=".1526" k="259407.99999999994" p1="8" p2="10"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="8" p2="9"/>
+					
+				
+					<Bond d=".1449" k="282001.5999999999" p1="8" p2="6"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="10" p2="11"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="10" p2="12"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="10" p2="13"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="7" p2="6"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="14" p2="16"/>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="24" p2="18"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="24" p2="25"/>
+					
+				
+					<Bond d=".1526" k="259407.99999999994" p1="18" p2="20"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="18" p2="19"/>
+					
+				
+					<Bond d=".1449" k="282001.5999999999" p1="18" p2="16"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="20" p2="21"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="20" p2="22"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="20" p2="23"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="17" p2="16"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="24" p2="26"/>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="34" p2="28"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="34" p2="35"/>
+					
+				
+					<Bond d=".1526" k="259407.99999999994" p1="28" p2="30"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="28" p2="29"/>
+					
+				
+					<Bond d=".1449" k="282001.5999999999" p1="28" p2="26"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="30" p2="31"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="30" p2="32"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="30" p2="33"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="27" p2="26"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="34" p2="36"/>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="44" p2="38"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="44" p2="45"/>
+					
+				
+					<Bond d=".1526" k="259407.99999999994" p1="38" p2="40"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="38" p2="39"/>
+					
+				
+					<Bond d=".1449" k="282001.5999999999" p1="38" p2="36"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="40" p2="41"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="40" p2="42"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="40" p2="43"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="37" p2="36"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="44" p2="46"/>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="54" p2="48"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="54" p2="55"/>
+					
+				
+					<Bond d=".1526" k="259407.99999999994" p1="48" p2="50"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="48" p2="49"/>
+					
+				
+					<Bond d=".1449" k="282001.5999999999" p1="48" p2="46"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="50" p2="51"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="50" p2="52"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="50" p2="53"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="47" p2="46"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="54" p2="56"/>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="64" p2="58"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="64" p2="65"/>
+					
+				
+					<Bond d=".1526" k="259407.99999999994" p1="58" p2="60"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="58" p2="59"/>
+					
+				
+					<Bond d=".1449" k="282001.5999999999" p1="58" p2="56"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="60" p2="61"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="60" p2="62"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="60" p2="63"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="57" p2="56"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="64" p2="66"/>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="74" p2="68"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="74" p2="75"/>
+					
+				
+					<Bond d=".1526" k="259407.99999999994" p1="68" p2="70"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="68" p2="69"/>
+					
+				
+					<Bond d=".1449" k="282001.5999999999" p1="68" p2="66"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="70" p2="71"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="70" p2="72"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="70" p2="73"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="67" p2="66"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="74" p2="76"/>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="84" p2="78"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="84" p2="85"/>
+					
+				
+					<Bond d=".1526" k="259407.99999999994" p1="78" p2="80"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="78" p2="79"/>
+					
+				
+					<Bond d=".1449" k="282001.5999999999" p1="78" p2="76"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="80" p2="81"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="80" p2="82"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="80" p2="83"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="77" p2="76"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="84" p2="86"/>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="94" p2="88"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="94" p2="95"/>
+					
+				
+					<Bond d=".1526" k="259407.99999999994" p1="88" p2="90"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="88" p2="89"/>
+					
+				
+					<Bond d=".1449" k="282001.5999999999" p1="88" p2="86"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="90" p2="91"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="90" p2="92"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="90" p2="93"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="87" p2="86"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="94" p2="96"/>
+					
+				
+					<Bond d=".1522" k="265265.6" p1="104" p2="98"/>
+					
+				
+					<Bond d=".12290000000000001" k="476975.9999999999" p1="104" p2="105"/>
+					
+				
+					<Bond d=".1526" k="259407.99999999994" p1="98" p2="100"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="98" p2="99"/>
+					
+				
+					<Bond d=".1449" k="282001.5999999999" p1="98" p2="96"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="100" p2="101"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="100" p2="102"/>
+					
+				
+					<Bond d=".10900000000000001" k="284511.99999999994" p1="100" p2="103"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="97" p2="96"/>
+					
+				
+					<Bond d=".1335" k="410031.99999999994" p1="104" p2="106"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="107" p2="106"/>
+					
+				
+					<Bond d=".101" k="363171.19999999995" p1="108" p2="106"/>
+					
+			
+				</Bonds>
+				
+		
+			</Force>
+			
+		
+			<Force forceGroup="0" name="PeriodicTorsionForce" type="PeriodicTorsionForce" usesPeriodic="0" version="2">
+				
+			
+				<Torsions>
+					
+				
+					<Torsion k="3.3472000000000004" p1="0" p2="1" p3="4" p4="5" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="0" p2="1" p3="4" p4="5" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="1" p2="4" p3="6" p4="7" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="1" p2="4" p3="6" p4="8" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="2" p2="1" p3="4" p4="5" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="2" p2="1" p3="4" p4="5" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="3" p2="1" p3="4" p4="5" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="3" p2="1" p3="4" p4="5" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="4" p2="6" p3="8" p4="10" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="7.5312" p1="4" p2="6" p3="8" p4="10" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="8.368" p1="4" p2="6" p3="8" p4="10" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="1.75728" p1="4" p2="6" p3="8" p4="14" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="1.12968" p1="4" p2="6" p3="8" p4="14" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="5" p2="4" p3="6" p4="7" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="5" p2="4" p3="6" p4="7" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="5" p2="4" p3="6" p4="8" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="6" p2="8" p3="10" p4="11" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="6" p2="8" p3="10" p4="12" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="6" p2="8" p3="10" p4="13" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="2.3012" p1="6" p2="8" p3="14" p4="16" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="6.610720000000001" p1="6" p2="8" p3="14" p4="16" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.8828" p1="6" p2="8" p3="14" p4="16" periodicity="1" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="8" p2="14" p3="16" p4="17" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="8" p2="14" p3="16" p4="18" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="9" p2="8" p3="10" p4="11" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="9" p2="8" p3="10" p4="12" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="9" p2="8" p3="10" p4="13" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="9" p2="8" p3="14" p4="15" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="9" p2="8" p3="14" p4="15" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.6736000000000002" p1="10" p2="8" p3="14" p4="16" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="10" p2="8" p3="14" p4="16" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="10" p2="8" p3="14" p4="16" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="11" p2="10" p3="8" p4="14" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="12" p2="10" p3="8" p4="14" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="13" p2="10" p3="8" p4="14" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="14" p2="16" p3="18" p4="20" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="7.5312" p1="14" p2="16" p3="18" p4="20" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="8.368" p1="14" p2="16" p3="18" p4="20" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="1.75728" p1="14" p2="16" p3="18" p4="24" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="1.12968" p1="14" p2="16" p3="18" p4="24" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="15" p2="14" p3="16" p4="17" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="15" p2="14" p3="16" p4="17" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="15" p2="14" p3="16" p4="18" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="16" p2="18" p3="20" p4="21" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="16" p2="18" p3="20" p4="22" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="16" p2="18" p3="20" p4="23" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="2.3012" p1="16" p2="18" p3="24" p4="26" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="6.610720000000001" p1="16" p2="18" p3="24" p4="26" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.8828" p1="16" p2="18" p3="24" p4="26" periodicity="1" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="18" p2="24" p3="26" p4="27" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="18" p2="24" p3="26" p4="28" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="19" p2="18" p3="20" p4="21" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="19" p2="18" p3="20" p4="22" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="19" p2="18" p3="20" p4="23" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="19" p2="18" p3="24" p4="25" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="19" p2="18" p3="24" p4="25" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.6736000000000002" p1="20" p2="18" p3="24" p4="26" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="20" p2="18" p3="24" p4="26" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="20" p2="18" p3="24" p4="26" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="21" p2="20" p3="18" p4="24" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="22" p2="20" p3="18" p4="24" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="23" p2="20" p3="18" p4="24" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="24" p2="26" p3="28" p4="30" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="7.5312" p1="24" p2="26" p3="28" p4="30" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="8.368" p1="24" p2="26" p3="28" p4="30" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="1.75728" p1="24" p2="26" p3="28" p4="34" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="1.12968" p1="24" p2="26" p3="28" p4="34" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="25" p2="24" p3="26" p4="27" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="25" p2="24" p3="26" p4="27" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="25" p2="24" p3="26" p4="28" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="26" p2="28" p3="30" p4="31" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="26" p2="28" p3="30" p4="32" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="26" p2="28" p3="30" p4="33" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="2.3012" p1="26" p2="28" p3="34" p4="36" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="6.610720000000001" p1="26" p2="28" p3="34" p4="36" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.8828" p1="26" p2="28" p3="34" p4="36" periodicity="1" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="28" p2="34" p3="36" p4="37" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="28" p2="34" p3="36" p4="38" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="29" p2="28" p3="30" p4="31" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="29" p2="28" p3="30" p4="32" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="29" p2="28" p3="30" p4="33" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="29" p2="28" p3="34" p4="35" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="29" p2="28" p3="34" p4="35" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.6736000000000002" p1="30" p2="28" p3="34" p4="36" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="30" p2="28" p3="34" p4="36" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="30" p2="28" p3="34" p4="36" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="31" p2="30" p3="28" p4="34" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="32" p2="30" p3="28" p4="34" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="33" p2="30" p3="28" p4="34" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="34" p2="36" p3="38" p4="40" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="7.5312" p1="34" p2="36" p3="38" p4="40" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="8.368" p1="34" p2="36" p3="38" p4="40" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="1.75728" p1="34" p2="36" p3="38" p4="44" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="1.12968" p1="34" p2="36" p3="38" p4="44" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="35" p2="34" p3="36" p4="37" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="35" p2="34" p3="36" p4="37" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="35" p2="34" p3="36" p4="38" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="36" p2="38" p3="40" p4="41" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="36" p2="38" p3="40" p4="42" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="36" p2="38" p3="40" p4="43" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="2.3012" p1="36" p2="38" p3="44" p4="46" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="6.610720000000001" p1="36" p2="38" p3="44" p4="46" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.8828" p1="36" p2="38" p3="44" p4="46" periodicity="1" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="38" p2="44" p3="46" p4="47" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="38" p2="44" p3="46" p4="48" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="39" p2="38" p3="40" p4="41" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="39" p2="38" p3="40" p4="42" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="39" p2="38" p3="40" p4="43" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="39" p2="38" p3="44" p4="45" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="39" p2="38" p3="44" p4="45" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.6736000000000002" p1="40" p2="38" p3="44" p4="46" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="40" p2="38" p3="44" p4="46" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="40" p2="38" p3="44" p4="46" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="41" p2="40" p3="38" p4="44" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="42" p2="40" p3="38" p4="44" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="43" p2="40" p3="38" p4="44" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="44" p2="46" p3="48" p4="50" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="7.5312" p1="44" p2="46" p3="48" p4="50" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="8.368" p1="44" p2="46" p3="48" p4="50" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="1.75728" p1="44" p2="46" p3="48" p4="54" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="1.12968" p1="44" p2="46" p3="48" p4="54" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="45" p2="44" p3="46" p4="47" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="45" p2="44" p3="46" p4="47" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="45" p2="44" p3="46" p4="48" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="46" p2="48" p3="50" p4="51" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="46" p2="48" p3="50" p4="52" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="46" p2="48" p3="50" p4="53" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="2.3012" p1="46" p2="48" p3="54" p4="56" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="6.610720000000001" p1="46" p2="48" p3="54" p4="56" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.8828" p1="46" p2="48" p3="54" p4="56" periodicity="1" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="48" p2="54" p3="56" p4="57" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="48" p2="54" p3="56" p4="58" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="49" p2="48" p3="50" p4="51" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="49" p2="48" p3="50" p4="52" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="49" p2="48" p3="50" p4="53" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="49" p2="48" p3="54" p4="55" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="49" p2="48" p3="54" p4="55" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.6736000000000002" p1="50" p2="48" p3="54" p4="56" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="50" p2="48" p3="54" p4="56" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="50" p2="48" p3="54" p4="56" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="51" p2="50" p3="48" p4="54" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="52" p2="50" p3="48" p4="54" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="53" p2="50" p3="48" p4="54" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="54" p2="56" p3="58" p4="60" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="7.5312" p1="54" p2="56" p3="58" p4="60" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="8.368" p1="54" p2="56" p3="58" p4="60" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="1.75728" p1="54" p2="56" p3="58" p4="64" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="1.12968" p1="54" p2="56" p3="58" p4="64" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="55" p2="54" p3="56" p4="57" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="55" p2="54" p3="56" p4="57" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="55" p2="54" p3="56" p4="58" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="56" p2="58" p3="60" p4="61" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="56" p2="58" p3="60" p4="62" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="56" p2="58" p3="60" p4="63" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="2.3012" p1="56" p2="58" p3="64" p4="66" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="6.610720000000001" p1="56" p2="58" p3="64" p4="66" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.8828" p1="56" p2="58" p3="64" p4="66" periodicity="1" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="58" p2="64" p3="66" p4="67" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="58" p2="64" p3="66" p4="68" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="59" p2="58" p3="60" p4="61" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="59" p2="58" p3="60" p4="62" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="59" p2="58" p3="60" p4="63" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="59" p2="58" p3="64" p4="65" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="59" p2="58" p3="64" p4="65" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.6736000000000002" p1="60" p2="58" p3="64" p4="66" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="60" p2="58" p3="64" p4="66" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="60" p2="58" p3="64" p4="66" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="61" p2="60" p3="58" p4="64" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="62" p2="60" p3="58" p4="64" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="63" p2="60" p3="58" p4="64" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="64" p2="66" p3="68" p4="70" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="7.5312" p1="64" p2="66" p3="68" p4="70" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="8.368" p1="64" p2="66" p3="68" p4="70" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="1.75728" p1="64" p2="66" p3="68" p4="74" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="1.12968" p1="64" p2="66" p3="68" p4="74" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="65" p2="64" p3="66" p4="67" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="65" p2="64" p3="66" p4="67" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="65" p2="64" p3="66" p4="68" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="66" p2="68" p3="70" p4="71" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="66" p2="68" p3="70" p4="72" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="66" p2="68" p3="70" p4="73" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="2.3012" p1="66" p2="68" p3="74" p4="76" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="6.610720000000001" p1="66" p2="68" p3="74" p4="76" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.8828" p1="66" p2="68" p3="74" p4="76" periodicity="1" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="68" p2="74" p3="76" p4="77" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="68" p2="74" p3="76" p4="78" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="69" p2="68" p3="70" p4="71" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="69" p2="68" p3="70" p4="72" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="69" p2="68" p3="70" p4="73" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="69" p2="68" p3="74" p4="75" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="69" p2="68" p3="74" p4="75" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.6736000000000002" p1="70" p2="68" p3="74" p4="76" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="70" p2="68" p3="74" p4="76" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="70" p2="68" p3="74" p4="76" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="71" p2="70" p3="68" p4="74" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="72" p2="70" p3="68" p4="74" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="73" p2="70" p3="68" p4="74" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="74" p2="76" p3="78" p4="80" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="7.5312" p1="74" p2="76" p3="78" p4="80" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="8.368" p1="74" p2="76" p3="78" p4="80" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="1.75728" p1="74" p2="76" p3="78" p4="84" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="1.12968" p1="74" p2="76" p3="78" p4="84" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="75" p2="74" p3="76" p4="77" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="75" p2="74" p3="76" p4="77" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="75" p2="74" p3="76" p4="78" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="76" p2="78" p3="80" p4="81" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="76" p2="78" p3="80" p4="82" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="76" p2="78" p3="80" p4="83" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="2.3012" p1="76" p2="78" p3="84" p4="86" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="6.610720000000001" p1="76" p2="78" p3="84" p4="86" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.8828" p1="76" p2="78" p3="84" p4="86" periodicity="1" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="78" p2="84" p3="86" p4="87" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="78" p2="84" p3="86" p4="88" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="79" p2="78" p3="80" p4="81" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="79" p2="78" p3="80" p4="82" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="79" p2="78" p3="80" p4="83" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="79" p2="78" p3="84" p4="85" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="79" p2="78" p3="84" p4="85" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.6736000000000002" p1="80" p2="78" p3="84" p4="86" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="80" p2="78" p3="84" p4="86" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="80" p2="78" p3="84" p4="86" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="81" p2="80" p3="78" p4="84" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="82" p2="80" p3="78" p4="84" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="83" p2="80" p3="78" p4="84" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="84" p2="86" p3="88" p4="90" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="7.5312" p1="84" p2="86" p3="88" p4="90" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="8.368" p1="84" p2="86" p3="88" p4="90" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="1.75728" p1="84" p2="86" p3="88" p4="94" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="1.12968" p1="84" p2="86" p3="88" p4="94" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="85" p2="84" p3="86" p4="87" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="85" p2="84" p3="86" p4="87" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="85" p2="84" p3="86" p4="88" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="86" p2="88" p3="90" p4="91" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="86" p2="88" p3="90" p4="92" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="86" p2="88" p3="90" p4="93" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="2.3012" p1="86" p2="88" p3="94" p4="96" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="6.610720000000001" p1="86" p2="88" p3="94" p4="96" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.8828" p1="86" p2="88" p3="94" p4="96" periodicity="1" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="88" p2="94" p3="96" p4="97" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="88" p2="94" p3="96" p4="98" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="89" p2="88" p3="90" p4="91" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="89" p2="88" p3="90" p4="92" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="89" p2="88" p3="90" p4="93" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="89" p2="88" p3="94" p4="95" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="89" p2="88" p3="94" p4="95" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.6736000000000002" p1="90" p2="88" p3="94" p4="96" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="90" p2="88" p3="94" p4="96" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="90" p2="88" p3="94" p4="96" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="91" p2="90" p3="88" p4="94" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="92" p2="90" p3="88" p4="94" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="93" p2="90" p3="88" p4="94" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="94" p2="96" p3="98" p4="100" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="7.5312" p1="94" p2="96" p3="98" p4="100" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="8.368" p1="94" p2="96" p3="98" p4="100" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="1.75728" p1="94" p2="96" p3="98" p4="104" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="1.12968" p1="94" p2="96" p3="98" p4="104" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="95" p2="94" p3="96" p4="97" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="95" p2="94" p3="96" p4="97" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="95" p2="94" p3="96" p4="98" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="96" p2="98" p3="100" p4="101" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="96" p2="98" p3="100" p4="102" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="96" p2="98" p3="100" p4="103" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="2.3012" p1="96" p2="98" p3="104" p4="106" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="6.610720000000001" p1="96" p2="98" p3="104" p4="106" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.8828" p1="96" p2="98" p3="104" p4="106" periodicity="1" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="98" p2="104" p3="106" p4="107" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="10.46" p1="98" p2="104" p3="106" p4="108" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="99" p2="98" p3="100" p4="101" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="99" p2="98" p3="100" p4="102" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="99" p2="98" p3="100" p4="103" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="3.3472000000000004" p1="99" p2="98" p3="104" p4="105" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".33472" p1="99" p2="98" p3="104" p4="105" periodicity="3" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="1.6736000000000002" p1="100" p2="98" p3="104" p4="106" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="100" p2="98" p3="104" p4="106" periodicity="2" phase="0"/>
+					
+				
+					<Torsion k=".8368000000000001" p1="100" p2="98" p3="104" p4="106" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="101" p2="100" p3="98" p4="104" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="102" p2="100" p3="98" p4="104" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k=".6508444444444444" p1="103" p2="100" p3="98" p4="104" periodicity="3" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="105" p2="104" p3="106" p4="107" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="105" p2="104" p3="106" p4="107" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="10.46" p1="105" p2="104" p3="106" p4="108" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="8.368" p1="105" p2="104" p3="106" p4="108" periodicity="1" phase="0"/>
+					
+				
+					<Torsion k="43.932" p1="1" p2="6" p3="4" p4="5" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.6024" p1="4" p2="8" p3="6" p4="7" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="43.932" p1="8" p2="16" p3="14" p4="15" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.6024" p1="14" p2="18" p3="16" p4="17" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="43.932" p1="18" p2="26" p3="24" p4="25" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.6024" p1="24" p2="28" p3="26" p4="27" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="43.932" p1="28" p2="36" p3="34" p4="35" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.6024" p1="34" p2="38" p3="36" p4="37" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="43.932" p1="38" p2="46" p3="44" p4="45" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.6024" p1="44" p2="48" p3="46" p4="47" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="43.932" p1="48" p2="56" p3="54" p4="55" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.6024" p1="54" p2="58" p3="56" p4="57" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="43.932" p1="58" p2="66" p3="64" p4="65" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.6024" p1="64" p2="68" p3="66" p4="67" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="43.932" p1="68" p2="76" p3="74" p4="75" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.6024" p1="74" p2="78" p3="76" p4="77" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="43.932" p1="78" p2="86" p3="84" p4="85" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.6024" p1="84" p2="88" p3="86" p4="87" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="43.932" p1="88" p2="96" p3="94" p4="95" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.6024" p1="94" p2="98" p3="96" p4="97" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="43.932" p1="98" p2="106" p3="104" p4="105" periodicity="2" phase="3.141592653589793"/>
+					
+				
+					<Torsion k="4.184" p1="104" p2="107" p3="106" p4="108" periodicity="2" phase="3.141592653589793"/>
+					
+			
+				</Torsions>
+				
+		
+			</Force>
+			
+		
+			<Force alpha="0" cutoff="1" dispersionCorrection="1" ewaldTolerance=".0005" exceptionsUsePeriodic="0" forceGroup="0" includeDirectSpace="1" ljAlpha="0" ljnx="0" ljny="0" ljnz="0" method="0" name="NonbondedForce" nx="0" ny="0" nz="0" recipForceGroup="-1" rfDielectric="78.3" switchingDistance="-1" type="NonbondedForce" useSwitchingFunction="0" version="4">
+				
+			
+				<GlobalParameters/>
+				
+			
+				<ParticleOffsets/>
+				
+			
+				<ExceptionOffsets/>
+				
+			
+				<Particles>
+					
+				
+					<Particle eps=".06568879999999999" q=".1123" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".4577296" q="-.3662" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".1123" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".1123" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5972" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.4157" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2719" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".4577296" q=".0337" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0823" sig=".2471353044121301"/>
+					
+				
+					<Particle eps=".4577296" q="-.1825" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5973" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.4157" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2719" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".4577296" q=".0337" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0823" sig=".2471353044121301"/>
+					
+				
+					<Particle eps=".4577296" q="-.1825" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5973" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.4157" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2719" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".4577296" q=".0337" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0823" sig=".2471353044121301"/>
+					
+				
+					<Particle eps=".4577296" q="-.1825" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5973" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.4157" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2719" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".4577296" q=".0337" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0823" sig=".2471353044121301"/>
+					
+				
+					<Particle eps=".4577296" q="-.1825" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5973" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.4157" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2719" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".4577296" q=".0337" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0823" sig=".2471353044121301"/>
+					
+				
+					<Particle eps=".4577296" q="-.1825" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5973" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.4157" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2719" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".4577296" q=".0337" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0823" sig=".2471353044121301"/>
+					
+				
+					<Particle eps=".4577296" q="-.1825" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5973" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.4157" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2719" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".4577296" q=".0337" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0823" sig=".2471353044121301"/>
+					
+				
+					<Particle eps=".4577296" q="-.1825" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5973" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.4157" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2719" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".4577296" q=".0337" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0823" sig=".2471353044121301"/>
+					
+				
+					<Particle eps=".4577296" q="-.1825" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5973" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.4157" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2719" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".4577296" q=".0337" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0823" sig=".2471353044121301"/>
+					
+				
+					<Particle eps=".4577296" q="-.1825" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5973" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.4157" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2719" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".4577296" q=".0337" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0823" sig=".2471353044121301"/>
+					
+				
+					<Particle eps=".4577296" q="-.1825" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".0603" sig=".2649532787749369"/>
+					
+				
+					<Particle eps=".359824" q=".5973" sig=".3399669508423535"/>
+					
+				
+					<Particle eps=".87864" q="-.5679" sig=".2959921901149463"/>
+					
+				
+					<Particle eps=".7112800000000001" q="-.463" sig=".3249998523775958"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2315" sig=".10690784617684071"/>
+					
+				
+					<Particle eps=".06568879999999999" q=".2315" sig=".10690784617684071"/>
+					
+			
+				</Particles>
+				
+			
+				<Exceptions>
+					
+				
+					<Exception eps="0" p1="0" p2="1" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="0" p2="2" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="1" p2="2" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="0" p2="3" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="1" p2="3" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="2" p2="3" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="0" p2="4" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="1" p2="4" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="2" p2="4" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="3" p2="4" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="0" p2="5" q="-.053145975" sig=".2804727344449416"/>
+					
+				
+					<Exception eps="0" p1="1" p2="5" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="2" p2="5" q="-.053145975" sig=".2804727344449416"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="3" p2="5" q="-.053145975" sig=".2804727344449416"/>
+					
+				
+					<Exception eps="0" p1="4" p2="5" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="0" p2="6" q="-.03890259166666667" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="1" p2="6" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="2" p2="6" q="-.03890259166666667" sig=".2949765655762664"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="3" p2="6" q="-.03890259166666667" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="4" p2="6" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="5" p2="6" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="1" p2="7" q="-.08297481666666667" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="4" p2="7" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="5" p2="7" q="-.128676675" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="6" p2="7" q="0" sig="1"/>
+					
+				
+					<Exception eps=".2288648" p1="1" p2="8" q="-.010284116666666667" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="4" p2="8" q="0" sig="1"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="5" p2="8" q="-.015948525" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="6" p2="8" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="7" p2="8" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="4" p2="9" q=".040957966666666665" sig=".2935511276272418"/>
+					
+				
+					<Exception eps="0" p1="6" p2="9" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="7" p2="9" q=".01864780833333333" sig=".17702157529448542"/>
+					
+				
+					<Exception eps="0" p1="8" p2="9" q="0" sig="1"/>
+					
+				
+					<Exception eps=".20291752979375635" p1="4" p2="10" q="-.09082416666666666" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="6" p2="10" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="7" p2="10" q="-.041351458333333334" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="8" p2="10" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="9" p2="10" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="6" p2="11" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="8" p2="11" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="9" p2="11" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="10" p2="11" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="6" p2="12" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="8" p2="12" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="9" p2="12" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="10" p2="12" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="11" p2="12" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="6" p2="13" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="8" p2="13" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="9" p2="13" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="10" p2="13" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="11" p2="13" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="12" p2="13" q="0" sig="1"/>
+					
+				
+					<Exception eps=".179912" p1="4" p2="14" q=".29725630000000003" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="6" p2="14" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="7" p2="14" q=".135338225" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="8" p2="14" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="9" p2="14" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="10" p2="14" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="11" p2="14" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="12" p2="14" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="13" p2="14" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".3952717606912996" p1="6" p2="15" q=".196730025" sig=".31049602124627107"/>
+					
+				
+					<Exception eps="0" p1="8" p2="15" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="9" p2="15" q="-.038948474999999996" sig=".2715637472635382"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="10" p2="15" q=".086368125" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="14" p2="15" q="0" sig="1"/>
+					
+				
+					<Exception eps=".35564000000000007" p1="6" p2="16" q=".14400540833333336" sig=".3249998523775958"/>
+					
+				
+					<Exception eps="0" p1="8" p2="16" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="9" p2="16" q="-.028510091666666668" sig=".28606757839486296"/>
+					
+				
+					<Exception eps=".28529542140034425" p1="10" p2="16" q=".06322104166666667" sig=".3324834016099747"/>
+					
+				
+					<Exception eps="0" p1="14" p2="16" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="15" p2="16" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="8" p2="17" q=".007635858333333333" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="14" p2="17" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="15" p2="17" q="-.128676675" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="16" p2="17" q="0" sig="1"/>
+					
+				
+					<Exception eps=".2288648" p1="8" p2="18" q=".0009464083333333334" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="14" p2="18" q="0" sig="1"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="15" p2="18" q="-.015948525" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="16" p2="18" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="17" p2="18" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="14" p2="19" q=".040964825" sig=".2935511276272418"/>
+					
+				
+					<Exception eps="0" p1="16" p2="19" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="17" p2="19" q=".01864780833333333" sig=".17702157529448542"/>
+					
+				
+					<Exception eps="0" p1="18" p2="19" q="0" sig="1"/>
+					
+				
+					<Exception eps=".20291752979375635" p1="14" p2="20" q="-.09083937500000001" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="16" p2="20" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="17" p2="20" q="-.041351458333333334" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="18" p2="20" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="19" p2="20" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="16" p2="21" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="18" p2="21" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="19" p2="21" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="20" p2="21" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="16" p2="22" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="18" p2="22" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="19" p2="22" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="20" p2="22" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="21" p2="22" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="16" p2="23" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="18" p2="23" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="19" p2="23" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="20" p2="23" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="21" p2="23" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="22" p2="23" q="0" sig="1"/>
+					
+				
+					<Exception eps=".179912" p1="14" p2="24" q=".29730607500000006" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="16" p2="24" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="17" p2="24" q=".135338225" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="18" p2="24" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="19" p2="24" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="20" p2="24" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="21" p2="24" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="22" p2="24" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="23" p2="24" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".3952717606912996" p1="16" p2="25" q=".196730025" sig=".31049602124627107"/>
+					
+				
+					<Exception eps="0" p1="18" p2="25" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="19" p2="25" q="-.038948474999999996" sig=".2715637472635382"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="20" p2="25" q=".086368125" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="24" p2="25" q="0" sig="1"/>
+					
+				
+					<Exception eps=".35564000000000007" p1="16" p2="26" q=".14400540833333336" sig=".3249998523775958"/>
+					
+				
+					<Exception eps="0" p1="18" p2="26" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="19" p2="26" q="-.028510091666666668" sig=".28606757839486296"/>
+					
+				
+					<Exception eps=".28529542140034425" p1="20" p2="26" q=".06322104166666667" sig=".3324834016099747"/>
+					
+				
+					<Exception eps="0" p1="24" p2="26" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="25" p2="26" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="18" p2="27" q=".007635858333333333" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="24" p2="27" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="25" p2="27" q="-.128676675" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="26" p2="27" q="0" sig="1"/>
+					
+				
+					<Exception eps=".2288648" p1="18" p2="28" q=".0009464083333333334" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="24" p2="28" q="0" sig="1"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="25" p2="28" q="-.015948525" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="26" p2="28" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="27" p2="28" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="24" p2="29" q=".040964825" sig=".2935511276272418"/>
+					
+				
+					<Exception eps="0" p1="26" p2="29" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="27" p2="29" q=".01864780833333333" sig=".17702157529448542"/>
+					
+				
+					<Exception eps="0" p1="28" p2="29" q="0" sig="1"/>
+					
+				
+					<Exception eps=".20291752979375635" p1="24" p2="30" q="-.09083937500000001" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="26" p2="30" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="27" p2="30" q="-.041351458333333334" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="28" p2="30" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="29" p2="30" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="26" p2="31" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="28" p2="31" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="29" p2="31" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="30" p2="31" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="26" p2="32" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="28" p2="32" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="29" p2="32" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="30" p2="32" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="31" p2="32" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="26" p2="33" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="28" p2="33" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="29" p2="33" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="30" p2="33" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="31" p2="33" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="32" p2="33" q="0" sig="1"/>
+					
+				
+					<Exception eps=".179912" p1="24" p2="34" q=".29730607500000006" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="26" p2="34" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="27" p2="34" q=".135338225" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="28" p2="34" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="29" p2="34" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="30" p2="34" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="31" p2="34" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="32" p2="34" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="33" p2="34" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".3952717606912996" p1="26" p2="35" q=".196730025" sig=".31049602124627107"/>
+					
+				
+					<Exception eps="0" p1="28" p2="35" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="29" p2="35" q="-.038948474999999996" sig=".2715637472635382"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="30" p2="35" q=".086368125" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="34" p2="35" q="0" sig="1"/>
+					
+				
+					<Exception eps=".35564000000000007" p1="26" p2="36" q=".14400540833333336" sig=".3249998523775958"/>
+					
+				
+					<Exception eps="0" p1="28" p2="36" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="29" p2="36" q="-.028510091666666668" sig=".28606757839486296"/>
+					
+				
+					<Exception eps=".28529542140034425" p1="30" p2="36" q=".06322104166666667" sig=".3324834016099747"/>
+					
+				
+					<Exception eps="0" p1="34" p2="36" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="35" p2="36" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="28" p2="37" q=".007635858333333333" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="34" p2="37" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="35" p2="37" q="-.128676675" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="36" p2="37" q="0" sig="1"/>
+					
+				
+					<Exception eps=".2288648" p1="28" p2="38" q=".0009464083333333334" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="34" p2="38" q="0" sig="1"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="35" p2="38" q="-.015948525" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="36" p2="38" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="37" p2="38" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="34" p2="39" q=".040964825" sig=".2935511276272418"/>
+					
+				
+					<Exception eps="0" p1="36" p2="39" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="37" p2="39" q=".01864780833333333" sig=".17702157529448542"/>
+					
+				
+					<Exception eps="0" p1="38" p2="39" q="0" sig="1"/>
+					
+				
+					<Exception eps=".20291752979375635" p1="34" p2="40" q="-.09083937500000001" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="36" p2="40" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="37" p2="40" q="-.041351458333333334" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="38" p2="40" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="39" p2="40" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="36" p2="41" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="38" p2="41" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="39" p2="41" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="40" p2="41" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="36" p2="42" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="38" p2="42" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="39" p2="42" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="40" p2="42" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="41" p2="42" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="36" p2="43" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="38" p2="43" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="39" p2="43" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="40" p2="43" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="41" p2="43" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="42" p2="43" q="0" sig="1"/>
+					
+				
+					<Exception eps=".179912" p1="34" p2="44" q=".29730607500000006" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="36" p2="44" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="37" p2="44" q=".135338225" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="38" p2="44" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="39" p2="44" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="40" p2="44" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="41" p2="44" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="42" p2="44" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="43" p2="44" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".3952717606912996" p1="36" p2="45" q=".196730025" sig=".31049602124627107"/>
+					
+				
+					<Exception eps="0" p1="38" p2="45" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="39" p2="45" q="-.038948474999999996" sig=".2715637472635382"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="40" p2="45" q=".086368125" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="44" p2="45" q="0" sig="1"/>
+					
+				
+					<Exception eps=".35564000000000007" p1="36" p2="46" q=".14400540833333336" sig=".3249998523775958"/>
+					
+				
+					<Exception eps="0" p1="38" p2="46" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="39" p2="46" q="-.028510091666666668" sig=".28606757839486296"/>
+					
+				
+					<Exception eps=".28529542140034425" p1="40" p2="46" q=".06322104166666667" sig=".3324834016099747"/>
+					
+				
+					<Exception eps="0" p1="44" p2="46" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="45" p2="46" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="38" p2="47" q=".007635858333333333" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="44" p2="47" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="45" p2="47" q="-.128676675" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="46" p2="47" q="0" sig="1"/>
+					
+				
+					<Exception eps=".2288648" p1="38" p2="48" q=".0009464083333333334" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="44" p2="48" q="0" sig="1"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="45" p2="48" q="-.015948525" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="46" p2="48" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="47" p2="48" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="44" p2="49" q=".040964825" sig=".2935511276272418"/>
+					
+				
+					<Exception eps="0" p1="46" p2="49" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="47" p2="49" q=".01864780833333333" sig=".17702157529448542"/>
+					
+				
+					<Exception eps="0" p1="48" p2="49" q="0" sig="1"/>
+					
+				
+					<Exception eps=".20291752979375635" p1="44" p2="50" q="-.09083937500000001" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="46" p2="50" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="47" p2="50" q="-.041351458333333334" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="48" p2="50" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="49" p2="50" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="46" p2="51" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="48" p2="51" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="49" p2="51" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="50" p2="51" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="46" p2="52" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="48" p2="52" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="49" p2="52" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="50" p2="52" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="51" p2="52" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="46" p2="53" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="48" p2="53" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="49" p2="53" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="50" p2="53" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="51" p2="53" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="52" p2="53" q="0" sig="1"/>
+					
+				
+					<Exception eps=".179912" p1="44" p2="54" q=".29730607500000006" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="46" p2="54" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="47" p2="54" q=".135338225" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="48" p2="54" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="49" p2="54" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="50" p2="54" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="51" p2="54" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="52" p2="54" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="53" p2="54" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".3952717606912996" p1="46" p2="55" q=".196730025" sig=".31049602124627107"/>
+					
+				
+					<Exception eps="0" p1="48" p2="55" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="49" p2="55" q="-.038948474999999996" sig=".2715637472635382"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="50" p2="55" q=".086368125" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="54" p2="55" q="0" sig="1"/>
+					
+				
+					<Exception eps=".35564000000000007" p1="46" p2="56" q=".14400540833333336" sig=".3249998523775958"/>
+					
+				
+					<Exception eps="0" p1="48" p2="56" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="49" p2="56" q="-.028510091666666668" sig=".28606757839486296"/>
+					
+				
+					<Exception eps=".28529542140034425" p1="50" p2="56" q=".06322104166666667" sig=".3324834016099747"/>
+					
+				
+					<Exception eps="0" p1="54" p2="56" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="55" p2="56" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="48" p2="57" q=".007635858333333333" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="54" p2="57" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="55" p2="57" q="-.128676675" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="56" p2="57" q="0" sig="1"/>
+					
+				
+					<Exception eps=".2288648" p1="48" p2="58" q=".0009464083333333334" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="54" p2="58" q="0" sig="1"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="55" p2="58" q="-.015948525" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="56" p2="58" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="57" p2="58" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="54" p2="59" q=".040964825" sig=".2935511276272418"/>
+					
+				
+					<Exception eps="0" p1="56" p2="59" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="57" p2="59" q=".01864780833333333" sig=".17702157529448542"/>
+					
+				
+					<Exception eps="0" p1="58" p2="59" q="0" sig="1"/>
+					
+				
+					<Exception eps=".20291752979375635" p1="54" p2="60" q="-.09083937500000001" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="56" p2="60" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="57" p2="60" q="-.041351458333333334" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="58" p2="60" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="59" p2="60" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="56" p2="61" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="58" p2="61" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="59" p2="61" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="60" p2="61" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="56" p2="62" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="58" p2="62" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="59" p2="62" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="60" p2="62" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="61" p2="62" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="56" p2="63" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="58" p2="63" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="59" p2="63" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="60" p2="63" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="61" p2="63" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="62" p2="63" q="0" sig="1"/>
+					
+				
+					<Exception eps=".179912" p1="54" p2="64" q=".29730607500000006" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="56" p2="64" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="57" p2="64" q=".135338225" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="58" p2="64" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="59" p2="64" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="60" p2="64" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="61" p2="64" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="62" p2="64" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="63" p2="64" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".3952717606912996" p1="56" p2="65" q=".196730025" sig=".31049602124627107"/>
+					
+				
+					<Exception eps="0" p1="58" p2="65" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="59" p2="65" q="-.038948474999999996" sig=".2715637472635382"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="60" p2="65" q=".086368125" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="64" p2="65" q="0" sig="1"/>
+					
+				
+					<Exception eps=".35564000000000007" p1="56" p2="66" q=".14400540833333336" sig=".3249998523775958"/>
+					
+				
+					<Exception eps="0" p1="58" p2="66" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="59" p2="66" q="-.028510091666666668" sig=".28606757839486296"/>
+					
+				
+					<Exception eps=".28529542140034425" p1="60" p2="66" q=".06322104166666667" sig=".3324834016099747"/>
+					
+				
+					<Exception eps="0" p1="64" p2="66" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="65" p2="66" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="58" p2="67" q=".007635858333333333" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="64" p2="67" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="65" p2="67" q="-.128676675" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="66" p2="67" q="0" sig="1"/>
+					
+				
+					<Exception eps=".2288648" p1="58" p2="68" q=".0009464083333333334" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="64" p2="68" q="0" sig="1"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="65" p2="68" q="-.015948525" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="66" p2="68" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="67" p2="68" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="64" p2="69" q=".040964825" sig=".2935511276272418"/>
+					
+				
+					<Exception eps="0" p1="66" p2="69" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="67" p2="69" q=".01864780833333333" sig=".17702157529448542"/>
+					
+				
+					<Exception eps="0" p1="68" p2="69" q="0" sig="1"/>
+					
+				
+					<Exception eps=".20291752979375635" p1="64" p2="70" q="-.09083937500000001" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="66" p2="70" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="67" p2="70" q="-.041351458333333334" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="68" p2="70" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="69" p2="70" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="66" p2="71" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="68" p2="71" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="69" p2="71" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="70" p2="71" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="66" p2="72" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="68" p2="72" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="69" p2="72" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="70" p2="72" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="71" p2="72" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="66" p2="73" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="68" p2="73" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="69" p2="73" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="70" p2="73" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="71" p2="73" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="72" p2="73" q="0" sig="1"/>
+					
+				
+					<Exception eps=".179912" p1="64" p2="74" q=".29730607500000006" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="66" p2="74" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="67" p2="74" q=".135338225" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="68" p2="74" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="69" p2="74" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="70" p2="74" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="71" p2="74" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="72" p2="74" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="73" p2="74" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".3952717606912996" p1="66" p2="75" q=".196730025" sig=".31049602124627107"/>
+					
+				
+					<Exception eps="0" p1="68" p2="75" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="69" p2="75" q="-.038948474999999996" sig=".2715637472635382"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="70" p2="75" q=".086368125" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="74" p2="75" q="0" sig="1"/>
+					
+				
+					<Exception eps=".35564000000000007" p1="66" p2="76" q=".14400540833333336" sig=".3249998523775958"/>
+					
+				
+					<Exception eps="0" p1="68" p2="76" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="69" p2="76" q="-.028510091666666668" sig=".28606757839486296"/>
+					
+				
+					<Exception eps=".28529542140034425" p1="70" p2="76" q=".06322104166666667" sig=".3324834016099747"/>
+					
+				
+					<Exception eps="0" p1="74" p2="76" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="75" p2="76" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="68" p2="77" q=".007635858333333333" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="74" p2="77" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="75" p2="77" q="-.128676675" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="76" p2="77" q="0" sig="1"/>
+					
+				
+					<Exception eps=".2288648" p1="68" p2="78" q=".0009464083333333334" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="74" p2="78" q="0" sig="1"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="75" p2="78" q="-.015948525" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="76" p2="78" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="77" p2="78" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="74" p2="79" q=".040964825" sig=".2935511276272418"/>
+					
+				
+					<Exception eps="0" p1="76" p2="79" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="77" p2="79" q=".01864780833333333" sig=".17702157529448542"/>
+					
+				
+					<Exception eps="0" p1="78" p2="79" q="0" sig="1"/>
+					
+				
+					<Exception eps=".20291752979375635" p1="74" p2="80" q="-.09083937500000001" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="76" p2="80" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="77" p2="80" q="-.041351458333333334" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="78" p2="80" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="79" p2="80" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="76" p2="81" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="78" p2="81" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="79" p2="81" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="80" p2="81" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="76" p2="82" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="78" p2="82" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="79" p2="82" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="80" p2="82" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="81" p2="82" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="76" p2="83" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="78" p2="83" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="79" p2="83" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="80" p2="83" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="81" p2="83" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="82" p2="83" q="0" sig="1"/>
+					
+				
+					<Exception eps=".179912" p1="74" p2="84" q=".29730607500000006" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="76" p2="84" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="77" p2="84" q=".135338225" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="78" p2="84" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="79" p2="84" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="80" p2="84" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="81" p2="84" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="82" p2="84" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="83" p2="84" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".3952717606912996" p1="76" p2="85" q=".196730025" sig=".31049602124627107"/>
+					
+				
+					<Exception eps="0" p1="78" p2="85" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="79" p2="85" q="-.038948474999999996" sig=".2715637472635382"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="80" p2="85" q=".086368125" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="84" p2="85" q="0" sig="1"/>
+					
+				
+					<Exception eps=".35564000000000007" p1="76" p2="86" q=".14400540833333336" sig=".3249998523775958"/>
+					
+				
+					<Exception eps="0" p1="78" p2="86" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="79" p2="86" q="-.028510091666666668" sig=".28606757839486296"/>
+					
+				
+					<Exception eps=".28529542140034425" p1="80" p2="86" q=".06322104166666667" sig=".3324834016099747"/>
+					
+				
+					<Exception eps="0" p1="84" p2="86" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="85" p2="86" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="78" p2="87" q=".007635858333333333" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="84" p2="87" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="85" p2="87" q="-.128676675" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="86" p2="87" q="0" sig="1"/>
+					
+				
+					<Exception eps=".2288648" p1="78" p2="88" q=".0009464083333333334" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="84" p2="88" q="0" sig="1"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="85" p2="88" q="-.015948525" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="86" p2="88" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="87" p2="88" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="84" p2="89" q=".040964825" sig=".2935511276272418"/>
+					
+				
+					<Exception eps="0" p1="86" p2="89" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="87" p2="89" q=".01864780833333333" sig=".17702157529448542"/>
+					
+				
+					<Exception eps="0" p1="88" p2="89" q="0" sig="1"/>
+					
+				
+					<Exception eps=".20291752979375635" p1="84" p2="90" q="-.09083937500000001" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="86" p2="90" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="87" p2="90" q="-.041351458333333334" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="88" p2="90" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="89" p2="90" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="86" p2="91" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="88" p2="91" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="89" p2="91" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="90" p2="91" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="86" p2="92" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="88" p2="92" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="89" p2="92" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="90" p2="92" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="91" p2="92" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="86" p2="93" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="88" p2="93" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="89" p2="93" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="90" p2="93" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="91" p2="93" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="92" p2="93" q="0" sig="1"/>
+					
+				
+					<Exception eps=".179912" p1="84" p2="94" q=".29730607500000006" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="86" p2="94" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="87" p2="94" q=".135338225" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="88" p2="94" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="89" p2="94" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="90" p2="94" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="91" p2="94" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="92" p2="94" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="93" p2="94" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".3952717606912996" p1="86" p2="95" q=".196730025" sig=".31049602124627107"/>
+					
+				
+					<Exception eps="0" p1="88" p2="95" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="89" p2="95" q="-.038948474999999996" sig=".2715637472635382"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="90" p2="95" q=".086368125" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="94" p2="95" q="0" sig="1"/>
+					
+				
+					<Exception eps=".35564000000000007" p1="86" p2="96" q=".14400540833333336" sig=".3249998523775958"/>
+					
+				
+					<Exception eps="0" p1="88" p2="96" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="89" p2="96" q="-.028510091666666668" sig=".28606757839486296"/>
+					
+				
+					<Exception eps=".28529542140034425" p1="90" p2="96" q=".06322104166666667" sig=".3324834016099747"/>
+					
+				
+					<Exception eps="0" p1="94" p2="96" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="95" p2="96" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="88" p2="97" q=".007635858333333333" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="94" p2="97" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="95" p2="97" q="-.128676675" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="96" p2="97" q="0" sig="1"/>
+					
+				
+					<Exception eps=".2288648" p1="88" p2="98" q=".0009464083333333334" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="94" p2="98" q="0" sig="1"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="95" p2="98" q="-.015948525" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="96" p2="98" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="97" p2="98" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="94" p2="99" q=".040964825" sig=".2935511276272418"/>
+					
+				
+					<Exception eps="0" p1="96" p2="99" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="97" p2="99" q=".01864780833333333" sig=".17702157529448542"/>
+					
+				
+					<Exception eps="0" p1="98" p2="99" q="0" sig="1"/>
+					
+				
+					<Exception eps=".20291752979375635" p1="94" p2="100" q="-.09083937500000001" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="96" p2="100" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="97" p2="100" q="-.041351458333333334" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="98" p2="100" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="99" p2="100" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="96" p2="101" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="98" p2="101" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="99" p2="101" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="100" p2="101" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="96" p2="102" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="98" p2="102" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="99" p2="102" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="100" p2="102" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="101" p2="102" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="96" p2="103" q="-.020888925000000003" sig=".2949765655762664"/>
+					
+				
+					<Exception eps="0" p1="98" p2="103" q="0" sig="1"/>
+					
+				
+					<Exception eps=".032844399999999996" p1="99" p2="103" q=".004135575" sig=".2560442915935335"/>
+					
+				
+					<Exception eps="0" p1="100" p2="103" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="101" p2="103" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="102" p2="103" q="0" sig="1"/>
+					
+				
+					<Exception eps=".179912" p1="94" p2="104" q=".29730607500000006" sig=".3399669508423535"/>
+					
+				
+					<Exception eps="0" p1="96" p2="104" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="97" p2="104" q=".135338225" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="98" p2="104" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="99" p2="104" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="100" p2="104" q="0" sig="1"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="101" p2="104" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="102" p2="104" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".07687068162049819" p1="103" p2="104" q=".030014325000000005" sig=".3024601148086452"/>
+					
+				
+					<Exception eps=".3952717606912996" p1="96" p2="105" q=".196730025" sig=".31049602124627107"/>
+					
+				
+					<Exception eps="0" p1="98" p2="105" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="99" p2="105" q="-.038948474999999996" sig=".2715637472635382"/>
+					
+				
+					<Exception eps=".3170881327580709" p1="100" p2="105" q=".086368125" sig=".3179795704786499"/>
+					
+				
+					<Exception eps="0" p1="104" p2="105" q="0" sig="1"/>
+					
+				
+					<Exception eps=".35564000000000007" p1="96" p2="106" q=".1603909166666667" sig=".3249998523775958"/>
+					
+				
+					<Exception eps="0" p1="98" p2="106" q="0" sig="1"/>
+					
+				
+					<Exception eps=".10807766844265286" p1="99" p2="106" q="-.031754083333333336" sig=".28606757839486296"/>
+					
+				
+					<Exception eps=".28529542140034425" p1="100" p2="106" q=".07041458333333335" sig=".3324834016099747"/>
+					
+				
+					<Exception eps="0" p1="104" p2="106" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="105" p2="106" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="98" p2="107" q=".006501291666666667" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="104" p2="107" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="105" p2="107" q="-.10955737500000001" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="106" p2="107" q="0" sig="1"/>
+					
+				
+					<Exception eps=".08670021359327784" p1="98" p2="108" q=".006501291666666667" sig=".2234373985095971"/>
+					
+				
+					<Exception eps="0" p1="104" p2="108" q="0" sig="1"/>
+					
+				
+					<Exception eps=".12012161257658839" p1="105" p2="108" q="-.10955737500000001" sig=".20145001814589353"/>
+					
+				
+					<Exception eps="0" p1="106" p2="108" q="0" sig="1"/>
+					
+				
+					<Exception eps="0" p1="107" p2="108" q="0" sig="1"/>
+					
+			
+				</Exceptions>
+				
+		
+			</Force>
+			
+		
+			<Force forceGroup="0" name="HarmonicAngleForce" type="HarmonicAngleForce" usesPeriodic="0" version="2">
+				
+			
+				<Angles>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="0" p2="1" p3="2"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="0" p2="1" p3="3"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="0" p2="1" p3="4"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="1" p2="4" p3="5"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="1" p2="4" p3="6"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="2" p2="1" p3="3"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="2" p2="1" p3="4"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="3" p2="1" p3="4"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="4" p2="6" p3="7"/>
+					
+				
+					<Angle a="2.1275563581810877" k="418.40000000000003" p1="4" p2="6" p3="8"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="5" p2="4" p3="6"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="6" p2="8" p3="9"/>
+					
+				
+					<Angle a="1.9146261894377796" k="669.44" p1="6" p2="8" p3="10"/>
+					
+				
+					<Angle a="1.9216075064457567" k="527.184" p1="6" p2="8" p3="14"/>
+					
+				
+					<Angle a="2.0601866490541068" k="418.40000000000003" p1="7" p2="6" p3="8"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="8" p2="10" p3="11"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="8" p2="10" p3="12"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="8" p2="10" p3="13"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="8" p2="14" p3="15"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="8" p2="14" p3="16"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="9" p2="8" p3="10"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="9" p2="8" p3="14"/>
+					
+				
+					<Angle a="1.9390607989657" k="527.184" p1="10" p2="8" p3="14"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="11" p2="10" p3="12"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="11" p2="10" p3="13"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="12" p2="10" p3="13"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="14" p2="16" p3="17"/>
+					
+				
+					<Angle a="2.1275563581810877" k="418.40000000000003" p1="14" p2="16" p3="18"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="15" p2="14" p3="16"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="16" p2="18" p3="19"/>
+					
+				
+					<Angle a="1.9146261894377796" k="669.44" p1="16" p2="18" p3="20"/>
+					
+				
+					<Angle a="1.9216075064457567" k="527.184" p1="16" p2="18" p3="24"/>
+					
+				
+					<Angle a="2.0601866490541068" k="418.40000000000003" p1="17" p2="16" p3="18"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="18" p2="20" p3="21"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="18" p2="20" p3="22"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="18" p2="20" p3="23"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="18" p2="24" p3="25"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="18" p2="24" p3="26"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="19" p2="18" p3="20"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="19" p2="18" p3="24"/>
+					
+				
+					<Angle a="1.9390607989657" k="527.184" p1="20" p2="18" p3="24"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="21" p2="20" p3="22"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="21" p2="20" p3="23"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="22" p2="20" p3="23"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="24" p2="26" p3="27"/>
+					
+				
+					<Angle a="2.1275563581810877" k="418.40000000000003" p1="24" p2="26" p3="28"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="25" p2="24" p3="26"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="26" p2="28" p3="29"/>
+					
+				
+					<Angle a="1.9146261894377796" k="669.44" p1="26" p2="28" p3="30"/>
+					
+				
+					<Angle a="1.9216075064457567" k="527.184" p1="26" p2="28" p3="34"/>
+					
+				
+					<Angle a="2.0601866490541068" k="418.40000000000003" p1="27" p2="26" p3="28"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="28" p2="30" p3="31"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="28" p2="30" p3="32"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="28" p2="30" p3="33"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="28" p2="34" p3="35"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="28" p2="34" p3="36"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="29" p2="28" p3="30"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="29" p2="28" p3="34"/>
+					
+				
+					<Angle a="1.9390607989657" k="527.184" p1="30" p2="28" p3="34"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="31" p2="30" p3="32"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="31" p2="30" p3="33"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="32" p2="30" p3="33"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="34" p2="36" p3="37"/>
+					
+				
+					<Angle a="2.1275563581810877" k="418.40000000000003" p1="34" p2="36" p3="38"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="35" p2="34" p3="36"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="36" p2="38" p3="39"/>
+					
+				
+					<Angle a="1.9146261894377796" k="669.44" p1="36" p2="38" p3="40"/>
+					
+				
+					<Angle a="1.9216075064457567" k="527.184" p1="36" p2="38" p3="44"/>
+					
+				
+					<Angle a="2.0601866490541068" k="418.40000000000003" p1="37" p2="36" p3="38"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="38" p2="40" p3="41"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="38" p2="40" p3="42"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="38" p2="40" p3="43"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="38" p2="44" p3="45"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="38" p2="44" p3="46"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="39" p2="38" p3="40"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="39" p2="38" p3="44"/>
+					
+				
+					<Angle a="1.9390607989657" k="527.184" p1="40" p2="38" p3="44"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="41" p2="40" p3="42"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="41" p2="40" p3="43"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="42" p2="40" p3="43"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="44" p2="46" p3="47"/>
+					
+				
+					<Angle a="2.1275563581810877" k="418.40000000000003" p1="44" p2="46" p3="48"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="45" p2="44" p3="46"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="46" p2="48" p3="49"/>
+					
+				
+					<Angle a="1.9146261894377796" k="669.44" p1="46" p2="48" p3="50"/>
+					
+				
+					<Angle a="1.9216075064457567" k="527.184" p1="46" p2="48" p3="54"/>
+					
+				
+					<Angle a="2.0601866490541068" k="418.40000000000003" p1="47" p2="46" p3="48"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="48" p2="50" p3="51"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="48" p2="50" p3="52"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="48" p2="50" p3="53"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="48" p2="54" p3="55"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="48" p2="54" p3="56"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="49" p2="48" p3="50"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="49" p2="48" p3="54"/>
+					
+				
+					<Angle a="1.9390607989657" k="527.184" p1="50" p2="48" p3="54"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="51" p2="50" p3="52"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="51" p2="50" p3="53"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="52" p2="50" p3="53"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="54" p2="56" p3="57"/>
+					
+				
+					<Angle a="2.1275563581810877" k="418.40000000000003" p1="54" p2="56" p3="58"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="55" p2="54" p3="56"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="56" p2="58" p3="59"/>
+					
+				
+					<Angle a="1.9146261894377796" k="669.44" p1="56" p2="58" p3="60"/>
+					
+				
+					<Angle a="1.9216075064457567" k="527.184" p1="56" p2="58" p3="64"/>
+					
+				
+					<Angle a="2.0601866490541068" k="418.40000000000003" p1="57" p2="56" p3="58"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="58" p2="60" p3="61"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="58" p2="60" p3="62"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="58" p2="60" p3="63"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="58" p2="64" p3="65"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="58" p2="64" p3="66"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="59" p2="58" p3="60"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="59" p2="58" p3="64"/>
+					
+				
+					<Angle a="1.9390607989657" k="527.184" p1="60" p2="58" p3="64"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="61" p2="60" p3="62"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="61" p2="60" p3="63"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="62" p2="60" p3="63"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="64" p2="66" p3="67"/>
+					
+				
+					<Angle a="2.1275563581810877" k="418.40000000000003" p1="64" p2="66" p3="68"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="65" p2="64" p3="66"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="66" p2="68" p3="69"/>
+					
+				
+					<Angle a="1.9146261894377796" k="669.44" p1="66" p2="68" p3="70"/>
+					
+				
+					<Angle a="1.9216075064457567" k="527.184" p1="66" p2="68" p3="74"/>
+					
+				
+					<Angle a="2.0601866490541068" k="418.40000000000003" p1="67" p2="66" p3="68"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="68" p2="70" p3="71"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="68" p2="70" p3="72"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="68" p2="70" p3="73"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="68" p2="74" p3="75"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="68" p2="74" p3="76"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="69" p2="68" p3="70"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="69" p2="68" p3="74"/>
+					
+				
+					<Angle a="1.9390607989657" k="527.184" p1="70" p2="68" p3="74"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="71" p2="70" p3="72"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="71" p2="70" p3="73"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="72" p2="70" p3="73"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="74" p2="76" p3="77"/>
+					
+				
+					<Angle a="2.1275563581810877" k="418.40000000000003" p1="74" p2="76" p3="78"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="75" p2="74" p3="76"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="76" p2="78" p3="79"/>
+					
+				
+					<Angle a="1.9146261894377796" k="669.44" p1="76" p2="78" p3="80"/>
+					
+				
+					<Angle a="1.9216075064457567" k="527.184" p1="76" p2="78" p3="84"/>
+					
+				
+					<Angle a="2.0601866490541068" k="418.40000000000003" p1="77" p2="76" p3="78"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="78" p2="80" p3="81"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="78" p2="80" p3="82"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="78" p2="80" p3="83"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="78" p2="84" p3="85"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="78" p2="84" p3="86"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="79" p2="78" p3="80"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="79" p2="78" p3="84"/>
+					
+				
+					<Angle a="1.9390607989657" k="527.184" p1="80" p2="78" p3="84"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="81" p2="80" p3="82"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="81" p2="80" p3="83"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="82" p2="80" p3="83"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="84" p2="86" p3="87"/>
+					
+				
+					<Angle a="2.1275563581810877" k="418.40000000000003" p1="84" p2="86" p3="88"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="85" p2="84" p3="86"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="86" p2="88" p3="89"/>
+					
+				
+					<Angle a="1.9146261894377796" k="669.44" p1="86" p2="88" p3="90"/>
+					
+				
+					<Angle a="1.9216075064457567" k="527.184" p1="86" p2="88" p3="94"/>
+					
+				
+					<Angle a="2.0601866490541068" k="418.40000000000003" p1="87" p2="86" p3="88"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="88" p2="90" p3="91"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="88" p2="90" p3="92"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="88" p2="90" p3="93"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="88" p2="94" p3="95"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="88" p2="94" p3="96"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="89" p2="88" p3="90"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="89" p2="88" p3="94"/>
+					
+				
+					<Angle a="1.9390607989657" k="527.184" p1="90" p2="88" p3="94"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="91" p2="90" p3="92"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="91" p2="90" p3="93"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="92" p2="90" p3="93"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="94" p2="96" p3="97"/>
+					
+				
+					<Angle a="2.1275563581810877" k="418.40000000000003" p1="94" p2="96" p3="98"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="95" p2="94" p3="96"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="96" p2="98" p3="99"/>
+					
+				
+					<Angle a="1.9146261894377796" k="669.44" p1="96" p2="98" p3="100"/>
+					
+				
+					<Angle a="1.9216075064457567" k="527.184" p1="96" p2="98" p3="104"/>
+					
+				
+					<Angle a="2.0601866490541068" k="418.40000000000003" p1="97" p2="96" p3="98"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="98" p2="100" p3="101"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="98" p2="100" p3="102"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="98" p2="100" p3="103"/>
+					
+				
+					<Angle a="2.101376419401173" k="669.44" p1="98" p2="104" p3="105"/>
+					
+				
+					<Angle a="2.035053907825388" k="585.76" p1="98" p2="104" p3="106"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="99" p2="98" p3="100"/>
+					
+				
+					<Angle a="1.911135530933791" k="418.40000000000003" p1="99" p2="98" p3="104"/>
+					
+				
+					<Angle a="1.9390607989657" k="527.184" p1="100" p2="98" p3="104"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="101" p2="100" p3="102"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="101" p2="100" p3="103"/>
+					
+				
+					<Angle a="1.911135530933791" k="292.88" p1="102" p2="100" p3="103"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="104" p2="106" p3="107"/>
+					
+				
+					<Angle a="2.0943951023931953" k="418.40000000000003" p1="104" p2="106" p3="108"/>
+					
+				
+					<Angle a="2.1450096507010312" k="669.44" p1="105" p2="104" p3="106"/>
+					
+				
+					<Angle a="2.0943951023931953" k="292.88" p1="107" p2="106" p3="108"/>
+					
+			
+				</Angles>
+				
+		
+			</Force>
+			
+		
+			<Force energy="0.5 * smd_k_par * (tx*dx + ty*dy + tz*dz)^2 + 0.5 * smd_k_perp * ((dx^2 + dy^2 + dz^2) - (tx*dx + ty*dy + tz*dz)^2); dx=(x-x0); dy=(y-y0); dz=(z-z0)" forceGroup="31" name="CustomExternalForce" type="CustomExternalForce" version="1">
+				
+			
+				<PerParticleParameters>
+					
+				
+					<Parameter name="x0"/>
+					
+				
+					<Parameter name="y0"/>
+					
+				
+					<Parameter name="z0"/>
+					
+				
+					<Parameter name="tx"/>
+					
+				
+					<Parameter name="ty"/>
+					
+				
+					<Parameter name="tz"/>
+					
+			
+				</PerParticleParameters>
+				
+			
+				<GlobalParameters>
+					
+				
+					<Parameter default="3011" name="smd_k_par"/>
+					
+				
+					<Parameter default="3011" name="smd_k_perp"/>
+					
+			
+				</GlobalParameters>
+				
+			
+				<Particles>
+					
+				
+					<Particle index="106" param1=".07951143078512984" param2=".023821382715038145" param3="-1.518246178733608" param4="-.7579473904659436" param5=".31912309441794223" param6="-.5689254818471252"/>
+					
+			
+				</Particles>
+				
+		
+			</Force>
+			
+	
+		</Forces>
+		
+
+	</System>
+	<Integrator constraintTolerance="1e-05" friction="1" integrationForceGroups="-1" randomSeed="0" stepSize=".002" temperature="300" type="LangevinMiddleIntegrator" version="1"/>
+	<State openmmVersion="8.6.1" stepCount="1150000" time="2299.999999959436" type="State" version="1">
+		
+	
+		<PeriodicBoxVectors>
+			
+		
+			<A x="2" y="0" z="0"/>
+			
+		
+			<B x="0" y="2" z="0"/>
+			
+		
+			<C x="0" y="0" z="2"/>
+			
+	
+		</PeriodicBoxVectors>
+		
+	
+		<Parameters smd_k_par="3011" smd_k_perp="3011"/>
+		
+	
+		<Velocities>
+			
+		
+			<Velocity x="1.202258825302124" y="-1.7576786279678345" z=".6505799889564514"/>
+			
+		
+			<Velocity x=".3499215543270111" y="-.24571073055267334" z=".6216695308685303"/>
+			
+		
+			<Velocity x=".01325575914233923" y="1.1487752199172974" z=".8595582842826843"/>
+			
+		
+			<Velocity x="3.376300573348999" y="-.6619027853012085" z=".6370506286621094"/>
+			
+		
+			<Velocity x=".6355223655700684" y="-.0995911955833435" z=".16643352806568146"/>
+			
+		
+			<Velocity x="-.30033156275749207" y="-.4335571825504303" z="-.6951320767402649"/>
+			
+		
+			<Velocity x="0" y="0" z="0"/>
+			
+		
+			<Velocity x="-.6798793077468872" y=".8976519107818604" z="-1.6068071126937866"/>
+			
+		
+			<Velocity x=".29700779914855957" y="-.17630599439144135" z="-.3993915915489197"/>
+			
+		
+			<Velocity x=".7504997849464417" y="-1.5683783292770386" z="-.21818269789218903"/>
+			
+		
+			<Velocity x="-.42755240201950073" y="-.237887442111969" z="-.37529870867729187"/>
+			
+		
+			<Velocity x="-2.9038782119750977" y="-.25597134232521057" z=".9914591312408447"/>
+			
+		
+			<Velocity x=".9366902112960815" y=".43785783648490906" z="-1.5188028812408447"/>
+			
+		
+			<Velocity x="-.622317910194397" y="-.16289809346199036" z="-1.9538105726242065"/>
+			
+		
+			<Velocity x=".18528012931346893" y=".2660022974014282" z="-.2401115745306015"/>
+			
+		
+			<Velocity x=".6564110517501831" y=".17310534417629242" z=".7651427984237671"/>
+			
+		
+			<Velocity x=".45984452962875366" y="-.21109549701213837" z="-.7142788767814636"/>
+			
+		
+			<Velocity x=".4938906729221344" y="1.0108023881912231" z="2.4324185848236084"/>
+			
+		
+			<Velocity x="-.7134872674942017" y="-.17099875211715698" z="-.5765808820724487"/>
+			
+		
+			<Velocity x="-.4365699887275696" y="-.8107354044914246" z=".24714353680610657"/>
+			
+		
+			<Velocity x=".2982654273509979" y=".22584201395511627" z=".4948504865169525"/>
+			
+		
+			<Velocity x="1.3040302991867065" y="-.35362085700035095" z="-2.105039358139038"/>
+			
+		
+			<Velocity x="-2.1919984817504883" y="-.47427526116371155" z="1.4547035694122314"/>
+			
+		
+			<Velocity x="-1.329542875289917" y=".17835253477096558" z=".35969310998916626"/>
+			
+		
+			<Velocity x=".06756333261728287" y="-.28762051463127136" z="-.3667757213115692"/>
+			
+		
+			<Velocity x=".40060821175575256" y="-.22138875722885132" z=".08917416632175446"/>
+			
+		
+			<Velocity x=".209535613656044" y=".244752436876297" z=".058046743273735046"/>
+			
+		
+			<Velocity x=".6351233124732971" y="-1.3604860305786133" z="-.6497201323509216"/>
+			
+		
+			<Velocity x="-.053105805069208145" y="-.5300047397613525" z="-.34190815687179565"/>
+			
+		
+			<Velocity x=".9935966730117798" y=".47189125418663025" z="1.5426392555236816"/>
+			
+		
+			<Velocity x="-.16077786684036255" y="-.0027263725642114878" z="-.19769521057605743"/>
+			
+		
+			<Velocity x="-1.0555274486541748" y="-1.3277305364608765" z="-2.101672649383545"/>
+			
+		
+			<Velocity x="-1.3882312774658203" y="-.5931941866874695" z="-.30030205845832825"/>
+			
+		
+			<Velocity x="-1.1446106433868408" y="-3.2743167877197266" z=".6198442578315735"/>
+			
+		
+			<Velocity x=".5232833027839661" y=".30569005012512207" z="-.25589197874069214"/>
+			
+		
+			<Velocity x=".15869522094726562" y="-.13239245116710663" z="-.3301907479763031"/>
+			
+		
+			<Velocity x="-.23150454461574554" y=".29603663086891174" z="-.10405512899160385"/>
+			
+		
+			<Velocity x="3.422353744506836" y="-.6651377081871033" z=".8142929673194885"/>
+			
+		
+			<Velocity x="-.05014205351471901" y=".6827959418296814" z=".5026993155479431"/>
+			
+		
+			<Velocity x="-1.1543819904327393" y="1.6511735916137695" z="-.20019732415676117"/>
+			
+		
+			<Velocity x="-.43120431900024414" y="-.5464747548103333" z="-.1907370537519455"/>
+			
+		
+			<Velocity x="2.3663277626037598" y=".4487926959991455" z="1.3365719318389893"/>
+			
+		
+			<Velocity x="-.8464592099189758" y="1.9871716499328613" z="-.7910938262939453"/>
+			
+		
+			<Velocity x="-1.7779966592788696" y=".44972431659698486" z="4.629457473754883"/>
+			
+		
+			<Velocity x="-.3115725517272949" y="-.4228385388851166" z=".5082899332046509"/>
+			
+		
+			<Velocity x="-.6131353974342346" y=".09097984433174133" z=".5364624261856079"/>
+			
+		
+			<Velocity x="-.5234968662261963" y="-.30339527130126953" z="-.8501982092857361"/>
+			
+		
+			<Velocity x="-1.3388373851776123" y="-1.1414505243301392" z=".39440417289733887"/>
+			
+		
+			<Velocity x=".2008579969406128" y=".4453142285346985" z=".06359205394983292"/>
+			
+		
+			<Velocity x="2.068760871887207" y="2.45664119720459" z="-.4926161766052246"/>
+			
+		
+			<Velocity x=".04586349055171013" y="-.3857403099536896" z="-.46989086270332336"/>
+			
+		
+			<Velocity x="-.3615754544734955" y="2.2261948585510254" z="-2.4828577041625977"/>
+			
+		
+			<Velocity x="1.3592809438705444" y=".3824874758720398" z="-.3602244555950165"/>
+			
+		
+			<Velocity x="-.7444437146186829" y="-.7448655962944031" z="-1.9731053113937378"/>
+			
+		
+			<Velocity x="-.28266599774360657" y="-.2735351324081421" z=".22282752394676208"/>
+			
+		
+			<Velocity x="-.3647584617137909" y=".5764486789703369" z="-.14160077273845673"/>
+			
+		
+			<Velocity x="-.058494724333286285" y=".46226975321769714" z="-.12765829265117645"/>
+			
+		
+			<Velocity x=".5415871739387512" y="-1.294494390487671" z=".13296207785606384"/>
+			
+		
+			<Velocity x=".24567961692810059" y="-.28175297379493713" z="-.8080376982688904"/>
+			
+		
+			<Velocity x=".6548010110855103" y="-.8442577123641968" z="-1.6354650259017944"/>
+			
+		
+			<Velocity x=".7586996555328369" y="-.10123568028211594" z=".036038242280483246"/>
+			
+		
+			<Velocity x="-.2885512411594391" y="1.7362613677978516" z="1.5516186952590942"/>
+			
+		
+			<Velocity x="-2.3603081703186035" y="-1.4592852592468262" z=".008828254416584969"/>
+			
+		
+			<Velocity x="-.23860138654708862" y="1.2414549589157104" z="-1.0153852701187134"/>
+			
+		
+			<Velocity x=".12610727548599243" y=".4159373342990875" z=".6581065058708191"/>
+			
+		
+			<Velocity x=".01190392579883337" y=".020047279074788094" z=".20601786673069"/>
+			
+		
+			<Velocity x="-.7020488977432251" y="-.16685153543949127" z=".5455162525177002"/>
+			
+		
+			<Velocity x="-1.5704553127288818" y=".37897419929504395" z="-2.247572660446167"/>
+			
+		
+			<Velocity x=".3103151321411133" y="-.8388153314590454" z="-.22463132441043854"/>
+			
+		
+			<Velocity x="2.0031256675720215" y="2.234265089035034" z="1.0013461112976074"/>
+			
+		
+			<Velocity x=".10516933351755142" y=".20972314476966858" z="-.1468917429447174"/>
+			
+		
+			<Velocity x="1.2876907587051392" y="-1.0957719087600708" z="3.2642903327941895"/>
+			
+		
+			<Velocity x="2.2780094146728516" y="2.0673093795776367" z=".4629629850387573"/>
+			
+		
+			<Velocity x="1.7204561233520508" y="-.22982585430145264" z=".43191948533058167"/>
+			
+		
+			<Velocity x="-.4839218258857727" y=".7238039374351501" z=".6030067801475525"/>
+			
+		
+			<Velocity x=".4511104226112366" y="-.09160736948251724" z=".0409151129424572"/>
+			
+		
+			<Velocity x=".3295266032218933" y=".6724458932876587" z=".39795923233032227"/>
+			
+		
+			<Velocity x="-.4363126754760742" y="-.24454151093959808" z="1.566959261894226"/>
+			
+		
+			<Velocity x="-.8308253288269043" y="-.4308956265449524" z=".42853349447250366"/>
+			
+		
+			<Velocity x="-2.463567018508911" y="-.03353968262672424" z="-2.090756893157959"/>
+			
+		
+			<Velocity x=".31774067878723145" y="-.44577425718307495" z=".2786937654018402"/>
+			
+		
+			<Velocity x="-1.6511539220809937" y="2.1048736572265625" z="-.559514582157135"/>
+			
+		
+			<Velocity x="-1.4627877473831177" y=".3946797251701355" z="2.488237142562866"/>
+			
+		
+			<Velocity x="1.4108573198318481" y=".7195195555686951" z=".06701437383890152"/>
+			
+		
+			<Velocity x="-.12885898351669312" y=".2624824047088623" z="-.44229671359062195"/>
+			
+		
+			<Velocity x="-.4974771738052368" y="-.3914278745651245" z="-.7564055323600769"/>
+			
+		
+			<Velocity x="-.004484544042497873" y="-.6168737411499023" z="-.1281871646642685"/>
+			
+		
+			<Velocity x=".5226929187774658" y=".8648139238357544" z="-.6238196492195129"/>
+			
+		
+			<Velocity x="-.06923055648803711" y=".496298611164093" z="-.0026195086538791656"/>
+			
+		
+			<Velocity x="2.099246025085449" y="-2.3864169120788574" z=".6480463147163391"/>
+			
+		
+			<Velocity x="-.4523245394229889" y="-.3157278895378113" z=".1887277364730835"/>
+			
+		
+			<Velocity x="-.3339623808860779" y="-1.4636993408203125" z="-2.767195463180542"/>
+			
+		
+			<Velocity x="1.9189695119857788" y="-.5967990159988403" z="-.3650953471660614"/>
+			
+		
+			<Velocity x="1.9639580249786377" y="3.062880039215088" z="-.5876206159591675"/>
+			
+		
+			<Velocity x="-.21905404329299927" y=".4870656728744507" z="-.7629315853118896"/>
+			
+		
+			<Velocity x="-.026438923552632332" y="-.1162014976143837" z="-.5163664817810059"/>
+			
+		
+			<Velocity x=".015632832422852516" y=".79182368516922" z="-.2367425411939621"/>
+			
+		
+			<Velocity x=".2266445755958557" y="1.6035693883895874" z="-.4656175673007965"/>
+			
+		
+			<Velocity x=".48506930470466614" y="-.33971497416496277" z=".5739062428474426"/>
+			
+		
+			<Velocity x="-.5491500496864319" y=".2413690686225891" z="2.861079216003418"/>
+			
+		
+			<Velocity x=".0018213065341114998" y="-.2023993730545044" z=".052764736115932465"/>
+			
+		
+			<Velocity x="-.718363881111145" y="-.22283409535884857" z=".41399890184402466"/>
+			
+		
+			<Velocity x="-1.3873485326766968" y=".5506685972213745" z="-.11741180717945099"/>
+			
+		
+			<Velocity x=".7190259695053101" y="-1.3164039850234985" z=".25511929392814636"/>
+			
+		
+			<Velocity x=".23783183097839355" y="-.11748640984296799" z=".9975981116294861"/>
+			
+		
+			<Velocity x="-.17119495570659637" y=".01786698028445244" z=".5649200677871704"/>
+			
+		
+			<Velocity x="-.27223455905914307" y=".34861138463020325" z=".4390932023525238"/>
+			
+		
+			<Velocity x="1.3322263956069946" y="-1.2185454368591309" z="2.747619390487671"/>
+			
+		
+			<Velocity x="-2.6645565032958984" y="-.8748762011528015" z="-2.0584683418273926"/>
+			
+	
+		</Velocities>
+		
+	
+		<IntegratorParameters/>
+		
+
+	</State>
+</OpenMMSimulation>
