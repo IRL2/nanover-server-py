@@ -11,6 +11,8 @@ from openmm.app import Simulation
 
 from nanover.openmm import serializer
 
+from nanover.iguessmd.utils import get_every_nth
+
 iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME = "smd_k"
 iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME = f"{iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME}_par"
 iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME = (
@@ -590,6 +592,8 @@ class OMMiGUESSMDSimulation:
     def save_iguessmd_simulation_data(
         self,
         path: PathLike[str] = None,
+        every_nth_point: int | None = None,
+        include_end_point: bool = False,
         save_work_done: bool = True,
         save_atom_positions: bool = True,
         work_done_dtype: np.dtype = np.float32,
@@ -603,6 +607,10 @@ class OMMiGUESSMDSimulation:
         - Work done along the reaction coordinate defined by the path of the iGUESSMD force, in kJ mol-1
 
         :param path: Path to the file to which the data will be saved.
+        :param every_nth_point:  (int | None) only save the values of work and/or positions at every
+          nth point along the trajectory.
+        :param include_end_point: (Bool) whether to save final values of the work and/or positions
+          regardless of stride defined by every nth
         :param save_work_done: Bool determining whether to save the work done
         :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
         :param work_done_dtype: Data type of the work done array to save.
@@ -616,7 +624,7 @@ class OMMiGUESSMDSimulation:
 
         elif self.iguessmd_simulation_work_done is None:
             raise ValueError(
-                "Missing values for the work done. This data can only be saved after"
+                "Missing values for the work done. This data can only be saved after "
                 "the iGUESSMD calculation is completed."
             )
 
@@ -624,19 +632,43 @@ class OMMiGUESSMDSimulation:
                 self.iguessmd_simulation_atom_positions == 0.0
         ):
             raise ValueError(
-                "Missing values for the atom positions. This data can only be saved after"
+                "Missing values for the atom positions. This data can only be saved after "
                 "the iGUESSMD calculation is completed."
             )
+
+        if (every_nth_point is not None
+                and include_end_point
+                and self.iguessmd_simulation_work_done.size - 1 % every_nth_point != 0
+        ):
+            raise Warning(
+                "Choice of every_nth_point yields different time step between the "
+                "final two array entries compared to the rest of the trajectory."
+            )
+        elif every_nth_point is None:
+            every_nth_point = 1
 
         with open(path, "wb") as outfile:
             if save_atom_positions:
                 np.save(
                     outfile,
-                    self.iguessmd_simulation_atom_positions.astype(atom_positions_dtype),
+                    get_every_nth(
+                        self.iguessmd_simulation_atom_positions.astype(atom_positions_dtype),
+                        axis=0,
+                        every_nth=every_nth_point,
+                        include_end=include_end_point
+                    ),
                 )
                 print("Atom positions saved to simulation data file.")
             if save_work_done:
-                np.save(outfile, self.iguessmd_simulation_work_done.astype(work_done_dtype))
+                np.save(
+                    outfile,
+                    get_every_nth(
+                        self.iguessmd_simulation_work_done.astype(work_done_dtype),
+                        axis=0,
+                        every_nth=every_nth_point,
+                        include_end=include_end_point
+                    )
+                )
                 print("Work done saved to simulation data file.")
 
     def save_general_iguessmd_data(self, path: PathLike[str] = None):
@@ -898,6 +930,8 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
     def save_iguessmd_simulation_data(
         self,
         path: PathLike[str] = None,
+        every_nth_point: int | None = None,
+        include_end_point: bool = False,
         save_com_positions: bool = True,
         com_positions_dtype: np.dtype = np.float32,
         **kwargs,
@@ -911,6 +945,10 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
         - Trajectories of the COM of the atoms to which the iGUESSMD force was applied, in nm
 
         :param path: Path to the file to which the data will be saved.
+        :param every_nth_point:  (int | None) only save the values of work and/or positions at every
+          nth point along the trajectory.
+        :param include_end_point: (Bool) whether to save final values of the work and/or positions
+          regardless of stride defined by every nth
         :param save_work_done: Bool determining whether to save the work done
         :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
         :param save_com_positions: Bool determining whether to save the positions of the COM
@@ -932,7 +970,15 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
         # Optionally save COM positions
         with open(path, "ab+") as outfile:
             if save_com_positions:
-                np.save(outfile, self.com_positions.astype(com_positions_dtype))
+                np.save(
+                    outfile,
+                    get_every_nth(
+                        self.com_positions.astype(com_positions_dtype),
+                        axis=0,
+                        every_nth=every_nth_point,
+                        include_end=include_end_point,
+                    )
+                )
                 print("COM positions saved to simulation data file.")
 
 
