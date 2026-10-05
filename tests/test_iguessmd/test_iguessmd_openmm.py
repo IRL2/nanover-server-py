@@ -1325,5 +1325,36 @@ def test_load_openmm_state(apply_pbcs, save_iguessmd_force, indices):
             ).getVelocities(asNumpy=True)
             assert np.allclose(original_velocities, loaded_velocities, rtol=1e-7)
 
+@pytest.mark.parametrize("array,axis", [
+    (np.zeros((89)),0),
+    (np.zeros((101)),0),
+    (np.zeros((102)),0),
+    (np.arange(0,99,1),0),
+    (np.arange(0,100,1),0),
+    (np.arange(0,101,1),0),
+    (np.zeros((3, 100)),1),
+    (np.zeros((100, 3)),0),
+],
+)
+@pytest.mark.parametrize("every_nth", [1, 2, 5, 10, 23])
+def test_get_every_nth(array,axis, every_nth):
+    """
+    Test that the utility function get_every_nth behaves as expected.
+    """
+
+    # Calculate expected shapes
+    expected_shape_without_end = np.round(np.floor((array.shape[axis] - 1) / every_nth) + 1)
+    if (array.shape[axis] - 1) % every_nth != 0:
+        expected_shape_with_end = expected_shape_without_end + 1
+    else:
+        expected_shape_with_end = expected_shape_without_end
+
+    # Calculate reduced arrays
+    reduced_array_without_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=False)
+    reduced_array_with_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=True)
+
+    # Check dimensions match expected
+    assert reduced_array_without_end.shape[axis] == expected_shape_without_end
+    assert reduced_array_with_end.shape[axis] == expected_shape_with_end
 
 
