@@ -1,3 +1,4 @@
+import warnings
 import os.path
 from os import PathLike
 from pathlib import Path
@@ -592,8 +593,8 @@ class OMMiGUESSMDSimulation:
     def save_iguessmd_simulation_data(
         self,
         path: PathLike[str] = None,
-        every_nth_point: int | None = None,
-        include_end_point: bool = False,
+        every_nth: int | None = None,
+        include_end: bool = False,
         save_work_done: bool = True,
         save_atom_positions: bool = True,
         work_done_dtype: np.dtype = np.float32,
@@ -607,9 +608,9 @@ class OMMiGUESSMDSimulation:
         - Work done along the reaction coordinate defined by the path of the iGUESSMD force, in kJ mol-1
 
         :param path: Path to the file to which the data will be saved.
-        :param every_nth_point:  (int | None) only save the values of work and/or positions at every
+        :param every_nth:  (int | None) only save the values of work and/or positions at every
           nth point along the trajectory.
-        :param include_end_point: (Bool) whether to save final values of the work and/or positions
+        :param include_end: (Bool) whether to save final values of the work and/or positions
           regardless of stride defined by every nth
         :param save_work_done: Bool determining whether to save the work done
         :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
@@ -636,16 +637,16 @@ class OMMiGUESSMDSimulation:
                 "the iGUESSMD calculation is completed."
             )
 
-        if (every_nth_point is not None
-                and include_end_point
-                and self.iguessmd_simulation_work_done.size - 1 % every_nth_point != 0
+        if (every_nth is not None
+                and include_end
+                and self.iguessmd_simulation_work_done.size - 1 % every_nth != 0
         ):
-            raise Warning(
-                "Choice of every_nth_point yields different time step between the "
+            warnings.warn(
+                "Choice of every_nth yields different time step between the "
                 "final two array entries compared to the rest of the trajectory."
             )
-        elif every_nth_point is None:
-            every_nth_point = 1
+        elif every_nth is None:
+            every_nth = 1
 
         with open(path, "wb") as outfile:
             if save_atom_positions:
@@ -654,8 +655,8 @@ class OMMiGUESSMDSimulation:
                     get_every_nth(
                         self.iguessmd_simulation_atom_positions.astype(atom_positions_dtype),
                         axis=0,
-                        every_nth=every_nth_point,
-                        include_end=include_end_point
+                        every_nth=every_nth,
+                        include_end=include_end
                     ),
                 )
                 print("Atom positions saved to simulation data file.")
@@ -665,8 +666,8 @@ class OMMiGUESSMDSimulation:
                     get_every_nth(
                         self.iguessmd_simulation_work_done.astype(work_done_dtype),
                         axis=0,
-                        every_nth=every_nth_point,
-                        include_end=include_end_point
+                        every_nth=every_nth,
+                        include_end=include_end
                     )
                 )
                 print("Work done saved to simulation data file.")
@@ -930,8 +931,8 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
     def save_iguessmd_simulation_data(
         self,
         path: PathLike[str] = None,
-        every_nth_point: int | None = None,
-        include_end_point: bool = False,
+        every_nth: int | None = None,
+        include_end: bool = False,
         save_com_positions: bool = True,
         com_positions_dtype: np.dtype = np.float32,
         **kwargs,
@@ -945,9 +946,9 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
         - Trajectories of the COM of the atoms to which the iGUESSMD force was applied, in nm
 
         :param path: Path to the file to which the data will be saved.
-        :param every_nth_point:  (int | None) only save the values of work and/or positions at every
+        :param every_nth:  (int | None) only save the values of work and/or positions at every
           nth point along the trajectory.
-        :param include_end_point: (Bool) whether to save final values of the work and/or positions
+        :param include_end: (Bool) whether to save final values of the work and/or positions
           regardless of stride defined by every nth
         :param save_work_done: Bool determining whether to save the work done
         :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
@@ -967,6 +968,9 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
                 "the iGUESSMD calculation is completed."
             )
 
+        if every_nth is None:
+            every_nth = 1
+
         # Optionally save COM positions
         with open(path, "ab+") as outfile:
             if save_com_positions:
@@ -975,8 +979,8 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
                     get_every_nth(
                         self.com_positions.astype(com_positions_dtype),
                         axis=0,
-                        every_nth=every_nth_point,
-                        include_end=include_end_point,
+                        every_nth=every_nth,
+                        include_end=include_end,
                     )
                 )
                 print("COM positions saved to simulation data file.")

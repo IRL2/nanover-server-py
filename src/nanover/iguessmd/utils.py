@@ -9,7 +9,7 @@ def get_every_nth(array: np.ndarray, axis: int, every_nth: int, include_end: boo
     of the stride (every_nth).
     :param array: Original array to be reduced
     :param axis: Axis along which to reduce the array
-    :param every_nth_point: (int | None) Defines the stride for which to retrieve
+    :param every_nth: (int | None) Defines the stride for which to retrieve
       every nth point of the array
     :param include_end: Bool defining whether to include the last entry of the array
     :return: Reduced version of original array

@@ -199,7 +199,7 @@ def calculate_variance_of_reaction_coordinate(
 
     # # Calculate displacement vectors along iGUESSMD reaction coordinate
     # displacements = calculate_displacements_along_reaction_coordinate(
-    #     iguessmd_reaction_coordinate, every_nth_point=every_nth_point
+    #     iguessmd_reaction_coordinate, every_nth=every_nth
     # )
     #
     # # Calculate normalised displacement vectors
@@ -212,8 +212,8 @@ def calculate_variance_of_reaction_coordinate(
     #
     # # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
     # restraint_vectors = (iguessmd_com_coordinates_array - iguessmd_reaction_coordinate)[:, :-1]
-    # if every_nth_point is not None:
-    #     restraint_vectors = restraint_vectors[:, ::every_nth_point]
+    # if every_nth is not None:
+    #     restraint_vectors = restraint_vectors[:, ::every_nth]
     #
     # i_index_range = restraint_vectors.shape[1]
     # if abs(restraint_vectors.shape[1] - normalised_displacements.shape[0]) == 1:
