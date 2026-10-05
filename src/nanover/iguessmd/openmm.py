@@ -228,9 +228,8 @@ class OMMiGUESSMDSimulation:
         self.n_iguessmd_atom_indices = self.iguessmd_atom_indices.size
         self.iguessmd_path = iguessmd_path
         if isinstance(iguessmd_force_constant, np.ndarray) and iguessmd_force_constant.size == 2:
-            self.iguessmd_force_constant = self.iguessmd_force_constant_parallel = (
-                iguessmd_force_constant[0]
-            )
+            self.iguessmd_force_constant = iguessmd_force_constant
+            self.iguessmd_force_constant_parallel = iguessmd_force_constant[0]
             self.iguessmd_force_constant_perpendicular = iguessmd_force_constant[1]
         else:
             self.iguessmd_force_constant = self.iguessmd_force_constant_parallel = (
@@ -694,21 +693,22 @@ class OMMiGUESSMDSimulation:
         with open(path, "wb") as outfile:
             np.save(outfile, self.iguessmd_atom_indices)
             np.save(outfile, self.iguessmd_path)
-            if (
-                self.iguessmd_force_constant_parallel
-                != self.iguessmd_force_constant_perpendicular
-            ):
-                np.save(
-                    outfile,
-                    np.array(
-                        [
-                            self.iguessmd_force_constant_parallel,
-                            self.iguessmd_force_constant_perpendicular,
-                        ]
-                    ),
-                )
-            else:
-                np.save(outfile, self.iguessmd_force_constant)
+            # if (
+            #     self.iguessmd_force_constant_parallel
+            #     != self.iguessmd_force_constant_perpendicular
+            # ):
+            #     np.save(
+            #         outfile,
+            #         np.array(
+            #             [
+            #                 self.iguessmd_force_constant_parallel,
+            #                 self.iguessmd_force_constant_perpendicular,
+            #             ]
+            #         ),
+            #     )
+            # else:
+            #     np.save(outfile, self.iguessmd_force_constant_parallel)
+            np.save(outfile, self.iguessmd_force_constant)
             np.save(outfile, self.simulation.integrator.getTemperature()._value)
             np.save(outfile, self.simulation.integrator.getStepSize()._value)
 
