@@ -64,6 +64,7 @@ from openmm.unit import (
 )
 
 from nanover.iguessmd.openmm import *
+from nanover.iguessmd.utils import get_every_nth
 
 # Very basic thing to test entire class as it would be used: tutorial notebook that can be tested
 
@@ -97,10 +98,10 @@ TEST_iGUESSMD_PATH_TANGENTS = np.array(
     [np.ones(101), np.zeros(101), np.zeros(101)]
 ).transpose()
 TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL = 3011.0
-TEST_IGUESSMD_FORCE_CONSTANT_PAR_PERP = np.array([3011.0, 301.1])
-TEST_FORCE_CONSTANTS = [
+TEST_iGUESSMD_FORCE_CONSTANT_PAR_PERP = np.array([3011.0, 301.1])
+TEST_iGUESSMD_FORCE_CONSTANTS = [
     TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
-    TEST_IGUESSMD_FORCE_CONSTANT_PAR_PERP
+    TEST_iGUESSMD_FORCE_CONSTANT_PAR_PERP
 ]
 
 TEST_iGUESSMD_ARGON_INDEX = np.array(0)
@@ -151,6 +152,8 @@ TEST_COM_CUBE = (
     np.array([6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0]),
     np.array([1.0, 2.0, 3.0]),
 )
+
+TEST_BOOLS = [True, False]
 
 
 def build_com_system(parameters: tuple):
@@ -358,8 +361,7 @@ def make_basic_iguessmd_simulation_without_iguessmd_force_xml(
     return xml_path, atom_indices, force_constant
 
 
-@pytest.mark.parametrize("force_constant", [TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL, TEST_IGUESSMD_FORCE_CONSTANT_PAR_PERP])
-@pytest.mark.parametrize("atom_indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
+@pytest.mark.parametrize("force_constant, atom_indices", product(TEST_iGUESSMD_FORCE_CONSTANTS, TEST_iGUESSMD_INDICES))
 def test_load_iguessmd_sim_from_simulation(force_constant, atom_indices):
     """
     Test that an OMMiGUESSMDSimulation can be correctly loaded from an OpenMM simulation.
@@ -377,8 +379,7 @@ def test_load_iguessmd_sim_from_simulation(force_constant, atom_indices):
     assert np.array_equal(iguessmd_sim.iguessmd_force_constant, force_constant)
 
 
-@pytest.mark.parametrize("force_constant", [TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL, TEST_IGUESSMD_FORCE_CONSTANT_PAR_PERP])
-@pytest.mark.parametrize("atom_indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
+@pytest.mark.parametrize("force_constant, atom_indices", product(TEST_iGUESSMD_FORCE_CONSTANTS, TEST_iGUESSMD_INDICES))
 def test_load_iguessmd_sim_from_xml_path(make_basic_simulation_xml, force_constant, atom_indices):
     """
     Test that an OMMiGUESSMDSimulation can be correctly loaded from a NanoVer OpenMM XML file.
@@ -398,7 +399,7 @@ def test_load_iguessmd_sim_from_xml_path(make_basic_simulation_xml, force_consta
 
 @pytest.mark.parametrize(
     "make_basic_iguessmd_simulation_with_iguessmd_force_xml",
-    product(TEST_iGUESSMD_INDICES, TEST_FORCE_CONSTANTS),
+    product(TEST_iGUESSMD_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
     indirect=True,
 )
 def test_load_iguessmd_simulation_with_iguessmd_force_from_xml_path(
@@ -424,7 +425,7 @@ def test_load_iguessmd_simulation_with_iguessmd_force_from_xml_path(
 
 @pytest.mark.parametrize(
     "make_basic_iguessmd_simulation_without_iguessmd_force_xml",
-    product(TEST_iGUESSMD_INDICES, TEST_FORCE_CONSTANTS),
+    product(TEST_iGUESSMD_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
     indirect=True,
 )
 def test_load_iguessmd_simulation_without_iguessmd_force_from_xml_path(
@@ -470,14 +471,12 @@ def test_return_correct_iguessmd_sim_type(indices, sim_type):
     assert type(iguessmd_sim) == sim_type
 
 
-@pytest.mark.parametrize("apply_pbcs", [True, False])
-@pytest.mark.parametrize("indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
+@pytest.mark.parametrize("apply_pbcs, indices", product(TEST_BOOLS, TEST_iGUESSMD_INDICES))
 def test_simulation_pbcs_are_respected(apply_pbcs, indices):
     """
     Check that the periodic boundary conditions of the OpenMMSimulation passed to the
     OMMiGUESSMDSimulation class are respected (i.e. the PBCs of the iGUESSMD simulation match
-    those of the OpenMM simulation), and that the PBCs of the iGUESSMD force match the PBCs
-    of the simulation.
+    those of the OpenMM simulation).
 
     :param apply_pbcs: Boolean value indicating whether to apply PBCs to the simulation
     :param indices: Indices of atoms to apply the iGUESSMD force to (should at least
@@ -550,7 +549,7 @@ def test_iguessmd_force_attaches_to_correct_atoms(indices):
     assert np.array_equal(np.array(p_indices), indices)
 
 
-@pytest.mark.parametrize("indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
+@pytest.mark.parametrize("indices", TEST_iGUESSMD_INDICES)
 def test_reset(indices):
     """
     Check that all the attributes of the OMMiGUESSMDSimulation subclasses are reset to their initial
@@ -648,7 +647,7 @@ def test_reset(indices):
     )
 
 
-@pytest.mark.parametrize("indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
+@pytest.mark.parametrize("indices", TEST_iGUESSMD_INDICES)
 def test_iguessmd_force_added_to_system(indices):
     """
     Check that the last force to be added to the OpenMM simulation is the iGUESSMD force added during
@@ -674,7 +673,7 @@ def test_iguessmd_force_added_to_system(indices):
         assert type(iguessmd_sim.iguessmd_force) == CustomCentroidBondForce
 
 
-@pytest.mark.parametrize("indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
+@pytest.mark.parametrize("indices", TEST_iGUESSMD_INDICES)
 def test_iguessmd_force_removed_from_system(indices):
     """
     Check that the iGUESSMD force is correctly removed from the OpenMM simulation upon calling
@@ -719,7 +718,7 @@ def test_iguessmd_force_removed_from_system(indices):
     )
 
 
-@pytest.mark.parametrize("indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
+@pytest.mark.parametrize("indices", TEST_iGUESSMD_INDICES)
 def test_iguessmd_force_updates_correctly(indices):
     """
     Check that the position of the iGUESSMD force is correctly updated upon calling
@@ -863,7 +862,7 @@ def test_generate_starting_structures(n_structures, interval_ps):
         np.array([1.75, -3.0, 5.263]),
     ],
 )
-@pytest.mark.parametrize("indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
+@pytest.mark.parametrize("indices", TEST_iGUESSMD_INDICES)
 def test_calculate_iguessmd_forces(position_shifts, indices):
     """
     Test that the function _calculate_iguessmd_forces correctly calculates the iGUESSMD forces
@@ -909,7 +908,7 @@ def test_calculate_iguessmd_forces(position_shifts, indices):
         np.array([1.75, -3.0, 5.263]),
     ],
 )
-@pytest.mark.parametrize("indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
+@pytest.mark.parametrize("indices", TEST_iGUESSMD_INDICES)
 def test_calculate_work_done(position_shifts, indices):
     """
     Check that the work done by the iGUESSMD force on the system along the reaction
@@ -959,8 +958,7 @@ def test_calculate_work_done(position_shifts, indices):
     assert np.allclose(iguessmd_sim.iguessmd_simulation_work_done, expected_work_done, atol=1e-16)
 
 
-@pytest.mark.parametrize("indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
-@pytest.mark.parametrize("force_constants", [TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL, TEST_IGUESSMD_FORCE_CONSTANT_PAR_PERP])
+@pytest.mark.parametrize("indices, force_constants", product(TEST_iGUESSMD_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS))
 def test_save_iguessmd_simulation_data(indices, force_constants):
     """
     Check that the function save_iguessmd_simulation_data correctly saves the
@@ -1004,8 +1002,7 @@ def test_save_iguessmd_simulation_data(indices, force_constants):
             )
 
 
-@pytest.mark.parametrize("indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
-@pytest.mark.parametrize("force_constants", [TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL, TEST_IGUESSMD_FORCE_CONSTANT_PAR_PERP])
+@pytest.mark.parametrize("indices, force_constants", product(TEST_iGUESSMD_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS))
 def test_save_general_iguessmd_data(indices, force_constants):
     """
     Check that the function save_general_iguessmd_data correctly saves the
@@ -1135,7 +1132,7 @@ def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, c
     assert np.allclose(iguessmd_sim.com_positions, expected_com_array, atol=1e-16)
 
 
-@pytest.mark.parametrize("pbcs", [True, False])
+@pytest.mark.parametrize("pbcs", TEST_BOOLS)
 def test_iguessmd_com_force(pbcs):
     """
     Check that the force produced by the function iguessmd_com_force returns
@@ -1166,7 +1163,7 @@ def test_iguessmd_com_force(pbcs):
     assert iguessmd_force.getForceGroup() == 31
 
 
-@pytest.mark.parametrize("pbcs", [True, False])
+@pytest.mark.parametrize("pbcs", TEST_BOOLS)
 def test_iguessmd_single_atom_force(pbcs):
     """
     Check that the force produced by the function iguessmd_single_atom_force
@@ -1281,9 +1278,7 @@ def test_calculate_cumulative_work_done(fc_multiplier):
     )
 
 
-@pytest.mark.parametrize("apply_pbcs", [True, False])
-@pytest.mark.parametrize("save_iguessmd_force", [True, False])
-@pytest.mark.parametrize("indices", [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES])
+@pytest.mark.parametrize("apply_pbcs, save_iguessmd_force, indices", product(TEST_BOOLS, TEST_BOOLS, TEST_iGUESSMD_INDICES))
 def test_load_openmm_state(apply_pbcs, save_iguessmd_force, indices):
     """
     Check that the OMMiGUESSMDSimulation correctly loads the state
@@ -1329,3 +1324,6 @@ def test_load_openmm_state(apply_pbcs, save_iguessmd_force, indices):
                 getVelocities=True
             ).getVelocities(asNumpy=True)
             assert np.allclose(original_velocities, loaded_velocities, rtol=1e-7)
+
+
+
