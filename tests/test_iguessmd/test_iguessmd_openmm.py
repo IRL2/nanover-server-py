@@ -496,9 +496,12 @@ def test_simulation_pbcs_are_respected(apply_pbcs, indices):
 
 
 @pytest.mark.parametrize(
-    "index", [np.array(0), np.array(1), np.array(4), np.array(5), np.array(7)]
+    "index, force_constant", product(
+        [np.array(0), np.array(1), np.array(4), np.array(5), np.array(7)],
+        TEST_iGUESSMD_FORCE_CONSTANTS,
+    )
 )
-def test_iguessmd_force_attaches_to_correct_atom(index):
+def test_iguessmd_force_attaches_to_correct_atom(index, force_constant):
     """
     Check that the iGUESSMD force is attached to the correct atom when a single index is passed.
     Should use the OMMiGUESSMDSimulationAtom class, with only one CustomExternalForce.
@@ -510,7 +513,7 @@ def test_iguessmd_force_attaches_to_correct_atom(index):
         build_basic_simulation(),
         index,
         TEST_iGUESSMD_PATH,
-        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
+        force_constant,
     )
     # Attaches force to single atom, so index of atom within force is zero
     p_index, p_params = iguessmd_sim.iguessmd_force.getParticleParameters(0)
@@ -521,15 +524,18 @@ def test_iguessmd_force_attaches_to_correct_atom(index):
 
 
 @pytest.mark.parametrize(
-    "indices",
-    [
-        np.array([0, 1, 2, 3]),
-        np.array([1, 2, 3, 4]),
-        np.array([0, 1, 4, 5]),
-        np.array([1, 3, 4, 7]),
-    ],
+    "indices, force_constant",
+    product(
+        [
+            np.array([0, 1, 2, 3]),
+            np.array([1, 2, 3, 4]),
+            np.array([0, 1, 4, 5]),
+            np.array([1, 3, 4, 7]),
+        ],
+        TEST_iGUESSMD_FORCE_CONSTANTS,
+    )
 )
-def test_iguessmd_force_attaches_to_correct_atoms(indices):
+def test_iguessmd_force_attaches_to_correct_atoms(indices, force_constant):
     """
     Check that the iGUESSMD force attaches to the correct atoms when an array of indices is passed.
     Should use the OMMiGUESSMDSimulationCOM class, with only one CustomCentroidBondForce.
@@ -541,7 +547,7 @@ def test_iguessmd_force_attaches_to_correct_atoms(indices):
         build_basic_simulation(),
         indices,
         TEST_iGUESSMD_PATH,
-        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
+        force_constant,
     )
     # Only one centroid force added, index of force is zero
     p_indices, _ = iguessmd_sim.iguessmd_force.getGroupParameters(0)
@@ -672,8 +678,8 @@ def test_iguessmd_force_added_to_system(indices):
         assert type(iguessmd_sim.iguessmd_force) == CustomCentroidBondForce
 
 
-@pytest.mark.parametrize("indices", TEST_iGUESSMD_INDICES)
-def test_iguessmd_force_removed_from_system(indices):
+@pytest.mark.parametrize("indices, force_constant", product(TEST_iGUESSMD_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS))
+def test_iguessmd_force_removed_from_system(indices, force_constant):
     """
     Check that the iGUESSMD force is correctly removed from the OpenMM simulation upon calling
     remove_iguessmd_force_from_system().
@@ -685,7 +691,7 @@ def test_iguessmd_force_removed_from_system(indices):
         build_basic_simulation(),
         indices,
         TEST_iGUESSMD_PATH,
-        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
+        force_constant,
     )
     # Add arbitrary force to system (to test scenario when extra forces added after
     # creation of the iGUESSMD class)
@@ -712,9 +718,18 @@ def test_iguessmd_force_removed_from_system(indices):
     # TODO: Figure out if it's possible to remove the force constant
     #  associated with the force from global parameters (doesn't seem
     #  to be implemented in OpenMM right now)
-    assert (
-            iguessmd_sim.simulation.context.getParameter("smd_k_par") == TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL
-    )
+
+    if isinstance(force_constant, np.ndarray):
+        assert (
+                iguessmd_sim.simulation.context.getParameter("smd_k_par") == force_constant[0]
+        )
+        assert (
+            iguessmd_sim.simulation.context.getParameter("smd_k_perp") == force_constant[1]
+        )
+    else:
+        assert (
+                iguessmd_sim.simulation.context.getParameter("smd_k_par") == force_constant
+        )
 
 
 @pytest.mark.parametrize("indices", TEST_iGUESSMD_INDICES)
@@ -795,10 +810,8 @@ def test_error_for_non_initial_restraint_during_equilibration():
     )
     iguessmd_sim.current_iguessmd_force_position_index = 1
     iguessmd_sim.update_iguessmd_force_position()
-    try:
+    with pytest.raises(AssertionError):
         iguessmd_sim.run_equilibration_with_initial_restraint(n_steps=10)
-    except AssertionError:
-        pass
 
 
 @pytest.mark.parametrize("n_structures", [10, 100, 328, 1000])
@@ -861,38 +874,70 @@ def test_generate_starting_structures(n_structures, interval_ps):
         np.array([1.75, -3.0, 5.263]),
     ],
 )
-@pytest.mark.parametrize("indices", TEST_iGUESSMD_INDICES)
-def test_calculate_iguessmd_forces(position_shifts, indices):
+@pytest.mark.parametrize("indices, force_constant", product(TEST_iGUESSMD_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS))
+def test_calculate_iguessmd_forces(position_shifts, indices,force_constant):
     """
     Test that the function _calculate_iguessmd_forces correctly calculates the iGUESSMD forces
     for a given set of positions that is passed to it. As the iGUESSMD force is harmonic,
-    we expect the force to take the form
+    we expect the force to take the general form
+
+    F = - k_par * (position - iguessmd_force_position)_par
+          - k_perp * (position - iguessmd_force_position)_perp
+
+    which reduces to
 
     F = - k * (position - iguessmd_force_position)
+
+    in the case that the potential is spherically symmetric (the parallel and perpendicular force
+    constants are equal)
 
     This is tested below using the iGUESSMD force path given to the simulation, which is
     shifted by some defined by the position_shifts parameter, meaning that we expect
     the forces calculated to take the form
 
-    F = - k * position_shift
+    F = - k_par * position_shift_par - k_perp * position_shift_perp
 
     :param position_shifts: Array defining the offset for the positions defined by
       the positions from the test iGUESSMD path
     :param indices: Indices of atoms to apply the iGUESSMD force to (should at least
       test one single index and one set of indices)
     """
+    # Test atom positions and atom-interaction centre displacement vectors
     test_positions = TEST_iGUESSMD_PATH + position_shifts
-    #TODO: Generalise to cases with different parallel and perpendicular force constants
-    expected_forces = (
-            np.zeros(TEST_iGUESSMD_PATH.shape) - TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL * position_shifts
-    )
+    displacements = test_positions - TEST_iGUESSMD_PATH
+
+    # Check for different parallel and perpendicular force constants
+    if isinstance(force_constant, np.ndarray):
+        fc_par = force_constant[0]
+        fc_perp = force_constant[1]
+    else:
+        fc_par = fc_perp= force_constant
+
+    # Calculate normalised tangent vectors along RC
+    tangents = np.diff(TEST_iGUESSMD_PATH, axis=0)
+    tangents = np.array([*tangents, tangents[-1]])
+    tangents /= np.linalg.norm(tangents, axis=1, keepdims=True)
+
+    # Calculate parallel and perpendicular components of displacement vectors
+    displacements_par = np.linalg.vecdot(displacements, tangents, axis=1)[:, None] * tangents
+    displacements_perp = displacements - displacements_par
+
+    # Calculate force components and total force
+    expected_forces_par = - fc_par * displacements_par
+    expected_forces_perp = - fc_perp * displacements_perp
+    expected_forces = expected_forces_par + expected_forces_perp
+
+    # Create iGUESSMD simulation and pass test positions to
+    # function to calculate forces
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_iGUESSMD_PATH,
-        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
+        force_constant,
     )
     iguessmd_sim._calculate_iguessmd_forces(test_positions)
+
+    # Check calculated forces are equal to expected forces
     assert np.allclose(iguessmd_sim.iguessmd_simulation_forces, expected_forces, atol=1e-16)
 
 
