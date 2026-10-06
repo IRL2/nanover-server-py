@@ -166,26 +166,6 @@ def test_invalid_max_force(single_interaction, max_force):
         single_interaction.max_force = max_force
 
 
-@pytest.mark.parametrize("max_force", [0, 1, 1000, np.inf])
-def test_interaction_force_max_force(
-    particles,
-    single_interaction,
-    max_force,
-):
-    """
-    Tests that setting the max force field results in the forces being capped as expected
-    """
-
-    positions, masses = particles
-    forces = np.zeros((len(positions), 3))
-    single_interaction.max_force = max_force
-    _ = apply_single_interaction_force(
-        positions, masses, single_interaction, forces
-    )
-
-    assert np.sum(np.linalg.norm(forces, axis=1)) <= max_force
-
-
 # TODO: does it make any sense to test NaN, infinite, and negative masses?
 @pytest.mark.parametrize("mass", [-1.0, 100, np.nan, np.inf, -np.inf])
 def test_interaction_force_mass(
@@ -412,10 +392,7 @@ def random_periodic_box_lengths(draw):
 
 
 @strategies.composite
-def random_positions_pbc(draw):
-    """
-    Generates a random periodic box, and 50 random positions.
-    """
+def random_positions_pbc(draw, particle_count=10):
     periodic_box_lengths = draw(random_periodic_box_lengths())
 
     # pick two random points in lowest quadrant of the box.
@@ -432,29 +409,34 @@ def random_positions_pbc(draw):
         ]
     )
 
-    num_particles = 4
-
     random_masses = strategies.floats(
         min_value=0.01, max_value=100,
         allow_nan=False, allow_infinity=False
     )
-    masses = np.array([draw(random_masses) for _ in range(num_particles)])
+    masses = np.array([draw(random_masses) for _ in range(particle_count)])
 
-    positions = np.zeros((num_particles, 3))
-    for i in range(num_particles):
+    positions = np.zeros((particle_count, 3))
+    for i in range(particle_count):
         positions[i] = np.array([draw(coord) for coord in lengths])
 
     # generate random integer values to multiply positions by, putting them in different images.
     images = strategies.integers(min_value=-100, max_value=100)
-    image_multiples = np.array([draw(images) for _ in range(3 * num_particles)])
-    image_multiples.reshape((num_particles, 3))
+    image_multiples = np.array([draw(images) for _ in range(3 * particle_count)])
+    image_multiples.reshape((particle_count, 3))
 
     # move points to new random positions around the periodic box.
-    positions_periodic = np.zeros((num_particles, 3))
-    for i in range(num_particles):
+    positions_periodic = np.zeros((particle_count, 3))
+    for i in range(particle_count):
         positions_periodic[i] = positions[i] + image_multiples[i] * periodic_box_lengths
 
     return positions, masses, positions_periodic, periodic_box_lengths
+
+
+@strategies.composite
+def random_positions_pbc_subset(draw, particle_count=10):
+    positions, masses, positions_periodic, periodic_box_lengths = draw(random_positions_pbc(particle_count))
+    particles = draw(strategies.lists(strategies.integers(min_value=0, max_value=particle_count-1), unique=True))
+    return particles, positions, masses, positions_periodic, periodic_box_lengths
 
 
 @given(random_positions_pbc())
@@ -568,6 +550,11 @@ def test_constant_force(position, interaction, expected_energy, expected_force):
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(force, expected_force, equal_nan=True)
 
+# force scales above this are not useful and cause problems by overflowing to infinity
+INTERACTION_SCALES = strategies.floats(min_value=0, max_value=10e35, allow_infinity=False, allow_nan=False)
+
+INTERACTION_MAX_FORCES = strategies.floats(min_value=0, allow_nan=False)
+INTERACTION_TYPES = strategies.sampled_from(list(INTERACTION_METHOD_MAP.keys()))
 
 FORCE_CALCULATORS = list(INTERACTION_METHOD_MAP.values())
 
@@ -595,6 +582,46 @@ def test_overlap_no_force(
 
 
 @hypothesis.given(
+    system=random_positions_pbc_subset(),
+    interaction_position=vec3s(),
+    interaction_type=INTERACTION_TYPES,
+    scale=INTERACTION_SCALES,
+    max_force=INTERACTION_MAX_FORCES,
+)
+def test_interaction_force_max_force(
+    system,
+    interaction_position,
+    interaction_type: str,
+    scale: float,
+    max_force: float,
+):
+    """Test that total force applied never exceeds max force for all interaction types."""
+
+    particles, positions, masses, positions_periodic, periodic_box_lengths = system
+
+    forces = np.zeros((len(positions), 3))
+
+    interaction = ParticleInteraction(
+        position=interaction_position,
+        scale=scale,
+        max_force=max_force,
+        particles=particles,
+        interaction_type=interaction_type,
+    )
+
+    _ = apply_single_interaction_force(
+        positions=positions,
+        masses=masses,
+        interaction=interaction,
+        forces=forces,
+        periodic_box_lengths=periodic_box_lengths,
+    )
+
+    force_magnitude = np.sum(np.linalg.norm(forces, axis=1))
+    assert force_magnitude <= max_force or np.isclose(force_magnitude, max_force)
+
+
+@hypothesis.given(
     particle_position=vec3s(),
     interaction_position=vec3s(),
     calculator=strategies.sampled_from(FORCE_CALCULATORS),
@@ -608,7 +635,7 @@ def test_force_magnitude_limit(
     periodic_box_lengths,
     force_magnitude_limit: float,
 ):
-    """Tests that the force magnitude limit is never exceeded for all interaction types."""
+    """Test that the force magnitude limit is never exceeded for all interaction types."""
     _, force = calculator(
         particle_position=np.array(particle_position),
         interaction_position=np.array(interaction_position),

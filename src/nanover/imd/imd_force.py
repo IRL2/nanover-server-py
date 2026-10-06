@@ -85,7 +85,10 @@ def apply_single_interaction_force(
 
     particle_count = len(interaction.particles)
 
-    if particle_count > 1:
+    if particle_count == 0:
+        # apply nothing if there are no interacted particles
+        return 0
+    elif particle_count > 1:
         center = get_center_of_mass_subset(
             positions, masses, interaction.particles, periodic_box_lengths
         )
