@@ -46,13 +46,17 @@ def boltzmann_constant_in_kJ_mol_K() -> Quantity:
     return kB_J_mol_K.in_units_of(unit.kilojoule_per_mole / unit.kelvin)
 
 
-def calculate_beta_mol_kJ(temperature_K: float) -> float:
+def calculate_beta_mol_kJ(temperature_K: float | int) -> float:
     """
     Calculate the value of beta (1/(kB*T)) in units of mol kJ-1.
 
     :param temperature_K: Temperature (in K)
     :return: Beta (1/(kB*T)) in units of mol kJ-1.
     """
+    # Check that the temperature is non-zero and positive
+    if temperature_K <= 0.0:
+        raise ValueError("Temperature must be non-zero and positive.")
+
     kB_kJ_mol_K = boltzmann_constant_in_kJ_mol_K()
     beta = 1.0 / (kB_kJ_mol_K._value * temperature_K)
     return beta
