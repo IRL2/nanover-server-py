@@ -22,16 +22,6 @@ UNIT = np.array([1, 1, 1]) / np.linalg.norm([1, 1, 1])
 
 
 @pytest.fixture
-def particle_position():
-    return np.array([1, 0, 0])
-
-
-@pytest.fixture
-def interaction_position():
-    return np.array([0, 0, 0])
-
-
-@pytest.fixture
 def particles():
     num_particles = 50
     positions = np.array([[i, i, i] for i in range(num_particles)])
@@ -56,14 +46,6 @@ def single_interaction_multiple_atoms():
         position=position,
         particles=[1, 2, 3],
     )
-
-
-@pytest.fixture
-def single_interactions():
-    num_interactions = 2
-    return [
-        single_interaction(position=[i, i, i], index=i) for i in range(num_interactions)
-    ]
 
 
 def test_multiple_interactions(particles):
