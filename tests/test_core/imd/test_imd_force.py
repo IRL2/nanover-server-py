@@ -125,17 +125,18 @@ def test_interaction_force_single(particles, single_interaction, scale):
         positions, masses, single_interaction, forces
     )
 
+    diff = positions[1, :] - single_interaction.position
     expected_energy = (1 - EXP_3) * scale
     expected_forces[1, :] = np.array(
         [
-            -EXP_3
+            - diff
+            * EXP_3
             * scale
             * (
                 masses[single_interaction.particles[0]]
                 / np.sum(masses[single_interaction.particles[0]])
             )
         ]
-        * 3
     )
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
