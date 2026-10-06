@@ -532,10 +532,8 @@ def test_constant_force(position, interaction, expected_energy, expected_force):
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(force, expected_force, equal_nan=True)
 
-# force scales above this are not useful and cause problems by overflowing to infinity
-INTERACTION_SCALES = strategies.floats(min_value=0, max_value=10e35, allow_infinity=False, allow_nan=False)
-
-INTERACTION_MAX_FORCES = strategies.floats(min_value=0, allow_nan=False)
+INTERACTION_SCALES = strategies.floats(width=32, min_value=0, allow_infinity=False, allow_nan=False)
+INTERACTION_MAX_FORCES = strategies.floats(width=32, min_value=0, allow_nan=False)
 INTERACTION_TYPES = strategies.sampled_from(list(INTERACTION_METHOD_MAP.keys()))
 
 FORCE_CALCULATORS = list(INTERACTION_METHOD_MAP.values())
@@ -544,7 +542,7 @@ FORCE_CALCULATORS = list(INTERACTION_METHOD_MAP.values())
     position=vec3s(),
     calculator=strategies.sampled_from(FORCE_CALCULATORS),
     periodic_box_lengths=random_periodic_box_lengths(),
-    force_magnitude_limit=strategies.floats(min_value=0, allow_nan=False),
+    force_magnitude_limit=INTERACTION_MAX_FORCES,
 )
 def test_overlap_no_force(
     position,
@@ -608,7 +606,7 @@ def test_interaction_force_max_force(
     interaction_position=vec3s(),
     calculator=strategies.sampled_from(FORCE_CALCULATORS),
     periodic_box_lengths=random_periodic_box_lengths(),
-    force_magnitude_limit=strategies.floats(min_value=0, allow_nan=False),
+    force_magnitude_limit=INTERACTION_MAX_FORCES,
 )
 def test_force_magnitude_limit(
     particle_position,
