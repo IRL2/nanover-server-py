@@ -147,17 +147,12 @@ def calculate_reaction_coordinate_projections(
     displacements = np.array([*displacements, displacements[-1]])
 
     # Calculate normalised displacement vectors
-    normalised_displacements = np.array(
-        [
-            displacements[i] / np.linalg.norm(displacements[i])
-            for i in range(displacements.shape[0])
-        ]
-    )
+    normalised_displacements = displacements / np.linalg.norm(displacements, axis=1, keepdims=True)
 
     # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
     restraint_vectors = iguessmd_com_coordinates_array - iguessmd_reaction_coordinate
     if every_nth_point is not None:
-        displacements = get_every_nth(displacements, 0, every_nth_point, include_end_point)
+        normalised_displacements = get_every_nth(normalised_displacements, 0, every_nth_point, include_end_point)
         restraint_vectors = get_every_nth(restraint_vectors, 1, every_nth_point, include_end_point)
 
     i_index_range = restraint_vectors.shape[1]
