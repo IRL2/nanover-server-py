@@ -1,0 +1,46 @@
+"""
+Tests for :mod:`nanover.iguessmd.utils`.
+
+Things to test for utility functions:
+- get_every_nth returns arrays of the expected shapes with the expected values [√]
+"""
+
+import pytest
+import numpy as np
+
+from nanover.iguessmd.utils import get_every_nth
+
+
+@pytest.mark.parametrize("array,axis", [
+    (np.arange(0,99,1),0),
+    (np.arange(0,100,1),0),
+    (np.arange(0,101,1),0),
+    (np.random.rand(3,150,4), 0),
+    (np.random.rand(3,150,4), 1),
+    (np.random.rand(3,150,4), 2),
+],
+)
+@pytest.mark.parametrize("every_nth", [1, 2, 5, 10, 23])
+def test_get_every_nth(array,axis, every_nth):
+    """
+    Test that the function get_every_nth behaves as expected.
+    """
+    # Calculate expected shapes
+    expected_shape_without_end = np.round(np.floor((array.shape[axis] - 1) / every_nth) + 1)
+    if (array.shape[axis] - 1) % every_nth != 0:
+        expected_shape_with_end = expected_shape_without_end + 1
+    else:
+        expected_shape_with_end = expected_shape_without_end
+
+    # Calculate reduced arrays
+    reduced_array_without_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=False)
+    reduced_array_with_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=True)
+
+    # Check dimensions match expected
+    assert reduced_array_without_end.shape[axis] == expected_shape_without_end
+    assert reduced_array_with_end.shape[axis] == expected_shape_with_end
+
+    # Check final entries with and without end point included
+    assert (np.take(reduced_array_with_end, -1, axis=axis) == np.take(array, -1, axis=axis)).all()
+    if (array.shape[axis] - 1) % every_nth != 0:
+        assert (np.take(reduced_array_without_end, -1, axis=axis) != np.take(array, -1, axis=axis)).all()

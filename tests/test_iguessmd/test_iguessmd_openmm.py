@@ -1,7 +1,7 @@
 """
-Tests for :mod:`nanover.smd.openmm`.
+Tests for :mod:`nanover.iguessmd.openmm`.
 
-Things to test:
+Things to test for class performing iGUESSMD calculations:
 - An iGUESSMD simulation can be created either from an existing OpenMM simulation or
   a NanoVer OpenMM XML file [√]
 - OMMiGUESSMDSimulation returns OMMiGUESSMDSimulationAtom or OMMiGUESSMDSimulationCOM
@@ -64,7 +64,6 @@ from openmm.unit import (
 )
 
 from nanover.iguessmd.openmm import *
-from nanover.iguessmd.utils import get_every_nth
 
 # Very basic thing to test entire class as it would be used: tutorial notebook that can be tested
 
@@ -1325,39 +1324,6 @@ def test_load_openmm_state(apply_pbcs, save_iguessmd_force, indices):
             ).getVelocities(asNumpy=True)
             assert np.allclose(original_velocities, loaded_velocities, rtol=1e-7)
 
-@pytest.mark.parametrize("array,axis", [
-    (np.arange(0,99,1),0),
-    (np.arange(0,100,1),0),
-    (np.arange(0,101,1),0),
-    (np.random.rand(3,150,4), 0),
-    (np.random.rand(3,150,4), 1),
-    (np.random.rand(3,150,4), 2),
-],
-)
-@pytest.mark.parametrize("every_nth", [1, 2, 5, 10, 23])
-def test_get_every_nth(array,axis, every_nth):
-    """
-    Test that the utility function get_every_nth behaves as expected.
-    """
 
-    # Calculate expected shapes
-    expected_shape_without_end = np.round(np.floor((array.shape[axis] - 1) / every_nth) + 1)
-    if (array.shape[axis] - 1) % every_nth != 0:
-        expected_shape_with_end = expected_shape_without_end + 1
-    else:
-        expected_shape_with_end = expected_shape_without_end
-
-    # Calculate reduced arrays
-    reduced_array_without_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=False)
-    reduced_array_with_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=True)
-
-    # Check dimensions match expected
-    assert reduced_array_without_end.shape[axis] == expected_shape_without_end
-    assert reduced_array_with_end.shape[axis] == expected_shape_with_end
-
-    # Check final entries with and without end point included
-    assert (np.take(reduced_array_with_end, -1, axis=axis) == np.take(array, -1, axis=axis)).all()
-    if (array.shape[axis] - 1) % every_nth != 0:
-        assert (np.take(reduced_array_without_end, -1, axis=axis) != np.take(array, -1, axis=axis)).all()
 
 
