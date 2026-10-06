@@ -1326,14 +1326,12 @@ def test_load_openmm_state(apply_pbcs, save_iguessmd_force, indices):
             assert np.allclose(original_velocities, loaded_velocities, rtol=1e-7)
 
 @pytest.mark.parametrize("array,axis", [
-    (np.zeros((89)),0),
-    (np.zeros((101)),0),
-    (np.zeros((102)),0),
     (np.arange(0,99,1),0),
     (np.arange(0,100,1),0),
     (np.arange(0,101,1),0),
-    (np.zeros((3, 100)),1),
-    (np.zeros((100, 3)),0),
+    (np.random.rand(3,150,4), 0),
+    (np.random.rand(3,150,4), 1),
+    (np.random.rand(3,150,4), 2),
 ],
 )
 @pytest.mark.parametrize("every_nth", [1, 2, 5, 10, 23])
@@ -1356,5 +1354,10 @@ def test_get_every_nth(array,axis, every_nth):
     # Check dimensions match expected
     assert reduced_array_without_end.shape[axis] == expected_shape_without_end
     assert reduced_array_with_end.shape[axis] == expected_shape_with_end
+
+    # Check final entries with and without end point included
+    assert (np.take(reduced_array_with_end, -1, axis=axis) == np.take(array, -1, axis=axis)).all()
+    if (array.shape[axis] - 1) % every_nth != 0:
+        assert (np.take(reduced_array_without_end, -1, axis=axis) != np.take(array, -1, axis=axis)).all()
 
 
