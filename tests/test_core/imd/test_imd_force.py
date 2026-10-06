@@ -365,7 +365,7 @@ def test_get_com_subset(particles):
 def random_periodic_box_lengths(draw):
     # Generate random polar coordinates and convert them to euclidean
     # coordinates to get a periodic box.
-    # box length has to nonzero.
+    # box length has to be nonzero.
     length = strategies.floats(
         min_value=0.01, max_value=100,
         allow_nan=False, allow_infinity=False
