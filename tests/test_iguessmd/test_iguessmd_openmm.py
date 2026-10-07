@@ -40,13 +40,12 @@ Things to test for class performing iGUESSMD calculations:
 - OMMiGUESSMDSimulation correctly loads the state of a simulation [√]
 - OMMiGUESSMDSimulation correctly calculates the unit tangents of the iGUESSMD path [√]
 - Different parallel and perpendicular force constants can be given and correctly applied
-  to the simulation [ ]
+  to the simulation [√]
 - Different parallel and perpendicular force constants can be correctly saved and loaded
   from the general iGUESSMD data file [√]
 - Different parallel and perpendicular force constants can be correctly saved and loaded
   from an iGUESSMD simulation saved to a NanoVer OpenMM XML file [√]
 """
-# TODO: Write tests that check the parallel and perpendicular force constants individually in the case that they are different
 
 import tempfile
 from io import StringIO
