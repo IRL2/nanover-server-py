@@ -3,7 +3,7 @@ Module providing `StateDictionary`, a class for tracking and making changes to a
 shared key/value store.
 """
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Generator, Iterable
 from contextlib import AbstractContextManager, contextmanager
 from threading import Lock
 from typing import Any
@@ -49,7 +49,7 @@ class StateDictionary:
             return dict(content)
 
     @contextmanager
-    def lock_content(self) -> Iterator[dict[str, Any]]:
+    def lock_content(self) -> Generator[dict[str, Any]]:
         """
         Context manager for reading the current state while delaying any changes
         to it via an exclusive lock.
