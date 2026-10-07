@@ -35,3 +35,30 @@ def get_every_nth(
         indices = np.append(indices, array.shape[axis] - 1)
 
     return np.take(array, indices, axis=axis)
+
+def calculate_path_unit_tangents(
+    path: np.ndarray,
+) -> np.ndarray:
+    """
+    Calculate the unit tangents of a path in 3D space using the
+    forward difference approximation, setting the final tangent
+    equal to the penultimate tangent.
+    :param path: (k * 3) array of k points defining the path
+    :return: (k * 3) array of unit tangents to the path
+    """
+    # Initialise tangents array
+    unit_tangents = np.zeros(path.shape)
+
+    # Calculate displacements between path points
+    displacements = np.diff(path, axis=0)
+
+    # Normalise displacement vectors
+    displacements /= np.linalg.norm(displacements, axis=1, keepdims=True)
+
+    # Populate unit tangents
+    unit_tangents[:-1] = displacements
+    unit_tangents[-1] = displacements[-1]
+
+    return unit_tangents
+
+

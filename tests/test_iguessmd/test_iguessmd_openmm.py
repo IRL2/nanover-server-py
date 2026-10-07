@@ -38,6 +38,7 @@ Things to test for class performing iGUESSMD calculations:
 - iguessmd_com_force works as expected [√]
 - iguessmd_single_atom_force works as expected [√]
 - OMMiGUESSMDSimulation correctly loads the state of a simulation [√]
+- OMMiGUESSMDSimulation correctly calculates the unit tangents of the iGUESSMD path [√]
 - Different parallel and perpendicular force constants can be given and correctly applied
   to the simulation [ ]
 - Different parallel and perpendicular force constants can be correctly saved and loaded

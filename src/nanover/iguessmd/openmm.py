@@ -12,7 +12,7 @@ from openmm.app import Simulation
 
 from nanover.openmm import serializer
 
-from nanover.iguessmd.utils import get_every_nth
+from nanover.iguessmd.utils import get_every_nth, calculate_path_unit_tangents
 
 iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME = "smd_k"
 iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME = (
@@ -328,20 +328,11 @@ class OMMiGUESSMDSimulation:
         difference approximation.
         """
 
-        # Initialise empty array
+        # Check that path exists
         assert self.iguessmd_path is not None
-        iguessmd_path_tangents = np.zeros(self.iguessmd_path.shape)
 
-        # Calculate normalised tangent vectors
-        iguessmd_force_displacements = np.diff(self.iguessmd_path, axis=0)
-        iguessmd_force_displacements /= np.linalg.norm(
-            iguessmd_force_displacements, axis=1, keepdims=True
-        )
-
-        # Set path tangents (final tangent assumed to continue in same direction)
-        iguessmd_path_tangents[:-1] = iguessmd_force_displacements
-        iguessmd_path_tangents[-1] = iguessmd_force_displacements[-1]
-        self.iguessmd_path_tangents = iguessmd_path_tangents
+        # Calculate unit tangents
+        self.iguessmd_path_tangents = calculate_path_unit_tangents(self.iguessmd_path)
 
     def get_iguessmd_atom_positions(self):
         """
@@ -352,7 +343,7 @@ class OMMiGUESSMDSimulation:
             getPositions=True, enforcePeriodicBox=False
         ).getPositions(asNumpy=True)
         # TODO: Check that the above correctly returns unwrapped coordinates for
-        # correct position continuity w.r.t. the reaction coordinate
+        #  correct position continuity w.r.t. the reaction coordinate
         self.iguessmd_simulation_atom_positions[
             self.current_iguessmd_force_position_index
         ] = positions[self.iguessmd_atom_indices]
@@ -571,9 +562,11 @@ class OMMiGUESSMDSimulation:
         :param interaction_centre_positions: Array of positions defining the centre
           (single atom or COM of group of atoms) with which the iGUESSMD force interacted during the simulation.
         """
-        # TODO: Update iGUESSMD force calculation to reflect new parallel/perpendicular force implementation
+
         assert np.all(self.iguessmd_path.shape == interaction_centre_positions.shape)
+
         displacements = interaction_centre_positions - self.iguessmd_path
+
         # Calculate force component along RC
         parallel_forces = (
             -self.iguessmd_force_constant_parallel
@@ -597,9 +590,7 @@ class OMMiGUESSMDSimulation:
                 * self.iguessmd_path_tangents
             )
         )
-        # self.iguessmd_simulation_forces = -self.iguessmd_force_constant * (
-        #     interaction_centre_positions - self.iguessmd_path
-        # )
+
         self.iguessmd_simulation_forces = parallel_forces + perpendicular_forces
 
     def _calculate_work_done(self):

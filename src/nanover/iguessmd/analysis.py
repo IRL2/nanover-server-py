@@ -6,7 +6,7 @@ from openmm.unit.quantity import Quantity
 
 from os import PathLike
 
-from nanover.iguessmd.utils import get_every_nth
+from nanover.iguessmd.utils import get_every_nth, calculate_path_unit_tangents
 
 
 def load_general_iguessmd_data(filepath: PathLike | str) -> dict:
@@ -139,19 +139,9 @@ def calculate_reaction_coordinate_projections(
       the RC regardless of stride defined by every nth
     :return: (N * k) array of projected reaction coordinate values
     """
-    # Calculate displacement vectors along full iGUESSMD reaction coordinate
-    displacements = calculate_displacements_along_reaction_coordinate(
-        iguessmd_reaction_coordinate
-    )
-
-    # Assume "displacement" from final simulated point is equal to the
-    # final explicit displacement (restraint has same velocity)
-    displacements = np.array([*displacements, displacements[-1]])
-
-    # Calculate normalised displacement vectors
-    normalised_displacements = displacements / np.linalg.norm(
-        displacements, axis=1, keepdims=True
-    )
+    
+    # Calculate normalised displacement vectors along iGUESSMD reaction path
+    normalised_displacements = calculate_path_unit_tangents(iguessmd_reaction_coordinate)
 
     # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
     restraint_vectors = iguessmd_com_coordinates_array - iguessmd_reaction_coordinate
@@ -160,7 +150,10 @@ def calculate_reaction_coordinate_projections(
             normalised_displacements, 0, every_nth_point, include_end_point
         )
         restraint_vectors = get_every_nth(
-            restraint_vectors, 1, every_nth_point, include_end_point,
+            restraint_vectors,
+            1,
+            every_nth_point,
+            include_end_point,
         )
 
     i_index_range = restraint_vectors.shape[1]
