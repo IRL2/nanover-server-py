@@ -1512,3 +1512,41 @@ def test_load_openmm_state(apply_pbcs, save_iguessmd_force, indices):
                 getVelocities=True
             ).getVelocities(asNumpy=True)
             assert np.allclose(original_velocities, loaded_velocities, rtol=1e-7)
+
+@pytest.mark.parametrize("indices", TEST_iGUESSMD_INDICES)
+def test_get_iguessmd_atom_positions_periodic(indices):
+    """
+    Test that the atom positions retrieved from a periodic simulation
+    that has crossed the boundary are unwrapped correctly.
+    """
+    # Define test path that crosses PBC in negative x direction
+    test_pbc_crossing_path = np.array([np.linspace(1, -10, 1000), np.zeros(1000), np.zeros(1000)]).transpose()
+
+    # Define iGUESSMD simulation
+    iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
+        build_basic_simulation(pbcs=True),
+        indices,
+        test_pbc_crossing_path,
+        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
+    )
+
+    # Run iGUESSMD to make molecule cross PBC in x direction
+    iguessmd_sim.run_iguessmd()
+
+    # Retrieve wrapped and unwrapped positions
+    wrapped_positions = iguessmd_sim.simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(asNumpy=True)[indices]._value
+    unwrapped_positions = \
+    iguessmd_sim.simulation.context.getState(getPositions=True, enforcePeriodicBox=False).getPositions(asNumpy=True)[
+        indices]._value
+
+    # Check that x values of atoms to which iGUESSMD force have been
+    # unwrapped correctly
+    if isinstance(iguessmd_sim, OMMiGUESSMDSimulationAtom):
+        assert (wrapped_positions[0] != unwrapped_positions[0]).all()
+        assert np.all(iguessmd_sim.iguessmd_simulation_atom_positions[-1,0] < 0.0)
+        assert (unwrapped_positions[0] == iguessmd_sim.iguessmd_simulation_atom_positions[-1,0])
+    elif isinstance(iguessmd_sim, OMMiGUESSMDSimulationCOM):
+        assert (wrapped_positions[:, 0] != unwrapped_positions[:, 0]).all()
+        assert np.all(iguessmd_sim.iguessmd_simulation_atom_positions[-1,:,0] < 0.0)
+        assert (unwrapped_positions[:, 0] == iguessmd_sim.iguessmd_simulation_atom_positions[-1,:,0]).all()
+

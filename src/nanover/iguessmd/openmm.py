@@ -342,8 +342,6 @@ class OMMiGUESSMDSimulation:
         positions = self.simulation.context.getState(
             getPositions=True, enforcePeriodicBox=False
         ).getPositions(asNumpy=True)
-        # TODO: Check that the above correctly returns unwrapped coordinates for
-        #  correct position continuity w.r.t. the reaction coordinate
         self.iguessmd_simulation_atom_positions[
             self.current_iguessmd_force_position_index
         ] = positions[self.iguessmd_atom_indices]
