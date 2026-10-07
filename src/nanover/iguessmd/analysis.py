@@ -153,7 +153,7 @@ def calculate_reaction_coordinate_projections(
     restraint_vectors = iguessmd_com_coordinates_array - iguessmd_reaction_coordinate
     if every_nth_point is not None:
         normalised_displacements = get_every_nth(normalised_displacements, 0, every_nth_point, include_end_point)
-        restraint_vectors = get_every_nth(restraint_vectors, 1, every_nth_point, include_end_point)
+        restraint_vectors = get_every_nth(restraint_vectors, 1 if len(restraint_vectors.shape) == 3 else 0, every_nth_point, include_end_point)
 
     i_index_range = restraint_vectors.shape[1]
     if abs(restraint_vectors.shape[1] - normalised_displacements.shape[0]) == 1:
