@@ -12,7 +12,7 @@ from openmm.app import Simulation
 
 from nanover.openmm import serializer
 
-from nanover.iguessmd.utils import get_every_nth, calculate_path_unit_tangents
+from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents
 
 iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME = "smd_k"
 iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME = (
@@ -332,7 +332,7 @@ class OMMiGUESSMDSimulation:
         assert self.iguessmd_path is not None
 
         # Calculate unit tangents
-        self.iguessmd_path_tangents = calculate_path_unit_tangents(self.iguessmd_path)
+        self.iguessmd_path_tangents = calculate_unit_tangents(self.iguessmd_path)
 
     def get_iguessmd_atom_positions(self):
         """

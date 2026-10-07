@@ -36,7 +36,7 @@ def get_every_nth(
 
     return np.take(array, indices, axis=axis)
 
-def calculate_path_unit_tangents(
+def calculate_unit_tangents(
     path: np.ndarray,
 ) -> np.ndarray:
     """

@@ -8,30 +8,33 @@ Things to test for utility functions:
 import pytest
 import numpy as np
 
-from nanover.iguessmd.utils import get_every_nth
+from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents
 
 
-@pytest.mark.parametrize("array,axis", [
-    (np.arange(0,99,1),0),
-    (np.arange(0,100,1),0),
-    (np.arange(0,101,1),0),
-    (np.random.rand(3,150,4), 0),
-    (np.random.rand(3,150,4), 1),
-    (np.random.rand(3,150,4), 2),
-],
+@pytest.mark.parametrize(
+    "array,axis",
+    [
+        (np.arange(0, 99, 1), 0),
+        (np.arange(0, 100, 1), 0),
+        (np.arange(0, 101, 1), 0),
+        (np.random.rand(3, 150, 4), 0),
+        (np.random.rand(3, 150, 4), 1),
+        (np.random.rand(3, 150, 4), 2),
+    ],
 )
-@pytest.mark.parametrize("every_nth, should_raise",
-                         [
-                             (-1,True),
-                             (0,True),
-                             (1,False),
-                             (2,False),
-                             (5,False),
-                             (10,False),
-                             (23,False),
-                          ],
-                         )
-def test_get_every_nth(array,axis, every_nth, should_raise):
+@pytest.mark.parametrize(
+    "every_nth, should_raise",
+    [
+        (-1, True),
+        (0, True),
+        (1, False),
+        (2, False),
+        (5, False),
+        (10, False),
+        (23, False),
+    ],
+)
+def test_get_every_nth(array, axis, every_nth, should_raise):
     """
     Test that the function get_every_nth behaves as expected.
     """
@@ -43,11 +46,17 @@ def test_get_every_nth(array,axis, every_nth, should_raise):
         return
 
     # Calculate reduced arrays
-    reduced_array_without_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=False)
-    reduced_array_with_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=True)
+    reduced_array_without_end = get_every_nth(
+        array, axis=axis, every_nth=every_nth, include_end=False
+    )
+    reduced_array_with_end = get_every_nth(
+        array, axis=axis, every_nth=every_nth, include_end=True
+    )
 
     # Calculate expected shapes
-    expected_shape_without_end = np.round(np.floor((array.shape[axis] - 1) / every_nth) + 1)
+    expected_shape_without_end = np.round(
+        np.floor((array.shape[axis] - 1) / every_nth) + 1
+    )
     if (array.shape[axis] - 1) % every_nth != 0:
         expected_shape_with_end = expected_shape_without_end + 1
     else:
@@ -58,6 +67,50 @@ def test_get_every_nth(array,axis, every_nth, should_raise):
     assert reduced_array_with_end.shape[axis] == expected_shape_with_end
 
     # Check final entries with and without end point included
-    assert (np.take(reduced_array_with_end, -1, axis=axis) == np.take(array, -1, axis=axis)).all()
+    assert (
+        np.take(reduced_array_with_end, -1, axis=axis) == np.take(array, -1, axis=axis)
+    ).all()
     if (array.shape[axis] - 1) % every_nth != 0:
-        assert (np.take(reduced_array_without_end, -1, axis=axis) != np.take(array, -1, axis=axis)).all()
+        assert (
+            np.take(reduced_array_without_end, -1, axis=axis)
+            != np.take(array, -1, axis=axis)
+        ).all()
+
+
+def test_calculate_unit_tangents_circular_path():
+    """
+    Test that checks whether the normalised tangent vectors of a circular
+    3D path are calculated correctly, using the forward difference
+    approximation and with the final tangent vector equal to the
+    penultimate tangent vector.
+    """
+
+    # Define a unit circular test path (such that final point overlays initial point)
+    n = 10
+    n_points = 2 ** n + 1
+    angles = np.linspace(0, 2 * np.pi, n_points)
+    x = np.cos(angles - np.pi / (n_points - 1))
+    y = np.sin(angles - np.pi / (n_points - 1))
+    z = np.zeros(x.shape)
+    circular_path = np.array([x, y, z]).transpose()
+
+    # Define expected unit tangent vectors (including duplicated penultimate tangent)
+    x_prime = -np.sin(angles)
+    y_prime = np.cos(-angles)
+    expected_tangent_vectors = np.array([x_prime, y_prime, z]).transpose()
+    expected_tangent_vectors[-1] = expected_tangent_vectors[-2]
+
+    calculated_tangent_vectors = calculate_unit_tangents(circular_path)
+
+    # Check that calculated tangents are as expected
+    assert calculated_tangent_vectors.shape == expected_tangent_vectors.shape
+    assert np.allclose(
+        calculated_tangent_vectors, expected_tangent_vectors, rtol=1e-8
+    )
+
+    # Check calculated tangent vectors obey symmetry of circle (excluding final tangent)
+    assert np.allclose(
+        calculated_tangent_vectors[: int((n_points - 1) / 2)],
+        -calculated_tangent_vectors[int((n_points - 1) / 2): -1],
+        rtol=1e-8,
+    )
