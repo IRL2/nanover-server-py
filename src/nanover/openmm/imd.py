@@ -92,12 +92,11 @@ class ImdForceManager:
                 unit.nanometer / unit.picosecond
             )
 
+            # TODO: implement same velocity reset as ASE
             apply_velocity_resets_mean_velocity_removal(
                 interactions=velocity_resets_interactions,
                 velocities=velocities,
             )
-
-            _ = simulation.integrator.getTemperature()
 
             # apply_velocity_resets_maxwellboltzmann(
             #     interactions=velocity_resets_interactions,
