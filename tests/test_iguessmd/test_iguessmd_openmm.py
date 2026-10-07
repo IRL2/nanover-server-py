@@ -1234,21 +1234,6 @@ def test_save_general_iguessmd_data(indices, force_constants):
     "positions, masses, com",
     [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
 )
-def test_calculate_com(positions, masses, com):
-    """
-    Check that the function calculate_com correctly calculates
-    the centre of mass of a set of atoms, given their positions
-    and masses.
-    """
-    calculated_com = calculate_com(positions, masses)
-    expected_com = com
-    assert np.allclose(calculated_com, expected_com, atol=1e-16)
-
-
-@pytest.mark.parametrize(
-    "positions, masses, com",
-    [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
-)
 def test_calculate_com_iguessmd_simulation_class(positions, masses, com):
     """
     Check that the function _calculate_com correctly calculates

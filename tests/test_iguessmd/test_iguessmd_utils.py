@@ -3,13 +3,58 @@ Tests for :mod:`nanover.iguessmd.utils`.
 
 Things to test for utility functions:
 - get_every_nth returns arrays of the expected shapes with the expected values [√]
+- calculate_unit_tangent correctly calculates the unit tangents for a given non-linear
+  path
+- calculate_com correctly calculates the COMs for a set of positions with known COMs
 """
 
 import pytest
 import numpy as np
 
-from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents
+from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents, calculate_com
 
+# Test systems for COM calculations, formatted as (positions, masses, expected COM)
+TEST_COM_TWO_ATOMS = (
+    np.array([[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]),
+    np.array([1.0, 1.0]),
+    np.array([0.0, 0.0, 0.0]),
+)
+TEST_COM_METHANE = (
+    np.array(
+        [
+            [1.0, 1.0, 0.0],
+            [0.0, 1.0, -1.0 / np.sqrt(2)],
+            [2.0, 1.0, -1.0 / np.sqrt(2)],
+            [1.0, 0.0, 1.0 / np.sqrt(2)],
+            [1.0, 2.0, 1.0 / np.sqrt(2)],
+        ]
+    ),
+    np.array([12.01, 1.00, 1.00, 1.00, 1.00]),
+    np.array([1.0, 1.0, 0.0]),
+)
+TEST_COM_CIRCLE = (
+    np.array(
+        [[np.cos(i * (np.pi / 4)), 0.0, np.sin(i * (np.pi / 4))] for i in range(8)]
+    ),
+    np.array([2.0, 1.05, 2.0, 1.05, 2.0, 1.05, 2.0, 1.05]),
+    np.array([0.0, 0.0, 0.0]),
+)
+TEST_COM_CUBE = (
+    np.array(
+        [
+            [0.0, 1.0, 2.0],
+            [0.0, 1.0, 4.0],
+            [0.0, 3.0, 2.0],
+            [0.0, 3.0, 4.0],
+            [2.0, 1.0, 2.0],
+            [2.0, 1.0, 4.0],
+            [2.0, 3.0, 2.0],
+            [2.0, 3.0, 4.0],
+        ]
+    ),
+    np.array([6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0]),
+    np.array([1.0, 2.0, 3.0]),
+)
 
 @pytest.mark.parametrize(
     "array,axis",
@@ -114,3 +159,18 @@ def test_calculate_unit_tangents_circular_path():
         -calculated_tangent_vectors[int((n_points - 1) / 2): -1],
         rtol=1e-8,
     )
+
+
+@pytest.mark.parametrize(
+    "positions, masses, com",
+    [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
+)
+def test_calculate_com(positions, masses, com):
+    """
+    Check that the function calculate_com correctly calculates
+    the centre of mass of a set of atoms, given their positions
+    and masses.
+    """
+    calculated_com = calculate_com(positions, masses)
+    expected_com = com
+    assert np.allclose(calculated_com, expected_com, atol=1e-16)
