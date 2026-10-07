@@ -10,6 +10,7 @@ Things to test for class performing iGUESSMD calculations:
   force shares this periodicity [√]
 - The iGUESSMD force attaches to the correct atom (dictated by the index/indices passed
   to the class upon creation) [√]
+- The positions retrieved from the simulation are correctly unwrapped [√]
 - The simulation can be reset correctly, with all attributes returning to the same
   state as immediately after the creation of the class itself [√]
 - iGUESSMD force is correctly added to the system [√]
