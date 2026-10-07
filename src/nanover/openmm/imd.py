@@ -6,6 +6,7 @@ from collections.abc import Iterable
 
 import numpy as np
 import numpy.typing as npt
+from ase import units
 from openmm import CustomExternalForce, System, unit
 from openmm.app import Simulation
 
@@ -92,18 +93,17 @@ class ImdForceManager:
                 unit.nanometer / unit.picosecond
             )
 
-            # TODO: implement same velocity reset as ASE
-            apply_velocity_resets_mean_velocity_removal(
-                interactions=velocity_resets_interactions,
-                velocities=velocities,
-            )
-
-            # apply_velocity_resets_maxwellboltzmann(
+            # apply_velocity_resets_mean_velocity_removal(
             #     interactions=velocity_resets_interactions,
             #     velocities=velocities,
-            #     masses=self.masses,
-            #     temperature=simulation.integrator.getTemperature(),
             # )
+
+            apply_velocity_resets_maxwellboltzmann(
+                interactions=velocity_resets_interactions,
+                velocities=velocities,
+                masses=self.masses,
+                temperature=simulation.integrator.getTemperature(),
+            )
 
             simulation.context.setVelocities(velocities)
 
@@ -149,11 +149,25 @@ def apply_velocity_resets_maxwellboltzmann(
         {particle for interaction in interactions for particle in interaction.particles}
     )
 
-    # TODO: implement
-    _ = velocities[particles]
-    _ = masses[particles]
+    particle_masses = masses[particles]
 
-    velocities[particles] *= 0
+    # temperature from K to eV
+    temperature *= units.kB
+
+    # ase thermalize momenta
+    xi = np.random.standard_normal((len(masses), 3))
+    momenta = xi * np.sqrt(particle_masses * temperature)[:, np.newaxis]
+
+    # ase force temperature
+    if temperature > 1e-12:
+        # TODO: calculate instantaneous temperature of atoms
+        actual_temp = temperature
+
+        scale = temperature / actual_temp
+        momenta *= np.sqrt(scale)
+
+    # apply velocities from thermalized momenta
+    velocities[particles] = momenta / particle_masses
 
 
 def apply_velocity_resets_mean_velocity_removal(
