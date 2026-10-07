@@ -11,6 +11,7 @@ Things to test for analysis functions:
 - Calculation of displacements along reaction path works as expected [ ]
 - Calculation of distance along reaction coordinate works as expected [ ]
 """
+
 import pytest
 import numpy as np
 
@@ -39,10 +40,12 @@ def test_calculate_boltzmann_constant_in_kJ_mol_K():
     Check that the Boltzmann constant is correctly calculated in units of kJ mol-1 K-1
     """
     kB_calculated = boltzmann_constant_in_kJ_mol_K()
-    assert kB_calculated._value == pytest.approx(KB_KJ_MOL_K_VALUE, rel=1E-10)
+    assert kB_calculated._value == pytest.approx(KB_KJ_MOL_K_VALUE, rel=1e-10)
 
 
-@pytest.mark.parametrize("temperature_K", [-1.0, 0.0, 1, np.pi, 273.15, 300.0, 12345.6789])
+@pytest.mark.parametrize(
+    "temperature_K", [-1.0, 0.0, 1, np.pi, 273.15, 300.0, 12345.6789]
+)
 def test_calculate_beta_mol_kJ(temperature_K):
     """
     Check that the value of (kB * T)^{-1} is correctly calculated in units
@@ -55,12 +58,13 @@ def test_calculate_beta_mol_kJ(temperature_K):
         return
 
     beta_calculated = calculate_beta_mol_kJ(temperature_K)
-    beta_expected = 1. / (KB_KJ_MOL_K_VALUE * temperature_K)
-    assert beta_calculated == pytest.approx(beta_expected, rel=1E-10)
+    beta_expected = 1.0 / (KB_KJ_MOL_K_VALUE * temperature_K)
+    assert beta_calculated == pytest.approx(beta_expected, rel=1e-10)
 
 
-@pytest.mark.parametrize("position_shifts, n_traj",
-    product(TEST_iGUESSMD_POSITION_SHIFTS, [1,15]),
+@pytest.mark.parametrize(
+    "position_shifts, n_traj",
+    product(TEST_iGUESSMD_POSITION_SHIFTS, [1, 15]),
 )
 def test_calculate_reaction_coordinate_projections(position_shifts, n_traj):
     """
@@ -75,11 +79,13 @@ def test_calculate_reaction_coordinate_projections(position_shifts, n_traj):
     array_len = TEST_iGUESSMD_PATH_LINEAR.shape[0]
 
     # Define positions array of n_traj trajectories
-    iguessmd_positions = np.array([TEST_iGUESSMD_PATH_LINEAR + position_shifts for i in range(n_traj)])
+    iguessmd_positions = np.array(
+        [TEST_iGUESSMD_PATH_LINEAR + position_shifts for i in range(n_traj)]
+    )
 
     # Calculate expected projections array
     expected_projections = np.zeros((n_traj, array_len))
-    expected_projections[:,:] = position_shifts[0]
+    expected_projections[:, :] = position_shifts[0]
 
     # Calculate full projections array
     calculated_projections = calculate_reaction_coordinate_projections(
@@ -95,7 +101,7 @@ def test_calculate_reaction_coordinate_projections(position_shifts, n_traj):
         iguessmd_positions,
         TEST_iGUESSMD_PATH_LINEAR,
         every_nth_point=every_nth,
-        include_end_point=False
+        include_end_point=False,
     )
 
     # Check results
@@ -108,6 +114,7 @@ def test_calculate_reaction_coordinate_projections(position_shifts, n_traj):
 
 def test_calculate_displacements_along_reaction_coordinate():
     pass
+
 
 def test_calculate_distance_along_reaction_coordinate():
     pass
