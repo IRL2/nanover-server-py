@@ -754,10 +754,9 @@ def test_iguessmd_force_removed_from_system(indices, force_constant):
             )
         except AttributeError:
             pass
-    # TODO: Figure out if it's possible to remove the force constant
-    #  associated with the force from global parameters (doesn't seem
-    #  to be implemented in OpenMM right now)
 
+    # Cannot currently fully remove global parameters from OpenMM
+    # simulation context, so check these parameters and their values
     if isinstance(force_constant, np.ndarray):
         assert (
             iguessmd_sim.simulation.context.getParameter("smd_k_par")
