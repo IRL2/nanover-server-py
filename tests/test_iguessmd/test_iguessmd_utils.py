@@ -20,21 +20,38 @@ from nanover.iguessmd.utils import get_every_nth
     (np.random.rand(3,150,4), 2),
 ],
 )
-@pytest.mark.parametrize("every_nth", [1, 2, 5, 10, 23])
-def test_get_every_nth(array,axis, every_nth):
+@pytest.mark.parametrize("every_nth, should_raise",
+                         [
+                             (-1,True),
+                             (0,True),
+                             (1,False),
+                             (2,False),
+                             (5,False),
+                             (10,False),
+                             (23,False),
+                          ],
+                         )
+def test_get_every_nth(array,axis, every_nth, should_raise):
     """
     Test that the function get_every_nth behaves as expected.
     """
+    # Check whether invalid integer values raise ValueError
+    if should_raise:
+        with pytest.raises(ValueError):
+            get_every_nth(array, axis=axis, every_nth=every_nth, include_end=False)
+            assert every_nth <= 0
+        return
+
+    # Calculate reduced arrays
+    reduced_array_without_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=False)
+    reduced_array_with_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=True)
+
     # Calculate expected shapes
     expected_shape_without_end = np.round(np.floor((array.shape[axis] - 1) / every_nth) + 1)
     if (array.shape[axis] - 1) % every_nth != 0:
         expected_shape_with_end = expected_shape_without_end + 1
     else:
         expected_shape_with_end = expected_shape_without_end
-
-    # Calculate reduced arrays
-    reduced_array_without_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=False)
-    reduced_array_with_end = get_every_nth(array, axis=axis, every_nth=every_nth, include_end=True)
 
     # Check dimensions match expected
     assert reduced_array_without_end.shape[axis] == expected_shape_without_end

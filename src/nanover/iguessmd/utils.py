@@ -14,9 +14,12 @@ def get_every_nth(array: np.ndarray, axis: int, every_nth: int, include_end: boo
     :param include_end: Bool defining whether to include the last entry of the array
     :return: Reduced version of original array
     """
-    # TODO: Write a test to check that this works as expected
     # Assert array has the dimensions required
     assert len(array.shape) - 1 >= axis
+
+    # Throw error if requested stride is zero
+    if every_nth <= 0:
+        raise ValueError('Every nth value must be a non-zero positive integer')
 
     # Return original array if requested stride is 1
     if every_nth == 1:
