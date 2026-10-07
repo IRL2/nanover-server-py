@@ -503,8 +503,8 @@ def test_simulation_pbcs_are_respected(apply_pbcs, indices):
         TEST_iGUESSMD_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
-    # TODO: The PBC of the CustomExternalForce with the periodic expression no longer
-    # indicates whether the force is periodic...changed to check stored boolean for now
+
+    # Check PBCs are read correctly by iGUESSMD simulation
     assert iguessmd_sim._sim_uses_pbcs == uses_pbcs
     assert iguessmd_sim.simulation.system.usesPeriodicBoundaryConditions() == uses_pbcs
 
