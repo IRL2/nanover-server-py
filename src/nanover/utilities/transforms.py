@@ -11,6 +11,19 @@ from nanover.trajectory import FrameData
 STATE_TRANSFORM_IDENTITY = (0, 0, 0, 0, 0, 0, 1, 1, 1, 1)
 
 
+def look_matrix(forward, *, upward=(0, 1, 0)):
+    zbasis = np.divide(forward, np.linalg.norm(forward))
+    xbasis = np.cross(zbasis, upward)
+    xbasis /= np.linalg.norm(xbasis)
+    ybasis = np.cross(zbasis, xbasis)
+    ybasis /= np.linalg.norm(ybasis)
+
+    rotation = np.stack([xbasis, ybasis, zbasis])
+    matrix = np.identity(4)
+    matrix[:3, :3] = rotation
+    return matrix
+
+
 def unpack_partial_state_transform(transform: Iterable[float]):
     """Pad partial state transform iterable up to full length with components of identity state transform."""
     i = -1

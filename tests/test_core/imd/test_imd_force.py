@@ -1,33 +1,24 @@
-from math import exp
-
+import hypothesis
 import numpy as np
 import pytest
-from hypothesis import given, strategies
+from hypothesis import strategies, given
+from math import exp
 from nanover.imd.imd_force import (
-    InvalidInteractionError,
-    apply_single_interaction_force,
-    calculate_constant_force,
-    calculate_gaussian_force,
-    calculate_imd_force,
-    calculate_spring_force,
     get_center_of_mass_subset,
+    calculate_spring_force,
+    calculate_gaussian_force,
+    apply_single_interaction_force,
+    calculate_imd_force,
+    calculate_constant_force,
+    InvalidInteractionError, INTERACTION_METHOD_MAP, ForceCalculator,
 )
 from nanover.imd.particle_interaction import ParticleInteraction
+from nanover.testing.strategies import vec3s
 
 # precomputed results of gaussian force.
 EXP_1 = exp(-1 / 2)
 EXP_3 = exp(-3 / 2)
 UNIT = np.array([1, 1, 1]) / np.linalg.norm([1, 1, 1])
-
-
-@pytest.fixture
-def particle_position():
-    return np.array([1, 0, 0])
-
-
-@pytest.fixture
-def interaction_position():
-    return np.array([0, 0, 0])
 
 
 @pytest.fixture
@@ -55,14 +46,6 @@ def single_interaction_multiple_atoms():
         position=position,
         particles=[1, 2, 3],
     )
-
-
-@pytest.fixture
-def single_interactions():
-    num_interactions = 2
-    return [
-        single_interaction(position=[i, i, i], index=i) for i in range(num_interactions)
-    ]
 
 
 def test_multiple_interactions(particles):
@@ -142,66 +125,37 @@ def test_interaction_force_single(particles, single_interaction, scale):
         positions, masses, single_interaction, forces
     )
 
-    expected_energy = -EXP_3 * scale * masses[single_interaction.particles[0]]
-    expected_energy = np.clip(
-        expected_energy,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
+    diff = positions[1, :] - single_interaction.position
+    expected_energy = (1 - EXP_3) * scale
     expected_forces[1, :] = np.array(
-        [-EXP_3 * scale * masses[single_interaction.particles[0]]] * 3
-    )
-    expected_forces[1, :] = np.clip(
-        expected_forces[1, :],
-        -single_interaction.max_force,
-        single_interaction.max_force,
+        [
+            - diff
+            * EXP_3
+            * scale
+            * (
+                masses[single_interaction.particles[0]]
+                / np.sum(masses[single_interaction.particles[0]])
+            )
+        ]
     )
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
 
 
-@pytest.mark.parametrize("max_force", [np.nan])
+@pytest.mark.parametrize("max_force", [np.nan, -np.inf, -1])
 def test_invalid_max_force(single_interaction, max_force):
     with pytest.raises(ValueError):
         single_interaction.max_force = max_force
 
 
-@pytest.mark.parametrize("max_energy", [0, 1, 1000, np.inf, -np.inf])
-def test_interaction_force_max_energy(particles, single_interaction, max_energy):
-    """
-    Tests that setting the max energy field results in the energy being clamped as expected
-    """
-
-    positions, masses = particles
-    forces = np.zeros((len(positions), 3))
-    expected_forces = np.zeros((len(positions), 3))
-    single_interaction.max_force = max_energy
-    energy = apply_single_interaction_force(
-        positions, masses, single_interaction, forces
-    )
-
-    expected_energy = -EXP_3 * masses[single_interaction.particles[0]]
-    expected_energy = np.clip(
-        expected_energy,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
-    expected_forces[1, :] = np.array(
-        [-EXP_3 * masses[single_interaction.particles[0]]] * 3
-    )
-    expected_forces[1, :] = np.clip(
-        expected_forces[1, :],
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
-
-    assert np.allclose(energy, expected_energy, equal_nan=True)
-    assert np.allclose(forces, expected_forces, equal_nan=True)
-
-
+# TODO: does it make any sense to test NaN, infinite, and negative masses?
 @pytest.mark.parametrize("mass", [-1.0, 100, np.nan, np.inf, -np.inf])
-def test_interaction_force_mass(particles, single_interaction, mass):
+def test_interaction_force_mass(
+    particles,
+    single_interaction,
+    mass,
+):
     """
     tests that the interaction force calculation gives the expected result on a single atom, at a particular position,
     with varying mass.
@@ -214,16 +168,9 @@ def test_interaction_force_mass(particles, single_interaction, mass):
         positions, masses, single_interaction, forces
     )
 
-    expected_energy = np.clip(
-        -EXP_3 * mass,
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
-    expected_forces[1, :] = np.clip(
-        np.array([-EXP_3 * mass] * 3),
-        -single_interaction.max_force,
-        single_interaction.max_force,
-    )
+    expected_energy = 1 - EXP_3
+    diff = positions[1, :] - single_interaction.position
+    expected_forces[1, :] = np.array([- diff * EXP_3 * (mass / mass)])
 
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
@@ -238,6 +185,36 @@ def test_interaction_force_zero_mass_singleatom(particles, single_interaction):
         positions, masses, single_interaction, forces
     )
     assert energy == pytest.approx(0)
+
+
+def test_interaction_ignores_massless(
+    particles, single_interaction_multiple_atoms
+):
+    """
+    Tests that inclusion or exclusion of massless particles in the interaction does not change the resulting energy and
+    forces.
+    """
+    positions, masses = particles
+
+    # make first particle massless
+    masses[0] = 0
+
+    # without first particle
+    single_interaction_multiple_atoms.particles = [1, 2, 3]
+    forces_A = np.zeros((len(positions), 3))
+    energy_A = apply_single_interaction_force(
+        positions, masses, single_interaction_multiple_atoms, forces_A
+    )
+
+    # with first particle
+    single_interaction_multiple_atoms.particles = [0, 1, 2, 3]
+    forces_B = np.zeros((len(positions), 3))
+    energy_B = apply_single_interaction_force(
+        positions, masses, single_interaction_multiple_atoms, forces_B
+    )
+
+    assert energy_A == energy_B
+    assert np.allclose(forces_A, forces_B)
 
 
 def test_interaction_force_zero_mass_multiatom(
@@ -259,6 +236,7 @@ def test_interaction_force_zero_mass_multiatom(
         ([1, 1, 1], [0, 1], [1, 2]),
         ([2, 2, 2], [0, 1], [1, 2]),
         ([0, 0, 0], [0, 1], [1, 2]),
+        ([0, 0, 0], [0, 1, 49], [1, 2, 0]),
         ([0, 0, 0], [0, 1, 49], [1, 2, 10]),
         ([-5, -5, -5], [0, 1, 49], [1, 2, 10]),
         ([np.nan, np.nan, np.nan], [0, 1], [1, 2]),
@@ -284,14 +262,13 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
     com = get_center_of_mass_subset(positions, masses, selection)
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
-    expected_energy_per_particle = exp(-dist_sqr / 2) / len(selection)
-    expected_energy = sum(
-        -expected_energy_per_particle * masses[index] for index in selection
-    )
+    exponential = exp(-dist_sqr / 2)
+    expected_energy = 1 - exponential
     expected_forces = np.zeros((len(positions), 3))
+    selection_mass = np.sum(masses[selection])
     for index in selection:
         expected_forces[index, :] = (
-            -1 * diff * masses[index] * expected_energy_per_particle
+            -diff * masses[index] / selection_mass * exponential
         )
 
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
@@ -305,6 +282,7 @@ def test_interaction_force_com(particles, position, selection, selection_masses)
         ([1, 1, 1], [0, 1], [1, 2]),
         ([2, 2, 2], [0, 1], [1, 2]),
         ([0, 0, 0], [0, 1], [1, 2]),
+        ([0, 0, 0], [0, 1, 49], [1, 2, 0]),
         ([0, 0, 0], [0, 1, 49], [1, 2, 10]),
         ([-5, -5, -5], [0, 1, 49], [1, 2, 10]),
         ([np.nan, np.nan, np.nan], [0, 1], [1, 2]),
@@ -324,21 +302,27 @@ def test_interaction_force_no_mass_weighting(
         mass_weighted=False,
     )
     positions, masses = particles
-    # set non uniform masses based on parameterisation
+    # Set non uniform masses based on parameterisation
     for index, mass in zip(selection, selection_masses):
         masses[index] = mass
     forces = np.zeros((len(positions), 3))
 
-    # perform the full calculation to generate expected result.
+    # Perform explicit calculation to find expected energy
     com = get_center_of_mass_subset(positions, masses, selection)
     diff = com - interaction.position
     dist_sqr = np.dot(diff, diff)
-    expected_energy_per_particle = exp(-dist_sqr / 2) / len(selection)
-    expected_energy = -sum(expected_energy_per_particle for _ in selection)
-    expected_forces = np.zeros((len(positions), 3))
-    for index in selection:
-        expected_forces[index, :] = -1 * diff * expected_energy_per_particle
+    exponential = np.exp(-dist_sqr / 2)
+    expected_energy = 1 - exponential
 
+    # Calculate normalised weights for user forces (and energies)
+    weights = (masses[selection] != 0).astype(int)
+    weights = weights / np.sum(weights)
+
+    # Calculate expected forces
+    expected_forces = np.zeros((len(positions), 3))
+    expected_forces[selection, :] = - exponential * np.outer(weights, diff)
+
+    # Retrieve and check energy and forces
     energy = apply_single_interaction_force(positions, masses, interaction, forces)
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(forces, expected_forces, equal_nan=True)
@@ -378,19 +362,22 @@ def test_get_com_subset(particles):
 
 
 @strategies.composite
-def random_positions_pbc(draw):
-    """
-    Generates a random periodic box, and 50 random positions.
-    """
-
+def random_periodic_box_lengths(draw):
     # Generate random polar coordinates and convert them to euclidean
     # coordinates to get a periodic box.
-    # box length has to nonzero.
+    # box length has to be nonzero.
     length = strategies.floats(
-        min_value=0.01, max_value=100, allow_nan=False, allow_infinity=False
+        min_value=0.01, max_value=100,
+        allow_nan=False, allow_infinity=False
     )
 
-    periodic_box_lengths = np.array([draw(length) for x in range(3)])
+    return np.array([draw(length) for _ in range(3)])
+
+
+@strategies.composite
+def random_positions_pbc(draw, particle_count=10):
+    periodic_box_lengths = draw(random_periodic_box_lengths())
+
     # pick two random points in lowest quadrant of the box.
     # TODO positions at or very near zero cause problems, as the wrap can flip between 0 and box length.
     lengths = np.array(
@@ -405,25 +392,34 @@ def random_positions_pbc(draw):
         ]
     )
 
-    num_particles = 4
+    random_masses = strategies.floats(
+        min_value=0.01, max_value=100,
+        allow_nan=False, allow_infinity=False
+    )
+    masses = np.array([draw(random_masses) for _ in range(particle_count)])
 
-    masses = np.array([draw(length) for _ in range(num_particles)])
-
-    positions = np.zeros((num_particles, 3))
-    for i in range(num_particles):
+    positions = np.zeros((particle_count, 3))
+    for i in range(particle_count):
         positions[i] = np.array([draw(coord) for coord in lengths])
 
     # generate random integer values to multiply positions by, putting them in different images.
     images = strategies.integers(min_value=-100, max_value=100)
-    image_multiples = np.array([draw(images) for _ in range(3 * num_particles)])
-    image_multiples.reshape((num_particles, 3))
+    image_multiples = np.array([draw(images) for _ in range(3 * particle_count)])
+    image_multiples.reshape((particle_count, 3))
 
     # move points to new random positions around the periodic box.
-    positions_periodic = np.zeros((num_particles, 3))
-    for i in range(num_particles):
+    positions_periodic = np.zeros((particle_count, 3))
+    for i in range(particle_count):
         positions_periodic[i] = positions[i] + image_multiples[i] * periodic_box_lengths
 
     return positions, masses, positions_periodic, periodic_box_lengths
+
+
+@strategies.composite
+def random_positions_pbc_subset(draw, particle_count=10):
+    positions, masses, positions_periodic, periodic_box_lengths = draw(random_positions_pbc(particle_count))
+    particles = draw(strategies.lists(strategies.integers(min_value=0, max_value=particle_count-1), unique=True))
+    return particles, positions, masses, positions_periodic, periodic_box_lengths
 
 
 @given(random_positions_pbc())
@@ -467,15 +463,15 @@ def test_get_com_different_array_lengths(particles):
 @pytest.mark.parametrize(
     "position, interaction_position, expected_energy, expected_force",
     [
-        ([1, 0, 0], [0, 0, 0], -EXP_1, [-EXP_1, 0, 0]),
-        ([0, 0, 0], [1, 0, 0], -EXP_1, [EXP_1, 0, 0]),
-        ([1, 3, 0], [1, 2, 0], -EXP_1, [0, -EXP_1, 0]),
-        ([1, 3, 3], [1, 3, 2], -EXP_1, [0, 0, -EXP_1]),
-        (UNIT, [0, 0, 0], -EXP_1, np.multiply(UNIT, [-EXP_1, -EXP_1, -EXP_1])),
-        ([1, 2, 3], [1, 2, 3], -1, [0, 0, 0]),
-        ([1, 1, 1], [0, 0, 0], -EXP_3, [-EXP_3] * 3),
-        ([1, 0, 0], [1, 0, 0], -1, [0, 0, 0]),
-        ([-1, -1, -1], [0, 0, 0], -EXP_3, [EXP_3] * 3),
+        ([1, 0, 0], [0, 0, 0], 1 - EXP_1, [-EXP_1, 0, 0]),
+        ([0, 0, 0], [1, 0, 0], 1 - EXP_1, [EXP_1, 0, 0]),
+        ([1, 3, 0], [1, 2, 0], 1 - EXP_1, [0, -EXP_1, 0]),
+        ([1, 3, 3], [1, 3, 2], 1 - EXP_1, [0, 0, -EXP_1]),
+        (UNIT, [0, 0, 0], 1 - EXP_1, np.multiply(UNIT, [-EXP_1, -EXP_1, -EXP_1])),
+        ([1, 2, 3], [1, 2, 3], 1 - 1, [0, 0, 0]),
+        ([1, 1, 1], [0, 0, 0], 1 - EXP_3, [-EXP_3] * 3),
+        ([1, 0, 0], [1, 0, 0], 1 - 1, [0, 0, 0]),
+        ([-1, -1, -1], [0, 0, 0], 1 - EXP_3, [EXP_3] * 3),
     ],
 )
 def test_gaussian_force(
@@ -512,7 +508,7 @@ CONSTANT_TESTS = [
     (
         position,
         interaction,
-        1,
+        np.linalg.norm(np.subtract(interaction, position)),
         np.subtract(interaction, position)
         / np.linalg.norm(np.subtract(interaction, position)),
     )
@@ -537,12 +533,95 @@ def test_constant_force(position, interaction, expected_energy, expected_force):
     assert np.allclose(energy, expected_energy, equal_nan=True)
     assert np.allclose(force, expected_force, equal_nan=True)
 
+INTERACTION_SCALES = strategies.floats(width=32, min_value=0, allow_infinity=False, allow_nan=False)
+INTERACTION_MAX_FORCES = strategies.floats(width=32, min_value=0, allow_nan=False)
+INTERACTION_TYPES = strategies.sampled_from(list(INTERACTION_METHOD_MAP.keys()))
 
-@pytest.mark.parametrize(
-    "position, interaction",
-    [([0, 0, 0], [0, 0, 0]), ([1, 2, 3], [1, 2, 3])],
+FORCE_CALCULATORS = list(INTERACTION_METHOD_MAP.values())
+
+@hypothesis.given(
+    position=vec3s(),
+    calculator=strategies.sampled_from(FORCE_CALCULATORS),
+    periodic_box_lengths=random_periodic_box_lengths(),
+    force_magnitude_limit=INTERACTION_MAX_FORCES,
 )
-def test_constant_force_overlap(position, interaction):
-    energy, force = calculate_constant_force(np.array(position), np.array(interaction))
-    assert np.allclose(energy, 0, equal_nan=True)
-    assert np.allclose(force, 0, equal_nan=True)
+def test_overlap_no_force(
+    position,
+    calculator: ForceCalculator,
+    periodic_box_lengths,
+    force_magnitude_limit: float,
+):
+    """Test that overlapping interaction and position results in no force for all interaction types."""
+    energy, force = calculator(
+        particle_position=np.array(position),
+        interaction_position=np.array(position),
+        periodic_box_lengths=periodic_box_lengths,
+        force_magnitude_limit=force_magnitude_limit,
+    )
+    assert energy == 0
+    assert np.allclose(force, 0)
+
+
+@hypothesis.given(
+    system=random_positions_pbc_subset(),
+    interaction_position=vec3s(),
+    interaction_type=INTERACTION_TYPES,
+    scale=INTERACTION_SCALES,
+    max_force=INTERACTION_MAX_FORCES,
+)
+def test_interaction_force_max_force(
+    system,
+    interaction_position,
+    interaction_type: str,
+    scale: float,
+    max_force: float,
+):
+    """Test that total force applied never exceeds max force for all interaction types."""
+
+    particles, positions, masses, positions_periodic, periodic_box_lengths = system
+
+    forces = np.zeros((len(positions), 3))
+
+    interaction = ParticleInteraction(
+        position=interaction_position,
+        scale=scale,
+        max_force=max_force,
+        particles=particles,
+        interaction_type=interaction_type,
+    )
+
+    _ = apply_single_interaction_force(
+        positions=positions,
+        masses=masses,
+        interaction=interaction,
+        forces=forces,
+        periodic_box_lengths=periodic_box_lengths,
+    )
+
+    force_magnitude = np.sum(np.linalg.norm(forces, axis=1))
+    assert force_magnitude <= max_force or np.isclose(force_magnitude, max_force)
+
+
+@hypothesis.given(
+    particle_position=vec3s(),
+    interaction_position=vec3s(),
+    calculator=strategies.sampled_from(FORCE_CALCULATORS),
+    periodic_box_lengths=random_periodic_box_lengths(),
+    force_magnitude_limit=INTERACTION_MAX_FORCES,
+)
+def test_force_magnitude_limit(
+    particle_position,
+    interaction_position,
+    calculator: ForceCalculator,
+    periodic_box_lengths,
+    force_magnitude_limit: float,
+):
+    """Test that the force magnitude limit is never exceeded for all interaction types."""
+    _, force = calculator(
+        particle_position=np.array(particle_position),
+        interaction_position=np.array(interaction_position),
+        periodic_box_lengths=periodic_box_lengths,
+        force_magnitude_limit=force_magnitude_limit,
+    )
+    force_magnitude = np.sum(np.linalg.norm(force))
+    assert force_magnitude <= force_magnitude_limit or np.isclose(force_magnitude, force_magnitude_limit)
