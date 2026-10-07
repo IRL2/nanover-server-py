@@ -160,10 +160,7 @@ def calculate_reaction_coordinate_projections(
             normalised_displacements, 0, every_nth_point, include_end_point
         )
         restraint_vectors = get_every_nth(
-            restraint_vectors,
-            1 if len(restraint_vectors.shape) == 3 else 0,
-            every_nth_point,
-            include_end_point,
+            restraint_vectors, 1, every_nth_point, include_end_point,
         )
 
     i_index_range = restraint_vectors.shape[1]
