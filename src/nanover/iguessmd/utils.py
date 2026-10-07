@@ -36,6 +36,7 @@ def get_every_nth(
 
     return np.take(array, indices, axis=axis)
 
+
 def calculate_unit_tangents(
     path: np.ndarray,
 ) -> np.ndarray:
@@ -60,5 +61,3 @@ def calculate_unit_tangents(
     unit_tangents[-1] = displacements[-1]
 
     return unit_tangents
-
-
