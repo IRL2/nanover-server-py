@@ -716,21 +716,6 @@ class OMMiGUESSMDSimulation:
         with open(path, "wb") as outfile:
             np.save(outfile, self.iguessmd_atom_indices)
             np.save(outfile, self.iguessmd_path)
-            # if (
-            #     self.iguessmd_force_constant_parallel
-            #     != self.iguessmd_force_constant_perpendicular
-            # ):
-            #     np.save(
-            #         outfile,
-            #         np.array(
-            #             [
-            #                 self.iguessmd_force_constant_parallel,
-            #                 self.iguessmd_force_constant_perpendicular,
-            #             ]
-            #         ),
-            #     )
-            # else:
-            #     np.save(outfile, self.iguessmd_force_constant_parallel)
             np.save(outfile, self.iguessmd_force_constant)
             np.save(outfile, self.simulation.integrator.getTemperature()._value)
             np.save(outfile, self.simulation.integrator.getStepSize()._value)
