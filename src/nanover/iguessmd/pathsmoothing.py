@@ -13,22 +13,18 @@ from nanover.mdanalysis.universe import NanoverParser, NanoverReader
 
 try:
     from ipywidgets import (
-        interact,
-        interactive,
         interactive_output,
         fixed,
-        interact_manual,
         VBox,
         HBox,
     )
     from IPython import get_ipython
-    from IPython.display import display
 
     _in_notebook = get_ipython().__class__.__name__ in [
         "ZMQInteractiveShell",
         "TerminalInteractiveShell",
     ]
-except:
+except ImportError:
     _in_notebook = False
 
 NANOVER_CPK_ELEMENT_COLOURS = {
@@ -51,9 +47,9 @@ NANOVER_CPK_ELEMENT_COLOURS = {
 }
 DEFAULT_ELEMENT_COLOUR = [0.98039216, 0.08627451, 0.5686275, 1]
 
-get_element_colours = lambda x: NANOVER_CPK_ELEMENT_COLOURS.get(
-    x, DEFAULT_ELEMENT_COLOUR
-)
+
+def get_element_colours(x):
+    return NANOVER_CPK_ELEMENT_COLOURS.get(x, DEFAULT_ELEMENT_COLOUR)
 
 
 class PathSmoother:
@@ -217,8 +213,12 @@ class PathSmoother:
                 self.all_user_forces[index] = timestep.data["user_forces"]
 
         cumulative_distances = np.zeros(n_atoms)
-        for timestep in range(self.all_atom_positions.shape[0]-10):
-            cumulative_distances += np.linalg.norm(self.all_atom_positions[timestep+1] - self.all_atom_positions[timestep], axis=1)
+        for timestep in range(self.all_atom_positions.shape[0] - 10):
+            cumulative_distances += np.linalg.norm(
+                self.all_atom_positions[timestep + 1]
+                - self.all_atom_positions[timestep],
+                axis=1,
+            )
         if np.any(cumulative_distances == 0.0):
             self.constrained_atoms = np.where(cumulative_distances == 0.0)[0]
 
@@ -240,7 +240,7 @@ class PathSmoother:
             "Cannot load atomic positions because "
             "no MDAnalysis universe has been loaded."
         )
-        if selection == None:
+        if selection is None:
             selection = "all"
         atom_selection = self.universe.select_atoms(selection)
         self._atom_selection_positions = atom_selection.positions
@@ -251,9 +251,13 @@ class PathSmoother:
             ]
         )
         if np.intersect1d(atom_selection.indices, self.atom_indices).size > 0:
-            self._atom_selection_interacted_atoms = np.intersect1d(atom_selection.indices, self.atom_indices)
+            self._atom_selection_interacted_atoms = np.intersect1d(
+                atom_selection.indices, self.atom_indices
+            )
         if np.intersect1d(atom_selection.indices, self.constrained_atoms).size > 0:
-            self._atom_selection_constrained_atoms = np.intersect1d(atom_selection.indices, self.constrained_atoms)
+            self._atom_selection_constrained_atoms = np.intersect1d(
+                atom_selection.indices, self.constrained_atoms
+            )
         if guess_bonds:
             self._atom_selection_bond_indices = atom_selection.bonds.indices
 
@@ -291,7 +295,7 @@ class PathSmoother:
             self._atom_selection_colours,
             self._atom_selection_bond_indices,
             self.atom_indices,
-            self.constrained_atoms
+            self.constrained_atoms,
         )
 
     def plot_atoms_trajectories(
@@ -328,7 +332,7 @@ class PathSmoother:
             self._atom_selection_colours,
             self._atom_selection_bond_indices,
             self.atom_indices,
-            self.constrained_atoms
+            self.constrained_atoms,
         )
 
     def create_interactive_smoothing_plot(
@@ -412,7 +416,7 @@ class PathSmoother:
                             self.ax.scatter3D(
                                 *self._atom_selection_positions[atom],
                                 s=60,
-                                color='orange',
+                                color="orange",
                                 alpha=0.4,
                             )
                     if self._atom_selection_constrained_atoms is not None:
@@ -420,7 +424,7 @@ class PathSmoother:
                             self.ax.scatter3D(
                                 *self._atom_selection_positions[atom],
                                 s=60,
-                                color='blue',
+                                color="blue",
                                 alpha=0.4,
                             )
                     if self._atom_selection_bond_indices is not None:
@@ -636,7 +640,7 @@ class PathSmoother:
             self._atom_selection_colours,
             self._atom_selection_bond_indices,
             self.atom_indices,
-            self.constrained_atoms
+            self.constrained_atoms,
         )
 
     def plot_constant_speed_trajectory(
@@ -1037,7 +1041,7 @@ def plot_com_trajectory(
                 ax.scatter3D(
                     *initial_atom_positions[atom],
                     s=60,
-                    color='orange',
+                    color="orange",
                     alpha=0.4,
                 )
         if constrained_atoms is not None:
@@ -1045,7 +1049,7 @@ def plot_com_trajectory(
                 ax.scatter3D(
                     *initial_atom_positions[atom],
                     s=60,
-                    color='blue',
+                    color="blue",
                     alpha=0.4,
                 )
         if initial_atom_bond_indices is not None:
@@ -1115,7 +1119,7 @@ def plot_atom_trajectories(
                 ax.scatter3D(
                     *initial_atom_positions[atom],
                     s=60,
-                    color='orange',
+                    color="orange",
                     alpha=0.4,
                 )
         if constrained_atoms is not None:
@@ -1123,7 +1127,7 @@ def plot_atom_trajectories(
                 ax.scatter3D(
                     *initial_atom_positions[atom],
                     s=60,
-                    color='blue',
+                    color="blue",
                     alpha=0.4,
                 )
         if initial_atom_bond_indices is not None:

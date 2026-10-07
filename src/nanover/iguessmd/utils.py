@@ -1,7 +1,9 @@
 import numpy as np
 
 
-def get_every_nth(array: np.ndarray, axis: int, every_nth: int, include_end: bool = True) -> np.ndarray:
+def get_every_nth(
+    array: np.ndarray, axis: int, every_nth: int, include_end: bool = True
+) -> np.ndarray:
     """
     Returns a reduced version of the input array composed of every nth
     value of the original array along a defined axis. By default the
@@ -19,7 +21,7 @@ def get_every_nth(array: np.ndarray, axis: int, every_nth: int, include_end: boo
 
     # Throw error if requested stride is zero
     if every_nth <= 0:
-        raise ValueError('Every nth value must be a non-zero positive integer')
+        raise ValueError("Every nth value must be a non-zero positive integer")
 
     # Return original array if requested stride is 1
     if every_nth == 1:

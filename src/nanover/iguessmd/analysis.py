@@ -8,6 +8,7 @@ from os import PathLike
 
 from nanover.iguessmd.utils import get_every_nth
 
+
 def load_general_iguessmd_data(filepath: PathLike | str) -> dict:
     """
     Load the SMD path, speed of restraint, timestep for simulation and
@@ -20,7 +21,7 @@ def load_general_iguessmd_data(filepath: PathLike | str) -> dict:
 
     assert ".npy" in filepath
 
-    with open(filepath, 'rb') as general_iguessmd_data_file:
+    with open(filepath, "rb") as general_iguessmd_data_file:
         iguessmd_atom_indices = np.load(general_iguessmd_data_file)
         iguessmd_path = np.load(general_iguessmd_data_file)
         iguessmd_force_constant = np.load(general_iguessmd_data_file)
@@ -28,11 +29,11 @@ def load_general_iguessmd_data(filepath: PathLike | str) -> dict:
         timestep_ps = np.load(general_iguessmd_data_file)
 
         general_iguessmd_data = {
-            'iguessmd_atom_indices': iguessmd_atom_indices,
-            'iguessmd_path': iguessmd_path,
-            'iguessmd_force_constant': iguessmd_force_constant,
-            'temperature': temperature,
-            'timestep_ps': timestep_ps,
+            "iguessmd_atom_indices": iguessmd_atom_indices,
+            "iguessmd_path": iguessmd_path,
+            "iguessmd_force_constant": iguessmd_force_constant,
+            "temperature": temperature,
+            "timestep_ps": timestep_ps,
         }
 
         return general_iguessmd_data
@@ -82,7 +83,9 @@ def _calculate_pmf_exponential_average(work_done_array: np.ndarray, beta: float)
     Calculate the PMF from the irreversible work done via the exponential average.
     WARNING: the irreversible work and beta must have compatible units!
     """
-    return -(1.0 / beta) * (logsumexp(-beta * work_done_array, axis=0) - np.log(work_done_array.shape[0]))
+    return -(1.0 / beta) * (
+        logsumexp(-beta * work_done_array, axis=0) - np.log(work_done_array.shape[0])
+    )
 
 
 def calculate_pmf_second_cumulant_kJ_mol(
@@ -97,7 +100,6 @@ def calculate_pmf_second_cumulant_kJ_mol(
       (in kJ mol-1).
     :param temperature_K: Temperature (in K)
     """
-    kB_kJ_mol_K = boltzmann_constant_in_kJ_mol_K()
     beta = calculate_beta_mol_kJ(temperature_K)
     return _calculate_pmf_second_cumulant(work_done_array_kJ_mol, beta)
 
@@ -147,13 +149,22 @@ def calculate_reaction_coordinate_projections(
     displacements = np.array([*displacements, displacements[-1]])
 
     # Calculate normalised displacement vectors
-    normalised_displacements = displacements / np.linalg.norm(displacements, axis=1, keepdims=True)
+    normalised_displacements = displacements / np.linalg.norm(
+        displacements, axis=1, keepdims=True
+    )
 
     # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
     restraint_vectors = iguessmd_com_coordinates_array - iguessmd_reaction_coordinate
     if every_nth_point is not None:
-        normalised_displacements = get_every_nth(normalised_displacements, 0, every_nth_point, include_end_point)
-        restraint_vectors = get_every_nth(restraint_vectors, 1 if len(restraint_vectors.shape) == 3 else 0, every_nth_point, include_end_point)
+        normalised_displacements = get_every_nth(
+            normalised_displacements, 0, every_nth_point, include_end_point
+        )
+        restraint_vectors = get_every_nth(
+            restraint_vectors,
+            1 if len(restraint_vectors.shape) == 3 else 0,
+            every_nth_point,
+            include_end_point,
+        )
 
     i_index_range = restraint_vectors.shape[1]
     if abs(restraint_vectors.shape[1] - normalised_displacements.shape[0]) == 1:
@@ -193,7 +204,10 @@ def calculate_variance_of_reaction_coordinate(
       points of the reaction coordinate (in nm^2)
     """
     reaction_coordinate_projections = calculate_reaction_coordinate_projections(
-        iguessmd_com_coordinates_array, iguessmd_reaction_coordinate, every_nth_point, include_end_point
+        iguessmd_com_coordinates_array,
+        iguessmd_reaction_coordinate,
+        every_nth_point,
+        include_end_point,
     )
 
     return np.var(reaction_coordinate_projections, axis=0)
@@ -219,7 +233,9 @@ def calculate_displacements_along_reaction_coordinate(
     if every_nth_point is None:
         return displacements_along_rc
     else:
-        return get_every_nth(displacements_along_rc, 0, every_nth_point, include_end_point)
+        return get_every_nth(
+            displacements_along_rc, 0, every_nth_point, include_end_point
+        )
 
 
 def calculate_distance_along_reaction_coordinate(
