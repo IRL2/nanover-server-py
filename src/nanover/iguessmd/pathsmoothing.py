@@ -11,6 +11,8 @@ from scipy.interpolate import splprep, splev
 
 from nanover.mdanalysis.universe import NanoverParser, NanoverReader
 
+from nanover.iguessmd.utils import calculate_com
+
 try:
     from ipywidgets import (
         interactive_output,
@@ -984,20 +986,6 @@ def retrieve_uf_atoms_path(
     n_frames = atoms_positions.shape[0]
 
     return atoms_positions, atoms_indices, n_frames
-
-
-def calculate_com(atom_positions: np.ndarray, atom_masses: np.ndarray) -> np.ndarray:
-    """
-    Calculate the COM of a group of atoms given the positions of the atoms and their masses
-
-    :param atom_positions: A n_atoms x 3 NumPy array of atom positions for a given frame
-    :param atom_masses: A n_atoms NumPy array of atom masses
-    :return np.ndarray: A NumPy array defining the position of the COM of the atoms
-    """
-
-    return np.sum(
-        np.multiply(np.transpose(atom_positions), atom_masses), axis=1
-    ) / np.sum(atom_masses)
 
 
 def plot_com_trajectory(

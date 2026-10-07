@@ -12,7 +12,7 @@ from openmm.app import Simulation
 
 from nanover.openmm import serializer
 
-from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents
+from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents, calculate_com
 
 iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME = "smd_k"
 iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME = (
@@ -1108,19 +1108,3 @@ def iguessmd_single_atom_force(
     iguessmd_force.setForceGroup(31)
 
     return iguessmd_force
-
-
-def calculate_com(atom_positions: np.ndarray, atom_masses: np.ndarray) -> np.ndarray:
-    """
-    Calculate the centre of mass of a group of N atoms, given their positions and masses.
-
-    :param atom_positions: NumPy array of atom positions with dimensions (N, 3)
-    :param atom_masses: NumPy array of atomic masses (AMU) with dimension (N)
-    :return: NumPy array containing the position of the centre of mass of the atoms with dimension (3)
-    """
-    # TODO: Make sure this can handle periodic boundary conditions correctly
-    #  ^this may not be necessary, as getPositions() should return unwrapped
-    #  positions by default!
-    return np.sum(
-        np.multiply(np.transpose(atom_positions), atom_masses), axis=1
-    ) / np.sum(atom_masses)

@@ -61,3 +61,16 @@ def calculate_unit_tangents(
     unit_tangents[-1] = displacements[-1]
 
     return unit_tangents
+
+
+def calculate_com(atom_positions: np.ndarray, atom_masses: np.ndarray) -> np.ndarray:
+    """
+    Calculate the centre of mass of a group of N atoms, given their positions and masses.
+
+    :param atom_positions: NumPy array of atom positions with dimensions (N, 3)
+    :param atom_masses: NumPy array of atomic masses (AMU) with dimension (N)
+    :return: NumPy array containing the position of the centre of mass of the atoms with dimension (3)
+    """
+    return np.sum(
+        np.multiply(np.transpose(atom_positions), atom_masses), axis=1
+    ) / np.sum(atom_masses)
