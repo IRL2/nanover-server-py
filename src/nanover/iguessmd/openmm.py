@@ -327,7 +327,6 @@ class OMMiGUESSMDSimulation:
         Calculate the unit tangent vectors of the iGUESSMD path using the forward
         difference approximation.
         """
-        # TODO: Write test to make sure this works!
 
         # Initialise empty array
         assert self.iguessmd_path is not None
