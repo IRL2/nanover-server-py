@@ -7,7 +7,7 @@ Things to test for analysis functions:
 - Beta (1 / (kB * T)) is correctly calculated in units of mol kJ-1 [√]
 - Calculation of PMF via exponential average returns expected result [ ]
 - Calculation of PMF via second cumulant approximation returns expected result [ ]
-- Calculation of reaction coordinate projections works as expected [ ]
+- Calculation of reaction coordinate projections works as expected [√]
 - Calculation of displacements along reaction path works as expected [ ]
 - Calculation of distance along reaction coordinate works as expected [ ]
 """
@@ -19,11 +19,14 @@ from itertools import product
 
 from nanover.iguessmd.analysis import *
 
+from .iguessmd_test_utilities import define_circular_path
+
 KB_KJ_MOL_K_VALUE = 0.008314462618
 
-TEST_iGUESSMD_PATH_LINEAR = np.array(
+TEST_iGUESSMD_LINEAR_PATH = np.array(
     [np.linspace(0.05, 1.05, 101), np.zeros(101), np.zeros(101)]
 ).transpose()
+TEST_iGUESSMD_CIRCULAR_PATH, TEST_iGUESSMD_CIRCULAR_PATH_TANGENTS = define_circular_path(10)
 
 TEST_iGUESSMD_POSITION_SHIFTS = [
     np.array([0.0, 0.0, 0.0]),
@@ -76,11 +79,11 @@ def test_calculate_reaction_coordinate_projections(position_shifts, n_traj):
     """
     # Define every_nth and length of positions array for each trajectory
     every_nth = 11
-    array_len = TEST_iGUESSMD_PATH_LINEAR.shape[0]
+    array_len = TEST_iGUESSMD_LINEAR_PATH.shape[0]
 
     # Define positions array of n_traj trajectories
     iguessmd_positions = np.array(
-        [TEST_iGUESSMD_PATH_LINEAR + position_shifts for i in range(n_traj)]
+        [TEST_iGUESSMD_LINEAR_PATH + position_shifts for i in range(n_traj)]
     )
 
     # Calculate expected projections array
@@ -90,7 +93,7 @@ def test_calculate_reaction_coordinate_projections(position_shifts, n_traj):
     # Calculate full projections array
     calculated_projections = calculate_reaction_coordinate_projections(
         iguessmd_positions,
-        TEST_iGUESSMD_PATH_LINEAR,
+        TEST_iGUESSMD_LINEAR_PATH,
     )
 
     # Calculate reduced expected projections array (every nth point)
@@ -99,7 +102,7 @@ def test_calculate_reaction_coordinate_projections(position_shifts, n_traj):
     # Calculate reduced projections array (every nth point)
     reduced_calculated_projections = calculate_reaction_coordinate_projections(
         iguessmd_positions,
-        TEST_iGUESSMD_PATH_LINEAR,
+        TEST_iGUESSMD_LINEAR_PATH,
         every_nth_point=every_nth,
         include_end_point=False,
     )
@@ -112,9 +115,51 @@ def test_calculate_reaction_coordinate_projections(position_shifts, n_traj):
     assert reduced_calculated_projections == pytest.approx(position_shifts[0])
 
 
-def test_calculate_displacements_along_reaction_coordinate():
-    pass
+@pytest.mark.parametrize(
+    "reaction_path, every_nth",
+    product(
+        [TEST_iGUESSMD_LINEAR_PATH, TEST_iGUESSMD_CIRCULAR_PATH],
+        [1, 2, 5, 23],
+    )
+)
+def test_calculate_displacements_along_reaction_coordinate(reaction_path, every_nth):
+    """
+    Check that the displacements along the reaction path are
+    correctly calculated for a given reaction path.
+    """
+    # Check results for full array
+    expected_displacements = np.diff(reaction_path, axis=0)
+    calculated_displacements = calculate_displacements_along_reaction_coordinate(reaction_path)
+    assert (calculated_displacements == expected_displacements).all()
+
+    # Check results for every_nth array
+    reduced_expected_displacements = expected_displacements[::every_nth]
+    reduced_calculated_displacements = calculate_displacements_along_reaction_coordinate(reaction_path,
+                                                                                 every_nth_point=every_nth,
+                                                                                 include_end_point=False)
+    assert (reduced_calculated_displacements == reduced_expected_displacements).all()
 
 
 def test_calculate_distance_along_reaction_coordinate():
+    # TODO: Add test!
+    pass
+
+
+def test_calculate_pmf_exponential_average():
+    # TODO: Add test!
+    pass
+
+
+def test_calculate_pmf_second_cumulant():
+    # TODO: Add test!
+    pass
+
+
+def test_load_general_iguessmd_data():
+    # TODO: Add test!
+    pass
+
+
+def test_load_iguessmd_simulation_data():
+    # TODO: Add test!
     pass
