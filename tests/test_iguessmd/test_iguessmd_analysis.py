@@ -8,8 +8,8 @@ Things to test for analysis functions:
 - Calculation of PMF via exponential average returns expected result [ ]
 - Calculation of PMF via second cumulant approximation returns expected result [ ]
 - Calculation of reaction coordinate projections works as expected [√]
-- Calculation of displacements along reaction path works as expected [ ]
-- Calculation of distance along reaction coordinate works as expected [ ]
+- Calculation of displacements along reaction path works as expected [√]
+- Calculation of distance along reaction coordinate works as expected [√]
 """
 
 import pytest
@@ -20,6 +20,7 @@ from itertools import product
 from nanover.iguessmd.analysis import *
 
 from .iguessmd_test_utilities import define_circular_path
+from scipy.special import logsumexp
 
 KB_KJ_MOL_K_VALUE = 0.008314462618
 
@@ -126,7 +127,7 @@ def test_calculate_displacements_along_reaction_coordinate(reaction_path, every_
     """
     Check that the displacements along the reaction path are
     correctly calculated for a given reaction path, including
-    the case that every_nth is greater than 1.
+    the cases where every_nth is greater than 1.
     """
     # Check results for full array
     expected_displacements = np.diff(reaction_path, axis=0)
@@ -135,9 +136,11 @@ def test_calculate_displacements_along_reaction_coordinate(reaction_path, every_
 
     # Check results for every_nth array
     reduced_expected_displacements = expected_displacements[::every_nth]
-    reduced_calculated_displacements = calculate_displacements_along_reaction_coordinate(reaction_path,
-                                                                                 every_nth_point=every_nth,
-                                                                                 include_end_point=False)
+    reduced_calculated_displacements = calculate_displacements_along_reaction_coordinate(
+        reaction_path,
+        every_nth_point=every_nth,
+        include_end_point=False
+    )
     assert (reduced_calculated_displacements == reduced_expected_displacements).all()
 
 
@@ -152,7 +155,7 @@ def test_calculate_distance_along_reaction_coordinate(reaction_path, every_nth):
     """
     Check that the distance along the reaction coordinate is
     correctly calculated for a given reaction path, including
-    the case that every_nth is greater than 1.
+    the cases where every_nth is greater than 1.
     """
     # Check results for full array
     expected_distances = np.zeros(reaction_path.shape[0])
@@ -162,13 +165,48 @@ def test_calculate_distance_along_reaction_coordinate(reaction_path, every_nth):
 
     # Check results for every_nth array
     reduced_expected_distances = expected_distances[::every_nth]
-    reduced_calculated_distances = calculate_distance_along_reaction_coordinate(reaction_path, every_nth_point=every_nth, include_end_point=False)
+    reduced_calculated_distances = calculate_distance_along_reaction_coordinate(
+        reaction_path,
+        every_nth_point=every_nth,
+        include_end_point=False
+    )
     assert (reduced_calculated_distances == reduced_expected_distances).all()
 
 
-def test_calculate_pmf_exponential_average():
-    # TODO: Add test!
-    pass
+@pytest.mark.parametrize("n_steps", [100, 1000, 12345, 96235])
+def test_calculate_pmf_exponential_average(n_steps):
+    """
+    Check that the PMF calculated for a set of example work arrays
+    using the function calculate_pmf_exponential_average_kJ_mol is
+    approximately equal to the expected PMF calculated explicitly.
+    They may differ slightly numerically, as the
+    """
+
+    # Define temperature and calculate value of beta
+    temp_K = 273.15
+    beta_mol_kJ = calculate_beta_mol_kJ(temp_K)
+
+    # Define example work arrays (array of zeros and monotonically
+    # increasing arrays)
+    work_array_1 = np.zeros(n_steps)
+    work_array_2 = np.linspace(0,n_steps-1,n_steps)
+    work_array_3 = np.linspace(0, 2*(n_steps - 1), n_steps)
+    work_array_4 = np.linspace(0, 3*(n_steps - 1), n_steps)
+    work_arrays = np.array([work_array_1, work_array_2, work_array_3, work_array_4])
+
+    # Calculate expected exponential average PMF manually
+    expected_pmf = - (1./beta_mol_kJ) * (np.log(np.sum(np.exp(-beta_mol_kJ * work_arrays), 0)) - np.log(work_arrays.shape[0]))
+
+    # Calculate PMF via function
+    calculated_pmf = calculate_pmf_exponential_average_kJ_mol(work_arrays, temp_K)
+
+    # Check that expected and calculated values are close
+    assert np.allclose(calculated_pmf, expected_pmf, rtol=1E-8)
+
+    # Check that final value of calculated PMF is dominated by lowest work value (0),
+    # which should yield approximately -(1 / beta) * log(1/N) = (1 / beta) * log(N)
+    # [ONLY VALID FOR LOWER TEMPERATURES]
+    assert calculated_pmf[-1] == (1./beta_mol_kJ) * np.log(work_arrays.shape[0])
 
 
 def test_calculate_pmf_second_cumulant():
