@@ -248,10 +248,10 @@ def test_calculate_pmf_second_cumulant(mu, sigma):
 
 
 def test_load_general_iguessmd_data():
-    # TODO: Add test!
+    # TODO: Add test once output file format decided!
     pass
 
 
 def test_load_iguessmd_simulation_data():
-    # TODO: Add test!
+    # TODO: Add test once output file format decided!
     pass
