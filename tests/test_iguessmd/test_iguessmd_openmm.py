@@ -67,6 +67,8 @@ from openmm.unit import (
 
 from nanover.iguessmd.openmm import *
 
+from .iguessmd_test_utilities import define_circular_path
+
 # Very basic thing to test entire class as it would be used: tutorial notebook that can be tested
 
 BASIC_SIMULATION_BOX_VECTORS = [[50, 0, 0], [0, 50, 0], [0, 0, 50]]
@@ -89,12 +91,13 @@ ARGON_SIMULATION_POSITION = [[0.0, 0.0, 0.0]]
 TEST_iGUESSMD_SINGLE_INDEX = np.array(0)
 TEST_iGUESSMD_MULTIPLE_INDICES = np.array([0, 1, 2, 3])
 TEST_iGUESSMD_INDICES = [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES]
-TEST_iGUESSMD_PATH = np.array(
+TEST_iGUESSMD_LINEAR_PATH = np.array(
     [np.linspace(0.05, 1.05, 101), np.zeros(101), np.zeros(101)]
 ).transpose()
-TEST_iGUESSMD_PATH_TANGENTS = np.array(
+TEST_iGUESSMD_LINEAR_PATH_TANGENTS = np.array(
     [np.ones(101), np.zeros(101), np.zeros(101)]
 ).transpose()
+TEST_iGUESSMD_CIRCULAR_PATH, TEST_iGUESSMD_CIRCULAR_PATH_TANGENTS = define_circular_path(10)
 TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL = 3011.0
 TEST_iGUESSMD_FORCE_CONSTANT_PAR_PERP = np.array([3011.0, 301.1])
 TEST_iGUESSMD_FORCE_CONSTANTS = [
@@ -334,7 +337,7 @@ def make_basic_iguessmd_simulation_with_iguessmd_force_xml(
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         atom_indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
     xml_path = tmp_path / "basic_iguessmd_simulation.xml"
@@ -351,7 +354,7 @@ def make_basic_iguessmd_simulation_without_iguessmd_force_xml(
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         atom_indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
     xml_path = tmp_path / "basic_iguessmd_simulation.xml"
@@ -370,12 +373,12 @@ def test_load_iguessmd_sim_from_simulation(force_constant, atom_indices):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         atom_indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
     assert iguessmd_sim
     assert iguessmd_sim.simulation
-    assert np.array_equal(iguessmd_sim.iguessmd_path, TEST_iGUESSMD_PATH)
+    assert np.array_equal(iguessmd_sim.iguessmd_path, TEST_iGUESSMD_LINEAR_PATH)
     assert np.array_equal(iguessmd_sim.iguessmd_atom_indices, atom_indices)
     assert np.array_equal(iguessmd_sim.iguessmd_force_constant, force_constant)
 
@@ -393,13 +396,13 @@ def test_load_iguessmd_sim_from_xml_path(
     iguessmd_sim = OMMiGUESSMDSimulation.from_xml_path(
         make_basic_simulation_xml,
         atom_indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
     assert iguessmd_sim
     assert iguessmd_sim.xml_path == make_basic_simulation_xml
     assert iguessmd_sim.simulation
-    assert np.array_equal(iguessmd_sim.iguessmd_path, TEST_iGUESSMD_PATH)
+    assert np.array_equal(iguessmd_sim.iguessmd_path, TEST_iGUESSMD_LINEAR_PATH)
     assert np.array_equal(iguessmd_sim.iguessmd_atom_indices, atom_indices)
     assert np.array_equal(iguessmd_sim.iguessmd_force_constant, force_constant)
 
@@ -425,7 +428,7 @@ def test_load_iguessmd_simulation_with_iguessmd_force_from_xml_path(
         iguessmd_sim = OMMiGUESSMDSimulation.from_xml_path(
             xml_path,
             atom_indices,
-            TEST_iGUESSMD_PATH,
+            TEST_iGUESSMD_LINEAR_PATH,
             force_constant,
         )
         assert iguessmd_sim.loaded_iguessmd_force_from_sim
@@ -450,7 +453,7 @@ def test_load_iguessmd_simulation_without_iguessmd_force_from_xml_path(
     iguessmd_sim = OMMiGUESSMDSimulation.from_xml_path(
         xml_path,
         atom_indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
     assert not iguessmd_sim.loaded_iguessmd_force_from_sim
@@ -476,7 +479,7 @@ def test_return_correct_iguessmd_sim_type(indices, sim_type):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
     assert type(iguessmd_sim) == sim_type
@@ -500,7 +503,7 @@ def test_simulation_pbcs_are_respected(apply_pbcs, indices):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         sim,
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
 
@@ -527,7 +530,7 @@ def test_iguessmd_force_attaches_to_correct_atom(index, force_constant):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         index,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
     # Attaches force to single atom, so index of atom within force is zero
@@ -535,7 +538,7 @@ def test_iguessmd_force_attaches_to_correct_atom(index, force_constant):
     assert p_index == index
     assert np.array_equal(
         np.array(p_params),
-        np.array([*TEST_iGUESSMD_PATH[0], *TEST_iGUESSMD_PATH_TANGENTS[0]]),
+        np.array([*TEST_iGUESSMD_LINEAR_PATH[0], *TEST_iGUESSMD_LINEAR_PATH_TANGENTS[0]]),
     )
 
 
@@ -562,7 +565,7 @@ def test_iguessmd_force_attaches_to_correct_atoms(indices, force_constant):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
     # Only one centroid force added, index of force is zero
@@ -582,7 +585,7 @@ def test_reset(indices):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
 
@@ -594,7 +597,7 @@ def test_reset(indices):
     iguessmd_sim_copy = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
 
@@ -694,7 +697,7 @@ def test_iguessmd_force_added_to_system(indices):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
     last_force = iguessmd_sim.simulation.system.getForces()[-1]
@@ -726,7 +729,7 @@ def test_iguessmd_force_removed_from_system(indices, force_constant):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
     # Add arbitrary force to system (to test scenario when extra forces added after
@@ -784,14 +787,14 @@ def test_iguessmd_force_updates_correctly(indices):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
     # Choose next force position to be the final position defined by
     # the iGUESSMD path
-    new_force_position_index = TEST_iGUESSMD_PATH.shape[0] - 1
-    new_force_position = TEST_iGUESSMD_PATH[new_force_position_index]
-    new_force_tangent = TEST_iGUESSMD_PATH_TANGENTS[new_force_position_index]
+    new_force_position_index = TEST_iGUESSMD_LINEAR_PATH.shape[0] - 1
+    new_force_position = TEST_iGUESSMD_LINEAR_PATH[new_force_position_index]
+    new_force_tangent = TEST_iGUESSMD_LINEAR_PATH_TANGENTS[new_force_position_index]
 
     # Update the force position and check the relevant class parameters
     # update accordingly
@@ -849,7 +852,7 @@ def test_error_for_non_initial_restraint_during_equilibration():
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         TEST_iGUESSMD_SINGLE_INDEX,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
     iguessmd_sim.current_iguessmd_force_position_index = 1
@@ -873,7 +876,7 @@ def test_generate_starting_structures(n_structures, interval_ps):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         TEST_iGUESSMD_SINGLE_INDEX,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
 
@@ -907,9 +910,16 @@ def test_generate_starting_structures(n_structures, interval_ps):
                 assert size > 0, f"File {file.name} is unexpectedly empty."
 
 
-def test_calculate_iguessmd_path_tangents_linear_path():
+@pytest.mark.parametrize(
+    "name, path, tangents",
+    [
+        ("linear", TEST_iGUESSMD_LINEAR_PATH, TEST_iGUESSMD_LINEAR_PATH_TANGENTS),
+        ("circular", TEST_iGUESSMD_CIRCULAR_PATH, TEST_iGUESSMD_CIRCULAR_PATH_TANGENTS),
+    ],
+)
+def test_calculate_iguessmd_path_tangents(name, path, tangents):
     """
-    Test that checks whether the normalised tangent vectors of a linear
+    Test that checks whether the normalised tangent vectors of an
     iGUESSMD path are calculated correctly, using the forward difference
     approximation and with the final tangent vector equal to the
     penultimate tangent vector.
@@ -918,7 +928,7 @@ def test_calculate_iguessmd_path_tangents_linear_path():
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         TEST_iGUESSMD_SINGLE_INDEX,
-        TEST_iGUESSMD_PATH,
+        path,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
 
@@ -926,57 +936,20 @@ def test_calculate_iguessmd_path_tangents_linear_path():
     iguessmd_sim.calculate_iguessmd_path_tangents()
 
     # Check that calculated tangents are as expected
+    assert iguessmd_sim.iguessmd_path_tangents.shape == tangents.shape
     assert np.allclose(
-        iguessmd_sim.iguessmd_path_tangents, TEST_iGUESSMD_PATH_TANGENTS, rtol=1e-8
+        iguessmd_sim.iguessmd_path_tangents, tangents, rtol=1e-8
     )
 
-
-def test_calculate_iguessmd_path_tangents_circular_path():
-    """
-    Test that checks whether the normalised tangent vectors of a circular
-    iGUESSMD path are calculated correctly, using the forward difference
-    approximation and with the final tangent vector equal to the
-    penultimate tangent vector.
-    """
-
-    # Define a unit circular test path (such that final point overlays initial point)
-    n = 10
-    n_points = 2**n + 1
-    angles = np.linspace(0, 2 * np.pi, n_points)
-    x = np.cos(angles - np.pi / (n_points - 1))
-    y = np.sin(angles - np.pi / (n_points - 1))
-    z = np.zeros(x.shape)
-    circular_path = np.array([x, y, z]).transpose()
-
-    # Define expected unit tangent vectors (including duplicated penultimate tangent)
-    x_prime = -np.sin(angles)
-    y_prime = np.cos(-angles)
-    expected_tangent_vectors = np.array([x_prime, y_prime, z]).transpose()
-    expected_tangent_vectors[-1] = expected_tangent_vectors[-2]
-
-    # Create iGUESSMD simulation
-    iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
-        build_basic_simulation(),
-        TEST_iGUESSMD_SINGLE_INDEX,
-        circular_path,
-        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
-    )
-
-    # Calculate tangent vectors
-    iguessmd_sim.calculate_iguessmd_path_tangents()
-
-    # Check that calculated tangents are as expected
-    assert iguessmd_sim.iguessmd_path_tangents.shape == expected_tangent_vectors.shape
-    assert np.allclose(
-        iguessmd_sim.iguessmd_path_tangents, expected_tangent_vectors, rtol=1e-8
-    )
-
-    # Check calculated tangent vectors obey symmetry of circle (excluding final tangent)
-    assert np.allclose(
-        iguessmd_sim.iguessmd_path_tangents[: int((n_points - 1) / 2)],
-        -iguessmd_sim.iguessmd_path_tangents[int((n_points - 1) / 2) : -1],
-        rtol=1e-8,
-    )
+    # For circular path, check calculated tangent vectors obey symmetry
+    # of circle (excluding final tangent)
+    if name == "circular":
+        n_points = path.shape[0]
+        assert np.allclose(
+            iguessmd_sim.iguessmd_path_tangents[: int((n_points - 1) / 2)],
+            -iguessmd_sim.iguessmd_path_tangents[int((n_points - 1) / 2): -1],
+            rtol=1e-8,
+        )
 
 
 @pytest.mark.parametrize(
@@ -1022,8 +995,8 @@ def test_calculate_iguessmd_forces(position_shifts, indices, force_constant):
       test one single index and one set of indices)
     """
     # Test atom positions and atom-interaction centre displacement vectors
-    test_positions = TEST_iGUESSMD_PATH + position_shifts
-    displacements = test_positions - TEST_iGUESSMD_PATH
+    test_positions = TEST_iGUESSMD_LINEAR_PATH + position_shifts
+    displacements = test_positions - TEST_iGUESSMD_LINEAR_PATH
 
     # Check for different parallel and perpendicular force constants
     if isinstance(force_constant, np.ndarray):
@@ -1033,7 +1006,7 @@ def test_calculate_iguessmd_forces(position_shifts, indices, force_constant):
         fc_par = fc_perp = force_constant
 
     # Calculate normalised tangent vectors along RC
-    tangents = np.diff(TEST_iGUESSMD_PATH, axis=0)
+    tangents = np.diff(TEST_iGUESSMD_LINEAR_PATH, axis=0)
     tangents = np.array([*tangents, tangents[-1]])
     tangents /= np.linalg.norm(tangents, axis=1, keepdims=True)
 
@@ -1053,7 +1026,7 @@ def test_calculate_iguessmd_forces(position_shifts, indices, force_constant):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
     iguessmd_sim._calculate_iguessmd_forces(test_positions)
@@ -1088,11 +1061,11 @@ def test_calculate_work_done(position_shifts, indices):
       test one single index and one set of indices)
     """
     # TODO: Generalise to curved paths?
-    test_positions = TEST_iGUESSMD_PATH + position_shifts
+    test_positions = TEST_iGUESSMD_LINEAR_PATH + position_shifts
 
     # Calculate displacements of force along test iGUESSMD path and
     # check they are all approximately equal
-    iguessmd_force_displacements = np.diff(TEST_iGUESSMD_PATH, axis=0)
+    iguessmd_force_displacements = np.diff(TEST_iGUESSMD_LINEAR_PATH, axis=0)
     diff = iguessmd_force_displacements[0]
     assert np.allclose(
         iguessmd_force_displacements,
@@ -1103,7 +1076,7 @@ def test_calculate_work_done(position_shifts, indices):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
     iguessmd_sim._calculate_iguessmd_forces(test_positions)
@@ -1145,7 +1118,7 @@ def test_save_iguessmd_simulation_data(indices, force_constants):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constants,
     )
     with redirect_stdout(StringIO()) as _:
@@ -1192,7 +1165,7 @@ def test_save_general_iguessmd_data(indices, force_constants):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         force_constants,
     )
     with redirect_stdout(StringIO()) as _:
@@ -1248,7 +1221,7 @@ def test_calculate_com_iguessmd_simulation_class(positions, masses, com):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         simulation,
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
 
@@ -1275,19 +1248,19 @@ def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, c
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         simulation,
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
 
     # Manually set the trajectory of atom positions and calculate the
     # corresponding trajectory of the COM
-    atom_positions = np.zeros((TEST_iGUESSMD_PATH.shape[0], *positions.shape))
-    expected_com_array = np.zeros(TEST_iGUESSMD_PATH.shape)
-    for i in range(TEST_iGUESSMD_PATH.shape[0]):
+    atom_positions = np.zeros((TEST_iGUESSMD_LINEAR_PATH.shape[0], *positions.shape))
+    expected_com_array = np.zeros(TEST_iGUESSMD_LINEAR_PATH.shape)
+    for i in range(TEST_iGUESSMD_LINEAR_PATH.shape[0]):
         atom_positions[i] = positions + np.array(
-            [TEST_iGUESSMD_PATH[i] for j in range(indices.size)]
+            [TEST_iGUESSMD_LINEAR_PATH[i] for j in range(indices.size)]
         )
-        expected_com_array[i] = com + TEST_iGUESSMD_PATH[i]
+        expected_com_array[i] = com + TEST_iGUESSMD_LINEAR_PATH[i]
 
     # Set iGUESSMD atom positions equal to the trajectory of calculated atom positions
     iguessmd_sim.iguessmd_simulation_atom_positions = atom_positions
@@ -1478,7 +1451,7 @@ def test_load_openmm_state(apply_pbcs, save_iguessmd_force, indices):
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(apply_pbcs),
         indices,
-        TEST_iGUESSMD_PATH,
+        TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
 
@@ -1505,7 +1478,7 @@ def test_load_openmm_state(apply_pbcs, save_iguessmd_force, indices):
             loaded_iguessmd_sim = OMMiGUESSMDSimulation.from_xml_path(
                 file_path,
                 indices,
-                TEST_iGUESSMD_PATH,
+                TEST_iGUESSMD_LINEAR_PATH,
                 TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
             )
             # Retrieve and compare velocities

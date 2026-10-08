@@ -13,6 +13,8 @@ import numpy as np
 
 from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents, calculate_com
 
+from .iguessmd_test_utilities import define_circular_path
+
 # Test systems for COM calculations, formatted as (positions, masses, expected COM)
 TEST_COM_TWO_ATOMS = (
     np.array([[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]),
@@ -55,6 +57,7 @@ TEST_COM_CUBE = (
     np.array([6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0]),
     np.array([1.0, 2.0, 3.0]),
 )
+TEST_iGUESSMD_CIRCULAR_PATH, TEST_iGUESSMD_CIRCULAR_PATH_TANGENTS = define_circular_path(10)
 
 @pytest.mark.parametrize(
     "array,axis",
@@ -130,30 +133,16 @@ def test_calculate_unit_tangents_circular_path():
     penultimate tangent vector.
     """
 
-    # Define a unit circular test path (such that final point overlays initial point)
-    n = 10
-    n_points = 2 ** n + 1
-    angles = np.linspace(0, 2 * np.pi, n_points)
-    x = np.cos(angles - np.pi / (n_points - 1))
-    y = np.sin(angles - np.pi / (n_points - 1))
-    z = np.zeros(x.shape)
-    circular_path = np.array([x, y, z]).transpose()
-
-    # Define expected unit tangent vectors (including duplicated penultimate tangent)
-    x_prime = -np.sin(angles)
-    y_prime = np.cos(-angles)
-    expected_tangent_vectors = np.array([x_prime, y_prime, z]).transpose()
-    expected_tangent_vectors[-1] = expected_tangent_vectors[-2]
-
-    calculated_tangent_vectors = calculate_unit_tangents(circular_path)
+    calculated_tangent_vectors = calculate_unit_tangents(TEST_iGUESSMD_CIRCULAR_PATH)
 
     # Check that calculated tangents are as expected
-    assert calculated_tangent_vectors.shape == expected_tangent_vectors.shape
+    assert calculated_tangent_vectors.shape == TEST_iGUESSMD_CIRCULAR_PATH_TANGENTS.shape
     assert np.allclose(
-        calculated_tangent_vectors, expected_tangent_vectors, rtol=1e-8
+        calculated_tangent_vectors, TEST_iGUESSMD_CIRCULAR_PATH_TANGENTS, rtol=1e-8
     )
 
     # Check calculated tangent vectors obey symmetry of circle (excluding final tangent)
+    n_points = TEST_iGUESSMD_CIRCULAR_PATH.shape[0]
     assert np.allclose(
         calculated_tangent_vectors[: int((n_points - 1) / 2)],
         -calculated_tangent_vectors[int((n_points - 1) / 2): -1],
