@@ -6,7 +6,7 @@ Things to test for analysis functions:
 - Boltzmann constant is calculated correctly in units of kJ mol-1 K-1 [√]
 - Beta (1 / (kB * T)) is correctly calculated in units of mol kJ-1 [√]
 - Calculation of PMF via exponential average returns expected result [√]
-- Calculation of PMF via second cumulant approximation returns expected result [ ]
+- Calculation of PMF via second cumulant approximation returns expected result [√]
 - Calculation of reaction coordinate projections works as expected [√]
 - Calculation of displacements along reaction path works as expected [√]
 - Calculation of distance along reaction coordinate works as expected [√]
@@ -209,7 +209,15 @@ def test_calculate_pmf_exponential_average(n_steps):
     assert calculated_pmf[-1] == (1./beta_mol_kJ) * np.log(work_arrays.shape[0])
 
 
-def test_calculate_pmf_second_cumulant():
+@pytest.mark.parametrize(
+    "mu, sigma",
+    [
+        (0.0, 1.0),
+        (2.5, 0.3),
+        (-0.5, 3.0),
+    ],
+)
+def test_calculate_pmf_second_cumulant(mu, sigma):
     """
     Check that the PMF calculated for a set of Gaussian distributed
     work values using calculate_pmf_second_cumulant_kJ_mol yields
@@ -219,18 +227,22 @@ def test_calculate_pmf_second_cumulant():
     temp_K = 273.15
     beta_mol_kJ = calculate_beta_mol_kJ(temp_K)
 
-    # Define Gaussian distributed work arrays
-    mu, sigma, n_samples = 0.0, 1.0, 10000000
+    # Define Gaussian distributed work arrays given mean mu
+    # and standard deviation sigma
+    n_samples = 10000000
     work_arrays = np.array([np.random.normal(mu, sigma, n_samples) for _ in range(10)]).transpose()
+
+    # Vary means of distributions
+    work_arrays += np.linspace(0, 9, 10)
 
     # Define expected PMF from second cumulant formula (Bessel-corrected variance)
     bessel_var = (sigma**2) * (n_samples)/(n_samples-1)
-    expected_pmf = np.array([mu - (beta_mol_kJ/2.) * bessel_var for _ in range(10)])
+    expected_pmf = np.array([i + mu - (beta_mol_kJ/2.) * bessel_var for i in range(10)])
 
     # Calculate PMF via function
     calculated_pmf = calculate_pmf_second_cumulant_kJ_mol(work_arrays, temp_K)
 
-    # Check that values are approximately equal (tolerance is set
+    # Check that values are approximately equal (tolerance set
     # relatively high to account for sampling error)
     assert np.allclose(calculated_pmf, expected_pmf, rtol=5E-3)
 
