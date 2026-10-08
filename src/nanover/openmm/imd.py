@@ -93,17 +93,18 @@ class ImdForceManager:
                 unit.nanometer / unit.picosecond
             )
 
-            # apply_velocity_resets_mean_velocity_removal(
-            #     interactions=velocity_resets_interactions,
-            #     velocities=velocities,
-            # )
-
-            apply_velocity_resets_maxwellboltzmann(
+            apply_velocity_resets_mean_velocity_removal(
                 interactions=velocity_resets_interactions,
                 velocities=velocities,
-                masses=self.masses,
-                temperature=simulation.integrator.getTemperature(),
             )
+
+            # TODO: switch to alternate velocity reset?
+            # apply_velocity_resets_maxwellboltzmann(
+            #     interactions=velocity_resets_interactions,
+            #     velocities=velocities,
+            #     masses=self.masses,
+            #     temperature=simulation.integrator.getTemperature(),
+            # )
 
             simulation.context.setVelocities(velocities)
 
@@ -137,6 +138,7 @@ class ImdForceManager:
         )
 
 
+# TODO: not right
 def apply_velocity_resets_maxwellboltzmann(
     *,
     interactions: Iterable[ParticleInteraction],
@@ -156,18 +158,17 @@ def apply_velocity_resets_maxwellboltzmann(
 
     # ase thermalize momenta
     xi = np.random.standard_normal((len(masses), 3))
-    momenta = xi * np.sqrt(particle_masses * temperature)[:, np.newaxis]
+    momenta = xi * np.sqrt(particle_masses * temperature).reshape(-1, 1)
 
     # ase force temperature
-    if temperature > 1e-12:
-        # TODO: calculate instantaneous temperature of atoms
-        actual_temp = temperature
+    # TODO: calculate instantaneous temperature of atoms
+    actual_temp = temperature
 
-        scale = temperature / actual_temp
-        momenta *= np.sqrt(scale)
+    scale = temperature / actual_temp
+    momenta *= np.sqrt(scale)
 
     # apply velocities from thermalized momenta
-    velocities[particles] = momenta / particle_masses
+    velocities[particles] = momenta / particle_masses.reshape(-1, 1)
 
 
 def apply_velocity_resets_mean_velocity_removal(

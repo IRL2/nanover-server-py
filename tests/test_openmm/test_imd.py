@@ -1,15 +1,21 @@
 """
 Tests for :mod:`nanover.openmm.imd`.
 """
-
+import numpy as np
 import openmm as mm
-from nanover.openmm import imd
+from openmm import unit
+
+from nanover.imd import ParticleInteraction
+from nanover.openmm import imd, OpenMMSimulation
 from openmm.unit import nanometer
+
+from nanover.testing.servers import make_app_server
 from simulation_utils import (
     basic_simulation,
     basic_system,
     empty_imd_force,
 )
+from simulation_utils import build_basic_simulation
 
 
 def test_create_imd_force(empty_imd_force):
@@ -70,3 +76,38 @@ def test_add_imd_force_to_system_force_is_in_system(basic_system):
     force_added.setParticleParameters(0, 0, (1.0, 2.0, 3.0))
     parameters = force_obtained.getParticleParameters(0)
     assert parameters == [0, (1.0, 2.0, 3.0)]
+
+
+# TODO: remove if we do different velocity reset later
+def test_velocity_reset_linear_motion():
+    """Tests that velocity reset removes mean linear motion."""
+    with make_app_server() as app_server:
+        simulation = OpenMMSimulation.from_simulation(build_basic_simulation())
+        simulation.reset(app_server)
+        simulation.include_velocities = True
+
+        particles = [0]
+
+        app_server.imd.insert_interaction(
+            "interaction.test",
+            ParticleInteraction(
+                position=[1000, 0, 0],
+                particles=particles,
+                type="constant",
+                scale=100000,
+                reset_velocities=True,
+            )
+        )
+        simulation.advance_by_one_step()
+
+        prev_velocities = simulation.make_regular_frame().particle_velocities[particles]
+        prev_magnitude = np.linalg.norm(np.average(prev_velocities, axis=0))
+
+        app_server.imd.remove_interaction("interaction.test")
+        simulation.advance_by_one_step()
+
+        next_velocities = simulation.make_regular_frame().particle_velocities[particles]
+        next_magnitude = np.linalg.norm(np.average(next_velocities, axis=0))
+
+        assert prev_magnitude > 0.05
+        assert np.isclose(next_magnitude, 0)
