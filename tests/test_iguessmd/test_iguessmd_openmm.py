@@ -69,7 +69,6 @@ from nanover.iguessmd.openmm import *
 
 from .iguessmd_test_utilities import define_circular_path
 
-# Very basic thing to test entire class as it would be used: tutorial notebook that can be tested
 
 BASIC_SIMULATION_BOX_VECTORS = [[50, 0, 0], [0, 50, 0], [0, 0, 50]]
 BASIC_SIMULATION_POSITIONS = [
@@ -97,7 +96,6 @@ TEST_iGUESSMD_LINEAR_PATH = np.array(
 TEST_iGUESSMD_LINEAR_PATH_TANGENTS = np.array(
     [np.ones(101), np.zeros(101), np.zeros(101)]
 ).transpose()
-TEST_iGUESSMD_CIRCULAR_PATH, TEST_iGUESSMD_CIRCULAR_PATH_TANGENTS = define_circular_path(10)
 TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL = 3011.0
 TEST_iGUESSMD_FORCE_CONSTANT_PAR_PERP = np.array([3011.0, 301.1])
 TEST_iGUESSMD_FORCE_CONSTANTS = [
@@ -155,7 +153,7 @@ TEST_COM_CUBE = (
 )
 
 TEST_BOOLS = [True, False]
-
+TEST_iGUESSMD_CIRCULAR_PATH, TEST_iGUESSMD_CIRCULAR_PATH_TANGENTS = define_circular_path(10)
 
 def build_com_system(parameters: tuple):
     positions, masses, com = parameters
