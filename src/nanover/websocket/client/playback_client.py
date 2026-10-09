@@ -33,11 +33,13 @@ class PlaybackClient(CommandClient, WebsocketClient):
         """
         self.run_command_blocking(keys.RESET_COMMAND)
 
-    def run_load(self, index: int):
+    def run_load(self, index: int, clear_state=True):
         """
         Sends a request for the trajectory service to switch to a particular simulation.
         """
-        self.run_command_blocking(keys.LOAD_COMMAND, index=index)
+        self.run_command_blocking(
+            keys.LOAD_COMMAND, index=index, clear_state=clear_state
+        )
 
     def run_next(self):
         """

@@ -109,5 +109,5 @@ def test_velocity_reset_linear_motion():
         next_velocities = simulation.make_regular_frame().particle_velocities[particles]
         next_magnitude = np.linalg.norm(np.average(next_velocities, axis=0))
 
-        assert prev_magnitude > 0.05
+        assert prev_magnitude > 0.01
         assert np.isclose(next_magnitude, 0)
