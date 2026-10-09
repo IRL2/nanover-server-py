@@ -1,3 +1,5 @@
+import warnings
+
 import MDAnalysis.units
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,6 +8,7 @@ import ipywidgets as widgets
 
 from typing import Union, Tuple
 from os import PathLike
+from pathlib import Path
 
 from scipy.interpolate import splprep, splev
 
@@ -763,7 +766,7 @@ class PathSmoother:
     def save_constant_speed_trajectory_data(self, output_filepath: PathLike[str]):
         """
         Save the constant speed trajectory data as numpy arrays to an output file
-        whose path is defined by the user.
+        (with .npz extension) whose path is defined by the user.
         """
         assert output_filepath is not None
         assert (
@@ -774,16 +777,31 @@ class PathSmoother:
 
         print(f"Saving constant speed trajectory data to {output_filepath}")
 
-        with open(output_filepath, "wb") as outfile:
-            np.save(outfile, self.constant_speed_com_trajectory)
-            np.save(outfile, self.constant_speed_nm_ps)
-            np.save(outfile, self.timestep_ps)
-            if self.atom_indices is not None:
-                np.save(outfile, self.atom_indices)
-            else:
-                print(
-                    "Warning: atom indices not provided and hence not saved to output file."
-                )
+        pathsmoother_data = {
+            "iguessmd_path" : self.constant_speed_com_trajectory,
+            "iguessmd_speed_nm_ps" : self.constant_speed_nm_ps,
+            "iguessmd_timestep_ps" : self.timestep_ps,
+        }
+
+        if self.atom_indices is not None:
+            pathsmoother_data["iguessmd_atom_indices"] = self.atom_indices
+        else:
+            print(
+                "Warning: atom indices not provided and hence not saved to output file."
+            )
+
+        np.savez_compressed(output_filepath, **pathsmoother_data)
+
+        # with open(output_filepath, "wb") as outfile:
+        #     np.save(outfile, self.constant_speed_com_trajectory)
+        #     np.save(outfile, self.constant_speed_nm_ps)
+        #     np.save(outfile, self.timestep_ps)
+        #     if self.atom_indices is not None:
+        #         np.save(outfile, self.atom_indices)
+        #     else:
+        #         print(
+        #             "Warning: atom indices not provided and hence not saved to output file."
+        #         )
 
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
@@ -1196,25 +1214,34 @@ def load_iguessmd_path_data(filepath: PathLike | str):
     """
     Load the iGUESSMD path, speed of restraint, timestep for simulation and
     (if available) the atoms to which the restraint should be applied.
-    :param filepath: A string defining the path to the .npy file defining the iGUESSMD path
-    :return: A tuple containing the iGUESSMD path, restraint speed, timestep and
+    :param filepath: A string defining the path to the .npz file defining the iGUESSMD path
+    :return: A dictionary containing the iGUESSMD path, restraint speed, timestep and
       (if available) atom indices
     """
-    assert ".npy" in filepath
+    if Path(filepath).suffix.lower() != ".npz":
+        raise ValueError("Output file must have a .npz extension.")
 
-    with open(filepath, "rb") as f:
-        iguessmd_path = np.load(f)
-        iguessmd_speed_nm_ps = np.load(f)
-        iguessmd_timestep_ps = np.load(f)
-        results_dict = {
-            "iguessmd_path": iguessmd_path,
-            "iguessmd_speed_nm_ps": iguessmd_speed_nm_ps,
-            "iguessmd_timestep_ps": iguessmd_timestep_ps,
-        }
-        try:
-            iguessmd_atom_indices = np.load(f)
-            results_dict["iguessmd_atom_indices"] = iguessmd_atom_indices
-            return results_dict
-        except Exception:
-            raise Warning("Atom indices not present in file and could not be loaded.")
-            return results_dict
+    iguessmd_path_data = dict(np.load(filepath))
+
+    if not iguessmd_path_data["iguessmd_atom_indices"]:
+        raise warnings.warn("Atom indices not present in file and could not be loaded.")
+
+    return iguessmd_path_data
+
+#    with open(filepath, "rb") as f:
+#        iguessmd_path = np.load(f)
+#        iguessmd_speed_nm_ps = np.load(f)
+#        iguessmd_timestep_ps = np.load(f)
+#        results_dict = {
+#            "iguessmd_path": iguessmd_path,
+#            "iguessmd_speed_nm_ps": iguessmd_speed_nm_ps,
+#            "iguessmd_timestep_ps": iguessmd_timestep_ps,
+#        }
+#        try:
+#            iguessmd_atom_indices = np.load(f)
+#            results_dict["iguessmd_atom_indices"] = iguessmd_atom_indices
+#            return results_dict
+#        except Exception:
+#            raise Warning("Atom indices not present in file and could not be loaded.")
+#            return results_dict
+#
