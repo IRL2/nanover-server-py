@@ -1173,33 +1173,29 @@ def test_save_general_iguessmd_data(indices, force_constants):
 
     with tempfile.TemporaryDirectory() as tmpdir:
         output_path = Path(tmpdir)
-        filename = "test_simulation_data.npy"
+        filename = "test_simulation_data.npz"
         file_path = output_path.joinpath(filename)
         iguessmd_sim.save_general_iguessmd_data(file_path)
         assert file_path.exists()
 
-        with open(file_path, "rb") as infile:
-            loaded_iguessmd_atom_indices = np.load(infile)
-            loaded_iguessmd_path = np.load(infile)
-            loaded_iguessmd_force_constant = np.load(infile)
-            loaded_temperature = np.load(infile)
-            loaded_timestep_ps = np.load(infile)
+        # Load saved data
+        general_iguessmd_data = dict(np.load(file_path))
 
-            assert np.array_equal(
-                iguessmd_sim.iguessmd_atom_indices, loaded_iguessmd_atom_indices
-            )
-            assert np.array_equal(iguessmd_sim.iguessmd_path, loaded_iguessmd_path)
-            assert np.array_equal(
-                iguessmd_sim.iguessmd_force_constant, loaded_iguessmd_force_constant
-            )
-            assert (
+        assert np.array_equal(
+            iguessmd_sim.iguessmd_atom_indices, general_iguessmd_data["iguessmd_atom_indices"]
+        )
+        assert np.array_equal(iguessmd_sim.iguessmd_path, general_iguessmd_data["iguessmd_path"])
+        assert np.array_equal(
+            iguessmd_sim.iguessmd_force_constant, general_iguessmd_data["iguessmd_force_constant"]
+        )
+        assert (
                 iguessmd_sim.simulation.integrator.getTemperature()._value
-                == loaded_temperature
-            )
-            assert (
+                == general_iguessmd_data["temperature_K"]
+        )
+        assert (
                 iguessmd_sim.simulation.integrator.getStepSize()._value
-                == loaded_timestep_ps
-            )
+                == general_iguessmd_data["timestep_ps"]
+        )
 
 
 @pytest.mark.parametrize(

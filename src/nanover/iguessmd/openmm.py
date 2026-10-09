@@ -692,7 +692,7 @@ class OMMiGUESSMDSimulation:
                 )
                 print("Work done saved to simulation data file.")
 
-    def save_general_iguessmd_data(self, path: PathLike[str] = None):
+    def save_general_iguessmd_data(self, path: PathLike | str = None):
         """
         Saves general data related to the iGUESSMD simulation in binary form that can be read
         into NumPy arrays. The following data are saved, in the order listed below:
@@ -711,12 +711,24 @@ class OMMiGUESSMDSimulation:
                 "Output file path cannot be None. Please specify an output file path."
             )
 
-        with open(path, "wb") as outfile:
-            np.save(outfile, self.iguessmd_atom_indices)
-            np.save(outfile, self.iguessmd_path)
-            np.save(outfile, self.iguessmd_force_constant)
-            np.save(outfile, self.simulation.integrator.getTemperature()._value)
-            np.save(outfile, self.simulation.integrator.getStepSize()._value)
+        # Create dictionary containing general iGUESSMD data
+        general_iguessmd_data = {
+            "iguessmd_atom_indices" : self.iguessmd_atom_indices,
+            "iguessmd_path" : self.iguessmd_path,
+            "iguessmd_force_constant" : self.iguessmd_force_constant,
+            "temperature_K" : self.simulation.integrator.getTemperature()._value,
+            "timestep_ps" : self.simulation.integrator.getStepSize()._value,
+        }
+
+        # Save dictionary to file defined by path
+        np.savez_compressed(path, **general_iguessmd_data)
+
+        # with open(path, "wb") as outfile:
+        #     np.save(outfile, self.iguessmd_atom_indices)
+        #     np.save(outfile, self.iguessmd_path)
+        #     np.save(outfile, self.iguessmd_force_constant)
+        #     np.save(outfile, self.simulation.integrator.getTemperature()._value)
+        #     np.save(outfile, self.simulation.integrator.getStepSize()._value)
 
 
 class OMMiGUESSMDSimulationAtom(OMMiGUESSMDSimulation):
