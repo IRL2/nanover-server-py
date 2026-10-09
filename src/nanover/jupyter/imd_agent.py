@@ -27,9 +27,9 @@ class ImdAgent(FrameListener):
         Update this agent's interactions based on a given frame.
         """
 
-    def close(self):
+    def close(self, *, wait=False):
         """
         Cancel subscription to frame updates and remove all interactions.
         """
-        super().close()
+        super().close(wait=wait)
         self.interactions.clear()
