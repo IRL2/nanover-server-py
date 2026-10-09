@@ -135,7 +135,7 @@ class DiscoveryServer:
         self._cancel = False
         self._broadcast_task = self._threads.submit(self._broadcast_until_cancel)
 
-    def close(self, *, wait=True):
+    def close(self, *, wait=False):
         if self._broadcast_task:
             self._cancel = True
             self._threads.shutdown(wait=wait)

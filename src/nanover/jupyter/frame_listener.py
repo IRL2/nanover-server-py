@@ -52,7 +52,7 @@ class FrameListener:
 
         self._task = self._threads.submit(run)
 
-    def close(self, *, wait=True):
+    def close(self, *, wait=False):
         """
         Cancel subscription to frame.
         """
