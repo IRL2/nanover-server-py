@@ -2,7 +2,8 @@
 Tests for :mod:`nanover.iguessmd.analysis`.
 
 Things to test for analysis functions:
-- General iGUESSMD data loads correctly [ ]
+- General iGUESSMD data loads correctly [√]
+- Simulation-specific iGUESSMD data loads correctly [√]
 - Boltzmann constant is calculated correctly in units of kJ mol-1 K-1 [√]
 - Beta (1 / (kB * T)) is correctly calculated in units of mol kJ-1 [√]
 - Calculation of PMF via exponential average returns expected result [√]
@@ -12,18 +13,36 @@ Things to test for analysis functions:
 - Calculation of distance along reaction coordinate works as expected [√]
 """
 
-import pytest
-import numpy as np
-
+import tempfile
+from io import StringIO
 from itertools import product
 
-from nanover.iguessmd.analysis import *
+import pytest
+from contextlib import redirect_stdout
+import numpy as np
 
-from .iguessmd_test_utilities import define_circular_path
+from nanover.iguessmd.analysis import *
+from nanover.iguessmd.openmm import OMMiGUESSMDSimulation
+
+from .test_iguessmd_openmm import build_basic_simulation
+
+from .iguessmd_test_utilities import (
+    define_circular_path,
+)
+
 from scipy.special import logsumexp
 
 KB_KJ_MOL_K_VALUE = 0.008314462618
 
+TEST_iGUESSMD_SINGLE_INDEX = np.array(0)
+TEST_iGUESSMD_MULTIPLE_INDICES = np.array([0, 1, 2, 3])
+TEST_iGUESSMD_INDICES = [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES]
+TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL = np.array(3011.0)
+TEST_iGUESSMD_FORCE_CONSTANT_PAR_PERP = np.array([3011.0, 301.1])
+TEST_iGUESSMD_FORCE_CONSTANTS = [
+    TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
+    TEST_iGUESSMD_FORCE_CONSTANT_PAR_PERP,
+]
 TEST_iGUESSMD_LINEAR_PATH = np.array(
     [np.linspace(0.05, 1.05, 101), np.zeros(101), np.zeros(101)]
 ).transpose()
@@ -37,6 +56,46 @@ TEST_iGUESSMD_POSITION_SHIFTS = [
     np.array([2.0, 0.0, 0.0]),
     np.array([-1.75, -3.0, 5.263]),
 ]
+TEST_iGUESSMD_TIMESTEP_PS = np.array(0.002)
+TEST_iGUESSMD_TEMPERATURE_K = np.array(300.0)
+
+@pytest.fixture
+def make_example_general_iguessmd_data_file(
+    tmp_path,
+    request,
+):
+    indices, force_constant = request.param
+    iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
+        simulation=build_basic_simulation(),
+        iguessmd_atom_indices=indices,
+        iguessmd_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=force_constant,
+    )
+
+    npz_path = tmp_path / "example_general_iguessmd_data.npz"
+    iguessmd_sim.save_general_iguessmd_data(npz_path)
+    return npz_path, indices, force_constant
+
+
+@pytest.fixture
+def make_example_iguessmd_simulation_data_file(
+    tmp_path,
+    request,
+):
+    indices, force_constant = request.param
+    iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
+        simulation=build_basic_simulation(),
+        iguessmd_atom_indices=indices,
+        iguessmd_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=force_constant,
+    )
+
+    with redirect_stdout(StringIO()) as _:
+        iguessmd_sim.run_iguessmd()
+
+    npz_path = tmp_path / "example_iguessmd_simulation.npz"
+    iguessmd_sim.save_iguessmd_simulation_data(npz_path)
+    return npz_path, indices
 
 
 def test_calculate_boltzmann_constant_in_kJ_mol_K():
@@ -246,12 +305,66 @@ def test_calculate_pmf_second_cumulant(mu, sigma):
     # relatively high to account for sampling error)
     assert np.allclose(calculated_pmf, expected_pmf, rtol=5E-3)
 
+@pytest.mark.parametrize("make_example_general_iguessmd_data_file",
+                         product(TEST_iGUESSMD_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
+                         indirect=True,
+)
+def test_load_general_iguessmd_data(make_example_general_iguessmd_data_file):
+    """
+    Check that the analysis function that loads the general iGUESSMD data
+    from an iGUESSMD simulation correctly loads the data.
+    """
+    # Generate example output file for general iGUESSMD data
+    filepath, indices, force_constant = make_example_general_iguessmd_data_file
+    general_iguessmd_data = load_general_iguessmd_data(filepath)
 
-def test_load_general_iguessmd_data():
-    # TODO: Add test once output file format decided!
-    pass
+    # Check that expected keys are present and arrays have the expected dimensions
+    expected_keys = [
+        "iguessmd_atom_indices",
+        "iguessmd_path",
+        "iguessmd_force_constant",
+        "temperature_K",
+        "timestep_ps",
+    ]
+    path_len = TEST_iGUESSMD_LINEAR_PATH.shape[0]
+    expected_shapes = [indices.shape,
+                       TEST_iGUESSMD_LINEAR_PATH.shape,
+                       force_constant.shape,
+                       TEST_iGUESSMD_TEMPERATURE_K.shape,
+                       TEST_iGUESSMD_TIMESTEP_PS.shape]
+    for i, key in enumerate(expected_keys):
+        assert key in general_iguessmd_data.keys()
+        assert general_iguessmd_data[key].shape == expected_shapes[i]
 
 
-def test_load_iguessmd_simulation_data():
-    # TODO: Add test once output file format decided!
-    pass
+@pytest.mark.parametrize("make_example_iguessmd_simulation_data_file",
+                         product(TEST_iGUESSMD_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
+                         indirect=True,
+)
+def test_load_iguessmd_simulation_data(make_example_iguessmd_simulation_data_file):
+    """
+    Check that the data loaded from the output of an iGUESSMD simulation
+    loads correctly and contains the expected keys.
+    """
+    # Generate example output file from an iGUESSMD simulation
+    filepath, indices = make_example_iguessmd_simulation_data_file
+    iguessmd_simulation_data = load_iguessmd_simulation_data(filepath)
+
+    # Define expected keys and array shapes
+    expected_keys = [
+        "iguessmd_simulation_atom_positions",
+        "iguessmd_simulation_work_done",
+        "data_timestep_ps"
+    ]
+    path_len = TEST_iGUESSMD_LINEAR_PATH.shape[0]
+    expected_shapes = [(path_len, *indices.shape, 3), (path_len,), TEST_iGUESSMD_TIMESTEP_PS.shape]
+
+    # Add COM checks if more than one atom index
+    if indices.shape != ():
+        expected_keys.append("iguessmd_com_positions")
+        expected_shapes.append((path_len, 3))
+
+    # Check keys
+    for i, key in enumerate(expected_keys):
+        assert key in iguessmd_simulation_data.keys()
+        assert iguessmd_simulation_data[key].shape == expected_shapes[i]

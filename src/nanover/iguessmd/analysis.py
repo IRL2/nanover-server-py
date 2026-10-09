@@ -5,38 +5,55 @@ import openmm.unit as unit
 from openmm.unit.quantity import Quantity
 
 from os import PathLike
+from pathlib import Path
 
 from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents
 
 
+def _load_iguessmd_datafile(filepath: PathLike[str] | str) -> dict:
+    """
+    Load the data from a .npz output file from an iGUESSMD simulation as
+    a dictionary.
+    """
+    if Path(filepath).suffix.lower() != ".npz":
+        raise ValueError("Output file must have a .npz extension.")
+
+    return dict(np.load(filepath))
+
+
 def load_general_iguessmd_data(filepath: PathLike | str) -> dict:
     """
-    Load the SMD path, speed of restraint, timestep for simulation and
-    (if available) the atoms to which the restraint should be applied.
-    :param filepath: A string defining the path to the .npy output file
+    Load the general data associated with an iGUESSMD simulation:
+
+        - Indices of the atoms to which the iGUESSMD force is applied
+        - Positions defining the path of the iGUESSMD force, in nm
+        - Force constant of the iGUESSMD force, in kJ mol-1 nm-2
+        - Temperature of the simulation, in Kelvin
+        - Time step of the simulation, in picoseconds
+
+    :param filepath: A string defining the path to the .npz output file
       containing the general iGUESSMD data
-    :return: A dictionary containing the iGUESSMD path, restraint speed, timestep and
-      (if available) atom indices
+    :return: A dictionary containing the general data from an iGUESSMD simulation.
     """
+    return _load_iguessmd_datafile(filepath)
 
-    assert ".npy" in filepath
 
-    with open(filepath, "rb") as general_iguessmd_data_file:
-        iguessmd_atom_indices = np.load(general_iguessmd_data_file)
-        iguessmd_path = np.load(general_iguessmd_data_file)
-        iguessmd_force_constant = np.load(general_iguessmd_data_file)
-        temperature = np.load(general_iguessmd_data_file)
-        timestep_ps = np.load(general_iguessmd_data_file)
+def load_iguessmd_simulation_data(filepath: PathLike | str) -> dict:
+    """
+    Load the data saved from the results of a specific iGUESSMD simulation.
+    This data may include:
 
-        general_iguessmd_data = {
-            "iguessmd_atom_indices": iguessmd_atom_indices,
-            "iguessmd_path": iguessmd_path,
-            "iguessmd_force_constant": iguessmd_force_constant,
-            "temperature": temperature,
-            "timestep_ps": timestep_ps,
-        }
+        - The work done during the simulation
+        - The trajectories of the atoms to which the iGUESSMD force is applied
+        - The trajectories of the centre of mass to which the iGUESSMD force
+          is applied
+        - The effective time step between successive data, in picoseconds
 
-        return general_iguessmd_data
+    :param filepath: A string defining the path to the .npz output file
+      containing the iGUESSMD simulation data
+    :return: A dictionary containing the simulation data from an iGUESSMD simulation.
+    """
+    return _load_iguessmd_datafile(filepath)
 
 
 def boltzmann_constant_in_kJ_mol_K() -> Quantity:
