@@ -1101,50 +1101,100 @@ def test_calculate_work_done(position_shifts, indices):
 
 
 @pytest.mark.parametrize(
-    "indices, force_constants",
-    product(TEST_iGUESSMD_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
+    "indices, force_constants, every_nth, dtypes",
+    product(
+        TEST_iGUESSMD_INDICES,
+        TEST_iGUESSMD_FORCE_CONSTANTS,
+        [1, 2, 5, 23],
+        [np.float16, np.float32, np.float64],
+    ),
 )
-def test_save_iguessmd_simulation_data(indices, force_constants):
+def test_save_iguessmd_simulation_data(indices, force_constants, every_nth, dtypes):
     """
-    Check that the function save_iguessmd_simulation_data correctly saves the
-    data from the specific iGUESSMD simulation in the correct format to the
-    correct location, and that the data can be subsequently loaded into
-    Python, giving the same results as before saving
+    Check that the iGUESSMD simulation data can be saved to a file with the
+    expected behaviour:
+
+        - the function save_iguessmd_simulation_data correctly saves the
+          data from the specific iGUESSMD simulation in the correct format
+          to the correct location
+        - the data can be subsequently loaded into Python
+        - the data is saved as the desired datatype
+        - the saved data contain the same results as contained in
+          the simulation instance before saving
 
     :param indices: Indices of atoms to apply the iGUESSMD force to (should at least
       test one single index and one set of indices)
     """
-
+    # Create the simulation
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
         indices,
         TEST_iGUESSMD_LINEAR_PATH,
         force_constants,
     )
+
+    # Run iGUESSMD simulation to generate example data
     with redirect_stdout(StringIO()) as _:
         iguessmd_sim.run_iguessmd()
 
     with tempfile.TemporaryDirectory() as tmpdir:
+
+        # Define output file
         output_path = Path(tmpdir)
-        filename = "test_simulation_data.npy"
+        filename = "test_simulation_data.npz"
         file_path = output_path.joinpath(filename)
-        # Save as float64 (currently arrays are dtype float64 internally)
-        iguessmd_sim.save_iguessmd_simulation_data(
-            file_path, atom_positions_dtype=np.float64, work_done_dtype=np.float64
-        )
+
+        # Save as specified dtype (currently arrays are dtype float64 internally)
+        if indices.size > 1:
+            iguessmd_sim.save_iguessmd_simulation_data(
+                file_path, every_nth=every_nth, atom_positions_dtype=dtypes, work_done_dtype=dtypes, com_positions_dtype=dtypes
+            )
+        else:
+            iguessmd_sim.save_iguessmd_simulation_data(
+                file_path, every_nth=every_nth, atom_positions_dtype=dtypes, work_done_dtype=dtypes
+            )
+
+        # Check the outfile exists
         assert file_path.exists()
 
-        with open(file_path, "rb") as infile:
-            loaded_iguessmd_simulation_atom_positions = np.load(infile)
-            loaded_iguessmd_simulation_work_done = np.load(infile)
+        # Load saved data
+        iguessmd_simulation_data = dict(np.load(file_path))
 
-            assert np.array_equal(
+        # Check that the data timestep saved correctly
+        assert iguessmd_simulation_data["data_timestep_ps"] == every_nth * iguessmd_sim.simulation.integrator.getStepSize()._value
+
+
+        # Check that arrays save correctly (including dtype)
+        assert iguessmd_simulation_data["iguessmd_simulation_atom_positions"].dtype == dtypes
+        assert np.array_equal(
+            get_every_nth(
                 iguessmd_sim.iguessmd_simulation_atom_positions,
-                loaded_iguessmd_simulation_atom_positions,
-            )
-            assert np.array_equal(
+                axis=0,
+                every_nth=every_nth,
+                include_end=False
+            ).astype(dtypes),
+            iguessmd_simulation_data["iguessmd_simulation_atom_positions"],
+        )
+        assert iguessmd_simulation_data["iguessmd_simulation_work_done"].dtype == dtypes
+        assert np.array_equal(
+            get_every_nth(
                 iguessmd_sim.iguessmd_simulation_work_done,
-                loaded_iguessmd_simulation_work_done,
+                axis=0,
+                every_nth=every_nth,
+                include_end=False
+            ).astype(dtypes),
+            iguessmd_simulation_data["iguessmd_simulation_work_done"],
+        )
+        if indices.size > 1:
+            assert iguessmd_simulation_data["iguessmd_com_positions"].dtype == dtypes
+            assert np.array_equal(
+                get_every_nth(
+                    iguessmd_sim.iguessmd_com_positions,
+                    axis=0,
+                    every_nth=every_nth,
+                    include_end=False
+                ).astype(dtypes),
+                iguessmd_simulation_data["iguessmd_com_positions"],
             )
 
 
@@ -1264,7 +1314,7 @@ def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, c
     # Calculate COM trajectory using internal function and check the calculated
     # COMs match the predicted COMs
     iguessmd_sim._calculate_com_trajectory()
-    assert np.allclose(iguessmd_sim.com_positions, expected_com_array, atol=1e-16)
+    assert np.allclose(iguessmd_sim.iguessmd_com_positions, expected_com_array, atol=1e-16)
 
 
 @pytest.mark.parametrize("pbcs", TEST_BOOLS)

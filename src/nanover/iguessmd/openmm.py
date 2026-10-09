@@ -654,43 +654,46 @@ class OMMiGUESSMDSimulation:
                 "the iGUESSMD calculation is completed."
             )
 
+        if every_nth is None:
+            every_nth = 1
+
         if (
             every_nth is not None
             and include_end
-            and self.iguessmd_simulation_work_done.size - 1 % every_nth != 0
+            and (self.iguessmd_simulation_work_done.size - 1) % every_nth != 0
         ):
             warnings.warn(
                 "Choice of every_nth yields different time step between the "
                 "final two array entries compared to the rest of the trajectory."
             )
-        elif every_nth is None:
-            every_nth = 1
 
-        with open(path, "wb") as outfile:
-            if save_atom_positions:
-                np.save(
-                    outfile,
-                    get_every_nth(
-                        self.iguessmd_simulation_atom_positions.astype(
-                            atom_positions_dtype
-                        ),
-                        axis=0,
-                        every_nth=every_nth,
-                        include_end=include_end,
-                    ),
-                )
-                print("Atom positions saved to simulation data file.")
-            if save_work_done:
-                np.save(
-                    outfile,
-                    get_every_nth(
-                        self.iguessmd_simulation_work_done.astype(work_done_dtype),
-                        axis=0,
-                        every_nth=every_nth,
-                        include_end=include_end,
-                    ),
-                )
-                print("Work done saved to simulation data file.")
+
+        iguessmd_simulation_data = {}
+        print(every_nth)
+        iguessmd_simulation_data["data_timestep_ps"] = every_nth * self.simulation.integrator.getStepSize()._value
+
+        # Optionally save atom positions
+        if save_atom_positions:
+            iguessmd_simulation_data["iguessmd_simulation_atom_positions"] = get_every_nth(
+                self.iguessmd_simulation_atom_positions,
+                axis=0,
+                every_nth=every_nth,
+                include_end=include_end,
+            ).astype(atom_positions_dtype)
+            print("Atom positions saved to simulation data file.")
+
+        # Optionally save work done
+        if save_work_done:
+            iguessmd_simulation_data["iguessmd_simulation_work_done"] = get_every_nth(
+                self.iguessmd_simulation_work_done.astype(work_done_dtype),
+                axis=0,
+                every_nth=every_nth,
+                include_end=include_end,
+            )
+            print("Work done saved to simulation data file.")
+
+        np.savez_compressed(path, **iguessmd_simulation_data)
+
 
     def save_general_iguessmd_data(self, path: PathLike | str = None):
         """
@@ -835,7 +838,7 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
 
     def __init__(self, name: str | None = None):
         super().__init__(name)
-        self.com_positions: np.ndarray | None = None
+        self.iguessmd_com_positions: np.ndarray | None = None
 
     def check_for_existing_iguessmd_force(self):
         try:
@@ -942,7 +945,7 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
             atom_masses[index] = self.simulation.system.getParticleMass(
                 self.iguessmd_atom_indices[index]
             )._value
-        self.com_positions = np.array(
+        self.iguessmd_com_positions = np.array(
             [
                 self._calculate_com(
                     self.iguessmd_simulation_atom_positions[i], atom_masses
@@ -957,7 +960,7 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
         COM of the atoms with which it interacts over the iGUESSMD simulation.
         """
         self._calculate_com_trajectory()
-        self._calculate_iguessmd_forces(self.com_positions)
+        self._calculate_iguessmd_forces(self.iguessmd_com_positions)
         self._calculate_work_done()
 
     def save_iguessmd_simulation_data(
@@ -992,9 +995,9 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
         # TODO: Think about whether there is a cleaner way to achieve this
 
         # Optionally save work done and atomic coordinates
-        super().save_iguessmd_simulation_data(path, **kwargs)
+        super().save_iguessmd_simulation_data(path, every_nth=every_nth, include_end=include_end, **kwargs)
 
-        if self.com_positions is None or np.all(self.com_positions == 0.0):
+        if self.iguessmd_com_positions is None or np.all(self.iguessmd_com_positions == 0.0):
             raise ValueError(
                 "Missing values for the atom positions. This data can only be saved after"
                 "the iGUESSMD calculation is completed."
@@ -1003,19 +1006,32 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
         if every_nth is None:
             every_nth = 1
 
-        # Optionally save COM positions
-        with open(path, "ab+") as outfile:
-            if save_com_positions:
-                np.save(
-                    outfile,
-                    get_every_nth(
-                        self.com_positions.astype(com_positions_dtype),
-                        axis=0,
-                        every_nth=every_nth,
-                        include_end=include_end,
-                    ),
-                )
-                print("COM positions saved to simulation data file.")
+        if save_com_positions:
+            # Load existing saved data
+            iguessmd_simulation_data = dict(np.load(path))
+            iguessmd_simulation_data["iguessmd_com_positions"] = get_every_nth(
+                self.iguessmd_com_positions.astype(com_positions_dtype),
+                axis=0,
+                every_nth=every_nth,
+                include_end=include_end,
+            )
+            np.savez_compressed(path, **iguessmd_simulation_data)
+
+        # Save
+
+        # # Optionally save COM positions
+        # with open(path, "ab+") as outfile:
+        #     if save_com_positions:
+        #         np.save(
+        #             outfile,
+        #             get_every_nth(
+        #                 self.iguessmd_com_positions.astype(com_positions_dtype),
+        #                 axis=0,
+        #                 every_nth=every_nth,
+        #                 include_end=include_end,
+        #             ),
+        #         )
+        #         print("COM positions saved to simulation data file.")
 
 
 def iguessmd_com_force(
