@@ -135,11 +135,10 @@ class DiscoveryServer:
         self._cancel = False
         self._broadcast_task = self._threads.submit(self._broadcast_until_cancel)
 
-    def close(self):
+    def close(self, *, wait=True):
         if self._broadcast_task:
             self._cancel = True
-            self._threads.shutdown(wait=True)
-            self._broadcast_task = None
+            self._threads.shutdown(wait=wait)
 
     def _broadcast_until_cancel(self):
         self._socket = configure_reusable_socket()
@@ -147,6 +146,7 @@ class DiscoveryServer:
             while not self._cancel:
                 self._broadcast_services()
                 time.sleep(self.delay)
+        self._broadcast_task = None
 
     def _broadcast_services(self):
         with self._lock:
