@@ -669,7 +669,6 @@ class OMMiGUESSMDSimulation:
 
 
         iguessmd_simulation_data = {}
-        print(every_nth)
         iguessmd_simulation_data["data_timestep_ps"] = every_nth * self.simulation.integrator.getStepSize()._value
 
         # Optionally save atom positions
