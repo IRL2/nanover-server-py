@@ -723,13 +723,6 @@ class OMMiGUESSMDSimulation:
         # Save dictionary to file defined by path
         np.savez_compressed(path, **general_iguessmd_data)
 
-        # with open(path, "wb") as outfile:
-        #     np.save(outfile, self.iguessmd_atom_indices)
-        #     np.save(outfile, self.iguessmd_path)
-        #     np.save(outfile, self.iguessmd_force_constant)
-        #     np.save(outfile, self.simulation.integrator.getTemperature()._value)
-        #     np.save(outfile, self.simulation.integrator.getStepSize()._value)
-
 
 class OMMiGUESSMDSimulationAtom(OMMiGUESSMDSimulation):
     """
