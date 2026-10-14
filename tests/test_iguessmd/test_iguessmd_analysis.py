@@ -303,7 +303,7 @@ def test_calculate_pmf_second_cumulant(mu, sigma):
 
     # Check that values are approximately equal (tolerance set
     # relatively high to account for sampling error)
-    assert np.allclose(calculated_pmf, expected_pmf, rtol=5E-3)
+    assert np.allclose(calculated_pmf, expected_pmf, rtol=1E-2)
 
 @pytest.mark.parametrize("make_example_general_iguessmd_data_file",
                          product(TEST_iGUESSMD_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),

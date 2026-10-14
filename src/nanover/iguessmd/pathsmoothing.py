@@ -3,10 +3,12 @@ import warnings
 import MDAnalysis.units
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Path3DCollection
 import MDAnalysis as mda
 import ipywidgets as widgets
 
-from typing import Union, Tuple
+from typing import Union, Tuple, cast
 from os import PathLike
 from pathlib import Path
 
@@ -22,6 +24,7 @@ try:
         fixed,
         VBox,
         HBox,
+        Output,
     )
     from IPython import get_ipython
 
@@ -73,6 +76,11 @@ class PathSmoother:
         ps = cls()
         ps.filename = filename
         ps.retrieve_traj_data()
+        assert (
+            ps.all_atom_positions is not None
+            and ps.all_atom_masses is not None
+            and ps.all_user_forces is not None
+        )
         (
             ps.atom_positions,
             ps.com_positions,
@@ -101,6 +109,7 @@ class PathSmoother:
         elif coords.ndim == 3:
             ps.atom_positions = coords
         ps.atom_masses = atom_masses
+        assert ps.atom_positions is not None and ps.atom_masses is not None
         ps.com_positions = np.array(
             [
                 calculate_com(ps.atom_positions[i], ps.atom_masses)
@@ -128,8 +137,9 @@ class PathSmoother:
         self.filename: Union[str, PathLike] | None = None
         self.com_positions: np.ndarray | None = None
         self.atom_positions: np.ndarray | None = None
+        self.atom_masses: np.ndarray | None = None
         self.atom_indices: np.ndarray | None = None
-        self.n_interaction_frames: int | None = None
+        self.n_interaction_frames: int | np.int64 | None = None
         self.constrained_atoms: np.ndarray | None = None
 
         self.all_atom_positions: np.ndarray | None = None
@@ -139,11 +149,11 @@ class PathSmoother:
         self.universe: mda.Universe | None = None
 
         # Plot smoothing properties
-        self.fig = None
-        self.ax = None
-        self.scatter_curve = None
-        self.scatter_points = None
-        self.smoothing_plot: plt.Figure | None = None
+        self.fig: plt.Figure | None = None
+        self.ax: Axes3D | None = None
+        self.scatter_curve: Path3DCollection | None = None
+        self.scatter_points: Path3DCollection | None = None
+        self.smoothing_plot: Output | None = None
         self.smoothing_parameter: float | None = None
         self.n_points: int | None = None
         self.smoothing_start_index: int | None = None
@@ -255,11 +265,15 @@ class PathSmoother:
                 for i in range(atom_selection.elements.size)
             ]
         )
+        assert self.atom_indices is not None
         if np.intersect1d(atom_selection.indices, self.atom_indices).size > 0:
             self._atom_selection_interacted_atoms = np.intersect1d(
                 atom_selection.indices, self.atom_indices
             )
-        if np.intersect1d(atom_selection.indices, self.constrained_atoms).size > 0:
+        if (
+            self.constrained_atoms is not None
+            and np.intersect1d(atom_selection.indices, self.constrained_atoms).size > 0
+        ):
             self._atom_selection_constrained_atoms = np.intersect1d(
                 atom_selection.indices, self.constrained_atoms
             )
@@ -328,6 +342,7 @@ class PathSmoother:
                 self._atom_selection_positions is not None
                 and self._atom_selection_colours is not None
             )
+        assert self.n_interaction_frames is not None
         plot_atom_trajectories(
             self.atom_positions,
             self.n_interaction_frames,
@@ -356,6 +371,8 @@ class PathSmoother:
         """
         self._make_plots_interactive()
 
+        assert self.com_positions is not None and self.n_interaction_frames is not None
+
         def interactive_smoothing_plot(
             x_pos,
             y_pos,
@@ -381,12 +398,17 @@ class PathSmoother:
             end_label.value = f"End: {end_coords.tolist()}"
 
             # Save current view if plot already exists
-            if self.fig is None or self.ax is None:
+            if (
+                self.fig is None
+                or self.ax is None
+                or self.scatter_curve is None
+                or self.scatter_points is None
+            ):
                 # Close the old figure to avoid duplicates
                 plt.close(self.fig)
 
                 self.fig = plt.figure(figsize=(8, 8))
-                self.ax = plt.axes(111, projection="3d")
+                self.ax = self.fig.add_subplot(111, projection="3d")
                 self.scatter_curve = self.ax.scatter3D(
                     interpolated_path[:, 0],
                     interpolated_path[:, 1],
@@ -450,9 +472,9 @@ class PathSmoother:
                 self.ax.set_ylabel(r"$y$ / nm")
                 self.ax.set_zlabel(r"$z$ / nm")
                 if not equal_aspect_ratio:
-                    xlim = self.ax.get_xlim3d()
-                    ylim = self.ax.get_ylim3d()
-                    zlim = self.ax.get_zlim3d()
+                    xlim = self.ax.get_xlim()
+                    ylim = self.ax.get_ylim()
+                    zlim = self.ax.get_zlim()
                     self.ax.set_box_aspect(
                         (xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0])
                     )
@@ -538,6 +560,7 @@ class PathSmoother:
 
         def update_start_range(change):
             # Dynamically update the start point range
+            assert self.com_positions is not None
             max_start = max(
                 0, self.com_positions.shape[0] - end_point_slider.value - MIN_POINTS
             )
@@ -547,6 +570,7 @@ class PathSmoother:
 
         def update_end_range(change):
             # Dynamically update the end point range
+            assert self.com_positions is not None
             max_end = max(
                 0, self.com_positions.shape[0] - start_point_slider.value - MIN_POINTS
             )
@@ -604,7 +628,14 @@ class PathSmoother:
         return full_layout
 
     def save_smoothing_plot_result(self):
-        assert self.smoothing_plot is not None
+        assert (
+            self.smoothing_plot is not None
+            and self.com_positions is not None
+            and self.smoothing_parameter is not None
+            and self.n_points is not None
+            and self.smoothing_start_index is not None
+            and self.smoothing_end_index is not None
+        )
         self.smoothed_com_trajectory, _ = interpolate_path(
             self.com_positions[:, 0],
             self.com_positions[:, 1],
@@ -777,10 +808,10 @@ class PathSmoother:
 
         print(f"Saving constant speed trajectory data to {output_filepath}")
 
-        pathsmoother_data = {
-            "iguessmd_path" : self.constant_speed_com_trajectory,
-            "iguessmd_speed_nm_ps" : self.constant_speed_nm_ps,
-            "iguessmd_timestep_ps" : self.timestep_ps,
+        pathsmoother_data: dict[str, np.ndarray | float] = {
+            "iguessmd_path": self.constant_speed_com_trajectory,
+            "iguessmd_speed_nm_ps": self.constant_speed_nm_ps,
+            "iguessmd_timestep_ps": self.timestep_ps,
         }
 
         if self.atom_indices is not None:
@@ -1008,7 +1039,7 @@ def retrieve_uf_atoms_path(
 
 def plot_com_trajectory(
     atom_positions: np.ndarray,
-    n_frames: int,
+    n_frames: int | np.int64,
     equal_aspect_ratio: bool = False,
     cmap: str = "viridis",
     initial_atom_positions: np.ndarray | None = None,
@@ -1027,7 +1058,7 @@ def plot_com_trajectory(
     :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
     """
     assert atom_positions.shape[0] == n_frames
-    ax = plt.axes(projection="3d")
+    ax = cast(Axes3D, plt.axes(projection="3d"))
     ax.scatter3D(
         atom_positions[:, 0],
         atom_positions[:, 1],
@@ -1076,16 +1107,16 @@ def plot_com_trajectory(
     ax.set_ylabel(r"$y$ / nm")
     ax.set_zlabel(r"$z$ / nm")
     if not equal_aspect_ratio:
-        xlim = ax.get_xlim3d()
-        ylim = ax.get_ylim3d()
-        zlim = ax.get_zlim3d()
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        zlim = ax.get_zlim()
         ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
     plt.show()
 
 
 def plot_atom_trajectories(
     atoms_positions: np.ndarray,
-    n_frames: int,
+    n_frames: int | np.int64,
     equal_aspect_ratio: bool = False,
     cmap: str = "viridis",
     initial_atom_positions: np.ndarray | None = None,
@@ -1104,7 +1135,7 @@ def plot_atom_trajectories(
     :param cmap: A string defining the Matplotlib colour map to use to plot the trajectory
     """
     assert atoms_positions.shape[0] == n_frames
-    ax = plt.axes(projection="3d")
+    ax = cast(Axes3D, plt.axes(projection="3d"))
     for i in range(atoms_positions.shape[1]):
         ax.scatter3D(
             atoms_positions[:, i, 0],
@@ -1154,9 +1185,9 @@ def plot_atom_trajectories(
     ax.set_ylabel(r"$y$ / nm")
     ax.set_zlabel(r"$z$ / nm")
     if not equal_aspect_ratio:
-        xlim = ax.get_xlim3d()
-        ylim = ax.get_ylim3d()
-        zlim = ax.get_zlim3d()
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        zlim = ax.get_zlim()
         ax.set_box_aspect((xlim[1] - xlim[0], ylim[1] - ylim[0], zlim[1] - zlim[0]))
     plt.show()
 
@@ -1224,24 +1255,6 @@ def load_iguessmd_path_data(filepath: PathLike | str):
     iguessmd_path_data = dict(np.load(filepath))
 
     if not iguessmd_path_data["iguessmd_atom_indices"]:
-        raise warnings.warn("Atom indices not present in file and could not be loaded.")
+        warnings.warn("Atom indices not present in file and could not be loaded.")
 
     return iguessmd_path_data
-
-#    with open(filepath, "rb") as f:
-#        iguessmd_path = np.load(f)
-#        iguessmd_speed_nm_ps = np.load(f)
-#        iguessmd_timestep_ps = np.load(f)
-#        results_dict = {
-#            "iguessmd_path": iguessmd_path,
-#            "iguessmd_speed_nm_ps": iguessmd_speed_nm_ps,
-#            "iguessmd_timestep_ps": iguessmd_timestep_ps,
-#        }
-#        try:
-#            iguessmd_atom_indices = np.load(f)
-#            results_dict["iguessmd_atom_indices"] = iguessmd_atom_indices
-#            return results_dict
-#        except Exception:
-#            raise Warning("Atom indices not present in file and could not be loaded.")
-#            return results_dict
-#
