@@ -115,6 +115,9 @@ class NanoverServerUtilities(NanoverSharedUtilities):
             key, callback=handler, icon=icon, label=label
         )
 
+    def remove_command(self, key):
+        self.runner.app_server.unregister_command(key)
+
     def hide_solvent(self):
         frame_data = self.runner.app_server.frame_publisher.current_frame
         universe = frame_data_to_mdanalysis(frame_data)
@@ -368,12 +371,16 @@ class StateKeysUtility:
         self._buffer = DictionaryChange()
 
     def clear(self):
+        """Clear all keys modified by this instance."""
         self._buffer = DictionaryChange(removals=self._keys)
         self._keys = set()
         self.check_flush()
 
     def clear_all(self):
-        self._buffer = DictionaryChange(removals=self.all_prefixed())
+        """Clear all keys of this type."""
+        self._buffer = DictionaryChange(
+            removals={f"{self.prefix}{key}" for key in self.all_prefixed()}
+        )
         self._keys = set()
         self.check_flush()
 

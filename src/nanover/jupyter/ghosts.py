@@ -93,7 +93,7 @@ class GhostMoleculeObject:
             parent=parent,
         )
         utilities.handles.update_handle(
-            prefix, parent=prefix, sphere=((0, 0, 0), radius)
+            prefix, parent=prefix, sphere=((0, 0, 0), radius), minimal=True
         )
 
         visuals = SceneObjectsUtility.from_runner(utilities.runner)

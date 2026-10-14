@@ -11,6 +11,8 @@ from nanover.trajectory import FrameData
 class GhostFollowerAgent(ImdAgent):
     key: str
     ghost: GhostMoleculeObject
+    force_scale = 2000
+    force_limit = np.inf
 
     def __init__(self, app_server: AppServerMinimalImd):
         super().__init__(app_server)
@@ -47,8 +49,8 @@ class GhostFollowerAgent(ImdAgent):
                 position=target_centroid,
                 particles=[int(x) for x in atom_indices],
                 type="spring",
-                scale=500,
-                max_force=100,
+                scale=self.force_scale,
+                max_force=self.force_limit,
             ),
         )
 

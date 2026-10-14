@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 import numpy
 import pytest
-from nanover.app.omni import CLEAR_PREFIXES
 from nanover.imd import ParticleInteraction
 from nanover.testing import (
     assert_equal_soon,
@@ -154,7 +153,7 @@ def test_simulation_switch_clears_state(runner_with_all_sims):
     """
     key = "pytest"
 
-    updates = {prefix + key: {} for prefix in CLEAR_PREFIXES}
+    updates = {prefix + key: {} for prefix in runner_with_all_sims.clear_state_prefixes}
 
     with make_connected_client_from_runner(runner_with_all_sims) as client:
         client.update_state(DictionaryChange(updates=updates))

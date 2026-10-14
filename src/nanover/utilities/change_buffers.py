@@ -3,7 +3,7 @@ Module providing utility classes used by the multiplayer service to create a
 shared key/value store between multiple clients.
 """
 
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Generator, Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from threading import Condition, Lock
 from typing import Any
@@ -77,7 +77,7 @@ class DictionaryChangeMultiView:
         self._views = set()
 
     @contextmanager
-    def create_view(self) -> Iterator["DictionaryChangeBuffer"]:
+    def create_view(self) -> Generator["DictionaryChangeBuffer"]:
         """
         Returns a new DictionaryChangeBuffer that tracks changes to the
         shared dictionary, starting with the initial values.

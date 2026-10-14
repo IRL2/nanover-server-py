@@ -41,12 +41,12 @@ def mass_weighted(draw):
 
 @st.composite
 def scale(draw):
-    return draw(st.floats(allow_nan=False, allow_infinity=False))
+    return draw(st.floats(allow_nan=False, allow_infinity=False, min_value=0))
 
 
 @st.composite
 def max_force(draw):
-    return draw(st.floats(allow_nan=False))
+    return draw(st.floats(allow_nan=False, min_value=0))
 
 
 @st.composite

@@ -17,9 +17,8 @@ from test_essd_service import (
 
 @pytest.fixture
 def server():
-    server = DiscoveryServer()
-    yield server
-    server.close()
+    with DiscoveryServer() as server:
+        yield server
 
 
 @pytest.fixture
@@ -57,7 +56,7 @@ def test_server_discovery_already_running(server):
 
 def test_server_discovery_restart(server, service):
     server.register_service(service)
-    server.close()
+    server.close(wait=True)
     server.start()
     assert service in server.services
 
