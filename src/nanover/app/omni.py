@@ -3,7 +3,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import suppress
 from queue import Empty, Queue
 from ssl import SSLContext
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from nanover.core import AppServer, Simulation, basic_info_string
 from nanover.imd.imd_force import InvalidInteractionError
@@ -11,6 +11,7 @@ from nanover.trajectory import FrameData, keys
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
 
+from ..utilities.certificates import fetch_or_generate_self_signed_certificate_context
 from ..utilities.event import Event
 from .imd_app import NanoverImdApplication
 from .selection import RenderingSelection
@@ -33,6 +34,27 @@ class OmniRunner:
         for instance in list(cls._instances):
             instance.close()
         cls._instances = []
+
+    @classmethod
+    def with_webxr_server(
+        cls,
+        *simulations: Simulation,
+        name: str | None = None,
+    ):
+        from nanover.websocket.discovery import DiscoveryClient
+
+        runner = cls.with_basic_server(
+            *simulations,
+            name=name,
+            port=0,
+            ssl=fetch_or_generate_self_signed_certificate_context(),
+        )
+        runner._discovery = DiscoveryClient.advertise_server(
+            "irl-discovery.onrender.com", app_server=runner.app_server
+        )
+        runner._discovery.__enter__()
+
+        return runner
 
     @classmethod
     def with_basic_server(
@@ -101,6 +123,8 @@ class OmniRunner:
         self._runner: InternalRunner | None = None
         self._run_task: Future | None = None
 
+        self._discovery: Any = None
+
         self.failed_simulations: set[Simulation] = set()
         self.logging = logging.getLogger(__name__)
         self._instances.append(self)
@@ -115,6 +139,8 @@ class OmniRunner:
         """
         Stop simulations and shut down server.
         """
+        if self._discovery is not None:
+            self._discovery.__exit__()
         self._cancel_run()
         self.app_server.close()
         self._instances.remove(self)
