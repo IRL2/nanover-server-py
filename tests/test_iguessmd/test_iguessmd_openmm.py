@@ -1412,7 +1412,7 @@ def test_calculate_cumulative_work_done(fc_multiplier):
     .. math::
         W(n) = \sum_{i=0}^{n-1} F_i \cdot v_{i} \Delta t
 
-    Where v_{i} is the velocity of the restraint and F_{i} is the force
+    Where :math:`v_{i}` is the velocity of the restraint and :math:`F_{i}` is the force
     applied by the restraint at the ith step. Defining velocity in terms
     of position using the formal definition of the derivative, the
     expression above can be written as
@@ -1420,19 +1420,19 @@ def test_calculate_cumulative_work_done(fc_multiplier):
     .. math::
         W(n) = \sum_{i=0}^{n-1} F_i \cdot (x_{i+1} - x_{i})
 
-    where x_{i+1} is the position of the restraint at the (i + 1)th step
-    and x_{i} is the position of the restraint at the ith step.
+    where :math:`x_{i+1}` is the position of the restraint at the :mathM`(i + 1)^{\mathrm{th}}` step
+    and :math:`x_{i}` is the position of the restraint at the ith step.
 
     TEST CASE: a single Argon atom (Ar) that starts at the origin and a
     3 point path defining the positions of the iGUESSMD force, starting at the
-    origin and increasing along the x-axis in increments of 0.01 nm, with
+    origin and increasing along the :math:`x`-axis in increments of 0.01 nm, with
     a force constant of 100 kJ mol-1 nm-2. The force can be calculated
     using
 
     .. math::
-        F = - k (X_{Ar, i} - x_{i})
+        F = - k (X_{\mathrm{Ar}, i} - x_{i})
 
-    where X_{Ar, i} is the position of the argon atom on the ith step.
+    where :math:`X_{\mathrm{Ar}, i}` is the position of the argon atom on the :math:`i^{\mathrm{th}}` step.
     According to the scheme above, the total work done by the time the
     restraint reaches the final point should be
 
