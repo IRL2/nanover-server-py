@@ -76,6 +76,7 @@ def calculate_beta_mol_kJ(temperature_K: float | int) -> float:
         raise ValueError("Temperature must be non-zero and positive.")
 
     kB_kJ_mol_K = boltzmann_constant_in_kJ_mol_K()
+    assert isinstance(kB_kJ_mol_K._value, float)
     beta = 1.0 / (kB_kJ_mol_K._value * temperature_K)
     return beta
 
