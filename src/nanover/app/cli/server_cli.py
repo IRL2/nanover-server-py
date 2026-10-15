@@ -17,7 +17,9 @@ from nanover.app import OmniRunner
 from nanover.mdanalysis import UniverseSimulation
 from nanover.openmm import OpenMMSimulation
 from nanover.recording import PlaybackSimulation
-from nanover.utilities.certificates import fetch_or_generate_self_signed_certificate_context
+from nanover.utilities.certificates import (
+    fetch_or_generate_self_signed_certificate_context,
+)
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.discovery import DiscoveryClient

@@ -174,33 +174,9 @@ pytest tests -n0 -m 'serial'
 
 ### Running the linting and reformatting
 
-The linting checks code style using ruff:
-
+You can run the full suite of linting, reformatting, and type-checking with:
 ```shell
-ruff check src
-ruff format --check src
-```
-
-Ruff can also automatically fix and reformat the files:
-
-```shell
-ruff check --fix src
-ruff format src
-```
-
-### Running the type checker
-
-The mypy type checker looks at the type hints in the code to make sure they are consistent and help find potential
-errors:
-
-```shell
-mypy src
-```
-
-We're also trying out ty:
-
-```shell
-ty check src
+./check-dev.bat
 ```
 
 ## Citation and external libraries
