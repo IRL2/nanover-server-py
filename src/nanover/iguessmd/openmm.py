@@ -35,12 +35,7 @@ iGUESSMD_FORCE_EXPRESSION_COM_PERIODIC = f"{iGUESSMD_FORCE_EXPRESSION_PARALLEL} 
 
 class OMMiGUESSMDSimulation:
     """
-    A wrapper for performing iGUESSMD on an OpenMM simulation.
-
-    This base class defines much of the functionality required for an iGUESSMD
-    simulation to be performed using OpenMM, and automatically returns an
-    instance of the appropriate subclass, depending on the mode of interaction
-    required to perform iGUESSMD (i.e. either single atom or COM).
+    A class for performing iGUESSMD on an OpenMM simulation.
     """
 
     @classmethod
@@ -71,15 +66,10 @@ class OMMiGUESSMDSimulation:
         assert iguessmd_atom_indices.size >= 1
         if iguessmd_atom_indices.size == 1 and iguessmd_atom_indices.shape == ():
             iguessmd_atom_indices = np.reshape(iguessmd_atom_indices, (1,))
-        sim = super(cls, OMMiGUESSMDSimulationCOM).__new__(OMMiGUESSMDSimulationCOM)
-        # if iguessmd_atom_indices.size > 1:
-        #     sim = super(cls, OMMiGUESSMDSimulationCOM).__new__(OMMiGUESSMDSimulationCOM)
-        # else:
-        #     sim = super(cls, OMMiGUESSMDSimulationAtom).__new__(
-        #         OMMiGUESSMDSimulationAtom
-        #     )
 
-        sim.name = name
+        # Instantiate class
+        sim = cls(name)
+
         sim.simulation = simulation
 
         # Check if simulation employs periodic boundary conditions
@@ -130,18 +120,9 @@ class OMMiGUESSMDSimulation:
         assert iguessmd_atom_indices.size >= 1
         if iguessmd_atom_indices.size == 1 and iguessmd_atom_indices.shape == ():
             iguessmd_atom_indices = np.reshape(iguessmd_atom_indices, (1,))
-        sim = super(cls, OMMiGUESSMDSimulationCOM).__new__(OMMiGUESSMDSimulationCOM)
-        # if iguessmd_atom_indices.size > 1:
-        #     sim = super(cls, OMMiGUESSMDSimulationCOM).__new__(OMMiGUESSMDSimulationCOM)
-        # elif iguessmd_atom_indices.size == 1:
-        #     sim = super(cls, OMMiGUESSMDSimulationAtom).__new__(
-        #         OMMiGUESSMDSimulationAtom
-        #     )
 
-        if name is None:
-            sim.name = Path(path).stem
-        else:
-            sim.name = name
+        # Instantiate class
+        sim = cls(name)
 
         sim.xml_path = path
 
@@ -194,50 +175,51 @@ class OMMiGUESSMDSimulation:
         self.current_iguessmd_force_tangent: np.ndarray | None = None
         self.current_iguessmd_force_position_index: int | None = None
         self.iguessmd_simulation_atom_positions: np.ndarray
+        self.iguessmd_com_positions: np.ndarray | None = None
         self.iguessmd_simulation_forces: np.ndarray | None = None
         self.iguessmd_simulation_work_done: np.ndarray | None = None
 
         self._sim_uses_pbcs: bool | None = None
         self._pbc_box_lengths: np.ndarray | None = None
 
-    @abstractmethod
-    def define_iguessmd_simulation_atom_positions_array(self):
-        """
-        Define the array to which the positions of the atoms with which the
-        iGUESSMD force interacts will be saved over the course of the iGUESSMD simulation.
-        """
-        pass
-
-    @abstractmethod
-    def check_for_existing_iguessmd_force(self):
-        """
-        Check whether the loaded simulation already contains an iGUESSMD force of
-        the correct type for the simulation type.
-        """
-        pass
-
-    @abstractmethod
-    def add_iguessmd_force_to_system(self):
-        """
-        Add the required iGUESSMD force to the system, depending on the type of
-        iGUESSMD interaction required (single atom or centre-of-mass).
-        """
-        pass
-
-    @abstractmethod
-    def update_iguessmd_force_position(self):
-        """
-        Update the position of the iGUESSMD force.
-        """
-        pass
-
-    @abstractmethod
-    def calculate_cumulative_work_done(self):
-        """
-        Calculate the cumulative work done along the reaction coordinate
-        during the iGUESSMD simulation.
-        """
-        pass
+    # @abstractmethod
+    # def define_iguessmd_simulation_atom_positions_array(self):
+    #     """
+    #     Define the array to which the positions of the atoms with which the
+    #     iGUESSMD force interacts will be saved over the course of the iGUESSMD simulation.
+    #     """
+    #     pass
+    #
+    # @abstractmethod
+    # def check_for_existing_iguessmd_force(self):
+    #     """
+    #     Check whether the loaded simulation already contains an iGUESSMD force of
+    #     the correct type for the simulation type.
+    #     """
+    #     pass
+    #
+    # @abstractmethod
+    # def add_iguessmd_force_to_system(self):
+    #     """
+    #     Add the required iGUESSMD force to the system, depending on the type of
+    #     iGUESSMD interaction required (single atom or centre-of-mass).
+    #     """
+    #     pass
+    #
+    # @abstractmethod
+    # def update_iguessmd_force_position(self):
+    #     """
+    #     Update the position of the iGUESSMD force.
+    #     """
+    #     pass
+    #
+    # @abstractmethod
+    # def calculate_cumulative_work_done(self):
+    #     """
+    #     Calculate the cumulative work done along the reaction coordinate
+    #     during the iGUESSMD simulation.
+    #     """
+    #     pass
 
     def _initialise_iguessmd_simulation(
         self,
@@ -629,8 +611,10 @@ class OMMiGUESSMDSimulation:
         include_end: bool = False,
         save_work_done: bool = True,
         save_atom_positions: bool = True,
+        save_com_positions: bool = True,
         work_done_dtype: np.dtype = np.dtype(np.float32),
         atom_positions_dtype: np.dtype = np.dtype(np.float32),
+        com_positions_dtype: np.dtype = np.dtype(np.float32),
     ):
         """
         Save the data produced by the iGUESSMD simulation in binary form that can be read
@@ -646,8 +630,10 @@ class OMMiGUESSMDSimulation:
           regardless of stride defined by every nth
         :param save_work_done: Bool determining whether to save the work done
         :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
+        :param save_com_positions: Bool determining whether to save the positions of the COM
         :param work_done_dtype: Data type of the work done array to save.
         :param atom_positions_dtype: Data type of the atom positions array to save.
+        :param com_positions_dtype: Data type of the COM positions array to save.
         """
 
         if path is None:
@@ -655,17 +641,25 @@ class OMMiGUESSMDSimulation:
                 "Output file path cannot be None. Please specify an output file path."
             )
 
-        elif self.iguessmd_simulation_work_done is None:
+        if self.iguessmd_simulation_work_done is None:
             raise ValueError(
                 "Missing values for the work done. This data can only be saved after "
                 "the iGUESSMD calculation is completed."
             )
 
-        elif self.iguessmd_simulation_atom_positions is None or np.all(
+        if self.iguessmd_simulation_atom_positions is None or np.all(
             self.iguessmd_simulation_atom_positions == 0.0
         ):
             raise ValueError(
                 "Missing values for the atom positions. This data can only be saved after "
+                "the iGUESSMD calculation is completed."
+            )
+
+        if self.iguessmd_com_positions is None or np.all(
+            self.iguessmd_com_positions == 0.0
+        ):
+            raise ValueError(
+                "Missing values for the atom positions. This data can only be saved after"
                 "the iGUESSMD calculation is completed."
             )
 
@@ -709,6 +703,14 @@ class OMMiGUESSMDSimulation:
             )
             print("Work done saved to simulation data file.")
 
+        if save_com_positions:
+            iguessmd_simulation_data["iguessmd_com_positions"] = get_every_nth(
+                self.iguessmd_com_positions.astype(com_positions_dtype),
+                axis=0,
+                every_nth=every_nth,
+                include_end=include_end,
+            )
+
         np.savez_compressed(path, **iguessmd_simulation_data)
 
     def save_general_iguessmd_data(self, path: PathLike | str | None = None):
@@ -741,131 +743,6 @@ class OMMiGUESSMDSimulation:
 
         # Save dictionary to file defined by path
         np.savez_compressed(path, **general_iguessmd_data)
-
-
-class OMMiGUESSMDSimulationAtom(OMMiGUESSMDSimulation):
-    """
-    A class for performing constant velocity iGUESSMD on an OpenMM simulations,
-    where the iGUESSMD force is applied to a single atom.
-    """
-
-    def __init__(self, name: str | None = None):
-        super().__init__(name)
-
-    def check_for_existing_iguessmd_force(self):
-        try:
-            force_constant_parallel = self.simulation.context.getParameter(
-                iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
-            )
-            force_constant_perpendicular = self.simulation.context.getParameter(
-                iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
-            )
-            n_forces = self.simulation.system.getNumForces()
-            iguessmd_force = self.simulation.system.getForce(n_forces - 1)
-            params = iguessmd_force.getParticleParameters(0)
-            assert isinstance(iguessmd_force, CustomExternalForce)
-            assert (
-                iguessmd_force.getEnergyFunction()
-                == iGUESSMD_FORCE_EXPRESSION_ATOM_PERIODIC
-                or iguessmd_force.getEnergyFunction()
-                == iGUESSMD_FORCE_EXPRESSION_ATOM_NONPERIODIC
-            )
-            assert iguessmd_force.getNumParticles() == 1
-            assert force_constant_parallel == self.iguessmd_force_constant_parallel
-            assert (
-                force_constant_perpendicular
-                == self.iguessmd_force_constant_perpendicular
-            )
-            assert params[0] == self.iguessmd_atom_indices
-            assert np.all(
-                params[1]
-                == np.concatenate(
-                    [
-                        self.current_iguessmd_force_position,
-                        self.current_iguessmd_force_tangent,
-                    ]
-                )
-            )
-            print("iGUESSMD force already present in loaded simulation.")
-            self.iguessmd_force = iguessmd_force
-            self.loaded_iguessmd_force_from_sim = True
-
-        except OpenMMException:
-            self.loaded_iguessmd_force_from_sim = False
-
-    def add_iguessmd_force_to_system(self):
-        """
-        Add an iGUESSMD force to the OpenMM system that interacts with the
-        specified atom.
-        """
-        assert (
-            self.current_iguessmd_force_position is not None
-            and self.current_iguessmd_force_tangent is not None
-            and self.iguessmd_force_constant_parallel is not None
-            and self.iguessmd_force_constant_perpendicular is not None
-            and self._sim_uses_pbcs is not None
-        )
-        x0, y0, z0 = self.current_iguessmd_force_position
-        tx, ty, tz = self.current_iguessmd_force_tangent
-        iguessmd_force = iguessmd_single_atom_force(
-            self.iguessmd_force_constant_parallel,
-            self.iguessmd_force_constant_perpendicular,
-            self._sim_uses_pbcs,
-            self._pbc_box_lengths,
-        )
-        iguessmd_force.addParticle(self.iguessmd_atom_indices, [x0, y0, z0, tx, ty, tz])
-        self.iguessmd_force = iguessmd_force
-        self.simulation.system.addForce(self.iguessmd_force)
-        self.simulation.context.reinitialize(preserveState=True)
-
-    def update_iguessmd_force_position(self):
-        self.current_iguessmd_force_position = self.iguessmd_path[
-            self.current_iguessmd_force_position_index
-        ]
-        self.current_iguessmd_force_tangent = self.iguessmd_path_tangents[
-            self.current_iguessmd_force_position_index
-        ]
-        assert (
-            self.current_iguessmd_force_position is not None
-            and self.current_iguessmd_force_tangent is not None
-            and self.iguessmd_force is not None
-        )
-        x0, y0, z0 = self.current_iguessmd_force_position
-        tx, ty, tz = self.current_iguessmd_force_tangent
-        assert isinstance(self.iguessmd_force, CustomExternalForce)
-        self.iguessmd_force.setParticleParameters(
-            0, self.iguessmd_atom_indices, [x0, y0, z0, tx, ty, tz]
-        )
-        self.iguessmd_force.updateParametersInContext(self.simulation.context)
-
-    def define_iguessmd_simulation_atom_positions_array(self):
-        self.iguessmd_simulation_atom_positions = np.zeros(
-            (self.iguessmd_path.shape[0], 3)
-        )
-
-    def calculate_cumulative_work_done(self):
-        """
-        Calculate the cumulative work done by the iGUESSMD force on the
-        atom with which it interacts over the iGUESSMD simulation.
-        """
-        assert not np.array_equal(
-            self.iguessmd_simulation_atom_positions,
-            np.zeros((self.iguessmd_path.shape[0], 3)),
-        )
-        self._calculate_iguessmd_forces(self.iguessmd_simulation_atom_positions)
-        self._calculate_work_done()
-
-
-class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
-    """
-    A class for performing constant velocity iGUESSMD on an OpenMM simulations,
-    where the iGUESSMD force is applied to the centre of mass of a specified
-    group of atoms.
-    """
-
-    def __init__(self, name: str | None = None):
-        super().__init__(name)
-        self.iguessmd_com_positions: np.ndarray | None = None
 
     def check_for_existing_iguessmd_force(self):
         try:
@@ -1007,82 +884,6 @@ class OMMiGUESSMDSimulationCOM(OMMiGUESSMDSimulation):
         self._calculate_com_trajectory()
         self._calculate_iguessmd_forces(self.iguessmd_com_positions)
         self._calculate_work_done()
-
-    def save_iguessmd_simulation_data(
-        self,
-        path: PathLike | str | None = None,
-        every_nth: int | None = None,
-        include_end: bool = False,
-        *args,
-        save_com_positions: bool = True,
-        com_positions_dtype: np.dtype = np.dtype(np.float32),
-        **kwargs,
-    ):
-        """
-        Save the data produced by the iGUESSMD simulation in binary form that can be read
-        into NumPy arrays. The following data can be saved (optionally), in the order listed below:
-
-        - Trajectories of the atoms to which the iGUESSMD force was applied, in nm
-        - Work done along the reaction coordinate defined by the path of the iGUESSMD force, in kJ mol-1
-        - Trajectories of the COM of the atoms to which the iGUESSMD force was applied, in nm
-
-        :param path: Path to the file to which the data will be saved.
-        :param every_nth:  (int | None) only save the values of work and/or positions at every
-          nth point along the trajectory.
-        :param include_end: (Bool) whether to save final values of the work and/or positions
-          regardless of stride defined by every nth
-        :param save_work_done: Bool determining whether to save the work done
-        :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
-        :param save_com_positions: Bool determining whether to save the positions of the COM
-        :param work_done_dtype: Data type of the work done array to save.
-        :param atom_positions_dtype: Data type of the atom positions array to save.
-        :param com_positions_dtype: Data type of the COM positions array to save.
-        """
-        # TODO: Think about whether there is a cleaner way to achieve this
-
-        # Optionally save work done and atomic coordinates
-        super().save_iguessmd_simulation_data(
-            path, every_nth=every_nth, include_end=include_end, **kwargs
-        )
-
-        if self.iguessmd_com_positions is None or np.all(
-            self.iguessmd_com_positions == 0.0
-        ):
-            raise ValueError(
-                "Missing values for the atom positions. This data can only be saved after"
-                "the iGUESSMD calculation is completed."
-            )
-
-        if every_nth is None:
-            every_nth = 1
-
-        if save_com_positions:
-            # Load existing saved data
-            assert path is not None
-            iguessmd_simulation_data = dict(np.load(path))
-            iguessmd_simulation_data["iguessmd_com_positions"] = get_every_nth(
-                self.iguessmd_com_positions.astype(com_positions_dtype),
-                axis=0,
-                every_nth=every_nth,
-                include_end=include_end,
-            )
-            np.savez_compressed(path, **iguessmd_simulation_data)
-
-        # Save
-
-        # # Optionally save COM positions
-        # with open(path, "ab+") as outfile:
-        #     if save_com_positions:
-        #         np.save(
-        #             outfile,
-        #             get_every_nth(
-        #                 self.iguessmd_com_positions.astype(com_positions_dtype),
-        #                 axis=0,
-        #                 every_nth=every_nth,
-        #                 include_end=include_end,
-        #             ),
-        #         )
-        #         print("COM positions saved to simulation data file.")
 
 
 def iguessmd_com_force(

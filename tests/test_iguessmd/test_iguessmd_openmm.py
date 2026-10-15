@@ -31,9 +31,8 @@ Things to test for class performing iGUESSMD calculations:
 - General iGUESSMD data is saved in the correct format to the correct location, and can be
   subsequently loaded back into python correctly [√]
 - The COM of a specified group of atoms is correctly calculated [√]
-- For OMMiGUESSMDSimulationCOM, the COM of the specified atoms is correctly calculated [√]
-- For OMMiGUESSMDSimulationCOM, the trajectory of the COM of the specified atoms is
-  correctly calculated [√]
+- The COM of the specified atoms is correctly calculated [√]
+- The trajectory of the COM of the specified atoms is correctly calculated [√]
 - iguessmd_com_force works as expected [√]
 - iguessmd_single_atom_force works as expected [√]
 - OMMiGUESSMDSimulation correctly loads the state of a simulation [√]
@@ -461,31 +460,6 @@ def test_load_iguessmd_simulation_without_iguessmd_force_from_xml_path(
 
 
 @pytest.mark.parametrize(
-    "indices, sim_type",
-    [
-        (TEST_iGUESSMD_SINGLE_INDEX_0D, OMMiGUESSMDSimulationCOM),
-        (TEST_iGUESSMD_MULTIPLE_INDICES, OMMiGUESSMDSimulationCOM),
-    ],
-)
-def test_return_correct_iguessmd_sim_type(indices, sim_type):
-    """
-    Check that the OMMiGUESSMDSimulation class returns the correct subclass depending on the
-    number of indices that are passed to it (now always OMMiGUESSMDSimulationCOM).
-
-    :param indices: Indices of atoms to apply the iGUESSMD force to (should at least
-      test one single index and one set of indices)
-    :param sim_type: Type of simulation to expect for the indices given
-    """
-    iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
-        build_basic_simulation(),
-        indices,
-        TEST_iGUESSMD_LINEAR_PATH,
-        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
-    )
-    assert isinstance(iguessmd_sim, sim_type)
-
-
-@pytest.mark.parametrize(
     "apply_pbcs, indices", product(TEST_BOOLS, TEST_iGUESSMD_INDICES)
 )
 def test_simulation_pbcs_are_respected(apply_pbcs, indices):
@@ -522,7 +496,7 @@ def test_simulation_pbcs_are_respected(apply_pbcs, indices):
 def test_iguessmd_force_attaches_to_correct_atom(index, force_constant):
     """
     Check that the iGUESSMD force is attached to the correct atom when a single index is passed.
-    Should use the OMMiGUESSMDSimulationCOM class, with only one CustomCentroidBondForce.
+    Should use the OMMiGUESSMDSimulation class, with only one CustomCentroidBondForce.
 
     :param index: Indices of atoms to apply the iGUESSMD force to (should be arrays containing
       a single index)
@@ -558,7 +532,7 @@ def test_iguessmd_force_attaches_to_correct_atom(index, force_constant):
 def test_iguessmd_force_attaches_to_correct_atoms(indices, force_constant):
     """
     Check that the iGUESSMD force attaches to the correct atoms when an array of indices is passed.
-    Should use the OMMiGUESSMDSimulationCOM class, with only one CustomCentroidBondForce.
+    Should use the OMMiGUESSMDSimulation class, with only one CustomCentroidBondForce.
 
     :param indices: Indices of atoms to apply the iGUESSMD force to (should be arrays of multiple
       indices)
@@ -804,7 +778,7 @@ def test_iguessmd_force_updates_correctly(indices):
         indices = np.reshape(indices, (1, ))
     assert isinstance(iguessmd_sim.iguessmd_force, CustomCentroidBondForce)
 
-    # OMMiGUESSMDSimulationCOM force parameters
+    # OMMiGUESSMDSimulation force parameters
     sim_indices, _ = iguessmd_sim.iguessmd_force.getGroupParameters(0)
     _, bond_params = iguessmd_sim.iguessmd_force.getBondParameters(0)
     assert np.array_equal(sim_indices, indices)
@@ -1238,7 +1212,7 @@ def test_calculate_com_iguessmd_simulation_class(positions, masses, com):
     """
     Check that the function _calculate_com correctly calculates
     the centre of mass of the atoms to which the iGUESSMD force is
-    applied in the OMMiGUESSMDSimulationCOM class, given their
+    applied in the OMMiGUESSMDSimulation class, given their
     positions and masses.
     """
     # Create the simulation and retrieve indices for all atoms
@@ -1266,7 +1240,7 @@ def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, c
     """
     Check that the function _calculate_com_trajectory correctly calculates
     the trajectory of the centre of mass of the atoms to which the iGUESSMD force is
-    applied in the OMMiGUESSMDSimulationCOM class.
+    applied in the OMMiGUESSMDSimulation class.
     """
     # Create the simulation and retrieve indices for all atoms
     simulation = build_com_simulation((positions, masses, com))
