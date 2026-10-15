@@ -41,18 +41,12 @@ class OmniRunner:
         *simulations: Simulation,
         name: str | None = None,
     ):
-        from nanover.websocket.discovery import DiscoveryClient
-
         runner = cls.with_basic_server(
             *simulations,
             name=name,
             port=0,
             ssl=fetch_or_generate_self_signed_certificate_context(),
         )
-        runner._discovery = DiscoveryClient.advertise_server(
-            "irl-discovery.onrender.com", app_server=runner.app_server
-        )
-        runner._discovery.__enter__()
 
         return runner
 
@@ -167,6 +161,18 @@ class OmniRunner:
             print_simulation_change(
                 index=self._simulation_index, name=self.simulation.name
             )
+
+    def advertise_on_web_discovery(self, *, endpoint: str):
+        from urllib.request import urlopen
+
+        from nanover.websocket.discovery import DiscoveryClient
+
+        urlopen(f"https://{endpoint}")
+
+        self._discovery = DiscoveryClient.advertise_server(
+            endpoint, app_server=self.app_server
+        )
+        self._discovery.__enter__()
 
     @property
     def app_server(self):
