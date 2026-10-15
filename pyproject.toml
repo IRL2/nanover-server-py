@@ -41,6 +41,8 @@ dependencies = [
     "pandas>=2.2.3",
     # mdanalysis will include this soon anyway
     "pooch",
+    "cryptography",
+    "platformdirs",
 ]
 
 [project.urls]

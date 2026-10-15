@@ -31,7 +31,8 @@ requirements:
     - websockets >=15.0.0
     - msgpack-python >=1.0.0
     - pandas >=2.0.3
-
+    - cryptography
+    - platformdirs
 about:
   home: https://github.com/IRL2/nanover-server-py
   license: MIT

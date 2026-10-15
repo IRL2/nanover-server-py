@@ -17,6 +17,7 @@ from nanover.app import OmniRunner
 from nanover.mdanalysis import UniverseSimulation
 from nanover.openmm import OpenMMSimulation
 from nanover.recording import PlaybackSimulation
+from nanover.utilities.certificates import fetch_or_generate_self_signed_certificate_context
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.client.app_client import NanoverImdClient
 from nanover.websocket.discovery import DiscoveryClient
@@ -97,6 +98,12 @@ def handle_user_arguments(args=None) -> argparse.Namespace:
         nargs=3,
         metavar=("CERTFILE", "KEYFILE", "PASSWORD"),
         help="Offer SSL in addition to insecure connections.",
+    )
+
+    parser.add_argument(
+        "--ssl-auto",
+        action="store_true",
+        help="Offer SSL using an automatically generated self-signed certificate.",
     )
 
     parser.add_argument(
@@ -192,6 +199,9 @@ def initialise_runner(arguments: argparse.Namespace):
 
 
 def initialise_ssl(arguments: argparse.Namespace):
+    if arguments.ssl_auto:
+        return fetch_or_generate_self_signed_certificate_context()
+
     if arguments.ssl is None:
         return None
 
