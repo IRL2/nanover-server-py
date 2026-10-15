@@ -3,7 +3,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import suppress
 from queue import Empty, Queue
 from ssl import SSLContext
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from nanover.core import AppServer, Simulation, basic_info_string
 from nanover.imd.imd_force import InvalidInteractionError
@@ -13,6 +13,7 @@ from nanover.utilities.timing import VariableIntervalGenerator
 
 from ..utilities.certificates import fetch_or_generate_self_signed_certificate_context
 from ..utilities.event import Event
+from .discovery import DiscoveryAdvert, DiscoveryEndpoint
 from .imd_app import NanoverImdApplication
 from .selection import RenderingSelection
 
@@ -117,7 +118,7 @@ class OmniRunner:
         self._runner: InternalRunner | None = None
         self._run_task: Future | None = None
 
-        self._discovery: Any = None
+        self._discovery: DiscoveryAdvert | None = None
 
         self.failed_simulations: set[Simulation] = set()
         self.logging = logging.getLogger(__name__)
@@ -134,7 +135,7 @@ class OmniRunner:
         Stop simulations and shut down server.
         """
         if self._discovery is not None:
-            self._discovery.__exit__()
+            self._discovery.close()
         self._cancel_run()
         self.app_server.close()
         self._instances.remove(self)
@@ -163,16 +164,8 @@ class OmniRunner:
             )
 
     def advertise_on_web_discovery(self, *, endpoint: str):
-        from urllib.request import urlopen
-
-        from nanover.websocket.discovery import DiscoveryClient
-
-        urlopen(f"https://{endpoint}")
-
-        self._discovery = DiscoveryClient.advertise_server(
-            endpoint, app_server=self.app_server
-        )
-        self._discovery.__enter__()
+        endpoint = DiscoveryEndpoint.from_host(endpoint)
+        self._discovery = endpoint.advertise_server(self.app_server)
 
     @property
     def app_server(self):

@@ -14,6 +14,7 @@ from glob import glob
 from MDAnalysis import Universe
 
 from nanover.app import OmniRunner
+from nanover.app.discovery import DiscoveryEndpoint
 from nanover.mdanalysis import UniverseSimulation
 from nanover.openmm import OpenMMSimulation
 from nanover.recording import PlaybackSimulation
@@ -22,7 +23,6 @@ from nanover.utilities.certificates import (
 )
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 from nanover.websocket.client.app_client import NanoverImdClient
-from nanover.websocket.discovery import DiscoveryClient
 from nanover.websocket.record import record_from_runner
 
 
@@ -192,9 +192,8 @@ def initialise_runner(arguments: argparse.Namespace):
             record_from_runner(runner, out_path)
 
         if arguments.cloud_discovery_host:
-            with DiscoveryClient.advertise_server(
-                arguments.cloud_discovery_host, app_server=runner.app_server
-            ):
+            endpoint = DiscoveryEndpoint.from_host(arguments.cloud_discovery_host)
+            with endpoint.advertise_server(runner.app_server):
                 yield runner
         else:
             yield runner
