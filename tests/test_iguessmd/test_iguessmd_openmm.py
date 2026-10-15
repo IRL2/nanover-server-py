@@ -4,8 +4,6 @@ Tests for :mod:`nanover.iguessmd.openmm`.
 Things to test for class performing iGUESSMD calculations:
 - An iGUESSMD simulation can be created either from an existing OpenMM simulation or
   a NanoVer OpenMM XML file [√]
-- OMMiGUESSMDSimulation returns OMMiGUESSMDSimulationAtom or OMMiGUESSMDSimulationCOM
-  as appropriate [√]
 - The PBCs of the loaded simulation are respected by the iGUESSMD force, and the iGUESSMD
   force shares this periodicity [√]
 - The iGUESSMD force attaches to the correct atom (dictated by the index/indices passed
@@ -447,7 +445,7 @@ def test_load_iguessmd_simulation_without_iguessmd_force_from_xml_path(
     make_basic_iguessmd_simulation_without_iguessmd_force_xml,
 ):
     """
-    Check that when an xml input file is saved from an OMMiGUESSMDSimulationAtom class
+    Check that when an xml input file is saved from an OMMiGUESSMDSimulation class
     without the iGUESSMD force, the iGUESSMD force is not loaded from the file.
     """
     xml_path, atom_indices, force_constant = (
@@ -472,8 +470,7 @@ def test_load_iguessmd_simulation_without_iguessmd_force_from_xml_path(
 def test_return_correct_iguessmd_sim_type(indices, sim_type):
     """
     Check that the OMMiGUESSMDSimulation class returns the correct subclass depending on the
-    number of indices that are passed to it (one for OMMiGUESSMDSimulationAtom, more than one
-    for OMMiGUESSMDSimulationCOM).
+    number of indices that are passed to it (now always OMMiGUESSMDSimulationCOM).
 
     :param indices: Indices of atoms to apply the iGUESSMD force to (should at least
       test one single index and one set of indices)
@@ -485,7 +482,7 @@ def test_return_correct_iguessmd_sim_type(indices, sim_type):
         TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
-    assert type(iguessmd_sim) == sim_type
+    assert isinstance(iguessmd_sim, sim_type)
 
 
 @pytest.mark.parametrize(
@@ -525,7 +522,7 @@ def test_simulation_pbcs_are_respected(apply_pbcs, indices):
 def test_iguessmd_force_attaches_to_correct_atom(index, force_constant):
     """
     Check that the iGUESSMD force is attached to the correct atom when a single index is passed.
-    Should use the OMMiGUESSMDSimulationAtom class, with only one CustomExternalForce.
+    Should use the OMMiGUESSMDSimulationCOM class, with only one CustomCentroidBondForce.
 
     :param index: Indices of atoms to apply the iGUESSMD force to (should be arrays containing
       a single index)
@@ -669,17 +666,10 @@ def test_reset(indices):
         iguessmd_sim.iguessmd_force.getEnergyFunction()
         == iguessmd_sim_copy.iguessmd_force.getEnergyFunction()
     )
-    # Class-specific checks
-    if type(iguessmd_sim) == OMMiGUESSMDSimulationAtom:
-        assert iguessmd_sim.iguessmd_force.getParticleParameters(
-            0
-        ) == iguessmd_sim_copy.iguessmd_force.getParticleParameters(0)
-        assert iguessmd_sim.iguessmd_force.getNumParticles() == 1
-    elif type(iguessmd_sim) == OMMiGUESSMDSimulationCOM:
-        assert iguessmd_sim.iguessmd_force.getGroupParameters(
-            0
-        ) == iguessmd_sim_copy.iguessmd_force.getGroupParameters(0)
-        assert iguessmd_sim.iguessmd_force.getNumBonds() == 1
+    assert iguessmd_sim.iguessmd_force.getGroupParameters(
+        0
+    ) == iguessmd_sim_copy.iguessmd_force.getGroupParameters(0)
+    assert iguessmd_sim.iguessmd_force.getNumBonds() == 1
 
     # Check other relevant properties of the OMMiGUESSMDSimulation class match those of the
     # fresh copy after the reset
@@ -711,11 +701,7 @@ def test_iguessmd_force_added_to_system(indices):
         == iguessmd_sim.iguessmd_force.getEnergyFunction()
     )
     assert last_force.getForceGroup() == 31
-    # Subclass-specific force type check
-    if type(iguessmd_sim) == OMMiGUESSMDSimulationAtom:
-        assert type(iguessmd_sim.iguessmd_force) == CustomExternalForce
-    elif type(iguessmd_sim) == OMMiGUESSMDSimulationCOM:
-        assert type(iguessmd_sim.iguessmd_force) == CustomCentroidBondForce
+    assert type(iguessmd_sim.iguessmd_force) == CustomCentroidBondForce
 
 
 @pytest.mark.parametrize(
@@ -814,38 +800,30 @@ def test_iguessmd_force_updates_correctly(indices):
     # Check the subclass-specific force parameters in both the class and the system
     # which should be identical
     n_system_forces = iguessmd_sim.simulation.system.getNumForces()
-    if type(iguessmd_sim.iguessmd_force) == CustomExternalForce:
-        # OMMiGUESSMDSimulationAtom force parameters
-        index, position = iguessmd_sim.iguessmd_force.getParticleParameters(0)
-        assert index == indices
-        assert np.array_equal(
-            np.array(position), np.array([*new_force_position, *new_force_tangent])
-        )
+    if indices.size == 1 and indices.shape == ():
+        indices = np.reshape(indices, (1, ))
+    assert isinstance(iguessmd_sim.iguessmd_force, CustomCentroidBondForce)
 
-        # Force parameters from system
-        sys_index, sys_position = iguessmd_sim.simulation.system.getForce(
-            n_system_forces - 1
-        ).getParticleParameters(0)
-        assert sys_index == indices
-        assert np.array_equal(
-            np.array(sys_position), np.array([*new_force_position, *new_force_tangent])
-        )
+    # OMMiGUESSMDSimulationCOM force parameters
+    sim_indices, _ = iguessmd_sim.iguessmd_force.getGroupParameters(0)
+    _, bond_params = iguessmd_sim.iguessmd_force.getBondParameters(0)
+    assert np.array_equal(sim_indices, indices)
+    assert np.array_equal(
+        np.array(bond_params), np.array([*new_force_position, *new_force_tangent])
+    )
 
-    elif type(iguessmd_sim.iguessmd_force) == CustomCentroidBondForce:
-        # OMMiGUESSMDSimulationCOM force parameters
-        _, bond_params = iguessmd_sim.iguessmd_force.getBondParameters(0)
-        assert np.array_equal(
-            np.array(bond_params), np.array([*new_force_position, *new_force_tangent])
-        )
-
-        # Force parameters from system
-        _, sys_bond_params = iguessmd_sim.simulation.system.getForce(
-            n_system_forces - 1
-        ).getBondParameters(0)
-        assert np.array_equal(
-            np.array(sys_bond_params),
-            np.array([*new_force_position, *new_force_tangent]),
-        )
+    # Force parameters from system
+    sys_indices, _ =iguessmd_sim.simulation.system.getForce(
+        n_system_forces - 1
+    ).getGroupParameters(0)
+    _, sys_bond_params = iguessmd_sim.simulation.system.getForce(
+        n_system_forces - 1
+    ).getBondParameters(0)
+    assert np.array_equal(sys_indices, indices)
+    assert np.array_equal(
+        np.array(sys_bond_params),
+        np.array([*new_force_position, *new_force_tangent]),
+    )
 
 
 def test_error_for_non_initial_restraint_during_equilibration():
@@ -1567,12 +1545,7 @@ def test_get_iguessmd_atom_positions_periodic(indices):
 
     # Check that x values of atoms to which iGUESSMD force have been
     # unwrapped correctly
-    if isinstance(iguessmd_sim, OMMiGUESSMDSimulationAtom):
-        assert (wrapped_positions[0] != unwrapped_positions[0]).all()
-        assert np.all(iguessmd_sim.iguessmd_simulation_atom_positions[-1,0] < 0.0)
-        assert (unwrapped_positions[0] == iguessmd_sim.iguessmd_simulation_atom_positions[-1,0])
-    elif isinstance(iguessmd_sim, OMMiGUESSMDSimulationCOM):
-        assert (wrapped_positions[:, 0] != unwrapped_positions[:, 0]).all()
-        assert np.all(iguessmd_sim.iguessmd_simulation_atom_positions[-1,:,0] < 0.0)
-        assert (unwrapped_positions[:, 0] == iguessmd_sim.iguessmd_simulation_atom_positions[-1,:,0]).all()
+    assert (wrapped_positions[:, 0] != unwrapped_positions[:, 0]).all()
+    assert np.all(iguessmd_sim.iguessmd_simulation_atom_positions[-1,:,0] < 0.0)
+    assert (unwrapped_positions[:, 0] == iguessmd_sim.iguessmd_simulation_atom_positions[-1,:,0]).all()
 
