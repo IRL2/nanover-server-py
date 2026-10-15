@@ -14,7 +14,7 @@
 Repository containing the python based implementations of servers for NanoVer, providing a framework for working with
 interactive molecular dynamics simulations for computational chemistry research.
 
-This software is designed to be used with NanoVer's iMD-XR client: [Meta Quest 3 app](imd-xr-app) ([source repo][imd-xr-repo]).
+This software is designed to be used with NanoVer's iMD-XR client: [Meta Quest 3 app][imd-xr-app] ([source repo][imd-xr-repo]).
 
 This repository is maintained by the Intangible Realities Laboratory, University of Santiago de Compostela, and is
 distributed under the [MIT](LICENSE) license. See [the list of contributors](CONTRIBUTORS.md) for the individual authors
