@@ -12,6 +12,7 @@ from openmm.app import Simulation
 
 from nanover.openmm import serializer
 
+from nanover.iguessmd.base import iGUESSMDSimulation
 from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents, calculate_com
 
 iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME = "smd_k"
@@ -33,7 +34,7 @@ iGUESSMD_FORCE_EXPRESSION_COM_NONPERIODIC = f"{iGUESSMD_FORCE_EXPRESSION_PARALLE
 iGUESSMD_FORCE_EXPRESSION_COM_PERIODIC = f"{iGUESSMD_FORCE_EXPRESSION_PARALLEL} + {iGUESSMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(raw_dx - Lx*floor((raw_dx/Lx) + 0.5)); raw_dx=(x1-x0); dy=(raw_dy - Ly*floor((raw_dy/Ly) + 0.5)); raw_dy=(y1-y0); dz=(raw_dz - Lz*floor((raw_dz/Lz) + 0.5)); raw_dz=(z1-z0)"
 
 
-class OMMiGUESSMDSimulation:
+class OMMiGUESSMDSimulation(iGUESSMDSimulation):
     """
     A class for performing iGUESSMD on an OpenMM simulation.
     """
@@ -152,6 +153,7 @@ class OMMiGUESSMDSimulation:
         return sim
 
     def __init__(self, name: str | None = None):
+        super().__init__(name)
         self.name: str | None = name or "Unnamed OpenMM iGUESSMD Simulation"
 
         self.xml_path: PathLike[str] | None = None
@@ -182,44 +184,6 @@ class OMMiGUESSMDSimulation:
         self._sim_uses_pbcs: bool | None = None
         self._pbc_box_lengths: np.ndarray | None = None
 
-    # @abstractmethod
-    # def define_iguessmd_simulation_atom_positions_array(self):
-    #     """
-    #     Define the array to which the positions of the atoms with which the
-    #     iGUESSMD force interacts will be saved over the course of the iGUESSMD simulation.
-    #     """
-    #     pass
-    #
-    # @abstractmethod
-    # def check_for_existing_iguessmd_force(self):
-    #     """
-    #     Check whether the loaded simulation already contains an iGUESSMD force of
-    #     the correct type for the simulation type.
-    #     """
-    #     pass
-    #
-    # @abstractmethod
-    # def add_iguessmd_force_to_system(self):
-    #     """
-    #     Add the required iGUESSMD force to the system, depending on the type of
-    #     iGUESSMD interaction required (single atom or centre-of-mass).
-    #     """
-    #     pass
-    #
-    # @abstractmethod
-    # def update_iguessmd_force_position(self):
-    #     """
-    #     Update the position of the iGUESSMD force.
-    #     """
-    #     pass
-    #
-    # @abstractmethod
-    # def calculate_cumulative_work_done(self):
-    #     """
-    #     Calculate the cumulative work done along the reaction coordinate
-    #     during the iGUESSMD simulation.
-    #     """
-    #     pass
 
     def _initialise_iguessmd_simulation(
         self,
