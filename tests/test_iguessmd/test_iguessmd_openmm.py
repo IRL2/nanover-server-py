@@ -87,9 +87,10 @@ BASIC_SIMULATION_POSITIONS = [
 ARGON_SIMULATION_POSITION = [[0.0, 0.0, 0.0]]
 
 # Test parameters for OMMiGUESSMDSimulation
-TEST_iGUESSMD_SINGLE_INDEX = np.array(0)
+TEST_iGUESSMD_SINGLE_INDEX_0D = np.array(0)
+TEST_iGUESSMD_SINGLE_INDEX_1D = np.array([0])
 TEST_iGUESSMD_MULTIPLE_INDICES = np.array([0, 1, 2, 3])
-TEST_iGUESSMD_INDICES = [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES]
+TEST_iGUESSMD_INDICES = [TEST_iGUESSMD_SINGLE_INDEX_0D, TEST_iGUESSMD_SINGLE_INDEX_1D, TEST_iGUESSMD_MULTIPLE_INDICES]
 TEST_iGUESSMD_LINEAR_PATH = np.array(
     [np.linspace(0.05, 1.05, 101), np.zeros(101), np.zeros(101)]
 ).transpose()
@@ -374,6 +375,8 @@ def test_load_iguessmd_sim_from_simulation(force_constant, atom_indices):
         TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
+    if atom_indices.size == 1 and atom_indices.shape == ():
+        atom_indices = np.reshape(atom_indices, (1, ))
     assert iguessmd_sim
     assert iguessmd_sim.simulation
     assert np.array_equal(iguessmd_sim.iguessmd_path, TEST_iGUESSMD_LINEAR_PATH)
@@ -397,6 +400,8 @@ def test_load_iguessmd_sim_from_xml_path(
         TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
     )
+    if atom_indices.size == 1 and atom_indices.shape == ():
+        atom_indices = np.reshape(atom_indices, (1, ))
     assert iguessmd_sim
     assert iguessmd_sim.xml_path == make_basic_simulation_xml
     assert iguessmd_sim.simulation
@@ -460,7 +465,7 @@ def test_load_iguessmd_simulation_without_iguessmd_force_from_xml_path(
 @pytest.mark.parametrize(
     "indices, sim_type",
     [
-        (TEST_iGUESSMD_SINGLE_INDEX, OMMiGUESSMDSimulationAtom),
+        (TEST_iGUESSMD_SINGLE_INDEX_0D, OMMiGUESSMDSimulationCOM),
         (TEST_iGUESSMD_MULTIPLE_INDICES, OMMiGUESSMDSimulationCOM),
     ],
 )
@@ -532,11 +537,12 @@ def test_iguessmd_force_attaches_to_correct_atom(index, force_constant):
         force_constant,
     )
     # Attaches force to single atom, so index of atom within force is zero
-    p_index, p_params = iguessmd_sim.iguessmd_force.getParticleParameters(0)
+    p_index, _ = iguessmd_sim.iguessmd_force.getGroupParameters(0)
+    p_group, p_params = iguessmd_sim.iguessmd_force.getBondParameters(0)
     assert p_index == index
     assert np.array_equal(
         np.array(p_params),
-        np.array([*TEST_iGUESSMD_LINEAR_PATH[0], *TEST_iGUESSMD_LINEAR_PATH_TANGENTS[0]]),
+        np.concatenate((TEST_iGUESSMD_LINEAR_PATH[0], TEST_iGUESSMD_LINEAR_PATH_TANGENTS[0])),
     )
 
 
@@ -849,7 +855,7 @@ def test_error_for_non_initial_restraint_during_equilibration():
     """
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
-        TEST_iGUESSMD_SINGLE_INDEX,
+        TEST_iGUESSMD_SINGLE_INDEX_0D,
         TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
@@ -873,7 +879,7 @@ def test_generate_starting_structures(n_structures, interval_ps):
     """
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
-        TEST_iGUESSMD_SINGLE_INDEX,
+        TEST_iGUESSMD_SINGLE_INDEX_0D,
         TEST_iGUESSMD_LINEAR_PATH,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
@@ -925,7 +931,7 @@ def test_calculate_iguessmd_path_tangents(name, path, tangents):
     # Create iGUESSMD simulation
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
-        TEST_iGUESSMD_SINGLE_INDEX,
+        TEST_iGUESSMD_SINGLE_INDEX_0D,
         path,
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
@@ -1552,6 +1558,8 @@ def test_get_iguessmd_atom_positions_periodic(indices):
     iguessmd_sim.run_iguessmd()
 
     # Retrieve wrapped and unwrapped positions
+    if indices.size == 1 and indices.shape == ():
+        indices = np.reshape(indices, (1, ))
     wrapped_positions = iguessmd_sim.simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(asNumpy=True)[indices]._value
     unwrapped_positions = \
     iguessmd_sim.simulation.context.getState(getPositions=True, enforcePeriodicBox=False).getPositions(asNumpy=True)[

@@ -34,9 +34,10 @@ from scipy.special import logsumexp
 
 KB_KJ_MOL_K_VALUE = 0.008314462618
 
-TEST_iGUESSMD_SINGLE_INDEX = np.array(0)
+TEST_iGUESSMD_SINGLE_INDEX_0D = np.array(0)
+TEST_iGUESSMD_SINGLE_INDEX_1D = np.array([0])
 TEST_iGUESSMD_MULTIPLE_INDICES = np.array([0, 1, 2, 3])
-TEST_iGUESSMD_INDICES = [TEST_iGUESSMD_SINGLE_INDEX, TEST_iGUESSMD_MULTIPLE_INDICES]
+TEST_iGUESSMD_INDICES = [TEST_iGUESSMD_SINGLE_INDEX_0D, TEST_iGUESSMD_SINGLE_INDEX_1D, TEST_iGUESSMD_MULTIPLE_INDICES]
 TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL = np.array(3011.0)
 TEST_iGUESSMD_FORCE_CONSTANT_PAR_PERP = np.array([3011.0, 301.1])
 TEST_iGUESSMD_FORCE_CONSTANTS = [
@@ -327,6 +328,8 @@ def test_load_general_iguessmd_data(make_example_general_iguessmd_data_file):
         "timestep_ps",
     ]
     path_len = TEST_iGUESSMD_LINEAR_PATH.shape[0]
+    if indices.size == 1 and indices.shape == ():
+        indices = np.reshape(indices, (1,))
     expected_shapes = [indices.shape,
                        TEST_iGUESSMD_LINEAR_PATH.shape,
                        force_constant.shape,
@@ -357,6 +360,8 @@ def test_load_iguessmd_simulation_data(make_example_iguessmd_simulation_data_fil
         "data_timestep_ps"
     ]
     path_len = TEST_iGUESSMD_LINEAR_PATH.shape[0]
+    if indices.size == 1 and indices.shape == ():
+        indices = np.reshape(indices, (1,))
     expected_shapes = [(path_len, *indices.shape, 3), (path_len,), TEST_iGUESSMD_TIMESTEP_PS.shape]
 
     # Add COM checks if more than one atom index

@@ -69,12 +69,15 @@ class OMMiGUESSMDSimulation:
         sim: OMMiGUESSMDSimulation
 
         assert iguessmd_atom_indices.size >= 1
-        if iguessmd_atom_indices.size > 1:
-            sim = super(cls, OMMiGUESSMDSimulationCOM).__new__(OMMiGUESSMDSimulationCOM)
-        else:
-            sim = super(cls, OMMiGUESSMDSimulationAtom).__new__(
-                OMMiGUESSMDSimulationAtom
-            )
+        if iguessmd_atom_indices.size == 1 and iguessmd_atom_indices.shape == ():
+            iguessmd_atom_indices = np.reshape(iguessmd_atom_indices, (1,))
+        sim = super(cls, OMMiGUESSMDSimulationCOM).__new__(OMMiGUESSMDSimulationCOM)
+        # if iguessmd_atom_indices.size > 1:
+        #     sim = super(cls, OMMiGUESSMDSimulationCOM).__new__(OMMiGUESSMDSimulationCOM)
+        # else:
+        #     sim = super(cls, OMMiGUESSMDSimulationAtom).__new__(
+        #         OMMiGUESSMDSimulationAtom
+        #     )
 
         sim.name = name
         sim.simulation = simulation
@@ -125,12 +128,15 @@ class OMMiGUESSMDSimulation:
         sim: OMMiGUESSMDSimulation
 
         assert iguessmd_atom_indices.size >= 1
-        if iguessmd_atom_indices.size > 1:
-            sim = super(cls, OMMiGUESSMDSimulationCOM).__new__(OMMiGUESSMDSimulationCOM)
-        elif iguessmd_atom_indices.size == 1:
-            sim = super(cls, OMMiGUESSMDSimulationAtom).__new__(
-                OMMiGUESSMDSimulationAtom
-            )
+        if iguessmd_atom_indices.size == 1 and iguessmd_atom_indices.shape == ():
+            iguessmd_atom_indices = np.reshape(iguessmd_atom_indices, (1,))
+        sim = super(cls, OMMiGUESSMDSimulationCOM).__new__(OMMiGUESSMDSimulationCOM)
+        # if iguessmd_atom_indices.size > 1:
+        #     sim = super(cls, OMMiGUESSMDSimulationCOM).__new__(OMMiGUESSMDSimulationCOM)
+        # elif iguessmd_atom_indices.size == 1:
+        #     sim = super(cls, OMMiGUESSMDSimulationAtom).__new__(
+        #         OMMiGUESSMDSimulationAtom
+        #     )
 
         if name is None:
             sim.name = Path(path).stem
