@@ -79,7 +79,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
     @classmethod
     def from_xml_path(
         cls,
-        path: PathLike[str],
+        path: PathLike | str,
         iguessmd_atom_indices: np.ndarray,
         iguessmd_path: np.ndarray,
         iguessmd_force_constant: float | np.ndarray,
@@ -120,7 +120,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
     def __init__(self, name: str | None = None):
         super().__init__(name)
 
-        self.xml_path: PathLike[str] | None = None
+        self.xml_path: PathLike | str | None = None
 
         self.simulation: Simulation
         self.iguessmd_atom_indices: np.ndarray | None = None
@@ -364,7 +364,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         n_structures: int,
         output_directory: PathLike | str | None = None,
         filename_prefix: str | None = None,
-        save_iguessmd_force: bool | None = None,
+        save_iguessmd_force: bool = False,
     ):
         """
         Generate the specified number of starting structures by running the simulation for the specified
@@ -386,9 +386,17 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         if output_directory is None:
             output_directory = os.getcwd()
+            print(
+                f"No output directory specified. Generated starting structures "
+                f"will be saved to {output_directory}."
+            )
 
         if filename_prefix is None:
-            filename_prefix = "smd_structure"
+            filename_prefix = "iguessmd_structure"
+            print(
+                f"No filename prefix specified. Generated starting structures "
+                f"will be saved with the prefix {filename_prefix}."
+            )
 
         print(
             f"Generating {n_structures} structures in {interval_ps} ps simulation...\n"
