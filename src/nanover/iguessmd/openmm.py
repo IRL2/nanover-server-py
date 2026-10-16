@@ -476,7 +476,8 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         """
 
         assert (
-            np.all(self.iguessmd_path.shape == interaction_centre_positions.shape)
+            interaction_centre_positions is not None
+            and np.all(self.iguessmd_path.shape == interaction_centre_positions.shape)
             and self.iguessmd_force_constant_parallel is not None
             and self.iguessmd_force_constant_perpendicular is not None
         )
@@ -530,7 +531,9 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         )
         smd_force_displacements = np.diff(self.iguessmd_path, axis=0)
         work_done_array = np.zeros(self.iguessmd_simulation_forces.shape[0])
-        work_done_array[1:] = np.linalg.vecdot(self.iguessmd_simulation_forces[:-1], smd_force_displacements, axis=1)
+        work_done_array[1:] = np.linalg.vecdot(
+            self.iguessmd_simulation_forces[:-1], smd_force_displacements, axis=1
+        )
         self.iguessmd_simulation_work_done = np.cumsum(work_done_array, axis=0)
 
     def save_iguessmd_simulation_data(
@@ -605,7 +608,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 "final two array entries compared to the rest of the trajectory."
             )
 
-        iguessmd_simulation_data: dict[str, Any]= {}
+        iguessmd_simulation_data: dict[str, Any] = {}
         iguessmd_simulation_data["data_timestep_ps"] = (
             every_nth * self.simulation.integrator.getStepSize()._value
         )
@@ -824,6 +827,8 @@ def iguessmd_com_force(
       COM of the group of atoms in the direction perpendicular to the RC, in units kJ mol-1 nm-2
     :param uses_pbcs: Bool specifying whether to use periodic boundary conditions for the
       harmonic restraint
+    :param pbc_box_lengths: Lengths of the simulation box defining the periodic boundary of the
+      simulation
     :return: CustomCentroidBondForce defining the harmonic iGUESSMD force that interacts with
       the COM of the specified atoms.
     """
@@ -838,11 +843,12 @@ def iguessmd_com_force(
         )
 
     iguessmd_force.addGlobalParameter(
-        f"{iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME}", parallel_force_constant
+        f"{iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME}",
+        float(parallel_force_constant),
     )
     iguessmd_force.addGlobalParameter(
         f"{iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME}",
-        perpendicular_force_constant,
+        float(perpendicular_force_constant),
     )
     if uses_pbcs and pbc_box_lengths is not None:
         iguessmd_force.addGlobalParameter("Lx", pbc_box_lengths[0])
@@ -875,6 +881,8 @@ def iguessmd_single_atom_force(
       specified atom in the direction perpendicular to the RC, in units kJ mol-1 nm-2
     :param uses_pbcs: Bool specifying whether to use periodic boundary conditions for the
       harmonic restraint
+    :param pbc_box_lengths: Lengths of the simulation box defining the periodic boundary of the
+      simulation
     :return: CustomExternalForce defining the harmonic iGUESSMD force that interacts with the
       specified atom.
     """
@@ -883,11 +891,12 @@ def iguessmd_single_atom_force(
     else:
         iguessmd_force = CustomExternalForce(iGUESSMD_FORCE_EXPRESSION_ATOM_NONPERIODIC)
     iguessmd_force.addGlobalParameter(
-        f"{iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME}", parallel_force_constant
+        f"{iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME}",
+        float(parallel_force_constant),
     )
     iguessmd_force.addGlobalParameter(
         f"{iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME}",
-        perpendicular_force_constant,
+        float(perpendicular_force_constant),
     )
     if uses_pbcs and pbc_box_lengths is not None:
         iguessmd_force.addGlobalParameter("Lx", pbc_box_lengths[0])
