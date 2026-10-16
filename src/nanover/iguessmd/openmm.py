@@ -4,6 +4,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Any
 from abc import abstractmethod
+import xml.etree.ElementTree as ET
 
 import numpy as np
 
@@ -338,54 +339,23 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 xml_string = serializer.serialize_simulation(
                     self.simulation, save_state=save_state
                 )
+
                 # Manually remove parameters for now...
-                xml_string_lines = xml_string.splitlines()
-                for line in xml_string_lines:
-                    # Remove only parameters left over from iGUESSMD force
-                    if (
-                        iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME in line
-                        or iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME in line
-                        or iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME in line
-                    ):
-                        line_index = xml_string_lines.index(line)
-                        n_tabs = line.index("<")
-                        param_string = line.split("/")
-                        param_string_list = sum(
-                            [string.split() for string in param_string], []
-                        )
-                        for substring in param_string_list:
-                            if iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME in substring:
-                                param_string_list.remove(substring)
-                        # TODO: make more efficient
-                        for substring in param_string_list:
-                            if (
-                                iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
-                                in substring
-                            ):
-                                param_string_list.remove(substring)
-                        for substring in param_string_list:
-                            if (
-                                iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME
-                                in substring
-                            ):
-                                param_string_list.remove(substring)
-                        if self._sim_uses_pbcs:
-                            for substring in param_string_list:
-                                if "Lx" in substring:
-                                    param_string_list.remove(substring)
-                            for substring in param_string_list:
-                                if "Ly" in substring:
-                                    param_string_list.remove(substring)
-                            for substring in param_string_list:
-                                if "Lz" in substring:
-                                    param_string_list.remove(substring)
-                        xml_string_lines[line_index] = (
-                            n_tabs * "\t"
-                            + " ".join(param_string_list[:-1])
-                            + "/"
-                            + param_string_list[-1]
-                        )
-                xml_string = "\n".join(xml_string_lines)
+                params_to_remove = {
+                    iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME,
+                    iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME,
+                    iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME,
+                    *({"Lx", "Ly", "Lz"} if self._sim_uses_pbcs else set())
+                }
+
+                xml_root = ET.fromstring(xml_string)
+
+                for elem in xml_root.iter():
+                    for param in params_to_remove:
+                        elem.attrib.pop(param, None)
+
+                # Regenerate xml string and write to file
+                xml_string = ET.tostring(xml_root, encoding="unicode")
                 outfile.write(xml_string)
 
             # Add iGUESSMD force back to the system
