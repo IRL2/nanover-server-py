@@ -255,7 +255,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                         forces_to_remove.append(i)
                 except OpenMMException:
                     continue
-                # forces_to_remove.append(i)
 
         # Remove any iGUESSMD forces, accounting for the changes in indices
         # as forces are removed
@@ -310,14 +309,14 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         self,
         output_filepath: PathLike | str,
         save_state: bool = False,
-        save_iguessmd_force: bool | None = False,
+        save_iguessmd_force: bool = False,
     ):
         """
         Save the simulation to a NanoVer OpenMM XML file, with the option to include the
         iGUESSMD force in the XML file.
 
         :param output_filepath: Path to output file to save the simulation to.
-        :param save_state: If True, save the present state of the simulation to the XML file.
+        :param save_state: If True, save the present state of the simulation to the XML file (Optional).
         :param save_iguessmd_force: Bool defining whether to save the iGUESSMD force in the XML file (Optional).
         """
         assert output_filepath is not None
@@ -342,7 +341,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 # Manually remove parameters for now...
                 xml_string_lines = xml_string.splitlines()
                 for line in xml_string_lines:
-                    # Remove only parameter left over from iGUESSMD force
+                    # Remove only parameters left over from iGUESSMD force
                     if (
                         iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME in line
                         or iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME in line
