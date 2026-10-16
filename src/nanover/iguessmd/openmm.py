@@ -677,6 +677,10 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         np.savez_compressed(path, **general_iguessmd_data)
 
     def check_for_existing_iguessmd_force(self):
+        """
+        Check whether the loaded simulation already contains an iGUESSMD force of
+        the correct type.
+        """
         try:
             force_constant_parallel = self.simulation.context.getParameter(
                 iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
