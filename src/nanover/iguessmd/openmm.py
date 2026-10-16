@@ -61,28 +61,11 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         :param name: An optional name for the simulation instead of default
         """
 
-        # Create instance of iGUESSMD simulation based on type of indices passed
-        sim: OMMiGUESSMDSimulation
-
-        assert iguessmd_atom_indices.size >= 1
-        if iguessmd_atom_indices.size == 1 and iguessmd_atom_indices.shape == ():
-            iguessmd_atom_indices = np.reshape(iguessmd_atom_indices, (1,))
-
         # Instantiate class
         sim = cls(name)
 
+        # Define OpenMM Simulation
         sim.simulation = simulation
-
-        # Check if simulation employs periodic boundary conditions
-        sim._pbc_box_lengths = None
-        sim._sim_uses_pbcs = sim.simulation.system.usesPeriodicBoundaryConditions()
-        if sim._sim_uses_pbcs:
-            # TODO: only works with orthorhombic PBCs at the moment, need to generalise
-            sim._pbc_box_lengths = np.diag(
-                sim.simulation.context.getState()
-                .getPeriodicBoxVectors(asNumpy=True)
-                ._value
-            )
 
         # Initialise all objects relevant to the iGUESSMD simulation
         sim._initialise_iguessmd_simulation(
@@ -116,31 +99,14 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         :param name: An optional name for the simulation instead of default
         """
 
-        sim: OMMiGUESSMDSimulation
-
-        assert iguessmd_atom_indices.size >= 1
-        if iguessmd_atom_indices.size == 1 and iguessmd_atom_indices.shape == ():
-            iguessmd_atom_indices = np.reshape(iguessmd_atom_indices, (1,))
-
         # Instantiate class
         sim = cls(name)
 
+        # Load OpenMM Simulation from the xml path
         sim.xml_path = path
-
-        # Load the simulation from the path
+        assert sim.xml_path is not None
         with open(sim.xml_path) as infile:
             sim.simulation = serializer.deserialize_simulation(infile)
-
-        # Check if simulation employs periodic boundary conditions
-        sim._pbc_box_lengths = None
-        sim._sim_uses_pbcs = sim.simulation.system.usesPeriodicBoundaryConditions()
-        if sim._sim_uses_pbcs:
-            # TODO: only works with orthorhombic PBCs at the moment, need to generalise
-            sim._pbc_box_lengths = np.diag(
-                sim.simulation.context.getState()
-                .getPeriodicBoxVectors(asNumpy=True)
-                ._value
-            )
 
         # Initialise all objects relevant to the iGUESSMD simulation
         sim._initialise_iguessmd_simulation(
@@ -154,7 +120,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
     def __init__(self, name: str | None = None):
         super().__init__(name)
-        self.name: str | None = name or "Unnamed OpenMM iGUESSMD Simulation"
 
         self.xml_path: PathLike[str] | None = None
 
@@ -169,7 +134,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         self.loaded_iguessmd_force_from_sim: bool = False
         self.n_iguessmd_atom_indices: int | None = None
 
-        self.iguessmd_force: CustomExternalForce | CustomCentroidBondForce | None = None
+        self.iguessmd_force: CustomCentroidBondForce | None = None
 
         self.checkpoint: Any | None = None
 
@@ -196,9 +161,24 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         Called upon when constructing an OMMiGUESSMDSimulation using the classmethods
         from_simulation or from_xml_path.
         """
+        assert iguessmd_atom_indices.size >= 1
+        if iguessmd_atom_indices.size == 1 and iguessmd_atom_indices.shape == ():
+            iguessmd_atom_indices = np.reshape(iguessmd_atom_indices, (1,))
+
         self.iguessmd_atom_indices = iguessmd_atom_indices
         self.n_iguessmd_atom_indices = self.iguessmd_atom_indices.size
         self.iguessmd_path = iguessmd_path
+
+        # Check if simulation employs periodic boundary conditions
+        self._sim_uses_pbcs = self.simulation.system.usesPeriodicBoundaryConditions()
+        if self._sim_uses_pbcs:
+            # TODO: only works with orthorhombic PBCs at the moment, need to generalise
+            self._pbc_box_lengths = np.diag(
+                self.simulation.context.getState()
+                .getPeriodicBoxVectors(asNumpy=True)
+                ._value
+            )
+
         if (
             isinstance(iguessmd_force_constant, np.ndarray)
             and iguessmd_force_constant.size == 2
@@ -792,7 +772,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         )
         x0, y0, z0 = self.current_iguessmd_force_position
         tx, ty, tz = self.current_iguessmd_force_tangent
-        assert isinstance(self.iguessmd_force, CustomCentroidBondForce)
         self.iguessmd_force.setBondParameters(0, [0], [x0, y0, z0, tx, ty, tz])
         self.iguessmd_force.updateParametersInContext(self.simulation.context)
 
