@@ -552,17 +552,17 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         - Trajectories of the atoms to which the iGUESSMD force was applied, in nm
         - Work done along the reaction coordinate defined by the path of the iGUESSMD force, in kJ mol-1
 
-        :param path: Path to the file to which the data will be saved.
+        :param path: Path to the file to which the data will be saved
         :param every_nth:  (int | None) only save the values of work and/or positions at every
-          nth point along the trajectory.
+          nth point along the trajectory
         :param include_end: (Bool) whether to save final values of the work and/or positions
           regardless of stride defined by every nth
         :param save_work_done: Bool determining whether to save the work done
         :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
         :param save_com_positions: Bool determining whether to save the positions of the COM
-        :param work_done_dtype: Data type of the work done array to save.
-        :param atom_positions_dtype: Data type of the atom positions array to save.
-        :param com_positions_dtype: Data type of the COM positions array to save.
+        :param work_done_dtype: Data type of the work done array to save
+        :param atom_positions_dtype: Data type of the atom positions array to save
+        :param com_positions_dtype: Data type of the COM positions array to save
         """
 
         if path is None:
@@ -605,7 +605,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 "final two array entries compared to the rest of the trajectory."
             )
 
-        iguessmd_simulation_data = {}
+        iguessmd_simulation_data: dict[str, Any]= {}
         iguessmd_simulation_data["data_timestep_ps"] = (
             every_nth * self.simulation.integrator.getStepSize()._value
         )
@@ -662,7 +662,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             )
 
         # Create dictionary containing general iGUESSMD data
-        general_iguessmd_data = {
+        general_iguessmd_data: dict[str, Any] = {
             "iguessmd_atom_indices": self.iguessmd_atom_indices,
             "iguessmd_path": self.iguessmd_path,
             "iguessmd_force_constant": self.iguessmd_force_constant,
