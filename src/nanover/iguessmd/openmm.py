@@ -54,11 +54,14 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         :param simulation: An existing OpenMM Simulation
         :param iguessmd_atom_indices: A NumPy array of indices of the atoms to which the
-          iGUESSMD force should be applied (0-D for single atom, 1-D for COM)
+          iGUESSMD force should be applied (0-D or 1-D for single atom, 1-D for COM)
         :param iguessmd_path: A NumPy array of coordinates defining the path that the
           iGUESSMD force will take during the iGUESSMD simulation
-        :param iguessmd_force_constant: The force constant of the iGUESSMD force
-        :param name: An optional name for the simulation instead of default
+        :param iguessmd_force_constant: The force constant(s) defining the iGUESSMD force
+          (either a float for a spherically symmetric harmonic potential or a 1-D NumPy
+           array defining a parallel and perpendicular force constant for an asymmetric
+           harmonic potential)
+        :param name: An optional name for the simulation
         """
 
         # Instantiate class
@@ -90,13 +93,16 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         """
         Construct the iGUESSMD simulation from an existing NanoVer OpenMM XML file located at a given path.
 
-        :param path: Path of the NanoVer OpenMM XML file
-        :param iguessmd_atom_indices: The indices of the atoms to which the iGUESSMD force
-          should be applied
+        :param path: Path to the NanoVer OpenMM XML file defining the simulation
+        :param iguessmd_atom_indices: A NumPy array of indices of the atoms to which the
+          iGUESSMD force should be applied (0-D or 1-D for single atom, 1-D for COM)
         :param iguessmd_path: A NumPy array of coordinates defining the path that the
           iGUESSMD force will take during the iGUESSMD simulation
-        :param iguessmd_force_constant: The force constant of the iGUESSMD force
-        :param name: An optional name for the simulation instead of default
+        :param iguessmd_force_constant: The force constant(s) defining the iGUESSMD force
+          (either a float for a spherically symmetric harmonic potential or a 1-D NumPy
+           array defining a parallel and perpendicular force constant for an asymmetric
+           harmonic potential)
+        :param name: An optional name for the simulation
         """
 
         # Instantiate class
