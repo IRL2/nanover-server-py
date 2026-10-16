@@ -893,9 +893,9 @@ def test_calculate_iguessmd_path_tangents(name, path, tangents):
     iguessmd_sim.calculate_iguessmd_path_tangents()
 
     # Check that calculated tangents are as expected
-    assert iguessmd_sim.iguessmd_path_tangents.shape == tangents.shape
+    assert iguessmd_sim.iguessmd_path_unit_tangents.shape == tangents.shape
     assert np.allclose(
-        iguessmd_sim.iguessmd_path_tangents, tangents, rtol=1e-8
+        iguessmd_sim.iguessmd_path_unit_tangents, tangents, rtol=1e-8
     )
 
     # For circular path, check calculated tangent vectors obey symmetry
@@ -903,8 +903,8 @@ def test_calculate_iguessmd_path_tangents(name, path, tangents):
     if name == "circular":
         n_points = path.shape[0]
         assert np.allclose(
-            iguessmd_sim.iguessmd_path_tangents[: int((n_points - 1) / 2)],
-            -iguessmd_sim.iguessmd_path_tangents[int((n_points - 1) / 2): -1],
+            iguessmd_sim.iguessmd_path_unit_tangents[: int((n_points - 1) / 2)],
+            -iguessmd_sim.iguessmd_path_unit_tangents[int((n_points - 1) / 2): -1],
             rtol=1e-8,
         )
 

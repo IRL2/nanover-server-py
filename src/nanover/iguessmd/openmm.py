@@ -125,7 +125,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         self.simulation: Simulation
         self.iguessmd_atom_indices: np.ndarray | None = None
         self.iguessmd_path: np.ndarray
-        self.iguessmd_path_tangents: np.ndarray
+        self.iguessmd_path_unit_tangents: np.ndarray
         self.iguessmd_force_constant: float | np.ndarray | None = None
         self.iguessmd_force_constant_parallel: float | np.ndarray | None = None
         self.iguessmd_force_constant_perpendicular: float | np.ndarray | None = None
@@ -195,7 +195,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         self.current_iguessmd_force_position_index = 0
 
         self.calculate_iguessmd_path_tangents()
-        self.current_iguessmd_force_tangent = self.iguessmd_path_tangents[0]
+        self.current_iguessmd_force_tangent = self.iguessmd_path_unit_tangents[0]
 
         # Check whether iGUESSMD force is already present
         self.check_for_existing_iguessmd_force()
@@ -269,7 +269,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         assert self.iguessmd_path is not None
 
         # Calculate unit tangents
-        self.iguessmd_path_tangents = calculate_unit_tangents(self.iguessmd_path)
+        self.iguessmd_path_unit_tangents = calculate_unit_tangents(self.iguessmd_path)
 
     def get_iguessmd_atom_positions(self):
         """
@@ -475,39 +475,50 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
           (single atom or COM of group of atoms) with which the iGUESSMD force interacted during the simulation.
         """
 
-        assert np.all(self.iguessmd_path.shape == interaction_centre_positions.shape)
         assert (
-            self.iguessmd_force_constant_parallel is not None
+            np.all(self.iguessmd_path.shape == interaction_centre_positions.shape)
+            and self.iguessmd_force_constant_parallel is not None
             and self.iguessmd_force_constant_perpendicular is not None
         )
 
+        # Calculate displacements and tangential components
         displacements = interaction_centre_positions - self.iguessmd_path
+        tangential_displacements = self._calculate_tangential_displacements(
+            displacements
+        )
 
         # Calculate force component along RC
         parallel_forces = (
-            -self.iguessmd_force_constant_parallel
-            * (
-                np.linalg.vecdot(displacements, self.iguessmd_path_tangents, axis=1)
-                / np.linalg.vecdot(
-                    self.iguessmd_path_tangents, self.iguessmd_path_tangents, axis=1
-                )
-            ).reshape((self.iguessmd_path_tangents.shape[0], 1))
-            * self.iguessmd_path_tangents
+            -self.iguessmd_force_constant_parallel * tangential_displacements
         )
         perpendicular_forces = -self.iguessmd_force_constant_perpendicular * (
-            displacements
-            - (
-                (
-                    np.linalg.vecdot(displacements, self.iguessmd_path_tangents, axis=1)
-                    / np.linalg.vecdot(
-                        self.iguessmd_path_tangents, self.iguessmd_path_tangents, axis=1
-                    )
-                ).reshape((self.iguessmd_path_tangents.shape[0], 1))
-                * self.iguessmd_path_tangents
-            )
+            displacements - tangential_displacements
         )
 
         self.iguessmd_simulation_forces = parallel_forces + perpendicular_forces
+
+    def _calculate_tangential_displacements(
+        self, displacements: np.ndarray
+    ) -> np.ndarray:
+        """
+        Calculate the tangential components of the displacement vectors between
+        the iGUESSMD force origin and the centre to which the iGUESSMD force is
+        attached, given an array of displacements.
+        :param displacements: NumPy array of displacement vectors
+        :return: NumPy array of tangential displacements
+        """
+        assert self.iguessmd_path_unit_tangents is not None
+
+        tangential_displacements = (
+            (
+                np.linalg.vecdot(
+                    displacements, self.iguessmd_path_unit_tangents, axis=1
+                )[:, None]
+            )
+            * self.iguessmd_path_unit_tangents
+        )
+
+        return tangential_displacements
 
     def _calculate_work_done(self):
         """
@@ -739,7 +750,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         self.current_iguessmd_force_position = self.iguessmd_path[
             self.current_iguessmd_force_position_index
         ]
-        self.current_iguessmd_force_tangent = self.iguessmd_path_tangents[
+        self.current_iguessmd_force_tangent = self.iguessmd_path_unit_tangents[
             self.current_iguessmd_force_position_index
         ]
         assert (
