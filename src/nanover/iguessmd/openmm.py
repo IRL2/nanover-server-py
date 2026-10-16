@@ -75,9 +75,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             iguessmd_atom_indices, iguessmd_path, iguessmd_force_constant
         )
 
-        # Create a checkpoint of the simulation
-        sim.checkpoint = sim.simulation.context.createCheckpoint()
-
         return sim
 
     @classmethod
@@ -118,9 +115,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         sim._initialise_iguessmd_simulation(
             iguessmd_atom_indices, iguessmd_path, iguessmd_force_constant
         )
-
-        # Create a checkpoint of the simulation
-        sim.checkpoint = sim.simulation.context.createCheckpoint()
 
         return sim
 
@@ -215,6 +209,9 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         assert self.iguessmd_force is not None
 
         self.simulation.context.reinitialize(preserveState=True)
+
+        # Create a checkpoint of the simulation
+        self.checkpoint = self.simulation.context.createCheckpoint()
 
     def reset(self):
         """
