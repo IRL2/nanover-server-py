@@ -60,6 +60,9 @@ def calculate_unit_tangents(
     unit_tangents[:-1] = displacements
     unit_tangents[-1] = displacements[-1]
 
+    # Check that normalised tangents are unit vectors
+    assert np.allclose(np.linalg.norm(unit_tangents, axis=1), 1.0, rtol=1e-10)
+
     return unit_tangents
 
 
