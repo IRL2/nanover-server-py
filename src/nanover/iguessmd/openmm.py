@@ -530,10 +530,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         )
         smd_force_displacements = np.diff(self.iguessmd_path, axis=0)
         work_done_array = np.zeros(self.iguessmd_simulation_forces.shape[0])
-        for i in range(smd_force_displacements.shape[0]):
-            work_done_array[i + 1] = np.dot(
-                self.iguessmd_simulation_forces[i], smd_force_displacements[i]
-            )
+        work_done_array[1:] = np.linalg.vecdot(self.iguessmd_simulation_forces[:-1], smd_force_displacements, axis=1)
         self.iguessmd_simulation_work_done = np.cumsum(work_done_array, axis=0)
 
     def save_iguessmd_simulation_data(
