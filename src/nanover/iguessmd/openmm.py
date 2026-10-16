@@ -716,11 +716,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             self.loaded_iguessmd_force_from_sim = False
 
     def add_iguessmd_force_to_system(self):
-        """
-        Add an iGUESSMD force to the OpenMM system that interacts with the
-        centre of mass of the specified group of atoms.
-        """
-
         assert (
             self.current_iguessmd_force_position is not None
             and self.current_iguessmd_force_tangent is not None
