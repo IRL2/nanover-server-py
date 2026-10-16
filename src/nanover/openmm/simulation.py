@@ -228,6 +228,25 @@ class OpenMMSimulation(NanoverSimulation):
         )
         positions = state.getPositions(asNumpy=True)
 
+        # add reporter for CMM motion remover of a subset of particles for GH
+        subset_indices = [46, 47, 50, 55, 58, 79, 3, 4, 7, 24, 27, 2] # top and bottom carbon rings atoms selection
+        velocities = state.getVelocities(asNumpy=True)
+        sub_velocities = velocities[subset_indices] # Extract subset velocities and masses
+        # carbon rings masses
+        masses = np.array([12.011, 12.011, 12.011, 12.011, 12.011, 12.011, 12.011, 12.011, 12.011, 12.011, 12.011, 12.011])
+
+        total_mass = np.sum(masses) # Calculate CM velocity of subset (mass-weighted average)
+        cm_velocity = np.sum(sub_velocities * masses[:, None], axis=0) / total_mass
+
+        # Subtract CM velocity from subset velocities
+        adjusted_sub_velocities = sub_velocities - cm_velocity
+
+        # Replace velocities in full array
+        velocities[subset_indices] = adjusted_sub_velocities
+
+        # Set updated velocities to the context
+        self.simulation.context.setVelocities(velocities)
+
         # Calculate on-step contribution to work
         if self._prev_imd_forces is not None:
             affected_atom_positions = positions[self._prev_imd_indices]
