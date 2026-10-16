@@ -1,9 +1,11 @@
 from abc import abstractmethod
 
+
 class iGUESSMDSimulation:
     """
     A base class for all iGUESSMD simulations.
     """
+
     # TODO: Flesh out this base class and move operations common to all
     #  subclasses to this base class
 

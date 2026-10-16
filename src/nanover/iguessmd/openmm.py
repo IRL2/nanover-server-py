@@ -1,9 +1,7 @@
 import warnings
 import os.path
 from os import PathLike
-from pathlib import Path
 from typing import Any
-from abc import abstractmethod
 import xml.etree.ElementTree as ET
 
 import numpy as np
@@ -149,7 +147,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         self._sim_uses_pbcs: bool | None = None
         self._pbc_box_lengths: np.ndarray | None = None
-
 
     def _initialise_iguessmd_simulation(
         self,
@@ -345,7 +342,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                     iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME,
                     iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME,
                     iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME,
-                    *({"Lx", "Ly", "Lz"} if self._sim_uses_pbcs else set())
+                    *({"Lx", "Ly", "Lz"} if self._sim_uses_pbcs else set()),
                 }
 
                 xml_root = ET.fromstring(xml_string)
