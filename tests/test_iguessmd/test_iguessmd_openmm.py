@@ -48,6 +48,7 @@ Things to test for class performing iGUESSMD calculations:
 import tempfile
 from io import StringIO
 from itertools import product
+from pathlib import Path
 
 import pytest
 from contextlib import redirect_stdout
