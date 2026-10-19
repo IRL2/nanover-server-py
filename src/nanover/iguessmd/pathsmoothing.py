@@ -823,17 +823,6 @@ class PathSmoother:
 
         np.savez_compressed(output_filepath, **pathsmoother_data)
 
-        # with open(output_filepath, "wb") as outfile:
-        #     np.save(outfile, self.constant_speed_com_trajectory)
-        #     np.save(outfile, self.constant_speed_nm_ps)
-        #     np.save(outfile, self.timestep_ps)
-        #     if self.atom_indices is not None:
-        #         np.save(outfile, self.atom_indices)
-        #     else:
-        #         print(
-        #             "Warning: atom indices not provided and hence not saved to output file."
-        #         )
-
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
     """
