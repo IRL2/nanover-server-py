@@ -1,6 +1,8 @@
 from abc import abstractmethod
-import numpy as np
 from os import PathLike
+
+import numpy as np
+import numpy.typing as npt
 
 
 class iGUESSMDSimulation:
@@ -77,9 +79,9 @@ class iGUESSMDSimulation:
         save_work_done: bool = True,
         save_atom_positions: bool = True,
         save_com_positions: bool = True,
-        work_done_dtype: np.dtype = np.dtype(np.float32),
-        atom_positions_dtype: np.dtype = np.dtype(np.float32),
-        com_positions_dtype: np.dtype = np.dtype(np.float32),
+        work_done_dtype: npt.DTypeLike = np.float32,
+        atom_positions_dtype: npt.DTypeLike = np.float32,
+        com_positions_dtype: npt.DTypeLike = np.float32,
     ):
         """
         Save the data produced by the iGUESSMD simulation in binary form that can be read

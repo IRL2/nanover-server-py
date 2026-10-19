@@ -5,8 +5,8 @@ from typing import Any
 import xml.etree.ElementTree as ET
 
 import numpy as np
-
-from openmm import CustomExternalForce, CustomCentroidBondForce, OpenMMException
+import numpy.typing as npt
+from openmm import CustomCentroidBondForce, CustomExternalForce, OpenMMException
 from openmm.app import Simulation
 
 from nanover.openmm import serializer
@@ -544,9 +544,9 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         save_work_done: bool = True,
         save_atom_positions: bool = True,
         save_com_positions: bool = True,
-        work_done_dtype: np.dtype = np.dtype(np.float32),
-        atom_positions_dtype: np.dtype = np.dtype(np.float32),
-        com_positions_dtype: np.dtype = np.dtype(np.float32),
+        work_done_dtype: npt.DTypeLike = np.float32,
+        atom_positions_dtype: npt.DTypeLike = np.float32,
+        com_positions_dtype: npt.DTypeLike = np.float32,
     ):
         """
         Save the data produced by the iGUESSMD simulation in binary form that can be read
