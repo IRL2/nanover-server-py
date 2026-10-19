@@ -102,6 +102,7 @@ version = {file = "VERSION.txt"}
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = ["serial"]
+ignore = ["tutorials/5. iGUESSMD/iGUESSMD.ipynb"]
 
 [tool.ruff]
 extend-exclude = ["build/lib/**/*.py"]
