@@ -1,18 +1,17 @@
-import warnings
 import os.path
+import warnings
+import xml.etree.ElementTree as ET
 from os import PathLike
 from typing import Any
-import xml.etree.ElementTree as ET
 
 import numpy as np
 import numpy.typing as npt
 from openmm import CustomCentroidBondForce, CustomExternalForce, OpenMMException
 from openmm.app import Simulation
 
-from nanover.openmm import serializer
-
 from nanover.iguessmd.base import iGUESSMDSimulation
-from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents, calculate_com
+from nanover.iguessmd.utils import calculate_com, calculate_unit_tangents, get_every_nth
+from nanover.openmm import serializer
 
 iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME = "smd_k"
 iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME = (
@@ -514,7 +513,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             (
                 np.linalg.vecdot(
                     displacements, self.iguessmd_path_unit_tangents, axis=1
-                )[:, None]
+                )[:, None]  # type: ignore
             )
             * self.iguessmd_path_unit_tangents
         )
@@ -533,7 +532,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         work_done_array = np.zeros(self.iguessmd_simulation_forces.shape[0])
         work_done_array[1:] = np.linalg.vecdot(
             self.iguessmd_simulation_forces[:-1], smd_force_displacements, axis=1
-        )
+        )  # type: ignore
         self.iguessmd_simulation_work_done = np.cumsum(work_done_array, axis=0)
 
     def save_iguessmd_simulation_data(

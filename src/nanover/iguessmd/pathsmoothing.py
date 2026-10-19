@@ -1,32 +1,29 @@
 import warnings
-
-import MDAnalysis.units
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.mplot3d.art3d import Path3DCollection
-import MDAnalysis as mda
-import ipywidgets as widgets
-
-from typing import Union, Tuple, cast
 from os import PathLike
 from pathlib import Path
+from typing import cast
 
-from scipy.interpolate import splprep, splev
-
-from nanover.mdanalysis.universe import NanoverParser, NanoverReader
+import ipywidgets as widgets
+import matplotlib.pyplot as plt
+import MDAnalysis as mda
+import MDAnalysis.units
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Path3DCollection
+from scipy.interpolate import make_splprep
 
 from nanover.iguessmd.utils import calculate_com
+from nanover.mdanalysis.universe import NanoverParser, NanoverReader
 
 try:
+    from IPython import get_ipython
     from ipywidgets import (
-        interactive_output,
-        fixed,
-        VBox,
         HBox,
         Output,
+        VBox,
+        fixed,
+        interactive_output,
     )
-    from IPython import get_ipython
 
     _in_notebook = get_ipython().__class__.__name__ in [
         "ZMQInteractiveShell",
@@ -67,7 +64,7 @@ class PathSmoother:
     """
 
     @classmethod
-    def from_recording(cls, filename: Union[str, PathLike]):
+    def from_recording(cls, filename: str | PathLike):
         """
         Create a PathSmoother object from the data stored in a NanoVer recording.
 
@@ -126,15 +123,17 @@ class PathSmoother:
         Function that can be used to make plots interactive in Jupyter or IPython interfaces.
         """
         if _in_notebook:
-            get_ipython().run_line_magic("matplotlib", "widget")
+            shell = get_ipython()
+            assert shell is not None
+            shell.run_line_magic("matplotlib", "widget")
         else:
-            raise Exception(
+            raise RuntimeError(
                 "WARNING: interactive plots are only supported for Jupyter or IPython "
                 "interfaces."
             )
 
     def __init__(self):
-        self.filename: Union[str, PathLike] | None = None
+        self.filename: str | PathLike | None = None
         self.com_positions: np.ndarray | None = None
         self.atom_positions: np.ndarray | None = None
         self.atom_masses: np.ndarray | None = None
@@ -565,8 +564,7 @@ class PathSmoother:
                 0, self.com_positions.shape[0] - end_point_slider.value - MIN_POINTS
             )
             start_point_slider.max = max_start
-            if start_point_slider.value > max_start:
-                start_point_slider.value = max_start
+            start_point_slider.value = min(start_point_slider.value, max_start)
 
         def update_end_range(change):
             # Dynamically update the end point range
@@ -575,8 +573,7 @@ class PathSmoother:
                 0, self.com_positions.shape[0] - start_point_slider.value - MIN_POINTS
             )
             end_point_slider.max = max_end
-            if end_point_slider.value > max_end:
-                end_point_slider.value = max_end
+            end_point_slider.value = min(end_point_slider.value, max_end)
 
         # Attach observers to the start and end point sliders
         end_point_slider.observe(update_start_range, names="value")
@@ -792,8 +789,6 @@ class PathSmoother:
                 )
                 break
 
-        return None
-
     def save_constant_speed_trajectory_data(self, output_filepath: PathLike[str]):
         """
         Save the constant speed trajectory data as numpy arrays to an output file
@@ -821,7 +816,7 @@ class PathSmoother:
                 "Warning: atom indices not provided and hence not saved to output file."
             )
 
-        np.savez_compressed(output_filepath, **pathsmoother_data)
+        np.savez_compressed(output_filepath, allow_pickle=True, **pathsmoother_data)
 
 
 def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
@@ -840,7 +835,7 @@ def get_uf_atoms_and_frames(user_forces: np.ndarray) -> np.ndarray:
 
 def get_uf_first_indices_atom_frame(
     indices_and_frames: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Takes a numpy array of atom indices to which user forces are applied and the indices of the
     frames during which they are applied, and returns the index of the first frame in which the
@@ -861,7 +856,7 @@ def get_uf_first_indices_atom_frame(
 
 def separate_atom_and_frame_indices(
     indices_and_frames: np.ndarray,
-) -> Tuple[np.ndarray, list]:
+) -> tuple[np.ndarray, list]:
     """
     Takes the array output by :func:`get_uf_atoms_and_frames` and returns separate arrays of atom
     indices and frame indices defining the frames in which those forces were applied.
@@ -937,7 +932,7 @@ def get_uf_final_index_frame(
 
 def get_indices_defining_path(
     user_forces: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray, np.int64]:
+) -> tuple[np.ndarray, np.ndarray, np.int64]:
     """
     Takes a NumPy array of user forces and returns the indices of the atoms to which the first user force was applied,
     and the indices of the first and final frames in which that user force was applied.
@@ -967,7 +962,7 @@ def retrieve_uf_com_path(
     all_atom_traj_positions: np.ndarray,
     all_atom_masses: np.ndarray,
     all_user_forces: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.int64]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.int64]:
     """
     Takes a numpy array of the positions of all atoms across the full trajectory, the masses of the atoms and the full
     array of user forces applied during the trajectory, and returns the path of the COM of the atoms to which the first user force
@@ -1001,7 +996,7 @@ def retrieve_uf_com_path(
 
 def retrieve_uf_atoms_path(
     all_atom_traj_positions: np.ndarray, all_user_forces: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray, np.int64]:
+) -> tuple[np.ndarray, np.ndarray, np.int64]:
     """
     Takes a numpy array of the positions of all atoms across the full trajectory and the full array of user
     forces applied during the trajectory, and returns the paths of the atoms to which the first user force
@@ -1206,7 +1201,7 @@ def interpolate_path(
       should end.
     """
     pos_array_size = x_pos.size
-    tck, u = splprep(
+    tck, _u = make_splprep(
         [
             x_pos[start_index : pos_array_size - end_index],
             y_pos[start_index : pos_array_size - end_index],
@@ -1215,7 +1210,7 @@ def interpolate_path(
         s=smoothing_parameter,
     )
     u_fine = np.linspace(0, 1, n_points)
-    x_fine, y_fine, z_fine = splev(u_fine, tck)
+    x_fine, y_fine, z_fine = tck(u_fine)
     return np.transpose(np.squeeze([x_fine, y_fine, z_fine])), u_fine
 
 

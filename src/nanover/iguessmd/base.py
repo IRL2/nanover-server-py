@@ -22,7 +22,6 @@ class iGUESSMDSimulation:
         Define the array to which the positions of the atoms with which the
         iGUESSMD force interacts will be saved over the course of the iGUESSMD simulation.
         """
-        pass
 
     @abstractmethod
     def add_iguessmd_force_to_system(self):
@@ -30,7 +29,6 @@ class iGUESSMDSimulation:
         Add the required iGUESSMD force to the system, depending on the type of
         iGUESSMD interaction required (single atom or centre-of-mass).
         """
-        pass
 
     @abstractmethod
     def run_equilibration_with_initial_restraint(self, n_steps: int):
@@ -40,14 +38,12 @@ class iGUESSMDSimulation:
 
         :param n_steps: Number of simulation steps to run equilibration for.
         """
-        pass
 
     @abstractmethod
     def update_iguessmd_force_position(self):
         """
         Update the position of the iGUESSMD force.
         """
-        pass
 
     @abstractmethod
     def run_iguessmd(self, progress_interval: int = 100000):
@@ -60,7 +56,6 @@ class iGUESSMDSimulation:
         :param progress_interval: Interval defining how regularly to print the progress
           of the simulation, in terms of the number of simulation steps.
         """
-        pass
 
     @abstractmethod
     def calculate_cumulative_work_done(self):
@@ -68,7 +63,6 @@ class iGUESSMDSimulation:
         Calculate the cumulative work done along the reaction coordinate
         during the iGUESSMD simulation.
         """
-        pass
 
     @abstractmethod
     def save_iguessmd_simulation_data(
@@ -102,7 +96,6 @@ class iGUESSMDSimulation:
         :param atom_positions_dtype: Data type of the atom positions array to save
         :param com_positions_dtype: Data type of the COM positions array to save
         """
-        pass
 
     @abstractmethod
     def save_general_iguessmd_data(self, path: PathLike | str | None = None):
@@ -118,4 +111,3 @@ class iGUESSMDSimulation:
 
         :param path: Path to the file to which the data will be saved.
         """
-        pass

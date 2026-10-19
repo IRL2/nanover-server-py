@@ -1,13 +1,12 @@
-import numpy as np
-from scipy.special import logsumexp
-
-import openmm.unit as unit
-from openmm.unit.quantity import Quantity
-
 from os import PathLike
 from pathlib import Path
 
-from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents
+import numpy as np
+from openmm import unit
+from openmm.unit.quantity import Quantity
+from scipy.special import logsumexp
+
+from nanover.iguessmd.utils import calculate_unit_tangents, get_every_nth
 
 
 def _load_iguessmd_datafile(filepath: PathLike[str] | str) -> dict:
@@ -64,7 +63,7 @@ def boltzmann_constant_in_kJ_mol_K() -> Quantity:
     return kB_J_mol_K.in_units_of(unit.kilojoule_per_mole / unit.kelvin)
 
 
-def calculate_beta_mol_kJ(temperature_K: float | int) -> float:
+def calculate_beta_mol_kJ(temperature_K: float) -> float:
     """
     Calculate the value of beta (1/(kB*T)) in units of mol kJ-1.
 
