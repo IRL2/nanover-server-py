@@ -45,6 +45,7 @@ dependencies = [
     "platformdirs",
     "scipy",
     "ipympl",
+    "joblib",
 ]
 
 [project.urls]

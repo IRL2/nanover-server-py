@@ -35,6 +35,7 @@ requirements:
     - platformdirs
     - scipy
     - ipympl
+    - joblib
 about:
   home: https://github.com/IRL2/nanover-server-py
   license: MIT
