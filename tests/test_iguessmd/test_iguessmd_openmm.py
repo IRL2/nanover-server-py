@@ -1239,7 +1239,7 @@ def test_calculate_com_iguessmd_simulation_class(positions, masses, com):
 )
 def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, com):
     """
-    Check that the function _calculate_com_trajectory correctly calculates
+    Check that the function _calculate_x_rel_trajectory correctly calculates
     the trajectory of the centre of mass of the atoms to which the iGUESSMD force is
     applied in the OMMiGUESSMDSimulation class.
     """
@@ -1270,7 +1270,7 @@ def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, c
 
     # Calculate COM trajectory using internal function and check the calculated
     # COMs match the predicted COMs
-    iguessmd_sim._calculate_com_trajectory()
+    iguessmd_sim._calculate_x_rel_trajectory()
     assert np.allclose(iguessmd_sim.iguessmd_com_positions, expected_com_array, atol=1e-16)
 
 

@@ -69,7 +69,7 @@ class iGUESSMDSimulation:
         """Values of the cumulative work done by the iGUESSMD force during the iGUESSMD simulation"""
 
     @abstractmethod
-    def define_iguessmd_simulation_atom_positions_array(self):
+    def define_iguessmd_simulation_atom_positions_arrays(self):
         """
         Define the array to which the positions of the atoms with which the
         iGUESSMD force interacts will be saved over the course of the iGUESSMD simulation.
