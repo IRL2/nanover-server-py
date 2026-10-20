@@ -10,11 +10,63 @@ class iGUESSMDSimulation:
     A base class for all iGUESSMD simulations.
     """
 
-    # TODO: Flesh out this base class and move operations common to all
-    #  subclasses to this base class
-
     def __init__(self, name: str | None = None):
+
+        # Attributes defined by inputs
         self.name: str | None = name or "Unnamed iGUESSMD simulation"
+        """An optional name for the iGUESSMD simulation"""
+        self.mobile_atom_indices: np.ndarray | None = None
+        """Indices of the atoms belonging to the mobile group R(r)"""
+        self.ref_atom_indices: np.ndarray | None = None
+        """Indices of the atoms belonging to the reference group R_ref(r)"""
+        self.reaction_path: np.ndarray | None = None
+        """Reaction path in x_rel(r) defining the transformation (nm)"""
+        self.k: float | np.ndarray | None = None
+        """Harmonic force constant(s) defining the iGUESSMD harmonic potential (kJ mol-1 nm-2)"""
+        self.k_par: float | np.ndarray | None = None
+        """Harmonic force constant of the component of the iGUESSMD force parallel to the 
+           reaction path (kJ mol-1 nm-2)"""
+        self.k_perp: float | np.ndarray | None = None
+        """Harmonic force constant of the component of the iGUESSMD force perpendicular to the 
+           reaction path (kJ mol-1 nm-2)"""
+        self._coord_type: str | None = None
+        """String defining the type of coordinate system to use for the iGUESSMD simulation
+        
+           Possible values:
+             - 'abs' : indicates that the reaction path is given in the same Cartesian coordinate 
+                       system of the simulation, with the origin as the reference point R_ref(r)
+             - 'rel' : indicates that the reaction path is given in the relative coordinate 
+                       system defined by the centres R(r) and R_ref(r), which are defined 
+                       respectively by the mobile and reference atom positions
+                       
+           If this value is not set explicitly on creation of the simulation, it will be inferred
+           from the indices passed to the simulation (i.e. mobile indices only -> 'abs', both 
+           mobile and reference indices -> 'rel'."""
+
+        # Attributes for iGUESSMD force updates
+        self.current_iguessmd_force_position: np.ndarray | None = None
+        """The current position of the origin of the iGUESSMD force, updated during the iGUESSMD simulation"""
+        self.current_iguessmd_reaction_path_tangent: np.ndarray | None = None
+        """The tangent of the reaction path at the origin of the iGUESSMD force, updated during the
+           iGUESSMD simulation"""
+        self.current_iguessmd_force_position_index: int | None = None
+        """Index indicating the location of the current iGUESSMD force position in the reaction path array"""
+
+        # Attributes defined by the results of the iGUESSMD simulation
+        self.iguessmd_sim_mobile_atom_positions: np.ndarray | None = None
+        """Positions of the mobile atoms recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_ref_atom_positions: np.ndarray | None = None
+        """Positions of the reference atoms recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_mobile_centre_positions: np.ndarray | None = None
+        """Positions of R(r) recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_ref_centre_positions: np.ndarray | None = None
+        """Positions of R_ref(r) recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_x_rel_positions: np.ndarray | None = None
+        """Positions of the relative coordinate x_rel(r) recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_forces: np.ndarray | None = None
+        """Values of the iGUESSMD forces recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_work_done: np.ndarray | None = None
+        """Values of the cumulative work done by the iGUESSMD force during the iGUESSMD simulation"""
 
     @abstractmethod
     def define_iguessmd_simulation_atom_positions_array(self):
