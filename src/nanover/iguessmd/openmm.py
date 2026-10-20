@@ -28,8 +28,8 @@ iGUESSMD_FORCE_EXPRESSION_PARALLEL = f"0.5 * {iGUESSMD_FORCE_CONSTANT_PARALLEL_P
 iGUESSMD_FORCE_EXPRESSION_PERPENDICULAR = f"0.5 * {iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME} * ((dx^2 + dy^2 + dz^2) - (tx*dx + ty*dy + tz*dz)^2)"
 iGUESSMD_FORCE_EXPRESSION_ATOM_NONPERIODIC = f"{iGUESSMD_FORCE_EXPRESSION_PARALLEL} + {iGUESSMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(x-x0); dy=(y-y0); dz=(z-z0)"
 iGUESSMD_FORCE_EXPRESSION_ATOM_PERIODIC = f"{iGUESSMD_FORCE_EXPRESSION_PARALLEL} + {iGUESSMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(raw_dx - Lx*floor((raw_dx/Lx) + 0.5)); raw_dx=(x-x0); dy=(raw_dy - Ly*floor((raw_dy/Ly) + 0.5)); raw_dy=(y-y0); dz=(raw_dz - Lz*floor((raw_dz/Lz) + 0.5)); raw_dz=(z-z0)"
-iGUESSMD_FORCE_EXPRESSION_COM_NONPERIODIC = f"{iGUESSMD_FORCE_EXPRESSION_PARALLEL} + {iGUESSMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(x1-x0); dy=(y1-y0); dz=(z1-z0)"
-iGUESSMD_FORCE_EXPRESSION_COM_PERIODIC = f"{iGUESSMD_FORCE_EXPRESSION_PARALLEL} + {iGUESSMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(raw_dx - Lx*floor((raw_dx/Lx) + 0.5)); raw_dx=(x1-x0); dy=(raw_dy - Ly*floor((raw_dy/Ly) + 0.5)); raw_dy=(y1-y0); dz=(raw_dz - Lz*floor((raw_dz/Lz) + 0.5)); raw_dz=(z1-z0)"
+iGUESSMD_FORCE_EXPRESSION_COM_NONPERIODIC = f"{iGUESSMD_FORCE_EXPRESSION_PARALLEL} + {iGUESSMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=((x1-x2)-x0); dy=((y1-y2)-y0); dz=((z1-z2)-z0)"
+iGUESSMD_FORCE_EXPRESSION_COM_PERIODIC = f"{iGUESSMD_FORCE_EXPRESSION_PARALLEL} + {iGUESSMD_FORCE_EXPRESSION_PERPENDICULAR}; dx=(raw_dx - Lx*floor((raw_dx/Lx) + 0.5)); raw_dx=((x1-x2)-x0); dy=(raw_dy - Ly*floor((raw_dy/Ly) + 0.5)); raw_dy=((y1-y2)-y0); dz=(raw_dz - Lz*floor((raw_dz/Lz) + 0.5)); raw_dz=((z1-z2)-z0)"
 
 
 class OMMiGUESSMDSimulation(iGUESSMDSimulation):
@@ -146,6 +146,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         self._sim_uses_pbcs: bool | None = None
         self._pbc_box_lengths: np.ndarray | None = None
+        self._coord_type: str = 'abs'
 
     def _initialise_iguessmd_simulation(
         self,
@@ -342,6 +343,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                     iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME,
                     iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME,
                     *({"Lx", "Ly", "Lz"} if self._sim_uses_pbcs else set()),
+                    *({"x2", "y2", "z2"} if self._coord_type == 'abs' else set()),
                 }
 
                 xml_root = ET.fromstring(xml_string)
@@ -737,6 +739,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             self.iguessmd_force_constant_perpendicular,
             self._sim_uses_pbcs,
             self._pbc_box_lengths,
+            self._coord_type,
         )
         iguessmd_force.addGroup(self.iguessmd_atom_indices)
         iguessmd_force.addBond([0], [x0, y0, z0, tx, ty, tz])
@@ -820,6 +823,7 @@ def iguessmd_com_force(
     perpendicular_force_constant: float | np.ndarray,
     uses_pbcs: bool,
     pbc_box_lengths: np.ndarray | None = None,
+    coord_type: str = 'abs',
 ):
     """
     Defines a harmonic restraint force for the COM of a group of atoms for performing iGUESSMD.
@@ -835,14 +839,16 @@ def iguessmd_com_force(
     :return: CustomCentroidBondForce defining the harmonic iGUESSMD force that interacts with
       the COM of the specified atoms.
     """
+    assert coord_type in ('abs', 'rel')
+    n_centres = 1 if coord_type == 'abs' else 2
 
     if uses_pbcs:
         iguessmd_force = CustomCentroidBondForce(
-            1, iGUESSMD_FORCE_EXPRESSION_COM_PERIODIC
+            n_centres, iGUESSMD_FORCE_EXPRESSION_COM_PERIODIC
         )
     else:
         iguessmd_force = CustomCentroidBondForce(
-            1, iGUESSMD_FORCE_EXPRESSION_COM_NONPERIODIC
+            n_centres, iGUESSMD_FORCE_EXPRESSION_COM_NONPERIODIC
         )
 
     iguessmd_force.addGlobalParameter(
@@ -857,6 +863,10 @@ def iguessmd_com_force(
         iguessmd_force.addGlobalParameter("Lx", pbc_box_lengths[0])
         iguessmd_force.addGlobalParameter("Ly", pbc_box_lengths[1])
         iguessmd_force.addGlobalParameter("Lz", pbc_box_lengths[2])
+    if coord_type == 'abs':
+        iguessmd_force.addGlobalParameter("x2", 0.0)
+        iguessmd_force.addGlobalParameter("y2", 0.0)
+        iguessmd_force.addGlobalParameter("z2", 0.0)
     iguessmd_force.addPerBondParameter("x0")
     iguessmd_force.addPerBondParameter("y0")
     iguessmd_force.addPerBondParameter("z0")
