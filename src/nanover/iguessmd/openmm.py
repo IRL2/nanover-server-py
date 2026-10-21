@@ -950,7 +950,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
           for which to calculate the mass weights.
         :return: NumPy array containing the mass weights of the atoms in the selection
         """
-        # TODO: write tests for this function
         assert atom_indices is not None and self.simulation is not None
         atom_masses = np.zeros(atom_indices.size)
         for index in range(atom_indices.size):

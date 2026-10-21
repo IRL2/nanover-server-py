@@ -1235,6 +1235,38 @@ def test_calculate_com_iguessmd_simulation_class(positions, masses, com):
     "positions, masses, com",
     [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
 )
+def test_calculate_com_weights(positions, masses, com):
+    """
+    Check that the OMMiGUESSMDSimulation class correctly calculates
+    the COM weights of the atoms to which the iGUESSMD force is
+    applied.
+    """
+    # Create the simulation and retrieve indices for all atoms
+    simulation = build_com_simulation((positions, masses, com))
+    indices = np.array([i for i in range(masses.size)])
+
+    # Create the iGUESSMD simulation
+    iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
+        simulation,
+        indices,
+        TEST_iGUESSMD_LINEAR_PATH,
+        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
+        iguessmd_mobile_atom_weights=None,
+    )
+    # Calculate expected mass weights
+    expected_weights = masses / masses.sum()
+
+    # Check the weights are automatically calculated correctly
+    assert np.allclose(iguessmd_sim.mobile_atom_weights, expected_weights, atol=1e-16)
+
+    # Check the output of the function that calculates the weights explicitly
+    assert np.allclose(iguessmd_sim._calculate_com_weights(iguessmd_sim.mobile_atom_indices), expected_weights, atol=1e-16)
+
+
+@pytest.mark.parametrize(
+    "positions, masses, com",
+    [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
+)
 def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, com):
     """
     Check that the function _calculate_x_rel_trajectory correctly calculates
