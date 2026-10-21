@@ -1103,13 +1103,11 @@ def test_save_iguessmd_simulation_data(indices, force_constants, every_nth, dtyp
 
         # Save as specified dtype (currently arrays are dtype float64 internally)
         if indices.size > 1:
-            iguessmd_sim.save_iguessmd_simulation_data(
-                file_path, every_nth=every_nth, atom_positions_dtype=dtypes, work_done_dtype=dtypes, com_positions_dtype=dtypes
-            )
+            iguessmd_sim.save_iguessmd_simulation_data(file_path, every_nth=every_nth, work_done_dtype=dtypes,
+                                                       centre_positions_dtype=dtypes, atom_positions_dtype=dtypes)
         else:
-            iguessmd_sim.save_iguessmd_simulation_data(
-                file_path, every_nth=every_nth, atom_positions_dtype=dtypes, work_done_dtype=dtypes
-            )
+            iguessmd_sim.save_iguessmd_simulation_data(file_path, every_nth=every_nth, work_done_dtype=dtypes,
+                                                       atom_positions_dtype=dtypes)
 
         # Check the outfile exists
         assert file_path.exists()

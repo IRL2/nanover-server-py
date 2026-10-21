@@ -124,11 +124,13 @@ class iGUESSMDSimulation:
         every_nth: int | None = None,
         include_end: bool = False,
         save_work_done: bool = True,
+        save_x_rel_positions: bool = True,
+        save_centre_positions: bool = True,
         save_atom_positions: bool = True,
-        save_com_positions: bool = True,
         work_done_dtype: npt.DTypeLike = np.float32,
+        x_rel_positions_dtype: npt.DTypeLike = np.float32,
+        centre_positions_dtype: npt.DTypeLike = np.float32,
         atom_positions_dtype: npt.DTypeLike = np.float32,
-        com_positions_dtype: npt.DTypeLike = np.float32,
     ):
         """
         Save the data produced by the iGUESSMD simulation in binary form that can be read
@@ -143,11 +145,16 @@ class iGUESSMDSimulation:
         :param include_end: (Bool) whether to save final values of the work and/or positions
           regardless of stride defined by every nth
         :param save_work_done: Bool determining whether to save the work done
+        :param save_x_rel_positions: Bool determining whether to save the positions of the x_rel
+          coordinate defined during the iGUESSMD simulation
+        :param save_centre_positions: Bool determining whether to save the positions of the centre R(r)
+          defined by the mobile atoms (and the centre R_ref(r) defined by the reference atoms if relative
+          coordinates used)
         :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
-        :param save_com_positions: Bool determining whether to save the positions of the COM
         :param work_done_dtype: Data type of the work done array to save
+        :param x_rel_positions_dtype: Data type of the COM positions array to save
+        :param centre_positions_dtype: Data type of the COM positions array to save
         :param atom_positions_dtype: Data type of the atom positions array to save
-        :param com_positions_dtype: Data type of the COM positions array to save
         """
 
     @abstractmethod

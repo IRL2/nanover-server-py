@@ -587,11 +587,13 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         every_nth: int | None = None,
         include_end: bool = False,
         save_work_done: bool = True,
+        save_x_rel_positions: bool = True,
+        save_centre_positions: bool = True,
         save_atom_positions: bool = True,
-        save_com_positions: bool = True,
         work_done_dtype: npt.DTypeLike = np.float32,
+        x_rel_positions_dtype: npt.DTypeLike = np.float32,
+        centre_positions_dtype: npt.DTypeLike = np.float32,
         atom_positions_dtype: npt.DTypeLike = np.float32,
-        com_positions_dtype: npt.DTypeLike = np.float32,
     ):
         """
         Save the data produced by the iGUESSMD simulation in binary form that can be read
@@ -606,11 +608,16 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         :param include_end: (Bool) whether to save final values of the work and/or positions
           regardless of stride defined by every nth
         :param save_work_done: Bool determining whether to save the work done
+        :param save_x_rel_positions: Bool determining whether to save the positions of the x_rel
+          coordinate defined during the iGUESSMD simulation
+        :param save_centre_positions: Bool determining whether to save the positions of the centre R(r)
+          defined by the mobile atoms (and the centre R_ref(r) defined by the reference atoms if relative
+          coordinates used)
         :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
-        :param save_com_positions: Bool determining whether to save the positions of the COM
         :param work_done_dtype: Data type of the work done array to save
-        :param atom_positions_dtype: Data type of the atom positions array to save
-        :param com_positions_dtype: Data type of the COM positions array to save
+        :param x_rel_positions_dtype: Data type of the x_rel positions array to save
+        :param centre_positions_dtype: Data type of the centre positions array(s) to save
+        :param atom_positions_dtype: Data type of the atom positions array(s) to save
         """
 
         if path is None:
@@ -624,11 +631,17 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 "the iGUESSMD calculation is completed."
             )
 
+        if self.iguessmd_sim_x_rel_positions is None:
+            raise ValueError(
+                "Missing values for the x_rel positions. This data can only be saved after "
+                "the iGUESSMD calculation is completed."
+            )
+
         if self.iguessmd_sim_mobile_atom_positions is None or np.all(
             self.iguessmd_sim_mobile_atom_positions == 0.0
         ):
             raise ValueError(
-                "Missing values for the atom positions. This data can only be saved after "
+                "Missing values for the mobile atom positions. This data can only be saved after "
                 "the iGUESSMD calculation is completed."
             )
 
@@ -636,9 +649,26 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             self.iguessmd_sim_mobile_centre_positions == 0.0
         ):
             raise ValueError(
-                "Missing values for the atom positions. This data can only be saved after"
+                "Missing values for the mobile centre positions. This data can only be saved after"
                 "the iGUESSMD calculation is completed."
             )
+
+        if self._coord_type == "rel":
+            if self.iguessmd_sim_ref_atom_positions is None or np.all(
+                self.iguessmd_sim_ref_atom_positions == 0.0
+            ):
+                raise ValueError(
+                    "Missing values for the reference atom positions. This data can only be saved after "
+                    "the iGUESSMD calculation is completed."
+                )
+
+            if self.iguessmd_sim_ref_centre_positions is None or np.all(
+                self.iguessmd_sim_ref_centre_positions == 0.0
+            ):
+                raise ValueError(
+                    "Missing values for the reference centre positions. This data can only be saved after"
+                    "the iGUESSMD calculation is completed."
+                )
 
         if every_nth is None:
             every_nth = 1
@@ -658,18 +688,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             every_nth * self.simulation.integrator.getStepSize()._value
         )
 
-        # Optionally save atom positions
-        if save_atom_positions:
-            iguessmd_simulation_data["iguessmd_sim_mobile_atom_positions"] = (
-                get_every_nth(
-                    self.iguessmd_sim_mobile_atom_positions,
-                    axis=0,
-                    every_nth=every_nth,
-                    include_end=include_end,
-                ).astype(atom_positions_dtype)
-            )
-            print("Atom positions saved to simulation data file.")
-
         # Optionally save work done
         if save_work_done:
             iguessmd_simulation_data["iguessmd_sim_work_done"] = get_every_nth(
@@ -680,17 +698,60 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             )
             print("Work done saved to simulation data file.")
 
-        if save_com_positions:
+        # Optionally save the x_rel positions
+        if save_x_rel_positions:
+            iguessmd_simulation_data["iguessmd_sim_x_rel_positions"] = get_every_nth(
+                self.iguessmd_sim_x_rel_positions,
+                axis=0,
+                every_nth=every_nth,
+                include_end=include_end,
+            ).astype(x_rel_positions_dtype)
+
+        # Optionally save atom positions
+        if save_atom_positions:
+            iguessmd_simulation_data["iguessmd_sim_mobile_atom_positions"] = (
+                get_every_nth(
+                    self.iguessmd_sim_mobile_atom_positions,
+                    axis=0,
+                    every_nth=every_nth,
+                    include_end=include_end,
+                ).astype(atom_positions_dtype)
+            )
+            if self._coord_type == "rel":
+                iguessmd_simulation_data["iguessmd_sim_ref_atom_positions"] = (
+                    get_every_nth(
+                        self.iguessmd_sim_mobile_atom_positions,
+                        axis=0,
+                        every_nth=every_nth,
+                        include_end=include_end,
+                    ).astype(atom_positions_dtype)
+                )
+            print("Atom positions saved to simulation data file.")
+
+        if save_centre_positions:
             iguessmd_simulation_data["iguessmd_sim_mobile_centre_positions"] = (
                 get_every_nth(
                     self.iguessmd_sim_mobile_centre_positions.astype(
-                        com_positions_dtype
+                        centre_positions_dtype
                     ),
                     axis=0,
                     every_nth=every_nth,
                     include_end=include_end,
                 )
             )
+            if self._coord_type == "rel":
+                assert self.iguessmd_sim_ref_centre_positions is not None
+                iguessmd_simulation_data["iguessmd_sim_ref_centre_positions"] = (
+                    get_every_nth(
+                        self.iguessmd_sim_ref_centre_positions.astype(
+                            centre_positions_dtype
+                        ),
+                        axis=0,
+                        every_nth=every_nth,
+                        include_end=include_end,
+                    )
+                )
+            print("Centre positions saved to simulation data file.")
 
         np.savez_compressed(path, **iguessmd_simulation_data)
 
@@ -701,6 +762,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         - Indices of the atoms to which the iGUESSMD force is applied
         - Positions defining the path of the iGUESSMD force, in nm
+        - The type of coordinates used to define the iGUESSMD reaction path
         - Force constant of the iGUESSMD force, in kJ mol-1 nm-2
         - Temperature of the simulation, in Kelvin
         - Time step of the simulation, in picoseconds
@@ -717,10 +779,16 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         general_iguessmd_data: dict[str, Any] = {
             "mobile_atom_indices": self.mobile_atom_indices,
             "reaction_path": self.reaction_path,
+            "x_rel_coordinate_type": self._coord_type,
             "force_constant_kJ/(mol*nm2)": self.k,
             "temperature_K": self.simulation.integrator.getTemperature()._value,
             "timestep_ps": self.simulation.integrator.getStepSize()._value,
         }
+
+        # Add the indices of the reference atoms (if relative coordinate used)
+        if self._coord_type == "rel" and self.ref_atom_indices is not None:
+            general_iguessmd_data["ref_atom_indices"] = self.ref_atom_indices
+
 
         # Save dictionary to file defined by path
         np.savez_compressed(path, **general_iguessmd_data)
