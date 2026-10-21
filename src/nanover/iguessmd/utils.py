@@ -90,5 +90,4 @@ def calculate_weighted_centre(
     :return: NumPy array containing the position of the weighted centre of the atoms
     with dimension (3)
     """
-    # TODO: Write tests for this function
     return np.sum(np.multiply(np.transpose(atom_positions), atom_weights), axis=1)
