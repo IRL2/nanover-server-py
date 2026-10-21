@@ -804,13 +804,13 @@ class PathSmoother:
         print(f"Saving constant speed trajectory data to {output_filepath}")
 
         pathsmoother_data: dict[str, np.ndarray | float] = {
-            "iguessmd_path": self.constant_speed_com_trajectory,
+            "reaction_path": self.constant_speed_com_trajectory,
             "iguessmd_speed_nm_ps": self.constant_speed_nm_ps,
             "iguessmd_timestep_ps": self.timestep_ps,
         }
 
         if self.atom_indices is not None:
-            pathsmoother_data["iguessmd_atom_indices"] = self.atom_indices
+            pathsmoother_data["mobile_atom_indices"] = self.atom_indices
         else:
             print(
                 "Warning: atom indices not provided and hence not saved to output file."
@@ -1238,7 +1238,7 @@ def load_iguessmd_path_data(filepath: PathLike | str):
 
     iguessmd_path_data = dict(np.load(filepath))
 
-    if not iguessmd_path_data["iguessmd_atom_indices"]:
+    if not iguessmd_path_data["mobile_atom_indices"]:
         warnings.warn("Atom indices not present in file and could not be loaded.")
 
     return iguessmd_path_data

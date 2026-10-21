@@ -41,8 +41,8 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
     def from_simulation(
         cls,
         simulation: Simulation,
-        iguessmd_atom_indices: np.ndarray,
-        iguessmd_path: np.ndarray,
+        iguessmd_mobile_atom_indices: np.ndarray,
+        iguessmd_reaction_path: np.ndarray,
         iguessmd_force_constant: float | np.ndarray,
         *,
         iguessmd_ref_atom_indices: np.ndarray | None = None,
@@ -53,14 +53,26 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         Construct the iGUESSMD simulation from an existing OpenMM simulation.
 
         :param simulation: An existing OpenMM Simulation
-        :param iguessmd_atom_indices: A NumPy array of indices of the atoms to which the
+        :param iguessmd_mobile_atom_indices: A NumPy array of indices of the mobile atoms to which the
           iGUESSMD force should be applied (0-D or 1-D for single atom, 1-D for COM)
-        :param iguessmd_path: A NumPy array of coordinates defining the path that the
+        :param iguessmd_reaction_path: A NumPy array of coordinates defining the path that the
           iGUESSMD force will take during the iGUESSMD simulation
         :param iguessmd_force_constant: The force constant(s) defining the iGUESSMD force
           (either a float for a spherically symmetric harmonic potential or a 1-D NumPy
            array defining a parallel and perpendicular force constant for an asymmetric
            harmonic potential)
+        :param iguessmd_ref_atom_indices: A NumPy array of indices of the atoms defining the centre
+           used to define the relative reaction path of the mobile atoms, to which the iGUESSMD
+           is also applied if relative coordinates are used (0-D or 1-D for single atom,
+           1-D for COM)
+        :param iguessmd_coord_type: The type of coordinate system used to define the iGUESSMD
+           reaction path.
+           Possible values:
+             - 'abs' : indicates that the reaction path is given in the same Cartesian coordinate
+                       system of the simulation, with the origin as the reference point R_ref(r)
+             - 'rel' : indicates that the reaction path is given in the relative coordinate
+                       system defined by the centres R(r) and R_ref(r), which are defined
+                       respectively by the mobile and reference atom positions
         :param name: An optional name for the simulation
         """
 
@@ -72,7 +84,11 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         # Initialise all objects relevant to the iGUESSMD simulation
         sim._initialise_iguessmd_simulation(
-            iguessmd_atom_indices, iguessmd_path, iguessmd_force_constant, iguessmd_ref_atom_indices, iguessmd_coord_type
+            iguessmd_mobile_atom_indices,
+            iguessmd_reaction_path,
+            iguessmd_force_constant,
+            iguessmd_ref_atom_indices,
+            iguessmd_coord_type,
         )
 
         return sim
@@ -81,8 +97,8 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
     def from_xml_path(
         cls,
         path: PathLike | str,
-        iguessmd_atom_indices: np.ndarray,
-        iguessmd_path: np.ndarray,
+        iguessmd_mobile_atom_indices: np.ndarray,
+        iguessmd_reaction_path: np.ndarray,
         iguessmd_force_constant: float | np.ndarray,
         *,
         iguessmd_ref_atom_indices: np.ndarray | None = None,
@@ -93,14 +109,26 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         Construct the iGUESSMD simulation from an existing NanoVer OpenMM XML file located at a given path.
 
         :param path: Path to the NanoVer OpenMM XML file defining the simulation
-        :param iguessmd_atom_indices: A NumPy array of indices of the atoms to which the
+        :param iguessmd_mobile_atom_indices: A NumPy array of indices of the atoms to which the
           iGUESSMD force should be applied (0-D or 1-D for single atom, 1-D for COM)
-        :param iguessmd_path: A NumPy array of coordinates defining the path that the
+        :param iguessmd_reaction_path: A NumPy array of coordinates defining the path that the
           iGUESSMD force will take during the iGUESSMD simulation
         :param iguessmd_force_constant: The force constant(s) defining the iGUESSMD force
           (either a float for a spherically symmetric harmonic potential or a 1-D NumPy
            array defining a parallel and perpendicular force constant for an asymmetric
            harmonic potential)
+        :param iguessmd_ref_atom_indices: A NumPy array of indices of the atoms defining the centre
+           used to define the relative reaction path of the mobile atoms, to which the iGUESSMD
+           is also applied if relative coordinates are used (0-D or 1-D for single atom,
+           1-D for COM)
+        :param iguessmd_coord_type: The type of coordinate system used to define the iGUESSMD
+           reaction path.
+           Possible values:
+             - 'abs' : indicates that the reaction path is given in the same Cartesian coordinate
+                       system of the simulation, with the origin as the reference point R_ref(r)
+             - 'rel' : indicates that the reaction path is given in the relative coordinate
+                       system defined by the centres R(r) and R_ref(r), which are defined
+                       respectively by the mobile and reference atom positions
         :param name: An optional name for the simulation
         """
 
@@ -115,43 +143,33 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         # Initialise all objects relevant to the iGUESSMD simulation
         sim._initialise_iguessmd_simulation(
-            iguessmd_atom_indices, iguessmd_path, iguessmd_force_constant, iguessmd_ref_atom_indices, iguessmd_coord_type
+            iguessmd_mobile_atom_indices,
+            iguessmd_reaction_path,
+            iguessmd_force_constant,
+            iguessmd_ref_atom_indices,
+            iguessmd_coord_type,
         )
 
         return sim
 
     def __init__(self, name: str | None = None):
+        # Inherit most iGUESSMD attributes from base class
         super().__init__(name)
 
+        # Attributes from loading from file
         self.xml_path: PathLike | str | None = None
 
+        # Attributes specific to OpenMM Simulation
         self.simulation: Simulation
-        self.iguessmd_atom_indices: np.ndarray | None = None
-        self.iguessmd_path: np.ndarray
-        self.iguessmd_path_unit_tangents: np.ndarray
-        self.iguessmd_force_constant: float | np.ndarray | None = None
-        self.iguessmd_force_constant_parallel: float | np.ndarray | None = None
-        self.iguessmd_force_constant_perpendicular: float | np.ndarray | None = None
-
-        self.loaded_iguessmd_force_from_sim: bool = False
-        self.n_iguessmd_atom_indices: int | None = None
-
+        self.checkpoint: Any | None = None
         self.iguessmd_force: CustomCentroidBondForce | None = None
         self.iguessmd_force_groups: list
-
-        self.checkpoint: Any | None = None
-
-        self.current_iguessmd_force_position: np.ndarray | None = None
-        self.current_iguessmd_force_tangent: np.ndarray | None = None
-        self.current_iguessmd_force_position_index: int | None = None
-        self.iguessmd_simulation_atom_positions: np.ndarray
-        self.iguessmd_com_positions: np.ndarray | None = None
-        self.iguessmd_simulation_forces: np.ndarray | None = None
-        self.iguessmd_simulation_work_done: np.ndarray | None = None
+        self.loaded_iguessmd_force_from_sim: bool = False
 
         self._sim_uses_pbcs: bool | None = None
         self._pbc_box_lengths: np.ndarray | None = None
-        self._coord_type: str = 'abs'
+
+        self.n_iguessmd_atom_indices: int | None = None
 
     def _initialise_iguessmd_simulation(
         self,
@@ -170,11 +188,17 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         if iguessmd_atom_indices.size == 1 and iguessmd_atom_indices.shape == ():
             iguessmd_atom_indices = np.reshape(iguessmd_atom_indices, (1,))
 
-        self.iguessmd_atom_indices = iguessmd_atom_indices
-        self.n_iguessmd_atom_indices = self.iguessmd_atom_indices.size
-        self.iguessmd_path = iguessmd_path
+        self.mobile_atom_indices = iguessmd_atom_indices
+        self.n_iguessmd_atom_indices = self.mobile_atom_indices.size
+        self.reaction_path = iguessmd_path
 
         if iguessmd_ref_atom_indices is not None:
+            assert iguessmd_ref_atom_indices.size >= 1
+            if (
+                iguessmd_ref_atom_indices.size == 1
+                and iguessmd_ref_atom_indices.shape == ()
+            ):
+                iguessmd_ref_atom_indices = np.reshape(iguessmd_ref_atom_indices, (1,))
             self.ref_atom_indices = iguessmd_ref_atom_indices
 
         # Allow user to choose iGUESSMD coordinate type (absolute or relative) with input
@@ -183,10 +207,10 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         # If no iGUESSMD coordinate type specified, use relative coordinates if
         # reference group is specified
         elif self.ref_atom_indices is not None:
-            self._coord_type = 'rel'
+            self._coord_type = "rel"
         # Otherwise, default to absolute coordinates
         else:
-            self._coord_type = 'abs'
+            self._coord_type = "abs"
 
         # Check if simulation employs periodic boundary conditions
         self._sim_uses_pbcs = self.simulation.system.usesPeriodicBoundaryConditions()
@@ -202,21 +226,19 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             isinstance(iguessmd_force_constant, np.ndarray)
             and iguessmd_force_constant.size == 2
         ):
-            self.iguessmd_force_constant = iguessmd_force_constant
-            self.iguessmd_force_constant_parallel = iguessmd_force_constant[0]
-            self.iguessmd_force_constant_perpendicular = iguessmd_force_constant[1]
+            self.k = iguessmd_force_constant
+            self.k_par = iguessmd_force_constant[0]
+            self.k_perp = iguessmd_force_constant[1]
         else:
-            self.iguessmd_force_constant = self.iguessmd_force_constant_parallel = (
-                self.iguessmd_force_constant_perpendicular
-            ) = iguessmd_force_constant
+            self.k = self.k_par = self.k_perp = iguessmd_force_constant
 
         self.define_iguessmd_simulation_atom_positions_arrays()
 
-        self.current_iguessmd_force_position = self.iguessmd_path[0]
+        self.current_iguessmd_force_position = self.reaction_path[0]
         self.current_iguessmd_force_position_index = 0
 
         self.calculate_iguessmd_path_tangents()
-        self.current_iguessmd_force_tangent = self.iguessmd_path_unit_tangents[0]
+        self.current_iguessmd_force_tangent = self.reaction_path_unit_tangents[0]
 
         # Check whether iGUESSMD force is already present
         self.check_for_existing_iguessmd_force()
@@ -240,12 +262,12 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         assert (
             self.simulation is not None
             and self.checkpoint is not None
-            and self.iguessmd_path is not None
+            and self.reaction_path is not None
             and self.iguessmd_force is not None
         )
 
         # Reset iGUESSMD force position
-        self.current_iguessmd_force_position = self.iguessmd_path[0]
+        self.current_iguessmd_force_position = self.reaction_path[0]
         self.current_iguessmd_force_position_index = 0
         self.update_iguessmd_force_position()
 
@@ -255,8 +277,8 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         # Reset or remove iGUESSMD simulation arrays
         self.define_iguessmd_simulation_atom_positions_arrays()
-        del self.iguessmd_simulation_forces
-        del self.iguessmd_simulation_work_done
+        del self.iguessmd_sim_forces
+        del self.iguessmd_sim_work_done
 
     def remove_iguessmd_force_from_system(self):
         """
@@ -287,10 +309,10 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         """
 
         # Check that path exists
-        assert self.iguessmd_path is not None
+        assert self.reaction_path is not None
 
         # Calculate unit tangents
-        self.iguessmd_path_unit_tangents = calculate_unit_tangents(self.iguessmd_path)
+        self.reaction_path_unit_tangents = calculate_unit_tangents(self.reaction_path)
 
     def get_iguessmd_atom_positions(self):
         """
@@ -300,10 +322,14 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         positions = self.simulation.context.getState(
             getPositions=True, enforcePeriodicBox=False
         ).getPositions(asNumpy=True)
-        self.iguessmd_simulation_atom_positions[
+        self.iguessmd_sim_mobile_atom_positions[
             self.current_iguessmd_force_position_index
-        ] = positions[self.iguessmd_atom_indices]
-        if self._coord_type == 'rel' and self.ref_atom_indices is not None:
+        ] = positions[self.mobile_atom_indices]
+        if (
+            self._coord_type == "rel"
+            and self.ref_atom_indices is not None
+            and self.iguessmd_sim_ref_atom_positions is not None
+        ):
             self.iguessmd_sim_ref_atom_positions[
                 self.current_iguessmd_force_position_index
             ] = positions[self.ref_atom_indices]
@@ -317,7 +343,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         """
 
         try:
-            assert np.all(self.current_iguessmd_force_position == self.iguessmd_path[0])
+            assert np.all(self.current_iguessmd_force_position == self.reaction_path[0])
         except AssertionError:
             raise AssertionError(
                 "Restraint is not located at the initial position "
@@ -368,7 +394,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                     iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME,
                     iGUESSMD_FORCE_CONSTANT_PERPENDICULAR_PARAMETER_NAME,
                     *({"Lx", "Ly", "Lz"} if self._sim_uses_pbcs else set()),
-                    *({"x2", "y2", "z2"} if self._coord_type == 'abs' else set()),
+                    *({"x2", "y2", "z2"} if self._coord_type == "abs" else set()),
                 }
 
                 xml_root = ET.fromstring(xml_string)
@@ -458,15 +484,15 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         # Get initial atom positions for iGUESSMD force at initial position
         assert (
-            self.iguessmd_simulation_atom_positions is not None
+            self.iguessmd_sim_mobile_atom_positions is not None
             and self.iguessmd_force is not None
-            and np.all(self.current_iguessmd_force_position == self.iguessmd_path[0])
+            and np.all(self.current_iguessmd_force_position == self.reaction_path[0])
             and self.current_iguessmd_force_position_index == 0
         )
         self.get_iguessmd_atom_positions()
 
         # Run iGUESSMD procedure
-        n_steps = self.iguessmd_path.shape[0]
+        n_steps = self.reaction_path.shape[0]
 
         print("Starting SMD simulation...")
         for step in range(1, n_steps):
@@ -503,26 +529,22 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         assert (
             interaction_centre_positions is not None
-            and np.all(self.iguessmd_path.shape == interaction_centre_positions.shape)
-            and self.iguessmd_force_constant_parallel is not None
-            and self.iguessmd_force_constant_perpendicular is not None
+            and np.all(self.reaction_path.shape == interaction_centre_positions.shape)
+            and self.k_par is not None
+            and self.k_perp is not None
         )
 
         # Calculate displacements and tangential components
-        displacements = interaction_centre_positions - self.iguessmd_path
+        displacements = interaction_centre_positions - self.reaction_path
         tangential_displacements = self._calculate_tangential_displacements(
             displacements
         )
 
         # Calculate force component along RC
-        parallel_forces = (
-            -self.iguessmd_force_constant_parallel * tangential_displacements
-        )
-        perpendicular_forces = -self.iguessmd_force_constant_perpendicular * (
-            displacements - tangential_displacements
-        )
+        parallel_forces = -self.k_par * tangential_displacements
+        perpendicular_forces = -self.k_perp * (displacements - tangential_displacements)
 
-        self.iguessmd_simulation_forces = parallel_forces + perpendicular_forces
+        self.iguessmd_sim_forces = parallel_forces + perpendicular_forces
 
     def _calculate_tangential_displacements(
         self, displacements: np.ndarray
@@ -534,15 +556,15 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         :param displacements: NumPy array of displacement vectors
         :return: NumPy array of tangential displacements
         """
-        assert self.iguessmd_path_unit_tangents is not None
+        assert self.reaction_path_unit_tangents is not None
 
         tangential_displacements = (
             (
                 np.linalg.vecdot(
-                    displacements, self.iguessmd_path_unit_tangents, axis=1
-                )[:, None]  # type: ignore
+                    displacements, self.reaction_path_unit_tangents, axis=1
+                )[:, None]
             )
-            * self.iguessmd_path_unit_tangents
+            * self.reaction_path_unit_tangents
         )
 
         return tangential_displacements
@@ -551,16 +573,13 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         """
         Calculate the work done along the reaction coordinate in kJ mol-1.
         """
-        assert (
-            self.iguessmd_path is not None
-            and self.iguessmd_simulation_forces is not None
-        )
-        smd_force_displacements = np.diff(self.iguessmd_path, axis=0)
-        work_done_array = np.zeros(self.iguessmd_simulation_forces.shape[0])
+        assert self.reaction_path is not None and self.iguessmd_sim_forces is not None
+        smd_force_displacements = np.diff(self.reaction_path, axis=0)
+        work_done_array = np.zeros(self.iguessmd_sim_forces.shape[0])
         work_done_array[1:] = np.linalg.vecdot(
-            self.iguessmd_simulation_forces[:-1], smd_force_displacements, axis=1
-        )  # type: ignore
-        self.iguessmd_simulation_work_done = np.cumsum(work_done_array, axis=0)
+            self.iguessmd_sim_forces[:-1], smd_force_displacements, axis=1
+        )
+        self.iguessmd_sim_work_done = np.cumsum(work_done_array, axis=0)
 
     def save_iguessmd_simulation_data(
         self,
@@ -599,22 +618,22 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 "Output file path cannot be None. Please specify an output file path."
             )
 
-        if self.iguessmd_simulation_work_done is None:
+        if self.iguessmd_sim_work_done is None:
             raise ValueError(
                 "Missing values for the work done. This data can only be saved after "
                 "the iGUESSMD calculation is completed."
             )
 
-        if self.iguessmd_simulation_atom_positions is None or np.all(
-            self.iguessmd_simulation_atom_positions == 0.0
+        if self.iguessmd_sim_mobile_atom_positions is None or np.all(
+            self.iguessmd_sim_mobile_atom_positions == 0.0
         ):
             raise ValueError(
                 "Missing values for the atom positions. This data can only be saved after "
                 "the iGUESSMD calculation is completed."
             )
 
-        if self.iguessmd_com_positions is None or np.all(
-            self.iguessmd_com_positions == 0.0
+        if self.iguessmd_sim_mobile_centre_positions is None or np.all(
+            self.iguessmd_sim_mobile_centre_positions == 0.0
         ):
             raise ValueError(
                 "Missing values for the atom positions. This data can only be saved after"
@@ -627,7 +646,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         if (
             every_nth is not None
             and include_end
-            and (self.iguessmd_simulation_work_done.size - 1) % every_nth != 0
+            and (self.iguessmd_sim_work_done.size - 1) % every_nth != 0
         ):
             warnings.warn(
                 "Choice of every_nth yields different time step between the "
@@ -641,9 +660,9 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         # Optionally save atom positions
         if save_atom_positions:
-            iguessmd_simulation_data["iguessmd_simulation_atom_positions"] = (
+            iguessmd_simulation_data["iguessmd_sim_mobile_atom_positions"] = (
                 get_every_nth(
-                    self.iguessmd_simulation_atom_positions,
+                    self.iguessmd_sim_mobile_atom_positions,
                     axis=0,
                     every_nth=every_nth,
                     include_end=include_end,
@@ -653,8 +672,8 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         # Optionally save work done
         if save_work_done:
-            iguessmd_simulation_data["iguessmd_simulation_work_done"] = get_every_nth(
-                self.iguessmd_simulation_work_done.astype(work_done_dtype),
+            iguessmd_simulation_data["iguessmd_sim_work_done"] = get_every_nth(
+                self.iguessmd_sim_work_done.astype(work_done_dtype),
                 axis=0,
                 every_nth=every_nth,
                 include_end=include_end,
@@ -662,11 +681,15 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             print("Work done saved to simulation data file.")
 
         if save_com_positions:
-            iguessmd_simulation_data["iguessmd_com_positions"] = get_every_nth(
-                self.iguessmd_com_positions.astype(com_positions_dtype),
-                axis=0,
-                every_nth=every_nth,
-                include_end=include_end,
+            iguessmd_simulation_data["iguessmd_sim_mobile_centre_positions"] = (
+                get_every_nth(
+                    self.iguessmd_sim_mobile_centre_positions.astype(
+                        com_positions_dtype
+                    ),
+                    axis=0,
+                    every_nth=every_nth,
+                    include_end=include_end,
+                )
             )
 
         np.savez_compressed(path, **iguessmd_simulation_data)
@@ -692,9 +715,9 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         # Create dictionary containing general iGUESSMD data
         general_iguessmd_data: dict[str, Any] = {
-            "iguessmd_atom_indices": self.iguessmd_atom_indices,
-            "iguessmd_path": self.iguessmd_path,
-            "iguessmd_force_constant": self.iguessmd_force_constant,
+            "mobile_atom_indices": self.mobile_atom_indices,
+            "reaction_path": self.reaction_path,
+            "force_constant_kJ/(mol*nm2)": self.k,
             "temperature_K": self.simulation.integrator.getTemperature()._value,
             "timestep_ps": self.simulation.integrator.getStepSize()._value,
         }
@@ -724,13 +747,10 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 == iGUESSMD_FORCE_EXPRESSION_COM_PERIODIC
             )
             assert iguessmd_force.getNumGroups() == 1
-            assert force_constant_parallel == self.iguessmd_force_constant_parallel
-            assert (
-                force_constant_perpendicular
-                == self.iguessmd_force_constant_perpendicular
-            )
+            assert force_constant_parallel == self.k_par
+            assert force_constant_perpendicular == self.k_perp
             assert np.all(
-                iguessmd_force.getGroupParameters(0)[0] == self.iguessmd_atom_indices
+                iguessmd_force.getGroupParameters(0)[0] == self.mobile_atom_indices
             )
             assert np.all(
                 iguessmd_force.getBondParameters(0)[1]
@@ -752,22 +772,23 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         assert (
             self.current_iguessmd_force_position is not None
             and self.current_iguessmd_force_tangent is not None
-            and self.iguessmd_force_constant_parallel is not None
-            and self.iguessmd_force_constant_perpendicular is not None
+            and self.k_par is not None
+            and self.k_perp is not None
             and self._sim_uses_pbcs is not None
+            and self._coord_type is not None
         )
 
         x0, y0, z0 = self.current_iguessmd_force_position
         tx, ty, tz = self.current_iguessmd_force_tangent
         iguessmd_force = iguessmd_com_force(
-            self.iguessmd_force_constant_parallel,
-            self.iguessmd_force_constant_perpendicular,
+            self.k_par,
+            self.k_perp,
             self._sim_uses_pbcs,
             self._pbc_box_lengths,
             self._coord_type,
         )
-        force_groups = [iguessmd_force.addGroup(self.iguessmd_atom_indices)]
-        if self._coord_type == 'rel':
+        force_groups = [iguessmd_force.addGroup(self.mobile_atom_indices)]
+        if self._coord_type == "rel":
             force_groups.append(iguessmd_force.addGroup(self.ref_atom_indices))
         self.iguessmd_force_groups = force_groups
         iguessmd_force.addBond(force_groups, [x0, y0, z0, tx, ty, tz])
@@ -776,10 +797,10 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         self.simulation.context.reinitialize(preserveState=True)
 
     def update_iguessmd_force_position(self):
-        self.current_iguessmd_force_position = self.iguessmd_path[
+        self.current_iguessmd_force_position = self.reaction_path[
             self.current_iguessmd_force_position_index
         ]
-        self.current_iguessmd_force_tangent = self.iguessmd_path_unit_tangents[
+        self.current_iguessmd_force_tangent = self.reaction_path_unit_tangents[
             self.current_iguessmd_force_position_index
         ]
         assert (
@@ -789,17 +810,19 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         )
         x0, y0, z0 = self.current_iguessmd_force_position
         tx, ty, tz = self.current_iguessmd_force_tangent
-        self.iguessmd_force.setBondParameters(0, self.iguessmd_force_groups, [x0, y0, z0, tx, ty, tz])
+        self.iguessmd_force.setBondParameters(
+            0, self.iguessmd_force_groups, [x0, y0, z0, tx, ty, tz]
+        )
         self.iguessmd_force.updateParametersInContext(self.simulation.context)
 
     def define_iguessmd_simulation_atom_positions_arrays(self):
-        assert self.iguessmd_atom_indices is not None and self.iguessmd_path is not None
-        self.iguessmd_simulation_atom_positions = np.zeros(
-            (self.iguessmd_path.shape[0], self.iguessmd_atom_indices.size, 3)
+        assert self.mobile_atom_indices is not None and self.reaction_path is not None
+        self.iguessmd_sim_mobile_atom_positions = np.zeros(
+            (self.reaction_path.shape[0], self.mobile_atom_indices.size, 3)
         )
-        if self._coord_type == 'rel' and self.ref_atom_indices is not None:
+        if self._coord_type == "rel" and self.ref_atom_indices is not None:
             self.iguessmd_sim_ref_atom_positions = np.zeros(
-                (self.iguessmd_path.shape[0], self.iguessmd_atom_indices.size, 3)
+                (self.reaction_path.shape[0], self.mobile_atom_indices.size, 3)
             )
 
     def _calculate_com(self, atom_positions: np.ndarray, atom_masses: np.ndarray):
@@ -810,9 +833,9 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         :param atom_masses: NumPy array of atomic masses (AMU) with dimension (N)
         :return: NumPy array containing the position of the centre of mass of the atoms with dimension (3)
         """
-        assert self.iguessmd_atom_indices is not None
+        assert self.mobile_atom_indices is not None
         assert np.all(
-            atom_positions.shape == np.array((self.iguessmd_atom_indices.size, 3))
+            atom_positions.shape == np.array((self.mobile_atom_indices.size, 3))
         )
         return calculate_com(atom_positions, atom_masses)
 
@@ -820,31 +843,37 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         """
         Calculate the trajectory that the COM follows during the iGUESSMD simulation.
         """
-        assert self.iguessmd_atom_indices is not None and self.iguessmd_path is not None
+        assert self.mobile_atom_indices is not None and self.reaction_path is not None
         assert not np.array_equal(
-            self.iguessmd_simulation_atom_positions,
-            np.zeros((self.iguessmd_path.shape[0], self.iguessmd_atom_indices.size, 3)),
+            self.iguessmd_sim_mobile_atom_positions,
+            np.zeros((self.reaction_path.shape[0], self.mobile_atom_indices.size, 3)),
         )
         assert self.n_iguessmd_atom_indices is not None
         atom_masses = np.zeros(self.n_iguessmd_atom_indices)
         for index in range(self.n_iguessmd_atom_indices):
             atom_masses[index] = self.simulation.system.getParticleMass(
-                self.iguessmd_atom_indices[index]
+                self.mobile_atom_indices[index]
             )._value
-        self.iguessmd_com_positions = np.array(
+        self.iguessmd_sim_mobile_centre_positions = np.array(
             [
                 self._calculate_com(
-                    self.iguessmd_simulation_atom_positions[i], atom_masses
+                    self.iguessmd_sim_mobile_atom_positions[i], atom_masses
                 )
-                for i in range(self.iguessmd_path.shape[0])
+                for i in range(self.reaction_path.shape[0])
             ]
         )
 
-        if self._coord_type == 'abs':
-            self.iguessmd_sim_x_rel_positions = self.iguessmd_com_positions
+        if self._coord_type == "abs":
+            self.iguessmd_sim_x_rel_positions = (
+                self.iguessmd_sim_mobile_centre_positions
+            )
             return
 
-        if self._coord_type == 'rel' and self.ref_atom_indices is not None:
+        if (
+            self._coord_type == "rel"
+            and self.ref_atom_indices is not None
+            and self.iguessmd_sim_ref_atom_positions is not None
+        ):
             n_ref_atom_indices = self.ref_atom_indices.size
             ref_atom_masses = np.zeros(self.n_iguessmd_atom_indices)
             for index in range(n_ref_atom_indices):
@@ -856,10 +885,13 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                     self._calculate_com(
                         self.iguessmd_sim_ref_atom_positions[i], ref_atom_masses
                     )
-                    for i in range(self.iguessmd_path.shape[0])
+                    for i in range(self.reaction_path.shape[0])
                 ]
             )
-            self.iguessmd_sim_x_rel_positions = self.iguessmd_com_positions - self.iguessmd_sim_ref_centre_positions
+            self.iguessmd_sim_x_rel_positions = (
+                self.iguessmd_sim_mobile_centre_positions
+                - self.iguessmd_sim_ref_centre_positions
+            )
 
     def calculate_cumulative_work_done(self):
         """
@@ -876,7 +908,7 @@ def iguessmd_com_force(
     perpendicular_force_constant: float | np.ndarray,
     uses_pbcs: bool,
     pbc_box_lengths: np.ndarray | None = None,
-    coord_type: str = 'abs',
+    coord_type: str = "abs",
 ):
     """
     Defines a harmonic restraint force for the COM of a group of atoms for performing iGUESSMD.
@@ -892,8 +924,8 @@ def iguessmd_com_force(
     :return: CustomCentroidBondForce defining the harmonic iGUESSMD force that interacts with
       the COM of the specified atoms.
     """
-    assert coord_type in ('abs', 'rel')
-    n_centres = 1 if coord_type == 'abs' else 2
+    assert coord_type in ("abs", "rel")
+    n_centres = 1 if coord_type == "abs" else 2
 
     if uses_pbcs:
         iguessmd_force = CustomCentroidBondForce(
@@ -916,7 +948,7 @@ def iguessmd_com_force(
         iguessmd_force.addGlobalParameter("Lx", pbc_box_lengths[0])
         iguessmd_force.addGlobalParameter("Ly", pbc_box_lengths[1])
         iguessmd_force.addGlobalParameter("Lz", pbc_box_lengths[2])
-    if coord_type == 'abs':
+    if coord_type == "abs":
         iguessmd_force.addGlobalParameter("x2", 0.0)
         iguessmd_force.addGlobalParameter("y2", 0.0)
         iguessmd_force.addGlobalParameter("z2", 0.0)

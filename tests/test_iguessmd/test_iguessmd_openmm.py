@@ -377,9 +377,9 @@ def test_load_iguessmd_sim_from_simulation(force_constant, atom_indices):
         atom_indices = np.reshape(atom_indices, (1, ))
     assert iguessmd_sim
     assert iguessmd_sim.simulation
-    assert np.array_equal(iguessmd_sim.iguessmd_path, TEST_iGUESSMD_LINEAR_PATH)
-    assert np.array_equal(iguessmd_sim.iguessmd_atom_indices, atom_indices)
-    assert np.array_equal(iguessmd_sim.iguessmd_force_constant, force_constant)
+    assert np.array_equal(iguessmd_sim.reaction_path, TEST_iGUESSMD_LINEAR_PATH)
+    assert np.array_equal(iguessmd_sim.mobile_atom_indices, atom_indices)
+    assert np.array_equal(iguessmd_sim.k, force_constant)
 
 
 @pytest.mark.parametrize(
@@ -403,9 +403,9 @@ def test_load_iguessmd_sim_from_xml_path(
     assert iguessmd_sim
     assert iguessmd_sim.xml_path == make_basic_simulation_xml
     assert iguessmd_sim.simulation
-    assert np.array_equal(iguessmd_sim.iguessmd_path, TEST_iGUESSMD_LINEAR_PATH)
-    assert np.array_equal(iguessmd_sim.iguessmd_atom_indices, atom_indices)
-    assert np.array_equal(iguessmd_sim.iguessmd_force_constant, force_constant)
+    assert np.array_equal(iguessmd_sim.reaction_path, TEST_iGUESSMD_LINEAR_PATH)
+    assert np.array_equal(iguessmd_sim.mobile_atom_indices, atom_indices)
+    assert np.array_equal(iguessmd_sim.k, force_constant)
 
 
 @pytest.mark.parametrize(
@@ -433,7 +433,7 @@ def test_load_iguessmd_simulation_with_iguessmd_force_from_xml_path(
             force_constant,
         )
         assert iguessmd_sim.loaded_iguessmd_force_from_sim
-        assert np.array_equal(iguessmd_sim.iguessmd_force_constant, force_constant)
+        assert np.array_equal(iguessmd_sim.k, force_constant)
 
 
 @pytest.mark.parametrize(
@@ -581,8 +581,8 @@ def test_reset(indices):
     # are no longer present in the class
     try:
         assert (
-            iguessmd_sim.iguessmd_simulation_forces
-            or iguessmd_sim_copy.iguessmd_simulation_work_done
+            iguessmd_sim.iguessmd_sim_forces
+            or iguessmd_sim_copy.iguessmd_sim_work_done
         )
     except AttributeError:
         pass
@@ -615,17 +615,17 @@ def test_reset(indices):
         == iguessmd_sim_copy_state.getPotentialEnergy()
     )
     assert np.array_equal(
-        iguessmd_sim.iguessmd_simulation_atom_positions,
-        iguessmd_sim_copy.iguessmd_simulation_atom_positions,
+        iguessmd_sim.iguessmd_sim_mobile_atom_positions,
+        iguessmd_sim_copy.iguessmd_sim_mobile_atom_positions,
     )
 
     # Check the arguments passed to the OMMiGUESSMDSimulation class are unchanged by the reset
     assert np.array_equal(
-        iguessmd_sim.iguessmd_atom_indices, iguessmd_sim_copy.iguessmd_atom_indices
+        iguessmd_sim.mobile_atom_indices, iguessmd_sim_copy.mobile_atom_indices
     )
-    assert np.array_equal(iguessmd_sim.iguessmd_path, iguessmd_sim_copy.iguessmd_path)
+    assert np.array_equal(iguessmd_sim.reaction_path, iguessmd_sim_copy.reaction_path)
     assert np.array_equal(
-        iguessmd_sim.iguessmd_force_constant, iguessmd_sim_copy.iguessmd_force_constant
+        iguessmd_sim.k, iguessmd_sim_copy.k
     )
 
     # Check that the iGUESSMD force attached to the simulation is correctly reset
@@ -649,8 +649,8 @@ def test_reset(indices):
     # Check other relevant properties of the OMMiGUESSMDSimulation class match those of the
     # fresh copy after the reset
     assert np.array_equal(
-        iguessmd_sim.iguessmd_simulation_atom_positions,
-        iguessmd_sim_copy.iguessmd_simulation_atom_positions,
+        iguessmd_sim.iguessmd_sim_mobile_atom_positions,
+        iguessmd_sim_copy.iguessmd_sim_mobile_atom_positions,
     )
 
 
@@ -893,9 +893,9 @@ def test_calculate_iguessmd_path_tangents(name, path, tangents):
     iguessmd_sim.calculate_iguessmd_path_tangents()
 
     # Check that calculated tangents are as expected
-    assert iguessmd_sim.iguessmd_path_unit_tangents.shape == tangents.shape
+    assert iguessmd_sim.reaction_path_unit_tangents.shape == tangents.shape
     assert np.allclose(
-        iguessmd_sim.iguessmd_path_unit_tangents, tangents, rtol=1e-8
+        iguessmd_sim.reaction_path_unit_tangents, tangents, rtol=1e-8
     )
 
     # For circular path, check calculated tangent vectors obey symmetry
@@ -903,8 +903,8 @@ def test_calculate_iguessmd_path_tangents(name, path, tangents):
     if name == "circular":
         n_points = path.shape[0]
         assert np.allclose(
-            iguessmd_sim.iguessmd_path_unit_tangents[: int((n_points - 1) / 2)],
-            -iguessmd_sim.iguessmd_path_unit_tangents[int((n_points - 1) / 2): -1],
+            iguessmd_sim.reaction_path_unit_tangents[: int((n_points - 1) / 2)],
+            -iguessmd_sim.reaction_path_unit_tangents[int((n_points - 1) / 2): -1],
             rtol=1e-8,
         )
 
@@ -990,7 +990,7 @@ def test_calculate_iguessmd_forces(position_shifts, indices, force_constant):
 
     # Check calculated forces are equal to expected forces
     assert np.allclose(
-        iguessmd_sim.iguessmd_simulation_forces, expected_forces, atol=1e-16
+        iguessmd_sim.iguessmd_sim_forces, expected_forces, atol=1e-16
     )
 
 
@@ -1043,7 +1043,7 @@ def test_calculate_work_done(position_shifts, indices):
     # value corresponds to work done at t=0 (i.e. zero), so non-zero values
     # start at index 1. iGUESSMD paths are straight lines in the current examples,
     # so work done between each step is the same.
-    iguessmd_force = iguessmd_sim.iguessmd_simulation_forces[0]
+    iguessmd_force = iguessmd_sim.iguessmd_sim_forces[0]
     work_per_step = np.dot(diff, iguessmd_force)
     expected_work_done = np.array(
         [i * work_per_step for i in range(test_positions.shape[0])]
@@ -1053,7 +1053,7 @@ def test_calculate_work_done(position_shifts, indices):
     # expected values
     iguessmd_sim._calculate_work_done()
     assert np.allclose(
-        iguessmd_sim.iguessmd_simulation_work_done, expected_work_done, atol=1e-16
+        iguessmd_sim.iguessmd_sim_work_done, expected_work_done, atol=1e-16
     )
 
 
@@ -1122,36 +1122,36 @@ def test_save_iguessmd_simulation_data(indices, force_constants, every_nth, dtyp
 
 
         # Check that arrays save correctly (including dtype)
-        assert iguessmd_simulation_data["iguessmd_simulation_atom_positions"].dtype == dtypes
+        assert iguessmd_simulation_data["iguessmd_sim_mobile_atom_positions"].dtype == dtypes
         assert np.array_equal(
             get_every_nth(
-                iguessmd_sim.iguessmd_simulation_atom_positions,
+                iguessmd_sim.iguessmd_sim_mobile_atom_positions,
                 axis=0,
                 every_nth=every_nth,
                 include_end=False
             ).astype(dtypes),
-            iguessmd_simulation_data["iguessmd_simulation_atom_positions"],
+            iguessmd_simulation_data["iguessmd_sim_mobile_atom_positions"],
         )
-        assert iguessmd_simulation_data["iguessmd_simulation_work_done"].dtype == dtypes
+        assert iguessmd_simulation_data["iguessmd_sim_work_done"].dtype == dtypes
         assert np.array_equal(
             get_every_nth(
-                iguessmd_sim.iguessmd_simulation_work_done,
+                iguessmd_sim.iguessmd_sim_work_done,
                 axis=0,
                 every_nth=every_nth,
                 include_end=False
             ).astype(dtypes),
-            iguessmd_simulation_data["iguessmd_simulation_work_done"],
+            iguessmd_simulation_data["iguessmd_sim_work_done"],
         )
         if indices.size > 1:
-            assert iguessmd_simulation_data["iguessmd_com_positions"].dtype == dtypes
+            assert iguessmd_simulation_data["iguessmd_sim_mobile_centre_positions"].dtype == dtypes
             assert np.array_equal(
                 get_every_nth(
-                    iguessmd_sim.iguessmd_com_positions,
+                    iguessmd_sim.iguessmd_sim_mobile_centre_positions,
                     axis=0,
                     every_nth=every_nth,
                     include_end=False
                 ).astype(dtypes),
-                iguessmd_simulation_data["iguessmd_com_positions"],
+                iguessmd_simulation_data["iguessmd_sim_mobile_centre_positions"],
             )
 
 
@@ -1189,11 +1189,11 @@ def test_save_general_iguessmd_data(indices, force_constants):
         general_iguessmd_data = dict(np.load(file_path))
 
         assert np.array_equal(
-            iguessmd_sim.iguessmd_atom_indices, general_iguessmd_data["iguessmd_atom_indices"]
+            iguessmd_sim.mobile_atom_indices, general_iguessmd_data["mobile_atom_indices"]
         )
-        assert np.array_equal(iguessmd_sim.iguessmd_path, general_iguessmd_data["iguessmd_path"])
+        assert np.array_equal(iguessmd_sim.reaction_path, general_iguessmd_data["reaction_path"])
         assert np.array_equal(
-            iguessmd_sim.iguessmd_force_constant, general_iguessmd_data["iguessmd_force_constant"]
+            iguessmd_sim.k, general_iguessmd_data["force_constant_kJ/(mol*nm2)"]
         )
         assert (
                 iguessmd_sim.simulation.integrator.getTemperature()._value
@@ -1266,12 +1266,12 @@ def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, c
         expected_com_array[i] = com + TEST_iGUESSMD_LINEAR_PATH[i]
 
     # Set iGUESSMD atom positions equal to the trajectory of calculated atom positions
-    iguessmd_sim.iguessmd_simulation_atom_positions = atom_positions
+    iguessmd_sim.iguessmd_sim_mobile_atom_positions = atom_positions
 
     # Calculate COM trajectory using internal function and check the calculated
     # COMs match the predicted COMs
     iguessmd_sim._calculate_x_rel_trajectory()
-    assert np.allclose(iguessmd_sim.iguessmd_com_positions, expected_com_array, atol=1e-16)
+    assert np.allclose(iguessmd_sim.iguessmd_sim_mobile_centre_positions, expected_com_array, atol=1e-16)
 
 
 @pytest.mark.parametrize("pbcs", TEST_BOOLS)
@@ -1433,9 +1433,9 @@ def test_calculate_cumulative_work_done(fc_multiplier):
         iguessmd_sim.run_iguessmd()
 
     # Check values of work done
-    assert iguessmd_sim.iguessmd_simulation_work_done[-1] == fc_multiplier * 0.01
+    assert iguessmd_sim.iguessmd_sim_work_done[-1] == fc_multiplier * 0.01
     assert np.array_equal(
-        iguessmd_sim.iguessmd_simulation_work_done,
+        iguessmd_sim.iguessmd_sim_work_done,
         fc_multiplier * np.array([0.0, 0.0, 0.01]),
     )
 
@@ -1521,6 +1521,6 @@ def test_get_iguessmd_atom_positions_periodic(indices):
     # Check that x values of atoms to which iGUESSMD force have been
     # unwrapped correctly
     assert (wrapped_positions[:, 0] != unwrapped_positions[:, 0]).all()
-    assert np.all(iguessmd_sim.iguessmd_simulation_atom_positions[-1,:,0] < 0.0)
-    assert (unwrapped_positions[:, 0] == iguessmd_sim.iguessmd_simulation_atom_positions[-1,:,0]).all()
+    assert np.all(iguessmd_sim.iguessmd_sim_mobile_atom_positions[-1, :,0] < 0.0)
+    assert (unwrapped_positions[:, 0] == iguessmd_sim.iguessmd_sim_mobile_atom_positions[-1, :,0]).all()
 

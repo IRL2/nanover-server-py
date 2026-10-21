@@ -68,8 +68,8 @@ def make_example_general_iguessmd_data_file(
     indices, force_constant = request.param
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         simulation=build_basic_simulation(),
-        iguessmd_atom_indices=indices,
-        iguessmd_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_mobile_atom_indices=indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
         iguessmd_force_constant=force_constant,
     )
 
@@ -86,8 +86,8 @@ def make_example_iguessmd_simulation_data_file(
     indices, force_constant = request.param
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         simulation=build_basic_simulation(),
-        iguessmd_atom_indices=indices,
-        iguessmd_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_mobile_atom_indices=indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
         iguessmd_force_constant=force_constant,
     )
 
@@ -321,9 +321,9 @@ def test_load_general_iguessmd_data(make_example_general_iguessmd_data_file):
 
     # Check that expected keys are present and arrays have the expected dimensions
     expected_keys = [
-        "iguessmd_atom_indices",
-        "iguessmd_path",
-        "iguessmd_force_constant",
+        "mobile_atom_indices",
+        "reaction_path",
+        "force_constant_kJ/(mol*nm2)",
         "temperature_K",
         "timestep_ps",
     ]
@@ -355,8 +355,8 @@ def test_load_iguessmd_simulation_data(make_example_iguessmd_simulation_data_fil
 
     # Define expected keys and array shapes
     expected_keys = [
-        "iguessmd_simulation_atom_positions",
-        "iguessmd_simulation_work_done",
+        "iguessmd_sim_mobile_atom_positions",
+        "iguessmd_sim_work_done",
         "data_timestep_ps"
     ]
     path_len = TEST_iGUESSMD_LINEAR_PATH.shape[0]
@@ -366,7 +366,7 @@ def test_load_iguessmd_simulation_data(make_example_iguessmd_simulation_data_fil
 
     # Add COM checks if more than one atom index
     if indices.shape != ():
-        expected_keys.append("iguessmd_com_positions")
+        expected_keys.append("iguessmd_sim_mobile_centre_positions")
         expected_shapes.append((path_len, 3))
 
     # Check keys

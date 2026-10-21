@@ -11,7 +11,6 @@ class iGUESSMDSimulation:
     """
 
     def __init__(self, name: str | None = None):
-
         # Attributes defined by inputs
         self.name: str | None = name or "Unnamed iGUESSMD simulation"
         """An optional name for the iGUESSMD simulation"""
@@ -19,8 +18,10 @@ class iGUESSMDSimulation:
         """Indices of the atoms belonging to the mobile group R(r)"""
         self.ref_atom_indices: np.ndarray | None = None
         """Indices of the atoms belonging to the reference group R_ref(r)"""
-        self.reaction_path: np.ndarray | None = None
+        self.reaction_path: np.ndarray
         """Reaction path in x_rel(r) defining the transformation (nm)"""
+        self.reaction_path_unit_tangents: np.ndarray
+        """Unit tangents to the reaction path at each point"""
         self.k: float | np.ndarray | None = None
         """Harmonic force constant(s) defining the iGUESSMD harmonic potential (kJ mol-1 nm-2)"""
         self.k_par: float | np.ndarray | None = None
@@ -53,7 +54,7 @@ class iGUESSMDSimulation:
         """Index indicating the location of the current iGUESSMD force position in the reaction path array"""
 
         # Attributes defined by the results of the iGUESSMD simulation
-        self.iguessmd_sim_mobile_atom_positions: np.ndarray | None = None
+        self.iguessmd_sim_mobile_atom_positions: np.ndarray
         """Positions of the mobile atoms recorded during the iGUESSMD simulation"""
         self.iguessmd_sim_ref_atom_positions: np.ndarray | None = None
         """Positions of the reference atoms recorded during the iGUESSMD simulation"""
