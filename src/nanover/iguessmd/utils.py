@@ -78,7 +78,10 @@ def calculate_com(atom_positions: np.ndarray, atom_masses: np.ndarray) -> np.nda
         np.multiply(np.transpose(atom_positions), atom_masses), axis=1
     ) / np.sum(atom_masses)
 
-def calculate_weighted_centre(atom_positions: np.ndarray, atom_weights: np.ndarray) -> np.ndarray:
+
+def calculate_weighted_centre(
+    atom_positions: np.ndarray, atom_weights: np.ndarray
+) -> np.ndarray:
     """
     Calculate the centre of a group of N atoms as a weighted sum of their positions,
     given their positions and a corresponding set of weights

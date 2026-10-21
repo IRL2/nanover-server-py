@@ -175,3 +175,15 @@ class iGUESSMDSimulation:
 
         :param path: Path to the file to which the data will be saved.
         """
+
+    def _check_custom_weights_are_normalised(self, weights: np.ndarray):
+        """
+        Check that a set of custom weights passed to the iGUESSMDSimulation class
+        to define the position of a centre are normalised.
+        """
+        if weights is not None and isinstance(weights, np.ndarray):
+            tolerance = len(weights) * np.finfo(weights.dtype).eps
+            assert np.isclose(weights.sum(), 1.0, rtol=0.0, atol=tolerance), f"""
+            The custom weights {weights} are not normalised. If you wish to define custom
+            weights, please ensure they are correctly normalised.
+            """

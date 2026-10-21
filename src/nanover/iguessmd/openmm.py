@@ -10,7 +10,12 @@ from openmm import CustomCentroidBondForce, CustomExternalForce, OpenMMException
 from openmm.app import Simulation
 
 from nanover.iguessmd.base import iGUESSMDSimulation
-from nanover.iguessmd.utils import calculate_com, calculate_weighted_centre, calculate_unit_tangents, get_every_nth
+from nanover.iguessmd.utils import (
+    calculate_com,
+    calculate_weighted_centre,
+    calculate_unit_tangents,
+    get_every_nth,
+)
 from nanover.openmm import serializer
 
 iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME = "iguessmd_k"
@@ -211,21 +216,17 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             iguessmd_atom_indices = np.reshape(iguessmd_atom_indices, (1,))
 
         self.mobile_atom_indices = iguessmd_atom_indices
-        if iguessmd_mobile_atom_weights is not None and isinstance(iguessmd_mobile_atom_weights, np.ndarray):
-            try:
-                # Check custom mobile atom weights sum to 1 within floating point tolerance
-                tolerance = len(iguessmd_mobile_atom_weights) * np.finfo(iguessmd_mobile_atom_weights.dtype).eps
-                assert np.isclose(iguessmd_mobile_atom_weights.sum(), 1., rtol=0.0, atol=tolerance)
-                self.mobile_atom_weights = iguessmd_mobile_atom_weights
-            except AssertionError:
-                raise AssertionError(
-                    """Mobile atom weights are not normalised. If you wish to define custom
-                       weights, please ensure they are correctly normalised."""
-                )
+        if iguessmd_mobile_atom_weights is not None and isinstance(
+            iguessmd_mobile_atom_weights, np.ndarray
+        ):
+            self._check_custom_weights_are_normalised(iguessmd_mobile_atom_weights)
+            self.mobile_atom_weights = iguessmd_mobile_atom_weights
 
         # Define atom weights for COM weights if no weights passed
         if self.mobile_atom_indices is not None and self.mobile_atom_weights is None:
-            self.mobile_atom_weights = self._calculate_com_weights(self.mobile_atom_indices)
+            self.mobile_atom_weights = self._calculate_com_weights(
+                self.mobile_atom_indices
+            )
         self.n_iguessmd_atom_indices = self.mobile_atom_indices.size
         self.reaction_path = iguessmd_path
 
@@ -238,19 +239,13 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 iguessmd_ref_atom_indices = np.reshape(iguessmd_ref_atom_indices, (1,))
             self.ref_atom_indices = iguessmd_ref_atom_indices
             if iguessmd_ref_atom_weights is not None:
-                try:
-                    # Check custom reference atom weights sum to 1 within floating point tolerance
-                    tolerance = len(iguessmd_ref_atom_weights) * np.finfo(iguessmd_ref_atom_weights.dtype).eps
-                    assert np.isclose(iguessmd_ref_atom_weights.sum(), 1., rtol=0.0, atol=tolerance)
-                    self.ref_atom_weights = iguessmd_ref_atom_weights
-                except AssertionError:
-                    raise AssertionError(
-                        """Mobile atom weights are not normalised. If you wish to define custom
-                           weights, please ensure they are correctly normalised."""
-                    )
+                self._check_custom_weights_are_normalised(iguessmd_ref_atom_weights)
+                self.ref_atom_weights = iguessmd_ref_atom_weights
 
             if self.ref_atom_indices is not None and self.ref_atom_weights is None:
-                self.ref_atom_weights = self._calculate_com_weights(self.ref_atom_indices)
+                self.ref_atom_weights = self._calculate_com_weights(
+                    self.ref_atom_indices
+                )
 
         # Allow user to choose iGUESSMD coordinate type (absolute or relative) with input
         if iguessmd_coord_type is not None:
@@ -840,7 +835,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         if self._coord_type == "rel" and self.ref_atom_indices is not None:
             general_iguessmd_data["ref_atom_indices"] = self.ref_atom_indices
 
-
         # Save dictionary to file defined by path
         np.savez_compressed(path, **general_iguessmd_data)
 
@@ -906,9 +900,13 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             self._pbc_box_lengths,
             self._coord_type,
         )
-        force_groups = [iguessmd_force.addGroup(self.mobile_atom_indices, self.mobile_atom_weights)]
+        force_groups = [
+            iguessmd_force.addGroup(self.mobile_atom_indices, self.mobile_atom_weights)
+        ]
         if self._coord_type == "rel":
-            force_groups.append(iguessmd_force.addGroup(self.ref_atom_indices, self.ref_atom_weights))
+            force_groups.append(
+                iguessmd_force.addGroup(self.ref_atom_indices, self.ref_atom_weights)
+            )
         self.iguessmd_force_groups = force_groups
         iguessmd_force.addBond(force_groups, [x0, y0, z0, tx, ty, tz])
         self.iguessmd_force = iguessmd_force
@@ -981,7 +979,11 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         """
         Calculate the trajectory that the COM follows during the iGUESSMD simulation.
         """
-        assert self.mobile_atom_indices is not None and self.mobile_atom_weights is not None and self.reaction_path is not None
+        assert (
+            self.mobile_atom_indices is not None
+            and self.mobile_atom_weights is not None
+            and self.reaction_path is not None
+        )
         assert not np.array_equal(
             self.iguessmd_sim_mobile_atom_positions,
             np.zeros((self.reaction_path.shape[0], self.mobile_atom_indices.size, 3)),
