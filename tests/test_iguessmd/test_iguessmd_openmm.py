@@ -727,16 +727,16 @@ def test_iguessmd_force_removed_from_system(indices, force_constant):
     # simulation context, so check these parameters and their values
     if isinstance(force_constant, np.ndarray):
         assert (
-            iguessmd_sim.simulation.context.getParameter("smd_k_par")
+            iguessmd_sim.simulation.context.getParameter("iguessmd_k_par")
             == force_constant[0]
         )
         assert (
-            iguessmd_sim.simulation.context.getParameter("smd_k_perp")
+            iguessmd_sim.simulation.context.getParameter("iguessmd_k_perp")
             == force_constant[1]
         )
     else:
         assert (
-            iguessmd_sim.simulation.context.getParameter("smd_k_par") == force_constant
+            iguessmd_sim.simulation.context.getParameter("iguessmd_k_par") == force_constant
         )
 
 

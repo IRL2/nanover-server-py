@@ -13,7 +13,7 @@ from nanover.iguessmd.base import iGUESSMDSimulation
 from nanover.iguessmd.utils import calculate_com, calculate_unit_tangents, get_every_nth
 from nanover.openmm import serializer
 
-iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME = "smd_k"
+iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME = "iguessmd_k"
 iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME = (
     f"{iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME}_par"
 )
