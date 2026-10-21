@@ -859,12 +859,18 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 or iguessmd_force.getEnergyFunction()
                 == iGUESSMD_FORCE_EXPRESSION_COM_PERIODIC
             )
-            assert iguessmd_force.getNumGroups() == 1
+            # TODO: Think about how to deal with multiple centres cleanly
+            n_force_groups = iguessmd_force.getNumGroups()
+            assert n_force_groups == 2 if self.ref_atom_indices is not None else 1
             assert force_constant_parallel == self.k_par
             assert force_constant_perpendicular == self.k_perp
             assert np.all(
                 iguessmd_force.getGroupParameters(0)[0] == self.mobile_atom_indices
             )
+            if n_force_groups == 2:
+                assert np.all(
+                    iguessmd_force.getGroupParameters(1)[0] == self.ref_atom_indices
+                )
             assert np.all(
                 iguessmd_force.getBondParameters(0)[1]
                 == np.concatenate(
@@ -877,6 +883,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             print("iGUESSMD force already present in loaded simulation.")
             self.iguessmd_force = iguessmd_force
             self.loaded_iguessmd_force_from_sim = True
+            self.iguessmd_force_groups = [i for i in range(n_force_groups)]
 
         except OpenMMException:
             self.loaded_iguessmd_force_from_sim = False
@@ -924,6 +931,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             self.current_iguessmd_force_position is not None
             and self.current_iguessmd_force_tangent is not None
             and self.iguessmd_force is not None
+            and self.iguessmd_force_groups is not None
         )
         x0, y0, z0 = self.current_iguessmd_force_position
         tx, ty, tz = self.current_iguessmd_force_tangent

@@ -1267,11 +1267,12 @@ def test_calculate_com_weights(positions, masses, com):
     "positions, masses, com",
     [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
 )
-def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, com):
+def test_calculate_x_rel_trajectory_iguessmd_simulation_class(positions, masses, com):
     """
     Check that the function _calculate_x_rel_trajectory correctly calculates
-    the trajectory of the centre of mass of the atoms to which the iGUESSMD force is
-    applied in the OMMiGUESSMDSimulation class.
+    the trajectory of the coordinate x_rel to which the iGUESSMD force is
+    applied in the OMMiGUESSMDSimulation class, which in the current test
+    cases coincides with the COM of the group to which the force is applied.
     """
     # Create the simulation and retrieve indices for all atoms
     simulation = build_com_simulation((positions, masses, com))
@@ -1286,7 +1287,9 @@ def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, c
     )
 
     # Manually set the trajectory of atom positions and calculate the
-    # corresponding trajectory of the COM
+    # corresponding trajectory of the coordinate x_rel (in the present
+    # cases of absolute cartesian coordinates for the reaction path
+    # this is the COM)
     atom_positions = np.zeros((TEST_iGUESSMD_LINEAR_PATH.shape[0], *positions.shape))
     expected_com_array = np.zeros(TEST_iGUESSMD_LINEAR_PATH.shape)
     for i in range(TEST_iGUESSMD_LINEAR_PATH.shape[0]):
@@ -1301,6 +1304,7 @@ def test_calculate_com_trajectory_iguessmd_simulation_class(positions, masses, c
     # Calculate COM trajectory using internal function and check the calculated
     # COMs match the predicted COMs
     iguessmd_sim._calculate_x_rel_trajectory()
+    assert np.allclose(iguessmd_sim.iguessmd_sim_x_rel_positions, expected_com_array, atol=1e-16)
     assert np.allclose(iguessmd_sim.iguessmd_sim_mobile_centre_positions, expected_com_array, atol=1e-16)
 
 
@@ -1553,4 +1557,7 @@ def test_get_iguessmd_atom_positions_periodic(indices):
     assert (wrapped_positions[:, 0] != unwrapped_positions[:, 0]).all()
     assert np.all(iguessmd_sim.iguessmd_sim_mobile_atom_positions[-1, :,0] < 0.0)
     assert (unwrapped_positions[:, 0] == iguessmd_sim.iguessmd_sim_mobile_atom_positions[-1, :,0]).all()
+
+
+# TODO: Write test to check that force loads correctly including new iguessmd_force_groups property
 
