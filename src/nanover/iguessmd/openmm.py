@@ -10,7 +10,7 @@ from openmm import CustomCentroidBondForce, CustomExternalForce, OpenMMException
 from openmm.app import Simulation
 
 from nanover.iguessmd.base import iGUESSMDSimulation
-from nanover.iguessmd.utils import calculate_com, calculate_unit_tangents, get_every_nth
+from nanover.iguessmd.utils import calculate_com, calculate_weighted_centre, calculate_unit_tangents, get_every_nth
 from nanover.openmm import serializer
 
 iGUESSMD_FORCE_CONSTANT_PARAMETER_NAME = "iguessmd_k"
@@ -47,6 +47,8 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         *,
         iguessmd_ref_atom_indices: np.ndarray | None = None,
         iguessmd_coord_type: str | None = None,
+        iguessmd_mobile_atom_weights: np.ndarray | None = None,
+        iguessmd_ref_atom_weights: np.ndarray | None = None,
         name: str | None = None,
     ):
         """
@@ -73,6 +75,12 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
              - 'rel' : indicates that the reaction path is given in the relative coordinate
                        system defined by the centres R(r) and R_ref(r), which are defined
                        respectively by the mobile and reference atom positions
+        :param iguessmd_mobile_atom_weights: [Optional] An array of weights used to define R(r)
+           from the mobile atom positions (must sum to 1). If no weights are given, the weights
+           are defined to yield R(r) as the centre of mass of the mobile atom group.
+        :param iguessmd_ref_atom_weights: [Optional] An array of weights used to define R_ref(r)
+           from the reference atom positions (must sum to 1). If no weights are given, the weights
+           are defined to yield R(r) as the centre of mass of the reference atom group.
         :param name: An optional name for the simulation
         """
 
@@ -89,6 +97,8 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             iguessmd_force_constant,
             iguessmd_ref_atom_indices,
             iguessmd_coord_type,
+            iguessmd_mobile_atom_weights,
+            iguessmd_ref_atom_weights,
         )
 
         return sim
@@ -103,6 +113,8 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         *,
         iguessmd_ref_atom_indices: np.ndarray | None = None,
         iguessmd_coord_type: str | None = None,
+        iguessmd_mobile_atom_weights: np.ndarray | None = None,
+        iguessmd_ref_atom_weights: np.ndarray | None = None,
         name: str | None = None,
     ):
         """
@@ -129,6 +141,12 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
              - 'rel' : indicates that the reaction path is given in the relative coordinate
                        system defined by the centres R(r) and R_ref(r), which are defined
                        respectively by the mobile and reference atom positions
+        :param iguessmd_mobile_atom_weights: [Optional] An array of weights used to define R(r)
+           from the mobile atom positions (must sum to 1). If no weights are given, the weights
+           are defined to yield R(r) as the centre of mass of the mobile atom group.
+        :param iguessmd_ref_atom_weights: [Optional] An array of weights used to define R_ref(r)
+           from the reference atom positions (must sum to 1). If no weights are given, the weights
+           are defined to yield R(r) as the centre of mass of the reference atom group.
         :param name: An optional name for the simulation
         """
 
@@ -148,6 +166,8 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             iguessmd_force_constant,
             iguessmd_ref_atom_indices,
             iguessmd_coord_type,
+            iguessmd_mobile_atom_weights,
+            iguessmd_ref_atom_weights,
         )
 
         return sim
@@ -178,6 +198,8 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         iguessmd_force_constant: float | np.ndarray,
         iguessmd_ref_atom_indices: np.ndarray | None = None,
         iguessmd_coord_type: str | None = None,
+        iguessmd_mobile_atom_weights: np.ndarray | None = None,
+        iguessmd_ref_atom_weights: np.ndarray | None = None,
     ):
         """
         Set the fields relevant to the iGUESSMD simulation and add the iGUESSMD force to the system.
@@ -189,6 +211,21 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             iguessmd_atom_indices = np.reshape(iguessmd_atom_indices, (1,))
 
         self.mobile_atom_indices = iguessmd_atom_indices
+        if iguessmd_mobile_atom_weights is not None and isinstance(iguessmd_mobile_atom_weights, np.ndarray):
+            try:
+                # Check custom mobile atom weights sum to 1 within floating point tolerance
+                tolerance = len(iguessmd_mobile_atom_weights) * np.finfo(iguessmd_mobile_atom_weights.dtype).eps
+                assert np.isclose(iguessmd_mobile_atom_weights.sum(), 1., rtol=0.0, atol=tolerance)
+                self.mobile_atom_weights = iguessmd_mobile_atom_weights
+            except AssertionError:
+                raise AssertionError(
+                    """Mobile atom weights are not normalised. If you wish to define custom
+                       weights, please ensure they are correctly normalised."""
+                )
+
+        # Define atom weights for COM weights if no weights passed
+        if self.mobile_atom_indices is not None and self.mobile_atom_weights is None:
+            self.mobile_atom_weights = self._calculate_com_weights(self.mobile_atom_indices)
         self.n_iguessmd_atom_indices = self.mobile_atom_indices.size
         self.reaction_path = iguessmd_path
 
@@ -200,6 +237,20 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             ):
                 iguessmd_ref_atom_indices = np.reshape(iguessmd_ref_atom_indices, (1,))
             self.ref_atom_indices = iguessmd_ref_atom_indices
+            if iguessmd_ref_atom_weights is not None:
+                try:
+                    # Check custom reference atom weights sum to 1 within floating point tolerance
+                    tolerance = len(iguessmd_ref_atom_weights) * np.finfo(iguessmd_ref_atom_weights.dtype).eps
+                    assert np.isclose(iguessmd_ref_atom_weights.sum(), 1., rtol=0.0, atol=tolerance)
+                    self.ref_atom_weights = iguessmd_ref_atom_weights
+                except AssertionError:
+                    raise AssertionError(
+                        """Mobile atom weights are not normalised. If you wish to define custom
+                           weights, please ensure they are correctly normalised."""
+                    )
+
+            if self.ref_atom_indices is not None and self.ref_atom_weights is None:
+                self.ref_atom_weights = self._calculate_com_weights(self.ref_atom_indices)
 
         # Allow user to choose iGUESSMD coordinate type (absolute or relative) with input
         if iguessmd_coord_type is not None:
@@ -855,9 +906,9 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             self._pbc_box_lengths,
             self._coord_type,
         )
-        force_groups = [iguessmd_force.addGroup(self.mobile_atom_indices)]
+        force_groups = [iguessmd_force.addGroup(self.mobile_atom_indices, self.mobile_atom_weights)]
         if self._coord_type == "rel":
-            force_groups.append(iguessmd_force.addGroup(self.ref_atom_indices))
+            force_groups.append(iguessmd_force.addGroup(self.ref_atom_indices, self.ref_atom_weights))
         self.iguessmd_force_groups = force_groups
         iguessmd_force.addBond(force_groups, [x0, y0, z0, tx, ty, tz])
         self.iguessmd_force = iguessmd_force
@@ -893,9 +944,28 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 (self.reaction_path.shape[0], self.mobile_atom_indices.size, 3)
             )
 
+    def _calculate_com_weights(self, atom_indices: np.ndarray) -> np.ndarray:
+        """
+        Calculate the relative weights of the atomic positions defining the centre of mass of the
+        mobile (and reference if available) atom groups.
+        :param atom_indices: NumPy array containing the indices of the atoms defining the group
+          for which to calculate the mass weights.
+        :return: NumPy array containing the mass weights of the atoms in the selection
+        """
+        # TODO: write tests for this function
+        assert atom_indices is not None and self.simulation is not None
+        atom_masses = np.zeros(atom_indices.size)
+        for index in range(atom_indices.size):
+            atom_masses[index] = self.simulation.system.getParticleMass(
+                atom_indices[index]
+            )._value
+        atom_weights = atom_masses / atom_masses.sum()
+        return atom_weights
+
     def _calculate_com(self, atom_positions: np.ndarray, atom_masses: np.ndarray):
         """
-        Calculate the centre of mass of the N atoms to which the iGUESSMD force has been applied.
+        Calculate the centre of the N atoms to which the iGUESSMD force has been applied, given a set of
+        weights defining the weightings of each atom's position.
 
         :param atom_positions: NumPy array of atom positions with dimensions (N, 3)
         :param atom_masses: NumPy array of atomic masses (AMU) with dimension (N)
@@ -911,21 +981,16 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         """
         Calculate the trajectory that the COM follows during the iGUESSMD simulation.
         """
-        assert self.mobile_atom_indices is not None and self.reaction_path is not None
+        assert self.mobile_atom_indices is not None and self.mobile_atom_weights is not None and self.reaction_path is not None
         assert not np.array_equal(
             self.iguessmd_sim_mobile_atom_positions,
             np.zeros((self.reaction_path.shape[0], self.mobile_atom_indices.size, 3)),
         )
-        assert self.n_iguessmd_atom_indices is not None
-        atom_masses = np.zeros(self.n_iguessmd_atom_indices)
-        for index in range(self.n_iguessmd_atom_indices):
-            atom_masses[index] = self.simulation.system.getParticleMass(
-                self.mobile_atom_indices[index]
-            )._value
         self.iguessmd_sim_mobile_centre_positions = np.array(
             [
-                self._calculate_com(
-                    self.iguessmd_sim_mobile_atom_positions[i], atom_masses
+                calculate_weighted_centre(
+                    self.iguessmd_sim_mobile_atom_positions[i],
+                    self.mobile_atom_weights,
                 )
                 for i in range(self.reaction_path.shape[0])
             ]
@@ -940,18 +1005,14 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         if (
             self._coord_type == "rel"
             and self.ref_atom_indices is not None
+            and self.ref_atom_weights is not None
             and self.iguessmd_sim_ref_atom_positions is not None
         ):
-            n_ref_atom_indices = self.ref_atom_indices.size
-            ref_atom_masses = np.zeros(self.n_iguessmd_atom_indices)
-            for index in range(n_ref_atom_indices):
-                ref_atom_masses[index] = self.simulation.system.getParticleMass(
-                    self.ref_atom_indices[index]
-                )._value
             self.iguessmd_sim_ref_centre_positions = np.array(
                 [
-                    self._calculate_com(
-                        self.iguessmd_sim_ref_atom_positions[i], ref_atom_masses
+                    calculate_weighted_centre(
+                        self.iguessmd_sim_ref_atom_positions[i],
+                        self.ref_atom_weights,
                     )
                     for i in range(self.reaction_path.shape[0])
                 ]

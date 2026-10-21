@@ -1226,7 +1226,7 @@ def test_calculate_com_iguessmd_simulation_class(positions, masses, com):
         TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
 
-    # Calculate the COM using the class function to caand check it against the expected COM
+    # Calculate the COM using the class function and check it against the expected COM
     calculated_com = iguessmd_sim._calculate_com(positions, masses)
     assert np.allclose(calculated_com, com, atol=1e-16)
 

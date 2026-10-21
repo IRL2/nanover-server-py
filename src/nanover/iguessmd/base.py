@@ -18,6 +18,10 @@ class iGUESSMDSimulation:
         """Indices of the atoms belonging to the mobile group R(r)"""
         self.ref_atom_indices: np.ndarray | None = None
         """Indices of the atoms belonging to the reference group R_ref(r)"""
+        self.mobile_atom_weights: np.ndarray | None = None
+        """Weights of the atoms defining the mobile group centre R(r) (must sum to 1)"""
+        self.ref_atom_weights: np.ndarray | None = None
+        """Weights of the atoms defining the reference group centre R_ref(r) (must sum to 1)"""
         self.reaction_path: np.ndarray
         """Reaction path in x_rel(r) defining the transformation (nm)"""
         self.reaction_path_unit_tangents: np.ndarray
