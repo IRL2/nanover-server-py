@@ -10,11 +10,11 @@ from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
 from nanover.ase.converter import (
+    ANG_TO_NM,
     ASE_TIME_UNIT_TO_PS,
     EV_TO_KJMOL,
-    ase_atoms_to_frame_data,
-    ANG_TO_NM,
     KJMOL_TO_EV,
+    ase_atoms_to_frame_data,
     generate_bonds_from_ase,
 )
 from nanover.ase.imd_calculator import ImdCalculator
