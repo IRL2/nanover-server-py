@@ -23,7 +23,7 @@ requirements:
   run:
     - python >=3.13
     - psutil >=7.2.0
-    - numpy >=1.26.4
+    - numpy >=2.0.0
     - mdanalysis >=2.8.0
     - ase >=3.21
     - openmm >=8.4.0
@@ -33,6 +33,9 @@ requirements:
     - pandas >=2.0.3
     - cryptography
     - platformdirs
+    - scipy
+    - ipympl
+    - joblib
 about:
   home: https://github.com/IRL2/nanover-server-py
   license: MIT
