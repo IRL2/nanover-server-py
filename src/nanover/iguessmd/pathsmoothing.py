@@ -73,7 +73,19 @@ class PathSmoother:
         """
         Create a PathSmoother object from the data stored in a NanoVer recording.
 
+        The PathSmoother is capable of calculating reaction paths based on
+        the trajectory of the centre of mass of a group of atoms in simulation space,
+        or based on the trajectory of a relative coordinate x_rel in Euclidean space,
+        where x_rel = R(r) - R_ref(r), R(r) is the COM of the mobile atom group and
+        R_ref(r) is the COM of the reference atom group. To generate relative reaction
+        paths, it is necessary to specify the indices of the atoms belonging to these
+        two groups.
+
         :param filename: Path to the NanoVer recording.
+        :param iguessmd_mobile_atom_indices: Indices of the mobile atom group. If None,
+          the iGUESSMD reaction path is calculated in the simulation Cartesian coordinates.
+        :param iguessmd_ref_atom_indices: Indices of the reference atom group. If None,
+          the iGUESSMD reaction path is calculated in the simulation Cartesian coordinates.
         """
         ps = cls()
         ps.filename = filename
