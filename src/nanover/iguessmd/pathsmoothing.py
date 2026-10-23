@@ -103,17 +103,22 @@ class PathSmoother:
             # relative to reference centre R_ref(r)
             ps.mobile_atom_indices = iguessmd_mobile_atom_indices
             ps.ref_atom_indices = iguessmd_ref_atom_indices
-            ps._coord_type = 'rel'
+            ps._coord_type = "rel"
             mobile_centre_com_positions = np.array(
                 [
-                    calculate_com(ps.all_atom_positions[i][ps.mobile_atom_indices], ps.all_atom_masses[ps.mobile_atom_indices])
+                    calculate_com(
+                        ps.all_atom_positions[i][ps.mobile_atom_indices],
+                        ps.all_atom_masses[ps.mobile_atom_indices],
+                    )
                     for i in range(ps.all_atom_positions.shape[0])
                 ]
             )
             ref_centre_com_positions = np.array(
                 [
-                    calculate_com(ps.all_atom_positions[i][ps.ref_atom_indices],
-                                  ps.all_atom_masses[ps.ref_atom_indices])
+                    calculate_com(
+                        ps.all_atom_positions[i][ps.ref_atom_indices],
+                        ps.all_atom_masses[ps.ref_atom_indices],
+                    )
                     for i in range(ps.all_atom_positions.shape[0])
                 ]
             )
@@ -217,7 +222,7 @@ class PathSmoother:
         # Attributes for absolute/relative paths:
         self.mobile_atom_indices: np.ndarray | None = None
         self.ref_atom_indices: np.ndarray | None = None
-        self._coord_type: str = 'abs'
+        self._coord_type: str = "abs"
 
     def close_interactive_plots(self):
         """
@@ -872,11 +877,14 @@ class PathSmoother:
             "iguessmd_timestep_ps": self.timestep_ps,
         }
 
-        if self._coord_type == 'rel':
-            assert self.mobile_atom_indices is not None and self.ref_atom_indices is not None
+        if self._coord_type == "rel":
+            assert (
+                self.mobile_atom_indices is not None
+                and self.ref_atom_indices is not None
+            )
             pathsmoother_data["mobile_atom_indices"] = self.mobile_atom_indices
             pathsmoother_data["ref_atom_indices"] = self.ref_atom_indices
-        elif self._coord_type == 'abs' and self.atom_indices is not None:
+        elif self._coord_type == "abs" and self.atom_indices is not None:
             pathsmoother_data["mobile_atom_indices"] = self.atom_indices
         else:
             print(
