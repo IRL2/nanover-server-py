@@ -64,7 +64,12 @@ class PathSmoother:
     """
 
     @classmethod
-    def from_recording(cls, filename: str | PathLike):
+    def from_recording(
+        cls,
+        filename: str | PathLike,
+        iguessmd_mobile_atom_indices: np.ndarray | None = None,
+        iguessmd_ref_atom_indices: np.ndarray | None = None,
+    ):
         """
         Create a PathSmoother object from the data stored in a NanoVer recording.
 
@@ -78,15 +83,42 @@ class PathSmoother:
             and ps.all_atom_masses is not None
             and ps.all_user_forces is not None
         )
-        (
-            ps.atom_positions,
-            ps.com_positions,
-            ps.atom_indices,
-            ps.n_interaction_frames,
-        ) = retrieve_uf_com_path(
-            ps.all_atom_positions, ps.all_atom_masses, ps.all_user_forces
-        )
-        return ps
+        if (
+            iguessmd_mobile_atom_indices is not None
+            and iguessmd_ref_atom_indices is not None
+        ):
+            # Calculate path of mobile centre R(r)
+            # relative to reference centre R_ref(r)
+            ps.mobile_atom_indices = iguessmd_mobile_atom_indices
+            ps.ref_atom_indices = iguessmd_ref_atom_indices
+            ps._coord_type = 'rel'
+            mobile_centre_com_positions = np.array(
+                [
+                    calculate_com(ps.all_atom_positions[i][ps.mobile_atom_indices], ps.all_atom_masses[ps.mobile_atom_indices])
+                    for i in range(ps.all_atom_positions.shape[0])
+                ]
+            )
+            ref_centre_com_positions = np.array(
+                [
+                    calculate_com(ps.all_atom_positions[i][ps.ref_atom_indices],
+                                  ps.all_atom_masses[ps.ref_atom_indices])
+                    for i in range(ps.all_atom_positions.shape[0])
+                ]
+            )
+            ps.atom_indices = np.union1d(ps.mobile_atom_indices, ps.ref_atom_indices)
+            ps.com_positions = mobile_centre_com_positions - ref_centre_com_positions
+            ps.n_interaction_frames = ps.com_positions.shape[0]
+            return ps
+        else:
+            (
+                ps.atom_positions,
+                ps.com_positions,
+                ps.atom_indices,
+                ps.n_interaction_frames,
+            ) = retrieve_uf_com_path(
+                ps.all_atom_positions, ps.all_atom_masses, ps.all_user_forces
+            )
+            return ps
 
     @classmethod
     def from_path_coordinates(cls, coords: np.ndarray, atom_masses: np.ndarray):
@@ -169,6 +201,11 @@ class PathSmoother:
         self._atom_selection_colours: np.ndarray | None = None
         self._atom_selection_interacted_atoms: np.ndarray | None = None
         self._atom_selection_constrained_atoms: np.ndarray | None = None
+
+        # Attributes for absolute/relative paths:
+        self.mobile_atom_indices: np.ndarray | None = None
+        self.ref_atom_indices: np.ndarray | None = None
+        self._coord_type: str = 'abs'
 
     def close_interactive_plots(self):
         """
@@ -257,7 +294,21 @@ class PathSmoother:
         if selection is None:
             selection = "all"
         atom_selection = self.universe.select_atoms(selection)
-        self._atom_selection_positions = atom_selection.positions
+        self._atom_selection_positions = atom_selection.positions.copy()
+
+        if self._coord_type == "rel":
+            assert self.ref_atom_indices is not None
+            assert self.all_atom_positions is not None
+            assert self.all_atom_masses is not None
+
+            ref_com = calculate_com(
+                self.all_atom_positions[0, self.ref_atom_indices],
+                self.all_atom_masses[self.ref_atom_indices],
+            )
+
+            self._atom_selection_positions = (
+                self.all_atom_positions[0, atom_selection.indices].copy() - ref_com
+            )
         self._atom_selection_colours = np.array(
             [
                 get_element_colours(atom_selection.elements[i])

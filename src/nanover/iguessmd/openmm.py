@@ -12,8 +12,8 @@ from openmm.app import Simulation
 from nanover.iguessmd.base import iGUESSMDSimulation
 from nanover.iguessmd.utils import (
     calculate_com,
-    calculate_weighted_centre,
     calculate_unit_tangents,
+    calculate_weighted_centre,
     get_every_nth,
 )
 from nanover.openmm import serializer
