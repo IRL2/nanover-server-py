@@ -860,7 +860,11 @@ class PathSmoother:
             "iguessmd_timestep_ps": self.timestep_ps,
         }
 
-        if self.atom_indices is not None:
+        if self._coord_type == 'rel':
+            assert self.mobile_atom_indices is not None and self.ref_atom_indices is not None
+            pathsmoother_data["mobile_atom_indices"] = self.mobile_atom_indices
+            pathsmoother_data["ref_atom_indices"] = self.ref_atom_indices
+        elif self._coord_type == 'abs' and self.atom_indices is not None:
             pathsmoother_data["mobile_atom_indices"] = self.atom_indices
         else:
             print(
