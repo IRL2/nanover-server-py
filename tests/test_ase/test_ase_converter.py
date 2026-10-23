@@ -46,7 +46,7 @@ def test_convert_residue_ids(frame):
 
 
 def test_convert_residue_names(frame):
-    assert frame.residue_names == ["ASE"]
+    assert frame.residue_names == ["CO"]
 
 
 def test_convert_residue_chains(frame):
@@ -54,7 +54,7 @@ def test_convert_residue_chains(frame):
 
 
 def test_convert_chain_names(frame):
-    assert frame.chain_names == ["A"]
+    assert frame.chain_names == ["CO"]
 
 
 def test_convert_chain_count(frame):
