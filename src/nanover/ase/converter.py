@@ -7,7 +7,7 @@ NanoVer clients.
 import numpy as np
 import numpy.typing as npt
 from ase import Atom, Atoms
-from ase.neighborlist import build_neighbor_list
+from ase.neighborlist import NeighborList, build_neighbor_list
 from ase.units import fs as fs_in_ase_time_unit
 
 from nanover.ase.imd_calculator import ImdCalculator
@@ -39,6 +39,7 @@ def ase_to_frame_data(
     generate_bonds=True,
     include_velocities=False,
     include_forces=False,
+    neighbor_list: NeighborList | None = None,
 ) -> FrameData:
     """
     Constructs a NanoVer frame from the state of the atoms in an ASE simulation.
@@ -75,7 +76,12 @@ def ase_to_frame_data(
     if positions:
         add_ase_positions_to_frame_data(data, ase_atoms.get_positions(wrap=False))
     if topology:
-        add_ase_topology_to_frame_data(data, ase_atoms, generate_bonds=generate_bonds)
+        add_ase_topology_to_frame_data(
+            data,
+            ase_atoms,
+            generate_bonds=generate_bonds,
+            neighbor_list=neighbor_list,
+        )
     if state:
         add_ase_state_to_frame_data(data, ase_atoms)
     if box_vectors:
@@ -206,7 +212,10 @@ def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
 
 
 def add_ase_topology_to_frame_data(
-    frame_data: FrameData, ase_atoms: Atoms, generate_bonds=True
+    frame_data: FrameData,
+    ase_atoms: Atoms,
+    generate_bonds=True,
+    neighbor_list: NeighborList | None = None,
 ):
     """
     Generates a topology for the current state of the atoms and adds it to the frame.
@@ -217,7 +226,12 @@ def add_ase_topology_to_frame_data(
     :param frame_data: Frame data to add topology information to.
     :param ase_atoms: ASE atoms to extract topology information from.
     """
-    bonds, molecule_strings, molecule_indices = determine_molecules(ase_atoms)
+    neighbor_list = (
+        neighbor_list if neighbor_list is not None else build_neighbor_list(ase_atoms)
+    )
+    bonds, molecule_strings, molecule_indices = determine_molecules(
+        ase_atoms, neighbor_list
+    )
 
     if generate_bonds:
         frame_data.bond_pairs = bonds
@@ -250,7 +264,7 @@ def add_ase_topology_to_frame_data(
     frame_data.particle_count = n_atoms
 
 
-def determine_molecules(ase_atoms: Atoms):
+def determine_molecules(ase_atoms: Atoms, neighbor_list: NeighborList):
     """
     Determines the molecules in the system based on the topology
     from :func:`generate_bonds_from_ase`.
@@ -261,7 +275,7 @@ def determine_molecules(ase_atoms: Atoms):
     n_atoms = len(ase_atoms)
 
     # Calculate bonds and convert to array
-    bonds = generate_bonds_from_ase(ase_atoms)
+    bonds = bond_pairs_from_neighbour_list(neighbor_list)
 
     # Define upper triangular matrix from bonding vector
     upper_tri = np.zeros((n_atoms, n_atoms))
@@ -326,35 +340,13 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
-def generate_bonds_from_ase(atoms: Atoms) -> np.ndarray:
-    """
-    Generates bonds for the given configuration of ASE atoms using a distance criterion.
-
-    A bond is placed between two atoms if the distance between them is less
-    than 0.6 times the VDW radii of the atoms.
-
-    :param atoms: ASE atoms to generate bonds for.
-    :return: A list of pairs of atom indexes representing bonds.
-
-    Example
-    =======
-
-    The following example produces a bond between the two atoms in a carbon
-    monoxide molecule:
-
-    >>> co = Atoms('CO', positions=[(0, 0, 0), (0, 0, 1.1)], cell=[2, 2, 2])
-    >>> generate_bonds_from_ase(co)
-    [[0, 1]]
-
-    """
-    nl = build_neighbor_list(atoms, self_interaction=False)
-
-    count = sum(_.size for _ in nl.nl.neighbors)
+def bond_pairs_from_neighbour_list(neighbour_list: NeighborList) -> np.ndarray:
+    count = sum(_.size-1 for _ in neighbour_list.nl.neighbors)
     bonds = np.zeros((count, 2), dtype=np.uint32)
     i, j = 0, 0
-    for a, neighbours in enumerate(nl.nl.neighbors):
+    for a, neighbours in enumerate(neighbour_list.nl.neighbors):
         i = j
-        j += len(neighbours)
+        j += len(neighbours)-1
         bonds[i:j, 0] = a
-        bonds[i:j, 1] = neighbours
+        bonds[i:j, 1] = neighbours[1:]
     return bonds

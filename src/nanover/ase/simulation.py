@@ -8,6 +8,7 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
+from ase.neighborlist import NeighborList, natural_cutoffs
 
 from nanover.ase.converter import (
     ANG_TO_NM,
@@ -15,7 +16,6 @@ from nanover.ase.converter import (
     EV_TO_KJMOL,
     KJMOL_TO_EV,
     ase_atoms_to_frame_data,
-    generate_bonds_from_ase,
 )
 from nanover.ase.imd_calculator import ImdCalculator
 from nanover.ase.omm_calculator import OpenMMCalculator
@@ -129,6 +129,7 @@ class ASESimulation(Simulation):
 
         self.dynamic_bonds: bool = False
         self.previous_bonds: np.ndarray | None = None
+        self.neighbor_list: NeighborList | None = None
 
     def load(self):
         """
@@ -170,6 +171,9 @@ class ASESimulation(Simulation):
         self.atoms.set_positions(self.checkpoint.positions)
         self.atoms.set_velocities(self.checkpoint.velocities)
         self.atoms.set_cell(self.checkpoint.cell)
+
+        self.neighbor_list = NeighborList(natural_cutoffs(self.atoms), skin=0)
+        self.bonds_changed = False
 
         # setup imd calculator
         self.imd_calculator = ImdCalculator(
@@ -219,9 +223,10 @@ class ASESimulation(Simulation):
         Step the simulation to the next point a frame should be reported, and send that frame.
         """
         assert (
-            self.dynamics is not None
-            and self.app_server is not None
-            and self.imd_calculator is not None
+                self.dynamics is not None
+                and self.app_server is not None
+                and self.imd_calculator is not None
+                and self.neighbor_list is not None
         )
 
         # determine step count for next frame
@@ -298,22 +303,10 @@ class ASESimulation(Simulation):
             and self._dof is not None
         )
 
-        # Calculate bonds and determine whether topology needs updating
-        update_topology = False
-        if self.dynamic_bonds:
-            current_bonds = generate_bonds_from_ase(self.atoms)
-            if self.previous_bonds is not None and (
-                current_bonds.shape != self.previous_bonds.shape
-                or (current_bonds != self.previous_bonds).any()
-            ):
-                update_topology = True
-                self.previous_bonds = current_bonds
-            elif self.previous_bonds is None:
-                self.previous_bonds = current_bonds
-
+        bonds_changed = self.neighbor_list.update(self.atoms)
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
-            topology=update_topology,
+            topology=self.dynamic_bonds and bonds_changed,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )
