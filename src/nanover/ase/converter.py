@@ -7,7 +7,7 @@ NanoVer clients.
 import numpy as np
 import numpy.typing as npt
 from ase import Atom, Atoms
-from ase.data import vdw_radii
+from ase.neighborlist import build_neighbor_list
 from ase.units import fs as fs_in_ase_time_unit
 
 from nanover.ase.imd_calculator import ImdCalculator
@@ -347,21 +347,13 @@ def generate_bonds_from_ase(atoms: Atoms) -> np.ndarray:
     [[0, 1]]
 
     """
-    # atom positions and radii
-    atom_pos = atoms.positions
-    atom_rad = vdw_radii[atoms.numbers]
+    nl = build_neighbor_list(atoms, self_interaction=False)
 
-    # atom indices for all unique bonds
-    a, b = np.triu_indices(len(atoms), 1)
-
-    # distance squared between atom pairs
-    deltas = atom_pos[a] - atom_pos[b]
-    distsq = (deltas * deltas).sum(1)
-
-    # bond threshold distance squared between atom pairs
-    thresh = (atom_rad[a] + atom_rad[b]) * 0.6
-    thresh *= thresh
-
-    # stack index pairs where distance is within threshold
-    bonded = distsq <= thresh
-    return np.vstack((a[bonded], b[bonded])).astype(np.uint32).T
+    count = sum(_.size for _ in nl.nl.neighbors)
+    bonds = np.zeros((count, 2), dtype=np.uint32)
+    i = 0
+    for a in range(len(atoms)):
+        for b in nl.get_neighbors(a)[0]:
+            bonds[i, (0, 1)] = (a, b)
+            i += 1
+    return np.array(bonds, dtype=np.uint32)
