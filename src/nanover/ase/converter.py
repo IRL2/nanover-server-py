@@ -255,30 +255,32 @@ def add_ase_topology_to_frame_data(
     if generate_bonds:
         frame_data.bond_pairs = bonds
 
+    # each molecule is a single chain and a single residue
+    n_molecules = len(molecule_strings)
     frame_data.chain_names = molecule_strings
-    frame_data.chain_count = len(molecule_strings)
+    frame_data.chain_count = n_molecules
     frame_data.residue_names = molecule_strings
-    frame_data.residue_chains = np.fromiter(
-        (i for i in range(len(molecule_strings))), dtype=np.uint32
-    )
-    frame_data.residue_count = len(molecule_strings)
-    frame_data.residue_ids = [str(i + 1) for i in range(len(molecule_strings))]
+    frame_data.residue_chains = np.arange(n_molecules, dtype=np.uint32)
+    frame_data.residue_count = n_molecules
+    frame_data.residue_ids = [str(i + 1) for i in range(n_molecules)]
 
     atom_names = []
-    elements = []
-    residue_ids = []
+
+    n_atoms = len(ase_atoms)
+    elements = np.zeros(n_atoms, dtype=np.uint8)
+    residue_ids = np.zeros(n_atoms, dtype=np.uint32)
+
     for index, atom in enumerate(ase_atoms):
         atom_names.append(atom.symbol)
-        elements.append(atom.number)
-        for resid in range(len(molecule_indices)):
-            if index in molecule_indices[resid]:
-                residue_ids.append(resid)
-                break
+        elements[index] = atom.number
+
+    for resid, indices in enumerate(molecule_indices):
+        residue_ids[indices] = resid
 
     frame_data.particle_names = atom_names
-    frame_data.particle_elements = np.fromiter(elements, dtype=np.uint8)
-    frame_data.particle_residues = np.fromiter(residue_ids, dtype=np.uint32)
-    frame_data.particle_count = len(ase_atoms)
+    frame_data.particle_elements = elements
+    frame_data.particle_residues = residue_ids
+    frame_data.particle_count = n_atoms
 
 
 def determine_molecules(ase_atoms: Atoms):
