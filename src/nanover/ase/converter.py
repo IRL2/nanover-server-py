@@ -250,8 +250,10 @@ def add_ase_topology_to_frame_data(
     :param frame_data: Frame data to add topology information to.
     :param ase_atoms: ASE atoms to extract topology information from.
     """
-    # TODO it would be nice to do dynamic molecule/chain detection here.
     bonds, molecule_strings, molecule_indices = determine_molecules(ase_atoms)
+
+    if generate_bonds:
+        frame_data.bond_pairs = bonds
 
     frame_data.chain_names = molecule_strings
     frame_data.chain_count = len(molecule_strings)
@@ -278,26 +280,19 @@ def add_ase_topology_to_frame_data(
     frame_data.particle_residues = np.fromiter(residue_ids, dtype=np.uint32)
     frame_data.particle_count = len(ase_atoms)
 
-    if generate_bonds:
-        bonds = generate_bonds_from_ase(ase_atoms)
-        frame_data.bond_pairs = bonds
 
-
-def determine_molecules(ase_atoms: Atoms, bonds: np.ndarray | None = None):
+def determine_molecules(ase_atoms: Atoms):
     """
     Determines the molecules in the system based on the topology
     from :func:`generate_bonds_from_ase`.
 
     :param ase_atoms: ASE atoms to extract topology information from.
-    :param bonds: [Optional] numpy array of bonds defining the topology (saves
-      recalculating if they have already been calculated)
     """
     # Retrieve number of atoms
-    n_atoms = ase_atoms.get_global_number_of_atoms()
+    n_atoms = len(ase_atoms)
 
     # Calculate bonds and convert to array
-    if not bonds:
-        bonds = generate_bonds_from_ase(ase_atoms)
+    bonds = generate_bonds_from_ase(ase_atoms)
 
     # Define upper triangular matrix from bonding vector
     upper_tri = np.zeros((n_atoms, n_atoms))
