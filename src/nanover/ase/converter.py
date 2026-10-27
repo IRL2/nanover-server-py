@@ -4,9 +4,6 @@ Module containing methods for converting between ASE simulations consisting of
 NanoVer clients.
 """
 
-import itertools
-from collections.abc import Iterable
-
 import numpy as np
 import numpy.typing as npt
 from ase import Atom, Atoms
@@ -24,7 +21,7 @@ ASE_TIME_UNIT_TO_PS = 1.0 / PS_TO_ASE_TIME_UNIT
 
 # from https://chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_Maps/Supplemental_Modules_(Physical_and_Theoretical_Chemistry)/Chemical_Bonding/Fundamentals_of_Chemical_Bonding/Covalent_Bond_Distance%2C_Radius_and_van_der_Waals_Radius
 # TODO make a helper class with complete coverage of this stuff.
-ATOM_RADIUS_ANG = {
+ATOM_RADIUS_ANG: dict[str, float] = {
     "H": 1.2,
     "He": 1.4,
     "Li": 1.82,
@@ -359,28 +356,6 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
-def get_radius_of_element(symbol: str, default=1.0):
-    """
-    Gets the radius of an atom in Angstroms.
-
-    :param symbol: The chemical symbol representing the element.
-    :param default: Default radius to use if the radius for the given chemical
-        symbol is not known.
-    :return: The VDW radius of the atom in angstroms.
-    """
-    return ATOM_RADIUS_ANG.get(symbol, default)
-
-
-def _bond_threshold(radii: Iterable):
-    """
-    Returns the distance threshold, in Angstroms, for a bond between a given pair of radii.
-
-    :param radii: Pair or radii.
-    :return: Distance threshold indicating the distance at which a bond is formed.
-    """
-    return 0.6 * sum(radii)
-
-
 def generate_bonds_from_ase(atoms: Atoms) -> np.ndarray:
     """
     Generates bonds for the given configuration of ASE atoms using a distance criterion.
@@ -402,10 +377,21 @@ def generate_bonds_from_ase(atoms: Atoms) -> np.ndarray:
     [[0, 1]]
 
     """
-    bonds = []
-    for pair in itertools.combinations(atoms, 2):
-        distance = np.linalg.norm(pair[0].position - pair[1].position)
-        radii = [get_radius_of_element(atom.symbol) for atom in pair]
-        if distance < _bond_threshold(radii):
-            bonds.append([atom.index for atom in pair])
-    return np.array(bonds, dtype=np.uint32)
+    # atom positions and radii
+    atom_pos = np.array([atom.position for atom in atoms])
+    atom_rad = np.array([ATOM_RADIUS_ANG.get(atom.symbol, 1.0) for atom in atoms])
+
+    # atom indices for all unique bonds
+    a, b = np.triu_indices(len(atoms), 1)
+
+    # distance squared between atom pairs
+    deltas = atom_pos[a] - atom_pos[b]
+    distsq = (deltas * deltas).sum(1)
+
+    # bond threshold distance squared between atom pairs
+    thresh = (atom_rad[a] + atom_rad[b]) * 0.6
+    thresh *= thresh
+
+    # stack index pairs where distance is within threshold
+    bonded = distsq <= thresh
+    return np.vstack((a[bonded], b[bonded])).astype(np.uint32).T
