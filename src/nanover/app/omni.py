@@ -220,6 +220,7 @@ class OmniRunner:
         self.app_server.update_state(DictionaryChange(removals=removals))
 
     def _load_simulation_selections(self):
+        return
         with self.app_server.lock_state() as state:
             next_selections = {
                 selection.selection_id: selection.to_dictionary()
