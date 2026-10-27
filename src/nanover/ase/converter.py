@@ -351,9 +351,10 @@ def generate_bonds_from_ase(atoms: Atoms) -> np.ndarray:
 
     count = sum(_.size for _ in nl.nl.neighbors)
     bonds = np.zeros((count, 2), dtype=np.uint32)
-    i = 0
-    for a in range(len(atoms)):
-        for b in nl.get_neighbors(a)[0]:
-            bonds[i, (0, 1)] = (a, b)
-            i += 1
-    return np.array(bonds, dtype=np.uint32)
+    i, j = 0, 0
+    for a, neighbours in enumerate(nl.nl.neighbors):
+        i = j
+        j += len(neighbours)
+        bonds[i:j, 0] = a
+        bonds[i:j, 1] = neighbours
+    return bonds
