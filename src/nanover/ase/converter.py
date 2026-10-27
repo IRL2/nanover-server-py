@@ -7,6 +7,7 @@ NanoVer clients.
 import numpy as np
 import numpy.typing as npt
 from ase import Atom, Atoms
+from ase.data import vdw_radii
 from ase.units import fs as fs_in_ase_time_unit
 
 from nanover.ase.imd_calculator import ImdCalculator
@@ -18,37 +19,6 @@ KJMOL_TO_EV = 0.01036427
 EV_TO_KJMOL = 1.0 / KJMOL_TO_EV
 PS_TO_ASE_TIME_UNIT = fs_in_ase_time_unit * 1e3
 ASE_TIME_UNIT_TO_PS = 1.0 / PS_TO_ASE_TIME_UNIT
-
-# from https://chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_Maps/Supplemental_Modules_(Physical_and_Theoretical_Chemistry)/Chemical_Bonding/Fundamentals_of_Chemical_Bonding/Covalent_Bond_Distance%2C_Radius_and_van_der_Waals_Radius
-# TODO make a helper class with complete coverage of this stuff.
-ATOM_RADIUS_ANG: dict[str, float] = {
-    "H": 1.2,
-    "He": 1.4,
-    "Li": 1.82,
-    "Be": 1.53,
-    "B": 1.92,
-    "C": 1.70,
-    "N": 1.55,
-    "O": 1.52,
-    "F": 1.47,
-    "Ne": 1.54,
-    "Na": 2.27,
-    "Mg": 1.73,
-    "Al": 1.84,
-    "Si": 2.1,
-    "P": 1.8,
-    "S": 1.8,
-    "Cl": 1.75,
-    "Ar": 1.88,
-    "K": 2.75,
-    "Ca": 2.31,
-    "Ni": 1.63,
-    "Cu": 1.40,
-    "Zn": 1.39,
-    "Ga": 1.87,
-    "Ge": 2.11,
-    "As": 1.85,
-}
 
 
 def ase_atoms_to_frame_data(
@@ -378,8 +348,8 @@ def generate_bonds_from_ase(atoms: Atoms) -> np.ndarray:
 
     """
     # atom positions and radii
-    atom_pos = np.array([atom.position for atom in atoms])
-    atom_rad = np.array([ATOM_RADIUS_ANG.get(atom.symbol, 1.0) for atom in atoms])
+    atom_pos = atoms.positions
+    atom_rad = vdw_radii[atoms.numbers]
 
     # atom indices for all unique bonds
     a, b = np.triu_indices(len(atoms), 1)
