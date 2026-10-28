@@ -6,7 +6,6 @@ import numpy as np
 import openmm.app
 from ase import Atoms
 from ase.calculators.calculator import Calculator
-from ase.md import MDLogger
 from ase.md.md import MolecularDynamics
 
 from nanover.ase.converter import (
@@ -104,7 +103,6 @@ class ASESimulation(Simulation):
 
         self.on_reset_energy_exceeded = Event()
 
-        self.verbose = False
         self.use_walls = False
         self.reset_energy: float | None = None
         self.frame_interval = 5
@@ -182,20 +180,6 @@ class ASESimulation(Simulation):
         frame_data.simulation_name = self.name
         self.app_server.frame_publisher.send_clear()
         self.app_server.frame_publisher.send_frame(frame_data)
-
-        # TODO: deal with this when its clear if dynamics should be reconstructed or not..
-        if self.verbose:
-            self.dynamics.attach(
-                MDLogger(
-                    self.dynamics,
-                    self.atoms,
-                    "-",
-                    header=True,
-                    stress=False,
-                    peratom=False,
-                ),
-                interval=100,
-            )
 
     def advance_by_one_step(self):
         """
