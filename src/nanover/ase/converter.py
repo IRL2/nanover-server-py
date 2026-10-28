@@ -7,7 +7,7 @@ NanoVer clients.
 import numpy as np
 import numpy.typing as npt
 from ase import Atom, Atoms
-from ase.neighborlist import NeighborList, build_neighbor_list
+from ase.neighborlist import NeighborList, natural_cutoffs
 from ase.units import fs as fs_in_ase_time_unit
 
 from nanover.ase.imd_calculator import ImdCalculator
@@ -226,9 +226,14 @@ def add_ase_topology_to_frame_data(
     :param frame_data: Frame data to add topology information to.
     :param ase_atoms: ASE atoms to extract topology information from.
     """
-    neighbor_list = (
-        neighbor_list if neighbor_list is not None else build_neighbor_list(ase_atoms)
-    )
+    if neighbor_list is None:
+        neighbor_list = NeighborList(cutoffs=natural_cutoffs(ase_atoms))
+        neighbor_list.nl.update(
+            [False, False, False],
+            ase_atoms.get_cell(complete=True),
+            ase_atoms.positions,
+        )
+
     bonds, molecule_strings, molecule_indices = determine_molecules(
         ase_atoms, neighbor_list
     )
@@ -275,7 +280,7 @@ def determine_molecules(ase_atoms: Atoms, neighbor_list: NeighborList):
     n_atoms = len(ase_atoms)
 
     # Calculate bonds and convert to array
-    bonds = bond_pairs_from_neighbour_list(neighbor_list)
+    bonds = bond_pairs_from_neighbor_list(neighbor_list)
 
     # Define upper triangular matrix from bonding vector
     upper_tri = np.zeros((n_atoms, n_atoms))
@@ -340,13 +345,46 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
-def bond_pairs_from_neighbour_list(neighbour_list: NeighborList) -> np.ndarray:
-    count = sum(_.size-1 for _ in neighbour_list.nl.neighbors)
+def generate_bonds_from_ase(atoms: Atoms) -> npt.NDArray[np.uint32]:
+    """
+    Generates bonds for the given configuration of ASE atoms using a distance criterion.
+
+    A bond is placed between two atoms if the distance between them is less
+    than 0.6 times the VDW radii of the atoms.
+
+    :param atoms: ASE atoms to generate bonds for.
+    :return: A list of pairs of atom indexes representing bonds.
+
+    Example
+    =======
+
+    The following example produces a bond between the two atoms in a carbon
+    monoxide molecule:
+
+    >>> co = Atoms('CO', positions=[(0, 0, 0), (0, 0, 1.1)], cell=[2, 2, 2])
+    >>> generate_bonds_from_ase(co)
+    [[0, 1]]
+
+    """
+    neighbor_list = NeighborList(cutoffs=natural_cutoffs(atoms))
+    neighbor_list.nl.update(
+        [False, False, False],
+        atoms.get_cell(complete=True),
+        atoms.positions,
+    )
+
+    return bond_pairs_from_neighbor_list(neighbor_list)
+
+
+def bond_pairs_from_neighbor_list(
+    neighbour_list: NeighborList,
+) -> npt.NDArray[np.uint32]:
+    count = sum(_.size - 1 for _ in neighbour_list.nl.neighbors)
     bonds = np.zeros((count, 2), dtype=np.uint32)
     i, j = 0, 0
     for a, neighbours in enumerate(neighbour_list.nl.neighbors):
         i = j
-        j += len(neighbours)-1
+        j += len(neighbours) - 1
         bonds[i:j, 0] = a
         bonds[i:j, 1] = neighbours[1:]
     return bonds

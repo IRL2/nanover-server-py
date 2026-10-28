@@ -172,7 +172,7 @@ class ASESimulation(Simulation):
         self.atoms.set_velocities(self.checkpoint.velocities)
         self.atoms.set_cell(self.checkpoint.cell)
 
-        self.neighbor_list = NeighborList(natural_cutoffs(self.atoms), skin=0)
+        self.neighbor_list = NeighborList(natural_cutoffs(self.atoms))
         self.bonds_changed = False
 
         # setup imd calculator
@@ -223,10 +223,10 @@ class ASESimulation(Simulation):
         Step the simulation to the next point a frame should be reported, and send that frame.
         """
         assert (
-                self.dynamics is not None
-                and self.app_server is not None
-                and self.imd_calculator is not None
-                and self.neighbor_list is not None
+            self.dynamics is not None
+            and self.app_server is not None
+            and self.imd_calculator is not None
+            and self.neighbor_list is not None
         )
 
         # determine step count for next frame
@@ -299,11 +299,16 @@ class ASESimulation(Simulation):
         """
         assert (
             self.atoms is not None
+            and self.neighbor_list is not None
             and self.imd_calculator is not None
             and self._dof is not None
         )
 
-        bonds_changed = self.neighbor_list.update(self.atoms)
+        bonds_changed = self.neighbor_list.nl.update(
+            [False, False, False],
+            self.atoms.get_cell(complete=True),
+            self.atoms.positions,
+        )
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
             topology=self.dynamic_bonds and bonds_changed,
