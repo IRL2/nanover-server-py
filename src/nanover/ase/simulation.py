@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 import numpy as np
+import numpy.typing as npt
 import openmm.app
 from ase import Atoms
 from ase.calculators.calculator import Calculator
@@ -120,15 +121,15 @@ class ASESimulation(Simulation):
 
         self.ase_atoms_to_frame_data: ASEAtomsToFrameData = ase_atoms_to_frame_data
 
-        self.work_done: float = 0.0
-        self._work_done_intermediate: float = 0.0
-        self._prev_imd_forces: np.ndarray | None = None
-        self._prev_imd_indices: np.ndarray | None = None
+        self.work_done = 0.0
+        self._work_done_intermediate = 0.0
+        self._prev_imd_forces: npt.NDArray | None = None
+        self._prev_imd_indices: npt.NDArray | None = None
 
         self._dof: int | None = None
 
-        self.dynamic_bonds: bool = False
-        self.previous_bonds: np.ndarray = np.empty([1, 2], dtype=int)
+        self.dynamic_bonds = False
+        self._prev_bond_pairs = np.empty((0, 2), dtype=np.uint32)
 
     def load(self):
         """
@@ -301,10 +302,9 @@ class ASESimulation(Simulation):
         # Calculate bonds and determine whether topology needs updating
         update_topology = False
         if self.dynamic_bonds:
-            current_bonds = generate_bonds_from_ase(self.atoms)
-            if not np.array_equal(current_bonds, self.previous_bonds):
-                update_topology = True
-                self.previous_bonds = current_bonds
+            bond_pairs = generate_bonds_from_ase(self.atoms)
+            update_topology = not np.array_equal(bond_pairs, self._prev_bond_pairs)
+            self._prev_bond_pairs = bond_pairs
 
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
