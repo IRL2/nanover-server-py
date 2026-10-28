@@ -128,7 +128,7 @@ class ASESimulation(Simulation):
         self._dof: int | None = None
 
         self.dynamic_bonds: bool = False
-        self.previous_bonds: np.ndarray | None = None
+        self.previous_bonds: np.ndarray = np.empty([1, 2], dtype=int)
 
     def load(self):
         """
@@ -302,7 +302,7 @@ class ASESimulation(Simulation):
         update_topology = False
         if self.dynamic_bonds:
             current_bonds = generate_bonds_from_ase(self.atoms)
-            if not np.array_equal(current_bonds, self.previous_bonds or []):
+            if not np.array_equal(current_bonds, self.previous_bonds):
                 update_topology = True
                 self.previous_bonds = current_bonds
 
