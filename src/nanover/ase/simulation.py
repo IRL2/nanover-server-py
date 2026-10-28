@@ -302,7 +302,7 @@ class ASESimulation(Simulation):
         update_topology = False
         if self.dynamic_bonds:
             current_bonds = generate_bonds_from_ase(self.atoms)
-            if not np.array_equal(current_bonds, self.previous_bonds):
+            if not np.array_equal(current_bonds, self.previous_bonds or []):
                 update_topology = True
                 self.previous_bonds = current_bonds
 
