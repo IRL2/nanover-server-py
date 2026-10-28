@@ -7,7 +7,7 @@ NanoVer clients.
 import numpy as np
 import numpy.typing as npt
 from ase import Atom, Atoms
-from ase.neighborlist import NeighborList, build_neighbor_list
+from ase.neighborlist import NeighborList, natural_cutoffs
 from ase.units import fs as fs_in_ase_time_unit
 
 from nanover.ase.imd_calculator import ImdCalculator
@@ -268,7 +268,7 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
-def generate_bonds_from_ase(atoms: Atoms):
+def generate_bonds_from_ase(atoms: Atoms) -> npt.NDArray[np.uint32]:
     """
     Generates bonds for the given configuration of ASE atoms using a distance criterion.
 
@@ -289,10 +289,19 @@ def generate_bonds_from_ase(atoms: Atoms):
     [[0, 1]]
 
     """
-    return bond_pairs_from_neighbor_list(build_neighbor_list(atoms))
+    neighbor_list = NeighborList(cutoffs=natural_cutoffs(atoms))
+    neighbor_list.nl.update(
+        [False, False, False],
+        atoms.get_cell(complete=True),
+        atoms.positions,
+    )
+
+    return bond_pairs_from_neighbor_list(neighbor_list)
 
 
-def bond_pairs_from_neighbor_list(neighbour_list: NeighborList) -> npt.NDArray:
+def bond_pairs_from_neighbor_list(
+    neighbour_list: NeighborList,
+) -> npt.NDArray[np.uint32]:
     count = sum(_.size - 1 for _ in neighbour_list.nl.neighbors)
     bonds = np.zeros((count, 2), dtype=np.uint32)
     i, j = 0, 0
