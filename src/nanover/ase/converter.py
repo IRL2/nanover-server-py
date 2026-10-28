@@ -4,12 +4,10 @@ Module containing methods for converting between ASE simulations consisting of
 NanoVer clients.
 """
 
-import itertools
-from collections.abc import Iterable
-
 import numpy as np
 import numpy.typing as npt
 from ase import Atom, Atoms
+from ase.neighborlist import NeighborList, natural_cutoffs
 from ase.units import fs as fs_in_ase_time_unit
 
 from nanover.ase.imd_calculator import ImdCalculator
@@ -21,37 +19,6 @@ KJMOL_TO_EV = 0.01036427
 EV_TO_KJMOL = 1.0 / KJMOL_TO_EV
 PS_TO_ASE_TIME_UNIT = fs_in_ase_time_unit * 1e3
 ASE_TIME_UNIT_TO_PS = 1.0 / PS_TO_ASE_TIME_UNIT
-
-# from https://chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_Maps/Supplemental_Modules_(Physical_and_Theoretical_Chemistry)/Chemical_Bonding/Fundamentals_of_Chemical_Bonding/Covalent_Bond_Distance%2C_Radius_and_van_der_Waals_Radius
-# TODO make a helper class with complete coverage of this stuff.
-ATOM_RADIUS_ANG = {
-    "H": 1.2,
-    "He": 1.4,
-    "Li": 1.82,
-    "Be": 1.53,
-    "B": 1.92,
-    "C": 1.70,
-    "N": 1.55,
-    "O": 1.52,
-    "F": 1.47,
-    "Ne": 1.54,
-    "Na": 2.27,
-    "Mg": 1.73,
-    "Al": 1.84,
-    "Si": 2.1,
-    "P": 1.8,
-    "S": 1.8,
-    "Cl": 1.75,
-    "Ar": 1.88,
-    "K": 2.75,
-    "Ca": 2.31,
-    "Ni": 1.63,
-    "Cu": 1.40,
-    "Zn": 1.39,
-    "Ga": 1.87,
-    "Ge": 2.11,
-    "As": 1.85,
-}
 
 
 def ase_atoms_to_frame_data(
@@ -301,29 +268,7 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
-def get_radius_of_element(symbol: str, default=1.0):
-    """
-    Gets the radius of an atom in Angstroms.
-
-    :param symbol: The chemical symbol representing the element.
-    :param default: Default radius to use if the radius for the given chemical
-        symbol is not known.
-    :return: The VDW radius of the atom in angstroms.
-    """
-    return ATOM_RADIUS_ANG.get(symbol, default)
-
-
-def _bond_threshold(radii: Iterable):
-    """
-    Returns the distance threshold, in Angstroms, for a bond between a given pair of radii.
-
-    :param radii: Pair or radii.
-    :return: Distance threshold indicating the distance at which a bond is formed.
-    """
-    return 0.6 * sum(radii)
-
-
-def generate_bonds_from_ase(atoms: Atoms):
+def generate_bonds_from_ase(atoms: Atoms) -> npt.NDArray[np.uint32]:
     """
     Generates bonds for the given configuration of ASE atoms using a distance criterion.
 
@@ -344,10 +289,25 @@ def generate_bonds_from_ase(atoms: Atoms):
     [[0, 1]]
 
     """
-    bonds = []
-    for pair in itertools.combinations(atoms, 2):
-        distance = np.linalg.norm(pair[0].position - pair[1].position)
-        radii = [get_radius_of_element(atom.symbol) for atom in pair]
-        if distance < _bond_threshold(radii):
-            bonds.append([atom.index for atom in pair])
-    return np.array(bonds, dtype=np.uint32)
+    neighbor_list = NeighborList(cutoffs=natural_cutoffs(atoms))
+    neighbor_list.nl.update(
+        [False, False, False],
+        atoms.get_cell(complete=True),
+        atoms.positions,
+    )
+
+    return bond_pairs_from_neighbor_list(neighbor_list)
+
+
+def bond_pairs_from_neighbor_list(
+    neighbour_list: NeighborList,
+) -> npt.NDArray[np.uint32]:
+    count = sum(_.size - 1 for _ in neighbour_list.nl.neighbors)
+    bonds = np.zeros((count, 2), dtype=np.uint32)
+    i, j = 0, 0
+    for a, neighbours in enumerate(neighbour_list.nl.neighbors):
+        i = j
+        j += len(neighbours) - 1
+        bonds[i:j, 0] = a
+        bonds[i:j, 1] = neighbours[1:]
+    return bonds
