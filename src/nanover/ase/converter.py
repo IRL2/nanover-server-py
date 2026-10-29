@@ -215,6 +215,7 @@ def add_ase_topology_to_frame_data(
     frame_data: FrameData,
     ase_atoms: Atoms,
     generate_bonds=True,
+    generate_molecules=True,
     neighbor_list: NeighborList | None = None,
 ):
     """
@@ -225,8 +226,11 @@ def add_ase_topology_to_frame_data(
 
     :param frame_data: Frame data to add topology information to.
     :param ase_atoms: ASE atoms to extract topology information from.
+    :param generate_bonds: Guess new bond pairs from atom positions.
+    :param generate_molecules: Guess new chains and residues from atom positions.
     """
-    if neighbor_list is None:
+    need_neighors = generate_bonds or generate_molecules
+    if neighbor_list is None and need_neighors:
         neighbor_list = NeighborList(cutoffs=natural_cutoffs(ase_atoms))
         neighbor_list.nl.update(
             [False, False, False],
@@ -234,21 +238,22 @@ def add_ase_topology_to_frame_data(
             ase_atoms.positions,
         )
 
-    bonds, molecule_strings, molecule_indices = determine_molecules(
-        ase_atoms, neighbor_list
-    )
+    if generate_bonds and neighbor_list is not None:
+        frame_data.bond_pairs = bond_pairs_from_neighbor_list(neighbor_list)
 
-    if generate_bonds:
-        frame_data.bond_pairs = bonds
+    if generate_molecules and neighbor_list is not None:
+        molecule_strings, molecule_indices = determine_molecules(
+            ase_atoms, neighbor_list
+        )
 
-    # each molecule is a single chain and a single residue
-    n_molecules = len(molecule_strings)
-    frame_data.chain_names = molecule_strings
-    frame_data.chain_count = n_molecules
-    frame_data.residue_names = molecule_strings
-    frame_data.residue_chains = np.arange(n_molecules, dtype=np.uint32)
-    frame_data.residue_count = n_molecules
-    frame_data.residue_ids = [str(i + 1) for i in range(n_molecules)]
+        # each molecule is a single chain and a single residue
+        n_molecules = len(molecule_strings)
+        frame_data.chain_names = molecule_strings
+        frame_data.chain_count = n_molecules
+        frame_data.residue_names = molecule_strings
+        frame_data.residue_chains = np.arange(n_molecules, dtype=np.uint32)
+        frame_data.residue_count = n_molecules
+        frame_data.residue_ids = [str(i + 1) for i in range(n_molecules)]
 
     atom_names = []
 
@@ -271,27 +276,21 @@ def add_ase_topology_to_frame_data(
 
 def determine_molecules(ase_atoms: Atoms, neighbor_list: NeighborList):
     """
-    Determines the molecules in the system based on the topology
-    from :func:`generate_bonds_from_ase`.
+    Determines the molecules in the system based on the topology.
 
     :param ase_atoms: ASE atoms to extract topology information from.
+    :param neighbor_list: NeighborList to extract connectivity from.
     """
     # Retrieve number of atoms
     n_atoms = len(ase_atoms)
 
-    # Calculate bonds and convert to array
-    bonds = bond_pairs_from_neighbor_list(neighbor_list)
-
-    # Define upper triangular matrix from bonding vector
-    upper_tri = np.zeros((n_atoms, n_atoms))
-    for bond in bonds:
-        upper_tri[*bond] = 1
-
-    # Define adjacency matrix with ones on diagonal
-    adj_mat = np.identity(n_atoms) + upper_tri + upper_tri.transpose()
+    # Get partial adjacency matrix and mirror
+    adj_mat = neighbor_list.get_connectivity_matrix(sparse=False)
+    adj_mat += adj_mat.T
+    adj_mat.clip(0, 1, out=adj_mat)
 
     # Calculate "molecular connectivity matrix" as (n_atoms-1)th power
-    # of adjacency matrix, and set all non-zero elements to 1
+    # of adjacency matrix
     mol_connect_mat = np.linalg.matrix_power(adj_mat, n_atoms - 1)
     mol_connect_mat[mol_connect_mat != 0] = 1
 
@@ -299,20 +298,14 @@ def determine_molecules(ase_atoms: Atoms, neighbor_list: NeighborList):
     molecules = np.unique(mol_connect_mat, axis=0)
 
     # Get elements for atoms:
-    elements = np.array(ase_atoms.get_chemical_symbols())
+    elements = ase_atoms.symbols
 
     # Define molecule strings and atom indices of molecules from rows
     # of "molecular connectivity matrix"
-    molecule_strings = []
-    molecule_indices = []
-    for molecule in molecules:
-        molecule_atom_indices = molecule.nonzero()[0]
-        molecule_indices.append(molecule_atom_indices)
-        element_strings = elements[molecule_atom_indices]
-        molecule_string = "".join(element_strings)
-        molecule_strings.append(molecule_string)
+    molecule_indices = [np.flatnonzero(molecule) for molecule in molecules]
+    molecule_strings = [str(elements[indices]) for indices in molecule_indices]
 
-    return bonds, molecule_strings, molecule_indices
+    return molecule_strings, molecule_indices
 
 
 def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
