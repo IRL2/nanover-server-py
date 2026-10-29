@@ -7,7 +7,7 @@ NanoVer clients.
 import numpy as np
 import numpy.typing as npt
 from ase import Atom, Atoms
-from ase.neighborlist import NeighborList, natural_cutoffs
+from ase.neighborlist import NeighborList, build_neighbor_list
 from ase.units import fs as fs_in_ase_time_unit
 
 from nanover.ase.imd_calculator import ImdCalculator
@@ -229,14 +229,9 @@ def add_ase_topology_to_frame_data(
     :param generate_bonds: Guess new bond pairs from atom positions.
     :param generate_molecules: Guess new chains and residues from atom positions.
     """
-    need_neighors = generate_bonds or generate_molecules
-    if neighbor_list is None and need_neighors:
-        neighbor_list = NeighborList(cutoffs=natural_cutoffs(ase_atoms))
-        neighbor_list.nl.update(
-            [False, False, False],
-            ase_atoms.get_cell(complete=True),
-            ase_atoms.positions,
-        )
+    need_neighbors = generate_bonds or generate_molecules
+    if neighbor_list is None and need_neighbors:
+        neighbor_list = build_neighbor_list(ase_atoms, self_interaction=False)
 
     if generate_bonds and neighbor_list is not None:
         frame_data.bond_pairs = bond_pairs_from_neighbor_list(neighbor_list)
@@ -287,6 +282,7 @@ def determine_molecules(ase_atoms: Atoms, neighbor_list: NeighborList):
     # Get partial adjacency matrix and mirror
     adj_mat = neighbor_list.get_connectivity_matrix(sparse=False)
     adj_mat += adj_mat.T
+    adj_mat += np.identity(n_atoms, dtype=np.int8)
     adj_mat.clip(0, 1, out=adj_mat)
 
     # Calculate "molecular connectivity matrix" as (n_atoms-1)th power
@@ -359,25 +355,19 @@ def generate_bonds_from_ase(atoms: Atoms) -> npt.NDArray[np.uint32]:
     [[0, 1]]
 
     """
-    neighbor_list = NeighborList(cutoffs=natural_cutoffs(atoms))
-    neighbor_list.nl.update(
-        [False, False, False],
-        atoms.get_cell(complete=True),
-        atoms.positions,
-    )
-
+    neighbor_list = build_neighbor_list(atoms, self_interaction=False)
     return bond_pairs_from_neighbor_list(neighbor_list)
 
 
 def bond_pairs_from_neighbor_list(
     neighbour_list: NeighborList,
 ) -> npt.NDArray[np.uint32]:
-    count = sum(_.size - 1 for _ in neighbour_list.nl.neighbors)
+    count = sum(_.size for _ in neighbour_list.nl.neighbors)
     bonds = np.zeros((count, 2), dtype=np.uint32)
     i, j = 0, 0
     for a, neighbours in enumerate(neighbour_list.nl.neighbors):
         i = j
-        j += len(neighbours) - 1
+        j += len(neighbours)
         bonds[i:j, 0] = a
-        bonds[i:j, 1] = neighbours[1:]
+        bonds[i:j, 1] = neighbours
     return bonds
