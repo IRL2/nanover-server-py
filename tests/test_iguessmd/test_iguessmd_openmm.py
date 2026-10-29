@@ -1155,16 +1155,17 @@ def test_calculate_work_done(position_shifts, indices):
 
 
 @pytest.mark.parametrize(
-    "mobile_atom_indices, reference_atom_indices, force_constants, every_nth, dtypes",
+    "mobile_atom_indices, reference_atom_indices, force_constants, every_nth, include_end, dtypes",
     product(
         TEST_iGUESSMD_MOBILE_INDICES,
         TEST_iGUESSMD_REFERENCE_INDICES,
         TEST_iGUESSMD_FORCE_CONSTANTS,
         [1, 2, 5, 23],
+        [True, False],
         [np.float16, np.float32, np.float64],
     ),
 )
-def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indices, force_constants, every_nth, dtypes):
+def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indices, force_constants, every_nth, include_end, dtypes):
     """
     Check that the iGUESSMD simulation data can be saved to a file with the
     expected behaviour:
@@ -1203,6 +1204,7 @@ def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indic
         # Save as specified dtype (currently arrays are dtype float64 internally)
         iguessmd_sim.save_iguessmd_simulation_data(file_path,
                                                    every_nth=every_nth,
+                                                   include_end=include_end,
                                                    work_done_dtype=dtypes,
                                                    x_rel_positions_dtype=dtypes,
                                                    centre_positions_dtype=dtypes,
@@ -1228,7 +1230,7 @@ def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indic
                 iguessmd_sim.iguessmd_sim_mobile_atom_positions,
                 axis=0,
                 every_nth=every_nth,
-                include_end=False
+                include_end=include_end
             ).astype(dtypes),
             iguessmd_simulation_data["iguessmd_sim_mobile_atom_positions"],
         )
@@ -1237,7 +1239,7 @@ def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indic
                 iguessmd_sim.iguessmd_sim_mobile_centre_positions,
                 axis=0,
                 every_nth=every_nth,
-                include_end=False
+                include_end=include_end
             ).astype(dtypes),
             iguessmd_simulation_data["iguessmd_sim_mobile_centre_positions"],
         )
@@ -1246,7 +1248,7 @@ def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indic
                 iguessmd_sim.iguessmd_sim_x_rel_positions,
                 axis=0,
                 every_nth=every_nth,
-                include_end=False,
+                include_end=include_end,
             ).astype(dtypes),
             iguessmd_simulation_data["iguessmd_sim_x_rel_positions"],
         )
@@ -1255,7 +1257,7 @@ def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indic
                 iguessmd_sim.iguessmd_sim_work_done,
                 axis=0,
                 every_nth=every_nth,
-                include_end=False
+                include_end=include_end
             ).astype(dtypes),
             iguessmd_simulation_data["iguessmd_sim_work_done"],
         )
@@ -1267,7 +1269,7 @@ def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indic
                     iguessmd_sim.iguessmd_sim_ref_atom_positions,
                     axis=0,
                     every_nth=every_nth,
-                    include_end=False
+                    include_end=include_end
                 ).astype(dtypes),
                 iguessmd_simulation_data["iguessmd_sim_ref_atom_positions"],
             )
@@ -1276,7 +1278,7 @@ def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indic
                     iguessmd_sim.iguessmd_sim_ref_centre_positions,
                     axis=0,
                     every_nth=every_nth,
-                    include_end=False
+                    include_end=include_end
                 ).astype(dtypes),
                 iguessmd_simulation_data["iguessmd_sim_ref_centre_positions"],
             )
