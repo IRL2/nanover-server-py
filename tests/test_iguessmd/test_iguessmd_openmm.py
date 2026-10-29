@@ -91,7 +91,7 @@ TEST_iGUESSMD_MULTIPLE_INDICES = np.array([0, 1, 2, 3])
 TEST_iGUESSMD_MOBILE_INDICES = [TEST_iGUESSMD_SINGLE_INDEX_0D, TEST_iGUESSMD_SINGLE_INDEX_1D, TEST_iGUESSMD_MULTIPLE_INDICES]
 TEST_iGUESSMD_REFERENCE_INDICES = [None, np.array(4), np.array([0]), np.array([4, 5, 6, 7])]
 TEST_iGUESSMD_LINEAR_PATH = np.array(
-    [np.linspace(0.05, 1.05, 101), np.zeros(101), np.zeros(101)]
+    [np.linspace(0.10, 1.10, 101), np.zeros(101), np.zeros(101)]
 ).transpose()
 TEST_iGUESSMD_LINEAR_PATH_TANGENTS = np.array(
     [np.ones(101), np.zeros(101), np.zeros(101)]
@@ -1179,7 +1179,7 @@ def test_calculate_work_done(position_shifts, mobile_atom_indices):
         iguessmd_sim.iguessmd_sim_work_done, expected_work_done, atol=1e-16
     )
 
-
+@pytest.mark.filterwarnings("ignore::UserWarning")
 @pytest.mark.parametrize(
     "mobile_atom_indices, reference_atom_indices, force_constants, every_nth, include_end, dtypes",
     product(
@@ -1290,6 +1290,8 @@ def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indic
         if isinstance(reference_atom_indices, np.ndarray):
             assert iguessmd_simulation_data["iguessmd_sim_ref_atom_positions"].dtype == dtypes
             assert iguessmd_simulation_data["iguessmd_sim_ref_centre_positions"].dtype == dtypes
+            assert iguessmd_simulation_data["iguessmd_sim_ref_atom_positions"].dtype == dtypes
+            assert iguessmd_simulation_data["iguessmd_sim_ref_centre_positions"].dtype == dtypes
             assert np.array_equal(
                 get_every_nth(
                     iguessmd_sim.iguessmd_sim_ref_atom_positions,
@@ -1348,7 +1350,7 @@ def test_save_general_iguessmd_data(mobile_atom_indices, reference_atom_indices,
             iguessmd_sim.mobile_atom_indices, general_iguessmd_data["mobile_atom_indices"]
         )
         if isinstance(reference_atom_indices, np.ndarray):
-            assert(
+            assert np.array_equal(
                 iguessmd_sim.ref_atom_indices, general_iguessmd_data["ref_atom_indices"]
             )
         assert np.array_equal(
