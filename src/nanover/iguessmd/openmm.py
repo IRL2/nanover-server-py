@@ -194,8 +194,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         self._sim_uses_pbcs: bool | None = None
         self._pbc_box_lengths: np.ndarray | None = None
 
-        self.n_iguessmd_atom_indices: int | None = None
-
     def _initialise_iguessmd_simulation(
         self,
         iguessmd_atom_indices: np.ndarray,
@@ -227,7 +225,6 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             self.mobile_atom_weights = self._calculate_com_weights(
                 self.mobile_atom_indices
             )
-        self.n_iguessmd_atom_indices = self.mobile_atom_indices.size
         self.reaction_path = iguessmd_path
 
         if iguessmd_ref_atom_indices is not None:
