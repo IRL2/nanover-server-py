@@ -334,31 +334,6 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
-def generate_bonds_from_ase(atoms: Atoms) -> npt.NDArray[np.uint32]:
-    """
-    Generates bonds for the given configuration of ASE atoms using a distance criterion.
-
-    A bond is placed between two atoms if the distance between them is less
-    than 0.6 times the VDW radii of the atoms.
-
-    :param atoms: ASE atoms to generate bonds for.
-    :return: A list of pairs of atom indexes representing bonds.
-
-    Example
-    =======
-
-    The following example produces a bond between the two atoms in a carbon
-    monoxide molecule:
-
-    >>> co = Atoms('CO', positions=[(0, 0, 0), (0, 0, 1.1)], cell=[2, 2, 2])
-    >>> generate_bonds_from_ase(co)
-    [[0, 1]]
-
-    """
-    neighbor_list = build_neighbor_list(atoms, self_interaction=False)
-    return bond_pairs_from_neighbor_list(neighbor_list)
-
-
 def bond_pairs_from_neighbor_list(
     neighbour_list: NeighborList,
 ) -> npt.NDArray[np.uint32]:
