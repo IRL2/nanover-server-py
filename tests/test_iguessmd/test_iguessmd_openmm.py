@@ -453,7 +453,7 @@ def test_load_iguessmd_simulation_with_absolute_iguessmd_force_from_xml_path(
     make_basic_iguessmd_simulation_with_absolute_iguessmd_force_xml,
 ):
     """
-    Check that when an input file containing an iGUESSMD force is passed to the
+    Check that when an input file containing an absolute iGUESSMD force is passed to the
     OMMiGUESSMDSimulation class, the iGUESSMD force is loaded correctly from the file using
     check_for_existing_iguessmd_force(), and that the parameters for the iGUESSMD force match
     those that are passed via the file.
@@ -482,7 +482,7 @@ def test_load_iguessmd_simulation_without_absolute_iguessmd_force_from_xml_path(
 ):
     """
     Check that when an xml input file is saved from an OMMiGUESSMDSimulation class
-    without the iGUESSMD force, the iGUESSMD force is not loaded from the file.
+    without the absolute iGUESSMD force, the iGUESSMD force is not loaded from the file.
     """
     xml_path, atom_indices, force_constant = (
         make_basic_iguessmd_simulation_without_absolute_iguessmd_force_xml
@@ -505,7 +505,7 @@ def test_load_iguessmd_simulation_with_relative_iguessmd_force_from_xml_path(
     make_basic_iguessmd_simulation_with_relative_iguessmd_force_xml,
 ):
     """
-    Check that when an input file containing an iGUESSMD force is passed to the
+    Check that when an input file containing a relative iGUESSMD force is passed to the
     OMMiGUESSMDSimulation class, the iGUESSMD force is loaded correctly from the file using
     check_for_existing_iguessmd_force(), and that the parameters for the iGUESSMD force match
     those that are passed via the file.
@@ -538,7 +538,7 @@ def test_load_iguessmd_simulation_without_relative_iguessmd_force_from_xml_path(
 ):
     """
     Check that when an xml input file is saved from an OMMiGUESSMDSimulation class
-    without the iGUESSMD force, the iGUESSMD force is not loaded from the file.
+    without the relative iGUESSMD force, the iGUESSMD force is not loaded from the file.
     """
     xml_path, mobile_atom_indices, reference_atom_indices, force_constant = (
         make_basic_iguessmd_simulation_without_relative_iguessmd_force_xml
