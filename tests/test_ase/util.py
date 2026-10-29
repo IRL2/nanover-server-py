@@ -23,12 +23,12 @@ def state_wrapper():
 
 def co_atoms():
     d = 1.1
-    co = Atoms("CO", positions=[(0, 0, 0), (0, 0, d)], cell=[2, 2, 2], pbc=[1, 1, 1])
+    co = Atoms("CO", positions=[(0, 0, 0), (0, 0, d)], cell=[2, 2, 2], pbc=True)
     return co
 
 
 def c_atoms():
-    c = Atoms("C", positions=[(0, 0, 0)], cell=[2, 2, 2], pbc=[1, 1, 1])
+    c = Atoms("C", positions=[(0, 0, 0)], cell=[2, 2, 2], pbc=True)
     return c
 
 
