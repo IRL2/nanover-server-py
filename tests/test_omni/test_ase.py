@@ -152,6 +152,16 @@ def test_dynamics_interaction(example_ase_loaded):
     assert z == pytest.approx(0.028125, abs=1e-8)
 
 
+def test_dynamic_bonds(example_ase_loaded):
+    """
+    Test that dynamic bonds are computed without throwing an exception.
+    """
+    example_ase_loaded.dynamic_bonds = True
+
+    for _ in range(4):
+        example_ase_loaded.advance_by_one_step()
+
+
 def test_simulation_time(example_ase_app_sim):
     """
     Test that the simulation time delivered in the frame matches the elapsed

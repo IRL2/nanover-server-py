@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 import numpy as np
+import numpy.typing as npt
 import openmm.app
 from ase import Atoms
 from ase.calculators.calculator import Calculator
@@ -120,16 +121,16 @@ class ASESimulation(Simulation):
 
         self.ase_atoms_to_frame_data: ASEAtomsToFrameData = ase_atoms_to_frame_data
 
-        self.work_done: float = 0.0
-        self._work_done_intermediate: float = 0.0
-        self._prev_imd_forces: np.ndarray | None = None
-        self._prev_imd_indices: np.ndarray | None = None
+        self.work_done = 0.0
+        self._work_done_intermediate = 0.0
+        self._prev_imd_forces: npt.NDArray | None = None
+        self._prev_imd_indices: npt.NDArray | None = None
 
         self._dof: int | None = None
 
         self.dynamic_bonds: bool = False
-        self.previous_bonds: np.ndarray | None = None
         self.neighbor_list: NeighborList | None = None
+        self.dynamic_bonds = False
 
     def load(self):
         """
