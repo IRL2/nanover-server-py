@@ -1155,15 +1155,16 @@ def test_calculate_work_done(position_shifts, indices):
 
 
 @pytest.mark.parametrize(
-    "indices, force_constants, every_nth, dtypes",
+    "mobile_atom_indices, reference_atom_indices, force_constants, every_nth, dtypes",
     product(
         TEST_iGUESSMD_MOBILE_INDICES,
+        TEST_iGUESSMD_REFERENCE_INDICES,
         TEST_iGUESSMD_FORCE_CONSTANTS,
         [1, 2, 5, 23],
         [np.float16, np.float32, np.float64],
     ),
 )
-def test_save_iguessmd_simulation_data(indices, force_constants, every_nth, dtypes):
+def test_save_iguessmd_simulation_data(mobile_atom_indices, reference_atom_indices, force_constants, every_nth, dtypes):
     """
     Check that the iGUESSMD simulation data can be saved to a file with the
     expected behaviour:
@@ -1181,10 +1182,11 @@ def test_save_iguessmd_simulation_data(indices, force_constants, every_nth, dtyp
     """
     # Create the simulation
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
-        build_basic_simulation(),
-        indices,
-        TEST_iGUESSMD_LINEAR_PATH,
-        force_constants,
+        simulation=build_basic_simulation(),
+        iguessmd_mobile_atom_indices=mobile_atom_indices,
+        iguessmd_ref_atom_indices=reference_atom_indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=force_constants,
     )
 
     # Run iGUESSMD simulation to generate example data
@@ -1199,12 +1201,12 @@ def test_save_iguessmd_simulation_data(indices, force_constants, every_nth, dtyp
         file_path = output_path.joinpath(filename)
 
         # Save as specified dtype (currently arrays are dtype float64 internally)
-        if indices.size > 1:
-            iguessmd_sim.save_iguessmd_simulation_data(file_path, every_nth=every_nth, work_done_dtype=dtypes,
-                                                       centre_positions_dtype=dtypes, atom_positions_dtype=dtypes)
-        else:
-            iguessmd_sim.save_iguessmd_simulation_data(file_path, every_nth=every_nth, work_done_dtype=dtypes,
-                                                       atom_positions_dtype=dtypes)
+        iguessmd_sim.save_iguessmd_simulation_data(file_path,
+                                                   every_nth=every_nth,
+                                                   work_done_dtype=dtypes,
+                                                   x_rel_positions_dtype=dtypes,
+                                                   centre_positions_dtype=dtypes,
+                                                   atom_positions_dtype=dtypes)
 
         # Check the outfile exists
         assert file_path.exists()
@@ -1218,6 +1220,9 @@ def test_save_iguessmd_simulation_data(indices, force_constants, every_nth, dtyp
 
         # Check that arrays save correctly (including dtype)
         assert iguessmd_simulation_data["iguessmd_sim_mobile_atom_positions"].dtype == dtypes
+        assert iguessmd_simulation_data["iguessmd_sim_mobile_centre_positions"].dtype == dtypes
+        assert iguessmd_simulation_data["iguessmd_sim_x_rel_positions"].dtype == dtypes
+        assert iguessmd_simulation_data["iguessmd_sim_work_done"].dtype == dtypes
         assert np.array_equal(
             get_every_nth(
                 iguessmd_sim.iguessmd_sim_mobile_atom_positions,
@@ -1227,7 +1232,24 @@ def test_save_iguessmd_simulation_data(indices, force_constants, every_nth, dtyp
             ).astype(dtypes),
             iguessmd_simulation_data["iguessmd_sim_mobile_atom_positions"],
         )
-        assert iguessmd_simulation_data["iguessmd_sim_work_done"].dtype == dtypes
+        assert np.array_equal(
+            get_every_nth(
+                iguessmd_sim.iguessmd_sim_mobile_centre_positions,
+                axis=0,
+                every_nth=every_nth,
+                include_end=False
+            ).astype(dtypes),
+            iguessmd_simulation_data["iguessmd_sim_mobile_centre_positions"],
+        )
+        assert np.array_equal(
+            get_every_nth(
+                iguessmd_sim.iguessmd_sim_x_rel_positions,
+                axis=0,
+                every_nth=every_nth,
+                include_end=False,
+            ).astype(dtypes),
+            iguessmd_simulation_data["iguessmd_sim_x_rel_positions"],
+        )
         assert np.array_equal(
             get_every_nth(
                 iguessmd_sim.iguessmd_sim_work_done,
@@ -1237,24 +1259,34 @@ def test_save_iguessmd_simulation_data(indices, force_constants, every_nth, dtyp
             ).astype(dtypes),
             iguessmd_simulation_data["iguessmd_sim_work_done"],
         )
-        if indices.size > 1:
-            assert iguessmd_simulation_data["iguessmd_sim_mobile_centre_positions"].dtype == dtypes
+        if isinstance(reference_atom_indices, np.ndarray):
+            assert iguessmd_simulation_data["iguessmd_sim_ref_atom_positions"].dtype == dtypes
+            assert iguessmd_simulation_data["iguessmd_sim_ref_centre_positions"].dtype == dtypes
             assert np.array_equal(
                 get_every_nth(
-                    iguessmd_sim.iguessmd_sim_mobile_centre_positions,
+                    iguessmd_sim.iguessmd_sim_ref_atom_positions,
                     axis=0,
                     every_nth=every_nth,
                     include_end=False
                 ).astype(dtypes),
-                iguessmd_simulation_data["iguessmd_sim_mobile_centre_positions"],
+                iguessmd_simulation_data["iguessmd_sim_ref_atom_positions"],
+            )
+            assert np.array_equal(
+                get_every_nth(
+                    iguessmd_sim.iguessmd_sim_ref_centre_positions,
+                    axis=0,
+                    every_nth=every_nth,
+                    include_end=False
+                ).astype(dtypes),
+                iguessmd_simulation_data["iguessmd_sim_ref_centre_positions"],
             )
 
 
 @pytest.mark.parametrize(
-    "indices, force_constants",
-    product(TEST_iGUESSMD_MOBILE_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
+    "mobile_atom_indices, reference_atom_indices, force_constants",
+    product(TEST_iGUESSMD_MOBILE_INDICES, TEST_iGUESSMD_REFERENCE_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
 )
-def test_save_general_iguessmd_data(indices, force_constants):
+def test_save_general_iguessmd_data(mobile_atom_indices, reference_atom_indices, force_constants):
     """
     Check that the function save_general_iguessmd_data correctly saves the
     data from the iGUESSMD simulation in the correct format to the
@@ -1265,10 +1297,11 @@ def test_save_general_iguessmd_data(indices, force_constants):
       test one single index and one set of indices)
     """
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
-        build_basic_simulation(),
-        indices,
-        TEST_iGUESSMD_LINEAR_PATH,
-        force_constants,
+        simulation=build_basic_simulation(),
+        iguessmd_mobile_atom_indices=mobile_atom_indices,
+        iguessmd_ref_atom_indices=reference_atom_indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=force_constants,
     )
     with redirect_stdout(StringIO()) as _:
         iguessmd_sim.run_iguessmd()
@@ -1286,7 +1319,17 @@ def test_save_general_iguessmd_data(indices, force_constants):
         assert np.array_equal(
             iguessmd_sim.mobile_atom_indices, general_iguessmd_data["mobile_atom_indices"]
         )
-        assert np.array_equal(iguessmd_sim.reaction_path, general_iguessmd_data["reaction_path"])
+        if isinstance(reference_atom_indices, np.ndarray):
+            assert(
+                iguessmd_sim.ref_atom_indices, general_iguessmd_data["ref_atom_indices"]
+            )
+        assert np.array_equal(
+            iguessmd_sim.reaction_path, general_iguessmd_data["reaction_path"]
+        )
+        assert (
+            iguessmd_sim._coord_type == general_iguessmd_data["x_rel_coordinate_type"]
+        )
+
         assert np.array_equal(
             iguessmd_sim.k, general_iguessmd_data["force_constant_kJ/(mol*nm2)"]
         )
@@ -1298,7 +1341,6 @@ def test_save_general_iguessmd_data(indices, force_constants):
                 iguessmd_sim.simulation.integrator.getStepSize()._value
                 == general_iguessmd_data["timestep_ps"]
         )
-
 
 @pytest.mark.parametrize(
     "positions, masses, com",
@@ -1719,5 +1761,4 @@ def test_iguessmd_force_relative_reaction_paths(mobile_indices, reference_indice
     assert bond_params[0] == expected_force_groups
     assert np.all(bond_params[1] == expected_bond_params)
 
-# TODO: Test that correct fields can be saved when using relative reaction path
 

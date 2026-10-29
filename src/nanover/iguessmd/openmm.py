@@ -764,9 +764,10 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 ).astype(atom_positions_dtype)
             )
             if self._coord_type == "rel":
+                assert self.iguessmd_sim_ref_atom_positions is not None
                 iguessmd_simulation_data["iguessmd_sim_ref_atom_positions"] = (
                     get_every_nth(
-                        self.iguessmd_sim_mobile_atom_positions,
+                        self.iguessmd_sim_ref_atom_positions,
                         axis=0,
                         every_nth=every_nth,
                         include_end=include_end,
@@ -953,7 +954,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         )
         if self._coord_type == "rel" and self.ref_atom_indices is not None:
             self.iguessmd_sim_ref_atom_positions = np.zeros(
-                (self.reaction_path.shape[0], self.mobile_atom_indices.size, 3)
+                (self.reaction_path.shape[0], self.ref_atom_indices.size, 3)
             )
 
     def _calculate_com_weights(self, atom_indices: np.ndarray) -> np.ndarray:
