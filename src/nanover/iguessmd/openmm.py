@@ -284,7 +284,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         self.current_iguessmd_force_position_index = 0
 
         self.calculate_iguessmd_path_tangents()
-        self.current_iguessmd_force_tangent = self.reaction_path_unit_tangents[0]
+        self.current_iguessmd_reaction_path_tangent = self.reaction_path_unit_tangents[0]
 
         # Check whether iGUESSMD force is already present
         self.check_for_existing_iguessmd_force()
@@ -323,8 +323,12 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
         # Reset or remove iGUESSMD simulation arrays
         self.define_iguessmd_simulation_atom_positions_arrays()
-        del self.iguessmd_sim_forces
-        del self.iguessmd_sim_work_done
+        self.iguessmd_sim_forces = None
+        self.iguessmd_sim_x_rel_positions = None
+        self.iguessmd_sim_mobile_centre_positions = None
+        if self._coord_type != "abs":
+            self.iguessmd_sim_ref_centre_positions = None
+        self.iguessmd_sim_work_done = None
 
     def remove_iguessmd_force_from_system(self):
         """
@@ -883,7 +887,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                 == np.concatenate(
                     [
                         self.current_iguessmd_force_position,
-                        self.current_iguessmd_force_tangent,
+                        self.current_iguessmd_reaction_path_tangent,
                     ]
                 )
             )
@@ -897,16 +901,16 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
     def add_iguessmd_force_to_system(self):
         assert (
-            self.current_iguessmd_force_position is not None
-            and self.current_iguessmd_force_tangent is not None
-            and self.k_par is not None
-            and self.k_perp is not None
-            and self._sim_uses_pbcs is not None
-            and self._coord_type is not None
+                self.current_iguessmd_force_position is not None
+                and self.current_iguessmd_reaction_path_tangent is not None
+                and self.k_par is not None
+                and self.k_perp is not None
+                and self._sim_uses_pbcs is not None
+                and self._coord_type is not None
         )
 
         x0, y0, z0 = self.current_iguessmd_force_position
-        tx, ty, tz = self.current_iguessmd_force_tangent
+        tx, ty, tz = self.current_iguessmd_reaction_path_tangent
         iguessmd_force = iguessmd_com_force(
             self.k_par,
             self.k_perp,
@@ -931,17 +935,17 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         self.current_iguessmd_force_position = self.reaction_path[
             self.current_iguessmd_force_position_index
         ]
-        self.current_iguessmd_force_tangent = self.reaction_path_unit_tangents[
+        self.current_iguessmd_reaction_path_tangent = self.reaction_path_unit_tangents[
             self.current_iguessmd_force_position_index
         ]
         assert (
-            self.current_iguessmd_force_position is not None
-            and self.current_iguessmd_force_tangent is not None
-            and self.iguessmd_force is not None
-            and self.iguessmd_force_groups is not None
+                self.current_iguessmd_force_position is not None
+                and self.current_iguessmd_reaction_path_tangent is not None
+                and self.iguessmd_force is not None
+                and self.iguessmd_force_groups is not None
         )
         x0, y0, z0 = self.current_iguessmd_force_position
-        tx, ty, tz = self.current_iguessmd_force_tangent
+        tx, ty, tz = self.current_iguessmd_reaction_path_tangent
         self.iguessmd_force.setBondParameters(
             0, self.iguessmd_force_groups, [x0, y0, z0, tx, ty, tz]
         )

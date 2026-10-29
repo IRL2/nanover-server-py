@@ -642,20 +642,21 @@ def test_iguessmd_force_attaches_to_correct_atoms(indices, force_constant):
     assert np.array_equal(np.array(p_indices), indices)
 
 
-@pytest.mark.parametrize("indices", TEST_iGUESSMD_MOBILE_INDICES)
-def test_reset(indices):
+@pytest.mark.parametrize("mobile_atom_indices, reference_atom_indices", product(TEST_iGUESSMD_MOBILE_INDICES, TEST_iGUESSMD_REFERENCE_INDICES))
+def test_reset(mobile_atom_indices, reference_atom_indices):
     """
-    Check that all the attributes of the OMMiGUESSMDSimulation subclasses are reset to their initial
+    Check that all the attributes of the OMMiGUESSMDSimulation class are reset to their initial
     state by the .reset() function of the class.
 
     :param indices: Indices of atoms to apply the iGUESSMD force to (should at least
       test one single index and one set of indices)
     """
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
-        build_basic_simulation(),
-        indices,
-        TEST_iGUESSMD_LINEAR_PATH,
-        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
+        simulation=build_basic_simulation(),
+        iguessmd_mobile_atom_indices=mobile_atom_indices,
+        iguessmd_ref_atom_indices=reference_atom_indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
 
     with redirect_stdout(StringIO()) as _:
@@ -664,21 +665,12 @@ def test_reset(indices):
 
     # Create a fresh copy of the iGUESSMD simulation
     iguessmd_sim_copy = OMMiGUESSMDSimulation.from_simulation(
-        build_basic_simulation(),
-        indices,
-        TEST_iGUESSMD_LINEAR_PATH,
-        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
+        simulation=build_basic_simulation(),
+        iguessmd_mobile_atom_indices=mobile_atom_indices,
+        iguessmd_ref_atom_indices=reference_atom_indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
-
-    # Check that the attributes that were created during the iGUESSMD simulation
-    # are no longer present in the class
-    try:
-        assert (
-            iguessmd_sim.iguessmd_sim_forces
-            or iguessmd_sim_copy.iguessmd_sim_work_done
-        )
-    except AttributeError:
-        pass
 
     # Check relevant observables from the simulation against the fresh simulation
     iguessmd_sim_state = iguessmd_sim.simulation.context.getState(
@@ -716,15 +708,31 @@ def test_reset(indices):
     assert np.array_equal(
         iguessmd_sim.mobile_atom_indices, iguessmd_sim_copy.mobile_atom_indices
     )
+    assert np.array_equal(
+        iguessmd_sim.mobile_atom_weights, iguessmd_sim_copy.mobile_atom_weights
+    )
+    assert np.array_equal(
+        iguessmd_sim.ref_atom_indices, iguessmd_sim_copy.ref_atom_indices
+    )
+    assert np.array_equal(
+        iguessmd_sim.ref_atom_weights, iguessmd_sim_copy.ref_atom_weights
+    )
     assert np.array_equal(iguessmd_sim.reaction_path, iguessmd_sim_copy.reaction_path)
     assert np.array_equal(
         iguessmd_sim.k, iguessmd_sim_copy.k
     )
+    assert iguessmd_sim.k_par == iguessmd_sim_copy.k_par
+    assert iguessmd_sim.k_perp == iguessmd_sim_copy.k_perp
+    assert iguessmd_sim._coord_type == iguessmd_sim_copy._coord_type
 
     # Check that the iGUESSMD force attached to the simulation is correctly reset
     assert np.array_equal(
         iguessmd_sim.current_iguessmd_force_position,
         iguessmd_sim_copy.current_iguessmd_force_position,
+    )
+    assert np.array_equal(
+        iguessmd_sim.current_iguessmd_reaction_path_tangent,
+        iguessmd_sim_copy.current_iguessmd_reaction_path_tangent
     )
     assert (
         iguessmd_sim.current_iguessmd_force_position_index
@@ -748,6 +756,24 @@ def test_reset(indices):
         iguessmd_sim.iguessmd_sim_mobile_atom_positions,
         iguessmd_sim_copy.iguessmd_sim_mobile_atom_positions,
     )
+    assert np.array_equal(
+        iguessmd_sim.iguessmd_sim_ref_atom_positions,
+        iguessmd_sim.iguessmd_sim_ref_atom_positions,
+    )
+    assert np.array_equal(
+        iguessmd_sim.reaction_path_unit_tangents,
+        iguessmd_sim_copy.reaction_path_unit_tangents
+    )
+    assert iguessmd_sim._sim_uses_pbcs == iguessmd_sim_copy._sim_uses_pbcs
+    assert iguessmd_sim._pbc_box_lengths == iguessmd_sim_copy._pbc_box_lengths
+
+    # Check that the attributes created during the iGUESSMD simulation
+    # have been reset correctly
+    assert iguessmd_sim.iguessmd_sim_forces == iguessmd_sim_copy.iguessmd_sim_forces
+    assert iguessmd_sim.iguessmd_sim_work_done == iguessmd_sim_copy.iguessmd_sim_work_done
+    assert iguessmd_sim.iguessmd_sim_mobile_centre_positions == iguessmd_sim_copy.iguessmd_sim_mobile_centre_positions
+    assert iguessmd_sim.iguessmd_sim_ref_centre_positions == iguessmd_sim_copy.iguessmd_sim_ref_centre_positions
+    assert iguessmd_sim.iguessmd_sim_x_rel_positions == iguessmd_sim_copy.iguessmd_sim_x_rel_positions
 
 
 @pytest.mark.parametrize("indices", TEST_iGUESSMD_MOBILE_INDICES)
@@ -866,7 +892,7 @@ def test_iguessmd_force_updates_correctly(indices):
         iguessmd_sim.current_iguessmd_force_position, new_force_position
     )
     assert np.array_equal(
-        iguessmd_sim.current_iguessmd_force_tangent, new_force_tangent
+        iguessmd_sim.current_iguessmd_reaction_path_tangent, new_force_tangent
     )
 
     # Check the subclass-specific force parameters in both the class and the system
@@ -1102,8 +1128,8 @@ def test_calculate_iguessmd_forces(position_shifts, indices, force_constant):
         np.array([1.75, -3.0, 5.263]),
     ],
 )
-@pytest.mark.parametrize("indices", TEST_iGUESSMD_MOBILE_INDICES)
-def test_calculate_work_done(position_shifts, indices):
+@pytest.mark.parametrize("mobile_atom_indices", TEST_iGUESSMD_MOBILE_INDICES)
+def test_calculate_work_done(position_shifts, mobile_atom_indices):
     """
     Check that the work done by the iGUESSMD force on the system along the reaction
     coordinate defined by the iGUESSMD path is correctly calculated in the function
@@ -1128,10 +1154,10 @@ def test_calculate_work_done(position_shifts, indices):
     )
 
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
-        build_basic_simulation(),
-        indices,
-        TEST_iGUESSMD_LINEAR_PATH,
-        TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
+        simulation=build_basic_simulation(),
+        iguessmd_mobile_atom_indices=mobile_atom_indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=TEST_iGUESSMD_FORCE_CONSTANT_SPHERICAL,
     )
     iguessmd_sim._calculate_iguessmd_forces(test_positions)
 
