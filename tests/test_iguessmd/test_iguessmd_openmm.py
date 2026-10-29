@@ -327,7 +327,7 @@ def make_basic_simulation_xml(tmp_path):
 
 
 @pytest.fixture
-def make_basic_iguessmd_simulation_with_iguessmd_force_xml(
+def make_basic_iguessmd_simulation_with_absolute_iguessmd_force_xml(
     tmp_path,
     request,
 ):
@@ -344,7 +344,7 @@ def make_basic_iguessmd_simulation_with_iguessmd_force_xml(
 
 
 @pytest.fixture
-def make_basic_iguessmd_simulation_without_iguessmd_force_xml(
+def make_basic_iguessmd_simulation_without_absolute_iguessmd_force_xml(
     tmp_path,
     request,
 ):
@@ -358,6 +358,41 @@ def make_basic_iguessmd_simulation_without_iguessmd_force_xml(
     xml_path = tmp_path / "basic_iguessmd_simulation.xml"
     iguessmd_sim.save_simulation(xml_path, save_state=True, save_iguessmd_force=False)
     return xml_path, atom_indices, force_constant
+
+@pytest.fixture
+def make_basic_iguessmd_simulation_with_relative_iguessmd_force_xml(
+    tmp_path,
+    request,
+):
+    mobile_atom_indices, reference_atom_indices, force_constant = request.param
+    iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
+        simulation=build_basic_simulation(),
+        iguessmd_mobile_atom_indices=mobile_atom_indices,
+        iguessmd_ref_atom_indices=reference_atom_indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=force_constant,
+    )
+    xml_path = tmp_path / "basic_iguessmd_simulation.xml"
+    iguessmd_sim.save_simulation(xml_path, save_state=True, save_iguessmd_force=True)
+    return xml_path, mobile_atom_indices, reference_atom_indices, force_constant
+
+
+@pytest.fixture
+def make_basic_iguessmd_simulation_without_relative_iguessmd_force_xml(
+    tmp_path,
+    request,
+):
+    mobile_atom_indices, reference_atom_indices, force_constant = request.param
+    iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
+        simulation=build_basic_simulation(),
+        iguessmd_mobile_atom_indices=mobile_atom_indices,
+        iguessmd_ref_atom_indices=reference_atom_indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=force_constant,
+    )
+    xml_path = tmp_path / "basic_iguessmd_simulation.xml"
+    iguessmd_sim.save_simulation(xml_path, save_state=True, save_iguessmd_force=False)
+    return xml_path, mobile_atom_indices, reference_atom_indices, force_constant
 
 
 @pytest.mark.parametrize(
@@ -410,12 +445,12 @@ def test_load_iguessmd_sim_from_xml_path(
 
 
 @pytest.mark.parametrize(
-    "make_basic_iguessmd_simulation_with_iguessmd_force_xml",
+    "make_basic_iguessmd_simulation_with_absolute_iguessmd_force_xml",
     product(TEST_iGUESSMD_MOBILE_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
     indirect=True,
 )
-def test_load_iguessmd_simulation_with_iguessmd_force_from_xml_path(
-    make_basic_iguessmd_simulation_with_iguessmd_force_xml,
+def test_load_iguessmd_simulation_with_absolute_iguessmd_force_from_xml_path(
+    make_basic_iguessmd_simulation_with_absolute_iguessmd_force_xml,
 ):
     """
     Check that when an input file containing an iGUESSMD force is passed to the
@@ -424,7 +459,7 @@ def test_load_iguessmd_simulation_with_iguessmd_force_from_xml_path(
     those that are passed via the file.
     """
     xml_path, atom_indices, force_constant = (
-        make_basic_iguessmd_simulation_with_iguessmd_force_xml
+        make_basic_iguessmd_simulation_with_absolute_iguessmd_force_xml
     )
     with redirect_stdout(StringIO()) as _:
         iguessmd_sim = OMMiGUESSMDSimulation.from_xml_path(
@@ -433,30 +468,87 @@ def test_load_iguessmd_simulation_with_iguessmd_force_from_xml_path(
             TEST_iGUESSMD_LINEAR_PATH,
             force_constant,
         )
-        assert iguessmd_sim.loaded_iguessmd_force_from_sim
-        assert np.array_equal(iguessmd_sim.k, force_constant)
+    assert iguessmd_sim.loaded_iguessmd_force_from_sim
+    assert np.array_equal(iguessmd_sim.k, force_constant)
 
 
 @pytest.mark.parametrize(
-    "make_basic_iguessmd_simulation_without_iguessmd_force_xml",
+    "make_basic_iguessmd_simulation_without_absolute_iguessmd_force_xml",
     product(TEST_iGUESSMD_MOBILE_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
     indirect=True,
 )
-def test_load_iguessmd_simulation_without_iguessmd_force_from_xml_path(
-    make_basic_iguessmd_simulation_without_iguessmd_force_xml,
+def test_load_iguessmd_simulation_without_absolute_iguessmd_force_from_xml_path(
+    make_basic_iguessmd_simulation_without_absolute_iguessmd_force_xml,
 ):
     """
     Check that when an xml input file is saved from an OMMiGUESSMDSimulation class
     without the iGUESSMD force, the iGUESSMD force is not loaded from the file.
     """
     xml_path, atom_indices, force_constant = (
-        make_basic_iguessmd_simulation_without_iguessmd_force_xml
+        make_basic_iguessmd_simulation_without_absolute_iguessmd_force_xml
     )
     iguessmd_sim = OMMiGUESSMDSimulation.from_xml_path(
         xml_path,
         atom_indices,
         TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
+    )
+    assert not iguessmd_sim.loaded_iguessmd_force_from_sim
+
+
+@pytest.mark.parametrize(
+    "make_basic_iguessmd_simulation_with_relative_iguessmd_force_xml",
+    product(TEST_iGUESSMD_MOBILE_INDICES, TEST_iGUESSMD_REFERENCE_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
+    indirect=True,
+)
+def test_load_iguessmd_simulation_with_relative_iguessmd_force_from_xml_path(
+    make_basic_iguessmd_simulation_with_relative_iguessmd_force_xml,
+):
+    """
+    Check that when an input file containing an iGUESSMD force is passed to the
+    OMMiGUESSMDSimulation class, the iGUESSMD force is loaded correctly from the file using
+    check_for_existing_iguessmd_force(), and that the parameters for the iGUESSMD force match
+    those that are passed via the file.
+    """
+    xml_path, mobile_atom_indices, reference_atom_indices, force_constant = (
+        make_basic_iguessmd_simulation_with_relative_iguessmd_force_xml
+    )
+    with redirect_stdout(StringIO()) as _:
+        iguessmd_sim = OMMiGUESSMDSimulation.from_xml_path(
+            path=xml_path,
+            iguessmd_mobile_atom_indices=mobile_atom_indices,
+            iguessmd_ref_atom_indices=reference_atom_indices,
+            iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
+            iguessmd_force_constant=force_constant,
+        )
+    assert iguessmd_sim.loaded_iguessmd_force_from_sim
+    assert iguessmd_sim.iguessmd_force_groups == [0, 1] if (mobile_atom_indices is not None and reference_atom_indices is not None) else [0]
+    assert np.array_equal(iguessmd_sim.mobile_atom_indices, np.reshape(mobile_atom_indices, mobile_atom_indices.size))
+    if isinstance(reference_atom_indices, np.ndarray):
+        assert np.array_equal(iguessmd_sim.ref_atom_indices, np.reshape(reference_atom_indices, reference_atom_indices.size))
+
+
+@pytest.mark.parametrize(
+    "make_basic_iguessmd_simulation_without_relative_iguessmd_force_xml",
+    product(TEST_iGUESSMD_MOBILE_INDICES, TEST_iGUESSMD_REFERENCE_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
+    indirect=True,
+)
+def test_load_iguessmd_simulation_without_relative_iguessmd_force_from_xml_path(
+    make_basic_iguessmd_simulation_without_relative_iguessmd_force_xml,
+):
+    """
+    Check that when an xml input file is saved from an OMMiGUESSMDSimulation class
+    without the iGUESSMD force, the iGUESSMD force is not loaded from the file.
+    """
+    xml_path, mobile_atom_indices, reference_atom_indices, force_constant = (
+        make_basic_iguessmd_simulation_without_relative_iguessmd_force_xml
+    )
+    iguessmd_sim = OMMiGUESSMDSimulation.from_xml_path(
+        path=xml_path,
+        iguessmd_mobile_atom_indices=mobile_atom_indices,
+        iguessmd_ref_atom_indices=reference_atom_indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=force_constant,
     )
     assert not iguessmd_sim.loaded_iguessmd_force_from_sim
 
@@ -1627,6 +1719,5 @@ def test_iguessmd_force_relative_reaction_paths(mobile_indices, reference_indice
     assert bond_params[0] == expected_force_groups
     assert np.all(bond_params[1] == expected_bond_params)
 
-# TODO: Write test to check that force loads correctly from file, including new iguessmd_force_groups property
 # TODO: Test that correct fields can be saved when using relative reaction path
 
