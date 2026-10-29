@@ -864,12 +864,18 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             assert n_force_groups == 2 if self.ref_atom_indices is not None else 1
             assert force_constant_parallel == self.k_par
             assert force_constant_perpendicular == self.k_perp
-            assert np.all(
-                iguessmd_force.getGroupParameters(0)[0] == self.mobile_atom_indices
+            assert np.array_equal(
+                np.asarray(iguessmd_force.getGroupParameters(0)[0]), self.mobile_atom_indices
+            )
+            assert np.array_equal(
+                np.asarray(iguessmd_force.getGroupParameters(0)[1]), self.mobile_atom_weights
             )
             if n_force_groups == 2:
-                assert np.all(
-                    iguessmd_force.getGroupParameters(1)[0] == self.ref_atom_indices
+                assert np.array_equal(
+                    np.asarray(iguessmd_force.getGroupParameters(1)[0]), self.ref_atom_indices
+                )
+                assert np.array_equal(
+                    np.asarray(iguessmd_force.getGroupParameters(1)[1]), self.ref_atom_weights
                 )
             assert np.all(
                 iguessmd_force.getBondParameters(0)[1]
