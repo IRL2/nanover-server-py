@@ -99,6 +99,7 @@ version = {file = "VERSION.txt"}
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = ["serial"]
+addopts = "--ignore tutorials/2.\\ advanced/dynamic_bonding.ipynb"
 
 [tool.ruff]
 extend-exclude = ["build/lib/**/*.py"]

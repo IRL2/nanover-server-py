@@ -30,7 +30,9 @@ def test_convert_atom_positions(frame):
 
 
 def test_convert_bonds(frame):
-    assert np.allclose(frame.bond_pairs, [(0, 1)])
+    EXPECTED = {(0, 1), (0,)}  # normal bond + self pbc
+    ACTUAL = {tuple(set(e)) for e in np.unique(frame.bond_pairs, axis=0).tolist()}
+    assert ACTUAL == EXPECTED
 
 
 def test_convert_atom_residues(frame):
@@ -46,7 +48,7 @@ def test_convert_residue_ids(frame):
 
 
 def test_convert_residue_names(frame):
-    assert frame.residue_names == ["ASE"]
+    assert frame.residue_names == ["CO"]
 
 
 def test_convert_residue_chains(frame):
@@ -54,7 +56,7 @@ def test_convert_residue_chains(frame):
 
 
 def test_convert_chain_names(frame):
-    assert frame.chain_names == ["A"]
+    assert frame.chain_names == ["CO"]
 
 
 def test_convert_chain_count(frame):
@@ -79,7 +81,7 @@ def test_frame_no_positions(atoms):
 
 def test_frame_generate_bonds(atoms):
     frame_with_bonds = ase_to_frame_data(atoms, generate_bonds=True, state=False)
-    assert len(frame_with_bonds.bond_pairs) == 1
+    assert len(frame_with_bonds.bond_pairs) == 5 #  one true bond and 3-pbc self-bonds
 
 
 def test_frame_generate_without_bonds(atoms):

@@ -3,10 +3,12 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 import numpy as np
+import numpy.typing as npt
 import openmm.app
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.md.md import MolecularDynamics
+from ase.neighborlist import NeighborList, build_neighbor_list
 
 from nanover.ase.converter import (
     ANG_TO_NM,
@@ -117,12 +119,16 @@ class ASESimulation(Simulation):
 
         self.ase_atoms_to_frame_data: ASEAtomsToFrameData = ase_atoms_to_frame_data
 
-        self.work_done: float = 0.0
-        self._work_done_intermediate: float = 0.0
-        self._prev_imd_forces: np.ndarray | None = None
-        self._prev_imd_indices: np.ndarray | None = None
+        self.work_done = 0.0
+        self._work_done_intermediate = 0.0
+        self._prev_imd_forces: npt.NDArray | None = None
+        self._prev_imd_indices: npt.NDArray | None = None
 
         self._dof: int | None = None
+
+        self.dynamic_bonds = False
+        self.bonds_changed = False
+        self.neighbor_list: NeighborList | None = None
 
     def load(self):
         """
@@ -164,6 +170,9 @@ class ASESimulation(Simulation):
         self.atoms.set_positions(self.checkpoint.positions)
         self.atoms.set_velocities(self.checkpoint.velocities)
         self.atoms.set_cell(self.checkpoint.cell)
+
+        self.neighbor_list = build_neighbor_list(self.atoms, self_interaction=False)
+        self.bonds_changed = True
 
         # setup imd calculator
         self.imd_calculator = ImdCalculator(
@@ -274,13 +283,15 @@ class ASESimulation(Simulation):
         """
         assert (
             self.atoms is not None
+            and self.neighbor_list is not None
             and self.imd_calculator is not None
             and self._dof is not None
         )
 
+        bonds_changed = self.neighbor_list.update(self.atoms)
         frame_data = self.ase_atoms_to_frame_data(
             self.atoms,
-            topology=False,
+            topology=self.dynamic_bonds and bonds_changed,
             include_velocities=self.include_velocities,
             include_forces=self.include_forces,
         )

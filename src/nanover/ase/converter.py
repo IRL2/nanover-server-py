@@ -7,7 +7,7 @@ NanoVer clients.
 import numpy as np
 import numpy.typing as npt
 from ase import Atom, Atoms
-from ase.neighborlist import NeighborList, natural_cutoffs
+from ase.neighborlist import NeighborList, build_neighbor_list
 from ase.units import fs as fs_in_ase_time_unit
 
 from nanover.ase.imd_calculator import ImdCalculator
@@ -39,6 +39,7 @@ def ase_to_frame_data(
     generate_bonds=True,
     include_velocities=False,
     include_forces=False,
+    neighbor_list: NeighborList | None = None,
 ) -> FrameData:
     """
     Constructs a NanoVer frame from the state of the atoms in an ASE simulation.
@@ -75,7 +76,12 @@ def ase_to_frame_data(
     if positions:
         add_ase_positions_to_frame_data(data, ase_atoms.get_positions(wrap=False))
     if topology:
-        add_ase_topology_to_frame_data(data, ase_atoms, generate_bonds=generate_bonds)
+        add_ase_topology_to_frame_data(
+            data,
+            ase_atoms,
+            generate_bonds=generate_bonds,
+            neighbor_list=neighbor_list,
+        )
     if state:
         add_ase_state_to_frame_data(data, ase_atoms)
     if box_vectors:
@@ -206,7 +212,11 @@ def add_ase_box_vectors_to_frame_data(data: FrameData, ase_atoms: Atoms):
 
 
 def add_ase_topology_to_frame_data(
-    frame_data: FrameData, ase_atoms: Atoms, generate_bonds=True
+    frame_data: FrameData,
+    ase_atoms: Atoms,
+    generate_bonds=True,
+    generate_molecules=True,
+    neighbor_list: NeighborList | None = None,
 ):
     """
     Generates a topology for the current state of the atoms and adds it to the frame.
@@ -216,26 +226,82 @@ def add_ase_topology_to_frame_data(
 
     :param frame_data: Frame data to add topology information to.
     :param ase_atoms: ASE atoms to extract topology information from.
+    :param generate_bonds: Guess new bond pairs from atom positions.
+    :param generate_molecules: Guess new chains and residues from atom positions.
     """
-    # TODO it would be nice to do dynamic molecule/chain detection here.
-    frame_data.residue_names = ["ASE"]
-    frame_data.residue_chains = np.array([0], dtype=np.uint32)
-    frame_data.residue_count = 1
-    frame_data.residue_ids = ["1"]
+    need_neighbors = generate_bonds or generate_molecules
+    if neighbor_list is None and need_neighbors:
+        neighbor_list = build_neighbor_list(ase_atoms, self_interaction=False)
 
-    frame_data.chain_names = ["A"]
-    frame_data.chain_count = 1
+    if generate_bonds and neighbor_list is not None:
+        frame_data.bond_pairs = bond_pairs_from_neighbor_list(neighbor_list)
 
-    frame_data.particle_names = [str(atom.index) for atom in ase_atoms]
-    frame_data.particle_elements = np.fromiter(
-        (atom.number for atom in ase_atoms), dtype=np.uint8
-    )
-    frame_data.particle_residues = np.fromiter((0 for _ in ase_atoms), dtype=np.uint32)
-    frame_data.particle_count = len(ase_atoms)
+    if generate_molecules and neighbor_list is not None:
+        molecule_strings, molecule_indices = determine_molecules(
+            ase_atoms, neighbor_list
+        )
 
-    if generate_bonds:
-        bonds = generate_bonds_from_ase(ase_atoms)
-        frame_data.bond_pairs = bonds
+        # each molecule is a single chain and a single residue
+        n_molecules = len(molecule_strings)
+        frame_data.chain_names = molecule_strings
+        frame_data.chain_count = n_molecules
+        frame_data.residue_names = molecule_strings
+        frame_data.residue_chains = np.arange(n_molecules, dtype=np.uint32)
+        frame_data.residue_count = n_molecules
+        frame_data.residue_ids = [str(i + 1) for i in range(n_molecules)]
+
+    atom_names = []
+
+    n_atoms = len(ase_atoms)
+    elements = np.zeros(n_atoms, dtype=np.uint8)
+    residue_ids = np.zeros(n_atoms, dtype=np.uint32)
+
+    for index, atom in enumerate(ase_atoms):
+        atom_names.append(atom.symbol)
+        elements[index] = atom.number
+
+    for resid, indices in enumerate(molecule_indices):
+        residue_ids[indices] = resid
+
+    frame_data.particle_names = atom_names
+    frame_data.particle_elements = elements
+    frame_data.particle_residues = residue_ids
+    frame_data.particle_count = n_atoms
+
+
+def determine_molecules(ase_atoms: Atoms, neighbor_list: NeighborList):
+    """
+    Determines the molecules in the system based on the topology.
+
+    :param ase_atoms: ASE atoms to extract topology information from.
+    :param neighbor_list: NeighborList to extract connectivity from.
+    """
+    # Retrieve number of atoms
+    n_atoms = len(ase_atoms)
+
+    # Get partial adjacency matrix and mirror
+    adj_mat = neighbor_list.get_connectivity_matrix(sparse=False)
+    adj_mat += adj_mat.T
+    adj_mat += np.identity(n_atoms, dtype=np.int8)
+    adj_mat.clip(0, 1, out=adj_mat)
+
+    # Calculate "molecular connectivity matrix" as (n_atoms-1)th power
+    # of adjacency matrix
+    mol_connect_mat = np.linalg.matrix_power(adj_mat, n_atoms - 1)
+    mol_connect_mat[mol_connect_mat != 0] = 1
+
+    # Retrieve unique vectors defining molecules
+    molecules = np.unique(mol_connect_mat, axis=0)
+
+    # Get elements for atoms:
+    elements = ase_atoms.symbols
+
+    # Define molecule strings and atom indices of molecules from rows
+    # of "molecular connectivity matrix"
+    molecule_indices = [np.flatnonzero(molecule) for molecule in molecules]
+    molecule_strings = [str(elements[indices]) for indices in molecule_indices]
+
+    return molecule_strings, molecule_indices
 
 
 def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
@@ -268,46 +334,15 @@ def add_ase_state_to_frame_data(frame_data: FrameData, ase_atoms: Atoms):
     frame_data.kinetic_energy = ase_atoms.get_kinetic_energy() * EV_TO_KJMOL
 
 
-def generate_bonds_from_ase(atoms: Atoms) -> npt.NDArray[np.uint32]:
-    """
-    Generates bonds for the given configuration of ASE atoms using a distance criterion.
-
-    A bond is placed between two atoms if the distance between them is less
-    than 0.6 times the VDW radii of the atoms.
-
-    :param atoms: ASE atoms to generate bonds for.
-    :return: A list of pairs of atom indexes representing bonds.
-
-    Example
-    =======
-
-    The following example produces a bond between the two atoms in a carbon
-    monoxide molecule:
-
-    >>> co = Atoms('CO', positions=[(0, 0, 0), (0, 0, 1.1)], cell=[2, 2, 2])
-    >>> generate_bonds_from_ase(co)
-    [[0, 1]]
-
-    """
-    neighbor_list = NeighborList(cutoffs=natural_cutoffs(atoms))
-    neighbor_list.nl.update(
-        [False, False, False],
-        atoms.get_cell(complete=True),
-        atoms.positions,
-    )
-
-    return bond_pairs_from_neighbor_list(neighbor_list)
-
-
 def bond_pairs_from_neighbor_list(
     neighbour_list: NeighborList,
 ) -> npt.NDArray[np.uint32]:
-    count = sum(_.size - 1 for _ in neighbour_list.nl.neighbors)
+    count = sum(_.size for _ in neighbour_list.nl.neighbors)
     bonds = np.zeros((count, 2), dtype=np.uint32)
     i, j = 0, 0
     for a, neighbours in enumerate(neighbour_list.nl.neighbors):
         i = j
-        j += len(neighbours) - 1
+        j += len(neighbours)
         bonds[i:j, 0] = a
-        bonds[i:j, 1] = neighbours[1:]
+        bonds[i:j, 1] = neighbours
     return bonds
