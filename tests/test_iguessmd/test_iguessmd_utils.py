@@ -11,7 +11,7 @@ Things to test for utility functions:
 import pytest
 import numpy as np
 
-from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents, calculate_com
+from nanover.iguessmd.utils import get_every_nth, calculate_unit_tangents, calculate_com, calculate_weighted_centre
 
 from .iguessmd_test_utilities import define_circular_path
 
@@ -163,3 +163,26 @@ def test_calculate_com(positions, masses, com):
     calculated_com = calculate_com(positions, masses)
     expected_com = com
     assert np.allclose(calculated_com, expected_com, atol=1e-16)
+
+
+@pytest.mark.parametrize(
+    "positions, masses, com",
+    [TEST_COM_TWO_ATOMS, TEST_COM_METHANE, TEST_COM_CIRCLE, TEST_COM_CUBE],
+)
+def test_calculate_weighted_centre_com(positions, masses, com):
+    """
+    Check that the function calculate_weighted_centre correctly calculates
+    the centre of mass of a set of atoms, given their positions
+    and mass weights.
+    """
+
+    # Check that mass weights are calculated correctly to within numerical precision
+    mass_weights = masses / masses.sum()
+    assert np.isclose(mass_weights.sum(),
+                      1.0,
+                      atol=len(mass_weights) * np.finfo(mass_weights.dtype).eps
+    )
+
+    # Calculate the COM using calculate_weighted_centre and check it against the expected COM
+    calculated_com = calculate_weighted_centre(positions, mass_weights)
+    assert np.allclose(calculated_com, com, atol=1e-16)
