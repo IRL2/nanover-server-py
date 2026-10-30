@@ -893,14 +893,14 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                     np.asarray(iguessmd_force.getGroupParameters(1)[1]),
                     self.ref_atom_weights,
                 )
-            assert np.all(
-                iguessmd_force.getBondParameters(0)[1]
-                == np.concatenate(
+            assert np.array_equal(
+                np.asarray(iguessmd_force.getBondParameters(0)[1]),
+                np.concatenate(
                     [
                         self.current_iguessmd_force_position,
                         self.current_iguessmd_reaction_path_tangent,
                     ]
-                )
+                ),
             )
             print("iGUESSMD force already present in loaded simulation.")
             self.iguessmd_force = iguessmd_force
