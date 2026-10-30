@@ -52,9 +52,15 @@ class DiscoveryAdvert:
 
     @classmethod
     def advertise(cls, *, data: dict, host: str):
-        websocket = connect(f"wss://{host}/")
-        profile = json.loads(websocket.recv())
-        websocket.send(json.dumps(data))
+        websocket = None
+        try:
+            websocket = connect(f"wss://{host}/")
+            profile = json.loads(websocket.recv())
+            websocket.send(json.dumps(data))
+        except Exception as e:
+            if websocket is not None:
+                websocket.close()
+            raise RuntimeError(f"Failed to advertise to {host}") from e
 
         return cls(host=host, data=data, profile=profile, websocket=websocket)
 
