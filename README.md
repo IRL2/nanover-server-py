@@ -208,6 +208,10 @@ and suggest that you use and cite them:
 * [NGLView](https://nglviewer.org/#nglview) (MIT): IPython/Jupyter widget to interactively view structures and
   trajectories ([citations](http://nglviewer.org/nglview/latest/#cite)).
 * [NumPy](https://numpy.org/) (BSD) - Numerical computation library.
+* [SciPy](https://scipy.org) (BSD) - Fundamental algorithms for scientific computing in Python.
+* [Matplotlib](https://matplotlib.org) (Matplotlib License, PSF-based) - Python library for creating static, animated, and interactive visualizations.
+* [ipympl](https://matplotlib.org/ipympl/) (BSD) - Extension to Matplotlib that enables use of the interactive features of Matplotlib in Jupyter Notebooks and JupyterLab.
+* [joblib](https://joblib.readthedocs.io/en/stable/) (BSD) - A package for parallel computing and disk-based caching in Python.
 * [psutil](https://pypi.org/project/netifaces/) (BSD) - Cross-platform lib for process and system monitoring in Python.
 * [pytest](https://docs.pytest.org/en/latest/) (MIT) - Python testing framework
 * [Hypothesis](https://hypothesis.readthedocs.io/en/latest/)

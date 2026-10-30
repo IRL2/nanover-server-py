@@ -32,7 +32,7 @@ requires-python = ">=3.13"
 dependencies = [
     "openmm>=8.4.0",
     "MDAnalysis>=2.8.0",
-    "numpy>=1.26.4",
+    "numpy>=2.0.0",
     "psutil>=7.2.0",
     "nglview>=4.0.1",
     "ase>=3.21",
@@ -43,6 +43,9 @@ dependencies = [
     "pooch",
     "cryptography",
     "platformdirs",
+    "scipy",
+    "ipympl",
+    "joblib",
 ]
 
 [project.urls]
@@ -99,7 +102,7 @@ version = {file = "VERSION.txt"}
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = ["serial"]
-addopts = "--ignore tutorials/2.\\ advanced/dynamic_bonding.ipynb"
+addopts = "--ignore tutorials/2.\\ advanced/dynamic_bonding.ipynb tutorials/5.\\ iGUESSMD/iGUESSMD.ipynb"
 
 [tool.ruff]
 extend-exclude = ["build/lib/**/*.py"]
