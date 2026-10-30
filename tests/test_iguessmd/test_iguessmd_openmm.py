@@ -581,65 +581,55 @@ def test_simulation_pbcs_are_respected(apply_pbcs, indices):
 
 
 @pytest.mark.parametrize(
-    "index, force_constant",
-    product(
-        [np.array(0), np.array(1), np.array(4), np.array(5), np.array(7)],
-        TEST_iGUESSMD_FORCE_CONSTANTS,
-    ),
-)
-def test_iguessmd_force_attaches_to_correct_atom(index, force_constant):
-    """
-    Check that the iGUESSMD force is attached to the correct atom when a single index is passed.
-    Should use the OMMiGUESSMDSimulation class, with only one CustomCentroidBondForce.
-
-    :param index: Indices of atoms to apply the iGUESSMD force to (should be arrays containing
-      a single index)
-    """
-    iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
-        build_basic_simulation(),
-        index,
-        TEST_iGUESSMD_LINEAR_PATH,
-        force_constant,
-    )
-    # Attaches force to single atom, so index of atom within force is zero
-    p_index, _ = iguessmd_sim.iguessmd_force.getGroupParameters(0)
-    p_group, p_params = iguessmd_sim.iguessmd_force.getBondParameters(0)
-    assert p_index == index
-    assert np.array_equal(
-        np.array(p_params),
-        np.concatenate((TEST_iGUESSMD_LINEAR_PATH[0], TEST_iGUESSMD_LINEAR_PATH_TANGENTS[0])),
-    )
-
-
-@pytest.mark.parametrize(
-    "indices, force_constant",
+    "mobile_atom_indices, reference_atom_indices, force_constant",
     product(
         [
+            np.array(0),
+            np.array(1),
+            np.array(4),
+            np.array(5),
+            np.array(7),
             np.array([0, 1, 2, 3]),
             np.array([1, 2, 3, 4]),
             np.array([0, 1, 4, 5]),
-            np.array([1, 3, 4, 7]),
+        ],
+        [
+            None,
+            np.array(7),
+            np.array([7]),
+            np.array([6, 7])
         ],
         TEST_iGUESSMD_FORCE_CONSTANTS,
     ),
 )
-def test_iguessmd_force_attaches_to_correct_atoms(indices, force_constant):
+def test_iguessmd_force_attaches_to_correct_atoms(mobile_atom_indices, reference_atom_indices, force_constant):
     """
-    Check that the iGUESSMD force attaches to the correct atoms when an array of indices is passed.
+    Check that the iGUESSMD force attaches to the correct atoms when a 0D or 1D array of
+    mobile atom indices is passed, and when a 0D or 1D array of reference atom indices are passed.
     Should use the OMMiGUESSMDSimulation class, with only one CustomCentroidBondForce.
 
-    :param indices: Indices of atoms to apply the iGUESSMD force to (should be arrays of multiple
-      indices)
+    :param mobile_atom_indices: Indices of mobile atoms to which to apply the iGUESSMD force
+    :param reference_atom_indices: Indices of reference atoms to which to apply the iGUESSMD force
+    :param force_constant: Force constant to be applied to the iGUESSMD force
     """
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
         build_basic_simulation(),
-        indices,
+        mobile_atom_indices,
         TEST_iGUESSMD_LINEAR_PATH,
         force_constant,
+        iguessmd_ref_atom_indices=reference_atom_indices,
     )
     # Only one centroid force added, index of force is zero
-    p_indices, _ = iguessmd_sim.iguessmd_force.getGroupParameters(0)
-    assert np.array_equal(np.array(p_indices), indices)
+    mob_p_indices, _ = iguessmd_sim.iguessmd_force.getGroupParameters(0)
+    p_group, p_params = iguessmd_sim.iguessmd_force.getBondParameters(0)
+    assert np.array_equal(np.array(mob_p_indices), np.reshape(mobile_atom_indices, mobile_atom_indices.size))
+    assert np.array_equal(
+        np.array(p_params),
+        np.concatenate((TEST_iGUESSMD_LINEAR_PATH[0], TEST_iGUESSMD_LINEAR_PATH_TANGENTS[0])),
+    )
+    if isinstance(reference_atom_indices, np.ndarray):
+        ref_p_indices, _ = iguessmd_sim.iguessmd_force.getGroupParameters(1)
+        assert np.array_equal(np.array(ref_p_indices), np.reshape(reference_atom_indices, reference_atom_indices.size))
 
 
 @pytest.mark.parametrize("mobile_atom_indices, reference_atom_indices", product(TEST_iGUESSMD_MOBILE_INDICES, TEST_iGUESSMD_REFERENCE_INDICES))
