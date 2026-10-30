@@ -281,7 +281,9 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         self.current_iguessmd_force_position_index = 0
 
         self.calculate_iguessmd_path_tangents()
-        self.current_iguessmd_reaction_path_tangent = self.reaction_path_unit_tangents[0]
+        self.current_iguessmd_reaction_path_tangent = self.reaction_path_unit_tangents[
+            0
+        ]
 
         # Check whether iGUESSMD force is already present
         self.check_for_existing_iguessmd_force()
@@ -845,6 +847,10 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
         Check whether the loaded simulation already contains an iGUESSMD force of
         the correct type.
         """
+        assert (
+            self.mobile_atom_indices is not None
+            and self.mobile_atom_weights is not None
+        )
         try:
             force_constant_parallel = self.simulation.context.getParameter(
                 iGUESSMD_FORCE_CONSTANT_PARALLEL_PARAMETER_NAME
@@ -867,17 +873,25 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             assert force_constant_parallel == self.k_par
             assert force_constant_perpendicular == self.k_perp
             assert np.array_equal(
-                np.asarray(iguessmd_force.getGroupParameters(0)[0]), self.mobile_atom_indices
+                np.asarray(iguessmd_force.getGroupParameters(0)[0]),
+                self.mobile_atom_indices,
             )
             assert np.array_equal(
-                np.asarray(iguessmd_force.getGroupParameters(0)[1]), self.mobile_atom_weights
+                np.asarray(iguessmd_force.getGroupParameters(0)[1]),
+                self.mobile_atom_weights,
             )
             if n_force_groups == 2:
-                assert np.array_equal(
-                    np.asarray(iguessmd_force.getGroupParameters(1)[0]), self.ref_atom_indices
+                assert (
+                    self.ref_atom_indices is not None
+                    and self.ref_atom_weights is not None
                 )
                 assert np.array_equal(
-                    np.asarray(iguessmd_force.getGroupParameters(1)[1]), self.ref_atom_weights
+                    np.asarray(iguessmd_force.getGroupParameters(1)[0]),
+                    self.ref_atom_indices,
+                )
+                assert np.array_equal(
+                    np.asarray(iguessmd_force.getGroupParameters(1)[1]),
+                    self.ref_atom_weights,
                 )
             assert np.all(
                 iguessmd_force.getBondParameters(0)[1]
@@ -898,12 +912,12 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
 
     def add_iguessmd_force_to_system(self):
         assert (
-                self.current_iguessmd_force_position is not None
-                and self.current_iguessmd_reaction_path_tangent is not None
-                and self.k_par is not None
-                and self.k_perp is not None
-                and self._sim_uses_pbcs is not None
-                and self._coord_type is not None
+            self.current_iguessmd_force_position is not None
+            and self.current_iguessmd_reaction_path_tangent is not None
+            and self.k_par is not None
+            and self.k_perp is not None
+            and self._sim_uses_pbcs is not None
+            and self._coord_type is not None
         )
 
         x0, y0, z0 = self.current_iguessmd_force_position
@@ -936,10 +950,10 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
             self.current_iguessmd_force_position_index
         ]
         assert (
-                self.current_iguessmd_force_position is not None
-                and self.current_iguessmd_reaction_path_tangent is not None
-                and self.iguessmd_force is not None
-                and self.iguessmd_force_groups is not None
+            self.current_iguessmd_force_position is not None
+            and self.current_iguessmd_reaction_path_tangent is not None
+            and self.iguessmd_force is not None
+            and self.iguessmd_force_groups is not None
         )
         x0, y0, z0 = self.current_iguessmd_force_position
         tx, ty, tz = self.current_iguessmd_reaction_path_tangent
@@ -1034,6 +1048,7 @@ class OMMiGUESSMDSimulation(iGUESSMDSimulation):
                     for i in range(self.reaction_path.shape[0])
                 ]
             )
+            assert self.iguessmd_sim_ref_centre_positions is not None
             self.iguessmd_sim_x_rel_positions = (
                 self.iguessmd_sim_mobile_centre_positions
                 - self.iguessmd_sim_ref_centre_positions
