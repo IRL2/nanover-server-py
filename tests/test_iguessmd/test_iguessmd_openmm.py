@@ -43,6 +43,7 @@ Things to test for class performing iGUESSMD calculations:
   from the general iGUESSMD data file [√]
 - Different parallel and perpendicular force constants can be correctly saved and loaded
   from an iGUESSMD simulation saved to a NanoVer OpenMM XML file [√]
+- The appropriate tests above work for both absolute and relative reaction paths [√]
 """
 
 import tempfile
