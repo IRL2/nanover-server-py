@@ -803,10 +803,10 @@ def test_iguessmd_force_added_to_system(indices):
 
 
 @pytest.mark.parametrize(
-    "indices, force_constant",
-    product(TEST_iGUESSMD_MOBILE_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS),
+    "mobile_atom_indices, reference_atom_indices, force_constant, pbcs",
+    product(TEST_iGUESSMD_MOBILE_INDICES, TEST_iGUESSMD_REFERENCE_INDICES, TEST_iGUESSMD_FORCE_CONSTANTS, [True, False]),
 )
-def test_iguessmd_force_removed_from_system(indices, force_constant):
+def test_iguessmd_force_removed_from_system(mobile_atom_indices, reference_atom_indices, force_constant, pbcs):
     """
     Check that the iGUESSMD force is correctly removed from the OpenMM simulation upon calling
     remove_iguessmd_force_from_system().
@@ -815,10 +815,11 @@ def test_iguessmd_force_removed_from_system(indices, force_constant):
       test one single index and one set of indices)
     """
     iguessmd_sim = OMMiGUESSMDSimulation.from_simulation(
-        build_basic_simulation(),
-        indices,
-        TEST_iGUESSMD_LINEAR_PATH,
-        force_constant,
+        simulation=build_basic_simulation(pbcs=pbcs),
+        iguessmd_mobile_atom_indices=mobile_atom_indices,
+        iguessmd_ref_atom_indices=reference_atom_indices,
+        iguessmd_reaction_path=TEST_iGUESSMD_LINEAR_PATH,
+        iguessmd_force_constant=force_constant,
     )
     # Add arbitrary force to system (to test scenario when extra forces added after
     # creation of the iGUESSMD class)
@@ -861,6 +862,33 @@ def test_iguessmd_force_removed_from_system(indices, force_constant):
         assert (
             iguessmd_sim.simulation.context.getParameter("iguessmd_k_par") == force_constant
         )
+    if pbcs:
+        assert (
+            iguessmd_sim.simulation.context.getParameter("Lx")
+            == iguessmd_sim._pbc_box_lengths[0]
+        )
+        assert (
+            iguessmd_sim.simulation.context.getParameter("Ly")
+            == iguessmd_sim._pbc_box_lengths[1]
+        )
+        assert (
+            iguessmd_sim.simulation.context.getParameter("Lz")
+            == iguessmd_sim._pbc_box_lengths[2]
+        )
+    # Check x2, y2, z2 for absolute paths
+    if not isinstance(reference_atom_indices, np.ndarray):
+        assert (
+            iguessmd_sim.simulation.context.getParameter("x2")
+            == 0.0
+        )
+        assert (
+            iguessmd_sim.simulation.context.getParameter("y2")
+            == 0.0
+        )
+        assert (
+            iguessmd_sim.simulation.context.getParameter("z2")
+            == 0.0
+        )
 
 
 @pytest.mark.parametrize("indices", TEST_iGUESSMD_MOBILE_INDICES)
@@ -898,8 +926,7 @@ def test_iguessmd_force_updates_correctly(indices):
     # Check the subclass-specific force parameters in both the class and the system
     # which should be identical
     n_system_forces = iguessmd_sim.simulation.system.getNumForces()
-    if indices.size == 1 and indices.shape == ():
-        indices = np.reshape(indices, (1, ))
+    indices = np.reshape(indices, (indices.size, ))
     assert isinstance(iguessmd_sim.iguessmd_force, CustomCentroidBondForce)
 
     # OMMiGUESSMDSimulation force parameters
