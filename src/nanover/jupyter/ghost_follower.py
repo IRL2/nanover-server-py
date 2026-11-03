@@ -1,7 +1,7 @@
 import math
 
 import numpy as np
-from MDAnalysis.lib.transformations import quaternion_from_matrix
+from MDAnalysis.lib.transformations import quaternion_from_matrix, rotation_matrix
 
 from nanover.core import AppServerMinimalImd
 from nanover.imd import ParticleInteraction
@@ -13,6 +13,11 @@ from nanover.utilities.transforms import (
     _transform_vec3s,
     find_transformation_between_point_patterns,
 )
+
+
+def make_arc(*, axis, forward, angle, count=8):
+    da = angle / (count - 1)
+    return [forward @ rotation_matrix(i * da, axis)[:3, :3] for i in range(count)]
 
 
 class GhostFollowerAgent(ImdAgent):
@@ -49,20 +54,38 @@ class GhostFollowerAgent(ImdAgent):
         w, xyz = q[0], q[1:]
         angle = math.degrees(2 * math.acos(w))
         axis = xyz / np.sqrt(1 - w * w)
+        axis /= np.linalg.norm(axis)
+
+        delta = target_centroid - real_centroid
+
+        f = np.cross(axis, [0, 0, 1])
+        f /= np.linalg.norm(f)
+
+        arc = make_arc(axis=axis, forward=f, angle=math.radians(angle))
+        self.ghost.visuals.update_line(
+            f"{key}.error.angle.arc",
+            positions=[
+                target_centroid,
+                *real_centroid + np.array(arc) * 0.5 + delta,
+                target_centroid,
+            ],
+            size=0.02,
+            color=[1, 0, 1, 1],
+        )
 
         for i, position in enumerate(_transform_vec3s(t, target_positions)):
             self.ghost.visuals.update_shape(
                 f"{key}.check.{i}",
-                position=position,
+                position=position + delta,
                 size=0.1,
                 color=[1.0, 0.0, 1.0, 0.5],
             )
 
         self.ghost.visuals.update_line(
             f"{key}.error.axis",
-            positions=[target_centroid - axis, target_centroid + axis],
+            positions=[real_centroid - axis + delta, real_centroid + axis + delta],
             size=0.01,
-            color=[0, 1, 0, 1],
+            color=[1, 0, 1, 1],
         )
 
         self.ghost.visuals.update_label(
@@ -110,8 +133,8 @@ class GhostFollowerAgent(ImdAgent):
                         position=rotational[i],
                         particles=[int(index)],
                         type="spring",
-                        scale=800,
-                        max_force=100,
+                        scale=self.force_scale / len(atom_indices),
+                        max_force=self.force_limit / len(atom_indices),
                     ),
                 )
             else:
