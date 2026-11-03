@@ -4,7 +4,7 @@ name: "Conda"
 jobs:
   build-conda:
     name: Build packages
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         # This is necessary for the conda action. It replaces `conda init` as
