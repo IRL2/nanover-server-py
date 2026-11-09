@@ -8,6 +8,7 @@ from openmm.unit import nanometer
 
 from nanover.core import AppServer, Simulation as NanoverSimulation
 from nanover.imd.imd_force import calculate_contribution_to_work
+from nanover.utilities.event import Event
 
 from . import serializer
 from .bundles import unbundle_openmm_simulation
@@ -88,12 +89,13 @@ class OpenMMSimulation(NanoverSimulation):
         primary periodic box."""
         self.pbc_vectors: np.ndarray | None = None
         """Array of vectors defining the periodic box used by the simulation (if PBCs are employed)."""
-
+        self.reset_energy: float | None = None
+        """System's kinetic energy threshold for automatic reset"""
         self.imd_force = create_imd_force()
         self.simulation: Simulation | None = None
         self.checkpoint: Any | None = None
         self.verbose_reporter: StateDataReporter | None = None
-
+        self.on_reset_energy_exceeded = Event()
         self.imd_force_manager: ImdForceManager | None = None
 
         self.work_done: float = 0.0
@@ -259,6 +261,13 @@ class OpenMMSimulation(NanoverSimulation):
         # Update previous step forces (saving them in their sparse form)
         self._prev_imd_forces = frame_data.user_forces_sparse
         self._prev_imd_indices = frame_data.user_forces_index
+
+        # check if excessive energy requires sim reset
+        if self.reset_energy is not None and self.app_server is not None:
+            energy = frame_data.kinetic_energy
+            if not np.isfinite(energy) or energy > self.reset_energy:
+                self.on_reset_energy_exceeded.invoke()
+                self.reset(self.app_server)
 
     def make_topology_frame(self):
         """
