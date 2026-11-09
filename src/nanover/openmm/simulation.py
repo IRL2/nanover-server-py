@@ -8,6 +8,7 @@ from openmm.unit import nanometer
 
 from nanover.core import AppServer, Simulation as NanoverSimulation
 from nanover.imd.imd_force import calculate_contribution_to_work
+from nanover.utilities.event import Event
 
 from . import serializer
 from .bundles import unbundle_openmm_simulation
@@ -19,7 +20,6 @@ from .imd import (
     create_imd_force,
 )
 from .thermo import compute_dof, compute_instantaneous_temperature
-from nanover.utilities.event import Event
 
 
 class OpenMMSimulation(NanoverSimulation):
