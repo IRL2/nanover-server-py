@@ -43,6 +43,14 @@ def matrix_from_state_transform(transform: Iterable[float]):
     return translation @ rotation @ scale
 
 
+def state_transform_from_trs(
+    translation: Iterable[float] = (0, 0, 0),
+    rotation: Iterable[float] = (0, 0, 0, 1),
+    scale: Iterable[float] = (1, 1, 1),
+):
+    return *translation, *rotation, *scale
+
+
 def state_transform_from_matrix(matrix: npt.NDArray) -> Sequence[float]:
     s, _, a, t, _ = transformations.decompose_matrix(matrix)
     w, x, y, z = transformations.quaternion_from_euler(*a)
@@ -60,6 +68,17 @@ class Transform:
     def from_translation(cls, translation: Iterable[float]):
         tx, ty, tz, *_ = translation
         return cls.from_state_transform((tx, ty, tz))
+
+    @classmethod
+    def from_trs(
+        cls,
+        translation: Iterable[float] = (0, 0, 0),
+        rotation: Iterable[float] = (0, 0, 0, 1),
+        scale: Iterable[float] = (1, 1, 1),
+    ):
+        return cls.from_state_transform(
+            state_transform_from_trs(translation, rotation, scale)
+        )
 
     @classmethod
     def from_state_transform(cls, transform: Iterable[float]):
