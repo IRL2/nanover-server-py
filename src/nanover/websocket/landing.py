@@ -1,7 +1,15 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from ssl import SSLContext
 
-LANDING_HTML = """<dialog open style="inset: 0;"><button onclick="window.history.back(); window.close()" style="font-size: 10rem;">DONE</button></dialog>"""
+LANDING_HTML = """
+<script>
+window.opener.postMessage("OK", "*");
+window.close();
+</script>
+<dialog open style="inset: 0;">
+    <button onclick="window.history.back(); window.close()" style="font-size: 10rem;">DONE</button>
+</dialog>
+"""
 
 
 class StaticHTTPRequestHandler(BaseHTTPRequestHandler):

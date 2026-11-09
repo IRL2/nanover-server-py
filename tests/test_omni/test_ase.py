@@ -48,6 +48,7 @@ def example_ase_app_sim_constant_force_interaction(example_ase_app_sim):
             position=(1.0, 2.0, 10.0),
             particles=[0],
             interaction_type="constant",
+            scale=40.0,
         ),
     )
     yield app, sim
@@ -134,6 +135,7 @@ def test_dynamics_interaction(example_ase_loaded):
             position=(0.0, 0.0, 10.0),
             particles=[0],
             interaction_type="constant",
+            scale=40.0,
         ),
     )
     for _ in range(31):
@@ -148,6 +150,16 @@ def test_dynamics_interaction(example_ase_loaded):
     # using s = u*t + 0.5*a*(t^2). 31 advances performed because there are no
     # iMD forces on the first frame. Allow for numerical error with pytest.approx:
     assert z == pytest.approx(0.028125, abs=1e-8)
+
+
+def test_dynamic_bonds(example_ase_loaded):
+    """
+    Test that dynamic bonds are computed without throwing an exception.
+    """
+    example_ase_loaded.dynamic_bonds = True
+
+    for _ in range(4):
+        example_ase_loaded.advance_by_one_step()
 
 
 def test_simulation_time(example_ase_app_sim):

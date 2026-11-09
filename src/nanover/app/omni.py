@@ -11,17 +11,11 @@ from nanover.trajectory import FrameData, keys
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.timing import VariableIntervalGenerator
 
+from ..utilities.certificates import fetch_or_generate_self_signed_certificate_context
 from ..utilities.event import Event
+from .discovery import DiscoveryAdvert, DiscoveryEndpoint
 from .imd_app import NanoverImdApplication
 from .selection import RenderingSelection
-
-CLEAR_PREFIXES = {
-    "avatar.",
-    "play-area.",
-    "selection.",
-    "scene",
-    "interaction.",
-}
 
 
 class OmniRunner:
@@ -41,6 +35,21 @@ class OmniRunner:
         for instance in list(cls._instances):
             instance.close()
         cls._instances = []
+
+    @classmethod
+    def with_webxr_server(
+        cls,
+        *simulations: Simulation,
+        name: str | None = None,
+    ):
+        runner = cls.with_basic_server(
+            *simulations,
+            name=name,
+            port=0,
+            ssl=fetch_or_generate_self_signed_certificate_context(),
+        )
+
+        return runner
 
     @classmethod
     def with_basic_server(
@@ -109,14 +118,24 @@ class OmniRunner:
         self._runner: InternalRunner | None = None
         self._run_task: Future | None = None
 
+        self._discovery: DiscoveryAdvert | None = None
+
         self.failed_simulations: set[Simulation] = set()
         self.logging = logging.getLogger(__name__)
         self._instances.append(self)
+
+        self.clear_state_prefixes = {
+            "selection.",
+            "interaction.",
+        }
+        """State prefixes to clear when switching simulation."""
 
     def close(self):
         """
         Stop simulations and shut down server.
         """
+        if self._discovery is not None:
+            self._discovery.close()
         self._cancel_run()
         self.app_server.close()
         self._instances.remove(self)
@@ -143,6 +162,10 @@ class OmniRunner:
             print_simulation_change(
                 index=self._simulation_index, name=self.simulation.name
             )
+
+    def advertise_on_web_discovery(self, *, endpoint: str):
+        endpoint = DiscoveryEndpoint.from_host(endpoint)
+        self._discovery = endpoint.advertise_server(self.app_server)
 
     @property
     def app_server(self):
@@ -191,7 +214,7 @@ class OmniRunner:
             removals = {
                 key
                 for key in state
-                if any(key.startswith(prefix) for prefix in CLEAR_PREFIXES)
+                if any(key.startswith(prefix) for prefix in self.clear_state_prefixes)
             }
         self.app_server.clear_locks()
         self.app_server.update_state(DictionaryChange(removals=removals))
@@ -214,15 +237,17 @@ class OmniRunner:
             )
         self.app_server.update_state(change)
 
-    def load(self, index: int):
+    def load(self, index: int, clear_state=True):
         """
         Switch to the simulation at a given index.
         :param index: Index of simulation to switch to
+        :param clear_state: Perform state cleanup
         :return:
         """
         self._cancel_run()
         self._simulation_index = int(index) % len(self.simulations)
-        self._clear_state()
+        if clear_state:
+            self._clear_state()
         self._load_simulation_selections()
         self._start_run()
 

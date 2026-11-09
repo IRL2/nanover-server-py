@@ -11,6 +11,19 @@ from nanover.trajectory import FrameData
 STATE_TRANSFORM_IDENTITY = (0, 0, 0, 0, 0, 0, 1, 1, 1, 1)
 
 
+def look_matrix(forward, *, upward=(0, 1, 0)):
+    zbasis = np.divide(forward, np.linalg.norm(forward))
+    xbasis = np.cross(zbasis, upward)
+    xbasis /= np.linalg.norm(xbasis)
+    ybasis = np.cross(zbasis, xbasis)
+    ybasis /= np.linalg.norm(ybasis)
+
+    rotation = np.stack([xbasis, ybasis, zbasis])
+    matrix = np.identity(4)
+    matrix[:3, :3] = rotation
+    return matrix
+
+
 def unpack_partial_state_transform(transform: Iterable[float]):
     """Pad partial state transform iterable up to full length with components of identity state transform."""
     i = -1
@@ -30,6 +43,14 @@ def matrix_from_state_transform(transform: Iterable[float]):
     return translation @ rotation @ scale
 
 
+def state_transform_from_trs(
+    translation: Iterable[float] = (0, 0, 0),
+    rotation: Iterable[float] = (0, 0, 0, 1),
+    scale: Iterable[float] = (1, 1, 1),
+):
+    return *translation, *rotation, *scale
+
+
 def state_transform_from_matrix(matrix: npt.NDArray) -> Sequence[float]:
     s, _, a, t, _ = transformations.decompose_matrix(matrix)
     w, x, y, z = transformations.quaternion_from_euler(*a)
@@ -47,6 +68,17 @@ class Transform:
     def from_translation(cls, translation: Iterable[float]):
         tx, ty, tz, *_ = translation
         return cls.from_state_transform((tx, ty, tz))
+
+    @classmethod
+    def from_trs(
+        cls,
+        translation: Iterable[float] = (0, 0, 0),
+        rotation: Iterable[float] = (0, 0, 0, 1),
+        scale: Iterable[float] = (1, 1, 1),
+    ):
+        return cls.from_state_transform(
+            state_transform_from_trs(translation, rotation, scale)
+        )
 
     @classmethod
     def from_state_transform(cls, transform: Iterable[float]):

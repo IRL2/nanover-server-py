@@ -6,6 +6,7 @@ from ipywidgets import interact
 
 from nanover.app import OmniRunner
 from nanover.core import AppServerMinimal
+from nanover.core.types import CommandRegistration
 from nanover.trajectory import keys
 from nanover.utilities.change_buffers import DictionaryChange
 
@@ -139,18 +140,23 @@ def show_app_server_controls(app_server: AppServerMinimal):
         make_state_toggle(
             "suggested.box.hidden", description="Hide Box", default=False
         ),
+        make_state_toggle(
+            "suggested.avatars.hidden",
+            description="Hide Avatars",
+            default=False,
+        ),
     ]
 
-    def make_user_command_button(command):
+    def make_user_command_button(command: CommandRegistration):
         def run(_):
-            app_server.run_command(command, {})
+            app_server.run_command(command.name, {})
 
-        return make_button(run, description=command)
+        return make_button(run, description=f"{command.icon} {command.label}")
 
     commands = [
         make_user_command_button(command)
-        for command in app_server.commands
-        if command.startswith("user/")
+        for command in app_server.commands.values()
+        if command.name.startswith("user/")
     ]
 
     interact(

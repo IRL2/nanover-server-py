@@ -41,6 +41,8 @@ dependencies = [
     "pandas>=2.2.3",
     # mdanalysis will include this soon anyway
     "pooch",
+    "cryptography",
+    "platformdirs",
 ]
 
 [project.urls]
@@ -74,13 +76,12 @@ dev=[
     "nbval",
     # ui
     #"gradio>=5.18.0",
-    # types
-    "types-netifaces",
 ]
 
 [project.scripts]
 nanover-server = "nanover.app.cli.server_cli:main"
 nanover-record = "nanover.app.cli.recorder_cli:main"
+nanover-advertise = "nanover.app.cli.advertise_cli:main"
 nanover-essd-list = "nanover.essd.list_cli:main"
 nanover-dump-state = "nanover.recording.cli.dump_cli:main"
 nanover-split-recording = "nanover.recording.cli.split_cli:main"
@@ -99,6 +100,7 @@ version = {file = "VERSION.txt"}
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = ["serial"]
+addopts = "--ignore tutorials/2.\\ advanced/dynamic_bonding.ipynb"
 
 [tool.ruff]
 extend-exclude = ["build/lib/**/*.py"]

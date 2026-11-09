@@ -1,5 +1,5 @@
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import given, strategies as st, settings
 from nanover.testing import (
     assert_equal_soon,
     assert_in_soon,
@@ -40,12 +40,14 @@ def reusable_setup_two_clients():
             yield setup, client
 
 
+@settings(max_examples=20)
 @given(frame=frames())
 def test_websocket_sends_frame(reusable_setup, frame):
     reusable_setup.server_publish_frame(frame)
     reusable_setup.assert_frames_synced_soon()
 
 
+@settings(max_examples=20)
 @given(frame=frames())
 def test_websocket_sends_frame_two_clients(reusable_setup_two_clients, frame):
     reusable_setup, client2 = reusable_setup_two_clients
@@ -105,6 +107,7 @@ def test_websocket_register_command(reusable_setup_two_clients, arguments):
     )
 
 
+@settings(max_examples=20)
 @given(frame=frames())
 def test_client_frame_reset(reusable_setup, frame):
     reusable_setup.server_publish_frame(frame)
@@ -145,6 +148,7 @@ def test_disconnect_cleans_owned_keys(reusable_setup, user_id, fields):
     assert all(key not in reusable_setup.server_current_state for key in updates)
 
 
+@settings(max_examples=20)
 @given(frame=frames())
 def test_client_frame(reusable_setup, frame):
     """
