@@ -4,6 +4,40 @@ import numpy as np
 
 
 @dataclass(kw_only=True)
+class PointAlongResult:
+    point: np.ndarray
+    index: int
+    t: float
+
+
+def point_at_distance_along_polyline(points: list, distance):
+    # each point to next delta
+    p1p2 = np.diff(points, axis=0)
+    # each point to next length
+    p1p2l = np.linalg.norm(p1p2, axis=1)
+    # each point distance along polyline
+    p1p2d = np.cumsum(p1p2l)
+
+    # None if beyond total line length
+    if p1p2d[-1] < distance:
+        return None
+
+    # last point under distance
+    index = np.searchsorted(p1p2d, distance)
+    # distance after last point
+    extra = distance - (p1p2d[index - 1] if index > 0 else 0)
+    # percent along segment after last point
+    t = extra / p1p2l[index]
+    # point along segment after last point (p1 + t * p1p2)
+    p = np.add(points[index], t * p1p2[index])
+    return PointAlongResult(
+        point=p,
+        index=int(index),
+        t=float(t),
+    )
+
+
+@dataclass(kw_only=True)
 class ClosestPointResult:
     point: np.ndarray
     distance: float
