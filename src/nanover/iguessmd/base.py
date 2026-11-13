@@ -1,0 +1,189 @@
+from abc import abstractmethod
+from os import PathLike
+
+import numpy as np
+import numpy.typing as npt
+
+
+class iGUESSMDSimulation:
+    """
+    A base class for all iGUESSMD simulations.
+    """
+
+    def __init__(self, name: str | None = None):
+        # Attributes defined by inputs
+        self.name: str | None = name or "Unnamed iGUESSMD simulation"
+        """An optional name for the iGUESSMD simulation"""
+        self.mobile_atom_indices: np.ndarray | None = None
+        """Indices of the atoms belonging to the mobile group R(r)"""
+        self.ref_atom_indices: np.ndarray | None = None
+        """Indices of the atoms belonging to the reference group R_ref(r)"""
+        self.mobile_atom_weights: np.ndarray | None = None
+        """Weights of the atoms defining the mobile group centre R(r) (must sum to 1)"""
+        self.ref_atom_weights: np.ndarray | None = None
+        """Weights of the atoms defining the reference group centre R_ref(r) (must sum to 1)"""
+        self.reaction_path: np.ndarray
+        """Reaction path in x_rel(r) defining the transformation (nm)"""
+        self.reaction_path_unit_tangents: np.ndarray
+        """Unit tangents to the reaction path at each point"""
+        self.k: float | np.ndarray | None = None
+        """Harmonic force constant(s) defining the iGUESSMD harmonic potential (kJ mol-1 nm-2)"""
+        self.k_par: float | np.ndarray | None = None
+        """Harmonic force constant of the component of the iGUESSMD force parallel to the 
+           reaction path (kJ mol-1 nm-2)"""
+        self.k_perp: float | np.ndarray | None = None
+        """Harmonic force constant of the component of the iGUESSMD force perpendicular to the 
+           reaction path (kJ mol-1 nm-2)"""
+        self._coord_type: str | None = None
+        """String defining the type of coordinate system to use for the iGUESSMD simulation
+        
+           Possible values:
+             - 'abs' : indicates that the reaction path is given in the same Cartesian coordinate 
+                       system of the simulation, with the origin as the reference point R_ref(r)
+             - 'rel' : indicates that the reaction path is given in the relative coordinate 
+                       system defined by the centres R(r) and R_ref(r), which are defined 
+                       respectively by the mobile and reference atom positions
+                       
+           If this value is not set explicitly on creation of the simulation, it will be inferred
+           from the indices passed to the simulation (i.e. mobile indices only -> 'abs', both 
+           mobile and reference indices -> 'rel'."""
+
+        # Attributes for iGUESSMD force updates
+        self.current_iguessmd_force_position: np.ndarray | None = None
+        """The current position of the origin of the iGUESSMD force, updated during the iGUESSMD simulation"""
+        self.current_iguessmd_reaction_path_tangent: np.ndarray | None = None
+        """The tangent of the reaction path at the origin of the iGUESSMD force, updated during the
+           iGUESSMD simulation"""
+        self.current_iguessmd_force_position_index: int | None = None
+        """Index indicating the location of the current iGUESSMD force position in the reaction path array"""
+
+        # Attributes defined by the results of the iGUESSMD simulation
+        self.iguessmd_sim_mobile_atom_positions: np.ndarray
+        """Positions of the mobile atoms recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_ref_atom_positions: np.ndarray | None = None
+        """Positions of the reference atoms recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_mobile_centre_positions: np.ndarray | None = None
+        """Positions of R(r) recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_ref_centre_positions: np.ndarray | None = None
+        """Positions of R_ref(r) recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_x_rel_positions: np.ndarray | None = None
+        """Positions of the relative coordinate x_rel(r) recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_forces: np.ndarray | None = None
+        """Values of the iGUESSMD forces recorded during the iGUESSMD simulation"""
+        self.iguessmd_sim_work_done: np.ndarray | None = None
+        """Values of the cumulative work done by the iGUESSMD force during the iGUESSMD simulation"""
+
+    @abstractmethod
+    def define_iguessmd_simulation_atom_positions_arrays(self):
+        """
+        Define the array to which the positions of the atoms with which the
+        iGUESSMD force interacts will be saved over the course of the iGUESSMD simulation.
+        """
+
+    @abstractmethod
+    def add_iguessmd_force_to_system(self):
+        """
+        Add the required iGUESSMD force to the system, depending on the type of
+        iGUESSMD interaction required (single atom or centre-of-mass).
+        """
+
+    @abstractmethod
+    def run_equilibration_with_initial_restraint(self, n_steps: int):
+        """
+        Perform an equilibration of the system with the restraint fixed at the
+        initial position defined in the iGUESSMD force path.
+
+        :param n_steps: Number of simulation steps to run equilibration for.
+        """
+
+    @abstractmethod
+    def update_iguessmd_force_position(self):
+        """
+        Update the position of the iGUESSMD force.
+        """
+
+    @abstractmethod
+    def run_iguessmd(self, progress_interval: int = 100000):
+        """
+        Perform an iGUESSMD simulation on the system using the iGUESSMD force and
+        path defined, store the positions of the atoms with which the
+        iGUESSMD force interacts, and calculate the work done along the reaction
+        coordinate.
+
+        :param progress_interval: Interval defining how regularly to print the progress
+          of the simulation, in terms of the number of simulation steps.
+        """
+
+    @abstractmethod
+    def calculate_cumulative_work_done(self):
+        """
+        Calculate the cumulative work done along the reaction coordinate
+        during the iGUESSMD simulation.
+        """
+
+    @abstractmethod
+    def save_iguessmd_simulation_data(
+        self,
+        path: PathLike | str | None = None,
+        every_nth: int | None = None,
+        include_end: bool = False,
+        save_work_done: bool = True,
+        save_x_rel_positions: bool = True,
+        save_centre_positions: bool = True,
+        save_atom_positions: bool = True,
+        work_done_dtype: npt.DTypeLike = np.float32,
+        x_rel_positions_dtype: npt.DTypeLike = np.float32,
+        centre_positions_dtype: npt.DTypeLike = np.float32,
+        atom_positions_dtype: npt.DTypeLike = np.float32,
+    ):
+        """
+        Save the data produced by the iGUESSMD simulation in binary form that can be read
+        into NumPy arrays. The following data are saved, in the order listed below:
+
+        - Trajectories of the atoms to which the iGUESSMD force was applied, in nm
+        - Work done along the reaction coordinate defined by the path of the iGUESSMD force, in kJ mol-1
+
+        :param path: Path to the file to which the data will be saved
+        :param every_nth:  (int | None) only save the values of work and/or positions at every
+          nth point along the trajectory
+        :param include_end: (Bool) whether to save final values of the work and/or positions
+          regardless of stride defined by every nth
+        :param save_work_done: Bool determining whether to save the work done
+        :param save_x_rel_positions: Bool determining whether to save the positions of the x_rel
+          coordinate defined during the iGUESSMD simulation
+        :param save_centre_positions: Bool determining whether to save the positions of the centre R(r)
+          defined by the mobile atoms (and the centre R_ref(r) defined by the reference atoms if relative
+          coordinates used)
+        :param save_atom_positions: Bool determining whether to save the positions of the atom(s)
+        :param work_done_dtype: Data type of the work done array to save
+        :param x_rel_positions_dtype: Data type of the COM positions array to save
+        :param centre_positions_dtype: Data type of the COM positions array to save
+        :param atom_positions_dtype: Data type of the atom positions array to save
+        """
+
+    @abstractmethod
+    def save_general_iguessmd_data(self, path: PathLike | str | None = None):
+        """
+        Saves general data related to the iGUESSMD simulation in binary form that can be read
+        into NumPy arrays. The following data are saved, in the order listed below:
+
+        - Indices of the atoms to which the iGUESSMD force is applied
+        - Positions defining the path of the iGUESSMD force, in nm
+        - Force constant of the iGUESSMD force, in kJ mol-1 nm-2
+        - Temperature of the simulation, in Kelvin
+        - Time step of the simulation, in picoseconds
+
+        :param path: Path to the file to which the data will be saved.
+        """
+
+    def _check_custom_weights_are_normalised(self, weights: np.ndarray):
+        """
+        Check that a set of custom weights passed to the iGUESSMDSimulation class
+        to define the position of a centre are normalised.
+        """
+        if weights is not None and isinstance(weights, np.ndarray):
+            tolerance = len(weights) * np.finfo(weights.dtype).eps
+            assert np.isclose(weights.sum(), 1.0, rtol=0.0, atol=tolerance), f"""
+            The custom weights {weights} are not normalised. If you wish to define custom
+            weights, please ensure they are correctly normalised.
+            """
