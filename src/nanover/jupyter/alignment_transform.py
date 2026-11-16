@@ -29,3 +29,23 @@ class AlignmentTransform(FrameListener):
             transform = Transform.from_parent_to_local_matrix(np.identity(4))
 
         self.transforms.update_transform(self.key, transform=transform)
+
+    def alignment_position_to_root_position(self, position):
+        assert self.key is not None
+        alignment_in_root = self.transforms.fetch_transform_root(self.key)
+        return alignment_in_root.point_local_to_parent(position)
+
+    def alignment_position_to_simulation_position(self, position):
+        assert self.key is not None
+        alignment_in_simulation = self.transforms.fetch_transform(self.key)
+        return alignment_in_simulation.point_local_to_parent(position)
+
+    def root_position_to_alignment_position(self, position):
+        assert self.key is not None
+        alignment_in_root = self.transforms.fetch_transform_root(self.key)
+        return alignment_in_root.point_parent_to_local(position)
+
+    def simulation_position_to_alignment_position(self, position):
+        assert self.key is not None
+        alignment_in_simulation = self.transforms.fetch_transform(self.key)
+        return alignment_in_simulation.point_parent_to_local(position)

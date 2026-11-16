@@ -128,6 +128,7 @@ class NanoverServerUtilities(NanoverSharedUtilities):
         show_runner_controls(self.runner)
 
     def start_recording(self):
+        self.stop_recording()
         self._recording_path = f"RECORDING-{self._recording_count}-{self.runner.simulation.name}.nanover.zip"
         self._recorder = record_from_runner(self.runner, self._recording_path)
         self._recording_count += 1
