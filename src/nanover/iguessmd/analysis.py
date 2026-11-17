@@ -1,0 +1,272 @@
+from os import PathLike
+from pathlib import Path
+
+import numpy as np
+from openmm import unit
+from openmm.unit.quantity import Quantity
+from scipy.special import logsumexp
+
+from nanover.iguessmd.utils import calculate_unit_tangents, get_every_nth
+
+
+def _load_iguessmd_datafile(filepath: PathLike[str] | str) -> dict:
+    """
+    Load the data from a .npz output file from an iGUESSMD simulation as
+    a dictionary.
+    """
+    if Path(filepath).suffix.lower() != ".npz":
+        raise ValueError("Output file must have a .npz extension.")
+
+    return dict(np.load(filepath))
+
+
+def load_general_iguessmd_data(filepath: PathLike | str) -> dict:
+    """
+    Load the general data associated with an iGUESSMD simulation:
+
+        - Indices of the atoms to which the iGUESSMD force is applied
+        - Positions defining the path of the iGUESSMD force, in nm
+        - Force constant of the iGUESSMD force, in kJ mol-1 nm-2
+        - Temperature of the simulation, in Kelvin
+        - Time step of the simulation, in picoseconds
+
+    :param filepath: A string defining the path to the .npz output file
+      containing the general iGUESSMD data
+    :return: A dictionary containing the general data from an iGUESSMD simulation.
+    """
+    return _load_iguessmd_datafile(filepath)
+
+
+def load_iguessmd_simulation_data(filepath: PathLike | str) -> dict:
+    """
+    Load the data saved from the results of a specific iGUESSMD simulation.
+    This data may include:
+
+        - The work done during the simulation
+        - The trajectories of the atoms to which the iGUESSMD force is applied
+        - The trajectories of the centre of mass to which the iGUESSMD force
+          is applied
+        - The effective time step between successive data, in picoseconds
+
+    :param filepath: A string defining the path to the .npz output file
+      containing the iGUESSMD simulation data
+    :return: A dictionary containing the simulation data from an iGUESSMD simulation.
+    """
+    return _load_iguessmd_datafile(filepath)
+
+
+def boltzmann_constant_in_kJ_mol_K() -> Quantity:
+    """
+    Returns the Boltzmann constant in units of kJ mol-1 K-1
+    """
+    kB_J_mol_K = unit.BOLTZMANN_CONSTANT_kB * unit.AVOGADRO_CONSTANT_NA
+    return kB_J_mol_K.in_units_of(unit.kilojoule_per_mole / unit.kelvin)
+
+
+def calculate_beta_mol_kJ(temperature_K: float) -> float:
+    """
+    Calculate the value of beta (1/(kB*T)) in units of mol kJ-1.
+
+    :param temperature_K: Temperature (in K)
+    :return: Beta (1/(kB*T)) in units of mol kJ-1.
+    """
+    # Check that the temperature is non-zero and positive
+    if temperature_K <= 0.0:
+        raise ValueError("Temperature must be non-zero and positive.")
+
+    kB_kJ_mol_K = boltzmann_constant_in_kJ_mol_K()
+    assert isinstance(kB_kJ_mol_K._value, float)
+    beta = 1.0 / (kB_kJ_mol_K._value * temperature_K)
+    return beta
+
+
+def _calculate_pmf_second_cumulant(
+    work_done_array: np.ndarray, beta: float
+) -> np.ndarray:
+    """
+    Calculate the PMF from the irreversible work done via the second cumulant expansion
+    of the Jarzynski equality. This uses the inbuilt Bessel correction in NumPy to unbias
+    the calculated variance, assuming that the set of work profiles used to compute the
+    PMF is a sample of the (true) larger population.
+    WARNING: the irreversible work and beta must have compatible units!
+    """
+    return np.average(work_done_array, axis=0) - 0.5 * beta * np.var(
+        work_done_array, axis=0, ddof=1
+    )
+
+
+def _calculate_pmf_exponential_average(work_done_array: np.ndarray, beta: float):
+    """
+    Calculate the PMF from the irreversible work done via the exponential average.
+    WARNING: the irreversible work and beta must have compatible units!
+    """
+    return -(1.0 / beta) * (
+        logsumexp(-beta * work_done_array, axis=0) - np.log(work_done_array.shape[0])
+    )
+
+
+def calculate_pmf_second_cumulant_kJ_mol(
+    work_done_array_kJ_mol: np.ndarray, temperature_K: float
+) -> np.ndarray:
+    """
+    Calculate the PMF in kJ mol-1 from the irreversible work done (also in kJ mol-1)
+    via the second cumulant expansion of the Jarzynski equality.
+
+    :param work_done_array_kJ_mol: N x k array of irreversible work done from a set of
+      N iGUESSMD simulations performed using a reaction coordinate defined by k positions
+      (in kJ mol-1).
+    :param temperature_K: Temperature (in K)
+    """
+    beta = calculate_beta_mol_kJ(temperature_K)
+    return _calculate_pmf_second_cumulant(work_done_array_kJ_mol, beta)
+
+
+def calculate_pmf_exponential_average_kJ_mol(
+    work_done_array_kJ_mol: np.ndarray, temperature_K: float
+):
+    """
+    Calculate the PMF in kJ mol-1 from the irreversible work done (also in kJ mol-1)
+    via the exponential average.
+
+    :param work_done_array_kJ_mol: N x k array of irreversible work done from a set of
+      N iGUESSMD simulations performed using a reaction coordinate defined by k positions
+      (in kJ mol-1).
+    :param temperature_K: Temperature (in K)
+    """
+    beta = calculate_beta_mol_kJ(temperature_K)
+    return _calculate_pmf_exponential_average(work_done_array_kJ_mol, beta)
+
+
+def calculate_reaction_coordinate_projections(
+    iguessmd_com_coordinates_array: np.ndarray,
+    iguessmd_reaction_coordinate: np.ndarray,
+    every_nth_point: int | None = None,
+    include_end_point: bool = True,
+) -> np.ndarray:
+    """
+    Calculate the values of the reaction coordinate for the atom/COM coordinates from
+    a set of iGUESSMD trajectories, via projection onto the reaction coordinate.
+    :param iguessmd_com_coordinates_array: (N x k x 3) array of coordinates defining the trajectories of
+      the COM of the group pulled along a k-step iGUESSMD reaction coordinate during the N iGUESSMD simulations
+      (in nm)
+    :param iguessmd_reaction_coordinate: (k x 3) array of points defining the iGUESSMD reaction coordinate (in nm).
+    :param every_nth_point: (int | None) only calculate variance in the value of the reaction coordinate
+      at every nth point on the trajectory.
+    :param include_end_point: (Bool) whether to also calculate the variance for the final value of
+      the RC regardless of stride defined by every nth
+    :return: (N * k) array of projected reaction coordinate values
+    """
+
+    # Calculate normalised displacement vectors along iGUESSMD reaction path
+    normalised_displacements = calculate_unit_tangents(iguessmd_reaction_coordinate)
+
+    # Calculate restraint-atom vectors and reaction coordinate values for each trajectory
+    restraint_vectors = iguessmd_com_coordinates_array - iguessmd_reaction_coordinate
+    if every_nth_point is not None:
+        normalised_displacements = get_every_nth(
+            normalised_displacements, 0, every_nth_point, include_end_point
+        )
+        restraint_vectors = get_every_nth(
+            restraint_vectors,
+            1,
+            every_nth_point,
+            include_end_point,
+        )
+
+    i_index_range = restraint_vectors.shape[1]
+    if abs(restraint_vectors.shape[1] - normalised_displacements.shape[0]) == 1:
+        i_index_range -= 1
+
+    reaction_coordinate_projections = np.array(
+        [
+            [
+                np.dot(restraint_vectors[j, i], normalised_displacements[i])
+                for i in range(i_index_range)
+            ]
+            for j in range(restraint_vectors.shape[0])
+        ]
+    )
+
+    return reaction_coordinate_projections
+
+
+def calculate_variance_of_reaction_coordinate(
+    iguessmd_com_coordinates_array: np.ndarray,
+    iguessmd_reaction_coordinate: np.ndarray,
+    every_nth_point: int | None = None,
+    include_end_point: bool = True,
+) -> np.ndarray:
+    """
+    Calculates the variance in the reaction coordinate value for a set of iGUESSMD simulations.
+
+    :param iguessmd_com_coordinates_array: (N x k x 3) array of coordinates defining the trajectories of
+      the COM of the group pulled along a k-step iGUESSMD reaction coordinate during the N iGUESSMD simulations
+      (in nm)
+    :param iguessmd_reaction_coordinate: (k x 3) array of points defining the iGUESSMD reaction coordinate (in nm).
+    :param every_nth_point: (int | None) only calculate variance in the value of the reaction coordinate
+      at every nth point on the trajectory.
+    :param include_end_point: (Bool) whether to also calculate the variance for the final value of
+      the RC regardless of stride defined by every nth
+    :return: (N-1) array of the variance in the reaction coordinate as a function of the first N-1
+      points of the reaction coordinate (in nm^2)
+    """
+    reaction_coordinate_projections = calculate_reaction_coordinate_projections(
+        iguessmd_com_coordinates_array,
+        iguessmd_reaction_coordinate,
+        every_nth_point,
+        include_end_point,
+    )
+
+    return np.var(reaction_coordinate_projections, axis=0)
+
+
+def calculate_displacements_along_reaction_coordinate(
+    iguessmd_reaction_coordinate: np.ndarray,
+    every_nth_point: int | None = None,
+    include_end_point: bool = True,
+) -> np.ndarray:
+    """
+    Calculates the displacements along the reaction coordinate (in nm)
+
+    :param iguessmd_reaction_coordinate: (k x 3) array of points defining the iGUESSMD reaction coordinate (in nm).
+    :param every_nth_point: (int | None) only return the displacement from one point to the next for
+      every nth point of the trajectory
+    :param include_end_point: (Bool) whether to also calculate the variance for the final value of
+      the RC regardless of stride defined by every nth
+    :return: ((N-1) x 3) array of the displacements between the consecutive points defining the
+      iGUESSMD reaction coordinate (in nm)
+    """
+    displacements_along_rc = np.diff(iguessmd_reaction_coordinate, axis=0)
+    if every_nth_point is None:
+        return displacements_along_rc
+    else:
+        return get_every_nth(
+            displacements_along_rc, 0, every_nth_point, include_end_point
+        )
+
+
+def calculate_distance_along_reaction_coordinate(
+    iguessmd_reaction_coordinate: np.ndarray,
+    every_nth_point: int | None = None,
+    include_end_point: bool = True,
+) -> np.ndarray:
+    """
+    Calculates the cumulative distance travelled along the reaction coordinate (in nm)
+
+    :param iguessmd_reaction_coordinate: (k x 3) array of points defining the iGUESSMD reaction coordinate (in nm).
+    :param every_nth_point: (int | None) only return the distance travelled along the reaction coordinate
+      for every nth point of the trajectory
+    :param include_end_point: (Bool) whether to also calculate the variance for the final value of
+      the RC regardless of stride defined by every nth
+    :return: (k) array of distances defining the cumulative distance travelled by the iGUESSMD restraint
+      along the reaction coordinate (in nm)
+    """
+    distance_along_rc = np.zeros(iguessmd_reaction_coordinate.shape[0])
+    displacements_along_rc = calculate_displacements_along_reaction_coordinate(
+        iguessmd_reaction_coordinate
+    )
+    distance_along_rc[1:] = np.cumsum(np.linalg.norm(displacements_along_rc, axis=1))
+    if every_nth_point is None:
+        return distance_along_rc
+    else:
+        return get_every_nth(distance_along_rc, 0, every_nth_point, include_end_point)
