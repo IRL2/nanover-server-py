@@ -96,10 +96,13 @@ class NanoverServerUtilities(NanoverSharedUtilities):
         logging.getLogger().addHandler(Handler())
         return output
 
-    def notify_all(self, message: str):
+    def notify_all(self, message: str | None = None, **kwargs):
+        if message is not None:
+            kwargs["message"] = message
+
         for command in self.runner.app_server.commands:
             if command.endswith("/notify"):
-                self.runner.app_server.run_command(command, {"message": message})
+                self.runner.app_server.run_command(command, kwargs)
 
     def get_shared_state_value(self, key: str, default=None):
         with self.runner.app_server.lock_state() as state:
