@@ -6,7 +6,7 @@ from nanover.core import basic_info_string
 from nanover.app import OmniRunner
 from nanover.recording import PlaybackSimulation
 from nanover.openmm import OpenMMSimulation
-from nanover.websocket.record import record_from_runner
+from nanover.recording.record import record_from_runner
 
 imd_runner = None
 

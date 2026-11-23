@@ -11,10 +11,10 @@ import argparse
 import textwrap
 import time
 
+from nanover.client.app_client import get_websocket_address_from_hub
 from nanover.essd import DiscoveryClient
+from nanover.recording.record import BackgroundRecordingContext
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
-from nanover.websocket.client.app_client import get_websocket_address_from_hub
-from nanover.websocket.record import BackgroundRecordingContext
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:

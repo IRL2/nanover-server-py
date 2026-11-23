@@ -6,8 +6,8 @@ from nanover.app import (
     SELECTION_ROOT_NAME,
     RenderingSelection,
 )
+from nanover.client.base_client import WebsocketClient
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.websocket.client.base_client import WebsocketClient
 
 
 class SelectionClient(WebsocketClient):

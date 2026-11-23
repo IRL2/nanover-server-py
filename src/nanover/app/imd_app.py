@@ -150,7 +150,7 @@ class NanoverImdApplication(AppServer):
     def serve_websocket(
         self, *, insecure=True, ssl: SSLContext | None = None, port: int = 0
     ):
-        from nanover.websocket.server import WebSocketServer
+        from nanover.server.server import WebSocketServer
 
         self._server_ws = WebSocketServer.basic_server(
             self, insecure=insecure, ssl=ssl, port=port

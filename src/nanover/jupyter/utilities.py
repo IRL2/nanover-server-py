@@ -17,16 +17,16 @@ from nanover.app.selection import (
     KEY_SELECTED_PARTICLE_IDS,
     RENDERER_DEFAULT,
 )
+from nanover.client.app_client import NanoverImdClient
 from nanover.core.app_server import StateService
 from nanover.core.types import CommandHandler
 from nanover.imd import ParticleInteraction
 from nanover.imd.imd_state import interaction_to_dict
 from nanover.mdanalysis import frame_data_to_mdanalysis
+from nanover.recording.record import BackgroundRecordingContext, record_from_runner
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.transforms import Transform, matrix_from_state_transform
-from nanover.websocket.client.app_client import NanoverImdClient
-from nanover.websocket.record import BackgroundRecordingContext, record_from_runner
 
 from ..core import AppServerMinimalImd
 from . import show_runner_controls
@@ -170,19 +170,6 @@ class NanoverServerUtilities(NanoverSharedUtilities):
         )
 
     def add_interaction_mode(self, mode: Mode, name: str, icon="👆"):
-        # handle old case
-        import inspect
-
-        if inspect.isclass(mode):
-            import warnings
-
-            mode = mode()
-            warnings.warn(
-                "Interaction modes should be instances not classes",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
         self.modes.add_mode(mode, name, icon)
 
     def use_transform_handles(self):

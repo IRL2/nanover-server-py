@@ -1,7 +1,7 @@
 from nanover.app import NanoverImdApplication, OmniRunner
 from nanover.testing import assert_equal_soon
 from nanover.testing.asserts import assert_true_soon
-from nanover.websocket.client.app_client import NanoverImdClient
+from nanover.client import NanoverImdClient
 
 from .test_openmm import make_example_openmm
 

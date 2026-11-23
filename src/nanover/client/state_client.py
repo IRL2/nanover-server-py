@@ -1,9 +1,9 @@
 from contextlib import AbstractContextManager
 from typing import Any
 
+from nanover.client.base_client import WebsocketClient
 from nanover.core.app_server import StateService
 from nanover.utilities.state_dictionary import StateDictionary
-from nanover.websocket.client.base_client import WebsocketClient
 
 
 class StateClient(WebsocketClient, StateService):

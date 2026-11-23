@@ -15,15 +15,15 @@ from MDAnalysis import Universe
 
 from nanover.app import OmniRunner
 from nanover.app.discovery import DiscoveryEndpoint
+from nanover.client.app_client import NanoverImdClient
 from nanover.mdanalysis import UniverseSimulation
 from nanover.openmm import OpenMMSimulation
 from nanover.recording import PlaybackSimulation
+from nanover.recording.record import record_from_runner
 from nanover.utilities.certificates import (
     fetch_or_generate_self_signed_certificate_context,
 )
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
-from nanover.websocket.client.app_client import NanoverImdClient
-from nanover.websocket.record import record_from_runner
 
 
 def handle_user_arguments(args=None) -> argparse.Namespace:

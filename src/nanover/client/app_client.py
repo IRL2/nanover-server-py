@@ -5,12 +5,12 @@ from typing import Any
 
 from nanover.core import AppServer, AppServerMinimalImd
 from nanover.essd import DiscoveryClient, ServiceHub
+from nanover.imd import ImdStateWrapper
 from nanover.trajectory import FrameData, FramePublisher
+from nanover.trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.network import get_local_ip
 
-from ...imd import ImdStateWrapper
-from ...trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
 from .command_client import CommandClient
 from .interaction_client import InteractionClient
 from .playback_client import PlaybackClient
@@ -139,19 +139,6 @@ class NanoverImdClient(
         True if the current frame contains basic topology and particle positions.
         """
         return MINIMUM_USABLE_FRAME_KEYS < self.current_frame.frame_dict.keys()
-
-    def wait_until_first_frame(self, check_interval=0.01, timeout=1):
-        import warnings
-
-        warnings.warn(
-            "Use `wait_until_minimum_usable_frame` instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.wait_until_minimum_usable_frame(
-            check_interval=check_interval, timeout=timeout
-        )
 
     def wait_until_minimum_usable_frame(self, check_interval=0.01, timeout=1):
         """

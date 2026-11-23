@@ -1,6 +1,7 @@
 from collections.abc import Mapping
 from uuid import uuid4
 
+from nanover.client.base_client import WebsocketClient
 from nanover.imd import ParticleInteraction
 from nanover.imd.imd_state import (
     INTERACTION_PREFIX,
@@ -8,7 +9,6 @@ from nanover.imd.imd_state import (
     interaction_to_dict,
 )
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.websocket.client.base_client import WebsocketClient
 
 
 class InteractionClient(WebsocketClient):
