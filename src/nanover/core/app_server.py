@@ -104,3 +104,6 @@ def get_websocket_address_from_hub(hub: ServiceHub, *, host: str | None = None):
     host_, port = parts
     address = f"ws://{host or host_}:{port}"
     return address
+
+
+MAX_MESSAGE_SIZE = 128 * 1024 * 1024

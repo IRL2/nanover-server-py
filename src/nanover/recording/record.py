@@ -8,8 +8,7 @@ from websockets.sync.client import connect
 from websockets.sync.connection import Connection
 
 from nanover.app import OmniRunner
-from nanover.client.base_client import MAX_MESSAGE_SIZE
-from nanover.core import get_websocket_address_from_app_server
+from nanover.core import MAX_MESSAGE_SIZE, get_websocket_address_from_app_server
 from nanover.recording.reading import MessageEvent
 from nanover.recording.writing import NanoverRecordingWriter
 

@@ -9,7 +9,7 @@ from typing import Protocol, Self
 import msgpack
 from websockets.sync.server import Server, ServerConnection, serve
 
-from nanover.core import AppServer
+from nanover.core import MAX_MESSAGE_SIZE, AppServer
 from nanover.core.commands import CommandMessageHandler
 from nanover.server.landing import make_landing_page_server
 from nanover.trajectory import FrameData
@@ -19,8 +19,6 @@ from nanover.utilities.change_buffers import (
 )
 from nanover.utilities.cli import CancellationToken
 from nanover.utilities.packing import fallback_encoder
-
-MAX_MESSAGE_SIZE = 128 * 1024 * 1024
 
 
 class ServerLike(Protocol):

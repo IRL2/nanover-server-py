@@ -1,4 +1,5 @@
 from .app_server import (
+    MAX_MESSAGE_SIZE as MAX_MESSAGE_SIZE,
     AppServer as AppServer,
     AppServerMinimal as AppServerMinimal,
     AppServerMinimalImd as AppServerMinimalImd,

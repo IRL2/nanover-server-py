@@ -4,8 +4,8 @@ from logging import getLogger
 import msgpack
 from websockets.sync.client import ClientConnection, connect
 
+from nanover.core import MAX_MESSAGE_SIZE
 from nanover.core.commands import CommandMessageHandler
-from nanover.server.server import MAX_MESSAGE_SIZE
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.packing import fallback_encoder
