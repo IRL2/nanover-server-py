@@ -4,7 +4,7 @@ from contextlib import suppress
 from typing import Any
 
 from nanover.core import AppServer, AppServerMinimalImd
-from nanover.essd import DiscoveryClient, ServiceHub
+from nanover.essd import DiscoveryClient
 from nanover.imd import ImdStateWrapper
 from nanover.trajectory import FrameData, FramePublisher
 from nanover.trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
@@ -174,21 +174,6 @@ class NanoverImdClient(
 
     def get_shared_value(self, key: str, default=None):
         return self._state_dictionary.copy_content().get(key, default)
-
-
-def get_websocket_address_from_hub(hub: ServiceHub, *, host: str | None = None):
-    parts = hub.get_service_address("ws")
-    assert parts is not None
-    host_, port = parts
-    address = f"ws://{host or host_}:{port}"
-    return address
-
-
-def get_websocket_address_from_app_server(app_server: AppServer):
-    """
-    Retrieve the advertised address for connecting to a server over insecure websocket (ws) protocol.
-    """
-    return get_websocket_address_from_hub(app_server.service_hub, host="localhost")
 
 
 def _search_for_first_server_with_name(
