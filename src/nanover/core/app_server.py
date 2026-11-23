@@ -89,3 +89,21 @@ def basic_info_string(app_server: AppServer):
         if discovery
         else "without discovery"
     )
+
+
+def get_websocket_address_from_app_server(app_server: AppServer):
+    """
+    Retrieve the advertised address for connecting to a server over insecure websocket (ws) protocol.
+    """
+    return get_websocket_address_from_hub(app_server.service_hub, host="localhost")
+
+
+def get_websocket_address_from_hub(hub: ServiceHub, *, host: str | None = None):
+    parts = hub.get_service_address("ws")
+    assert parts is not None
+    host_, port = parts
+    address = f"ws://{host or host_}:{port}"
+    return address
+
+
+MAX_MESSAGE_SIZE = 128 * 1024 * 1024

@@ -18,7 +18,7 @@ from nanover.testing.strategies import (
 from nanover.testing.utilities import simplify_numpy
 from nanover.trajectory import keys
 from nanover.utilities.change_buffers import DictionaryChange
-from nanover.websocket.client.app_client import NanoverImdClient
+from nanover.client import NanoverImdClient
 
 
 def echo(**arguments):

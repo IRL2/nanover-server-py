@@ -3,12 +3,12 @@ from dataclasses import dataclass
 
 from nanover.app import NanoverImdApplication
 from nanover.core import AppServer
+from nanover.server.server import WebSocketServer
 from nanover.testing import assert_equal_soon
 from nanover.testing.utilities import simplify_numpy
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.websocket import NanoverImdClient
-from nanover.websocket.server import WebSocketServer
 
 
 @contextmanager

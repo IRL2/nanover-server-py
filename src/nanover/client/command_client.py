@@ -1,8 +1,8 @@
 from concurrent.futures import Future
 
+from nanover.client.base_client import WebsocketClient
 from nanover.core.app_server import CommandService
 from nanover.core.types import CommandHandler, CommandRegistration
-from nanover.websocket.client.base_client import WebsocketClient
 
 
 class CommandClient(WebsocketClient, CommandService):

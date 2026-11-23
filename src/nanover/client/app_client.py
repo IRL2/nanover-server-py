@@ -4,13 +4,13 @@ from contextlib import suppress
 from typing import Any
 
 from nanover.core import AppServer, AppServerMinimalImd
-from nanover.essd import DiscoveryClient, ServiceHub
+from nanover.essd import DiscoveryClient
+from nanover.imd import ImdStateWrapper
 from nanover.trajectory import FrameData, FramePublisher
+from nanover.trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.network import get_local_ip
 
-from ...imd import ImdStateWrapper
-from ...trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
 from .command_client import CommandClient
 from .interaction_client import InteractionClient
 from .playback_client import PlaybackClient
@@ -140,19 +140,6 @@ class NanoverImdClient(
         """
         return MINIMUM_USABLE_FRAME_KEYS < self.current_frame.frame_dict.keys()
 
-    def wait_until_first_frame(self, check_interval=0.01, timeout=1):
-        import warnings
-
-        warnings.warn(
-            "Use `wait_until_minimum_usable_frame` instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        return self.wait_until_minimum_usable_frame(
-            check_interval=check_interval, timeout=timeout
-        )
-
     def wait_until_minimum_usable_frame(self, check_interval=0.01, timeout=1):
         """
         Wait until the client has basic topology information and particle
@@ -187,21 +174,6 @@ class NanoverImdClient(
 
     def get_shared_value(self, key: str, default=None):
         return self._state_dictionary.copy_content().get(key, default)
-
-
-def get_websocket_address_from_hub(hub: ServiceHub, *, host: str | None = None):
-    parts = hub.get_service_address("ws")
-    assert parts is not None
-    host_, port = parts
-    address = f"ws://{host or host_}:{port}"
-    return address
-
-
-def get_websocket_address_from_app_server(app_server: AppServer):
-    """
-    Retrieve the advertised address for connecting to a server over insecure websocket (ws) protocol.
-    """
-    return get_websocket_address_from_hub(app_server.service_hub, host="localhost")
 
 
 def _search_for_first_server_with_name(

@@ -10,7 +10,7 @@ from nanover.ase.imd_calculator import (
 )
 from nanover.ase.null_calculator import NullCalculator
 from nanover.imd.particle_interaction import ParticleInteraction
-from nanover.websocket.client.app_client import NanoverImdClient
+from nanover.client import NanoverImdClient
 from util import app_server, c_atoms, client_interaction, co_atoms, state_wrapper
 
 

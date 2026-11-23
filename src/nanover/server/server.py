@@ -9,8 +9,9 @@ from typing import Protocol, Self
 import msgpack
 from websockets.sync.server import Server, ServerConnection, serve
 
-from nanover.core import AppServer
+from nanover.core import MAX_MESSAGE_SIZE, AppServer
 from nanover.core.commands import CommandMessageHandler
+from nanover.server.landing import make_landing_page_server
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import (
     DictionaryChange,
@@ -18,9 +19,6 @@ from nanover.utilities.change_buffers import (
 )
 from nanover.utilities.cli import CancellationToken
 from nanover.utilities.packing import fallback_encoder
-from nanover.websocket.landing import make_landing_page_server
-
-MAX_MESSAGE_SIZE = 128 * 1024 * 1024
 
 
 class ServerLike(Protocol):
@@ -38,7 +36,7 @@ class WebSocketServer:
         port: int = 0,
         ssl: SSLContext | None = None,
         insecure=True,
-    ) -> "WebSocketServer":
+    ) -> Self:
         """
         Create a server for the given AppServer, listening for connection over one or both of insecure (ws) and
         secure (wss) websockets.
