@@ -11,9 +11,9 @@ import argparse
 import textwrap
 import time
 
+from nanover.app.record import BackgroundRecordingContext
 from nanover.core import get_websocket_address_from_hub
 from nanover.essd import DiscoveryClient
-from nanover.recording.record import BackgroundRecordingContext
 from nanover.utilities.cli import suppress_keyboard_interrupt_as_cancellation
 
 

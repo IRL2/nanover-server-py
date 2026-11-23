@@ -13,13 +13,12 @@ from glob import glob
 
 from MDAnalysis import Universe
 
-from nanover.app import OmniRunner
+from nanover.app import OmniRunner, record_from_runner
 from nanover.app.discovery import DiscoveryEndpoint
-from nanover.client.app_client import NanoverImdClient
+from nanover.client import NanoverImdClient
 from nanover.mdanalysis import UniverseSimulation
 from nanover.openmm import OpenMMSimulation
 from nanover.recording import PlaybackSimulation
-from nanover.recording.record import record_from_runner
 from nanover.utilities.certificates import (
     fetch_or_generate_self_signed_certificate_context,
 )

@@ -8,6 +8,7 @@ import numpy as np
 from ipywidgets import Output
 
 from nanover.app import OmniRunner
+from nanover.app.record import BackgroundRecordingContext, record_from_runner
 from nanover.app.selection import (
     INTERACTION_METHOD_DEFAULT,
     KEY_PROPERTY_HIDE,
@@ -23,7 +24,6 @@ from nanover.core.types import CommandHandler
 from nanover.imd import ParticleInteraction
 from nanover.imd.imd_state import interaction_to_dict
 from nanover.mdanalysis import frame_data_to_mdanalysis
-from nanover.recording.record import BackgroundRecordingContext, record_from_runner
 from nanover.trajectory import FrameData
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.transforms import Transform, matrix_from_state_transform
