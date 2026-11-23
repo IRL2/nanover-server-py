@@ -7,14 +7,15 @@ from concurrent.futures import Future
 from ssl import SSLContext
 from typing import Any
 
+from nanover.core import AppServer
 from nanover.core.commands import CommandHandler, CommandService
 from nanover.essd import DiscoveryServer, ServiceHub
+from nanover.imd import ImdStateWrapper
+from nanover.server import WebSocketServer
 from nanover.trajectory import FramePublisher
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.state_dictionary import StateDictionary
 
-from ..core import AppServer
-from ..imd import ImdStateWrapper
 from .multiuser import add_multiuser_commands
 
 DEFAULT_SERVE_ADDRESS = "[::]"
@@ -150,8 +151,6 @@ class NanoverImdApplication(AppServer):
     def serve_websocket(
         self, *, insecure=True, ssl: SSLContext | None = None, port: int = 0
     ):
-        from nanover.server.server import WebSocketServer
-
         self._server_ws = WebSocketServer.basic_server(
             self, insecure=insecure, ssl=ssl, port=port
         )
