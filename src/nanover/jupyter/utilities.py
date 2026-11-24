@@ -1,4 +1,5 @@
 import logging
+from abc import ABC, abstractmethod
 from collections.abc import Iterable, Sequence
 from functools import partial
 from itertools import count
@@ -33,7 +34,7 @@ from . import show_runner_controls
 from .modes import Mode
 
 
-class NanoverSharedUtilities:
+class NanoverSharedUtilities(ABC):
     def __init__(self, app_server: AppServerMinimalImd):
         self.app_server = app_server
         self.objects = SceneObjectsUtility(app_server)
@@ -42,6 +43,22 @@ class NanoverSharedUtilities:
         self.selections = SelectionsUtility(app_server)
         self.transforms = TransformsUtility(app_server)
         self.handles = TransformHandlesUtility(app_server)
+
+    @property
+    def scene_transform(self) -> Transform:
+        return self.transforms.fetch_transform("simulation") or Transform.identity().flipped
+
+    @scene_transform.setter
+    def scene_transform(self, value: Transform):
+        self.transforms.update_transform("simulation", parent="root", transform=value)
+
+    @property
+    @abstractmethod
+    def current_frame(self) -> FrameData: ...
+
+    @property
+    def box_size(self):
+        return np.linalg.norm(self.current_frame.box_vectors, axis=1)
 
 
 class NanoverClientUtilities(NanoverSharedUtilities):
@@ -80,10 +97,6 @@ class NanoverServerUtilities(NanoverSharedUtilities):
     @property
     def current_frame(self) -> FrameData:
         return self.app_server.frame_publisher.current_frame or FrameData()
-
-    @property
-    def scene_transform(self) -> Transform:
-        return self.transforms.fetch_transform("simulation") or Transform.identity()
 
     def show_logging(self):
         output = Output()

@@ -110,6 +110,12 @@ class Transform:
     def parent_to_local_matrix(self):
         return self._parent_to_local
 
+    @property
+    def flipped(self):
+        return Transform.from_local_to_parent_matrix(
+            np.diagflat((-1, 1, 1, 1)) @ self.local_to_parent_matrix
+        )
+
     def inverted(self):
         return Transform(
             local_to_parent=self.parent_to_local_matrix,
@@ -136,6 +142,9 @@ class Transform:
             parts.append(f"rotate[{a[0]:.1f}deg, {a[1]:.1f}deg, {a[2]:.1f}deg]")
         if not np.allclose(s, [1, 1, 1]):
             parts.append(f"scale[{s[0]:.1f}, {s[1]:.1f}, {s[2]:.1f}]")
+
+        if not parts:
+            return "<Transform identity>"
 
         return f"<Transform of {' '.join(parts)}>"
 
