@@ -46,7 +46,10 @@ class NanoverSharedUtilities(ABC):
 
     @property
     def scene_transform(self) -> Transform:
-        return self.transforms.fetch_transform("simulation") or Transform.identity().flipped
+        return (
+            self.transforms.fetch_transform("simulation")
+            or Transform.identity().flipped
+        )
 
     @scene_transform.setter
     def scene_transform(self, value: Transform):
@@ -59,6 +62,21 @@ class NanoverSharedUtilities(ABC):
     @property
     def box_size(self):
         return np.linalg.norm(self.current_frame.box_vectors, axis=1)
+
+    def copy_shared_state(self):
+        return self.app_server.copy_state()
+
+    def get_shared_state_value(self, key: str, default=None):
+        with self.app_server.lock_state() as state:
+            return state.get(key, default)
+
+    def set_shared_state_value(self, key: str, value):
+        self.app_server.update_state(DictionaryChange(updates={key: value}))
+
+    def hide_solvent(self):
+        universe = frame_data_to_mdanalysis(self.current_frame)
+        indices = universe.select_atoms("resname HOH").indices
+        self.selections.update_selection("solvent", particle_ids=indices, hide=True)
 
 
 class NanoverClientUtilities(NanoverSharedUtilities):
@@ -117,13 +135,6 @@ class NanoverServerUtilities(NanoverSharedUtilities):
             if command.endswith("/notify"):
                 self.runner.app_server.run_command(command, kwargs)
 
-    def get_shared_state_value(self, key: str, default=None):
-        with self.runner.app_server.lock_state() as state:
-            return state.get(key, default)
-
-    def set_shared_state_value(self, key: str, value):
-        self.runner.app_server.update_state(DictionaryChange(updates={key: value}))
-
     def define_command(
         self, key: str, *, handler: CommandHandler, icon="❓", label="unnamed command"
     ):
@@ -133,12 +144,6 @@ class NanoverServerUtilities(NanoverSharedUtilities):
 
     def remove_command(self, key):
         self.runner.app_server.unregister_command(key)
-
-    def hide_solvent(self):
-        frame_data = self.runner.app_server.frame_publisher.current_frame
-        universe = frame_data_to_mdanalysis(frame_data)
-        indices = universe.select_atoms("resname HOH").indices
-        self.selections.update_selection("solvent", particle_ids=indices, hide=True)
 
     def show_controls(self):
         show_runner_controls(self.runner)
