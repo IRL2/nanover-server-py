@@ -1,4 +1,7 @@
+import math
+
 import numpy as np
+from MDAnalysis.lib.transformations import quaternion_from_matrix, rotation_matrix
 
 from nanover.core import AppServerMinimalImd
 from nanover.imd import ParticleInteraction
@@ -6,6 +9,15 @@ from nanover.jupyter import ImdAgent
 from nanover.jupyter.ghosts import GhostMoleculeObject
 from nanover.jupyter.utilities import TransformsUtility
 from nanover.trajectory import FrameData
+from nanover.utilities.transforms import (
+    _transform_vec3s,
+    find_transformation_between_point_patterns,
+)
+
+
+def make_arc(*, axis, forward, angle, count=8):
+    da = angle / (count - 1)
+    return [forward @ rotation_matrix(i * da, axis)[:3, :3] for i in range(count)]
 
 
 class GhostFollowerAgent(ImdAgent):
@@ -37,6 +49,51 @@ class GhostFollowerAgent(ImdAgent):
         target_centroid = target_positions.mean(axis=0)
         real_centroid = real_positions.mean(axis=0)
 
+        t = find_transformation_between_point_patterns(target_positions, real_positions)
+        q = quaternion_from_matrix(t)
+        w, xyz = q[0], q[1:]
+        angle = math.degrees(2 * math.acos(w))
+        axis = xyz / np.sqrt(1 - w * w)
+        axis /= np.linalg.norm(axis)
+
+        delta = target_centroid - real_centroid
+
+        f = np.cross(axis, [0, 0, 1])
+        f /= np.linalg.norm(f)
+
+        arc = make_arc(axis=axis, forward=f, angle=math.radians(angle))
+        self.ghost.visuals.update_line(
+            f"{key}.error.angle.arc",
+            positions=[
+                target_centroid,
+                *real_centroid + np.array(arc) * 0.5 + delta,
+                target_centroid,
+            ],
+            size=0.02,
+            color=[1, 0, 1, 1],
+        )
+
+        for i, position in enumerate(_transform_vec3s(t, target_positions)):
+            self.ghost.visuals.update_shape(
+                f"{key}.check.{i}",
+                position=position + delta,
+                size=0.1,
+                color=[1.0, 0.0, 1.0, 0.5],
+            )
+
+        self.ghost.visuals.update_line(
+            f"{key}.error.axis",
+            positions=[real_centroid - axis + delta, real_centroid + axis + delta],
+            size=0.01,
+            color=[1, 0, 1, 1],
+        )
+
+        self.ghost.visuals.update_label(
+            f"{key}.error.angle",
+            text=f"error: {angle:.0f}deg",
+            position=target_centroid + axis,
+        )
+
         self.ghost.visuals.update_line(
             f"{key}.follow.centroid",
             positions=[real_centroid, target_centroid],
@@ -63,7 +120,7 @@ class GhostFollowerAgent(ImdAgent):
         rotational = real_positions + (rotational_target - rotational_real)
 
         for i, index in enumerate(atom_indices):
-            if close:
+            if close and angle > 15:
                 self.ghost.visuals.update_line(
                     f"{key}.follow.{i}",
                     positions=[rotational[i], real_positions[i]],
@@ -76,8 +133,8 @@ class GhostFollowerAgent(ImdAgent):
                         position=rotational[i],
                         particles=[int(index)],
                         type="spring",
-                        scale=100,
-                        max_force=50,
+                        scale=self.force_scale / len(atom_indices),
+                        max_force=self.force_limit / len(atom_indices),
                     ),
                 )
             else:
