@@ -65,6 +65,17 @@ class Transform:
         return cls.from_local_to_parent_matrix(np.identity(4))
 
     @classmethod
+    def x_axis_flip(cls):
+        return cls.from_local_to_parent_matrix(np.diagflat((-1, 1, 1, 1)))
+
+    @classmethod
+    def from_stack(cls, *transforms):
+        local_to_parent = np.identity(4)
+        for transform in transforms:
+            local_to_parent @= transform.local_to_parent_matrix
+        return Transform.from_local_to_parent_matrix(local_to_parent)
+
+    @classmethod
     def from_translation(cls, translation: Iterable[float]):
         tx, ty, tz, *_ = translation
         return cls.from_state_transform((tx, ty, tz))
@@ -110,6 +121,12 @@ class Transform:
     def parent_to_local_matrix(self):
         return self._parent_to_local
 
+    @property
+    def flipped(self):
+        return Transform.from_local_to_parent_matrix(
+            np.diagflat((-1, 1, 1, 1)) @ self.local_to_parent_matrix
+        )
+
     def inverted(self):
         return Transform(
             local_to_parent=self.parent_to_local_matrix,
@@ -136,6 +153,9 @@ class Transform:
             parts.append(f"rotate[{a[0]:.1f}deg, {a[1]:.1f}deg, {a[2]:.1f}deg]")
         if not np.allclose(s, [1, 1, 1]):
             parts.append(f"scale[{s[0]:.1f}, {s[1]:.1f}, {s[2]:.1f}]")
+
+        if not parts:
+            return "<Transform identity>"
 
         return f"<Transform of {' '.join(parts)}>"
 
