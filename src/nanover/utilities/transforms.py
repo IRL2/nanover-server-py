@@ -65,6 +65,17 @@ class Transform:
         return cls.from_local_to_parent_matrix(np.identity(4))
 
     @classmethod
+    def x_axis_flip(cls):
+        return cls.from_local_to_parent_matrix(np.diagflat((-1, 1, 1, 1)))
+
+    @classmethod
+    def from_stack(cls, *transforms):
+        local_to_parent = np.identity(4)
+        for transform in transforms:
+            local_to_parent @= transform.local_to_parent_matrix
+        return Transform.from_local_to_parent_matrix(local_to_parent)
+
+    @classmethod
     def from_translation(cls, translation: Iterable[float]):
         tx, ty, tz, *_ = translation
         return cls.from_state_transform((tx, ty, tz))
