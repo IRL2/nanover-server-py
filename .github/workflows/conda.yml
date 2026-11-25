@@ -21,6 +21,7 @@ jobs:
         run: conda install -y python conda-build conda-verify
       - name: Building the Conda packages
         run: |
+          printf '%s\n' "$NANOVER_BUILD_VERSION" > VERSION.txt
           mkdir conda
           mv conda-meta.yaml conda/meta.yaml
           conda-build --prefix-length=100 --no-test --no-anaconda-upload conda
