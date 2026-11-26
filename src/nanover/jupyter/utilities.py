@@ -1,8 +1,11 @@
+import dataclasses
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
 from functools import partial
 from itertools import count
+from os import PathLike
 from typing import Any, TypedDict
 
 import numpy as np
@@ -111,6 +114,7 @@ class NanoverServerUtilities(NanoverSharedUtilities):
         super().__init__(runner.app_server)
         self.runner = runner
         self.modes = ModesManager(self)
+        self.resources = ResourcesManager(self)
 
     @property
     def current_frame(self) -> FrameData:
@@ -318,6 +322,46 @@ class ModesManager:
         self._modes.clear()
         self._modes["normal"] = Mode()
         self.enter_mode()
+
+
+@dataclass(kw_only=True)
+class ResourceRecord:
+    key: str
+    type: str
+    path: PathLike[str] | str
+
+
+class ResourcesManager:
+    def __init__(self, utilities: NanoverServerUtilities):
+        self._utilities = utilities
+        self._resources: dict[str, ResourceRecord] = {}
+
+        # xr client knows to use this command to retrieve image data
+        utilities.define_command("resources/fetch", handler=self.fetch_resource)
+
+    def fetch_resource(self, key: str):
+        asset = self._resources.get(key, None)
+
+        if asset is None:
+            return {}
+
+        with open(asset.path, "rb") as file:
+            return {"data": file.read()}
+
+    def update_resource(self, key: str, *, type: str, path: str):
+        self._resources[key] = ResourceRecord(key=key, type=type, path=path)
+        self._refresh()
+
+    def remove_resource(self, key: str):
+        self._resources.pop(key, None)
+        self._refresh()
+
+    def _refresh(self):
+        index = {
+            key: dataclasses.asdict(resource)
+            for key, resource in self._resources.items()
+        }
+        self._utilities.set_shared_state_value("resources.index", index)
 
 
 class StateKeysUtility:
