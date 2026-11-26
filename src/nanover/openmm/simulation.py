@@ -43,12 +43,14 @@ class OpenMMSimulation(NanoverSimulation):
         :param simulation: An existing OpenMM Simulation
         :param name: An optional name for the simulation instead of default
         """
-        loader = Loader(lambda _: LoadedSetup.from_simulation(simulation))
+        loader = Loader[OpenMMSimulation](
+            lambda _: LoadedSetup.from_simulation(simulation)
+        )
         return cls(loader, name)
 
     @classmethod
     def from_bundle_path(cls, path: str | PathLike[str], *, name: str | None = None):
-        loader = Loader(lambda _: LoadedSetup.from_bundle_path(path))
+        loader = Loader[OpenMMSimulation](lambda _: LoadedSetup.from_bundle_path(path))
         return cls(loader, name if name is not None else Path(path).stem)
 
     @classmethod
@@ -59,10 +61,10 @@ class OpenMMSimulation(NanoverSimulation):
         :param path: Path of the NanoVer OpenMM XML file
         :param name: An optional name for the simulation instead of filename
         """
-        loader = Loader(lambda _: LoadedSetup.from_bundle_path(path))
+        loader = Loader[OpenMMSimulation](lambda _: LoadedSetup.from_bundle_path(path))
         return cls(loader, name if name is not None else Path(path).stem)
 
-    def __init__(self, loader: "Loader", name: str | None = None):
+    def __init__(self, loader: "Loader[OpenMMSimulation]", name: str | None = None):
         self.name = name or "Unnamed OpenMM Simulation"
 
         self.xml_path: PathLike[str] | None = None
@@ -214,7 +216,7 @@ class OpenMMSimulation(NanoverSimulation):
         state = setup.simulation.context.getState(
             getPositions=True,
             getEnergy=True,
-            enforcePeriodicBox=self.use_pbc_wrapping,
+            enforcePeriodicBox=self.use_pbc_wrapping or False,
         )
         topology = setup.simulation.topology
         frame_data = openmm_to_frame_data(state=state, topology=topology)
@@ -236,7 +238,7 @@ class OpenMMSimulation(NanoverSimulation):
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
-            enforcePeriodicBox=self.use_pbc_wrapping,
+            enforcePeriodicBox=self.use_pbc_wrapping or False,
             groups=NON_IMD_FORCES_GROUP_MASK,
         )
 
@@ -307,17 +309,17 @@ class LoadedSetup:
         )
 
 
-class Loader:
+class Loader[T]:
     setup: LoadedSetup | None = None
-    _load: Callable[[OpenMMSimulation], LoadedSetup]
+    _load: Callable[[T], LoadedSetup]
 
-    def __init__(self, load: Callable[[OpenMMSimulation], LoadedSetup]):
+    def __init__(self, load: Callable[[T], LoadedSetup]):
         self._load = load
 
-    def load(self, simulation: OpenMMSimulation) -> LoadedSetup:
+    def load(self, config: T) -> LoadedSetup:
         if self.setup is not None:
             return self.setup
 
-        setup = self._load(simulation)
+        setup = self._load(config)
         self.setup = setup
         return setup
