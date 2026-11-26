@@ -24,19 +24,19 @@ from nanover.app.selection import (
     RENDERER_DEFAULT,
 )
 from nanover.client.app_client import NanoverImdClient
+from nanover.core import AppServerMinimalImd
 from nanover.core.app_server import StateService
 from nanover.core.types import CommandHandler
 from nanover.imd import ParticleInteraction
 from nanover.imd.imd_state import interaction_to_dict
 from nanover.mdanalysis import frame_data_to_mdanalysis
 from nanover.trajectory import FrameData
+from nanover.trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.transforms import Transform, matrix_from_state_transform
 
-from ..core import AppServerMinimalImd
 from . import show_runner_controls
 from .modes import Mode
-from ..trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
 
 
 class NanoverSharedUtilities(ABC):
