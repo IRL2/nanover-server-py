@@ -49,10 +49,7 @@ class NanoverSharedUtilities(ABC):
 
     @property
     def scene_transform(self) -> Transform:
-        return (
-            self.transforms.fetch_transform("simulation")
-            or Transform.identity().flipped
-        )
+        return self.transforms.fetch_transform("simulation") or Transform.x_axis_flip()
 
     @scene_transform.setter
     def scene_transform(self, value: Transform):

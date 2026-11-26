@@ -121,12 +121,6 @@ class Transform:
     def parent_to_local_matrix(self):
         return self._parent_to_local
 
-    @property
-    def flipped(self):
-        return Transform.from_local_to_parent_matrix(
-            np.diagflat((-1, 1, 1, 1)) @ self.local_to_parent_matrix
-        )
-
     def inverted(self):
         return Transform(
             local_to_parent=self.parent_to_local_matrix,

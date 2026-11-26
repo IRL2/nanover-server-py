@@ -15,6 +15,7 @@ from nanover.server import WebSocketServer
 from nanover.trajectory import FramePublisher
 from nanover.utilities.change_buffers import DictionaryChange
 from nanover.utilities.state_dictionary import StateDictionary
+from nanover.utilities.transforms import Transform
 
 from .multiuser import add_multiuser_commands
 
@@ -280,6 +281,13 @@ def qualified_server_name(base_name: str):
 _SHIM_TOKEN = "SCENE_UPDATE_SHIM"
 
 
+def flip_state_transform(state_transform):
+    return Transform.from_stack(
+        Transform.from_state_transform(state_transform),
+        Transform.x_axis_flip(),
+    ).to_state_transform()
+
+
 def add_scene_update_shim(app: NanoverImdApplication):
     """Keep old and new scene pose/transform in sync for compatibility."""
 
@@ -290,20 +298,27 @@ def add_scene_update_shim(app: NanoverImdApplication):
 
         # if old scene pose or new scene transform are updated, update the other one with flipped x scale
         if "scene" in change.updates:
-            d = list(change.updates["scene"])
-            d[-3] *= -1
+            simulation_transform = flip_state_transform(change.updates["scene"])
+
             app.state_dictionary.update_state(
                 _SHIM_TOKEN,
                 DictionaryChange(
-                    updates={"transform.simulation": {"transform": d, "parent": "root"}}
+                    updates={
+                        "transform.simulation": {
+                            "transform": simulation_transform,
+                            "parent": "root",
+                        }
+                    }
                 ),
             )
         elif "transform.simulation" in change.updates:
-            d = list(change.updates["transform.simulation"]["transform"])
-            d[-3] *= -1
+            scene_transform = flip_state_transform(
+                change.updates["transform.simulation"]["transform"]
+            )
+
             app.state_dictionary.update_state(
                 _SHIM_TOKEN,
-                DictionaryChange(updates={"scene": d}),
+                DictionaryChange(updates={"scene": scene_transform}),
             )
 
     app.state_dictionary.content_updated.add_callback(on_update)
