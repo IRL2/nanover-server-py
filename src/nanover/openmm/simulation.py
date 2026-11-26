@@ -93,6 +93,12 @@ class OpenMMSimulation(NanoverSimulation):
         self._prev_imd_forces: np.ndarray | None = None
         self._prev_imd_indices: np.ndarray | None = None
 
+    @property
+    def simulation(self):
+        if self.loader.setup is not None:
+            return self.loader.setup.simulation
+        return None
+
     def load(self):
         """
         Load and set up the simulation if it isn't done already.
@@ -164,7 +170,7 @@ class OpenMMSimulation(NanoverSimulation):
         # fetch positions early, for updating imd
         state = setup.simulation.context.getState(
             getPositions=True,
-            enforcePeriodicBox=self.use_pbc_wrapping or False,
+            enforcePeriodicBox=self.use_pbc_wrapping is not False,
         )
         positions = state.getPositions(asNumpy=True).value_in_unit(nanometer)
 
@@ -216,7 +222,7 @@ class OpenMMSimulation(NanoverSimulation):
         state = setup.simulation.context.getState(
             getPositions=True,
             getEnergy=True,
-            enforcePeriodicBox=self.use_pbc_wrapping or False,
+            enforcePeriodicBox=self.use_pbc_wrapping is not False,
         )
         topology = setup.simulation.topology
         frame_data = openmm_to_frame_data(state=state, topology=topology)
@@ -238,7 +244,7 @@ class OpenMMSimulation(NanoverSimulation):
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
-            enforcePeriodicBox=self.use_pbc_wrapping or False,
+            enforcePeriodicBox=self.use_pbc_wrapping is not False,
             groups=NON_IMD_FORCES_GROUP_MASK,
         )
 
