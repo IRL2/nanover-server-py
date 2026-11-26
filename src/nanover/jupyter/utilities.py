@@ -1,5 +1,6 @@
 import dataclasses
 import logging
+import time
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
@@ -35,6 +36,7 @@ from nanover.utilities.transforms import Transform, matrix_from_state_transform
 from ..core import AppServerMinimalImd
 from . import show_runner_controls
 from .modes import Mode
+from ..trajectory.frame_dict import MINIMUM_USABLE_FRAME_KEYS
 
 
 class NanoverSharedUtilities(ABC):
@@ -58,6 +60,33 @@ class NanoverSharedUtilities(ABC):
     @property
     @abstractmethod
     def current_frame(self) -> FrameData: ...
+
+    @property
+    def has_minimum_usable_frame(self):
+        """
+        True if the current frame contains basic topology and particle positions.
+        """
+        return MINIMUM_USABLE_FRAME_KEYS < self.current_frame.frame_dict.keys()
+
+    def wait_until_minimum_usable_frame(self, check_interval=0.01, timeout=1):
+        """
+        Wait until the client has basic topology information and particle
+        positions.
+
+        :param check_interval: Interval at which to check if a frame has been
+            received.
+        :param timeout: Timeout after which to stop waiting for a frame.
+        :return: The current :class:`FrameData` containing basic topology and positions.
+        :raises Exception: if no frame is received.
+        """
+        endtime = 0 if timeout is None else time.monotonic() + timeout
+
+        while not self.has_minimum_usable_frame:
+            if 0 < endtime < time.monotonic():
+                raise TimeoutError("Timed out waiting for basic topology.")
+            time.sleep(check_interval)
+
+        return self.current_frame
 
     @property
     def box_size(self):
