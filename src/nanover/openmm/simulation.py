@@ -1,9 +1,12 @@
+from collections.abc import Callable
+from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-from openmm.app import Simulation, StateDataReporter
+from openmm import CustomExternalForce
+from openmm.app import Simulation
 from openmm.unit import nanometer
 
 from nanover.core import AppServer, Simulation as NanoverSimulation
@@ -17,7 +20,6 @@ from .imd import (
     NON_IMD_FORCES_GROUP_MASK,
     ImdForceManager,
     add_imd_force_to_system,
-    create_imd_force,
 )
 from .thermo import compute_dof, compute_instantaneous_temperature
 
@@ -41,19 +43,15 @@ class OpenMMSimulation(NanoverSimulation):
         :param simulation: An existing OpenMM Simulation
         :param name: An optional name for the simulation instead of default
         """
-        sim = cls(name)
-        sim.simulation = simulation
-        sim.imd_force = add_imd_force_to_system(simulation.system)
-        sim.simulation.context.reinitialize(preserveState=True)
-        sim.determine_pbcs()
-
-        sim.checkpoint = sim.simulation.context.createCheckpoint()
-
-        return sim
+        loader = Loader[OpenMMSimulation](
+            lambda _: LoadedSetup.from_simulation(simulation)
+        )
+        return cls(loader, name)
 
     @classmethod
     def from_bundle_path(cls, path: str | PathLike[str], *, name: str | None = None):
-        return cls.from_xml_path(path, name=name)
+        loader = Loader[OpenMMSimulation](lambda _: LoadedSetup.from_bundle_path(path))
+        return cls(loader, name if name is not None else Path(path).stem)
 
     @classmethod
     def from_xml_path(cls, path: str | PathLike[str], *, name: str | None = None):
@@ -63,18 +61,16 @@ class OpenMMSimulation(NanoverSimulation):
         :param path: Path of the NanoVer OpenMM XML file
         :param name: An optional name for the simulation instead of filename
         """
-        path = Path(path)
-        if name is None:
-            name = path.stem
-        sim = cls(name)
-        sim.xml_path = path
-        return sim
+        loader = Loader[OpenMMSimulation](lambda _: LoadedSetup.from_bundle_path(path))
+        return cls(loader, name if name is not None else Path(path).stem)
 
-    def __init__(self, name: str | None = None):
+    def __init__(self, loader: "Loader[OpenMMSimulation]", name: str | None = None):
         self.name = name or "Unnamed OpenMM Simulation"
 
         self.xml_path: PathLike[str] | None = None
         self.app_server: AppServer | None = None
+
+        self.loader = loader
 
         self.frame_interval = 5
         """Number of simulation steps to advance between frames."""
@@ -87,14 +83,8 @@ class OpenMMSimulation(NanoverSimulation):
         self.use_pbc_wrapping: bool | None = None
         """Provide atom positions wrapped according to PBC such that each molecule has a center of mass within the
         primary periodic box."""
-        self.pbc_vectors: np.ndarray | None = None
-        """Array of vectors defining the periodic box used by the simulation (if PBCs are employed)."""
         self.reset_energy: float | None = None
         """System's kinetic energy threshold for automatic reset"""
-        self.imd_force = create_imd_force()
-        self.simulation: Simulation | None = None
-        self.checkpoint: Any | None = None
-        self.verbose_reporter: StateDataReporter | None = None
         self.on_reset_energy_exceeded = Event()
         self.imd_force_manager: ImdForceManager | None = None
 
@@ -103,33 +93,17 @@ class OpenMMSimulation(NanoverSimulation):
         self._prev_imd_forces: np.ndarray | None = None
         self._prev_imd_indices: np.ndarray | None = None
 
-        self._dof: int | None = None
+    @property
+    def simulation(self):
+        if self.loader.setup is not None:
+            return self.loader.setup.simulation
+        return None
 
     def load(self):
         """
         Load and set up the simulation if it isn't done already.
         """
-        if self.xml_path is None or self.simulation is not None:
-            return
-
-        self.imd_force = create_imd_force()
-
-        if str(self.xml_path).endswith(".openmm.zip"):
-            self.simulation = unbundle_openmm_simulation(
-                self.xml_path,
-                imd_force=self.imd_force,
-                platform_name=self.platform_name,
-            )
-        else:
-            with open(self.xml_path) as infile:
-                self.simulation = serializer.deserialize_simulation(
-                    infile,
-                    imd_force=self.imd_force,
-                    platform_name=self.platform_name,
-                )
-
-        self.determine_pbcs()
-        self.checkpoint = self.simulation.context.createCheckpoint()
+        return self.loader.load(self)
 
     def reset(self, app_server: AppServer):
         """
@@ -138,16 +112,14 @@ class OpenMMSimulation(NanoverSimulation):
 
         :param app_server: The app server hosting the frame publisher and imd state
         """
-        assert self.simulation is not None and self.checkpoint is not None
+        setup = self.loader.load(self)
 
         self.app_server = app_server
         self.imd_force_manager = ImdForceManager(
             self.app_server.imd,
-            self.imd_force,
-            self.pbc_vectors if self.use_pbc_wrapping else None,
+            setup.imd_force,
+            setup.pbc_vectors if self.use_pbc_wrapping else None,
         )
-
-        self._dof = compute_dof(self.simulation.system)
 
         # reset imd and work
         self.work_done = 0.0
@@ -156,40 +128,14 @@ class OpenMMSimulation(NanoverSimulation):
         self._prev_imd_indices = None
 
         # reload initial state and cleanup forces
-        self.simulation.context.reinitialize()
-        self.simulation.context.loadCheckpoint(self.checkpoint)
+        setup.simulation.context.reinitialize()
+        setup.simulation.context.loadCheckpoint(setup.checkpoint)
 
         # send the initial topology frame
         frame_data = self.make_topology_frame()
         frame_data.simulation_name = self.name
-        self.app_server.frame_publisher.send_clear()
-        self.app_server.frame_publisher.send_frame(frame_data)
-
-        # verbose reporter
-        if (
-            self.verbose_reporter is not None
-            and self.verbose_reporter not in self.simulation.reporters
-        ):
-            self.simulation.reporters.append(self.verbose_reporter)
-
-    def determine_pbcs(self):
-        """
-        Determine whether the simulation uses periodic boundary conditions and if it does,
-        retrieve the periodic box vectors in nanometers.
-        """
-        assert self.simulation is not None
-
-        if self.use_pbc_wrapping is False:
-            return
-
-        self.use_pbc_wrapping = self.simulation.system.usesPeriodicBoundaryConditions()
-        if self.use_pbc_wrapping:
-            self.pbc_vectors = np.array(
-                [
-                    vector.value_in_unit(nanometer)
-                    for vector in self.simulation.system.getDefaultPeriodicBoxVectors()
-                ]
-            )
+        app_server.frame_publisher.send_clear()
+        app_server.frame_publisher.send_frame(frame_data)
 
     def advance_by_seconds(self, dt: float):
         """
@@ -209,24 +155,22 @@ class OpenMMSimulation(NanoverSimulation):
         """
         Step the simulation to the next point a frame should be reported, and send that frame.
         """
-        assert (
-            self.simulation is not None
-            and self.imd_force_manager is not None
-            and self.app_server is not None
-        )
+        assert self.imd_force_manager is not None and self.app_server is not None
+
+        setup = self.load()
 
         # determine step count for next frame
         steps_to_next_frame = (
-            self.frame_interval - self.simulation.currentStep % self.frame_interval
+            self.frame_interval - setup.simulation.currentStep % self.frame_interval
         )
 
         # advance the simulation
-        self.simulation.step(steps_to_next_frame)
+        setup.simulation.step(steps_to_next_frame)
 
         # fetch positions early, for updating imd
-        state = self.simulation.context.getState(
+        state = setup.simulation.context.getState(
             getPositions=True,
-            enforcePeriodicBox=self.use_pbc_wrapping or False,
+            enforcePeriodicBox=self.use_pbc_wrapping is not False,
         )
         positions = state.getPositions(asNumpy=True).value_in_unit(nanometer)
 
@@ -238,7 +182,7 @@ class OpenMMSimulation(NanoverSimulation):
             )
 
         # update imd forces and energies
-        self.imd_force_manager.update_interactions(self.simulation, positions)
+        self.imd_force_manager.update_interactions(setup.simulation, positions)
 
         # generate the next frame with the existing (still valid) positions
         frame_data = self.make_regular_frame(positions)
@@ -273,14 +217,14 @@ class OpenMMSimulation(NanoverSimulation):
         """
         Make a NanoVer FrameData corresponding to the current particle positions and topology of the simulation.
         """
-        assert self.simulation is not None
+        setup = self.load()
 
-        state = self.simulation.context.getState(
+        state = setup.simulation.context.getState(
             getPositions=True,
             getEnergy=True,
-            enforcePeriodicBox=self.use_pbc_wrapping or False,
+            enforcePeriodicBox=self.use_pbc_wrapping is not False,
         )
-        topology = self.simulation.topology
+        topology = setup.simulation.topology
         frame_data = openmm_to_frame_data(state=state, topology=topology)
         return frame_data
 
@@ -290,19 +234,17 @@ class OpenMMSimulation(NanoverSimulation):
 
         :param positions: Optionally provided particle positions to save fetching them again.
         """
-        assert (
-            self.simulation is not None
-            and self.imd_force_manager is not None
-            and self._dof is not None
-        )
+        assert self.imd_force_manager is not None
+
+        setup = self.load()
 
         # fetch omm state
-        state = self.simulation.context.getState(
+        state = setup.simulation.context.getState(
             getPositions=positions is None,
             getForces=self.include_forces,
             getVelocities=self.include_velocities,
             getEnergy=True,
-            enforcePeriodicBox=self.use_pbc_wrapping or False,
+            enforcePeriodicBox=self.use_pbc_wrapping is not False,
             groups=NON_IMD_FORCES_GROUP_MASK,
         )
 
@@ -318,7 +260,7 @@ class OpenMMSimulation(NanoverSimulation):
 
         # Assume that the KE is always available, which is true for this case
         frame_data.system_temperature = compute_instantaneous_temperature(
-            self.simulation, frame_data.kinetic_energy, self._dof
+            setup.simulation, frame_data.kinetic_energy, setup.dof
         )
 
         # add any provided positions
@@ -329,3 +271,61 @@ class OpenMMSimulation(NanoverSimulation):
         self.imd_force_manager.add_to_frame_data(frame_data)
 
         return frame_data
+
+
+@dataclass(kw_only=True)
+class LoadedSetup:
+    simulation: Simulation
+    checkpoint: Any
+    imd_force: CustomExternalForce
+    pbc_vectors: np.ndarray | None
+    dof: int
+
+    @classmethod
+    def from_bundle_path(cls, path: str | PathLike[str]):
+        return LoadedSetup.from_simulation(unbundle_openmm_simulation(path))
+
+    @classmethod
+    def from_xml_path(cls, path: str | PathLike[str]):
+        with open(path) as infile:
+            return serializer.deserialize_simulation(infile)
+
+    @classmethod
+    def from_simulation(cls, simulation: Simulation):
+        force = add_imd_force_to_system(simulation.system)
+        simulation.context.reinitialize(preserveState=True)
+        checkpoint = simulation.context.createCheckpoint()
+
+        pbc_vectors = None
+        uses_pbc_wrapping = simulation.system.usesPeriodicBoundaryConditions()
+        if uses_pbc_wrapping:
+            pbc_vectors = np.array(
+                [
+                    vector.value_in_unit(nanometer)
+                    for vector in simulation.system.getDefaultPeriodicBoxVectors()
+                ]
+            )
+
+        return LoadedSetup(
+            simulation=simulation,
+            imd_force=force,
+            checkpoint=checkpoint,
+            pbc_vectors=pbc_vectors,
+            dof=compute_dof(simulation.system),
+        )
+
+
+class Loader[T]:
+    setup: LoadedSetup | None = None
+    _load: Callable[[T], LoadedSetup]
+
+    def __init__(self, load: Callable[[T], LoadedSetup]):
+        self._load = load
+
+    def load(self, config: T) -> LoadedSetup:
+        if self.setup is not None:
+            return self.setup
+
+        setup = self._load(config)
+        self.setup = setup
+        return setup

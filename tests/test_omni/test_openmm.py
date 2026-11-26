@@ -604,7 +604,8 @@ def test_pbc_enforcement():
             yield from position
 
     # should default to not PBC wrapping coords
-    assert not sim.use_pbc_wrapping
+    use_pbc = sim.use_pbc_wrapping is not False and sim.load().pbc_vectors is not None
+    assert not use_pbc
 
     # without PBC wrapping, some coords should fall outside the box
     sim.use_pbc_wrapping = False
@@ -624,8 +625,8 @@ def test_imd_force_periodic_system(
     app, sim = basic_periodic_system_app_and_simulation_with_constant_force
 
     # Check PBCs of simulation
-    assert sim.use_pbc_wrapping
-    assert np.allclose(sim.pbc_vectors, BASIC_SIMULATION_BOX_VECTORS)
+    assert sim.use_pbc_wrapping is not False
+    assert np.allclose(sim.load().pbc_vectors, BASIC_SIMULATION_BOX_VECTORS)
 
     # Advance simulation by one step and retrieve frame
     sim.advance_by_one_step()
